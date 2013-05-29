@@ -56,7 +56,7 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SubBoundary(const std::string & id = "sub_boundary", const MemoryID & memory_id = 0);
+  SubBoundary(const std::string & name, const std::string & id = "sub_boundary", const MemoryID & memory_id = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Node iterator                                                            */

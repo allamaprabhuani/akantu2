@@ -39,10 +39,12 @@
 __BEGIN_AKANTU__
 
 
-SubBoundary::SubBoundary(const std::string & id,
-			 const MemoryID & mem_id) :
+SubBoundary::SubBoundary(const std::string & boundary_name,
+                         const std::string & id,
+                         const MemoryID & mem_id) :
   Memory(mem_id), Dumpable(std::string(id + ":dumper")),
   id(id),
+  name(boundary_name),
   nodes(alloc<UInt>(std::string(id + ":nodes"), 0, 1)),
   elements("elements", id, mem_id) {
 }

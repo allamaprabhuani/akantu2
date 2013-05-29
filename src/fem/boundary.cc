@@ -90,8 +90,7 @@ void Boundary::addElementAndNodesToBoundaryAlloc(const std::string & boundary_na
 
   const Array<UInt> & connectivity = mesh.getConnectivity(elem_type, ghost_type);
   if(boundaries_iter == boundaries.end()) {
-    // Manual construction of the sub-boundary ID
-    SubBoundary * sub_b = new SubBoundary(std::string(id + "_sub_boundary_" +boundary_name), memory_id);
+    SubBoundary * sub_b = new SubBoundary(boundary_name, std::string(id + ":sub_boundary:" + boundary_name), memory_id);
     boundaries_iter = boundaries.insert(boundaries_iter, std::pair<std::string, SubBoundary*>(boundary_name, sub_b));
   }
 
@@ -255,11 +254,28 @@ template<typename T>
 void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
 {
   UInt spatial_dimension = mesh.getSpatialDimension();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int prank = comm.whoAmI();
+  Int psize = comm.getNbProc();
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
     Mesh::type_iterator type_it = mesh.firstType(spatial_dimension - 1, *gt);
     Mesh::type_iterator type_end  = mesh.lastType(spatial_dimension - 1, *gt);
     for (; type_it != type_end; ++type_it) {
+      // Dirty check to assert that the processor has indeed this type of element
+      // associated to the dataset name
+      try {
+        mesh.getData<T>(*type_it, dataset_name, *gt);
+      } catch(akantu::debug::Exception e) {
+        if(psize == 1) {
+          AKANTU_DEBUG_ERROR("Error building the boundaries. Type " << *type_it << "/" << *gt << "not registered in dataset  \"" << dataset_name << "\".");
+        }
+        else {
+          AKANTU_DEBUG_INFO("Rank " << prank << " does not have any elements of type " << *type_it << "/" << *gt << "in dataset \"" << dataset_name << "\".");
+          continue;
+        }
+      }
+
       const Array<T> & dataset = mesh.getData<T>(*type_it, dataset_name, *gt);
       UInt nb_element = mesh.getNbElement(*type_it, *gt);
 
@@ -305,7 +321,7 @@ void Boundary::createSubBoundaryFromNodeGroup(const std::string & name,
   BoundaryList::iterator boundaries_iter = boundaries.find(name);
   if(boundaries_iter == boundaries.end()) {
     // Manual construction of the sub-boundary ID
-    SubBoundary * sub_b = new SubBoundary(std::string(id + "_sub_boundary_" + name), memory_id);
+    SubBoundary * sub_b = new SubBoundary(name, std::string(id + "_sub_boundary_" + name), memory_id);
     boundaries_iter = boundaries.insert(boundaries_iter, std::pair<std::string, SubBoundary*>(name, sub_b));
   }
 
@@ -322,19 +338,19 @@ void Boundary::createSubBoundaryFromNodeGroup(const std::string & name,
 
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(elem.type);
       Array<UInt>::const_iterator< Vector<UInt> > conn_it =
-	mesh.getConnectivity(elem.type, elem.ghost_type).begin(nb_nodes_per_element);
+      mesh.getConnectivity(elem.type, elem.ghost_type).begin(nb_nodes_per_element);
 
       const Vector<UInt> & conn = conn_it[elem.element];
       UInt count = 0;
       for (UInt n = 0; n < conn.size(); ++n) {
-	count += (node_group.find(conn(n)) != -1 ? 1 : 0);
+        count += (node_group.find(conn(n)) != -1 ? 1 : 0);
       }
 
       if(count == nb_nodes_per_element) {
-	sub_bound.addElement(elem.type, elem.element, elem.ghost_type);
-	for (UInt n(0); n < nb_nodes_per_element; n++) {
-	  sub_bound.addNode(conn(n));
-	}
+        sub_bound.addElement(elem.type, elem.element, elem.ghost_type);
+        for (UInt n(0); n < nb_nodes_per_element; n++) {
+          sub_bound.addNode(conn(n));
+        }
       }
 
       seen.insert(elem);
