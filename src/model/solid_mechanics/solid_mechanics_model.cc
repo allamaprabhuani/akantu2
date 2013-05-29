@@ -808,11 +808,15 @@ void SolidMechanicsModel::solveStatic() {
 
     Array<bool > * normal_boundary = new Array<bool > (nb_nodes, nb_degree_of_freedom, "normal_boundary");
     normal_boundary->clear();
-    UInt n_angles;
-    if(nb_degree_of_freedom==2)
+    UInt n_angles(0);
+    if(nb_degree_of_freedom==2) {
         n_angles=1;
-    else if(nb_degree_of_freedom==3)
+    }
+    else if(nb_degree_of_freedom==3) {
         n_angles=3;
+    } else {
+      AKANTU_DEBUG_ERROR("Invalid number of degrees if freedom in solveStatic.");
+    }
 
     Array<Real > * Euler_angles = new Array<Real > (nb_nodes, n_angles, "Euler_angles");
     Euler_angles->clear();

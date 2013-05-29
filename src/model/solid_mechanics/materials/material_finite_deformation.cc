@@ -42,7 +42,7 @@ delta_stress("delta_stress", id),
 delta_strain("delta_strain", id),
 stress_at_t("stress_at_t", id) {
     AKANTU_DEBUG_IN();
-    
+
     finite_deformation=true;
 
     /// allocate strain stress for local elements
@@ -93,13 +93,13 @@ void MaterialFiniteDeformation::UpdateStressesAtT(GhostType ghost_type) {
 
     for (; it != last_type; ++it) {
         UInt dim= spatial_dimension;
-        
+
         Array<Real>::iterator< Matrix<Real> > stress_it = stress(*it, ghost_type).begin(dim, dim);
         Array<Real>::iterator< Matrix<Real> > stress_end = stress(*it, ghost_type).end(dim, dim);
         Array<Real>::iterator< Matrix<Real> > stress_at_t_it = stress_at_t(*it, ghost_type).begin(dim, dim);
         Array<Real>::iterator< Matrix<Real> > strain_it = strain(*it, ghost_type).begin(dim, dim);
 
-        
+
         Matrix<Real> F(spatial_dimension, spatial_dimension);
         Matrix<Real> FtS(spatial_dimension, spatial_dimension);
 
@@ -108,8 +108,8 @@ void MaterialFiniteDeformation::UpdateStressesAtT(GhostType ghost_type) {
             Matrix<Real> & grad_u = *strain_it;
             Matrix<Real> & s_t = *stress_it;
             Matrix<Real> & cauchy_t = *stress_at_t_it;
-            
-            Real J;
+
+            Real J(0);
             switch (spatial_dimension){
                 case 3:
                     gradUToF<3 > (grad_u, F);
@@ -119,19 +119,21 @@ void MaterialFiniteDeformation::UpdateStressesAtT(GhostType ghost_type) {
                     gradUToF<2 > (grad_u, F);
                     J=Math::det2(F.storage());
                     break;
+                default:
+                    AKANTU_DEBUG_TO_IMPLEMENT();
             }
-            
-            
+
+
             FtS.mul<true, false>(F,s_t);
             cauchy_t.mul<false, false>(FtS,F);
             cauchy_t *= 1.0/J;
             for(UInt i=0;i<spatial_dimension;i++)
                 for(UInt j=0;j<spatial_dimension;j++)
                     cauchy_t(i,j)=s_t(i,j);
-            
-            
+
+
         }
-            
+
 
     }
 
@@ -332,7 +334,7 @@ void MaterialFiniteDeformation::assembleResidual(GhostType ghost_type) {
                 *it, ghost_type, elem_filter, -1);
 
         delete r_e;
-        
+
     }
     AKANTU_DEBUG_OUT();
 }
@@ -370,7 +372,7 @@ void MaterialFiniteDeformation::assembleStiffnessMatrix(GhostType ghost_type) {
             }
         }
     }
-    
+
     AKANTU_DEBUG_OUT();
 }
 
