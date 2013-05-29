@@ -268,10 +268,10 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
 
       // FIXME This could be improved (performance...)
       for(UInt i(0); i < nb_element; ++i) {
-	std::stringstream sstr;
-	sstr << dataset(i);
-	std::string boundary_name = sstr.str();
-	addElementAndNodesToBoundaryAlloc(boundary_name, *type_it, i, *gt);
+        std::stringstream sstr;
+        sstr << dataset(i);
+        std::string boundary_name = sstr.str();
+        addElementAndNodesToBoundaryAlloc(boundary_name, *type_it, i, *gt);
       }
     }
   }

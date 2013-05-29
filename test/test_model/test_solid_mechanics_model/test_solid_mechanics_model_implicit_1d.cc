@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
 
   model.setBaseName("implicit_1d");
   model.addDumpField("displacement");
-  model.addDumpField("mass"        );
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("force"       );

@@ -161,7 +161,6 @@ int main(int argc, char *argv[])
 
   model.setBaseName("implicit_dynamic");
   model.addDumpField("displacement");
-  model.addDumpField("mass"        );
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("force"       );

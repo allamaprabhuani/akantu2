@@ -167,8 +167,17 @@ inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {
 template<typename ModelType>
 template<typename FunctorType>
 inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func, const std::string & boundary_name) {
-  const SubBoundary & boundary_ref = model->getMesh().getSubBoundary(boundary_name);
-  TemplateFunctionWrapper<FunctorType>::applyBC(func, boundary_ref, *this);
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  const SubBoundary * boundary_ptr = NULL;
+  try {
+    boundary_ptr = &(model->getMesh().getSubBoundary(boundary_name));
+    TemplateFunctionWrapper<FunctorType>::applyBC(func, *boundary_ptr, *this);
+  } catch(akantu::debug::Exception e) {
+    if(psize == 1) {
+      AKANTU_DEBUG_ERROR("Error applying a boundary condition onto \"" << boundary_name << "\" in  a serial program. This should not occur!");
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
