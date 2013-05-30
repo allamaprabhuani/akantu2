@@ -270,7 +270,7 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
           AKANTU_DEBUG_ERROR("Error building the boundaries. Type " << *type_it << "/" << *gt << "not registered in dataset  \"" << dataset_name << "\".");
         }
         else {
-          AKANTU_DEBUG_INFO("Rank " << comm.whoAmI(); << " does not have any elements of type " << *type_it << "/" << *gt << "in dataset \"" << dataset_name << "\".");
+          AKANTU_DEBUG_INFO("Rank " << comm.whoAmI() << " does not have any elements of type " << *type_it << "/" << *gt << "in dataset \"" << dataset_name << "\".");
           continue;
         }
       }
