@@ -120,8 +120,8 @@ public:
              UInt _n = 0, UInt _stride = 0,
              const Filter * filter = NULL)
   : field(_field), n(_n), stride(_stride), filter(filter) {
-    AKANTU_DEBUG_ASSERT(filter != NULL, "No filter passed to filtered NodalField!");
-    AKANTU_DEBUG_ASSERT(filter->getNbComponent()==1, "Multi-component filter given to NodalField!");
+    AKANTU_DEBUG_ASSERT(this->filter != NULL, "No filter passed to filtered NodalField!");
+    AKANTU_DEBUG_ASSERT(this->filter->getNbComponent()==1, "Multi-component filter given to NodalField (" << this->filter->getNbComponent() << " components detected, sould be 1");
     if(n == 0) {
       this->n = field.getNbComponent() - stride;
     }
