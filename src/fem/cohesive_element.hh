@@ -44,6 +44,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_4, _gt_cohesive_2d_4, _itp_lag
 AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_2d_6, _gt_cohesive_2d_6, _itp_lagrange_segment_3,
 				     _ek_cohesive, 2);
 
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_cohesive_1d_2, _gt_cohesive_1d_2, _itp_lagrange_point_1,
+				     _ek_cohesive, 1);
+
+
 __END_AKANTU__
 
 #endif /* __AKANTU_COHESIVE_ELEMENT_HH__ */

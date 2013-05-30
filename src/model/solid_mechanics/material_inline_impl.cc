@@ -204,6 +204,16 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(
 }
 
 /* -------------------------------------------------------------------------- */
+template<>
+inline void Material::buildElementalFieldInterpolationCoodinates<_segment_2>(const Matrix<Real> & coordinates,
+									     Matrix<Real> & coordMatrix) {
+
+  for (UInt i = 0; i < coordinates.cols(); ++i)
+    coordMatrix(i, 0) = 1;
+}
+
+
+/* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline UInt Material::getSizeElementalFieldInterpolationCoodinates(GhostType ghost_type) {
   return model->getFEM().getNbQuadraturePoints(type, ghost_type);

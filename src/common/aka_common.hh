@@ -125,7 +125,8 @@ extern const UInt _all_dimensions;
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #  define AKANTU_COHESIVE_ELEMENT_TYPE		\
   (_cohesive_2d_4)				\
-  (_cohesive_2d_6)
+  (_cohesive_2d_6)				\
+  (_cohesive_1d_2)
 #else
 #  define AKANTU_COHESIVE_ELEMENT_TYPE
 #endif
@@ -157,6 +158,7 @@ enum ElementType {
 #if defined(AKANTU_COHESIVE_ELEMENT)
   _cohesive_2d_4,     ///< first order 2D cohesive
   _cohesive_2d_6,     ///< second order 2D cohesive
+  _cohesive_1d_2,     ///< first order 1D cohesive
 #endif
   _max_element_type
 };
@@ -176,6 +178,7 @@ enum GeometricalType {
 #if defined(AKANTU_COHESIVE_ELEMENT)
   _gt_cohesive_2d_4,     ///< 4 nodes 2D cohesive
   _gt_cohesive_2d_6,     ///< 6 nodes 2D cohesive
+  _gt_cohesive_1d_2,     ///< 2 nodes 1D cohesive
 #endif
   _gt_not_defined
 };

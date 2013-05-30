@@ -57,5 +57,14 @@ template<> UInt GeometricalElement<_gt_cohesive_2d_6>::facet_connectivity[] = {0
 template<> ElementType ElementClass<_cohesive_2d_6>::facet_type = _segment_3;
 template<> ElementType ElementClass<_cohesive_2d_6>::p1_type    = _cohesive_2d_4;
 /* -------------------------------------------------------------------------- */
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::spatial_dimension    = 1;
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_nodes_per_element = 2;
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_facets            = 2;
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_nodes_per_facet   = 1;
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::facet_connectivity[] = {0,
+									       1};
 
+template<> ElementType ElementClass<_cohesive_1d_2>::facet_type = _point_1;
+template<> ElementType ElementClass<_cohesive_1d_2>::p1_type    = _cohesive_1d_2;
+/* -------------------------------------------------------------------------- */
 __END_AKANTU__
