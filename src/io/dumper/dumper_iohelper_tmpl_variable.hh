@@ -1,0 +1,91 @@
+/**
+ * @file   dumper_iohelper_tmpl_variable.hh
+ * @author David Kammer <david.kammer@epfl.ch>
+ * @date   Fri May 24 16:38:03 2013
+ *
+ * @brief  template of variable
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+template<typename T, bool is_scal>
+class DumperIOHelper::Variable : public VariableBase {
+public:
+  Variable(const T & t) : vari(t) {}
+
+  virtual void registerToDumper(const std::string & id,
+				iohelper::Dumper & dumper) {
+    dumper.addVariable(id, *this);
+  }
+
+  const T & operator[](UInt i) const {
+    return vari[i];
+  }
+
+  UInt getDim() { return vari.size(); }
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+protected:
+  const T & vari;
+};
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+class DumperIOHelper::Variable<Vector<T>, false> : public VariableBase {
+public:
+  Variable(const Vector<T> & t) : vari(t) {}
+
+  virtual void registerToDumper(const std::string & id,
+				iohelper::Dumper & dumper) {
+    dumper.addVariable(id, *this);
+  }
+
+  const T & operator[](UInt i) const {
+    return vari[i];
+  }
+
+  UInt getDim() { return vari.size(); }
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+    
+protected:
+  const Vector<T> & vari;
+};
+
+/* -------------------------------------------------------------------------- */
+
+template<typename T>
+class DumperIOHelper::Variable<T, true> : public VariableBase {
+public:
+  Variable(const T & t) : vari(t) {}
+
+  virtual void registerToDumper(const std::string & id,
+				iohelper::Dumper & dumper) {
+    dumper.addVariable(id, *this);
+  }
+
+  const T & operator[](__attribute__((unused)) UInt i) const {
+    return vari;
+  }
+
+  UInt getDim() { return 1; }
+  iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+protected:
+  const T & vari;
+};

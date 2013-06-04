@@ -49,7 +49,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void dump();
+  // void dump();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -60,13 +60,13 @@ public:
     static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
   }
 
-  void setCurrentTime(Real current_time) {
-    this->current_time = current_time;
-  }
+  // void setCurrentTime(Real current_time) {
+  //   this->current_time = current_time;
+  // }
 
-  void setTimeStep(Real time_step) {
-    this->time_step = time_step;
-  }
+  // void setTimeStep(Real time_step) {
+  //   this->time_step = time_step;
+  // }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -74,7 +74,7 @@ public:
 private:
   Real time_step;
   Real current_time;
-  std::ofstream pvd_file;
+  // std::ofstream pvd_file;
 };
 
 

@@ -2,6 +2,7 @@
  * @file   dumper_iohelper.cc
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Kammer <david.kammer@epfl.ch>
  *
  * @date   Fri Oct 26 21:52:40 2012
  *
@@ -47,11 +48,11 @@ DumperIOHelper::~DumperIOHelper() {
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::setParallelContext(bool is_parallel) {
-  UInt whoami = StaticCommunicator::getStaticCommunicator().whoAmI();
-  UInt nproc  = StaticCommunicator::getStaticCommunicator().getNbProc();
+  UInt whoami  = StaticCommunicator::getStaticCommunicator().whoAmI();
+  UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
 
   if(is_parallel)
-    dumper->setParallelContext(whoami, nproc);
+    dumper->setParallelContext(whoami, nb_proc);
   else
     dumper->setParallelContext(0, 1);
 }
@@ -69,20 +70,22 @@ void DumperIOHelper::setBaseName(const std::string & basename) {
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::dump() {
-  std::stringstream filename_sstr;
-  filename_sstr << filename << "_" << std::setw(4) << std::setfill('0') << count;
   try {
-    dumper->dump(filename_sstr.str());
+    dumper->dump(filename, count);
   } catch (iohelper::IOHelperException & e) {
     AKANTU_DEBUG_ERROR("I was not able to dump your data with a Dumper: " << e.what());
   }
 
-  last_filename = filename_sstr.str();
-
   ++count;
 }
 
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::dump(int step) {
+  this->count = step;
+  this->dump();
+}
 
+/* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerMesh(const Mesh & mesh,
 				  UInt spatial_dimension,
 				  const GhostType & ghost_type,
@@ -110,7 +113,7 @@ void DumperIOHelper::registerMesh(const Mesh & mesh,
 		new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
 }
 
-
+/* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerFilteredMesh(const Mesh & mesh,
 					  const ByElementTypeArray<UInt> & elements_filter,
 					  const Array<UInt> & nodes_filter,
@@ -160,6 +163,27 @@ void DumperIOHelper::unRegisterField(const std::string & field_id) {
   fields.erase(it);
 }
 
+
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::registerVariable(const std::string & variable_id,
+				      VariableBase * variable) {
+  Variables::iterator it = variables.find(variable_id);
+  if(it != variables.end())
+    AKANTU_DEBUG_ERROR("The Variable " << variable_id << " is already registered in this Dumper");
+
+  variables[variable_id] = variable;
+  variable->registerToDumper(variable_id, *dumper);
+}
+
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::unRegisterVariable(const std::string & variable_id) {
+  Variables::iterator it = variables.find(variable_id);
+  if(it == variables.end())
+    AKANTU_DEBUG_ERROR("The variable " << variable_id << " is not registered in this Dumper");
+
+  delete it->second;
+  variables.erase(it);
+}
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>

@@ -31,14 +31,27 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-DumperText::DumperText(char separator, bool parallel) : DumperIOHelper() {
+DumperText::DumperText(const std::string & basename, 
+		       char separator, 
+		       bool parallel) : DumperIOHelper() {
   AKANTU_DEBUG_IN();
   
   iohelper::DumperText * dumper_text = new iohelper::DumperText(separator);
   this->dumper = dumper_text;
+  this->setBaseName(basename);
   
   this->setParallelContext(parallel);
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void DumperText::setBaseName(const std::string & basename) {
+  AKANTU_DEBUG_IN();
+  
+  DumperIOHelper::setBaseName(basename);
+  static_cast<iohelper::DumperText*>(this->dumper)->setDataSubDirectory(this->filename 
+									+ "-DataFiles");
   AKANTU_DEBUG_OUT();
 }
 

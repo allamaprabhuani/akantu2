@@ -40,14 +40,17 @@ class DumperText : public DumperIOHelper {
   /* ------------------------------------------------------------------------ */
 public:
   
-  DumperText(char separator = ' ', bool parallel = true);
+  DumperText(const std::string & basename = "dumper_text", 
+	     char separator = ' ', 
+	     bool parallel = true);
   virtual ~DumperText() {};
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  
+  virtual void setBaseName(const std::string & basename);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -57,7 +60,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  
 };
 
 __END_AKANTU__

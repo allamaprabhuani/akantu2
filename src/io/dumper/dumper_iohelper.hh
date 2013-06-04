@@ -54,6 +54,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   class Field;
+  class VariableBase;
 
   void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 		    const GhostType & ghost_type = _not_ghost,
@@ -69,7 +70,11 @@ public:
   void registerField(const std::string & field_id, Field * field);
   void unRegisterField(const std::string & field_id);
 
+  void registerVariable(const std::string & variable_id, VariableBase * variable);
+  void unRegisterVariable(const std::string & variable_id);
+
   virtual void dump();
+  virtual void dump(int step);
 
   virtual void setParallelContext(bool is_parallel);
   virtual void setDirectory(const std::string & directory);
@@ -104,6 +109,14 @@ public:
   };
 
 
+  class VariableBase {
+  public:
+    VariableBase() {};
+    virtual ~VariableBase() {};
+    virtual void registerToDumper(const std::string & id, iohelper::Dumper & dumper) = 0;
+  };
+
+
   /* ------------------------------------------------------------------------ */
   template<class T, template<class> class R>
   class iterator_helper;
@@ -117,6 +130,11 @@ public:
 	   class Container = Array<T>, 
 	   class Filter = Array<UInt> >
   class NodalField;
+
+  /* ------------------------------------------------------------------------ */
+  /* Variable wrapper */
+  template<typename T, bool is_scal = is_scalar<T>::value> 
+  class Variable;
 
   /* ------------------------------------------------------------------------ */
   /* Generic class used as interface for the others */
@@ -225,9 +243,11 @@ protected:
   iohelper::Dumper * dumper;
 
   typedef std::map<std::string, Field *> Fields;
+  typedef std::map<std::string, VariableBase *> Variables;
 
   /// list of registered fields to dump
   Fields fields;
+  Variables variables;
 
   /// dump counter
   UInt count;
@@ -238,8 +258,8 @@ protected:
   /// filename prefix
   std::string filename;
 
-  /// last filename with counter generated
-  std::string last_filename;
+  // /// last filename with counter generated
+  // std::string last_filename;
 };
 
 #include "dumper_iohelper_tmpl.hh"

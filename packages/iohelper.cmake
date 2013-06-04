@@ -65,4 +65,5 @@ set(AKANTU_IOHELPER_FILES
   io/dumper/dumper_iohelper_tmpl_material_internal_field.hh
   io/dumper/dumper_iohelper_tmpl_nodal_field.hh
   io/dumper/dumper_iohelper_tmpl_quadrature_points_field.hh
+  io/dumper/dumper_iohelper_tmpl_variable.hh
   )
