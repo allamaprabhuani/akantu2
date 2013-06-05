@@ -35,7 +35,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper::DumperIOHelper() : count(0) {}
+DumperIOHelper::DumperIOHelper() : count(0), time_activated(false) {}
 
 /* -------------------------------------------------------------------------- */
 DumperIOHelper::~DumperIOHelper() {
@@ -69,6 +69,14 @@ void DumperIOHelper::setBaseName(const std::string & basename) {
 }
 
 /* -------------------------------------------------------------------------- */
+void DumperIOHelper::setTimeStep(Real time_step) {
+  if(!time_activated)
+    this->dumper->activateTimeDescFiles(time_step);
+  else
+    this->dumper->setTimeStep(time_step);
+}
+
+/* -------------------------------------------------------------------------- */
 void DumperIOHelper::dump() {
   try {
     dumper->dump(filename, count);
@@ -80,9 +88,15 @@ void DumperIOHelper::dump() {
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::dump(int step) {
+void DumperIOHelper::dump(UInt step) {
   this->count = step;
   this->dump();
+}
+
+/* -------------------------------------------------------------------------- */
+void DumperIOHelper::dump(Real current_time, UInt step) {
+  this->dumper->setCurrentTime(current_time);
+  this->dump(step);
 }
 
 /* -------------------------------------------------------------------------- */

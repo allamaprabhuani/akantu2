@@ -124,6 +124,15 @@ public:
     dumper.dump();
   }
 
+  void dump(UInt step) {
+    dumper.dump(step);
+  }
+
+  void dump(Real current_time, UInt step) {
+    dumper.dump(current_time, step);
+  }
+
+
 protected:
   void addDumpFieldToDumper(const std::string & field_id, DumperIOHelper::Field * field) {
     dumper.registerField(field_id, field);
@@ -231,6 +240,16 @@ public:
   }
 
   void dump() {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
+
+
+  void dump(__attribute__((unused)) UInt step) {
+    AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
+
+  void dump(__attribute__((unused)) Real current_time,
+	    __attribute__((unused)) UInt step) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 

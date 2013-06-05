@@ -74,7 +74,8 @@ public:
   void unRegisterVariable(const std::string & variable_id);
 
   virtual void dump();
-  virtual void dump(int step);
+  virtual void dump(UInt step);
+  virtual void dump(Real current_time, UInt step);
 
   virtual void setParallelContext(bool is_parallel);
   virtual void setDirectory(const std::string & directory);
@@ -87,6 +88,9 @@ public:
   AKANTU_GET_MACRO(Dumper, *dumper, iohelper::Dumper &)
 
   static iohelper::ElemType getIOHelperType(ElementType type);
+
+  void setTimeStep(Real time_step);
+
 protected:
   template <ElementType type> static iohelper::ElemType getIOHelperType();
 
@@ -108,14 +112,13 @@ public:
     UInt padding_n, padding_m;
   };
 
-
+  /// Variable interface
   class VariableBase {
   public:
     VariableBase() {};
     virtual ~VariableBase() {};
     virtual void registerToDumper(const std::string & id, iohelper::Dumper & dumper) = 0;
   };
-
 
   /* ------------------------------------------------------------------------ */
   template<class T, template<class> class R>
@@ -126,14 +129,14 @@ public:
 
   /* ------------------------------------------------------------------------ */
   /* Nodal field wrapper */
-  template<typename T, bool filtered = false, 
-	   class Container = Array<T>, 
+  template<typename T, bool filtered = false,
+	   class Container = Array<T>,
 	   class Filter = Array<UInt> >
   class NodalField;
 
   /* ------------------------------------------------------------------------ */
   /* Variable wrapper */
-  template<typename T, bool is_scal = is_scalar<T>::value> 
+  template<typename T, bool is_scal = is_scalar<T>::value>
   class Variable;
 
   /* ------------------------------------------------------------------------ */
@@ -258,8 +261,8 @@ protected:
   /// filename prefix
   std::string filename;
 
-  // /// last filename with counter generated
-  // std::string last_filename;
+  /// is time tracking activated in the dumper
+  bool time_activated;
 };
 
 #include "dumper_iohelper_tmpl.hh"

@@ -60,21 +60,11 @@ public:
     static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
   }
 
-  // void setCurrentTime(Real current_time) {
-  //   this->current_time = current_time;
-  // }
-
-  // void setTimeStep(Real time_step) {
-  //   this->time_step = time_step;
-  // }
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  Real time_step;
-  Real current_time;
-  // std::ofstream pvd_file;
+
 };
 
 
