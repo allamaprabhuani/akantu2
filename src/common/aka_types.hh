@@ -208,6 +208,14 @@ public:
     return *this;
   }
 
+  /* ------------------------------------------------------------------------ */
+  inline void solve(Matrix<T> & A, const Vector<T> & b) {
+    AKANTU_DEBUG_ASSERT(n == A.rows() && n = A.cols(),
+			"The solution vector as a mismatch in size with the matrix");
+    AKANTU_DEBUG_ASSERT(n == b.n, "The rhs vector as a mismatch in size with the matrix");
+    Math::solve(n, A.storage(), values, b.storage());
+  }
+
   /* ---------------------------------------------------------------------- */
   inline void clear() { memset(values, 0, n * sizeof(T)); };
   inline void set(T t) { std::fill_n(values, n, t); };

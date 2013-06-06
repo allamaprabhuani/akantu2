@@ -90,23 +90,11 @@
  * @f}
  */
 
-  // /// quadrature point position
-  // quad[0] = 1./6.; /// q0_{\xi}
-  // quad[1] = 1./6.; /// q0_{\eta}
-
-  // quad[2] = 2./3.; /// q1_{\xi}
-  // quad[3] = 1./6.; /// q1_{\eta}
-
-  // quad[4] = 1./6.; /// q2_{\xi}
-  // quad[5] = 2./3.; /// q2_{\eta}
-
-
 /* -------------------------------------------------------------------------- */
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_6, _gt_triangle_6, _itp_lagrange_triangle_6, _ek_regular, 2,
+				     _git_triangle, 2);
 
-// template<> UInt ElementClass<_triangle_6>::nb_nodes_per_element;
-// template<> UInt ElementClass<_triangle_6>::nb_quadrature_points;
-// template<> UInt ElementClass<_triangle_6>::spatial_dimension;
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_6, _gt_triangle_6, _itp_lagrange_triangle_6, _ek_regular, 2);
+AKANTU_DEFINE_SHAPE(_gt_triangle_6, _gst_triangle);
 
 /* -------------------------------------------------------------------------- */
 

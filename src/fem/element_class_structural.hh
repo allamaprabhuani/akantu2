@@ -31,6 +31,8 @@
 template<InterpolationType interpolation_type>
 class InterpolationElement<interpolation_type, _itk_structural> {
 public:
+  typedef InterpolationPorperty<interpolation_type> interpolation_property;
+
   /// compute the shape values for a given set of points in natural coordinates
   static inline void computeShapes(const Matrix<Real> & natural_coord,
 				   Matrix<Real> & N,
@@ -75,16 +77,12 @@ public:
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(NbShapeFunctions, nb_shape_functions, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(ShapeSize, nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(ShapeDerivativesSize, (nb_nodes_per_element * natural_space_dimension), UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NaturalSpaceDimension, natural_space_dimension, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(ShapeSize, interpolation_property::nb_nodes_per_element, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(ShapeDerivativesSize, (interpolation_property::nb_nodes_per_element * interpolation_property::natural_space_dimension), UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(NaturalSpaceDimension, interpolation_property::natural_space_dimension, UInt);
 protected:
   /// nb shape functions
-  static UInt nb_shape_functions;
-  /// number of nodes per element
-  static UInt nb_nodes_per_element;
-  /// dimension of the natural space of the element
-  static UInt natural_space_dimension;
+  static const UInt nb_shape_functions;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -97,12 +97,19 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// template<> UInt ElementClass<_bernoulli_beam_2>::nb_nodes_per_element;
-// template<> UInt ElementClass<_bernoulli_beam_2>::nb_quadrature_points;
-// template<> UInt ElementClass<_bernoulli_beam_2>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
+				     _gt_segment_2,
+				     _itp_bernoulli_beam,
+				     _ek_structural,
+				     2,
+				     _git_segment, 2);
 
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2, _gt_segment_2, _itp_bernoulli_beam, _ek_structural, 2);
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3, _gt_segment_2, _itp_bernoulli_beam, _ek_structural, 3);
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
+				     _gt_segment_2,
+				     _itp_bernoulli_beam,
+				     _ek_structural,
+				     3,
+				     _git_segment, 3);
 
 /* -------------------------------------------------------------------------- */
 template <>

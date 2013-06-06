@@ -37,6 +37,20 @@
 
 __BEGIN_AKANTU__
 
+
+/* -------------------------------------------------------------------------- */
+enum GaussIntergrationType {
+  _git_not_defined,
+  _git_point,
+  _git_segment,
+  _git_triangle,
+  _git_tetrahedron
+};
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+
 /* -------------------------------------------------------------------------- */
 template<ElementType element_type>
 struct ElementClassProperty {
@@ -44,21 +58,31 @@ struct ElementClassProperty {
   static const InterpolationType interpolation_type = _itp_not_defined;
   static const ElementKind element_kind = _ek_regular;
   static const UInt spatial_dimension = 0;
+  static const GaussIntergrationType gauss_integration_type = _git_not_defined;
+  static const UInt minimal_integration_order = 0;
 };
 
-#define AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(elem_type, geom_type, interp_type, elem_kind, sp) \
+#define AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(elem_type, geom_type,	\
+					     interp_type,		\
+					     elem_kind,			\
+					     sp,			\
+					     gauss_int_type,		\
+					     min_int_order)		\
   template<>								\
   struct ElementClassProperty<elem_type> {				\
     static const GeometricalType geometrical_type = geom_type;		\
     static const InterpolationType interpolation_type = interp_type;	\
     static const ElementKind element_kind = elem_kind;			\
     static const UInt spatial_dimension = sp;				\
+    static const GaussIntergrationType gauss_integration_type = gauss_int_type;	\
+    static const UInt minimal_integration_order = min_int_order;	\
   }
 
 /* -------------------------------------------------------------------------- */
-/* Geometrie                                                                  */
+/* Geometry                                                                   */
 /* -------------------------------------------------------------------------- */
 enum GeometricalShapeType {
+  _gst_not_defined,
   _gst_point,
   _gst_triangle,
   _gst_square
@@ -79,17 +103,6 @@ struct GeometricalShapeContains {
   struct GeometricalShape<geom_type> {					\
     static const GeometricalShapeType shape = geom_shape;		\
   }
-
-AKANTU_DEFINE_SHAPE(_gt_point, _gst_point);
-AKANTU_DEFINE_SHAPE(_gt_segment_2, _gst_square);
-AKANTU_DEFINE_SHAPE(_gt_segment_3, _gst_square);
-AKANTU_DEFINE_SHAPE(_gt_quadrangle_4, _gst_square);
-AKANTU_DEFINE_SHAPE(_gt_quadrangle_8, _gst_square);
-AKANTU_DEFINE_SHAPE(_gt_hexahedron_8, _gst_square);
-AKANTU_DEFINE_SHAPE(_gt_triangle_3, _gst_triangle);
-AKANTU_DEFINE_SHAPE(_gt_triangle_6, _gst_triangle);
-AKANTU_DEFINE_SHAPE(_gt_tetrahedron_4,  _gst_triangle);
-AKANTU_DEFINE_SHAPE(_gt_tetrahedron_10, _gst_triangle);
 
 /* -------------------------------------------------------------------------- */
 template< GeometricalType geometrical_type,
@@ -125,21 +138,41 @@ private:
 /* -------------------------------------------------------------------------- */
 /* Interpolation                                                              */
 /* -------------------------------------------------------------------------- */
-template<InterpolationType interpolation_type>
-struct InterpolationPorperty {
-  static const InterpolationKind kind = _itk_lagrangian;
+/// @enum InterpolationKind the familly of interpolation types
+enum InterpolationKind {
+  _itk_not_defined,
+  _itk_lagrangian,
+  _itk_structural
 };
 
-template<>
-struct InterpolationPorperty<_itp_bernoulli_beam> {
-  static const InterpolationKind kind = _itk_structural;
+
+template<InterpolationType interpolation_type>
+struct InterpolationPorperty {
+  static const InterpolationKind kind = _itk_not_defined;
+  static const UInt nb_nodes_per_element = 0;
+  static const UInt natural_space_dimension = 0;
 };
+
+#define AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(itp_type,		\
+						  itp_kind,		\
+						  nb_nodes,		\
+						  ndim)			\
+  template<>								\
+  struct InterpolationPorperty<itp_type> {				\
+    static const InterpolationKind kind = itp_kind;			\
+    static const UInt nb_nodes_per_element = nb_nodes;			\
+    static const UInt natural_space_dimension = ndim;			\
+  };
+
+#include "interpolation_element_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 template<InterpolationType interpolation_type,
 	 InterpolationKind kind = InterpolationPorperty<interpolation_type>::kind>
 class InterpolationElement {
 public:
+  typedef InterpolationPorperty<interpolation_type> interpolation_property;
+
   /// compute the shape values for a given set of points in natural coordinates
   static inline void computeShapes(const Matrix<Real> & natural_coord,
 				   Matrix<Real> & N);
@@ -188,33 +221,31 @@ public:
 						  Matrix<Real> & gradient);
 
 public:
-  static AKANTU_GET_MACRO_NOT_CONST(ShapeSize, nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(ShapeDerivativesSize, (nb_nodes_per_element * natural_space_dimension), UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NaturalSpaceDimension, natural_space_dimension, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerInterpolationElement,  nb_nodes_per_element, UInt);
-protected:
-  /// number of nodes per element
-  static UInt nb_nodes_per_element;
-  /// dimension of the natural space of the element
-  static UInt natural_space_dimension;
+  static AKANTU_GET_MACRO_NOT_CONST(ShapeSize, InterpolationPorperty<interpolation_type>::nb_nodes_per_element, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(ShapeDerivativesSize, (InterpolationPorperty<interpolation_type>::nb_nodes_per_element * InterpolationPorperty<interpolation_type>::natural_space_dimension), UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(NaturalSpaceDimension, InterpolationPorperty<interpolation_type>::natural_space_dimension, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerInterpolationElement,  InterpolationPorperty<interpolation_type>::nb_nodes_per_element, UInt);
 };
 
 /* -------------------------------------------------------------------------- */
 /* Integration                                                                */
 /* -------------------------------------------------------------------------- */
-template<ElementType element_type>
-class GaussIntegrationElement {
-public:
-  static AKANTU_GET_MACRO_NOT_CONST(NbQuadraturePoints, nb_quadrature_points, UInt);
-  static const Matrix<Real> getQuadraturePoints();
-  static const Vector<Real> getWeights();
-private:
+template<GaussIntergrationType git_class, UInt max_order>
+struct GaussIntegrationTypeData {
   /// quadrature points in natural coordinates
-  static Real quad[];
+  static Real quad_positions[];
   /// weights for the Gauss integration
-  static Real weights[];
+  static Real quad_weights[];
   /// Number of quadrature points per element
   static UInt nb_quadrature_points;
+};
+
+template<ElementType type, UInt order = ElementClassProperty<type>::minimal_integration_order>
+class GaussIntegrationElement {
+public:
+  static UInt getNbQuadraturePoints();
+  static const Matrix<Real> getQuadraturePoints();
+  static const Vector<Real> getWeights();
 };
 
 /* -------------------------------------------------------------------------- */
@@ -228,7 +259,9 @@ class ElementClass :
 protected:
   typedef GeometricalElement<ElementClassProperty<element_type>::geometrical_type> geometrical_element;
   typedef InterpolationElement<ElementClassProperty<element_type>::interpolation_type> interpolation_element;
+
   typedef ElementClassProperty<element_type> element_property;
+  typedef typename interpolation_element::interpolation_property interpolation_property;
 public:
   /**
    * compute @f$ J = \frac{\partial x_j}{\partial s_i} @f$ the variation of real

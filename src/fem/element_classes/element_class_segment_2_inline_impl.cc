@@ -46,10 +46,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// template<> UInt InterpolationElement<_itp_lagrange_segment_2>::nb_nodes_per_element;
-// template<> UInt ElementClass<_segment_2>::nb_quadrature_points;
-// template<> UInt ElementClass<_segment_2>::spatial_dimension;
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2, _itp_lagrange_segment_2, _ek_regular, 1);
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2, _itp_lagrange_segment_2, _ek_regular, 1,
+				     _git_segment, 1);
+
+AKANTU_DEFINE_SHAPE(_gt_segment_2, _gst_square);
 
 /* -------------------------------------------------------------------------- */
 template <>

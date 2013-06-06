@@ -279,15 +279,7 @@ inline void Math::matVectMul(UInt m, UInt n,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Math::matrixEig(__attribute__((unused)) UInt n,
-			    __attribute__((unused)) T * A,
-			    __attribute__((unused)) T * d,
-			    __attribute__((unused)) T * V) {
-  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function! Or implement it for the type " << debug::demangle(typeid(T).name()));
-}
-
-template<>
-inline void Math::matrixEig<double>(UInt n, double * A, double * d, double * V) {
+inline void Math::matrixEig(UInt n, T * A, T * d, T * V) {
 
   // Matrix  A is  row major,  so the  lapack function  in fortran  will process
   // A^t. Asking for the left eigenvectors of A^t will give the transposed right
@@ -300,20 +292,20 @@ inline void Math::matrixEig<double>(UInt n, double * A, double * d, double * V) 
 
   char jobvr('N'); // compute right eigenvectors
 
-  double * di = new double[n]; // imaginary part of the eigenvalues
+  T * di = new T[n]; // imaginary part of the eigenvalues
 
   int info;
   int N = n;
 
-  double wkopt;
+  T wkopt;
   int lwork = -1;
   // query and allocate the optimal workspace
-  aka_dgeev(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, &wkopt, &lwork, &info);
+  aka_geev<T>(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, &wkopt, &lwork, &info);
 
   lwork = int(wkopt);
-  double * work = new double[lwork];
+  T * work = new T[lwork];
   // solve the eigenproblem
-  aka_dgeev(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, work, &lwork, &info);
+  aka_geev<T>(&jobvl, &jobvr, &N, A, &N, d, di, V, &N, NULL, &N, work, &lwork, &info);
 
   AKANTU_DEBUG_ASSERT(info == 0, "Problem computing eigenvalues/vectors. DGEEV exited with the value " << info);
 
@@ -372,30 +364,23 @@ inline Real Math::det(const Real * mat) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline T Math::det(__attribute__((unused)) UInt n,
-		   __attribute__((unused)) const T * A) {
-  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function!");
-  return T();
-}
-
-template<>
-inline Real Math::det<double>(UInt n, const double * A) {
+inline T Math::det(UInt n, const T * A) {
   int N = n;
   int info;
   int * ipiv = new int[N+1];
 
-  double * LU = new double[N*N];
+  T * LU = new T[N*N];
   std::copy(A, A + N*N, LU);
 
   // LU factorization of A
-  aka_dgetrf(&N, &N, LU, &N, ipiv, &info);
+  aka_getrf(&N, &N, LU, &N, ipiv, &info);
   if(info > 0) {
     AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "
 		       << info <<" )");
   }
 
   // det(A) = det(L) * det(U) = 1 * det(U) = product_i U_{ii}
-  double det = 1.;
+  T det = 1.;
   for (int i = 0; i < N; ++i) det *= (2*(ipiv[i] == i) - 1) * LU[i*n+i];
 
   delete [] ipiv;
@@ -487,30 +472,22 @@ inline void Math::inv(const Real * A, Real * Ainv) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Math::inv(__attribute__((unused)) UInt n,
-		      __attribute__((unused)) const T * A,
-		      __attribute__((unused)) T * Ainv) {
-  AKANTU_DEBUG_ERROR("You have to compile with the support of LAPACK activated to use this function! Or implement it for the type " << debug::demangle(typeid(T).name()));
-}
-
-#ifdef AKANTU_USE_LAPACK
-template<>
-inline void Math::inv<double>(UInt n, const double * A, double * invA) {
+inline void Math::inv(UInt n, const T * A, T * invA) {
   int N = n;
   int info;
   int * ipiv = new int[N+1];
   int lwork = N*N;
-  double * work = new double[lwork];
+  T * work = new T[lwork];
 
   std::copy(A, A + n*n, invA);
 
-  dgetrf_(&N, &N, invA, &N, ipiv, &info);
+  aka_getrf(&N, &N, invA, &N, ipiv, &info);
   if(info > 0) {
     AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "
 		       << info <<" )");
   }
 
-  dgetri_(&N, invA, &N, ipiv, work, &lwork, &info);
+  aka_getri(&N, invA, &N, ipiv, work, &lwork, &info);
   if(info != 0) {
     AKANTU_DEBUG_ERROR("Cannot invert the matrix (info: "<< info <<" )");
   }
@@ -518,7 +495,37 @@ inline void Math::inv<double>(UInt n, const double * A, double * invA) {
   delete [] ipiv;
   delete [] work;
 }
-#endif
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void Math::solve(UInt n, const T * A, T * x, const T * b) {
+  int N = n;
+  int info;
+  int * ipiv = new int[N];
+  T * lu_A  = new T[N*N];
+
+  std::copy(A, A + N*N, lu_A);
+
+  aka_getrf(&N, &N, lu_A, &N, ipiv, &info);
+  if(info > 0) {
+    AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "<< info <<" )");
+    exit (EXIT_FAILURE);
+  }
+
+  char trans = 'N';
+  int nrhs = 1;
+
+  std::copy(b, b + N, x);
+
+  aka_getrs(&trans, &N, &nrhs, lu_A, &N, ipiv, x, &N, &info);
+  if(info != 0) {
+    AKANTU_DEBUG_ERROR("Cannot solve the system (info: "<< info <<" )");
+    exit (EXIT_FAILURE);
+  }
+
+  delete [] ipiv;
+  delete [] lu_A;
+}
 
 /* -------------------------------------------------------------------------- */
 inline void Math::vectorProduct3(const Real * v1, const Real * v2, Real * res) {
@@ -702,3 +709,9 @@ inline bool Math::intersects(Real x_min, Real x_max, Real y_min, Real y_max) {
 inline bool Math::is_in_range(Real a, Real x_min, Real x_max) {
   return ((a >= x_min) && (a <= x_max));
 }
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt p> inline UInt Math::pow(UInt x) { return (pow<p-1>(x)*x); }
+template<> inline UInt Math::pow<0>(__attribute__((unused)) UInt x) { return (1); }
+

@@ -159,9 +159,12 @@ public:
   /// inverse a 2x2 matrix
   static inline void inv2(const Real * mat, Real * inv);
 
+  /// solve A x = b using a LU factorization
+  template<typename T>
+  static inline void solve(UInt n, const T * A, T * x, const T * b);
 
   /* ------------------------------------------------------------------------ */
-  /* Array algebra                                                           */
+  /* Array algebra                                                            */
   /* ------------------------------------------------------------------------ */
   /// vector cross product
   static inline void vectorProduct3(const Real * v1, const Real * v2, Real * res);
@@ -247,11 +250,12 @@ public:
   static inline Real getTolerance() { return tolerance; };
   static inline void setTolerance(Real tol) { tolerance = tol; };
 
+  template<UInt p> static inline UInt pow(UInt x);
+
 private:
   /// tolerance for functions that need one
   static Real tolerance;
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

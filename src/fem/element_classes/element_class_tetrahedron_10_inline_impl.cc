@@ -129,10 +129,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// template<> UInt ElementClass<_tetrahedron_10>::nb_nodes_per_element;
-// template<> UInt ElementClass<_tetrahedron_10>::nb_quadrature_points;
-// template<> UInt ElementClass<_tetrahedron_10>::spatial_dimension;
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_10, _gt_tetrahedron_10, _itp_lagrange_tetrahedron_10, _ek_regular, 3);
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_10, _gt_tetrahedron_10, _itp_lagrange_tetrahedron_10, _ek_regular, 3,
+				     _git_tetrahedron, 2);
+
+AKANTU_DEFINE_SHAPE(_gt_tetrahedron_10, _gst_triangle);
 
 /* -------------------------------------------------------------------------- */
 template <>

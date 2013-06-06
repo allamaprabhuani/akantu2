@@ -133,6 +133,7 @@ set(AKANTU_CORE_FILES
   fem/mesh_data.hh
   fem/boundary.hh
   fem/sub_boundary.hh
+  fem/interpolation_element_tmpl.hh
   model/model.hh
   model/boundary_condition.hh
   model/boundary_condition_functor.hh

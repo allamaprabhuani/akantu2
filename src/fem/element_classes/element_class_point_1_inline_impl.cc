@@ -43,7 +43,9 @@
  * @f}
  */
 
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_point_1, _gt_point, _itp_lagrange_point_1, _ek_regular, 0);
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_point_1, _gt_point, _itp_lagrange_point_1, _ek_regular, 0,
+				     _git_point, 1);
+AKANTU_DEFINE_SHAPE(_gt_point, _gst_point);
 
 /* -------------------------------------------------------------------------- */
 template <>

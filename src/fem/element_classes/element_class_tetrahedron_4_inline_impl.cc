@@ -59,32 +59,23 @@
  */
 
 /* -------------------------------------------------------------------------- */
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_4, _gt_tetrahedron_4, _itp_lagrange_tetrahedron_4, _ek_regular, 3,
+				     _git_tetrahedron, 1);
 
-  // /// shape functions
-  // shape[0] = 1./4.; /// N1(q_0)
-  // shape[1] = 1./4.; /// N2(q_0)
-  // shape[2] = 1./4.; /// N3(q_0)
-  // shape[3] = 1./4.; /// N4(q_0)
-
-
-/* -------------------------------------------------------------------------- */
-// template<> UInt ElementClass<_tetrahedron_4>::nb_nodes_per_element;
-// template<> UInt ElementClass<_tetrahedron_4>::nb_quadrature_points;
-// template<> UInt ElementClass<_tetrahedron_4>::spatial_dimension;
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_4, _gt_tetrahedron_4, _itp_lagrange_tetrahedron_4, _ek_regular, 3);
+AKANTU_DEFINE_SHAPE(_gt_tetrahedron_4, _gst_triangle);
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <class vector_type>
 inline void
 InterpolationElement<_itp_lagrange_tetrahedron_4>::computeShapes(const vector_type & natural_coords,
-                                                                 vector_type & N) {
+								 vector_type & N) {
 
   Real c0 = 1 - natural_coords(0) -  natural_coords(1) -  natural_coords(2);/// @f$ c2 = 1 - \xi - \eta - \zeta @f$
   Real c1 = natural_coords(1); /// @f$ c0 = \xi @f$
   Real c2 = natural_coords(2); /// @f$ c1 = \eta @f$
   Real c3 = natural_coords(0); /// @f$ c2 = \zeta @f$
-  
+
   N(0) = c0;
   N(1) = c1;
   N(2) = c2;
@@ -95,7 +86,7 @@ template <>
 template <class vector_type, class matrix_type>
 inline void
 InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((unused)) const vector_type & natural_coords,
-                                                               matrix_type & dnds) {
+							       matrix_type & dnds) {
 
   /**
    * @f[
@@ -118,7 +109,7 @@ InterpolationElement<_itp_lagrange_tetrahedron_4>::computeDNDS(__attribute__ ((u
 
 
 }
- 
+
 /* -------------------------------------------------------------------------- */
 template<>
 inline Real

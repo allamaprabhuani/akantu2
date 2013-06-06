@@ -84,11 +84,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
-// template<> UInt ElementClass<_quadrangle_8>::nb_nodes_per_element;
-// template<> UInt ElementClass<_quadrangle_8>::nb_quadrature_points;
-// template<> UInt ElementClass<_quadrangle_8>::spatial_dimension;
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8, _itp_serendip_quadrangle_8, _ek_regular, 2,
+				     _git_segment, 3);
 
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8, _itp_serendip_quadrangle_8, _ek_regular, 2);
+AKANTU_DEFINE_SHAPE(_gt_quadrangle_8, _gst_square);
 
 /* -------------------------------------------------------------------------- */
 template <>

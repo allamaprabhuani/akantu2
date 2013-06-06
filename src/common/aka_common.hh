@@ -201,13 +201,6 @@ enum InterpolationType {
   _itp_not_defined
 };
 
-/// @enum InterpolationKind the familly of interpolation types
-enum InterpolationKind {
-  _itk_lagrangian,
-  _itk_structural
-};
-
-
 //! standard output stream operator for ElementType
 inline std::ostream & operator <<(std::ostream & stream, ElementType type);
 

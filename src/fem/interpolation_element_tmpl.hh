@@ -1,11 +1,11 @@
 /**
- * @file   interpolation_element.cc
+ * @file   interpolation_element_tmpl.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Tue Jul 20 23:40:43 2010
+ * @date   Tue Jun  4 13:40:49 2013
  *
- * @brief  Common part of element_classes
+ * @brief  interpolation property description
  *
  * @section LICENSE
  *
@@ -28,16 +28,25 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_class.hh"
+
+/* -------------------------------------------------------------------------- */
+/* Regular Elements                                                           */
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_point_1,        _itk_lagrangian,  1, 0);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_segment_2,      _itk_lagrangian,  2, 1);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_segment_3,      _itk_lagrangian,  3, 1);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_triangle_3,     _itk_lagrangian,  3, 2);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_triangle_6,     _itk_lagrangian,  6, 2);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_tetrahedron_4,  _itk_lagrangian,  4, 3);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_tetrahedron_10, _itk_lagrangian, 10, 3);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_quadrangle_4,   _itk_lagrangian,  4, 2);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_serendip_quadrangle_8,   _itk_lagrangian,  8, 2);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_hexahedron_8,   _itk_lagrangian,  8, 3);
 
 /* -------------------------------------------------------------------------- */
 /* Structural elements                                                        */
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
-template<> const UInt InterpolationElement<_itp_bernoulli_beam>::nb_shape_functions = 5;
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam, _itk_structural, 2, 1);
 #endif
-
-__END_AKANTU__

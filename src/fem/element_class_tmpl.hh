@@ -32,18 +32,105 @@
 /* -------------------------------------------------------------------------- */
 /* GaussIntegrationElement                                                    */
 /* -------------------------------------------------------------------------- */
-template<ElementType element_type>
-const Matrix<Real> GaussIntegrationElement<element_type>::getQuadraturePoints() {
-  Matrix<Real> quads(quad,
-		     ElementClass<element_type>::getNaturalSpaceDimension(),
-		     nb_quadrature_points);
-  return quads;
+template<GaussIntergrationType type, UInt dimension, UInt order>
+struct GaussIntergrationTypeDataHelper {
+  typedef GaussIntegrationTypeData<type, order> git_data;
+  static UInt getNbQuadraturePoints() {
+    return git_data::nb_quadrature_points;
+  }
+
+  static const Matrix<Real> getQuadraturePoints() {
+    return Matrix<Real>(git_data::quad_positions,
+			dimension,
+			git_data::nb_quadrature_points);
+  }
+
+  static const Vector<Real> getWeights() {
+    return Vector<Real>(git_data::quad_weights,
+			git_data::nb_quadrature_points);
+
+  }
+};
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt dimension, UInt order>
+struct GaussIntergrationTypeDataHelper<_git_segment, dimension, order> {
+  typedef GaussIntegrationTypeData<_git_segment, order> git_data;
+  static UInt getNbQuadraturePoints() {
+    return Math::pow<dimension>(git_data::nb_quadrature_points);
+  }
+
+  static const Matrix<Real> getQuadraturePoints() {
+    UInt tot_nquad = getNbQuadraturePoints();
+    UInt nquad = git_data::nb_quadrature_points;
+
+    Matrix<Real> quads(dimension,
+		       tot_nquad);
+    Vector<Real> pos(git_data::quad_positions,
+		     nquad);
+
+    UInt offset = 1;
+    for (UInt d = 0; d < dimension; ++d) {
+      for (UInt n = 0, q = 0; n < tot_nquad; ++n, q += offset) {
+	UInt rq = q % tot_nquad + q / tot_nquad;
+	quads(d, rq) = pos(n % nquad);
+      }
+      offset *= nquad;
+    }
+    return quads;
+  }
+
+  static const Vector<Real> getWeights() {
+    UInt tot_nquad = getNbQuadraturePoints();
+    UInt nquad = git_data::nb_quadrature_points;
+
+    Vector<Real> quads_weights(tot_nquad, 1.);
+    Vector<Real> weights(git_data::quad_weights,
+			 nquad);
+
+    UInt offset = 1;
+    for (UInt d = 0; d < dimension; ++d) {
+      for (UInt n = 0, q = 0; n < tot_nquad; ++n, q += offset) {
+	UInt rq = q % tot_nquad + q / tot_nquad;
+	quads_weights(rq) *= weights(n % nquad);
+      }
+      offset *= nquad;
+    }
+    return quads_weights;
+  }
+};
+
+template<ElementType element_type, UInt order>
+const Matrix<Real> GaussIntegrationElement<element_type, order>::getQuadraturePoints() {
+  const InterpolationType itp_type = ElementClassProperty<element_type>::interpolation_type;
+  typedef InterpolationPorperty<itp_type> interpolation_property;
+  typedef GaussIntergrationTypeDataHelper<ElementClassProperty<element_type>::gauss_integration_type,
+					  interpolation_property::natural_space_dimension,
+					  order> data_helper;
+  return data_helper::getQuadraturePoints();
 }
 
 /* -------------------------------------------------------------------------- */
-template<ElementType element_type>
-const Vector<Real> GaussIntegrationElement<element_type>::getWeights() {
-  return Vector<Real>(weights, nb_quadrature_points);
+template<ElementType element_type, UInt order>
+const Vector<Real> GaussIntegrationElement<element_type, order>::getWeights() {
+  const InterpolationType itp_type = ElementClassProperty<element_type>::interpolation_type;
+  typedef InterpolationPorperty<itp_type> interpolation_property;
+  typedef GaussIntergrationTypeDataHelper<ElementClassProperty<element_type>::gauss_integration_type,
+					  interpolation_property::natural_space_dimension,
+					  order> data_helper;
+  return data_helper::getWeights();
+}
+
+/* -------------------------------------------------------------------------- */
+template<ElementType element_type, UInt order>
+UInt GaussIntegrationElement<element_type, order>::getNbQuadraturePoints() {
+  const InterpolationType itp_type = ElementClassProperty<element_type>::interpolation_type;
+  typedef InterpolationPorperty<itp_type> interpolation_property;
+  typedef GaussIntergrationTypeDataHelper<ElementClassProperty<element_type>::gauss_integration_type,
+					  interpolation_property::natural_space_dimension,
+					  order> data_helper;
+  return data_helper::getNbQuadraturePoints();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,11 +220,11 @@ inline void
 InterpolationElement<interpolation_type, kind>::interpolateOnNaturalCoordinates(const Vector<Real> & natural_coords,
 										const Matrix<Real> & nodal_values,
 										Vector<Real> & interpolated) {
-  Vector<Real> shapes(nb_nodes_per_element);
+  Vector<Real> shapes(InterpolationPorperty<interpolation_type>::nb_nodes_per_element);
   computeShapes(natural_coords, shapes);
 
   Matrix<Real> interpm(interpolated.storage(), nodal_values.rows(), 1);
-  Matrix<Real> shapesm(shapes.storage(), nb_nodes_per_element, 1);
+  Matrix<Real> shapesm(shapes.storage(), InterpolationPorperty<interpolation_type>::nb_nodes_per_element, 1);
   interpm.mul<false, false>(nodal_values, shapesm);
 }
 
@@ -149,7 +236,8 @@ inline void
 InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(const Vector<Real> & natural_coords,
 									     const Matrix<Real> & f,
 									     Matrix<Real> & gradient) {
-  Matrix<Real> dnds(natural_space_dimension, nb_nodes_per_element);
+  Matrix<Real> dnds(InterpolationPorperty<interpolation_type>::natural_space_dimension,
+		    InterpolationPorperty<interpolation_type>::nb_nodes_per_element);
   computeDNDS(natural_coords, dnds);
   gradient.mul<false, true>(f, dnds);
 }
@@ -185,8 +273,8 @@ inline void ElementClass<type, kind>::computeJacobian(const Matrix<Real> & natur
 						      const Matrix<Real> & node_coords,
 						      Vector<Real> & jacobians) {
   UInt nb_points = natural_coords.cols();
-  Matrix<Real> dnds(interpolation_element::natural_space_dimension,
-			   interpolation_element::nb_nodes_per_element);
+  Matrix<Real> dnds(interpolation_property::natural_space_dimension,
+		    interpolation_property::nb_nodes_per_element);
   Matrix<Real> J(natural_coords.rows(),
 			node_coords.rows());
 
@@ -255,11 +343,11 @@ ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(const Matrix<Real> 
   UInt dimension = normals.rows();
   UInt nb_points = coord.cols();
 
-  AKANTU_DEBUG_ASSERT((dimension - 1) == interpolation_element::natural_space_dimension,
+  AKANTU_DEBUG_ASSERT((dimension - 1) == interpolation_property::natural_space_dimension,
 		      "cannot extract a normal because of dimension mismatch "
-		      << dimension - 1 << " " << interpolation_element::natural_space_dimension);
+		      << dimension - 1 << " " << interpolation_property::natural_space_dimension);
 
-  Matrix<Real> J(dimension, interpolation_element::natural_space_dimension);
+  Matrix<Real> J(dimension, interpolation_property::natural_space_dimension);
   for (UInt p = 0; p < nb_points; ++p) {
     interpolation_element::gradientOnNaturalCoordinates(coord(p), f, J);
     if (dimension == 2) {
