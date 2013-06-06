@@ -56,16 +56,16 @@ public:
   class Field;
   class VariableBase;
 
-  void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-		    const GhostType & ghost_type = _not_ghost,
-		    const ElementKind & element_kind = _ek_not_defined);
-
-  void registerFilteredMesh(const Mesh & mesh,
-			    const ByElementTypeArray<UInt> & elements_filter,
-			    const Array<UInt> & nodes_filter,
-			    UInt spatial_dimension = _all_dimensions,
+  virtual void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 			    const GhostType & ghost_type = _not_ghost,
 			    const ElementKind & element_kind = _ek_not_defined);
+
+  virtual void registerFilteredMesh(const Mesh & mesh,
+				    const ByElementTypeArray<UInt> & elements_filter,
+				    const Array<UInt> & nodes_filter,
+				    UInt spatial_dimension = _all_dimensions,
+				    const GhostType & ghost_type = _not_ghost,
+				    const ElementKind & element_kind = _ek_not_defined);
 
   void registerField(const std::string & field_id, Field * field);
   void unRegisterField(const std::string & field_id);
