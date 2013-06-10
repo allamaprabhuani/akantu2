@@ -108,8 +108,12 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
      neighbourhoodStatistics("material_non_local.stats");
 #endif
 
+
+  //  cleanupExtraGhostElement(nb_ghost_protected);
+
   if(prank == 0) std::cout << "Cleaning extra ghosts" << std::endl;
   cleanupExtraGhostElement(nb_ghost_protected);
+
 
   if(prank == 0) std::cout << "Computing weights" << std::endl;
   weight_func->setRadius(radius);

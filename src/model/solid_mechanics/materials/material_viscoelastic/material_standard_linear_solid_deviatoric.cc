@@ -40,7 +40,9 @@ template<UInt spatial_dimension>
 MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
   stress_dev("stress_dev", id),
-  history_integral("history_integral", id) {
+  history_integral("history_integral", id),
+  dissipated_energy("dissipated_energy", id) {
+
   AKANTU_DEBUG_IN();
 
   this->registerParam("Eta",  eta,   1., ParamAccessType(_pat_parsable | _pat_modifiable), "Viscosity");
@@ -51,7 +53,7 @@ MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinear
 
   this->initInternalArray(this->stress_dev, stress_size);
   this->initInternalArray(this->history_integral, stress_size);
-
+  this->initInternalArray(this->dissipated_energy, 1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -66,6 +68,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::initMaterial() {
 
   this->resizeInternalArray(this->stress_dev);
   this->resizeInternalArray(this->history_integral);
+  this->resizeInternalArray(this->dissipated_energy);
 
   AKANTU_DEBUG_OUT();
 }
@@ -133,6 +136,9 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Real exp_dt_tau = exp( -dt/tau );
   Real exp_dt_tau_2 = exp( -.5*dt/tau );
 
+  Matrix<Real> epsilon_d(spatial_dimension, spatial_dimension);
+  Matrix<Real> epsilon_v(spatial_dimension, spatial_dimension);
+
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -143,17 +149,21 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   sigma.clear();
 
   /// Compute the first invariant of strain
-  Real Theta = grad_u.trace();
-
   Real gamma_inf = E_inf / this->E;
   Real gamma_v   = Ev    / this->E;
 
+  this->gradUToEpsilon(grad_u, epsilon_d);
+  Real Theta = epsilon_d.trace();
+  epsilon_v.eye(1./3. * Theta);
+  epsilon_d -= epsilon_v;
+
   Matrix<Real> U_rond_prim(spatial_dimension, spatial_dimension);
+
   U_rond_prim.eye(gamma_inf * this->kpa * Theta);
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j) {
-      s(i, j) = 2 * this->mu * (.5 * (grad_u(i,j) + grad_u(j,i)) - 1./3. * Theta *(i == j));
+      s(i, j) = 2 * this->mu * epsilon_d(i, j);
       h(i, j)  = exp_dt_tau * h(i, j) + exp_dt_tau_2 * (s(i, j) - dev_s(i, j));
       dev_s(i, j) = s(i, j);
       sigma(i, j) =  U_rond_prim(i,j) + gamma_inf * s(i, j) + gamma_v * h(i, j);
@@ -165,11 +175,108 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
+  this->updateDissipatedEnergy(el_type, ghost_type);
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::updateDissipatedEnergy(ElementType el_type,
+										      GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
+  // if(ghost_type == _ghost) return 0.;
+  
+  Real tau = 0.;
+  tau = eta / Ev;
+  Real * dis_energy = dissipated_energy(el_type, ghost_type).storage();
+
+  Array<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
+  Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
+
+  Array<Real>::iterator< Matrix<Real> > stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::iterator< Matrix<Real> > history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+
+  Matrix<Real> q(spatial_dimension, spatial_dimension);
+  Matrix<Real> q_rate(spatial_dimension, spatial_dimension);
+  Matrix<Real> epsilon_d(spatial_dimension, spatial_dimension);
+  Matrix<Real> epsilon_v(spatial_dimension, spatial_dimension);
+
+  Real dt = this->model->getTimeStep();
+
+  Real gamma_v   = Ev / this->E;
+  Real alpha = 1. / (2. * this->mu * gamma_v);
+
+  /// Loop on all quadrature points
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+
+  Matrix<Real> & dev_s = *stress_d;
+  Matrix<Real> & h = *history_int;
+
+  /// Compute the first invariant of strain
+  this->gradUToEpsilon(grad_u, epsilon_d);
+
+  Real Theta = epsilon_d.trace();
+  epsilon_v.eye(1./3. * Theta);
+  epsilon_d -= epsilon_v;
+
+  q.copy(dev_s);
+  q -= h;
+  q *= gamma_v;
+
+  q_rate.copy(dev_s);
+  q_rate *= gamma_v;
+  q_rate -= q;
+  q_rate /= tau;
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      *dis_energy +=  (epsilon_d(i, j) - alpha * q(i, j)) * q_rate(i, j) * dt;
+
+
+  /// Save the deviator of stress
+  ++stress_d;
+  ++history_int;
+  ++dis_energy;
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getDissipatedEnergy() const {
+  AKANTU_DEBUG_IN();
+
+  Real de = 0.;
+  const Mesh & mesh = this->model->getFEM().getMesh();
+
+  /// integrate the dissipated energy for each type of elements
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
+
+  for(; it != end; ++it) {
+    de += this->model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
+					  _not_ghost, this->element_filter(*it, _not_ghost));
+  }
+
+  AKANTU_DEBUG_OUT();
+  return de;
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+template<UInt spatial_dimension>
+Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getEnergy(std::string type) {
+  if(type == "dissipated") return getDissipatedEnergy();
+  else if(type == "dissipated_sls_deviatoric") return getDissipatedEnergy();
+  else return MaterialElastic<spatial_dimension>::getEnergy(type);
+}
+
+/* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialStandardLinearSolidDeviatoric);
 

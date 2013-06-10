@@ -49,12 +49,14 @@ __BEGIN_AKANTU__
  *   - Kapa0_randomness  : (default:0) Kapa random internal variable
  */
 template<UInt spatial_dimension>
-class MaterialVreePeerlings : public MaterialDamage<spatial_dimension> {
+class MaterialVreePeerlings : public MaterialDamage<spatial_dimension,
+						    MaterialElastic> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
+  typedef MaterialDamage<spatial_dimension,
+			 MaterialElastic> MaterialVreePeerlingsParent;
   MaterialVreePeerlings(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialVreePeerlings() {};
@@ -79,7 +81,10 @@ protected:
 				  Real & Kapaq,
 				  Real dt,
 				  Matrix<Real> & strain_rate_vrpgls,
-				  Real & crit_strain);
+				  Real & crit_strain,
+				  Real & crit_strain_rate,
+				  Real & recorder_damage,
+				  Real & number_damage);
 
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma,
 					   Real & dam,
@@ -87,12 +92,10 @@ protected:
 					   Real & Equistrain,
 					   Real & Kapaq,
 					   Real dt,
-					   Real & crit_strain);
-
-  /* ------------------------------------------------------------------------ */
-  /* DataAccessor inherited members                                           */
-  /* ------------------------------------------------------------------------ */
-public:
+					   Real & crit_strain,
+					   Real & crit_strain_rate,
+					   Real & recorder_damage,
+					   Real & number_damage);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -130,11 +133,20 @@ protected:
  /// strain_critical_vreepeerlings
   ByElementTypeReal critical_strain;
 
-  /// Booleen to check the first step
-  bool firststep;
+ /// strain_critical_rate_vreepeerlings
+  ByElementTypeReal critical_strain_rate;
 
-  /// counter for initial step
-  Int countforinitialstep;
+  /// Recorder damage 1
+  ByElementTypeReal recorder_damage;
+
+  /// counter times damage
+  ByElementTypeReal number_damage;
+
+  /// equivalent strain used to compute the criteria for damage evolution
+  ByElementTypeReal equi_strain;
+
+  /// equivalent strain rate used to compute the criteria for damage evolution
+  ByElementTypeReal equi_strain_rate;
 };
 
 /* -------------------------------------------------------------------------- */

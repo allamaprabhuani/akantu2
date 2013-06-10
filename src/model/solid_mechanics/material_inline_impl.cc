@@ -78,6 +78,15 @@ inline void Material::leftCauchy(const Matrix<Real> & F,
 }
 
 /* -------------------------------------------------------------------------- */
+inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
+			       Matrix<Real> & epsilon) {
+ 
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      epsilon(i, j) = 0.5*(grad_u(i, j) + grad_u(j, i));
+}
+
+/* -------------------------------------------------------------------------- */
 inline void Material::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
 						   Matrix<Real> & sigma,
 						   Real & epot) {

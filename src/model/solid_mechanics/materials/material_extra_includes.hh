@@ -29,12 +29,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-// damage materials
-#include "material_marigo.hh"
-#include "material_mazars.hh"
-#include "material_damage_linear.hh"
-#include "material_vreepeerlings.hh"
-
 // visco-elastic materials
 #include "material_stiffness_proportional.hh"
 #include "material_standard_linear_solid_deviatoric.hh"
@@ -42,8 +36,15 @@
 // elastic materials
 #include "material_neohookean.hh"
 
+
+// damage materials
+#include "material_marigo.hh"
+#include "material_mazars.hh"
+#include "material_damage_linear.hh"
+#include "material_vreepeerlings.hh"
 // plasticity
 #include "material_plastic.hh"
+
 
 
 #define  AKANTU_EXTRA_MATERIAL_LIST					\

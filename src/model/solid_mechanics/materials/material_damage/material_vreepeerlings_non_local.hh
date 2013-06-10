@@ -68,7 +68,7 @@ public:
   void initMaterial();
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  //void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// constitutive law
   virtual void computeNonLocalStress(ElementType el_type,
@@ -83,14 +83,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// equivalent strain used to compute the criteria for damage evolution
-  ByElementTypeReal equi_strain;
 
   /// non local version of equivalent strain
   ByElementTypeReal equi_strain_non_local;
-
-  /// equivalent strain rate used to compute the criteria for damage evolution
-  ByElementTypeReal equi_strain_rate;
 
   /// non local version of equivalent strain rate
   ByElementTypeReal equi_strain_rate_non_local;

@@ -38,10 +38,15 @@ template<UInt spatial_dimension>
 MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsModel & model,
 					     const ID & id)  :
   Material(model, id),
-  MaterialDamage<spatial_dimension>(model, id),
+  MaterialVreePeerlingsParent(model, id),
   Kapa("Kapa",id),
   strain_rate_vreepeerlings("strain-rate-vreepeerlings", id),
-  critical_strain("critical-strain", id)
+  critical_strain("critical-strain", id),
+  critical_strain_rate("critical-strain-rate", id),
+  recorder_damage("recorder-damage", id),
+  number_damage("number-damage", id),
+  equi_strain("equi-strain", id),
+  equi_strain_rate("equi-strain-rate", id)
  {
   AKANTU_DEBUG_IN();
 
@@ -52,11 +57,16 @@ MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsMo
   this->registerParam("Kct"             , Kct             , 1.    , _pat_parsable);
   this->registerParam("Kapa0_randomness", Kapa0_randomness, 0.    , _pat_parsable);
 
-  firststep = true;
-  countforinitialstep= 0;
+  // firststep = true;
+  //countforinitialstep= 0;
 
   this->initInternalArray(this->Kapa, 1);
+  this->initInternalArray(this->equi_strain, 1);
+  this->initInternalArray(this->equi_strain_rate, 1);
   this->initInternalArray(this->critical_strain, 1);
+  this->initInternalArray(this->critical_strain_rate, 1);
+  this->initInternalArray(this->recorder_damage, 1);
+  this->initInternalArray(this->number_damage, 1);
   this->initInternalArray(this->strain_rate_vreepeerlings, spatial_dimension * spatial_dimension);
 
   AKANTU_DEBUG_OUT();
@@ -66,26 +76,47 @@ MaterialVreePeerlings<spatial_dimension>::MaterialVreePeerlings(SolidMechanicsMo
 template<UInt spatial_dimension>
 void MaterialVreePeerlings<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialDamage<spatial_dimension>::initMaterial();
+  MaterialVreePeerlingsParent::initMaterial();
 
   this->resizeInternalArray(this->Kapa);
+  this->resizeInternalArray(this->equi_strain);
+  this->resizeInternalArray(this->equi_strain_rate);
   this->resizeInternalArray(this->critical_strain);
+  this->resizeInternalArray(this->critical_strain_rate);
+  this->resizeInternalArray(this->recorder_damage);
+  this->resizeInternalArray(this->number_damage);
   this->resizeInternalArray(this->strain_rate_vreepeerlings);
+
 
   const Mesh & mesh = this->model->getFEM().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
 
+  Real beta = 1./3.;
+  Real Lambda = 200e6 / this->E;
+
   for(; it != last_type; ++it) {
     Array <Real>::iterator<Real> kapa_it  = Kapa(*it).begin();
     Array <Real>::iterator<Real> kapa_end = Kapa(*it).end();
 
     for(; kapa_it != kapa_end; ++kapa_it) {
-      Real rand_part = (2 * drand48()-1) * Kapa0_randomness * Kapa0i;
-      *kapa_it = Kapa0i + rand_part;
+      // Real rand_part = (Kapa0i + drand48()*(Alpha - Kapa0i))*Kapa0_randomness;
+      // Real rand_part = (2 * drand48()-1) * Kapa0_randomness * Kapa0i;
+      Real rand = std::pow(std::abs(std::log(1 - drand48()*0.9999)), beta);
+      Real rand_part = Lambda * rand * Kapa0_randomness;
+      Real rand_final = Kapa0i + rand_part;
+      if (rand_final < Alpha*.9)
+	{
+	  *kapa_it = rand_final;
+	}
+      else 
+	{
+	  *kapa_it = Alpha*.9;
+	}
     }
   }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -94,9 +125,16 @@ template<UInt spatial_dimension>
 void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  MaterialVreePeerlingsParent::computeStress(el_type, ghost_type);
+
   Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
+  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
   Real * Kapaq = Kapa(el_type, ghost_type).storage();
   Real * crit_strain = critical_strain(el_type, ghost_type).storage();
+  Real * crit_strain_rate = critical_strain_rate(el_type, ghost_type).storage();
+  Real * rdr_damage = recorder_damage(el_type, ghost_type).storage();
+  Real * nb_damage = number_damage(el_type, ghost_type).storage();
   Real dt = this->model->getTimeStep();
 
   Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
@@ -112,15 +150,28 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  Real Equistrain;
-  Real Equistrain_rate;
   Matrix<Real> & strain_rate = *strain_rate_vrplgs_it;
 
-  computeStressOnQuad(grad_u, sigma, *dam, Equistrain, Equistrain_rate, *Kapaq, dt, strain_rate, *crit_strain);
+  computeStressOnQuad(grad_u, sigma, 
+		      *dam, 
+		      *equi_straint,
+		      *equi_straint_rate,
+		      *Kapaq,
+		      dt,
+		      strain_rate,
+		      *crit_strain,
+		      *crit_strain_rate,
+		      *rdr_damage,
+		      *nb_damage);
   ++dam;
+  ++equi_straint;
+  ++equi_straint_rate;
   ++Kapaq;
   ++strain_rate_vrplgs_it;
   ++crit_strain;
+  ++crit_strain_rate;
+  ++rdr_damage;
+  ++nb_damage;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -128,6 +179,7 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 }
 
 /* -------------------------------------------------------------------------- */
+
 //UInt MaterialVreePeerlings<spatial_dimension>::getNbDataToPack(const Element & element,
 //					    SynchronizationTag tag) const {
 //  AKANTU_DEBUG_IN();
@@ -198,6 +250,7 @@ void MaterialVreePeerlings<spatial_dimension>::computeStress(ElementType el_type
 // }
 
 /* -------------------------------------------------------------------------- */
+
 INSTANSIATE_MATERIAL(MaterialVreePeerlings);
 
 

@@ -36,18 +36,15 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::MaterialVreePe
 												const ID & id)  :
   Material(model, id),
   MaterialVreePeerlingsNonLocalParent(model, id),
-  equi_strain("equi-strain", id),
   equi_strain_non_local("equi-strain_non_local", id),
-  equi_strain_rate("equi-strain-rate", id),
   equi_strain_rate_non_local("equi-strain-rate_non_local", id) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = true;
 
-  this->initInternalArray(this->equi_strain, 1);
   this->initInternalArray(this->equi_strain_non_local, 1);
-  this->initInternalArray(this->equi_strain_rate, 1);
   this->initInternalArray(this->equi_strain_rate_non_local, 1);
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -57,10 +54,9 @@ template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  this->resizeInternalArray(this->equi_strain);
   this->resizeInternalArray(this->equi_strain_non_local);
-  this->resizeInternalArray(this->equi_strain_rate);
   this->resizeInternalArray(this->equi_strain_rate_non_local);
+
 
   this->registerNonLocalVariable(this->equi_strain, this->equi_strain_non_local, 1);
   this->registerNonLocalVariable(this->equi_strain_rate, this->equi_strain_rate_non_local, 1);
@@ -71,53 +67,67 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMater
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template <UInt> class WeigthFunction>
-void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeStress(ElementType el_type,
-										     GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
-  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
-  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
-  Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
-  Real dt = this->model->getTimeStep();
-
-  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
-  Array<Real> & velocity = this->model->getVelocity();
-  Array<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
-
-  this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
-						   spatial_dimension,
-						   el_type, ghost_type, elem_filter);
-
-  Array<Real>::iterator< Matrix<Real> > strain_rate_vrplgs_it =
-    strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
-
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  Matrix<Real> & strain_rate = *strain_rate_vrplgs_it;
-
-  MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
-								*dam,
-								*equi_straint,
-								*equi_straint_rate,
-								*Kapaq,
-								dt,
-								strain_rate,
-								*crit_strain);
-  ++dam;
-  ++equi_straint;
-  ++equi_straint_rate;
-  ++Kapaq;
-  ++strain_rate_vrplgs_it;
-  ++crit_strain;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
+//template<UInt spatial_dimension, template <UInt> class WeigthFunction>
+//void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeStress(ElementType el_type,
+//										     GhostType ghost_type) {
+//   AKANTU_DEBUG_IN();
+//
+//  Real * dam = this->damage(el_type, ghost_type).storage();
+//  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
+//  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
+//  Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
+//  Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
+//  Real * crit_strain_rate = this->critical_strain_rate(el_type, ghost_type).storage();
+//  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).storage();
+//  Real  * nb_damage = this->number_damage(el_type, ghost_type).storage();
+//  Real dt = this->model->getTimeStep();
+//
+//  Vector<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+//  Vector<Real> & velocity = this->model->getVelocity();
+//  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
+//
+//
+//  this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
+//						   spatial_dimension,
+//						   el_type, ghost_type, &elem_filter);
+//
+//  Vector<Real>::iterator<types::RMatrix> strain_rate_vrplgs_it =
+//    strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
+//
+//
+//  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+//
+//  types::RMatrix & strain_rate = *strain_rate_vrplgs_it;
+//
+//
+//
+//  MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
+//								*dam,
+//								*equi_straint,
+//								*equi_straint_rate,
+//								*Kapaq,
+//								dt,
+//								strain_rate,
+//								*crit_strain,
+//								*crit_strain_rate,
+//								*rdr_damage,
+//								*nb_damage);
+//  ++dam;
+//  ++equi_straint;
+//  ++equi_straint_rate;
+//  ++Kapaq;
+//  ++strain_rate_vrplgs_it;
+//  ++crit_strain;
+//  ++crit_strain_rate;
+//  ++rdr_damage;
+//  ++nb_damage;
+//
+//  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+//
+//  AKANTU_DEBUG_OUT();
+//}
+//
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeigthFunction>
@@ -129,17 +139,25 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeNo
   Real * Kapaq = this->Kapa(el_type, ghost_type).storage();
   Real * equi_strain_nl = this->equi_strain_non_local(el_type, ghost_type).storage();
   Real * equi_strain_rate_nl = this->equi_strain_rate_non_local(el_type, ghost_type).storage();
+  //Real * equi_strain_rate_nl = this->equi_strain_rate(el_type, ghost_type).storage();
+
   Real dt = this->model->getTimeStep();
   Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
+  Real * crit_strain_rate = this->critical_strain_rate(el_type, ghost_type).storage();
+  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).storage();
+  Real  * nb_damage = this->number_damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  this->computeDamageAndStressOnQuad(sigma, *dam, *equi_strain_nl, *equi_strain_rate_nl, *Kapaq, dt, *crit_strain);
+  this->computeDamageAndStressOnQuad(sigma, *dam, *equi_strain_nl, *equi_strain_rate_nl, *Kapaq, dt, *crit_strain, *crit_strain_rate, *rdr_damage, *nb_damage);
   ++dam;
   ++equi_strain_nl;
   ++equi_strain_rate_nl;
   ++Kapaq;
   ++crit_strain;
+  ++crit_strain_rate;
+  ++rdr_damage;
+  ++nb_damage;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 

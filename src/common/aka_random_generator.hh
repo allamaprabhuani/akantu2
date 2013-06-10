@@ -88,7 +88,7 @@ private:
 };
 
 template<>
-inline Real RandomGenerator<Real>::rand() {
+inline double RandomGenerator<double>::rand() {
   return drand48();
 }
 

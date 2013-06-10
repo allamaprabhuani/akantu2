@@ -10,6 +10,9 @@
  * @brief  Material Visco-elastic, based on Standard Solid rheological model, see
  * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
  * see Sections 10.2 and 10.3
+ * @brief  On a fully three-dimensional finite-strian viscoelastic damage model:
+ * formulation and computational aspects, J.C. Simo, Computer methods in applied
+ * mechanics and engineering 60 (1987) pp 153-173 
  *
  * @section LICENSE
  *
@@ -90,12 +93,20 @@ public:
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
+
 protected:
+
+  /// update the dissipated energy, is called after the stress have been computed
+  void updateDissipatedEnergy(ElementType el_type, GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// give the dissipated energy for the time step
+  Real getDissipatedEnergy() const;
+
+  virtual Real getEnergy(std::string type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -110,6 +121,9 @@ private:
 
   /// Internal variable: history integral
   ByElementTypeReal history_integral;
+
+  /// Dissipated energy
+  ByElementTypeReal dissipated_energy;
 
   std::map<std::string, MaterialParam> params;
 };

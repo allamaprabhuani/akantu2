@@ -256,6 +256,7 @@ public:
   inline void gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F);
   inline void rightCauchy(const Matrix<Real> & F, Matrix<Real> & C);
   inline void leftCauchy (const Matrix<Real> & F, Matrix<Real> & B);
+  inline void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon);
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */

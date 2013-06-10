@@ -102,7 +102,8 @@ protected:
   ByElementTypeReal int_sigma;
 };
 
-
 __END_AKANTU__
+
+#include "material_damage_tmpl.hh"
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_HH__ */
