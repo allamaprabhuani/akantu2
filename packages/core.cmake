@@ -170,6 +170,7 @@ set(AKANTU_CORE_FILES
   fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
   fem/element_classes/element_class_segment_3_inline_impl.cc
   fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
+  fem/element_classes/element_class_pentahedron_6_inline_impl.cc
   fem/shape_functions_inline_impl.cc
   fem/mesh_inline_impl.cc
   fem/boundary_inline_impl.cc

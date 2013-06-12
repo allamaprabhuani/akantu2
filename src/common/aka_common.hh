@@ -112,6 +112,7 @@ extern const UInt _all_dimensions;
   (_quadrangle_8)				\
   (_tetrahedron_4)				\
   (_tetrahedron_10)				\
+  (_pentahedron_6)				\
   (_hexahedron_8)
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
@@ -153,6 +154,7 @@ enum ElementType {
   _quadrangle_4,      ///< first order quadrangle
   _quadrangle_8,      ///< second order quadrangle
   _hexahedron_8,      ///< first order hexahedron
+  _pentahedron_6,     ///< first order pentahedron
   _bernoulli_beam_2,  ///< Bernoulli beam 2D
   _bernoulli_beam_3,  ///< Bernoulli beam 3D
 #if defined(AKANTU_COHESIVE_ELEMENT)
@@ -175,6 +177,7 @@ enum GeometricalType {
   _gt_tetrahedron_4,     ///< 4 nodes tetrahedron
   _gt_tetrahedron_10,    ///< 10 nodes tetrahedron
   _gt_hexahedron_8,      ///< 8 nodes hexahedron
+  _gt_pentahedron_6,     ///< 6 nodes pentahedron
 #if defined(AKANTU_COHESIVE_ELEMENT)
   _gt_cohesive_2d_4,     ///< 4 nodes 2D cohesive
   _gt_cohesive_2d_6,     ///< 6 nodes 2D cohesive
@@ -197,6 +200,7 @@ enum InterpolationType {
   _itp_lagrange_tetrahedron_4,     ///< first order lagrangian tetrahedron
   _itp_lagrange_tetrahedron_10,    ///< second order lagrangian tetrahedron
   _itp_lagrange_hexahedron_8,      ///< first order lagrangian hexahedron
+  _itp_lagrange_pentahedron_6,      ///< first order lagrangian pentahedron
   _itp_bernoulli_beam,             ///< Bernoulli beam
   _itp_not_defined
 };

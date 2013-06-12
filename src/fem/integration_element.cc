@@ -42,7 +42,6 @@ template<> UInt GaussIntegrationTypeData<_git_point, 1>::nb_quadrature_points = 
 template<> Real GaussIntegrationTypeData<_git_point, 1>::quad_positions[]     = {0};
 template<> Real GaussIntegrationTypeData<_git_point, 1>::quad_weights[]       = {1.};
 
-
 /* -------------------------------------------------------------------------- */
 /* Segments                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -95,68 +94,17 @@ template<> Real GaussIntegrationTypeData<_git_tetrahedron, 2>::quad_positions[] 
 template<> Real GaussIntegrationTypeData<_git_tetrahedron, 2>::quad_weights[]       = {1./24., 1./24., 1./24., 1./24.};
 
 
-
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationTypeData<_quadrangle_4>::nb_quadrature_points = 4;
-// template<> Real GaussIntegrationTypeData<_quadrangle_4>::quad[]               = {-1./sqrt(3.), -1./sqrt(3.),
-// 									 1./sqrt(3.), -1./sqrt(3.),
-// 									 1./sqrt(3.),  1./sqrt(3.),
-// 									 -1./sqrt(3.),  1./sqrt(3.)};
-// template<> Real GaussIntegrationTypeData<_quadrangle_4>::weights[]            = {1., 1., 1., 1.};
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationTypeData<_quadrangle_8>::nb_quadrature_points = 9;
-// template<> Real GaussIntegrationTypeData<_quadrangle_8>::quad[]               = {0.          ,           0.,
-// 									 sqrt(3./5.) ,  sqrt(3./5.),
-// 									 -sqrt(3./5.),  sqrt(3./5.),
-// 									 -sqrt(3./5.), -sqrt(3./5.),
-// 									 sqrt(3./5.) , -sqrt(3./5.),
-// 									 0.          ,  sqrt(3./5.),
-// 									 -sqrt(3./5.),           0.,
-// 									 0.          , -sqrt(3./5.),
-// 									 sqrt(3./5.) ,           0.};
-// template<> Real GaussIntegrationTypeData<_quadrangle_8    >::weights[] = {64./81.,
-// 								  25./81., 25./81., 25./81., 25./81.,
-// 								  40./81., 40./81., 40./81., 40./81.};
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationElement<_hexahedron_8>::nb_quadrature_points = 8;
-// template<> Real GaussIntegrationElement<_hexahedron_8>::quad[]               = {-1./sqrt(3.), -1./sqrt(3.), -1./sqrt(3.),
-// 										1./sqrt(3.) , -1./sqrt(3.), -1./sqrt(3.),
-// 										1./sqrt(3.) ,  1./sqrt(3.), -1./sqrt(3.),
-// 										-1./sqrt(3.),  1./sqrt(3.), -1./sqrt(3.),
-// 										-1./sqrt(3.), -1./sqrt(3.),  1./sqrt(3.),
-// 										1./sqrt(3.) , -1./sqrt(3.),  1./sqrt(3.),
-// 										1./sqrt(3.) ,  1./sqrt(3.),  1./sqrt(3.),
-// 										-1./sqrt(3.),  1./sqrt(3.),  1./sqrt(3.)};
-// template<> Real GaussIntegrationElement<_hexahedron_8>::weights[]            = {1., 1., 1., 1.,
-// 										1., 1., 1., 1.};
-
-
-// #if defined(AKANTU_STRUCTURAL_MECHANICS)
-// /* -------------------------------------------------------------------------- */
-// /* Structural elements                                                        */
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationElement<_bernoulli_beam_2>::nb_quadrature_points = 2;
-// template<> Real GaussIntegrationElement<_bernoulli_beam_2>::quad[]               = {-1./sqrt(3.), 0,
-// 										    1./sqrt(3.), 0.};
-// template<> Real GaussIntegrationElement<_bernoulli_beam_2>::weights[]            = {1., 1.};
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationElement<_bernoulli_beam_3>::nb_quadrature_points  = 3;
-// template<> Real GaussIntegrationElement<_bernoulli_beam_3>::quad[]                = {-sqrt(3./5.), 0., 0.,
-// 										     0., 0., 0.,
-// 										     sqrt(3./5.), 0., 0.};
-// template<> Real GaussIntegrationElement<_bernoulli_beam_3>::weights[]             = {5./9., 8./9., 5./9.};
-// #endif
-
-// #if defined(AKANTU_COHESIVE_ELEMENT)
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationElement<_cohesive_2d_4>::nb_quadrature_points = 1;
-// template<> Real GaussIntegrationElement<_cohesive_2d_4>::quad[]               = {0};
-// template<> Real GaussIntegrationElement<_cohesive_2d_4>::weights[]            = {2.};
-// /* -------------------------------------------------------------------------- */
-// template<> UInt GaussIntegrationElement<_cohesive_2d_6>::nb_quadrature_points = 2;
-// template<> Real GaussIntegrationElement<_cohesive_2d_6>::quad[]               = {-1./sqrt(3.), 1./sqrt(3.)};
-// template<> Real GaussIntegrationElement<_cohesive_2d_6>::weights[]            = {1., 1.};
-// /* -------------------------------------------------------------------------- */
-// #endif
+/* -------------------------------------------------------------------------- */
+/* Tetrahedrons                                                               */
+/* -------------------------------------------------------------------------- */
+template<> UInt GaussIntegrationTypeData<_git_pentahedron, 1>::nb_quadrature_points = 6;
+template<> Real GaussIntegrationTypeData<_git_pentahedron, 1>::quad_positions[]     = {-1./std::sqrt(3.), 0.5, 0.5,
+										       -1./std::sqrt(3.), 0. , 0.5,
+										       -1./std::sqrt(3.), 0.5, 0.,
+  										        1./std::sqrt(3.), 0.5, 0.5,
+										        1./std::sqrt(3.), 0. , 0.5,
+										        1./std::sqrt(3.), 0.5 ,0.};
+template<> Real GaussIntegrationTypeData<_git_pentahedron, 1>::quad_weights[]       = {1./6, 1./6, 1./6, 
+										       1./6, 1./6, 1./6};
 
 __END_AKANTU__

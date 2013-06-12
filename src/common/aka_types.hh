@@ -188,7 +188,7 @@ public:
   }
 
   /* ---------------------------------------------------------------------- */
-  inline Real dot(const Vector & vect) {
+  inline Real dot(const Vector & vect) const {
     return Math::vectorDot(values, vect.storage(), n);
   }
   /* ---------------------------------------------------------------------- */

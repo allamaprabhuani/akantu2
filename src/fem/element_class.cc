@@ -39,36 +39,39 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_not_defined>::p1_type       = _not_defined;
-template<> ElementType ElementClass<_not_defined>::facet_type    = _not_defined;
+template<> ElementType ElementClass<_not_defined>::facet_type[]  = {_not_defined};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_point_1>::p1_type           = _point_1;
-template<> ElementType ElementClass<_point_1>::facet_type        = _point_1;
+template<> ElementType ElementClass<_point_1>::facet_type[]      = {_point_1};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_segment_2>::p1_type         = _segment_2;
-template<> ElementType ElementClass<_segment_2>::facet_type      = _point_1;
+template<> ElementType ElementClass<_segment_2>::facet_type[]    = {_point_1};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_segment_3>::p1_type         = _segment_2;
-template<> ElementType ElementClass<_segment_3>::facet_type      = _point_1;
+template<> ElementType ElementClass<_segment_3>::facet_type[]    = {_point_1};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_triangle_3>::p1_type        = _triangle_3;
-template<> ElementType ElementClass<_triangle_3>::facet_type     = _segment_2;
+template<> ElementType ElementClass<_triangle_3>::facet_type[]   = {_segment_2};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_triangle_6>::p1_type        = _triangle_3;
-template<> ElementType ElementClass<_triangle_6>::facet_type     = _segment_3;
+template<> ElementType ElementClass<_triangle_6>::facet_type[]   = {_segment_3};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_tetrahedron_4>::p1_type     = _tetrahedron_4;
-template<> ElementType ElementClass<_tetrahedron_4>::facet_type  = _triangle_3;
+template<> ElementType ElementClass<_tetrahedron_4>::facet_type[]= {_triangle_3};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_tetrahedron_10>::p1_type    = _tetrahedron_4;
-template<> ElementType ElementClass<_tetrahedron_10>::facet_type = _triangle_6;
+template<> ElementType ElementClass<_tetrahedron_10>::facet_type[] = {_triangle_6};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_quadrangle_4>::p1_type      = _quadrangle_4;
-template<> ElementType ElementClass<_quadrangle_4>::facet_type   = _segment_2;
+template<> ElementType ElementClass<_quadrangle_4>::facet_type[] = {_segment_2};
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_quadrangle_8>::p1_type      = _quadrangle_4;
-template<> ElementType ElementClass<_quadrangle_8>::facet_type   = _segment_3;
+template<> ElementType ElementClass<_quadrangle_8>::facet_type[] = { _segment_3 };
 /* -------------------------------------------------------------------------- */
 template<> ElementType ElementClass<_hexahedron_8>::p1_type      = _hexahedron_8;
-template<> ElementType ElementClass<_hexahedron_8>::facet_type   = _quadrangle_4;
-
+template<> ElementType ElementClass<_hexahedron_8>::facet_type[] = { _quadrangle_4 };
+/* -------------------------------------------------------------------------- */
+template<> ElementType ElementClass<_pentahedron_6>::p1_type      = _pentahedron_6;
+template<> ElementType ElementClass<_pentahedron_6>::facet_type[] = { _triangle_3, _quadrangle_4 };
+/* -------------------------------------------------------------------------- */
 __END_AKANTU__

@@ -44,7 +44,8 @@ enum GaussIntergrationType {
   _git_point,
   _git_segment,
   _git_triangle,
-  _git_tetrahedron
+  _git_tetrahedron,
+  _git_pentahedron
 };
 
 /* -------------------------------------------------------------------------- */
@@ -85,7 +86,8 @@ enum GeometricalShapeType {
   _gst_not_defined,
   _gst_point,
   _gst_triangle,
-  _gst_square
+  _gst_square,
+  _gst_prism
 };
 
 template<GeometricalType geometrical_type>
@@ -104,6 +106,7 @@ struct GeometricalShapeContains {
     static const GeometricalShapeType shape = geom_shape;		\
   }
 
+
 /* -------------------------------------------------------------------------- */
 template< GeometricalType geometrical_type,
 	  GeometricalShapeType shape = GeometricalShape<geometrical_type>::shape >
@@ -119,20 +122,25 @@ public:
 public:
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension,   spatial_dimension,    UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement,  nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NbFacetsPerElement, nb_facets,            UInt);
-  static inline const Matrix<UInt> getFacetLocalConnectivityPerElement();
+  static AKANTU_GET_MACRO_NOT_CONST(NbFacetTypes,  nb_facet_types, UInt);
+  static inline UInt getNbFacetsPerElement(UInt t = 0);
+  static inline const Matrix<UInt> getFacetLocalConnectivityPerElement(UInt t = 0);
 protected:
   /// Number of nodes per element
   static UInt nb_nodes_per_element;
   /// spatial dimension of the element
   static UInt spatial_dimension;
+  /// number of different facet types
+  static UInt nb_facet_types;
   /// number of facets for element
-  static UInt nb_facets;
+  static UInt nb_facets[];
+  /// storage of the facet local connectivity
+  static UInt facet_connectivity_vect[];
   /// local connectivity of facets
-  static UInt facet_connectivity[];
+  static UInt * facet_connectivity[];
 private:
   /// Type of the facet elements
-  static UInt nb_nodes_per_facet;
+  static UInt nb_nodes_per_facet[];
 };
 
 /* -------------------------------------------------------------------------- */
@@ -318,10 +326,10 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(Kind, element_kind, ElementKind);
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, ElementClassProperty<element_type>::spatial_dimension, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, p1_type,    const ElementType &);
-  static AKANTU_GET_MACRO_NOT_CONST(FacetType,     facet_type, const ElementType &);
+  static const ElementType & getFacetType(UInt t = 0) { return facet_type[t]; }
 private:
   /// Type of the facet elements
-  static ElementType facet_type;
+  static ElementType facet_type[];
   /// type of element P1 associated
   static ElementType p1_type;
 };
@@ -341,6 +349,7 @@ private:
 #include "element_classes/element_class_quadrangle_4_inline_impl.cc"
 #include "element_classes/element_class_quadrangle_8_inline_impl.cc"
 #include "element_classes/element_class_hexahedron_8_inline_impl.cc"
+#include "element_classes/element_class_pentahedron_6_inline_impl.cc"
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 #  include "element_class_structural.hh"

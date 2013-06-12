@@ -138,8 +138,15 @@ UInt GaussIntegrationElement<element_type, order>::getNbQuadraturePoints() {
 /* -------------------------------------------------------------------------- */
 template<GeometricalType geometrical_type, GeometricalShapeType shape>
 inline const Matrix<UInt>
-GeometricalElement<geometrical_type, shape>::getFacetLocalConnectivityPerElement() {
-  return Matrix<UInt>(facet_connectivity, nb_facets, nb_nodes_per_facet);
+GeometricalElement<geometrical_type, shape>::getFacetLocalConnectivityPerElement(UInt t) {
+  return Matrix<UInt>(facet_connectivity[t], nb_facets[t], nb_nodes_per_facet[t]);
+}
+
+/* -------------------------------------------------------------------------- */
+template<GeometricalType geometrical_type, GeometricalShapeType shape>
+inline UInt
+GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(UInt t) {
+  return nb_facets[t];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -178,6 +185,20 @@ GeometricalShapeContains<_gst_triangle>::contains(const Vector<Real> & coords) {
   }
   if(in) return (in && (sum <= 1));
   return in;
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline bool
+GeometricalShapeContains<_gst_prism>::contains(const Vector<Real> & coords) {
+  bool in = ((coords(0) >= -1.) && (coords(0) <= 1.)); // x in segement [-1, 1]
+  
+  // y and z in triangle 
+  in &= ((coords(1) >= 0) && (coords(1) <= 1.));
+  in &= ((coords(2) >= 0) && (coords(2) <= 1.));
+  Real sum = coords(1) + coords(2);
+
+  return (in && (sum <= 1));
 }
 
 /* -------------------------------------------------------------------------- */

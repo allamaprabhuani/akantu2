@@ -63,6 +63,7 @@ inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
     case _itp_lagrange_tetrahedron_4  : stream << "_itp_lagrange_tetrahedron_4" ; break;
     case _itp_lagrange_tetrahedron_10 : stream << "_itp_lagrange_tetrahedron_10"; break;
     case _itp_lagrange_hexahedron_8   : stream << "_itp_lagrange_hexahedron_8"  ; break;
+    case _itp_lagrange_pentahedron_6  : stream << "_itp_lagrange_pentahedron_6" ; break;
     case _itp_bernoulli_beam          : stream << "_itp_bernoulli_beam"         ; break;
     case _itp_not_defined             : stream << "_itp_not_defined"            ; break;
     }

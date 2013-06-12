@@ -54,7 +54,7 @@ MeshIODiana::MeshIODiana() {
   canReadExtendedData = true;
   _diana_to_akantu_element_types["T9TM"] = _triangle_3;
   _diana_to_akantu_element_types["Q12TM"] = _quadrangle_4;
-  _diana_to_akantu_element_types["TP18L"] = _not_defined;
+  _diana_to_akantu_element_types["TP18L"] = _pentahedron_6;
   _diana_to_akantu_element_types["TE12L"] = _tetrahedron_4;
   _diana_to_akantu_element_types["HX24L"] = _hexahedron_8;
   _diana_to_akantu_mat_prop["YOUNG"] = "E";

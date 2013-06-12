@@ -30,6 +30,7 @@
 /* -------------------------------------------------------------------------- */
 #include "dumper_paraview.hh"
 #include "static_communicator.hh"
+#include <fstream>
 
 __BEGIN_AKANTU__
 
