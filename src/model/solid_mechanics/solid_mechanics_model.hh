@@ -60,9 +60,9 @@ namespace akantu {
 __BEGIN_AKANTU__
 
 class SolidMechanicsModel : public Model, public DataAccessor,
-			    public MeshEventHandler,
-			    public Dumpable<DumperParaview>,
-			    public BoundaryCondition<SolidMechanicsModel> {
+                            public MeshEventHandler,
+                            public Dumpable<DumperParaview>,
+                            public BoundaryCondition<SolidMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -79,9 +79,9 @@ public:
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
   SolidMechanicsModel(Mesh & mesh,
-		      UInt spatial_dimension = _all_dimensions,
-		      const ID & id = "solid_mechanics_model",
-		      const MemoryID & memory_id = 0);
+                      UInt spatial_dimension = _all_dimensions,
+                      const ID & id = "solid_mechanics_model",
+                      const MemoryID & memory_id = 0);
 
   virtual ~SolidMechanicsModel();
 
@@ -92,7 +92,7 @@ public:
 
   /// initialize completely the model
   virtual void initFull(std::string material_file,
-			AnalysisMethod method = _explicit_lumped_mass);
+                        AnalysisMethod method = _explicit_lumped_mass);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary();
@@ -143,7 +143,7 @@ public:
 
   bool isExplicit()
   { return method == _explicit_lumped_mass || method == _explicit_consistent_mass; }
-  
+
   /// initialize the array needed by updateResidual (residual, current_position)
   void initializeUpdateResidualData();
 
@@ -163,10 +163,10 @@ public:
 
   /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
   void solveLumped(Array<Real> & x,
-		   const Array<Real> & A,
-		   const Array<Real> & b,
-		   const Array<bool> & boundary,
-		   Real alpha);
+                   const Array<Real> & A,
+                   const Array<Real> & b,
+                   const Array<bool> & boundary,
+                   Real alpha);
 
   /// explicit integration predictor
   void explicitPred();
@@ -208,6 +208,9 @@ public:
   /// solve Ku = f
   void solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles);
 
+  /// create and return the velocity damping matrix
+  SparseMatrix & initVelocityDampingMatrix();
+
   /// test the convergence (norm of increment)
   bool testConvergenceIncrement(Real tolerance);
   bool testConvergenceIncrement(Real tolerance, Real & error);
@@ -247,36 +250,36 @@ public:
   class SurfaceLoadFunctor {
   public:
     virtual void traction(__attribute__ ((unused)) const Vector<Real> & position,
-			  __attribute__ ((unused)) Vector<Real> & traction,
-			  __attribute__ ((unused)) const Vector<Real> & normal,
-			  __attribute__ ((unused)) Surface surface_id) {
+                          __attribute__ ((unused)) Vector<Real> & traction,
+                          __attribute__ ((unused)) const Vector<Real> & normal,
+                          __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
 
     virtual void stress(__attribute__ ((unused)) const Vector<Real> & position,
-			__attribute__ ((unused)) Matrix<Real> & stress,
-			__attribute__ ((unused)) const Vector<Real> & normal,
-			__attribute__ ((unused)) Surface surface_id) {
+                        __attribute__ ((unused)) Matrix<Real> & stress,
+                        __attribute__ ((unused)) const Vector<Real> & normal,
+                        __attribute__ ((unused)) Surface surface_id) {
       AKANTU_DEBUG_TO_IMPLEMENT();
     }
   };
 
   /// compute force vector from a function(x,y,z) that describe stresses
 //  void computeForcesFromFunction(BoundaryFunction in_function,
-//				 BoundaryFunctionType function_type) __attribute__((deprecated));
+//                               BoundaryFunctionType function_type) __attribute__((deprecated));
 
   template<class Functor>
   void computeForcesFromFunction(Functor & functor, BoundaryFunctionType function_type);
 
   /// integrate a force on the boundary by providing a stress tensor
   void computeForcesByStressTensor(const Array<Real> & stresses,
-				   const ElementType & type,
-				   const GhostType & ghost_type);
+                                   const ElementType & type,
+                                   const GhostType & ghost_type);
 
   /// integrate a force on the boundary by providing a traction vector
   void computeForcesByTractionArray(const Array<Real> & tractions,
-				     const ElementType & type,
-				     const GhostType & ghost_type);
+                                     const ElementType & type,
+                                     const GhostType & ghost_type);
 
   /// synchronize the ghost element boundaries values
   void synchronizeBoundaries();
@@ -287,18 +290,18 @@ public:
 public:
   /// register a material in the dynamic database
   Material & registerNewMaterial(const ID & mat_type,
-				 const std::string & opt_param = "");
+                                 const std::string & opt_param = "");
 
   template <typename M>
   Material & registerNewCustomMaterial(const ID & mat_type,
-				       const std::string & opt_param = "");
+                                       const std::string & opt_param = "");
   /// read the material files to instantiate all the materials
   void readMaterials(const std::string & filename);
 
   /// read a custom material with a keyword and class as template
   template <typename M>
   UInt readCustomMaterial(const std::string & filename,
-				const std::string & keyword);
+                                const std::string & keyword);
 
   /// Use a UIntData in the mesh to specify the material to use per element
   void setMaterialIDsFromIntData(const std::string & data_name);
@@ -307,11 +310,10 @@ public:
   /* Mass (solid_mechanics_model_mass.cc)                                     */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// assemble the lumped mass matrix
   void assembleMassLumped();
 
-  /// assemble the mass matrix
+  /// assemble the mass matrix for consistent mass resolutions
   void assembleMass();
 
 
@@ -319,12 +321,13 @@ protected:
   /// assemble the lumped mass matrix for local and ghost elements
   void assembleMassLumped(GhostType ghost_type);
 
+  /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
   /// fill a vector of rho
   void computeRho(Array<Real> & rho,
-		  ElementType type,
-		  GhostType ghost_type);
+                  ElementType type,
+                  GhostType ghost_type);
 
 
   /* ------------------------------------------------------------------------ */
@@ -333,55 +336,55 @@ protected:
 public:
 
   inline virtual UInt getNbDataForElements(const Array<Element> & elements,
-					   SynchronizationTag tag) const;
+                                           SynchronizationTag tag) const;
 
   inline virtual void packElementData(CommunicationBuffer & buffer,
-				      const Array<Element> & elements,
-				      SynchronizationTag tag) const;
+                                      const Array<Element> & elements,
+                                      SynchronizationTag tag) const;
 
   inline virtual void unpackElementData(CommunicationBuffer & buffer,
-					const Array<Element> & elements,
-					SynchronizationTag tag);
+                                        const Array<Element> & elements,
+                                        SynchronizationTag tag);
 
   inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
   inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
 
   inline virtual void packData(CommunicationBuffer & buffer,
-			       const UInt index,
-			       SynchronizationTag tag) const;
+                               const UInt index,
+                               SynchronizationTag tag) const;
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
-				 const UInt index,
-				 SynchronizationTag tag);
+                                 const UInt index,
+                                 SynchronizationTag tag);
 
 protected:
   inline void splitElementByMaterial(const Array<Element> & elements,
-				     Array<Element> * elements_per_mat) const;
+                                     Array<Element> * elements_per_mat) const;
 
   inline virtual void packBarycenter(const Mesh & mesh,
-				     CommunicationBuffer & buffer,
-				     const Array<Element> & elements,
+                                     CommunicationBuffer & buffer,
+                                     const Array<Element> & elements,
                                      SynchronizationTag tag) const;
 
   inline virtual void unpackBarycenter(const Mesh & mesh,
-				       CommunicationBuffer & buffer,
-				       const Array<Element> & elements,
-				       SynchronizationTag tag);
+                                       CommunicationBuffer & buffer,
+                                       const Array<Element> & elements,
+                                       SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
   virtual void onNodesAdded  (const Array<UInt> & nodes_list,
-			      const NewNodesEvent & event);
+                              const NewNodesEvent & event);
   virtual void onNodesRemoved(const Array<UInt> & element_list,
-			      const Array<UInt> & new_numbering,
-			      const RemovedNodesEvent & event);
+                              const Array<UInt> & new_numbering,
+                              const RemovedNodesEvent & event);
   virtual void onElementsAdded  (const Array<Element> & nodes_list,
-				 const NewElementsEvent & event);
+                                 const NewElementsEvent & event);
   virtual void onElementsRemoved(const Array<Element> & element_list,
-				 const ByElementTypeUInt & new_numbering,
-				 const RemovedElementsEvent & event);
+                                 const ByElementTypeUInt & new_numbering,
+                                 const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
@@ -391,7 +394,7 @@ public:
   virtual void addDumpBoundaryField(const std::string & field_id,
                                     const std::string & boundary_name);
   virtual void removeDumpBoundaryField(const std::string & field_id,
-				       const std::string & boundary_name);
+                                       const std::string & boundary_name);
 
   virtual void addDumpFieldVector(const std::string & field_id);
   virtual void addDumpBoundaryFieldVector(const std::string & field_id,
@@ -502,6 +505,10 @@ public:
   /// get the mass matrix
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 
+  /// get the velocity damping matrix
+  AKANTU_GET_MACRO(VelocityDampingMatrix, *velocity_damping_matrix, SparseMatrix &);
+
+  /// get the FEM object to integrate or interpolate on the boundary
   inline FEM & getFEMBoundary(const ID & name = "");
 
   /// get integrator

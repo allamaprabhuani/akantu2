@@ -32,7 +32,7 @@
 /* -------------------------------------------------------------------------- */
 template <typename M>
 Material & SolidMechanicsModel::registerNewCustomMaterial(const ID & mat_type,
-							  __attribute__((unused)) const std::string & opt_param) {
+                                                          __attribute__((unused)) const std::string & opt_param) {
   UInt mat_count = materials.size();
 
   std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;
@@ -51,7 +51,7 @@ Material & SolidMechanicsModel::registerNewCustomMaterial(const ID & mat_type,
 /* -------------------------------------------------------------------------- */
 template <typename M>
 UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
-					     const std::string & keyword) {
+                                             const std::string & keyword) {
 
   Parser parser;
   parser.open(filename);
@@ -65,8 +65,8 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
   }
 
   if (mat_name != key) AKANTU_DEBUG_ERROR("material "
-					  << key
-					  << " not found in file " << filename);
+                                          << key
+                                          << " not found in file " << filename);
 
   Material & mat = registerNewCustomMaterial<M>(key, opt_param);
   parser.readSection(mat.getID(), mat);
@@ -74,96 +74,50 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
   return materials.size();;
 }
 
-/* --------------------------------------------------------------------------*/
-//template<class Functor>
-//void SolidMechanicsModel::computeForcesFromFunction(Functor & functor,
-						    //BoundaryFunctionType function_type) {
-  ///** function type is
-   //** _bft_forces : traction function is given
-   //** _bft_stress : stress function is given
-   //*/
-  //GhostType ghost_type = _not_ghost;
 
-  //UInt nb_component = 0;
-  //switch(function_type) {
-  //case _bft_stress: nb_component = spatial_dimension * spatial_dimension; break;
-  //case _bft_traction: nb_component = spatial_dimension; break;
-  //default: break;
-  //}
-
-  //Array<Real> funct(0, nb_component, "traction_stress");
-  //Array<Real> quad_coords(0, spatial_dimension, "quad_coords");
-
-  ////prepare the loop over element types
-  //Mesh::type_iterator it  = getFEMBoundary().getMesh().firstType(getFEMBoundary().getElementDimension(),
-								 //ghost_type);
-  //Mesh::type_iterator end = getFEMBoundary().getMesh().lastType(getFEMBoundary().getElementDimension(),
-								//ghost_type);
-
-  //for(; it != end; ++it) {
-
-    //UInt nb_quad    = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
-    //UInt nb_element = getFEMBoundary().getMesh().getNbElement(*it, ghost_type);
-
-    //funct.resize(nb_element * nb_quad);
-    //quad_coords.resize(nb_element * nb_quad);
-
-    //const Array<Real> & normals_on_quad = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
-
-    //getFEMBoundary().interpolateOnQuadraturePoints(getFEMBoundary().getMesh().getNodes(),
-						   //quad_coords, spatial_dimension, *it, ghost_type);
-
-    //Array<Real>::const_iterator< Vector<Real> > normals = normals_on_quad.begin(spatial_dimension);
-    //Array<Real>::iterator< Vector<Real> > qcoord  = quad_coords.begin(spatial_dimension);
-
-
-    //Array<UInt>::iterator< UInt > surface_id;
-    //bool has_surface_id;
-    //// XXX TODO FIXME
-////    try {
-////      surface_id = mesh.getSurfaceID(*it, ghost_type).begin();
-////      has_surface_id = true;
-////    } catch (...) {
-////      has_surface_id = false;
-////    }
-////
-    //if(function_type == _bft_stress) {
-      //Array<Real>::iterator< Matrix<Real> > stress = funct.begin(spatial_dimension, spatial_dimension);
-
-      //for (UInt el = 0; el < nb_element; ++el) {
-	      //Surface surf_id = 0;
-	      //if(has_surface_id) {
-	        //surf_id = *surface_id;
-	        //++surface_id;
-	      //}
-	      //for (UInt q = 0; q < nb_quad; ++q, ++stress, ++qcoord, ++normals) {
-	        //functor.stress(*qcoord, *stress, *normals, surf_id);
-	      //}
-      //}
-    //} else if (function_type == _bft_traction) {
-      //Array<Real>::iterator< Vector<Real> > force = funct.begin(spatial_dimension);
-
-      //for (UInt el = 0; el < nb_element; ++el) {
-	//Surface surf_id = 0;
-	//if(has_surface_id) {
-	  //surf_id = *surface_id;
-	  //++surface_id;
-	//}
-	//for (UInt q = 0; q < nb_quad; ++q, ++force, ++qcoord, ++normals) {
-	  //functor.traction(*qcoord, *force, *normals, surf_id);
-	//}
-      //}
-    //}
-
-    //switch(function_type) {
-    //case _bft_stress:
-      //computeForcesByStressTensor(funct, *it, ghost_type); break;
-    //case _bft_traction:
-      //computeForcesByTractionArray(funct, *it, ghost_type); break;
-    //default: break;
-    //}
-  //}
-//}
+__END_AKANTU__
+#include "sparse_matrix.hh"
+#include "solver.hh"
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+void SolidMechanicsModel::solveDynamic(Array<Real> & increment) {
+  AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
 
+  NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
+  Real c = nmb_int->getAccelerationCoefficient<type>(time_step);
+  Real d = nmb_int->getVelocityCoefficient<type>(time_step);
+  Real e = nmb_int->getDisplacementCoefficient<type>(time_step);
+
+  // A = c M + d C + e K
+  jacobian_matrix->clear();
+
+  if(stiffness_matrix)
+    jacobian_matrix->add(*stiffness_matrix, e);
+
+//  if(type != NewmarkBeta::_acceleration_corrector)
+//    jacobian_matrix->add(*stiffness_matrix, e);
+
+  if(mass_matrix)
+    jacobian_matrix->add(*mass_matrix, c);
+
+  mass_matrix->saveMatrix("M.mtx");
+  if(velocity_damping_matrix)
+    jacobian_matrix->add(*velocity_damping_matrix, d);
+
+  jacobian_matrix->applyBoundary(*boundary);
+
+#ifndef AKANTU_NDEBUG
+  if(AKANTU_DEBUG_TEST(dblDump))
+    jacobian_matrix->saveMatrix("J.mtx");
+#endif
+
+  jacobian_matrix->saveMatrix("J.mtx");
+
+  solver->setRHS(*residual);
+
+  // solve A w = f
+  solver->solve(increment);
+}
+/* -------------------------------------------------------------------------- */

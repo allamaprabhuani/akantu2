@@ -158,7 +158,7 @@ void SolidMechanicsModel::setTimeStep(Real time_step) {
  *
  * @param material_file the  file containing the materials to  use
  * @param method the analysis method wanted.  See the akantu::AnalysisMethod for
- * the different possibilites
+ * the different possibilities
  */
 void SolidMechanicsModel::initFull(std::string material_file,
                                    AnalysisMethod analysis_method) {
@@ -924,6 +924,15 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
     }
 
     AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+SparseMatrix & SolidMechanicsModel::initVelocityDampingMatrix() {
+  if(!velocity_damping_matrix)
+    velocity_damping_matrix =
+      new SparseMatrix(*jacobian_matrix, id + ":velocity_damping_matrix", memory_id);
+
+  return *velocity_damping_matrix;
 }
 
 /* -------------------------------------------------------------------------- */
