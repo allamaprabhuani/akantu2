@@ -455,15 +455,21 @@ void MaterialCohesive::computeNormal(const Array<Real> & position,
 				     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  if (type == _cohesive_1d_2)
+    fem_cohesive->computeNormalsOnControlPoints(position,
+						normal,
+						type, ghost_type);
+  else {
 #define COMPUTE_NORMAL(type)						\
-  fem_cohesive->getShapeFunctions().					\
-    computeNormalsOnControlPoints<type, CohesiveReduceFunctionMean>(position, \
-								    normal, \
-								    ghost_type,	\
-								    element_filter(type, ghost_type));
+    fem_cohesive->getShapeFunctions().					\
+      computeNormalsOnControlPoints<type, CohesiveReduceFunctionMean>(position, \
+								      normal, \
+								      ghost_type, \
+								      element_filter(type, ghost_type));
 
-  AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
+    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMAL);
 #undef COMPUTE_NORMAL
+  }
 
   AKANTU_DEBUG_OUT();
 }

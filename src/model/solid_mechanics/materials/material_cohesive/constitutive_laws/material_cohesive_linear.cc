@@ -201,17 +201,23 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
 
     if (f == facet) {
       for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it) {
-	for (UInt e = 0; e < 2; ++e, ++facet_stress_it) {
 
-	  if (facets_check(facet) == true) {
-	    Real effective_norm =
-	      computeEffectiveNorm(*facet_stress_it, *normal_it, *tangent_it);
+	if (facets_check(facet) == true) {
+	  Real effective_norm_1 =
+	    computeEffectiveNorm(*facet_stress_it, *normal_it, *tangent_it);
 
-	    (*stress_check_it)(q) =
-	      std::max((*stress_check_it)(q), effective_norm);
-	  }
+	  ++facet_stress_it;
 
+	  Real effective_norm_2 =
+	    computeEffectiveNorm(*facet_stress_it, -1.*(*normal_it), -1.*(*tangent_it));
+
+	  ++facet_stress_it;
+
+	  (*stress_check_it)(q) = std::max(effective_norm_1, effective_norm_2);
 	}
+	else
+	  facet_stress_it += 2;
+
       }
       ++facet_index;
       if (facet_index == f_filter.getSize()) break;
@@ -235,6 +241,10 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
 								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  /// clear contact tractions
+  Array<Real> & contact_trac = contact_tractions(el_type, ghost_type);
+  contact_trac.clear();
+
   /// define iterators
   Array<Real>::iterator< Vector<Real> > traction_it =
     tractions(el_type, ghost_type).begin(spatial_dimension);
@@ -243,7 +253,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
     opening(el_type, ghost_type).begin(spatial_dimension);
 
   Array<Real>::iterator< Vector<Real> > contact_traction_it =
-    contact_tractions(el_type, ghost_type).begin(spatial_dimension);
+    contact_trac.begin(spatial_dimension);
 
   Array<Real>::const_iterator< Vector<Real> > normal_it =
     normal.begin(spatial_dimension);
@@ -291,20 +301,18 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
     Real delta = tangential_opening_norm * tangential_opening_norm;
     delta *= beta2_kappa2;
 
-    /// don't consider penetration contribution
+    /// don't consider penetration contribution for delta
     if (normal_opening_norm > 0)
       delta += normal_opening_norm * normal_opening_norm;
-
-    delta = std::sqrt(delta);
-
+    else {
     /// use penalty coefficient in case of penetration
-    contact_traction_it->clear();
-    if (normal_opening_norm < 0) {
       *contact_traction_it = normal_opening;
       *contact_traction_it *= penalty;
-      normal_opening.set(0.);
+      normal_opening.clear();
       *opening_it = tangential_opening;
     }
+
+    delta = std::sqrt(delta);
 
     /// update maximum displacement and damage
     *delta_max_it = std::max(*delta_max_it, delta);

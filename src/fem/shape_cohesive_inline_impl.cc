@@ -250,9 +250,10 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real
   UInt nb_points  = this->control_points(type, ghost_type).cols();
   UInt spatial_dimension = this->mesh.getSpatialDimension();
 
-  if(filter_elements != empty_filter) {
+  if(filter_elements != empty_filter)
     nb_element  = filter_elements.getSize();
-  }
+
+  normals_u.resize(nb_points * nb_element);
 
   Array<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  (spatial_dimension -1)));
 
@@ -262,7 +263,6 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real
 								ghost_type,
 								filter_elements);
 
-  normals_u.resize(nb_points * nb_element);
   Array<Real>::iterator< Vector<Real> > normal     = normals_u.begin(spatial_dimension);
   Array<Real>::iterator< Vector<Real> > normal_end = normals_u.end(spatial_dimension);
 
@@ -276,7 +276,7 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real
 
       tangent += spatial_dimension * 2;
     }
-  else if(spatial_dimension == 2)
+  else if (spatial_dimension == 2)
     for (; normal != normal_end; ++normal) {
       Vector<Real> a1(tangent, spatial_dimension);
 

@@ -59,7 +59,7 @@ void Element::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   const ID & id,
+	   const ID id,
 	   const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(true),
@@ -72,9 +72,7 @@ Mesh::Mesh(UInt spatial_dimension,
   boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
-  std::stringstream sstr;
-  sstr << id << ":coordinates";
-  this->nodes = &(alloc<Real>(sstr.str(), 0, this->spatial_dimension));
+  this->nodes = &(alloc<Real>(this->id + ":coordinates", 0, this->spatial_dimension));
 
   nb_global_nodes = 0;
 
@@ -89,7 +87,6 @@ Mesh::Mesh(UInt spatial_dimension,
   std::fill_n(local_upper_bounds, 3, 0.);
 
   AKANTU_DEBUG_OUT();
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -141,14 +138,37 @@ Mesh::Mesh(UInt spatial_dimension,
 }
 
 /* -------------------------------------------------------------------------- */
+Mesh & Mesh::initMeshFacets(const ID & id) {
+  AKANTU_DEBUG_IN();
+
+  if (!mesh_facets) {
+    mesh_facets = new Mesh(spatial_dimension,
+			   *(this->nodes),
+			   this->id+":"+id,
+			   getMemoryID());
+
+    mesh_facets->mesh_parent = this;
+    mesh_facets->is_mesh_facets = true;
+  }
+
+  AKANTU_DEBUG_OUT();
+  return *mesh_facets;
+}
+
+/* -------------------------------------------------------------------------- */
 void Mesh::init() {
   nodes_type = NULL;
+  mesh_facets = NULL;
+  is_mesh_facets = false;
+  mesh_parent = NULL;
   //  computeBoundingBox();
 }
 
 /* -------------------------------------------------------------------------- */
 Mesh::~Mesh() {
   AKANTU_DEBUG_IN();
+
+  delete mesh_facets;
 
   AKANTU_DEBUG_OUT();
 }

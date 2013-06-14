@@ -42,4 +42,5 @@ add_akantu_test(test_cohesive_ghost_element_insertion "test_cohesive_ghost_eleme
 add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic"
   PACKAGE parallel)
 add_akantu_test(test_cohesive_extrinsic_IG_TG "test_cohesive_extrinsic_IG_TG")
+add_akantu_test(test_cohesive_1d_element "test_cohesive_1d_element")
 #===============================================================================

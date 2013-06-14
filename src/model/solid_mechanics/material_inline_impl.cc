@@ -148,6 +148,29 @@ inline void Material::buildElementalFieldInterpolationCoodinates(__attribute__((
 
 /* -------------------------------------------------------------------------- */
 template<>
+inline void Material::buildElementalFieldInterpolationCoodinates<_segment_2>(const Matrix<Real> & coordinates,
+									     Matrix<Real> & coordMatrix) {
+
+  for (UInt i = 0; i < coordinates.cols(); ++i)
+    coordMatrix(i, 0) = 1;
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::buildElementalFieldInterpolationCoodinates<_segment_3>(const Matrix<Real> & coordinates,
+									     Matrix<Real> & coordMatrix) {
+
+  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(_segment_3);
+
+  for (UInt i = 0; i < coordinates.cols(); ++i) {
+    coordMatrix(i, 0) = 1;
+    for (UInt j = 1; j < nb_quadrature_points; ++j)
+      coordMatrix(i, j) = coordinates(j-1, i);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
 inline void Material::buildElementalFieldInterpolationCoodinates<_triangle_3>(const Matrix<Real> & coordinates,
 									      Matrix<Real> & coordMatrix) {
 
@@ -211,16 +234,6 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(
 
   }
 }
-
-/* -------------------------------------------------------------------------- */
-template<>
-inline void Material::buildElementalFieldInterpolationCoodinates<_segment_2>(const Matrix<Real> & coordinates,
-									     Matrix<Real> & coordMatrix) {
-
-  for (UInt i = 0; i < coordinates.cols(); ++i)
-    coordMatrix(i, 0) = 1;
-}
-
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>

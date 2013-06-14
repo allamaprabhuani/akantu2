@@ -240,7 +240,7 @@ public:
 
   /// constructor that create nodes coordinates array
   Mesh(UInt spatial_dimension,
-       const ID & id = "mesh",
+       const ID id = "mesh",
        const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
@@ -348,6 +348,9 @@ public:
 
   /// initialize normals
   void initNormals();
+
+  /// init facets' mesh
+  Mesh & initMeshFacets(const ID & id = "mesh_facets");
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -476,6 +479,16 @@ public:
                                    const std::string & data_name,
                                    const GhostType & ghost_type = _not_ghost,
                                    UInt nb_component = 1);
+
+  /// Facets mesh accessor
+  AKANTU_GET_MACRO(MeshFacets, *mesh_facets, const Mesh &);
+  AKANTU_GET_MACRO_NOT_CONST(MeshFacets, *mesh_facets, Mesh &);
+
+  /// Parent mesh accessor
+  AKANTU_GET_MACRO(MeshParent, *mesh_parent, const Mesh &);
+  AKANTU_GET_MACRO_NOT_CONST(MeshParent, *mesh_parent, Mesh &);
+
+  inline bool isMeshFacets() const {return is_mesh_facets;}
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -619,6 +632,16 @@ private:
 
   /// List of boundaries either read from the mesh file or created directly
   Boundary boundaries;
+
+  /// facets' mesh
+  Mesh * mesh_facets;
+
+  /// parent mesh (this is set for mesh_facets meshes)
+  Mesh * mesh_parent;
+
+  /// defines if current mesh is mesh_facets or not
+  bool is_mesh_facets;
+
 };
 
 /* -------------------------------------------------------------------------- */

@@ -281,7 +281,7 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
   FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
-									nb_nodes_per_element);
+								nb_nodes_per_element);
 
   UInt nb_nodes_per_subelement = nb_nodes_per_element / 2;
   Matrix<Real> x(spatial_dimension, nb_nodes_per_subelement);
@@ -294,7 +294,12 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
 	x(s, n) = ((*x_it)(s, n) + (*x_it)(s, n + nb_nodes_per_subelement))*.5;
 
     Vector<Real> & J = *jacobians_it;
-    computeJacobianOnQuadPointsByElement<type>(x, J);
+
+    if (type == _cohesive_1d_2)
+      J(0) = 1;
+    else
+      computeJacobianOnQuadPointsByElement<type>(x, J);
+
     J *= weights;
   }
 

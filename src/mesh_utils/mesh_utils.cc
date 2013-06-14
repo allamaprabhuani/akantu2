@@ -782,26 +782,38 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
 	= mesh_facets.getElementToSubelement(type_facet, gt_facet);
 
       UInt old_nb_cohesive_elements = conn_cohesive.getSize();
-      conn_cohesive.resize(old_nb_cohesive_elements + doubled_f.getSize());
+      UInt new_nb_cohesive_elements = old_nb_cohesive_elements + doubled_f.getSize();
+      conn_cohesive.resize(new_nb_cohesive_elements);
+
+      Array<Element> * facet_to_coh_element =
+	mesh.getSubelementToElementPointer(type_cohesive, gt_facet);
+
+      facet_to_coh_element->resize(new_nb_cohesive_elements);
+      Element first_facet(type_facet, 0, gt_facet, _ek_regular);
+      Element second_facet(type_facet, 0, gt_facet, _ek_regular);
 
       for (UInt f = 0; f < doubled_f.getSize(); ++f) {
 	UInt nb_cohesive_elements = old_nb_cohesive_elements + f;
 
-	UInt first_facet = doubled_f(f, 0);
-	UInt second_facet = doubled_f(f, 1);
+	first_facet.element = doubled_f(f, 0);
+	second_facet.element = doubled_f(f, 1);
 
 	/// copy first facet's connectivity
 	for (UInt n = 0; n < nb_nodes_per_facet; ++n) {
-	  conn_cohesive(nb_cohesive_elements, n) = conn_facet(first_facet, n);
+	  conn_cohesive(nb_cohesive_elements, n) = conn_facet(first_facet.element, n);
 	  conn_cohesive(nb_cohesive_elements, n + nb_nodes_per_facet)
-	    = conn_facet(second_facet, n);
+	    = conn_facet(second_facet.element, n);
 	}
 
 	/// update element_to_facet vectors
 	Element cohesive_element(type_cohesive, nb_cohesive_elements,
 				 gt_facet, _ek_cohesive);
-	element_to_facet(first_facet)[1] = cohesive_element;
-	element_to_facet(second_facet)[1] = cohesive_element;
+	element_to_facet(first_facet.element)[1] = cohesive_element;
+	element_to_facet(second_facet.element)[1] = cohesive_element;
+
+	/// update facet to cohesive element vector
+	(*facet_to_coh_element)(nb_cohesive_elements, 0) = first_facet;
+	(*facet_to_coh_element)(nb_cohesive_elements, 1) = second_facet;
       }
     }
   }
@@ -937,9 +949,6 @@ void MeshUtils::doubleFacet(Mesh & mesh,
     return;
   }
 
-  Array<Element> & subfacet_to_facet
-    = mesh_facets.getSubelementToElement(type_facet, gt_facet);
-
   /// adding a new facet by copying original one
 
   /// create new connectivity
@@ -979,91 +988,121 @@ void MeshUtils::doubleFacet(Mesh & mesh,
 
   /// create new links to subfacets and update list of facets
   /// connected to subfacets
-  subfacet_to_facet.resize(nb_facet + 1);
-  for (UInt sf = 0; sf < nb_subfacet; ++sf) {
-    subfacet_to_facet(nb_facet, sf) = subfacet_to_facet(f_index, sf);
+  if (type_facet == _point_1) {
+    Array<Real> & position = mesh.getNodes();
 
-    Element subfacet = subfacet_to_facet(f_index, sf);
-    if (subfacet == ElementNull) continue;
-    UInt sf_index = subfacet.element;
-    GhostType sf_gt = subfacet.ghost_type;
+    UInt old_node = conn_facet(f_index);
+    UInt new_node = position.getSize();
 
-    Array< std::vector<Element> > & facet_to_subfacet
-      = mesh_facets.getElementToSubelement(type_subfacet, sf_gt);
+    /// update position
+    position.resize(new_node + 1);
+    position(new_node) = position(old_node);
 
-    /// find index to start looping around facets connected to current
-    /// subfacet
-    UInt start = 0;
-    UInt nb_connected_facets = facet_to_subfacet(sf_index).size();
+    conn_facet(nb_facet) = new_node;
+    Array<UInt> & conn_segment = mesh.getConnectivity(type, gt);
+    UInt nb_nodes_per_segment = conn_facet.getNbComponent();
 
-    while (facet_to_subfacet(sf_index)[start] != facet
-    	   && start <= facet_to_subfacet(sf_index).size()) ++start;
+    /// update facet connectivity
+    UInt i;
+    for (i = 0; conn_segment(el, i) != old_node
+	   && i <= nb_nodes_per_segment; ++i);
+    conn_segment(el, i) = new_node;
 
-    /// add the new facet to the list next to the original one
-    ++nb_connected_facets;
-    facet_to_subfacet(sf_index).resize(nb_connected_facets);
+    Vector<UInt> d_nodes(2);
+    d_nodes(0) = old_node;
+    d_nodes(1) = new_node;
+    doubled_nodes.push_back(d_nodes);
+  }
+  else {
+    Array<Element> & subfacet_to_facet
+      = mesh_facets.getSubelementToElement(type_facet, gt_facet);
 
-    for (UInt f = nb_connected_facets - 1; f > start; --f) {
-      facet_to_subfacet(sf_index)[f] = facet_to_subfacet(sf_index)[f - 1];
-    }
+    subfacet_to_facet.resize(nb_facet + 1);
+    for (UInt sf = 0; sf < nb_subfacet; ++sf) {
+      subfacet_to_facet(nb_facet, sf) = subfacet_to_facet(f_index, sf);
 
+      Element subfacet = subfacet_to_facet(f_index, sf);
+      if (subfacet == ElementNull) continue;
+      UInt sf_index = subfacet.element;
+      GhostType sf_gt = subfacet.ghost_type;
 
-    /// check if the new facet should be inserted before or after the
-    /// original one: the second element connected to both original
-    /// and new facet will be _not_defined, so I check if the first
-    /// one is equal to one of the elements connected to the following
-    /// facet in the facet_to_subfacet vector
-    UInt f_start = facet_to_subfacet(sf_index)[start].element;
-    Element facet_next;
-    UInt index_next = start + 2;
-    if (index_next == nb_connected_facets) index_next = 0;
+      Array< std::vector<Element> > & facet_to_subfacet
+	= mesh_facets.getElementToSubelement(type_subfacet, sf_gt);
 
-    facet_next = facet_to_subfacet(sf_index)[index_next];
+      /// find index to start looping around facets connected to current
+      /// subfacet
+      UInt start = 0;
+      UInt nb_connected_facets = facet_to_subfacet(sf_index).size();
 
-    while (facet_next.type == _not_defined) {
-      ++index_next;
-      if (index_next == nb_connected_facets) index_next = 0;
-      facet_next = facet_to_subfacet(sf_index)[index_next];
-    }
+      while (facet_to_subfacet(sf_index)[start] != facet
+	     && start <= facet_to_subfacet(sf_index).size()) ++start;
 
-    Array< std::vector<Element> > & element_to_facet_next
-      = mesh_facets.getElementToSubelement(facet_next.type, facet_next.ghost_type);
+      /// add the new facet to the list next to the original one
+      ++nb_connected_facets;
+      facet_to_subfacet(sf_index).resize(nb_connected_facets);
 
-    UInt f_next = facet_next.element;
-
-    if ((element_to_facet(f_start)[0] == element_to_facet_next(f_next)[0])
-	|| ( element_to_facet(f_start)[0] == element_to_facet_next(f_next)[1]))
-      facet_to_subfacet(sf_index)[start].element = nb_facet;
-    else
-      facet_to_subfacet(sf_index)[start + 1].element = nb_facet;
-
-    /// loop on every facet connected to the current subfacet
-    for (UInt f = start + 2; ; ++f) {
-
-      /// reset f in order to continue looping from the beginning
-      if (f == nb_connected_facets) f = 0;
-      /// exit loop if it reaches the end
-      if (f == start) break;
-
-      /// if current loop facet is on the boundary, double subfacet
-      Element f_global = facet_to_subfacet(sf_index)[f];
-
-      if (f_global.type == _not_defined) continue;
-
-      Array< std::vector<Element> > & el_to_f
-	= mesh_facets.getElementToSubelement(f_global.type, f_global.ghost_type);
-
-      if (el_to_f(f_global.element)[1].type == _not_defined ||
-	  el_to_f(f_global.element)[1].kind == _ek_cohesive) {
-	doubleSubfacet(mesh,
-		       mesh_facets,
-		       subfacet,
-		       start,
-		       f,
-		       doubled_nodes);
-	break;
+      for (UInt f = nb_connected_facets - 1; f > start; --f) {
+	facet_to_subfacet(sf_index)[f] = facet_to_subfacet(sf_index)[f - 1];
       }
 
+
+      /// check if the new facet should be inserted before or after the
+      /// original one: the second element connected to both original
+      /// and new facet will be _not_defined, so I check if the first
+      /// one is equal to one of the elements connected to the following
+      /// facet in the facet_to_subfacet vector
+      UInt f_start = facet_to_subfacet(sf_index)[start].element;
+      Element facet_next;
+      UInt index_next = start + 2;
+      if (index_next == nb_connected_facets) index_next = 0;
+
+      facet_next = facet_to_subfacet(sf_index)[index_next];
+
+      while (facet_next.type == _not_defined) {
+	++index_next;
+	if (index_next == nb_connected_facets) index_next = 0;
+	facet_next = facet_to_subfacet(sf_index)[index_next];
+      }
+
+      Array< std::vector<Element> > & element_to_facet_next
+	= mesh_facets.getElementToSubelement(facet_next.type, facet_next.ghost_type);
+
+      UInt f_next = facet_next.element;
+
+      if ((element_to_facet(f_start)[0] == element_to_facet_next(f_next)[0])
+	  || ( element_to_facet(f_start)[0] == element_to_facet_next(f_next)[1]))
+	facet_to_subfacet(sf_index)[start].element = nb_facet;
+      else
+	facet_to_subfacet(sf_index)[start + 1].element = nb_facet;
+
+      /// loop on every facet connected to the current subfacet
+      for (UInt f = start + 2; ; ++f) {
+
+	/// reset f in order to continue looping from the beginning
+	if (f == nb_connected_facets) f = 0;
+	/// exit loop if it reaches the end
+	if (f == start) break;
+
+	/// if current loop facet is on the boundary, double subfacet
+	Element f_global = facet_to_subfacet(sf_index)[f];
+
+	if (f_global.type == _not_defined) continue;
+
+	Array< std::vector<Element> > & el_to_f
+	  = mesh_facets.getElementToSubelement(f_global.type, f_global.ghost_type);
+
+	if (el_to_f(f_global.element)[1].type == _not_defined ||
+	    el_to_f(f_global.element)[1].kind == _ek_cohesive) {
+	  doubleSubfacet(mesh,
+			 mesh_facets,
+			 subfacet,
+			 start,
+			 f,
+			 doubled_nodes);
+	  break;
+	}
+
+      }
     }
   }
 
@@ -1093,35 +1132,30 @@ void MeshUtils::doubleSubfacet(Mesh & mesh,
 
   /// add the new subfacet
   if (spatial_dimension == 3) AKANTU_DEBUG_TO_IMPLEMENT();
-  else if (spatial_dimension == 2) {
 
-    UInt new_node = position.getSize();
+  UInt new_node = position.getSize();
 
-    /// add new node in connectivity
-    UInt new_subfacet = conn_point.getSize();
-    conn_point.resize(new_subfacet + 1);
-    conn_point(new_subfacet) = new_node;
+  /// add new node in connectivity
+  UInt new_subfacet = conn_point.getSize();
+  conn_point.resize(new_subfacet + 1);
+  conn_point(new_subfacet) = new_node;
 
-    /// store doubled nodes
-    UInt nb_doubled_nodes = doubled_nodes.getSize();
-    doubled_nodes.resize(nb_doubled_nodes + 1);
+  /// store doubled nodes
+  UInt nb_doubled_nodes = doubled_nodes.getSize();
+  doubled_nodes.resize(nb_doubled_nodes + 1);
 
-    UInt old_node = doubled_nodes(nb_doubled_nodes, 0)
-      = conn_point(sf_index);
-    doubled_nodes(nb_doubled_nodes, 1) = new_node;
+  UInt old_node = doubled_nodes(nb_doubled_nodes, 0)
+    = conn_point(sf_index);
+  doubled_nodes(nb_doubled_nodes, 1) = new_node;
 
-    /// update position
-    position.resize(new_node + 1);
-    for (UInt dim = 0; dim < spatial_dimension; ++dim)
-      position(new_node, dim) = position(old_node, dim);
-  }
+  /// update position
+  position.resize(new_node + 1);
+  for (UInt dim = 0; dim < spatial_dimension; ++dim)
+    position(new_node, dim) = position(old_node, dim);
 
   /// create a vector for the new subfacet in facet_to_subfacet
   facet_to_subfacet.resize(nb_subfacet + 1);
-
   UInt nb_connected_facets = facet_to_subfacet(sf_index).size();
-  UInt new_node = conn_point(conn_point.getSize() - 1);
-  UInt old_node = conn_point(sf_index);
   /// loop over facets from start to end
   for (UInt f = start + 1; ; ++f) {
 

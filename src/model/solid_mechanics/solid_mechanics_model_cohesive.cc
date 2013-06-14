@@ -43,9 +43,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
                                                          const ID & id,
                                                          const MemoryID & memory_id)
   : SolidMechanicsModel(mesh, dim, id, memory_id),
-    mesh_facets(mesh.getSpatialDimension(),
-                mesh.getNodes().getID(),
-                "mesh_facets", memory_id),
+    mesh_facets(mesh.initMeshFacets()),
     tangents("tangents", id),
     stress_on_facet("stress_on_facet", id),
     facet_stress("facet_stress", id),
@@ -583,18 +581,20 @@ void SolidMechanicsModelCohesive::computeSynchronizeNormals() {
   const Array<Real> & normals =
     getFEM("FacetsFEM").getNormalsOnQuadPoints(internal_facet_type);
 
-  Array<Real>::const_iterator< Vector<Real> > normal_it =
-    normals.begin(spatial_dimension);
-
   mesh_facets.initByElementTypeArray(tangents, spatial_dimension, spatial_dimension - 1);
   Array<Real> & tang = tangents(internal_facet_type);
   tang.resize(normals.getSize());
 
-  Array<Real>::iterator< Vector<Real> > tangent_it =
-    tang.begin(spatial_dimension);
+  if (spatial_dimension == 2) {
+    Array<Real>::const_iterator< Vector<Real> > normal_it =
+      normals.begin(spatial_dimension);
 
-  for (UInt i = 0; i < normals.getSize(); ++i, ++normal_it, ++tangent_it) {
-    Math::normal2( (*normal_it).storage(), (*tangent_it).storage() );
+    Array<Real>::iterator< Vector<Real> > tangent_it =
+      tang.begin(spatial_dimension);
+
+    for (UInt i = 0; i < normals.getSize(); ++i, ++normal_it, ++tangent_it) {
+      Math::normal2( (*normal_it).storage(), (*tangent_it).storage() );
+    }
   }
   /* ------------------------------------------------------------------------ */
 
@@ -657,9 +657,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
   Array<Real> & f_stress = facet_stress(internal_facet_type);
   f_stress.resize(2 * nb_facet * nb_quad_per_facet);
 
-  facet_stress_count.resize(nb_facet);
-  facet_stress_count.clear();
-
   /// loop over materials
   for (UInt m = 0; m < nb_materials; ++m) {
     try {
@@ -697,22 +694,42 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
           Array<Real>::iterator< Matrix<Real> > stress_on_f_it =
             stress_on_f.begin(spatial_dimension, spatial_dimension);
 
+	  ElementType facet_type = _not_defined;
+	  GhostType facet_gt = _not_ghost;
+	  Array<std::vector<Element> > * element_to_facet = NULL;
+	  Element current_el(type, 0, ghost_type);
+
           for (UInt el = 0; el < nb_element; ++el, ++facet_to_el_it) {
+	    current_el.element = el;
             for (UInt f = 0; f < nb_facet_per_elem; ++f) {
               Element global_facet_elem = (*facet_to_el_it)(f);
               UInt global_facet = global_facet_elem.element;
-              if (global_facet_elem.ghost_type == _ghost) {
+              if (global_facet_elem.ghost_type == _ghost ||
+		  global_facet_elem.type == _not_defined) {
                 stress_on_f_it += nb_quad_per_facet;
                 continue;
               }
 
+	      if (facet_type != global_facet_elem.type ||
+		  facet_gt != global_facet_elem.ghost_type) {
+		facet_type = global_facet_elem.type;
+		facet_gt = global_facet_elem.ghost_type;
+		element_to_facet =
+		  &( mesh_facets.getElementToSubelement(facet_type, facet_gt) );
+	      }
+
               for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
 
                 if (facets_check(global_facet) == true) {
+		  UInt element_rank = 0;
+
+		  if ( (*element_to_facet)(global_facet)[0] != current_el)
+		    element_rank = 1;
+
                   Matrix<Real> facet_stress_local(f_stress.storage()
                                                   + (global_facet * nb_quad_f_two
                                                      + q * 2
-                                                     + facet_stress_count(global_facet))
+                                                     + element_rank)
                                                   * sp2,
                                                   spatial_dimension,
                                                   spatial_dimension);
@@ -721,7 +738,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
                 }
 
               }
-              facet_stress_count(global_facet) = true;
             }
           }
         }

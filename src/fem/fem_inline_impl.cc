@@ -75,7 +75,8 @@ inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
 
   ElementType type_cohesive = _not_defined;
 
-  if (type_facet == _segment_2) type_cohesive = _cohesive_2d_4;
+  if (type_facet == _point_1) type_cohesive = _cohesive_1d_2;
+  else if (type_facet == _segment_2) type_cohesive = _cohesive_2d_4;
   else if (type_facet == _segment_3) type_cohesive = _cohesive_2d_6;
 
   AKANTU_DEBUG_OUT();

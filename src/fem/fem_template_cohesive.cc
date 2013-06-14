@@ -124,4 +124,49 @@ gradientOnQuadraturePoints(__attribute__((unused)) const Array<Real> &u,
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
 
+
+/* -------------------------------------------------------------------------- */
+template<>
+template<>
+void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
+computeNormalsOnControlPoints<_cohesive_1d_2>(__attribute__((unused)) const Array<Real> & field,
+					      Array<Real> & normal,
+					      const GhostType & ghost_type) const {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(mesh.getSpatialDimension() == 1, "Mesh dimension must be 1 to compute normals on 1D cohesive elements!");
+  const ElementType type = _cohesive_1d_2;
+  const ElementType facet_type = Mesh::getFacetType(type);
+
+  UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
+  normal.resize(nb_element);
+
+  Array<Element> & facets = mesh.getSubelementToElement(type, ghost_type);
+  Array<std::vector<Element> > & segments =
+    mesh.getMeshFacets().getElementToSubelement(facet_type, ghost_type);
+
+  Real values[2];
+
+  for (UInt elem = 0; elem < nb_element; ++elem) {
+
+    for (UInt p = 0; p < 2; ++p) {
+      Element f = facets(elem, p);
+      Element seg = segments(f.element)[0];
+      mesh.getBarycenter(seg.element, seg.type, &(values[p]), seg.ghost_type);
+    }
+
+    Real difference = values[0] - values[1];
+
+    AKANTU_DEBUG_ASSERT(difference != 0.,
+			"Error in normal computation for cohesive elements");
+
+    normal(elem) = difference / std::abs(difference);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+
+
 __END_AKANTU__

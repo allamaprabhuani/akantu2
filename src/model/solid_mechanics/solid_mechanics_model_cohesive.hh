@@ -192,7 +192,7 @@ private:
   UInt cohesive_index;
 
   /// mesh containing facets and their data structures
-  Mesh mesh_facets;
+  Mesh & mesh_facets;
 
   /// vector containing facets in which cohesive elements can be automatically inserted
   Array<bool> facets_check;
@@ -202,9 +202,6 @@ private:
 
   /// list of stresses on facet quadrature points for every element
   ByElementTypeReal stress_on_facet;
-
-  /// already counted facets in stress check
-  Array<bool> facet_stress_count;
 
   /// stress on facets on the two sides by quadrature point
   ByElementTypeReal facet_stress;
