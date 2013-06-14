@@ -37,34 +37,41 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<> UInt GeometricalElement<_gt_cohesive_2d_4>::spatial_dimension    = 2;
 template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_nodes_per_element = 4;
-template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_facets            = 2;
-template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_nodes_per_facet   = 2;
-template<> UInt GeometricalElement<_gt_cohesive_2d_4>::facet_connectivity[] = {0, 2,
-									       1, 3};
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_facet_types       = 1;
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_facets[]          = { 2 };
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::nb_nodes_per_facet[] = { 2 };
+template<> UInt GeometricalElement<_gt_cohesive_2d_4>::facet_connectivity_vect[] = {0, 2,
+										    1, 3};
+template<> UInt * GeometricalElement<_gt_cohesive_2d_4>::facet_connectivity[] = { &facet_connectivity_vect[0] };
 
-template<> ElementType ElementClass<_cohesive_2d_4>::facet_type = _segment_2;
-template<> ElementType ElementClass<_cohesive_2d_4>::p1_type    = _cohesive_2d_4;
+template<> ElementType ElementClass<_cohesive_2d_4>::facet_type[] = { _segment_2 };
+template<> ElementType ElementClass<_cohesive_2d_4>::p1_type      = _cohesive_2d_4;
 
 /* -------------------------------------------------------------------------- */
 template<> UInt GeometricalElement<_gt_cohesive_2d_6>::spatial_dimension    = 2;
 template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_nodes_per_element = 6;
-template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_facets            = 2;
-template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_nodes_per_facet   = 3;
-template<> UInt GeometricalElement<_gt_cohesive_2d_6>::facet_connectivity[] = {0, 3,
-									       1, 4,
-									       2, 5};
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_facet_types       = 1;
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_facets[]          = { 2 };
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::nb_nodes_per_facet[] = { 3 };
+template<> UInt GeometricalElement<_gt_cohesive_2d_6>::facet_connectivity_vect[] = {0, 3,
+										    1, 4,
+										    2, 5};
+template<> UInt * GeometricalElement<_gt_cohesive_2d_6>::facet_connectivity[] = { &facet_connectivity_vect[0] };
 
-template<> ElementType ElementClass<_cohesive_2d_6>::facet_type = _segment_3;
-template<> ElementType ElementClass<_cohesive_2d_6>::p1_type    = _cohesive_2d_4;
+template<> ElementType ElementClass<_cohesive_2d_6>::facet_type[] = { _segment_3 };
+template<> ElementType ElementClass<_cohesive_2d_6>::p1_type      = _cohesive_2d_4;
+
 /* -------------------------------------------------------------------------- */
 template<> UInt GeometricalElement<_gt_cohesive_1d_2>::spatial_dimension    = 1;
 template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_nodes_per_element = 2;
-template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_facets            = 2;
-template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_nodes_per_facet   = 1;
-template<> UInt GeometricalElement<_gt_cohesive_1d_2>::facet_connectivity[] = {0,
-									       1};
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_facet_types       = 1;
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_facets[]          = { 2 };
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::nb_nodes_per_facet[] = { 1 };
+template<> UInt GeometricalElement<_gt_cohesive_1d_2>::facet_connectivity_vect[] = {0,
+										    1};
+template<> UInt * GeometricalElement<_gt_cohesive_1d_2>::facet_connectivity[] = { &facet_connectivity_vect[0] };
 
-template<> ElementType ElementClass<_cohesive_1d_2>::facet_type = _point_1;
-template<> ElementType ElementClass<_cohesive_1d_2>::p1_type    = _cohesive_1d_2;
+template<> ElementType ElementClass<_cohesive_1d_2>::facet_type[] = { _point_1 };
+template<> ElementType ElementClass<_cohesive_1d_2>::p1_type      = _cohesive_1d_2;
 /* -------------------------------------------------------------------------- */
 __END_AKANTU__
