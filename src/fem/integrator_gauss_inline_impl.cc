@@ -248,6 +248,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
 }
 
 /* -------------------------------------------------------------------------- */
+#if defined(AKANTU_COHESIVE_ELEMENT)
 template <>
 template <ElementType type>
 void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const Array<Real> & nodes,
@@ -305,6 +306,7 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
 
   AKANTU_DEBUG_OUT();
 }
+#endif
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>

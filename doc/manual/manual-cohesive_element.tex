@@ -11,8 +11,7 @@
 \end{figure}
 
 The Snozzi-Molinari~\cite{snozzi_cohesive_2013} linear irreversible
-cohesive law has been implemented in \akantu as
-\code{material\_cohesive\_linear} (see
+cohesive law has been implemented in \akantu (see
 figure~\ref{fig:smm:coh:linear_cohesive_law}). It is an extension to
 the Camacho-Ortiz~\cite{camacho_computational_1996} cohesive law in
 order to make dissipated fracture energy path-dependent. The concept
@@ -142,9 +141,14 @@ of the cohesive element.
   \label{fig:smm:coh:insertion}
 \end{figure}
 
-Cohesive element insertion can be carried out dynamically in
-\akantu. More specifically, normal and tangential stresses along the
-edges of standard elements are used to compute the effective stress
+Cohesive element insertion can be either realized at the beginning of
+the simulation or it can be carried out dynamically. The first
+approach is called \emph{intrinsic} while the second one is
+\emph{extrinsic}.
+
+More
+specifically, normal and tangential stresses along the edges of
+standard elements are used to compute the effective stress
 \begin{equation}
   \sigma_\mathrm{eff} = \sqrt{\sigma_\mathrm{n}^2 +
     \frac{\tau_\mathrm{nt}^2}{\beta^2}}
@@ -159,7 +163,15 @@ updated (see figure~\ref{fig:smm:coh:insertion}). This topological
 mesh changing technique is very convenient because it allows
 simulating crack propagation without remeshing the domain.
 
-
+\subsubsection{Usage}
+In order to use cohesive elements a cohesive model should be created
+as
+\begin{cpp}
+  SolidMechanicsModelCohesive model(mesh);
+  model.initFull("material.dat", _explicit_lumped_mass, true);
+\end{cpp}
+where the last flag indicates if extrinsic approach should be used
+instead of intrinsic one.
 
 \subsubsection{Exponential cohesive law}
 
