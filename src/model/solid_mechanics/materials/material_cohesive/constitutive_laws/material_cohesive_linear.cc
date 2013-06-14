@@ -179,6 +179,9 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
   const Array<Real> & normals
     = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
 
+  const Array<Real> & inv_tangents = model->getInvertedTangents(type_facet);
+  const Array<Real> & inv_normals = model->getInvertedNormals(type_facet);
+
   UInt nb_facet = normals.getSize();
 
   Array<Real>::iterator< Vector<Real> > stress_check_it =
@@ -190,6 +193,12 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
   Array<Real>::const_iterator< Vector<Real> > tangent_it =
     tangents.begin(spatial_dimension);
 
+  Array<Real>::const_iterator< Vector<Real> > inv_normal_it =
+    inv_normals.begin(spatial_dimension);
+
+  Array<Real>::const_iterator< Vector<Real> > inv_tangent_it =
+    inv_tangents.begin(spatial_dimension);
+
   Array<Real>::const_iterator< Matrix<Real> > facet_stress_it =
     facet_stress.begin(spatial_dimension, spatial_dimension);
 
@@ -200,7 +209,8 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
   for (UInt f = 0; f < nb_facet; ++f) {
 
     if (f == facet) {
-      for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it) {
+      for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it,
+	     ++inv_normal_it, ++inv_tangent_it) {
 
 	if (facets_check(facet) == true) {
 	  Real effective_norm_1 =
@@ -209,7 +219,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
 	  ++facet_stress_it;
 
 	  Real effective_norm_2 =
-	    computeEffectiveNorm(*facet_stress_it, -1.*(*normal_it), -1.*(*tangent_it));
+	    computeEffectiveNorm(*facet_stress_it, *inv_normal_it, *inv_tangent_it);
 
 	  ++facet_stress_it;
 

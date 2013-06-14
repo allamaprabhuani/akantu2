@@ -44,6 +44,8 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
                                                          const MemoryID & memory_id)
   : SolidMechanicsModel(mesh, dim, id, memory_id),
     mesh_facets(mesh.initMeshFacets()),
+    inverted_normals("inverted_normals", id),
+    inverted_tangents("inverted_tangents", id),
     tangents("tangents", id),
     stress_on_facet("stress_on_facet", id),
     facet_stress("facet_stress", id),
@@ -581,22 +583,67 @@ void SolidMechanicsModelCohesive::computeSynchronizeNormals() {
   const Array<Real> & normals =
     getFEM("FacetsFEM").getNormalsOnQuadPoints(internal_facet_type);
 
+  UInt nb_facet = normals.getSize();
+
   mesh_facets.initByElementTypeArray(tangents, spatial_dimension, spatial_dimension - 1);
   Array<Real> & tang = tangents(internal_facet_type);
-  tang.resize(normals.getSize());
+  tang.resize(nb_facet);
 
   if (spatial_dimension == 2) {
     Array<Real>::const_iterator< Vector<Real> > normal_it =
       normals.begin(spatial_dimension);
 
+    Array<Real>::const_iterator< Vector<Real> > normal_end =
+      normals.end(spatial_dimension);
+
     Array<Real>::iterator< Vector<Real> > tangent_it =
       tang.begin(spatial_dimension);
 
-    for (UInt i = 0; i < normals.getSize(); ++i, ++normal_it, ++tangent_it) {
+    for (; normal_it != normal_end; ++normal_it, ++tangent_it) {
       Math::normal2( (*normal_it).storage(), (*tangent_it).storage() );
     }
   }
   /* ------------------------------------------------------------------------ */
+
+  /// compute inverted normals and facets
+
+  mesh_facets.initByElementTypeArray(inverted_normals,
+				     spatial_dimension,
+				     spatial_dimension - 1);
+
+  mesh_facets.initByElementTypeArray(inverted_tangents,
+				     spatial_dimension,
+				     spatial_dimension - 1);
+
+  Array<Real> & inv_n = inverted_normals(internal_facet_type);
+  Array<Real> & inv_t = inverted_tangents(internal_facet_type);
+
+  inv_n.resize(nb_facet);
+  inv_t.resize(nb_facet);
+
+  Array<Real>::const_iterator<Vector<Real> > normal_it =
+    normals.begin(spatial_dimension);
+
+  Array<Real>::const_iterator< Vector<Real> > normal_end =
+    normals.end(spatial_dimension);
+
+  Array<Real>::iterator<Vector<Real> > tangent_it =
+    tang.begin(spatial_dimension);
+
+  Array<Real>::iterator<Vector<Real> > inv_normal_it =
+    inv_n.begin(spatial_dimension);
+
+  Array<Real>::iterator<Vector<Real> > inv_tangent_it =
+    inv_t.begin(spatial_dimension);
+
+  for (; normal_it != normal_end; ++normal_it, ++tangent_it,
+	 ++inv_normal_it, ++inv_tangent_it) {
+    *inv_normal_it = *normal_it;
+    *inv_normal_it *= -1.;
+
+    *inv_tangent_it = *tangent_it;
+    *inv_tangent_it *= -1.;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -695,7 +742,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
             stress_on_f.begin(spatial_dimension, spatial_dimension);
 
 	  ElementType facet_type = _not_defined;
-	  GhostType facet_gt = _not_ghost;
 	  Array<std::vector<Element> > * element_to_facet = NULL;
 	  Element current_el(type, 0, ghost_type);
 
@@ -710,12 +756,11 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
                 continue;
               }
 
-	      if (facet_type != global_facet_elem.type ||
-		  facet_gt != global_facet_elem.ghost_type) {
+	      if (facet_type != global_facet_elem.type) {
 		facet_type = global_facet_elem.type;
-		facet_gt = global_facet_elem.ghost_type;
 		element_to_facet =
-		  &( mesh_facets.getElementToSubelement(facet_type, facet_gt) );
+		  &( mesh_facets.getElementToSubelement(facet_type,
+							global_facet_elem.ghost_type) );
 	      }
 
               for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
