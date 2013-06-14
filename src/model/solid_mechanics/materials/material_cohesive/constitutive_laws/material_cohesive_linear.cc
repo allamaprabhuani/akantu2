@@ -303,6 +303,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
       *contact_traction_it = normal_opening;
       *contact_traction_it *= penalty;
       normal_opening.set(0.);
+      *opening_it = tangential_opening;
     }
 
     /// update maximum displacement and damage
