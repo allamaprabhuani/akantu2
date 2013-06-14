@@ -49,7 +49,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class HeatTransferModel : public Model, public DataAccessor, public Dumpable<DumperParaview> {
+class HeatTransferModel : public Model, public DataAccessor, public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -169,9 +169,12 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpField(const std::string & field_id);
-  virtual void addDumpFieldArray(const std::string & field_id);
-  virtual void addDumpFieldTensor(const std::string & field_id);
+  virtual void addDumpFieldToDumper(const std::string & dumper_name,
+				    const std::string & field_id);
+  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
+  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

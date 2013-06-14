@@ -48,7 +48,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class LevelSetModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable<DumperParaview> {
+class LevelSetModel : public Model, public DataAccessor, public MeshEventHandler, public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -195,7 +195,8 @@ public:
                          const UInt index,
                          SynchronizationTag tag);
 
-  virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpFieldToDumper(const std::string & dumper_name,
+				    const std::string & field_id);
 
   void transportLevelSet(Array<Real> * velocity, Real delta_t=0.0, bool Assembly_A=false);
   void reinitializeLevelSet(Real delta_t, Real tol, UInt max_step, Real Epsilon);

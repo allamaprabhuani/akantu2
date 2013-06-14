@@ -56,7 +56,7 @@ struct StructuralMaterial {
   Real GJ;
 };
 
-class StructuralMechanicsModel : public Model, public Dumpable<DumperParaview> {
+class StructuralMechanicsModel : public Model, public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -139,9 +139,12 @@ private:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpField(const std::string & field_id);
-  virtual void addDumpFieldArray(const std::string & field_id);
-  virtual void addDumpFieldTensor(const std::string & field_id);
+  virtual void addDumpFieldToDumper(const std::string & dumper_name,
+				    const std::string & field_id);
+  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
+  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

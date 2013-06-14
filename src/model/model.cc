@@ -152,6 +152,13 @@ void Model::dumpBoundary(const std::string & boundary_name) {
 }
 
 /* -------------------------------------------------------------------------- */
+void Model::dumpBoundary(const std::string & boundary_name,
+			 const std::string & dumper_name) {
+  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
+  boundary.dump(dumper_name);
+}
+
+/* -------------------------------------------------------------------------- */
 void Model::dumpBoundary() {
   Boundary & boundary =  mesh.getBoundary();
   Boundary::iterator bit = boundary.begin();

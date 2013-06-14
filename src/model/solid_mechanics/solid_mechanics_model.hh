@@ -61,7 +61,7 @@ __BEGIN_AKANTU__
 
 class SolidMechanicsModel : public Model, public DataAccessor,
                             public MeshEventHandler,
-                            public Dumpable<DumperParaview>,
+                            public Dumpable,
                             public BoundaryCondition<SolidMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
@@ -390,17 +390,31 @@ protected:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpField(const std::string & field_id);
+  virtual void addDumpFieldToDumper(const std::string & dumper_name,
+				    const std::string & field_id);
+
   virtual void addDumpBoundaryField(const std::string & field_id,
-                                    const std::string & boundary_name);
+				    const std::string & boundary_name);
+  virtual void addDumpBoundaryFieldToDumper(const std::string & dumper_name,
+					    const std::string & field_id,
+					    const std::string & boundary_name);
   virtual void removeDumpBoundaryField(const std::string & field_id,
-                                       const std::string & boundary_name);
+				       const std::string & boundary_name);
+  virtual void removeDumpBoundaryFieldFromDumper(const std::string & dumper_name,
+						 const std::string & field_id,
+						 const std::string & boundary_name);
 
-  virtual void addDumpFieldVector(const std::string & field_id);
+  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
+
   virtual void addDumpBoundaryFieldVector(const std::string & field_id,
-                                          const std::string & boundary_name);
+					  const std::string & boundary_name);
+  virtual void addDumpBoundaryFieldVectorToDumper(const std::string & dumper_name,
+						  const std::string & field_id,
+						  const std::string & boundary_name);
 
-  virtual void addDumpFieldTensor(const std::string & field_id);
+  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

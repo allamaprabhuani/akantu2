@@ -45,7 +45,7 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 						   UInt dim,
 						   const ID & id,
 						   const MemoryID & memory_id) :
-  Model(mesh, dim, id, memory_id), Dumpable<DumperParaview>(id),
+  Model(mesh, dim, id, memory_id), Dumpable(),
   stress("stress", id, memory_id),
   element_material("element_material", id, memory_id),
   stiffness_matrix(NULL),
@@ -69,7 +69,8 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
-  addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
+  this->registerDumper<DumperParaview>("paraview_all", id, true);
+  this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
 
   AKANTU_DEBUG_OUT();
 }
@@ -590,10 +591,11 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::addDumpField(const std::string & field_id) {
+void StructuralMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
+						    const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(id, field, type, n, stride)				\
-  addDumpFieldToDumper(id,						\
+#define ADD_FIELD(dumper_name, id, field, type, n, stride)		\
+  internalAddDumpFieldToDumper(dumper_name, id,				\
 		       new DumperIOHelper::NodalField<type>(*field, n, stride))
 
   UInt n;
@@ -601,18 +603,19 @@ void StructuralMechanicsModel::addDumpField(const std::string & field_id) {
     n = 2;
   } else n = 3;
 
-  if(field_id == "displacement" ) { ADD_FIELD("displacement", displacement_rotation, Real,
+  if(field_id == "displacement" ) { ADD_FIELD(dumper_name, "displacement", displacement_rotation, Real,
 						  n, 0); }
-  else if(field_id == "rotation") { ADD_FIELD("rotation", displacement_rotation, Real,
+  else if(field_id == "rotation") { ADD_FIELD(dumper_name, "rotation", displacement_rotation, Real,
 						  nb_degree_of_freedom - n, n); }
-  else if(field_id == "force"   ) { ADD_FIELD("force", force_momentum, Real,
+  else if(field_id == "force"   ) { ADD_FIELD(dumper_name, "force", force_momentum, Real,
 						  n, 0); }
-  else if(field_id == "momentum") { ADD_FIELD("momentum", force_momentum, Real,
+  else if(field_id == "momentum") { ADD_FIELD(dumper_name, "momentum", force_momentum, Real,
 						  nb_degree_of_freedom - n, n); }
-  else if(field_id == "residual") { ADD_FIELD("residual", residual, Real, nb_degree_of_freedom, 0); }
-  else if(field_id == "boundary") { ADD_FIELD("boundary", boundary, bool, nb_degree_of_freedom, 0); }
+  else if(field_id == "residual") { ADD_FIELD(dumper_name, "residual", residual, Real, nb_degree_of_freedom, 0); }
+  else if(field_id == "boundary") { ADD_FIELD(dumper_name, "boundary", boundary, bool, nb_degree_of_freedom, 0); }
   else if(field_id == "element_index_by_material") {
-    addDumpFieldToDumper(field_id,
+    internalAddDumpFieldToDumper(dumper_name, 
+				 field_id,
 			 new DumperIOHelper::ElementalField<UInt>(element_material,
 								  spatial_dimension,
 								  _not_ghost,
@@ -623,29 +626,31 @@ void StructuralMechanicsModel::addDumpField(const std::string & field_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::addDumpFieldArray(const std::string & field_id) {
+void StructuralMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_name,
+							  const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(id, field, type, n, stride)				\
+#define ADD_FIELD(dumper_name, id, field, type, n, stride)		\
   DumperIOHelper::Field * f =						\
     new DumperIOHelper::NodalField<type>(*field, n, stride);	\
   f->setPadding(3);							\
-  addDumpFieldToDumper(id, f)
+  internalAddDumpFieldToDumper(dumper_name, id, f)
 
   UInt n;
   if(spatial_dimension == 2) {
     n = 2;
   } else n = 3;
 
-  if(field_id == "displacement" ) { ADD_FIELD("displacement", displacement_rotation, Real,
+  if(field_id == "displacement" ) { ADD_FIELD(dumper_name, "displacement", displacement_rotation, Real,
 					      n, 0); }
-  else if(field_id == "force"   ) { ADD_FIELD("force", force_momentum, Real,
+  else if(field_id == "force"   ) { ADD_FIELD(dumper_name, "force", force_momentum, Real,
 					      n, 0); }
 #undef ADD_FIELD
 #endif
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::addDumpFieldTensor(__attribute__((unused)) const std::string & field_id) {
+void StructuralMechanicsModel::addDumpFieldTensorToDumper(__attribute__((unused)) const std::string & dumper_name,
+							  __attribute__((unused)) const std::string & field_id) {
 }
 
 

@@ -52,7 +52,7 @@ LevelSetModel::LevelSetModel(Mesh & mesh,
                              const ID & id,
                              const MemoryID & memory_id) :
   Model(mesh, dim, id, memory_id),
-  Dumpable<DumperParaview>(id),
+  Dumpable(),
   increment_flag(false),
   phi_gradient("phi_gradient", id),
   phi_on_qpoints("phi_on_qpoints", id),
@@ -82,7 +82,8 @@ LevelSetModel::LevelSetModel(Mesh & mesh,
   this->boundary = NULL;
   this->increment = NULL;
 
-  addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
+  this->registerDumper<DumperParaview>("paraview_all", id, true);
+  this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
 
   //Array<UInt> & elem_filter = element_filter(_triangle_3, _not_ghost);
   AKANTU_DEBUG_OUT();
@@ -1267,22 +1268,25 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
   AKANTU_DEBUG_OUT();
 }
 
-void LevelSetModel::addDumpField(const std::string & field_id) {
+void LevelSetModel::addDumpFieldToDumper(const std::string & dumper_name,
+					 const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(field, type)						\
-  addDumpFieldToDumper(BOOST_PP_STRINGIZE(field),new DumperIOHelper::NodalField<type>(*field))
+#define ADD_FIELD(dumper_name, field, type)				\
+  internalAddDumpFieldToDumper(dumper_name,				\
+		       BOOST_PP_STRINGIZE(field),new DumperIOHelper::NodalField<type>(*field))
 
   if (field_id == "phi") {
-    ADD_FIELD(phi, Real);
+    ADD_FIELD(dumper_name, phi, Real);
   } else if (field_id == "velocity") {
-    ADD_FIELD(v, Real);
+    ADD_FIELD(dumper_name, v, Real);
   } else if (field_id == "residual") {
-    ADD_FIELD(residual, Real);
+    ADD_FIELD(dumper_name, residual, Real);
   } else if (field_id == "boundary") {
-    ADD_FIELD(boundary, bool);
+    ADD_FIELD(dumper_name, boundary, bool);
   }
   //else if(field_id == "partitions"  ) {
-  //  addDumpFieldToDumper(field_id,
+  //  internalAddDumpFieldToDumper(dumper_name, 
+  //                               field_id,
   //                     new DumperIOHelper::ElementPartitionField(mesh,
   //                                                               spatial_dimension,
   //                                                               _not_ghost,

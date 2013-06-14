@@ -41,7 +41,7 @@ __BEGIN_AKANTU__
 
 
 /* -------------------------------------------------------------------------- */
-class SubBoundary : private Memory, public Dumpable<DumperParaview> {
+class SubBoundary : private Memory, public Dumpable {
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
@@ -56,7 +56,8 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SubBoundary(const std::string & name, const std::string & id = "sub_boundary", const MemoryID & memory_id = 0);
+  SubBoundary(const std::string & name, const std::string & id = "sub_boundary", 
+	      const MemoryID & memory_id = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Node iterator                                                            */
@@ -93,9 +94,12 @@ public:
   AKANTU_GET_MACRO(Nodes, nodes, const Array<UInt> &);
 
   AKANTU_GET_MACRO(Name, name, std::string);
+  AKANTU_GET_MACRO(ID, id, const ID &); 
   inline UInt getNbNodes() const;
   void printself(std::ostream & stream) const;
-  inline void registerField(const std::string field_name, DumperIOHelper::Field * field);
+  inline void registerField(const std::string & dumper_name,
+			    const std::string & field_name, 
+			    DumperIOHelper::Field * field);
 
 private:
   inline void addNode(UInt node_id);

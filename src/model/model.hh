@@ -101,6 +101,8 @@ public:
   /* ------------------------------------------------------------------------ */
   /// Dump the data for a given boundary
   void dumpBoundary(const std::string & boundary_name);
+  void dumpBoundary(const std::string & boundary_name,
+		    const std::string & dumper_name);
   /// Dump the data for all boundaries
   void dumpBoundary();
   /// Set the directory for a given boundary

@@ -238,6 +238,9 @@ void Boundary::createBoundariesFromGeometry() {
   for(;subB_iter != subB_iter_end; ++subB_iter) {
     SubBoundary & sub = *subB_iter->second;
     sub.cleanUpNodeList();
+    sub.registerDumper<DumperParaview>("paraview_"+sub.getName(), 
+				       sub.getID(), 
+				       true);
     sub.addDumpFilteredMesh(mesh,
 			    sub.elements,
 			    sub.nodes,
@@ -297,12 +300,15 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
   for(;subB_iter != subB_iter_end; ++subB_iter) {
     SubBoundary & sub = *subB_iter->second;
     sub.cleanUpNodeList();
+    sub.registerDumper<DumperParaview>("paraview_"+sub.getName(), 
+				       sub.getID(), 
+				       true);
     sub.addDumpFilteredMesh(mesh,
-			    sub.elements,
-			    sub.nodes,
-			    mesh.getSpatialDimension() - 1,
-			    _not_ghost,
-			    _ek_regular);
+     			    sub.elements,
+     			    sub.nodes,
+     			    mesh.getSpatialDimension() - 1,
+     			    _not_ghost,
+     			    _ek_regular);
   }
 }
 
@@ -357,6 +363,9 @@ void Boundary::createSubBoundaryFromNodeGroup(const std::string & name,
   }
 
   sub_bound.cleanUpNodeList();
+  sub_bound.registerDumper<DumperParaview>("paraview_"+sub_bound.getName(), 
+					   sub_bound.getID(), 
+					   true);
   sub_bound.addDumpFilteredMesh(mesh,
 				sub_bound.elements,
 				sub_bound.nodes,
