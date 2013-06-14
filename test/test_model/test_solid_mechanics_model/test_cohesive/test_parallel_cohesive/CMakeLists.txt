@@ -29,13 +29,6 @@
 #
 #===============================================================================
 
-add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
-add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
-add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
-add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
-add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl")
-add_akantu_test(test_cohesive_extrinsic_IG_TG "test_cohesive_extrinsic_IG_TG")
-add_akantu_test(test_cohesive_1d_element "test_cohesive_1d_element")
-
-add_akantu_test(test_parallel_cohesive "test parallel cohesive elements" PACKAGE parallel_cohesive_element)
-#===============================================================================
+add_akantu_test(test_cohesive_parallel_intrinsic "test_cohesive_parallel_intrinsic")
+add_akantu_test(test_cohesive_ghost_element_insertion "test_cohesive_ghost_element_insertion")
+add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic")

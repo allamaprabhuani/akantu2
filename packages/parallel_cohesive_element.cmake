@@ -1,11 +1,11 @@
 #===============================================================================
-# @file   CMakeLists.txt
+# @file   parallel_cohesive_element.cmake
 #
-# @author Marco Vocialta <marco.vocialta@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Tue May 08 13:01:18 2012
+# @date   Tue Oct 16 14:05:02 2012
 #
-# @brief  configuration for cohesive elements tests
+# @brief  package description for parallel cohesive elements
 #
 # @section LICENSE
 #
@@ -25,17 +25,25 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-# @section DESCRIPTION
-#
 #===============================================================================
 
-add_akantu_test(test_cohesive_buildfacets "test_cohesive_buildfacets")
-add_akantu_test(test_cohesive_intrinsic "test_cohesive_intrinsic")
-add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic")
-add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments")
-add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl")
-add_akantu_test(test_cohesive_extrinsic_IG_TG "test_cohesive_extrinsic_IG_TG")
-add_akantu_test(test_cohesive_1d_element "test_cohesive_1d_element")
+option(AKANTU_PARALLEL_COHESIVE_ELEMENT "Use parallel cohesive_element package of Akantu" OFF)
+add_internal_package_dependencies(damage_non_local cohesive parallel)
 
-add_akantu_test(test_parallel_cohesive "test parallel cohesive elements" PACKAGE parallel_cohesive_element)
-#===============================================================================
+
+set(AKANTU_PARALLEL_COHESIVE_ELEMENT_FILES
+  model/solid_mechanics/solid_mechanics_model_cohesive_parallel.hh
+  model/solid_mechanics/solid_mechanics_model_cohesive_parallel.cc
+  model/solid_mechanics/solid_mechanics_model_cohesive_inline_impl.cc
+  synchronizer/facet_synchronizer.cc
+  synchronizer/facet_synchronizer.hh
+  synchronizer/facet_synchronizer_inline_impl.cc
+  )
+
+set(AKANTU_PARALLEL_COHESIVE_ELEMENT_TESTS
+  test_cohesive_parallel_intrinsic
+  test_cohesive_parallel_extrinsic
+  test_cohesive_ghost_element_insertion
+  test_facet_synchronizer
+  )
+

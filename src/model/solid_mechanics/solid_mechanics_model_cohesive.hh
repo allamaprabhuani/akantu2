@@ -29,7 +29,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
-#include "facet_synchronizer.hh"
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
+#  include "facet_synchronizer.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
@@ -83,12 +85,6 @@ public:
   /// initialize the model
   void initModel();
 
-  /// register the tags associated with the parallel synchronizer for
-  /// cohesive elements
-  void initParallel(MeshPartition * partition,
-		    DataAccessor * data_accessor=NULL,
-		    bool extrinsic = false);
-
   /// initialize cohesive material
   void initCohesiveMaterial();
 
@@ -109,8 +105,8 @@ private:
   /// compute fragments' mass and velocity
   void computeFragmentsMV();
 
-  /// compute and synchronize facets' normals
-  void computeSynchronizeNormals();
+  /// compute facets' normals
+  void computeNormals();
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
@@ -122,28 +118,6 @@ protected:
 			      const NewNodesEvent & event);
   virtual void onElementsAdded  (const Array<Element> & nodes_list,
 				 const NewElementsEvent & event);
-
-  /* ------------------------------------------------------------------------ */
-  /* Data Accessor inherited members                                          */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  inline virtual UInt getNbDataForElements(const Array<Element> & elements,
-					   SynchronizationTag tag) const;
-
-  inline virtual void packElementData(CommunicationBuffer & buffer,
-				      const Array<Element> & elements,
-				      SynchronizationTag tag) const;
-
-  inline virtual void unpackElementData(CommunicationBuffer & buffer,
-					const Array<Element> & elements,
-					SynchronizationTag tag);
-
-protected:
-
-  inline virtual void splitElementByKind(const Array<Element> & elements,
-					 Array<Element> & elements_regular,
-					 Array<Element> & elements_cohesive) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -251,17 +225,13 @@ private:
   /// _not_ghost facet type
   ElementType internal_facet_type;
 
-  /// facet synchronizer
-  FacetSynchronizer * facet_synchronizer;
-
-  // /// cohesive elements synchronizer
-  // DistributedSynchronizer * cohesive_distributed_synchronizer;
-
-  /// stored ghost facet normals sent by other processors
-  ByElementTypeReal * facet_normals;
-
   /// material to use if a cohesive element is created on a facet
   ByElementTypeUInt facet_material;
+
+
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
+#include "solid_mechanics_model_cohesive_parallel.hh"
+#endif
 
 };
 
@@ -270,8 +240,8 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#include "solid_mechanics_model_cohesive_inline_impl.cc"
+#if defined (AKANTU_PARALLEL_COHESIVE_ELEMENT)
+#  include "solid_mechanics_model_cohesive_inline_impl.cc"
 #endif
 
 /// standard output stream operator

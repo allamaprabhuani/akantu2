@@ -38,7 +38,7 @@ inline void SolidMechanicsModelCohesive::splitElementByKind(const Array<Element>
       elements_cohesive.push_back(elements(el));
     else
       AKANTU_DEBUG_ERROR("Unrecognized element kind in spliElementByKind.");
-  }  
+  }
 }
 
 /* -------------------------------------------------------------------------- */

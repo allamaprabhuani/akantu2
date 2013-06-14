@@ -60,7 +60,9 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   AKANTU_DEBUG_IN();
 
   facet_generated = false;
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   facet_synchronizer = NULL;
+#endif
 
   AKANTU_DEBUG_OUT();
 }
@@ -121,51 +123,6 @@ void SolidMechanicsModelCohesive::initFull(std::string material_file,
       f_material.resize(mesh_facets.getNbElement(*first, *gt));
       f_material.set(cohesive_index);
     }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
-                                               DataAccessor * data_accessor,
-                                               bool extrinsic) {
-  AKANTU_DEBUG_IN();
-
-  SolidMechanicsModel::initParallel(partition, data_accessor);
-
-  // /// create the distributed synchronizer for cohesive elements
-  // cohesive_distributed_synchronizer =
-  //   DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL, 0,
-  // 							       "cohesive_distributed_synchronizer");
-
-  // synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
-  // 				       _gst_material_id);
-
-  // synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
-  // 				       _gst_smm_stress);
-
-  // synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
-  // 				       _gst_smm_boundary);
-
-  /// create the facet synchronizer for extrinsic simulations
-  if (extrinsic) {
-    DistributedSynchronizer & distributed_synchronizer =
-      dynamic_cast<DistributedSynchronizer &>(*synch_parallel);
-
-    ByElementTypeUInt prank_to_element("prank_to_element", id);
-
-    distributed_synchronizer.buildPrankToElement(prank_to_element);
-
-    MeshUtils::buildAllFacetsParallel(mesh, mesh_facets, prank_to_element);
-    facet_generated = true;
-
-    facet_synchronizer =
-      FacetSynchronizer::createFacetSynchronizer(distributed_synchronizer,
-                                                 mesh_facets);
-
-    synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
-    synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_normals);
   }
 
   AKANTU_DEBUG_OUT();
@@ -370,7 +327,7 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file,
   getFEM("FacetsFEM").initShapeFunctions(_ghost);
 
   /// compute normals on facets
-  computeSynchronizeNormals();
+  computeNormals();
 
   /// compute quadrature points coordinates on facets
   Array<Real> & position = mesh.getNodes();
@@ -482,96 +439,12 @@ void SolidMechanicsModelCohesive::initExtrinsic(std::string material_file,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::computeSynchronizeNormals() {
+void SolidMechanicsModelCohesive::computeNormals() {
   AKANTU_DEBUG_IN();
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm.getNbProc();
-
-  if (psize > 1) {
-    if (spatial_dimension == 3) AKANTU_DEBUG_TO_IMPLEMENT();
-
-    /// correct facets' connectivity according to normals
-    facet_normals = new ByElementTypeReal("facet_normals", id);
-    ByElementTypeReal & f_normals = *facet_normals;
-
-    mesh_facets.initByElementTypeArray(f_normals,
-				       spatial_dimension,
-				       spatial_dimension - 1,
-				       false, _ek_regular, true);
-
-    /// compute facet normals for not ghost elements
-    MeshUtils::computeFacetNormals(mesh_facets, f_normals);
-
-    /// communicate
-    synch_registry->synchronize(_gst_smmc_normals);
-
-    /// compute local normals for ghost facets
-    ByElementTypeReal ghost_normals("ghost_normals", id);
-
-    mesh_facets.initByElementTypeArray(ghost_normals,
-				       spatial_dimension,
-				       spatial_dimension - 1);
-
-    MeshUtils::computeFacetNormals(mesh_facets, ghost_normals, _ghost);
-
-    GhostType gt_facet = _ghost;
-
-    Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
-    Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
-
-    /// loop on every ghost facet
-    for(; it != end; ++it) {
-      ElementType type_facet = *it;
-
-      Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet, gt_facet);
-      Array<std::vector<Element> > & el_to_f =
-	mesh_facets.getElementToSubelement(type_facet, gt_facet);
-      Array<Element> & subfacet_to_facet =
-	mesh_facets.getSubelementToElement(type_facet, gt_facet);
-
-      UInt nb_nodes_per_facet = connectivity.getNbComponent();
-      UInt nb_subfacet_per_facet = subfacet_to_facet.getNbComponent();
-      UInt nb_facet = connectivity.getSize();
-      Array<Real> & recv_normals = f_normals(type_facet, gt_facet);
-      Array<Real> & computed_normals = ghost_normals(type_facet, gt_facet);
-
-      Array<Real>::iterator<Vector<Real> > recv_it =
-	recv_normals.begin(spatial_dimension);
-      Array<Real>::iterator<Vector<Real> > computed_it =
-	computed_normals.begin(spatial_dimension);
-      Array<UInt>::iterator<Vector<UInt> > conn_it =
-	connectivity.begin(nb_nodes_per_facet);
-      Array<Element>::iterator<Vector<Element> > subf_to_f =
-	subfacet_to_facet.begin(nb_subfacet_per_facet);
-
-      Vector<UInt> conn_tmp(nb_nodes_per_facet);
-      std::vector<Element> el_tmp(2);
-      Vector<Element> subf_tmp(nb_subfacet_per_facet);
-
-      for (UInt f = 0; f < nb_facet; ++f, ++recv_it, ++computed_it, ++conn_it,
-	     ++subf_to_f) {
-	Real product = recv_it->dot( (*computed_it) );
-
-	/// if product is negative, facets must be flipped
-	if (product < 0) {
-	  conn_tmp = (*conn_it);
-	  (*conn_it)(0) = conn_tmp(1);
-	  (*conn_it)(1) = conn_tmp(0);
-
-	  el_tmp = el_to_f(f);
-	  el_to_f(f)[0] = el_tmp[1];
-	  el_to_f(f)[1] = el_tmp[0];
-
-	  subf_tmp = (*subf_to_f);
-	  (*subf_to_f)(0) = subf_tmp(1);
-	  (*subf_to_f)(1) = subf_tmp(0);
-	}
-      }
-    }
-
-    delete facet_normals;
-  }
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
+  synchronizeCohesiveElements();
+#endif
 
   getFEM("FacetsFEM").computeNormalsOnControlPoints();
 
@@ -860,7 +733,9 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
       Array<UInt> & f_to_cohesive_el = facets_to_cohesive_el(type_cohesive, gt_facet);
       f_to_cohesive_el.resize(total_nb_cohesive_elements);
 
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
       Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
+#endif
 
       const Array<UInt> & facet_material_by_type = facet_material(type_facet, gt_facet);
 
@@ -892,8 +767,10 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
         f_to_cohesive_el(nb_cohesive_elements, 0) = old_facet;
         f_to_cohesive_el(nb_cohesive_elements, 1) = new_facet;
 
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
         if (facet_synchronizer != NULL)
           cohesive_el_to_f(old_facet) = nb_cohesive_elements;
+#endif
       }
     }
 
@@ -911,35 +788,9 @@ void SolidMechanicsModelCohesive::onElementsAdded(__attribute__((unused)) const 
 
   assembleMassLumped();
 
-  /// update synchronizer if needed
-  if (facet_synchronizer != NULL) {
-    DataAccessor * data_accessor = this;
-
-    DistributedSynchronizer & distributed_synchronizer =
-      dynamic_cast<DistributedSynchronizer &>(*synch_parallel);
-
-    facet_synchronizer->updateDistributedSynchronizer(distributed_synchronizer,
-						      *data_accessor,
-                                                      cohesive_el_to_facet);
-
-    for (ghost_type_t::iterator gt = ghost_type_t::begin();
-         gt != ghost_type_t::end(); ++gt) {
-
-      GhostType gt_facet = *gt;
-
-      Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
-      Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
-
-      for(; it != end; ++it) {
-        ElementType type_facet = *it;
-        Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
-
-        for (UInt f = 0; f < cohesive_el_to_f.getSize(); ++f)
-          cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
-      }
-    }
-  }
-
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
+  updateFacetSynchronizer();
+#endif
   AKANTU_DEBUG_OUT();
 }
 

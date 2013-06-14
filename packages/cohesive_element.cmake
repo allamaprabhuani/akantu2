@@ -54,10 +54,6 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
 
-  synchronizer/facet_synchronizer.cc
-  synchronizer/facet_synchronizer.hh
-  synchronizer/facet_synchronizer_inline_impl.cc
-
   io/dumper/dumper_iohelper_tmpl_connectivity_field.hh
   )
 
@@ -71,8 +67,6 @@ set(AKANTU_COHESIVE_ELEMENT_TESTS
   test_cohesive_extrinsic_quadrangle
   test_cohesive_buildfragments
   test_cohesive_intrinsic_impl
-  test_cohesive_parallel_intrinsic
-  test_facet_synchronizer
   )
 
 set(AKANTU_COHESIVE_ELEMENT_DOC
