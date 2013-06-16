@@ -59,7 +59,7 @@ inline void Math::matrix_vector(UInt im, UInt in,
   int m = im;
   int n = in;
 
-  aka_dgemv(&tran_A, &m, &n, &alpha, A, &m, x, &incx, &beta, y, &incy);
+  aka_gemv(&tran_A, &m, &n, &alpha, A, &m, x, &incx, &beta, y, &incy);
 
 #else
   memset(y, 0, im*sizeof(Real));
@@ -87,7 +87,7 @@ inline void Math::matrixt_vector(UInt im, UInt in,
   int m = im;
   int n = in;
 
-  aka_dgemv(&tran_A, &m, &n, &alpha, A, &n, x, &incx, &beta, y, &incy);
+  aka_gemv(&tran_A, &m, &n, &alpha, A, &n, x, &incx, &beta, y, &incy);
 #else
   memset(y, 0, im*sizeof(Real));
   for (UInt i = 0; i < im; ++i) {
@@ -111,7 +111,7 @@ inline void Math::matrix_matrix(UInt im, UInt in, UInt ik,
   double beta = 0.;
   int m = im, n = in, k = ik;
 
-  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+  aka_gemm(&trans_a, &trans_b, &m, &n, &k,
             &alpha,
             A, &m,
             B, &k,
@@ -145,7 +145,7 @@ inline void Math::matrixt_matrix(UInt im, UInt in, UInt ik,
   double beta = 0.;
   int m = im, n = in, k = ik;
 
-  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+  aka_gemm(&trans_a, &trans_b, &m, &n, &k,
             &alpha,
             A, &k,
             B, &k,
@@ -179,7 +179,7 @@ inline void Math::matrix_matrixt(UInt im, UInt in, UInt ik,
   double beta = 0.;
   int m = im, n = in, k = ik;
 
-  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+  aka_gemm(&trans_a, &trans_b, &m, &n, &k,
             &alpha,
             A, &m,
             B, &n,
@@ -213,7 +213,7 @@ inline void Math::matrixt_matrixt(UInt im, UInt in, UInt ik,
   double beta = 0.;
   int m = im, n = in, k = ik;
 
-  aka_dgemm(&trans_a, &trans_b, &m, &n, &k,
+  aka_gemm(&trans_a, &trans_b, &m, &n, &k,
             &alpha,
             A, &k,
             B, &n,
@@ -240,7 +240,7 @@ inline Real Math::vectorDot(Real * v1, Real * v2, UInt in) {
 #ifdef AKANTU_USE_BLAS
   ///  d := v1 . v2
   int incx = 1, incy = 1, n = in;
-  Real d = aka_ddot(&n, v1, &incx, v2, &incy);
+  Real d = aka_dot(&n, v1, &incx, v2, &incy);
 #else
   Real d = 0;
   for (UInt i = 0; i < in; ++i) {

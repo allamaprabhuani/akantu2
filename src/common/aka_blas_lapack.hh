@@ -101,7 +101,7 @@ inline double aka_dot<double>(int *n, double *x, int *incx, double *y, int *incy
 }
 
 template<>
-inline int aka_dgemv<double>(char *trans, int *m, int *n, double *
+inline int aka_gemv<double>(char *trans, int *m, int *n, double *
 			     alpha, double *a, int *lda, double *x, int *incx,
 			     double *beta, double *y, int *incy) {
   return AKA_FC_GLOBAL(dgemv, DGEMV)(trans, m, n, alpha, a, lda, x, incx,
@@ -127,7 +127,7 @@ inline float aka_dot<float>(int *n, float *x, int *incx, float *y, int *incy) {
 }
 
 template<>
-inline int aka_dgemv<float>(char *trans, int *m, int *n, float *
+inline int aka_gemv<float>(char *trans, int *m, int *n, float *
 			    alpha, float *a, int *lda, float *x, int *incx,
 			    float *beta, float *y, int *incy) {
   return AKA_FC_GLOBAL(sgemv, SGEMV)(trans, m, n, alpha, a, lda, x, incx,

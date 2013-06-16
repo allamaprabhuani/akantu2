@@ -389,7 +389,7 @@ public:
   template<class T>
   void registerDumper(__attribute__((unused)) const std::string & dumper_name,
 		      __attribute__((unused)) const std::string & file_name = "",
-		      __attribute__((unused)) const is_default = false) {};
+		      __attribute__((unused)) const bool is_default = false) {};
 
   void registerExternalDumper(__attribute__((unused)) DumperIOHelper * dumper,
 			      __attribute__((unused)) const std::string & dumper_name,
@@ -536,6 +536,10 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  DumperIOHelper & getDumper() {
+    AKANTU_DEBUG_ERROR("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
+  }
 
   DumperIOHelper & getDumper(__attribute__((unused)) const std::string & dumper_name){
     AKANTU_DEBUG_ERROR("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
