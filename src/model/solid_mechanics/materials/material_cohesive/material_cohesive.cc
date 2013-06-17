@@ -103,7 +103,7 @@ void MaterialCohesive::initInsertionArrays(const Mesh & mesh_facets) {
   AKANTU_DEBUG_IN();
 
   mesh_facets.initByElementTypeArray(facet_filter, 1, spatial_dimension - 1);
-  mesh_facets.initByElementTypeArray(sigma_limit, 1, spatial_dimension - 1);
+  mesh_facets.initByElementTypeArray( sigma_limit, 1, spatial_dimension - 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -130,20 +130,22 @@ void MaterialCohesive::resizeCohesiveArrays() {
 void MaterialCohesive::generateRandomDistribution(const Mesh & mesh_facets) {
   AKANTU_DEBUG_IN();
 
-  if (random_generator) {
-    Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
-    Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
+  Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
+  Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
 
-    for (; it != last; ++it) {
-      ElementType type_facet = *it;
-      Array<UInt> & f_filter = facet_filter(type_facet);
-      UInt nb_facet = f_filter.getSize();
+  for (; it != last; ++it) {
+    ElementType type_facet = *it;
+    Array<UInt> & f_filter = facet_filter(type_facet);
+    UInt nb_facet = f_filter.getSize();
 
-      if (nb_facet > 0) {
-	Array<Real> & sigma_lim = sigma_limit(type_facet);
-	sigma_lim.resize(nb_facet);
+    if (nb_facet > 0) {
+      Array<Real> & sigma_lim = sigma_limit(type_facet);
+      sigma_lim.resize(nb_facet);
+
+      if (random_generator)
 	random_generator->generate(sigma_lim);
-      }
+      else
+      	sigma_lim.set(sigma_c);
     }
   }
 

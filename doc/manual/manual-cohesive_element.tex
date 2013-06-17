@@ -63,7 +63,16 @@ Moreover a damage parameter $D$ can be defined as
     \frac{\delta_\mathrm{max}}{\delta_\mathrm{c}},1 \right)
 \end{equation} which varies from 0 (undamaged condition) and 1 (fully
 damaged condition). This variable can only increase because damage is
-an irreversible process.
+an irreversible process. A simple penalty contact model has been incorporated
+in the cohesive law so that normal tractions can be returned in
+compression:
+\begin{equation}
+  T_\mathrm{n} = \alpha \Delta_\mathrm{n} \quad\text{if
+    $\Delta_\mathrm{n} < 0$}
+\end{equation}
+where $\alpha$ is a stiffness parameter that by default is zero. The
+relative contact energy is equivalent to reversible energy but in
+compression.
 
 \subsubsection{Cohesive elements}
 
@@ -74,7 +83,7 @@ Pandolfi~\cite{ortiz1999}.
 
 \begin{figure}
   \centering
-  \includegraphics[width=.55\textwidth]{figures/cohesive2d}
+  \includegraphics[width=.6\textwidth]{figures/cohesive2d}
   \caption{Cohesive element in 2D for quadratic triangular elements
     T6.}
   \label{fig:smm:coh:cohesive2d}
@@ -205,7 +214,53 @@ should be created as
   model.initFull("material.dat", _explicit_lumped_mass, true);
 \end{cpp}
 where the last flag indicates if extrinsic approach should be used
-instead of intrinsic one. 
+instead of intrinsic one. When extrinsic simulations are carried out,
+in order to check stress for automatic element insertion it is
+necessary to call the following function in the main loop:
+\begin{cpp}
+  model.checkCohesiveStress();
+\end{cpp}
+Anytime during the simulation it is possible to access the following
+energies with the relative function:
+\begin{cpp}
+  Real Ed = model.getEnergy("dissipated");
+  Real Er = model.getEnergy("reversible");
+  Real Ec = model.getEnergy("contact");
+\end{cpp}
+The linear decreasing cohesive law material name is
+\code{material\_cohesive\_linear} and its parameters with their
+relative default values are:
+\begin{itemize}
+\item \code{sigma\_c}: 0
+\item \code{beta}: 0
+\item \code{G\_cI}: 0
+\item \code{G\_cII}: 0
+\item \code{kappa}: 1
+\item \code{penalty}: 0
+\end{itemize}
+A $\sigma_\mathrm{c}$ generator can be use to obtain a random value
+for each facet following a given distribution. Its usage is:
+\begin{cpp}
+  sigma_c_generator = uniform(seed) minimum maximum
+  sigma_c_generator = weibull(seed) m lambda minimum
+\end{cpp}
+where \code{seed} is an integer used to assign the seed. If no seed is
+specified, a random one is assigned. All other parameters are real
+numbers. For the uniform distribution minimum and maximum values have
+to be specified. Weibull distribution is characterized by the
+following cumulative distribution function:
+\begin{equation}
+    F(\sigma_\mathrm{c}) = 1- e^{-\left(
+      \frac{\sigma_c-\sigma_\mathrm{c, min}}{\lambda} \right)^m}
+\end{equation}
+which depends on $\sigma_\mathrm{c, min}$, which is the minimum value,
+and $m$ and $\lambda$, which are the shape parameter and the scale
+parameter.
+
+Bilinear constitutive law works exactly in the same way of the linear
+one, except for the additional parameter \code{delta\_0} that by
+default is zero. In this case no random distribution of
+$\sigma_\mathrm{c}$ is needed since this law is intrinsic.
 
 \subsubsection{Exponential cohesive law}
 
