@@ -142,13 +142,18 @@ of the cohesive element.
 \end{figure}
 
 Cohesive element insertion can be either realized at the beginning of
-the simulation or it can be carried out dynamically. The first
-approach is called \emph{intrinsic} while the second one is
-\emph{extrinsic}.
+the simulation or it can be carried out dynamically during the
+simulation. The first approach is called \emph{intrinsic} while the
+second one is \emph{extrinsic}. When an element is present from the
+beginning, a bilinear or exponential cohesive law should be used
+instead of a linear one. A bilinear law works exactly like a linear
+one except for an additional parameter $\delta_0$ separating an
+initial linear elastic part from the linear irreversible one. The
+exponential law will be described later in the manual.
 
-More
-specifically, normal and tangential stresses along the edges of
-standard elements are used to compute the effective stress
+In dynamic cohesive element insertion, normal and tangential stresses
+along the edges of standard elements are used to compute the effective
+stress
 \begin{equation}
   \sigma_\mathrm{eff} = \sqrt{\sigma_\mathrm{n}^2 +
     \frac{\tau_\mathrm{nt}^2}{\beta^2}}
@@ -164,14 +169,43 @@ mesh changing technique is very convenient because it allows
 simulating crack propagation without remeshing the domain.
 
 \subsubsection{Usage}
-In order to use cohesive elements a cohesive model should be created
-as
+When the intrinsic approach is chosen, cohesive elements are to be
+inserted just after reading the mesh by using the relative function in
+\code{MeshUtils}. Here an example is given:
+\begin{cpp}
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
+
+  const ElementType type_facet = Mesh::getFacetType(type);
+  UInt nb_facet = mesh_facets.getNbElement(type_facet);
+
+  Array<bool> facet_insertion(nb_facet);
+  facet_insertion.clear();
+  Real * bary_facet = new Real[spatial_dimension];
+  for (UInt f = 0; f < nb_facet; ++f) {
+    mesh_facets.getBarycenter(f, type_facet, bary_facet);
+    if (bary_facet[0] > 0 && bary_facet[0] < 1) facet_insertion(f) = true;
+  }
+  delete[] bary_facet;
+
+  MeshUtils::insertIntrinsicCohesiveElements(mesh,
+					     mesh_facets,
+					     type_facet,
+					     facet_insertion);
+\end{cpp}
+First facets are built and stored in a mesh called
+\code{mesh\_facets}. Then for each facet its barycenter is computed
+and, if it is within a given range, that facet is marked for
+insertion.
+
+In order to use cohesive elements a cohesive model
+should be created as
 \begin{cpp}
   SolidMechanicsModelCohesive model(mesh);
   model.initFull("material.dat", _explicit_lumped_mass, true);
 \end{cpp}
 where the last flag indicates if extrinsic approach should be used
-instead of intrinsic one.
+instead of intrinsic one. 
 
 \subsubsection{Exponential cohesive law}
 

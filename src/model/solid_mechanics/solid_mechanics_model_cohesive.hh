@@ -157,12 +157,6 @@ public:
   /// THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
-  /// get inverse normals
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(InvertedNormals, inverted_normals, Real);
-
-  /// get inverse tangents
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(InvertedTangents, inverted_tangents, Real);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -176,12 +170,6 @@ private:
 
   /// vector containing facets in which cohesive elements can be automatically inserted
   Array<bool> facets_check;
-
-  /// inverted normals
-  ByElementTypeReal inverted_normals;
-
-  /// inverted tangents
-  ByElementTypeReal inverted_tangents;
 
   /// @todo store tangents when normals are computed:
   ByElementTypeReal tangents;

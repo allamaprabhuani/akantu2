@@ -175,11 +175,10 @@ int main(int argc, char *argv[]) {
 	displacement(n, 1) += disp_update * position(n, 1);
     }
 
-    model.explicitPred();
-    model.updateResidual();
-
     model.checkCohesiveStress();
 
+    model.explicitPred();
+    model.updateResidual();
     model.updateAcceleration();
     model.explicitCorr();
 

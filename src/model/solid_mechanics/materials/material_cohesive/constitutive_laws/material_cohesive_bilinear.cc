@@ -74,6 +74,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveArrays() {
   MaterialCohesive::resizeCohesiveArrays();
   this->resizeInternalArray(this->sigma_c_eff, _ek_cohesive);
   this->resizeInternalArray(this->delta_c, _ek_cohesive);
+  this->resizeInternalArray(this->insertion_stress, _ek_cohesive);
 
   const Mesh & mesh = this->model->getFEM("CohesiveFEM").getMesh();
 
@@ -86,6 +87,7 @@ void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveArrays() {
     this->sigma_c_eff(*it, gt).set(this->sigma_c);
     this->delta_c(*it, gt).set(current_delta_c);
     this->delta_max(*it, gt).set(delta_0);
+    this->insertion_stress(*it, gt).clear();
   }
 
   AKANTU_DEBUG_OUT();

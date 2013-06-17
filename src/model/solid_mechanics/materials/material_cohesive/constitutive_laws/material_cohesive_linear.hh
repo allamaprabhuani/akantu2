@@ -68,11 +68,6 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// compute stress norms on quadrature points for each facet for stress check
-  virtual void computeStressNorms(const Array<Real> & facet_stress,
-				  Array<Real> & stress_check,
-				  ElementType type_facet);
-
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const ByElementTypeReal & facet_stress,
 			      const Mesh & mesh_facets,
@@ -85,10 +80,18 @@ protected:
 		       ElementType el_type,
 		       GhostType ghost_type = _not_ghost);
 
+  /// compute stress norms on quadrature points for each facet for stress check
+  virtual void computeStressNorms(const Array<Real> & facet_stress,
+				  Array<Real> & stress_check,
+				  Array<Real> & normal_stress,
+				  ElementType type_facet);
+
   /// compute effective stress norm for insertion check
-  inline Real computeEffectiveNorm(const Matrix<Real> & stress,
+  inline void computeEffectiveNorm(const Matrix<Real> & stress,
 				   const Vector<Real> & normal,
-				   const Vector<Real> & tangent);
+				   const Vector<Real> & tangent,
+				   Vector<Real> & normal_stress,
+				   Real & effective_norm);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -130,11 +133,8 @@ protected:
   /// critical displacement
   ByElementTypeReal delta_c;
 
-  /// vector to temporarily store the normal stress for the norm
-  Vector<Real> normal_stress;
-
-  /// vector to temporarily store the tangential stress for the norm
-  Vector<Real> tangential_stress;
+  /// stress at insertion
+  ByElementTypeReal insertion_stress;
 
 };
 

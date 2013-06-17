@@ -44,8 +44,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
                                                          const MemoryID & memory_id)
   : SolidMechanicsModel(mesh, dim, id, memory_id),
     mesh_facets(mesh.initMeshFacets()),
-    inverted_normals("inverted_normals", id),
-    inverted_tangents("inverted_tangents", id),
     tangents("tangents", id),
     stress_on_facet("stress_on_facet", id),
     facet_stress("facet_stress", id),
@@ -477,46 +475,6 @@ void SolidMechanicsModelCohesive::computeNormals() {
     }
   }
   /* ------------------------------------------------------------------------ */
-
-  /// compute inverted normals and facets
-
-  mesh_facets.initByElementTypeArray(inverted_normals,
-				     spatial_dimension,
-				     spatial_dimension - 1);
-
-  mesh_facets.initByElementTypeArray(inverted_tangents,
-				     spatial_dimension,
-				     spatial_dimension - 1);
-
-  Array<Real> & inv_n = inverted_normals(internal_facet_type);
-  Array<Real> & inv_t = inverted_tangents(internal_facet_type);
-
-  inv_n.resize(nb_facet);
-  inv_t.resize(nb_facet);
-
-  Array<Real>::const_iterator<Vector<Real> > normal_it =
-    normals.begin(spatial_dimension);
-
-  Array<Real>::const_iterator< Vector<Real> > normal_end =
-    normals.end(spatial_dimension);
-
-  Array<Real>::iterator<Vector<Real> > tangent_it =
-    tang.begin(spatial_dimension);
-
-  Array<Real>::iterator<Vector<Real> > inv_normal_it =
-    inv_n.begin(spatial_dimension);
-
-  Array<Real>::iterator<Vector<Real> > inv_tangent_it =
-    inv_t.begin(spatial_dimension);
-
-  for (; normal_it != normal_end; ++normal_it, ++tangent_it,
-	 ++inv_normal_it, ++inv_tangent_it) {
-    *inv_normal_it = *normal_it;
-    *inv_normal_it *= -1.;
-
-    *inv_tangent_it = *tangent_it;
-    *inv_tangent_it *= -1.;
-  }
 
   AKANTU_DEBUG_OUT();
 }
