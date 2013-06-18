@@ -208,6 +208,9 @@ protected:
   /// traction due to contact
   ByElementTypeReal contact_tractions;
 
+  /// normal openings for contact tractions
+  ByElementTypeReal contact_opening;
+
   /// Link to the cohesive fem object in the model
   MyFEMCohesiveType * fem_cohesive;
 

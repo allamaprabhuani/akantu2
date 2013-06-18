@@ -49,6 +49,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   tractions("tractions",id),
   opening("opening",id),
   contact_tractions("contact_tractions",id),
+  contact_opening("contact_opening",id),
   delta_max("delta max",id),
   damage("damage", id),
   facet_filter("facet_filter", id),
@@ -91,6 +92,7 @@ void MaterialCohesive::initMaterial() {
   initInternalArray(        tractions, spatial_dimension, false, _ek_cohesive);
   initInternalArray(      opening_old, spatial_dimension, false, _ek_cohesive);
   initInternalArray(contact_tractions, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(  contact_opening, spatial_dimension, false, _ek_cohesive);
   initInternalArray(          opening, spatial_dimension, false, _ek_cohesive);
   initInternalArray(        delta_max,                 1, false, _ek_cohesive);
   initInternalArray(           damage,                 1, false, _ek_cohesive);
@@ -119,6 +121,7 @@ void MaterialCohesive::resizeCohesiveArrays() {
   resizeInternalArray(opening_old      , _ek_cohesive);
   resizeInternalArray(opening          , _ek_cohesive);
   resizeInternalArray(contact_tractions, _ek_cohesive);
+  resizeInternalArray(contact_opening  , _ek_cohesive);
   resizeInternalArray(delta_max        , _ek_cohesive);
   resizeInternalArray(damage           , _ek_cohesive);
 
@@ -624,14 +627,14 @@ Real MaterialCohesive::getContactEnergy() {
 
     Array<Real>::iterator< Vector<Real> > contact_traction_it =
       contact_tractions(*it, _not_ghost).begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > opening_it =
-      opening(*it, _not_ghost).begin(spatial_dimension);
+    Array<Real>::iterator< Vector<Real> > contact_opening_it =
+      contact_opening(*it, _not_ghost).begin(spatial_dimension);
 
     /// loop on each quadrature point
     for (UInt el = 0; el < nb_element;
-	 ++contact_traction_it, ++opening_it, ++el) {
+	 ++contact_traction_it, ++contact_opening_it, ++el) {
 
-      contact_energy(el) = .5 * contact_traction_it->dot(*opening_it);
+      contact_energy(el) = .5 * contact_traction_it->dot(*contact_opening_it);
     }
 
     econ += fem_cohesive->integrate(contact_energy, *it,

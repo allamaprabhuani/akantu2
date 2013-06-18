@@ -74,9 +74,16 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   else
     beta2_inv = 1./beta/beta;
 
-  initInternalArray(     sigma_c_eff,                 1, false, _ek_cohesive);
-  initInternalArray(         delta_c,                 1, false, _ek_cohesive);
-  initInternalArray(insertion_stress, spatial_dimension, false, _ek_cohesive);
+  initInternalArray(      sigma_c_eff,                 1, false, _ek_cohesive);
+  initInternalArray(          delta_c,                 1, false, _ek_cohesive);
+  initInternalArray( insertion_stress, spatial_dimension, false, _ek_cohesive);
+
+  /// keep tolerance small enough for the constitutive law
+  if (sigma_c != 0) {
+    Real delta_limit = 2 * G_cI / sigma_c / 20.;
+    if (Math::getTolerance() > delta_limit)
+      Math::setTolerance(delta_limit);
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -133,6 +140,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
 	    for (UInt qs = 0; qs < nb_quad_facet; ++qs) {
 	      Real new_sigma = (*stress_check_it)(qs);
 	      Real new_delta = 2 * G_cI / new_sigma;
+
 	      Vector<Real> ins_s(normal_stress_it->storage() + qs * spatial_dimension,
 				 spatial_dimension);
 	      ins_s *= -1.;
@@ -257,10 +265,6 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
 								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  /// clear contact tractions
-  Array<Real> & contact_trac = contact_tractions(el_type, ghost_type);
-  contact_trac.clear();
-
   /// define iterators
   Array<Real>::iterator< Vector<Real> > traction_it =
     tractions(el_type, ghost_type).begin(spatial_dimension);
@@ -269,7 +273,10 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
     opening(el_type, ghost_type).begin(spatial_dimension);
 
   Array<Real>::iterator< Vector<Real> > contact_traction_it =
-    contact_trac.begin(spatial_dimension);
+    contact_tractions(el_type, ghost_type).begin(spatial_dimension);
+
+  Array<Real>::iterator< Vector<Real> > contact_opening_it =
+    contact_opening(el_type, ghost_type).begin(spatial_dimension);
 
   Array<Real>::const_iterator< Vector<Real> > normal_it =
     normal.begin(spatial_dimension);
@@ -302,7 +309,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
   for (; traction_it != traction_end;
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it,
 	 ++delta_max_it, ++delta_c_it, ++damage_it, ++contact_traction_it,
-	 ++insertion_stress_it) {
+	 ++insertion_stress_it, ++contact_opening_it) {
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
@@ -323,14 +330,18 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
     delta *= beta2_kappa2;
 
     /// don't consider penetration contribution for delta
-    if (normal_opening_norm > 0)
+    if (normal_opening_norm > 0) {
       delta += normal_opening_norm * normal_opening_norm;
+      contact_traction_it->clear();
+      contact_opening_it->clear();
+    }
     else {
-    /// use penalty coefficient in case of penetration
+      /// use penalty coefficient in case of penetration
       *contact_traction_it = normal_opening;
       *contact_traction_it *= penalty;
-      normal_opening.clear();
+      *contact_opening_it = normal_opening;
       *opening_it = tangential_opening;
+      normal_opening.clear();
     }
 
     delta = std::sqrt(delta);
@@ -348,13 +359,19 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
 
     if (Math::are_float_equal(*damage_it, 1.))
       traction_it->clear();
-    else if (Math::are_float_equal(*delta_max_it, 0.) &&
-	     Math::are_float_equal(normal_opening_norm, 0.))
-      *traction_it = *insertion_stress_it;
+    else if (Math::are_float_equal(*damage_it, 0.)) {
+      if (Math::are_float_equal(normal_opening_norm, 0.))
+	*traction_it = *insertion_stress_it;
+      else
+	traction_it->clear();
+    }
     else {
       *traction_it  = tangential_opening;
       *traction_it *= beta2_kappa;
       *traction_it += normal_opening;
+
+      AKANTU_DEBUG_ASSERT(*delta_max_it != 0.,
+			  "Division by zero, tolerance might be too low");
 
       *traction_it *= *sigma_c_it / *delta_max_it * (1. - *damage_it);
     }
