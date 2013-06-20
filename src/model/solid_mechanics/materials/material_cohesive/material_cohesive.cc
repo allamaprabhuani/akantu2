@@ -622,8 +622,9 @@ Real MaterialCohesive::getContactEnergy() {
 
   for(; it != last_type; ++it) {
     Array<UInt> & el_filter = element_filter(*it, _not_ghost);
-    UInt nb_element = el_filter.getSize();
-    Array<Real> contact_energy(nb_element);
+    UInt nb_quad_per_el = fem_cohesive->getNbQuadraturePoints(*it, _not_ghost);
+    UInt nb_quad_points = el_filter.getSize() * nb_quad_per_el;
+    Array<Real> contact_energy(nb_quad_points);
 
     Array<Real>::iterator< Vector<Real> > contact_traction_it =
       contact_tractions(*it, _not_ghost).begin(spatial_dimension);
@@ -631,7 +632,7 @@ Real MaterialCohesive::getContactEnergy() {
       contact_opening(*it, _not_ghost).begin(spatial_dimension);
 
     /// loop on each quadrature point
-    for (UInt el = 0; el < nb_element;
+    for (UInt el = 0; el < nb_quad_points;
 	 ++contact_traction_it, ++contact_opening_it, ++el) {
 
       contact_energy(el) = .5 * contact_traction_it->dot(*contact_opening_it);
