@@ -172,7 +172,7 @@ inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
     const SubBoundary & sub_boundary = model->getMesh().getSubBoundary(boundary_name);
     TemplateFunctionWrapper<FunctorType>::applyBC(func, sub_boundary, *this);
   } catch(akantu::debug::Exception e) {
-    AKANTU_DEBUG_ERROR("Error applying a boundary condition onto \"" << boundary_name << "\"! [" << e.what() <<"]");
+    // AKANTU_DEBUG_ERROR("Error applying a boundary condition onto \"" << boundary_name << "\"! [" << e.what() <<"]");
   }
 }
 
