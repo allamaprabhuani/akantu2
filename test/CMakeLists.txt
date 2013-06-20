@@ -70,7 +70,7 @@ list(APPEND AKANTU_TESTS_FILES ${_cmakes})
 foreach(_file ${_all_files})
   list(FIND AKANTU_TESTS_FILES ${_file} _ret)
   if(_ret EQUAL -1)
-    list(APPEND AKANTU_TESTS_EXCLUDE_FILES ${_file})
+    list(APPEND AKANTU_TESTS_EXCLUDE_FILES /${_file})
   endif()
 endforeach()
 

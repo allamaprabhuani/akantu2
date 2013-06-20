@@ -30,7 +30,14 @@
 set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
 mark_as_advanced(PACKAGE_FILE_NAME)
 
-set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ")
+set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ;RPM")
+
+# General configuration
+set(CPACK_PACKAGE_VENDOR "LSMS")
+set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+set(CPACK_PACKAGE_VERSION "${AKANTU_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A multipurpose finite element library, Akantu")
+set(CPACK_PACKAGE_NAME "akantu")
 
 # Debian config package
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch")
@@ -39,22 +46,20 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 else()
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
 endif()
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Akantu library")
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${${_project}_PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
 
-# General configuration
-set(CPACK_PACKAGE_VENDOR "LSMS")
-set(CPACK_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
-set(CPACK_PACKAGE_VERSION "${AKANTU_VERSION}")
+# RPM package configuration
+#set(CPACK_RPM_PACKAGE_REQUIRES "${${_project}_PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
+
 
 set(CPACK_COMPONENTS_ALL lib dev)
 set(CPACK_COMPONENT_LIB_DISPLAY_NAME "Libraries")
 set(CPACK_COMPONENT_DEV_DISPLAY_NAME "C++ Headers")
 set(CPACK_COMPONENT_DEV_DEPENDS lib)
- set(CPACK_COMPONENT_LIB_DESCRIPTION
-   "Akantu libraries")
- set(CPACK_COMPONENT_DEV_DESCRIPTION
-   "Akantu C/C++ header files")
+set(CPACK_COMPONENT_LIB_DESCRIPTION
+  "Akantu libraries")
+set(CPACK_COMPONENT_DEV_DESCRIPTION
+  "Akantu C/C++ header files")
 set(CPACK_COMPONENT_LIB_GROUP "Akantu Libraries")
 set(CPACK_COMPONENT_DEV_GROUP "Development")
 
@@ -65,6 +70,6 @@ list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_EXCLUDE_SOURCE_FILES} ${AKANTU_TE
 foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_OFF})
   list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${_pkg}.cmake)
 endforeach()
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/doc/manual/;/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/doc/manual/;/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.hgignore;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 
 include(CPack)

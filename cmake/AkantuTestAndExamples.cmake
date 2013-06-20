@@ -33,8 +33,12 @@
 set(AKANTU_DIFF_SCRIPT ${AKANTU_CMAKE_DIR}/akantu_diff.sh)
 
 #===============================================================================
-macro(manage_test_and_example et_name desc build_all label)
+function(manage_test_and_example et_name desc build_all label)
   string(TOUPPER ${et_name} upper_name)
+
+  if(NOT EXISTS ${${et_name}})
+    return()
+  endif()
 
   cmake_parse_arguments(manage_test_and_example
     ""
@@ -78,7 +82,7 @@ macro(manage_test_and_example et_name desc build_all label)
   if(AKANTU_BUILD${label}${upper_name})
     add_subdirectory(${et_name})
   endif(AKANTU_BUILD${label}${upper_name})
-endmacro()
+endfunction()
 
 #===============================================================================
 # Tests
@@ -230,7 +234,8 @@ function(register_test test_name)
 
     set(_tmp ${AKANTU_TESTS_FILES})
     foreach(_file ${_source_file})
-      file(RELATIVE_PATH __file ${PROJECT_SOURCE_DIR} ${_file})
+      get_filename_component(_full ${_file} ABSOLUTE)
+      file(RELATIVE_PATH __file ${PROJECT_SOURCE_DIR} ${_full})
       list(APPEND _tmp ${__file})
       list(APPEND _pkg_tmp ${__file})
     endforeach()

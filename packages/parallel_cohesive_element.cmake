@@ -28,8 +28,7 @@
 #===============================================================================
 
 option(AKANTU_PARALLEL_COHESIVE_ELEMENT "Use parallel cohesive_element package of Akantu" OFF)
-add_internal_package_dependencies(damage_non_local cohesive parallel)
-
+add_internal_package_dependencies(parallel_cohesive_element cohesive_element parallel)
 
 set(AKANTU_PARALLEL_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/solid_mechanics_model_cohesive_parallel.hh
@@ -46,4 +45,3 @@ set(AKANTU_PARALLEL_COHESIVE_ELEMENT_TESTS
   test_cohesive_ghost_element_insertion
   test_facet_synchronizer
   )
-
