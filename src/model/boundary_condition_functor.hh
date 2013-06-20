@@ -92,7 +92,10 @@ public:
   FlagOnly(Axis ax = _x) : DirichletFunctor(ax) {}
 
 public:
-  inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const;
+  inline void operator()(UInt node,
+			 Vector<bool> & flags,
+			 Vector<Real> & primal,
+			 const Vector<Real> & coord) const;
 
 };
 
@@ -103,11 +106,33 @@ public:
   FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
 public:
-  inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const;
+  inline void operator()(UInt node, 
+			 Vector<bool> & flags, 
+			 Vector<Real> & primal,
+			 const Vector<Real> & coord) const;
 
 private:
   Real value;
 };
+
+/* -------------------------------------------------------------------------- */
+class IncrementValue : public DirichletFunctor {
+
+public:
+  IncrementValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
+
+public:
+  inline void operator()(UInt node, 
+			 Vector<bool> & flags, 
+			 Vector<Real> & primal, 
+			 const Vector<Real> & coord) const;
+
+  inline void setIncrement(Real val) { this->value = val; }
+  
+protected:
+  Real value;
+};
+  
 
 } //end namespace Dirichlet
 

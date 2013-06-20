@@ -901,10 +901,12 @@ protected:
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 template<typename R>
-inline void Array<T, is_scal>::erase(const iterator<R> & it) {
-  T * curr = it.getCurrentStorage();
+inline Array<T, is_scal>::iterator<R> Array<T, is_scal>::erase(const iterator<R> & it) {
+  T * curr = it.data();
   UInt pos = (curr - values) / nb_component;
   erase(pos);
+  iterator<R> rit = it;
+  return --rit;
 }
 
 /* -------------------------------------------------------------------------- */

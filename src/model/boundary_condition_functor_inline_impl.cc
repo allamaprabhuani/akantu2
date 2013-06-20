@@ -62,6 +62,17 @@ inline void FixedValue::operator()(UInt node, Vector<bool> & flags, Vector<Real>
   primal(axis) = value;
 }
 
+inline void IncrementValue::operator()(UInt node,
+				       Vector<bool> & flags,
+				       Vector<Real> & primal,
+				       const Vector<Real> & coord) const {
+
+  DIRICHLET_SANITY_CHECK;
+
+  flags(axis) = true;
+  primal(axis) += value;
+}
+
 /* -------------------------------------------------------------------------- */
 
 

@@ -166,7 +166,8 @@ inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {
 /* -------------------------------------------------------------------------- */
 template<typename ModelType>
 template<typename FunctorType>
-inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func, const std::string & boundary_name) {
+inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
+						  const std::string & boundary_name) {
   try {
     const SubBoundary & sub_boundary = model->getMesh().getSubBoundary(boundary_name);
     TemplateFunctionWrapper<FunctorType>::applyBC(func, sub_boundary, *this);
@@ -178,6 +179,7 @@ inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func, cons
 /* -------------------------------------------------------------------------- */
 template<typename ModelType>
 template<typename FunctorType>
-inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func, const SubBoundary & boundary_ref) {
+inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
+						  const SubBoundary & boundary_ref) {
   TemplateFunctionWrapper<FunctorType>::applyBC(func, boundary_ref, *this);
 }
