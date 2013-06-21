@@ -59,15 +59,25 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   const UInt max_steps = 1000;
 
-  const ElementType type = _triangle_6;
-
   Mesh mesh(spatial_dimension);
-  mesh.read("square.msh");
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
+
+  akantu::MeshPartition * partition = NULL;
+  if(prank == 0) {
+    mesh.read("square.msh");
+    partition = new MeshPartitionScotch(mesh, spatial_dimension);
+    partition->partitionate(psize);
+  }
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
+  model.initParallel(partition, NULL, true);
   model.initFull("material.dat", _explicit_lumped_mass, true, false);
+
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -83,11 +93,10 @@ int main(int argc, char *argv[]) {
 
   const Mesh & mesh_facets = model.getMeshFacets();
 
-  const ElementType type_facet = mesh.getFacetType(type);
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
   Array<Real> & position = mesh.getNodes();
 
   Array<bool> & facet_check = model.getFacetsCheck();
+  facet_check.clear();
 
   Real * bary_facet = new Real[spatial_dimension];
 // first, the tag which shows grain ID should be read for each element
@@ -97,38 +106,58 @@ int main(int argc, char *argv[]) {
   UInt nb_TG = 0;
   UInt nb_IG = 0;
 
-  const Array< std::vector<Element> > & element_to_subelement = mesh_facets.getElementToSubelement(type_facet);
-  Array<UInt> & facet_mat_by_type = model.getFacetMaterial(type_facet);
-  ////////////////////////////////////////////
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end();
+       ++gt) {
+    GhostType gt_facet = *gt;
+    Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
+    Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
 
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if ((bary_facet[1] < 0.1 && bary_facet[1] > -0.1) ||(bary_facet[0] < 0.1 && bary_facet[0] > -0.1)) {
-      facet_check(f) = true;
-      const Element & el1 = element_to_subelement(f)[0];
-      const Element & el2 = element_to_subelement(f)[1];
-      UInt grain_id1 = mesh.getData<UInt>(el1.type, "tag_0")(el1.element);
-      if(el2 != ElementNull) {
-	UInt grain_id2 = mesh.getData<UInt>(el2.type, "tag_0")(el2.element);
-	if (grain_id1 == grain_id2){
-	  //transgranular = 0 indicator
-	  facet_mat_by_type(f) = 1;
-	  nb_TG++;
-	} else  {
-	  //intergranular = 1 indicator
-	  facet_mat_by_type(f) = 2;
-	  nb_IG++;
+    for(;first != last; ++first) {
+      ElementType type_facet = *first;
+      UInt nb_facet = mesh_facets.getNbElement(type_facet, gt_facet);
+
+      const Array< std::vector<Element> > & element_to_subelement = mesh_facets.getElementToSubelement(type_facet, gt_facet);
+      Array<UInt> & facet_mat_by_type = model.getFacetMaterial(type_facet, gt_facet);
+      ////////////////////////////////////////////
+
+      for (UInt f = 0; f < nb_facet; ++f) {
+	mesh_facets.getBarycenter(f, type_facet, bary_facet, gt_facet);
+	if ((bary_facet[1] < 0.1 && bary_facet[1] > -0.1) ||(bary_facet[0] < 0.1 && bary_facet[0] > -0.1)) {
+	  if (gt_facet == _not_ghost)
+	    facet_check(f) = true;
+	  const Element & el1 = element_to_subelement(f)[0];
+	  const Element & el2 = element_to_subelement(f)[1];
+
+	  Vector<Real> el1_bary(spatial_dimension);
+	  Vector<Real> el2_bary(spatial_dimension);
+	  mesh.getBarycenter(el1, el1_bary);
+	  mesh.getBarycenter(el2, el2_bary);
+
+	  UInt grain_id1 = mesh.getData<UInt>(el1.type, "tag_0", el1.ghost_type)(el1.element);
+	  if(el2 != ElementNull) {
+	    UInt grain_id2 = mesh.getData<UInt>(el2.type, "tag_0", el2.ghost_type)(el2.element);
+	    if (grain_id1 == grain_id2){
+	      //transgranular = 0 indicator
+	      facet_mat_by_type(f) = 1;
+	      nb_TG++;
+	    } else  {
+	      //intergranular = 1 indicator
+	      facet_mat_by_type(f) = 2;
+	      nb_IG++;
+	    }
+
+	  }
+	  // std::cout << f << std::endl;
 	}
       }
-      std::cout << f << std::endl;
     }
-    else
-      facet_check(f) = false;
   }
   delete[] bary_facet;
 
-  model.initFacetFilter();
+  // std::cout << nb_IG << " " << nb_TG << std::endl;
 
+  model.initFacetFilter();
 
    //  for ( UInt i = 0; i < nb_facet; ++i){
 
@@ -155,6 +184,7 @@ int main(int argc, char *argv[]) {
       boundary(n, 0) = true;
   }
 
+  model.synchronizeBoundaries();
   model.updateResidual();
 
   model.setBaseName("extrinsic");
@@ -164,6 +194,7 @@ int main(int argc, char *argv[]) {
   model.addDumpField("residual"    );
   model.addDumpField("stress");
   model.addDumpField("strain");
+  model.addDumpField("partitions");
   model.dump();
 
   /// initial conditions
@@ -213,7 +244,8 @@ int main(int argc, char *argv[]) {
 
     model.dump();
     if(s % 10 == 0) {
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      if(prank == 0)
+	std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
     // Real Ed = model.getEnergy("dissipated");
@@ -235,10 +267,12 @@ int main(int argc, char *argv[]) {
 
   Real Edt = 40;
 
-  std::cout << Ed << " " << Edt << std::endl;
+  if(prank == 0)
+    std::cout << Ed << " " << Edt << std::endl;
 
   if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
+    if(prank == 0)
+      std::cout << "The dissipated energy is incorrect" << std::endl;
     finalize();
     return EXIT_FAILURE;
   }
@@ -252,6 +286,7 @@ int main(int argc, char *argv[]) {
 
   finalize();
 
-  std::cout << "OK: test_cohesive_extrinsic_IG_TG was passed!" << std::endl;
+  if(prank == 0)
+    std::cout << "OK: test_cohesive_extrinsic_IG_TG was passed!" << std::endl;
   return EXIT_SUCCESS;
 }

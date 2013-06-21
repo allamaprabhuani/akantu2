@@ -42,6 +42,7 @@ set(AKANTU_PARALLEL_COHESIVE_ELEMENT_FILES
 set(AKANTU_PARALLEL_COHESIVE_ELEMENT_TESTS
   test_cohesive_parallel_intrinsic
   test_cohesive_parallel_extrinsic
+  test_cohesive_parallel_extrinsic_IG_TG
   test_cohesive_ghost_element_insertion
   test_facet_synchronizer
   )

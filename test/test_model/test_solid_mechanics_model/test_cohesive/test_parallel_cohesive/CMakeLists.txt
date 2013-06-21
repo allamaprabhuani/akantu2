@@ -32,3 +32,5 @@
 add_akantu_test(test_cohesive_parallel_intrinsic "test_cohesive_parallel_intrinsic")
 add_akantu_test(test_cohesive_ghost_element_insertion "test_cohesive_ghost_element_insertion")
 add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic")
+add_akantu_test(test_cohesive_parallel_extrinsic_IG_TG "test_cohesive_parallel_extrinsic_IG_TG")
+
