@@ -27,9 +27,31 @@
 #
 #===============================================================================
 
+set(AKANTU_SCOTCH_FILES
+  mesh_utils/mesh_partition/mesh_partition_scotch.cc
+  )
+
+if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
+  set(AKANTU_PARTITIONER_ON ON)
+else()
+  set(AKANTU_PARTITIONER_ON OFF)
+endif()
+
+set(AKANTU_SCOTCH_TESTS
+  test_mesh_partitionate_scotch
+  test_mesh_partitionate_scotch_advanced
+  )
+
+
 option(AKANTU_USE_THIRD_PARTY_SCOTCH "Use the third-party Scotch instead of the one from the system" OFF)
+mark_as_advanced(AKANTU_USE_THIRD_PARTY_SCOTCH)
 if(AKANTU_USE_THIRD_PARTY_SCOTCH)
   set(AKANTU_USE_SCOTCH ON CACHE BOOL "Add Scotch support in akantu" FORCE)
+
+  if(TARGET Scotch)
+    return()
+  endif()
+
   include(ExternalProject)
 
   find_package(BISON)
@@ -48,7 +70,7 @@ if(AKANTU_USE_THIRD_PARTY_SCOTCH)
   ExternalProject_Add(Scotch
     PREFIX ${PROJECT_BINARY_DIR}/third-party/build/scotch
     URL https://gforge.inria.fr/frs/download.php/28978/scotch_5.1.12b_esmumps.tar.gz
-    URL_HASH MD5=e13b49be804755470b159d7052764dc0
+#    URL_HASH MD5=e13b49be804755470b159d7052764dc0
     PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/third-party/scotch.patch
     CONFIGURE_COMMAND cmake -E copy ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc src/Makefile.inc
     BUILD_IN_SOURCE 1
@@ -98,18 +120,3 @@ else()
     endif()
   endif()
 endif()
-
-set(AKANTU_SCOTCH_FILES
-  mesh_utils/mesh_partition/mesh_partition_scotch.cc
-  )
-
-if(AKANTU_SCOTCH_ON OR AKANTU_PTSCOTCH_ON)
-  set(AKANTU_PARTITIONER_ON ON)
-else()
-  set(AKANTU_PARTITIONER_ON OFF)
-endif()
-
-set(AKANTU_SCOTCH_TESTS
-  test_mesh_partitionate_scotch
-  test_mesh_partitionate_scotch_advanced
-  )

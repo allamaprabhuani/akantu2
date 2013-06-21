@@ -39,17 +39,13 @@
 #          Metis/ParMetis and SCOTCH/PT-SCOTCH (ver 5.1 and later) orderings are now available for MUMPS.
 #
 
-SCOTCHDIR  = @MUMPS_SCOTCH_DIR@
-ISCOTCH    = -I$(SCOTCHDIR)/include 
+ISCOTCH    = -I@SCOTCH_INCLUDE_DIR@
 # You have to choose one among the following two lines depending on
 # the type of analysis you want to perform. If you want to perform only
 # sequential analysis choose the first (remember to add -Dscotch in the ORDERINGSF
 # variable below); for both parallel and sequential analysis choose the second 
 # line (remember to add -Dptscotch in the ORDERINGSF variable below)
-
-LSCOTCH    = -L$(SCOTCHDIR)/lib -lesmumps -lscotch -lscotcherr
-LSCOTCH    = -L$(SCOTCHDIR)/lib -lptesmumps -lptscotch -lptscotcherr
-
+LSCOTCH    = @SCOTCH_LIBRARIES@
 
 LPORDDIR = $(topdir)/PORD/lib/
 IPORD    = -I$(topdir)/PORD/include/
@@ -70,7 +66,7 @@ LPORD    = -L$(LPORDDIR) -lpord
 # The following variables will be used in the compilation process.
 # Please note that -Dptscotch and -Dparmetis imply -Dscotch and -Dmetis respectively.
 #ORDERINGSF = -Dscotch -Dmetis -Dpord -Dptscotch -Dparmetis
-ORDERINGSF  = -Dpord
+ORDERINGSF  = -Dpord -Dscotch
 ORDERINGSC  = $(ORDERINGSF)
 
 LORDERINGS = $(LMETIS) $(LPORD) $(LSCOTCH)
@@ -99,13 +95,15 @@ RANLIB  = @CMAKE_RANLIB@
 #RANLIB  = echo
 
 # SCALAP should define the SCALAPACK and  BLACS libraries.
-SCALAP  = -L@PROJECT_BINARY_DIR@/third-party/lib -lscalapack
+SCALAP  = @PROJECT_BINARY_DIR@/third-party/lib/libscalapack.a
 
 # INCLUDE DIRECTORY FOR MPI
-INCPAR  = @MPI_Fortran_COMPILE_FLAGS@ @MUMPS_MPI_INCLUDE_PATH@
+INCPAR  =
+#INCPAR  = @MPI_Fortran_COMPILE_FLAGS@ @MUMPS_MPI_INCLUDE_PATH@
 
 # LIBRARIES USED BY THE PARALLEL VERSION OF MUMPS: $(SCALAP) and MPI
-LIBPAR  = $(SCALAP) @MPI_Fortran_LINK_FLAGS@ @MUMPS_MPI_Fortran_LIBRARIES@
+#LIBPAR  = $(SCALAP) @MPI_Fortran_LINK_FLAGS@ @MUMPS_MPI_Fortran_LIBRARIES@
+LIBPAR  = $(SCALAP)
 
 # The parallel version is not concerned by the next two lines.
 # They are related to the sequential library provided by MUMPS,
@@ -114,7 +112,7 @@ INCSEQ  = -I$(topdir)/libseq
 LIBSEQ  = -L$(topdir)/libseq -lmpiseq
 
 # DEFINE HERE YOUR BLAS LIBRARY
-LIBBLAS = -lblas
+LIBBLAS = @BLAS_LIBRARIES@
 
 # DEFINE YOUR PTHREAD LIBRARY
 LIBOTHERS = -lpthread

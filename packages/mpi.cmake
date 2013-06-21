@@ -26,6 +26,9 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+if(AKANTU_USE_THIRD_PARTY_MUMPS)
+  enable_language(Fortran)
+endif()
 
 add_optional_external_package(MPI "Add MPI support in akantu" OFF PREFIX MPI_C MPI DEPENDS SCOTCH)
 set(AKANTU_MPI_FILES

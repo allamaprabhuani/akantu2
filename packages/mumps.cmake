@@ -35,9 +35,10 @@ option(AKANTU_USE_THIRD_PARTY_MUMPS "Use the third-party Mumps instead of the on
 mark_as_advanced(AKANTU_USE_THIRD_PARTY_MUMPS)
 if(AKANTU_USE_THIRD_PARTY_MUMPS)
   set(AKANTU_USE_MUMPS ON CACHE BOOL "Add Mumps support in akantu" FORCE)
-  if(AKANTU_USE_MPI)
-    include(ExternalProject)
+  set(MUMPS_DEPENDS)
 
+  include(ExternalProject)
+  if(AKANTU_USE_MPI)
     string(REPLACE ";" " -I" MUMPS_MPI_INCLUDE_PATH "-I${MPI_C_INCLUDE_PATH}")
     string(REPLACE ";" " " MUMPS_MPI_Fortran_LIBRARIES "${MPI_Fortran_LIBRARIES}")
 
@@ -53,16 +54,18 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     list(APPEND MUMPS_DEPENDS ScaLAPACK)
     set(MUMPS_TYPE par)
   else()
-    list(REMOVE_ITEM MUMPS_DEPENDS ScaLAPACK)
     set(MUMPS_TYPE seq)
   endif()
 
+
   set(MUMPS_LIBRARIES_ALL)
   if(AKANTU_USE_THIRD_PARTY_SCOTCH)
+    if(NOT TARGET Scotch)
+      include(${PROJECT_SOURCE_DIR}/packages/scotch.cmake)
+    endif()
     list(APPEND MUMPS_DEPENDS Scotch)
     list(APPEND MUMPS_LIBRARIES_ALL ${SCOTCH_LIBRARIES})
   endif()
-  list(REMOVE_DUPLICATES MUMPS_DEPENDS)
 
   if(SCALAPACK_LIBRARY)
     list(APPEND MUMPS_LIBRARIES_ALL ${SCALAPACK_LIBRARY})
@@ -82,12 +85,12 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     URL_HASH MD5=1c896cdb61878cf094b779404c6512fd
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND cmake -E create_symlink ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc Makefile.inc
-    BUILD_COMMAND make
+    BUILD_COMMAND make d
     INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
     INSTALL_COMMAND cmake -E copy lib/libdmumps${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
     COMMAND cmake -E copy lib/libmumps_common${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
     COMMAND cmake -E copy lib/libpord${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
-    COMMAND cmake -E copy_directory include ${PROJECT_BINARY_DIR}/third-party
+    COMMAND cmake -E copy_directory include ${PROJECT_BINARY_DIR}/third-party/include
     )
 
   set(MUMPS_LIBRARY_DMUMPS ${PROJECT_BINARY_DIR}/third-party/lib/libdmumps${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)

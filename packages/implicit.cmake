@@ -26,7 +26,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-add_meta_package(IMPLICIT "Add support for implicit time scheme" OFF MUMPS SCOTCH)
+add_meta_package(IMPLICIT "Add support for implicit time scheme" OFF SCOTCH MUMPS)
 
 set(AKANTU_IMPLICIT_TESTS
   test_solid_mechanics_model_bar_traction2d_mass_not_lumped

@@ -62,16 +62,16 @@ inline void SolidMechanicsModel::splitElementByMaterial(const Array<Element> & e
   Array<Element>::const_iterator<Element> it  = elements.begin();
   Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
-    const Element & el = *it;
+    Element el = *it;
     if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
       current_element_type = el.type;
       current_ghost_type   = el.ghost_type;
       elem_mat = element_index_by_material(el.type, el.ghost_type).storage();
     }
-    Element new_el(el);
+
     UInt old_id = el.element;
-    new_el.element = elem_mat[2*old_id+0];
-    elements_per_mat[elem_mat[2*old_id+1]].push_back(new_el);
+    el.element = elem_mat[2*old_id+0];
+    elements_per_mat[elem_mat[2*old_id+1]].push_back(el);
   }
 }
 
