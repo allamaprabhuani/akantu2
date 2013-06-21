@@ -113,7 +113,6 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
   Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension(), _not_ghost, _ek_not_defined);
   Mesh::type_iterator end = mesh.lastType (mesh.getSpatialDimension(), _not_ghost, _ek_not_defined);
   for(; it != end; ++it) {
-  
     UInt nb_element = mesh.getNbElement(*it);
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom;
@@ -159,14 +158,17 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
     delete [] local_eq_nb_val;
   }
 
-  for (UInt i = 0; i < size; ++i) {
-    KeyCOO irn_jcn = key(i, i);
-    irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
-    if(irn_jcn_k_it == irn_jcn_k.end()) {
-      irn_jcn_k[irn_jcn] = nb_non_zero;
-      irn.push_back(i + 1);
-      jcn.push_back(i + 1);
-      nb_non_zero++;
+  /// for pbc @todo correct it for parallel
+  if(StaticCommunicator::getStaticCommunicator().getNbProc() == 1) {
+    for (UInt i = 0; i < size; ++i) {
+      KeyCOO irn_jcn = key(i, i);
+      irn_jcn_k_it = irn_jcn_k.find(irn_jcn);
+      if(irn_jcn_k_it == irn_jcn_k.end()) {
+        irn_jcn_k[irn_jcn] = nb_non_zero;
+        irn.push_back(i + 1);
+        jcn.push_back(i + 1);
+        nb_non_zero++;
+      }
     }
   }
 

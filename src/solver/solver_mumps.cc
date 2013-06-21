@@ -142,11 +142,14 @@ void SolverMumps::onCommunicatorFinalize(const StaticCommunicator & comm) {
   AKANTU_DEBUG_IN();
 
   try{
+#if defined(AKANTU_USE_MPI)
     const StaticCommunicatorMPI & comm_mpi =
       dynamic_cast<const StaticCommunicatorMPI &>(comm.getRealStaticCommunicator());
     if(mumps_data.comm_fortran == MPI_Comm_c2f(comm_mpi.getMPICommunicator()))
+#endif
       destroyMumpsData();
   } catch(...) {}
+
 
   AKANTU_DEBUG_OUT();
 }

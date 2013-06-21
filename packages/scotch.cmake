@@ -27,17 +27,75 @@
 #
 #===============================================================================
 
-add_optional_external_package(Scotch "Add Scotch support in akantu" OFF)
-#add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
+option(AKANTU_USE_THIRD_PARTY_SCOTCH "Use the third-party Scotch instead of the one from the system" OFF)
+if(AKANTU_USE_THIRD_PARTY_SCOTCH)
+  set(AKANTU_USE_SCOTCH ON CACHE BOOL "Add Scotch support in akantu" FORCE)
+  include(ExternalProject)
 
-if(SCOTCH_INCLUDE_DIR)
-  file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
-  string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
-  if(_match)
-    set(AKANTU_SCOTCH_NO_EXTERN ON)
-    list(APPEND AKANTU_DEFINITIONS AKANTU_SCOTCH_NO_EXTERN)
+  find_package(BISON)
+  find_package(FLEX)
+  find_package(ZLIB)
+
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(SCOTCH_ARCHITECTURE -DIDXSIZE64)
   else()
-    set(AKANTU_SCOTCH_NO_EXTERN OFF)
+    set(SCOTCH_ARCHITECTURE)
+  endif()
+
+  configure_file(${PROJECT_SOURCE_DIR}/third-party/Scotchmake.inc.cmake
+    ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc)
+
+  ExternalProject_Add(Scotch
+    PREFIX ${PROJECT_BINARY_DIR}/third-party/build/scotch
+    URL https://gforge.inria.fr/frs/download.php/28978/scotch_5.1.12b_esmumps.tar.gz
+    URL_HASH MD5=e13b49be804755470b159d7052764dc0
+    PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/third-party/scotch.patch
+    CONFIGURE_COMMAND cmake -E copy ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc src/Makefile.inc
+    BUILD_IN_SOURCE 1
+    BUILD_COMMAND make -C src
+    INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
+    INSTALL_COMMAND prefix=${PROJECT_BINARY_DIR}/third-party make -C src install
+    COMMAND cmake -E copy lib/libesmumps.a ${PROJECT_BINARY_DIR}/third-party/lib
+    )
+
+  set(SCOTCH_LIBRARY ${PROJECT_BINARY_DIR}/third-party/lib/libscotch.a CACHE FILEPATH "" FORCE)
+  set(SCOTCH_LIBRARY_ERR ${PROJECT_BINARY_DIR}/third-party/lib/libscotcherr.a CACHE FILEPATH "" FORCE)
+  set(SCOTCH_LIBRARY_ERREXIT ${PROJECT_BINARY_DIR}/third-party/lib/libscotcherrexit.a CACHE FILEPATH "" FORCE)
+  set(SCOTCH_LIBRARY_ESMUMPS ${PROJECT_BINARY_DIR}/third-party/lib/libesmumps.a CACHE FILEPATH "" FORCE)
+  set(SCOTCH_INCLUDE_DIR ${PROJECT_BINARY_DIR}/third-party/include CACHE PATH "" FORCE)
+  #===============================================================================
+  mark_as_advanced(SCOTCH_LIBRARY)
+  mark_as_advanced(SCOTCH_LIBRARY_ERR)
+  mark_as_advanced(SCOTCH_LIBRARY_ERREXIT)
+  mark_as_advanced(SCOTCH_LIBRARY_ESMUMPS)
+  mark_as_advanced(SCOTCH_INCLUDE_DIR)
+  set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY} ${SCOTCH_LIBRARY_ERR})
+  if(SCOTCH_LIBRARY_ESMUMPS)
+    set(SCOTCH_LIBRARIES_ALL ${SCOTCH_LIBRARY_ESMUMPS} ${SCOTCH_LIBRARIES_ALL})
+  endif()
+  set(SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES_ALL} CACHE INTERNAL "Libraries for scotch" FORCE)
+
+  list(APPEND AKANTU_EXTERNAL_LIBRARIES ${SCOTCH_LIBRARIES})
+  list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${SCOTCH_INCLUDE_DIR})
+  set(AKANTU_SCOTCH_INCLUDE_DIR ${SCOTCH_INCLUDE_DIR})
+  set(AKANTU_SCOTCH_LIBRARIES ${SCOTCH_LIBRARIES})
+
+  list(APPEND AKANTU_OPTION_LIST SCOTCH)
+  set(SCOTCH_FOUND TRUE CACHE INTERNAL "" FORCE)
+  set(AKANTU_SCOTCH ON)
+else()
+  add_optional_external_package(Scotch "Add Scotch support in akantu" OFF)
+  #add_optional_package(PTScotch "Add PTScotch support in akantu" OFF)
+
+  if(SCOTCH_INCLUDE_DIR)
+    file(STRINGS ${SCOTCH_INCLUDE_DIR}/scotch.h SCOTCH_INCLUDE_CONTENT)
+    string(REGEX MATCH "_cplusplus" _match ${SCOTCH_INCLUDE_CONTENT})
+    if(_match)
+      set(AKANTU_SCOTCH_NO_EXTERN ON)
+      list(APPEND AKANTU_DEFINITIONS AKANTU_SCOTCH_NO_EXTERN)
+    else()
+      set(AKANTU_SCOTCH_NO_EXTERN OFF)
+    endif()
   endif()
 endif()
 

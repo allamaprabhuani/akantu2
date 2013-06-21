@@ -50,6 +50,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   opening("opening",id),
   contact_tractions("contact_tractions",id),
   contact_opening("contact_opening",id),
+  random_generator(NULL),
   delta_max("delta max",id),
   damage("damage", id),
   facet_filter("facet_filter", id),

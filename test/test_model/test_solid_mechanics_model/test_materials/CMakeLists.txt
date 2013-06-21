@@ -51,6 +51,7 @@ register_test(test_material_damage_non_local
   DEPENDENCIES test_material_non_local_mesh
   FILES_TO_COPY material_damage_non_local.dat
   DIRECTORIES_TO_CREATE paraview
+  PACKAGE damage_non_local
   )
 
 #===============================================================================
