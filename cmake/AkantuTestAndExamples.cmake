@@ -36,10 +36,6 @@ set(AKANTU_DIFF_SCRIPT ${AKANTU_CMAKE_DIR}/akantu_diff.sh)
 function(manage_test_and_example et_name desc build_all label)
   string(TOUPPER ${et_name} upper_name)
 
-  if(NOT EXISTS ${${et_name}})
-    return()
-  endif()
-
   cmake_parse_arguments(manage_test_and_example
     ""
     "PACKAGE"
@@ -56,6 +52,11 @@ function(manage_test_and_example et_name desc build_all label)
       list(APPEND AKANTU_TESTS_EXCLUDE_FILES /${_dir})
       set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} CACHE INTERNAL "")
     endif()
+  endif()
+
+  if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${et_name} AND _activated)
+#    message("Example or test ${et_name} not present")
+    return()
   endif()
 
   option(AKANTU_BUILD${label}${upper_name} "${desc}")
