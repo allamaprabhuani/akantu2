@@ -14,7 +14,7 @@ where \code{mesh}  is the  mesh for which  the equations  are to be  solved, and
 \code{spatial\_dimension} is  omitted, the  problem is assumed  to have  the same
 dimensionality as the one specified by the mesh.
 
-This model contains at least the the following six \code{Vectors}:
+This model contains at least the the following six \code{Arrays}:
 \begin{description}
 \item[boundary] contains a  boolean value for each degree  of freedom specifying
   whether that degree  is blocked or not. A Dirichlet  boundary condition can be
@@ -60,14 +60,14 @@ The solid mechanics model can be initialized as follows:
 \begin{cpp}
   model.initFull("material.dat")
 \end{cpp}
-This function  initializes the internal vectors  and sets them  to zero. Initial
+This function  initializes the internal arrays  and sets them  to zero. Initial
 displacements and  velocities that are  not equal to  zero can be  prescribed by
 running a  loop over the total  number of nodes. Here,  the initial displacement
 and in x-direction  and the initial velocity in y-direction at  all nodes is set
 to $0.1$ and $1$ respectively.
 \begin{cpp}
-  Vector<Real> & disp = model.getDisplacement();
-  Vector<Real> & velo = model.getVelocity();
+  Array<Real> & disp = model.getDisplacement();
+  Array<Real> & velo = model.getVelocity();
   for (UInt i = 0; i < nb_nodes; ++i) {
     disp(i, 0) = 0.1;
     velo(i, 1) = 1.;
@@ -94,7 +94,9 @@ solution  needs to  take  at the  boundary  ($\Gamma_t$) of  the problem  domain
   \caption{Problem boundary in two dimensions.\label{fig:smm:boundaries}}
 \end{figure}
 
-Figure~\ref{fig:smm:dirichlet_bc} shows a beam with  a fixed support on the left
+Different ways of imposing these boundary conditions exist. A basic way is to loop over nodes or elements at the boundary and apply local values. A more advanced method consists of using the notion of the boundary of the mesh. In the following both ways are presented. 
+
+Starting with the basic approach, as mentioned the Dirichlet boundary conditions can be applied by looping on the nodes and assigning the required values. Figure~\ref{fig:smm:dirichlet_bc} shows a beam with  a fixed support on the left
 side. On the right end of the beam  a load is applied. At the fixed support, the
 displacement has a  given value. For this example, the  displacement in both the
 x-  and y-direction  is set  to  zero. Implementing  this displacement  boundary
@@ -102,10 +104,11 @@ condition is  similar to the  implementation of initial  displacement conditions
 described above. However,  in order to impose a  displacement boundary condition
 for all time steps, the corresponding  nodes need to be marked as boundary nodes
 as shown in the following code:
-\begin{cpp}
-  Vector<bool> & boun = model.getBoundary();
 
-  const Vector<Real> & pos = mesh.getNodes();
+ \begin{cpp}
+   Array<bool> & boun = model.getBoundary();
+
+  const Array<Real> & pos = mesh.getNodes();
 
   UInt nb_nodes = mesh.getNbNodes();
   Real epsilon = Math::getTolerance();
@@ -127,99 +130,56 @@ as shown in the following code:
   \caption{Beam with fixed support.\label{fig:smm:dirichlet_bc}}
 \end{figure}
 
-If the Neumann boundary condition consists of a single load that is acting on one
-node, the load can simply be prescribed in the force vector:
+For the more advanced approach, one needs the notion of a boundary in the mesh. Therefore, the boundary should be created before boundary condition functors can be applied. Generally the boundary can be specified from the mesh file or the geometry. 
+For the first case, the function \code{createBoundariesFromMeshDate} is called. This function takes one input strings which is either \code{tag\_0, tag\_1} or \code{physical\_names}. The first two tags are assigned by Gmsh to each element which shows the physical group that they belong to. In Gmsh, it is also possible to consider strings for different groups of elements. These elements can be separated by giving a string \code{physical\_names} to the function \code{createBoundariesFromMeshData}. 
+Boundary conditions can also be created from the geometry by calling \code{createBoundariesFromGeometry}. This function gathers all the elements on the boundary of the geometry.
+
+To apply the required boundary conditions, the function \code{applyBC} from the \code{SolidMechanicsModel}  needs to be called. This function gets a Drichlet or Neumann functor and a string which specifies the desired boundary on which the boundary conditions is to be applied. The functors specify the type of conditions to apply. Three build-in functors for Dirichlet exist: \code{FlagOnly, FixedValue,} and \code{IncrementValue}. The functor \code{FlagOnly} is used if a point is fixed in a given direction. Therefore, the inout parameter to this functor is only the fixed direction. The \code{FixedValue} functor is used when a displacement value is applied in a fixed direction. The \code{IncrementValue} applies an increment to the displacementin in a given direction. The following code shows the utilisation of three functors for the top, bottom and side surface of the mesh which were already defined in the gmsh file:
+
 \begin{cpp}
-  Vector<Real> & force = model.getForce();
-  // force acting on node n:
-  force(n, 0) = 10.; // x-direction
-  force(n, 1) = 0.; // y-direction
+ 
+ Boundary & boundary = mesh.getBoundary();
+ boundary.createBoundariesFromMeshData("physical_names");
+
+  model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::_y), "Top");
+  
+  model.applyBC(BC::Dirichlet::FlagOnly(BC::_x), "Bottom");
+  
+  model.applyBC(BC::Dirichlet::IncrementValue(13.0, BC::_x), "Side");
+
 \end{cpp}
 
-In  the  case  of  a  surface   load  the  consistent  nodal  force  has  to  be
-computed.  Therefore,  a  new  class  \code{MySurfaceLoadFunctor}  needs  to  be
-created,  which inherits  from  the class  \code{SolidMechanicsModel}. The  call
-operator of  this class needs to  be overloaded and the  following parameters in
-the call operator need to be defined:
-\begin{itemize}
-\item The position where the load is applied.
-\item The type of load (traction or stress).
-\item The normal vector at the point of the surface.
-\item The surface\_id of the surface where the load is applied.
-\end{itemize}
+To apply a Neumann boundary condition, the applied traction or stress should be specified before. In case of specifying the traction on the surface, the functor \code{FromTraction} of Neumann boundary conditions is called. Otherwise, the functor \code{FromStress} should be called which gets the stress tensor as an input parameter.
+
 \begin{cpp}
-  Real bar_length = 10.;
+ 
+Array<Real> surface_traction(3);
+surface_traction(0)=0.0;
+surface_traction(1)=0.0;
+surface_traction(2)=-1.0;
 
-  class MySurfaceLoadFunctor : public SolidMechanicsModel::SurfaceLoadFunctor {
-    public:
-    // if a traction vector is provided:
-    void operator()(const types::Vector<Real> & position,
-    types::Vector<Real> & traction,
-    const types::Vector<Real> & normal,
-    Surface surface_id) {
-      Real epsilon = Math::getTolerance();
-      if(std::abs(position(0) - bar_length) < epsilon) {
-	force(0) = 10e9;
-      }
-    }
+Array<Real> surface_stress(3, 3, 0.0);
+surface_stress(0,0)=0.0;
+surface_stress(1,1)=0.0;
+surface_stress(2,2)=-1.0;
 
-    // if a stress tensor is provided:
-    void operator() (const types::Vector<Real> & position,
-    types::Matrix<Real> & stress,
-    const types::Vector<Real> & normal,
-    Surface surface_id) {
-      Real epsilon = Math::getTolerance();
-      if(std::abs(position(0) - bar_length) < epsilon) {
-	stress(0,0) = 10e9;
-	stress(1,1) = 10e9;
-      }
-    }
-  };
+ model.applyBC(BC::Neumann::FromTraction(surface_traction), "Bottom");
+
+ model.applyBC(BC::Neumann::FromStress(surface_stress), "Top");
+
 \end{cpp}
 
-In order to apply the  load that has been defined in \code{MySurfaceLoadFunctor}
-on a  corresponding surface, this  surface needs to  be created first.  This can
-either be done in a mesh generator like Gmsh or directly in \akantu by using the
-function \code{MeshUtils::buildFacets(mesh)}. Once the surface has been created,
-a  FEM  object  containing  the  surface  elements  of  the  mesh  needs  to  be
-generated. In the  next step, the shape functions, the  derivatives of the shape
-functions   and    Jacobians   for   the    surface   elements   need    to   be
-computed.  Subsequently, the  normals on  the quadrature  points of  the surface
-elements  are  calculated  and  an instance  of  \code{MySurfaceLoadFunctor}  is
-created. In the  last step, the load at the Gauss  quadrature points is computed
-by using the function \code{computeForcesFromFunction}:
+If the boundary conditions needs to be removed in the simulation, a functor is called from the Neumann boundary condition to free those boundary conditions  from the desired boundary.
+
 \begin{cpp}
-  MeshUtils::buildFacets(mesh);
 
-  FEM & fem_boundary = model.getFEMBoundary();
-  fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnControlPoints();
+model.applyBC(BC::Neumann::FreeBoundary(), "Side");
 
-  MySurfaceLoadFunctor boundary_traction;
-  model.computeForcesFromFunction(boundary_traction, _bft_traction);
 \end{cpp}
-\begin{itemize}
-\item\code{model.getFEMBoundary()}  creates  a  FEM  object  that  contains  the
-  surface elements of the mesh.
-\item\code{fem\_boundary.initShapeFunctions()}  computes  the  shape  functions,
-  their derivatives and the jacobians.
-\item\code{fem\_boundary.computeNormalsOnControlPoints()}  computes  the normals
-  at the quadrature points of the surface elements.
-\item\code{model.computeForcesFromFunction(boundary\_traction,\_bft\_traction)}
-  computes  the   forces  from   the  call  operator   defined  in   the  object
-  \code{boundary\_traction}.       The     second     parameter      of     type
-  \code{BoundaryFunctionType}   can    be   either   \code{\_bft\_traction}   or
-  \code{\_bft\_stress}.  The  value   \code{\_bft\_traction}  indicates  that  a
-  traction is  provided.  For convenience the  user can provide  a stress tensor
-  which is  internally multiplied by the  normal vector in order  to compute the
-  traction vector.  In  this case, the second parameter needs  to take the value
-  \code{\_bft\_stress}.
-\end{itemize}
 
-A full example for setting both  initial and boundary conditions can be found in
-\code{\examplesdir/boundary\_conditions.cc}.  The problem from that example is
-shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with
-movable supports  on the  left and bottom  side. On  the right side,  a traction
+
+User specified functors can also be implemented.  A full example for setting both  initial and boundary conditions can be found in \code{\examplesdir/boundary\_conditions.cc}.  The problem from that example is shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with
+ movable supports  on the  left and bottom  side. On  the right side,  a traction
 which increases linearly with the number  of time steps, is applied. The initial
 displacement  and velocity  in x-direction  at all  free nodes  is zero  and two
 respectively.
@@ -327,7 +287,7 @@ of the residual is not zero (given a specific tolerance).
 
 At   the  end   of  the   analysis  the   final  solution   is  stored   in  the
 \textbf{displacement} vector.  A  full example of how to  solve a static problem
-is  presented  in   the  code  \code{\examplesdir/implicit\_static.cc}.   This
+is  presented  in   the  code  \code{\examplesdir/implicit/implicit\_static.cc}.   This
 example is composed of a 2D plate of steel, blocked with rollers on the left and
 bottom sides as shown in  Figure \ref{fig:smm:static}.  The nodes from the right
 side of the sample are displaced by $0.01\%$ of the length of the plate.
@@ -522,7 +482,7 @@ the        equations       are       solved        \emph{in       displacement}.
   criterion too hard to reach.}
 
 An    example    of    implicit     dynamic    analysis    is    presented    in
-\code{\examplesdir/implicit\_dynamic.cc}.  This example  consists of a 2D beam
+\code{\examplesdir/implicit/implicit\_dynamic.cc}.  This example  consists of a 2D beam
 of $\unit{10}{\meter}\,\times\,\unit{1}{\meter}$ blocked on one side and is on a
 roller on the other side.  A constant force of \unit{5}{\kilo\newton} is applied
 in the middle of  this beam.  Figure \ref{fig:smm:implicit:dynamic} presents the
@@ -683,7 +643,7 @@ In the code shown above, the explicit loop contains four steps:
 \end{itemize}
 
 The use  of the explicit  time integration scheme  is illustrated by  an example
-(see  \code{\examplesdir/explicit\_dynamic.cc}).    This  example  models  the
+(see  \code{\examplesdir/explicit/explicit\_dynamic.cc}).    This  example  models  the
 propagation of  a wave in a  steel beam. The beam  is blocked on one  side and a
 displacement   is   applied   on   the   other  side,   as   shown   in   figure
 \ref{fig:smm:explicit}.
@@ -801,7 +761,7 @@ functions have to be redefined for the new constitutive law.
 
   // for implicit simulations
   void computeTangentStiffness(const ElementType & el_type,
-                               Vector<Real> & tangent_matrix,
+                               Array<Real> & tangent_matrix,
                                GhostType ghost_type = _not_ghost);
 
   Real getStableTimeStep(Real h, const Element & element);
