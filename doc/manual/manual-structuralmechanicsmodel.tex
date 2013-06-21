@@ -22,7 +22,7 @@ mesh.
   Section~\ref{sect:common:mesh} with \code{MeshIOMSHStruct} instead  of \code{MeshIOMSH}.}
 
 \vspace{1cm}
-This model contains at least the following \code{Vectors}:
+This model contains at least the following \code{Arrays}:
 \begin{description}
 \item[boundary]  contains a  boolean  value for  each  degree of  freedom
   specifying  whether  that degree  is  blocked  or  not. A  Dirichlet  boundary
@@ -65,10 +65,10 @@ The easiest way to initialize the structural mechanics model is:
 %
 %  model.addMaterial(mat1); ASK NICO ABOUT THIS CRAP
 %
-%  model.initVectors();
+%  model.initArrays();
 %  model.initImplicitSolver();
 %\end{cpp}
-%The method \code{initModel} computes the shape functions, \code{addMaterial} sets the material parameters to be used, \code{initVectors} initializes all the internal vectors mentioned before and \code{initImplicitSolver} creates the stiffness matrix.
+%The method \code{initModel} computes the shape functions, \code{addMaterial} sets the material parameters to be used, \code{initArrays} initializes all the internal arrays mentioned before and \code{initImplicitSolver} creates the stiffness matrix.
 
 \begin{cpp}
   model.initFull();

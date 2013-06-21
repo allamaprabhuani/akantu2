@@ -23,7 +23,7 @@ $\kappa$ is introduced:
 where $G_\mathrm{c, I}$ and $G_\mathrm{c, II}$ are respectively the
 necessary works of separation per unit area to open completely a
 cohesive zone under mode I and mode II. Their model yields to the
-following equation for cohesive tractions in case of crack opening
+following equation for cohesive tractions $\vec{T}$ in case of crack opening ${\delta}$:
 \begin{equation}
   \label{eq:smm:coh:tractions}
   \vec{T} = \left( \frac{\beta^2}{\kappa} \Delta_\mathrm{t} \vec{t} +
@@ -35,14 +35,14 @@ where $\sigma_\mathrm{c}$ is the material strength along the fracture,
 $\delta_\mathrm{c}$ the critical effective displacement after which
 cohesive tractions are zero (complete decohesion), $\Delta_\mathrm{t}$
 and $\Delta_\mathrm{n}$ are respectively the tangential and normal
-components of the opening displacement vector $\vec{\Delta}$. The
-effective opening displacement is
+components of the opening displacement vector $\vec{\Delta}$. $\beta$ specifies the importance of tangential to the normal displacement. The
+effective opening displacement is: 
 \begin{equation}
   \delta = \sqrt{\frac{\beta^2}{\kappa^2} \Delta_\mathrm{t}^2 +
     \Delta_\mathrm{n}^2}
 \end{equation}
 In case of unloading or reloading $\delta < \delta_\mathrm{max}$,
-tractions are calculated as
+tractions are calculated as:
 \begin{align}
   T_\mathrm{n} &= \Delta_\mathrm{n}\,
   \frac{\sigma_\mathrm{c}}{\delta_\mathrm{max}}
@@ -52,12 +52,12 @@ tractions are calculated as
   \left( 1- \frac{\delta_\mathrm{max}}{\delta_\mathrm{c}} \right)
 \end{align}
 so that they vary linearly between the origin and the maximum attained
-tractions. In this law dissipated and reversible energies are
+tractions. As shown in figure~\ref{fig:smm:coh:linear_cohesive_law}, in this law dissipated and reversible energies are:
 \begin{align}
   E_\mathrm{diss} &= \frac{1}{2} \sigma_\mathrm{c}\, \delta_\mathrm{max}\\[1ex]
   E_\mathrm{rev} &= \frac{1}{2} T\, \delta
 \end{align}
-Moreover a damage parameter $D$ can be defined as
+Moreover a damage parameter $D$ can be defined as:
 \begin{equation}
   D = \min \left(
     \frac{\delta_\mathrm{max}}{\delta_\mathrm{c}},1 \right)
@@ -65,7 +65,7 @@ Moreover a damage parameter $D$ can be defined as
 damaged condition). This variable can only increase because damage is
 an irreversible process. A simple penalty contact model has been incorporated
 in the cohesive law so that normal tractions can be returned in
-compression:
+case of compression:
 \begin{equation}
   T_\mathrm{n} = \alpha \Delta_\mathrm{n} \quad\text{if
     $\Delta_\mathrm{n} < 0$}
@@ -106,10 +106,10 @@ facet element of the standard elements. All the computations are done
 on the middle surface $S$, whose nodal coordinates are just the
 average between those of $S^+$ and $S^-$.
 
-In order to track normal and tangential openings it is convenient to
+In order to track normal and tangential openings, it is convenient to
 define a unique normal direction $\vec{n}$ for each quadrature point
 of the cohesive element. By convention the normal points from $S^-$ to
-$S^+$. The opening displacement vector is
+$S^+$. The opening displacement vector is:
 \begin{equation}
   \label{eq:opening_displacement}
   \vec{\Delta} (\vec{s}) = \sum_{n=1}^N \llbracket \vec{x}_n \rrbracket N_n (\vec s)
@@ -125,7 +125,8 @@ of the nodes.
 
 The quantities that have been defined so far are sufficient to
 completely define the cohesive tractions per unit deformed
-area. Indeed equation~\eqref{eq:smm:coh:tractions} can be rewritten as
+area. As the tangential direction $\vec{t}$ depends on the normal one
+$\vec{n}$, equation~\eqref{eq:smm:coh:tractions} can be rewritten as:
 \begin{equation}
   \vec{T} = \left[ \frac{\beta^2}{\kappa} \vec{\Delta} +
     \left( 1- \frac{\beta^2}{\kappa}\right)
@@ -134,9 +135,8 @@ area. Indeed equation~\eqref{eq:smm:coh:tractions} can be rewritten as
   \left( 1- \frac{\delta}{\delta_\mathrm{c}} \right) =
   \vec{T}(\vec{\Delta}, \vec{n})
 \end{equation}
-because the tangential direction $\vec{t}$ depends on the normal one
-$\vec{n}$. By interpolation it is now possible to derive the nodal
-forces as
+ By interpolation it is now possible to derive the nodal
+forces as:
 \begin{equation}
   f_{in}^\pm = \mp \int_{S_0} T_i N_n\, \mathrm{d}S_0
 \end{equation}
@@ -227,7 +227,7 @@ energies with the relative function:
   Real Er = model.getEnergy("reversible");
   Real Ec = model.getEnergy("contact");
 \end{cpp}
-The linear decreasing cohesive law material name is
+The material name of the linear decreasing cohesive law  is
 \code{material\_cohesive\_linear} and its parameters with their
 relative default values are:
 \begin{itemize}
@@ -261,10 +261,11 @@ Bilinear constitutive law works exactly in the same way of the linear
 one, except for the additional parameter \code{delta\_0} that by
 default is zero. In this case no random distribution of
 $\sigma_\mathrm{c}$ is needed since this law is intrinsic.
-
+Two examples for the extrinsic and intrinsic cohesive elements and also an example to assign different porperties to intergranular and transgranular cohesive elements can be 
+found in \code{\examplesdir} folder.
 \subsubsection{Exponential cohesive law}
 
-Ortiz and Pandolfi proposed this cohesive law in 1999 \ref{ortiz1999}.  The
+Ortiz and Pandolfi proposed this cohesive law in 1999~\cite{ortiz1999}.  The
 traction-opening equation for this law is as following:
 
 \begin{equation}
@@ -293,7 +294,7 @@ total      stiffness       of      the      structure.      Therefore,
 the  function  \code{assembleStiffnessMatrix}  is written  in  the
 \code{MaterialCohesive}.
 
-Considering a typical cohesive element as explained in figure ???, the opening
+Considering a typical cohesive element as explained in figure~\ref{fig:smm:coh:cohesive2d}, the opening
 displacement along the mid-surface can be written as:
 
 \begin{equation}
@@ -374,8 +375,7 @@ This      tangent      matrix      is     implemented      in      the
 \code{computeTangentStiffness} function for
 the exponential law.
 
-A full example for the static analysis of the cohesive elements can be
-found in \code{\examplesdir/static\_cohesive}.
+
 
 
 

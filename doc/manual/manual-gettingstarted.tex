@@ -90,53 +90,53 @@ difference is that the \code{MeshIODiana} object should be used
 instead of the \code{MeshIOMSH} one. Additional mesh readers can be
 introduced into \akantu by coding new \code{MeshIO} classes.
 
-\section{Using \code{Vectors}}
+\section{Using \code{Arrays}}
 
 Data in \akantu can be stored in data containers implemented by
-the \code{Vector} class. In its most basic usage the \code{Vector} class
+the \code{Array} class. In its most basic usage the \code{Array} class
 implemented in \akantu is similar to the \code{vector} class of
-the Standard Template Library (STL) for C++. A simple \code{Vector}
+the Standard Template Library (STL) for C++. A simple \code{Array}
 containing a sequence of \code{nb\_element} values can be generated with:
 \begin{cpp}
-  Vector<type> example_vector(nb_element);
+  Array<type> example_array(nb_element);
 \end{cpp}
 where \code{type} usually is \code{Real}, \code{UInt} or
 \code{bool}. Each value is associated to an index, so that data can be
 accessed by typing:
 
 \begin{cpp}
-  type & val = example_vector(index)
+  type & val = example_array(index)
 \end{cpp}
 
-\code{Vectors} can also contain a sequence of values for each
+\code{Arrays} can also contain a sequence of values for each
 index. In that case the number of components of each sequence must be
-specified at the \code{Vector} creation.  For example if we want to
-create a \code{Vector} to store the coordinates (sequences of three
+specified at the \code{Array} creation.  For example if we want to
+create a \code{Array} to store the coordinates (sequences of three
 values) of ten nodes, the appropriate code is the following:
 \begin{cpp}
   UInt nb_nodes = 10;
   UInt spatial_dimension = 3;
 
-  Vector<Real> position(nb_nodes, spatial_dimension);
+  Array<Real> position(nb_nodes, spatial_dimension);
 \end{cpp}
 In this case the $x$ position of node number 8 will be given by
 \code{position(7, 0)} (in C++, numbering starts at 0 and not
 1). If the number of components for the sequences is not specified, the
 default value of 1 is used.
 
-It is very common in \akantu to loop over vectors to perform a specific
+It is very common in \akantu to loop over arrays to perform a specific
 treatment. This ranges from geometric calculation on nodal quantities
 to tensor algebra (in constitutive laws for example).
-The \code{Vector} object has the possibility to request iterators
+The \code{Array} object has the possibility to request iterators
 in order to make the writing of loops easier and enhance readability.
 For instance, a loop over the nodal coordinates can be performed like:
 \begin{cpp}
-  //accessing the nodal coordinates Vector
-  Vector<Real> nodes = mesh.getNodes();
+  //accessing the nodal coordinates Array
+  Array<Real> nodes = mesh.getNodes();
 
   //creating the iterators
-  Vector<Real>::iterator<types::RVector> it  = nodes.begin(spatial_dimension);
-  Vector<Real>::iterator<types::RVector> end = nodes.end(spatial_dimension);
+  Array<Real>::iterator<RVector> it  = nodes.begin(spatial_dimension);
+  Array<Real>::iterator<RVector> end = nodes.end(spatial_dimension);
 
   for (; it != end; ++it){
     RVector & coords = (*it);
@@ -146,19 +146,19 @@ For instance, a loop over the nodal coordinates can be performed like:
 
   }
 \end{cpp}
-In that example, each \code{RVector} is a geometrical vector of size \code{spatial\_dimension}
-and the iteration is conveniently performed by the \code{Vector} iterator.
+In that example, each \code{RVector} is a geometrical array of size \code{spatial\_dimension}
+and the iteration is conveniently performed by the \code{Array} iterator.
 
-The \code{Vector} object is intensively used to store tensor values.  In that
+The \code{Array} object is intensively used to store tensor values.  In that
 case it should be specified that the returned object type is a matrix when
 constructing the iterator. This is done when calling the \code{begin} function. For
-instance, assuming that we have a \code{Vector} storing stresses, we can loop
+instance, assuming that we have a \code{Array} storing stresses, we can loop
 over the stored tensors by:
 
 \begin{cpp}
   //creating the iterators
-  Vector<Real>::iterator<types::RMatrix> it  = stresses.begin(spatial_dimension,spatial_dimension);
-  Vector<Real>::iterator<types::RMatrix> end = stresses.end(spatial_dimension,spatial_dimension);
+  Array<Real>::iterator<RMatrix> it  = stresses.begin(spatial_dimension,spatial_dimension);
+  Array<Real>::iterator<RMatrix> end = stresses.end(spatial_dimension,spatial_dimension);
 
   for (; it != end; ++it){
     Matrix<Real> & stress = (*it);
@@ -177,17 +177,17 @@ In general, a mesh consists of several kinds of elements. Consequently the
 amount of data to be stored can differ for each element type. The straightforward
 example is the connectivity array, namely the sequences of nodes belonging to
 each element. In order to easily manage this kind of data, a
-particular data structure called \code{ByElementTypeVector} is available.
-It is just a group of \code{Vectors}, each associated to an element
-type. The following code can retrieve the \code{ByElementTypeVector}
+particular data structure called \code{ByElementTypeArray} is available.
+It is just a group of \code{Arrays}, each associated to an element
+type. The following code can retrieve the \code{ByElementTypeArray}
 which stores the connectivity arrays for a mesh:
 \begin{cpp}
-  ByElementTypeVector<UInt> & connectivities = mesh.getConnectivities();
+  ByElementTypeArray<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}
-Then the specific vector associated to a given element type can be
+Then the specific array associated to a given element type can be
 obtained by
 \begin{cpp}
-  Vector<UInt> & connectivity_triangle = connectivities[_triangle_3];
+  Array<UInt> & connectivity_triangle = connectivities[_triangle_3];
 \end{cpp}
 where the first order 3-node triangular element was used in the presented
 piece of code.
