@@ -81,12 +81,23 @@ IORDERINGSC = $(IMETIS) $(IPORD) $(ISCOTCH)
 PLAT    =
 # RM : remove files
 RM      = @CMAKE_COMMAND@ -E remove -f
+
+ifeq ($(MUMPS_TYPE),seq)
 # CC : C compiler
 CC      = @CMAKE_C_COMPILER@
 # FC : Fortran 90 compiler
 FC      = @CMAKE_Fortran_COMPILER@
 # FL : Fortran linker
 FL      = @CMAKE_Fortran_COMPILER@
+else
+# CC : C compiler
+CC      = @MPI_C_COMPILER@
+# FC : Fortran 90 compiler
+FC      = @MPI_Fortran_COMPILER@
+# FL : Fortran linker
+FL      = @MPI_Fortran_COMPILER@
+endif
+
 # AR : Archive object in a library
 AR      = @CMAKE_AR@ vr
 # RANLIB : generate index of an archive file

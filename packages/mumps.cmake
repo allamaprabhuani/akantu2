@@ -46,7 +46,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
       PREFIX ${PROJECT_BINARY_DIR}/third-party/build/scalapack
       INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
       URL http://www.netlib.org/scalapack/scalapack-2.0.2.tgz
-      URL_HASH MD5=2f75e600a2ba155ed9ce974a1c4b536f
+#      URL_HASH MD5=2f75e600a2ba155ed9ce974a1c4b536f
       CMAKE_ARGS ../ScaLAPACK
       CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${PROJECT_BINARY_DIR}/third-party -DCMAKE_C_FLAGS:STRING=-fPIC -DCMAKE_Fortran_FLAGS:STRING=-fPIC
       )
@@ -82,7 +82,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     DEPENDS ${MUMPS_DEPENDS}
     PREFIX ${PROJECT_BINARY_DIR}/third-party/build/mumps
     URL ${PROJECT_SOURCE_DIR}/third-party/MUMPS_4.9.2.tar.gz
-    URL_HASH MD5=1c896cdb61878cf094b779404c6512fd
+#    URL_HASH MD5=1c896cdb61878cf094b779404c6512fd
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND cmake -E create_symlink ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc Makefile.inc
     BUILD_COMMAND make d

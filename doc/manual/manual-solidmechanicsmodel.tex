@@ -130,12 +130,34 @@ as shown in the following code:
   \caption{Beam with fixed support.\label{fig:smm:dirichlet_bc}}
 \end{figure}
 
-For the more advanced approach, one needs the notion of a boundary in the mesh. Therefore, the boundary should be created before boundary condition functors can be applied. Generally the boundary can be specified from the mesh file or the geometry. 
-For the first case, the function \code{createBoundariesFromMeshDate} is called. 
-This function can read any types of mesh data which are provided in the mesh file. If the mesh file is created with Gmsh, the function takes one input strings which is either \code{tag\_0, tag\_1} or \code{physical\_names}. The first two tags are assigned by Gmsh to each element which shows the physical group that they belong to. In Gmsh, it is also possible to consider strings for different groups of elements. These elements can be separated by giving a string \code{physical\_names} to the function \code{createBoundariesFromMeshData}. 
-Boundary conditions can also be created from the geometry by calling \code{createBoundariesFromGeometry}. This function gathers all the elements on the boundary of the geometry.
+For the more advanced approach, one needs the notion of a boundary in the
+mesh. Therefore, the boundary should be created before boundary condition
+functors can be applied. Generally the boundary can be specified from the mesh
+file or the geometry.  For the first case, the function
+\code{createBoundariesFromMeshDate} is called.  This function can read any types
+of mesh data which are provided in the mesh file. If the mesh file is created
+with Gmsh, the function takes one input strings which is either \code{tag\_0,
+  tag\_1} or \code{physical\_names}. The first two tags are assigned by Gmsh to
+each element which shows the physical group that they belong to. In Gmsh, it is
+also possible to consider strings for different groups of elements. These
+elements can be separated by giving a string \code{physical\_names} to the
+function \code{createBoundariesFromMeshData}.  Boundary conditions can also be
+created from the geometry by calling \code{createBoundariesFromGeometry}. This
+function gathers all the elements on the boundary of the geometry.
 
-To apply the required boundary conditions, the function \code{applyBC} from the \code{SolidMechanicsModel}  needs to be called. This function gets a Drichlet or Neumann functor and a string which specifies the desired boundary on which the boundary conditions is to be applied. The functors specify the type of conditions to apply. Three build-in functors for Dirichlet exist: \code{FlagOnly, FixedValue,} and \code{IncrementValue}. The functor \code{FlagOnly} is used if a point is fixed in a given direction. Therefore, the inout parameter to this functor is only the fixed direction. The \code{FixedValue} functor is used when a displacement value is applied in a fixed direction. The \code{IncrementValue} applies an increment to the displacementin in a given direction. The following code shows the utilisation of three functors for the top, bottom and side surface of the mesh which were already defined in the gmsh file:
+To apply the required boundary conditions, the function \code{applyBC} from the
+\code{SolidMechanicsModel} needs to be called. This function gets a Dirichlet or
+Neumann functor and a string which specifies the desired boundary on which the
+boundary conditions is to be applied. The functors specify the type of
+conditions to apply. Three build-in functors for Dirichlet exist:
+\code{FlagOnly, FixedValue,} and \code{IncrementValue}. The functor
+\code{FlagOnly} is used if a point is fixed in a given direction. Therefore, the
+input parameter to this functor is only the fixed direction. The
+\code{FixedValue} functor is used when a displacement value is applied in a
+fixed direction. The \code{IncrementValue} applies an increment to the
+displacement in a given direction. The following code shows the utilization of
+three functors for the top, bottom and side surface of the mesh which were
+already defined in the Gmsh file:
 
 \begin{cpp}
  
@@ -150,7 +172,11 @@ To apply the required boundary conditions, the function \code{applyBC} from the 
 
 \end{cpp}
 
-To apply a Neumann boundary condition, the applied traction or stress should be specified before. In case of specifying the traction on the surface, the functor \code{FromTraction} of Neumann boundary conditions is called. Otherwise, the functor \code{FromStress} should be called which gets the stress tensor as an input parameter.
+To apply a Neumann boundary condition, the applied traction or stress should be
+specified before. In case of specifying the traction on the surface, the functor
+\code{FromTraction} of Neumann boundary conditions is called. Otherwise, the
+functor \code{FromStress} should be called which gets the stress tensor as an
+input parameter.
 
 \begin{cpp}
  
@@ -179,10 +205,13 @@ model.applyBC(BC::Neumann::FreeBoundary(), "Side");
 \end{cpp}
 
 
-User specified functors can also be implemented.  A full example for setting both  initial and boundary conditions can be found in \code{\examplesdir/boundary\_conditions.cc}.  The problem from that example is shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with
- movable supports  on the  left and bottom  side. On  the right side,  a traction
-which increases linearly with the number  of time steps, is applied. The initial
-displacement  and velocity  in x-direction  at all  free nodes  is zero  and two
+User specified functors can also be implemented.  A full example for setting
+both initial and boundary conditions can be found in
+\code{\examplesdir/boundary\_conditions.cc}.  The problem from that example is
+shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with
+movable supports on the left and bottom side. On the right side, a traction
+which increases linearly with the number of time steps, is applied. The initial
+displacement and velocity in x-direction at all free nodes is zero and two
 respectively.
 \begin{figure}[!htb]
   \centering
@@ -869,3 +898,5 @@ A full example for adding a new damage law can be found in
 %%% mode: latex
 %%% TeX-master: "manual"
 %%% End:
+
+
