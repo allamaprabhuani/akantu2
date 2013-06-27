@@ -72,9 +72,8 @@ public:
 		      const std::string & file_name = "",
 		      const bool is_default = false) {
 
-    DumperMap::iterator it  = this->dumpers.find(dumper_name);
-
-    AKANTU_DEBUG_ASSERT(it == this->dumpers.end(), 
+    AKANTU_DEBUG_ASSERT(this->dumpers.find(dumper_name) == 
+			this->dumpers.end(), 
 			"Dumper " + dumper_name + "is already registered.");
 
     std::string name = file_name;
