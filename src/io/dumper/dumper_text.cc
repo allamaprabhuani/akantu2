@@ -35,7 +35,7 @@ DumperText::DumperText(const std::string & basename,
 		       iohelper::TextDumpMode mode,
 		       bool parallel) : DumperIOHelper() {
   AKANTU_DEBUG_IN();
-  
+
   iohelper::DumperText * dumper_text = new iohelper::DumperText(mode);
   this->dumper = dumper_text;
   this->setBaseName(basename);
