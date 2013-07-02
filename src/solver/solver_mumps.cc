@@ -155,6 +155,24 @@ void SolverMumps::onCommunicatorFinalize(const StaticCommunicator & comm) {
 }
 
 /* -------------------------------------------------------------------------- */
+std::ostream & operator <<(std::ostream & stream, const DMUMPS_STRUC_C & _this) {
+  stream << "DMUMPS Data [" << std::endl;
+  stream << " + job          : " << _this.job          << std::endl;
+  stream << " + par          : " << _this.par          << std::endl;
+  stream << " + sym          : " << _this.sym          << std::endl;
+  stream << " + comm_fortran : " << _this.comm_fortran << std::endl;
+  stream << " + nz           : " << _this.nz           << std::endl;
+  stream << " + irn          : " << _this.irn          << std::endl;
+  stream << " + jcn          : " << _this.jcn          << std::endl;
+  stream << " + nz_loc       : " << _this.nz_loc       << std::endl;
+  stream << " + irn_loc      : " << _this.irn_loc      << std::endl;
+  stream << " + jcn_loc      : " << _this.jcn_loc      << std::endl;
+  stream << "]";
+  return stream;
+}
+
+
+/* -------------------------------------------------------------------------- */
 void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_method) {
   switch(parallel_method) {
   case SolverMumpsOptions::_fully_distributed:
@@ -179,6 +197,8 @@ void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_meth
       icntl(28) = 0; //sequential analysis
     }
     break;
+  default:
+    AKANTU_DEBUG_ERROR("This case should not happen!!");
   }
 }
 
@@ -209,6 +229,8 @@ void SolverMumps::initialize(SolverOptions & options) {
 
   mumps_data.job = _smj_initialize; //initialize
   dmumps_c(&mumps_data);
+
+
   is_mumps_data_initialized = true;
 
   /* ------------------------------------------------------------------------ */
@@ -216,7 +238,7 @@ void SolverMumps::initialize(SolverOptions & options) {
 
   if(prank == 0) {
     std::stringstream sstr_rhs; sstr_rhs << id << ":rhs";
-    rhs = &(alloc<Real>(sstr_rhs.str(), size, 1, REAL_INIT_VALUE));
+    rhs = &(alloc<Real>(sstr_rhs.str(), size, 1, 0.));
   } else {
     rhs = NULL;
   }
@@ -226,7 +248,6 @@ void SolverMumps::initialize(SolverOptions & options) {
   icntl(2) = 0;
   icntl(3) = 0;
   icntl(4) = 0;
-
 
   mumps_data.nz_alloc = 0;
 

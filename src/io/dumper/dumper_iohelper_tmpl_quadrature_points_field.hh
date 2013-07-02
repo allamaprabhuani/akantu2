@@ -116,7 +116,7 @@ public:
 			       ElementKind element_kind = _ek_not_defined,
 			       const ByElementTypeArray<UInt> * filter = NULL) :
     parent(field, spatial_dimension,
-	   ghost_type, element_kind, filtered), fem(fem) { }
+	   ghost_type, element_kind, filter), fem(fem) { }
 
   GenericQuadraturePointsField(const FEM & fem,
 			       const ByElementTypeArray<T> & field,

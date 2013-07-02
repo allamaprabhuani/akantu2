@@ -151,7 +151,7 @@ private:
 /* -------------------------------------------------------------------------- */
 
 //#include "solver_mumps_inline_impl.cc"
-
+std::ostream & operator <<(std::ostream & stream, const DMUMPS_STRUC_C & _this);
 /// standard output stream operator
 // inline std::ostream & operator <<(std::ostream & stream, const SolverMumps & _this)
 // {

@@ -29,12 +29,12 @@
 
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU__
-
-#include "solid_mechanics_model.hh"
+namespace akantu {
+  class SolidMechanicsModel;
+  class FEM;
+}
 
 __BEGIN_AKANTU__
-
 
 /* -------------------------------------------------------------------------- */
 /* Homogenizing containers                                                    */
@@ -252,3 +252,5 @@ protected:
   Functor funct;
   UInt nb_component;
 };
+
+__END_AKANTU__

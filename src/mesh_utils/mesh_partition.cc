@@ -88,6 +88,9 @@ void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
   Element elem;
   elem.ghost_type = _not_ghost;
 
+  const_cast<Mesh &>(mesh).updateTypesOffsets(_not_ghost);
+  const_cast<Mesh &>(mesh).updateTypesOffsets(_ghost);
+
   Mesh::ConnectivityTypeList::const_iterator it;
   for(it = type_list.begin(); it != type_list.end(); ++it) {
     ElementType type = *it;

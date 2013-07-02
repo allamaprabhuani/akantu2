@@ -111,6 +111,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   /*  Local (rank == root)                                                    */
   /* ------------------------------------------------------------------------ */
   if(my_rank == root) {
+    mesh.nb_global_nodes = mesh.nodes->getSize();
+
     AKANTU_DEBUG_ASSERT(partition->getNbPartition() == nb_proc,
                         "The number of partition does not match the number of processors: " <<
                         partition->getNbPartition() << " != " << nb_proc);
@@ -337,16 +339,6 @@ createDistributedSynchronizerMesh(Mesh & mesh,
                                        type,
                                        partition_num,
                                        ghost_partition);
-
-            // Reinitializing the mesh data on the master
-            communicator.populateMeshData(mesh_data,
-                                          buffers[root],
-                                          *names_it,
-                                          type,
-                                          mesh_data.getTypeCode(*names_it),
-                                          mesh_data.getNbComponent(*names_it, type),
-                                          nb_local_element[root],
-                                          nb_ghost_element[root]);
           }
 
           std::vector<CommunicationRequest *> requests;
@@ -357,6 +349,20 @@ createDistributedSynchronizerMesh(Mesh & mesh,
               requests.push_back(comm.asyncSend(buffers[p].storage(),
                                                 buffers[p].getSize(), p, Tag::genTag(my_rank, count, TAG_MESH_DATA)));
             }
+          }
+
+          names_it  = tag_names.begin();
+          // Loop over each tag for the current type
+          for(;names_it != names_end; ++names_it) {
+            // Reinitializing the mesh data on the master
+            communicator.populateMeshData(mesh_data,
+                                          buffers[root],
+                                          *names_it,
+                                          type,
+                                          mesh_data.getTypeCode(*names_it),
+                                          mesh_data.getNbComponent(*names_it, type),
+                                          nb_local_element[root],
+                                          nb_ghost_element[root]);
           }
 
           // Nécsesaire ? oui

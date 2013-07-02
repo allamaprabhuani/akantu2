@@ -42,9 +42,9 @@ class DumperParaview : public DumperIOHelper {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  DumperParaview(const std::string & filename, 
-		 const std::string & directory = "./paraview", 
-		 bool parallel = true);
+  DumperParaview(const std::string & filename,
+                 const std::string & directory = "./paraview",
+                 bool parallel = true);
   virtual ~DumperParaview();
 
   /* ------------------------------------------------------------------------ */

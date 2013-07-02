@@ -116,6 +116,10 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) const {
 
 /* -------------------------------------------------------------------------- */
 inline void Mesh::updateTypesOffsets(const GhostType & ghost_type) {
+  Array<UInt> * types_offsets_ptr = &this->types_offsets;
+  if(ghost_type == _ghost) types_offsets_ptr = &this->ghost_types_offsets;
+  Array<UInt> & types_offsets = *types_offsets_ptr;
+
   types_offsets.clear();
   type_iterator it   = firstType(_all_dimensions, ghost_type, _ek_not_defined);
   type_iterator last = lastType(_all_dimensions, ghost_type, _ek_not_defined);

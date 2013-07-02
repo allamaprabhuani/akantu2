@@ -27,6 +27,8 @@
  *
  */
 
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 template<class T, template<class> class R>
@@ -382,3 +384,7 @@ protected:
   const SolidMechanicsModel & model;
   std::string field_id;
 };
+
+
+__END_AKANTU__
+

@@ -43,13 +43,13 @@
 #include "solver_mumps.hh"
 #endif
 
-/* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
-
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_iohelper_tmpl_homogenizing_field.hh"
 #  include "dumper_iohelper_tmpl_material_internal_field.hh"
 #endif
+
+/* -------------------------------------------------------------------------- */
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -683,19 +683,17 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
 #if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #else
-  UInt nb_global_node = mesh.getNbGlobalNodes();
+  UInt nb_global_nodes = mesh.getNbGlobalNodes();
 
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
-  jacobian_matrix = new SparseMatrix(nb_global_node * spatial_dimension, _symmetric,
+  jacobian_matrix = new SparseMatrix(nb_global_nodes * spatial_dimension, _symmetric,
                                      spatial_dimension, sstr.str(), memory_id);
 
   jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
   if (!isExplicit()) {
-
     std::stringstream sstr_sti; sstr_sti << id << ":stiffness_matrix";
     stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr_sti.str(), memory_id);
-
   }
 
 #ifdef AKANTU_USE_MUMPS
@@ -707,7 +705,8 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #endif //AKANTU_USE_MUMPS
 
-  solver->initialize(options);
+  if(solver)
+    solver->initialize(options);
 #endif //AKANTU_HAS_SOLVER
 }
 
@@ -722,6 +721,8 @@ void SolidMechanicsModel::initImplicit(bool dynamic, SolverOptions & solver_opti
   AKANTU_DEBUG_IN();
 
   method = dynamic ? _implicit_dynamic : _static;
+
+  if (!increment) setIncrementFlagOn();
 
   initSolver(solver_options);
 
@@ -791,8 +792,6 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
                       "You should first initialize the implicit solver and assemble the mass matrix");
 
-  if(!increment) setIncrementFlagOn();
-
   updateResidualInternal();
 
   solveDynamic<NewmarkBeta::_displacement_corrector>(*increment);
@@ -804,24 +803,31 @@ void SolidMechanicsModel::solveDynamic() {
 void SolidMechanicsModel::solveStatic() {
   AKANTU_DEBUG_IN();
 
-    UInt nb_nodes = displacement->getSize();
-    UInt nb_degree_of_freedom = displacement->getNbComponent();
+  AKANTU_DEBUG_INFO("Solving Ku = f");
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
 
-    Array<bool > * normal_boundary = new Array<bool > (nb_nodes, nb_degree_of_freedom, "normal_boundary");
-    normal_boundary->clear();
-    UInt n_angles(0);
-    if(nb_degree_of_freedom==2) {
-        n_angles=1;
-    }
-    else if(nb_degree_of_freedom==3) {
-        n_angles=3;
-    } else {
-      AKANTU_DEBUG_ERROR("Invalid number of degrees if freedom in solveStatic.");
-    }
+  UInt nb_nodes = displacement->getSize();
+  UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
 
-    Array<Real > * Euler_angles = new Array<Real > (nb_nodes, n_angles, "Euler_angles");
-    Euler_angles->clear();
-    solveStatic(*normal_boundary, *Euler_angles);
+  jacobian_matrix->copyContent(*stiffness_matrix);
+  jacobian_matrix->applyBoundary(*boundary);
+
+  increment->clear();
+
+  solver->setRHS(*residual);
+  solver->solve(*increment);
+
+  Real * increment_val = increment->values;
+  Real * displacement_val = displacement->values;
+  bool * boundary_val = boundary->values;
+
+  for (UInt j = 0; j < nb_degree_of_freedom;
+       ++j, ++displacement_val, ++increment_val, ++boundary_val) {
+    if (!(*boundary_val)) {
+      *displacement_val += *increment_val;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -1087,7 +1093,7 @@ void SolidMechanicsModel::setIncrementFlagOn() {
   if(!increment) {
     UInt nb_nodes = mesh.getNbNodes();
     std::stringstream sstr_inc; sstr_inc << id << ":increment";
-    increment = &(alloc<Real>(sstr_inc.str(), nb_nodes, spatial_dimension, 0));
+    increment = &(alloc<Real>(sstr_inc.str(), nb_nodes, spatial_dimension, 0.));
   }
 
   increment_flag = true;

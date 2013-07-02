@@ -324,6 +324,9 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
+  AKANTU_GET_MACRO(Strain, strain, const ByElementTypeReal &);
+  AKANTU_GET_MACRO(Stress, stress, const ByElementTypeReal &);
+  AKANTU_GET_MACRO(ElementFilter, element_filter, const ByElementTypeUInt &);
 
   bool isNonLocal() const { return is_non_local; }
 

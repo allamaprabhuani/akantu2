@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
 
-  ByElementTypeReal barycenters("", "", 0);
+  ByElementTypeReal barycenters("", "");
   mesh.initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension);
 
   Element e;
