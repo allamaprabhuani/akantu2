@@ -42,12 +42,12 @@
 #include "parser.hh"
 #include "generalized_trapezoidal.hh"
 
-/* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
-
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_iohelper_tmpl_homogenizing_field.hh"
 #endif
+
+/* -------------------------------------------------------------------------- */
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 HeatTransferModel::HeatTransferModel(Mesh & mesh,
@@ -262,7 +262,7 @@ void HeatTransferModel::assembleCapacityLumped() {
   assembleCapacityLumped(_not_ghost);
   assembleCapacityLumped(_ghost);
 
-  getSynchronizerRegistry().synchronize(akantu::_gst_htm_capacity);
+  getSynchronizerRegistry().synchronize(_gst_htm_capacity);
 
   AKANTU_DEBUG_OUT();
 }
