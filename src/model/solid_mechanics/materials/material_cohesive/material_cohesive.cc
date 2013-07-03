@@ -287,6 +287,9 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     Array<UInt> & elem_filter = element_filter(*it, ghost_type);
 
     UInt nb_element = elem_filter.getSize();
+
+    if(!nb_element) continue;
+
     UInt size_of_shapes       = shapes.getNbComponent();
 
     Array<Real> * shapes_filtered =

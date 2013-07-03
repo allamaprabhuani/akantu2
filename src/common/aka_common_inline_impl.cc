@@ -48,6 +48,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
   return stream;
 }
 
+/* -------------------------------------------------------------------------- */
 /// standard output stream operator for InterpolationType
 inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
 {
@@ -70,7 +71,7 @@ inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
   return stream;
 }
 
-
+/* -------------------------------------------------------------------------- */
 /// standard output stream operator for GhostType
 inline std::ostream & operator <<(std::ostream & stream, GhostType type)
 {
@@ -83,6 +84,7 @@ inline std::ostream & operator <<(std::ostream & stream, GhostType type)
   return stream;
 }
 
+/* -------------------------------------------------------------------------- */
 /// standard output stream operator for SynchronizationTag
 inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type)
 {
@@ -109,6 +111,19 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
     }
   return stream;
 }
+
+/* -------------------------------------------------------------------------- */
+/// standard output stream operator for SolveConvergenceCriteria
+inline std::ostream & operator <<(std::ostream & stream, SolveConvergenceCriteria criteria)
+{
+  switch(criteria)
+    {
+      case _scc_residual : stream << "_scc_residual" ; break;
+      case _scc_increment: stream << "_scc_increment"; break;
+    }
+  return stream;
+}
+
 
 /* -------------------------------------------------------------------------- */
 inline std::string to_lower(const std::string & str) {

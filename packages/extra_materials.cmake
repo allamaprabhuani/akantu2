@@ -35,7 +35,6 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_damage/material_marigo.cc
   model/solid_mechanics/materials/material_damage/material_mazars.cc
   model/solid_mechanics/materials/material_damage/material_damage_linear.cc
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings.cc
 
   model/solid_mechanics/materials/material_extra_includes.hh
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
@@ -52,6 +51,7 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings_tmpl.hh
 
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh

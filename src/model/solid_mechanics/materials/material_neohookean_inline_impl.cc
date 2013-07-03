@@ -46,14 +46,14 @@ MaterialNeohookean<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u
   Real detC = Math::det3(C.storage());
   Real defvol = 0.5 * log(detC);
 
-  Real p = lambda * defvol;
+  Real p = this->lambda * defvol;
 
   Matrix<Real> S(3, 3);
   Math::inv3(C.storage(), S.storage());
 
-  S *= p - mu;
+  S *= p - this->mu;
 
-  for (UInt i = 0; i < 3; ++i) S(i,i) = S(i,i) + mu;
+  for (UInt i = 0; i < 3; ++i) S(i,i) = S(i,i) + this->mu;
 
   Matrix<Real> sigma_tmp(3, 3);
   sigma_tmp.mul<false, false>(F, S);
@@ -72,9 +72,9 @@ MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> &
   Matrix<Real> F(3, 3);
   this->template gradUToF<spatial_dimension>(grad_u, F);
   Real J = Math::det3(F.storage());
-  Real Miiii = 2*mu + lambda;
-  Real Miijj = lambda*J*J;
-  Real Mijij = mu - 0.5*lambda*(J*J - 1);
+  Real Miiii = 2*this->mu + this->lambda;
+  Real Miijj = this->lambda*J*J;
+  Real Mijij = this->mu - 0.5*this->lambda*(J*J - 1);
 
   tangent(0, 0) = Miiii;
 
@@ -114,11 +114,11 @@ MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(Matrix<Real>
   Real detC = Math::det3(C.storage());
 
   Real defvol = 0.5*log(detC);
-  Real p = lambda * defvol;
+  Real p = this->lambda * defvol;
   Real traceC = C.trace();
 
   /// potential energy
-  epot = (0.5*p - mu)*defvol + 0.5*mu*(traceC - 3.);
+  epot = (0.5*p - this->mu)*defvol + 0.5*this->mu*(traceC - 3.);
 }
 
 /* -------------------------------------------------------------------------- */

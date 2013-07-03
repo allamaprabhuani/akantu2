@@ -50,6 +50,10 @@ inline UInt Material::getTangentStiffnessVoigtSize(UInt dim) const {
   return (dim * (dim - 1) / 2 + dim);
 }
 /* -------------------------------------------------------------------------- */
+inline UInt Material::getCauchyStressMatrixSize(UInt dim) const {
+  return (dim * dim);
+}
+/* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void Material::gradUToF(const Matrix<Real> & grad_u,
 			       Matrix<Real> & F) {
@@ -63,6 +67,39 @@ inline void Material::gradUToF(const Matrix<Real> & grad_u,
       F(i, j) = grad_u(i, j);
 
   for (UInt i = 0; i < size_F; ++i) F(i, i) += 1;
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::deformationJacobian<3>(const Matrix<Real> & F,
+			       Real & J) {
+  J = Math::det3(F.storage());
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::deformationJacobian<2>(const Matrix<Real> & F,
+			       Real & J) {
+  J = Math::det2(F.storage());
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::deformationJacobian<1>(const Matrix<Real> & F,
+			       Real & J) {
+  J = *(F.storage());
+}
+
+template<UInt dim >
+inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & piola,  Matrix<Real> & sigma) {
+
+    Real J = 1.0;
+    deformationJacobian<dim>(F, J);
+
+    Matrix<Real> F_S(dim, dim);
+    F_S.mul<false, false>(F, piola);
+    Real constant = J ? 1. /J : 0;
+    sigma.mul<false, true>(F_S, F, constant);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -137,6 +174,145 @@ inline void Material::transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
       Bvoigt(5, 1 + n*3) = dndx;
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+inline void Material::transferBMatrixToBNL(const Matrix<Real> & B,
+        Matrix<Real> & Bvoigt,
+        UInt nb_nodes_per_element) const {
+
+    Bvoigt.clear();
+
+    //see Finite element formulations for large deformation dynamic analysis, Bathe et al. IJNME vol 9, 1975, page 364 B_{NL}
+
+    for (UInt i = 0; i < dim; ++i) {
+        for (UInt m = 0; m < nb_nodes_per_element; ++m) {
+            for (UInt n = 0; n < dim; ++n) {
+                //std::cout << B(n, m) << std::endl;
+              Bvoigt(i * dim + n, m * dim + i) = B(n, m);
+            }
+        }
+    }
+
+    //TODO: Verify the 2D and 1D case
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::transferBMatrixToBL2<3>(const Matrix<Real> & B, const Matrix<Real> & grad_u,
+        Matrix<Real> & Bvoigt,
+        UInt nb_nodes_per_element) const {
+
+    Bvoigt.clear();
+
+    for (UInt i = 0; i < 3; ++i)
+        for (UInt j = 0; j < nb_nodes_per_element; ++j)
+            for (UInt k = 0; k < 3; ++k)
+                  Bvoigt(i, j * 3 + k) = grad_u(k, i) * B(i, j);
+
+    for (UInt i = 3; i < 6; ++i)
+        for (UInt j = 0; j < nb_nodes_per_element; ++j)
+          for (UInt k = 0; k < 3; ++k){
+            UInt aux = i-3 ;
+            for (UInt m = 0; m < 3; ++m) {
+              if (m != aux) {
+                UInt index1 = m;
+                UInt index2 = 3 - m - aux;
+                Bvoigt(i, j * 3 + k) += grad_u(k, index1) * B(index2, j);
+              }
+            }
+          }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void Material::transferBMatrixToBL2<2>(const Matrix<Real> & B, const Matrix<Real> & grad_u,
+        Matrix<Real> & Bvoigt,
+        UInt nb_nodes_per_element) const {
+
+    Bvoigt.clear();
+
+    for (UInt i = 0; i < 2; ++i)
+        for (UInt j = 0; j < nb_nodes_per_element; ++j)
+            for (UInt k = 0; k < 2; ++k)
+                  Bvoigt(i, j * 2 + k) = grad_u(k, i) * B(i, j);
+
+    for (UInt j = 0; j < nb_nodes_per_element; ++j)
+      for (UInt k = 0; k < 2; ++k)
+        for (UInt m = 0; m < 2; ++m) {
+          UInt index1 = m;
+          UInt index2 = (2 - 1) - m;
+          Bvoigt(2, j * 2 + k) += grad_u(k, index1) * B(index2, j);
+        }
+}
+
+template<>
+inline void Material::transferBMatrixToBL2<1>(const Matrix<Real> & B, const Matrix<Real> & grad_u,
+        Matrix<Real> & Bvoigt,
+        UInt nb_nodes_per_element) const {
+
+    Bvoigt.clear();
+
+    for (UInt j = 0; j < nb_nodes_per_element; ++j)
+      for (UInt k = 0; k < 2; ++k)
+        Bvoigt(0, j * 2 + k) = grad_u(k, 0) * B(0, j);
+}
+
+/* ---------------------------------------------------------------------------*/
+template<UInt dim>
+inline void Material::SetCauchyStressArray(const Matrix<Real> & S_t, Matrix<Real> & Stress_vect) {
+
+    AKANTU_DEBUG_IN();
+
+    Stress_vect.clear();
+
+    //UInt cauchy_matrix_size = getCauchyStressArraySize(dim);
+
+    //see Finite ekement formulations for large deformation dynamic analysis, Bathe et al. IJNME vol 9, 1975, page 364 ^t\tau
+
+    /*
+     * 1d: [ s11 ]'
+     * 2d: [ s11 s22 s12 ]'
+     * 3d: [ s11 s22 s33 s23 s13 s12 ]
+     */
+    for (UInt i = 0; i < dim; ++i)//diagonal terms
+        Stress_vect(i, 0) = S_t(i, i);
+
+    for (UInt i = 1; i < dim; ++i)// term s12 in 2D and terms s23 s13 in 3D
+        Stress_vect(dim+i-1, 0) = S_t(dim-i-1, dim-1);
+
+    for (UInt i = 2; i < dim; ++i)//term s13 in 3D
+        Stress_vect(dim+i, 0) = S_t(0, 1);
+
+    AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt dim>
+inline void Material::SetCauchyStressMatrix(const Matrix<Real> & S_t, Matrix<Real> & Stress_matrix) {
+
+    AKANTU_DEBUG_IN();
+
+    Stress_matrix.clear();
+
+    /// see Finite ekement formulations for large deformation dynamic analysis, Bathe et al. IJNME vol 9, 1975, page 364 ^t\tau
+
+    for (UInt i = 0; i < dim; ++i) {
+        for (UInt m = 0; m < dim; ++m) {
+            for (UInt n = 0; n < dim; ++n) {
+                Stress_matrix(i * dim + m, i * dim + n) = S_t(m, n);
+            }
+        }
+    }
+
+    //other terms from the diagonal
+    /*for (UInt i = 0; i < 3 - dim; ++i) {
+        Stress_matrix(dim * dim + i, dim * dim + i) = S_t(dim + i, dim + i);
+    }*/
+
+
+    AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -265,7 +441,8 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 inline UInt Material::getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
-    return spatial_dimension * spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements);
+    return (this->isFiniteDeformation() ? 2 : 1) * spatial_dimension * spatial_dimension *
+      sizeof(Real) * this->getModel().getNbQuadraturePoints(elements);
   }
   return 0;
 }
@@ -275,7 +452,11 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
 				      const Array<Element> & elements,
 				      SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
-    packElementDataHelper(stress, buffer, elements);
+    if(this->isFiniteDeformation()) {
+      packElementDataHelper(piola_kirchhoff_stress, buffer, elements);
+      packElementDataHelper(strain, buffer, elements);
+    } else
+      packElementDataHelper(stress, buffer, elements);
   }
 }
 
@@ -284,7 +465,11 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 					const Array<Element> & elements,
 					SynchronizationTag tag) {
   if(tag == _gst_smm_stress) {
-    unpackElementDataHelper(stress, buffer, elements);
+    if(this->isFiniteDeformation()) {
+      unpackElementDataHelper(piola_kirchhoff_stress, buffer, elements);
+      unpackElementDataHelper(strain, buffer, elements);
+    } else
+      unpackElementDataHelper(stress, buffer, elements);
   }
 }
 

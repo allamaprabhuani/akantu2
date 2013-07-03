@@ -139,7 +139,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the stuff for the explicit scheme
-  void initExplicit();
+  void initExplicit(AnalysisMethod analysis_method = _explicit_lumped_mass);
 
   bool isExplicit()
   { return method == _explicit_lumped_mass || method == _explicit_consistent_mass; }
@@ -174,17 +174,13 @@ public:
   /// explicit integration corrector
   void explicitCorr();
 
+public:
+  void solveStep();
+
   /* ------------------------------------------------------------------------ */
   /* Implicit                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  /// Update the stresses for the computation of the residual of the Stiffness
-  /// matrix in the case of finite deformation
-  void updateStresses();
-
-  /// Update the cauchy stress in the case of finite deformation
-  void UpdateStressesAtT();
 
   /// initialize the solver and the jacobian_matrix (called by initImplicit)
   void initSolver(SolverOptions & options = _solver_no_options);
@@ -199,25 +195,35 @@ public:
   /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
 
+public:
+  template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
+  void solveStep(Real tolerance,
+                 UInt max_iteration = 100);
+
+public:
   /// solve @f[ A\delta u = f_ext - f_int @f] in displacement
-  void solveDynamic();
+  void solveDynamic() __attribute__((deprecated));
 
   /// solve Ku = f
-  void solveStatic();
+  void solveStatic() __attribute__((deprecated));
 
   /// solve Ku = f
   void solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles);
 
-  /// create and return the velocity damping matrix
-  SparseMatrix & initVelocityDampingMatrix();
+  /// test if the system is converged
+  template<SolveConvergenceCriteria criteria>
+  bool testConvergence(Real tolerance, Real & error);
 
   /// test the convergence (norm of increment)
-  bool testConvergenceIncrement(Real tolerance);
-  bool testConvergenceIncrement(Real tolerance, Real & error);
+  bool testConvergenceIncrement(Real tolerance) __attribute__((deprecated));
+  bool testConvergenceIncrement(Real tolerance, Real & error) __attribute__((deprecated));
 
   /// test the convergence (norm of residual)
-  bool testConvergenceResidual(Real tolerance);
-  bool testConvergenceResidual(Real tolerance, Real & error);
+  bool testConvergenceResidual(Real tolerance) __attribute__((deprecated));
+  bool testConvergenceResidual(Real tolerance, Real & error) __attribute__((deprecated));
+
+  /// create and return the velocity damping matrix
+  SparseMatrix & initVelocityDampingMatrix();
 
   /// implicit time integration predictor
   void implicitPred();
@@ -232,15 +238,17 @@ protected:
   /// compute the support reaction and store it in force
   void updateSupportReaction();
 
+public://protected: Daniel changed it just for a test
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
-  void solveDynamic(Array<Real> & increment);
+  void solve(Array<Real> & increment);
 
   /* ------------------------------------------------------------------------ */
   /* Explicit/Implicit                                                        */
   /* ------------------------------------------------------------------------ */
 public:
-  /// compute the stresses
+  /// Update the stresses for the computation of the residual of the Stiffness
+  /// matrix in the case of finite deformation
   void computeStresses();
 
   /* ------------------------------------------------------------------------ */
@@ -436,8 +444,8 @@ public:
 
   /// get the SolidMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement,    *displacement,           Array<Real> &);
-  /// get the SolidMechanicsModel::displacement_t vector
-  AKANTU_GET_MACRO(Displacement_t, *displacement_t, Array<Real> &);
+  /// get the SolidMechanicsModel::previous_displacement vector
+  AKANTU_GET_MACRO(PreviousDisplacement, *previous_displacement, Array<Real> &);
   /// get the SolidMechanicsModel::current_position vector \warn only consistent
   /// after a call to SolidMechanicsModel::updateCurrentPosition
   AKANTU_GET_MACRO(CurrentPosition, *current_position, const Array<Real> &);
@@ -550,8 +558,8 @@ protected:
   /// displacements array
   Array<Real> * displacement;
 
-  /// displacements_t array
-  Array<Real> * displacement_t;
+  /// displacements array at the previous time step (used in finite deformation)
+  Array<Real> * previous_displacement;
 
   /// lumped mass array
   Array<Real> * mass;

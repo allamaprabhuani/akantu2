@@ -31,20 +31,20 @@
 
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
+template<UInt spatial_dimension, template <UInt> class MatParent>
 inline void
-MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
-							      Matrix<Real> & sigma,
-							      Real & dam,
-							      Real & Equistrain,
-							      Real & Equistrain_rate,
-							      Real & Kapaq,
-							      Real dt,
-							      Matrix<Real> & strain_rate_vrplgs,
-							      Real & crit_strain,
-							      Real & crit_strain_rate,
-							      Real & rdr_damage,
-							      Real & nb_damage) {
+MaterialVreePeerlings<spatial_dimension, MatParent>::computeStressOnQuad(Matrix<Real> & grad_u,
+                                                                         Matrix<Real> & sigma,
+                                                                         Real & dam,
+                                                                         Real & Equistrain,
+                                                                         Real & Equistrain_rate,
+                                                                         Real & Kapaq,
+                                                                         Real dt,
+                                                                         Matrix<Real> & strain_rate_vrplgs,
+                                                                         Real & crit_strain,
+                                                                         Real & crit_strain_rate,
+                                                                         Real & rdr_damage,
+                                                                         Real & nb_damage) {
   Real I1=0.;
   Real J2=0.;
   Real I1rate=0.;
@@ -149,18 +149,18 @@ MaterialVreePeerlings<spatial_dimension>::computeStressOnQuad(Matrix<Real> & gra
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
+template<UInt spatial_dimension, template <UInt> class MatParent>
 inline void
-MaterialVreePeerlings<spatial_dimension>::computeDamageAndStressOnQuad(Matrix<Real> & sigma,
-								       Real & dam,
-								       Real & Equistrain,
-								       Real & Equistrain_rate,
-								       Real & Kapaq,
-								       Real dt,
-								       Real & crit_strain,
-								       Real & crit_strain_rate,
-								       Real & rdr_damage,
-								       Real & nb_damage) {
+MaterialVreePeerlings<spatial_dimension, MatParent>::computeDamageAndStressOnQuad(Matrix<Real> & sigma,
+                                                                                  Real & dam,
+                                                                                  Real & Equistrain,
+                                                                                  Real & Equistrain_rate,
+                                                                                  Real & Kapaq,
+                                                                                  Real dt,
+                                                                                  Real & crit_strain,
+                                                                                  Real & crit_strain_rate,
+                                                                                  Real & rdr_damage,
+                                                                                  Real & nb_damage) {
   // __attribute__((unused)) Real dt
  ///Richeton Formula
   // Real cst1 = 190e6 - 470e3 * 298.;

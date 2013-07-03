@@ -105,9 +105,10 @@ protected:
 public:
   /// give the dissipated energy for the time step
   Real getDissipatedEnergy() const;
+  Real getDissipatedEnergy(ElementType type, UInt index) const;
 
   virtual Real getEnergy(std::string type);
-
+  virtual Real getEnergy(std::string energy_id, ElementType type, UInt index);
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

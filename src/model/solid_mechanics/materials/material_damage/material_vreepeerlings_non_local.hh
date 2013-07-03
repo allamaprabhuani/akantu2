@@ -46,15 +46,19 @@ __BEGIN_AKANTU__
  *
  * parameters in the material files :
  */
-template<UInt spatial_dimension, template <UInt> class WeightFunction = BaseWeightFunction>
+template<UInt spatial_dimension,
+         template <UInt> class WeightFunction = BaseWeightFunction,
+         template <UInt> class MatParent = MaterialElastic>
 class MaterialVreePeerlingsNonLocal : public MaterialDamageNonLocal<spatial_dimension,
-								    MaterialVreePeerlings,
-								    WeightFunction> {
+                                                                    MaterialVreePeerlings<spatial_dimension,
+                                                                                          MatParent> ,
+                                                                    WeightFunction> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef MaterialDamageNonLocal<spatial_dimension, MaterialVreePeerlings, WeightFunction> MaterialVreePeerlingsNonLocalParent;
+  typedef MaterialVreePeerlings<spatial_dimension, MatParent> Parent;
+  typedef MaterialDamageNonLocal<spatial_dimension, Parent, WeightFunction> MaterialVreePeerlingsNonLocalParent;
 
   MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model, const ID & id = "");
 

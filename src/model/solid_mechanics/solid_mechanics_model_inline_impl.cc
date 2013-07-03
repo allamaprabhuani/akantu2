@@ -394,3 +394,107 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
+__END_AKANTU__
+#include "sparse_matrix.hh"
+#include "solver.hh"
+__BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
+template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+void SolidMechanicsModel::solve(Array<Real> & increment) {
+  jacobian_matrix->clear();
+
+  Real c = 0.,d = 0.,e = 0.;
+
+  if(method == _static) {
+    AKANTU_DEBUG_INFO("Solving K inc = r");
+    e = 1.;
+  } else {
+    AKANTU_DEBUG_INFO("Solving (c M + d C + e K) inc = r");
+
+    NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
+    c = nmb_int->getAccelerationCoefficient<type>(time_step);
+    d = nmb_int->getVelocityCoefficient<type>(time_step);
+    e = nmb_int->getDisplacementCoefficient<type>(time_step);
+  }
+
+  // J = c M + d C + e K
+  if(stiffness_matrix)
+    jacobian_matrix->add(*stiffness_matrix, e);
+
+//  if(type != NewmarkBeta::_acceleration_corrector)
+//    jacobian_matrix->add(*stiffness_matrix, e);
+
+  if(mass_matrix)
+    jacobian_matrix->add(*mass_matrix, c);
+
+#if !defined(AKANTU_NDEBUG)
+  if(AKANTU_DEBUG_TEST(dblDump))
+    mass_matrix->saveMatrix("M.mtx");
+#endif
+
+  if(velocity_damping_matrix)
+    jacobian_matrix->add(*velocity_damping_matrix, d);
+
+  jacobian_matrix->applyBoundary(*boundary);
+
+#if !defined(AKANTU_NDEBUG)
+  if(AKANTU_DEBUG_TEST(dblDump))
+    jacobian_matrix->saveMatrix("J.mtx");
+#endif
+
+  solver->setRHS(*residual);
+  // solve @f[ J \delta w = r @f]
+  solver->solve(increment);
+}
+
+/* -------------------------------------------------------------------------- */
+template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
+void SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
+
+    this->implicitPred();
+    this->updateResidual();
+
+    AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+            "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+    if (method==_implicit_dynamic) {
+        AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
+                "You should first initialize the implicit solver and assemble the mass matrix");
+    }
+
+    switch (cmethod) {
+        case _scm_newton_raphson_tangent:
+            break;
+        case _scm_newton_raphson_tangent_modified:
+            this->assembleStiffnessMatrix();
+            break;
+        default:
+            AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
+    }
+
+    UInt iter = 0;
+    bool converged = false;
+
+    do {
+        Real error = 0.;
+
+        if (cmethod == _scm_newton_raphson_tangent)
+            this->assembleStiffnessMatrix();
+
+        solve<NewmarkBeta::_displacement_corrector > (*increment);
+        converged = this->testConvergence<criteria > (tolerance, error);
+
+        this->implicitCorr();
+
+        this->updateResidual();
+
+        iter++;
+        AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
+                << std::setw(std::log10(max_iteration)) << iter
+                          << ": error " << error << (converged ? " < " : " > ") << tolerance << std::endl);
+
+    } while (!converged && iter < max_iteration);
+
+}
+

@@ -74,14 +74,14 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
   return materials.size();;
 }
 
-
+/*
 __END_AKANTU__
 #include "sparse_matrix.hh"
 #include "solver.hh"
 __BEGIN_AKANTU__
-
+*/
 /* -------------------------------------------------------------------------- */
-template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+/*template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solveDynamic(Array<Real> & increment) {
   AKANTU_DEBUG_INFO("Solving Ma + Cv + Ku = f");
 
@@ -119,5 +119,5 @@ void SolidMechanicsModel::solveDynamic(Array<Real> & increment) {
 
   // solve A w = f
   solver->solve(increment);
-}
+}*/
 /* -------------------------------------------------------------------------- */

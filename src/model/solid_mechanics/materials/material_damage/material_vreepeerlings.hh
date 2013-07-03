@@ -48,15 +48,15 @@ __BEGIN_AKANTU__
  *   - Kct    : (default: 1) Ratio between compressive and tensile strength
  *   - Kapa0_randomness  : (default:0) Kapa random internal variable
  */
-template<UInt spatial_dimension>
+template<UInt spatial_dimension, template <UInt> class MatParent = MaterialElastic>
 class MaterialVreePeerlings : public MaterialDamage<spatial_dimension,
-						    MaterialElastic> {
+                                                    MatParent> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   typedef MaterialDamage<spatial_dimension,
-			 MaterialElastic> MaterialVreePeerlingsParent;
+                         MatParent> MaterialVreePeerlingsParent;
   MaterialVreePeerlings(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialVreePeerlings() {};
@@ -154,6 +154,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 #include "material_vreepeerlings_inline_impl.cc"
+#include "material_vreepeerlings_tmpl.hh"
 
 __END_AKANTU__
 

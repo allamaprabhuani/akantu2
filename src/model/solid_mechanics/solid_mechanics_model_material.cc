@@ -49,7 +49,7 @@ __BEGIN_AKANTU__
   if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
     material =								\
       &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
-	BOOST_PP_TUPLE_ELEM(2, 1, elem) > >(mat_type, opt_param));	\
+	BOOST_PP_SEQ_ENUM(BOOST_PP_TUPLE_ELEM(2, 1, elem)) > >(mat_type, opt_param)); \
     }
 
 

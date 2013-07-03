@@ -92,12 +92,6 @@ protected:
   /// dissipated energy
   ByElementTypeReal dissipated_energy;
 
-  /// previous strain used to compute the dissipated energy
-  ByElementTypeReal strain_prev;
-
-  /// previous strain used to compute the dissipated energy
-  ByElementTypeReal stress_prev;
-
   /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega @f$ the dissipated energy
   ByElementTypeReal int_sigma;
 };

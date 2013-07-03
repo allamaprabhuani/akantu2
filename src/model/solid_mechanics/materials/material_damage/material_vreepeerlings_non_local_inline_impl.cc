@@ -31,8 +31,8 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template <UInt> class WeigthFunction>
-MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model,
+template<UInt spatial_dimension, template <UInt> class WeigthFunction, template <UInt> class MatParent>
+MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::MaterialVreePeerlingsNonLocal(SolidMechanicsModel & model,
 												const ID & id)  :
   Material(model, id),
   MaterialVreePeerlingsNonLocalParent(model, id),
@@ -45,18 +45,16 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::MaterialVreePe
   this->initInternalArray(this->equi_strain_non_local, 1);
   this->initInternalArray(this->equi_strain_rate_non_local, 1);
 
-
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template <UInt> class WeigthFunction>
-void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
+template<UInt spatial_dimension, template <UInt> class WeigthFunction, template <UInt> class MatParent>
+void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   this->resizeInternalArray(this->equi_strain_non_local);
   this->resizeInternalArray(this->equi_strain_rate_non_local);
-
 
   this->registerNonLocalVariable(this->equi_strain, this->equi_strain_non_local, 1);
   this->registerNonLocalVariable(this->equi_strain_rate, this->equi_strain_rate_non_local, 1);
@@ -68,8 +66,8 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMater
 
 /* -------------------------------------------------------------------------- */
 
-//template<UInt spatial_dimension, template <UInt> class WeigthFunction>
-//void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeStress(ElementType el_type,
+//template<UInt spatial_dimension, template <UInt> class WeigthFunction, template <UInt> class MatParent>
+//void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::computeStress(ElementType el_type,
 //										     GhostType ghost_type) {
 //   AKANTU_DEBUG_IN();
 //
@@ -130,8 +128,8 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::initMater
 //
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template <UInt> class WeigthFunction>
-void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction>::computeNonLocalStress(ElementType el_type,
+template<UInt spatial_dimension, template <UInt> class WeigthFunction, template <UInt> class MatParent>
+void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::computeNonLocalStress(ElementType el_type,
 											     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

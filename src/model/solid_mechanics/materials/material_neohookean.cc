@@ -112,12 +112,12 @@ Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
     Math::inv3(C.storage(), Cinv.storage());
     Real detC = Math::det3(C.storage());
     Real defvol = 0.5 * log(detC);
-    Real p = lambda * defvol;
+    Real p = this->lambda * defvol;
 
     Real traceCinv = Cinv.trace();
-    Real coef = mu - p;
+    Real coef = this->mu - p;
     Real rhot = this->rho / sqrt(detC);
-    Real tmpcele = sqrt((lambda + 2*coef)*traceCinv*traceCinv/rhot);
+    Real tmpcele = sqrt((this->lambda + 2*coef)*traceCinv*traceCinv/rhot);
 
     cele = std::max(cele, tmpcele);
   }

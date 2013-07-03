@@ -35,10 +35,10 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void MaterialPlastic<dim>::computeStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
-        Matrix<Real> & cauchy) {
+inline void MaterialPlastic<dim>::computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
+        Matrix<Real> & delta_S){
 
-    Real J = 1.0;
+  /*Real J = 1.0;
     switch (dim){
         case 2:
             J = Math::det2(F.storage());
@@ -47,29 +47,29 @@ inline void MaterialPlastic<dim>::computeStressOnQuad(const Matrix<Real> & F, co
             J = Math::det3(F.storage());
             break;
     }
-    if (std::abs(J) > Math::getTolerance()) {
-       
+    if (std::abs(J) > Math::getTolerance()) {*/
+
         /*
          * Updated Lagrangian approach
-         * 
+         *
          * ^{t+\Delta t}S_{ij}:         2nd Piola Kirchhoff tensor at t+\Delta t
          * ^{t}\sigma_{ij}:             Cauchy stress tensor at t
-         * \Delta S_{ij}:               Increment of the 
-         * 
+         * \Delta S_{ij}:               Increment of the
+         *
          * ^{t+\Delta t}S_{ij}=^{t}\sigma_{ij}+\Delta S_{ij}2nd Piola Kirchhoff tensor
          *
          */
-        cauchy += S;
-        
+        //cauchy += S;
+
         /*
          * ^{t+\Delta t}\sigma_{ij}:    Cauchy stress tensor at t+\Delta t
          * F:                           Deformation Gradient
-         * 
+         *
          * ^{t+\Delta t}\sigma_{ij}=1/det(F) F_ir ^{t+\Delta t}S_{rs} F_{sj}
-         * 
+         *
          */
 
-        Matrix<Real> Aux(3, 3);
+        /* Matrix<Real> Aux(3, 3);
         Matrix<Real> Aux2(3, 3);
 
         Aux.mul < false, false > (F, cauchy);
@@ -80,25 +80,25 @@ inline void MaterialPlastic<dim>::computeStressOnQuad(const Matrix<Real> & F, co
         //cauchy.mul < false, true > (cauchy, F, 1.0/J );
 
         for (UInt i = 0; i < dim; i++)
-            for (UInt j = 0; j < dim; j++) 
+            for (UInt j = 0; j < dim; j++)
                 cauchy(i, j) = Aux2(i, j);
-        
+
         //std::cout << cauchy << std::endl;
 
     } else
-        cauchy.clear();
+    cauchy.clear();*/
 
 }
 
 template<UInt dim>
 inline void MaterialPlastic<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
-							   Matrix<Real> & sigma) {
+                                                           Matrix<Real> & sigma) {
     //Neo hookean book
     Matrix<Real> F(dim, dim);
     Matrix<Real> C(dim, dim);//Right green
     Matrix<Real> Cminus(dim, dim);//Right green
-    
-        
+
+
     this->template gradUToF<dim > (grad_u, F);
     this->rightCauchy(F, C);
     Real J = 1.0;
@@ -112,12 +112,35 @@ inline void MaterialPlastic<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
             J = Math::det3(F.storage());
             break;
     }
-                    
-        
+
+
     for (UInt i = 0; i < dim; ++i)
         for (UInt j = 0; j < dim; ++j)
             sigma(i, j) = (i == j) *  mu  + (lambda * log(J) - mu) * Cminus(i, j);
-    
+    //Neo hookean book
+    /*Matrix<Real> F(dim, dim);
+    Matrix<Real> C(dim, dim);//Right green
+
+
+    this->template gradUToF<dim > (grad_u, F);
+    this->rightCauchy(F, C);
+    Real J = 1.0;
+    switch (dim) {
+        case 2:
+            J = Math::det2(F.storage());
+            break;
+        case 3:
+            J = Math::det3(F.storage());
+            break;
+    }
+
+    Real trace_green = 0.5 * ( C.trace() - dim);
+
+    for (UInt i = 0; i < dim; ++i)
+        for (UInt j = 0; j < dim; ++j)
+          sigma(i, j) = (i == j) * trace_green * lambda/J  + ( mu - lambda * log(J) ) / J
+          * (0.5 * ( C(i, j) - (i==j) ) + 0.5 * ( C(j, i) - (j==i) ) );*/
+
 }
 
 template<UInt dim>
@@ -130,15 +153,15 @@ inline void MaterialPlastic<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real>
     for (UInt i = 0; i < dim; ++i)
         for (UInt j = 0; j < dim; ++j)
             S(i, j) = (i == j) * lambda * trace + 2.0 * mu * E(i, j);
-    
+
 }
 
 /*template<UInt spatial_dimension>
 inline void MaterialPlastic<spatial_dimension>::updateStressOnQuad(const Matrix<Real> & sigma,
         Matrix<Real> & cauchy_sigma) {
-    
-    for (UInt i = 0; i < spatial_dimension; ++i) 
-        for (UInt j = 0; j < spatial_dimension; ++j) 
+
+    for (UInt i = 0; i < spatial_dimension; ++i)
+        for (UInt j = 0; j < spatial_dimension; ++j)
             cauchy_sigma(i, j) += sigma(i, j);
 
 }*/
@@ -153,7 +176,7 @@ inline void MaterialPlastic < 1 > ::computeStressOnQuad(const Matrix<Real> & F, 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u) {
-    
+
     //Neo hookean book
     UInt cols = tangent.cols();
     UInt rows = tangent.rows();
@@ -165,7 +188,7 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
     Real J = 1.0;
     switch (dim){
         case 2:
-            Math::inv2(C.storage(), Cminus.storage());            
+            Math::inv2(C.storage(), Cminus.storage());
             J = Math::det2(F.storage());
             break;
         case 3:
@@ -173,8 +196,84 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
             J = Math::det3(F.storage());
             break;
     }
-    
+
     Real Mu_NH = mu - lambda * log(J);
+
+    for (UInt m = 0; m < rows; m++) {
+        UInt i, j;
+        if (m < dim) {
+            i = m;
+            j = m;
+        } else {
+            if (dim == 3) {
+                if (m == 3) {
+                    i = 1;
+                    j = 2;
+                } else if (m == 4) {
+                    i = 0;
+                    j = 2;
+                } else if (m == 5) {
+                    i = 0;
+                    j = 1;
+                }
+            } else if (dim == 2) {
+                if (m == 2) {
+                    i = 0;
+                    j = 1;
+                }
+            }
+        }
+
+        for (UInt n = 0; n < cols; n++) {
+            UInt k, l;
+            if (n < dim) {
+                k = n;
+                l = n;
+            } else {
+                if (dim == 3) {
+                    if (n == 3) {
+                        k = 1;
+                        l = 2;
+                    } else if (n == 4) {
+                        k = 0;
+                        l = 2;
+                    } else if (n == 5) {
+                        k = 0;
+                        l = 1;
+                    }
+                } else if (dim == 2) {
+                    if (n == 2) {
+                        k = 0;
+                        l = 1;
+                    }
+                }
+            }
+
+            tangent(m, n) = lambda * Cminus(i, j) * Cminus(k, l) +
+                     Mu_NH * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j));
+
+        }
+    }
+
+    /*
+    UInt cols = tangent.cols();
+    UInt rows = tangent.rows();
+    Matrix<Real> F(dim, dim);
+    Matrix<Real> C(dim, dim);
+    this->template gradUToF<dim > (grad_u, F);
+    this->rightCauchy(F, C);
+    Real J = 1.0;
+    switch (dim){
+        case 2:
+            J = Math::det2(F.storage());
+            break;
+        case 3:
+            J = Math::det3(F.storage());
+            break;
+    }
+
+    Real mu_NH = (mu - lambda * log(J))/J;
+    Real lambda_NH = lambda/J;
 
     for (UInt m = 0; m < rows; m++) {
         UInt i, j;
@@ -226,12 +325,11 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
                 }
             }
 
-            tangent(m, n) = J * lambda * Cminus(i, j) * Cminus(k, l) +
-                    J * Mu_NH * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j));
+            tangent(m, n) = lambda_NH * (i==j) * (k==l) + mu_NH * ((i==k) * (j==l) + (i==l) * (k==j));
 
         }
-    }
-   
+        }*/
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -246,4 +344,3 @@ inline Real MaterialPlastic<spatial_dimension>::getStableTimeStep(Real h,
         __attribute__((unused)) const Element & element) {
     return (h / getPushWaveSpeed());
 }
-

@@ -266,14 +266,33 @@ Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getDissipatedEner
   return de;
 }
 
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getDissipatedEnergy(ElementType type, UInt index) const {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(type);
+  Array<Real>::const_iterator< Vector<Real> > it = this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
+  UInt gindex = (this->element_filter(type, _not_ghost))(index);
+
+  AKANTU_DEBUG_OUT();
+  return this->model->getFEM().integrate(it[index], type, gindex);
+}
 
 /* -------------------------------------------------------------------------- */
-
 template<UInt spatial_dimension>
 Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getEnergy(std::string type) {
   if(type == "dissipated") return getDissipatedEnergy();
   else if(type == "dissipated_sls_deviatoric") return getDissipatedEnergy();
   else return MaterialElastic<spatial_dimension>::getEnergy(type);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getEnergy(std::string energy_id, ElementType type, UInt index) {
+  if(energy_id == "dissipated") return getDissipatedEnergy(type, index);
+  else if(energy_id == "dissipated_sls_deviatoric") return getDissipatedEnergy(type, index);
+  else return MaterialElastic<spatial_dimension>::getEnergy(energy_id, type, index);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -33,11 +33,15 @@
 #  include "material_vreepeerlings_non_local.hh"
 
 #define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
-  ((stress_wf, StressBasedWeightFunction  ))				\
-  ((damage_wf, DamagedWeightFunction      ))				\
-  ((remove_wf, RemoveDamagedWeightFunction))				\
-  ((base_wf,   BaseWeightFunction         ))
+  ((stress_wf, (StressBasedWeightFunction  )))				\
+  ((damage_wf, (DamagedWeightFunction      )))				\
+  ((remove_wf, (RemoveDamagedWeightFunction)))				\
+  ((base_wf,   (BaseWeightFunction         )))
 
+#define AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS                         \
+  ((sls_deviatoric     , (RemoveDamagedWeightFunction)(MaterialStandardLinearSolidDeviatoric))) \
+  ((neohookean         , (RemoveDamagedWeightFunction)(MaterialPlastic                      ))) \
+  ((elastic            , (RemoveDamagedWeightFunction)(MaterialElastic                      )))
 
 #define AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST		\
   AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST				\
@@ -48,4 +52,4 @@
 	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))			\
   ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
   ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal,		\
-	AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST)))
+	AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS)))

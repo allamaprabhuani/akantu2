@@ -37,13 +37,13 @@
 __BEGIN_AKANTU__
 
 template<UInt spatial_dimension,
-	 template <UInt> class MaterialDamageLocal,
+         class MaterialDamageLocal,
 	 template <UInt> class WeightFunction = BaseWeightFunction>
-class MaterialDamageNonLocal : public MaterialDamageLocal<spatial_dimension>,
+class MaterialDamageNonLocal : public MaterialDamageLocal,
 			       public MaterialNonLocal<spatial_dimension, WeightFunction> {
 public:
   typedef MaterialNonLocal<spatial_dimension, WeightFunction> MaterialNonLocalParent;
-  typedef MaterialDamageLocal<spatial_dimension> MaterialDamageParent;
+  typedef MaterialDamageLocal MaterialDamageParent;
 
   MaterialDamageNonLocal(SolidMechanicsModel & model, const ID & id)  :
     Material(model, id),
@@ -62,8 +62,6 @@ protected:
   /* ------------------------------------------------------------------------ */
   void computeNonLocalStresses(GhostType ghost_type) {
     AKANTU_DEBUG_IN();
-
-    
 
     Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
     Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);

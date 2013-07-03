@@ -97,7 +97,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   this->dof_synchronizer = NULL;
 
-  this->displacement_t = NULL;
+  this->previous_displacement = NULL;
 
   materials.clear();
 
@@ -204,7 +204,6 @@ void SolidMechanicsModel::initFull(std::string material_file,
     initMaterials();
   }
 
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -217,7 +216,6 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
 
   synch_registry->registerSynchronizer(*synch_parallel, _gst_material_id);
   synch_registry->registerSynchronizer(*synch_parallel, _gst_smm_mass);
-  //  synch_registry->registerSynchronizer(synch_parallel, _gst_smm_for_strain);
   synch_registry->registerSynchronizer(*synch_parallel, _gst_smm_stress);
   synch_registry->registerSynchronizer(*synch_parallel, _gst_smm_boundary);
 
@@ -234,10 +232,12 @@ void SolidMechanicsModel::initFEMBoundary() {
 
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::initExplicit() {
+void SolidMechanicsModel::initExplicit(AnalysisMethod analysis_method) {
   AKANTU_DEBUG_IN();
 
-  //  method = _explicit_dynamic;
+  //in case of switch from implicit to explicit
+  if(!this->isExplicit())
+    method = analysis_method;
 
   if (integrator) delete integrator;
   integrator = new CentralDifference();
@@ -257,8 +257,8 @@ void SolidMechanicsModel::initArraysFiniteDeformation() {
     SolidMechanicsModel::setIncrementFlagOn();
     UInt nb_nodes = mesh.getNbNodes();
     std::stringstream sstr_disp_t;
-    sstr_disp_t << id << ":displacement_t";
-    displacement_t = &(alloc<Real > (sstr_disp_t.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
+    sstr_disp_t << id << ":previous_displacement";
+    previous_displacement = &(alloc<Real > (sstr_disp_t.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
 
     AKANTU_DEBUG_OUT();
 }
@@ -401,22 +401,30 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
 void SolidMechanicsModel::updateResidual(bool need_initialize) {
   AKANTU_DEBUG_IN();
 
+  AKANTU_DEBUG_INFO("Assemble the internal forces");
   // f = f_ext - f_int
 
   // f = f_ext
-  if (need_initialize) initializeUpdateResidualData();
-
+  if(need_initialize) initializeUpdateResidualData();
 
   AKANTU_DEBUG_INFO("Compute local stresses");
-  updateStresses();
 
   std::vector<Material *>::iterator mat_it;
+  for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    Material & mat = **mat_it;
+    mat.savePreviousState(_not_ghost);
+    mat.savePreviousState(_ghost);
+    mat.computeAllStresses(_not_ghost);
+    if(mat.isFiniteDeformation())
+      mat.computeAllCauchyStresses(_not_ghost);
+  }
 
 #ifdef AKANTU_DAMAGE_NON_LOCAL
   /* ------------------------------------------------------------------------ */
   /* Computation of the non local part */
   synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
   AKANTU_DEBUG_INFO("Compute non local stresses for local elements");
+
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     mat.computeAllNonLocalStresses(_not_ghost);
@@ -460,32 +468,6 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::updateStresses() {
-    AKANTU_DEBUG_IN();
-
-    std::vector<Material *>::iterator mat_it;
-    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-        Material & mat = **mat_it;
-        mat.computeAllStresses(_not_ghost);
-    }
-    AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void SolidMechanicsModel::UpdateStressesAtT() {
-    AKANTU_DEBUG_IN();
-
-    std::vector<Material *>::iterator mat_it;
-    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
-        Material & mat = **mat_it;
-        mat.UpdateStressesAtT(_not_ghost);
-    }
-
-    AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::computeStresses() {
   if (isExplicit()) {
     // start synchronization
@@ -493,15 +475,21 @@ void SolidMechanicsModel::computeStresses() {
     synch_registry->waitEndSynchronize(_gst_smm_uv);
 
     // compute stresses on all local elements for each materials
-    updateStresses();
-
+    std::vector<Material *>::iterator mat_it;
+    for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+      Material & mat = **mat_it;
+      mat.savePreviousState(_not_ghost);
+      mat.savePreviousState(_ghost);
+      mat.computeAllStresses(_not_ghost);
+      if(mat.isFiniteDeformation())
+        mat.computeAllCauchyStresses(_not_ghost);
+    }
 
     /* ------------------------------------------------------------------------ */
 #ifdef AKANTU_DAMAGE_NON_LOCAL
     /* Computation of the non local part */
     synch_registry->asynchronousSynchronize(_gst_mnl_for_average);
 
-    std::vector<Material *>::iterator mat_it;
     for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
       Material & mat = **mat_it;
       mat.computeAllNonLocalStresses(_not_ghost);
@@ -527,6 +515,7 @@ void SolidMechanicsModel::computeStresses() {
 void SolidMechanicsModel::updateResidualInternal() {
   AKANTU_DEBUG_IN();
 
+  AKANTU_DEBUG_INFO("Update the residual");
   // f = f_ext - f_int - Ma - Cv = r - Ma - Cv;
 
   if(method != _static) {
@@ -590,7 +579,7 @@ void SolidMechanicsModel::updateAcceleration() {
                 *boundary,
                 f_m2a);
   } else if (method == _explicit_consistent_mass) {
-    solveDynamic<NewmarkBeta::_acceleration_corrector>(*increment_acceleration);
+    solve<NewmarkBeta::_acceleration_corrector>(*increment_acceleration);
   }
 
   AKANTU_DEBUG_OUT();
@@ -625,11 +614,8 @@ void SolidMechanicsModel::solveLumped(Array<Real> & x,
 void SolidMechanicsModel::explicitPred() {
   AKANTU_DEBUG_IN();
 
-  if(increment_flag) {
-    memcpy(increment->values,
-           displacement->values,
-           displacement->getSize()*displacement->getNbComponent()*sizeof(Real));
-  }
+  if(increment_flag) increment->copy(*displacement);
+  if(previous_displacement) previous_displacement->copy(*displacement);
 
   AKANTU_DEBUG_ASSERT(integrator,"itegrator should have been allocated: "
                       << "have called initExplicit ? "
@@ -644,9 +630,9 @@ void SolidMechanicsModel::explicitPred() {
   if(increment_flag) {
     Real * inc_val = increment->values;
     Real * dis_val = displacement->values;
-    UInt nb_nodes = displacement->getSize();
+    UInt nb_degree_of_freedom = displacement->getSize() * displacement->getNbComponent();
 
-    for (UInt n = 0; n < nb_nodes; ++n) {
+    for (UInt n = 0; n < nb_degree_of_freedom; ++n) {
       *inc_val = *dis_val - *inc_val;
       inc_val++;
       dis_val++;
@@ -669,6 +655,19 @@ void SolidMechanicsModel::explicitCorr() {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::solveStep() {
+  AKANTU_DEBUG_IN();
+
+  explicitPred();
+  updateResidual();
+  updateAcceleration();
+  explicitCorr();
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Implicit scheme                                                            */
@@ -772,6 +771,8 @@ void SolidMechanicsModel::initialAcceleration() {
 void SolidMechanicsModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_IN();
 
+  AKANTU_DEBUG_INFO("Assemble the new stiffness matrix.");
+
   stiffness_matrix->clear();
 
   // call compute stiffness matrix on each local elements
@@ -794,7 +795,7 @@ void SolidMechanicsModel::solveDynamic() {
 
   updateResidualInternal();
 
-  solveDynamic<NewmarkBeta::_displacement_corrector>(*increment);
+  solve<NewmarkBeta::_displacement_corrector>(*increment);
 
   AKANTU_DEBUG_OUT();
 }
@@ -828,6 +829,7 @@ void SolidMechanicsModel::solveStatic() {
       *displacement_val += *increment_val;
     }
   }
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -943,17 +945,8 @@ SparseMatrix & SolidMechanicsModel::initVelocityDampingMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance) {
-  Real error;
-  bool tmp = testConvergenceIncrement(tolerance, error);
-
-  AKANTU_DEBUG_INFO("Norm of increment : " << error);
-
-  return tmp;
-}
-
-/* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error) {
+template<>
+bool SolidMechanicsModel::testConvergence<_scc_increment>(Real tolerance, Real & error){
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = displacement->getSize();
@@ -990,18 +983,10 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error)
   return (error < tolerance);
 }
 
-/* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceResidual(Real tolerance) {
-  Real error;
-  bool tmp = testConvergenceResidual(tolerance, error);
-
-  AKANTU_DEBUG_INFO("Norm of residual : " << error);
-
-  return tmp;
-}
 
 /* -------------------------------------------------------------------------- */
-bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & norm) {
+template<>
+bool SolidMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & norm) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = residual->getSize();
@@ -1037,10 +1022,51 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & norm) {
 }
 
 /* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceResidual(Real tolerance){
+  AKANTU_DEBUG_IN();
+
+  Real error=0;
+  return this->testConvergence<_scc_residual>(tolerance, error);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error){
+  AKANTU_DEBUG_IN();
+
+  return this->testConvergence<_scc_residual>(tolerance, error);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance){
+  AKANTU_DEBUG_IN();
+
+  Real error=0;
+  return this->testConvergence<_scc_increment>(tolerance, error);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error){
+  AKANTU_DEBUG_IN();
+
+  return this->testConvergence<_scc_increment>(tolerance, error);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::implicitPred() {
   AKANTU_DEBUG_IN();
 
-  integrator->integrationSchemePred(time_step,
+  if(previous_displacement) previous_displacement->copy(*displacement);
+
+  if(method == _implicit_dynamic)
+    integrator->integrationSchemePred(time_step,
                                     *displacement,
                                     *velocity,
                                     *acceleration,
@@ -1053,12 +1079,24 @@ void SolidMechanicsModel::implicitPred() {
 void SolidMechanicsModel::implicitCorr() {
   AKANTU_DEBUG_IN();
 
-  integrator->integrationSchemeCorrDispl(time_step,
-                                         *displacement,
-                                         *velocity,
-                                         *acceleration,
-                                         *boundary,
-                                         *increment);
+  if(method == _implicit_dynamic) {
+    integrator->integrationSchemeCorrDispl(time_step,
+                                           *displacement,
+                                           *velocity,
+                                           *acceleration,
+                                           *boundary,
+                                           *increment);
+  } else {
+    UInt nb_nodes = displacement->getSize();
+    UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
+
+    Real * incr_val = increment->values;
+    Real * disp_val = displacement->values;
+    bool * boun_val = boundary->values;
+
+    for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++boun_val)
+      *disp_val += (1. - *boun_val) * *incr_val;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -1309,7 +1347,6 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
                                     const ElementType & type,
                                     UInt index){
-
   AKANTU_DEBUG_IN();
 
   if (energy_id == "kinetic") {

@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material_finite_deformation.hh"
+#include "material.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_PLASTIC_HH__
@@ -47,7 +47,7 @@ __BEGIN_AKANTU__
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 template<UInt spatial_dimension>
-class MaterialPlastic : public virtual MaterialFiniteDeformation {
+class MaterialPlastic : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -66,14 +66,11 @@ public:
 
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-  
-  //virtual void updateStresses(ElementType el_type, GhostType ghost_type = _not_ghost);
-  //virtual void updateDisplacement(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
-			    Array<Real> & tangent_matrix,
-			    GhostType ghost_type = _not_ghost);
+                            Array<Real> & tangent_matrix,
+                            GhostType ghost_type = _not_ghost);
 
   /// compute the p-wave speed in the material
   virtual Real getPushWaveSpeed() const;
@@ -82,21 +79,21 @@ public:
   virtual Real getShearWaveSpeed() const;
 
 protected:
-  
+
   /// constitutive law for a given quadrature point
   inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
-				  Matrix<Real> & S);
-    
+                                  Matrix<Real> & S);
+
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
-        Matrix<Real> & cauchy);
-  
+  inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
+        Matrix<Real> & delta_S);
+
   inline void computeStressOnQuad(Matrix<Real> & grad_u,
-				  Matrix<Real> & sigma);
-  
+                                  Matrix<Real> & sigma);
+
   /// constitutive law for a given quadrature point
   //inline void updateStressOnQuad(const Matrix<Real> & sigma,
-  //				  Matrix<Real> & cauchy_sigma);
+  //                              Matrix<Real> & cauchy_sigma);
 
   /// compute the tangent stiffness matrix for an element
   void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u);
@@ -145,7 +142,3 @@ protected:
 __END_AKANTU__
 
 #endif /* __AKANTU_MATERIAL_PLASTIC_HH__ */
-
-
-
-        

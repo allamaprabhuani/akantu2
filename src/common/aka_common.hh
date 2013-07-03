@@ -195,8 +195,8 @@ enum InterpolationType {
   _itp_lagrange_triangle_6,        ///< second order lagrangian triangle
   _itp_lagrange_quadrangle_4,      ///< first order lagrangian quadrangle
   _itp_serendip_quadrangle_8,      /**< second order serendipian quadrangle
-				      @remark used insted of the 9 node
-				      lagrangian element */
+                                      @remark used insted of the 9 node
+                                      lagrangian element */
   _itp_lagrange_tetrahedron_4,     ///< first order lagrangian tetrahedron
   _itp_lagrange_tetrahedron_10,    ///< second order lagrangian tetrahedron
   _itp_lagrange_hexahedron_8,      ///< first order lagrangian hexahedron
@@ -230,6 +230,24 @@ enum AnalysisMethod {
   _implicit_dynamic,
   _explicit_lumped_mass,
   _explicit_consistent_mass
+};
+
+/// enum SolveConvergenceMethod different resolution algorithms
+enum SolveConvergenceMethod {
+  _scm_newton_raphson_tangent,         ///< Newton-Raphson with tangent matrix
+  _scm_newton_raphson_tangent_modified ///< Newton-Raphson with constant tangent matrix
+};
+
+/// enum SolveConvergenceCriteria different convergence criteria
+enum SolveConvergenceCriteria {
+  _scc_residual, ///< Use residual to test the convergence
+  _scc_increment ///< Use increment to test the convergence
+};
+
+/// enum CohesiveMethod type of insertion of cohesive elements
+enum CohesiveMethod {
+  _intrinsic,
+  _extrinsic
 };
 
 /// myfunction(double * position, double * stress/force, double * normal, unsigned int material_id)
@@ -405,10 +423,10 @@ struct is_same<T, T> {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type,		\
-					 support, con)			\
+                                         support, con)			\
   inline con Array<type> &						\
   get##name (const support & el_type,					\
-	     const GhostType & ghost_type = _not_ghost) con {		\
+             const GhostType & ghost_type = _not_ghost) con {		\
     return variable(el_type, ghost_type);				\
   }
 
@@ -470,19 +488,19 @@ __END_AKANTU__
 
 #define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro)				\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-			      AKANTU_ALL_ELEMENT_TYPE)
+                              AKANTU_ALL_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-			      AKANTU_REGULAR_ELEMENT_TYPE)
+                              AKANTU_REGULAR_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-			      AKANTU_COHESIVE_ELEMENT_TYPE)
+                              AKANTU_COHESIVE_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-			      AKANTU_STRUCTURAL_ELEMENT_TYPE)
+                              AKANTU_STRUCTURAL_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
   macro(type)

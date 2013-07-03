@@ -36,7 +36,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model, const ID & id) :
-MaterialFiniteDeformation(model, id) {
+Material(model, id) {
     AKANTU_DEBUG_IN();
 
     this->registerParam("E", E, 0., _pat_parsable | _pat_modifiable, "Young's modulus");
@@ -46,6 +46,9 @@ MaterialFiniteDeformation(model, id) {
     this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");
     this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
 
+    finite_deformation=true;
+    use_previous_stress=true;
+
     AKANTU_DEBUG_OUT();
 }
 
@@ -53,7 +56,7 @@ MaterialFiniteDeformation(model, id) {
 template<UInt spatial_dimension>
 void MaterialPlastic<spatial_dimension>::initMaterial() {
     AKANTU_DEBUG_IN();
-    MaterialFiniteDeformation::initMaterial();
+    Material::initMaterial();
     if (spatial_dimension == 1) nu = 0.;
     updateInternalParameters();
     AKANTU_DEBUG_OUT();
@@ -75,64 +78,57 @@ template<UInt dim>
 void MaterialPlastic<dim>::computeStress(ElementType el_type, GhostType ghost_type) {
     AKANTU_DEBUG_IN();
 
-    
-    Array<UInt> & elem_filter = element_filter(el_type, ghost_type);
-    UInt nb_element = elem_filter.getSize();
-    
-    Array<Real>::iterator< Matrix<Real> > green_it =
-            this->delta_strain(el_type, ghost_type).begin(dim, dim);
-    
-    Array<Real>::iterator< Matrix<Real> > S_it =
-            this->delta_stress(el_type, ghost_type).begin(dim, dim);
+
+    //Array<UInt> & elem_filter = element_filter(el_type, ghost_type);
+    //UInt nb_element = elem_filter.getSize();
+
+    //Array<Real>::iterator< Matrix<Real> > green_it =
+    //        this->delta_strain(el_type, ghost_type).begin(dim, dim);
+
+    //Array<Real>::iterator< Matrix<Real> > S_it =
+    //        this->delta_stress(el_type, ghost_type).begin(dim, dim);
 
     Array<Real>::iterator< Matrix<Real> > strain_it =
             this->strain(el_type, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > cauchy_stress_it =
-            this->stress_at_t(el_type, ghost_type).begin(dim, dim);
-    
-    Array<Real>::iterator< Matrix<Real> > stress_it =
-            this->stress(el_type, ghost_type).begin(dim, dim);
+    Array<Real>::iterator< Matrix<Real> > strain_end =
+      this->strain(el_type, ghost_type).end(dim, dim);
 
-    Matrix<Real> F_tensor(dim, dim);
-    Matrix<Real> E_tensor(dim, dim);
-    Matrix<Real> Kiola_tensor(dim, dim);
-    Matrix<Real> invF_tensor(dim, dim);
-    Matrix<Real> invFtS(dim, dim);
-    
-    for (UInt i=0; i < nb_element; i++, ++strain_it, ++cauchy_stress_it, ++green_it, ++S_it, ++stress_it) {
+    //Array<Real>::iterator< Matrix<Real> > previous_stress_it =
+    //        this->previous_stress(el_type, ghost_type).begin(dim, dim);
+
+    Array<Real>::iterator< Matrix<Real> > piola_it =
+            this->piola_kirchhoff_stress(el_type, ghost_type).begin(dim, dim);
+
+    //Matrix<Real> F_tensor(dim, dim);
+    //Matrix<Real> E_tensor(dim, dim);
+    //Matrix<Real> Piola_tensor(dim, dim);
+    //Matrix<Real> invF_tensor(dim, dim);
+    //Matrix<Real> invFtS(dim, dim);
+
+    for (; strain_it != strain_end; ++strain_it, ++piola_it) {
         Matrix<Real> & grad_u = *strain_it;
         //Matrix<Real> & grad_delta_u = *green_it;
         //Matrix<Real> & delta_sigma = *S_it;
-        Matrix<Real> & sigma = *stress_it;
+        Matrix<Real> & piola_tensor = *piola_it;
         //Matrix<Real> & cauchy_sigma = *cauchy_stress_it;
-        
-        gradUToF<dim > (grad_u, F_tensor);
-        switch (dim){
+
+        //gradUToF<dim > (grad_u, F_tensor);
+        /*switch (dim){
             case 3:
                 Math::inv3(F_tensor.storage(), invF_tensor.storage());
                 break;
             case 2:
                 Math::inv2(F_tensor.storage(), invF_tensor.storage());
                 break;
-            
-        }
 
-        computeStressOnQuad(grad_u, sigma);
+                }*/
+
+        computeStressOnQuad(grad_u, piola_tensor);
     }
 
     AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-/*template<UInt spatial_dimension>
-void MaterialPlastic<spatial_dimension>::updateStresses(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-  MATERIAL_FINITE_DEFORMATION_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  updateStressOnQuad(sigma, cauchy_sigma);
-  MATERIAL_FINITE_DEFORMATION_STRESS_QUADRATURE_POINT_LOOP_END;
-  AKANTU_DEBUG_OUT();
-}*/
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>

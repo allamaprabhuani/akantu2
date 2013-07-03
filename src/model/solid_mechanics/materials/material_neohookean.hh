@@ -99,25 +99,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
-
-  /// the young modulus
-  Real E;
-
-  /// Poisson coefficient
-  Real nu;
-
-  /// First Lamé coefficient
-  Real lambda;
-
-  /// Second Lamé coefficient (shear modulus)
-  Real mu;
-
-  /// Bulk modulus
-  Real kpa;
-
-  /// Plain stress or plain strain
-  bool plane_stress;
+protected:
 
 };
 

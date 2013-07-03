@@ -42,16 +42,14 @@ MaterialDamage<spatial_dimension, Parent>::MaterialDamage(SolidMechanicsModel & 
   Material(model, id), Parent<spatial_dimension>(model, id),
   damage("damage", id),
   dissipated_energy("dissipated energy", id),
-  strain_prev("previous strain", id),
-  stress_prev("previous stress", id),
   int_sigma("integral of sigma", id) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = false;
   this->initInternalArray(this->damage, 1);
   this->initInternalArray(this->dissipated_energy, 1);
-  this->initInternalArray(this->strain_prev, spatial_dimension * spatial_dimension);
-  this->initInternalArray(this->stress_prev, spatial_dimension * spatial_dimension);
+  this->initInternalArray(this->previous_strain, spatial_dimension * spatial_dimension);
+  this->initInternalArray(this->previous_stress, spatial_dimension * spatial_dimension);
   this->initInternalArray(this->int_sigma, 1);
 
   AKANTU_DEBUG_OUT();
@@ -65,8 +63,8 @@ void MaterialDamage<spatial_dimension, Parent>::initMaterial() {
 
   this->resizeInternalArray(this->damage);
   this->resizeInternalArray(this->dissipated_energy);
-  this->resizeInternalArray(this->strain_prev);
-  this->resizeInternalArray(this->stress_prev);
+  this->resizeInternalArray(this->previous_strain);
+  this->resizeInternalArray(this->previous_stress);
   this->resizeInternalArray(this->int_sigma);
 
   AKANTU_DEBUG_OUT();
@@ -90,11 +88,11 @@ void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType
     Array<Real>::iterator< Matrix<Real> > sigma =
       this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Array<Real>::iterator< Matrix<Real> > sigma_p =
-      stress_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+      this->previous_stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Array<Real>::iterator< Matrix<Real> > epsilon =
       this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Array<Real>::iterator< Matrix<Real> > epsilon_p =
-      strain_prev(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+      this->previous_strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 
     Array<Real>::iterator<Real> ints = int_sigma(el_type, ghost_type).begin();
