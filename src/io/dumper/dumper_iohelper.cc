@@ -233,8 +233,8 @@ iohelper::ElemType DumperIOHelper::getIOHelperType<_tetrahedron_10>() { return i
 template <>
 iohelper::ElemType DumperIOHelper::getIOHelperType<_hexahedron_8>() { return iohelper::HEX1; }
 
-//template <>
-//iohelper::ElemType DumperIOHelper::getIOHelperType<_pentahedron_6>() { return iohelper::PRISM1; }
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_pentahedron_6>() { return iohelper::PRISM1; }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
 template <>

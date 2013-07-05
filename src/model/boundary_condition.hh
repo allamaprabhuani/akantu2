@@ -77,7 +77,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   template<class FunctorType, BC::Functor::Type type = FunctorType::type>
   struct TemplateFunctionWrapper;
 

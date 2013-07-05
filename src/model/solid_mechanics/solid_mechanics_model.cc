@@ -226,8 +226,11 @@ void SolidMechanicsModel::initParallel(MeshPartition * partition,
 void SolidMechanicsModel::initFEMBoundary() {
 
   FEM & fem_boundary = getFEMBoundary();
-  fem_boundary.initShapeFunctions();
-  fem_boundary.computeNormalsOnControlPoints();
+  fem_boundary.initShapeFunctions(_not_ghost);
+  fem_boundary.initShapeFunctions(_ghost);
+
+  fem_boundary.computeNormalsOnControlPoints(_not_ghost);
+  fem_boundary.computeNormalsOnControlPoints(_ghost);
 }
 
 
@@ -694,6 +697,10 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
     std::stringstream sstr_sti; sstr_sti << id << ":stiffness_matrix";
     stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr_sti.str(), memory_id);
   }
+
+  std::cout << jacobian_matrix->getSize() << std::endl;
+  std::cout << jacobian_matrix->getNbNonZero() << std::endl;
+
 
 #ifdef AKANTU_USE_MUMPS
   std::stringstream sstr_solv; sstr_solv << id << ":solver";

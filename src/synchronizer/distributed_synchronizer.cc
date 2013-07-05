@@ -97,7 +97,12 @@ createDistributedSynchronizerMesh(Mesh & mesh,
 
   DistributedSynchronizer & communicator = *(new DistributedSynchronizer(mesh, id, memory_id));
 
-  if(nb_proc == 1) return &communicator;
+  if(nb_proc == 1) {
+    // old_nodes->resize(mesh.nodes->getSize());
+    // for (UInt i = 0; i < mesh.nodes->getSize(); ++i) (*old_nodes)(i) = i;
+    return &communicator;
+  }
+
 
   UInt * local_connectivity = NULL;
   UInt * local_partitions = NULL;
@@ -105,14 +110,13 @@ createDistributedSynchronizerMesh(Mesh & mesh,
   old_nodes->resize(0);
   Array<Real> * nodes = mesh.getNodesPointer();
 
+
   UInt spatial_dimension = nodes->getNbComponent();
 
   /* ------------------------------------------------------------------------ */
   /*  Local (rank == root)                                                    */
   /* ------------------------------------------------------------------------ */
   if(my_rank == root) {
-    mesh.nb_global_nodes = mesh.nodes->getSize();
-
     AKANTU_DEBUG_ASSERT(partition->getNbPartition() == nb_proc,
                         "The number of partition does not match the number of processors: " <<
                         partition->getNbPartition() << " != " << nb_proc);

@@ -465,7 +465,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
       outfile << " " << nodes.values[offset + j];
     }
 
-    if(nodes.getNbComponent() == 2)
+    for (UInt p = nodes.getNbComponent(); p < 3; ++p)
       outfile << " " << 0.;
     outfile << std::endl;;
   }

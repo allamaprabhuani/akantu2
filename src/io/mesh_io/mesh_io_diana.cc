@@ -126,6 +126,8 @@ void MeshIODiana::read(const std::string & filename, Mesh & mesh) {
   }
   infile.close();
 
+  mesh.nb_global_nodes = mesh.nodes->getSize();
+
   AKANTU_DEBUG_OUT();
 }
 

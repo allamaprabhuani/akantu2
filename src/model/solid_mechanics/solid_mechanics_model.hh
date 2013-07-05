@@ -251,44 +251,6 @@ public:
   /// matrix in the case of finite deformation
   void computeStresses();
 
-  /* ------------------------------------------------------------------------ */
-  /* Boundaries (solid_mechanics_model_boundary.cc)                           */
-  /* ------------------------------------------------------------------------ */
-public:
-  class SurfaceLoadFunctor {
-  public:
-    virtual void traction(__attribute__ ((unused)) const Vector<Real> & position,
-                          __attribute__ ((unused)) Vector<Real> & traction,
-                          __attribute__ ((unused)) const Vector<Real> & normal,
-                          __attribute__ ((unused)) Surface surface_id) {
-      AKANTU_DEBUG_TO_IMPLEMENT();
-    }
-
-    virtual void stress(__attribute__ ((unused)) const Vector<Real> & position,
-                        __attribute__ ((unused)) Matrix<Real> & stress,
-                        __attribute__ ((unused)) const Vector<Real> & normal,
-                        __attribute__ ((unused)) Surface surface_id) {
-      AKANTU_DEBUG_TO_IMPLEMENT();
-    }
-  };
-
-  /// compute force vector from a function(x,y,z) that describe stresses
-//  void computeForcesFromFunction(BoundaryFunction in_function,
-//                               BoundaryFunctionType function_type) __attribute__((deprecated));
-
-  template<class Functor>
-  void computeForcesFromFunction(Functor & functor, BoundaryFunctionType function_type);
-
-  /// integrate a force on the boundary by providing a stress tensor
-  void computeForcesByStressTensor(const Array<Real> & stresses,
-                                   const ElementType & type,
-                                   const GhostType & ghost_type);
-
-  /// integrate a force on the boundary by providing a traction vector
-  void computeForcesByTractionArray(const Array<Real> & tractions,
-                                     const ElementType & type,
-                                     const GhostType & ghost_type);
-
   /// synchronize the ghost element boundaries values
   void synchronizeBoundaries();
 
@@ -428,7 +390,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// return the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 

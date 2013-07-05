@@ -54,7 +54,6 @@ set(AKANTU_CORE_FILES
   model/model.cc
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
-  model/solid_mechanics/solid_mechanics_model_boundary.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/material.cc
   model/solid_mechanics/material_parameters.cc

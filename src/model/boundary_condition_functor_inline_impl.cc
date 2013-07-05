@@ -82,7 +82,6 @@ inline void IncrementValue::operator()(UInt node,
 namespace Neumann {
 
 inline void FreeBoundary::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
-
   for(UInt i(0); i<dual.size(); ++i) {
     dual(i) = 0.0;
   }

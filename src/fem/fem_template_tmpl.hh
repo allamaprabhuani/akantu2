@@ -386,11 +386,20 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   //allocate the normal arrays
-  mesh.initByElementTypeArray(normals_on_quad_points, spatial_dimension, element_dimension);
-
-  //loop over the type to build the normals
   Mesh::type_iterator it  = mesh.firstType(element_dimension, ghost_type, kind);
   Mesh::type_iterator end = mesh.lastType(element_dimension, ghost_type, kind);
+  for(; it != end; ++it) {
+    ElementType type = *it;
+    UInt size = mesh.getNbElement(type, ghost_type);
+    if(normals_on_quad_points.exists(type, ghost_type)) {
+      normals_on_quad_points(type, ghost_type).resize(size);
+    } else {
+      normals_on_quad_points.alloc(size, spatial_dimension, type, ghost_type);
+    }
+  }
+
+  //loop over the type to build the normals
+  it  = mesh.firstType(element_dimension, ghost_type, kind);
   for(; it != end; ++it) {
     Array<Real> & normals_on_quad = normals_on_quad_points(*it, ghost_type);
     computeNormalsOnControlPoints(field, normals_on_quad, *it, ghost_type);

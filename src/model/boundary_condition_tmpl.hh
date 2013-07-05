@@ -69,37 +69,43 @@ template<typename ModelType>
 template<typename FunctorType>
 struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Functor::_neumann> {
   static inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref, BoundaryCondition<ModelType> & bc_instance) {
-    ModelType &                model        = *bc_instance.model;
-    const Array<Real>        & nodes_coords = model.getMesh().getNodes();
-    UInt                       dim          = model.getSpatialDimension();
-    Array<Real>              & dual         = *bc_instance.dual;
-    const FEM                & fem_boundary = model.getFEMBoundary();
+    applyBC(func, boundary_ref, bc_instance, _not_ghost);
+    applyBC(func, boundary_ref, bc_instance, _ghost);
+  }
 
+  static inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref, BoundaryCondition<ModelType> & bc_instance,
+                             GhostType ghost_type) {
+    ModelType &         model        = *bc_instance.model;
+    const Array<Real> & nodes_coords = model.getMesh().getNodes();
+    UInt                dim          = model.getSpatialDimension();
+    Array<Real>       & dual         = *bc_instance.dual;
+    const FEM         & fem_boundary = model.getFEMBoundary();
+    const Mesh        & mesh         = model.getMesh();
     UInt nb_degree_of_freedom = dual.getNbComponent();
 
-    Mesh::type_iterator type_it = model.mesh.firstType(dim-1);
-    Mesh::type_iterator type_end = model.mesh.lastType(dim-1);
+    Mesh::type_iterator type_it = mesh.firstType(dim-1, ghost_type);
+    Mesh::type_iterator type_end = mesh.lastType(dim-1, ghost_type);
 
     // Loop over the boundary element types
     for(; type_it != type_end; ++type_it) {
-      const Array<UInt> & element_ids = boundary_ref.getElements(*type_it);
+      const Array<UInt> & element_ids = boundary_ref.getElements(*type_it, ghost_type);
 
       Array<UInt>::const_iterator<UInt> elem_iter = element_ids.begin();
       Array<UInt>::const_iterator<UInt> elem_iter_end = element_ids.end();
 
-      UInt nb_quad_points = model.getFEMBoundary().getNbQuadraturePoints(*type_it);
+      UInt nb_quad_points = fem_boundary.getNbQuadraturePoints(*type_it, ghost_type);
       UInt nb_elements = element_ids.getSize();
-      UInt nb_nodes_per_element = model.getMesh().getNbNodesPerElement(*type_it);
+      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*type_it);
 
       Array<Real> * dual_before_integ = new Array<Real>(nb_elements * nb_quad_points, nb_degree_of_freedom);
       Array<Real> * quad_coords = new Array<Real>(nb_elements * nb_quad_points, dim);
 
       Array<Real>::iterator<Vector<Real> > dual_iter = dual_before_integ->begin(nb_degree_of_freedom);
 
-      const Array<Real> & normals_on_quad = fem_boundary.getNormalsOnQuadPoints(*type_it);
+      const Array<Real> & normals_on_quad = fem_boundary.getNormalsOnQuadPoints(*type_it, ghost_type);
 
       fem_boundary.interpolateOnQuadraturePoints(nodes_coords,
-         *quad_coords, dim, *type_it, _not_ghost, element_ids);
+         *quad_coords, dim, *type_it, ghost_type, element_ids);
 
       Array<Real>::const_iterator< Vector<Real> > normals_iter = normals_on_quad.begin(dim);
       Array<Real>::const_iterator< Vector<Real> > quad_coords_iter  = quad_coords->begin(dim);
@@ -127,7 +133,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
 
       Array<Real>::iterator<Matrix<Real> > dual_iter_mat = dual_before_integ->begin(nb_degree_of_freedom,1);
       elem_iter = element_ids.begin();
-      Array<Real>::const_iterator<Matrix<Real> > shapes_iter_begin = fem_boundary.getShapes(*type_it).begin(1, nb_nodes_per_element);
+      Array<Real>::const_iterator<Matrix<Real> > shapes_iter_begin = fem_boundary.getShapes(*type_it, ghost_type).begin(1, nb_nodes_per_element);
 
       Array<Real> * dual_by_shapes = new Array<Real>(nb_elements*nb_quad_points, nb_degree_of_freedom*nb_nodes_per_element);
       Array<Real>::iterator<Matrix<Real> > dual_by_shapes_iter = dual_by_shapes->begin(nb_degree_of_freedom, nb_nodes_per_element);
@@ -140,13 +146,13 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
         }
       }
       delete dual_before_integ;
-      Array<Real> * dual_by_shapes_integ = new Array<Real>(nb_elements, nb_degree_of_freedom*nb_nodes_per_element);
 
-      fem_boundary.integrate(*dual_by_shapes, *dual_by_shapes_integ, nb_degree_of_freedom*nb_nodes_per_element, *type_it, _not_ghost, element_ids);
+      Array<Real> * dual_by_shapes_integ = new Array<Real>(nb_elements, nb_degree_of_freedom*nb_nodes_per_element);
+      fem_boundary.integrate(*dual_by_shapes, *dual_by_shapes_integ, nb_degree_of_freedom*nb_nodes_per_element, *type_it, ghost_type, element_ids);
       delete dual_by_shapes;
 
       // assemble the result into force vector
-      fem_boundary.assembleArray(*dual_by_shapes_integ, dual, model.getDOFSynchronizer().getLocalDOFEquationNumbers(), nb_degree_of_freedom, *type_it, _not_ghost, element_ids);
+      fem_boundary.assembleArray(*dual_by_shapes_integ, dual, model.getDOFSynchronizer().getLocalDOFEquationNumbers(), nb_degree_of_freedom, *type_it, ghost_type, element_ids);
       delete dual_by_shapes_integ;
     }
   }
