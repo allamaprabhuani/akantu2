@@ -413,6 +413,7 @@ public:
     AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
+    if(homogeneous && this->n == 0) this->n = nb_component;
   }
 
   typedef iterator_type iterator;
@@ -548,7 +549,7 @@ public:
     AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
-    if(homogeneous && n == 0) n = nb_component;
+    if(homogeneous && n == 0) this->n = nb_component;
   }
 
   GenericElementalField(const ByElementTypeArray<T> & field,
@@ -562,6 +563,7 @@ public:
     AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
+    if(homogeneous && n == 0) this->n = nb_component;
   }
 
   typedef iterator_type iterator;
