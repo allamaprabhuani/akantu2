@@ -399,7 +399,7 @@ public:
     AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
-    if(homogeneous && n == 0) n = nb_component;
+    out_n = nb_component;
   }
 
   GenericElementalField(const ByElementTypeArray<T> & field,
@@ -413,7 +413,7 @@ public:
     AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
-    if(homogeneous && this->n == 0) this->n = nb_component;
+    out_n = nb_component;
   }
 
   typedef iterator_type iterator;
@@ -481,6 +481,7 @@ public:
   virtual UInt getDim() {
     if(padding_n && padding_m)
       return padding_m*padding_n;
+    else if(n == 0) return out_n;
     else return n;
   }
   UInt size() {
@@ -531,7 +532,7 @@ protected:
   GhostType ghost_type;
   ElementKind element_kind;
   bool homogeneous;
-  UInt n, itn;
+  UInt n, itn, out_n;
   const ByElementTypeArray<UInt> * filter;
 };
 
@@ -563,7 +564,6 @@ public:
     AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
     UInt nb_component;
     homogeneous = checkHomogeneity(field, nb_component, nb_total_element);
-    if(homogeneous && n == 0) this->n = nb_component;
   }
 
   typedef iterator_type iterator;
