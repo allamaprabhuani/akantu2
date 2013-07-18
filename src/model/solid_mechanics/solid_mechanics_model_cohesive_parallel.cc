@@ -33,16 +33,6 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() {
-  AKANTU_DEBUG_IN();
-
-  if (cohesive_distributed_synchronizer)
-    delete cohesive_distributed_synchronizer;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
                                                DataAccessor * data_accessor,
                                                bool extrinsic) {

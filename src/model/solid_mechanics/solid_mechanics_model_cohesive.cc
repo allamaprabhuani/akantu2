@@ -60,6 +60,20 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   facet_generated = false;
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   facet_synchronizer = NULL;
+  cohesive_distributed_synchronizer = NULL;
+#endif
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() {
+  AKANTU_DEBUG_IN();
+
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
+  delete cohesive_distributed_synchronizer;
+  delete facet_synchronizer;
 #endif
 
   AKANTU_DEBUG_OUT();
