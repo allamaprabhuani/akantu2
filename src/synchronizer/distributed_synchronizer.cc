@@ -1168,5 +1168,55 @@ void DistributedSynchronizer::buildPrankToElement(ByElementTypeUInt & prank_to_e
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void DistributedSynchronizer::filterElementsByKind(DistributedSynchronizer * new_synchronizer,
+						   ElementKind kind) {
+  AKANTU_DEBUG_IN();
+
+  Array<Element> * newsy_send_element = new_synchronizer->send_element;
+  Array<Element> * newsy_recv_element = new_synchronizer->recv_element;
+
+  Array<Element> * new_send_element = new Array<Element>[nb_proc];
+  Array<Element> * new_recv_element = new Array<Element>[nb_proc];
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  UInt nb_proc = comm.getNbProc();
+
+  for (UInt p = 0; p < nb_proc; ++p) {
+
+    /// send element copying part
+    new_send_element[p].resize(0);
+
+    for (UInt el = 0; el < send_element[p].getSize(); ++el) {
+      Element & element = send_element[p](el);
+
+      if (element.kind == kind)
+	newsy_send_element[p].push_back(element);
+      else
+	new_send_element[p].push_back(element);
+    }
+
+    /// recv element copying part
+    new_recv_element[p].resize(0);
+
+    for (UInt el = 0; el < recv_element[p].getSize(); ++el) {
+      Element & element = recv_element[p](el);
+
+      if (element.kind == kind)
+	newsy_recv_element[p].push_back(element);
+      else
+	new_recv_element[p].push_back(element);
+    }
+  }
+
+  /// deleting and reassigning old pointers
+  delete [] send_element;
+  delete [] recv_element;
+
+  send_element = new_send_element;
+  recv_element = new_recv_element;
+
+  AKANTU_DEBUG_OUT();
+}
 
 __END_AKANTU__

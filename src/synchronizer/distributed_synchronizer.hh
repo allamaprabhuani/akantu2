@@ -91,6 +91,10 @@ public:
                                  const ByElementTypeUInt & new_numbering,
                                  const RemovedElementsEvent & event);
 
+  /// filter elements of a certain kind and copy them into a new synchronizer
+  void filterElementsByKind(DistributedSynchronizer * new_synchronizer,
+			    ElementKind kind);
+
 protected:
   /// fill the nodes type vector
   void fillNodesType(Mesh & mesh);

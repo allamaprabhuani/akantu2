@@ -33,6 +33,16 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() {
+  AKANTU_DEBUG_IN();
+
+  if (cohesive_distributed_synchronizer)
+    delete cohesive_distributed_synchronizer;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
                                                DataAccessor * data_accessor,
                                                bool extrinsic) {
@@ -40,25 +50,27 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 
   SolidMechanicsModel::initParallel(partition, data_accessor);
 
-  // /// create the distributed synchronizer for cohesive elements
-  // cohesive_distributed_synchronizer =
-  //   DistributedSynchronizer::createDistributedSynchronizerMesh(mesh, NULL, 0,
-  // 							       "cohesive_distributed_synchronizer");
+  /// create the distributed synchronizer for cohesive elements
+  cohesive_distributed_synchronizer =
+    new DistributedSynchronizer(mesh, "cohesive_distributed_synchronizer");
 
-  // synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
-  // 				       _gst_material_id);
+  synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
+  				       _gst_material_id);
 
-  // synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
-  // 				       _gst_smm_stress);
+  synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
+  				       _gst_smm_stress);
 
-  // synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
-  // 				       _gst_smm_boundary);
+  synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
+  				       _gst_smm_boundary);
+
+  DistributedSynchronizer & distributed_synchronizer =
+    dynamic_cast<DistributedSynchronizer &>(*synch_parallel);
+
+  distributed_synchronizer.filterElementsByKind(cohesive_distributed_synchronizer,
+						_ek_cohesive);
 
   /// create the facet synchronizer for extrinsic simulations
   if (extrinsic) {
-    DistributedSynchronizer & distributed_synchronizer =
-      dynamic_cast<DistributedSynchronizer &>(*synch_parallel);
-
     ByElementTypeUInt prank_to_element("prank_to_element", id);
 
     distributed_synchronizer.buildPrankToElement(prank_to_element);
@@ -179,10 +191,7 @@ void SolidMechanicsModelCohesive::updateFacetSynchronizer() {
   if (facet_synchronizer != NULL) {
     DataAccessor * data_accessor = this;
 
-    DistributedSynchronizer & distributed_synchronizer =
-      dynamic_cast<DistributedSynchronizer &>(*synch_parallel);
-
-    facet_synchronizer->updateDistributedSynchronizer(distributed_synchronizer,
+    facet_synchronizer->updateDistributedSynchronizer(*cohesive_distributed_synchronizer,
 						      *data_accessor,
                                                       cohesive_el_to_facet);
 

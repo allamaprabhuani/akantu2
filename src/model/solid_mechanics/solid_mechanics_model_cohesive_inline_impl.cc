@@ -28,83 +28,77 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModelCohesive::splitElementByKind(const Array<Element> & elements,
-							    Array<Element> & elements_regular,
-							    Array<Element> & elements_cohesive) const {
-  for (UInt el = 0; el < elements.getSize(); ++el) {
-    if (elements(el).kind == _ek_regular)
-      elements_regular.push_back(elements(el));
-    else if (elements(el).kind == _ek_cohesive)
-      elements_cohesive.push_back(elements(el));
-    else
-      AKANTU_DEBUG_ERROR("Unrecognized element kind in spliElementByKind.");
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Element> & elements,
 							      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  Array<Element> elements_regular;
-  Array<Element> elements_cohesive;
-
-  splitElementByKind(elements, elements_regular, elements_cohesive);
-
-  UInt size_regular = 0;
-  if (tag != _gst_smmc_facets && tag != _gst_smmc_normals)
-    size_regular = SolidMechanicsModel::getNbDataForElements(elements_regular, tag);
-
   UInt size = 0;
 
+  if (elements.getSize() == 0) return size;
+
+  /// regular element case
+  if (elements(0).kind == _ek_regular) {
+
 #ifndef AKANTU_NDEBUG
-  size += elements_cohesive.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-  if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
-    size_regular += elements_regular.getSize() * spatial_dimension * sizeof(Real);
+    if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
+      size += elements.getSize() * spatial_dimension * sizeof(Real);
 #endif
 
-  UInt nb_nodes_per_element = 0;
-
-  Array<Element>::iterator<Element> it  = elements_cohesive.begin();
-  Array<Element>::iterator<Element> end = elements_cohesive.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
-    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-  }
-
-  switch(tag) {
-  case _gst_material_id: {
-    size += elements_cohesive.getSize() * 2 * sizeof(UInt);
-    break;
-  }
-  case _gst_smm_boundary: {
-    // force, displacement, boundary
-    size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
-    break;
-  }
-  case _gst_smmc_facets: {
-    size_regular += elements_regular.getSize() * sizeof(bool);
-    break;
-  }
-  case _gst_smmc_normals: {
-    size_regular += elements_regular.getSize() * spatial_dimension * sizeof(Real);
-    break;
-  }
-  default: { }
-  }
-
-  if(tag != _gst_material_id && tag != _gst_smmc_facets) {
-    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
-    this->splitElementByMaterial(elements_cohesive, elements_per_mat);
-
-    for (UInt i = 0; i < materials.size(); ++i) {
-      size += materials[i]->getNbDataForElements(elements_per_mat[i], tag);
+    switch(tag) {
+    case _gst_smmc_facets: {
+      size += elements.getSize() * sizeof(bool);
+      break;
     }
-    delete [] elements_per_mat;
+    case _gst_smmc_normals: {
+      size += elements.getSize() * spatial_dimension * sizeof(Real);
+      break;
+    }
+    default: {
+      size += SolidMechanicsModel::getNbDataForElements(elements, tag);
+    }
+    }
+  }
+  /// cohesive element case
+  else if (elements(0).kind == _ek_cohesive) {
+#ifndef AKANTU_NDEBUG
+    size += elements.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
+#endif
+
+    UInt nb_nodes_per_element = 0;
+
+    Array<Element>::const_iterator<Element> it  = elements.begin();
+    Array<Element>::const_iterator<Element> end = elements.end();
+    for (; it != end; ++it) {
+      const Element & el = *it;
+      nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+    }
+
+    switch(tag) {
+    case _gst_material_id: {
+      size += elements.getSize() * 2 * sizeof(UInt);
+      break;
+    }
+    case _gst_smm_boundary: {
+      // force, displacement, boundary
+      size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
+      break;
+    }
+    default: { }
+    }
+
+    if(tag != _gst_material_id && tag != _gst_smmc_facets) {
+      Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
+      this->splitElementByMaterial(elements, elements_per_mat);
+
+      for (UInt i = 0; i < materials.size(); ++i) {
+	size += materials[i]->getNbDataForElements(elements_per_mat[i], tag);
+      }
+      delete [] elements_per_mat;
+    }
   }
 
   AKANTU_DEBUG_OUT();
-  return size + size_regular;
+  return size;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -113,53 +107,61 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 							 SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  Array<Element> elements_regular;
-  Array<Element> elements_cohesive;
+  if (elements.getSize() == 0) return;
 
-  splitElementByKind(elements, elements_regular, elements_cohesive);
-
-  if (tag != _gst_smmc_facets && tag != _gst_smmc_normals)
-    SolidMechanicsModel::packElementData(buffer, elements_regular, tag);
+  if (elements(0).kind == _ek_regular) {
 
 #ifndef AKANTU_NDEBUG
-  packBarycenter(mesh, buffer, elements_cohesive, tag);
-  if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
-    packBarycenter(mesh_facets, buffer, elements_regular, tag);
+    if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
+      packBarycenter(mesh_facets, buffer, elements, tag);
 #endif
 
-  switch(tag) {
+    switch(tag) {
 
-  case _gst_material_id: {
-    packElementalDataHelper(element_index_by_material, buffer,
-			    elements_cohesive, false, "CohesiveFEM");
-    break;
+    case _gst_smmc_facets: {
+      packElementalDataHelper(facet_insertion, buffer, elements, false);
+      break;
+    }
+    case _gst_smmc_normals: {
+      packElementalDataHelper(*facet_normals, buffer, elements, false);
+      break;
+    }
+    default: {
+      SolidMechanicsModel::packElementData(buffer, elements, tag);
+    }
+    }
   }
-  case _gst_smm_boundary: {
-    packNodalDataHelper(*force, buffer, elements_cohesive);
-    packNodalDataHelper(*velocity, buffer, elements_cohesive);
-    packNodalDataHelper(*boundary, buffer, elements_cohesive);
-    break;
-  }
-  case _gst_smmc_facets: {
-    packElementalDataHelper(facet_insertion, buffer, elements_regular, false);
-    break;
-  }
-  case _gst_smmc_normals: {
-    packElementalDataHelper(*facet_normals, buffer, elements_regular, false);
-    break;
-  }
-  default: { }
-  }
+  else if (elements(0).kind == _ek_cohesive) {
+#ifndef AKANTU_NDEBUG
+    packBarycenter(mesh, buffer, elements, tag);
+#endif
 
-  if(tag != _gst_material_id && tag != _gst_smmc_facets) {
-    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
-    splitElementByMaterial(elements_cohesive, elements_per_mat);
+    switch(tag) {
 
-    for (UInt i = 0; i < materials.size(); ++i) {
-      materials[i]->packElementData(buffer, elements_per_mat[i], tag);
+    case _gst_material_id: {
+      packElementalDataHelper(element_index_by_material, buffer,
+			      elements, false, "CohesiveFEM");
+      break;
+    }
+    case _gst_smm_boundary: {
+      packNodalDataHelper(*force, buffer, elements);
+      packNodalDataHelper(*velocity, buffer, elements);
+      packNodalDataHelper(*boundary, buffer, elements);
+      break;
+    }
+    default: { }
     }
 
-    delete [] elements_per_mat;
+    if(tag != _gst_material_id && tag != _gst_smmc_facets) {
+      Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
+      splitElementByMaterial(elements, elements_per_mat);
+
+      for (UInt i = 0; i < materials.size(); ++i) {
+	materials[i]->packElementData(buffer, elements_per_mat[i], tag);
+      }
+
+      delete [] elements_per_mat;
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -171,52 +173,59 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 							   SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  Array<Element> elements_regular;
-  Array<Element> elements_cohesive;
+  if (elements.getSize() == 0) return;
 
-  splitElementByKind(elements, elements_regular, elements_cohesive);
-
-  if (tag != _gst_smmc_facets && tag != _gst_smmc_normals)
-    SolidMechanicsModel::unpackElementData(buffer, elements_regular, tag);
+  if (elements(0).kind == _ek_regular) {
 
 #ifndef AKANTU_NDEBUG
-  unpackBarycenter(mesh, buffer, elements_cohesive, tag);
-  if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
-    unpackBarycenter(mesh_facets, buffer, elements_regular, tag);
+    if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
+      unpackBarycenter(mesh_facets, buffer, elements, tag);
 #endif
 
-  switch(tag) {
-  case _gst_material_id: {
-    unpackElementalDataHelper(element_index_by_material, buffer,
-			      elements_cohesive, false, "CohesiveFEM");
-    break;
+    switch(tag) {
+    case _gst_smmc_facets: {
+      unpackElementalDataHelper(facet_insertion, buffer, elements, false);
+      break;
+    }
+    case _gst_smmc_normals: {
+      unpackElementalDataHelper(*facet_normals, buffer, elements, false);
+      break;
+    }
+    default: {
+      SolidMechanicsModel::unpackElementData(buffer, elements, tag);
+    }
+    }
   }
-  case _gst_smm_boundary: {
-    unpackNodalDataHelper(*force, buffer, elements_cohesive);
-    unpackNodalDataHelper(*velocity, buffer, elements_cohesive);
-    unpackNodalDataHelper(*boundary, buffer, elements_cohesive);
-    break;
-  }
-  case _gst_smmc_facets: {
-    unpackElementalDataHelper(facet_insertion, buffer, elements_regular, false);
-    break;
-  }
-  case _gst_smmc_normals: {
-    unpackElementalDataHelper(*facet_normals, buffer, elements_regular, false);
-    break;
-  }
-  default: { }
-  }
+  else if (elements(0).kind == _ek_cohesive) {
+#ifndef AKANTU_NDEBUG
+    unpackBarycenter(mesh, buffer, elements, tag);
+#endif
 
-  if(tag != _gst_material_id && tag != _gst_smmc_facets) {
-    Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
-    splitElementByMaterial(elements_cohesive, elements_per_mat);
-
-    for (UInt i = 0; i < materials.size(); ++i) {
-      materials[i]->unpackElementData(buffer, elements_per_mat[i], tag);
+    switch(tag) {
+    case _gst_material_id: {
+      unpackElementalDataHelper(element_index_by_material, buffer,
+				elements, false, "CohesiveFEM");
+      break;
+    }
+    case _gst_smm_boundary: {
+      unpackNodalDataHelper(*force, buffer, elements);
+      unpackNodalDataHelper(*velocity, buffer, elements);
+      unpackNodalDataHelper(*boundary, buffer, elements);
+      break;
+    }
+    default: { }
     }
 
-    delete [] elements_per_mat;
+    if(tag != _gst_material_id && tag != _gst_smmc_facets) {
+      Array<Element> * elements_per_mat = new Array<Element>[materials.size()];
+      splitElementByMaterial(elements, elements_per_mat);
+
+      for (UInt i = 0; i < materials.size(); ++i) {
+	materials[i]->unpackElementData(buffer, elements_per_mat[i], tag);
+      }
+
+      delete [] elements_per_mat;
+    }
   }
 
   AKANTU_DEBUG_OUT();

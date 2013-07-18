@@ -59,7 +59,7 @@ public:
 			      const ID & id = "solid_mechanics_model_cohesive",
 			      const MemoryID & memory_id = 0);
 
-  //  virtual ~SolidMechanicsModelCohesive();
+  virtual ~SolidMechanicsModelCohesive();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

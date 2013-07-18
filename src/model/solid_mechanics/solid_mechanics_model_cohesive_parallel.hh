@@ -61,12 +61,6 @@ public:
 					const Array<Element> & elements,
 					SynchronizationTag tag);
 
-protected:
-
-  inline virtual void splitElementByKind(const Array<Element> & elements,
-					 Array<Element> & elements_regular,
-					 Array<Element> & elements_cohesive) const;
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -74,8 +68,8 @@ private:
   /// facet synchronizer
   FacetSynchronizer * facet_synchronizer;
 
-  // /// cohesive elements synchronizer
-  // DistributedSynchronizer * cohesive_distributed_synchronizer;
+  /// cohesive elements synchronizer
+  DistributedSynchronizer * cohesive_distributed_synchronizer;
 
   /// stored ghost facet normals sent by other processors
   ByElementTypeReal * facet_normals;
