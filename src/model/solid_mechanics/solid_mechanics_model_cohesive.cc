@@ -494,7 +494,6 @@ void SolidMechanicsModelCohesive::computeNormals() {
 }
 
 /* -------------------------------------------------------------------------- */
-
 void SolidMechanicsModelCohesive::initFacetFilter() {
   AKANTU_DEBUG_IN();
 
@@ -534,7 +533,6 @@ void SolidMechanicsModelCohesive::initFacetFilter() {
 }
 
 /* -------------------------------------------------------------------------- */
-
 void SolidMechanicsModelCohesive::checkCohesiveStress() {
   AKANTU_DEBUG_IN();
 
@@ -786,9 +784,9 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes
 
     for (UInt dim = 0; dim < spatial_dimension; ++dim) {
       (*displacement)(new_node, dim) = (*displacement)(old_node, dim);
-      (*velocity)(new_node, dim) = (*velocity)(old_node, dim);
+      (*velocity)    (new_node, dim) = (*velocity)    (old_node, dim);
       (*acceleration)(new_node, dim) = (*acceleration)(old_node, dim);
-      (*boundary)(new_node, dim) = (*boundary)(old_node, dim);
+      (*boundary)    (new_node, dim) = (*boundary)    (old_node, dim);
 
       if (current_position)
         (*current_position)(new_node, dim) = (*current_position)(old_node, dim);

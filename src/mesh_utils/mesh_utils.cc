@@ -732,6 +732,7 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
   Array<UInt> & doubled_nodes = node_event.getList();
   doubled_nodes.extendComponentsInterlaced(2, 1);
 
+  UInt total_nb_new_elements = 0;
   NewElementsEvent element_event;
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -815,6 +816,7 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
 	(*facet_to_coh_element)(nb_cohesive_elements, 0) = first_facet;
 	(*facet_to_coh_element)(nb_cohesive_elements, 1) = second_facet;
       }
+      total_nb_new_elements += new_nb_cohesive_elements;
     }
   }
 
@@ -846,8 +848,11 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
   }
 
   if (total_nb_new_nodes > 0 || !extrinsic) {
-    mesh.updateTypesOffsets(_not_ghost);
     mesh.sendEvent(node_event);
+  }
+
+  if (total_nb_new_elements > 0 || !extrinsic) {
+    mesh.updateTypesOffsets(_not_ghost);
     mesh.sendEvent(element_event);
   }
 

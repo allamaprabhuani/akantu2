@@ -455,6 +455,8 @@ void SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
     this->implicitPred();
     this->updateResidual();
 
+    //this->dump();
+
     AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
             "You should first initialize the implicit solver and assemble the stiffness matrix");
 
@@ -488,6 +490,8 @@ void SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
         this->implicitCorr();
 
         this->updateResidual();
+
+        //this->dump();
 
         iter++;
         AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
