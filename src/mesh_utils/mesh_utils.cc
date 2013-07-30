@@ -840,6 +840,7 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
     }
 
     comm.allReduce(&total_nb_new_nodes, 1, _so_sum);
+    comm.allReduce(&total_nb_new_elements, 1, _so_sum);
 
     Array<UInt> & nodes_global_ids =
       const_cast<Array<UInt> &>(mesh.getGlobalNodesIds());
