@@ -244,10 +244,12 @@ protected:
   /// compute the potential energy by element
   void computePotentialEnergyByElement();
 
+public:
   /// compute the coordinates of the quadrature points
   void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates,
                                           const GhostType & ghost_type) const;
 
+protected:
   /// interpolate an elemental field on given points for each element
   template <ElementType type>
   void interpolateElementalField(const Array<Real> & field,

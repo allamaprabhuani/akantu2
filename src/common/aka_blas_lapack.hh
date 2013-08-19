@@ -235,11 +235,11 @@ AKANTU_DEBUG_ERROR(debug::demangle(typeid(T).name()) << "is not a type recognize
 #ifdef AKANTU_USE_LAPACK
 template<>
 inline void aka_geev<double>(char* jobvl, char* jobvr, int* n, double* a,
-			       int* lda, double* wr, double* wi, double* vl, int* ldvl,
-			       double* vr, int* ldvr, double* work, int* lwork, int* info) {
+                             int* lda, double* wr, double* wi, double* vl, int* ldvl,
+                             double* vr, int* ldvr, double* work, int* lwork, int* info) {
 AKA_FC_GLOBAL(dgeev, DGEEV)(jobvl, jobvr, n, a,
-                              lda, wr, wi, vl, ldvl,
-                              vr, ldvr, work, lwork, info);
+                            lda, wr, wi, vl, ldvl,
+                            vr, ldvr, work, lwork, info);
 }
 
 template<>

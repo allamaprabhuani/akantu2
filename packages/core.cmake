@@ -138,6 +138,7 @@ set(AKANTU_CORE_FILES
   model/boundary_condition_functor.hh
   model/parser.hh
   model/parser_tmpl.hh
+  model/parser_data.hh
   model/integration_scheme/integration_scheme_2nd_order.hh
   model/integration_scheme/generalized_trapezoidal.hh
   model/integration_scheme/newmark-beta.hh
