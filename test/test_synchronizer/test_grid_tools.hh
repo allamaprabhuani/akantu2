@@ -8,15 +8,15 @@
 template<UInt dim>
 class Point {
 public:
-  Point() : tol(TOLERANCE) {
+  Point() : tol(TOLERANCE), id(0) {
     for (UInt i = 0; i < dim; ++i) pos[i] = 0.;
   }
 
-  Point(const Point & pt) : tol(pt.tol) {
+  Point(const Point & pt) : tol(pt.tol), id(pt.id) {
     for (UInt i = 0; i < dim; ++i) pos[i] = pt.pos[i];
   }
 
-  Point(const Vector<Real> & pt) : tol(TOLERANCE) {
+  Point(const Vector<Real> & pt, UInt id) : tol(TOLERANCE), id(id) {
     for (UInt i = 0; i < dim; ++i) pos[i] = pt(i);
   }
 
@@ -62,6 +62,7 @@ public:
   }
 private:
   Real pos[dim];
+  UInt id;
   double tol;
 };
 

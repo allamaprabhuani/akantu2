@@ -97,7 +97,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
       UInt nb_elements = element_ids.getSize();
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*type_it);
 
-      Array<Real> * dual_before_integ = new Array<Real>(nb_elements * nb_quad_points, nb_degree_of_freedom);
+      Array<Real> * dual_before_integ = new Array<Real>(nb_elements * nb_quad_points, nb_degree_of_freedom, 0.);
       Array<Real> * quad_coords = new Array<Real>(nb_elements * nb_quad_points, dim);
 
       Array<Real>::iterator<Vector<Real> > dual_iter = dual_before_integ->begin(nb_degree_of_freedom);

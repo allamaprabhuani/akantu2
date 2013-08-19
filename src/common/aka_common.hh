@@ -70,19 +70,6 @@ static const Real UINT_INIT_VALUE = 0;
   static const Real REAL_INIT_VALUE = std::numeric_limits<Real>::quiet_NaN();
 #endif
 
-// int 2 type construct
-template <int d>
-struct Int2Type {
-  enum { result = d };
-};
-
-// type 2 type construct
-template <class T>
-class Type2Type {
-  typedef T OriginalType;
-};
-
-
 /* -------------------------------------------------------------------------- */
 /* Memory types                                                               */
 /* -------------------------------------------------------------------------- */
@@ -377,6 +364,19 @@ enum SynchronizerOperation {
 
 #define AKANTU_INDENT " "
 #define AKANTU_INCLUDE_INLINE_IMPL
+
+/* -------------------------------------------------------------------------- */
+// int 2 type construct
+template <int d>
+struct Int2Type {
+  enum { result = d };
+};
+
+// type 2 type construct
+template <class T>
+class Type2Type {
+  typedef T OriginalType;
+};
 
 /* -------------------------------------------------------------------------- */
 template<class T>
