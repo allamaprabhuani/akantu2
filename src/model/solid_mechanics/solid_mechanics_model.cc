@@ -698,10 +698,6 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
     stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr_sti.str(), memory_id);
   }
 
-  std::cout << jacobian_matrix->getSize() << std::endl;
-  std::cout << jacobian_matrix->getNbNonZero() << std::endl;
-
-
 #ifdef AKANTU_USE_MUMPS
   std::stringstream sstr_solv; sstr_solv << id << ":solver";
   solver = new SolverMumps(*jacobian_matrix, sstr_solv.str());
