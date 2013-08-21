@@ -49,9 +49,9 @@ class Boundary {
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
 private:
-  typedef std::map<std::string, SubBoundary *> BoundaryList;
 
 public:
+  typedef std::map<std::string, SubBoundary *> BoundaryList;
   typedef std::set<ElementType> BoundaryTypeSet;
 
   /* ------------------------------------------------------------------------ */
@@ -128,7 +128,7 @@ private:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+public:
   ID id;
   BoundaryList boundaries;
   MemoryID memory_id;

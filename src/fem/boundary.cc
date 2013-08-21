@@ -242,11 +242,11 @@ void Boundary::createBoundariesFromGeometry() {
 				       sub.getID(), 
 				       true);
     sub.addDumpFilteredMesh(mesh,
-			    sub.elements,
-			    sub.nodes,
-			    mesh.getSpatialDimension() - 1,
-			    _not_ghost,
-			    _ek_regular);
+                            sub.elements,
+                            sub.nodes,
+                            mesh.getSpatialDimension() - 1,
+                            _not_ghost,
+                            _ek_regular);
   }
 
   AKANTU_DEBUG_OUT();
@@ -257,8 +257,6 @@ template<typename T>
 void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
 {
   UInt spatial_dimension = mesh.getSpatialDimension();
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm.getNbProc();
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
     Mesh::type_iterator type_it = mesh.firstType(spatial_dimension - 1, *gt);
@@ -266,17 +264,7 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
     for (; type_it != type_end; ++type_it) {
       // Dirty check to assert that the processor has indeed this type of element
       // associated to the dataset name
-      try {
-        mesh.getData<T>(*type_it, dataset_name, *gt);
-      } catch(akantu::debug::Exception e) {
-        if(psize == 1) {
-          AKANTU_DEBUG_ERROR("Error building the boundaries. Type " << *type_it << "/" << *gt << "not registered in dataset  \"" << dataset_name << "\".");
-        }
-        else {
-          AKANTU_DEBUG_INFO("Rank " << comm.whoAmI() << " does not have any elements of type " << *type_it << "/" << *gt << "in dataset \"" << dataset_name << "\".");
-          continue;
-        }
-      }
+      mesh.getData<T>(*type_it, dataset_name, *gt);
 
       const Array<T> & dataset = mesh.getData<T>(*type_it, dataset_name, *gt);
       UInt nb_element = mesh.getNbElement(*type_it, *gt);
@@ -304,11 +292,11 @@ void Boundary::createBoundariesFromMeshData(const std::string & dataset_name)
 				       sub.getID(), 
 				       true);
     sub.addDumpFilteredMesh(mesh,
-     			    sub.elements,
-     			    sub.nodes,
-     			    mesh.getSpatialDimension() - 1,
-     			    _not_ghost,
-     			    _ek_regular);
+                            sub.elements,
+                            sub.nodes,
+                            mesh.getSpatialDimension() - 1,
+                            _not_ghost,
+                            _ek_regular);
   }
 }
 

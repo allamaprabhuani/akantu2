@@ -526,6 +526,10 @@ inline const SubBoundary & Mesh::getSubBoundary(const std::string & name) const{
 
 /* -------------------------------------------------------------------------- */
 inline SubBoundary & Mesh::getSubBoundary(const std::string & name) {
+  Boundary::BoundaryList::iterator ita = getBoundary().boundaries.begin();
+  //for (;  ita != getBoundary().boundaries.end() ; ++ita) {
+  //  std::cout << ita->first << std::endl;
+  //}
   Boundary::iterator it = getBoundary().find(name);
   if(it == getBoundary().end()) {
     AKANTU_EXCEPTION("No sub-boundary named " << name << "!");
