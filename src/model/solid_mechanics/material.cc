@@ -1382,6 +1382,28 @@ Array<Real> & Material::getArray(const ID & vect_id, const ElementType & type, c
 }
 
 /* -------------------------------------------------------------------------- */
+const ByElementTypeArray<Real> & Material::getInternal(const ID & int_id) const {
+  std::map<ID, ByElementTypeReal *>::const_iterator it = internal_vectors_real.find(id + ":" + int_id);
+  if(it == internal_vectors_real.end()) {
+    AKANTU_EXCEPTION("The material " << name << "(" << id
+                     << ") does not contain an internal "
+                     << int_id << " (" << (id + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+ByElementTypeArray<Real> & Material::getInternal(const ID & int_id) {
+  std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.find(id + ":" + int_id);
+  if(it == internal_vectors_real.end()) {
+    AKANTU_EXCEPTION("The material " << name << "(" << id
+                     << ") does not contain an internal "
+                     << int_id << " (" << (id + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
 void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

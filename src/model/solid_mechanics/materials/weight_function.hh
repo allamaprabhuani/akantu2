@@ -211,8 +211,8 @@ public:
                                       const Array<Element> & elements,
                                       SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight) {
-      MaterialDamage<spatial_dimension> & mat = dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material);
-      this->material.packElementDataHelper(mat.getDamage(),
+      ByElementTypeArray<Real> & damage = this->material.getInternal("damage");
+      this->material.packElementDataHelper(damage,
                                            buffer,
                                            elements);
 #if defined(AKANTU_DEBUG_TOOLS)
@@ -240,8 +240,8 @@ public:
                                         const Array<Element> & elements,
                                         SynchronizationTag tag) {
     if(tag == _gst_mnl_weight) {
-      MaterialDamage<spatial_dimension> & mat = dynamic_cast<MaterialDamage<spatial_dimension> &>(this->material);
-      this->material.unpackElementDataHelper(mat.getDamage(),
+      ByElementTypeArray<Real> & damage = this->material.getInternal("damage");
+      this->material.unpackElementDataHelper(damage,
                                              buffer,
                                              elements);
 #if defined(AKANTU_DEBUG_TOOLS)

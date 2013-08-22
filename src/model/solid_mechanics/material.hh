@@ -387,6 +387,9 @@ public:
   const Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
   Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
+  const ByElementTypeArray<Real> & getInternal(const ID & id) const;
+  ByElementTypeArray<Real> & getInternal(const ID & id);
+
   template<typename T>
   inline T getParam(const ID & param) const;
 
