@@ -194,7 +194,7 @@ inline void Array<T, is_scal>::set(const C<T> & vm) {
   for (T * it = values;
        it < values + nb_component * size;
        it += nb_component) {
-    std::fill_n(it, it + nb_component, vm.storage());
+    std::copy(vm.storage(), vm.storage() + nb_component, it);
   }
 }
 
