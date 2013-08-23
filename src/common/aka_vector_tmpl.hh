@@ -184,6 +184,20 @@ template <class T, bool is_scal>
 bool Array<T, is_scal>::operator!=(const Array<T, is_scal> & array) const {
   return !operator==(array);
 }
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+template<template<typename> class C>
+inline void Array<T, is_scal>::set(const C<T> & vm) {
+  AKANTU_DEBUG_ASSERT(nb_component == vm.size(),
+		      "The size of the object does not match the number of components");
+  for (T * it = values;
+       it < values + nb_component * size;
+       it += nb_component) {
+    std::fill_n(it, it + nb_component, vm.storage());
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /* Functions Array<T, is_scal>                                               */
 /* -------------------------------------------------------------------------- */
