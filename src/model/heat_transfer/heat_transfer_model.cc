@@ -43,6 +43,7 @@
 #include "generalized_trapezoidal.hh"
 
 #ifdef AKANTU_USE_IOHELPER
+#  include "dumper_iohelper.hh"
 #  include "dumper_iohelper_tmpl_homogenizing_field.hh"
 #endif
 

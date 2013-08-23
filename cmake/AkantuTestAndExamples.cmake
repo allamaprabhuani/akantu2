@@ -188,14 +188,17 @@ function(register_test test_name)
     foreach(_file ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS} ${register_test_EXTRA_FILES})
       list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
     endforeach()
-
+    
     add_executable(${test_name} ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS})
+    set_property(TARGET ${test_name}  APPEND
+      PROPERTY INCLUDE_DIRECTORIES ${AKANTU_INCLUDE_DIRS} ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR})
+    message(${AKANTU_EXTERNAL_LIBRARIES})
+    target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
     if(register_test_COMPILE_OPTIONS)
       set_target_properties(${test_name}
 	PROPERTIES COMPILE_DEFINITIONS "${register_test_COMPILE_OPTIONS}")
     endif()
-    target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
     if(register_test_FILES_TO_COPY)
       foreach(_file ${register_test_FILES_TO_COPY})
@@ -225,13 +228,15 @@ function(register_test test_name)
     if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
       file(COPY ${test_name}.sh DESTINATION .)
       list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.sh)
-      add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
+      add_test(${test_name}_run ${CMAKE_CURRENT_BINARY_DIR}/${test_name}.sh)
     elseif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
       list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
-      add_test(${test_name} ${AKANTU_DIFF_SCRIPT} ${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
+      add_test(${test_name}_run ${AKANTU_DIFF_SCRIPT} ${test_name} ${CMAKE_CURRENT_SOURCE_DIR}/${test_name}.verified)
     else()
-      add_test(${test_name} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+      add_test(${test_name}_run ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
     endif()
+
+    set_tests_properties(${test_name}_run PROPERTIES DEPENDS ${test_name})
 
     set(_tmp ${AKANTU_TESTS_FILES})
     foreach(_file ${_source_file})
