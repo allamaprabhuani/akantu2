@@ -45,8 +45,6 @@ int main(int argc, char *argv[]) {
   UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
 
-  ElementType type = _triangle_6;
-
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
@@ -78,26 +76,13 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  //  std::cout << mesh << std::endl;
+  Array<Real> limits(spatial_dimension, 2);
+  limits(0, 0) = -100;
+  limits(0, 1) = 100;
+  limits(1, 0) = -0.30;
+  limits(1, 1) = -0.20;
 
-  const Mesh & mesh_facets = model.getMeshFacets();
-
-  const ElementType type_facet = mesh.getFacetType(type);
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  Array<Real> & position = mesh.getNodes();
-
-  Array<bool> & facet_check = model.getFacetsCheck();
-
-  Real * bary_facet = new Real[spatial_dimension];
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 0.30 && bary_facet[1] > 0.20)
-      facet_check(f) = true;
-    else
-      facet_check(f) = false;
-  }
-  delete[] bary_facet;
-
+  model.enableFacetsCheckOnArea(limits);
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
@@ -114,6 +99,7 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
 
+  Array<Real> & position = mesh.getNodes();
   Array<Real> & velocity = model.getVelocity();
   Array<bool> & boundary = model.getBoundary();
   Array<Real> & displacement = model.getDisplacement();

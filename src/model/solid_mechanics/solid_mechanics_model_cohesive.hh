@@ -31,6 +31,7 @@
 #include "solid_mechanics_model.hh"
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #  include "facet_synchronizer.hh"
+#  include "facet_stress_synchronizer.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 
@@ -86,7 +87,8 @@ public:
   void initModel();
 
   /// initialize cohesive material
-  void initCohesiveMaterial();
+  void initCohesiveMaterials(bool extrinsic,
+			     bool init_facet_filter);
 
   /// build fragments and compute their data (mass, velocity..)
   void computeFragmentsData();
@@ -94,10 +96,13 @@ public:
   /// init facet filters for cohesive materials
   void initFacetFilter();
 
+  /// limit the cohesive element insertion to a given area
+  void enableFacetsCheckOnArea(const Array<Real> & limits);
+
 private:
 
   /// initialize completely the model for extrinsic elements
-  void initExtrinsic(std::string material_file, bool init_facet_filter);
+  void initAutomaticInsertion();
 
   /// build fragments list
   void buildFragmentsList();
@@ -107,6 +112,14 @@ private:
 
   /// compute facets' normals
   void computeNormals();
+
+  /// resize facet array
+  template<typename T>
+  void resizeFacetArray(ByElementTypeArray<T> & by_el_type_array,
+			bool per_quadrature_point_data = true) const;
+
+  /// init facets_check array
+  void initFacetsCheck();
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
@@ -124,14 +137,11 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// get cohesive index
-  AKANTU_GET_MACRO(CohesiveIndex, cohesive_index, UInt);
-
   /// get facet mesh
   AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
 
   /// get facets check vector
-  AKANTU_GET_MACRO_NOT_CONST(FacetsCheck, facets_check, Array<bool> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetsCheck, facets_check, bool);
 
   /// get stress on facets vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressOnFacets, facet_stress, Real);
@@ -162,14 +172,11 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
 
-  /// cohesive material index in materials vector
-  UInt cohesive_index;
-
   /// mesh containing facets and their data structures
   Mesh & mesh_facets;
 
   /// vector containing facets in which cohesive elements can be automatically inserted
-  Array<bool> facets_check;
+  ByElementTypeArray<bool> facets_check;
 
   /// @todo store tangents when normals are computed:
   ByElementTypeReal tangents;
@@ -209,9 +216,6 @@ private:
 
   /// flag to know if facets have been generated
   bool facet_generated;
-
-  /// _not_ghost facet type
-  ElementType internal_facet_type;
 
   /// material to use if a cohesive element is created on a facet
   ByElementTypeUInt facet_material;

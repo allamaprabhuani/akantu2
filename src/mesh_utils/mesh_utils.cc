@@ -677,6 +677,62 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
+void MeshUtils::insertIntrinsicCohesiveElementsInArea(Mesh & mesh,
+						      const Array<Real> & limits) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(limits.getNbComponent() == 2,
+		      "Number of components for limits array must be 2");
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  AKANTU_DEBUG_ASSERT(limits.getSize() == spatial_dimension,
+		      "Limits array size must be equal to spatial dimension");
+
+  Real * bary_facet = new Real[spatial_dimension];
+
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  buildAllFacets(mesh, mesh_facets);
+
+  Array<bool> facet_insertion;
+
+  Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1);
+  Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1);
+
+  for(; it != end; ++it) {
+    const ElementType type_facet = *it;
+    UInt nb_facet = mesh_facets.getNbElement(type_facet);
+
+    facet_insertion.resize(nb_facet);
+    facet_insertion.clear();
+
+    for (UInt f = 0; f < nb_facet; ++f) {
+
+      mesh_facets.getBarycenter(f, type_facet, bary_facet);
+
+      UInt coord_in_limit = 0;
+
+      while (coord_in_limit < spatial_dimension &&
+	     bary_facet[coord_in_limit] > limits(coord_in_limit, 0) &&
+	     bary_facet[coord_in_limit] < limits(coord_in_limit, 1))
+	++coord_in_limit;
+
+      if (coord_in_limit == spatial_dimension)
+	facet_insertion(f) = true;
+    }
+
+    insertIntrinsicCohesiveElements(mesh,
+				    mesh_facets,
+				    type_facet,
+				    facet_insertion);
+  }
+
+  delete [] bary_facet;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void MeshUtils::insertIntrinsicCohesiveElements(Mesh & mesh,
 						Mesh & mesh_facets,
 						ElementType type_facet,

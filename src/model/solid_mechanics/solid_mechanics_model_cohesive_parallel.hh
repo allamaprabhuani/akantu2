@@ -30,46 +30,69 @@
 
 /* -------------------------------------------------------------------------- */
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+/* Methods                                                                  */
+/* ------------------------------------------------------------------------ */
 public:
-  /// register the tags associated with the parallel synchronizer for
-  /// cohesive elements
-  void initParallel(MeshPartition * partition,
-		    DataAccessor * data_accessor = NULL,
-		    bool extrinsic = false);
+/// register the tags associated with the parallel synchronizer for
+/// cohesive elements
+void initParallel(MeshPartition * partition,
+		  DataAccessor * data_accessor = NULL,
+		  bool extrinsic = false);
 
 protected:
-  void synchronizeCohesiveElements();
+void synchronizeCohesiveElements();
 
-  void updateFacetSynchronizer();
+void updateFacetSynchronizer();
 
-  /* ------------------------------------------------------------------------ */
-  /* Data Accessor inherited members                                          */
-  /* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+/* Data Accessor inherited members                                          */
+/* ------------------------------------------------------------------------ */
 public:
 
-  inline virtual UInt getNbDataForElements(const Array<Element> & elements,
-					   SynchronizationTag tag) const;
+inline UInt getNbQuadsForFacetCheck(const Array<Element> & elements) const;
 
-  inline virtual void packElementData(CommunicationBuffer & buffer,
+inline virtual UInt getNbDataForElements(const Array<Element> & elements,
+					 SynchronizationTag tag) const;
+
+inline virtual void packElementData(CommunicationBuffer & buffer,
+				    const Array<Element> & elements,
+				    SynchronizationTag tag) const;
+
+inline virtual void unpackElementData(CommunicationBuffer & buffer,
 				      const Array<Element> & elements,
-				      SynchronizationTag tag) const;
+				      SynchronizationTag tag);
 
-  inline virtual void unpackElementData(CommunicationBuffer & buffer,
-					const Array<Element> & elements,
-					SynchronizationTag tag);
+template<typename T>
+inline void packFacetStressDataHelper(const ByElementTypeArray<T> & data_to_pack,
+				      CommunicationBuffer & buffer,
+				      const Array<Element> & elements) const;
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+template<typename T>
+inline void unpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_unpack,
+					CommunicationBuffer & buffer,
+					const Array<Element> & elements) const;
+
+template<typename T, bool pack_helper>
+inline void packUnpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_pack,
+					    CommunicationBuffer & buffer,
+					    const Array<Element> & element) const;
+
+/* ------------------------------------------------------------------------ */
+/* Class Members                                                            */
+/* ------------------------------------------------------------------------ */
 private:
-  /// facet synchronizer
-  FacetSynchronizer * facet_synchronizer;
+/// facet synchronizer
+FacetSynchronizer * facet_synchronizer;
 
-  /// cohesive elements synchronizer
-  DistributedSynchronizer * cohesive_distributed_synchronizer;
+/// facet stress synchronizer
+FacetStressSynchronizer * facet_stress_synchronizer;
 
-  /// stored ghost facet normals sent by other processors
-  ByElementTypeReal * facet_normals;
+/// cohesive elements synchronizer
+DistributedSynchronizer * cohesive_distributed_synchronizer;
+
+/// stored ghost facet normals sent by other processors
+ByElementTypeReal * facet_normals;
+
+/// store processor rank for each element
+ByElementTypeUInt * rank_to_element;

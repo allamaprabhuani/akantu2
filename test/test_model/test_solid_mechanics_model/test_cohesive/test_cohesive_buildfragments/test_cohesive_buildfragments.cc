@@ -113,7 +113,8 @@ int main(int argc, char *argv[]) {
   // model.dump();
 
   ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
-  UInt cohesive_index = model.getCohesiveIndex();
+  //  UInt cohesive_index = model.getCohesiveIndex();
+  UInt cohesive_index = 1;
 
   UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
   MaterialCohesive & mat_cohesive

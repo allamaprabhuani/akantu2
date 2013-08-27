@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
   const Array<Real> & position = mesh.getNodes();
   //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
 
-  Array<bool> & facet_check = model.getFacetsCheck();
+  Array<bool> & facet_check = model.getFacetsCheck(type_facet);
 
   Real * bary_facet = new Real[spatial_dimension];
   for (UInt f = 0; f < nb_facet; ++f) {

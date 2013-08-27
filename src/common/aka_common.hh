@@ -114,7 +114,9 @@ extern const UInt _all_dimensions;
 #  define AKANTU_COHESIVE_ELEMENT_TYPE		\
   (_cohesive_2d_4)				\
   (_cohesive_2d_6)				\
-  (_cohesive_1d_2)
+  (_cohesive_1d_2)				\
+  (_cohesive_3d_6)				\
+  (_cohesive_3d_12)
 #else
 #  define AKANTU_COHESIVE_ELEMENT_TYPE
 #endif
@@ -148,6 +150,8 @@ enum ElementType {
   _cohesive_2d_4,     ///< first order 2D cohesive
   _cohesive_2d_6,     ///< second order 2D cohesive
   _cohesive_1d_2,     ///< first order 1D cohesive
+  _cohesive_3d_6,     ///< first order 3D cohesive
+  _cohesive_3d_12,     ///< second order 3D cohesive
 #endif
   _max_element_type
 };
@@ -169,6 +173,8 @@ enum GeometricalType {
   _gt_cohesive_2d_4,     ///< 4 nodes 2D cohesive
   _gt_cohesive_2d_6,     ///< 6 nodes 2D cohesive
   _gt_cohesive_1d_2,     ///< 2 nodes 1D cohesive
+  _gt_cohesive_3d_6,     ///< 6 nodes 3D cohesive
+  _gt_cohesive_3d_12,     ///< 12 nodes 3D cohesive
 #endif
   _gt_not_defined
 };
@@ -308,6 +314,7 @@ enum SynchronizationTag {
   _gst_smm_stress,       //< synchronization of the stresses to compute the internal forces
   _gst_smmc_facets,      //< synchronization of facet data to setup facet synch
   _gst_smmc_normals,     //< synchronization of facet normals to setup facet synch
+  _gst_smmc_facets_stress,  //< synchronization of facets' stress to setup facet synch
   //--- HeatTransfer tags ---
   _gst_htm_capacity,     //< synchronization of the nodal heat capacity
   _gst_htm_temperature,  //< synchronization of the nodal temperature

@@ -61,7 +61,8 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 
   /// create the facet synchronizer for extrinsic simulations
   if (extrinsic) {
-    ByElementTypeUInt prank_to_element("prank_to_element", id);
+    rank_to_element = new ByElementTypeUInt("prank_to_element", id);
+    ByElementTypeUInt & prank_to_element = *rank_to_element;
 
     distributed_synchronizer.buildPrankToElement(prank_to_element);
 
@@ -74,6 +75,13 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_normals);
+
+    facet_stress_synchronizer =
+      FacetStressSynchronizer::createFacetStressSynchronizer(*facet_synchronizer,
+							     mesh_facets);
+
+    synch_registry->registerSynchronizer(*facet_stress_synchronizer,
+					 _gst_smmc_facets_stress);
   }
 
   AKANTU_DEBUG_OUT();

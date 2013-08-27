@@ -45,10 +45,6 @@ int main(int argc, char *argv[]) {
 
   UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-
-  ElementType type = _triangle_6;
-  ElementType type_facet = Mesh::getFacetType(type);
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
@@ -60,24 +56,13 @@ int main(int argc, char *argv[]) {
     mesh.read("mesh.msh");
 
     /// insert cohesive elements
-    MeshUtils::buildAllFacets(mesh, mesh_facets);
+    Array<Real> limits(spatial_dimension, 2);
+    limits(0, 0) = -0.26;
+    limits(0, 1) = -0.24;
+    limits(1, 0) = -100;
+    limits(1, 1) = 100;
 
-    UInt nb_facet = mesh_facets.getNbElement(type_facet);
-
-    Array<bool> facet_insertion(nb_facet);
-    facet_insertion.clear();
-    Real * bary_facet = new Real[spatial_dimension];
-    for (UInt f = 0; f < nb_facet; ++f) {
-      mesh_facets.getBarycenter(f, type_facet, bary_facet);
-      if (bary_facet[0] > -0.26 && bary_facet[0] < -0.24) facet_insertion(f) = true;
-    }
-    delete[] bary_facet;
-
-    MeshUtils::insertIntrinsicCohesiveElements(mesh,
-    					       mesh_facets,
-    					       type_facet,
-    					       facet_insertion);
-
+    MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
 
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);

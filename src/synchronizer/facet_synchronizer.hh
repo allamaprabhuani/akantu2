@@ -87,7 +87,7 @@ protected:
   /// build recv facet arrays
   void buildRecvElementList(const Array<ByElementTypeUInt *> & temp_recv_element);
 
-  /// get facets' barycenter for a list of elements
+  /// get facets' global connectivity for a list of elements
   template<GhostType ghost_facets>
   inline void getFacetGlobalConnectivity(const DistributedSynchronizer & distributed_synchronizer,
 					 const ByElementTypeUInt & rank_to_facet,
@@ -115,6 +115,8 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+
+  friend class FacetStressSynchronizer;
 
 };
 

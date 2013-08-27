@@ -37,6 +37,8 @@ set(AKANTU_PARALLEL_COHESIVE_ELEMENT_FILES
   synchronizer/facet_synchronizer.cc
   synchronizer/facet_synchronizer.hh
   synchronizer/facet_synchronizer_inline_impl.cc
+  synchronizer/facet_stress_synchronizer.cc
+  synchronizer/facet_stress_synchronizer.hh
   )
 
 set(AKANTU_PARALLEL_COHESIVE_ELEMENT_TESTS

@@ -137,6 +137,11 @@ public:
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
 
+  /// function to insert intrinsic cohesive elements in a zone
+  /// delimited by provided limits
+  static void insertIntrinsicCohesiveElementsInArea(Mesh & mesh,
+						    const Array<Real> & limits);
+
   /// function to insert intrinsic cohesive elements on the selected
   /// facets
   static void insertIntrinsicCohesiveElements(Mesh & mesh,

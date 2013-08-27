@@ -95,9 +95,6 @@ int main(int argc, char *argv[]) {
 
   Array<Real> & position = mesh.getNodes();
 
-  Array<bool> & facet_check = model.getFacetsCheck();
-  facet_check.clear();
-
   Real * bary_facet = new Real[spatial_dimension];
 // first, the tag which shows grain ID should be read for each element
 
@@ -115,6 +112,10 @@ int main(int argc, char *argv[]) {
 
     for(;first != last; ++first) {
       ElementType type_facet = *first;
+
+      Array<bool> & facet_check = model.getFacetsCheck(type_facet);
+      facet_check.clear();
+
       UInt nb_facet = mesh_facets.getNbElement(type_facet, gt_facet);
 
       const Array< std::vector<Element> > & element_to_subelement = mesh_facets.getElementToSubelement(type_facet, gt_facet);

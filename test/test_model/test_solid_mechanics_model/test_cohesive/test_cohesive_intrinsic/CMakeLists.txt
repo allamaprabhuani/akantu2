@@ -30,6 +30,7 @@
 #===============================================================================
 add_mesh(test_cohesive_intrinsic_mesh triangle.geo 2 2)
 add_mesh(test_cohesive_intrinsic_quadrangle_mesh quadrangle.geo 2 1)
+add_mesh(test_cohesive_intrinsic_tetrahedron_mesh tetrahedron.geo 3 1)
 
 register_test(test_cohesive_intrinsic
   SOURCES test_cohesive_intrinsic.cc
@@ -41,4 +42,9 @@ register_test(test_cohesive_intrinsic
 register_test(test_cohesive_intrinsic_quadrangle
   SOURCES test_cohesive_intrinsic_quadrangle.cc
   DEPENDENCIES test_cohesive_intrinsic_quadrangle_mesh
+  PACKAGE cohesive_element)
+
+register_test(test_cohesive_intrinsic_tetrahedron
+  SOURCES test_cohesive_intrinsic_tetrahedron.cc
+  DEPENDENCIES test_cohesive_intrinsic_tetrahedron_mesh
   PACKAGE cohesive_element)

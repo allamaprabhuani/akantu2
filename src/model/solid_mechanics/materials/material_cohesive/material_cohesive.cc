@@ -662,5 +662,7 @@ Real MaterialCohesive::getEnergy(std::string type) {
   return 0.;
 }
 
+/* -------------------------------------------------------------------------- */
+
 
 __END_AKANTU__

@@ -28,6 +28,33 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+inline UInt SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(const Array<Element> & elements) const {
+  UInt nb_quads = 0;
+  UInt nb_quad_per_facet = 0;
+
+  ElementType current_element_type = _not_defined;
+  GhostType current_ghost_type = _casper;
+
+  Array<Element>::const_iterator<Element> it  = elements.begin();
+  Array<Element>::const_iterator<Element> end = elements.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+
+    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
+      current_element_type = el.type;
+      current_ghost_type   = el.ghost_type;
+
+      nb_quad_per_facet = this->getFEM("FacetsFEM").getNbQuadraturePoints(el.type,
+									  el.ghost_type);
+    }
+
+    nb_quads += nb_quad_per_facet;
+  }
+
+  return nb_quads;
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Element> & elements,
 							      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
@@ -40,7 +67,9 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
   if (elements(0).kind == _ek_regular) {
 
 #ifndef AKANTU_NDEBUG
-    if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
+    if (tag == _gst_smmc_facets ||
+	tag == _gst_smmc_normals ||
+	tag == _gst_smmc_facets_stress)
       size += elements.getSize() * spatial_dimension * sizeof(Real);
 #endif
 
@@ -51,6 +80,11 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
     }
     case _gst_smmc_normals: {
       size += elements.getSize() * spatial_dimension * sizeof(Real);
+      break;
+    }
+    case _gst_smmc_facets_stress: {
+      UInt nb_quads = getNbQuadsForFacetCheck(elements);
+      size += nb_quads * spatial_dimension * spatial_dimension * sizeof(Real);
       break;
     }
     default: {
@@ -112,7 +146,9 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
   if (elements(0).kind == _ek_regular) {
 
 #ifndef AKANTU_NDEBUG
-    if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
+    if (tag == _gst_smmc_facets ||
+	tag == _gst_smmc_normals ||
+	tag == _gst_smmc_facets_stress)
       packBarycenter(mesh_facets, buffer, elements, tag);
 #endif
 
@@ -124,6 +160,10 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
     }
     case _gst_smmc_normals: {
       packElementalDataHelper(*facet_normals, buffer, elements, false);
+      break;
+    }
+    case _gst_smmc_facets_stress: {
+      packFacetStressDataHelper(facet_stress, buffer, elements);
       break;
     }
     default: {
@@ -178,7 +218,9 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
   if (elements(0).kind == _ek_regular) {
 
 #ifndef AKANTU_NDEBUG
-    if (tag == _gst_smmc_facets || tag == _gst_smmc_normals)
+    if (tag == _gst_smmc_facets ||
+	tag == _gst_smmc_normals ||
+	tag == _gst_smmc_facets_stress)
       unpackBarycenter(mesh_facets, buffer, elements, tag);
 #endif
 
@@ -189,6 +231,10 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
     }
     case _gst_smmc_normals: {
       unpackElementalDataHelper(*facet_normals, buffer, elements, false);
+      break;
+    }
+    case _gst_smmc_facets_stress: {
+      unpackFacetStressDataHelper(facet_stress, buffer, elements);
       break;
     }
     default: {
@@ -229,4 +275,72 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
   }
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void SolidMechanicsModelCohesive::packFacetStressDataHelper(const ByElementTypeArray<T> & data_to_pack,
+								   CommunicationBuffer & buffer,
+								   const Array<Element> & elements) const {
+  packUnpackFacetStressDataHelper<T, true>(const_cast<ByElementTypeArray<T> &>(data_to_pack),
+					   buffer, elements);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+inline void SolidMechanicsModelCohesive::unpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_unpack,
+								     CommunicationBuffer & buffer,
+								     const Array<Element> & elements) const {
+  packUnpackFacetStressDataHelper<T, false>(data_to_unpack, buffer, elements);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T, bool pack_helper>
+inline void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_pack,
+									 CommunicationBuffer & buffer,
+									 const Array<Element> & element) const {
+  ElementType current_element_type = _not_defined;
+  GhostType current_ghost_type = _casper;
+  UInt nb_quad_per_elem = 0;
+  UInt sp2 = spatial_dimension * spatial_dimension;
+  UInt nb_component = sp2 * 2;
+  bool element_rank = 0;
+
+  Array<T> * vect = NULL;
+  Array<std::vector<Element> > * element_to_facet = NULL;
+
+  Array<Element>::const_iterator<Element> it  = element.begin();
+  Array<Element>::const_iterator<Element> end = element.end();
+  for (; it != end; ++it) {
+    const Element & el = *it;
+    if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
+      current_element_type = el.type;
+      current_ghost_type   = el.ghost_type;
+      vect = &data_to_pack(el.type, el.ghost_type);
+
+      element_to_facet =
+	&( mesh_facets.getElementToSubelement(el.type, el.ghost_type) );
+
+      nb_quad_per_elem = this->getFEM("FacetsFEM").getNbQuadraturePoints(el.type,
+									 el.ghost_type);
+    }
+
+    if ( (*element_to_facet)(el.element)[0].ghost_type == _not_ghost )
+      element_rank = 0;
+    else
+      element_rank = 1;
+
+    if (!pack_helper) element_rank = !element_rank;
+
+    for (UInt q = 0; q < nb_quad_per_elem; ++q) {
+      Vector<T> data(vect->storage() + (el.element * nb_quad_per_elem + q) * nb_component
+		     + element_rank * sp2,
+		     sp2);
+
+      if(pack_helper)
+	buffer << data;
+      else
+	buffer >> data;
+    }
+  }
 }

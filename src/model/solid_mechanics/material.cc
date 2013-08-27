@@ -1254,33 +1254,28 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::interpolateStress(ByElementTypeReal & result) {
+void Material::interpolateStress(ByElementTypeReal & result,
+				 const GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = model->getFEM().getMesh();
 
-  for (ghost_type_t::iterator gt = ghost_type_t::begin();
-       gt != ghost_type_t::end(); ++gt) {
+  Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
+  for (; it != last; ++it) {
+    ElementType type = *it;
+    UInt nb_element = mesh.getNbElement(type, ghost_type);
+    if (nb_element == 0) continue;
 
-    GhostType ghost_type = *gt;
-
-    Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
-    Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
-    for (; it != last; ++it) {
-      ElementType type = *it;
-      UInt nb_element = mesh.getNbElement(type, ghost_type);
-      if (nb_element == 0) continue;
-
-      Array<Real> & res = result(type, ghost_type);
+    Array<Real> & res = result(type, ghost_type);
 
 #define INTERPOLATE_ELEMENTAL_FIELD(type)			\
-      interpolateElementalField<type>(stress(type, ghost_type),	\
-                                      res,			\
-                                      ghost_type)
+    interpolateElementalField<type>(stress(type, ghost_type),	\
+				    res,			\
+				    ghost_type)
 
-      AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
+    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE_ELEMENTAL_FIELD);
 #undef INTERPOLATE_ELEMENTAL_FIELD
-    }
   }
 
   AKANTU_DEBUG_OUT();

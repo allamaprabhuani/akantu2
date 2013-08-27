@@ -74,4 +74,37 @@ template<> UInt * GeometricalElement<_gt_cohesive_1d_2>::facet_connectivity[] = 
 template<> ElementType ElementClass<_cohesive_1d_2>::facet_type[] = { _point_1 };
 template<> ElementType ElementClass<_cohesive_1d_2>::p1_type      = _cohesive_1d_2;
 /* -------------------------------------------------------------------------- */
+
+template<> UInt GeometricalElement<_gt_cohesive_3d_6>::spatial_dimension    = 3;
+template<> UInt GeometricalElement<_gt_cohesive_3d_6>::nb_nodes_per_element = 6;
+template<> UInt GeometricalElement<_gt_cohesive_3d_6>::nb_facet_types       = 1;
+template<> UInt GeometricalElement<_gt_cohesive_3d_6>::nb_facets[]          = { 2 };
+template<> UInt GeometricalElement<_gt_cohesive_3d_6>::nb_nodes_per_facet[] = { 3 };
+template<> UInt GeometricalElement<_gt_cohesive_3d_6>::facet_connectivity_vect[] = {0, 3,
+										    1, 4,
+										    2, 5};
+template<> UInt * GeometricalElement<_gt_cohesive_3d_6>::facet_connectivity[] = { &facet_connectivity_vect[0] };
+
+template<> ElementType ElementClass<_cohesive_3d_6>::facet_type[] = { _triangle_3 };
+template<> ElementType ElementClass<_cohesive_3d_6>::p1_type      = _cohesive_3d_6;
+
+/* -------------------------------------------------------------------------- */
+
+template<> UInt GeometricalElement<_gt_cohesive_3d_12>::spatial_dimension    = 3;
+template<> UInt GeometricalElement<_gt_cohesive_3d_12>::nb_nodes_per_element = 12;
+template<> UInt GeometricalElement<_gt_cohesive_3d_12>::nb_facet_types       = 1;
+template<> UInt GeometricalElement<_gt_cohesive_3d_12>::nb_facets[]          = { 2 };
+template<> UInt GeometricalElement<_gt_cohesive_3d_12>::nb_nodes_per_facet[] = { 3 };
+template<> UInt GeometricalElement<_gt_cohesive_3d_12>::facet_connectivity_vect[] = {0, 6,
+										     1, 7,
+										     2, 8,
+										     3, 9,
+										     4, 10,
+										     5, 11};
+template<> UInt * GeometricalElement<_gt_cohesive_3d_12>::facet_connectivity[] = { &facet_connectivity_vect[0] };
+
+template<> ElementType ElementClass<_cohesive_3d_12>::facet_type[] = { _triangle_6 };
+template<> ElementType ElementClass<_cohesive_3d_12>::p1_type      = _cohesive_3d_6;
+
+/* -------------------------------------------------------------------------- */
 __END_AKANTU__

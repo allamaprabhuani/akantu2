@@ -102,7 +102,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
 
     ElementType type_facet = *it;
     ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
-    Array<bool> & facets_check = model->getFacetsCheck();
+    Array<bool> & facets_check = model->getFacetsCheck(type_facet);
     Array<bool> & f_insertion = facet_insertion(type_facet);
     Array<UInt> & f_filter = facet_filter(type_facet);
     Array<Real> & sig_c_eff = sigma_c_eff(type_cohesive);
@@ -190,7 +190,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
 								   ElementType type_facet) {
   AKANTU_DEBUG_IN();
 
-  Array<bool> & facets_check = model->getFacetsCheck();
+  Array<bool> & facets_check = model->getFacetsCheck(type_facet);
   Array<UInt> & f_filter = facet_filter(type_facet);
 
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
@@ -210,38 +210,35 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
     tangents.begin(spatial_dimension);
 
   Array<Real>::const_iterator< Matrix<Real> > facet_stress_it =
-    facet_stress.begin(spatial_dimension, spatial_dimension);
+    facet_stress.begin(spatial_dimension, spatial_dimension * 2);
 
   Array<Real>::iterator<Vector<Real> > normal_stress_it =
     normal_stress.begin(spatial_dimension);
 
   UInt facet_index = 0;
   UInt facet = f_filter(facet_index);
-  UInt nq2 = nb_quad_facet * 2;
   Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
 
   for (UInt f = 0; f < nb_facet; ++f) {
 
     if (f == facet) {
       for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it,
-	     ++stress_check_it, ++normal_stress_it) {
+	     ++stress_check_it, ++normal_stress_it, ++facet_stress_it) {
 
 	if (facets_check(facet) == true) {
 
 	  /// compute average stress
 	  stress_tmp.clear();
 
-	  for (UInt p = 0; p < 2; ++p, ++facet_stress_it)
-	    stress_tmp += *facet_stress_it;
-
-	  stress_tmp /= 2.;
+	  for (UInt i = 0; i < spatial_dimension; ++i)
+	    for (UInt j = 0; j < spatial_dimension; ++j)
+	      stress_tmp(i, j) = ( (*facet_stress_it)(i, j)
+				   + (*facet_stress_it)(i, j + spatial_dimension) ) / 2.;
 
 	  /// compute normal, tangential and effective stress
 	  computeEffectiveNorm(stress_tmp, *normal_it, *tangent_it,
 			       *normal_stress_it, *stress_check_it);
 	}
-	else
-	  facet_stress_it += 2;
 
       }
       ++facet_index;
@@ -251,7 +248,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
     else {
       normal_it += nb_quad_facet;
       tangent_it += nb_quad_facet;
-      facet_stress_it += nq2;
+      facet_stress_it += nb_quad_facet;
     }
   }
 

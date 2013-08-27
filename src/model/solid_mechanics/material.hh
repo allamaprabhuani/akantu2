@@ -149,7 +149,8 @@ public:
    * interpolate stress on given positions for each element by means
    * of a geometrical interpolation on quadrature points
    */
-  virtual void interpolateStress(ByElementTypeReal & result);
+  virtual void interpolateStress(ByElementTypeReal & result,
+				 const GhostType ghost_type = _not_ghost);
 
   /**
    * function to initialize the elemental field interpolation
