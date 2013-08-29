@@ -41,12 +41,16 @@ __BEGIN_AKANTU__
  * Material vreepeerlings
  *
  * parameters in the material files :
- *   - Kapa0i  : (default: 0.0001) Initial threshold (of the equivalent strain) for the initial step
- *   - Kapa0  : (default: 0.0001) Initial threshold (of the equivalent strain)
- *   - Alpha  : (default: 0.99) Fitting parameter (must be close to 1 to do tend to 0 the stress in the damaged element)
- *   - Beta   : (default: 300) This parameter determines the rate at which the damage grows 
- *   - Kct    : (default: 1) Ratio between compressive and tensile strength
- *   - Kapa0_randomness  : (default:0) Kapa random internal variable
+ *   - Kapaoi  : (default: 0.0001) Initial threshold (of the equivalent strain) >= Crate
+ *   - Kapac  : (default: 0.0002) Final threshold (of the equivalent strain)
+ *   - Arate  : (default: 1.) Fitting parameter (must be close to 1 to do tend to 0 the stress in the damaged element)
+ *   - Brate   : (default: 1.) This parameter determines the rate at which the damage grows
+ *   - Crate   : (default: 0.0001) This parameter determines the rate at which the damage grows
+ *   - Kct    : (default: 1.) Ratio between compressive and tensile strength
+ *   - Kapao_randomness  : (default:0.) Kapaoi random internal variable
+ *   - Wf_vrplgs_ko_min : (default:1.) Parameter Kapa_o_min in the Weibulls law used for randomness on Kapaoi
+ *   - Wf_vrplgs_lambda : (default:1.) 
+ *   - Wf_vrplgs_mw     : (default:1.) 
  */
 template<UInt spatial_dimension, template <UInt> class MatParent = MaterialElastic>
 class MaterialVreePeerlings : public MaterialDamage<spatial_dimension,
@@ -81,10 +85,9 @@ protected:
 				  Real & Kapaq,
 				  Real dt,
 				  Matrix<Real> & strain_rate_vrpgls,
-				  Real & crit_strain,
-				  Real & crit_strain_rate,
-				  Real & recorder_damage,
-				  Real & number_damage);
+				  Real & FullDam_ValStrain,
+				  Real & FullDam_ValStrain_rate,
+				  Real & Nb_damage);
 
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma,
 					   Real & dam,
@@ -92,10 +95,9 @@ protected:
 					   Real & Equistrain,
 					   Real & Kapaq,
 					   Real dt,
-					   Real & crit_strain,
-					   Real & crit_strain_rate,
-					   Real & recorder_damage,
-					   Real & number_damage);
+					   Real & FullDam_Valstrain,
+					   Real & FullDam_Valstrain_rate,
+					   Real & Nb_damage);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -107,45 +109,54 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// Initial threshold (of the equivalent strain) (used in the initial step)
-  Real Kapa0i;
+  Real Kapaoi;
 
-  /// Initial threshold (of the equivalent strain)
-  Real Kapa0;
+  /// Final threshold (of the equivalent strain) (used in the initial step)
+  Real Kapac;
 
-  /// Fitting parameter (must be close to 1 to do tend to 0 the stress in the damaged element)
-  Real Alpha;
+  /// This parameter determines the rate at which the damage grows
+  Real Arate;
 
   /// This parameter determines the rate at which the damage grows 
-  Real Beta;
+  Real Brate;
+
+  /// This parameter determines the rate at which the damage grows 
+  Real Crate;
 
   /// Ratio between compressive and tensile strength
   Real Kct;
 
-  /// randomness on Kapa0
-  Real Kapa0_randomness;
+  /// Randomness on Kapaoi
+  Real Kapao_randomness;
 
-  /// Kapa random internal variable
+  /// Parameter Wf_vrplgs_kapao_min in the Weibulls law used for randomness on Kapaoi
+  Real Wf_vrplgs_ko_min;
+
+  /// Parameter Wf_vrplgs_lambda in the Weibulls law used for randomness on Kapaoi
+  Real Wf_vrplgs_lambda;
+
+  /// Parameter Wf_vrplgs_mw in the Weibulls law used for randomness on Kapaoi
+  Real Wf_vrplgs_mw;
+ 
+  /// Kapa vector which contains the initial damage threshold
   ByElementTypeReal Kapa;
 
-  /// strain_rate_vreepeerlings
+  /// Strain rate tensor to compute the rate dependent damage law
   ByElementTypeReal strain_rate_vreepeerlings;
 
- /// strain_critical_vreepeerlings
-  ByElementTypeReal critical_strain;
+  /// Value of the equivalent strain when damage = 1
+  ByElementTypeReal Full_dam_value_strain;
 
- /// strain_critical_rate_vreepeerlings
-  ByElementTypeReal critical_strain_rate;
+  /// Value of the equivalent strain rate when damage = 1
+  ByElementTypeReal Full_dam_value_strain_rate;
 
-  /// Recorder damage 1
-  ByElementTypeReal recorder_damage;
+  /// Count the number of times that the material is damaged to damage = 0 until damage = 1
+  ByElementTypeReal Number_damage;
 
-  /// counter times damage
-  ByElementTypeReal number_damage;
-
-  /// equivalent strain used to compute the criteria for damage evolution
+  /// Equivalent strain used to compute the damage evolution
   ByElementTypeReal equi_strain;
 
-  /// equivalent strain rate used to compute the criteria for damage evolution
+  /// Equivalent strain rate used to compute the damage evolution
   ByElementTypeReal equi_strain_rate;
 };
 
@@ -159,3 +170,4 @@ protected:
 __END_AKANTU__
 
 #endif /* __AKANTU_MATERIAL_VREEPEERLINGS_HH__ */
+

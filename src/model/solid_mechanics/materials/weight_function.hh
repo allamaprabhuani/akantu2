@@ -132,12 +132,34 @@ public:
   inline Real operator()(Real r, __attribute__((unused)) QuadraturePoint & q1, QuadraturePoint & q2) {
     UInt quad = q2.global_num;
     Real D = (*selected_damage)(quad);
-    Real Radius = (1.-D)*(1.-D) * this->R2;
-    if(Radius < Math::getTolerance()) {
-      Radius = 0.01 * 0.01 * this->R2;
+    Real Radius_t = 0;
+    Real Radius_init = this->R2;
+
+//    if(D <= 0.5)
+//      {
+//	Radius_t = 2*D*Radius_init;
+//      }
+//    else
+//      {
+//	Radius_t = 2*Radius_init*(1-D);
+//      }
+//
+
+	Radius_t = Radius_init*(1-D);
+
+
+    Radius_init *= Radius_init;
+    Radius_t *= Radius_t;
+
+    if(Radius_t < Math::getTolerance()) {
+      Radius_t = 0.001*Radius_init;
     }
-    Real alpha = std::max(0., 1. - r*r / Radius);
-    Real w = alpha * alpha;
+
+    Real expb = (2*std::log(0.51))/(std::log(1.0-0.49*Radius_t/Radius_init));
+    Int  expb_floor=std::floor(expb);
+    Real b = expb_floor + expb_floor%2;
+    Real alpha = std::max(0., 1. - r*r / Radius_init);
+    Real w = std::pow(alpha,b);
     return w;
   }
 

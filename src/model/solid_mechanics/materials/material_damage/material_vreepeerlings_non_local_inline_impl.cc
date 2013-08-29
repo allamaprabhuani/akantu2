@@ -140,24 +140,23 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>
   //Real * equi_strain_rate_nl = this->equi_strain_rate(el_type, ghost_type).storage();
 
   Real dt = this->model->getTimeStep();
-  Real * crit_strain = this->critical_strain(el_type, ghost_type).storage();
-  Real * crit_strain_rate = this->critical_strain_rate(el_type, ghost_type).storage();
-  Real * rdr_damage = this->recorder_damage(el_type, ghost_type).storage();
-  Real  * nb_damage = this->number_damage(el_type, ghost_type).storage();
+  Real * FullDam_Valstrain = this->Full_dam_value_strain(el_type, ghost_type).storage();
+  Real * FullDam_Valstrain_rate = this->Full_dam_value_strain_rate(el_type, ghost_type).storage();
+  Real  * Nb_damage = this->Number_damage(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  this->computeDamageAndStressOnQuad(sigma, *dam, *equi_strain_nl, *equi_strain_rate_nl, *Kapaq, dt, *crit_strain, *crit_strain_rate, *rdr_damage, *nb_damage);
+  this->computeDamageAndStressOnQuad(sigma, *dam, *equi_strain_nl, *equi_strain_rate_nl, *Kapaq, dt, *FullDam_Valstrain, *FullDam_Valstrain_rate, *Nb_damage);
   ++dam;
   ++equi_strain_nl;
   ++equi_strain_rate_nl;
   ++Kapaq;
-  ++crit_strain;
-  ++crit_strain_rate;
-  ++rdr_damage;
-  ++nb_damage;
+  ++FullDam_Valstrain;
+  ++FullDam_Valstrain_rate;
+  ++Nb_damage;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }
+

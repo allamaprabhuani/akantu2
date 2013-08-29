@@ -145,7 +145,15 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       memset(nb_ghost_element, 0, nb_proc*sizeof(UInt));
       memset(nb_element_to_send, 0, nb_proc*sizeof(UInt));
 
-      const Array<UInt> & partition_num = partition->getPartition(type, _not_ghost);
+      /// \todo change this ugly way to avoid a problem if an element
+      /// type is present in the mesh but not in the partitions
+      const Array<UInt> * tmp_partition_num = NULL;
+      try {
+	 tmp_partition_num = &partition->getPartition(type, _not_ghost);
+      } catch(...) {
+	continue;
+      }
+      const Array<UInt> & partition_num = *tmp_partition_num;
 
       const CSR<UInt> & ghost_partition = partition->getGhostPartitionCSR()(type, _not_ghost);
       //      const Array<UInt> & ghost_partition = partition->getGhostPartition(type, _ghost);
