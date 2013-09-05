@@ -51,7 +51,7 @@ void DumperText::registerMesh(const Mesh & mesh,
 			      const GhostType & ghost_type,
 			      const ElementKind & element_kind) {
 
-  registerField("positions",
+  registerField("position",
 		new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
 
   // in parallel we need node type
@@ -70,7 +70,7 @@ void DumperText::registerFilteredMesh(const Mesh & mesh,
 				      const GhostType & ghost_type,
 				      const ElementKind & element_kind) {
 
-  registerField("positions",
+  registerField("position",
 		new DumperIOHelper::NodalField<Real,
 					       true>(mesh.getNodes(),
 						     0,
