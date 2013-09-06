@@ -192,7 +192,6 @@ function(register_test test_name)
     add_executable(${test_name} ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS})
     set_property(TARGET ${test_name}  APPEND
       PROPERTY INCLUDE_DIRECTORIES ${AKANTU_INCLUDE_DIRS} ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR})
-    message(${AKANTU_EXTERNAL_LIBRARIES})
     target_link_libraries(${test_name} akantu ${AKANTU_EXTERNAL_LIBRARIES})
 
     if(register_test_COMPILE_OPTIONS)
