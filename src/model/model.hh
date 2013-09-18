@@ -80,8 +80,8 @@ public:
   void createSynchronizerRegistry(DataAccessor * data_accessor);
 
   /// create a parallel synchronizer and distribute the mesh
-  Synchronizer & createParallelSynch(MeshPartition * partition,
-                                     DataAccessor * data_accessor);
+  DistributedSynchronizer & createParallelSynch(MeshPartition * partition,
+						DataAccessor * data_accessor);
 
   /// change local equation number so that PBC is assembled properly
   void changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,UInt dimension);
@@ -170,42 +170,6 @@ public:
 protected:
   /// returns if node is slave in pbc
   inline bool getIsPBCSlaveNode(const UInt node);
-
-public:
-  template<typename T>
-  inline void packElementalDataHelper(const ByElementTypeArray<T> & data_to_pack,
-                                      CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      bool per_quadrature_point = true,
-				      const ID & fem_id = ID()) const;
-  template<typename T>
-  inline void unpackElementalDataHelper(ByElementTypeArray<T> & data_to_unpack,
-                                        CommunicationBuffer & buffer,
-                                        const Array<Element> & elements,
-                                        bool per_quadrature_point = true,
-					const ID & fem_id = ID()) const;
-
-protected:
-  template<typename T, bool pack_helper>
-  inline void packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to_pack,
-                                            CommunicationBuffer & buffer,
-                                            const Array<Element> & element,
-                                            bool per_quadrature_point,
-					    const ID & fem_id) const;
-
-  /* -------------------------------------------------------------------------- */
-  template<typename T>
-  inline void packNodalDataHelper(Array<T> & data_to_pack,
-                                  CommunicationBuffer & buffer,
-                                  const Array<Element> & element) const;
-  template<typename T>
-  inline void unpackNodalDataHelper(Array<T> & data_to_unpack,
-                                    CommunicationBuffer & buffer,
-                                    const Array<Element> & element) const;
-  template<typename T, bool pack_helper>
-  inline void packUnpackNodalDataHelper(Array<T> & data,
-                                        CommunicationBuffer & buffer,
-                                        const Array<Element> & elements) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

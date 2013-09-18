@@ -67,6 +67,7 @@ set(AKANTU_CORE_FILES
   synchronizer/synchronizer_registry.cc
   synchronizer/synchronizer.cc
   synchronizer/distributed_synchronizer.cc
+  synchronizer/filtered_synchronizer.cc
   synchronizer/pbc_synchronizer.cc
   synchronizer/data_accessor.cc
   synchronizer/static_communicator.cc
@@ -89,6 +90,7 @@ set(AKANTU_CORE_FILES
   synchronizer/static_communicator_inline_impl.hh
   synchronizer/distributed_synchronizer.hh
   synchronizer/distributed_synchronizer_tmpl.hh
+  synchronizer/filtered_synchronizer.hh
   synchronizer/pbc_synchronizer.hh
   synchronizer/static_communicator.hh
   synchronizer/dof_synchronizer.hh
@@ -153,6 +155,7 @@ set(AKANTU_CORE_FILES
   mesh_utils/mesh_utils_inline_impl.cc
   solver/sparse_matrix_inline_impl.cc
   synchronizer/dof_synchronizer_inline_impl.cc
+  synchronizer/data_accessor_inline_impl.cc
   synchronizer/communication_buffer_inline_impl.cc
   common/aka_common_inline_impl.cc
   common/aka_memory_inline_impl.cc

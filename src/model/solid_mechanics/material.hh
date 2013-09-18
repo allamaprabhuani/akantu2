@@ -338,7 +338,7 @@ public:
   inline void unpackElementDataHelper(ByElementTypeArray<T> & data_to_unpack,
                                       CommunicationBuffer & buffer,
                                       const Array<Element> & elements,
-                                      const ID & fem_id = ID()) const;
+                                      const ID & fem_id = ID());
 
 public:
   /* ------------------------------------------------------------------------ */

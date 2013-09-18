@@ -500,6 +500,9 @@ public:
   /// get access to the internal solver
   AKANTU_GET_MACRO(Solver, *solver, Solver &);
 
+  /// get synchronizer
+  AKANTU_GET_MACRO(Synchronizer, *synch_parallel, const DistributedSynchronizer &);
+
 protected:
   /// compute the stable time step
   Real getStableTimeStep(const GhostType & ghost_type);
@@ -581,7 +584,7 @@ protected:
 
   AnalysisMethod method;
 
-  Synchronizer * synch_parallel;
+  DistributedSynchronizer * synch_parallel;
 };
 
 __END_AKANTU__

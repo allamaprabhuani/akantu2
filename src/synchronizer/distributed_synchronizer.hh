@@ -207,6 +207,7 @@ protected:
   UInt nb_proc;
   UInt rank;
 
+  friend class FilteredSynchronizer;
   friend class FacetSynchronizer;
 
 };

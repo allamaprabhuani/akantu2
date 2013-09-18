@@ -183,19 +183,16 @@ inline void HeatTransferModel::packElementData(CommunicationBuffer & buffer,
 
   switch (tag){
   case _gst_htm_capacity: {
-    packNodalDataHelper(*capacity_lumped, buffer, elements);
+    packNodalDataHelper(*capacity_lumped, buffer, elements, mesh);
     break;
   }
   case _gst_htm_temperature: {
-    packNodalDataHelper(*temperature, buffer, elements);
+    packNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
   }
   case _gst_htm_gradient_temperature: {
-    packElementalDataHelper(temperature_gradient, buffer, elements);
-    packNodalDataHelper(*temperature, buffer, elements);
-    // Array<Real>::const_iterator< Matrix<Real> > it_shaped =
-    //   getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
-    // buffer << it_shaped[element.element];
+    packElementalDataHelper(temperature_gradient, buffer, elements, true, getFEM());
+    packNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
   }
   default: {
@@ -247,16 +244,16 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
 
   switch (tag){
   case _gst_htm_capacity: {
-    unpackNodalDataHelper(*capacity_lumped, buffer, elements);
+    unpackNodalDataHelper(*capacity_lumped, buffer, elements, mesh);
     break;
   }
   case _gst_htm_temperature: {
-    unpackNodalDataHelper(*temperature, buffer, elements);
+    unpackNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
   }
   case _gst_htm_gradient_temperature: {
-    unpackElementalDataHelper(temperature_gradient, buffer, elements);
-    unpackNodalDataHelper(*temperature, buffer, elements);
+    unpackElementalDataHelper(temperature_gradient, buffer, elements, true, getFEM());
+    unpackNodalDataHelper(*temperature, buffer, elements, mesh);
 
     // //    Real tolerance = 1e-15;
     // if (!Math::are_vector_equal(spatial_dimension,gtemp.storage(),it_gtemp[element.element].storage())){

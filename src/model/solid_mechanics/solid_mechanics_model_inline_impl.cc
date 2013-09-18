@@ -158,21 +158,21 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
   switch(tag) {
 
   case _gst_material_id: {
-    packElementalDataHelper(element_index_by_material, buffer, elements, false);
+    packElementalDataHelper(element_index_by_material, buffer, elements, false, getFEM());
     break;
   }
   case _gst_smm_mass: {
-    packNodalDataHelper(*mass, buffer, elements);
+    packNodalDataHelper(*mass, buffer, elements, mesh);
     break;
   }
   case _gst_smm_for_strain: {
-    packNodalDataHelper(*displacement, buffer, elements);
+    packNodalDataHelper(*displacement, buffer, elements, mesh);
     break;
   }
   case _gst_smm_boundary: {
-    packNodalDataHelper(*force, buffer, elements);
-    packNodalDataHelper(*velocity, buffer, elements);
-    packNodalDataHelper(*boundary, buffer, elements);
+    packNodalDataHelper(*force, buffer, elements, mesh);
+    packNodalDataHelper(*velocity, buffer, elements, mesh);
+    packNodalDataHelper(*boundary, buffer, elements, mesh);
     break;
   }
   default: {
@@ -233,21 +233,22 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_material_id: {
-    unpackElementalDataHelper(element_index_by_material, buffer, elements, false);
+    unpackElementalDataHelper(element_index_by_material, buffer, elements,
+			      false, getFEM());
     break;
   }
   case _gst_smm_mass: {
-    unpackNodalDataHelper(*mass, buffer, elements);
+    unpackNodalDataHelper(*mass, buffer, elements, mesh);
     break;
   }
   case _gst_smm_for_strain: {
-    unpackNodalDataHelper(*displacement, buffer, elements);
+    unpackNodalDataHelper(*displacement, buffer, elements, mesh);
     break;
   }
   case _gst_smm_boundary: {
-    unpackNodalDataHelper(*force, buffer, elements);
-    unpackNodalDataHelper(*velocity, buffer, elements);
-    unpackNodalDataHelper(*boundary, buffer, elements);
+    unpackNodalDataHelper(*force, buffer, elements, mesh);
+    unpackNodalDataHelper(*velocity, buffer, elements, mesh);
+    unpackNodalDataHelper(*boundary, buffer, elements, mesh);
     break;
   }
   default: {

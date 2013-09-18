@@ -329,7 +329,9 @@ enum SynchronizationTag {
   _gst_mnl_weight,       //< synchronization of data for the weight computations
   //--- General tags ---
   _gst_test,             //< Test tag
-  _gst_material_id       //< synchronization of the material ids
+  _gst_material_id,      //< synchronization of the material ids
+  //--- Contact & Friction ---
+  _gst_cf_nodal          //< synchronization of disp, velo, and current position
 };
 
 /// standard output stream operator for SynchronizationTag

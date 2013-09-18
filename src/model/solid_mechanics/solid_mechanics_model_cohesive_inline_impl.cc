@@ -155,11 +155,13 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
     switch(tag) {
 
     case _gst_smmc_facets: {
-      packElementalDataHelper(facet_insertion, buffer, elements, false);
+      packElementalDataHelper(facet_insertion, buffer, elements,
+			      false, getFEM());
       break;
     }
     case _gst_smmc_normals: {
-      packElementalDataHelper(*facet_normals, buffer, elements, false);
+      packElementalDataHelper(*facet_normals, buffer, elements,
+			      false, getFEM());
       break;
     }
     case _gst_smmc_facets_stress: {
@@ -180,13 +182,13 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
     case _gst_material_id: {
       packElementalDataHelper(element_index_by_material, buffer,
-			      elements, false, "CohesiveFEM");
+			      elements, false, getFEM("CohesiveFEM"));
       break;
     }
     case _gst_smm_boundary: {
-      packNodalDataHelper(*force, buffer, elements);
-      packNodalDataHelper(*velocity, buffer, elements);
-      packNodalDataHelper(*boundary, buffer, elements);
+      packNodalDataHelper(*force, buffer, elements, mesh);
+      packNodalDataHelper(*velocity, buffer, elements, mesh);
+      packNodalDataHelper(*boundary, buffer, elements, mesh);
       break;
     }
     default: { }
@@ -226,11 +228,13 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 
     switch(tag) {
     case _gst_smmc_facets: {
-      unpackElementalDataHelper(facet_insertion, buffer, elements, false);
+      unpackElementalDataHelper(facet_insertion, buffer, elements,
+				false, getFEM());
       break;
     }
     case _gst_smmc_normals: {
-      unpackElementalDataHelper(*facet_normals, buffer, elements, false);
+      unpackElementalDataHelper(*facet_normals, buffer, elements,
+				false, getFEM());
       break;
     }
     case _gst_smmc_facets_stress: {
@@ -250,13 +254,13 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
     switch(tag) {
     case _gst_material_id: {
       unpackElementalDataHelper(element_index_by_material, buffer,
-				elements, false, "CohesiveFEM");
+				elements, false, getFEM("CohesiveFEM"));
       break;
     }
     case _gst_smm_boundary: {
-      unpackNodalDataHelper(*force, buffer, elements);
-      unpackNodalDataHelper(*velocity, buffer, elements);
-      unpackNodalDataHelper(*boundary, buffer, elements);
+      unpackNodalDataHelper(*force, buffer, elements, mesh);
+      unpackNodalDataHelper(*velocity, buffer, elements, mesh);
+      unpackNodalDataHelper(*boundary, buffer, elements, mesh);
       break;
     }
     default: { }

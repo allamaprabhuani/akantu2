@@ -479,7 +479,8 @@ inline void Material::packElementDataHelper(const ByElementTypeArray<T> & data_t
 					    CommunicationBuffer & buffer,
 					    const Array<Element> & elements,
 					    const ID & fem_id) const {
-  model->packElementalDataHelper<T>(data_to_pack, buffer, elements, true, fem_id);
+  DataAccessor::packElementalDataHelper<T>(data_to_pack, buffer, elements, true, 
+					   model->getFEM(fem_id));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -487,8 +488,9 @@ template<typename T>
 inline void Material::unpackElementDataHelper(ByElementTypeArray<T> & data_to_unpack,
 					      CommunicationBuffer & buffer,
 					      const Array<Element> & elements,
-					      const ID & fem_id) const {
-  model->unpackElementalDataHelper<T>(data_to_unpack, buffer, elements, true, fem_id);
+					      const ID & fem_id) {
+  DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements, true,
+					     model->getFEM(fem_id));
 }
 
 /* -------------------------------------------------------------------------- */

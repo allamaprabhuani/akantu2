@@ -109,6 +109,7 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
     case _gst_mnl_weight               : stream << "_gst_mnl_weight"	   	  ; break;
     case _gst_test                     : stream << "_gst_test"                    ; break;
     case _gst_material_id              : stream << "_gst_material_id"             ; break;
+    case _gst_cf_nodal                 : stream << "_gst_cf_nodal"                ; break;
     }
   return stream;
 }

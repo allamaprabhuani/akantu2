@@ -37,6 +37,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
+#include "fem.hh"
 #include "communication_buffer.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -121,6 +122,67 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
+public:
+  template<typename T>
+  static inline void packNodalDataHelper(const Array<T> & data,
+					 CommunicationBuffer & buffer,
+					 const Array<Element> & elements,
+					 const Mesh & mesh) {
+    packUnpackNodalDataHelper<T, true>(const_cast<Array<T> &>(data), 
+				       buffer, 
+				       elements, 
+				       mesh);
+  }
+
+  template<typename T>
+  static inline void unpackNodalDataHelper(Array<T> & data,
+					   CommunicationBuffer & buffer,
+					   const Array<Element> & elements,
+					   const Mesh & mesh) {
+    packUnpackNodalDataHelper<T, false>(data, 
+					buffer, 
+					elements, 
+					mesh);
+  }
+
+  template<typename T, bool pack_helper>
+  static inline void packUnpackNodalDataHelper(Array<T> & data,
+					       CommunicationBuffer & buffer,
+					       const Array<Element> & elements,
+					       const Mesh & mesh);
+
+  template<typename T, bool pack_helper>
+  static inline void packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to_pack,
+						   CommunicationBuffer & buffer,
+						   const Array<Element> & element,
+						   bool per_quadrature_point_data,
+						   const FEM & fem);
+
+  template<typename T>
+  static inline void packElementalDataHelper(const ByElementTypeArray<T> & data_to_pack,
+					     CommunicationBuffer & buffer,
+					     const Array<Element> & elements,
+					     bool per_quadrature_point,
+					     const FEM & fem) {
+    packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeArray<T> &>(data_to_pack),
+					   buffer,
+					   elements,
+					   per_quadrature_point,
+					   fem);
+  }
+  
+  template<typename T>
+  inline void unpackElementalDataHelper(ByElementTypeArray<T> & data_to_unpack,
+                                        CommunicationBuffer & buffer,
+                                        const Array<Element> & elements,
+                                        bool per_quadrature_point,
+					const FEM & fem) {
+    packUnpackElementalDataHelper<T, false>(data_to_unpack,
+					    buffer,
+					    elements,
+					    per_quadrature_point,
+					    fem);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -139,7 +201,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "data_accessor_inline_impl.cc"
+#include "data_accessor_inline_impl.cc"
 
 // /// standard output stream operator
 // inline std::ostream & operator <<(std::ostream & stream, const DataAccessor & _this)

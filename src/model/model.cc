@@ -103,8 +103,8 @@ void Model::initPBC() {
 }
 
 /* -------------------------------------------------------------------------- */
-Synchronizer & Model::createParallelSynch(MeshPartition * partition,
-					  __attribute__((unused)) DataAccessor * data_accessor){
+DistributedSynchronizer & Model::createParallelSynch(MeshPartition * partition,
+						     __attribute__((unused)) DataAccessor * data_accessor){
   AKANTU_DEBUG_IN();
   /* ------------------------------------------------------------------------ */
   /* Parallel initialization                                                  */
