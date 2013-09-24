@@ -2,6 +2,7 @@
  * @file   boundary.cc
  *
  * @author Dana Christen <dana.christen@gmail.com>
+ * @author David Kammer <david.kammer@epfl.ch>
  *
  * @date   Wed Mar 06 09:30:00 2013
  *
@@ -40,8 +41,11 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Boundary::Boundary(const Mesh & mesh, const ID & id, const ID & parent_id, const MemoryID & mem_id)
-:memory_id(mem_id), mesh(mesh)
+Boundary::Boundary(const Mesh & mesh, 
+		   const ID & id, 
+		   const ID & parent_id, 
+		   const MemoryID & mem_id)
+: memory_id(mem_id), mesh(mesh)
 {
   AKANTU_DEBUG_IN();
 
@@ -56,27 +60,63 @@ Boundary::Boundary(const Mesh & mesh, const ID & id, const ID & parent_id, const
 
 /* -------------------------------------------------------------------------- */
 Boundary::~Boundary() {
-  for(BoundaryList::iterator boundaries_iter = boundaries.begin(); boundaries_iter != boundaries.end(); boundaries_iter++)
-  {
-    delete boundaries_iter->second;
+  AKANTU_DEBUG_IN();
+  
+  this->removeAllSubBoundaries();
+  
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Boundary::removeSubBoundary(const std::string & name) {
+  AKANTU_DEBUG_IN();
+  
+  BoundaryList::iterator b_it = this->boundaries.find(name);
+  AKANTU_DEBUG_ASSERT(b_it != this->boundaries.end(), 
+		      "Cannot remove SubBoundary: " << name << 
+		      " because it does not exist in this Boundary.");
+  
+  // delete the subboundary object
+  delete b_it->second;
+  
+  // delete it from the boundaries (list)
+  this->boundaries.erase(b_it);
+  
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Boundary::removeAllSubBoundaries() {
+  AKANTU_DEBUG_IN();
+  
+  while (this->boundaries.size() != 0) {
+    this->removeSubBoundary(this->boundaries.begin()->first);
   }
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 Boundary::BoundaryTypeSet Boundary::getBoundaryElementTypes() {
+  AKANTU_DEBUG_IN();
 
   // find surface element type that exists in this mesh (from David's code)
   UInt dim = mesh.getSpatialDimension();
   BoundaryTypeSet surface_types;
+  
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
-  for (Mesh::ConnectivityTypeList::const_iterator it = type_list.begin(); it != type_list.end(); ++it)
-  {
+  
+  for (Mesh::ConnectivityTypeList::const_iterator it = type_list.begin();
+       it != type_list.end();
+       ++it) {
     ElementType surface_type = mesh.getFacetType(*it);
-    if (mesh.getSpatialDimension(*it) == dim &&	mesh.getNbElement(surface_type) != 0)
-    {
+    if (mesh.getSpatialDimension(*it) == dim 
+	&& mesh.getNbElement(surface_type) != 0) {
       surface_types.insert(surface_type);
     }
   }
+  
+  AKANTU_DEBUG_OUT();
   return surface_types;
 }
 

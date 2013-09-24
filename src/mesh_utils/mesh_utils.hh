@@ -64,15 +64,18 @@ public:
 public:
 
   /// build map from nodes to elements
-  static void buildNode2Elements(const Mesh & mesh, CSR<UInt> & node_to_elem, UInt spatial_dimension = _all_dimensions);
-  static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem, UInt spatial_dimension = _all_dimensions);
-
-  //  static void buildNode2Elements(const Mesh & mesh, Array<UInt> & node_offset, Array<UInt> & node_to_elem, UInt spatial_dimension = _all_dimensions);
+  static void buildNode2Elements(const Mesh & mesh, 
+				 CSR<UInt> & node_to_elem,
+				 UInt spatial_dimension = _all_dimensions);
+  static void buildNode2Elements(const Mesh & mesh,
+				 CSR<Element> & node_to_elem,
+				 UInt spatial_dimension = _all_dimensions);
 
   /// build map from nodes to elements for a specific element type
-  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, CSR<UInt> & node_to_elem);
-
-  //  static void buildNode2ElementsByElementType(const Mesh & mesh, ElementType type, Array<UInt> & node_offset, Array<UInt> & node_to_elem);
+  static void buildNode2ElementsByElementType(const Mesh & mesh,
+					      CSR<UInt> & node_to_elem,
+					      const ElementType & type,
+					      const GhostType & ghost_type = _not_ghost);
 
   /// build facets elements on boundary
   static void buildFacets(Mesh & mesh);

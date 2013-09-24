@@ -61,6 +61,9 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
                                          const EdgeLoadFunctor & edge_load_func,
                                          const Array<UInt> & pairs) {
   AKANTU_DEBUG_IN();
+
+  tweakConnectivity(pairs);
+
   nb_partitions = nb_part;
   GhostType ghost_type = _not_ghost;
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -79,7 +82,11 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
     const Array<UInt> & partition_array = (*partition_mapping)(type, ghost_type);
     Array<UInt>::const_iterator< Vector<UInt> > p_it = partition_array.begin(1);
     Array<UInt>::const_iterator< Vector<UInt> > p_end = partition_array.end(1);
-    AKANTU_DEBUG_ASSERT(p_end-p_it == mesh.getNbElement(type, ghost_type), "The partition mapping does not have the right number of entries for type " << type << " and ghost type " << ghost_type << ".");
+    AKANTU_DEBUG_ASSERT(p_end-p_it == mesh.getNbElement(type, ghost_type),
+			"The partition mapping does not have the right number " 
+			<< "of entries for type " << type << " and ghost type " 
+			<< ghost_type << "." << " Tags=" << p_end-p_it 
+			<< " Mesh=" << mesh.getNbElement(type, ghost_type));
     for(; p_it != p_end; ++p_it, ++linearized_el) {
       partition_list[linearized_el] = (*p_it)(0);
     }
@@ -88,6 +95,8 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
   fillPartitionInformation(mesh, partition_list);
 
   delete[] partition_list;
+
+  restoreConnectivity();
 
   AKANTU_DEBUG_OUT();
 }

@@ -240,13 +240,15 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
 
   nb_partitions = nb_part;
 
+  tweakConnectivity(pairs);
+
   AKANTU_DEBUG_INFO("Partitioning the mesh " << mesh.getID()
 		    << " in " << nb_part << " parts.");
 
   Array<Int> dxadj;
   Array<Int> dadjncy;
   Array<Int> edge_loads;
-  buildDualGraph(dxadj, dadjncy, edge_loads, edge_load_func, pairs);
+  buildDualGraph(dxadj, dadjncy, edge_loads, edge_load_func);
 
   /// variables that will hold our structures in scotch format
   SCOTCH_Graph   scotch_graph;
@@ -363,6 +365,9 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
   fillPartitionInformation(mesh, parttab);
 
   delete [] parttab;
+
+  restoreConnectivity();
+
   AKANTU_DEBUG_OUT();
 }
 

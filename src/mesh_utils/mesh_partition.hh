@@ -90,8 +90,12 @@ protected:
   /// build the dual graph of the mesh, for all element of spatial_dimension
   void buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
 		      Array<Int> & edge_loads,
-		      const EdgeLoadFunctor & edge_load_func,
-		      const Array<UInt> & pairs);
+		      const EdgeLoadFunctor & edge_load_func);
+
+  /// tweak the mesh to handle the PBC pairs
+  void tweakConnectivity(const Array<UInt> & pairs);
+  /// restore the mesh that has been tweaked
+  void restoreConnectivity();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -132,6 +136,9 @@ protected:
   ByElementTypeUInt ghost_partitions_offset;
 
   Array<UInt> * permutation;
+
+  ByElementTypeUInt saved_connectivity;
+
 };
 
 

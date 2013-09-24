@@ -177,15 +177,16 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
-						ElementType type,
-						CSR<UInt> & node_to_elem) {
+						CSR<UInt> & node_to_elem,
+						const ElementType & type,
+						const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_elements = mesh.getConnectivity(type, _not_ghost).getSize();
+  UInt nb_elements = mesh.getConnectivity(type, ghost_type).getSize();
 
-  UInt * conn_val = mesh.getConnectivity(type, _not_ghost).values;
+  UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
 
   /// array for the node-element list
   node_to_elem.resizeRows(nb_nodes);

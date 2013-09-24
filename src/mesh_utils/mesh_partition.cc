@@ -43,7 +43,8 @@ MeshPartition::MeshPartition(const Mesh & mesh, UInt spatial_dimension,
   mesh(mesh), spatial_dimension(spatial_dimension),
   partitions             ("partition"             , id, memory_id),
   ghost_partitions       ("ghost_partition"       , id, memory_id),
-  ghost_partitions_offset("ghost_partition_offset", id, memory_id) {
+  ghost_partitions_offset("ghost_partition_offset", id, memory_id),
+  saved_connectivity("saved_connectivity", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -63,8 +64,7 @@ MeshPartition::~MeshPartition() {
  */
 void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
 				   Array<Int> & edge_loads,
-				   const EdgeLoadFunctor & edge_load_func,
-				   const Array<UInt> & pairs) {
+				   const EdgeLoadFunctor & edge_load_func) {
   AKANTU_DEBUG_IN();
 
   // tweak mesh;
@@ -72,7 +72,6 @@ void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
   UInt nb_types = type_list.size();
   UInt nb_good_types = 0;
 
-  UInt nb_nodes_per_element[nb_types];
   UInt nb_nodes_per_element_p1[nb_types];
 
   UInt magic_number[nb_types];
@@ -81,7 +80,6 @@ void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
   UInt nb_element[nb_types];
 
   Array<UInt> * conn[nb_types];
-  Array<UInt> * conn_tmp[nb_types];
 
   Array<Element> lin_to_element;
 
@@ -99,7 +97,6 @@ void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
 
     ElementType type_p1 = Mesh::getP1ElementType(type);
 
-    nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
     nb_nodes_per_element_p1[nb_good_types] = Mesh::getNbNodesPerElement(type_p1);
     nb_element[nb_good_types]              = mesh.getConnectivity(type, _not_ghost).getSize();
     magic_number[nb_good_types]            =
@@ -110,19 +107,6 @@ void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
     for (UInt i = 0; i < nb_element[nb_good_types]; ++i) {
       elem.element = i;
       lin_to_element.push_back(elem);
-    }
-
-
-    if(pairs.getSize() != 0) {
-      conn_tmp[nb_good_types] = new Array<UInt>(mesh.getConnectivity(type, _not_ghost));
-      for (UInt i = 0; i < pairs.getSize(); ++i) {
-	for (UInt el = 0; el < nb_element[nb_good_types]; ++el) {
-	  for (UInt n = 0; n < nb_nodes_per_element[nb_good_types]; ++n) {
-	    if(pairs(i, 1) == (*conn[nb_good_types])(el, n))
-	      (*conn[nb_good_types])(el, n) = pairs(i, 0);
-	  }
-	}
-      }
     }
 
     nb_good_types++;
@@ -202,13 +186,6 @@ void MeshPartition::buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
       }
 
       weight_map.clear();
-    }
-  }
-
-  if(pairs.getSize() != 0) {
-    for (UInt i = 0; i < nb_good_types; ++i) {
-      conn[i]->copy(*conn_tmp[i]);
-      delete conn_tmp[i];
     }
   }
 
@@ -376,5 +353,65 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
   }
   AKANTU_DEBUG_OUT();
 }
+
+
+/* -------------------------------------------------------------------------- */
+void MeshPartition::tweakConnectivity(const Array<UInt> & pairs) {
+  AKANTU_DEBUG_IN();
+
+  if(pairs.getSize() == 0) return;
+
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension,
+                                           _not_ghost,
+                                           _ek_not_defined);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension,
+                                          _not_ghost,
+                                          _ek_not_defined);
+
+  for(; it != end; ++it) {
+    ElementType type = *it;
+    
+    Array<UInt> & conn = const_cast<Array<UInt> &>(mesh.getConnectivity(type, _not_ghost));
+    UInt nb_nodes_per_element = conn.getNbComponent();
+    UInt nb_element           = conn.getSize();
+
+    Array<UInt> & saved_conn = saved_connectivity.alloc(nb_element, nb_nodes_per_element, type, _not_ghost);
+    saved_conn.copy(conn);
+
+    for (UInt i = 0; i < pairs.getSize(); ++i) {
+      for (UInt el = 0; el < nb_element; ++el) {
+	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	  if(pairs(i, 1) == conn(el, n))
+	    conn(el, n) = pairs(i, 0);
+	}
+      }
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MeshPartition::restoreConnectivity() {
+  AKANTU_DEBUG_IN();
+
+  ByElementTypeUInt::type_iterator it   = saved_connectivity.firstType(spatial_dimension,
+								       _not_ghost,
+								       _ek_not_defined);
+  ByElementTypeUInt::type_iterator end = saved_connectivity.lastType(spatial_dimension,
+								     _not_ghost,
+								     _ek_not_defined);
+  for(; it != end; ++it) {
+    ElementType type = *it;
+    
+    Array<UInt> & conn = const_cast<Array<UInt> &>(mesh.getConnectivity(type, _not_ghost));
+    Array<UInt> & saved_conn = saved_connectivity(type, _not_ghost);
+    conn.copy(saved_conn);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 
 __END_AKANTU__

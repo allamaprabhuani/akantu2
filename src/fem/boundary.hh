@@ -2,6 +2,7 @@
  * @file   boundary.hh
  *
  * @author Dana Christen <dana.christen@gmail.com>
+ * @author David Kammer <david.kammer@epfl.ch>
  *
  * @date   Wed Mar 06 09:30:00 2013
  *
@@ -99,22 +100,33 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-   Boundary(const Mesh & mesh, const ID & id = "boundary", const ID & parent_id = "", const MemoryID & memory_id = 0);
+   Boundary(const Mesh & mesh, 
+	    const ID & id = "boundary", 
+	    const ID & parent_id = "", 
+	    const MemoryID & memory_id = 0);
    ~Boundary();
 
   /* ------------------------------------------------------------------------ */
   /* Methods and accessors                                                    */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T> void createBoundariesFromMeshData(const std::string & dataset_name);
+  template <typename T> 
+  void createBoundariesFromMeshData(const std::string & dataset_name);
+  
   void createBoundariesFromMeshData(const std::string & dataset_name);
   void createBoundariesFromGeometry();
 
   /// Create a SubBoundary based on a node group
   void createSubBoundaryFromNodeGroup(const std::string & name,
 				      const Array<UInt> & node_group);
+  
   inline const SubBoundary & operator()(const std::string & name) const;
+  
   BoundaryTypeSet getBoundaryElementTypes();
+  
+  void removeSubBoundary(const std::string & name);
+  void removeAllSubBoundaries();
+
   AKANTU_GET_MACRO(NbBoundaries, boundaries.size(), UInt);
   void printself(std::ostream & stream) const;
   void dump();
