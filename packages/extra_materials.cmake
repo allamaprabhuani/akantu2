@@ -32,12 +32,14 @@ option(AKANTU_EXTRA_MATERIALS "Add the extra list of materials in Akantu" OFF)
 set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_neohookean.cc
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic.cc
   model/solid_mechanics/materials/material_damage/material_marigo.cc
   model/solid_mechanics/materials/material_damage/material_mazars.cc
   model/solid_mechanics/materials/material_damage/material_damage_linear.cc
 
   model/solid_mechanics/materials/material_extra_includes.hh
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic.hh
   model/solid_mechanics/materials/material_neohookean.hh
   model/solid_mechanics/materials/material_damage/material_damage.hh
   model/solid_mechanics/materials/material_damage/material_damage_tmpl.hh
