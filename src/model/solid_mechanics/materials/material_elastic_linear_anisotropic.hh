@@ -2,7 +2,6 @@
  * @file   material_elastic_orthotropic.hh
  *
  * @author Till Junge <till.junge@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date   Tue May 08 13:01:18 2012
  *
@@ -32,44 +31,34 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material_elastic_linear_anisotropic.hh"
+#include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH__
-#define __AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH__
+#ifndef __AKANTU_MATERIAL_ELASTIC_LINEAR_ANISOTROPIC_HH__
+#define __AKANTU_MATERIAL_ELASTIC_LINEAR_ANISOTROPIC_HH__
 
 __BEGIN_AKANTU__
 
 /**
- * Orthotropic elastic material
+ * General linear anisotropic elastic material
+ * The only constraint on the elastic tensor is that it can be represented
+ * as a symmetric 6x6 matrix (3D) or 3x3 (2D).
  *
  * parameters in the material files :
- *   - n1   : 1st material base vector (default: {1, 0, 0})
- *   - n2   : 2nd material base vector (default: {0, 1, 0})
- *   - n3   : 3rd material base vector (default: {0, 0, 1})
  *   - rho  : density (default: 0)
- *   - E1   : Young's modulus along n1 (default: 0)
- *   - E2   : Young's modulus along n2 (default: 0)
- *   - E3   : Young's modulus along n3 (default: 0)
- *   - nu12 : Poisson's ratio along 12 (default: 0)
- *   - nu13 : Poisson's ratio along 13 (default: 0)
- *   - nu23 : Poisson's ratio along 23 (default: 0)
- *   - G12  : Shear modulus along 12 (default: 0)
- *   - G13  : Shear modulus along 13 (default: 0)
- *   - G23  : Shear modulus along 23 (default: 0)
+ *   - C_ij  : entry on the stiffness
  */
-
 template<UInt Dim>
-class MaterialElasticOrthotropic :
-  public MaterialElasticLinearAnisotropic<Dim> {
+class MaterialElasticLinearAnisotropic : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialElasticOrthotropic(SolidMechanicsModel & model, const ID & id = "");
+  MaterialElasticLinearAnisotropic(SolidMechanicsModel & model, const ID & id = "",
+                                   bool symmetric = true);
 
-  ~MaterialElasticOrthotropic();
+  ~MaterialElasticLinearAnisotropic();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -78,57 +67,42 @@ public:
 
   virtual void initMaterial();
 
+  /// constitutive law for all element of a type
+  virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// compute the tangent stiffness matrix for an element type
+  void computeTangentModuli(const ElementType & el_type,
+			    Array<Real> & tangent_matrix,
+			    GhostType ghost_type = _not_ghost);
+
+
+
   virtual void updateInternalParameters();
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(E1, E1, Real);
-  AKANTU_GET_MACRO(E2, E2, Real);
-  AKANTU_GET_MACRO(E3, E3, Real);
-  AKANTU_GET_MACRO(Nu12, nu12, Real);
-  AKANTU_GET_MACRO(Nu13, nu13, Real);
-  AKANTU_GET_MACRO(Nu23, nu23, Real);
-  AKANTU_GET_MACRO(G12, G12, Real);
-  AKANTU_GET_MACRO(G13, G13, Real);
-  AKANTU_GET_MACRO(G23, G23, Real);
+  /// compute stable timestep
+  virtual Real getStableTimeStep(Real h, const Element & element);
+  /// compute max wave celerity
+  Real getCelerity() const;
+
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// direction matrix
-  Matrix<Real> rot_mat;
-  /// the n1 young modulus
-  Real E1;
 
-  /// the n2 young modulus
-  Real E2;
+  /// stiffness coefficients
+  Matrix<Real>  C;
+  /// eigenvalues of stiffness tensor
+  Vector<Real> eigC;
+  const static VoigtHelper<Dim> voigt_h;
+  bool symmetric;
 
-  /// the n3 young modulus
-  Real E3;
-
-  /// 12 Poisson coefficient
-  Real nu12;
-
-  /// 13 Poisson coefficient
-  Real nu13;
-
-  /// 23 Poisson coefficient
-  Real nu23;
-
-  /// 12 shear modulus
-  Real G12;
-
-  /// 13 shear modulus
-  Real G13;
-
-  /// 23 shear modulus
-  Real G23;
 };
-
-
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH__ */
+#endif /* __AKANTU_MATERIAL_ELASTIC_LINEAR_ANISOTROPIC_HH__ */
