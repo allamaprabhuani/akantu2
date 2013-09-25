@@ -48,6 +48,20 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
+template <UInt dim>
+class VoigtHelper {
+public:
+  const static UInt size;
+  // matrix of vector index I as function of tensor indices i,j
+  const static UInt mat[dim][dim];
+  // array of matrix indices ij as function of vector index I
+  const static UInt vec[dim*dim][2];
+  // factors to multiply the strain by for voigt notation
+  const static Real factors[dim*(dim-(dim-1)/2)];
+};
+template <UInt dim> const UInt VoigtHelper<dim>::size = dim*(dim-(dim-1)/2);
+
+
 /**
  * Interface of all materials
  * Prerequisites for a new material
@@ -291,9 +305,10 @@ protected:
   /// allocate an internal vector
   template<typename T>
   void initInternalArray(ByElementTypeArray<T> & vect,
-                          UInt nb_component,
-                          bool temporary = false,
-                          ElementKind element_kind = _ek_regular);
+                         UInt nb_component,
+                         bool temporary = false,
+                         ElementKind element_kind = _ek_regular,
+                         GhostType ghost_type = _casper);
 
 public:
   /// resize an internal vector

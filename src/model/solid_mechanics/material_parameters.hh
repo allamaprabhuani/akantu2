@@ -86,8 +86,9 @@ protected:
   template<typename T>
   MaterialParamTyped<T> & getMaterialParamTyped();
 
-private:
+protected:
   std::string name;
+private:
   std::string description;
   ParamAccessType param_type;
 };

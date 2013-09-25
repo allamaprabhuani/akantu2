@@ -59,8 +59,8 @@ void Element::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   const ID id,
-	   const MemoryID & memory_id) :
+           const ID id,
+           const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(true),
   connectivities("connectivities", id),
@@ -91,9 +91,9 @@ Mesh::Mesh(UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   const ID & nodes_id,
-	   const ID & id,
-	   const MemoryID & memory_id) :
+           const ID & nodes_id,
+           const ID & id,
+           const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false),
   connectivities("connectivities", id),
@@ -115,9 +115,9 @@ Mesh::Mesh(UInt spatial_dimension,
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-	   Array<Real> & nodes,
-	   const ID & id,
-	   const MemoryID & memory_id) :
+           Array<Real> & nodes,
+           const ID & id,
+           const MemoryID & memory_id) :
   Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false),
   connectivities("connectivities", id),
@@ -143,9 +143,9 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
 
   if (!mesh_facets) {
     mesh_facets = new Mesh(spatial_dimension,
-			   *(this->nodes),
-			   this->id+":"+id,
-			   getMemoryID());
+                           *(this->nodes),
+                           this->id+":"+id,
+                           getMemoryID());
 
     mesh_facets->mesh_parent = this;
     mesh_facets->is_mesh_facets = true;
@@ -212,10 +212,10 @@ void Mesh::computeBoundingBox(){
 
   for (UInt i = 0; i < nodes->getSize(); ++i) {
     //    if(!isPureGhostNode(i))
-      for (UInt k = 0; k < spatial_dimension; ++k) {
-        local_lower_bounds[k] = std::min(local_lower_bounds[k], (*nodes)(i, k));
-        local_upper_bounds[k] = std::max(local_upper_bounds[k], (*nodes)(i, k));
-      }
+    for (UInt k = 0; k < spatial_dimension; ++k) {
+      local_lower_bounds[k] = std::min(local_lower_bounds[k], (*nodes)(i, k));
+      local_upper_bounds[k] = std::max(local_upper_bounds[k], (*nodes)(i, k));
+    }
   }
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
@@ -242,27 +242,43 @@ void Mesh::computeBoundingBox(){
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
-				  UInt nb_component,
-				  UInt dim,
-				  const bool & flag_nb_node_per_elem_multiply,
-				  ElementKind element_kind,
-				  bool size_to_nb_element) const {
+                                  UInt nb_component,
+                                  UInt dim,
+                                  const bool & flag_nb_node_per_elem_multiply,
+                                  ElementKind element_kind,
+                                  bool size_to_nb_element) const {
   AKANTU_DEBUG_IN();
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-
-    Mesh::type_iterator it  = firstType(dim, gt, element_kind);
-    Mesh::type_iterator end = lastType(dim, gt, element_kind);
-    for(; it != end; ++it) {
-      ElementType type = *it;
-      if (flag_nb_node_per_elem_multiply) nb_component *= Mesh::getNbNodesPerElement(*it);
-      UInt size = 0;
-      if (size_to_nb_element) size = this->getNbElement(type, gt);
-      vect.alloc(size, nb_component, type, gt);
-    }
+    this->initByElementTypeArray(vect, nb_component, dim, gt,
+                                 flag_nb_node_per_elem_multiply,
+                                 element_kind, size_to_nb_element);
   }
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
+                                  UInt nb_component,
+                                  UInt dim,
+                                  GhostType gt,
+                                  const bool & flag_nb_node_per_elem_multiply,
+                                  ElementKind element_kind,
+                                  bool size_to_nb_element) const {
+  AKANTU_DEBUG_IN();
+
+  Mesh::type_iterator it  = firstType(dim, gt, element_kind);
+  Mesh::type_iterator end = lastType(dim, gt, element_kind);
+  for(; it != end; ++it) {
+    ElementType type = *it;
+    if (flag_nb_node_per_elem_multiply) nb_component *= Mesh::getNbNodesPerElement(*it);
+    UInt size = 0;
+    if (size_to_nb_element) size = this->getNbElement(type, gt);
+    vect.alloc(size, nb_component, type, gt);
+  }
   AKANTU_DEBUG_OUT();
 }
 
@@ -273,32 +289,32 @@ void Mesh::initNormals() {
 
 /* -------------------------------------------------------------------------- */
 template void Mesh::initByElementTypeArray<Real>(ByElementTypeArray<Real> & vect,
-						 UInt nb_component,
-						 UInt dim,
-						 const bool & flag_nb_elem_multiply,
-						 ElementKind element_kind,
-						 bool size_to_nb_element) const;
+                                                 UInt nb_component,
+                                                 UInt dim,
+                                                 const bool & flag_nb_elem_multiply,
+                                                 ElementKind element_kind,
+                                                 bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeArray<Int>(ByElementTypeArray<Int> & vect,
-						UInt nb_component,
-						UInt dim,
-						const bool & flag_nb_elem_multiply,
-						ElementKind element_kind,
-						bool size_to_nb_element) const;
+                                                UInt nb_component,
+                                                UInt dim,
+                                                const bool & flag_nb_elem_multiply,
+                                                ElementKind element_kind,
+                                                bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeArray<UInt>(ByElementTypeArray<UInt> & vect,
-						 UInt nb_component,
-						 UInt dim,
-						 const bool & flag_nb_elem_multiply,
-						 ElementKind element_kind,
-						 bool size_to_nb_element) const;
+                                                 UInt nb_component,
+                                                 UInt dim,
+                                                 const bool & flag_nb_elem_multiply,
+                                                 ElementKind element_kind,
+                                                 bool size_to_nb_element) const;
 
 template void Mesh::initByElementTypeArray<bool>(ByElementTypeArray<bool> & vect,
-						 UInt nb_component,
-						 UInt dim,
-						 const bool & flag_nb_elem_multiply,
-						 ElementKind element_kind,
-						 bool size_to_nb_element) const;
+                                                 UInt nb_component,
+                                                 UInt dim,
+                                                 const bool & flag_nb_elem_multiply,
+                                                 ElementKind element_kind,
+                                                 bool size_to_nb_element) const;
 
 
 __END_AKANTU__

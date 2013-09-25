@@ -38,6 +38,32 @@
 
 
 __BEGIN_AKANTU__
+/* -------------------------------------------------------------------------- */
+template <> const UInt VoigtHelper<1>::mat[][1] = {{0}};
+template <> const UInt VoigtHelper<2>::mat[][2] = {{0, 2},
+                                                  {3, 1}};
+template <> const UInt VoigtHelper<3>::mat[][3] = {{0, 5, 4},
+                                                  {8, 1, 3},
+                                                  {7, 6, 2}};
+template <> const UInt VoigtHelper<1>::vec[][2] = {{0, 0}};
+template <> const UInt VoigtHelper<2>::vec[][2] = {{0, 0},
+                                                   {1, 1},
+                                                   {0, 1},
+                                                   {1, 0}};
+template <> const UInt VoigtHelper<3>::vec[][2] = {{0, 0},
+                                                   {1, 1},
+                                                   {2, 2},
+                                                   {1, 2},
+                                                   {2, 0},
+                                                   {0, 1},
+                                                   {2, 1},
+                                                   {0, 2},
+                                                   {1, 0}};
+template <> const Real VoigtHelper<1>::factors[] = {1.};
+template <> const Real VoigtHelper<2>::factors[] = {1., 1., 1., 2.};
+template <> const Real VoigtHelper<3>::factors[] = {1., 1., 1.,
+                                                    2., 2., 2.};
+
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const ID & id) :
@@ -130,16 +156,26 @@ void Material::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void Material::initInternalArray(ByElementTypeArray<T> & vect,
-				 UInt nb_component,
-				 bool temporary,
-				 ElementKind element_kind) {
+                                 UInt nb_component,
+                                 bool temporary,
+                                 ElementKind element_kind,
+                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  model->getFEM().getMesh().initByElementTypeArray(vect,
-                                                   nb_component,
-                                                   spatial_dimension,
-                                                   false,
-                                                   element_kind);
+  if (ghost_type == _casper) {
+    model->getFEM().getMesh().initByElementTypeArray(vect,
+                                                     nb_component,
+                                                     spatial_dimension,
+                                                     false,
+                                                     element_kind);
+  } else {
+    model->getFEM().getMesh().initByElementTypeArray(vect,
+                                                     nb_component,
+                                                     spatial_dimension,
+                                                     ghost_type,
+                                                     false,
+                                                     element_kind);
+  }
 
   if(!temporary)
     registerInternal(vect);
@@ -1413,36 +1449,40 @@ void Material::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 template void Material::initInternalArray<Real>(ByElementTypeArray<Real> & vect,
-						UInt nb_component,
-						bool temporary,
-						ElementKind element_kind);
+                                                UInt nb_component,
+                                                bool temporary,
+                                                ElementKind element_kind,
+                                                GhostType ghosttype);
 
 template void Material::initInternalArray<UInt>(ByElementTypeArray<UInt> & vect,
-						UInt nb_component,
-						bool temporary,
-						ElementKind element_kind);
+                                                UInt nb_component,
+                                                bool temporary,
+                                                ElementKind element_kind,
+                                                GhostType ghosttype);
 
 template void Material::initInternalArray<Int>(ByElementTypeArray<Int> & vect,
-					       UInt nb_component,
-					       bool temporary,
-					       ElementKind element_kind);
+                                               UInt nb_component,
+                                               bool temporary,
+                                               ElementKind element_kind,
+                                                GhostType ghosttype);
 
 template void Material::initInternalArray<bool>(ByElementTypeArray<bool> & vect,
-						UInt nb_component,
-						bool temporary,
-						ElementKind element_kind);
+                                                UInt nb_component,
+                                                bool temporary,
+                                                ElementKind element_kind,
+                                                GhostType ghosttype);
 
 template void Material::resizeInternalArray<Real>(ByElementTypeArray<Real> & vect,
-						  ElementKind element_kind) const;
+                                                  ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<UInt>(ByElementTypeArray<UInt> & vect,
-						  ElementKind element_kind) const;
+                                                  ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<Int>(ByElementTypeArray<Int> & vect,
-						 ElementKind element_kind) const;
+                                                 ElementKind element_kind) const;
 
 template void Material::resizeInternalArray<bool>(ByElementTypeArray<bool> & vect,
-						  ElementKind element_kind) const;
+                                                  ElementKind element_kind) const;
 
 
 __END_AKANTU__

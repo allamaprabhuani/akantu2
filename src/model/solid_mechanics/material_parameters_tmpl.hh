@@ -107,6 +107,28 @@ inline void MaterialParamTyped<std::string>::parseParam(std::string value) {
 
 /* -------------------------------------------------------------------------- */
 template<>
+inline void MaterialParamTyped<Vector<Real> >::parseParam(std::string value) {
+  MaterialParam::parseParam(value);
+  std::stringstream sstr(value);
+  for (UInt i = 0 ;  i < param.size() ; ++i) {
+    sstr >> param(i);
+    if (sstr.fail()) {
+      AKANTU_DEBUG_ERROR(this->name << " expected " << param.size()
+                         << " parameters, but got only " << i << ".");
+
+    }
+  }
+  Real garbage;
+  sstr >> garbage;
+  if (!sstr.fail()) {
+      AKANTU_DEBUG_ERROR(this->name << " expected " << param.size()
+                         << " parameters, but got at least " << param.size() + 1
+                         << ".");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
 inline void MaterialParamTyped<RandomGenerator<Real> *>::parseParam(std::string value) {
   MaterialParam::parseParam(value);
   std::stringstream sstr(value);
@@ -129,7 +151,7 @@ inline void MaterialParamTyped<RandomGenerator<Real> *>::parseParam(std::string 
   else {
     AKANTU_EXCEPTION("The distribution given (" << generator << ") in \'" << value << "\'is unkown");
   }
-  
+
   std::string rg_param = value.substr(generator_size + 1);
 
   param->setParams(rg_param);
