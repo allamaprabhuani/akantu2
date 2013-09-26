@@ -331,7 +331,8 @@ enum SynchronizationTag {
   _gst_test,             //< Test tag
   _gst_material_id,      //< synchronization of the material ids
   //--- Contact & Friction ---
-  _gst_cf_nodal          //< synchronization of disp, velo, and current position
+  _gst_cf_nodal,         //< synchronization of disp, velo, and current position
+  _gst_cf_incr           //< synchronization of increment
 };
 
 /// standard output stream operator for SynchronizationTag
