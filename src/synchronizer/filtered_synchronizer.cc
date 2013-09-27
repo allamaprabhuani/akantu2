@@ -63,16 +63,84 @@ createFilteredSynchronizer(const DistributedSynchronizer & d_synchronizer,
 void FilteredSynchronizer::setupSynchronizer(const DistributedSynchronizer & d_synchronizer,
 					     SynchElementFilter & filter) {
   AKANTU_DEBUG_IN();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   
   Array<Element> * d_send_element = d_synchronizer.send_element;
   Array<Element> * d_recv_element = d_synchronizer.recv_element;
 
-  this->updateElementList(d_send_element,
-			  this->send_element,
-			  filter);
-  this->updateElementList(d_recv_element,
-			  this->recv_element,
-			  filter);
+  std::vector<CommunicationRequest *> isend_requests;
+
+  // loop over procs
+  for (UInt p = 0; p < this->nb_proc; ++p) {
+    if (p == this->rank) continue;
+
+    Array<UInt> keep_element(0,1,"keep_element_rcv");
+
+    // access the element for this proc
+    const Array<Element> & unfiltered_elements = d_recv_element[p];
+    Array<Element> & filtered_elements = recv_element[p];
+
+    // iterator to loop over all source elements
+    Array<Element>::const_iterator<Element> it  = unfiltered_elements.begin();
+    Array<Element>::const_iterator<Element> end = unfiltered_elements.end();
+    
+    // if filter accepts this element, push it into the destination elements
+    for (UInt el=0; it != end; ++it, ++el) {
+      const Element & element = *it;
+      if (filter(element)) {
+	filtered_elements.push_back(element);
+	keep_element.push_back(el);
+      }
+    }
+
+    keep_element.push_back(-1); // just to be sure to send something
+                                // due to some shitty MPI
+			        // implementation who do not know what
+			        // to do with a 0 size send
+
+    AKANTU_DEBUG_INFO("I have " << keep_element.getSize() - 1
+		      << " elements to still receive from processor " << p
+		      << " (communication tag : " 
+		      << Tag::genTag(this->rank, 0, RECEIVE_LIST_TAG) << ")");
+
+    isend_requests.push_back(comm.asyncSend<UInt>(keep_element.storage(),
+						  keep_element.getSize(),
+						  p,
+						  Tag::genTag(this->rank, 0, RECEIVE_LIST_TAG)));
+  }
+
+  for (UInt p = 0; p < this->nb_proc; ++p) {
+    if (p == this->rank) continue;
+
+    AKANTU_DEBUG_INFO("Waiting list of elements to keep from processor " << p
+                      << " (communication tag : " 
+		      << Tag::genTag(p, 0, RECEIVE_LIST_TAG) << ")");
+
+    CommunicationStatus status;
+    comm.probe<UInt>(p, Tag::genTag(p, 0, RECEIVE_LIST_TAG), status);
+
+    Array<UInt> keep_element(status.getSize(),1,"keep_element_snd");
+
+    AKANTU_DEBUG_INFO("I have " << keep_element.getSize() - 1
+                      << " elements to keep in my send list to processor " << p
+                      << " (communication tag : " 
+		      << Tag::genTag(p, 0, RECEIVE_LIST_TAG) << ")");
+
+    comm.receive(keep_element.storage(),
+		 keep_element.getSize(),
+		 p,
+		 Tag::genTag(p, 0, RECEIVE_LIST_TAG));
+
+    const Array<Element> & unfiltered_elements = d_send_element[p];
+    Array<Element> & filtered_elements = send_element[p];
+    for(UInt i = 0; i < keep_element.getSize() - 1; ++i) {
+      filtered_elements.push_back(unfiltered_elements(keep_element(i)));
+    }
+  }
+
+  comm.waitAll(isend_requests);
+  comm.freeCommunicationRequest(isend_requests);
 
   AKANTU_DEBUG_OUT();
 }

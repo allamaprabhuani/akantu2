@@ -71,6 +71,12 @@ protected:
 			 Array<Element> * destination_elements,
 			 SynchElementFilter & filter);
 
+
+protected:
+  enum CommTags {
+    RECEIVE_LIST_TAG  = 0
+  };
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
