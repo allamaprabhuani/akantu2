@@ -293,7 +293,7 @@ protected:
 
 protected:
   /// compute the potential energy for a quadrature point
-  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+  virtual inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
                                            Matrix<Real> & sigma,
                                            Real & epot);
 
@@ -530,6 +530,10 @@ __END_AKANTU__
     this->stress(el_type, ghost_type).begin(spatial_dimension,		\
                                             spatial_dimension);		\
                                                                         \
+  if(this->isFiniteDeformation())                                       \
+    Array<Real>::iterator< Matrix<Real> > stress_it =			\
+      this->piola_kirchhoff_stress(el_type, ghost_type).begin(spatial_dimension,        \
+                                              spatial_dimension);       \
   for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
     Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;         \
     Matrix<Real> & __attribute__((unused)) sigma  = *stress_it

@@ -156,6 +156,32 @@ inline void MaterialPlastic<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real>
 
 }
 
+
+/**************************************************************************************/
+/*  Computation of the potential energy for a this neo hookean material */
+template<UInt dim>
+inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+                                                               Matrix<Real> & sigma,
+                                                               Real & epot){
+    Matrix<Real> F(dim, dim);
+    Matrix<Real> C(dim, dim);//Right green
+
+    this->template gradUToF<dim > (grad_u, F);
+    this->rightCauchy(F, C);
+    Real J = 1.0;
+    switch (dim) {
+        case 2:
+            J = Math::det2(F.storage());
+            break;
+        case 3:
+            J = Math::det3(F.storage());
+            break;
+    }
+
+    epot=0.5*lambda*pow(log(J),2.)+(mu - lambda*log(J))*(-log(J)+0.5*(C.trace()-dim));
+
+}
+
 /*template<UInt spatial_dimension>
 inline void MaterialPlastic<spatial_dimension>::updateStressOnQuad(const Matrix<Real> & sigma,
         Matrix<Real> & cauchy_sigma) {

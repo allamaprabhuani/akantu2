@@ -95,6 +95,11 @@ protected:
   //inline void updateStressOnQuad(const Matrix<Real> & sigma,
   //                              Matrix<Real> & cauchy_sigma);
 
+  /// compute the potential energy for a quadrature point
+  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+                                           Matrix<Real> & sigma,
+                                           Real & epot);
+
   /// compute the tangent stiffness matrix for an element
   void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u);
 

@@ -441,7 +441,7 @@ void Material::registerParam(std::string name, T & variable, ParamAccessType typ
 inline UInt Material::getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
-    return (this->isFiniteDeformation() ? 2 : 1) * spatial_dimension * spatial_dimension *
+    return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension * spatial_dimension *
       sizeof(Real) * this->getModel().getNbQuadraturePoints(elements);
   }
   return 0;
@@ -455,8 +455,8 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
     if(this->isFiniteDeformation()) {
       packElementDataHelper(piola_kirchhoff_stress, buffer, elements);
       packElementDataHelper(strain, buffer, elements);
-    } else
-      packElementDataHelper(stress, buffer, elements);
+    }
+    packElementDataHelper(stress, buffer, elements);
   }
 }
 
@@ -468,8 +468,8 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
     if(this->isFiniteDeformation()) {
       unpackElementDataHelper(piola_kirchhoff_stress, buffer, elements);
       unpackElementDataHelper(strain, buffer, elements);
-    } else
-      unpackElementDataHelper(stress, buffer, elements);
+    }
+    unpackElementDataHelper(stress, buffer, elements);
   }
 }
 

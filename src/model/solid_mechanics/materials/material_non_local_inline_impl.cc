@@ -112,7 +112,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   //  cleanupExtraGhostElement(nb_ghost_protected);
 
   if(prank == 0) std::cout << "Cleaning extra ghosts" << std::endl;
-  cleanupExtraGhostElement(nb_ghost_protected);
+  //cleanupExtraGhostElement(nb_ghost_protected);
 
 
   if(prank == 0) std::cout << "Computing weights" << std::endl;
