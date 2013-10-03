@@ -199,6 +199,14 @@ public:
   /// return the dot product between 2 vectors
   static inline Real vectorDot(Real * v1, Real * v2, UInt n);
 
+  /// return the double dot product between 2 tensors in 2d
+  static inline Real matrixDoubleDot22(Real * A, Real * B);
+
+  /// return the double dot product between 2 tensors in 3d
+  static inline Real matrixDoubleDot33(Real * A, Real * B);
+
+
+
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */
   /* ------------------------------------------------------------------------ */

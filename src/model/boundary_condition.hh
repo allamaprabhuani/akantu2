@@ -56,8 +56,11 @@ private:
   /* Constructors / Destructors / Initializers                                */
   /* ------------------------------------------------------------------------ */
 public:
-  void initBC(ModelType & ptr, Array<Real> & primal, Array<Real> & dual);
+  BoundaryCondition() : model(NULL), primal(NULL), dual(NULL), primal_increment(NULL) {}
 
+  void initBC(ModelType & ptr, Array<Real> & primal, Array<Real> & dual);
+  void initBC(ModelType & ptr, Array<Real> & primal,
+	      Array<Real> & primal_increment, Array<Real> & dual);
   /* ------------------------------------------------------------------------ */
   /* Methods and accessors                                                    */
   /* ------------------------------------------------------------------------ */
@@ -83,6 +86,7 @@ private:
   ModelType * model;
   Array<Real> * primal;
   Array<Real> * dual;
+  Array<Real> * primal_increment;
 };
 
 #include "boundary_condition_tmpl.hh"

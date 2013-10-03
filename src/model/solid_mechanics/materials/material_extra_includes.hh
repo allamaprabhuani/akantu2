@@ -42,9 +42,10 @@
 #include "material_mazars.hh"
 #include "material_damage_linear.hh"
 #include "material_vreepeerlings.hh"
+
 // plasticity
 #include "material_plastic.hh"
-
+#include "material_plasticityinc.hh"
 
 
 #define  AKANTU_EXTRA_MATERIAL_LIST                                     \
@@ -56,6 +57,7 @@
   ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))   \
   ((2, (neohookean         , MaterialNeohookean                   )))   \
   ((2, (anisotropic        , MaterialElasticLinearAnisotropic     )))   \
-  ((2, (plastic            , MaterialPlastic                      )))
+  ((2, (plastic            , MaterialPlastic                      )))   \
+  ((2, (plasticity         , MaterialPlasticityinc                )))               
 
 

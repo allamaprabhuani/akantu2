@@ -104,7 +104,7 @@ public:
   void initArrays();
 
   /// allocate all vectors
-  void initArraysFiniteDeformation();
+  void initArraysPreviousDisplacment();
 
   /// initialize all internal arrays for materials
   void initMaterials();
@@ -161,6 +161,9 @@ public:
    */
   void updateAcceleration();
 
+  void updateIncrement();
+  void updatePreviousDisplacement();
+ 
   /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
   void solveLumped(Array<Real> & x,
                    const Array<Real> & A,

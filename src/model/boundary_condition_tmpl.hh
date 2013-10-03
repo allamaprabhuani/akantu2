@@ -38,6 +38,16 @@ void BoundaryCondition<ModelType>::initBC(ModelType & ref, Array<Real> & primal_
   model->initFEMBoundary();
 }
 
+/* -------------------------------------------------------------------------- */
+template<typename ModelType>
+void BoundaryCondition<ModelType>::initBC(ModelType & ref,
+					  Array<Real> & primal_,
+					  Array<Real> & primal_increment_,
+					  Array<Real> & dual_)
+{
+  initBC(ref, primal_, dual_);
+  primal_increment = &primal_increment_;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Partial specialization for DIRICHLET functors */
@@ -55,10 +65,26 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     Array<Real>::const_iterator<Vector<Real> > coords_iter = coords.begin(dim);
     Array<bool>::iterator<Vector<bool> > flags_iter = boundary_flags.begin(boundary_flags.getNbComponent());
 
+    Array<Real>::iterator<Vector<Real> > primal_old_iter;
+    Array<Real>::iterator<Vector<Real> > primal_increment_iter;
+
+    Array<Real> * primal_old = NULL;
+    if(bc_instance.primal_increment) {
+      primal_old = new Array<Real>(primal); 
+      primal_old_iter = primal_old->begin(primal_old->getNbComponent());
+      primal_increment_iter = bc_instance.primal_increment-> begin(bc_instance.primal_increment->getNbComponent());  
+    }
+
     for(SubBoundary::nodes_const_iterator nodes_it(boundary_ref.nodes_begin()); nodes_it!= boundary_ref.nodes_end(); ++nodes_it) {
       UInt n = *nodes_it;
       func(n, flags_iter[n], primal_iter[n], coords_iter[n]);
+
+      //     if(bc_instance.primal_increment) {
+      //	primal_increment_iter[n] = primal_iter[n] - primal_old_iter[n];
+      //      }
     }
+
+    delete primal_old;
   }
 };
 

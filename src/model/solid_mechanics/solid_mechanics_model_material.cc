@@ -177,8 +177,8 @@ void SolidMechanicsModel::initMaterials() {
   
   for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
-    if (mat.isFiniteDeformation()) {
-      initArraysFiniteDeformation();
+    if (mat.isFiniteDeformation() || mat.isInelasticDeformation()) {
+      initArraysPreviousDisplacment();
       break;
     }
   }

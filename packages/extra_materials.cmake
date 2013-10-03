@@ -64,11 +64,16 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_finite_deformation/material_plastic.hh
   model/solid_mechanics/materials/material_finite_deformation/material_plastic_inline_impl.cc
   model/solid_mechanics/materials/material_finite_deformation_inline_impl.cc
+
+  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.hh
+  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.cc
+  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc_inline_impl.cc
   )
 
 set(AKANTU_EXTRA_MATERIALS_TESTS
   test_material_standard_linear_solid_deviatoric_relaxation
   test_material_standard_linear_solid_deviatoric_relaxation_tension
+  test_material_plasticity
   )
 
 set(AKANTU_EXTRA_MATERIALS_DOC

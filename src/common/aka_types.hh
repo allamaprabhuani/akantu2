@@ -299,21 +299,24 @@ template <typename T> Vector<T> operator-(const Vector<T>& a, const Vector<T>& b
 /* -------------------------------------------------------------------------- */
 template <typename T>
 Vector<T> operator*(T scalar, const Vector<T>& a) {
-  Vector<T> r = a;
+  Vector<T> r(a.size());
+  r = a;
   r *= scalar;
   return r;
 }
 
 template <typename T>
 Vector<T> operator+(const Vector<T>& a, const Vector<T>& b) {
-  Vector<T> r = a;
+  Vector<T> r(a.size());
+  r = a;
   r += b;
   return r;
 }
 
 template <typename T>
 Vector<T> operator-(const Vector<T>& a, const Vector<T>& b) {
-  Vector<T> r = a;
+  Vector<T> r(a.size());
+  r = a;
   r -= b;
   return r;
 }
@@ -553,6 +556,13 @@ public:
     else if(n == 3) return Math::det3(values);
     else Math::det(values, n);
   }
+
+  inline T doubleDot(const Matrix<T> & other) {
+     AKANTU_DEBUG_ASSERT(n == m, "doubleDot is not a valid operation on a rectangular matrix");
+     if(n == 2) return Math::matrixDoubleDot22(values, other.values);
+     else if(n == 3) return Math::matrixDoubleDot33(values, other.values);
+     //    return Math::matrixDoubleDot33(values, other.values);
+    }
 
   /* ---------------------------------------------------------------------- */
   /// function to print the containt of the class

@@ -70,12 +70,14 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   Memory(model.getMemoryID()),
   id(id),
   finite_deformation(false),
+  inelastic_deformation(false),
   name(""),
   model(&model),
   stress("stress", id),
   strain("strain", id),
   delta_stress("delta_stress", id),
   delta_strain("delta_strain", id),
+  inelas_strain("inelas_strain", id),
   piola_kirchhoff_stress("piola_kirchhoff_stress", id),
   element_filter("element_filter", id),
   //  potential_energy_vector(false),
@@ -94,6 +96,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   registerParam("id",   this->id,                _pat_readable);
   registerParam("name", name,     std::string(), ParamAccessType(_pat_parsable | _pat_readable));
   registerParam("finite_deformation", finite_deformation, false , ParamAccessType(_pat_parsable | _pat_modifiable), "Is finite deformation");
+  registerParam("inelastic_deformation", inelastic_deformation, false , ParamAccessType(_pat_parsable | _pat_modifiable), "Is inelastic deformation");
 
   spatial_dimension = this->model->getSpatialDimension();
 
@@ -136,6 +139,15 @@ void Material::initMaterial() {
     resizeInternalArray(delta_stress);
     resizeInternalArray(delta_strain);
     resizeInternalArray(piola_kirchhoff_stress);
+  }
+
+  if(inelastic_deformation) {
+    initInternalArray(delta_strain, spatial_dimension * spatial_dimension);
+    initInternalArray(delta_stress, spatial_dimension * spatial_dimension);
+    initInternalArray(inelas_strain, spatial_dimension * spatial_dimension);
+    resizeInternalArray(delta_stress);
+    resizeInternalArray(delta_strain);
+    resizeInternalArray(inelas_strain);
   }
 
   if(use_previous_stress) {
@@ -373,6 +385,9 @@ void Material::computeAllStresses(GhostType ghost_type) {
     resizeInternalArray(piola_kirchhoff_stress);
   }
 
+  if(inelastic_deformation)
+    resizeInternalArray(delta_strain);
+
   UInt spatial_dimension = model->getSpatialDimension();
 
   Mesh::type_iterator it = model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
@@ -387,7 +402,7 @@ void Material::computeAllStresses(GhostType ghost_type) {
                                                spatial_dimension,
                                                *it, ghost_type, elem_filter);
 
-    if(finite_deformation){ /// compute @f$\nabla \delta u@f$
+    if(finite_deformation || inelastic_deformation){ /// compute @f$\nabla \delta u@f$
       Array<Real> & delta_strain_vect = delta_strain(*it, ghost_type);
       model->getFEM().gradientOnQuadraturePoints(model->getIncrement(), delta_strain_vect,
                 spatial_dimension,
@@ -559,6 +574,15 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
                                              dim, type, ghost_type, elem_filter);
+
+    if(inelastic_deformation){ /// compute @f$\nabla \delta u@f$
+
+      Array<Real> & delta_strain_vect = delta_strain(type, ghost_type);
+      delta_strain_vect.resize(nb_quadrature_points * nb_element);
+      model->getFEM().gradientOnQuadraturePoints(model->getIncrement(), delta_strain_vect,
+                dim,
+                type, ghost_type, elem_filter);
+    }
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 

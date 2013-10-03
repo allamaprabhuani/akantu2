@@ -252,6 +252,37 @@ inline Real Math::vectorDot(Real * v1, Real * v2, UInt in) {
 
 
 /* -------------------------------------------------------------------------- */
+inline Real Math::matrixDoubleDot22(Real * A, Real * B) {
+  //#ifdef AKANTU_USE_BLAS
+ 
+  //#else
+  Real d = 0.0;
+  for (UInt i = 0; i < 2; ++i) {
+    for (UInt j = 0; j < 2; ++j) {
+      d = d + A[2*i+j] * B[2*i+j];
+    }
+  }
+  //#endif
+  return d;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::matrixDoubleDot33(Real * A, Real * B) {
+  //#ifdef AKANTU_USE_BLAS
+ 
+  //#else
+  Real d = 0.0;
+  for (UInt i = 0; i < 3; ++i) {
+    for (UInt j = 0; j < 3; ++j) {
+      d = d + A[3*i+j] * B[3*i+j];
+    }
+  }
+  //#endif
+  return d;
+}
+
+
+/* -------------------------------------------------------------------------- */
 template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
 			 Real alpha, Real * A, Real * B,

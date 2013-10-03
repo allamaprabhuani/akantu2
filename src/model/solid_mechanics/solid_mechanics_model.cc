@@ -1,4 +1,4 @@
-/**
+ /**
  * @file   solid_mechanics_model.cc
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
@@ -204,6 +204,10 @@ void SolidMechanicsModel::initFull(std::string material_file,
     initMaterials();
   }
 
+  if(increment_flag)
+    initBC(*this, *displacement, *increment, *force);
+  else
+    initBC(*this, *displacement, *force);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -254,7 +258,7 @@ void SolidMechanicsModel::initExplicit(AnalysisMethod analysis_method) {
   AKANTU_DEBUG_OUT();
 }
 
-void SolidMechanicsModel::initArraysFiniteDeformation() {
+void SolidMechanicsModel::initArraysPreviousDisplacment() {
     AKANTU_DEBUG_IN();
 
     SolidMechanicsModel::setIncrementFlagOn();
@@ -308,8 +312,6 @@ void SolidMechanicsModel::initArrays() {
   dof_synchronizer = new DOFSynchronizer(mesh, spatial_dimension);
   dof_synchronizer->initLocalDOFEquationNumbers();
   dof_synchronizer->initGlobalDOFEquationNumbers();
-
-  initBC(*this, *displacement, *force);
 
   AKANTU_DEBUG_OUT();
 }
@@ -831,6 +833,9 @@ void SolidMechanicsModel::solveStatic() {
     if (!(*boundary_val)) {
       *displacement_val += *increment_val;
     }
+    else{
+      *increment_val = 0.0;
+    }
   }
 
 
@@ -928,7 +933,7 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
         } else {
             for (UInt j = 0; j < nb_degree_of_freedom; j++, ++displacement_val, ++increment_val, ++boundary_val) {
                 if (!(*boundary_val)) {
-                    *displacement_val += *increment_val;
+		  *displacement_val += *increment_val;
                 }
             }
         }
@@ -1097,14 +1102,46 @@ void SolidMechanicsModel::implicitCorr() {
     Real * disp_val = displacement->values;
     bool * boun_val = boundary->values;
 
-    for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++boun_val)
+    for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++boun_val){
       *disp_val += (1. - *boun_val) * *incr_val;
+      *incr_val *= (1. - *boun_val);
+    }
   }
 
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updateIncrement() {
+  AKANTU_DEBUG_IN();
 
+  AKANTU_DEBUG_ASSERT(previous_displacement,"The previous displacement has to be initialized."
+                      << " Are you working with Finite or Ineslactic deformations?");  
+
+  UInt nb_nodes = displacement->getSize();
+  UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
+  
+  Real * incr_val = increment->values;
+  Real * disp_val = displacement->values;
+  Real * prev_disp_val = previous_displacement->values;
+  
+  for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++prev_disp_val)
+    *incr_val = (*disp_val - *prev_disp_val);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updatePreviousDisplacement() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(previous_displacement,"The previous displacement has to be initialized."
+                      << " Are you working with Finite or Ineslactic deformations?");  
+
+  previous_displacement->copy(*displacement);
+
+  AKANTU_DEBUG_OUT();
+}
 /* -------------------------------------------------------------------------- */
 /* Information                                                                */
 /* -------------------------------------------------------------------------- */

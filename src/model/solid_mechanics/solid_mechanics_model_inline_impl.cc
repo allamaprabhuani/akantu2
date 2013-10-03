@@ -447,6 +447,19 @@ void SolidMechanicsModel::solve(Array<Real> & increment) {
   solver->setRHS(*residual);
   // solve @f[ J \delta w = r @f]
   solver->solve(increment);
+
+  UInt nb_nodes = displacement-> getSize();
+  UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
+
+  bool * boundary_val = boundary->values;
+  Real * increment_val = increment.storage();
+
+  for (UInt j = 0; j < nb_degree_of_freedom;
+       ++j,++increment_val, ++boundary_val) {
+    if ((*boundary_val)) 
+      *increment_val = 0.0;
+    }
+    
 }
 
 /* -------------------------------------------------------------------------- */
@@ -482,15 +495,15 @@ void SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
     do {
         Real error = 0.;
 
-        if (cmethod == _scm_newton_raphson_tangent)
-            this->assembleStiffnessMatrix();
+	if (cmethod == _scm_newton_raphson_tangent)
+	  this->assembleStiffnessMatrix();
 
         solve<NewmarkBeta::_displacement_corrector > (*increment);
-        converged = this->testConvergence<criteria > (tolerance, error);
 
         this->implicitCorr();
-
         this->updateResidual();
+
+        converged = this->testConvergence<criteria > (tolerance, error);
 
         //this->dump();
 
