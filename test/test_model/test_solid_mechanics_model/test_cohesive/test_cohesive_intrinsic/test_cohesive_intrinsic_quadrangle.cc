@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 					     type_facet,
 					     facet_insertion);
 
-  mesh.write("mesh_cohesive.msh");
+  mesh.write("mesh_cohesive_quadrangle.msh");
 
   debug::setDebugLevel(dblDump);
   std::cout << mesh << std::endl;
@@ -144,6 +144,14 @@ int main(int argc, char *argv[]) {
   model.addDumpField("force");
   model.dump();
 
+  DumperParaview dumper("cohesive_elements_quadrangle");
+  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+  DumperIOHelper::Field * cohesive_displacement =
+    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
+  cohesive_displacement->setPadding(3);
+  dumper.registerField("displacement", cohesive_displacement);
+  dumper.dump();
+
   /// update displacement
   Array<UInt> elements;
   Real * bary = new Real[spatial_dimension];
@@ -183,6 +191,7 @@ int main(int argc, char *argv[]) {
 
     if(s % 1 == 0) {
       model.dump();
+      dumper.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 

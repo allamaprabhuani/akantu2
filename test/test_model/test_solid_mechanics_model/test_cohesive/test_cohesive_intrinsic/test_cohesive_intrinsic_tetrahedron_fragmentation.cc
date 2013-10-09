@@ -49,46 +49,64 @@
 
 using namespace akantu;
 
-static void updateDisplacement(SolidMechanicsModelCohesive &,
-			       Array<UInt> &,
-			       ElementType,
-			       Real);
-
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
   //  debug::setDebugLevel(dblDump);
+  ElementType type = _tetrahedron_10;
 
   const UInt spatial_dimension = 3;
-  const UInt max_steps = 350;
-
-  const ElementType type = _tetrahedron_10;
+  const UInt max_steps = 100;
 
   Mesh mesh(spatial_dimension);
-  mesh.read("tetrahedron.msh");
+  mesh.read("tetrahedron_full.msh");
 
 
   /* ------------------------------------------------------------------------ */
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  Array<Real> limits(spatial_dimension, 2);
-  limits(0, 0) = -0.01;
-  limits(0, 1) = 0.01;
-  limits(1, 0) = -100;
-  limits(1, 1) = 100;
-  limits(2, 0) = -100;
-  limits(2, 1) = 100;
+  // Array<Real> limits(spatial_dimension, 2);
+  // limits(0, 0) = -100;
+  // limits(0, 1) = 100;
+  // limits(1, 0) = -100;
+  // limits(1, 1) = 100;
+  // limits(2, 0) = -100;
+  // limits(2, 1) = 100;
 
-  MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
+  // MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
 
-  //  std::cout << mesh << std::endl;
+  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
+
+  mesh_facets.initFacetToDouble();
+
+  ByElementTypeArray<bool> facet_insertion("facet_insertion", "");
+  mesh_facets.initByElementTypeArray(facet_insertion, 1, spatial_dimension - 1,
+				     false, _ek_regular, true);
+
+  const ElementType type_facet = Mesh::getFacetType(type);
+  Array<bool> & f_insertion = facet_insertion(type_facet);
+  Array<std::vector<Element> > & element_to_facet
+    = mesh_facets.getElementToSubelement(type_facet);
+
+  UInt nb_facet = mesh_facets.getNbElement(type_facet);
+
+  for (UInt f = 0; f < nb_facet; ++f) {
+
+    if (element_to_facet(f)[1] == ElementNull) continue;
+
+    f_insertion(f) = true;
+
+    MeshUtils::insertCohesiveElements(mesh,
+				      mesh_facets,
+				      facet_insertion,
+				      false);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
-
-
 
   SolidMechanicsModelCohesive model(mesh);
 
@@ -100,24 +118,18 @@ int main(int argc, char *argv[]) {
 
   model.assembleMassLumped();
 
-  Array<bool> & boundary = model.getBoundary();
-  boundary.set(true);
-
-  UInt nb_element = mesh.getNbElement(type);
-
   model.updateResidual();
 
-  model.setBaseName("intrinsic_tetrahedron");
+  model.setBaseName("intrinsic_tetrahedron_fragmentation");
   model.addDumpFieldVector("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );
   model.addDumpField("stress");
   model.addDumpField("strain");
-  model.addDumpField("force");
   model.dump();
 
-  DumperParaview dumper("cohesive_elements_tetrahedron");
+  DumperParaview dumper("cohesive_elements_tetrahedron_fragmentation");
   dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
   DumperIOHelper::Field * cohesive_displacement =
     new DumperIOHelper::NodalField<Real>(model.getDisplacement());
@@ -134,110 +146,47 @@ int main(int argc, char *argv[]) {
   dumper.dump();
 
   /// update displacement
-  Array<UInt> elements;
-  Real * bary = new Real[spatial_dimension];
-  for (UInt el = 0; el < nb_element; ++el) {
-    mesh.getBarycenter(el, type, bary);
-    if (bary[0] > 0.01) elements.push_back(el);
-  }
-  delete[] bary;
-
-  Real increment = 0.01;
-
-  updateDisplacement(model, elements, type, increment);
-
-  // for (UInt n = 0; n < nb_nodes; ++n) {
-  //   if (position(n, 1) + displacement(n, 1) > 0) {
-  //     if (position(n, 0) == 0) {
-  // 	displacement(n, 1) -= 0.25;
-  //     }
-  //     if (position(n, 0) == 1) {
-  // 	displacement(n, 1) += 0.25;
-  //     }
-  //   }
-  // }
-
-
-  // std::ofstream edis("edis.txt");
-  // std::ofstream erev("erev.txt");
-
-  /// Main loop
-  for (UInt s = 1; s <= max_steps; ++s) {
-
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
-
-    updateDisplacement(model, elements, type, increment);
-
-    if(s % 1 == 0) {
-      model.dump();
-      dumper.dump();
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
-    }
-
-    // // update displacement
-    // for (UInt n = 0; n < nb_nodes; ++n) {
-    //   if (position(n, 1) + displacement(n, 1) > 0) {
-    // 	displacement(n, 0) -= 0.01;
-    //   }
-    // }
-
-    //    Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
-    //    Real Er = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getReversibleEnergy();
-
-    // edis << s << " "
-    // 	 << Ed << std::endl;
-
-    // erev << s << " "
-    // 	 << Er << std::endl;
-
-  }
-
-  // edis.close();
-  // erev.close();
-
-  Real Ed = model.getEnergy("dissipated");
-
-  Real Edt = 4;
-
-  std::cout << Ed << " " << Edt << std::endl;
-
-  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-    std::cout << "The dissipated energy is incorrect" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  finalize();
-
-  std::cout << "OK: test_cohesive_intrinsic_tetrahedron was passed!" << std::endl;
-  return EXIT_SUCCESS;
-}
-
-
-static void updateDisplacement(SolidMechanicsModelCohesive & model,
-			       Array<UInt> & elements,
-			       ElementType type,
-			       Real increment) {
-
-  Mesh & mesh = model.getFEM().getMesh();
-  UInt nb_element = elements.getSize();
+  UInt nb_element = mesh.getNbElement(type);
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  Real * bary = new Real[spatial_dimension];
 
   const Array<UInt> & connectivity = mesh.getConnectivity(type);
   Array<Real> & displacement = model.getDisplacement();
   Array<bool> update(nb_nodes);
-  update.clear();
 
-  for (UInt el = 0; el < nb_element; ++el) {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt node = connectivity(elements(el), n);
-      if (!update(node)) {
-	displacement(node, 0) += increment;
-	update(node) = true;
+
+  for (UInt s = 0; s < max_steps; ++s) {
+    Real increment = s / 10.;
+    update.clear();
+
+    for (UInt el = 0; el < nb_element; ++el) {
+      mesh.getBarycenter(el, type, bary);
+      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	UInt node = connectivity(el, n);
+	if (!update(node)) {
+	  for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+	    displacement(node, dim) = increment * bary[dim];
+	    update(node) = true;
+	  }
+	}
       }
     }
+
+    model.updateResidual();
+    model.dump();
+    dumper.dump();
   }
+
+  delete[] bary;
+
+  if (nb_nodes != nb_element * Mesh::getNbNodesPerElement(type)) {
+    std::cout << "Wrong number of nodes" << std::endl;
+    finalize();
+    return EXIT_FAILURE;
+  }
+
+  finalize();
+  std::cout << "OK: test_cohesive_intrinsic_tetrahedron was passed!" << std::endl;
+  return EXIT_SUCCESS;
 }

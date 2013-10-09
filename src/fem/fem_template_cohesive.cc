@@ -141,7 +141,8 @@ computeNormalsOnControlPoints<_cohesive_1d_2>(__attribute__((unused)) const Arra
   UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
   normal.resize(nb_element);
 
-  Array<Element> & facets = mesh.getSubelementToElement(type, ghost_type);
+  Array<Element> & facets =
+    mesh.getSubelementToElement(type, ghost_type);
   Array<std::vector<Element> > & segments =
     mesh.getMeshFacets().getElementToSubelement(facet_type, ghost_type);
 

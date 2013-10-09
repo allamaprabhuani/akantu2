@@ -255,7 +255,8 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real
 
   normals_u.resize(nb_points * nb_element);
 
-  Array<Real> tangents_u(nb_element * nb_points, (spatial_dimension *  (spatial_dimension -1)));
+  Array<Real> tangents_u(nb_element * nb_points,
+			 (spatial_dimension *  (spatial_dimension -1)));
 
   this->template variationOnControlPoints<type, ReduceFunction>(u,
 								tangents_u,

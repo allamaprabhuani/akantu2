@@ -205,12 +205,6 @@ private:
   /// facet in which cohesive elements are inserted
   ByElementTypeArray<bool> facet_insertion;
 
-  /// list of doubled facets for every insertion
-  ByElementTypeUInt doubled_facets;
-
-  /// list of facets connected to each cohesive element
-  ByElementTypeUInt facets_to_cohesive_el;
-
   /// cohesive elements connected to each facet
   ByElementTypeUInt cohesive_el_to_facet;
 
@@ -219,7 +213,6 @@ private:
 
   /// material to use if a cohesive element is created on a facet
   ByElementTypeUInt facet_material;
-
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #include "solid_mechanics_model_cohesive_parallel.hh"

@@ -91,9 +91,10 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTypeReal & facet_stress,
-							       const Mesh & mesh_facets,
 							       ByElementTypeArray<bool> & facet_insertion) {
   AKANTU_DEBUG_IN();
+
+  const Mesh & mesh_facets = model->getMeshFacets();
 
   Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
   Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
@@ -164,7 +165,8 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
 template<UInt spatial_dimension>
 inline void MaterialCohesiveLinear<spatial_dimension>::computeEffectiveNorm(const Matrix<Real> & stress,
 									    const Vector<Real> & normal,
-									    const Vector<Real> & tangent,
+									    Real * tangent,
+									    Vector<Real> & tangent_tmp,
 									    Vector<Real> & normal_stress,
 									    Real & effective_norm) {
   AKANTU_DEBUG_IN();
@@ -172,7 +174,16 @@ inline void MaterialCohesiveLinear<spatial_dimension>::computeEffectiveNorm(cons
   normal_stress.mul<false>(stress, normal);
 
   Real normal_contrib = normal_stress.dot(normal);
-  Real tangent_contrib = normal_stress.dot(tangent);
+
+  /// in 3D tangential components must be summed
+  tangent_tmp.clear();
+
+  for (UInt s = 0; s < spatial_dimension - 1; ++s) {
+    const Vector<Real> tangent_v(tangent + s * spatial_dimension, spatial_dimension);
+    tangent_tmp(s) += normal_stress.dot(tangent_v);
+  }
+
+  Real tangent_contrib = tangent_tmp.norm();
 
   normal_contrib = std::max(0., normal_contrib);
 
@@ -206,8 +217,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
   Array<Real>::const_iterator< Vector<Real> > normal_it =
     normals.begin(spatial_dimension);
 
-  Array<Real>::const_iterator< Vector<Real> > tangent_it =
-    tangents.begin(spatial_dimension);
+  Real * tangent_it = tangents.storage();
 
   Array<Real>::const_iterator< Matrix<Real> > facet_stress_it =
     facet_stress.begin(spatial_dimension, spatial_dimension * 2);
@@ -219,10 +229,13 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
   UInt facet = f_filter(facet_index);
   Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
 
+  Real * memory_space = new Real[spatial_dimension];
+  Vector<Real> tangent_tmp(memory_space, spatial_dimension);
+
   for (UInt f = 0; f < nb_facet; ++f) {
 
     if (f == facet) {
-      for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it, ++tangent_it,
+      for (UInt q = 0; q < nb_quad_facet; ++q, ++normal_it,
 	     ++stress_check_it, ++normal_stress_it, ++facet_stress_it) {
 
 	if (facets_check(facet) == true) {
@@ -236,10 +249,11 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
 				   + (*facet_stress_it)(i, j + spatial_dimension) ) / 2.;
 
 	  /// compute normal, tangential and effective stress
-	  computeEffectiveNorm(stress_tmp, *normal_it, *tangent_it,
+	  computeEffectiveNorm(stress_tmp, *normal_it, tangent_it, tangent_tmp,
 			       *normal_stress_it, *stress_check_it);
 	}
 
+	tangent_it += tangents.getNbComponent();
       }
       ++facet_index;
       if (facet_index == f_filter.getSize()) break;
@@ -247,11 +261,12 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
     }
     else {
       normal_it += nb_quad_facet;
-      tangent_it += nb_quad_facet;
+      tangent_it += tangents.getNbComponent();
       facet_stress_it += nb_quad_facet;
     }
   }
 
+  delete [] memory_space;
   AKANTU_DEBUG_OUT();
 }
 

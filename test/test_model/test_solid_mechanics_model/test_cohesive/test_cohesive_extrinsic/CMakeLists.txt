@@ -29,8 +29,9 @@
 #
 #===============================================================================
 
-add_mesh(test_cohesive_extrinsic_mesh triangle.geo 2 2)
+add_mesh(test_cohesive_extrinsic_mesh triangle.geo 2 1)
 add_mesh(test_cohesive_extrinsic_quadrangle_mesh quadrangle.geo 2 2)
+add_mesh(test_cohesive_extrinsic_tetrahedron_mesh tetrahedron.geo 3 2)
 
 register_test(test_cohesive_extrinsic
   SOURCES test_cohesive_extrinsic.cc
@@ -42,4 +43,9 @@ register_test(test_cohesive_extrinsic
 register_test(test_cohesive_extrinsic_quadrangle
   SOURCES test_cohesive_extrinsic_quadrangle.cc
   DEPENDENCIES test_cohesive_extrinsic_quadrangle_mesh
+  PACKAGE cohesive_element)
+
+register_test(test_cohesive_extrinsic_tetrahedron
+  SOURCES test_cohesive_extrinsic_tetrahedron.cc
+  DEPENDENCIES test_cohesive_extrinsic_tetrahedron_mesh
   PACKAGE cohesive_element)

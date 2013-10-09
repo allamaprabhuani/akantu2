@@ -324,7 +324,7 @@ public:
 			const ByElementTypeArray<UInt> * filter = NULL) :
     parent(model.getFEM(), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
-    init();
+    // init();
   }
 
   InternalMaterialField(const SolidMechanicsModel & model,
@@ -336,7 +336,7 @@ public:
 			const ByElementTypeArray<UInt> * filter = NULL) :
     parent(model.getFEM(), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
-    init();
+    // init();
   }
 
   virtual iterator begin() {

@@ -379,7 +379,7 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
-							     const GhostType & ghost_type) {
+							    const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   //  Real * coord = mesh.getNodes().values;

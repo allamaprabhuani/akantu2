@@ -74,7 +74,7 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
                                                  mesh_facets);
 
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
-    synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_normals);
+    synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets_conn);
 
     facet_stress_synchronizer =
       FacetStressSynchronizer::createFacetStressSynchronizer(*facet_synchronizer,
@@ -88,6 +88,34 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::fillGlobalConnectivity(ByElementTypeUInt & global_connectivity,
+							 GhostType ghost_type,
+							 bool just_init) {
+  AKANTU_DEBUG_IN();
+
+  Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, ghost_type);
+  Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, ghost_type);
+
+  for(; it != end; ++it) {
+    ElementType type_facet = *it;
+
+    Array<UInt> & g_connectivity = global_connectivity(type_facet, ghost_type);
+
+    UInt nb_nodes_per_facet = Mesh::getNbNodesPerElement(type_facet);
+    UInt nb_facet = mesh_facets.getNbElement(type_facet, ghost_type);
+
+    g_connectivity.extendComponentsInterlaced(nb_nodes_per_facet, 1);
+    g_connectivity.resize(nb_facet);
+
+    if (just_init) continue;
+
+    mesh_facets.getGlobalConnectivity(g_connectivity, type_facet, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::synchronizeCohesiveElements() {
   AKANTU_DEBUG_IN();
 
@@ -95,88 +123,25 @@ void SolidMechanicsModelCohesive::synchronizeCohesiveElements() {
   Int psize = comm.getNbProc();
 
   if (psize > 1) {
-    if (spatial_dimension == 3) AKANTU_DEBUG_TO_IMPLEMENT();
 
     /// correct facets' connectivity according to normals
-    facet_normals = new ByElementTypeReal("facet_normals", id);
-    ByElementTypeReal & f_normals = *facet_normals;
+    global_connectivity = new ByElementTypeUInt("global_connectivity", id);
+    ByElementTypeUInt & g_connectivity = *global_connectivity;
 
-    mesh_facets.initByElementTypeArray(f_normals,
-				       spatial_dimension,
-				       spatial_dimension - 1,
-				       false, _ek_regular, true);
-
-    /// compute facet normals for not ghost elements
-    MeshUtils::computeFacetNormals(mesh_facets, f_normals);
-
-    /// communicate
-    synch_registry->synchronize(_gst_smmc_normals);
-
-    /// compute local normals for ghost facets
-    ByElementTypeReal ghost_normals("ghost_normals", id);
-
-    mesh_facets.initByElementTypeArray(ghost_normals,
-				       spatial_dimension,
+    mesh_facets.initByElementTypeArray(g_connectivity, 1,
 				       spatial_dimension - 1);
 
-    MeshUtils::computeFacetNormals(mesh_facets, ghost_normals, _ghost);
+    /// copy facet normals for not ghost elements
+    fillGlobalConnectivity(g_connectivity, _not_ghost, false);
+    fillGlobalConnectivity(g_connectivity, _ghost, true);
 
-    GhostType gt_facet = _ghost;
+    /// communicate
+    synch_registry->synchronize(_gst_smmc_facets_conn);
 
-    Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
-    Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
+    /// flip facets
+    MeshUtils::flipFacets(mesh_facets, *global_connectivity, _ghost);
 
-    /// loop on every ghost facet
-    for(; it != end; ++it) {
-      ElementType type_facet = *it;
-
-      Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet, gt_facet);
-      Array<std::vector<Element> > & el_to_f =
-	mesh_facets.getElementToSubelement(type_facet, gt_facet);
-      Array<Element> & subfacet_to_facet =
-	mesh_facets.getSubelementToElement(type_facet, gt_facet);
-
-      UInt nb_nodes_per_facet = connectivity.getNbComponent();
-      UInt nb_subfacet_per_facet = subfacet_to_facet.getNbComponent();
-      UInt nb_facet = connectivity.getSize();
-      Array<Real> & recv_normals = f_normals(type_facet, gt_facet);
-      Array<Real> & computed_normals = ghost_normals(type_facet, gt_facet);
-
-      Array<Real>::iterator<Vector<Real> > recv_it =
-	recv_normals.begin(spatial_dimension);
-      Array<Real>::iterator<Vector<Real> > computed_it =
-	computed_normals.begin(spatial_dimension);
-      Array<UInt>::iterator<Vector<UInt> > conn_it =
-	connectivity.begin(nb_nodes_per_facet);
-      Array<Element>::iterator<Vector<Element> > subf_to_f =
-	subfacet_to_facet.begin(nb_subfacet_per_facet);
-
-      Vector<UInt> conn_tmp(nb_nodes_per_facet);
-      std::vector<Element> el_tmp(2);
-      Vector<Element> subf_tmp(nb_subfacet_per_facet);
-
-      for (UInt f = 0; f < nb_facet; ++f, ++recv_it, ++computed_it, ++conn_it,
-	     ++subf_to_f) {
-	Real product = recv_it->dot( (*computed_it) );
-
-	/// if product is negative, facets must be flipped
-	if (product < 0) {
-	  conn_tmp = (*conn_it);
-	  (*conn_it)(0) = conn_tmp(1);
-	  (*conn_it)(1) = conn_tmp(0);
-
-	  el_tmp = el_to_f(f);
-	  el_to_f(f)[0] = el_tmp[1];
-	  el_to_f(f)[1] = el_tmp[0];
-
-	  subf_tmp = (*subf_to_f);
-	  (*subf_to_f)(0) = subf_tmp(1);
-	  (*subf_to_f)(1) = subf_tmp(0);
-	}
-      }
-    }
-
-    delete facet_normals;
+    delete global_connectivity;
   }
 
   AKANTU_DEBUG_OUT();

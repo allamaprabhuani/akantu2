@@ -103,11 +103,7 @@ int main(int argc, char *argv[]) {
     debug::setDebugLevel(dblInfo);
   }
 
-  ByElementTypeUInt doubled_facets("doubled_facets", "");
-  mesh_facets.initByElementTypeArray(doubled_facets, 2, spatial_dimension - 1);
-
-  MeshUtils::insertCohesiveElements(mesh, mesh_facets, facet_insertion,
-  				    doubled_facets, true);
+  MeshUtils::insertCohesiveElements(mesh, mesh_facets, facet_insertion, true);
 
   if(prank == 0) {
     debug::setDebugLevel(dblDump);

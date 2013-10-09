@@ -242,6 +242,12 @@ iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_4>() { return io
 
 template <>
 iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_6>() { return iohelper::COH2D6; }
+
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_3d_6>() { return iohelper::COH3D6; }
+
+template <>
+iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_3d_12>() { return iohelper::COH3D12; }
 #endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)

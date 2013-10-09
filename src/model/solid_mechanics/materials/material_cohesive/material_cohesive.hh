@@ -84,7 +84,6 @@ public:
 
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const ByElementTypeReal & facet_stress,
-			      const Mesh & mesh_facets,
 			      ByElementTypeArray<bool> & facet_insertion) {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }

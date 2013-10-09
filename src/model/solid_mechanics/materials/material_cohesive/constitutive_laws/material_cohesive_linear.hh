@@ -70,7 +70,6 @@ public:
 
   /// check stress for cohesive elements' insertion
   virtual void checkInsertion(const ByElementTypeReal & facet_stress,
-			      const Mesh & mesh_facets,
 			      ByElementTypeArray<bool> & facet_insertion);
 
 protected:
@@ -89,7 +88,8 @@ protected:
   /// compute effective stress norm for insertion check
   inline void computeEffectiveNorm(const Matrix<Real> & stress,
 				   const Vector<Real> & normal,
-				   const Vector<Real> & tangent,
+				   Real * tangent,
+				   Vector<Real> & tangent_tmp,
 				   Vector<Real> & normal_stress,
 				   Real & effective_norm);
 

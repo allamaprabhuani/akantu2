@@ -114,7 +114,8 @@ int main(int argc, char *argv[]) {
       ElementType type_facet = *first;
 
       Array<bool> & facet_check = model.getFacetsCheck(type_facet);
-      facet_check.clear();
+      if (gt_facet == _not_ghost)
+	facet_check.clear();
 
       UInt nb_facet = mesh_facets.getNbElement(type_facet, gt_facet);
 
@@ -196,7 +197,15 @@ int main(int argc, char *argv[]) {
   model.addDumpField("stress");
   model.addDumpField("strain");
   model.addDumpField("partitions");
-  model.dump();
+
+  DumperParaview dumper("cohesive_elements");
+  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+  DumperIOHelper::Field * cohesive_displacement =
+    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
+  cohesive_displacement->setPadding(3);
+  dumper.registerField("displacement", cohesive_displacement);
+
+  dumper.dump();
 
   /// initial conditions
   Real loading_rate = 0.1;
@@ -244,6 +253,7 @@ int main(int argc, char *argv[]) {
     model.explicitCorr();
 
     model.dump();
+    dumper.dump();
     if(s % 10 == 0) {
       if(prank == 0)
 	std::cout << "passing step " << s << "/" << max_steps << std::endl;

@@ -51,6 +51,26 @@ public:
 				       UInt * fit = NULL) :
     parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) {
 
+    write_order[_cohesive_3d_12].push_back(0);
+    write_order[_cohesive_3d_12].push_back(1);
+    write_order[_cohesive_3d_12].push_back(2);
+    write_order[_cohesive_3d_12].push_back(6);
+    write_order[_cohesive_3d_12].push_back(7);
+    write_order[_cohesive_3d_12].push_back(8);
+    write_order[_cohesive_3d_12].push_back(3);
+    write_order[_cohesive_3d_12].push_back(4);
+    write_order[_cohesive_3d_12].push_back(5);
+    write_order[_cohesive_3d_12].push_back(9);
+    write_order[_cohesive_3d_12].push_back(10);
+    write_order[_cohesive_3d_12].push_back(11);
+
+    write_order[_cohesive_3d_6].push_back(0);
+    write_order[_cohesive_3d_6].push_back(1);
+    write_order[_cohesive_3d_6].push_back(2);
+    write_order[_cohesive_3d_6].push_back(3);
+    write_order[_cohesive_3d_6].push_back(4);
+    write_order[_cohesive_3d_6].push_back(5);
+
     write_order[_cohesive_2d_6].push_back(0);
     write_order[_cohesive_2d_6].push_back(2);
     write_order[_cohesive_2d_6].push_back(1);

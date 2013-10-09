@@ -41,9 +41,16 @@ void initParallel(MeshPartition * partition,
 		  bool extrinsic = false);
 
 protected:
+void fillSynchronizeNormals(ByElementTypeReal & facet_normals,
+			    GhostType ghost_type);
+
 void synchronizeCohesiveElements();
 
 void updateFacetSynchronizer();
+
+void fillGlobalConnectivity(ByElementTypeUInt & global_connectivity,
+			    GhostType ghost_type,
+			    bool just_init);
 
 /* ------------------------------------------------------------------------ */
 /* Data Accessor inherited members                                          */
@@ -51,6 +58,8 @@ void updateFacetSynchronizer();
 public:
 
 inline UInt getNbQuadsForFacetCheck(const Array<Element> & elements) const;
+
+inline UInt getNbNodesPerElementList(const Array<Element> & elements) const;
 
 inline virtual UInt getNbDataForElements(const Array<Element> & elements,
 					 SynchronizationTag tag) const;
@@ -92,7 +101,7 @@ FacetStressSynchronizer * facet_stress_synchronizer;
 DistributedSynchronizer * cohesive_distributed_synchronizer;
 
 /// stored ghost facet normals sent by other processors
-ByElementTypeReal * facet_normals;
+ByElementTypeUInt * global_connectivity;
 
 /// store processor rank for each element
 ByElementTypeUInt * rank_to_element;

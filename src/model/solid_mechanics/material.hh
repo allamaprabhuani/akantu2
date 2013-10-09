@@ -282,6 +282,14 @@ protected:
   inline void buildElementalFieldInterpolationCoodinates(const Matrix<Real> & coordinates,
                                                          Matrix<Real> & coordMatrix);
 
+  /// build interpolation coordinates for basic linear elements
+  inline void buildElementalFieldInterpolationCoodinatesLinear(const Matrix<Real> & coordinates,
+							       Matrix<Real> & coordMatrix);
+
+  /// build interpolation coordinates for basic quadratic elements
+  inline void buildElementalFieldInterpolationCoodinatesQuadratic(const Matrix<Real> & coordinates,
+								  Matrix<Real> & coordMatrix);
+
   /// get the size of the coordiante matrix used in the interpolation
   template <ElementType type>
   inline UInt getSizeElementalFieldInterpolationCoodinates(GhostType ghost_type = _not_ghost);
@@ -557,6 +565,35 @@ __END_AKANTU__
   Array<Real>::iterator< Matrix<Real> > strain_end =			\
     this->strain(el_type, ghost_type).end(spatial_dimension,		\
                                           spatial_dimension);		\
+  Array<Real>::iterator< Matrix<Real> > sigma_it =                      \
+    this->stress(el_type, ghost_type).begin(spatial_dimension,          \
+                                                  spatial_dimension);   \
+                                                                        \
+  tangent_mat.resize(this->strain(el_type, ghost_type).getSize());      \
+                                                                        \
+  UInt tangent_size =							\
+    this->getTangentStiffnessVoigtSize(spatial_dimension);		\
+  Array<Real>::iterator< Matrix<Real> > tangent_it =			\
+    tangent_mat.begin(tangent_size,					\
+                      tangent_size);					\
+                                                                        \
+  for(;strain_it != strain_end; ++strain_it, ++sigma_it, ++tangent_it) { \
+    Matrix<Real> & __attribute__((unused)) grad_u  = *strain_it;	\
+    Matrix<Real> & __attribute__((unused)) sigma_tensor = *sigma_it;    \
+    Matrix<Real> & tangent = *tangent_it
+
+
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\
+  }                                                                     \
+
+
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_FINITE_DEFORMATION_BEGIN(tangent_mat)	\
+  Array<Real>::iterator< Matrix<Real> > strain_it =			\
+    this->strain(el_type, ghost_type).begin(spatial_dimension,		\
+                                            spatial_dimension);		\
+  Array<Real>::iterator< Matrix<Real> > strain_end =			\
+    this->strain(el_type, ghost_type).end(spatial_dimension,		\
+                                          spatial_dimension);		\
   Array<Real>::iterator< Matrix<Real> > green_it =                      \
     this->delta_strain(el_type, ghost_type).begin(spatial_dimension,    \
                                                   spatial_dimension);   \
@@ -572,14 +609,14 @@ __END_AKANTU__
     tangent_mat.begin(tangent_size,					\
                       tangent_size);					\
                                                                         \
-  for(;strain_it != strain_end; ++strain_it, ++green_it, ++sigma_it, ++tangent_it) {  \
+  for(;strain_it != strain_end; ++strain_it, ++green_it, ++sigma_it, ++tangent_it) { \
     Matrix<Real> & __attribute__((unused)) grad_u  = *strain_it;	\
     Matrix<Real> & __attribute__((unused)) grad_delta_u = *green_it;    \
     Matrix<Real> & __attribute__((unused)) sigma_tensor = *sigma_it;    \
     Matrix<Real> & tangent = *tangent_it
 
 
-#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\
+#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_FINITE_DEFORMATION_END	\
   }                                                                     \
 
 

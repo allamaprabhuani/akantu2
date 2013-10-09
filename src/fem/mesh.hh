@@ -357,8 +357,16 @@ public:
   /// initialize normals
   void initNormals();
 
+  /// initialize facet_to_double
+  void initFacetToDouble();
+
   /// init facets' mesh
   Mesh & initMeshFacets(const ID & id = "mesh_facets");
+
+  /// get global connectivity array
+  void getGlobalConnectivity(Array<UInt> & global_connectivity,
+			     ElementType type,
+			     GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -649,6 +657,18 @@ private:
 
   /// defines if current mesh is mesh_facets or not
   bool is_mesh_facets;
+
+  /// facets to be doubled
+  ByElementTypeUInt facet_to_double;
+
+  /// list of subfacets connected to subsubfacets to be doubled
+  ByElementTypeArray<std::vector<Element> > subfacets_to_subsubfacet_double;
+
+  /// list of facets connected to subfacets to be doubled
+  ByElementTypeArray<std::vector<Element> > facets_to_subfacet_double;
+
+  /// list of elements connected to subfacets to be doubled
+  ByElementTypeArray<std::vector<Element> > elements_to_subfacet_double;
 
 };
 

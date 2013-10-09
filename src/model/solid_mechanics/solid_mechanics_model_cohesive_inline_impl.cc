@@ -55,6 +55,29 @@ inline UInt SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(const Array<Ele
 }
 
 /* -------------------------------------------------------------------------- */
+inline UInt SolidMechanicsModelCohesive::getNbNodesPerElementList(const Array<Element> & elements) const {
+  UInt nb_nodes_per_element = 0;
+  UInt nb_nodes = 0;
+  ElementType current_element_type = _not_defined;
+
+  Array<Element>::const_iterator<Element> el_it = elements.begin();
+  Array<Element>::const_iterator<Element> el_end = elements.end();
+
+  for (; el_it != el_end; ++el_it) {
+    const Element & el = *el_it;
+
+    if(el.type != current_element_type) {
+      current_element_type = el.type;
+      nb_nodes_per_element = Mesh::getNbNodesPerElement(current_element_type);
+    }
+
+    nb_nodes += nb_nodes_per_element;
+  }
+
+  return nb_nodes;
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Element> & elements,
 							      SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
@@ -68,7 +91,7 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
 
 #ifndef AKANTU_NDEBUG
     if (tag == _gst_smmc_facets ||
-	tag == _gst_smmc_normals ||
+	tag == _gst_smmc_facets_conn ||
 	tag == _gst_smmc_facets_stress)
       size += elements.getSize() * spatial_dimension * sizeof(Real);
 #endif
@@ -78,8 +101,9 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
       size += elements.getSize() * sizeof(bool);
       break;
     }
-    case _gst_smmc_normals: {
-      size += elements.getSize() * spatial_dimension * sizeof(Real);
+    case _gst_smmc_facets_conn: {
+      UInt nb_nodes = getNbNodesPerElementList(elements);
+      size += nb_nodes * sizeof(UInt);
       break;
     }
     case _gst_smmc_facets_stress: {
@@ -147,7 +171,7 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
 #ifndef AKANTU_NDEBUG
     if (tag == _gst_smmc_facets ||
-	tag == _gst_smmc_normals ||
+	tag == _gst_smmc_facets_conn ||
 	tag == _gst_smmc_facets_stress)
       packBarycenter(mesh_facets, buffer, elements, tag);
 #endif
@@ -159,8 +183,8 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 			      false, getFEM());
       break;
     }
-    case _gst_smmc_normals: {
-      packElementalDataHelper(*facet_normals, buffer, elements,
+    case _gst_smmc_facets_conn: {
+      packElementalDataHelper(*global_connectivity, buffer, elements,
 			      false, getFEM());
       break;
     }
@@ -221,7 +245,7 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 
 #ifndef AKANTU_NDEBUG
     if (tag == _gst_smmc_facets ||
-	tag == _gst_smmc_normals ||
+	tag == _gst_smmc_facets_conn ||
 	tag == _gst_smmc_facets_stress)
       unpackBarycenter(mesh_facets, buffer, elements, tag);
 #endif
@@ -232,8 +256,8 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 				false, getFEM());
       break;
     }
-    case _gst_smmc_normals: {
-      unpackElementalDataHelper(*facet_normals, buffer, elements,
+    case _gst_smmc_facets_conn: {
+      unpackElementalDataHelper(*global_connectivity, buffer, elements,
 				false, getFEM());
       break;
     }

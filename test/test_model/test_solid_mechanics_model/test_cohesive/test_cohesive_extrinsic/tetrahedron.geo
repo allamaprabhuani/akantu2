@@ -1,5 +1,5 @@
 lc = 1;
-h = 1;
+h = 1.5;
 Point(1) = {lc, lc, lc, h};
 Point(2) = {-lc, lc, lc, h};
 Point(3) = {-lc, -lc, lc, h};

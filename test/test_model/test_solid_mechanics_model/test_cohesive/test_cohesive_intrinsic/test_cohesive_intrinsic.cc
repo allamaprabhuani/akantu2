@@ -53,7 +53,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
-  //  debug::setDebugLevel(dblDump);
+  debug::setDebugLevel(dblWarning);
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 350;
@@ -149,6 +149,13 @@ int main(int argc, char *argv[]) {
   model.addDumpField("force");
   model.dump();
 
+  DumperParaview dumper("cohesive_elements_triangle");
+  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+  DumperIOHelper::Field * cohesive_displacement =
+    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
+  cohesive_displacement->setPadding(3);
+  dumper.registerField("displacement", cohesive_displacement);
+  dumper.dump();
 
   /// update displacement
   Array<UInt> elements;
@@ -190,6 +197,7 @@ int main(int argc, char *argv[]) {
 
     if(s % 1 == 0) {
       model.dump();
+      dumper.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
@@ -251,7 +259,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive & model,
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt node = connectivity(elements(el), n);
       if (!update(node)) {
-	displacement(node, 0) -= increment;
+	displacement(node, 0) += increment;
 	//	displacement(node, 1) += increment;
 	update(node) = true;
       }

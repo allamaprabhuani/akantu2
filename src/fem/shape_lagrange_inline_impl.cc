@@ -109,10 +109,10 @@ void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
   mesh.extractNodalValuesFromElement(mesh.getNodes(),
-				      nodes_coord.storage(),
-				      elem_val + elem*nb_nodes_per_element,
-				      nb_nodes_per_element,
-				      spatial_dimension);
+				     nodes_coord.storage(),
+				     elem_val + elem*nb_nodes_per_element,
+				     nb_nodes_per_element,
+				     spatial_dimension);
 
   ElementClass<type>::inverseMap(real_coords,
 				 nodes_coord,
