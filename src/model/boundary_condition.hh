@@ -79,9 +79,13 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+
+public:
+
   template<class FunctorType, BC::Functor::Type type = FunctorType::type>
   struct TemplateFunctionWrapper;
+
+private:
 
   ModelType * model;
   Array<Real> * primal;

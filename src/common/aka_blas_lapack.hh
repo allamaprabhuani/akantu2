@@ -71,8 +71,12 @@ extern "C" {
 #endif
 
 __BEGIN_AKANTU__
+#if defined(__INTEL_COMPILER)
+//#pragma warning ( disable : 383 )
+#else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused"
+#endif
 template<typename T>
 inline T aka_dot(int *n, T *x, int *incx, T *y, int *incy) {
 AKANTU_DEBUG_ERROR(debug::demangle(typeid(T).name()) << "is not a type recognized, or you didn't activated BLAS in the compilation options!");
@@ -200,8 +204,13 @@ extern "C" {
 
 __BEGIN_AKANTU__
 
+#if defined(__INTEL_COMPILER)
+//#pragma warning ( disable : 383 )
+#else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused"
+#endif
+
 template<typename T>
 inline void aka_geev(char* jobvl, char* jobvr, int* n, T* a,
 		       int* lda, T* wr, T* wi, T* vl, int* ldvl,
@@ -228,8 +237,10 @@ inline void aka_getrs(char *trans, int * n, int * nrhs,
 		       T * b, int * ldb, int * info) {
 AKANTU_DEBUG_ERROR(debug::demangle(typeid(T).name()) << "is not a type recognized, or you didn't activated LAPACK in the compilation options!");
 }
-
+#if defined(__INTEL_COMPILER)
+#else
 #pragma GCC diagnostic pop
+#endif
 
 
 #ifdef AKANTU_USE_LAPACK

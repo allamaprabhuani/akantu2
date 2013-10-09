@@ -1034,18 +1034,19 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance){
   AKANTU_DEBUG_IN();
 
   Real error=0;
-  return this->testConvergence<_scc_residual>(tolerance, error);
-
+  bool res = this->testConvergence<_scc_residual>(tolerance, error);
   AKANTU_DEBUG_OUT();
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
 bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error){
   AKANTU_DEBUG_IN();
 
-  return this->testConvergence<_scc_residual>(tolerance, error);
+  bool res = this->testConvergence<_scc_residual>(tolerance, error);
 
   AKANTU_DEBUG_OUT();
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1053,18 +1054,20 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance){
   AKANTU_DEBUG_IN();
 
   Real error=0;
-  return this->testConvergence<_scc_increment>(tolerance, error);
+  bool res = this->testConvergence<_scc_increment>(tolerance, error);
 
   AKANTU_DEBUG_OUT();
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
 bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error){
   AKANTU_DEBUG_IN();
 
-  return this->testConvergence<_scc_increment>(tolerance, error);
+  bool res = this->testConvergence<_scc_increment>(tolerance, error);
 
   AKANTU_DEBUG_OUT();
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
