@@ -41,14 +41,31 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 MaterialElasticLinearAnisotropic<spatial_dimension>::MaterialElasticLinearAnisotropic(
-          SolidMechanicsModel & model,
-          const ID & id,
-          bool symmetric)  :
+                                                                                      SolidMechanicsModel & model,
+                                                                                      const ID & id,
+                                                                                      bool symmetric)  :
   Material(model, id),
-  C(this->getTangentStiffnessVoigtSize(spatial_dimension),
-    this->getTangentStiffnessVoigtSize(spatial_dimension)),
+  rot_mat(spatial_dimension, spatial_dimension),
+  Cprime(spatial_dimension*spatial_dimension,
+         spatial_dimension*spatial_dimension),
+  C(this->voigt_h.size, this->voigt_h.size),
+  eigC(this->voigt_h.size),
   symmetric(symmetric){
   AKANTU_DEBUG_IN();
+
+  this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
+  this->registerParam("n1", *(this->dir_vecs.back()), _pat_parsmod,
+                      "Direction of main material axis");
+  this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
+  this->registerParam("n2", *(this->dir_vecs.back()), _pat_parsmod,
+                      "Direction of secondary material axis");
+
+  if (spatial_dimension > 2) {
+    this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
+    this->registerParam("n3", *(this->dir_vecs.back()), _pat_parsmod,
+                        "Direction of tertiary material axis");
+  }
+
   for (UInt i = 0 ;  i < this->voigt_h.size ; ++i) {
     UInt start = 0;
     if (this->symmetric) {
@@ -56,18 +73,21 @@ MaterialElasticLinearAnisotropic<spatial_dimension>::MaterialElasticLinearAnisot
     }
     for (UInt j = start ;  j < this->voigt_h.size ; ++j) {
       std::stringstream param("C");
-      param << i+1 << j+1;
-      this->registerParam(param.str() , this->C(i,j), 0., _pat_parsmod,
+      param << "C" << i+1 << j+1;
+      this->registerParam(param.str() , this->Cprime(i,j), 0., _pat_parsmod,
                           "Coefficient " + param.str());
     }
   }
 
   AKANTU_DEBUG_OUT();
-}
+  }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 MaterialElasticLinearAnisotropic<spatial_dimension>::~MaterialElasticLinearAnisotropic() {
+  for (UInt i = 0 ;  i < spatial_dimension ; ++i) {
+    delete this->dir_vecs[i];
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -89,18 +109,79 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::updateInternalParamete
   if (this->symmetric) {
     for (UInt i = 0 ;  i < this->voigt_h.size ; ++i) {
       for (UInt j = i+1 ;  j < this->voigt_h.size ; ++j) {
-        this->C(j, i) = this->C(i, j);
+        this->Cprime(j, i) = this->Cprime(i, j);
       }
     }
   }
-  Matrix <Real> trash_eigen_vectors;
-  C.eig(this->eigC, trash_eigen_vectors);
+  this->rotateCprime();
+  C.eig(this->eigC);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt Dim>
+void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
+  // start by filling the empty parts fo Cprime
+  UInt diff = Dim*Dim - this->voigt_h.size;
+  for (UInt i = this->voigt_h.size ;  i < Dim*Dim ; ++i) {
+    for (UInt j = 0 ;  j < Dim*Dim ; ++j) {
+      this->Cprime(i, j) = this->Cprime(i-diff, j);
+    }
+  }
+  for (UInt i = 0 ;  i < Dim*Dim ; ++i) {
+    for (UInt j = this->voigt_h.size ;  j < Dim*Dim ; ++j) {
+      this->Cprime(i, j) = this->Cprime(i, j-diff);
+    }
+  }
+  // construction of rotator tensor
+  // normalise rotation matrix
+  for (UInt j = 0 ;  j < Dim ; ++j) {
+    this->rot_mat(j) = *this->dir_vecs[j];
+    this->rot_mat(j).normalize();
+  }
+
+  // make sure the vectors form a right-handed base
+  Vector<Real> test_axis(Dim);
+  test_axis.crossProduct(this->rot_mat(0),
+                         this->rot_mat(1));
+  test_axis -= this->rot_mat(2);
+  if (test_axis.norm() > 8*std::numeric_limits<Real>::epsilon()) {
+    AKANTU_DEBUG_ERROR("The axis vectors do not form a right-handed coordinate "
+                       << "system. I. e., ||n1 x n2 - n3|| should be zero, but "
+                       << "it is " << test_axis.norm() << ".");
+  }
+
+  // create the rotator and the reverse rotator
+  Matrix<Real> rotator(Dim * Dim, Dim * Dim);
+  Matrix<Real> revrotor(Dim * Dim, Dim * Dim);
+  for (UInt i = 0 ;  i < Dim ; ++i) {
+    for (UInt j = 0 ;  j < Dim ; ++j) {
+      for (UInt k = 0 ;  k < Dim ; ++k) {
+        for (UInt l = 0 ;  l < Dim ; ++l) {
+          UInt I = this->voigt_h.mat[i][j];
+          UInt J = this->voigt_h.mat[k][l];
+          rotator (I, J) = this->rot_mat(k, i) * this->rot_mat(l, j);
+          revrotor(I, J) = this->rot_mat(i, k) * this->rot_mat(j, l);
+        }
+      }
+    }
+  }
+
+  // create the full rotated matrix
+  Matrix<Real> Cfull(Dim*Dim, Dim*Dim);
+  Cfull = rotator*Cprime*revrotor;
+
+  for (UInt i = 0 ;  i < this->voigt_h.size ; ++i) {
+    for (UInt j = 0 ;  j < this->voigt_h.size ; ++j) {
+      this->C(i, j) = Cfull(i, j);
+    }
+  }
+
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementType el_type,
-								  GhostType ghost_type) {
+                                                                        GhostType ghost_type) {
 
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
@@ -127,10 +208,10 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementT
   // copy strains
   for (UInt q = 0; strain_it != strain_end ; ++strain_it, ++q) {
     Matrix<Real> & grad_u = *strain_it;
-    for (UInt j = 0 ; j < spatial_dimension ; ++j) {
-      for (UInt i = j ; i < spatial_dimension ; ++i) {
+    for (UInt i = 0 ; i < spatial_dimension ; ++i) {
+      for (UInt j = i ; j < spatial_dimension ; ++j) {
         UInt I = this->voigt_h.mat[i][j];
-        voigt_strains(I, q) = this->voigt_h.factors[I]*(grad_u(j,i) + grad_u(i,j));
+        voigt_strains(I, q) = 0.5 * this->voigt_h.factors[I]*(grad_u(j,i) + grad_u(i,j));
       }
     }
   }
@@ -147,11 +228,12 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementT
                                           spatial_dimension);
   for (UInt q = 0 ; stress_it != stress_end; ++stress_it, ++q) {
     Matrix<Real> & stress = *stress_it;
-    for (UInt j = 0 ;  j < spatial_dimension ; ++j) {
-      stress(j,j) = voigt_stresses(this->voigt_h.mat[j][j], q);
-      for (UInt i = j+1 ;  i < spatial_dimension ; ++i) {
+    for (UInt i = 0 ;  i < spatial_dimension ; ++i) {
+      stress(i,i) = voigt_stresses(this->voigt_h.mat[i][i], q);
+      for (UInt j = i+1 ;  j < spatial_dimension ; ++j) {
+        UInt I = this->voigt_h.mat[i][j];
         stress(j, i) =
-          stress(i, j) = voigt_stresses(this->voigt_h.mat[i][j], q);
+          stress(i, j) = voigt_stresses(I, q);
       }
     }
   }
@@ -162,8 +244,8 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementT
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElasticLinearAnisotropic<spatial_dimension>::computeTangentModuli(const ElementType & el_type,
-									 Array<Real> & tangent_matrix,
-									 GhostType ghost_type) {
+                                                                               Array<Real> & tangent_matrix,
+                                                                               GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
@@ -177,7 +259,7 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeTangentModuli(c
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 Real MaterialElasticLinearAnisotropic<dim>::getStableTimeStep(Real h,
-                             __attribute__ ((unused)) const Element & element) {
+                                                              __attribute__ ((unused)) const Element & element) {
   return h/this->getCelerity();
 }
 /* -------------------------------------------------------------------------- */

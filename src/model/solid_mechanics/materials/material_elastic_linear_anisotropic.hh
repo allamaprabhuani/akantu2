@@ -32,6 +32,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
+#include <vector>
+
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_ELASTIC_LINEAR_ANISOTROPIC_HH__
@@ -78,7 +80,9 @@ public:
 
 
   virtual void updateInternalParameters();
-
+protected:
+  // compute C from Cprime
+  void rotateCprime();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -94,12 +98,16 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  /// stiffness coefficients
+  const static VoigtHelper<Dim> voigt_h;
+  /// direction matrix and vectors
+  std::vector<Vector<Real>*>  dir_vecs;
+  Matrix<Real> rot_mat;
+  /// Elastic stiffness tensor in material frame and full vectorised notation
+  Matrix<Real> Cprime;
+  /// Elastic stiffness tensor in voigt notation
   Matrix<Real>  C;
   /// eigenvalues of stiffness tensor
   Vector<Real> eigC;
-  const static VoigtHelper<Dim> voigt_h;
   bool symmetric;
 
 };

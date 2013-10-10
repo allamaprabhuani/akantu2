@@ -42,24 +42,14 @@ template<UInt Dim>
 MaterialElasticOrthotropic<Dim>::MaterialElasticOrthotropic(SolidMechanicsModel & model,
                                                             const ID & id)  :
   Material(model, id),
-  MaterialElasticLinearAnisotropic<Dim>(model, id),
-  rot_mat(Dim, Dim) {
+  MaterialElasticLinearAnisotropic<Dim>(model, id) {
   AKANTU_DEBUG_IN();
-  Vector<Real> tmp = this->rot_mat(0);
-  this->registerParam("n1", tmp, _pat_parsmod,
-                      "Direction of main material axis");
-  tmp = this->rot_mat(1);
-  this->registerParam("n2", tmp, _pat_parsmod,
-                      "Direction of secondary material axis");
   this->registerParam("E1",   E1  , 0., _pat_parsmod, "Young's modulus (n1)");
   this->registerParam("E2",   E2  , 0., _pat_parsmod, "Young's modulus (n2)");
   this->registerParam("nu12", nu12, 0., _pat_parsmod, "Poisson's ratio (12)");
   this->registerParam("G12",  G12 , 0., _pat_parsmod, "Shear modulus (12)");
 
   if (Dim > 2) {
-    tmp = this->rot_mat(2);
-    this->registerParam("n3", tmp, _pat_parsmod,
-                        "Direction of tertiary material axis");
     this->registerParam("E3"  , E3  , 0., _pat_parsmod, "Young's modulus (n3)");
     this->registerParam("nu13", nu13, 0., _pat_parsmod, "Poisson's ratio (13)");
     this->registerParam("nu23", nu23, 0., _pat_parsmod, "Poisson's ratio (23)");
@@ -105,7 +95,6 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
   Real nu32 = nu23 * E3 / E2;
 
   // Full (i.e. dim^2 by dim^2) stiffness tensor in material frame
-  Matrix<Real> Cprime(Dim*Dim, Dim*Dim);
   if (Dim != 3) {
     AKANTU_DEBUG_ERROR("Dimensions other than 3 have not yet been implemented for orthotropy");
   }
@@ -113,57 +102,22 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
   Real Gamma = 1/(1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu21 * nu32 * nu13);
 
   // Lamé's first parameters
-  Cprime(0, 0) = E1 * (1 - nu23 * nu32) * Gamma;
-  Cprime(1, 1) = E2 * (1 - nu13 * nu31) * Gamma;
-  Cprime(2, 2) = E3 * (1 - nu12 * nu21) * Gamma;
+  this->Cprime(0, 0) = E1 * (1 - nu23 * nu32) * Gamma;
+  this->Cprime(1, 1) = E2 * (1 - nu13 * nu31) * Gamma;
+  this->Cprime(2, 2) = E3 * (1 - nu12 * nu21) * Gamma;
 
   // normalised poisson's ratio's
-  Cprime(1, 0) = Cprime(0, 1) = E1 * (nu21 + nu31 * nu23) * Gamma;
-  Cprime(2, 0) = Cprime(0, 2) = E1 * (nu31 + nu21 * nu32) * Gamma;
-  Cprime(2, 1) = Cprime(1, 2) = E2 * (nu32 + nu12 * nu31) * Gamma;
+  this->Cprime(1, 0) = this->Cprime(0, 1) = E1 * (nu21 + nu31 * nu23) * Gamma;
+  this->Cprime(2, 0) = this->Cprime(0, 2) = E1 * (nu31 + nu21 * nu32) * Gamma;
+  this->Cprime(2, 1) = this->Cprime(1, 2) = E2 * (nu32 + nu12 * nu31) * Gamma;
 
   // Lamé's second parameters (shear moduli)
-  Cprime(3, 3) = Cprime(6, 6) = G23;
-  Cprime(4, 4) = Cprime(7, 7) = G13;
-  Cprime(5, 5) = Cprime(8, 8) = G12;
+  this->Cprime(3, 3) = G23;
+  this->Cprime(4, 4) = G13;
+  this->Cprime(5, 5) = G12;
 
-  /* -------------------------------------------------------------------------- */
-  /* 2) construction of rotator tensor -------------------------------------- */
-  // normalise rotation matrix
-  for (UInt j = 0 ;  j < Dim ; ++j) {
-    this->rot_mat(j).normalize();
-  }
-
-  // make sure the vectors form a right-handed base
-  Vector<Real> test_axis(Dim);
-  test_axis.crossProduct(this->rot_mat(0),
-                         this->rot_mat(1));
-  test_axis -= this->rot_mat(2);
-  if (test_axis.norm() > 8*std::numeric_limits<Real>::epsilon()) {
-    AKANTU_DEBUG_ERROR("The axis vectors do not form a right-handed coordinate "
-                       << "system. I. e., ||n1 x n2 - n3|| should be zero, but "
-                       << "it is " << test_axis.norm() << ".");
-  }
-
-  // create the rotator and the reverse rotator
-  Matrix<Real> rotator(Dim * Dim, Dim * Dim);
-  Matrix<Real> revrotor(Dim * Dim, Dim * Dim);
-  for (UInt i = 0 ;  i < Dim ; ++i) {
-    for (UInt j = 0 ;  j < Dim ; ++j) {
-      for (UInt k = 0 ;  k < Dim ; ++k) {
-        for (UInt l = 0 ;  l < Dim ; ++l) {
-          UInt I = this->voigt_h.mat[i][j];
-          UInt J = this->voigt_h.mat[k][l];
-          rotator (I, J) = this->rot_mat(k, i) * this->rot_mat(l, j);
-          revrotor(I, J) = this->rot_mat(i, k) * this->rot_mat(j, l);
-        }
-      }
-    }
-  }
-
-  // create the full rotated matrix
-  Matrix<Real> Cfull(Dim*Dim, Dim*Dim);
-  Cfull = rotator*Cprime*revrotor;
+  /* 1) rotation of C into the global frame --------------------------------- */
+  this->rotateCprime();
 }
 
 /* -------------------------------------------------------------------------- */

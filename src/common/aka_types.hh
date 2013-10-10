@@ -495,7 +495,22 @@ public:
   /* ---------------------------------------------------------------------- */
   inline void eig(Vector<T> & eigenvalues, Matrix & eigenvectors) const {
     AKANTU_DEBUG_ASSERT(n == m, "eig is not a valid operation on a rectangular matrix");
+    AKANTU_DEBUG_ASSERT(eigenvalues.size() == n, "eigenvalues should be of size "
+                        << n << ".");
+    AKANTU_DEBUG_ASSERT((eigenvectors.rows() == eigenvectors.cols()) &&
+                        (eigenvectors.rows() == n),
+                        "Eigenvectors needs to be a square matrix of size "
+                        << n << " x " << n << ".");
+
     Math::matrixEig(this->n, this->values, eigenvalues.storage(), eigenvectors.storage());
+  }
+
+  /* ---------------------------------------------------------------------- */
+  inline void eig(Vector<T> & eigenvalues) const {
+    AKANTU_DEBUG_ASSERT(n == m, "eig is not a valid operation on a rectangular matrix");
+    AKANTU_DEBUG_ASSERT(eigenvalues.size() == n, "eigenvalues should be of size "
+                        << n << ".");
+    Math::matrixEig(this->n, this->values, eigenvalues.storage());
   }
 
   /* ---------------------------------------------------------------------- */
@@ -549,19 +564,22 @@ public:
     else Math::inv(n, A.values, this->values);
   }
 
+  /* --------------------------------------------------------------------- */
   inline T det() {
     AKANTU_DEBUG_ASSERT(n == m, "inv is not a valid operation on a rectangular matrix");
     if(n == 1) return *values;
     else if(n == 2) return Math::det2(values);
     else if(n == 3) return Math::det3(values);
-    else Math::det(values, n);
+    else return Math::det(values, n);
   }
 
+  /* --------------------------------------------------------------------- */
   inline T doubleDot(const Matrix<T> & other) {
      AKANTU_DEBUG_ASSERT(n == m, "doubleDot is not a valid operation on a rectangular matrix");
      if(n == 2) return Math::matrixDoubleDot22(values, other.values);
      else if(n == 3) return Math::matrixDoubleDot33(values, other.values);
-     //    return Math::matrixDoubleDot33(values, other.values);
+     else AKANTU_DEBUG_ERROR("doubleDot is not defined for other spatial dimensions"
+                             << " than 2 or 3.");
     }
 
   /* ---------------------------------------------------------------------- */

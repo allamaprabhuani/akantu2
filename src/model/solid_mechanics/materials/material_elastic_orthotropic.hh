@@ -98,8 +98,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// direction matrix
-  Matrix<Real> rot_mat;
   /// the n1 young modulus
   Real E1;
 
