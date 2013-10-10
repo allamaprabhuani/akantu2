@@ -2,6 +2,7 @@
  * @file   material_elastic_inline_impl.cc
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Wed Aug 04 10:58:42 2010
  *
@@ -33,13 +34,14 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
-								    Matrix<Real> & sigma) {
+								    Matrix<Real> & sigma,
+                    Real delta_t) {
   Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
 
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
-      sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i));
+      sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i)) - (i == j)*E*alpha*delta_t/(1-2*nu);
     }
   }
 
@@ -48,8 +50,9 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix
 /* -------------------------------------------------------------------------- */
 template<>
 inline void MaterialElastic<1>::computeStressOnQuad(const Matrix<Real> & grad_u,
-						    Matrix<Real> & sigma) {
-  sigma(0, 0) =  E*grad_u(0, 0);
+						    Matrix<Real> & sigma,
+                Real delta_t) {
+  sigma(0, 0) =  E*grad_u(0, 0) - E*alpha*delta_t;
 }
 
 

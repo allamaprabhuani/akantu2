@@ -2,6 +2,7 @@
  * @file   material_elastic.cc
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Tue Jul 27 18:15:37 2010
  *
@@ -36,16 +37,20 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 MaterialElastic<spatial_dimension>::MaterialElastic(SolidMechanicsModel & model, const ID & id)  :
-  Material(model, id) {
+  Material(model, id), 
+  delta_t("delta_t", id) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("E"           ,E           , 0.   , _pat_parsable | _pat_modifiable, "Young's modulus"        );
   this->registerParam("nu"          ,nu          , 0.5  , _pat_parsable | _pat_modifiable, "Poisson's ratio"        );
+  this->registerParam("alpha"       ,alpha       , 0.   , _pat_parsable | _pat_modifiable, "Thermal expansion coefficient");
+  this->registerParam("delta_t_init",delta_t_init, 0.   , _pat_parsable | _pat_modifiable, "Uniform temperature field (for test purposes)");
   this->registerParam("Plane_Stress",plane_stress, false, _pat_parsmod, "Is plane stress"        ); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
   this->registerParam("lambda"      ,lambda             , _pat_readable, "First Lamé coefficient" );
   this->registerParam("mu"          ,mu                 , _pat_readable, "Second Lamé coefficient");
   this->registerParam("kapa"        ,kpa                , _pat_readable, "Bulk coefficient"       );
 
+  initInternalArray(delta_t, 1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -68,14 +73,29 @@ void MaterialElastic<spatial_dimension>::updateInternalParameters() {
   if(plane_stress) lambda = nu * E / ((1 + nu)*(1 - nu));
 
   kpa      = lambda + 2./3. * mu;
+
+  const Mesh & mesh = this->model->getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  this->resizeInternalArray(delta_t);
+  for (; it != last_type ; ++it) {
+    Array<Real> & delta_t_vec = delta_t(*it);
+    delta_t_vec.set(delta_t_init);
+  }
+
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+  Array<Real> & dt = delta_t(el_type, ghost_type);
+  Array<Real>::iterator<> dt_it = dt.begin();
+
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  computeStressOnQuad(grad_u, sigma);
+  computeStressOnQuad(grad_u, sigma, *dt_it);
+  ++dt_it;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   AKANTU_DEBUG_OUT();
 }

@@ -2,6 +2,7 @@
  * @file   material_elastic.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Wed Aug 04 10:58:42 2010
  *
@@ -41,10 +42,10 @@ __BEGIN_AKANTU__
  * Material elastic isotropic
  *
  * parameters in the material files :
- *   - rho : density (default: 0)
  *   - E   : Young's modulus (default: 0)
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
+ *   - alpha : thermal expansion coefficient (default: 0)
  */
 template<UInt spatial_dimension>
 class MaterialElastic : public virtual Material {
@@ -81,7 +82,7 @@ public:
 protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-				  Matrix<Real> & sigma);
+				  Matrix<Real> & sigma, Real delta_t = 0);
 
   /// compute the tangent stiffness matrix for an element
   void computeTangentModuliOnQuad(Matrix<Real> & tangent);
@@ -115,6 +116,15 @@ protected:
 
   /// Bulk modulus
   Real kpa;
+
+  /// Thermal expansion coefficient
+  Real alpha;
+
+  /// Temperature field
+  ByElementTypeReal delta_t;
+
+  /// Uniform temperature filed (for test putposes)
+  Real delta_t_init;
 
   /// Plane stress or plane strain
   bool plane_stress;
