@@ -580,7 +580,8 @@ public:
      else if(n == 3) return Math::matrixDoubleDot33(values, other.values);
      else AKANTU_DEBUG_ERROR("doubleDot is not defined for other spatial dimensions"
                              << " than 2 or 3.");
-    }
+     return T();
+  }
 
   /* ---------------------------------------------------------------------- */
   /// function to print the containt of the class
