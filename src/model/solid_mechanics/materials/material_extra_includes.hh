@@ -35,6 +35,7 @@
 
 // elastic materials
 #include "material_neohookean.hh"
+#include "material_elastic_orthotropic.hh"
 #include "material_elastic_linear_anisotropic.hh"
 
 // damage materials
@@ -48,6 +49,7 @@
 #include "material_plasticityinc.hh"
 
 
+
 #define  AKANTU_EXTRA_MATERIAL_LIST                                     \
   ((2, (damage_linear      , MaterialDamageLinear                 )))   \
   ((2, (marigo             , MaterialMarigo                       )))   \
@@ -56,6 +58,7 @@
   ((2, (ve_stiffness_prop  , MaterialStiffnessProportional        )))   \
   ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))   \
   ((2, (neohookean         , MaterialNeohookean                   )))   \
+  ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
   ((2, (anisotropic        , MaterialElasticLinearAnisotropic     )))   \
   ((2, (plastic            , MaterialPlastic                      )))   \
   ((2, (plasticity         , MaterialPlasticityinc                )))               
