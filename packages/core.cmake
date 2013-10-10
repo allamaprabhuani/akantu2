@@ -196,8 +196,6 @@ set(AKANTU_CORE_FILES
   fem/element_class.cc
   fem/integration_element.cc
   fem/interpolation_element.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic.hh
   )
 
 
