@@ -665,10 +665,10 @@ void SolidMechanicsModel::explicitCorr() {
 void SolidMechanicsModel::solveStep() {
   AKANTU_DEBUG_IN();
 
-  explicitPred();
-  updateResidual();
-  updateAcceleration();
-  explicitCorr();
+  this->explicitPred();
+  this->updateResidual();
+  this->updateAcceleration();
+  this->explicitCorr();
 
   AKANTU_DEBUG_OUT();
 }

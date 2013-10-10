@@ -151,7 +151,7 @@ public:
   void updateCurrentPosition();
 
   /// assemble the residual for the explicit scheme
-  void updateResidual(bool need_initialize = true);
+  virtual void updateResidual(bool need_initialize = true);
 
   /**
    * \brief compute the acceleration from the residual

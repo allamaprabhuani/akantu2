@@ -178,7 +178,7 @@ inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(Matrix<Real> & gr
             break;
     }
 
-    epot=0.5*lambda*pow(log(J),2.)+(mu - lambda*log(J))*(-log(J)+0.5*(C.trace()-dim));
+    epot=0.5*lambda*pow(log(J),2.)+ mu * (-log(J)+0.5*(C.trace()-dim));
 
 }
 
