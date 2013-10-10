@@ -30,6 +30,18 @@
 #
 #===============================================================================
 
+
+macro(register_patch_test_anisotropic name )
+  set(_mat ../data/material_anisotropic.dat)
+  register_test(patch_test_explicit_anisotropic
+    SOURCES patch_test_explicit_anisotropic.cc
+    FILES_TO_COPY ../data/_tetrahedron_4.msh ${_mat}
+    PACKAGE extra_materials
+    )
+endmacro()
+
+register_patch_test_anisotropic("Anisotropic")
+
 macro(register_patch_test name type plane_strain)
   if("${plane_strain}" STREQUAL "false")
     set(_mat ../data/material_check_stress_plane_stress.dat)
@@ -52,3 +64,4 @@ foreach(_type ${LIST_TYPES_2D})
   register_patch_test(plane_strain_${_type} ${_type} true)
   register_patch_test(plane_stress_${_type} ${_type} false)
 endforeach()
+
