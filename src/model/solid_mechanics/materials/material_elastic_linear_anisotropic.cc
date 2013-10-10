@@ -114,7 +114,7 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::updateInternalParamete
     }
   }
   this->rotateCprime();
-  C.eig(this->eigC);
+  this->C.eig(this->eigC);
 }
 
 /* -------------------------------------------------------------------------- */
