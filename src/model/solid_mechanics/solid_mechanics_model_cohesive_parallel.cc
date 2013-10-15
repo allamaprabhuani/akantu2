@@ -76,6 +76,8 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets_conn);
 
+    synchronizeGhostFacets();
+
     facet_stress_synchronizer =
       FacetStressSynchronizer::createFacetStressSynchronizer(*facet_synchronizer,
 							     mesh_facets);
@@ -99,10 +101,11 @@ void SolidMechanicsModelCohesive::fillGlobalConnectivity(ByElementTypeUInt & glo
   for(; it != end; ++it) {
     ElementType type_facet = *it;
 
+    Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet, ghost_type);
     Array<UInt> & g_connectivity = global_connectivity(type_facet, ghost_type);
 
-    UInt nb_nodes_per_facet = Mesh::getNbNodesPerElement(type_facet);
-    UInt nb_facet = mesh_facets.getNbElement(type_facet, ghost_type);
+    UInt nb_nodes_per_facet = connectivity.getNbComponent();
+    UInt nb_facet = connectivity.getSize();
 
     g_connectivity.extendComponentsInterlaced(nb_nodes_per_facet, 1);
     g_connectivity.resize(nb_facet);
@@ -116,7 +119,7 @@ void SolidMechanicsModelCohesive::fillGlobalConnectivity(ByElementTypeUInt & glo
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::synchronizeCohesiveElements() {
+void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();

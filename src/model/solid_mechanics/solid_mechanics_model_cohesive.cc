@@ -422,10 +422,6 @@ void SolidMechanicsModelCohesive::computeNormals() {
 
   getFEM("FacetsFEM").computeNormalsOnControlPoints(_not_ghost);
 
-#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  synchronizeCohesiveElements();
-#endif
-
   /**
    *  @todo store tangents while computing normals instead of
    *  recomputing them as follows:

@@ -353,15 +353,14 @@ inline void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(ByEleme
 									 el.ghost_type);
     }
 
-    if ( (*element_to_facet)(el.element)[0].ghost_type == _not_ghost )
-      element_rank = 0;
+    if (pack_helper)
+      element_rank = (*element_to_facet)(el.element)[0].ghost_type != _not_ghost;
     else
-      element_rank = 1;
-
-    if (!pack_helper) element_rank = !element_rank;
+      element_rank = (*element_to_facet)(el.element)[0].ghost_type == _not_ghost;
 
     for (UInt q = 0; q < nb_quad_per_elem; ++q) {
-      Vector<T> data(vect->storage() + (el.element * nb_quad_per_elem + q) * nb_component
+      Vector<T> data(vect->storage()
+		     + (el.element * nb_quad_per_elem + q) * nb_component
 		     + element_rank * sp2,
 		     sp2);
 

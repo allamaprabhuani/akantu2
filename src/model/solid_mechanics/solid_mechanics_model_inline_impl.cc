@@ -204,13 +204,21 @@ inline void SolidMechanicsModel::unpackBarycenter(const Mesh & mesh,
     const Element & element = *bit;
 
     Vector<Real> barycenter_loc(spatial_dimension);
-    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
+
+    mesh.getBarycenter(element.element, element.type,
+		       barycenter_loc.storage(), element.ghost_type);
+
+    Real barycenter_loc_norm = barycenter_loc.norm();
+
     Vector<Real> barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;
+
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if((std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i)) <= tolerance) ||
-	 (barycenter_loc(i) == 0 && std::abs(barycenter(i)) <= tolerance)) continue;
+      if((std::abs(barycenter_loc(i)) <= tolerance &&
+	  std::abs(barycenter(i)) <= tolerance) ||
+	 (std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc_norm)
+	  <= tolerance)) continue;
       AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
 			 << element
 			 << "(barycenter[" << i << "] = " << barycenter_loc(i)

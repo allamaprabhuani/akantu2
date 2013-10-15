@@ -44,7 +44,7 @@ protected:
 void fillSynchronizeNormals(ByElementTypeReal & facet_normals,
 			    GhostType ghost_type);
 
-void synchronizeCohesiveElements();
+void synchronizeGhostFacets();
 
 void updateFacetSynchronizer();
 
