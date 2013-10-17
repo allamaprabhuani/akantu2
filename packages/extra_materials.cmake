@@ -28,6 +28,7 @@
 #===============================================================================
 
 option(AKANTU_EXTRA_MATERIALS "Add the extra list of materials in Akantu" OFF)
+add_external_package_dependencies(extra_materials lapack)
 
 set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_neohookean.cc
