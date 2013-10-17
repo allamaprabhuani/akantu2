@@ -58,6 +58,7 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material.cc
   model/solid_mechanics/material_parameters.cc
   model/solid_mechanics/materials/material_elastic.cc
+  model/solid_mechanics/materials/material_thermal.cc
   mesh_utils/mesh_pbc.cc
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_partition/mesh_partition_mesh_data.cc
@@ -150,6 +151,7 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material_parameters.hh
   model/solid_mechanics/material_parameters_tmpl.hh
   model/solid_mechanics/materials/material_elastic.hh
+  model/solid_mechanics/materials/material_thermal.hh
 
   #inline implementation files
   mesh_utils/mesh_utils_inline_impl.cc
