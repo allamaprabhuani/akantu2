@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_thermal.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_ELASTIC_HH__
@@ -45,10 +45,9 @@ __BEGIN_AKANTU__
  *   - E   : Young's modulus (default: 0)
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
- *   - alpha : thermal expansion coefficient (default: 0)
  */
 template<UInt spatial_dimension>
-class MaterialElastic : public virtual Material {
+class MaterialElastic : public MaterialThermal<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -116,15 +115,6 @@ protected:
 
   /// Bulk modulus
   Real kpa;
-
-  /// Thermal expansion coefficient
-  Real alpha;
-
-  /// Temperature field
-  ByElementTypeReal delta_t;
-
-  /// Uniform temperature filed (for test putposes)
-  Real delta_t_init;
 
   /// Plane stress or plane strain
   bool plane_stress;

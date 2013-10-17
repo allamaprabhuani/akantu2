@@ -30,7 +30,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
@@ -41,7 +40,7 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix
   /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
-      sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i)) - (i == j)*E*alpha*delta_t/(1-2*nu);
+      sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i)) - (i == j)*E*this->alpha*delta_t/(1-2*nu);
     }
   }
 
