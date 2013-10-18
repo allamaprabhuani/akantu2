@@ -44,9 +44,9 @@ __BEGIN_AKANTU__
  * Orthotropic elastic material
  *
  * parameters in the material files :
- *   - n1   : 1st material base vector (default: {1, 0, 0})
- *   - n2   : 2nd material base vector (default: {0, 1, 0})
- *   - n3   : 3rd material base vector (default: {0, 0, 1})
+ *   - n1   : direction of x-axis in material base, normalisation not necessary (default: {1, 0, 0})
+ *   - n2   : direction of y-axis in material base, normalisation not necessary (default: {0, 1, 0})
+ *   - n3   : direction of z-axis in material base, normalisation not necessary (default: {0, 0, 1})
  *   - rho  : density (default: 0)
  *   - E1   : Young's modulus along n1 (default: 0)
  *   - E2   : Young's modulus along n2 (default: 0)
