@@ -40,10 +40,10 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-MaterialElasticLinearAnisotropic<spatial_dimension>::MaterialElasticLinearAnisotropic(
-                                                                                      SolidMechanicsModel & model,
-                                                                                      const ID & id,
-                                                                                      bool symmetric)  :
+MaterialElasticLinearAnisotropic<spatial_dimension>::
+MaterialElasticLinearAnisotropic(SolidMechanicsModel & model,
+                                 const ID & id,
+                                 bool symmetric)  :
   Material(model, id),
   rot_mat(spatial_dimension, spatial_dimension),
   Cprime(spatial_dimension*spatial_dimension,
@@ -54,14 +54,17 @@ MaterialElasticLinearAnisotropic<spatial_dimension>::MaterialElasticLinearAnisot
   AKANTU_DEBUG_IN();
 
   this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
+  (*this->dir_vecs.back())[0] = 1.;
   this->registerParam("n1", *(this->dir_vecs.back()), _pat_parsmod,
                       "Direction of main material axis");
   this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
+  (*this->dir_vecs.back())[1] = 1.;
   this->registerParam("n2", *(this->dir_vecs.back()), _pat_parsmod,
                       "Direction of secondary material axis");
 
   if (spatial_dimension > 2) {
     this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
+    (*this->dir_vecs.back())[2] = 1.;
     this->registerParam("n3", *(this->dir_vecs.back()), _pat_parsmod,
                         "Direction of tertiary material axis");
   }
