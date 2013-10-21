@@ -20,6 +20,8 @@
 #
 ################################################################################
 
+# CHOOSE BETWEEN USING THE SEQUENTIAL OR THE PARALLEL VERSION.
+MUMPS_TYPE = @MUMPS_TYPE@
 
 ########################################################################
 #Begin orderings
@@ -144,10 +146,6 @@ CDEFS = -DAdd_
 OPTF    = -O -w -fPIC
 OPTC    = -O -I. -fPIC
 OPTL    = -O -fPIC
-
-# CHOOSE BETWEEN USING THE SEQUENTIAL OR THE PARALLEL VERSION.
-
-MUMPS_TYPE = @MUMPS_TYPE@
 
 #Sequential:
 ifeq ($(MUMPS_TYPE),seq)

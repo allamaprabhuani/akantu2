@@ -67,10 +67,15 @@ if(AKANTU_USE_THIRD_PARTY_SCOTCH)
   configure_file(${PROJECT_SOURCE_DIR}/third-party/Scotchmake.inc.cmake
     ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc)
 
+  set(SCOTCH_URL ${PROJECT_SOURCE_DIR}/third-party/scotch_5.1.12b_esmumps.tar.gz)
+  if(NOT EXISTS ${SCOTCH_URL})
+    set(SCOTCH_URL https://gforge.inria.fr/frs/download.php/28978/scotch_5.1.12b_esmumps.tar.gz)
+  endif()
+
   ExternalProject_Add(Scotch
     PREFIX ${PROJECT_BINARY_DIR}/third-party/build/scotch
-    URL https://gforge.inria.fr/frs/download.php/28978/scotch_5.1.12b_esmumps.tar.gz
-#    URL_HASH MD5=e13b49be804755470b159d7052764dc0
+    URL ${SCOTCH_URL}
+    URL_HASH MD5=e13b49be804755470b159d7052764dc0
     PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/third-party/scotch.patch
     CONFIGURE_COMMAND cmake -E copy ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc src/Makefile.inc
     BUILD_IN_SOURCE 1
