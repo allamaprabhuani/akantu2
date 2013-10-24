@@ -47,6 +47,7 @@
 // plasticity
 #include "material_plastic.hh"
 #include "material_plasticityinc.hh"
+#include "material_viscoplasticity.hh"
 
 
 
@@ -61,6 +62,7 @@
   ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
   ((2, (anisotropic        , MaterialElasticLinearAnisotropic     )))   \
   ((2, (plastic            , MaterialPlastic                      )))   \
-  ((2, (plasticity         , MaterialPlasticityinc                )))               
+  ((2, (plasticity         , MaterialPlasticityinc                )))   \
+  ((2, (viscoplasticity    , MaterialViscoPlasticity              )))               
 
 
