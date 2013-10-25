@@ -72,6 +72,11 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.hh
   model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.cc
   model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc_inline_impl.cc
+
+  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.hh
+  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.cc
+  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity_inline_impl.cc
+
   )
 
 set(AKANTU_EXTRA_MATERIALS_TESTS
