@@ -95,26 +95,41 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
   Real nu32 = nu23 * E3 / E2;
 
   // Full (i.e. dim^2 by dim^2) stiffness tensor in material frame
-  if (Dim != 3) {
-    AKANTU_DEBUG_ERROR("Dimensions other than 3 have not yet been implemented for orthotropy");
+  if (Dim == 1) {
+    AKANTU_DEBUG_ERROR("Dimensions 1 not implemented: makes no sense to have orthotropy for 1D");
   }
 
-  Real Gamma = 1/(1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu21 * nu32 * nu13);
+  Real Gamma;
 
+  if (Dim == 3) 
+    Gamma = 1/(1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu21 * nu32 * nu13);
+
+  if (Dim == 2) 
+    Gamma = 1/(1 - nu12 * nu21);
+
+ 
   // Lamé's first parameters
   this->Cprime(0, 0) = E1 * (1 - nu23 * nu32) * Gamma;
   this->Cprime(1, 1) = E2 * (1 - nu13 * nu31) * Gamma;
-  this->Cprime(2, 2) = E3 * (1 - nu12 * nu21) * Gamma;
+  if (Dim == 3) 
+    this->Cprime(2, 2) = E3 * (1 - nu12 * nu21) * Gamma;
 
   // normalised poisson's ratio's
   this->Cprime(1, 0) = this->Cprime(0, 1) = E1 * (nu21 + nu31 * nu23) * Gamma;
-  this->Cprime(2, 0) = this->Cprime(0, 2) = E1 * (nu31 + nu21 * nu32) * Gamma;
-  this->Cprime(2, 1) = this->Cprime(1, 2) = E2 * (nu32 + nu12 * nu31) * Gamma;
+  if (Dim == 3) {
+    this->Cprime(2, 0) = this->Cprime(0, 2) = E1 * (nu31 + nu21 * nu32) * Gamma;
+    this->Cprime(2, 1) = this->Cprime(1, 2) = E2 * (nu32 + nu12 * nu31) * Gamma;
+  }
 
   // Lamé's second parameters (shear moduli)
-  this->Cprime(3, 3) = G23;
-  this->Cprime(4, 4) = G13;
-  this->Cprime(5, 5) = G12;
+  if (Dim == 3) {
+    this->Cprime(3, 3) = G23;
+    this->Cprime(4, 4) = G13;
+    this->Cprime(5, 5) = G12;
+  }
+  else
+    this->Cprime(2, 2) = G12;
+
 
   /* 1) rotation of C into the global frame --------------------------------- */
   this->rotateCprime();

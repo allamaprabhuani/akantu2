@@ -160,17 +160,17 @@ void MaterialViscoPlasticity<spatial_dimension>::computeTangentModuli(__attribut
     Real * iso_hardening= this->iso_hardening(el_type, ghost_type).storage();
 
 
-    MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+    //MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 
     //   Matrix<Real> & grad_delta_u = *d_strain_it;
     //   Matrix<Real> & sigma_tensor = *sigma_it;
-    Matrix<Real> & previous_sigma_tensor = *previous_sigma_it;
+    //    Matrix<Real> & previous_sigma_tensor = *previous_sigma_it;
 
-    computeTangentModuliOnQuad(tangent, grad_delta_u, sigma_tensor, previous_sigma_tensor, *iso_hardening);
+    //    computeTangentModuliOnQuad(tangent, grad_delta_u, sigma_tensor, previous_sigma_tensor, *iso_hardening);
     //   ++green_it; ++sigma_it;
     ++previous_sigma_it;
     ++iso_hardening;
-    MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+    //MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
     AKANTU_DEBUG_OUT();
 }

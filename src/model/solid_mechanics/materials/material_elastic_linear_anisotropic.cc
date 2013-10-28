@@ -143,10 +143,27 @@ void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
   }
 
   // make sure the vectors form a right-handed base
-  Vector<Real> test_axis(Dim);
-  test_axis.crossProduct(this->rot_mat(0),
-                         this->rot_mat(1));
-  test_axis -= this->rot_mat(2);
+  Vector<Real> test_axis(3);
+  Vector<Real> v1(3),v2(3),v3(3);
+
+  if (Dim == 2){
+    for (UInt i = 0; i < Dim; ++i) {
+      v1[i] = this->rot_mat(0)[i];
+      v2[i] = this->rot_mat(1)[i];
+      v3[i] = 0.;
+    }
+    v3[2] = 1.;
+    v1[2] = 0.;
+    v2[2] = 0.;
+  }
+  else if (Dim == 3){
+    v1 = this->rot_mat(0);
+    v2 = this->rot_mat(1);
+    v3 = this->rot_mat(2);
+  }
+  
+  test_axis.crossProduct(v1,v2);
+  test_axis -= v3;
   if (test_axis.norm() > 8*std::numeric_limits<Real>::epsilon()) {
     AKANTU_DEBUG_ERROR("The axis vectors do not form a right-handed coordinate "
                        << "system. I. e., ||n1 x n2 - n3|| should be zero, but "
