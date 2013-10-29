@@ -28,7 +28,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
 
+#ifndef __AKANTU_DUMPER_IOHELPER_TMPL_HH__
+#define __AKANTU_DUMPER_IOHELPER_TMPL_HH__
+
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<class T, template<class> class R>
@@ -89,6 +94,8 @@ public:
   }
 };
 
+iohelper::ElemType getIOHelperType(ElementType type);
+
 #include "dumper_iohelper_tmpl_nodal_field.hh"
 #include "dumper_iohelper_tmpl_elemental_field.hh"
 #include "dumper_iohelper_tmpl_quadrature_points_field.hh"
@@ -96,3 +103,8 @@ public:
 #ifdef AKANTU_COHESIVE_ELEMENT
 #  include "dumper_iohelper_tmpl_connectivity_field.hh"
 #endif
+
+__END_AKANTU__
+
+#endif /* __AKANTU_DUMPER_IOHELPER_TMPL_HH__ */
+

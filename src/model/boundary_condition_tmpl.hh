@@ -157,6 +157,8 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
       }
       delete quad_coords;
 
+      /* -------------------------------------------------------------------- */
+      // Initialization of iterators
       Array<Real>::iterator<Matrix<Real> > dual_iter_mat = dual_before_integ->begin(nb_degree_of_freedom,1);
       elem_iter = element_ids.begin();
       Array<Real>::const_iterator<Matrix<Real> > shapes_iter_begin = fem_boundary.getShapes(*type_it, ghost_type).begin(1, nb_nodes_per_element);
@@ -164,6 +166,8 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
       Array<Real> * dual_by_shapes = new Array<Real>(nb_elements*nb_quad_points, nb_degree_of_freedom*nb_nodes_per_element);
       Array<Real>::iterator<Matrix<Real> > dual_by_shapes_iter = dual_by_shapes->begin(nb_degree_of_freedom, nb_nodes_per_element);
 
+      /* -------------------------------------------------------------------- */
+      // Loop computing dual x shapes
       for(; elem_iter != elem_iter_end; ++elem_iter) {
         Array<Real>::const_iterator<Matrix<Real> > shapes_iter = shapes_iter_begin + *elem_iter*nb_quad_points;
 

@@ -70,22 +70,12 @@ int main(int argc, char *argv[])
   model.addDumpField("strain"      );
 
   debug::setDebugLevel(dblInfo);
-  UInt count = 0;
-  model.updateResidual();
+
   model.dump();
 
-  while(!model.testConvergenceResidual(1e-1) && (count <= 10)) {
-    std::cout << "Iter : " << ++count << std::endl;
-    model.assembleStiffnessMatrix();
+  model.solveStep<_scm_newton_raphson_tangent_modified, _scc_residual>(1e-1, 10);
 
-    model.solveStatic();
-
-    model.getStiffnessMatrix().saveMatrix("Ktmp.mtx");
-
-    model.updateResidual();
-    model.computeStresses();
-    model.dump();
-  }
+  model.dump();
 
   finalize();
 

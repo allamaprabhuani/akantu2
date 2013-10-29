@@ -36,9 +36,6 @@
 #include <sstream>
 #include <sys/time.h>
 
-#ifdef AKANTU_USE_MPI
-#include <mpi.h>
-#endif
 /* -------------------------------------------------------------------------- */
 //#include "aka_common.hh"
 

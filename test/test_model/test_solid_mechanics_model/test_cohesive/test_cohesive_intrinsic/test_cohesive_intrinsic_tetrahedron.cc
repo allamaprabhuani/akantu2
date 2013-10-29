@@ -40,11 +40,8 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#include "dumper_iohelper.hh"
-#include "dumper_iohelper_tmpl_material_internal_field.hh"
-#include "dumper_iohelper_tmpl_homogenizing_field.hh"
 
-//#include "io_helper.hh"
+#include "dumper_paraview.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

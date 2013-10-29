@@ -109,12 +109,13 @@ inline void TestAccessor::unpackElementData(CommunicationBuffer & buffer,
   for (; bit != bend; ++bit) {
     const Element & element = *bit;
 
-    Vector<Real> barycenter_loc(this->barycenters(element.type,element.ghost_type).storage()
+    Vector<Real> barycenter_loc(this->barycenters(element.type, element.ghost_type).storage()
 				+ element.element * spatial_dimension,
 				spatial_dimension);
 
     Vector<Real> bary(spatial_dimension);
     buffer >> bary;
+    std::cout << element << barycenter_loc << std::endl;
     Real tolerance = 1e-15;
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if(!(std::abs(bary(i) - barycenter_loc(i)) <= tolerance))

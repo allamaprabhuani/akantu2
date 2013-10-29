@@ -48,10 +48,6 @@ public:
     SolverOptions(),
     parallel_method(parallel_method) { }
 
-  virtual void niceFunctionWhichDoesNothing() { 
-    SolverOptions::niceFunctionWhichDoesNothing();
-    AKANTU_DEBUG_ERROR("Nothing!!! (TWICE)"); };
-
 private:
   friend class SolverMumps;
   ParallelMethod parallel_method;

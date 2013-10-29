@@ -318,7 +318,9 @@ void RegularGrid<T>::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 __END_AKANTU__
+
 #include "mesh.hh"
+
 __BEGIN_AKANTU__
 
 template<typename T>

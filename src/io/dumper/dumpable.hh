@@ -32,8 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #ifdef AKANTU_USE_IOHELPER
-#include "dumper_paraview.hh"
-#include "dumper_text.hh"
+#include "dumper_iohelper.hh"
 #endif //AKANTU_USE_IOHELPER
 
 #ifndef __AKANTU_DUMPABLE_HH__

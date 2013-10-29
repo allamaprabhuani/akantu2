@@ -46,7 +46,7 @@ using namespace akantu;
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
-  UInt max_steps = 2000;
+  UInt max_steps = 200;
   Real epot, ekin;
 
   const UInt spatial_dimension = 2;
@@ -78,32 +78,14 @@ int main(int argc, char *argv[])
   stress.eye(3e6);
   model.applyBC(BC::Neumann::FromHigherDim(stress), "Traction");
 
-  model.setBaseName("local_material");
-  model.addDumpField("displacement");
-  model.addDumpField("mass"        );
-  model.addDumpField("velocity"    );
-  model.addDumpField("acceleration");
-  model.addDumpField("force"       );
-  model.addDumpField("residual"    );
-  model.addDumpField("damage"      );
-  model.addDumpField("stress"      );
-  model.addDumpField("strain"      );
-  model.dump();
-
   for(UInt s = 0; s < max_steps; ++s) {
-    model.explicitPred();
-
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     epot = model.getPotentialEnergy();
     ekin = model.getKineticEnergy();
 
-    if(s % 100 == 0) std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
-			       << std::endl;
-
-    if(s % 100 == 0) model.dump();
+    std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
+	      << std::endl;
   }
 
   akantu::finalize();

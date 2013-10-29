@@ -626,38 +626,4 @@ __END_AKANTU__
   template class mat_name<2>;				\
   template class mat_name<3>
 
-/* -------------------------------------------------------------------------- */
-/* Material list                                                              */
-/* -------------------------------------------------------------------------- */
-#include "material_elastic.hh"
-
-#define AKANTU_CORE_MATERIAL_LIST					\
-  ((2, (elastic            , MaterialElastic           )))             
-
-
-#if defined(AKANTU_EXTRA_MATERIALS)
-#  include "material_extra_includes.hh"
-#else
-#  define AKANTU_EXTRA_MATERIAL_LIST
-#endif
-
-#if defined(AKANTU_COHESIVE_ELEMENT)
-#  include "material_cohesive_includes.hh"
-#else
-#  define AKANTU_COHESIVE_MATERIAL_LIST
-#endif
-
-#if defined(AKANTU_DAMAGE_NON_LOCAL)
-#  include "material_non_local_includes.hh"
-#else
-#  define AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
-#endif
-
-#define AKANTU_MATERIAL_LIST			\
-  AKANTU_CORE_MATERIAL_LIST			\
-  AKANTU_EXTRA_MATERIAL_LIST			\
-  AKANTU_COHESIVE_MATERIAL_LIST			\
-  AKANTU_DAMAGE_NON_LOCAL_MATERIAL_LIST
-
-
 #endif /* __AKANTU_MATERIAL_HH__ */

@@ -2,7 +2,11 @@ Loading the mesh.
 Material elastic [
  rwp E        [Young's modulus]                      : 2.1e+11
  rwp Plane_Stress [Is plane stress]                  : false
+ rwp alpha    [Thermal expansion coefficient]        : 0
+ rwp delta_t_init [Uniform temperature field (for test purposes)] : 0
+ rwp finite_deformation [Is finite deformation]      : false
  r-- id                                              : solid_mechanics_model:0:elastic
+ rwp inelastic_deformation [Is inelastic deformation] : false
  r-- kapa     [Bulk coefficient]                     : 7e+10
  r-- lambda   [First Lamé coefficient]              : 0
  r-- mu       [Second Lamé coefficient]             : 1.05e+11

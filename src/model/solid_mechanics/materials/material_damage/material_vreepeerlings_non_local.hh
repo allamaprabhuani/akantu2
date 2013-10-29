@@ -33,7 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material_vreepeerlings.hh"
-#include "material_non_local.hh"
+#include "material_damage_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_VREEPEERLINGS_NON_LOCAL_HH__

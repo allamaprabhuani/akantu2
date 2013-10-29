@@ -113,34 +113,38 @@ int main(int argc, char *argv[])
   }
 
   // Checking if the barycenters of the partitioned elements match the ones in the partitioned MeshData
-  Mesh::type_iterator tit = mesh.firstType();
-  Mesh::type_iterator last_type = mesh.lastType();
-
   ByElementTypeReal barycenters("", "", 0);
   mesh.initByElementTypeArray(barycenters, dim, dim);
 
-  GhostType ghost_type = _not_ghost;
-  for(; tit != last_type; ++tit) {
-    Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>(*tit, "barycenters", ghost_type, dim);
-    Array<Real>::iterator< Vector<Real> > mesh_data_array_it = mesh_data_array.begin(dim);
 
-    UInt nb_element = mesh.getNbElement(*tit, ghost_type);
-    Array<Real> & barycenter = barycenters(*tit, ghost_type);
-    barycenter.resize(nb_element);
-    Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(dim);
-    UInt nb_component = barycenter.getNbComponent();
-    for (UInt elem = 0; elem < nb_element; ++elem) {
-      mesh.getBarycenter(elem, *tit, bary_it->storage(), ghost_type);
-      for(UInt k(0); k < nb_component; ++k) {
-        AKANTU_DEBUG_ASSERT(bary_it->operator()(k) == mesh_data_array_it->operator()(k), "Barycenter doesn't match the value in MeshData. Calculated one is: " << *bary_it << " while Mesh Data has: " << *mesh_data_array_it);
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
+    GhostType ghost_type = *gt;
+
+    Mesh::type_iterator tit = mesh.firstType(dim, ghost_type);
+    Mesh::type_iterator last_type = mesh.lastType(dim, ghost_type);
+
+    for(; tit != last_type; ++tit) {
+      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>(*tit, "barycenters", ghost_type, dim);
+      Array<Real>::iterator< Vector<Real> > mesh_data_array_it = mesh_data_array.begin(dim);
+
+      UInt nb_element = mesh.getNbElement(*tit, ghost_type);
+      Array<Real> & barycenter = barycenters(*tit, ghost_type);
+      barycenter.resize(nb_element);
+      Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(dim);
+      UInt nb_component = barycenter.getNbComponent();
+      for (UInt elem = 0; elem < nb_element; ++elem) {
+	mesh.getBarycenter(elem, *tit, bary_it->storage(), ghost_type);
+	for(UInt k(0); k < nb_component; ++k) {
+	  AKANTU_DEBUG_ASSERT(bary_it->operator()(k) == mesh_data_array_it->operator()(k), "Barycenter doesn't match the value in MeshData. Calculated one is: " << *bary_it << " while Mesh Data has: " << *mesh_data_array_it);
+	}
+	++bary_it;
+	++mesh_data_array_it;
       }
-      ++bary_it;
-      ++mesh_data_array_it;
+      debug::setDebugLevel(dblTest);
+      std::cout << "Mesh Data barycenters (type "<< *tit << ") :" << std::endl;
+      std::cout << mesh_data_array;
+      debug::setDebugLevel(dblInfo);
     }
-    debug::setDebugLevel(dblTest);
-    std::cout << "Mesh Data barycenters (type "<< *tit << ") :" << std::endl;
-    std::cout << mesh_data_array;
-    debug::setDebugLevel(dblInfo);
   }
 
   AKANTU_DEBUG_INFO("Creating TestAccessor");

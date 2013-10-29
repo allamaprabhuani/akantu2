@@ -33,15 +33,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
-#include "solid_mechanics_model.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-
+#  include "dumper_paraview.hh"
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;
@@ -53,8 +49,7 @@ int main(int argc, char *argv[])
   int dim = ElementClass<type>::getSpatialDimension();
 
   Mesh mesh(dim);
-  MeshIOMSH mesh_io;
-  mesh_io.read("square.msh", mesh);
+  mesh.read("square.msh");
   Mesh mesh_facets(dim, const_cast<Array<Real> &>(mesh.getNodes()), "mesh_facets", 1);
 
   MeshUtils::buildAllFacets(mesh, mesh_facets);

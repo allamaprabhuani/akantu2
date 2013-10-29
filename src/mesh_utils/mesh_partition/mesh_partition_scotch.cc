@@ -33,10 +33,22 @@
 #include <fstream>
 
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "mesh_partition_scotch.hh"
 #include "mesh_utils.hh"
 
 /* -------------------------------------------------------------------------- */
+#if ! defined(AKANTU_USE_PTSCOTCH)
+# ifndef AKANTU_SCOTCH_NO_EXTERN
+extern "C" {
+# endif //AKANTU_SCOTCH_NO_EXTERN
+# include <scotch.h>
+# ifndef AKANTU_SCOTCH_NO_EXTERN
+}
+# endif //AKANTU_SCOTCH_NO_EXTERN
+#else //AKANTU_USE_PTSCOTCH
+# include <ptscotch.h>
+#endif //AKANTU_USE_PTSCOTCH
 
 
 __BEGIN_AKANTU__
@@ -51,7 +63,7 @@ MeshPartitionScotch::MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimensi
 }
 
 /* -------------------------------------------------------------------------- */
-SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
+static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -201,7 +213,7 @@ SCOTCH_Mesh * MeshPartitionScotch::createMesh() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshPartitionScotch::destroyMesh(SCOTCH_Mesh * meshptr) {
+static void destroyMesh(SCOTCH_Mesh * meshptr) {
   AKANTU_DEBUG_IN();
 
   SCOTCH_Num velmbas,  vnodbas,
@@ -376,7 +388,7 @@ void MeshPartitionScotch::reorder() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_INFO("Reordering the mesh " << mesh.getID());
-  SCOTCH_Mesh * scotch_mesh = createMesh();
+  SCOTCH_Mesh * scotch_mesh = createMesh(mesh);
 
   UInt nb_nodes = mesh.getNbNodes();
 

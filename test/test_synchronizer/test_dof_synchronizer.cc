@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
   if(prank == 0) {
     MeshIOMSH mesh_io;
-    mesh_io.read("triangle.msh", mesh);
+    mesh_io.read("bar.msh", mesh);
 
     std::cout << "Partitioning mesh..." << std::endl;
     partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);

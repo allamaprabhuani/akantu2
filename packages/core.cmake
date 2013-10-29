@@ -198,6 +198,8 @@ set(AKANTU_CORE_FILES
   fem/element_class.cc
   fem/integration_element.cc
   fem/interpolation_element.cc
+  synchronizer/mpi_type_wrapper.hh
+  model/solid_mechanics/material_list.hh
   )
 
 

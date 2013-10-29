@@ -35,16 +35,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-#include "dumper_iohelper.hh"
-#include "dumper_iohelper_tmpl_material_internal_field.hh"
-#include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#include "dumper_paraview.hh"
 
-//#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

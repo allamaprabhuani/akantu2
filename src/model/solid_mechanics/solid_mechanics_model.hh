@@ -40,15 +40,20 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_types.hh"
+
 #include "model.hh"
 #include "data_accessor.hh"
-#include "integrator_gauss.hh"
-#include "shape_lagrange.hh"
-#include "aka_types.hh"
-#include "integration_scheme_2nd_order.hh"
-#include "solver.hh"
+#include "mesh.hh"
 #include "dumpable.hh"
 #include "boundary_condition.hh"
+
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
+
+#include "integration_scheme_2nd_order.hh"
+#include "solver.hh"
+
 /* -------------------------------------------------------------------------- */
 namespace akantu {
   class Material;

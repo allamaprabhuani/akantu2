@@ -37,11 +37,10 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "material.hh"
+#include "material_cohesive.hh"
+
 //#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 

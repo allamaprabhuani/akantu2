@@ -38,24 +38,12 @@
 #include "real_static_communicator.hh"
 
 /* -------------------------------------------------------------------------- */
-#include <mpi.h>
 #include <vector>
-
-/* -------------------------------------------------------------------------- */
 
 
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
-class CommunicationRequestMPI : public CommunicationRequest {
-public:
-  inline CommunicationRequestMPI(UInt source, UInt dest);
-  inline ~CommunicationRequestMPI();
-  inline MPI_Request * getMPIRequest() { return request; };
-private:
-  MPI_Request * request;
-};
-
+class MPITypeWrapper;
 
 /* -------------------------------------------------------------------------- */
 class StaticCommunicatorMPI : public RealStaticCommunicator {
@@ -63,64 +51,62 @@ class StaticCommunicatorMPI : public RealStaticCommunicator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline StaticCommunicatorMPI(int & argc, char ** & argv);
+  StaticCommunicatorMPI(int & argc, char ** & argv);
 
-  inline virtual ~StaticCommunicatorMPI();
+  virtual ~StaticCommunicatorMPI();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
 
-  template<typename T> inline void send(T * buffer, Int size, Int receiver, Int tag);
-  template<typename T> inline void receive(T * buffer, Int size, Int sender, Int tag);
+  template<typename T> void send   (T * buffer, Int size, Int receiver, Int tag);
+  template<typename T> void receive(T * buffer, Int size, Int sender,   Int tag);
 
-  template<typename T> inline CommunicationRequest * asyncSend(T * buffer, Int size,
-                                                                       Int receiver, Int tag);
-  template<typename T> inline CommunicationRequest * asyncReceive(T * buffer, Int size,
-                                                                          Int sender, Int tag);
+  template<typename T> CommunicationRequest * asyncSend   (T * buffer,   Int size,
+							   Int receiver, Int tag);
+  template<typename T> CommunicationRequest * asyncReceive(T * buffer,   Int size,
+							   Int sender,   Int tag);
 
-  template<typename T> inline void probe(Int sender, Int tag,
-                                                 CommunicationStatus & status);
+  template<typename T> void probe(Int sender, Int tag,
+				  CommunicationStatus & status);
 
-  template<typename T> inline void allGather(T * values, Int nb_values);
-  template<typename T> inline void allGatherV(T * values, Int * nb_values);
+  template<typename T> void allGather (T * values, Int nb_values);
+  template<typename T> void allGatherV(T * values, Int * nb_values);
 
+  template<typename T> void gather (T * values, Int nb_values, Int root);
+  template<typename T> void gatherV(T * values, Int * nb_values, Int root);
 
-  template<typename T> inline void gather(T * values, Int nb_values, Int root);
-  template<typename T> inline void gatherV(T * values, Int * nb_values, Int root);
-  template<typename T> inline void broadcast(T * values, Int nb_values, Int root);
+  template<typename T> void broadcast(T * values, Int nb_values, Int root);
 
-  inline bool testRequest(CommunicationRequest * request);
+  bool testRequest(CommunicationRequest * request);
 
-  inline void wait(CommunicationRequest * request);
+  void wait   (CommunicationRequest * request);
+  void waitAll(std::vector<CommunicationRequest *> & requests);
 
-  inline void waitAll(std::vector<CommunicationRequest *> & requests);
+  void barrier();
 
-  inline void barrier();
-
-  template<typename T> inline void allReduce(T * values, Int nb_values,
-                                                     const SynchronizerOperation & op);
-
-private:
-  template<typename T>
-  inline MPI_Datatype getMPIDatatype();
+  template<typename T> void allReduce(T * values, Int nb_values,
+				      const SynchronizerOperation & op);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  const MPITypeWrapper & getMPITypeWrapper() const { return *mpi_data; }
+  MPITypeWrapper & getMPITypeWrapper() { return *mpi_data; }
 
-  inline void setMPICommunicator(MPI_Comm comm);
-  inline MPI_Comm getMPICommunicator() const;
+private:
+  void setRank(int prank) { this->prank = prank; }
+  void setSize(int psize) { this->psize = psize; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  MPI_Comm communicator;
+  friend class MPITypeWrapper;
 
-  static MPI_Op synchronizer_operation_to_mpi_op[_so_null + 1];
+  MPITypeWrapper * mpi_data;
 };
 
 

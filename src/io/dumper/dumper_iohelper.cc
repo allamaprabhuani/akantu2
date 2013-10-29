@@ -29,7 +29,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
+/* -------------------------------------------------------------------------- */
 #include "dumper_iohelper.hh"
+#include "dumper_iohelper_tmpl.hh"
+/* -------------------------------------------------------------------------- */
 #include "sub_boundary.hh"
 
 __BEGIN_AKANTU__
@@ -201,68 +205,68 @@ void DumperIOHelper::unRegisterVariable(const std::string & variable_id) {
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
-iohelper::ElemType DumperIOHelper::getIOHelperType() {
+iohelper::ElemType getIOHelperType() {
   AKANTU_DEBUG_TO_IMPLEMENT();
   return iohelper::MAX_ELEM_TYPE;
 }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_segment_2>() { return iohelper::LINE1; }
+iohelper::ElemType getIOHelperType<_segment_2>() { return iohelper::LINE1; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_segment_3>() { return iohelper::LINE2; }
+iohelper::ElemType getIOHelperType<_segment_3>() { return iohelper::LINE2; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_triangle_3>() { return iohelper::TRIANGLE1; }
+iohelper::ElemType getIOHelperType<_triangle_3>() { return iohelper::TRIANGLE1; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_triangle_6>() { return iohelper::TRIANGLE2; }
+iohelper::ElemType getIOHelperType<_triangle_6>() { return iohelper::TRIANGLE2; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_quadrangle_4>() { return iohelper::QUAD1; }
+iohelper::ElemType getIOHelperType<_quadrangle_4>() { return iohelper::QUAD1; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_quadrangle_8>() { return iohelper::QUAD2; }
+iohelper::ElemType getIOHelperType<_quadrangle_8>() { return iohelper::QUAD2; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_tetrahedron_4>() { return iohelper::TETRA1; }
+iohelper::ElemType getIOHelperType<_tetrahedron_4>() { return iohelper::TETRA1; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_tetrahedron_10>() { return iohelper::TETRA2; }
+iohelper::ElemType getIOHelperType<_tetrahedron_10>() { return iohelper::TETRA2; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_hexahedron_8>() { return iohelper::HEX1; }
+iohelper::ElemType getIOHelperType<_hexahedron_8>() { return iohelper::HEX1; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_pentahedron_6>() { return iohelper::PRISM1; }
+iohelper::ElemType getIOHelperType<_pentahedron_6>() { return iohelper::PRISM1; }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_4>() { return iohelper::COH2D4; }
+iohelper::ElemType getIOHelperType<_cohesive_2d_4>() { return iohelper::COH2D4; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_2d_6>() { return iohelper::COH2D6; }
+iohelper::ElemType getIOHelperType<_cohesive_2d_6>() { return iohelper::COH2D6; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_3d_6>() { return iohelper::COH3D6; }
+iohelper::ElemType getIOHelperType<_cohesive_3d_6>() { return iohelper::COH3D6; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_cohesive_3d_12>() { return iohelper::COH3D12; }
+iohelper::ElemType getIOHelperType<_cohesive_3d_12>() { return iohelper::COH3D12; }
 #endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_bernoulli_beam_2>() { return iohelper::LINE1; }
+iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() { return iohelper::LINE1; }
 
 template <>
-iohelper::ElemType DumperIOHelper::getIOHelperType<_bernoulli_beam_3>() { return iohelper::LINE2; }
+iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() { return iohelper::LINE2; }
 #endif
 
 /* -------------------------------------------------------------------------- */
-iohelper::ElemType DumperIOHelper::getIOHelperType(ElementType type) {
+iohelper::ElemType getIOHelperType(ElementType type) {
   iohelper::ElemType ioh_type = iohelper::MAX_ELEM_TYPE;
 #define GET_IOHELPER_TYPE(type)			\
-  ioh_type = DumperIOHelper::getIOHelperType<type>();
+  ioh_type = getIOHelperType<type>();
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
 #undef GET_IOHELPER_TYPE

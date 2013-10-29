@@ -27,11 +27,12 @@
 
 /* -------------------------------------------------------------------------- */
 #include "dumper_text.hh"
+#include "dumper_iohelper_tmpl.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-DumperText::DumperText(const std::string & basename, 
+DumperText::DumperText(const std::string & basename,
 		       iohelper::TextDumpMode mode,
 		       bool parallel) : DumperIOHelper() {
   AKANTU_DEBUG_IN();
@@ -39,7 +40,7 @@ DumperText::DumperText(const std::string & basename,
   iohelper::DumperText * dumper_text = new iohelper::DumperText(mode);
   this->dumper = dumper_text;
   this->setBaseName(basename);
-  
+
   this->setParallelContext(parallel);
 
   AKANTU_DEBUG_OUT();
@@ -92,9 +93,9 @@ void DumperText::registerFilteredMesh(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 void DumperText::setBaseName(const std::string & basename) {
   AKANTU_DEBUG_IN();
-  
+
   DumperIOHelper::setBaseName(basename);
-  static_cast<iohelper::DumperText*>(this->dumper)->setDataSubDirectory(this->filename 
+  static_cast<iohelper::DumperText*>(this->dumper)->setDataSubDirectory(this->filename
 									+ "-DataFiles");
   AKANTU_DEBUG_OUT();
 }
@@ -102,7 +103,7 @@ void DumperText::setBaseName(const std::string & basename) {
 /* -------------------------------------------------------------------------- */
 void DumperText::setPrecision(UInt prec) {
   AKANTU_DEBUG_IN();
-  
+
   static_cast<iohelper::DumperText*>(this->dumper)->setPrecision(prec);
 
   AKANTU_DEBUG_OUT();

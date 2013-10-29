@@ -38,6 +38,9 @@
 #include "mesh_utils.hh"
 #include "sub_boundary.hh"
 
+#include "dumper_paraview.hh"
+
+
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */

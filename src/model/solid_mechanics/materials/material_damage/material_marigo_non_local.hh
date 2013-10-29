@@ -30,9 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material_marigo.hh"
-#include "material_non_local.hh"
 #include "material_damage_non_local.hh"
+#include "material_marigo.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_MARIGO_NON_LOCAL_HH__

@@ -33,7 +33,7 @@
 #define __AKANTU_DUMPER_PARAVIEW_HH__
 
 #include "dumper_iohelper.hh"
-
+#include "dumper_iohelper_tmpl.hh"
 
 __BEGIN_AKANTU__
 
@@ -57,10 +57,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  void setBaseName(const std::string & basename) {
-    DumperIOHelper::setBaseName(basename);
-    static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
-  }
+  void setBaseName(const std::string & basename);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -70,7 +70,7 @@ UInt SolidMechanicsModel::readCustomMaterial(const std::string & filename,
 
   Material & mat = registerNewCustomMaterial<M>(key, opt_param);
   parser.readSection(mat.getID(), mat);
-  materials.push_back(&mat);
+  //  materials.push_back(&mat);
   return materials.size();;
 }
 

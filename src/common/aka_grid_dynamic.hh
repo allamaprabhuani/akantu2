@@ -353,11 +353,11 @@ inline std::ostream & operator <<(std::ostream & stream, const SpatialGrid<T> & 
   return stream;
 }
 
-  /* -------------------------------------------------------------------------- */
 __END_AKANTU__
 #include "mesh.hh"
 __BEGIN_AKANTU__
 
+/* -------------------------------------------------------------------------- */
 template<typename T>
 void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
   Array<Real> & nodes = const_cast<Array<Real> &>(mesh.getNodes());

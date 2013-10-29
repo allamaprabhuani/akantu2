@@ -31,6 +31,7 @@
 
 #include "shape_cohesive.hh"
 #include "solid_mechanics_model_cohesive.hh"
+#include "material_cohesive.hh"
 
 /* -------------------------------------------------------------------------- */
 

@@ -45,10 +45,10 @@ include("${AKANTU_CMAKE_DIR}/AkantuLibraryDepends.cmake")
 
 # Dependancies
 include("${AKANTU_CMAKE_DIR}/AkantuConfigInclude.cmake")
-foreach(_extra_opt ${AKANTU_OPTION_LIST})
-  list(APPEND AKANTU_EXTRA_LIBRARIES ${AKANTU_${_extra_opt}_LIBRARIES})
-  list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${AKANTU_${_extra_opt}_INCLUDE_DIR})
-endforeach()
+# foreach(_extra_opt ${AKANTU_OPTION_LIST})
+#   list(APPEND AKANTU_EXTRA_LIBRARIES ${AKANTU_${_extra_opt}_LIBRARIES})
+#   list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${AKANTU_${_extra_opt}_INCLUDE_DIR})
+# endforeach()
 
 set(AKANTU_BUILD_TYPE @CMAKE_BUILD_TYPE@)
 

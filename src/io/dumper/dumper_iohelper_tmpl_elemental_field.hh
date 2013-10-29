@@ -342,7 +342,7 @@ public:
     parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
   return_type operator*() {
-    data_type type = DumperIOHelper::getIOHelperType(*this->tit);
+    data_type type = getIOHelperType(*this->tit);
     return return_type(1, type);
   }
 };

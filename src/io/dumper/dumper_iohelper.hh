@@ -31,13 +31,14 @@
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "aka_vector.hh"
-#include <io_helper.hh>
 #include "mesh.hh"
 
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_DUMPER_IOHELPER_HH__
 #define __AKANTU_DUMPER_IOHELPER_HH__
+
+namespace iohelper { class Dumper; }
 
 __BEGIN_AKANTU__
 
@@ -87,12 +88,7 @@ public:
 public:
   AKANTU_GET_MACRO(Dumper, *dumper, iohelper::Dumper &)
 
-  static iohelper::ElemType getIOHelperType(ElementType type);
-
   void setTimeStep(Real time_step);
-
-protected:
-  template <ElementType type> static iohelper::ElemType getIOHelperType();
 
 public:
   /* ------------------------------------------------------------------------ */
@@ -265,7 +261,7 @@ protected:
   bool time_activated;
 };
 
-#include "dumper_iohelper_tmpl.hh"
+//#include "dumper_iohelper_tmpl.hh"
 
 __END_AKANTU__
 

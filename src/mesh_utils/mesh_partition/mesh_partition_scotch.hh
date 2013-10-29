@@ -37,17 +37,6 @@
 #include "aka_common.hh"
 #include "mesh_partition.hh"
 
-#if ! defined(AKANTU_USE_PTSCOTCH)
-# ifndef AKANTU_SCOTCH_NO_EXTERN
-extern "C" {
-# endif //AKANTU_SCOTCH_NO_EXTERN
-# include <scotch.h>
-# ifndef AKANTU_SCOTCH_NO_EXTERN
-}
-# endif //AKANTU_SCOTCH_NO_EXTERN
-#else //AKANTU_USE_PTSCOTCH
-# include <ptscotch.h>
-#endif //AKANTU_USE_PTSCOTCH
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -74,11 +63,6 @@ public:
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
-
-private:
-  SCOTCH_Mesh * createMesh();
-
-  void destroyMesh(SCOTCH_Mesh * meshptr);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

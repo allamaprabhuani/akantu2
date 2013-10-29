@@ -88,8 +88,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_MPI
-#include "static_communicator_mpi.hh"
+#include "aka_common.hh"
+
+#if defined(AKANTU_USE_MPI)
+#  include "static_communicator_mpi.hh"
+#  include "mpi_type_wrapper.hh"
 #endif
 
 #include "solver_mumps.hh"
@@ -145,7 +148,7 @@ void SolverMumps::onCommunicatorFinalize(const StaticCommunicator & comm) {
 #if defined(AKANTU_USE_MPI)
     const StaticCommunicatorMPI & comm_mpi =
       dynamic_cast<const StaticCommunicatorMPI &>(comm.getRealStaticCommunicator());
-    if(mumps_data.comm_fortran == MPI_Comm_c2f(comm_mpi.getMPICommunicator()))
+    if(mumps_data.comm_fortran == MPI_Comm_c2f(comm_mpi.getMPITypeWrapper().getMPICommunicator()))
 #endif
       destroyMumpsData();
   } catch(...) {}
@@ -217,7 +220,7 @@ void SolverMumps::initialize(SolverOptions & options) {
   mumps_data.sym = 2 * (matrix->getSparseMatrixType() == _symmetric);
   prank = communicator.whoAmI();
 #ifdef AKANTU_USE_MPI
-  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator.getRealStaticCommunicator()).getMPICommunicator());
+  mumps_data.comm_fortran = MPI_Comm_c2f(dynamic_cast<const StaticCommunicatorMPI &>(communicator.getRealStaticCommunicator()).getMPITypeWrapper().getMPICommunicator());
 #endif
 
   if(AKANTU_DEBUG_TEST(dblTrace)) {

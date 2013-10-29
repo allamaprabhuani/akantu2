@@ -44,6 +44,11 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#ifdef AKANTU_USE_MPI
+#  include <mpi.h>
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__

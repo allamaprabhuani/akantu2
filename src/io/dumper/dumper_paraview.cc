@@ -28,6 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
+
 #include "dumper_paraview.hh"
 #include "static_communicator.hh"
 #include <fstream>
@@ -48,7 +50,15 @@ DumperParaview::DumperParaview(const std::string & filename,
   dumper_para->init();
 }
 
+/* -------------------------------------------------------------------------- */
 DumperParaview::~DumperParaview() {
+}
+
+
+/* -------------------------------------------------------------------------- */
+void DumperParaview::setBaseName(const std::string & basename) {
+  DumperIOHelper::setBaseName(basename);
+  static_cast<iohelper::DumperParaview*>(dumper)->setVTUSubDirectory(filename + "-VTU");
 }
 
 __END_AKANTU__

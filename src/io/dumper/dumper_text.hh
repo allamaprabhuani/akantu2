@@ -27,6 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper.hh"
+#include "dumper_iohelper_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_DUMPER_TEXT_HH__
@@ -39,12 +40,12 @@ class DumperText : public DumperIOHelper {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  DumperText(const std::string & basename = "dumper_text", 
-	     iohelper::TextDumpMode mode = iohelper::_tdm_space, 
+
+  DumperText(const std::string & basename = "dumper_text",
+	     iohelper::TextDumpMode mode = iohelper::_tdm_space,
 	     bool parallel = true);
   virtual ~DumperText() {};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */

@@ -40,7 +40,9 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
-//#include "io_helper.hh"
+
+#include "dumper_paraview.hh"
+
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

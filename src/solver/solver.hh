@@ -48,9 +48,8 @@ class SolverOptions {
 public:
   SolverOptions(bool no_option = false) : no_option(no_option) { }
 
-  virtual void niceFunctionWhichDoesNothing() {
-    AKANTU_DEBUG_ERROR("Nothing!!! (of course)");
-  };
+  virtual ~SolverOptions() {}
+
 private:
   bool no_option;
 };
