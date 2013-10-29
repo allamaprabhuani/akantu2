@@ -36,6 +36,10 @@
 #ifdef AKANTU_USE_MUMPS
 #include "solver_mumps.hh"
 #endif
+
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_paraview.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
