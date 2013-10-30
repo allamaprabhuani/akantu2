@@ -71,17 +71,17 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     list(APPEND MUMPS_LIBRARIES_ALL ${SCALAPACK_LIBRARY})
   endif()
 
-  configure_file(${PROJECT_SOURCE_DIR}/third-party/MUMPSmake.inc.cmake
-    ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc)
-
   if("${MUMPS_TYPE}" STREQUAL "seq")
     set(MUMPS_PREFIX _seq)
-    set(_libmumps_seq COMMAND cmake -E copy libseq/libmumpsmpi${MUMPS_PREFIX}.a${PROJECT_BINARY_DIR}/third-party/lib)
-    set(MUMPS_LIBRARY_MPI ${PROJECT_BINARY_DIR}/third-party/lib/libmumpsmpi${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
+    set(_libmumps_seq COMMAND cmake -E copy libseq/libmpiseq${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib)
+    set(MUMPS_LIBRARY_MPI ${PROJECT_BINARY_DIR}/third-party/lib/libmpiseq${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
     mark_as_advanced(MUMPS_LIBRARY_MPI)
   else()
     set(MUMPS_LIBRARY_MPI "" CACHE INTERNAL)
   endif()
+
+  configure_file(${PROJECT_SOURCE_DIR}/third-party/MUMPSmake.inc.cmake
+    ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc)
 
   ExternalProject_Add(MUMPS
     DEPENDS ${MUMPS_DEPENDS}

@@ -48,6 +48,16 @@ mark_as_advanced(AKANTU_USE_THIRD_PARTY_SCOTCH)
 if(AKANTU_USE_THIRD_PARTY_SCOTCH)
   set(AKANTU_USE_SCOTCH ON CACHE BOOL "Add Scotch support in akantu" FORCE)
 
+
+INCLUDE (CheckFunctionExists)
+
+CHECK_FUNCTION_EXISTS(clock_gettime _clock_gettime)
+
+if (NOT _clock_gettime)
+  set (SCOTCH_TIMMING_OPTION -DCOMMON_TIMING_OLD)
+endif()
+
+
   if(TARGET Scotch)
     return()
   endif()
@@ -79,7 +89,7 @@ if(AKANTU_USE_THIRD_PARTY_SCOTCH)
     PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/third-party/scotch.patch
     CONFIGURE_COMMAND cmake -E copy ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc src/Makefile.inc
     BUILD_IN_SOURCE 1
-    BUILD_COMMAND make -C src 2>&1 >/dev/null
+    BUILD_COMMAND make -C src
     INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
     INSTALL_COMMAND prefix=${PROJECT_BINARY_DIR}/third-party make -C src install
     COMMAND cmake -E copy lib/libesmumps.a ${PROJECT_BINARY_DIR}/third-party/lib
