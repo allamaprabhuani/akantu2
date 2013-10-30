@@ -80,7 +80,7 @@ IORDERINGSC = $(IMETIS) $(IPORD) $(ISCOTCH)
 # DEFINE HERE SOME COMMON COMMANDS, THE COMPILER NAMES, ETC...
 
 # PLAT : use it to add a default suffix to the generated libraries
-PLAT    =
+PLAT    = @MUMPS_PREFIX@
 # RM : remove files
 RM      = @CMAKE_COMMAND@ -E remove -f
 

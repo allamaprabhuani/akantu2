@@ -76,6 +76,11 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
 
   if("${MUMPS_TYPE}" STREQUAL "seq")
     set(MUMPS_PREFIX _seq)
+    set(_libmumps_seq COMMAND cmake -E copy libseq/libmumpsmpi${MUMPS_PREFIX}.a${PROJECT_BINARY_DIR}/third-party/lib)
+    set(MUMPS_LIBRARY_MPI ${PROJECT_BINARY_DIR}/third-party/lib/libmumpsmpi${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
+    mark_as_advanced(MUMPS_LIBRARY_MPI)
+  else()
+    set(MUMPS_LIBRARY_MPI "" CACHE INTERNAL)
   endif()
 
   ExternalProject_Add(MUMPS
@@ -91,6 +96,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     COMMAND cmake -E copy lib/libmumps_common${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
     COMMAND cmake -E copy lib/libpord${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
     COMMAND cmake -E copy_directory include ${PROJECT_BINARY_DIR}/third-party/include
+    ${_libmumps_seq}
     )
 
   set(MUMPS_LIBRARY_DMUMPS ${PROJECT_BINARY_DIR}/third-party/lib/libdmumps${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
@@ -103,7 +109,13 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
   mark_as_advanced(MUMPS_LIBRARY_PORD)
   mark_as_advanced(MUMPS_INCLUDE_DIR)
 
-  list(APPEND MUMPS_LIBRARIES_ALL -lgfortran ${MPI_Fortran_LIBRARIES} ${MUMPS_LIBRARY_COMMON} ${MUMPS_LIBRARY_DMUMPS} ${MUMPS_LIBRARY_PORD})
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    list(APPEND MUMPS_LIBRARIES_ALL -lgfortran)
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    list(APPEND MUMPS_LIBRARIES_ALL -lifcore)
+  endif()
+
+  list(APPEND MUMPS_LIBRARIES_ALL ${MPI_Fortran_LIBRARIES} ${MUMPS_LIBRARY_COMMON} ${MUMPS_LIBRARY_DMUMPS} ${MUMPS_LIBRARY_PORD} ${MUMPS_LIBRARY_MPI})
   set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} CACHE INTERNAL "Libraries for MUMPS" FORCE)
 
   list(APPEND AKANTU_EXTERNAL_LIBRARIES ${MUMPS_LIBRARIES})

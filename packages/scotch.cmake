@@ -79,7 +79,7 @@ if(AKANTU_USE_THIRD_PARTY_SCOTCH)
     PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/third-party/scotch.patch
     CONFIGURE_COMMAND cmake -E copy ${PROJECT_BINARY_DIR}/third-party/Scotchmake.inc src/Makefile.inc
     BUILD_IN_SOURCE 1
-    BUILD_COMMAND make -C src
+    BUILD_COMMAND make -C src 2>&1 >/dev/null
     INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
     INSTALL_COMMAND prefix=${PROJECT_BINARY_DIR}/third-party make -C src install
     COMMAND cmake -E copy lib/libesmumps.a ${PROJECT_BINARY_DIR}/third-party/lib
