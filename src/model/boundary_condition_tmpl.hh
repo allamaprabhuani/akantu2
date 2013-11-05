@@ -54,8 +54,10 @@ void BoundaryCondition<ModelType>::initBC(ModelType & ref,
 template<typename ModelType>
 template<typename FunctorType>
 struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Functor::_dirichlet> {
-  static inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref, BoundaryCondition<ModelType> & bc_instance) {
-    ModelType &         model          = *bc_instance.model;
+  static inline void applyBC(const FunctorType & func,
+			     const SubBoundary & boundary_ref,
+			     BoundaryCondition<ModelType> & bc_instance) {
+    ModelType         & model          = *bc_instance.model;
     const Array<Real> & coords         = model.mesh.getNodes();
     UInt                dim            = model.mesh.getSpatialDimension();
     Array<Real>       & primal         = *bc_instance.primal;
@@ -75,7 +77,10 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
       primal_increment_iter = bc_instance.primal_increment-> begin(bc_instance.primal_increment->getNbComponent());  
     }
 
-    for(SubBoundary::nodes_const_iterator nodes_it(boundary_ref.nodes_begin()); nodes_it!= boundary_ref.nodes_end(); ++nodes_it) {
+    for(SubBoundary::nodes_const_iterator nodes_it(boundary_ref.nodes_begin());
+	nodes_it!= boundary_ref.nodes_end();
+	++nodes_it) {
+
       UInt n = *nodes_it;
       func(n, flags_iter[n], primal_iter[n], coords_iter[n]);
 

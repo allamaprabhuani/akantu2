@@ -691,6 +691,7 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
 #else
   UInt nb_global_nodes = mesh.getNbGlobalNodes();
 
+  delete jacobian_matrix;
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(nb_global_nodes * spatial_dimension, _symmetric,
                                      spatial_dimension, sstr.str(), memory_id);
@@ -698,6 +699,7 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
   jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
   if (!isExplicit()) {
+    delete stiffness_matrix;
     std::stringstream sstr_sti; sstr_sti << id << ":stiffness_matrix";
     stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr_sti.str(), memory_id);
   }

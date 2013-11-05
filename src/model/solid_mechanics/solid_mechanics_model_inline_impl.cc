@@ -204,21 +204,13 @@ inline void SolidMechanicsModel::unpackBarycenter(const Mesh & mesh,
     const Element & element = *bit;
 
     Vector<Real> barycenter_loc(spatial_dimension);
-
-    mesh.getBarycenter(element.element, element.type,
-		       barycenter_loc.storage(), element.ghost_type);
-
-    Real barycenter_loc_norm = barycenter_loc.norm();
-
+    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
     Vector<Real> barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;
-
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if((std::abs(barycenter_loc(i)) <= tolerance &&
-	  std::abs(barycenter(i)) <= tolerance) ||
-	 (std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc_norm)
-	  <= tolerance)) continue;
+      if((std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i)) <= tolerance) ||
+	 (barycenter_loc(i) == 0 && std::abs(barycenter(i)) <= tolerance)) continue;
       AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
 			 << element
 			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
@@ -455,72 +447,59 @@ void SolidMechanicsModel::solve(Array<Real> & increment) {
   solver->setRHS(*residual);
   // solve @f[ J \delta w = r @f]
   solver->solve(increment);
-
-  UInt nb_nodes = displacement-> getSize();
-  UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
-
-  bool * boundary_val = boundary->values;
-  Real * increment_val = increment.storage();
-
-  for (UInt j = 0; j < nb_degree_of_freedom;
-       ++j,++increment_val, ++boundary_val) {
-    if ((*boundary_val)) 
-      *increment_val = 0.0;
-    }
-    
 }
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-void SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
+bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
+  this->implicitPred();
+  this->updateResidual();
 
-    this->implicitPred();
+  //this->dump();
+
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+  if (method==_implicit_dynamic) {
+    AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
+			"You should first initialize the implicit solver and assemble the mass matrix");
+  }
+
+  switch (cmethod) {
+  case _scm_newton_raphson_tangent:
+    break;
+  case _scm_newton_raphson_tangent_modified:
+    this->assembleStiffnessMatrix();
+    break;
+  default:
+    AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
+  }
+
+  UInt iter = 0;
+  bool converged = false;
+
+  do {
+    Real error = 0.;
+
+    if (cmethod == _scm_newton_raphson_tangent)
+      this->assembleStiffnessMatrix();
+
+    solve<NewmarkBeta::_displacement_corrector > (*increment);
+
+    this->implicitCorr();
     this->updateResidual();
+
+    converged = this->testConvergence<criteria > (tolerance, error);
 
     //this->dump();
 
-    AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-            "You should first initialize the implicit solver and assemble the stiffness matrix");
+    iter++;
+    AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
+		      << std::setw(std::log10(max_iteration)) << iter
+		      << ": error " << error << (converged ? " < " : " > ") << tolerance << std::endl);
 
-    if (method==_implicit_dynamic) {
-        AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
-                "You should first initialize the implicit solver and assemble the mass matrix");
-    }
+  } while (!converged && iter < max_iteration);
 
-    switch (cmethod) {
-        case _scm_newton_raphson_tangent:
-            break;
-        case _scm_newton_raphson_tangent_modified:
-            this->assembleStiffnessMatrix();
-            break;
-        default:
-            AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
-    }
-
-    UInt iter = 0;
-    bool converged = false;
-
-    do {
-        Real error = 0.;
-
-	if (cmethod == _scm_newton_raphson_tangent)
-	  this->assembleStiffnessMatrix();
-
-        solve<NewmarkBeta::_displacement_corrector > (*increment);
-
-        this->implicitCorr();
-        this->updateResidual();
-
-        converged = this->testConvergence<criteria > (tolerance, error);
-
-        //this->dump();
-
-        iter++;
-        AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
-                << std::setw(std::log10(max_iteration)) << iter
-                          << ": error " << error << (converged ? " < " : " > ") << tolerance << std::endl);
-
-    } while (!converged && iter < max_iteration);
-
+  return converged;
 }
 

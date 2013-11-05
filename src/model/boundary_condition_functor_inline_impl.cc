@@ -47,14 +47,20 @@ namespace BC {
 
 namespace Dirichlet {
 
-inline void FlagOnly::operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
+inline void FlagOnly::operator()(UInt node,
+				 Vector<bool> & flags,
+				 Vector<Real> & primal,
+				 const Vector<Real> & coord) const {
 
   DIRICHLET_SANITY_CHECK;
 
   flags(axis) = true;
 }
 
-inline void FixedValue::operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal, const Vector<Real> & coord) const {
+inline void FixedValue::operator()(UInt node,
+				   Vector<bool> & flags,
+				   Vector<Real> & primal,
+				   const Vector<Real> & coord) const {
 
   DIRICHLET_SANITY_CHECK;
 
@@ -81,19 +87,28 @@ inline void IncrementValue::operator()(UInt node,
 
 namespace Neumann {
 
-inline void FreeBoundary::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
+inline void FreeBoundary::operator()(QuadraturePoint quad_point,
+				     Vector<Real> & dual,
+				     const Vector<Real> & coord,
+				     const Vector<Real> & normals) const {
   for(UInt i(0); i<dual.size(); ++i) {
     dual(i) = 0.0;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void FromHigherDim::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
+inline void FromHigherDim::operator()(QuadraturePoint quad_point,
+				      Vector<Real> & dual,
+				      const Vector<Real> & coord,
+				      const Vector<Real> & normals) const {
   dual.mul<false>(bc_data, normals);
 }
 
 /* -------------------------------------------------------------------------- */
-inline void FromSameDim::operator()(QuadraturePoint quad_point, Vector<Real> & dual, const Vector<Real> & coord, const Vector<Real> & normals) const {
+inline void FromSameDim::operator()(QuadraturePoint quad_point,
+				    Vector<Real> & dual,
+				    const Vector<Real> & coord,
+				    const Vector<Real> & normals) const {
   dual = bc_data;
 }
 

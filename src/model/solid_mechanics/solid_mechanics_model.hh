@@ -205,7 +205,7 @@ public:
 
 public:
   template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
-  void solveStep(Real tolerance,
+  bool solveStep(Real tolerance,
                  UInt max_iteration = 100);
 
 public:

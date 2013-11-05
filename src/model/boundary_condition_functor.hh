@@ -101,7 +101,7 @@ namespace BC {
                              Vector<Real> & primal,
                              const Vector<Real> & coord) const;
 
-    private:
+    protected:
       Real value;
     };
 
