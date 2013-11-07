@@ -2,6 +2,7 @@
  * @file   material_plasticityinc.hh
  *
  * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Tue Jul 09 18:15:37 20130
  *
@@ -30,7 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_thermal.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_PLASTICITYINC_HH__
@@ -58,7 +59,7 @@ __BEGIN_AKANTU__
 
 
 template <UInt spatial_dimension>
-class MaterialPlasticityinc : public virtual Material {
+class MaterialPlasticityinc : public MaterialThermal<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -99,7 +100,7 @@ protected:
   //inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
   //      Matrix<Real> & delta_S);
 
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening);
+  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening, Real sigma_th_cur, Real sigma_th_prev);
 
   void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_delta_u, Matrix<Real>  & sigma_tensor, Matrix<Real>  & previous_sigma_tensor, Real & iso_hardening);
  
@@ -116,12 +117,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-   /// the young modulus
-  Real E;
-
-  /// Poisson coefficient
-  Real nu;
 
   /// First Lamé coefficient
   Real lambda;

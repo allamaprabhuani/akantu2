@@ -81,7 +81,7 @@ public:
 protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-				  Matrix<Real> & sigma, Real delta_t = 0);
+				  Matrix<Real> & sigma, Real sigma_th = 0);
 
   /// compute the tangent stiffness matrix for an element
   void computeTangentModuliOnQuad(Matrix<Real> & tangent);
@@ -100,12 +100,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  /// the young modulus
-  Real E;
-
-  /// Poisson coefficient
-  Real nu;
 
   /// First Lamé coefficient
   Real lambda;

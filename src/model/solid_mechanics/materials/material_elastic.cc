@@ -41,8 +41,6 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model, const ID & id
   MaterialThermal<dim>(model, id) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("E"           ,E           , 0.   , _pat_parsable | _pat_modifiable, "Young's modulus"        );
-  this->registerParam("nu"          ,nu          , 0.5  , _pat_parsable | _pat_modifiable, "Poisson's ratio"        );
   this->registerParam("Plane_Stress",plane_stress, false, _pat_parsmod, "Is plane stress"        ); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
   this->registerParam("lambda"      ,lambda             , _pat_readable, "First Lamé coefficient" );
   this->registerParam("mu"          ,mu                 , _pat_readable, "Second Lamé coefficient");
@@ -58,7 +56,7 @@ void MaterialElastic<dim>::initMaterial() {
   Material::initMaterial();
   MaterialThermal<dim>::initMaterial();
 
-  if (dim == 1) nu = 0.;
+  if (dim == 1) this->nu = 0.;
 
   updateInternalParameters();
   AKANTU_DEBUG_OUT();
@@ -69,10 +67,10 @@ template<UInt dim>
 void MaterialElastic<dim>::updateInternalParameters() {
   MaterialThermal<dim>::updateInternalParameters();
 
-  lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
-  mu       = E / (2 * (1 + nu));
+  lambda   = this->nu * this->E / ((1 + this->nu) * (1 - 2*this->nu));
+  mu       = this->E / (2 * (1 + this->nu));
 
-  if(plane_stress) lambda = nu * E / ((1 + nu)*(1 - nu));
+  if(plane_stress) lambda = this->nu * this->E / ((1 + this->nu)*(1 - this->nu));
 
   kpa      = lambda + 2./3. * mu;
 }
@@ -82,12 +80,12 @@ template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<Real> & dt = this->delta_t(el_type, ghost_type);
-  Array<Real>::iterator<> dt_it = dt.begin();
+  MaterialThermal<spatial_dimension>::computeStress(el_type, ghost_type);
+  Array<Real>::iterator<> sigma_th_it = this->sigma_th_cur(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  computeStressOnQuad(grad_u, sigma, *dt_it);
-  ++dt_it;
+  computeStressOnQuad(grad_u, sigma, *sigma_th_it);
+  ++sigma_th_it;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   AKANTU_DEBUG_OUT();
 }

@@ -2,6 +2,7 @@
  * @file   material_plasticity_inc.cc
  *
  * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Tue Jul 09 18:15:37 20130
  *
@@ -35,8 +36,8 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening) {
-    //Infinitesimal plasticity
+inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening, Real sigma_th_cur, Real sigma_th_prev) {
+  //Infinitesimal plasticity
   Matrix<Real> sigma_tr(dim, dim);
   Matrix<Real> sigma_tr_dev(dim, dim);
   Matrix<Real> d_inelas_strain(dim,dim);
@@ -45,27 +46,34 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
   Real d_dp=0.0;
   UInt n=0;
 
+  Real delta_sigma_th = sigma_th_cur - sigma_th_prev;
+
   //Compute trial stress, sigma_tr
 
-  for (UInt i = 0; i < dim; ++i)
-        for (UInt j = 0; j < dim; ++j)
-	  sigma_tr(i,j) = sigma(i,j) + 2. * mu * 0.50*(grad_delta_u(i,j)+grad_delta_u(j,i)) + (i == j) * lambda * grad_delta_u.trace();
+  for (UInt i = 0; i < dim; ++i) {
+    for (UInt j = 0; j < dim; ++j) {
+      sigma_tr(i,j) = sigma(i,j) + 2. * mu * 0.50*(grad_delta_u(i,j)+grad_delta_u(j,i)) + (i == j) * lambda * grad_delta_u.trace() + (i == j)*delta_sigma_th;
+    }
+  }
 
   // Compute deviatoric trial stress,  sigma_tr_dev
 
-for (UInt i = 0; i < dim; ++i)
-        for (UInt j = 0; j < dim; ++j)
-	  sigma_tr_dev(i,j) = sigma_tr(i,j) - (i == j) * sigma_tr.trace() / 3.0;
+  for (UInt i = 0; i < dim; ++i) {
+    for (UInt j = 0; j < dim; ++j) {
+      sigma_tr_dev(i,j) = sigma_tr(i,j) - (i == j) * sigma_tr.trace() / 3.0;
+    }
+  }
 
-// Compute effective deviatoric trial stress
+
+  // Compute effective deviatoric trial stress
 
   Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
   Real sigma_tr_dev_eff=sqrt(3./2. * s);
 
 
-   //Loop for correcting stress based on yield function
+  //Loop for correcting stress based on yield function
 
-  while ((sigma_tr_dev_eff-iso_hardening-sigmay) > 0){
+  while ((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) {
     //r = r +  h * dp;
 
     d_dp = (sigma_tr_dev_eff - 3. * mu *dp -  iso_hardening - sigmay) / (3. * mu + h);
@@ -73,24 +81,25 @@ for (UInt i = 0; i < dim; ++i)
     dp = dp + d_dp;
     n = n+1;
 
-          
+
     if ((d_dp < 1e-5)|| (n>50))
       break;
   }
+  
+  //Update internal variable
 
- //Update internal variable
+  for (UInt i = 0; i < dim; ++i) {
+    for (UInt j = 0; j < dim; ++j) {
 
-    for (UInt i = 0; i < dim; ++i) {
-      for (UInt j = 0; j < dim; ++j) {
-     
-	if (sigma_tr_dev_eff)
-
-	  d_inelas_strain(i,j) = 3. / 2. * dp * sigma_tr_dev(i,j) / sigma_tr_dev_eff;
-	  inelas_strain(i,j) = inelas_strain(i,j) +  d_inelas_strain(i,j);
-	  sigma(i,j) = sigma(i,j) + 2. * mu * (0.5 * (grad_delta_u(i,j)+ grad_delta_u(j,i))-d_inelas_strain(i,j)) + (i==j) * lambda * (grad_delta_u.trace() - d_inelas_strain.trace());
-
+      if (abs(sigma_tr_dev_eff) > 1e-16 * abs(sigma_tr_dev(i,j))) {
+        d_inelas_strain(i,j) = 3. / 2. * dp * sigma_tr_dev(i,j) / sigma_tr_dev_eff;
       }
+
+      inelas_strain(i,j) = inelas_strain(i,j) +  d_inelas_strain(i,j);
+      sigma(i,j) = sigma(i,j) + 2. * mu * (0.5 * (grad_delta_u(i,j)+ grad_delta_u(j,i))-d_inelas_strain(i,j)) + (i==j) * lambda * (grad_delta_u.trace() - d_inelas_strain.trace()) + (i == j)*delta_sigma_th; 
+
     }
+  }
 } 
 
 
@@ -104,32 +113,32 @@ inline void MaterialPlasticityinc<dim>::computeTangentModuliOnQuad(Matrix<Real> 
   Matrix<Real> sigma_tr(dim, dim);
   Matrix<Real> sigma_tr_dev(dim, dim);
   // Real r=iso_hardening;
- 
+
 
   //Compute trial stress, sigma_tr
 
   for (UInt i = 0; i < dim; ++i)
-        for (UInt j = 0; j < dim; ++j)
-	  	  sigma_tr(i,j) = previous_sigma_tensor(i,j) + 2. * mu * 0.50*(grad_delta_u(i,j)+grad_delta_u(j,i)) + (i == j) * lambda * grad_delta_u.trace();
+    for (UInt j = 0; j < dim; ++j)
+      sigma_tr(i,j) = previous_sigma_tensor(i,j) + 2. * mu * 0.50*(grad_delta_u(i,j)+grad_delta_u(j,i)) + (i == j) * lambda * grad_delta_u.trace();
 
   // Compute deviatoric trial stress,  sigma_tr_dev
 
-for (UInt i = 0; i < dim; ++i)
-        for (UInt j = 0; j < dim; ++j)
-	  sigma_tr_dev(i,j) = sigma_tr(i,j) - (i == j) * sigma_tr.trace() / 3.0;
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
+      sigma_tr_dev(i,j) = sigma_tr(i,j) - (i == j) * sigma_tr.trace() / 3.0;
 
-// Compute effective deviatoric trial stress
+  // Compute effective deviatoric trial stress
 
   Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
   Real sigma_tr_dev_eff=sqrt(3./2. * s);
 
   // Compute deviatoric stress,  sigma_dev
 
-for (UInt i = 0; i < dim; ++i)
-        for (UInt j = 0; j < dim; ++j)
-       	  sigma_dev(i,j) = sigma_tensor(i,j) - (i == j) * sigma_tensor.trace() / 3.0;
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
+      sigma_dev(i,j) = sigma_tensor(i,j) - (i == j) * sigma_tensor.trace() / 3.0;
 
-// Compute effective deviatoric stress
+  // Compute effective deviatoric stress
 
   s =  sigma_dev.doubleDot(sigma_dev);
   Real sigma_dev_eff=sqrt(3./2. * s);
@@ -140,79 +149,79 @@ for (UInt i = 0; i < dim; ++i)
 
   Real q = 1.5 * (1. / (1. +  3. * mu  / h) - xr);
 
-for (UInt m = 0; m < rows; m++) {
-  UInt i, j;
-        if (m < dim) {
-            i = m;
-            j = m;
-        } else {
-            if (dim == 3) {
-                if (m == 3) {
-                    i = 1;
-                    j = 2;
-                } else if (m == 4) {
-                    i = 0;
-                    j = 2;
-                } else if (m == 5) {
-                    i = 0;
-                    j = 1;
-                }
-            } else if (dim == 2) {
-                if (m == 2) {
-                    i = 0;
-                    j = 1;
-                }
-            }
+  for (UInt m = 0; m < rows; m++) {
+    UInt i, j;
+    if (m < dim) {
+      i = m;
+      j = m;
+    } else {
+      if (dim == 3) {
+        if (m == 3) {
+          i = 1;
+          j = 2;
+        } else if (m == 4) {
+          i = 0;
+          j = 2;
+        } else if (m == 5) {
+          i = 0;
+          j = 1;
         }
-
-        for (UInt n = 0; n < cols; n++) {
-            UInt k, l;
-            if (n < dim) {
-                k = n;
-                l = n;
-            } else {
-                if (dim == 3) {
-                    if (n == 3) {
-                        k = 1;
-                        l = 2;
-                    } else if (n == 4) {
-                        k = 0;
-                        l = 2;
-                    } else if (n == 5) {
-                        k = 0;
-                        l = 1;
-                    }
-                } else if (dim == 2) {
-                    if (n == 2) {
-                        k = 0;
-                        l = 1;
-                    }
-                }
-            }
-
-	    	   if (((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) && (xr > 0)){
-
-	       tangent(m,n) = 2. * mu * q * (sigma_tr_dev (i,j) / sigma_tr_dev_eff) * (sigma_tr_dev (k,l) / sigma_tr_dev_eff) + (i==k) * (j==l) * 2. * mu * xr + (i==j) * (k==l)* (kpa - 2./3. * mu * xr); 
-	       if ((m==n) && (m>=dim))
-		 tangent(m,n) = tangent(m,n) - mu * xr;
-
-	    }
-
-	    else {
-
-	      tangent(m,n) = (i==k) * (j==l) * 2. * mu + (i==j) * (k==l) * lambda;
-	      if ((m==n) && (m>=dim))
-		tangent(m,n) = tangent(m,n) - mu;
-
-	        }
- 
-
-	    //correct tangent stiffness for shear component
-
-
-
+      } else if (dim == 2) {
+        if (m == 2) {
+          i = 0;
+          j = 1;
         }
- }
+      }
+    }
+
+    for (UInt n = 0; n < cols; n++) {
+      UInt k, l;
+      if (n < dim) {
+        k = n;
+        l = n;
+      } else {
+        if (dim == 3) {
+          if (n == 3) {
+            k = 1;
+            l = 2;
+          } else if (n == 4) {
+            k = 0;
+            l = 2;
+          } else if (n == 5) {
+            k = 0;
+            l = 1;
+          }
+        } else if (dim == 2) {
+          if (n == 2) {
+            k = 0;
+            l = 1;
+          }
+        }
+      }
+
+      if (((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) && (xr > 0)){
+
+        tangent(m,n) = 2. * mu * q * (sigma_tr_dev (i,j) / sigma_tr_dev_eff) * (sigma_tr_dev (k,l) / sigma_tr_dev_eff) + (i==k) * (j==l) * 2. * mu * xr + (i==j) * (k==l)* (kpa - 2./3. * mu * xr); 
+        if ((m==n) && (m>=dim))
+          tangent(m,n) = tangent(m,n) - mu * xr;
+
+      }
+
+      else {
+
+        tangent(m,n) = (i==k) * (j==l) * 2. * mu + (i==j) * (k==l) * lambda;
+        if ((m==n) && (m>=dim))
+          tangent(m,n) = tangent(m,n) - mu;
+
+      }
+
+
+      //correct tangent stiffness for shear component
+
+
+
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
