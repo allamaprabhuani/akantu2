@@ -65,7 +65,7 @@ if(SUBVERSION_FOUND)
     set(AKANTU_BLACKDYNAMITE OFF)
   endif()
 else()
-  add_optional_external_package(BlackDynamite "Add BlackDynamite support in akantu" OFF PREFIX BlackDynamite)
+  add_optional_external_package(BlackDynamite "Add BlackDynamite support in akantu" OFF FOUND BlackDynamite_FOUND)
 endif()
 
 mark_as_advanced(AKANTU_BLACKDYNAMITE)
