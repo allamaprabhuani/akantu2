@@ -43,6 +43,6 @@ if(AKANTU_PARALLEL)
     SOURCES test_cohesive_parallel_intrinsic_tetrahedron.cc
     DEPENDENCIES test_cohesive_parallel_intrinsic_tetrahedron_mesh
     PACKAGE cohesive_element
-    FILES_TO_COPY material.dat
+    FILES_TO_COPY material_tetrahedron.dat
     DIRECTORIES_TO_CREATE paraview)
 endif()

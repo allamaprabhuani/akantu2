@@ -46,6 +46,7 @@
 #include "material.hh"
 #if defined(AKANTU_USE_IOHELPER)
 #  include "io_helper.hh"
+#  include "dumper_paraview.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 

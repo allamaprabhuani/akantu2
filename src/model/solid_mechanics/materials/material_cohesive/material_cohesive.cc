@@ -44,9 +44,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   Material(model,id),
   reversible_energy("reversible_energy", id),
   total_energy("total_energy", id),
-  tractions_old("tractions (old)",id),
   opening_old("opening (old)",id),
   tractions("tractions",id),
+  tractions_old("tractions (old)",id),
   opening("opening",id),
   contact_tractions("contact_tractions",id),
   contact_opening("contact_opening",id),
@@ -160,7 +160,11 @@ void MaterialCohesive::generateRandomDistribution(const Mesh & mesh_facets) {
 void MaterialCohesive::assembleResidual(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model->getSpatialDimension();
+#if defined(AKANTU_DEBUG_TOOLS)
+  debug::element_manager.printData(debug::_dm_material_cohesive,
+				   "Cohesive Tractions",
+				   tractions);
+#endif
 
   Array<Real> & residual = const_cast<Array<Real> &>(model->getResidual());
 
@@ -170,62 +174,52 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension,
 						ghost_type, _ek_cohesive);
   for(; it != last_type; ++it) {
-    const Array<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
 
     Array<UInt> & elem_filter = element_filter(*it, ghost_type);
+    UInt nb_element = elem_filter.getSize();
+    if (nb_element == 0) continue;
+
+    const Array<Real> & shapes = fem_cohesive->getShapes(*it, ghost_type);
     Array<Real> & traction = tractions(*it, ghost_type);
+    Array<Real> & contact_traction = contact_tractions(*it, ghost_type);
 
     UInt size_of_shapes       = shapes.getNbComponent();
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt nb_quadrature_points = fem_cohesive->getNbQuadraturePoints(*it, ghost_type);
 
-    UInt nb_element = elem_filter.getSize();
-    if (nb_element == 0) continue;
 
     /// compute @f$t_i N_a@f$
 
-    Real * shapes_val       = shapes.storage();
-    UInt * elem_filter_val  = elem_filter.storage();
+    Array<Real> * traction_cpy = new Array<Real>(nb_element * nb_quadrature_points,
+						 spatial_dimension * size_of_shapes);
 
-    Array<Real> * shapes_filtered = new Array<Real>(nb_element*nb_quadrature_points,
-						    size_of_shapes,
-						    "filtered shapes");
+    Array<Real>::iterator<Matrix<Real> > traction_it
+      = traction.begin(spatial_dimension, 1);
+    Array<Real>::iterator<Matrix<Real> > contact_traction_it
+      = contact_traction.begin(spatial_dimension, 1);
+    Array<Real>::const_iterator<Matrix<Real> > shapes_filtered_begin
+      = shapes.begin(1, size_of_shapes);
+    Array<Real>::iterator<Matrix<Real> > traction_cpy_it
+      = traction_cpy->begin(spatial_dimension, size_of_shapes);
 
-    Real * shapes_filtered_val = shapes_filtered->values;
+    Matrix<Real> traction_tmp(spatial_dimension, 1);
 
-    for (UInt el = 0; el < nb_element; ++el) {
-      shapes_val = shapes.storage() + elem_filter_val[el] *
-	size_of_shapes * nb_quadrature_points;
-      memcpy(shapes_filtered_val, shapes_val,
-	     size_of_shapes * nb_quadrature_points * sizeof(Real));
-      shapes_filtered_val += size_of_shapes * nb_quadrature_points;
-    }
-
-    shapes_filtered_val = shapes_filtered->values;
-
-    // multiply traction by shapes
-
-    Array<Real> * traction_cpy = new Array<Real>(traction);
-
-    /// add contact tractions
-    Array<Real> & contact_traction = contact_tractions(*it, ghost_type);
-    (*traction_cpy) += contact_traction;
-
-    traction_cpy->extendComponentsInterlaced(size_of_shapes, spatial_dimension);
-
-    Real * traction_cpy_val = traction_cpy->storage();
 
     for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt q = 0; q < nb_quadrature_points; ++q) {
-	for (UInt n = 0; n < size_of_shapes; ++n,++shapes_filtered_val) {
-	  for (UInt i = 0; i < spatial_dimension; ++i) {
-	    *traction_cpy_val++ *= *shapes_filtered_val;
-	  }
-	}
+
+      UInt current_quad = elem_filter(el) * nb_quadrature_points;
+
+      for (UInt q = 0; q < nb_quadrature_points; ++q, ++traction_it,
+	     ++contact_traction_it, ++current_quad, ++traction_cpy_it) {
+
+	const Matrix<Real> & shapes_filtered = shapes_filtered_begin[current_quad];
+
+	traction_tmp.copy(*traction_it);
+	traction_tmp += *contact_traction_it;
+
+	traction_cpy_it->mul<false, false>(traction_tmp, shapes_filtered);
       }
     }
-
-    delete shapes_filtered;
 
     /**
      * compute @f$\int t \cdot N\, dS@f$ by  @f$ \sum_q \mathbf{N}^t
@@ -236,19 +230,19 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 					    "int_t_N");
 
     fem_cohesive->integrate(*traction_cpy, *int_t_N,
-			    spatial_dimension*size_of_shapes,
+			    spatial_dimension * size_of_shapes,
 			    *it, ghost_type,
 			    elem_filter);
 
     delete traction_cpy;
 
-    int_t_N->extendComponentsInterlaced(2, int_t_N->getNbComponent() );
+    int_t_N->extendComponentsInterlaced(2, int_t_N->getNbComponent());
 
     Real * int_t_N_val = int_t_N->storage();
     for (UInt el = 0; el < nb_element; ++el) {
-      for (UInt n = 0; n < size_of_shapes*spatial_dimension; ++n)
+      for (UInt n = 0; n < size_of_shapes * spatial_dimension; ++n)
 	int_t_N_val[n] *= -1.;
-      int_t_N_val += nb_nodes_per_element*spatial_dimension;
+      int_t_N_val += nb_nodes_per_element * spatial_dimension;
     }
 
     /// assemble
@@ -267,8 +261,6 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
 void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
-
-  UInt spatial_dimension = model->getSpatialDimension();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
 
@@ -423,8 +415,6 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
  */
 void MaterialCohesive::computeTraction(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  UInt spatial_dimension = model->getSpatialDimension();
 
   Mesh & mesh = fem_cohesive->getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension,

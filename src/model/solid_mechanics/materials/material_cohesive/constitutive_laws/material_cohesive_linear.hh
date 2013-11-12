@@ -88,8 +88,7 @@ protected:
   /// compute effective stress norm for insertion check
   inline void computeEffectiveNorm(const Matrix<Real> & stress,
 				   const Vector<Real> & normal,
-				   Real * tangent,
-				   Vector<Real> & tangent_tmp,
+				   const Vector<Real> & tangent,
 				   Vector<Real> & normal_stress,
 				   Real & effective_norm);
 
@@ -97,6 +96,9 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// get sigma_c_eff
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(InsertionTraction, sigma_c_eff, Real);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

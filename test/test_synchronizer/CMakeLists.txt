@@ -33,7 +33,7 @@ add_mesh(test_synchronizer_communication_mesh
   cube.geo 2 1)
 
 add_mesh(test_facet_synchronizer_mesh
-  facet.geo 2 2)
+  facet.geo 3 2)
 
 register_test(test_synchronizer_communication
   SOURCES test_synchronizer_communication.cc

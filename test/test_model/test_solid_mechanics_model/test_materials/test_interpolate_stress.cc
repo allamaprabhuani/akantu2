@@ -47,15 +47,17 @@
 
 using namespace akantu;
 
-static Real plane(Real, Real);
+Real function(Real x, Real y, Real z) {
+  return 100. + 2. * x + 3. * y + 4 * z;
+}
 
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 2;
-  const ElementType type = _triangle_6;
+  const UInt spatial_dimension = 3;
+  const ElementType type = _tetrahedron_10;
 
   Mesh mesh(spatial_dimension);
   mesh.read("interpolation.msh");
@@ -139,13 +141,17 @@ int main(int argc, char *argv[]) {
 
   for (UInt q = 0; q < nb_tot_quad_el; ++q) {
     for (UInt s = 0; s < spatial_dimension * spatial_dimension; ++s) {
-      stress(q, s) = s * plane(quad_elements(q, 0), quad_elements(q, 1));
+      stress(q, s) = s * function(quad_elements(q, 0),
+				  quad_elements(q, 1),
+				  quad_elements(q, 2));
     }
   }
 
   /// interpolate stresses on facets' quadrature points
   model.getMaterial(0).initElementalFieldInterpolation(element_quad_facet);
   model.getMaterial(0).interpolateStress(interpolated_stress);
+
+  Real tolerance = 1.e-10;
 
   /// check results
   for (UInt el = 0; el < nb_element; ++el) {
@@ -158,13 +164,13 @@ int main(int argc, char *argv[]) {
 			      + f * nb_quad_per_facet + q, 0);
 	  Real y = el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet
 			      + f * nb_quad_per_facet + q, 1);
+	  Real z = el_q_facet(el * nb_facet_per_elem * nb_quad_per_facet
+			      + f * nb_quad_per_facet + q, 2);
 
-	  Real theoretical = s * plane(x, y);
+	  Real theoretical = s * function(x, y, z);
 
 	  Real numerical = interp_stress(el * nb_facet_per_elem * nb_quad_per_facet
 					 + f * nb_quad_per_facet + q, s);
-
-	  Real tolerance = 1000 * (theoretical + 1) * std::numeric_limits<Real>::epsilon();
 
 	  if (std::abs(theoretical - numerical) > tolerance) {
 	    std::cout << "Theoretical and numerical values aren't coincident!" << std::endl;
@@ -178,8 +184,4 @@ int main(int argc, char *argv[]) {
 
   std::cout << "OK: Stress interpolation test passed." << std::endl;
   return EXIT_SUCCESS;
-}
-
-Real plane(Real x, Real y) {
-  return 1. + 2. * x + 3. * y;
 }

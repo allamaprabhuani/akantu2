@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
   Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
   MeshUtils::buildAllFacets(mesh, mesh_facets);
 
-  mesh_facets.initFacetToDouble();
+  MeshUtils::resetFacetToDouble(mesh_facets);
 
   ByElementTypeArray<bool> facet_insertion("facet_insertion", "");
   mesh_facets.initByElementTypeArray(facet_insertion, 1, spatial_dimension - 1,
@@ -168,9 +168,10 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    model.updateResidual();
-    model.dump();
-    dumper.dump();
+    if (s % 10 == 0) {
+      model.dump();
+      dumper.dump();
+    }
   }
 
   delete[] bary;

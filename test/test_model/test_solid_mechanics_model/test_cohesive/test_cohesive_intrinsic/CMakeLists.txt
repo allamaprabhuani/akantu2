@@ -48,6 +48,7 @@ register_test(test_cohesive_intrinsic_quadrangle
 register_test(test_cohesive_intrinsic_tetrahedron
   SOURCES test_cohesive_intrinsic_tetrahedron.cc
   DEPENDENCIES test_cohesive_intrinsic_tetrahedron_mesh
+  FILES_TO_COPY material_tetrahedron.dat
   PACKAGE cohesive_element)
 
 register_test(test_cohesive_intrinsic_tetrahedron_fragmentation

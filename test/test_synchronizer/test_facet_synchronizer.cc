@@ -40,7 +40,7 @@ using namespace akantu;
 int main(int argc, char *argv[]) {
   akantu::initialize(argc, argv);
 
-  UInt spatial_dimension = 2;
+  UInt spatial_dimension = 3;
   Mesh mesh(spatial_dimension);
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
@@ -67,30 +67,36 @@ int main(int argc, char *argv[]) {
 
   MeshUtils::buildAllFacetsParallel(mesh, mesh_facets, prank_to_element);
 
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh << std::endl;
-  debug::setDebugLevel(dblInfo);
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh << std::endl;
+  // debug::setDebugLevel(dblInfo);
 
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh_facets << std::endl;
-  debug::setDebugLevel(dblInfo);
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh_facets << std::endl;
+  // debug::setDebugLevel(dblInfo);
 
   /// compute barycenter for each facet
   ByElementTypeReal barycenters("barycenters", "", 0);
-  mesh_facets.initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension - 1);
+  mesh_facets.initByElementTypeArray(barycenters,
+				     spatial_dimension,
+				     spatial_dimension - 1);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
     GhostType ghost_type = *gt;
-    Mesh::type_iterator it = mesh_facets.firstType(spatial_dimension - 1, ghost_type);
-    Mesh::type_iterator last_type = mesh_facets.lastType(spatial_dimension - 1, ghost_type);
+    Mesh::type_iterator it = mesh_facets.firstType(spatial_dimension - 1,
+						   ghost_type);
+    Mesh::type_iterator last_type = mesh_facets.lastType(spatial_dimension - 1,
+							 ghost_type);
 
     for(; it != last_type; ++it) {
       UInt nb_element = mesh_facets.getNbElement(*it, ghost_type);
       Array<Real> & barycenter = barycenters(*it, ghost_type);
       barycenter.resize(nb_element);
 
-      Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(spatial_dimension);
+      Array<Real>::iterator< Vector<Real> > bary_it
+	= barycenter.begin(spatial_dimension);
+
       for (UInt elem = 0; elem < nb_element; ++elem, ++bary_it)
 	mesh_facets.getBarycenter(elem, *it, bary_it->storage(), ghost_type);
     }

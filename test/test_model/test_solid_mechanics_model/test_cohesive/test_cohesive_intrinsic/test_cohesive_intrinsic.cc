@@ -72,32 +72,6 @@ int main(int argc, char *argv[]) {
 
   std::cout << mesh << std::endl;
 
-  // Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-  // MeshUtils::buildAllFacets(mesh, mesh_facets);
-
-  // std::cout << mesh_facets << std::endl;
-
-  // const ElementType type_facet = Mesh::getFacetType(type);
-
-  // UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  // //  const Array<Real> & position = mesh.getNodes();
-  // //  Array<Real> & displacement = model.getDisplacement();
-  // //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
-
-  // Array<bool> facet_insertion(nb_facet);
-  // facet_insertion.clear();
-  // Real * bary_facet = new Real[spatial_dimension];
-  // for (UInt f = 0; f < nb_facet; ++f) {
-  //   mesh_facets.getBarycenter(f, type_facet, bary_facet);
-  //   if (bary_facet[0] > -0.26 && bary_facet[0] < -0.24) facet_insertion(f) = true;
-  // }
-  // delete[] bary_facet;
-
-  // MeshUtils::insertIntrinsicCohesiveElements(mesh,
-  // 					     mesh_facets,
-  // 					     type_facet,
-  // 					     facet_insertion);
-
   Array<Real> limits(spatial_dimension, 2);
   limits(0, 0) = -0.26;
   limits(0, 1) = -0.24;
@@ -113,7 +87,6 @@ int main(int argc, char *argv[]) {
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
-
 
 
   SolidMechanicsModelCohesive model(mesh);
@@ -172,21 +145,6 @@ int main(int argc, char *argv[]) {
 
   updateDisplacement(model, elements, type, increment);
 
-  // for (UInt n = 0; n < nb_nodes; ++n) {
-  //   if (position(n, 1) + displacement(n, 1) > 0) {
-  //     if (position(n, 0) == 0) {
-  // 	displacement(n, 1) -= 0.25;
-  //     }
-  //     if (position(n, 0) == 1) {
-  // 	displacement(n, 1) += 0.25;
-  //     }
-  //   }
-  // }
-
-
-  // std::ofstream edis("edis.txt");
-  // std::ofstream erev("erev.txt");
-
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 
@@ -203,26 +161,7 @@ int main(int argc, char *argv[]) {
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 
-    // // update displacement
-    // for (UInt n = 0; n < nb_nodes; ++n) {
-    //   if (position(n, 1) + displacement(n, 1) > 0) {
-    // 	displacement(n, 0) -= 0.01;
-    //   }
-    // }
-
-    //    Real Ed = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getDissipatedEnergy();
-    //    Real Er = dynamic_cast<MaterialCohesive&> (model.getMaterial(1)).getReversibleEnergy();
-
-    // edis << s << " "
-    // 	 << Ed << std::endl;
-
-    // erev << s << " "
-    // 	 << Er << std::endl;
-
   }
-
-  // edis.close();
-  // erev.close();
 
   Real Ed = model.getEnergy("dissipated");
 

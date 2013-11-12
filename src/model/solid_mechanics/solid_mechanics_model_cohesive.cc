@@ -264,10 +264,7 @@ void SolidMechanicsModelCohesive::initModel() {
 void SolidMechanicsModelCohesive::initAutomaticInsertion() {
   AKANTU_DEBUG_IN();
 
-  mesh_facets.initFacetToDouble();
-
-  for (UInt dim = 0; dim < spatial_dimension; ++dim)
-    MeshUtils::resetFacetToDouble(mesh_facets, dim);
+  MeshUtils::resetFacetToDouble(mesh_facets);
 
   /// initialize facet insertion array
   mesh_facets.initByElementTypeArray(facet_insertion, 1,
@@ -357,23 +354,23 @@ void SolidMechanicsModelCohesive::initAutomaticInsertion() {
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
 
-    GhostType facet_gt = *gt;
+    GhostType elem_gt = *gt;
 
-    Mesh::type_iterator it   = mesh.firstType(spatial_dimension, facet_gt);
-    Mesh::type_iterator last = mesh.lastType(spatial_dimension, facet_gt);
+    Mesh::type_iterator it   = mesh.firstType(spatial_dimension, elem_gt);
+    Mesh::type_iterator last = mesh.lastType(spatial_dimension, elem_gt);
 
     for (; it != last; ++it) {
       ElementType type = *it;
-      UInt nb_element = mesh.getNbElement(type, facet_gt);
+      UInt nb_element = mesh.getNbElement(type, elem_gt);
       if (nb_element == 0) continue;
 
       /// compute elements' quadrature points and list of facet
       /// quadrature points positions by element
       Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(type,
-                                                                             facet_gt);
+                                                                             elem_gt);
       UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-      Array<Real> & el_q_facet = elements_quad_facets(type, facet_gt);
+      Array<Real> & el_q_facet = elements_quad_facets(type, elem_gt);
 
       ElementType facet_type = Mesh::getFacetType(type);
 
@@ -382,7 +379,7 @@ void SolidMechanicsModelCohesive::initAutomaticInsertion() {
 
       el_q_facet.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet);
 
-      stress_on_facet(type, facet_gt).resize(el_q_facet.getSize());
+      stress_on_facet(type, elem_gt).resize(el_q_facet.getSize());
 
       for (UInt el = 0; el < nb_element; ++el) {
         for (UInt f = 0; f < nb_facet_per_elem; ++f) {
@@ -579,10 +576,6 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
           for (UInt f = 0; f < nb_facet_per_elem; ++f) {
             Element global_facet_elem = (*facet_to_el_it)(f);
             UInt global_facet = global_facet_elem.element;
-            if (global_facet_elem.type == _not_defined) {
-              stress_on_f_it += nb_quad_per_facet;
-              continue;
-            }
 
             if (facet_type != global_facet_elem.type ||
                 facet_gt != global_facet_elem.ghost_type) {
@@ -599,24 +592,22 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
               f_check = &( facets_check(facet_type, facet_gt) );
             }
 
+	    if (!(*f_check)(global_facet)) {
+	      stress_on_f_it += nb_quad_per_facet;
+	      continue;
+	    }
+
             for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
 
-              if ((*f_check)(global_facet) == true) {
+	      element_rank = (*element_to_facet)(global_facet)[0] != current_el;
 
-                if ( (*element_to_facet)(global_facet)[0] == current_el)
-                  element_rank = 0;
-                else
-                  element_rank = 1;
+	      Matrix<Real> facet_stress_local(f_stress->storage()
+					      + (global_facet * nb_quad_per_facet + q) * sp4
+					      + element_rank * sp2,
+					      spatial_dimension,
+					      spatial_dimension);
 
-                Matrix<Real> facet_stress_local(f_stress->storage()
-                                                + (global_facet * nb_quad_per_facet + q) * sp4
-                                                + element_rank * sp2,
-                                                spatial_dimension,
-                                                spatial_dimension);
-
-                facet_stress_local = *stress_on_f_it;
-              }
-
+	      facet_stress_local = *stress_on_f_it;
             }
           }
         }
@@ -624,7 +615,19 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
     }
   }
 
+#if defined(AKANTU_DEBUG_TOOLS)
+      debug::element_manager.printData(debug::_dm_model_cohesive,
+				       "Interpolated stresses before",
+                                       facet_stress);
+#endif
+
   synch_registry->synchronize(_gst_smmc_facets_stress);
+
+#if defined(AKANTU_DEBUG_TOOLS)
+      debug::element_manager.printData(debug::_dm_model_cohesive,
+				       "Interpolated stresses",
+                                       facet_stress);
+#endif
 
   for (UInt m = 0; m < nb_materials; ++m) {
     try {

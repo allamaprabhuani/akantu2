@@ -54,6 +54,8 @@ namespace akantu {
       _dm_material,
       _dm_material_non_local,
       _dm_material_damage,
+      _dm_material_cohesive,
+      _dm_model_cohesive,
       _dm_debug_tools,
       _dm_integrator,
       _dm_end
@@ -104,11 +106,20 @@ namespace akantu {
       void setMesh(const Mesh & imesh) {
         this->mesh = &imesh;
         UInt spatial_dimension = mesh->getSpatialDimension();
-        mesh->initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension);
+        mesh->initByElementTypeArray(barycenters,
+				     spatial_dimension,
+				     _all_dimensions,
+				     false,
+				     _ek_not_defined);
 
         for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
-          Mesh::type_iterator it = mesh->firstType(spatial_dimension, *gt);
-          Mesh::type_iterator last_type = mesh->lastType(spatial_dimension, *gt);
+          Mesh::type_iterator it = mesh->firstType(_all_dimensions,
+						   *gt,
+						   _ek_not_defined);
+
+          Mesh::type_iterator last_type = mesh->lastType(_all_dimensions,
+							 *gt,
+							 _ek_not_defined);
           for(; it != last_type; ++it) {
             UInt nb_element = mesh->getNbElement(*it, *gt);
             Array<Real> & barycenter = barycenters(*it, *gt);
@@ -149,7 +160,7 @@ namespace akantu {
         if(!found) return false;
 
         UInt el_id = bary_it - bary_begin - 1;
-        Element el(type, el_id, ghost_type);
+        Element el(type, el_id, ghost_type, Mesh::getKind(type));
         return addElement(el);
       }
 
@@ -213,15 +224,22 @@ namespace akantu {
         begin(ctxt);
         for(std::set<Element>::const_iterator it(element_to_debug.begin());
             it != element_to_debug.end(); ++it) {
-          const Array<T> & array = data(it->type, it->ghost_type);
-          UInt nb_data_per_element = array.getSize() / mesh->getNbElement();
-          std::stringstream sout;
-          sout << " -> " << *it << " " << data.getID() << ":";
-          typename Array<T>::template const_iterator< Vector<T> > data_it = array.begin(array.getNbComponent());
-          data_it += it->element * nb_data_per_element;
-          for (UInt d = 0; d < nb_data_per_element; ++d, ++data_it) {
-            sout << " " << *data_it;
-          }
+	  std::stringstream sout;
+	  try {
+	    const Array<T> & array = data(it->type, it->ghost_type);
+	    UInt nb_data_per_element
+	      = array.getSize() / mesh->getNbElement(it->type, it->ghost_type);
+
+	    sout << " -> " << *it << " " << data.getID() << "(" << nb_data_per_element << ")" << ":";
+	    typename Array<T>::template const_iterator< Vector<T> > data_it = array.begin(array.getNbComponent());
+	    data_it += it->element * nb_data_per_element;
+	    for (UInt d = 0; d < nb_data_per_element; ++d, ++data_it) {
+	      sout << std::setprecision(15) << " " << *data_it;
+	    }
+	  } catch (...) {
+	    sout << " -> " << *it << " has no data defined";
+	  }
+	  
           AKANTU_DEBUG_DBT(sout.str());
         }
         end(ctxt);

@@ -55,7 +55,7 @@ register_test(test_material_damage_non_local
   )
 
 #===============================================================================
-add_mesh(test_interpolate_stress_mesh interpolation.geo 2 2)
+add_mesh(test_interpolate_stress_mesh interpolation.geo 3 2)
 register_test(test_interpolate_stress test_interpolate_stress.cc
   FILES_TO_COPY material.dat
   DEPENDENCIES test_interpolate_stress_mesh

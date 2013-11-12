@@ -641,7 +641,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     comm.receive(nodes->values, nb_nodes * spatial_dimension, root, Tag::genTag(root, 0, TAG_COORDINATES));
 
     communicator.fillNodesType(mesh);
-    /* --------<<<<-NODES_TYPE-2--------------------------------------------- */
+    /* -------->>>>-NODES_TYPE-1--------------------------------------------- */
     Int * nodes_types = mesh.getNodesTypePointer()->values;
     AKANTU_DEBUG_INFO("Sending first nodes types to proc " << root);
     comm.send(nodes_types, nb_nodes,

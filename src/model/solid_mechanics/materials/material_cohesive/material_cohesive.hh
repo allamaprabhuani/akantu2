@@ -153,6 +153,9 @@ public:
   /// get the traction
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Traction, tractions, Real);
 
+  /// get damage
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
+
   /// get facet filter
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
@@ -175,10 +178,6 @@ public:
     return Material::getEnergy(energy_id, type, index);
   }
 
-
-  /// get damage
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -190,9 +189,6 @@ private:
   /// total energy by quadrature point
   ByElementTypeReal total_energy;
 
-  /// traction in all elements and quadrature points (previous time step)
-  ByElementTypeReal tractions_old;
-
   /// opening in all elements and quadrature points (previous time step)
   ByElementTypeReal opening_old;
 
@@ -200,6 +196,9 @@ protected:
 
   /// traction in all elements and quadrature points
   ByElementTypeReal tractions;
+
+  /// traction in all elements and quadrature points (previous time step)
+  ByElementTypeReal tractions_old;
 
   /// opening in all elements and quadrature points
   ByElementTypeReal opening;

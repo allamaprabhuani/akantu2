@@ -184,8 +184,7 @@ public:
 				const Vector<UInt> & nodes);
 
   /// reset facet to double arrays
-  static void resetFacetToDouble(Mesh & mesh_facets,
-				 UInt facet_dimension);
+  static void resetFacetToDouble(Mesh & mesh_facets);
 
 private:
 
@@ -248,7 +247,9 @@ private:
 			       Array<UInt> & doubled_nodes);
 
   /// update cohesive element data
-  static void updateCohesiveData(Mesh & mesh, Mesh & mesh_facets);
+  static void updateCohesiveData(Mesh & mesh,
+				 Mesh & mesh_facets,
+				 NewElementsEvent & element_event);
 
   /// update elemental connectivity after doubling a node
   inline static void updateElementalConnectivity(Mesh & mesh,

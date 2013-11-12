@@ -69,11 +69,7 @@ Mesh::Mesh(UInt spatial_dimension,
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   mesh_data("mesh_data", id, memory_id),
-  boundaries(*this, "boundaries", id, memory_id),
-  facet_to_double("facet_to_double", id),
-  subfacets_to_subsubfacet_double("subfacets_to_subsubfacet_double", id),
-  facets_to_subfacet_double("facets_to_subfacet_double", id),
-  elements_to_subfacet_double("elements_to_subfacet_double", id) {
+  boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(alloc<Real>(this->id + ":coordinates", 0, this->spatial_dimension));
@@ -106,11 +102,7 @@ Mesh::Mesh(UInt spatial_dimension,
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   mesh_data("mesh_data", id, memory_id),
-  boundaries(*this, "boundaries", id, memory_id),
-  facet_to_double("facet_to_double", id),
-  subfacets_to_subsubfacet_double("subfacets_to_subsubfacet_double", id),
-  facets_to_subfacet_double("facets_to_subfacet_double", id),
-  elements_to_subfacet_double("elements_to_subfacet_double", id) {
+  boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(getArray<Real>(nodes_id));
@@ -134,11 +126,7 @@ Mesh::Mesh(UInt spatial_dimension,
   types_offsets(Array<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>(_max_element_type + 1, 1)),
   mesh_data("mesh_data", id, memory_id),
-  boundaries(*this, "boundaries", id, memory_id),
-  facet_to_double("facet_to_double", id),
-  subfacets_to_subsubfacet_double("subfacets_to_subsubfacet_double", id),
-  facets_to_subfacet_double("facets_to_subfacet_double", id),
-  elements_to_subfacet_double("elements_to_subfacet_double", id) {
+  boundaries(*this, "boundaries", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(nodes);
@@ -297,16 +285,6 @@ void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
 /* -------------------------------------------------------------------------- */
 void Mesh::initNormals() {
   initByElementTypeArray(normals, spatial_dimension, spatial_dimension, false, _ek_not_defined);
-}
-
-/* -------------------------------------------------------------------------- */
-void Mesh::initFacetToDouble() {
-  for (UInt sp = 0; sp < spatial_dimension; ++sp) {
-    initByElementTypeArray(facet_to_double, 1, sp);
-    initByElementTypeArray(facets_to_subfacet_double, 1, sp);
-    initByElementTypeArray(elements_to_subfacet_double, 1, sp);
-    initByElementTypeArray(subfacets_to_subsubfacet_double, 1, sp);
-  }
 }
 
 /* -------------------------------------------------------------------------- */

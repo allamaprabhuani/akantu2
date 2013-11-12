@@ -18,5 +18,5 @@ material cohesive_linear [
 	 beta = 1
 	 G_cI = 100
 	 G_cII = 100
-	 sigma_c = 100
+	 sigma_c_generator = uniform(1) 100 100
 ]

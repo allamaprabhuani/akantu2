@@ -3,9 +3,9 @@
 #
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
-# @date   Thu Apr 04 17:04:18 2013
+# @date   Tue Oct 28 09:43:18 2013
 #
-# @brief  configuration for ghost cohesive element insertion test
+# @brief  configuration for parallel test of facet stress synchronizer
 #
 # @section LICENSE
 #
@@ -28,12 +28,12 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-add_mesh(test_cohesive_ghost_element_insertion_mesh mesh.geo 2 1)
+add_mesh(test_cohesive_facet_stress_synchronizer_mesh tetrahedron.geo 3 2)
 
 if(AKANTU_PARALLEL)
-  register_test(test_cohesive_ghost_element_insertion
-    SOURCES test_cohesive_ghost_element_insertion.cc
-    DEPENDENCIES test_cohesive_ghost_element_insertion_mesh
+  register_test(test_cohesive_facet_stress_synchronizer
+    SOURCES test_cohesive_facet_stress_synchronizer.cc
+    DEPENDENCIES test_cohesive_facet_stress_synchronizer_mesh
     PACKAGE cohesive_element
-    DIRECTORIES_TO_CREATE paraview)
+    FILES_TO_COPY material.dat)
 endif()
