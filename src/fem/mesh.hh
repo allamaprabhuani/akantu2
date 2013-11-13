@@ -356,7 +356,8 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(ID, id, const ID &);
+  /// get the id of the mesh
+  AKANTU_GET_MACRO(ID, Memory::id, const ID &);
 
   /// get the spatial dimension of the mesh = number of component of the coordinates
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
@@ -564,9 +565,6 @@ private:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// id of the mesh
-  ID id;
-
   /// array of the nodes coordinates
   Array<Real> * nodes;
 

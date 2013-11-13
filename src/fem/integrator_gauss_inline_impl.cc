@@ -150,8 +150,7 @@ template <ElementKind kind>
 IntegratorGauss<kind>::IntegratorGauss(const Mesh & mesh,
 				 const ID & id,
 				 const MemoryID & memory_id) :
-  Integrator(mesh, id, memory_id),
-  quadrature_points("quadrature_points", id) {
+  Integrator(mesh, id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();

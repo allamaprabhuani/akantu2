@@ -146,15 +146,14 @@ void ByElementType<Stored, SupportType>::printself(std::ostream & stream, int in
 
 /* -------------------------------------------------------------------------- */
 template<class Stored, typename SupportType>
-ByElementType<Stored, SupportType>::ByElementType(const ID & id,
-                                                  const ID & parent_id) {
+ByElementType<Stored, SupportType>::ByElementType() {
   AKANTU_DEBUG_IN();
 
-  std::stringstream sstr;
-  if(parent_id != "") sstr << parent_id << ":";
-  sstr << id;
+  // std::stringstream sstr;
+  // if(parent_id != "") sstr << parent_id << ":";
+  // sstr << id;
 
-  this->id = sstr.str();
+  // this->id = sstr.str();
 
   AKANTU_DEBUG_OUT();
 }

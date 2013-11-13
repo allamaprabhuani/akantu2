@@ -49,8 +49,7 @@ public:
   ShapeFunctions(const Mesh & mesh,
 		 const ID & id = "shape",
 		 const MemoryID & memory_id = 0) :
-    Memory(memory_id), mesh(mesh),
-    control_points("control_points", id) {
+    Memory(id, memory_id), mesh(mesh) {
   };
   virtual ~ShapeFunctions(){};
 
@@ -110,8 +109,6 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   const Mesh & mesh;
-
-  ID id;
 
   /// shape functions for all elements
   ByElementType< Matrix<Real> > control_points;

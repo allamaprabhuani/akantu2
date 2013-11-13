@@ -445,6 +445,8 @@ std::string MeshIODiana::readMaterial(std::ifstream & infile,
   bool first_mat = true;
   bool end = false;
 
+  UInt mat_id = 0;
+
   typedef std::map<std::string, Real> MatProp;
   MatProp mat_prop;
   do{
@@ -453,6 +455,7 @@ std::string MeshIODiana::readMaterial(std::ifstream & infile,
     if("'GROUPS'" == line) {
       if(!mat_prop.empty()) {
 	material_file << "material elastic [" << std::endl;
+	material_file << "\tname = material" << ++mat_id << std::endl;
 	for(MatProp::iterator it = mat_prop.begin();
 	    it != mat_prop.end(); ++it)
 	  material_file << "\t" << it->first << " = " << it->second << std::endl;
@@ -469,6 +472,7 @@ std::string MeshIODiana::readMaterial(std::ifstream & infile,
 	if(!first_mat) {
 	  if(!mat_prop.empty()) {
 	    material_file << "material elastic [" << std::endl;
+	    material_file << "\tname = material" << ++mat_id << std::endl;
 	    for(MatProp::iterator it = mat_prop.begin();
 		it != mat_prop.end(); ++it)
 	      material_file << "\t" << it->first << " = " << it->second << std::endl;

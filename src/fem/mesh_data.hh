@@ -34,6 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "by_element_type.hh"
+#include "aka_memory.hh"
 #include <map>
 #include <string>
 /* -------------------------------------------------------------------------- */
@@ -54,7 +55,7 @@ enum MeshDataTypeCode {
   _tc_unknown
 };
 
-class MeshData {
+class MeshData : public Memory {
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
@@ -121,8 +122,6 @@ private:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  ID id;
-  MemoryID memory_id;
   ElementalDataMap elemental_data;
   TypeCodeMap typecode_map;
 };

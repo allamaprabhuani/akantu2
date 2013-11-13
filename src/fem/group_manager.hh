@@ -105,6 +105,9 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// create a node group
+  NodeGroup & createNodeGroup(const std::string & group_name);
+
   /// create an element group and the associated node group
   ElementGroup & createElementGroup(const std::string & group_name, UInt dimension);
 
@@ -142,7 +145,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  /// id to create element and node groups
   ID id;
+  /// memory_id to create element and node groups
   MemoryID memory_id;
 
   /// list of the node groups managed

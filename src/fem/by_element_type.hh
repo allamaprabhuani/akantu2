@@ -61,8 +61,7 @@ class ByElementType : public ByElementTypeBase {
 private:
   void operator=(const ByElementType &) {};
 public:
-  ByElementType(const ID & id = "by_element_type",
-		const ID & parent_id = "");
+  ByElementType();
   ~ByElementType();
 
   inline static std::string printType(const SupportType & type, const GhostType & ghost_type);
@@ -128,13 +127,8 @@ protected:
   inline DataMap & getData(GhostType ghost_type);
   inline const DataMap & getData(GhostType ghost_type) const;
 
-public:
-  AKANTU_GET_MACRO(ID, id, ID);
-  AKANTU_SET_MACRO(ID, id, ID);
-/* -------------------------------------------------------------------------- */
+  /* ------------------------------------------------------------------------ */
 protected:
-  ID id;
-
   DataMap data;
   DataMap ghost_data;
 };
@@ -143,7 +137,7 @@ protected:
 /* Some typedefs                                                              */
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType = ElementType>
-class ByElementTypeArray : public ByElementType<Array<T> *, SupportType>, protected Memory {
+class ByElementTypeArray : public ByElementType<Array<T> *, SupportType>, public Memory {
 protected:
   typedef ByElementType<Array<T> *, SupportType> parent;
   typedef typename parent::DataMap DataMap;
@@ -154,11 +148,9 @@ private:
 public:
   typedef typename parent::type_iterator type_iterator;
 
-  ByElementTypeArray() {};
-
-  ByElementTypeArray(const ID & id, const ID & parent_id,
-		     const MemoryID & memory_id = 0) :
-    parent(id, parent_id), Memory(memory_id) {};
+  ByElementTypeArray(const ID & id = "by_element_type_array", const ID & parent_id = "no_parent",
+                     const MemoryID & memory_id = 0) :
+    parent(), Memory(parent_id + ":" + id, memory_id) {};
 
   inline Array<T> & alloc(UInt size,
 			   UInt nb_component,
@@ -184,6 +176,8 @@ public:
   inline void onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+  inline void setID(const ID & id) { this->id = id; }
 
 private:
   ByElementTypeArray operator=(__attribute__((unused)) const ByElementTypeArray & other) {};

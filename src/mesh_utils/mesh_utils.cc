@@ -223,8 +223,8 @@ void MeshUtils::buildFacets(Mesh & mesh){
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
-  ByElementTypeReal barycenter;
-  ByElementTypeUInt prank_to_element;
+  ByElementTypeReal barycenter("barycenter_tmp", mesh.getID());
+  ByElementTypeUInt prank_to_element("prank_to_elem", mesh.getID());
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
@@ -252,7 +252,7 @@ void MeshUtils::buildAllFacets(Mesh & mesh,
 			       Mesh & mesh_facets) {
   AKANTU_DEBUG_IN();
 
-  ByElementTypeUInt prank_to_element;
+  ByElementTypeUInt prank_to_element("prank_to_elem", mesh.getID());
   buildAllFacetsParallel(mesh, mesh_facets, prank_to_element);
 
   AKANTU_DEBUG_OUT();
@@ -266,7 +266,7 @@ void MeshUtils::buildAllFacetsParallel(Mesh & mesh,
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  ByElementTypeReal barycenter;
+  ByElementTypeReal barycenter("barycenter_tmp", mesh.getID());
 
   /// generate facets
   buildFacetsDimension(mesh,
@@ -1944,8 +1944,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
   }
 
   UInt spatial_dimension = mesh.getSpatialDimension();
-
-  ByElementTypeReal barycenters;
+  ByElementTypeReal barycenters("barycenter_tmp", mesh.getID());
   mesh.initByElementTypeArray(barycenters,
                               spatial_dimension,
                               _all_dimensions);

@@ -45,9 +45,9 @@ MaterialFiniteDeformation::MaterialFiniteDeformation(SolidMechanicsModel & model
 
 /* -------------------------------------------------------------------------- */
 MaterialFiniteDeformation::~MaterialFiniteDeformation() {
-    AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_IN();
 
-    AKANTU_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
 }
 
 __END_AKANTU__

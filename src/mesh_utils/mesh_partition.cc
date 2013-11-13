@@ -38,8 +38,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MeshPartition::MeshPartition(const Mesh & mesh, UInt spatial_dimension,
+                             const ID & id,
 			     const MemoryID & memory_id) :
-  Memory(memory_id), id("MeshPartitioner"),
+  Memory(id, memory_id),
   mesh(mesh), spatial_dimension(spatial_dimension),
   partitions             ("partition"             , id, memory_id),
   ghost_partitions       ("ghost_partition"       , id, memory_id),

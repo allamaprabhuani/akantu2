@@ -43,7 +43,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 FEM::FEM(Mesh & mesh, UInt element_dimension, ID id, MemoryID memory_id) :
-  Memory(memory_id), id(id), mesh(mesh), normals_on_quad_points("normals_on_quad_points", id) {
+  Memory(id, memory_id), mesh(mesh), normals_on_quad_points("normals_on_quad_points", id) {
   AKANTU_DEBUG_IN();
   this->element_dimension = (element_dimension != _all_dimensions) ?
     element_dimension : mesh.getSpatialDimension();

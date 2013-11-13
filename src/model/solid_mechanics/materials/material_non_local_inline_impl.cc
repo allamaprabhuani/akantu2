@@ -358,7 +358,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
 
   is_creating_grid = true;
   SynchronizerRegistry & synch_registry = this->model->getSynchronizerRegistry();
-  std::stringstream sstr; sstr << id << ":grid_synchronizer";
+  std::stringstream sstr; sstr << getID() << ":grid_synchronizer";
   grid_synchronizer = GridSynchronizer::createGridSynchronizer(mesh,
                                                                *spatial_grid,
                                                                sstr.str());
@@ -459,7 +459,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
     Array<Real>::const_iterator< Vector<Real> > first_quad = quads.begin(spatial_dimension);
     Array<Real>::const_iterator< Vector<Real> > last_quad  = quads.end(spatial_dimension);
 
-    ByElementTypeUInt & pairs = pair_list(ByElementTypeUInt("pairs", id, memory_id),
+    ByElementTypeUInt & pairs = pair_list(ByElementTypeUInt("pairs", getID(), memory_id),
                                           *it,
                                           ghost_type);
 
@@ -594,7 +594,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       if (ghost_type1 == _ghost) ghost_id = ":ghost";
 
       ByElementTypeReal & weights_type_1 = pair_weight(type1, ghost_type1);
-      std::stringstream sstr; sstr << id << ":pair_weight:" << type1 << ghost_id;
+      std::stringstream sstr; sstr << getID() << ":pair_weight:" << type1 << ghost_id;
       weights_type_1.setID(sstr.str());
 
       Array<Real> * tmp_weight = NULL;
@@ -745,7 +745,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
   if(ghost_type == _not_ghost &&
      this->weight_func->getUpdateRate() &&
      (this->compute_stress_calls % this->weight_func->getUpdateRate() == 0)) {
-    ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+    ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", getID());
     Mesh & mesh = this->model->getFEM().getMesh();
     mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
@@ -771,7 +771,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
        (this->compute_stress_calls % this->weight_func->getUpdateRate() == 0)) {
       this->model->getSynchronizerRegistry().asynchronousSynchronize(_gst_mnl_weight);
 
-      ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
+      ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", getID());
       Mesh & mesh = this->model->getFEM().getMesh();
       mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);

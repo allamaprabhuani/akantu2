@@ -37,7 +37,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 Synchronizer::Synchronizer(SynchronizerID id, MemoryID memory_id) :
-  Memory(memory_id), id(id) {
+  Memory(id, memory_id) {
 
 }
 

@@ -49,6 +49,7 @@ class MeshPartition : protected Memory {
 public:
 
   MeshPartition(const Mesh & mesh, UInt spatial_dimension,
+                const ID & id = "MeshPartitioner",
 		const MemoryID & memory_id = 0);
 
   virtual ~MeshPartition();

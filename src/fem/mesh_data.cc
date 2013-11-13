@@ -33,8 +33,7 @@
 __BEGIN_AKANTU__
 
 MeshData::MeshData(const ID & _id, const ID & parent_id, const MemoryID & mem_id)
-: id(parent_id + ":" + _id), memory_id(mem_id)
-{
+  : Memory(parent_id + ":" + _id, mem_id) {
 }
 
 MeshData::~MeshData() {

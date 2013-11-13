@@ -45,9 +45,8 @@ public:
   Integrator(const Mesh & mesh,
 	     const ID & id="integrator",
 	     const MemoryID & memory_id = 0) :
-    Memory(memory_id),
+    Memory(id, memory_id),
     mesh(mesh),
-    id(id),
     jacobians("jacobians", id) {
     AKANTU_DEBUG_IN();
 
@@ -104,8 +103,6 @@ public:
 
 protected:
   const Mesh & mesh;
-
-  ID id;
 
   /// jacobians for all elements
   ByElementTypeArray<Real> jacobians;

@@ -38,7 +38,7 @@ __BEGIN_AKANTU__
 NodeGroup::NodeGroup(const std::string & name,
                      const std::string & id,
                      const MemoryID & memory_id) :
-  Memory(memory_id),
+  Memory(id, memory_id),
   name(name),
   node_group(alloc<UInt>(id + ":nodes", 0, 1)) {
 }

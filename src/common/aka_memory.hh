@@ -49,16 +49,16 @@ class Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
 
-  Memory(MemoryID memory_id = 0);
+  Memory(ID id, MemoryID memory_id = 0);
 
   virtual ~Memory();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
 
   /// malloc
   template<class T>
@@ -80,30 +80,32 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-public:
-
-  AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
-
+protected:
   template<typename T>
   inline Array<T> & getArray(const ID & name);
 
   template<typename T>
   inline const Array<T> & getArray(const ID & name) const;
 
+public:
+  AKANTU_GET_MACRO(MemoryID, memory_id, const MemoryID &);
+
+  AKANTU_GET_MACRO(ID, id, const ID &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// the static memory instance
-  StaticMemory * static_memory;
-
-protected:
-  /// the id registred in the static memory
-  MemoryID memory_id;
+  StaticMemory & static_memory;
 
   /// list of allocated vectors id
   std::list<ID> handeld_vectors_id;
+protected:
+  ID id;
+
+  /// the id registred in the static memory
+  MemoryID memory_id;
 };
 
 

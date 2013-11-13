@@ -67,16 +67,15 @@ template <> const Real VoigtHelper<3>::factors[] = {1., 1., 1.,
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const ID & id) :
-  Memory(model.getMemoryID()),
+  Memory(id, model.getMemoryID()),
   Parsable(_st_material, id),
   is_init(false),
-  id(id),
   finite_deformation(false),
   inelastic_deformation(false),
   name(""),
   model(&model),
   spatial_dimension(this->model->getSpatialDimension()),
-  element_filter("element_filter", id),
+  element_filter("element_filter", id, this->memory_id),
   stress("stress", *this),
   strain("strain", *this),
   delta_stress("delta_stress", *this),
@@ -103,7 +102,6 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
 
 
   registerParam("rho"                  , rho                  , 0.           , _pat_parsable | _pat_modifiable, "Density");
-  registerParam("id"                   , this->id             ,                _pat_readable);
   registerParam("name"                 , name                 , std::string(), _pat_parsable | _pat_readable);
   registerParam("finite_deformation"   , finite_deformation   , false        , _pat_parsable | _pat_modifiable, "Is finite deformation");
   registerParam("inelastic_deformation", inelastic_deformation, false        , _pat_parsable | _pat_modifiable, "Is inelastic deformation");
@@ -1319,13 +1317,13 @@ const Array<Real> & Material::getArray(const ID & vect_id, const ElementType & t
   std::stringstream sstr;
   std::string ghost_id = "";
   if (ghost_type == _ghost) ghost_id = ":ghost";
-  sstr << id << ":" << vect_id << ":" << type << ghost_id;
+  sstr << getID() << ":" << vect_id << ":" << type << ghost_id;
 
   ID fvect_id = sstr.str();
   try {
     return Memory::getArray<Real>(fvect_id);
   } catch(debug::Exception & e) {
-    AKANTU_EXCEPTION("The material " << name << "(" <<id << ") does not contain a vector " << vect_id << "(" << fvect_id << ") [" << e << "]");
+    AKANTU_EXCEPTION("The material " << name << "(" <<getID() << ") does not contain a vector " << vect_id << "(" << fvect_id << ") [" << e << "]");
   }
 }
 
@@ -1334,34 +1332,34 @@ Array<Real> & Material::getArray(const ID & vect_id, const ElementType & type, c
   std::stringstream sstr;
   std::string ghost_id = "";
   if (ghost_type == _ghost) ghost_id = ":ghost";
-  sstr << id << ":" << vect_id << ":" << type << ghost_id;
+  sstr << getID() << ":" << vect_id << ":" << type << ghost_id;
 
   ID fvect_id = sstr.str();
   try {
     return Memory::getArray<Real>(fvect_id);
   } catch(debug::Exception & e) {
-    AKANTU_EXCEPTION("The material " << name << "(" <<id << ") does not contain a vector " << vect_id << "(" << fvect_id << ") [" << e << "]");
+    AKANTU_EXCEPTION("The material " << name << "(" << getID() << ") does not contain a vector " << vect_id << "(" << fvect_id << ") [" << e << "]");
   }
 }
 
 /* -------------------------------------------------------------------------- */
 const ByElementTypeArray<Real> & Material::getInternal(const ID & int_id) const {
-  std::map<ID, InternalField<Real> *>::const_iterator it = internal_vectors_real.find(id + ":" + int_id);
+  std::map<ID, InternalField<Real> *>::const_iterator it = internal_vectors_real.find(getID() + ":" + int_id);
   if(it == internal_vectors_real.end()) {
-    AKANTU_EXCEPTION("The material " << name << "(" << id
+    AKANTU_EXCEPTION("The material " << name << "(" << getID()
                      << ") does not contain an internal "
-                     << int_id << " (" << (id + ":" + int_id) << ")");
+                     << int_id << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
 }
 
 /* -------------------------------------------------------------------------- */
 ByElementTypeArray<Real> & Material::getInternal(const ID & int_id) {
-  std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.find(id + ":" + int_id);
+  std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.find(getID() + ":" + int_id);
   if(it == internal_vectors_real.end()) {
-    AKANTU_EXCEPTION("The material " << name << "(" << id
+    AKANTU_EXCEPTION("The material " << name << "(" << getID()
                      << ") does not contain an internal "
-                     << int_id << " (" << (id + ":" + int_id) << ")");
+                     << int_id << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
 }
@@ -1371,7 +1369,7 @@ void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  std::string type = id.substr(id.find_last_of(":") + 1);
+  std::string type = getID().substr(getID().find_last_of(":") + 1);
 
   stream << space << "Material " << type << " [" << std::endl;
   Parsable::printself(stream, indent);

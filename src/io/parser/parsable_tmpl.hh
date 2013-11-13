@@ -163,7 +163,7 @@ void Parsable::registerParam(std::string name, T & variable,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Parsable::setParam(std::string name, T value) {
+void Parsable::set(std::string name, T value) {
   std::map<std::string, ParsableParam *>::iterator it = params.find(name);
   if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in the material.");
   ParsableParam & param = *(it->second);
@@ -172,7 +172,7 @@ void Parsable::setParam(std::string name, T value) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-const T & Parsable::getParam(std::string name) const {
+const T & Parsable::get(std::string name) const {
   std::map<std::string, ParsableParam *>::const_iterator it = params.find(name);
   if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in the material.");
   const ParsableParam & param = *(it->second);

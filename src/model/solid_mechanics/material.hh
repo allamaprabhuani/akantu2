@@ -174,7 +174,7 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
-  /// 
+  /// assemble the residual
   template<UInt dim>
   void assembleResidual(GhostType ghost_type);
 
@@ -320,7 +320,6 @@ public:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-
   virtual inline UInt getNbDataForElements(const Array<Element> & elements,
                                            SynchronizationTag tag) const;
 
@@ -359,7 +358,7 @@ public:
 public:
   AKANTU_GET_MACRO(Model, *model, const SolidMechanicsModel &)
 
-  AKANTU_GET_MACRO(ID, id, const ID &);
+  AKANTU_GET_MACRO(ID, Memory::getID(), const ID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
 
@@ -393,6 +392,12 @@ public:
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
 
+  template <typename T>
+  inline void setParam(const ID & param, T value);
+
+  template <typename T>
+  inline const T & getParam(const ID & param) const;
+
 protected:
 
   bool isInit() const { return is_init; }
@@ -408,9 +413,6 @@ private:
   std::map<ID, InternalField<UInt> *> internal_vectors_uint;
 
 protected:
-  /// id of the material
-  ID id;
-
   /// Finite deformation
   bool finite_deformation;
 

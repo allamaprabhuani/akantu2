@@ -75,7 +75,7 @@ public:
 public:
 
   /// Get the global instance of the StaticMemory
-  static StaticMemory * getStaticMemory();
+  static StaticMemory & getStaticMemory();
 
   static bool isInstantiated() { return is_instantiated; };
 

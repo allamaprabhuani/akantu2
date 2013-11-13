@@ -38,8 +38,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MeshPartitionMeshData::MeshPartitionMeshData(const Mesh & mesh, UInt spatial_dimension,
+                                             const ID & id,
                                              const MemoryID & memory_id) :
-  MeshPartition(mesh, spatial_dimension, memory_id) {
+  MeshPartition(mesh, spatial_dimension, id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -49,8 +50,9 @@ MeshPartitionMeshData::MeshPartitionMeshData(const Mesh & mesh, UInt spatial_dim
 MeshPartitionMeshData::MeshPartitionMeshData(const Mesh & mesh,
                                              const ByElementTypeArray<UInt> & mapping,
                                              UInt spatial_dimension,
+                                             const ID & id,
                                              const MemoryID & memory_id) :
-  MeshPartition(mesh, spatial_dimension, memory_id), partition_mapping(&mapping) {
+  MeshPartition(mesh, spatial_dimension, id, memory_id), partition_mapping(&mapping) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();

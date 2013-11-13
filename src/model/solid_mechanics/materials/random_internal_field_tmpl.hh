@@ -46,7 +46,6 @@ template<typename T,
 	 template<typename> class Generator>
 RandomInternalField<T, BaseField, Generator>::RandomInternalField(const ID & id, Material & material) :
   BaseField<T>(id, material), random_parameter(T()) {
-  material.registerInternal(*this);
 }
 
 /* -------------------------------------------------------------------------- */

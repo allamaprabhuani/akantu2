@@ -144,8 +144,8 @@ public:
 			  Parsable & sub_section);
 
   /* ------------------------------------------------------------------------ */
-  template<typename T> void setParam(std::string name, T value);
-  template<typename T> const T & getParam(std::string name) const;
+  template<typename T> void set(std::string name, T value);
+  template<typename T> const T & get(std::string name) const;
 
   /* ------------------------------------------------------------------------ */
   virtual void parseSection(const ParserSection & section);

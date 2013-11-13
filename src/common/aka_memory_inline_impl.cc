@@ -32,7 +32,7 @@ template<class T> inline Array<T> & Memory::alloc(const ID & name,
 						    UInt size,
 						    UInt nb_component) {
   handeld_vectors_id.push_back(name);
-  return static_memory->smalloc<T>(memory_id, name,
+  return static_memory.smalloc<T>(memory_id, name,
 				   size, nb_component);
 }
 
@@ -42,23 +42,23 @@ template<class T> inline Array<T> & Memory::alloc(const ID & name,
 						   UInt nb_component,
 						   const T & init_value) {
   handeld_vectors_id.push_back(name);
-  return static_memory->smalloc<T>(memory_id, name,
-				   size, nb_component, init_value);
+  return static_memory.smalloc<T>(memory_id, name,
+                                  size, nb_component, init_value);
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Memory::dealloc(const ID & name) {
   AKANTU_DEBUG(dblAccessory, "Deleting the vector " << name);
-  static_memory->sfree(memory_id, name);
+  static_memory.sfree(memory_id, name);
   handeld_vectors_id.remove(name);
 }
 
 /* -------------------------------------------------------------------------- */
 template<class T> inline Array<T> & Memory::getArray(const ID & name) {
-  return static_cast< Array<T> & >(const_cast<ArrayBase &>(static_memory->getArray(memory_id, name)));
+  return static_cast< Array<T> & >(const_cast<ArrayBase &>(static_memory.getArray(memory_id, name)));
 }
 
 /* -------------------------------------------------------------------------- */
 template<class T> inline const Array<T> & Memory::getArray(const ID & name) const {
-  return static_cast< Array<T> & >(const_cast<ArrayBase &>(static_memory->getArray(memory_id, name)));
+  return static_cast< Array<T> & >(const_cast<ArrayBase &>(static_memory.getArray(memory_id, name)));
 }

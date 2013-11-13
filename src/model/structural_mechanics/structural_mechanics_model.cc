@@ -52,6 +52,7 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
   Model(mesh, dim, id, memory_id), Dumpable(),
   stress("stress", id, memory_id),
   element_material("element_material", id, memory_id),
+  set_ID("beam sets", id, memory_id),
   stiffness_matrix(NULL),
   solver(NULL),
   rotation_matrix("rotation_matices", id, memory_id) {

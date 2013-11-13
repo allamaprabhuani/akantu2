@@ -29,15 +29,16 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_memory.hh"
+#include "aka_static_memory.hh"
 
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-Memory::Memory(MemoryID memory_id) {
-  static_memory = StaticMemory::getStaticMemory();
-  this->memory_id = memory_id;
+Memory::Memory(ID id, MemoryID memory_id) : static_memory(StaticMemory::getStaticMemory()),
+                                            id(id),
+                                            memory_id(memory_id) {
 }
 
 /* -------------------------------------------------------------------------- */
@@ -46,12 +47,11 @@ Memory::~Memory() {
     std::list<ID>::iterator it;
     for (it = handeld_vectors_id.begin(); it != handeld_vectors_id.end(); ++it) {
       AKANTU_DEBUG(dblAccessory, "Deleting the vector " << *it);
-      static_memory->sfree(memory_id, *it);
+      static_memory.sfree(memory_id, *it);
     }
-    static_memory->destroy();
+    static_memory.destroy();
   }
 
-  static_memory = NULL;
   handeld_vectors_id.clear();
 }
 

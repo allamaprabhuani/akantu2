@@ -58,7 +58,7 @@ void initialize(int & argc, char ** & argv) {
 void finalize() {
   AKANTU_DEBUG_IN();
 
-  if(StaticMemory::isInstantiated()) delete StaticMemory::getStaticMemory();
+  if(StaticMemory::isInstantiated()) delete &(StaticMemory::getStaticMemory());
   if(StaticCommunicator::isInstantiated()) {
     StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
     comm.barrier();

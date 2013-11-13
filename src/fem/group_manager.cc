@@ -51,7 +51,7 @@ __BEGIN_AKANTU__
 GroupManager::GroupManager(const Mesh & mesh,
                            const ID & id,
                            const MemoryID & mem_id) : id(id),
-                                                      memory_id(memory_id),
+						      memory_id(memory_id),
                                                       mesh(mesh) {
 
   AKANTU_DEBUG_OUT();
@@ -69,6 +69,25 @@ GroupManager::~GroupManager() {
 }
 
 /* -------------------------------------------------------------------------- */
+NodeGroup & GroupManager::createNodeGroup(const std::string & group_name) {
+  AKANTU_DEBUG_IN();
+
+  if(node_groups.find(group_name + "_nodes") != node_groups.end()) {
+    AKANTU_EXCEPTION("Trying to create a node group that already exists:" << group_name << "_nodes");
+  }
+
+  NodeGroup * node_group = new NodeGroup(group_name, id + ":" + group_name + "_node_group",
+                                         memory_id);
+
+  node_groups[group_name] = node_group;
+
+  AKANTU_DEBUG_OUT();
+
+  return *node_group;
+}
+
+
+/* -------------------------------------------------------------------------- */
 ElementGroup & GroupManager::createElementGroup(const std::string & group_name, UInt dimension) {
   AKANTU_DEBUG_IN();
   if(node_groups.find(group_name + "_nodes") != node_groups.end()) {
@@ -79,12 +98,12 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name, 
     AKANTU_EXCEPTION("Trying to create a element group that already exists:" << group_name);
   }
 
-  NodeGroup * node_group = new NodeGroup(group_name + "_nodes", id + group_name + "_node_group",
+  NodeGroup * node_group = new NodeGroup(group_name + "_nodes", id + ":" + group_name + "_node_group",
                                          memory_id);
 
   ElementGroup * element_group = new ElementGroup(group_name, mesh, *node_group,
                                                   dimension,
-                                                  id + group_name + "_element_group",
+                                                  id + ":" + group_name + "_element_group",
                                                   memory_id);
 
   node_groups[group_name + "_nodes"] = node_group;
@@ -107,7 +126,7 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
 
   ElementGroup * element_group = new ElementGroup(group_name, mesh, node_group,
                                                   dimension,
-                                                  id + group_name + "_element_group",
+                                                  id + ":" + group_name + "_element_group",
                                                   memory_id);
 
   element_groups[group_name] = element_group;

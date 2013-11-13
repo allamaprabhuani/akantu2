@@ -55,8 +55,8 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MeshPartitionScotch::MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimension,
-					 const MemoryID & memory_id) :
-  MeshPartition(mesh, spatial_dimension, memory_id) {
+					 const ID & id, const MemoryID & memory_id) :
+  MeshPartition(mesh, spatial_dimension, id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();

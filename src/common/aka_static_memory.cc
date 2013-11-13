@@ -42,7 +42,7 @@ StaticMemory * StaticMemory::single_static_memory = NULL;
 UInt StaticMemory::nb_reference = 0;
 
 /* -------------------------------------------------------------------------- */
-StaticMemory * StaticMemory::getStaticMemory() {
+StaticMemory & StaticMemory::getStaticMemory() {
   if(!single_static_memory) {
     single_static_memory = new StaticMemory();
     is_instantiated = true;
@@ -50,7 +50,7 @@ StaticMemory * StaticMemory::getStaticMemory() {
 
   nb_reference++;
 
-  return single_static_memory;
+  return *single_static_memory;
 }
 
 /* -------------------------------------------------------------------------- */

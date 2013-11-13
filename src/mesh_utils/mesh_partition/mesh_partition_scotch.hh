@@ -48,6 +48,7 @@ class MeshPartitionScotch : public MeshPartition {
 public:
 
   MeshPartitionScotch(const Mesh & mesh, UInt spatial_dimension,
+		      const ID & id = "mesh_partition_scotch",
 		      const MemoryID & memory_id = 0);
 
   /* ------------------------------------------------------------------------ */

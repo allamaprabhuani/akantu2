@@ -5,7 +5,6 @@ Material elastic [
  rwp alpha    [Thermal expansion coefficient]        : 0
  rwp delta_T  [Uniform temperature field]            : InternalField [ solid_mechanics_model:0:elastic:delta_T {1 types - 0 ghost types} ]
  rwp finite_deformation [Is finite deformation]      : false
- r-- id                                              : solid_mechanics_model:0:elastic
  rwp inelastic_deformation [Is inelastic deformation] : false
  r-- kapa     [Bulk coefficient]                     : 7e+10
  r-- lambda   [First Lamé coefficient]              : 0

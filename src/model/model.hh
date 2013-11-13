@@ -187,9 +187,6 @@ protected:
   /// Mesh
   Mesh & mesh;
 
-  /// id
-  ID id;
-
   /// Spatial dimension of the problem
   UInt spatial_dimension;
 

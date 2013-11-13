@@ -478,6 +478,27 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
+template <typename T>
+inline const T & Material::getParam(const ID & param) const {
+  try {
+    return get<T>(param);
+  } catch (...) {
+    AKANTU_EXCEPTION("No parameter " << param << " in the material " << getID());
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+inline void Material::setParam(const ID & param, T value) {
+  try {
+    set<T>(param, value);
+  } catch(...) {
+    AKANTU_EXCEPTION("No parameter " << param << " in the material " << getID());
+  }
+  updateInternalParameters();
+}
+
+/* -------------------------------------------------------------------------- */
 template<typename T>
 inline void Material::packElementDataHelper(const ByElementTypeArray<T> & data_to_pack,
 					    CommunicationBuffer & buffer,
@@ -514,9 +535,9 @@ inline void Material::onElementsAdded(__attribute__((unused)) const Array<Elemen
 inline void Material::onElementsRemoved(const Array<Element> & element_list,
 					const ByElementTypeUInt & new_numbering,
 					__attribute__((unused)) const RemovedElementsEvent & event) {
-  UInt my_num = model->getInternalIndexFromID(id);
+  UInt my_num = model->getInternalIndexFromID(getID());
 
-  ByElementTypeUInt material_local_new_numbering("remove mat filter elem", id);
+  ByElementTypeUInt material_local_new_numbering("remove mat filter elem", getID());
 
   Array<Element>::const_iterator<Element> el_begin = element_list.begin();
   Array<Element>::const_iterator<Element> el_end   = element_list.end();

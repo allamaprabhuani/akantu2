@@ -61,9 +61,9 @@ void Element::printself(std::ostream & stream, int indent) const {
 Mesh::Mesh(UInt spatial_dimension,
            const ID id,
            const MemoryID & memory_id) :
-  Memory(memory_id),
+  Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
-  id(id), nodes_global_ids(NULL), nodes_type(NULL),
+  nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(true),
   connectivities("connectivities", id),
   normals("normals", id),
@@ -73,7 +73,7 @@ Mesh::Mesh(UInt spatial_dimension,
   mesh_data("mesh_data", id, memory_id) {
   AKANTU_DEBUG_IN();
 
-  this->nodes = &(alloc<Real>(this->id + ":coordinates", 0, this->spatial_dimension));
+  this->nodes = &(alloc<Real>(id + ":coordinates", 0, this->spatial_dimension));
 
   nb_global_nodes = 0;
 
@@ -95,9 +95,9 @@ Mesh::Mesh(UInt spatial_dimension,
            const ID & nodes_id,
            const ID & id,
            const MemoryID & memory_id) :
-  Memory(memory_id),
+  Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
-  id(id), nodes_global_ids(NULL), nodes_type(NULL),
+  nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false),
   connectivities("connectivities", id),
   normals("normals", id),
@@ -120,9 +120,9 @@ Mesh::Mesh(UInt spatial_dimension,
            Array<Real> & nodes,
            const ID & id,
            const MemoryID & memory_id) :
-  Memory(memory_id),
+  Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
-  id(id), nodes_global_ids(NULL), nodes_type(NULL),
+  nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false),
   connectivities("connectivities", id),
   normals("normals", id),
@@ -147,7 +147,7 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
   if (!mesh_facets) {
     mesh_facets = new Mesh(spatial_dimension,
                            *(this->nodes),
-                           this->id+":"+id,
+			   getID()+":"+id,
                            getMemoryID());
 
     mesh_facets->mesh_parent = this;
@@ -194,7 +194,7 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "Mesh [" << std::endl;
-  stream << space << " + id                : " << this->id << std::endl;
+  stream << space << " + id                : " << getID() << std::endl;
   stream << space << " + spatial dimension : " << this->spatial_dimension << std::endl;
   stream << space << " + nodes [" << std::endl;
   nodes->printself(stream, indent+2);

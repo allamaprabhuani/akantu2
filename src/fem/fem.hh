@@ -318,10 +318,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  /// id of the fem object
-  ID id;
-
   /// spatial dimension of the problem
   UInt element_dimension;
 

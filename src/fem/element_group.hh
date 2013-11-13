@@ -104,7 +104,6 @@ private:
   inline void addElement(const ElementType & elem_type,
 			 UInt elem_id,
 			 const GhostType & ghost_type);
-  void cleanUpNodeList();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -122,9 +121,9 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+private:
   /// Mesh to which this group belongs
   const Mesh & mesh;
-  ID id;
 
   /// name of the group
   std::string name;

@@ -76,6 +76,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO_NOT_CONST(Nodes, node_group, Array<UInt> &);
   AKANTU_GET_MACRO(Nodes, node_group, const Array<UInt> &);
   AKANTU_GET_MACRO(Name, name, const std::string &);
 

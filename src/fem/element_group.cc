@@ -49,9 +49,8 @@ ElementGroup::ElementGroup(const std::string & boundary_name,
                            UInt dimension,
                            const std::string & id,
                            const MemoryID & mem_id) :
-  Memory(mem_id),
+  Memory(id, mem_id),
   mesh(mesh),
-  id(id),
   name(boundary_name),
   elements("elements", id, mem_id),
   node_group(node_group),
@@ -76,19 +75,6 @@ void ElementGroup::printself(std::ostream & stream, int indent) const {
   elements.printself(stream, indent + 1);
   node_group.printself(stream, indent + 1);
   stream << space << "]" << std::endl;
-}
-
-/* -------------------------------------------------------------------------- */
-void ElementGroup::cleanUpNodeList() {
-  // UInt size_before = nodes.getSize();
-  // UInt * newEnd;
-  // UInt * begin = nodes.storage();
-  // UInt * end = nodes.storage()+nodes.getSize();
-  // std::sort(begin, end);
-  // newEnd = std::unique(begin, end);
-  // UInt crop_size = end-newEnd;
-  // UInt size_after = size_before - crop_size;
-  // nodes.resize(size_after);
 }
 
 __END_AKANTU__

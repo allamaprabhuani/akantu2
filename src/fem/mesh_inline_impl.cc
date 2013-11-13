@@ -106,7 +106,7 @@ inline UInt Mesh::elementToLinearized(const Element & elem) const {
   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
 		      elem.element < types_offsets.values[elem.type+1],
 		      "The element " << elem
-		      << "does not exists in the mesh " << id);
+		      << "does not exists in the mesh " << getID());
 
   return types_offsets.values[elem.type] + elem.element;
 }
@@ -122,7 +122,7 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) const {
 
   AKANTU_DEBUG_ASSERT(linearized_element < types_offsets(t),
    		      "The linearized element " << linearized_element
-   		      << "does not exists in the mesh " << id);
+   		      << "does not exists in the mesh " << getID());
 
   --t;
   ElementType type = ElementType(t);
@@ -164,7 +164,7 @@ inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(const Gh
 inline Array<UInt> * Mesh::getNodesGlobalIdsPointer() {
   AKANTU_DEBUG_IN();
   if(nodes_global_ids == NULL) {
-    std::stringstream sstr; sstr << id << ":nodes_global_ids";
+    std::stringstream sstr; sstr << getID() << ":nodes_global_ids";
     nodes_global_ids = &(alloc<UInt>(sstr.str(), nodes->getSize(), 1));
   }
   AKANTU_DEBUG_OUT();
@@ -175,7 +175,7 @@ inline Array<UInt> * Mesh::getNodesGlobalIdsPointer() {
 inline Array<Int> * Mesh::getNodesTypePointer() {
   AKANTU_DEBUG_IN();
   if(nodes_type == NULL) {
-    std::stringstream sstr; sstr << id << ":nodes_type";
+    std::stringstream sstr; sstr << getID() << ":nodes_type";
     nodes_type = &(alloc<Int>(sstr.str(), nodes->getSize(), 1, -1));
   }
   AKANTU_DEBUG_OUT();

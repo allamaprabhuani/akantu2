@@ -38,17 +38,17 @@
 int main(int argc, char *argv[]) {
   akantu::initialize(argc, argv);
 
-  akantu::StaticMemory * st_mem = akantu::StaticMemory::getStaticMemory();
+  akantu::StaticMemory & st_mem = akantu::StaticMemory::getStaticMemory();
 
-  akantu::Array<int> & test_int = st_mem->smalloc<int>(0, "test_int", 1000, 3);
+  akantu::Array<int> & test_int = st_mem.smalloc<int>(0, "test_int", 1000, 3);
 
   test_int.resize(1050);
 
   test_int.resize(2000);
 
-  std::cout << *st_mem << std::endl;
+  std::cout << st_mem << std::endl;
 
-  st_mem->sfree(0, "test_int");
+  st_mem.sfree(0, "test_int");
 
   akantu::finalize();
 
