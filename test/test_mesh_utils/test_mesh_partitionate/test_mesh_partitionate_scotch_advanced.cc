@@ -36,50 +36,54 @@
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "mesh_partition_scotch.hh"
-#include "boundary.hh"
-#include "sub_boundary.hh"
+#include "element_group.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
+#  include "dumper_paraview.hh"
 #endif //AKANTU_USE_IOHELPER
 
-akantu::ElementType type = akantu::_quadrangle_4;
-akantu::UInt nb_quadrature_points = 4;
-akantu::UInt nb_nodes_per_element = 4;
+using namespace akantu;
+
+ElementType type = _quadrangle_4;
+UInt nb_quadrature_points = 4;
+UInt nb_nodes_per_element = 4;
+
+
 
 /* -------------------------------------------------------------------------- */
-void getInterfaceNodePairs(akantu::Mesh & mesh,
-			   akantu::Array<akantu::UInt> & pairs);
-void getPartition(const akantu::Mesh & mesh,
-		  const akantu::MeshPartition::EdgeLoadFunctor & fctr,
-		  const akantu::Array<akantu::UInt> & pairs,
-		  akantu::MeshPartition * partition,
-		  akantu::Array<double> & parts);
-void dumpParaview(akantu::Mesh & mesh, std::string name,
+void getInterfaceNodePairs(Mesh & mesh,
+			   Array<UInt> & pairs);
+void getPartition(const Mesh & mesh,
+		  const MeshPartition::EdgeLoadFunctor & fctr,
+		  const Array<UInt> & pairs,
+		  MeshPartition * partition,
+		  Array<double> & parts);
+void dumpParaview(Mesh & mesh, std::string name,
 		  double * part_1, double * part_2);
 
 
 /* -------------------------------------------------------------------------- */
-class DoNotCutInterfaceFunctor : public akantu::MeshPartition::EdgeLoadFunctor {
+class DoNotCutInterfaceFunctor : public MeshPartition::EdgeLoadFunctor {
 public:
-  DoNotCutInterfaceFunctor(const akantu::Mesh & mesh) : mesh(mesh) {
+  DoNotCutInterfaceFunctor(const Mesh & mesh) : mesh(mesh) {
 
   }
 
-  virtual inline akantu::Int operator()(const akantu::Element & el1,
-					const akantu::Element & el2) const {
+  virtual inline Int operator()(const Element & el1,
+					const Element & el2) const {
 
-    const akantu::Array<akantu::UInt> & conn_1 = this->mesh.getConnectivity(el1.type);
-    const akantu::Array<akantu::UInt> & conn_2 = this->mesh.getConnectivity(el2.type);
-    std::set<akantu::UInt> nodes;
+    const Array<UInt> & conn_1 = this->mesh.getConnectivity(el1.type);
+    const Array<UInt> & conn_2 = this->mesh.getConnectivity(el2.type);
+    std::set<UInt> nodes;
 
     // count number of nodes
-    akantu::UInt nb_npe_1 = this->mesh.getNbNodesPerElement(el1.type);
-    for (akantu::UInt i=0; i<nb_npe_1; ++i) {
+    UInt nb_npe_1 = this->mesh.getNbNodesPerElement(el1.type);
+    for (UInt i=0; i<nb_npe_1; ++i) {
       nodes.insert(conn_1(el1.element,i));
     }
-    akantu::UInt nb_npe_2 = this->mesh.getNbNodesPerElement(el2.type);
-    for (akantu::UInt i=0; i<nb_npe_2; ++i) {
+    UInt nb_npe_2 = this->mesh.getNbNodesPerElement(el2.type);
+    for (UInt i=0; i<nb_npe_2; ++i) {
       nodes.insert(conn_2(el2.element,i));
     }
     int max_nb_element = std::max(this->mesh.getNbElement(el1.type),
@@ -87,11 +91,11 @@ public:
     int max_nb_npe = std::max(nb_npe_1, nb_npe_2);
 
     // get barycenter of elements to put different weights in vert. and horiz. dir.
-    akantu::Real bc_1[2];
+    Real bc_1[2];
     mesh.getBarycenter(el1.element,el1.type,bc_1);
-    akantu::Real bc_2[2];
+    Real bc_2[2];
     mesh.getBarycenter(el2.element,el2.type,bc_2);
-    akantu::Real bc_diff[2];
+    Real bc_diff[2];
     bc_diff[0] = std::fabs(bc_1[0] - bc_2[0]);
     bc_diff[1] = std::fabs(bc_1[1] - bc_2[1]);
 
@@ -106,7 +110,7 @@ public:
   }
 
 protected:
-  const akantu::Mesh & mesh;
+  const Mesh & mesh;
 };
 
 
@@ -115,37 +119,37 @@ protected:
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
-  akantu::debug::setDebugLevel(akantu::dblDump);
-  akantu::debug::setDebugLevel(akantu::dblWarning);
+  initialize(argc, argv);
+  debug::setDebugLevel(dblDump);
+  debug::setDebugLevel(dblWarning);
 
   int dim = 2;
-  akantu::MeshIOMSH mesh_io;
+  MeshIOMSH mesh_io;
 
   /* ---------- check if node pairs are considered with mesh_L --------- */
-  akantu::Mesh mesh_l(dim);
+  Mesh mesh_l(dim);
   mesh_io.read("squares_L.msh", mesh_l);
 
   // get interface node pairs
-  akantu::Array<akantu::UInt> pairs_l(0,2);
-  akantu::Array<akantu::UInt> pairs_empty(0,2);
+  Array<UInt> pairs_l(0,2);
+  Array<UInt> pairs_empty(0,2);
   getInterfaceNodePairs(mesh_l,pairs_l);
 
-  akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh_l, mesh_l.getSpatialDimension());
+  MeshPartition * partition = new MeshPartitionScotch(mesh_l, mesh_l.getSpatialDimension());
 
   // make normal partition -> it should cut along the interface
-  akantu::Array<double> parts(0,nb_quadrature_points);
+  Array<double> parts(0,nb_quadrature_points);
   getPartition(mesh_l,
-	       akantu::MeshPartition::ConstEdgeLoadFunctor(),
+	       MeshPartition::ConstEdgeLoadFunctor(),
 	       pairs_empty,
 	       partition,
 	       parts);
   double * part = parts.storage();
 
   // make partition with node pairs -> it should cut perpendicular to the interface
-  akantu::Array<double> parts_adv(0,nb_quadrature_points);
+  Array<double> parts_adv(0,nb_quadrature_points);
   getPartition(mesh_l,
-	       akantu::MeshPartition::ConstEdgeLoadFunctor(),
+	       MeshPartition::ConstEdgeLoadFunctor(),
 	       pairs_l,
 	       partition,
 	       parts_adv);
@@ -159,7 +163,7 @@ int main(int argc, char *argv[])
 
   // check
   unsigned int nb_element = mesh_l.getNbElement(type);
-  akantu::Real bb_center[2];
+  Real bb_center[2];
   mesh_l.getBarycenter(0,type,bb_center);
 
   // define solution for part
@@ -183,7 +187,7 @@ int main(int argc, char *argv[])
   std::cout << "left part = " << left_p_v << " | right part = " << right_p_v << std::endl;
 
   // check
-  for (akantu::UInt i=1; i<nb_element; ++i) {
+  for (UInt i=1; i<nb_element; ++i) {
     mesh_l.getBarycenter(i,type,bb_center);
 
     if (!(bb_center[1] > 0 && parts(i,0) == top_p_v) &&
@@ -202,16 +206,16 @@ int main(int argc, char *argv[])
 
 
   /* ---------- check if node pairs and functor are considered with mesh_H --------- */
-  akantu::Mesh mesh_h(dim,"mesh_h",1);
+  Mesh mesh_h(dim, "mesh_h", 1);
   mesh_io.read("squares_H.msh", mesh_h);
-  akantu::Array<akantu::UInt> pairs_h(0,2);
+  Array<UInt> pairs_h(0,2);
   getInterfaceNodePairs(mesh_h,pairs_h);
 
-  partition = new akantu::MeshPartitionScotch(mesh_h, mesh_h.getSpatialDimension());
+  partition = new MeshPartitionScotch(mesh_h, mesh_h.getSpatialDimension());
 
   // make normal partition -> it should cut along the interface
   getPartition(mesh_h,
-	       akantu::MeshPartition::ConstEdgeLoadFunctor(),
+	       MeshPartition::ConstEdgeLoadFunctor(),
 	       pairs_h,
 	       partition,
 	       parts);
@@ -257,7 +261,7 @@ int main(int argc, char *argv[])
   std::cout << "left part = " << left_p_v << " | right part = " << right_p_v << std::endl;
 
   // check
-  for (akantu::UInt i=1; i<nb_element; ++i) {
+  for (UInt i=1; i<nb_element; ++i) {
     mesh_h.getBarycenter(i,type,bb_center);
 
     if (!(bb_center[1] > 0 && parts(i,0) == top_p_v) &&
@@ -274,12 +278,12 @@ int main(int argc, char *argv[])
 
   delete partition;
 
-  akantu::finalize();
+  finalize();
   return EXIT_SUCCESS;
 }
 
 /* -------------------------------------------------------------------------- */
-void dumpParaview(akantu::Mesh & mesh, std::string name,
+void dumpParaview(Mesh & mesh, std::string name,
 		  double * part_1, double * part_2) {
 
   unsigned int nb_nodes = mesh.getNbNodes();
@@ -300,13 +304,13 @@ void dumpParaview(akantu::Mesh & mesh, std::string name,
 }
 
 /* -------------------------------------------------------------------------- */
-void getPartition(const akantu::Mesh & mesh,
-		  const akantu::MeshPartition::EdgeLoadFunctor & fctr,
-		  const akantu::Array<akantu::UInt> & pairs,
-		  akantu::MeshPartition * partition,
-		  akantu::Array<double> & parts) {
+void getPartition(const Mesh & mesh,
+		  const MeshPartition::EdgeLoadFunctor & fctr,
+		  const Array<UInt> & pairs,
+		  MeshPartition * partition,
+		  Array<double> & parts) {
 
-  //  partition->partitionate(2, akantu::MeshPartition::ConstEdgeLoadFunctor(), pairs_l);
+  //  partition->partitionate(2, MeshPartition::ConstEdgeLoadFunctor(), pairs_l);
   partition->partitionate(2, fctr, pairs);
 
   // get partition value for each element
@@ -314,7 +318,7 @@ void getPartition(const akantu::Mesh & mesh,
 
   parts.resize(nb_element);
   //  double * part = new double[nb_element*nb_quadrature_points];
-  akantu::UInt * part_val = partition->getPartition(type).values;
+  UInt * part_val = partition->getPartition(type).values;
   for (unsigned int i = 0; i < nb_element; ++i)
     for (unsigned int q = 0; q < nb_quadrature_points; ++q)
       //part[i*nb_quadrature_points + q] = part_val[i];
@@ -323,37 +327,36 @@ void getPartition(const akantu::Mesh & mesh,
 
 
 /* -------------------------------------------------------------------------- */
-void getInterfaceNodePairs(akantu::Mesh & mesh,
-			   akantu::Array<akantu::UInt> & pairs) {
+void getInterfaceNodePairs(Mesh & mesh,
+			   Array<UInt> & pairs) {
 
   // put correct number of surfaces (gmsh starts with 1 but we need 0)
-  akantu::Array<unsigned int> & surf =  const_cast<akantu::Array<unsigned int> &>(mesh.getData<unsigned int>(akantu::_segment_2, "tag_1"));
-  akantu::Array<unsigned int>::iterator<unsigned int> it = surf.begin();
-  akantu::Array<unsigned int>::iterator<unsigned int> end = surf.end();
+  Array<unsigned int> & surf =  const_cast<Array<unsigned int> &>(mesh.getData<unsigned int>("tag_1", _segment_2));
+  Array<unsigned int>::iterator<unsigned int> it = surf.begin();
+  Array<unsigned int>::iterator<unsigned int> end = surf.end();
 
-  for (;it != end; ++it)  --(*it);
+  for (;it != end; ++it) --(*it);
 
   // set surface id
   // mesh.setSurfaceIDsFromIntData("tag_1");
-  akantu::Boundary & boundary = mesh.getBoundary();
-  boundary.createBoundariesFromMeshData<akantu::UInt>("tag_1");
+  mesh.createGroupsFromMeshData<UInt>("tag_1");
 
-//  akantu::CSR<akantu::UInt> all_surface_nodes;
-//  akantu::MeshUtils::buildNodesPerSurface(mesh, all_surface_nodes);
+//  CSR<UInt> all_surface_nodes;
+//  MeshUtils::buildNodesPerSurface(mesh, all_surface_nodes);
 
   // find top interface nodes
-  akantu::Array<akantu::UInt> top_nodes(0);
+  Array<UInt> top_nodes(0);
   std::string top = "1";
-  const akantu::SubBoundary & topBoundary = boundary(top);
-    for(akantu::SubBoundary::nodes_const_iterator node(topBoundary.nodes_begin()); node != topBoundary.nodes_end(); ++node) {
+  const ElementGroup & topBoundary = mesh.getElementGroup(top);
+  for(ElementGroup::const_node_iterator node(topBoundary.node_begin()); node != topBoundary.node_end(); ++node) {
       top_nodes.push_back(*node);
     }
 
   // find bottom interface nodes
-  akantu::Array<akantu::UInt> bot_nodes(0);
+  Array<UInt> bot_nodes(0);
   std::string bot = "4";
-  const akantu::SubBoundary & botBoundary = boundary(bot);
-  for(akantu::SubBoundary::nodes_const_iterator node(botBoundary.nodes_begin()); node != botBoundary.nodes_end(); ++node) {
+  const ElementGroup & botBoundary = mesh.getElementGroup(bot);
+  for(ElementGroup::const_node_iterator node(botBoundary.node_begin()); node != botBoundary.node_end(); ++node) {
     bot_nodes.push_back(*node);
   }
 
@@ -367,14 +370,14 @@ void getInterfaceNodePairs(akantu::Mesh & mesh,
   }
 
   // make pairs according to their x coordinate
-  const akantu::Array<akantu::Real> & coords = mesh.getNodes();
+  const Array<Real> & coords = mesh.getNodes();
   int dir = 0;
   for (int i=0; i<nb_pairs; ++i) {
     int top_min = -1;
     int bot_min = -1;
     double top_min_v = std::numeric_limits<double>::max();
     double bot_min_v = std::numeric_limits<double>::max();
-    for (akantu::UInt j=0; j<top_nodes.getSize(); ++j) {
+    for (UInt j=0; j<top_nodes.getSize(); ++j) {
       if (coords(top_nodes(j),dir) < top_min_v) {
 	top_min = j;
 	top_min_v = coords(top_nodes(j),dir);
@@ -384,7 +387,8 @@ void getInterfaceNodePairs(akantu::Mesh & mesh,
 	bot_min_v = coords(bot_nodes(j),dir);
       }
     }
-    akantu::UInt pair[2];
+
+    UInt pair[2];
     pair[0] = top_nodes(top_min);
     pair[1] = bot_nodes(bot_min);
     pairs.push_back(pair);

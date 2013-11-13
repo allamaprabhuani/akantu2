@@ -90,7 +90,7 @@ protected:
   Real Sigc;
 
   /// damage internal variable
-  ByElementTypeReal K;
+  InternalField<Real> K;
 
   Real Epsmin, Epsmax;
 };

@@ -33,14 +33,13 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::MaterialVreePeerlings(Solid
                                              const ID & id)  :
   Material(model, id),
   MaterialVreePeerlingsParent(model, id),
-  Kapa("Kapa",id),
-  strain_rate_vreepeerlings("strain-rate-vreepeerlings", id),
-  Full_dam_value_strain("fulldam-valstrain", id),
-  Full_dam_value_strain_rate("fulldam-valstrain-rate", id),
-  Number_damage("number-damage", id),
-  equi_strain("equi-strain", id),
-  equi_strain_rate("equi-strain-rate", id)
- {
+  Kapa("Kapa", *this),
+  strain_rate_vreepeerlings("strain-rate-vreepeerlings", *this),
+  Full_dam_value_strain("fulldam-valstrain", *this),
+  Full_dam_value_strain_rate("fulldam-valstrain-rate", *this),
+  Number_damage("number-damage", *this),
+  equi_strain("equi-strain", *this),
+  equi_strain_rate("equi-strain-rate", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Kapaoi"          , Kapaoi          , 0.0001, _pat_parsable);
@@ -50,17 +49,14 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::MaterialVreePeerlings(Solid
   this->registerParam("Crate"           , Brate           , 1.    , _pat_parsable);
   this->registerParam("Kct"             , Kct             , 1.    , _pat_parsable);
   this->registerParam("Kapao_randomness", Kapao_randomness, 0.    , _pat_parsable);
-  this->registerParam("Wf_vrplgs_ko_min", Wf_vrplgs_ko_min, 1.    , _pat_parsable);
-  this->registerParam("Wf_vrplgs_lambda", Wf_vrplgs_lambda, 1.    , _pat_parsable);
-  this->registerParam("Wf_vrplgs_mw"    , Wf_vrplgs_mw    , 1.    , _pat_parsable);
 
-  this->initInternalArray(this->Kapa, 1);
-  this->initInternalArray(this->equi_strain, 1);
-  this->initInternalArray(this->equi_strain_rate, 1);
-  this->initInternalArray(this->Full_dam_value_strain, 1);
-  this->initInternalArray(this->Full_dam_value_strain_rate, 1);
-  this->initInternalArray(this->Number_damage, 1);
-  this->initInternalArray(this->strain_rate_vreepeerlings, spatial_dimension * spatial_dimension);
+  this->Kapa.initialize(1);
+  this->equi_strain.initialize(1);
+  this->equi_strain_rate.initialize(1);
+  this->Full_dam_value_strain.initialize(1);
+  this->Full_dam_value_strain_rate.initialize(1);
+  this->Number_damage.initialize(1);
+  this->strain_rate_vreepeerlings.initialize(spatial_dimension * spatial_dimension);
 
   AKANTU_DEBUG_OUT();
 }
@@ -70,41 +66,6 @@ template<UInt spatial_dimension, template <UInt> class MatParent>
 void MaterialVreePeerlings<spatial_dimension, MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialVreePeerlingsParent::initMaterial();
-
-  this->resizeInternalArray(this->Kapa);
-  this->resizeInternalArray(this->equi_strain);
-  this->resizeInternalArray(this->equi_strain_rate);
-  this->resizeInternalArray(this->Full_dam_value_strain);
-  this->resizeInternalArray(this->Full_dam_value_strain_rate);
-  this->resizeInternalArray(this->Number_damage);
-  this->resizeInternalArray(this->strain_rate_vreepeerlings);
-
-
-  const Mesh & mesh = this->model->getFEM().getMesh();
-
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
-
-  for(; it != last_type; ++it) {
-    Array <Real>::iterator<Real> kapa_it  = Kapa(*it).begin();
-    Array <Real>::iterator<Real> kapa_end = Kapa(*it).end();
-
-    for(; kapa_it != kapa_end; ++kapa_it) {
-      Real limit = Kapac;
-      Real rand = std::pow(std::abs(std::log(1 - drand48()*0.9999)), 1.0/Wf_vrplgs_mw );
-      Real rand_part = Wf_vrplgs_lambda * rand * Kapao_randomness;
-      Real rand_final = Wf_vrplgs_ko_min + rand_part;
-       if (rand_final < limit)
-      	{
-	  *kapa_it = rand_final;
-	  	}
-	  else 
-	  {
-	  *kapa_it = limit;
-	  }
-    }
-  }
-
   AKANTU_DEBUG_OUT();
 }
 

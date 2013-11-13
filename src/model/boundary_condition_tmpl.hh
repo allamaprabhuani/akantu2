@@ -27,99 +27,100 @@
  *
  */
 
+/* -------------------------------------------------------------------------- */
+#include "element_group.hh"
+/* -------------------------------------------------------------------------- */
+
+
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<typename ModelType>
-void BoundaryCondition<ModelType>::initBC(ModelType & ref, Array<Real> & primal_, Array<Real> & dual_)
+void BoundaryCondition<ModelType>::initBC(ModelType & model, Array<Real> & primal, Array<Real> & dual)
 {
-  model = &ref;
-  primal = &primal_;
-  dual = &dual_;
-  model->initFEMBoundary();
+  this->model = &model;
+  this->primal = &primal;
+  this->dual = &dual;
+  if(this->model->getSpatialDimension() > 1)
+    this->model->initFEMBoundary();
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename ModelType>
-void BoundaryCondition<ModelType>::initBC(ModelType & ref,
-					  Array<Real> & primal_,
-					  Array<Real> & primal_increment_,
-					  Array<Real> & dual_)
+void BoundaryCondition<ModelType>::initBC(ModelType & model,
+					  Array<Real> & primal,
+					  Array<Real> & primal_increment,
+					  Array<Real> & dual)
 {
-  initBC(ref, primal_, dual_);
-  primal_increment = &primal_increment_;
+  this->initBC(model, primal, dual);
+  this->primal_increment = &primal_increment;
 }
-
 /* -------------------------------------------------------------------------- */
 /* Partial specialization for DIRICHLET functors */
 template<typename ModelType>
 template<typename FunctorType>
 struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Functor::_dirichlet> {
   static inline void applyBC(const FunctorType & func,
-			     const SubBoundary & boundary_ref,
-			     BoundaryCondition<ModelType> & bc_instance) {
-    ModelType         & model          = *bc_instance.model;
-    const Array<Real> & coords         = model.mesh.getNodes();
-    UInt                dim            = model.mesh.getSpatialDimension();
-    Array<Real>       & primal         = *bc_instance.primal;
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance) {
+    ModelType         & model          = bc_instance.getModel();
+    Array<Real>       & primal         = bc_instance.getPrimal();
+    const Array<Real> & coords         = model.getMesh().getNodes();
     Array<bool>       & boundary_flags = model.getBoundary();
+    UInt dim = model.getMesh().getSpatialDimension();
 
     Array<Real>::iterator<Vector<Real> > primal_iter = primal.begin(primal.getNbComponent());
     Array<Real>::const_iterator<Vector<Real> > coords_iter = coords.begin(dim);
     Array<bool>::iterator<Vector<bool> > flags_iter = boundary_flags.begin(boundary_flags.getNbComponent());
 
-    Array<Real>::iterator<Vector<Real> > primal_old_iter;
-    Array<Real>::iterator<Vector<Real> > primal_increment_iter;
-
-    Array<Real> * primal_old = NULL;
-    if(bc_instance.primal_increment) {
-      primal_old = new Array<Real>(primal); 
-      primal_old_iter = primal_old->begin(primal_old->getNbComponent());
-      primal_increment_iter = bc_instance.primal_increment-> begin(bc_instance.primal_increment->getNbComponent());  
-    }
-
-    for(SubBoundary::nodes_const_iterator nodes_it(boundary_ref.nodes_begin());
-	nodes_it!= boundary_ref.nodes_end();
-	++nodes_it) {
-
+    for(ElementGroup::const_node_iterator nodes_it(group.node_begin());
+        nodes_it!= group.node_end();
+        ++nodes_it) {
       UInt n = *nodes_it;
       func(n, flags_iter[n], primal_iter[n], coords_iter[n]);
-
-      //     if(bc_instance.primal_increment) {
-      //	primal_increment_iter[n] = primal_iter[n] - primal_old_iter[n];
-      //      }
     }
-
-    delete primal_old;
   }
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* Partial specialization for NEUMANN functors */
 template<typename ModelType>
 template<typename FunctorType>
 struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Functor::_neumann> {
-  static inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref, BoundaryCondition<ModelType> & bc_instance) {
-    applyBC(func, boundary_ref, bc_instance, _not_ghost);
-    applyBC(func, boundary_ref, bc_instance, _ghost);
+  static inline void applyBC(const FunctorType & func,
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance) {
+    UInt dim = bc_instance.getModel().getSpatialDimension();
+    switch(dim) {
+    case 1: { AKANTU_DEBUG_TO_IMPLEMENT(); break; }
+    case 2:
+    case 3: {
+      applyBC(func, group, bc_instance, _not_ghost);
+      applyBC(func, group, bc_instance, _ghost);
+      break;
+    }
+    }
   }
 
-  static inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref, BoundaryCondition<ModelType> & bc_instance,
+  static inline void applyBC(const FunctorType & func,
+                             const ElementGroup & group,
+                             BoundaryCondition<ModelType> & bc_instance,
                              GhostType ghost_type) {
-    ModelType &         model        = *bc_instance.model;
-    const Array<Real> & nodes_coords = model.getMesh().getNodes();
-    UInt                dim          = model.getSpatialDimension();
-    Array<Real>       & dual         = *bc_instance.dual;
-    const FEM         & fem_boundary = model.getFEMBoundary();
+    ModelType &         model        = bc_instance.getModel();
+    Array<Real>       & dual         = bc_instance.getDual();
     const Mesh        & mesh         = model.getMesh();
+    const Array<Real> & nodes_coords = mesh.getNodes();
+    const FEM         & fem_boundary = model.getFEMBoundary();
+
+    UInt dim = model.getSpatialDimension();
     UInt nb_degree_of_freedom = dual.getNbComponent();
 
-    Mesh::type_iterator type_it = mesh.firstType(dim-1, ghost_type);
-    Mesh::type_iterator type_end = mesh.lastType(dim-1, ghost_type);
+    Mesh::type_iterator type_it  = mesh.firstType(dim - 1, ghost_type);
+    Mesh::type_iterator type_end = mesh.lastType (dim - 1, ghost_type);
 
     // Loop over the boundary element types
     for(; type_it != type_end; ++type_it) {
-      const Array<UInt> & element_ids = boundary_ref.getElements(*type_it, ghost_type);
+      const Array<UInt> & element_ids = group.getElements(*type_it, ghost_type);
 
       Array<UInt>::const_iterator<UInt> elem_iter = element_ids.begin();
       Array<UInt>::const_iterator<UInt> elem_iter_end = element_ids.end();
@@ -144,7 +145,6 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
       QuadraturePoint quad_point;
       quad_point.type = *type_it;
 
-      // Loop over the elements in the SubBoundary
       for(; elem_iter != elem_iter_end; ++elem_iter) {
         UInt n = *elem_iter;
         quad_point.element = n;
@@ -153,7 +153,10 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
 
           quad_point.num_point = j;
 
-          func(quad_point, *dual_iter, *quad_coords_iter, normals_iter[offset]);
+          func(quad_point,
+               *dual_iter,
+               *quad_coords_iter,
+               normals_iter[offset]);
 
           ++dual_iter;
           ++quad_coords_iter;
@@ -164,17 +167,22 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
 
       /* -------------------------------------------------------------------- */
       // Initialization of iterators
-      Array<Real>::iterator<Matrix<Real> > dual_iter_mat = dual_before_integ->begin(nb_degree_of_freedom,1);
+      Array<Real>::iterator<Matrix<Real> > dual_iter_mat =
+	dual_before_integ->begin(nb_degree_of_freedom,1);
       elem_iter = element_ids.begin();
-      Array<Real>::const_iterator<Matrix<Real> > shapes_iter_begin = fem_boundary.getShapes(*type_it, ghost_type).begin(1, nb_nodes_per_element);
+      Array<Real>::const_iterator<Matrix<Real> > shapes_iter_begin =
+	fem_boundary.getShapes(*type_it, ghost_type).begin(1, nb_nodes_per_element);
 
-      Array<Real> * dual_by_shapes = new Array<Real>(nb_elements*nb_quad_points, nb_degree_of_freedom*nb_nodes_per_element);
-      Array<Real>::iterator<Matrix<Real> > dual_by_shapes_iter = dual_by_shapes->begin(nb_degree_of_freedom, nb_nodes_per_element);
+      Array<Real> * dual_by_shapes =
+	new Array<Real>(nb_elements*nb_quad_points, nb_degree_of_freedom*nb_nodes_per_element);
+      Array<Real>::iterator<Matrix<Real> > dual_by_shapes_iter =
+	dual_by_shapes->begin(nb_degree_of_freedom, nb_nodes_per_element);
 
       /* -------------------------------------------------------------------- */
       // Loop computing dual x shapes
       for(; elem_iter != elem_iter_end; ++elem_iter) {
-        Array<Real>::const_iterator<Matrix<Real> > shapes_iter = shapes_iter_begin + *elem_iter*nb_quad_points;
+        Array<Real>::const_iterator<Matrix<Real> > shapes_iter =
+	  shapes_iter_begin + *elem_iter*nb_quad_points;
 
         for(UInt j(0); j<nb_quad_points; ++j, ++dual_iter_mat, ++dual_by_shapes_iter, ++shapes_iter) {
           dual_by_shapes_iter->mul<false, false>(*dual_iter_mat, *shapes_iter);
@@ -182,12 +190,24 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
       }
       delete dual_before_integ;
 
-      Array<Real> * dual_by_shapes_integ = new Array<Real>(nb_elements, nb_degree_of_freedom*nb_nodes_per_element);
-      fem_boundary.integrate(*dual_by_shapes, *dual_by_shapes_integ, nb_degree_of_freedom*nb_nodes_per_element, *type_it, ghost_type, element_ids);
+      Array<Real> * dual_by_shapes_integ =
+        new Array<Real>(nb_elements, nb_degree_of_freedom*nb_nodes_per_element);
+      fem_boundary.integrate(*dual_by_shapes,
+                             *dual_by_shapes_integ,
+                             nb_degree_of_freedom*nb_nodes_per_element,
+                             *type_it,
+                             ghost_type,
+                             element_ids);
       delete dual_by_shapes;
 
       // assemble the result into force vector
-      fem_boundary.assembleArray(*dual_by_shapes_integ, dual, model.getDOFSynchronizer().getLocalDOFEquationNumbers(), nb_degree_of_freedom, *type_it, ghost_type, element_ids);
+      fem_boundary.assembleArray(*dual_by_shapes_integ,
+                                 dual,
+                                 model.getDOFSynchronizer().getLocalDOFEquationNumbers(),
+                                 nb_degree_of_freedom,
+                                 *type_it,
+                                 ghost_type,
+                                 element_ids);
       delete dual_by_shapes_integ;
     }
   }
@@ -197,23 +217,22 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
 template<typename ModelType>
 template<typename FunctorType>
 inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func) {
-  Boundary::const_iterator bit = model->getMesh().getBoundary().begin();
-  Boundary::const_iterator bend = model->getMesh().getBoundary().end();
-  for(; bit != bend; ++bit) {
-    TemplateFunctionWrapper<FunctorType>::applyBC(func, *bit, *this);
-  }
+  GroupManager::const_element_group_iterator bit = model->getMesh().getGroupManager().element_group_begin();
+  GroupManager::const_element_group_iterator bend = model->getMesh().getGroupManager().element_group_end();
+  for(; bit != bend; ++bit) applyBC(func, *bit);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename ModelType>
 template<typename FunctorType>
 inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
-						  const std::string & boundary_name) {
+						  const std::string & group_name) {
   try {
-    const SubBoundary & sub_boundary = model->getMesh().getSubBoundary(boundary_name);
-    TemplateFunctionWrapper<FunctorType>::applyBC(func, sub_boundary, *this);
+    const ElementGroup & element_group = model->getMesh().getElementGroup(group_name);
+    applyBC(func, element_group);
   } catch(akantu::debug::Exception e) {
-    // AKANTU_DEBUG_ERROR("Error applying a boundary condition onto \"" << boundary_name << "\"! [" << e.what() <<"]");
+    AKANTU_DEBUG_ERROR("Error applying a boundary condition onto \""
+                       << group_name << "\"! [" << e.what() <<"]");
   }
 }
 
@@ -221,6 +240,14 @@ inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
 template<typename ModelType>
 template<typename FunctorType>
 inline void BoundaryCondition<ModelType>::applyBC(const FunctorType & func,
-						  const SubBoundary & boundary_ref) {
-  TemplateFunctionWrapper<FunctorType>::applyBC(func, boundary_ref, *this);
+						  const ElementGroup & element_group) {
+#if !defined(AKANTU_NDEBUG)
+  if(element_group.getDimension() != model->getSpatialDimension() - 1)
+    AKANTU_DEBUG_WARNING("The group " << element_group.getName()
+                         << " does not contain only boundaries elements");
+#endif
+
+  TemplateFunctionWrapper<FunctorType>::applyBC(func, element_group, *this);
 }
+
+__END_AKANTU__

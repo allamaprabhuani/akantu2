@@ -96,12 +96,7 @@ inline void MaterialMarigo<spatial_dimension>::packElementData(CommunicationBuff
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat) {
-    this->packElementDataHelper(Yd_rand, buffer, elements);
-    // UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
-    // Array<Real>::const_iterator<Real> Yds = Yd_rand(element.type, _not_ghost).begin();
-    // Yds += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++Yds)
-    //   buffer << *Yds;
+    this->packElementDataHelper(Yd, buffer, elements);
   }
 
   MaterialDamage<spatial_dimension>::packElementData(buffer, elements, tag);
@@ -117,12 +112,7 @@ inline void MaterialMarigo<spatial_dimension>::unpackElementData(CommunicationBu
   AKANTU_DEBUG_IN();
 
   if(tag == _gst_smm_init_mat) {
-    this->unpackElementDataHelper(Yd_rand, buffer, elements);
-    // UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(element.type);
-    // Array<Real>::iterator<Real> Ydr = Yd_rand(element.type, _ghost).begin();
-    // Ydr += element.element * nb_quadrature_points;
-    // for (UInt q = 0; q < nb_quadrature_points; ++q, ++Ydr)
-    //   buffer << *Ydr;
+    this->unpackElementDataHelper(Yd, buffer, elements);
   }
 
   MaterialDamage<spatial_dimension>::unpackElementData(buffer, elements, tag);

@@ -30,89 +30,87 @@
 /* -------------------------------------------------------------------------- */
 
 #define DIRICHLET_SANITY_CHECK \
-  AKANTU_DEBUG_ASSERT(coord.size() <= flags.size(), \
-    "The coordinates and flags vectors given to the boundary condition functor have different sizes!"); \
-  AKANTU_DEBUG_ASSERT(primal.size() <= coord.size(), \
-    "The primal vector and coordinates vector given to the boundary condition functor have different sizes!");
+  AKANTU_DEBUG_ASSERT(coord.size() <= flags.size(),                     \
+                      "The coordinates and flags vectors given to the boundary" \
+                      << " condition functor have different sizes!");   \
+  AKANTU_DEBUG_ASSERT(primal.size() <= coord.size(),                    \
+                      "The primal vector and coordinates vector given"  \
+                      << " to the boundary condition functor have different sizes!");
 
-#define NEUMANN_SANITY_CHECK \
-  AKANTU_DEBUG_ASSERT(coord.size() <= normals.size(), \
-    "The coordinates and normals vectors given to the boundary condition functor have different sizes!"); \
-  AKANTU_DEBUG_ASSERT(dual.size() <= coord.size(), \
-    "The dual vector and coordinates vector given to the boundary condition functor have different sizes!");
+#define NEUMANN_SANITY_CHECK                                            \
+  AKANTU_DEBUG_ASSERT(coord.size() <= normals.size(),                   \
+                      "The coordinates and normals vectors given to the" \
+                      << " boundary condition functor have different sizes!"); \
+  AKANTU_DEBUG_ASSERT(dual.size() <= coord.size(),                      \
+                      "The dual vector and coordinates vector given to" \
+                      << " the boundary condition functor have different sizes!");
 
 __BEGIN_AKANTU__
 
 namespace BC {
+  namespace Dirichlet {
+    /* ---------------------------------------------------------------------- */
+    inline void FlagOnly::operator()(UInt node,
+                                     Vector<bool> & flags,
+                                     Vector<Real> & primal,
+                                     const Vector<Real> & coord) const {
 
-namespace Dirichlet {
+      DIRICHLET_SANITY_CHECK;
 
-inline void FlagOnly::operator()(UInt node,
-				 Vector<bool> & flags,
-				 Vector<Real> & primal,
-				 const Vector<Real> & coord) const {
+      flags(axis) = true;
+    }
 
-  DIRICHLET_SANITY_CHECK;
+    /* ---------------------------------------------------------------------- */
+    inline void FixedValue::operator()(UInt node,
+                                       Vector<bool> & flags,
+                                       Vector<Real> & primal,
+                                       const Vector<Real> & coord) const {
+      DIRICHLET_SANITY_CHECK;
+      flags(axis) = true;
+      primal(axis) = value;
+    }
 
-  flags(axis) = true;
-}
+    /* ---------------------------------------------------------------------- */
+    inline void IncrementValue::operator()(UInt node,
+                                           Vector<bool> & flags,
+                                           Vector<Real> & primal,
+                                           const Vector<Real> & coord) const {
+      DIRICHLET_SANITY_CHECK;
+      flags(axis) = true;
+      primal(axis) += value;
+    }
+  } // end namespace Dirichlet
 
-inline void FixedValue::operator()(UInt node,
-				   Vector<bool> & flags,
-				   Vector<Real> & primal,
-				   const Vector<Real> & coord) const {
+  /* ------------------------------------------------------------------------ */
+  /* Neumann                                                                  */
+  /* ------------------------------------------------------------------------ */
+  namespace Neumann {
+    /* ---------------------------------------------------------------------- */
+    inline void FreeBoundary::operator()(QuadraturePoint quad_point,
+                                         Vector<Real> & dual,
+                                         const Vector<Real> & coord,
+                                         const Vector<Real> & normals) const {
+      for(UInt i(0); i<dual.size(); ++i) {
+        dual(i) = 0.0;
+      }
+    }
 
-  DIRICHLET_SANITY_CHECK;
+    /* -------------------------------------------------------------------------- */
+    inline void FromHigherDim::operator()(QuadraturePoint quad_point,
+                                          Vector<Real> & dual,
+                                          const Vector<Real> & coord,
+                                          const Vector<Real> & normals) const {
+      dual.mul<false>(bc_data, normals);
+    }
 
-  flags(axis) = true;
-  primal(axis) = value;
-}
-
-inline void IncrementValue::operator()(UInt node,
-				       Vector<bool> & flags,
-				       Vector<Real> & primal,
-				       const Vector<Real> & coord) const {
-
-  DIRICHLET_SANITY_CHECK;
-
-  flags(axis) = true;
-  primal(axis) += value;
-}
-
-/* -------------------------------------------------------------------------- */
-
-
-
-} // end namespace Dirichlet
-
-namespace Neumann {
-
-inline void FreeBoundary::operator()(QuadraturePoint quad_point,
-				     Vector<Real> & dual,
-				     const Vector<Real> & coord,
-				     const Vector<Real> & normals) const {
-  for(UInt i(0); i<dual.size(); ++i) {
-    dual(i) = 0.0;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-inline void FromHigherDim::operator()(QuadraturePoint quad_point,
-				      Vector<Real> & dual,
-				      const Vector<Real> & coord,
-				      const Vector<Real> & normals) const {
-  dual.mul<false>(bc_data, normals);
-}
-
-/* -------------------------------------------------------------------------- */
-inline void FromSameDim::operator()(QuadraturePoint quad_point,
-				    Vector<Real> & dual,
-				    const Vector<Real> & coord,
-				    const Vector<Real> & normals) const {
-  dual = bc_data;
-}
-
-} // end namespace Neumann
+    /* -------------------------------------------------------------------------- */
+    inline void FromSameDim::operator()(QuadraturePoint quad_point,
+                                        Vector<Real> & dual,
+                                        const Vector<Real> & coord,
+                                        const Vector<Real> & normals) const {
+      dual = bc_data;
+    }
+  } // end namespace Neumann
 } // end namespace BC
 
 

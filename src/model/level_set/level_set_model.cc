@@ -36,11 +36,15 @@
 
 #include "sparse_matrix.hh"
 #include "solver.hh"
+
 #ifdef AKANTU_USE_MUMPS
-#include "solver_mumps.hh"
-#include "contact/regular_grid_neighbor_structure.hh"
+#  include "solver_mumps.hh"
+#  include "contact/regular_grid_neighbor_structure.hh"
 #endif
-#include <iostream>
+
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_paraview.hh"
+#endif
 
 /* -------------------------------------------------------------------------- */
 
@@ -222,7 +226,7 @@ void LevelSetModel::initPBC() {
   PBCSynchronizer * synch = new PBCSynchronizer(pbc_pair);
 
   synch_registry->registerSynchronizer(*synch, _gst_htm_phi);
-  changeLocalEquationNumberforPBC(pbc_pair, 1);
+  changeLocalEquationNumberForPBC(pbc_pair, 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -893,7 +897,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
           el_size = getFEM().getElementInradius(*X_el, *it);
         }
 
-        Real v_norm = v_element.norm();
+        Real v_norm = v_element.norm<L_2>();
 
         Real Tau_supg = 0.0;
         if (v_norm > 1e-4)

@@ -42,12 +42,15 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(SolidMechanics
   Material(model, id),
   MaterialMazars<spatial_dimension>(model, id),
   MaterialNonLocalParent(model, id),
-  Ehat("epsilon_equ", id) {
+  Ehat("epsilon_equ", *this) {
   AKANTU_DEBUG_IN();
 
-  this->damage_in_compute_stress = false;
   this->is_non_local = true;
-  this->initInternalArray(this->Ehat, 1);
+  this->Ehat.initialize(1);
+
+  this->registerParam("average_on_damage", this->damage_in_compute_stress, false,
+		      _pat_parsable | _pat_modifiable, "Is D the non local variable");
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -58,7 +61,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialMazars<spatial_dimension>::initMaterial();
   MaterialNonLocalParent::initMaterial();
-  this->resizeInternalArray(this->Ehat);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -88,9 +91,8 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(ElementType el_typ
 template<UInt spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  ByElementTypeReal nl_var("Non local variable", this->id);
-  this->initInternalArray(nl_var, 1, true);
-  this->resizeInternalArray(nl_var);
+  InternalField<Real> nl_var("Non local variable", *this);
+  nl_var.initialize(1);
 
   if(this->damage_in_compute_stress)
     this->weightedAvergageOnNeighbours(this->damage, nl_var, 1);
@@ -135,40 +137,6 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(Array<Real
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-bool MaterialMazarsNonLocal<spatial_dimension>::parseParam(const std::string & key,
-							 const std::string & value,
-							 const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "average_on_damage") { sstr >> this->damage_in_compute_stress; }
-  else {
-  return MaterialNonLocalParent::parseParam(key, value, id) ||
-    MaterialMazars<spatial_dimension>::parseParam(key, value, id);
-  }
-
-  return true;
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::printself(std::ostream & stream,
-							  int indent) const {
-  std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
-
-  stream << space << "MaterialMazarsNonLocal [" << std::endl;
-
-  if(this->damage_in_compute_stress)
-    stream << space << " + Average on damage" << std::endl;
-  else 
-    stream << space << " + Average on Ehat" << std::endl;
-
-  MaterialMazars<spatial_dimension>::printself(stream, indent + 1);
-  MaterialNonLocalParent::printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
-}
 
 /* -------------------------------------------------------------------------- */
 

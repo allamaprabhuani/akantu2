@@ -32,6 +32,9 @@
 #include "aka_common.hh"
 #include "aka_vector.hh"
 #include "aka_math.hh"
+#include "aka_random_generator.hh"
+#include "parser.hh"
+
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 /* -------------------------------------------------------------------------- */
@@ -68,11 +71,19 @@ namespace debug {
 #endif
 }
 
+bool Parser::parser_permissive = false;
+
 Real Math::tolerance = 1e-8;
 
 const UInt _all_dimensions = UInt(-1);
 
 const Array<UInt> empty_filter(0, 1, "empty_filter");
+
+template<> long int RandGenerator<Real>::_seed = 0;
+template<> long int RandGenerator<bool>::_seed = 0; // useless just defined due to a template instantiation
+template<> long int RandGenerator<UInt>::_seed = 0;
+template<> long int RandGenerator<Int>::_seed = 0;
+template<> long int Rand48Generator<Real>::_seed = 0;
 
 /* -------------------------------------------------------------------------- */
 

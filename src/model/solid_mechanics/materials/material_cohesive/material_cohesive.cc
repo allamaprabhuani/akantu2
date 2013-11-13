@@ -41,33 +41,34 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
-  Material(model,id),
-  reversible_energy("reversible_energy", id),
-  total_energy("total_energy", id),
-  opening_old("opening (old)",id),
-  tractions("tractions",id),
-  tractions_old("tractions (old)",id),
-  opening("opening",id),
-  contact_tractions("contact_tractions",id),
-  contact_opening("contact_opening",id),
-  random_generator(NULL),
-  delta_max("delta max",id),
-  damage("damage", id),
-  facet_filter("facet_filter", id),
-  sigma_limit("sigma_limit", id) {
+  Material(model, id),
+  facet_filter("facet_filter", id, this->getMemoryID()),
+  fem_cohesive(&(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"))),
+  reversible_energy("reversible_energy", *this),
+  total_energy("total_energy", *this),
+  opening("opening", *this),
+  opening_old("opening (old)", *this),
+  tractions("tractions", *this),
+  tractions_old("tractions (old)", *this),
+  contact_tractions("contact_tractions", *this),
+  contact_opening("contact_opening", *this),
+  delta_max("delta max", *this),
+  damage("damage", *this),
+  sigma_c("sigma_c", *this) {
 
   AKANTU_DEBUG_IN();
 
   this->model = dynamic_cast<SolidMechanicsModelCohesive*>(&model);
 
-  fem_cohesive = &(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"));
+  this->registerParam("sigma_c", sigma_c, _pat_parsable | _pat_readable, "Critical stress");
 
-  this->registerParam("sigma_c", sigma_c, 0.,
-		      ParamAccessType(_pat_parsable | _pat_readable),
-		      "Critical stress");
+  this->model->getMesh().initByElementTypeArray(this->element_filter,
+						1,
+						spatial_dimension,
+						false,
+						_ek_cohesive);
 
-  this->registerParam("sigma_c_generator", random_generator,
-		      _pat_parsable, "Random generator for sigma_c");
+  this->model->getMeshFacets().initByElementTypeArray(facet_filter, 1, spatial_dimension - 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -76,37 +77,31 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 MaterialCohesive::~MaterialCohesive() {
   AKANTU_DEBUG_IN();
 
-  delete random_generator;
-
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void MaterialCohesive::initMaterial() {
   AKANTU_DEBUG_IN();
-
   Material::initMaterial();
 
-  initInternalArray(reversible_energy,                 1, false, _ek_cohesive);
-  initInternalArray(     total_energy,                 1, false, _ek_cohesive);
-  initInternalArray(    tractions_old, spatial_dimension, false, _ek_cohesive);
-  initInternalArray(        tractions, spatial_dimension, false, _ek_cohesive);
-  initInternalArray(      opening_old, spatial_dimension, false, _ek_cohesive);
-  initInternalArray(contact_tractions, spatial_dimension, false, _ek_cohesive);
-  initInternalArray(  contact_opening, spatial_dimension, false, _ek_cohesive);
-  initInternalArray(          opening, spatial_dimension, false, _ek_cohesive);
-  initInternalArray(        delta_max,                 1, false, _ek_cohesive);
-  initInternalArray(           damage,                 1, false, _ek_cohesive);
-  initInternalArray(   element_filter,                 1, false, _ek_cohesive);
-
+  this->reversible_energy.initialize(1                );
+  this->total_energy     .initialize(1                );
+  this->tractions_old    .initialize(spatial_dimension);
+  this->tractions        .initialize(spatial_dimension);
+  this->opening_old      .initialize(spatial_dimension);
+  this->contact_tractions.initialize(spatial_dimension);
+  this->contact_opening  .initialize(spatial_dimension);
+  this->opening          .initialize(spatial_dimension);
+  this->delta_max        .initialize(1                );
+  this->damage           .initialize(1                );
+  this->sigma_c          .initialize(1                );
   AKANTU_DEBUG_OUT();
 }
 
 void MaterialCohesive::initInsertionArrays(const Mesh & mesh_facets) {
   AKANTU_DEBUG_IN();
 
-  mesh_facets.initByElementTypeArray(facet_filter, 1, spatial_dimension - 1);
-  mesh_facets.initByElementTypeArray( sigma_limit, 1, spatial_dimension - 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -115,43 +110,16 @@ void MaterialCohesive::initInsertionArrays(const Mesh & mesh_facets) {
 void MaterialCohesive::resizeCohesiveArrays() {
   AKANTU_DEBUG_IN();
 
-  resizeInternalArray(reversible_energy, _ek_cohesive);
-  resizeInternalArray(total_energy     , _ek_cohesive);
-  resizeInternalArray(tractions_old    , _ek_cohesive);
-  resizeInternalArray(tractions        , _ek_cohesive);
-  resizeInternalArray(opening_old      , _ek_cohesive);
-  resizeInternalArray(opening          , _ek_cohesive);
-  resizeInternalArray(contact_tractions, _ek_cohesive);
-  resizeInternalArray(contact_opening  , _ek_cohesive);
-  resizeInternalArray(delta_max        , _ek_cohesive);
-  resizeInternalArray(damage           , _ek_cohesive);
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-
-void MaterialCohesive::generateRandomDistribution(const Mesh & mesh_facets) {
-  AKANTU_DEBUG_IN();
-
-  Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
-  Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
-
-  for (; it != last; ++it) {
-    ElementType type_facet = *it;
-    Array<UInt> & f_filter = facet_filter(type_facet);
-    UInt nb_facet = f_filter.getSize();
-
-    if (nb_facet > 0) {
-      Array<Real> & sigma_lim = sigma_limit(type_facet);
-      sigma_lim.resize(nb_facet);
-
-      if (random_generator)
-	random_generator->generate(sigma_lim);
-      else
-      	sigma_lim.set(sigma_c);
-    }
-  }
+  this->reversible_energy.resize();
+  this->total_energy     .resize();
+  this->tractions_old    .resize();
+  this->tractions        .resize();
+  this->opening_old      .resize();
+  this->opening          .resize();
+  this->contact_tractions.resize();
+  this->contact_opening  .resize();
+  this->delta_max        .resize();
+  this->damage           .resize();
 
   AKANTU_DEBUG_OUT();
 }

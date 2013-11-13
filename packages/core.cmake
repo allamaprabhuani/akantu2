@@ -31,175 +31,194 @@
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
 
 set(AKANTU_CORE_FILES
-  # source files
+  common/aka_blas_lapack.hh
+  common/aka_circular_vector.hh
+  common/aka_circular_vector_inline_impl.cc
   common/aka_common.cc
+  common/aka_common.hh
+  common/aka_common_inline_impl.cc
+  common/aka_csr.hh
   common/aka_error.cc
+  common/aka_error.hh
+  common/aka_event_handler.hh
   common/aka_extern.cc
-  common/aka_static_memory.cc
-  common/aka_memory.cc
-  common/aka_vector.cc
-  common/aka_math.cc
-  fem/shape_lagrange.cc
-  fem/shape_linked.cc
-  fem/mesh.cc
-  fem/fem.cc
-  fem/mesh_data.cc
-  fem/boundary.cc
-  fem/sub_boundary.cc
-  io/dumper/dumpable.hh
-  io/mesh_io.cc
-  io/model_io.cc
-  io/mesh_io/mesh_io_msh.cc
-  io/mesh_io/mesh_io_diana.cc
-  model/model.cc
-  model/solid_mechanics/solid_mechanics_model.cc
-  model/solid_mechanics/solid_mechanics_model_mass.cc
-  model/solid_mechanics/solid_mechanics_model_material.cc
-  model/solid_mechanics/material.cc
-  model/solid_mechanics/material_parameters.cc
-  model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_thermal.cc
-  mesh_utils/mesh_pbc.cc
-  mesh_utils/mesh_partition.cc
-  mesh_utils/mesh_partition/mesh_partition_mesh_data.cc
-  mesh_utils/mesh_utils.cc
-  solver/sparse_matrix.cc
-  solver/solver.cc
-  synchronizer/synchronizer_registry.cc
-  synchronizer/synchronizer.cc
-  synchronizer/distributed_synchronizer.cc
-  synchronizer/filtered_synchronizer.cc
-  synchronizer/pbc_synchronizer.cc
-  synchronizer/data_accessor.cc
-  synchronizer/static_communicator.cc
-  synchronizer/dof_synchronizer.cc
-
-  #header files
-  io/mesh_io.hh
-  io/model_io.hh
-  io/mesh_io/mesh_io_msh.hh
-  io/mesh_io/mesh_io_diana.hh
-  mesh_utils/mesh_utils.hh
-  mesh_utils/mesh_partition.hh
-  mesh_utils/mesh_partition/mesh_partition_scotch.hh
-  mesh_utils/mesh_partition/mesh_partition_mesh_data.hh
-  solver/sparse_matrix.hh
-  solver/solver.hh
-  synchronizer/synchronizer.hh
-  synchronizer/synchronizer_registry.hh
-  synchronizer/static_communicator_dummy.hh
-  synchronizer/static_communicator_inline_impl.hh
-  synchronizer/distributed_synchronizer.hh
-  synchronizer/distributed_synchronizer_tmpl.hh
-  synchronizer/filtered_synchronizer.hh
-  synchronizer/pbc_synchronizer.hh
-  synchronizer/static_communicator.hh
-  synchronizer/dof_synchronizer.hh
-  synchronizer/real_static_communicator.hh
-  synchronizer/data_accessor.hh
-  synchronizer/communication_buffer.hh
   common/aka_fwd.hh
   common/aka_grid.hh
+  common/aka_grid_dynamic.hh
   common/aka_grid_tmpl.hh
-  common/aka_types.hh
-  common/aka_static_memory.hh
-  common/aka_static_memory_tmpl.hh
-  common/aka_memory.hh
+  common/aka_math.cc
   common/aka_math.hh
   common/aka_math_tmpl.hh
-  common/aka_blas_lapack.hh
-  common/aka_csr.hh
-  common/aka_error.hh
-  common/aka_common.hh
+  common/aka_memory.cc
+  common/aka_memory.hh
+  common/aka_memory_inline_impl.cc
+  common/aka_random_generator.hh
+  common/aka_safe_enum.hh
+  common/aka_static_memory.cc
+  common/aka_static_memory.hh
+  common/aka_static_memory_inline_impl.cc
+  common/aka_static_memory_tmpl.hh
+  common/aka_typelist.hh
+  common/aka_types.hh
+  common/aka_vector.cc
   common/aka_vector.hh
   common/aka_vector_tmpl.hh
-  common/aka_circular_vector.hh
-  common/aka_event_handler.hh
-  common/aka_random_generator.hh
-  common/aka_typelist.hh
   common/aka_visitor.hh
-  common/aka_grid_dynamic.hh
-  common/aka_safe_enum.hh
-  fem/mesh.hh
-  fem/fem.hh
-  fem/by_element_type.hh
-  fem/shape_functions.hh
-  fem/shape_lagrange.hh
-  fem/fem_template.hh
-  fem/fem_template_tmpl.hh
-  fem/integrator_gauss.hh
-  fem/integrator.hh
-  fem/element_class.hh
-  fem/shape_linked.hh
-  fem/geometrical_data_tmpl.hh
-  fem/mesh_data.hh
-  fem/boundary.hh
-  fem/sub_boundary.hh
-  fem/interpolation_element_tmpl.hh
-  model/model.hh
-  model/boundary_condition.hh
-  model/boundary_condition_functor.hh
-  model/parser.hh
-  model/parser_tmpl.hh
-  model/integration_scheme/integration_scheme_2nd_order.hh
-  model/integration_scheme/generalized_trapezoidal.hh
-  model/integration_scheme/newmark-beta.hh
-  model/integration_scheme/integration_scheme_1st_order.hh
-  model/solid_mechanics/solid_mechanics_model.hh
-  model/solid_mechanics/solid_mechanics_model_tmpl.hh
-  model/solid_mechanics/material.hh
-  model/solid_mechanics/material_parameters.hh
-  model/solid_mechanics/material_parameters_tmpl.hh
-  model/solid_mechanics/materials/material_elastic.hh
-  model/solid_mechanics/materials/material_thermal.hh
 
-  #inline implementation files
-  mesh_utils/mesh_utils_inline_impl.cc
-  solver/sparse_matrix_inline_impl.cc
-  synchronizer/dof_synchronizer_inline_impl.cc
-  synchronizer/data_accessor_inline_impl.cc
-  synchronizer/communication_buffer_inline_impl.cc
-  common/aka_common_inline_impl.cc
-  common/aka_memory_inline_impl.cc
-  common/aka_static_memory_inline_impl.cc
-  common/aka_circular_vector_inline_impl.cc
-  fem/integrator_gauss_inline_impl.cc
+  fem/by_element_type.hh
+  fem/by_element_type_tmpl.hh
+
+  fem/element_class.cc
+  fem/element_class.hh
+  fem/element_class_tmpl.hh
+  fem/element_classes/element_class_hexahedron_8_inline_impl.cc
+  fem/element_classes/element_class_pentahedron_6_inline_impl.cc
   fem/element_classes/element_class_point_1_inline_impl.cc
-  fem/element_classes/element_class_triangle_3_inline_impl.cc
-  fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_quadrangle_4_inline_impl.cc
   fem/element_classes/element_class_quadrangle_8_inline_impl.cc
-  fem/element_classes/element_class_hexahedron_8_inline_impl.cc
-  fem/element_classes/element_class_triangle_6_inline_impl.cc
-  fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
+  fem/element_classes/element_class_segment_2_inline_impl.cc
   fem/element_classes/element_class_segment_3_inline_impl.cc
+  fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
   fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
-  fem/element_classes/element_class_pentahedron_6_inline_impl.cc
-  fem/shape_functions_inline_impl.cc
-  fem/mesh_inline_impl.cc
-  fem/boundary_inline_impl.cc
-  fem/sub_boundary_inline_impl.cc
-  fem/mesh_data_tmpl.hh
-  fem/by_element_type_tmpl.hh
+  fem/element_classes/element_class_triangle_3_inline_impl.cc
+  fem/element_classes/element_class_triangle_6_inline_impl.cc
+
+  fem/element_group.cc
+  fem/element_group.hh
+  fem/element_group_inline_impl.cc
+  fem/fem.cc
+  fem/fem.hh
   fem/fem_inline_impl.cc
-  fem/shape_linked_inline_impl.cc
-  fem/shape_lagrange_inline_impl.cc
-  model/model_inline_impl.cc
-  model/boundary_condition_functor_inline_impl.cc
-  model/integration_scheme/generalized_trapezoidal_inline_impl.cc
-  model/integration_scheme/newmark-beta_inline_impl.cc
-  model/solid_mechanics/solid_mechanics_model_inline_impl.cc
-  model/solid_mechanics/materials/material_elastic_inline_impl.cc
-  model/solid_mechanics/material_inline_impl.cc
-  model/parser_inline_impl.cc
-  model/boundary_condition_tmpl.hh
+  fem/fem_template.hh
+  fem/fem_template_tmpl.hh
+  fem/geometrical_data_tmpl.hh
   fem/geometrical_element.cc
-  fem/element_class_tmpl.hh
-  fem/element_class.cc
+  fem/group_manager.cc
+  fem/group_manager.hh
+  fem/group_manager_inline_impl.cc
   fem/integration_element.cc
+  fem/integrator.hh
+  fem/integrator_gauss.hh
+  fem/integrator_gauss_inline_impl.cc
   fem/interpolation_element.cc
-  synchronizer/mpi_type_wrapper.hh
+  fem/interpolation_element_tmpl.hh
+  fem/mesh.cc
+  fem/mesh.hh
+  fem/mesh_data.cc
+  fem/mesh_data.hh
+  fem/mesh_data_tmpl.hh
+  fem/mesh_inline_impl.cc
+  fem/node_group.cc
+  fem/node_group.hh
+  fem/node_group_inline_impl.cc
+  fem/shape_functions.hh
+  fem/shape_functions_inline_impl.cc
+  fem/shape_lagrange.cc
+  fem/shape_lagrange.hh
+  fem/shape_lagrange_inline_impl.cc
+  fem/shape_linked.cc
+  fem/shape_linked.hh
+  fem/shape_linked_inline_impl.cc
+
+  io/dumper/dumpable.hh
+  io/dumper/dumpable_inline_impl.hh
+
+  io/mesh_io.cc
+  io/mesh_io.hh
+  io/mesh_io/mesh_io_diana.cc
+  io/mesh_io/mesh_io_diana.hh
+  io/mesh_io/mesh_io_msh.cc
+  io/mesh_io/mesh_io_msh.hh
+  io/model_io.cc
+  io/model_io.hh
+
+  io/parser/algebraic_parser.hh
+  io/parser/input_file_parser.hh
+  io/parser/parsable.cc
+  io/parser/parsable.hh
+  io/parser/parsable_tmpl.hh
+  io/parser/parser.cc
+  io/parser/parser.hh
+  io/parser/parser_tmpl.hh
+
+  mesh_utils/mesh_partition.cc
+  mesh_utils/mesh_partition.hh
+  mesh_utils/mesh_partition/mesh_partition_mesh_data.cc
+  mesh_utils/mesh_partition/mesh_partition_mesh_data.hh
+  mesh_utils/mesh_partition/mesh_partition_scotch.hh
+  mesh_utils/mesh_pbc.cc
+  mesh_utils/mesh_utils.cc
+  mesh_utils/mesh_utils.hh
+  mesh_utils/mesh_utils_inline_impl.cc
+
+  model/boundary_condition.hh
+  model/boundary_condition_functor.hh
+  model/boundary_condition_functor_inline_impl.cc
+  model/boundary_condition_tmpl.hh
+  model/integration_scheme/generalized_trapezoidal.hh
+  model/integration_scheme/generalized_trapezoidal_inline_impl.cc
+  model/integration_scheme/integration_scheme_1st_order.hh
+  model/integration_scheme/integration_scheme_2nd_order.hh
+  model/integration_scheme/newmark-beta.hh
+  model/integration_scheme/newmark-beta_inline_impl.cc
+  model/model.cc
+  model/model.hh
+  model/model_inline_impl.cc
+
+  model/solid_mechanics/material.cc
+  model/solid_mechanics/material.hh
+  model/solid_mechanics/material_inline_impl.cc
   model/solid_mechanics/material_list.hh
+  model/solid_mechanics/material_random_internal.hh
+  model/solid_mechanics/material_selector.hh
+  model/solid_mechanics/material_selector_tmpl.hh
+  model/solid_mechanics/materials/internal_field.hh
+  model/solid_mechanics/materials/internal_field_tmpl.hh
+  model/solid_mechanics/materials/material_elastic.cc
+  model/solid_mechanics/materials/material_elastic.hh
+  model/solid_mechanics/materials/material_elastic_inline_impl.cc
+  model/solid_mechanics/materials/material_thermal.cc
+  model/solid_mechanics/materials/material_thermal.hh
+  model/solid_mechanics/materials/random_internal_field.hh
+  model/solid_mechanics/materials/random_internal_field_tmpl.hh
+  model/solid_mechanics/solid_mechanics_model.cc
+  model/solid_mechanics/solid_mechanics_model.hh
+  model/solid_mechanics/solid_mechanics_model_inline_impl.cc
+  model/solid_mechanics/solid_mechanics_model_mass.cc
+  model/solid_mechanics/solid_mechanics_model_material.cc
+  model/solid_mechanics/solid_mechanics_model_tmpl.hh
+
+  solver/solver.cc
+  solver/solver.hh
+  solver/sparse_matrix.cc
+  solver/sparse_matrix.hh
+  solver/sparse_matrix_inline_impl.cc
+
+  synchronizer/communication_buffer.hh
+  synchronizer/communication_buffer_inline_impl.cc
+  synchronizer/data_accessor.cc
+  synchronizer/data_accessor.hh
+  synchronizer/data_accessor_inline_impl.cc
+  synchronizer/distributed_synchronizer.cc
+  synchronizer/distributed_synchronizer.hh
+  synchronizer/distributed_synchronizer_tmpl.hh
+  synchronizer/dof_synchronizer.cc
+  synchronizer/dof_synchronizer.hh
+  synchronizer/dof_synchronizer_inline_impl.cc
+  synchronizer/filtered_synchronizer.cc
+  synchronizer/filtered_synchronizer.hh
+  synchronizer/mpi_type_wrapper.hh
+  synchronizer/pbc_synchronizer.cc
+  synchronizer/pbc_synchronizer.hh
+  synchronizer/real_static_communicator.hh
+  synchronizer/static_communicator.cc
+  synchronizer/static_communicator.hh
+  synchronizer/static_communicator_dummy.hh
+  synchronizer/static_communicator_inline_impl.hh
+  synchronizer/synchronizer.cc
+  synchronizer/synchronizer.hh
+  synchronizer/synchronizer_registry.cc
+  synchronizer/synchronizer_registry.hh
   )
 
 
@@ -208,41 +227,43 @@ set(AKANTU_CORE_DEB_DEPEND
   )
 
 set(AKANTU_CORE_TESTS
-  test_solid_mechanics_model_square
-  test_vector
-  test_vector_iterator
-  test_matrix
   test_csr
+  test_facet_element_mapping
+  test_facet_extraction_tetrahedron_4
+  test_facet_extraction_triangle_3
   test_grid
-  test_static_memory
+  test_interpolate_stress
+  test_local_material
+  test_material_damage_non_local
+  test_matrix
+  test_mesh_boundary
+  test_mesh_data
   test_mesh_io_msh
   test_mesh_io_msh_physical_names
-  test_mesh_data
-  test_facet_element_mapping
-  test_mesh_boundary
-  test_facet_extraction_triangle_3
-  test_facet_extraction_tetrahedron_4
+  test_mesh_partitionate_mesh_data
+  test_parser
   test_pbc_tweak
   test_purify_mesh
-  test_local_material
-  test_interpolate_stress
-  test_weight
-  test_mesh_partitionate_mesh_data
-  test_solid_mechanics_model_boundary_condition
-  test_solid_mechanics_model_circle_2
   test_solid_mechanics_model_bar_traction2d
   test_solid_mechanics_model_bar_traction2d_structured
   test_solid_mechanics_model_bar_traction2d_structured_pbc
+  test_solid_mechanics_model_boundary_condition
+  test_solid_mechanics_model_circle_2
   test_solid_mechanics_model_cube3d
-  test_solid_mechanics_model_cube3d_tetra10
   test_solid_mechanics_model_cube3d_pbc
-  test_surface_extraction_triangle_3
+  test_solid_mechanics_model_cube3d_tetra10
+  test_solid_mechanics_model_square
+  test_static_memory
   test_surface_extraction_tetrahedron_4
-  test_material_damage_non_local
+  test_surface_extraction_triangle_3
+  test_vector
+  test_vector_iterator
+  test_weight
   )
 
 find_program(READLINK_COMMAND readlink)
 find_program(ADDR2LINE_COMMAND addr2line)
 mark_as_advanced(READLINK_COMMAND)
 mark_as_advanced(ADDR2LINE_COMMAND)
+
 

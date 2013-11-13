@@ -83,6 +83,24 @@ inline void Mesh::removeNodesFromArray(Array<T> & vect, const Array<UInt> & new_
   vect.copy(tmp);
 }
 
+
+/* -------------------------------------------------------------------------- */
+#ifdef AKANTU_CORE_CXX11
+template <typename... Args>
+inline void Mesh::translate(Args... params) {
+  // check that the number of parameters corresponds to the dimension
+  AKANTU_DEBUG_ASSERT(sizeof...(Args) <= spatial_dimension , "Number of arguments greater than dimension.");
+
+  // unpack parameters
+  Real s[] = { params... };
+
+  Array<Real>& nodes = getNodes();
+  for (UInt i = 0; i < nodes.getSize(); ++i)
+    for (UInt k = 0; k < sizeof...(Args); ++k)
+      nodes(i, k) += s[k];
+}
+#endif
+
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::elementToLinearized(const Element & elem) const {
   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
@@ -143,11 +161,6 @@ inline const Mesh::ConnectivityTypeList & Mesh::getConnectivityTypeList(const Gh
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbBoundaries() const {
-  return boundaries.getNbBoundaries();
-}
-
-/* -------------------------------------------------------------------------- */
 inline Array<UInt> * Mesh::getNodesGlobalIdsPointer() {
   AKANTU_DEBUG_IN();
   if(nodes_global_ids == NULL) {
@@ -199,44 +212,44 @@ inline Array<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 /* -------------------------------------------------------------------------- */
 inline Array< std::vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type,
                                                                            const GhostType & ghost_type) {
-  return getDataPointer< std::vector<Element> >(type, "element_to_subelement", ghost_type);
+  return getDataPointer< std::vector<Element> >("element_to_subelement", type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline Array<Element > * Mesh::getSubelementToElementPointer(const ElementType & type,
                                                              const GhostType & ghost_type) {
-  return getDataPointer<Element>(type, "subelement_to_element", ghost_type, getNbFacetsPerElement(type));
+  return getDataPointer<Element>("subelement_to_element", type, ghost_type, getNbFacetsPerElement(type));
 }
 
 
 /* -------------------------------------------------------------------------- */
 inline const Array< std::vector<Element> > & Mesh::getElementToSubelement(const ElementType & type,
                                                                           const GhostType & ghost_type) const {
-  return getData< std::vector<Element> >(type, "element_to_subelement", ghost_type);
+  return getData< std::vector<Element> >("element_to_subelement", type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline Array< std::vector<Element> > & Mesh::getElementToSubelement(const ElementType & type,
                                                                     const GhostType & ghost_type) {
-  return getData< std::vector<Element> >(type, "element_to_subelement", ghost_type);
+  return getData< std::vector<Element> >("element_to_subelement", type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline const Array<Element> & Mesh::getSubelementToElement(const ElementType & type,
                                                            const GhostType & ghost_type) const {
-  return getData<Element>(type, "subelement_to_element", ghost_type);
+  return getData<Element>("subelement_to_element", type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline Array<Element> & Mesh::getSubelementToElement(const ElementType & type,
                                                      const GhostType & ghost_type) {
-  return getData<Element>(type, "subelement_to_element", ghost_type);
+  return getData<Element>("subelement_to_element", type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline Array<T> * Mesh::getDataPointer(const ElementType & el_type,
-                                       const std::string & data_name,
+inline Array<T> * Mesh::getDataPointer(const std::string & data_name,
+				       const ElementType & el_type,
                                        const GhostType & ghost_type,
                                        UInt nb_component) {
   Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(data_name,
@@ -248,16 +261,16 @@ inline Array<T> * Mesh::getDataPointer(const ElementType & el_type,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline const Array<T> & Mesh::getData(const ElementType & el_type,
-	                                    const std::string & data_name,
-	                                    const GhostType & ghost_type) const {
+inline const Array<T> & Mesh::getData(const std::string & data_name,
+				      const ElementType & el_type,
+				      const GhostType & ghost_type) const {
   return mesh_data.getElementalDataArray<T>(data_name, el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline Array<T> & Mesh::getData(const ElementType & el_type,
-                                const std::string & data_name,
+inline Array<T> & Mesh::getData(const std::string & data_name,
+				const ElementType & el_type,
                                 const GhostType & ghost_type) {
   return mesh_data.getElementalDataArray<T>(data_name, el_type, ghost_type);
 }
@@ -515,21 +528,12 @@ inline Int Mesh::getNodeType(UInt local_id) const {
   return nodes_type ? (*nodes_type)(local_id) : -1;
 }
 
-/* -------------------------------------------------------------------------- */
-inline const SubBoundary & Mesh::getSubBoundary(const std::string & name) const{
-  Boundary::const_iterator it = getBoundary().find(name);
-  if(it == getBoundary().end()) {
-    AKANTU_EXCEPTION("No sub-boundary named " << name << "!");
-  }
-  return *it;
-}
+// /* -------------------------------------------------------------------------- */
+// inline const ElementGroup & Mesh::getElementGroup(const std::string & name) const {
+//   return group_manager.getElementGroup(name);
+// }
 
-/* -------------------------------------------------------------------------- */
-inline SubBoundary & Mesh::getSubBoundary(const std::string & name) {
-  Boundary::iterator it = getBoundary().find(name);
-  if(it == getBoundary().end()) {
-    AKANTU_EXCEPTION("No sub-boundary named " << name << "!");
-  }
-  return *it;
-}
-
+// /* -------------------------------------------------------------------------- */
+// inline const NodeGroup & Mesh::getNodeGroup(const std::string & name) const {
+//   return group_manager.getNodeGroup(name);
+// }

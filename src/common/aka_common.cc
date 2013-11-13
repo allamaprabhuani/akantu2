@@ -31,6 +31,8 @@
 #include "aka_common.hh"
 #include "aka_static_memory.hh"
 #include "static_communicator.hh"
+#include "aka_random_generator.hh"
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -45,6 +47,10 @@ void initialize(int & argc, char ** & argv) {
   debug::debugger.setParallelContext(comm.whoAmI(), comm.getNbProc());
   debug::initSignalHandler();
 
+  long int seed = time(NULL) * (comm.whoAmI() + 1);
+  Rand48Generator<Real>::seed(seed);
+  RandGenerator<Real>::seed(seed);
+  AKANTU_DEBUG_INFO("Random seed set to " << seed);
   AKANTU_DEBUG_OUT();
 }
 

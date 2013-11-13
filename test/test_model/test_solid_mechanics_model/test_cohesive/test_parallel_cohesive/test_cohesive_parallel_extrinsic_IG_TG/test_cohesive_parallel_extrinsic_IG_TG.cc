@@ -45,12 +45,65 @@
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
 #if defined(AKANTU_USE_IOHELPER)
-#  include "io_helper.hh"
 #  include "dumper_paraview.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
+
+class MultiGrainMaterialSelector : public DefaultMaterialCohesiveSelector {
+public:
+  MultiGrainMaterialSelector(const SolidMechanicsModelCohesive & model, const ID & transgranular_id, const ID & intergranular_id) :
+    DefaultMaterialCohesiveSelector(model),
+    transgranular_id(transgranular_id),
+    intergranular_id(intergranular_id),
+    model(model),
+    mesh(model.getMesh()),
+    mesh_facets(model.getMeshFacets()),
+    spatial_dimension(model.getSpatialDimension()),
+    nb_IG(0), nb_TG(0) {
+  }
+
+  UInt operator()(const Element & element) {
+    if(mesh_facets.getSpatialDimension(element.type) == (spatial_dimension - 1)) {
+      const std::vector<Element> & element_to_subelement = mesh_facets.getElementToSubelement(element.type, element.ghost_type)(element.element);
+
+      const Element & el1 = element_to_subelement[0];
+      const Element & el2 = element_to_subelement[1];
+
+      UInt grain_id1 = mesh.getData<UInt>("tag_0", el1.type, el1.ghost_type)(el1.element);
+      if(el2 != ElementNull) {
+	UInt grain_id2 = mesh.getData<UInt>("tag_0", el2.type, el2.ghost_type)(el2.element);
+	if (grain_id1 == grain_id2){
+	  //transgranular = 0 indicator
+	  nb_TG++;
+	  return model.getMaterialIndex(transgranular_id);
+	} else  {
+	  //intergranular = 1 indicator
+	  nb_IG++;
+	  return model.getMaterialIndex(intergranular_id);
+	}
+      } else {
+	//transgranular = 0 indicator
+	nb_TG++;
+	return model.getMaterialIndex(transgranular_id);
+      }
+    } else {
+      return DefaultMaterialCohesiveSelector::operator()(element);
+    }
+  }
+
+private:
+  ID transgranular_id, intergranular_id;
+  const SolidMechanicsModelCohesive & model;
+  const Mesh & mesh;
+  const Mesh & mesh_facets;
+  UInt spatial_dimension;
+
+  UInt nb_IG;
+  UInt nb_TG;
+};
+
 
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
@@ -77,7 +130,10 @@ int main(int argc, char *argv[]) {
 
   /// model initialization
   model.initParallel(partition, NULL, true);
-  model.initFull("material.dat", _explicit_lumped_mass, true, false);
+
+  MultiGrainMaterialSelector material_selector(model, "TG_cohesive", "IG_cohesive");
+  model.setMaterialSelector(material_selector);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true, false));
 
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
@@ -97,12 +153,7 @@ int main(int argc, char *argv[]) {
   Array<Real> & position = mesh.getNodes();
 
   Real * bary_facet = new Real[spatial_dimension];
-// first, the tag which shows grain ID should be read for each element
-
-  // Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-  // MeshUtils::buildAllFacets(mesh, mesh_facets);
-  UInt nb_TG = 0;
-  UInt nb_IG = 0;
+  // first, the tag which shows grain ID should be read for each element
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end();
@@ -119,9 +170,6 @@ int main(int argc, char *argv[]) {
 	facet_check.clear();
 
       UInt nb_facet = mesh_facets.getNbElement(type_facet, gt_facet);
-
-      const Array< std::vector<Element> > & element_to_subelement = mesh_facets.getElementToSubelement(type_facet, gt_facet);
-      Array<UInt> & facet_mat_by_type = model.getFacetMaterial(type_facet, gt_facet);
       ////////////////////////////////////////////
 
       for (UInt f = 0; f < nb_facet; ++f) {
@@ -129,29 +177,6 @@ int main(int argc, char *argv[]) {
 	if ((bary_facet[1] < 0.1 && bary_facet[1] > -0.1) ||(bary_facet[0] < 0.1 && bary_facet[0] > -0.1)) {
 	  if (gt_facet == _not_ghost)
 	    facet_check(f) = true;
-	  const Element & el1 = element_to_subelement(f)[0];
-	  const Element & el2 = element_to_subelement(f)[1];
-
-	  Vector<Real> el1_bary(spatial_dimension);
-	  Vector<Real> el2_bary(spatial_dimension);
-	  mesh.getBarycenter(el1, el1_bary);
-	  mesh.getBarycenter(el2, el2_bary);
-
-	  UInt grain_id1 = mesh.getData<UInt>(el1.type, "tag_0", el1.ghost_type)(el1.element);
-	  if(el2 != ElementNull) {
-	    UInt grain_id2 = mesh.getData<UInt>(el2.type, "tag_0", el2.ghost_type)(el2.element);
-	    if (grain_id1 == grain_id2){
-	      //transgranular = 0 indicator
-	      facet_mat_by_type(f) = 1;
-	      nb_TG++;
-	    } else  {
-	      //intergranular = 1 indicator
-	      facet_mat_by_type(f) = 2;
-	      nb_IG++;
-	    }
-
-	  }
-	  // std::cout << f << std::endl;
 	}
       }
     }
@@ -160,7 +185,7 @@ int main(int argc, char *argv[]) {
 
   // std::cout << nb_IG << " " << nb_TG << std::endl;
 
-  model.initFacetFilter();
+  //  model.initFacetFilter();
 
    //  for ( UInt i = 0; i < nb_facet; ++i){
 
@@ -263,10 +288,10 @@ int main(int argc, char *argv[]) {
     // Real Ed = model.getEnergy("dissipated");
 
     // edis << s << " "
-    // 	 << Ed << std::endl;
+    //	 << Ed << std::endl;
 
     // erev << s << " "
-    // 	 << Er << std::endl;
+    //	 << Er << std::endl;
 
   }
 

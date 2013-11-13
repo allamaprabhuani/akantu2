@@ -90,8 +90,11 @@ inline void Material::deformationJacobian<1>(const Matrix<Real> & F,
   J = *(F.storage());
 }
 
+/* -------------------------------------------------------------------------- */
 template<UInt dim >
-inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & piola,  Matrix<Real> & sigma) {
+inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F,
+						const Matrix<Real> & piola,
+						Matrix<Real> & sigma) {
 
     Real J = 1.0;
     deformationJacobian<dim>(F, J);
@@ -439,26 +442,6 @@ inline UInt Material::getSizeElementalFieldInterpolationCoodinates(GhostType gho
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-void Material::registerParam(std::string name, T & variable, T default_value,
-			     ParamAccessType type,
-			     std::string description) {
-  AKANTU_DEBUG_IN();
-  params.registerParam<T>(name, variable, default_value, type, description);
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-void Material::registerParam(std::string name, T & variable, ParamAccessType type,
-			     std::string description) {
-  AKANTU_DEBUG_IN();
-  params.registerParam<T>(name, variable, type, description);
-  AKANTU_DEBUG_OUT();
-}
-
-
-/* -------------------------------------------------------------------------- */
 inline UInt Material::getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
@@ -514,83 +497,17 @@ inline void Material::unpackElementDataHelper(ByElementTypeArray<T> & data_to_un
 					     model->getFEM(fem_id));
 }
 
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline T Material::getParam(const ID & param) const {
-  try {
-    return params.get<T>(param);
-  } catch (...) {
-    AKANTU_EXCEPTION("No parameter " << param << " in the material " << id);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline void Material::setParam(const ID & param, T value) {
-  try {
-    params.set<T>(param, value);
-  } catch(...) {
-    AKANTU_EXCEPTION("No parameter " << param << " in the material " << id);
-  }
-  updateInternalParameters();
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<typename T>
-void Material::removeQuadraturePointsFromArrays(ByElementTypeArray<T> & data,
-						 const ByElementTypeUInt & new_numbering) {
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
-    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
-    for (; it != end; ++it) {
-      ElementType type = *it;
-      if(data.exists(type, gt)){
-	const Array<UInt> & renumbering = new_numbering(type, gt);
-
-	Array<T> & vect = data(type, gt);
-
-	UInt nb_quad_per_elem = this->model->getFEM().getNbQuadraturePoints(type, gt);
-	UInt nb_component = vect.getNbComponent();
-
-	Array<T> tmp(renumbering.getSize()*nb_quad_per_elem, nb_component);
-
-	AKANTU_DEBUG_ASSERT(tmp.getSize() == vect.getSize(), "Something strange append some mater was created from nowhere!!");
-
-	AKANTU_DEBUG_ASSERT(tmp.getSize() == vect.getSize(), "Something strange append some mater was created or disappeared in "<< vect.getID() << "("<< vect.getSize() <<"!=" << tmp.getSize() <<") ""!!");
-
-	UInt new_size = 0;
-	for (UInt i = 0; i < renumbering.getSize(); ++i) {
-	  UInt new_i = renumbering(i);
-	  if(new_i != UInt(-1)) {
-	    memcpy(tmp.storage() + new_i * nb_component * nb_quad_per_elem,
-		   vect.storage() + i * nb_component * nb_quad_per_elem,
-		   nb_component * nb_quad_per_elem * sizeof(T));
-	    ++new_size;
-	  }
-	}
-	tmp.resize(new_size * nb_quad_per_elem);
-	vect.copy(tmp);
-      }
-    }
-  }
-}
 
 /* -------------------------------------------------------------------------- */
 inline void Material::onElementsAdded(__attribute__((unused)) const Array<Element> & element_list,
 				      __attribute__((unused)) const NewElementsEvent & event) {
-  for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
+  for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
-       ++it) {
-    resizeInternalArray(*(it->second));
-  }
+       ++it) it->second->resize();
 
-  for (std::map<ID, ByElementTypeUInt *>::iterator it = internal_vectors_uint.begin();
+  for (std::map<ID, InternalField<UInt> *>::iterator it = internal_vectors_uint.begin();
        it != internal_vectors_uint.end();
-       ++it) {
-    resizeInternalArray(*(it->second));
-  }
+       ++it) it->second->resize();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -633,8 +550,8 @@ inline void Material::onElementsRemoved(const Array<Element> & element_list,
 	    AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A not removed element as been badly renumbered");
 	    elem_filter_tmp.push_back(new_el);
 	    mat_renumbering(i) = ni;
-	    element_index_material(new_el, 0) = ni;
-	    element_index_material(new_el, 1) = my_num;
+	    element_index_material(new_el, 0) = my_num;
+	    element_index_material(new_el, 1) = ni;
 	    ++ni;
 	  } else {
 	    mat_renumbering(i) = UInt(-1);
@@ -647,15 +564,31 @@ inline void Material::onElementsRemoved(const Array<Element> & element_list,
     }
   }
 
-  for (std::map<ID, ByElementTypeReal *>::iterator it = internal_vectors_real.begin();
+  for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
-       ++it) {
-    this->removeQuadraturePointsFromArrays(*(it->second), material_local_new_numbering);
-  }
+       ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
 
-  for (std::map<ID, ByElementTypeUInt *>::iterator it = internal_vectors_uint.begin();
+  for (std::map<ID, InternalField<UInt> *>::iterator it = internal_vectors_uint.begin();
        it != internal_vectors_uint.end();
-       ++it) {
-    this->removeQuadraturePointsFromArrays(*(it->second), material_local_new_numbering);
-  }
+       ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
 }
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+template<> inline void Material::registerInternal<Real>(InternalField<Real> & vect) {
+  internal_vectors_real[vect.getID()] = &vect;
+}
+
+template<> inline void Material::registerInternal<UInt>(InternalField<UInt> & vect) {
+  internal_vectors_uint[vect.getID()] = &vect;
+}
+
+/* -------------------------------------------------------------------------- */
+template<> inline void Material::unregisterInternal<Real>(InternalField<Real> & vect) {
+  internal_vectors_real.erase(vect.getID());
+}
+
+template<> inline void Material::unregisterInternal<UInt>(InternalField<UInt> & vect) {
+  internal_vectors_uint.erase(vect.getID());
+}
+

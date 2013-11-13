@@ -1,0 +1,67 @@
+/**
+ * @file   node_group.cc
+ *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Mon Jun 10 10:42:27 2013
+ *
+ * @brief  Implementation of the node group
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+
+#include "node_group.hh"
+
+
+__BEGIN_AKANTU__
+
+/* -------------------------------------------------------------------------- */
+NodeGroup::NodeGroup(const std::string & name,
+                     const std::string & id,
+                     const MemoryID & memory_id) :
+  Memory(memory_id),
+  name(name),
+  node_group(alloc<UInt>(id + ":nodes", 0, 1)) {
+}
+
+/* -------------------------------------------------------------------------- */
+NodeGroup::~NodeGroup() {}
+
+/* -------------------------------------------------------------------------- */
+void NodeGroup::removeDuplicate() {
+  std::sort(node_group.begin(), node_group.end());
+  std::unique(node_group.begin(), node_group.end());
+}
+
+/* -------------------------------------------------------------------------- */
+void NodeGroup::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+
+  stream << space << "NodeGroup [" << std::endl;
+  stream << space << " + name: " << name << std::endl;
+  node_group.printself(stream, indent + 1);
+  stream << space << "]" << std::endl;
+}
+
+
+__END_AKANTU__

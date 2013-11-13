@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     GhostType ghost_type = _not_ghost;
 
     for(; it != last_type; ++it) {
-      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>(*it, "barycenters", ghost_type, dim);
+      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>("barycenters", *it, ghost_type, dim);
       Array<Real>::iterator< Vector<Real> > mesh_data_array_it = mesh_data_array.begin(dim);
 
       UInt nb_element = mesh.getNbElement(*it, ghost_type);
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
     Mesh::type_iterator last_type = mesh.lastType(dim, ghost_type);
 
     for(; tit != last_type; ++tit) {
-      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>(*tit, "barycenters", ghost_type, dim);
+      Array<Real> & mesh_data_array = *mesh.getDataPointer<Real>("barycenters", *tit, ghost_type, dim);
       Array<Real>::iterator< Vector<Real> > mesh_data_array_it = mesh_data_array.begin(dim);
 
       UInt nb_element = mesh.getNbElement(*tit, ghost_type);
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
 
   // Checking the tags in MeshData (not a very good test because they're all identical,
   // but still...)
-  Array<UInt> & tags = mesh.getData<UInt>(type, "tag_0");
+Array<UInt> & tags = mesh.getData<UInt>("tag_0", type);
   Array<UInt>::const_iterator< Vector<UInt> > tags_it = tags.begin(1);
   Array<UInt>::const_iterator< Vector<UInt> > tags_end = tags.end(1);
   AKANTU_DEBUG_ASSERT(mesh.getNbElement(type) == tags.getSize(),

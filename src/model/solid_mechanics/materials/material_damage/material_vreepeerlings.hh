@@ -47,10 +47,6 @@ __BEGIN_AKANTU__
  *   - Brate   : (default: 1.) This parameter determines the rate at which the damage grows
  *   - Crate   : (default: 0.0001) This parameter determines the rate at which the damage grows
  *   - Kct    : (default: 1.) Ratio between compressive and tensile strength
- *   - Kapao_randomness  : (default:0.) Kapaoi random internal variable
- *   - Wf_vrplgs_ko_min : (default:1.) Parameter Kapa_o_min in the Weibulls law used for randomness on Kapaoi
- *   - Wf_vrplgs_lambda : (default:1.) 
- *   - Wf_vrplgs_mw     : (default:1.) 
  */
 template<UInt spatial_dimension, template <UInt> class MatParent = MaterialElastic>
 class MaterialVreePeerlings : public MaterialDamage<spatial_dimension,
@@ -129,35 +125,26 @@ protected:
   /// Randomness on Kapaoi
   Real Kapao_randomness;
 
-  /// Parameter Wf_vrplgs_kapao_min in the Weibulls law used for randomness on Kapaoi
-  Real Wf_vrplgs_ko_min;
-
-  /// Parameter Wf_vrplgs_lambda in the Weibulls law used for randomness on Kapaoi
-  Real Wf_vrplgs_lambda;
-
-  /// Parameter Wf_vrplgs_mw in the Weibulls law used for randomness on Kapaoi
-  Real Wf_vrplgs_mw;
- 
   /// Kapa vector which contains the initial damage threshold
-  ByElementTypeReal Kapa;
+  RandomInternalField<Real> Kapa;
 
   /// Strain rate tensor to compute the rate dependent damage law
-  ByElementTypeReal strain_rate_vreepeerlings;
+  InternalField<Real> strain_rate_vreepeerlings;
 
   /// Value of the equivalent strain when damage = 1
-  ByElementTypeReal Full_dam_value_strain;
+  InternalField<Real> Full_dam_value_strain;
 
   /// Value of the equivalent strain rate when damage = 1
-  ByElementTypeReal Full_dam_value_strain_rate;
+  InternalField<Real> Full_dam_value_strain_rate;
 
   /// Count the number of times that the material is damaged to damage = 0 until damage = 1
-  ByElementTypeReal Number_damage;
+  InternalField<Real> Number_damage;
 
   /// Equivalent strain used to compute the damage evolution
-  ByElementTypeReal equi_strain;
+  InternalField<Real> equi_strain;
 
   /// Equivalent strain rate used to compute the damage evolution
-  ByElementTypeReal equi_strain_rate;
+  InternalField<Real> equi_strain_rate;
 };
 
 /* -------------------------------------------------------------------------- */

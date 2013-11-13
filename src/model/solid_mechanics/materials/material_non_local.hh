@@ -63,10 +63,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// read properties
-  virtual bool parseParam(const std::string & key, const std::string & value,
-			  const ID & id);
-
   /// initialize the material computed parameter
   virtual void initMaterial();
 
@@ -119,8 +115,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  void registerNonLocalVariable(ByElementTypeReal & local,
-				ByElementTypeReal & non_local,
+  void registerNonLocalVariable(InternalField<Real> & local,
+				InternalField<Real> & non_local,
 				UInt nb_degree_of_freedom) {
     ID id = local.getID();
     NonLocalVariable & non_local_variable = non_local_variables[id];
@@ -131,15 +127,13 @@ public:
   }
 
   AKANTU_GET_MACRO(PairList, pair_list, const PairList<UInt> &)
-  AKANTU_GET_MACRO(Radius, radius, Real);
+  Real getRadius() const { return weight_func->getRadius(); }
   AKANTU_GET_MACRO(CellList, *spatial_grid, const SpatialGrid<QuadraturePoint> &)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// the non local radius
-  Real radius;
 
   /// the weight function used
   WeightFunction<dim> * weight_func;
@@ -157,15 +151,12 @@ private:
   typedef std::set< std::pair<ElementType, ElementType> > pair_type;
   pair_type existing_pairs[2];
 
-  /// specify if the weights should be updated and at which rate
-  UInt update_weights;
-
   /// count the number of calls of computeStress
   UInt compute_stress_calls;
 
   struct NonLocalVariable {
-    ByElementTypeArray<Real> * local;
-    ByElementTypeArray<Real> * non_local;
+    InternalField<Real> * local;
+    InternalField<Real> * non_local;
     UInt nb_component;
   };
 

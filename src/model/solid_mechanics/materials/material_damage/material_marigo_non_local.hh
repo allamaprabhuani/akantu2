@@ -81,8 +81,8 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  ByElementTypeReal Y;
-  ByElementTypeReal Ynl;
+  InternalField<Real> Y;
+  InternalField<Real> Ynl;
 };
 
 /* -------------------------------------------------------------------------- */

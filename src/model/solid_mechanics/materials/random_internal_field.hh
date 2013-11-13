@@ -1,12 +1,11 @@
 /**
- * @file   parser.hh
+ * @file   random_internal_field.hh
  *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Fri Nov 26 00:17:56 2010
+ * @date   Fri Nov  1 10:24:11 2013
  *
- * @brief  Common part of parser functionalities
+ * @brief  Random internal material parameter
  *
  * @section LICENSE
  *
@@ -29,85 +28,68 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_MATERIAL_PARSER_HH__
-#define __AKANTU_MATERIAL_PARSER_HH__
-
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-
+#include "aka_random_generator.hh"
+#include "internal_field.hh"
 /* -------------------------------------------------------------------------- */
-#include <fstream>
 
-/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_RANDOM_INTERNAL_FIELD_HH__
+#define __AKANTU_RANDOM_INTERNAL_FIELD_HH__
 
 __BEGIN_AKANTU__
 
-class Parsable {
-public:
-  virtual ~Parsable() {};
-  virtual bool parseParam(const std::string & key, const std::string & value,
-			  const ID & id) = 0;
-};
-
-class Parser {
+template<typename T,
+	 template<typename> class BaseField = InternalField,
+	 template<typename> class Generator = RandGenerator>
+class RandomInternalField : public BaseField<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  RandomInternalField(const ID & id, Material & material);
 
-  Parser() : current_line(0) {};
-  virtual ~Parser(){ infile.close(); };
+  virtual ~RandomInternalField();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+
 public:
+  virtual void initialize(UInt nb_component);
 
-  /// open/close a file to parse
-  void open(const std::string & filename);
-  void close();
+  void setDefaultValue(const T & value);
 
-  /// read the file and return the next material type
-  std::string getNextSection(const std::string & obj_type, std::string & optional_param);
+  void setRandomDistribution(const RandomParameter<T> & param);
 
-  /// read properties and instanciate a given material object
-  template <typename M>
-  void readSection(M & model);
+  void printself(std::ostream & stream, unsigned int indent = 0) const;
 
-  /// read the properties in a section
-  void readSection(const std::string & obj_name, Parsable & obj);
+protected:
+  virtual void setArrayValues(T * begin, T * end);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
+  inline operator Real() const;
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  inline void my_getline();
-
-  /// number of the current line
-  UInt current_line;
-
-  /// material file
-  std::ifstream infile;
-
-  /// current read line
-  std::string line;
-
-  /// name of file parsed
-  std::string filename;
+  /// random parameter containing the distribution and base value
+  RandomParameter<T> random_parameter;
 };
 
-#include "parser_tmpl.hh"
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "parser_inline_impl.cc"
-#endif
+/// standard output stream operator
+template<typename T>
+inline std::ostream & operator <<(std::ostream & stream, const RandomInternalField<T> & _this)
+{
+  _this.printself(stream);
+  return stream;
+}
 
 __END_AKANTU__
 
-#endif
+#endif /* __AKANTU_RANDOM_INTERNAL_FIELD_HH__ */

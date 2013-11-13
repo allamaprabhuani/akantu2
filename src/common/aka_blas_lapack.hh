@@ -242,7 +242,6 @@ AKANTU_DEBUG_ERROR(debug::demangle(typeid(T).name()) << "is not a type recognize
 #pragma GCC diagnostic pop
 #endif
 
-
 #ifdef AKANTU_USE_LAPACK
 template<>
 inline void aka_geev<double>(char* jobvl, char* jobvr, int* n, double* a,

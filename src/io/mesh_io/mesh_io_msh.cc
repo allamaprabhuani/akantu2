@@ -162,7 +162,7 @@ MeshIOMSH::MeshIOMSH() {
   _msh_nodes_per_elem[_msh_quadrangle_4  ] = 4;
   _msh_nodes_per_elem[_msh_tetrahedron_4 ] = 4;
   _msh_nodes_per_elem[_msh_hexahedron_8  ] = 8;
-  _msh_nodes_per_elem[_msh_prism_1       ] = 1;
+  _msh_nodes_per_elem[_msh_prism_1       ] = 6;
   _msh_nodes_per_elem[_msh_pyramid_1     ] = 1;
   _msh_nodes_per_elem[_msh_segment_3     ] = 3;
   _msh_nodes_per_elem[_msh_triangle_6    ] = 6;
@@ -180,7 +180,7 @@ MeshIOMSH::MeshIOMSH() {
   _msh_to_akantu_element_types[_msh_quadrangle_4  ] = _quadrangle_4;
   _msh_to_akantu_element_types[_msh_tetrahedron_4 ] = _tetrahedron_4;
   _msh_to_akantu_element_types[_msh_hexahedron_8  ] = _hexahedron_8;
-  _msh_to_akantu_element_types[_msh_prism_1       ] = _not_defined;
+  _msh_to_akantu_element_types[_msh_prism_1       ] = _pentahedron_6;
   _msh_to_akantu_element_types[_msh_pyramid_1     ] = _not_defined;
   _msh_to_akantu_element_types[_msh_segment_3     ] = _segment_3;
   _msh_to_akantu_element_types[_msh_triangle_6    ] = _triangle_6;
@@ -202,6 +202,7 @@ MeshIOMSH::MeshIOMSH() {
   _akantu_to_msh_element_types[_quadrangle_4    ] = _msh_quadrangle_4;
   _akantu_to_msh_element_types[_quadrangle_8    ] = _msh_quadrangle_8;
   _akantu_to_msh_element_types[_hexahedron_8    ] = _msh_hexahedron_8;
+  _akantu_to_msh_element_types[_pentahedron_6   ] = _msh_prism_1;
   _akantu_to_msh_element_types[_point_1         ] = _msh_point;
   _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
 
@@ -376,19 +377,19 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
             Int tag;
             sstr_elem >> tag;
             std::stringstream sstr_tag_name; sstr_tag_name << "tag_" << j;
-            Array<UInt> * data = mesh.getDataPointer<UInt>(akantu_type, sstr_tag_name.str(), _not_ghost);
+            Array<UInt> * data = mesh.getDataPointer<UInt>(sstr_tag_name.str(), akantu_type, _not_ghost);
             data->push_back(tag);
           }
         } else if (file_format == 1) {
           Int tag;
           sstr_elem >> tag; //reg-phys
           std::string tag_name = "tag_0";
-          Array<UInt> * data = mesh.getDataPointer<UInt>(akantu_type, tag_name, _not_ghost);
+          Array<UInt> * data = mesh.getDataPointer<UInt>(tag_name, akantu_type, _not_ghost);
           data->push_back(tag);
 
           sstr_elem >> tag; //reg-elem
           tag_name = "tag_1";
-          data = mesh.getDataPointer<UInt>(akantu_type, tag_name, _not_ghost);
+          data = mesh.getDataPointer<UInt>(tag_name, akantu_type, _not_ghost);
           data->push_back(tag);
 
           sstr_elem >> tag; //number-of-nodes
@@ -422,8 +423,8 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 
   if(!phys_name_map.empty()) {
     for(Mesh::type_iterator type_it = mesh.firstType(); type_it != mesh.lastType(); ++type_it) {
-      Array<std::string> * name_vec = mesh.getDataPointer<std::string>(*type_it, "physical_names" );
-      const Array<UInt> & tags_vec = mesh.getData<UInt>(*type_it, "tag_0");
+      Array<std::string> * name_vec = mesh.getDataPointer<std::string>("physical_names", *type_it);
+      const Array<UInt> & tags_vec = mesh.getData<UInt>("tag_0", *type_it);
 
       for(UInt i(0); i < tags_vec.getSize(); i++) {
         std::map<UInt, std::string>::const_iterator map_it = phys_name_map.find(tags_vec(i));
@@ -492,12 +493,12 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
     UInt * tag[2] = {NULL, NULL};
     try {
-      const Array<UInt> & data_tag_0 = mesh.getData<UInt>(type, "tag_0", _not_ghost);
+      const Array<UInt> & data_tag_0 = mesh.getData<UInt>("tag_0", type, _not_ghost);
       tag[0] = data_tag_0.storage();
     } catch(...) { tag[0] = NULL; }
 
     try {
-      const Array<UInt> & data_tag_1 = mesh.getData<UInt>(type, "tag_1", _not_ghost);
+      const Array<UInt> & data_tag_1 = mesh.getData<UInt>("tag_1", type, _not_ghost);
       tag[1] = data_tag_1.storage();
     } catch(...) { tag[1] = NULL; }
 

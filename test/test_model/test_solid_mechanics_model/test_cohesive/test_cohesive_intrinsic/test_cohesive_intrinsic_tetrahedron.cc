@@ -305,7 +305,7 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
   const MaterialCohesive & mat_cohesive
     = dynamic_cast < const MaterialCohesive & > (model.getMaterial(1));
 
-  const Real sigma_c = mat_cohesive.getParam<Real>("sigma_c");
+  const Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
   const Real beta = mat_cohesive.getParam<Real>("beta");
   //  const Real G_cI = mat_cohesive.getParam<Real>("G_cI");
   //  Real G_cII = mat_cohesive.getParam<Real>("G_cII");

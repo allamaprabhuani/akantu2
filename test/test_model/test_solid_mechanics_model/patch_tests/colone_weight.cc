@@ -79,9 +79,7 @@ int main(int argc, char *argv[]) {
 
   //  akantu::Real epot, ekin;
   akantu::Mesh mesh(spatial_dimension);
-
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read(mesh_file.str().c_str(), mesh);
+  mesh.read(mesh_file.str().c_str());
 
   akantu::SolidMechanicsModel model(mesh);
 

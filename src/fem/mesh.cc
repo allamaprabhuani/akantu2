@@ -61,15 +61,16 @@ void Element::printself(std::ostream & stream, int indent) const {
 Mesh::Mesh(UInt spatial_dimension,
            const ID id,
            const MemoryID & memory_id) :
-  Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
+  Memory(memory_id),
+  GroupManager(*this, id + ":group_manager", memory_id),
+  id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(true),
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
-  mesh_data("mesh_data", id, memory_id),
-  boundaries(*this, "boundaries", id, memory_id) {
+  mesh_data("mesh_data", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(alloc<Real>(this->id + ":coordinates", 0, this->spatial_dimension));
@@ -94,15 +95,16 @@ Mesh::Mesh(UInt spatial_dimension,
            const ID & nodes_id,
            const ID & id,
            const MemoryID & memory_id) :
-  Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
+  Memory(memory_id),
+  GroupManager(*this, id + ":group_manager", memory_id),
+  id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false),
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
-  mesh_data("mesh_data", id, memory_id),
-  boundaries(*this, "boundaries", id, memory_id) {
+  mesh_data("mesh_data", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(getArray<Real>(nodes_id));
@@ -118,15 +120,16 @@ Mesh::Mesh(UInt spatial_dimension,
            Array<Real> & nodes,
            const ID & id,
            const MemoryID & memory_id) :
-  Memory(memory_id), id(id), nodes_global_ids(NULL), nodes_type(NULL),
+  Memory(memory_id),
+  GroupManager(*this, id + ":group_manager", memory_id),
+  id(id), nodes_global_ids(NULL), nodes_type(NULL),
   created_nodes(false),
   connectivities("connectivities", id),
   normals("normals", id),
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>(_max_element_type + 1, 1)),
-  mesh_data("mesh_data", id, memory_id),
-  boundaries(*this, "boundaries", id, memory_id) {
+  mesh_data("mesh_data", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(nodes);

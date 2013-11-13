@@ -28,6 +28,14 @@
  */
 
 /* -------------------------------------------------------------------------- */
+inline UInt MaterialCohesive::addFacet(const Element & element) {
+  Array<UInt> & f_filter = facet_filter(element.type, element.ghost_type);
+  f_filter.push_back(element.element);
+  return f_filter.getSize()-1;
+}
+
+
+/* -------------------------------------------------------------------------- */
 template<ElementType type>
 void MaterialCohesive::computeNormal(const Array<Real> & position,
 				     Array<Real> & normal,

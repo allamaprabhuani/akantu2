@@ -30,8 +30,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "sub_boundary.hh"
 #include "model.hh"
+#include "element_group.hh"
 
 __BEGIN_AKANTU__
 
@@ -42,6 +42,19 @@ Model::Model(Mesh& m, UInt dim, const ID & id,
   spatial_dimension(dim == _all_dimensions ? m.getSpatialDimension() : dim),
   synch_registry(NULL),is_pbc_slave_node(0,1,"is_pbc_slave_node") {
   AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::initFull(std::string input_file, const ModelOptions & options) {
+  AKANTU_DEBUG_IN();
+
+  if(input_file != "") {
+    parser.parse(input_file);
+  }
+
+  initModel();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -146,58 +159,54 @@ Model::~Model() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dumpBoundary(const std::string & boundary_name) {
-  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
-  boundary.dump();
+void Model::dumpGroup(const std::string & group_name) {
+  ElementGroup & group = mesh.getElementGroup(group_name);
+  group.dump();
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dumpBoundary(const std::string & boundary_name,
+void Model::dumpGroup(const std::string & group_name,
 			 const std::string & dumper_name) {
-  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
-  boundary.dump(dumper_name);
+  ElementGroup & group =  mesh.getElementGroup(group_name);
+  group.dump(dumper_name);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::dumpBoundary() {
-  Boundary & boundary =  mesh.getBoundary();
-  Boundary::iterator bit = boundary.begin();
-  Boundary::iterator bend = boundary.end();
-
+void Model::dumpGroup() {
+  GroupManager::element_group_iterator bit  = mesh.element_group_begin();
+  GroupManager::element_group_iterator bend = mesh.element_group_end();
   for(; bit != bend; ++bit) {
-    bit->dump();
+    bit->second->dump();
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setBoundaryDirectory(const std::string & directory) {
-  Boundary & boundary     = mesh.getBoundary();
-  Boundary::iterator bit  = boundary.begin();
-  Boundary::iterator bend = boundary.end();
-
+void Model::setGroupDirectory(const std::string & directory) {
+  GroupManager::element_group_iterator bit  = mesh.element_group_begin();
+  GroupManager::element_group_iterator bend = mesh.element_group_end();
   for (; bit != bend; ++bit) {
-    bit->setDirectory(directory);
+    bit->second->setDirectory(directory);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setBoundaryDirectory(const std::string & directory,
-				 const std::string & boundary_name) {
-  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
-  boundary.setDirectory(directory);
+void Model::setGroupDirectory(const std::string & directory,
+				 const std::string & group_name) {
+  ElementGroup & group =  mesh.getElementGroup(group_name);
+  group.setDirectory(directory);
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setBoundaryBaseName(const std::string & basename,
-				const std::string & boundary_name) {
-  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
-  boundary.setBaseName(basename);
+void Model::setGroupBaseName(const std::string & basename,
+				const std::string & group_name) {
+  ElementGroup & group =  mesh.getElementGroup(group_name);
+  group.setBaseName(basename);
 }
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper &  Model::getBoundaryDumper(const std::string & boundary_name) {
-  SubBoundary & boundary =  mesh.getSubBoundary(boundary_name);
-  return boundary.getDumper();
+DumperIOHelper &  Model::getGroupDumper(const std::string & group_name) {
+  ElementGroup & group =  mesh.getElementGroup(group_name);
+  return group.getDumper();
 }
 
 /* -------------------------------------------------------------------------- */

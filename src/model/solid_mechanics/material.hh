@@ -32,9 +32,10 @@
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "parser.hh"
+#include "parsable.hh"
 #include "data_accessor.hh"
-#include "material_parameters.hh"
-
+#include "internal_field.hh"
+#include "random_internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_HH__
@@ -79,7 +80,7 @@ template <UInt dim> const UInt VoigtHelper<dim>::size = dim*(dim-(dim-1)/2);
  * \endcode
  *
  */
-class Material : protected Memory, public DataAccessor, public Parsable, public MeshEventHandler {
+class Material : public Memory, public DataAccessor, public Parsable, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -93,23 +94,15 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// register a material parameter
-  template<class T>
-  void registerParam(std::string name, T & variable, T default_value,
-                     ParamAccessType type,
-                     std::string description = "");
-
-  template<class T>
-  void registerParam(std::string name, T & variable, ParamAccessType type,
-                     std::string description = "");
-
+  template<typename T>
+  void registerInternal(__attribute__((unused)) InternalField<T> & vect) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   template<typename T>
-  void registerInternal(__attribute__((unused)) ByElementTypeArray<T> & vect) { AKANTU_DEBUG_TO_IMPLEMENT(); }
-
-  /// read parameter from file
-  virtual bool parseParam(const std::string & key, const std::string & value,
-                          const ID & id);
+  void unregisterInternal(__attribute__((unused)) InternalField<T> & vect) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 
   /// function called to update the internal parameters when the modifiable
   /// parameters are modified
@@ -309,21 +302,8 @@ protected:
   virtual void computePotentialEnergyByElement(ElementType type, UInt index,
                                                Vector<Real> & epot_on_quad_points);
 
-protected:
-  /// allocate an internal vector
-  template<typename T>
-  void initInternalArray(ByElementTypeArray<T> & vect,
-                         UInt nb_component,
-                         bool temporary = false,
-                         ElementKind element_kind = _ek_regular,
-                         GhostType ghost_type = _casper);
 
 public:
-  /// resize an internal vector
-  template<typename T>
-  void resizeInternalArray(ByElementTypeArray<T> & vect,
-                            ElementKind element_kind = _ek_regular) const;
-
   /* ------------------------------------------------------------------------ */
   template<UInt dim>
   inline void gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F);
@@ -372,11 +352,6 @@ public:
                                         const ByElementTypeUInt & new_numbering,
                                         const RemovedElementsEvent & event);
 
-protected:
-  template<typename T>
-  void removeQuadraturePointsFromArrays(ByElementTypeArray<T> & data,
-                                         const ByElementTypeUInt & new_numbering);
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -414,12 +389,6 @@ public:
   const ByElementTypeArray<Real> & getInternal(const ID & id) const;
   ByElementTypeArray<Real> & getInternal(const ID & id);
 
-  template<typename T>
-  inline T getParam(const ID & param) const;
-
-  template<typename T>
-  inline void setParam(const ID & param, T value);
-
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
 
@@ -430,6 +399,13 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+private:
+  /// boolean to know if the material has been initialized
+  bool is_init;
+
+  std::map<ID, InternalField<Real> *> internal_vectors_real;
+  std::map<ID, InternalField<UInt> *> internal_vectors_uint;
+
 protected:
   /// id of the material
   ID id;
@@ -450,29 +426,32 @@ protected:
   /// density : rho
   Real rho;
 
-  /// stresses arrays ordered by element types
-  ByElementTypeReal stress;
-
-  /// strains arrays ordered by element types
-  ByElementTypeReal strain;
-
-  /// stress increment arrays ordered by element types (Finite deformation)
-  ByElementTypeReal delta_stress;
-
-  /// strain increment arrays ordered by element types (Finite deformation)
-  ByElementTypeReal delta_strain;
-
-  /// strain increment arrays ordered by element types (inelastic deformation)
-  ByElementTypeReal inelas_strain;
-
-  /// Second Piola-Kirchhoff stress tensor arrays ordered by element types (Finite deformation)
-  ByElementTypeReal piola_kirchhoff_stress;
+  /// spatial dimension
+  UInt spatial_dimension;
 
   /// list of element handled by the material
-  ByElementTypeUInt element_filter;
+  ByElementTypeArray<UInt> element_filter;
+
+  /// stresses arrays ordered by element types
+  InternalField<Real> stress;
+
+  /// strains arrays ordered by element types
+  InternalField<Real> strain;
+
+  /// stress increment arrays ordered by element types (Finite deformation)
+  InternalField<Real> delta_stress;
+
+  /// strain increment arrays ordered by element types (Finite deformation)
+  InternalField<Real> delta_strain;
+
+  /// strain increment arrays ordered by element types (inelastic deformation)
+  InternalField<Real> inelas_strain;
+
+  /// Second Piola-Kirchhoff stress tensor arrays ordered by element types (Finite deformation)
+  InternalField<Real> piola_kirchhoff_stress;
 
   /// potential energy by element
-  ByElementTypeReal potential_energy;
+  InternalField<Real> potential_energy;
 
   /// tell if using in non local mode or not
   bool is_non_local;
@@ -481,41 +460,26 @@ protected:
   bool use_previous_stress;
 
   /// previous stresses
-  ByElementTypeReal previous_stress;
+  InternalField<Real> previous_stress;
 
   /// tell if the material need the previous strain state
   bool use_previous_strain;
 
   /// previous strain
-  ByElementTypeReal previous_strain;
-
-  /// spatial dimension
-  UInt spatial_dimension;
+  InternalField<Real> previous_strain;
 
   /// elemental field interpolation coordinates
-  ByElementTypeReal interpolation_inverse_coordinates;
+  InternalField<Real> interpolation_inverse_coordinates;
 
   /// elemental field interpolation points
-  ByElementTypeReal interpolation_points_matrices;
-
-  /// list of the paramters
-  MaterialParameters params;
-
-private:
-  /// boolean to know if the material has been initialized
-  bool is_init;
-
-  std::map<ID, ByElementTypeReal *> internal_vectors_real;
-  std::map<ID, ByElementTypeUInt *> internal_vectors_uint;
+  InternalField<Real> interpolation_points_matrices;
 };
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "material_inline_impl.cc"
-#endif
+#include "material_inline_impl.cc"
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Material & _this)
@@ -525,6 +489,9 @@ inline std::ostream & operator <<(std::ostream & stream, const Material & _this)
 }
 
 __END_AKANTU__
+
+#include "internal_field_tmpl.hh"
+#include "random_internal_field_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Auto loop                                                                  */

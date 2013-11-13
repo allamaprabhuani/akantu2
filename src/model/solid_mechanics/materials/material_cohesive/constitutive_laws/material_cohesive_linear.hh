@@ -104,7 +104,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
   /// beta parameter
   Real beta;
 
@@ -130,14 +129,13 @@ protected:
   Real penalty;
 
   /// critical effective stress
-  ByElementTypeReal sigma_c_eff;
+  CohesiveInternalField<Real> sigma_c_eff;
 
   /// critical displacement
-  ByElementTypeReal delta_c;
+  CohesiveInternalField<Real> delta_c;
 
   /// stress at insertion
-  ByElementTypeReal insertion_stress;
-
+  CohesiveInternalField<Real> insertion_stress;
 };
 
 

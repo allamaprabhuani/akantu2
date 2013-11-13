@@ -39,7 +39,7 @@ __BEGIN_AKANTU__
 LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
 					 const ID & id)  :
   Material(model, id),
-  damage("damage", id) {
+  damage("damage", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("E"           , E           , 0.   , _pat_parsable, "Young's modulus"        );
@@ -50,7 +50,7 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
   this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
 
-  initInternalArray(damage, 1);
+  damage.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -59,8 +59,6 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
 void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
-
-  resizeInternalArray(damage);
 
   lambda = nu * E / ((1 + nu) * (1 - 2*nu));
   mu     = E / (2 * (1 + nu));
@@ -72,8 +70,6 @@ void LocalMaterialDamage::initMaterial() {
 /* -------------------------------------------------------------------------- */
 void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  resizeInternalArray(this->damage);
 
   Real * dam = damage(el_type, ghost_type).storage();
 

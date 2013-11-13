@@ -34,25 +34,20 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 StressBasedWeightFunction<spatial_dimension>::StressBasedWeightFunction(Material & material) :
-  BaseWeightFunction<spatial_dimension>(material),
-  ft(0.),
-  stress_diag("stress_diag", material.getID()), selected_stress_diag(NULL),
-  stress_base("stress_base", material.getID()), selected_stress_base(NULL),
-  characteristic_size("lc", material.getID()),  selected_characteristic_size(NULL)
-{
-  const Mesh & mesh = material.getModel().getFEM().getMesh();
-  mesh.initByElementTypeArray(stress_diag, spatial_dimension, spatial_dimension);
-  mesh.initByElementTypeArray(stress_base, spatial_dimension * spatial_dimension, spatial_dimension);
-  mesh.initByElementTypeArray(characteristic_size, 1, spatial_dimension);
+  BaseWeightFunction<spatial_dimension>(material, "stress_based"),
+  stress_diag("stress_diag", material), selected_stress_diag(NULL),
+  stress_base("stress_base", material), selected_stress_base(NULL),
+  characteristic_size("lc", material),  selected_characteristic_size(NULL) {
+
+  this->registerParam("ft", this->ft, 0., _pat_parsable, "Tensile strength");
+  stress_diag.initialize(spatial_dimension);
+  stress_base.initialize(spatial_dimension * spatial_dimension);
+  characteristic_size.initialize(1);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void StressBasedWeightFunction<spatial_dimension>::init() {
-  this->material.resizeInternalArray(stress_diag);
-  this->material.resizeInternalArray(stress_base);
-  this->material.resizeInternalArray(characteristic_size);
-
   const Mesh & mesh = this->material.getModel().getFEM().getMesh();
   for (UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = GhostType(g);

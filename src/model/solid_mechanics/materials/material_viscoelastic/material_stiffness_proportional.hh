@@ -95,10 +95,10 @@ public:
 private:
 
   /// stress due to viscosity
-  ByElementTypeReal stress_viscosity;
+  InternalField<Real> stress_viscosity;
 
   /// stress due to elasticity
-  ByElementTypeReal stress_elastic;
+  InternalField<Real> stress_elastic;
 
   /// viscous ratio
   Real alpha;

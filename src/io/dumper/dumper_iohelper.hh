@@ -31,7 +31,7 @@
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "aka_vector.hh"
-#include "mesh.hh"
+#include "by_element_type.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -41,6 +41,8 @@
 namespace iohelper { class Dumper; }
 
 __BEGIN_AKANTU__
+
+class Mesh;
 
 class DumperIOHelper {
   /* ------------------------------------------------------------------------ */

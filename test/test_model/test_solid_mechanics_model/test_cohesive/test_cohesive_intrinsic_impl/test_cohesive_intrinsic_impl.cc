@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _static);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_static));
 
   /// boundary conditions
   Array<bool> & boundary = model.getBoundary();
@@ -140,35 +140,20 @@ int main(int argc, char *argv[]) {
 
   /// Main loop
   for ( UInt nstep = 0; nstep < max_step; ++nstep){
-    Real norm = 10;
-    UInt count = 0;
-
     for (UInt n = 0; n < nb_nodes; ++n) {
       if (std::abs(position(n,1)-2)< Math::getTolerance()){
 	displacement(n,1) += increment;
       }
     }
 
-    do{
-      std::cout << "Iter : " << ++count << " - residual norm : " << norm << std::endl;
-      model.assembleStiffnessMatrix();
-      if ((nstep == 0)&&(count == 2)) {
-	model.getStiffnessMatrix().saveMatrix("stiffness_matrix.lastout");
-	std::cout << "Count: " << count << std::endl;
-      }
-
-      model.solveStatic();
-      model.updateResidual();
-
-    } while(!model.testConvergenceResidual(1e-5, norm) && (count < 100))  ;
-
-    std::cout << "Step : " << nstep << " - residual norm : " << norm << std::endl;
+    bool converged = model.solveStep<_scm_newton_raphson_tangent, _scc_residual>(1e-5, 100);
+    AKANTU_DEBUG_ASSERT(converged, "Did not converge");
 
     model.dump();
 
     Real resid = 0;
     for (UInt n = 0; n < nb_nodes; ++n) {
-      if (std::abs(position(n, 1) - 2.) < Math::getTolerance()){
+      if (std::abs(position(n, 1) - 2.)/2. < Math::getTolerance()){
 	resid += residual(n, 1);
       }
     }

@@ -366,8 +366,8 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 template <ElementKind kind>
 template <ElementType type>
 Real IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
-				const GhostType & ghost_type,
-				const Array<UInt> & filter_elements) const {
+				      const GhostType & ghost_type,
+				      const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),
@@ -377,14 +377,30 @@ Real IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
   Array<Real> intfv(0, 1);
   integrate<type>(in_f, intfv, 1, ghost_type, filter_elements);
 
-  Array<Real>::iterator<Real> it  = intfv.begin();
-  Array<Real>::iterator<Real> end = intfv.end();
+  UInt nb_values = intfv.getSize();
+  if(nb_values == 0) return 0.;
 
-  Real intf = 0.;
-  for (; it != end; ++it) intf += *it;
+  UInt nb_values_to_sum = nb_values >> 1;
+
+  std::sort(intfv.begin(), intfv.end());
+
+
+  // as long as the half is not empty
+  while(nb_values_to_sum) {
+    UInt remaining = (nb_values - 2*nb_values_to_sum);
+    if(remaining)  intfv(nb_values - 2) += intfv(nb_values - 1);
+
+    // sum to consecutive values and store the sum in the first half
+    for (UInt i = 0; i < nb_values_to_sum; ++i) {
+      intfv(i) = intfv(2*i) + intfv(2*i + 1);
+    }
+
+    nb_values = nb_values_to_sum;
+    nb_values_to_sum >>= 1;
+  }
 
   AKANTU_DEBUG_OUT();
-  return intf;
+  return intfv(0);
 }
 
 /* -------------------------------------------------------------------------- */

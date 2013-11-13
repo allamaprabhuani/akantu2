@@ -188,7 +188,7 @@ function(register_test test_name)
     foreach(_file ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS} ${register_test_EXTRA_FILES})
       list(APPEND _source_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
     endforeach()
-    
+
     add_executable(${test_name} ${register_test_SOURCES} ${register_test_UNPARSED_ARGUMENTS})
     set_property(TARGET ${test_name}  APPEND
       PROPERTY INCLUDE_DIRECTORIES ${AKANTU_INCLUDE_DIRS} ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR})

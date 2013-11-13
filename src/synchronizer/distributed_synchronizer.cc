@@ -1091,7 +1091,9 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
     comm.probe<UInt>(p, Tag::genTag(p, 0, 0), status);
     Array<UInt> list(status.getSize());
 
-    AKANTU_DEBUG_INFO("Receiving list of elements (" << status.getSize() - 1 << " elements) no longer needed by proc " << p << " TAG("<< Tag::genTag(p, 0, 0) <<")");
+    AKANTU_DEBUG_INFO("Receiving list of elements (" << status.getSize() - 1
+		      << " elements) no longer needed by proc " << p
+		      << " TAG("<< Tag::genTag(p, 0, 0) <<")");
     comm.receive(list.storage(), list.getSize(),
                  p, Tag::genTag(p, 0, 0));
 

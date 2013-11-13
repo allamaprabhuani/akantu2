@@ -39,9 +39,9 @@ __BEGIN_AKANTU__
 template<UInt spatial_dimension>
 MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
-  stress_dev("stress_dev", id),
-  history_integral("history_integral", id),
-  dissipated_energy("dissipated_energy", id) {
+  stress_dev("stress_dev", *this),
+  history_integral("history_integral", *this),
+  dissipated_energy("dissipated_energy", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -51,9 +51,9 @@ MaterialStandardLinearSolidDeviatoric<spatial_dimension>::MaterialStandardLinear
 
   UInt stress_size = spatial_dimension * spatial_dimension;
 
-  this->initInternalArray(this->stress_dev, stress_size);
-  this->initInternalArray(this->history_integral, stress_size);
-  this->initInternalArray(this->dissipated_energy, 1);
+  this->stress_dev       .initialize(stress_size);
+  this->history_integral .initialize(stress_size);
+  this->dissipated_energy.initialize(1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -63,12 +63,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   updateInternalParameters();
-
   MaterialElastic<spatial_dimension>::initMaterial();
-
-  this->resizeInternalArray(this->stress_dev);
-  this->resizeInternalArray(this->history_integral);
-  this->resizeInternalArray(this->dissipated_energy);
 
   AKANTU_DEBUG_OUT();
 }

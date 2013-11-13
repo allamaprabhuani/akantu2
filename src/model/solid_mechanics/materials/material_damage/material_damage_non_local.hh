@@ -75,14 +75,6 @@ protected:
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual bool parseParam(const std::string & key, const std::string & value,
-			const ID & id) {
-    return MaterialNonLocalParent::parseParam(key, value, id) ||
-      MaterialDamageParent::parseParam(key, value, id);
-  }
-
-public:
-  /* ------------------------------------------------------------------------ */
   virtual inline UInt getNbDataForElements(const Array<Element> & elements,
 					   SynchronizationTag tag) const {
     return MaterialNonLocalParent::getNbDataForElements(elements, tag) +

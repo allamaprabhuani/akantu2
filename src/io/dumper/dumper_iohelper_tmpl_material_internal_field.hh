@@ -182,10 +182,10 @@ public:
     UInt nb_data = this->fem->getNbQuadraturePoints(*this->tit);
     try {
       const Array<T> & vect =
-	model->getMaterial(material_id[1]).getArray(field_id,
+	model->getMaterial(material_id[0]).getArray(field_id,
 						     *this->tit,
 						     this->ghost_type);
-      if(vect.getSize() == 0 || vect.getSize() < material_id[0]) // vector exists but has a wrong size
+      if(vect.getSize() == 0 || vect.getSize() < material_id[1]) // vector exists but has a wrong size
 	return return_type();
 
       UInt ln = out_n;
@@ -195,9 +195,9 @@ public:
 	= iterator_helper<T, ret_type>::begin(vect, ln,
 					      vect.getNbComponent() / ln * nb_data,
 					      vect.getSize() / nb_data);
-      it += material_id[0];
+      it += material_id[1];
 
-      return padding_helper->pad(*it, this->padding_m, this->padding_n, nb_data, material_id[1]);
+      return padding_helper->pad(*it, this->padding_m, this->padding_n, nb_data, material_id[0]);
     } catch (...) {
       return return_type();
     }

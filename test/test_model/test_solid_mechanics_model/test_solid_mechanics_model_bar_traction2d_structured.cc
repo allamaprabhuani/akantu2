@@ -62,41 +62,23 @@ int main(int argc, char *argv[])
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   /// model initialization
-  model->initArrays();
-
-  /// set vectors to 0
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  memset(model->getForce().values,        0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getVelocity().values,     0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getAcceleration().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-  memset(model->getDisplacement().values, 0,
-	 spatial_dimension*nb_nodes*sizeof(akantu::Real));
-
-  model->initExplicit();
-  model->initModel();
-  model->readMaterials("material.dat");
-  model->initMaterials();
+  model->initFull("material.dat");
 
   std::cout << model->getMaterial(0) << std::endl;
-
-  model->assembleMassLumped();
 
 
   /// boundary conditions
   akantu::Real eps = 1e-16;
-  for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] >= 9)
-      model->getDisplacement().values[spatial_dimension*i] = (model->getFEM().getMesh().getNodes().values[spatial_dimension*i] - 9) / 100. ;
+  for (akantu::UInt i = 0; i < mesh.getNbNodes(); ++i) {
+    if(mesh.getNodes()(i) >= 9)
+      model->getDisplacement()(i) = (model->getFEM().getMesh().getNodes()(i) - 9) / 100. ;
 
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i] <= eps)
-	model->getBoundary().values[spatial_dimension*i] = true;
+    if(mesh.getNodes()(i) <= eps)
+	model->getBoundary()(i) = true;
 
-    if(model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] <= eps ||
-       model->getFEM().getMesh().getNodes().values[spatial_dimension*i + 1] >= 1 - eps ) {
-      model->getBoundary().values[spatial_dimension*i + 1] = true;
+    if(mesh.getNodes()(i, 1) <= eps ||
+       mesh.getNodes()(i, 1) >= 1 - eps ) {
+      model->getBoundary()(i, 1) = true;
     }
   }
 

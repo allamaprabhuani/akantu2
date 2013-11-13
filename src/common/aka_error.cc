@@ -45,6 +45,12 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#if defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
+#  include <sys/time.h>
+#else
+#  include <time.h>
+#endif
+
 #ifdef AKANTU_USE_MPI
 #  include <mpi.h>
 #endif
@@ -63,6 +69,7 @@ namespace debug {
     action.sa_flags = SA_RESETHAND;
 
     sigaction(SIGSEGV, &action, NULL);
+    sigaction(SIGABRT, &action, NULL);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -191,7 +198,8 @@ namespace debug {
     free(stack_strings);
 
     std::cerr << "END BACKTRACE" << std::endl;
-    if(sig != 15) debugger.exit(EXIT_FAILURE);
+
+    if(sig != SIGKILL && sig != SIGABRT) debugger.exit(EXIT_FAILURE);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -211,14 +219,7 @@ namespace debug {
     }
   }
 
-  /* ------------------------------------------------------------------------ */
-  void Debugger::throwException(const std::string & info) throw(akantu::debug::Exception) {
-    AKANTU_DEBUG_( "###", akantu::dblWarning, info);
-    ::akantu::debug::Exception ex(info, __FILE__, __LINE__ );
-    throw ex;
-  }
-
-  /* ------------------------------------------------------------------------ */
+   /* ------------------------------------------------------------------------ */
   void Debugger::exit(int status) {
 #ifndef AKANTU_NDEBUG
     int * a = NULL;
@@ -232,6 +233,42 @@ namespace debug {
 #endif
     exit(status); // not  called when compiled  with MPI  due to  MPI_Abort, but
                   // MPI_Abort does not have the noreturn attribute
+  }
+
+  /*------------------------------------------------------------------------- */
+  void Debugger::throwException(const std::string & info,
+				const std::string & file,
+				unsigned int line,
+				__attribute__((unused)) bool silent,
+				__attribute__((unused)) const std::string & location) const throw(akantu::debug::Exception){
+#if !defined(AKANTU_NDEBUG)
+    if(silent) {
+      printMessage("###", dblWarning, info + location);
+    }
+#endif
+    debug::Exception ex(info, file, line);
+    throw ex;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  void Debugger::printMessage(const std::string & prefix,
+			      const DebugLevel & level,
+			      const std::string & info) const {
+    if(this->level >= level) {
+#if defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
+      struct timeval time;
+      gettimeofday(&time, NULL);
+      double timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
+#else
+      struct timespec time;
+      clock_gettime(CLOCK_REALTIME_COARSE, &time);
+      double timestamp = time.tv_sec*1e6 + time.tv_nsec * 1e-3; /*in us*/
+#endif
+      *(cout) << parallel_context
+	      << "{" << (unsigned int)timestamp << "} "
+	      << prefix << " " << info
+	      << std::endl;
+	}
   }
 
   /* ------------------------------------------------------------------------ */
@@ -268,6 +305,10 @@ namespace debug {
 
   void setDebugLevel(const DebugLevel & level) {
     debugger.setDebugLevel(level);
+  }
+
+  const DebugLevel &  getDebugLevel() {
+    return debugger.getDebugLevel();
   }
 
 }

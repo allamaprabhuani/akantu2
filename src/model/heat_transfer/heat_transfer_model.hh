@@ -41,6 +41,7 @@
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "dumpable.hh"
+#include "parsable.hh"
 
 
 namespace akantu {
@@ -49,7 +50,7 @@ namespace akantu {
 
 __BEGIN_AKANTU__
 
-class HeatTransferModel : public Model, public DataAccessor, public Dumpable {
+class HeatTransferModel : public Model, public DataAccessor, public Dumpable, public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -70,16 +71,13 @@ public:
 public:
 
   /// generic function to initialize everything ready for explicit dynamics
-  void initFull(const std::string & material_file);
+  void initFull(const std::string & material_file, const ModelOptions & options = ModelOptions());
 
   /// initialize the fem object of the boundary
   void initFEMBoundary(bool create_surface = true);
 
-  /// set the parameters
-  bool setParam(const std::string & key, const std::string & value);
-
   /// read one material file to instantiate all the materials
-  void readMaterials(const std::string & filename);
+  void readMaterials();
 
   /// allocate all vectors
   void initArrays();

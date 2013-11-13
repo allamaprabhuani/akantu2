@@ -64,9 +64,6 @@ public:
 
   void initMaterial();
 
-  virtual bool parseParam(const std::string & key, const std::string & value,
-			  const ID & id);
-
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
@@ -80,9 +77,6 @@ public:
     return MaterialMazars<spatial_dimension>::getStableTimeStep(h, element);
   };
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -93,7 +87,7 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// the ehat per quadrature points to perform the averaging
-  ByElementTypeReal Ehat;
+  InternalField<Real> Ehat;
 };
 
 /* -------------------------------------------------------------------------- */

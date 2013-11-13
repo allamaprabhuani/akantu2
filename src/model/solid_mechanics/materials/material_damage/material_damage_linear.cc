@@ -38,13 +38,14 @@ template<UInt spatial_dimension>
 MaterialDamageLinear<spatial_dimension>::MaterialDamageLinear(SolidMechanicsModel & model,
 							      const ID & id)  :
   Material(model, id),
-  MaterialDamage<spatial_dimension>(model, id) {
+  MaterialDamage<spatial_dimension>(model, id),
+  K("K", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sigc", Sigc, 1e5, _pat_parsable, "Sigma Critique");
   this->registerParam("Gc"  , Gc  , 2. , _pat_parsable, "Gc");
 
-  this->initInternalArray(this->K, 1);
+  this->K.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -54,20 +55,11 @@ template<UInt spatial_dimension>
 void MaterialDamageLinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage<spatial_dimension>::initMaterial();
-  this->resizeInternalArray(this->K);
+
   Epsmin = Sigc / this->E;
   Epsmax = 2 * Gc/ Sigc + Epsmin;
 
-  const Mesh & mesh = this->model->getFEM().getMesh() ;
-
-  Mesh::type_iterator it  = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator end = mesh.lastType(spatial_dimension);
-  for(; it != end; ++it) {
-    UInt nb_element  = mesh.getNbElement(*it);
-    UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
-    Array <Real> & K_vec = K(*it);
-    std::fill_n(K_vec.storage(),nb_element*nb_quad,Epsmin);
-  }
+  this->K.setDefaultValue(Epsmin);
 
   AKANTU_DEBUG_OUT();
 }

@@ -59,6 +59,11 @@ template<class Key, class Ty>
 struct unordered_map { typedef typename std::map<Key, Ty> type; };
 #endif
 
+enum NormType {
+  L_1 = 1,
+  L_2 = 2,
+  L_inf
+};
 
 template<typename T>
 class Matrix;
@@ -274,7 +279,7 @@ public:
     std::string space;
     for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-    stream << space << "Vector<" << debug::demangle(typeid(T).name()) << ">(" << n <<") : [";
+    stream << space << "Vector<" << debug::demangle(typeid(T).name()) << ">(" << n <<"): [";
     for (UInt i = 0; i < n; ++i) {
       if(i != 0) stream << ", ";
       stream << values[i];
@@ -395,11 +400,11 @@ public:
   };
 
   /* ---------------------------------------------------------------------- */
-  inline Matrix & operator=(T x) {
-    T * a = this->values;
-    for (UInt i = 0; i < n*m; ++i) *(a++) = x;
-    return *this;
-  }
+  // inline Matrix & operator=(T x) {
+  //   T * a = this->values;
+  //   for (UInt i = 0; i < n*m; ++i) *(a++) = x;
+  //   return *this;
+  // }
 
   /* ---------------------------------------------------------------------- */
   inline Matrix operator* (const Matrix & B) {
@@ -533,6 +538,14 @@ public:
   }
 
   /* ---------------------------------------------------------------------- */
+  static inline Matrix<T> eye(UInt m, T alpha = 1.) {
+    Matrix<T> tmp(m, m);
+    tmp.clear();
+    for (UInt i = 0; i < m; ++i) tmp(i, i) = alpha;
+    return tmp;
+  }
+
+  /* ---------------------------------------------------------------------- */
   inline T trace() const {
     AKANTU_DEBUG_ASSERT(n == m, "trace is not a valid operation on a rectangular matrix");
     T trace = 0.;
@@ -540,10 +553,7 @@ public:
       trace += values[i + i * m];
     return trace;
   }
-  /* -------------------------------------------------------------------------- */
-  inline T norm() const {
-    return Math::norm(this->n*this->m, this->values);
-  }
+
   /* ---------------------------------------------------------------------- */
   inline Matrix transpose() const {
     Matrix tmp(n, m);
@@ -585,6 +595,39 @@ public:
      return T();
   }
 
+private:
+  template<typename R, NormType norm_type>
+  struct NormHelper {
+    static R norm(const Matrix<R> & mat) {
+      AKANTU_DEBUG_TO_IMPLEMENT();
+    }
+  };
+
+  template<typename R>
+  struct NormHelper<R, L_2> {
+    static R norm(const Matrix<R> & mat) {
+      return Math::norm(mat.size(), mat.storage());
+    }
+  };
+
+  template<typename R>
+  struct NormHelper<R, L_inf> {
+    static R norm(const Matrix<R> & mat) {
+      T _norm = 0.;
+      T * it = mat.storage();
+      T * end = mat.storage() + mat.size();
+      for (; it < end; ++it) _norm = std::max(std::abs(*it), _norm);
+      return _norm;
+    }
+  };
+
+public:
+
+  /*----------------------------------------------------------------------- */
+  template<NormType norm_type>
+  inline T norm() const { return NormHelper<T, norm_type>::norm(*this); }
+
+
   /* ---------------------------------------------------------------------- */
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -592,7 +635,7 @@ public:
     for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
     stream << space << "Matrix<" << debug::demangle(typeid(T).name())
-	   << ">(" << n << "," << m <<") :" << "[";
+	   << ">(" << n << "," << m <<"): " << "[";
     for (UInt i = 0; i < m; ++i) {
       if(i != 0) stream << ", ";
       stream << "[";

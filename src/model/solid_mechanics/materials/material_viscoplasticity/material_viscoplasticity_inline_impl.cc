@@ -40,7 +40,7 @@ inline void MaterialViscoPlasticity<dim>::computeStressOnQuad(Matrix<Real> & gra
 
   Matrix<Real> d_inelas_strain(dim,dim);
   //Real r=iso_hardening;
-  
+
   // Compute stress magnitude
 
   Real s = sigma.doubleDot(sigma);
@@ -48,28 +48,32 @@ inline void MaterialViscoPlasticity<dim>::computeStressOnQuad(Matrix<Real> & gra
 
   //Compute plastic strain increment
 
-  for (UInt i = 0; i < dim; ++i) 
-    for (UInt j = 0; j < dim; ++j) 
-      d_inelas_strain(i,j) = (ts * edot0 * pow(sigma_mag,(rate-1)) / pow(sigmay+iso_hardening,rate)) * sigma(i,j);  
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
+      d_inelas_strain(i,j) = (ts * edot0 * pow(sigma_mag,(rate-1)) / pow(sigmay+iso_hardening,rate)) * sigma(i,j);
 
  // Compute plastic strain increment magnitude
 
   s = d_inelas_strain.doubleDot(d_inelas_strain);
-  Real dep_mag=sqrt(s);
+  Real dep_mag = std::sqrt(s);
 
   //Update stress and plastic strain
+  Matrix<Real> grad_u_elsatic(dim, dim);
+  grad_u_elsatic = grad_delta_u;
+  grad_u_elsatic -= d_inelas_strain;
 
-  for (UInt i = 0; i < dim; ++i) 
-    for (UInt j = 0; j < dim; ++j) {    
-      sigma(i,j) = sigma(i,j) + 2. * mu * (0.5 * (grad_delta_u(i,j)+ grad_delta_u(j,i))-d_inelas_strain(i,j)) + (i==j) * lambda * (grad_delta_u.trace() - d_inelas_strain.trace());
-      inelas_strain(i,j) = inelas_strain(i,j) +  d_inelas_strain(i,j);
-    }
+  Matrix<Real> sigma_elastic(dim, dim);
+  MaterialElastic<dim>::computeStressOnQuad(sigma_elastic, grad_u_elsatic);
+  sigma += sigma_elastic;
+
+  inelas_strain += d_inelas_strain;
+
 
   //Update resistance stress
-  
+
   iso_hardening = iso_hardening + h * dep_mag;
 
-} 
+}
 
 
 /* -------------------------------------------------------------------------- */
@@ -129,17 +133,10 @@ for (UInt m = 0; m < rows; m++) {
                 }
             }
 
-	      tangent(m,n) = (i==k) * (j==l) * 2. * mu + (i==j) * (k==l) * lambda;
-	      if ((m==n) && (m>=dim))
-		tangent(m,n) = tangent(m,n) - mu;
+              tangent(m,n) = (i==k) * (j==l) * 2. * this->mu + (i==j) * (k==l) * this->lambda;
+              if ((m==n) && (m>=dim))
+                tangent(m,n) = tangent(m,n) - this->mu;
 
-	}
+        }
  }
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline Real MaterialViscoPlasticity<spatial_dimension>::getStableTimeStep(Real h,
-        __attribute__((unused)) const Element & element) {
-    return (h / getPushWaveSpeed());
 }

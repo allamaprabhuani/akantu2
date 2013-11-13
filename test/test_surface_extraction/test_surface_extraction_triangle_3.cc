@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
   mesh_io.read("squares.msh", mesh);
 
   MeshUtils::buildFacets(mesh);
-  mesh.getBoundary().createBoundariesFromGeometry();
+  mesh.createBoundaryGroupFromGeometry();
 
   unsigned int nb_nodes = mesh.getNbNodes();
 #ifdef AKANTU_USE_IOHELPER
@@ -80,12 +80,12 @@ int main(int argc, char *argv[])
 			       iohelper::LINE1, mesh.getNbElement(_segment_2), iohelper::C_MODE);
   UInt * surf_id = new UInt [mesh.getNbElement(_segment_2)];
 
-  const Boundary & boundary = mesh.getBoundary();
-  for(Boundary::const_iterator it(boundary.begin()); it != boundary.end(); ++it) {
-    const Array<UInt> & element_ids = it->getElements(_segment_2);
+  for(Mesh::const_element_group_iterator it(mesh.element_group_begin());
+      it != mesh.element_group_end(); ++it) {
+    const Array<UInt> & element_ids = it->second->getElements(_segment_2);
     for(UInt i(0); i << element_ids.getSize(); ++i) {
       UInt elem_idx = element_ids(i);
-      surf_id[elem_idx] = atoi((it->getName().c_str()));
+      surf_id[elem_idx] = atoi((it->first.c_str()));
     }
   }
   //for (UInt i = 0; i < mesh.getSurfaceID(_segment_2).getSize(); ++i)

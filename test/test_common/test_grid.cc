@@ -90,9 +90,9 @@ int main(int argc, char *argv[]) {
 
   const SpatialGrid<Element>::CellID & id = grid.getCellID(pos);
 
+#if !defined AKANTU_NDEBUG
   SpatialGrid<Element>::neighbor_cells_iterator nit = grid.beginNeighborCells(id);
   SpatialGrid<Element>::neighbor_cells_iterator nend = grid.endNeighborCells(id);
-
   for(;nit != nend; ++nit) {
     std::cout << std::endl;
     const SpatialGrid<Element>::Cell & cell = grid.getCell(*nit);
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
       std::cout << *cit << " " << *pit << std::endl;
     }
   }
-
+#endif
 
 
   akantu::finalize();

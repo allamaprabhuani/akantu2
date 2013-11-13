@@ -22,8 +22,7 @@ int main(int argc, char* argv[])
 
     mesh.read("./cube_physical_names.msh");
 
-    Boundary & boundary = mesh.getBoundary();
-    boundary.createBoundariesFromMeshData("physical_names");
+    mesh.createGroupsFromMeshData<std::string>("physical_names");
     std::stringstream sstr;
 
     SolidMechanicsModel model(mesh);
@@ -48,7 +47,6 @@ int main(int argc, char* argv[])
     model.applyBC(BC::Neumann::FromHigherDim(surface_stress), "Top");
 
     debug::setDebugLevel(dblTest);
-    boundary.printself(std::cout);
     std::cout << model.getDisplacement();
     std::cout << model.getForce();
     debug::setDebugLevel(dblInfo);

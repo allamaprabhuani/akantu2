@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initFull("material_anisotropic.dat", _explicit_lumped_mass);
+  my_model.initFull("material_anisotropic.dat", SolidMechanicsModelOptions(_explicit_lumped_mass));
 
 
   std::cout << my_model.getMaterial(0) << std::endl;
@@ -169,20 +169,22 @@ int main(int argc, char *argv[])
 
   MeshUtils::buildFacets(my_mesh);
 
-  my_mesh.getBoundary().createBoundariesFromGeometry();
+  my_mesh.createBoundaryGroupFromGeometry();
 
   // Loop over (Sub)Boundar(ies)
-  const Boundary & boundaries = my_mesh.getBoundary();
-  for(Boundary::const_iterator it(boundaries.begin()); it != boundaries.end(); ++it) {
-    for(akantu::SubBoundary::nodes_const_iterator nodes_it(it->nodes_begin()); nodes_it!= it->nodes_end(); ++nodes_it) {
+  // Loop over (Sub)Boundar(ies)
+  for(GroupManager::const_element_group_iterator it(my_mesh.element_group_begin());
+      it != my_mesh.element_group_end(); ++it) {
+    for(ElementGroup::const_node_iterator nodes_it(it->second->node_begin());
+        nodes_it!= it->second->node_end(); ++nodes_it) {
       UInt n(*nodes_it);
       std::cout << "Node " << *nodes_it << std::endl;
       for (UInt i = 0; i < dim; ++i) {
-        displacement(n, i) = alpha[i][0];
-        for (UInt j = 0; j < dim; ++j) {
-          displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
-        }
-        boundary(n, i) = true;
+	displacement(n, i) = alpha[i][0];
+	for (UInt j = 0; j < dim; ++j) {
+	  displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+	}
+	boundary(n, i) = true;
       }
     }
   }

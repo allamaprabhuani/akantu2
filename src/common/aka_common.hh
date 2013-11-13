@@ -227,8 +227,9 @@ enum AnalysisMethod {
 
 /// enum SolveConvergenceMethod different resolution algorithms
 enum SolveConvergenceMethod {
-  _scm_newton_raphson_tangent,         ///< Newton-Raphson with tangent matrix
-  _scm_newton_raphson_tangent_modified ///< Newton-Raphson with constant tangent matrix
+  _scm_newton_raphson_tangent,             ///< Newton-Raphson with tangent matrix
+  _scm_newton_raphson_tangent_modified,    ///< Newton-Raphson with constant tangent matrix
+  _scm_newton_raphson_tangent_not_computed ///< Newton-Raphson with constant tangent matrix (user has to assemble it)
 };
 
 /// enum SolveConvergenceCriteria different convergence criteria

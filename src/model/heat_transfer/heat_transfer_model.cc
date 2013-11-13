@@ -55,7 +55,7 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
 				     UInt dim,
 				     const ID & id,
 				     const MemoryID & memory_id) :
-  Model(mesh, dim, id, memory_id), Dumpable(),
+  Model(mesh, dim, id, memory_id), Dumpable(), Parsable(_st_heat, id),
   integrator(new ForwardEuler()),
   temperature_gradient    ("temperature_gradient", id),
   temperature_on_qpoints  ("temperature_on_qpoints", id),
@@ -76,11 +76,15 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   this->residual = NULL;
   this->boundary = NULL;
 
-  this->conductivity_variation = 0.0;
-  this->T_ref = 0;
-
   this->registerDumper<DumperParaview>("paraview_all", id, true);
   this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
+
+
+  this->registerParam("conductivity"          , conductivity              , _pat_parsmod);
+  this->registerParam("conductivity_variation", conductivity_variation, 0., _pat_parsmod);
+  this->registerParam("temperature_reference" , T_ref                 , 0., _pat_parsmod);
+  this->registerParam("capacity"              , capacity                  , _pat_parsmod);
+  this->registerParam("density"               , density                   , _pat_parsmod);
 
   AKANTU_DEBUG_OUT();
 }
@@ -115,7 +119,7 @@ void HeatTransferModel::initPBC() {
 
   synch_registry->registerSynchronizer(*synch, _gst_htm_capacity);
   synch_registry->registerSynchronizer(*synch, _gst_htm_temperature);
-  changeLocalEquationNumberforPBC(pbc_pair,1);
+  changeLocalEquationNumberForPBC(pbc_pair,1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -126,13 +130,13 @@ void HeatTransferModel::initArrays() {
 
   UInt nb_nodes = getFEM().getMesh().getNbNodes();
 
-  std::stringstream sstr_temp;      sstr_temp      << id << ":temperature";
-  std::stringstream sstr_temp_rate; sstr_temp_rate << id << ":temperature_rate";
-  std::stringstream sstr_inc;       sstr_inc       << id << ":increment";
-  std::stringstream sstr_ext_flx;   sstr_ext_flx   << id << ":external_flux";
-  std::stringstream sstr_residual;  sstr_residual  << id << ":residual";
-  std::stringstream sstr_lump;      sstr_lump      << id << ":lumped";
-  std::stringstream sstr_boun;      sstr_boun      << id << ":boundary";
+  std::stringstream sstr_temp;      sstr_temp      << Model::id << ":temperature";
+  std::stringstream sstr_temp_rate; sstr_temp_rate << Model::id << ":temperature_rate";
+  std::stringstream sstr_inc;       sstr_inc       << Model::id << ":increment";
+  std::stringstream sstr_ext_flx;   sstr_ext_flx   << Model::id << ":external_flux";
+  std::stringstream sstr_residual;  sstr_residual  << Model::id << ":residual";
+  std::stringstream sstr_lump;      sstr_lump      << Model::id << ":lumped";
+  std::stringstream sstr_boun;      sstr_boun      << Model::id << ":boundary";
 
   temperature        = &(alloc<Real>(sstr_temp.str(),      nb_nodes, 1, REAL_INIT_VALUE));
   temperature_rate   = &(alloc<Real>(sstr_temp_rate.str(), nb_nodes, 1, REAL_INIT_VALUE));
@@ -552,63 +556,23 @@ Real HeatTransferModel::getStableTimeStep()
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::readMaterials(const std::string & filename) {
-  Parser parser;
-  parser.open(filename);
-  std::string opt_param;
-  std::string mat_type = parser.getNextSection("heat", opt_param);
+void HeatTransferModel::readMaterials() {
+  std::pair<Parser::const_section_iterator, Parser::const_section_iterator>
+    sub_sect = parser.getSubSections(_st_heat);
 
-  if (mat_type != "") {
-    parser.readSection<HeatTransferModel>(*this);
-  }
-  else
-    AKANTU_DEBUG_ERROR("did not find any section with material info "
-		       <<"for heat conduction");
-}
+  Parser::const_section_iterator it = sub_sect.first;
+  const ParserSection & section = *it;
 
-/* -------------------------------------------------------------------------- */
-bool HeatTransferModel::setParam(const std::string & key,
-				 const std::string & value) {
-  std::stringstream str(value);
-  if (key == "conductivity") {
-    for(UInt i = 0; i < 3; i++)
-      for(UInt j = 0; j < 3; j++) {
-	if (i< spatial_dimension && j < spatial_dimension){
-	  str >> conductivity(i, j);
-	  AKANTU_DEBUG_INFO("Conductivity(" << i << "," << j << ") = "
-			    << conductivity[i*spatial_dimension+j]);
-	} else {
-	  Real tmp;
-	  str >> tmp;
-	}
-      }
-  }
-  else if (key == "conductivity_variation") {
-    str >> conductivity_variation;
-  }
-  else if (key == "temperature_reference") {
-    str >> T_ref;
-  }
-  else if (key == "capacity"){
-    str >> capacity;
-    AKANTU_DEBUG_INFO("The capacity of the material is:" << capacity);
-  }
-  else if (key == "density"){
-    str >> density;
-    AKANTU_DEBUG_INFO("The density of the material is:" << density);
-  } else {
-    return false;
-  }
-
-  return true;
+  this->parseSection(section);
 }
 
 /* -------------------------------------------------------------------------- */
 
-void HeatTransferModel::initFull(const std::string & material_file){
-  readMaterials(material_file);
-  //model initialization
-  initModel();
+void HeatTransferModel::initFull(const std::string & material_file, const ModelOptions & options){
+  Model::initFull(material_file, options);
+
+  readMaterials();
+
   //initialize the vectors
   initArrays();
   temperature->clear();
@@ -784,7 +748,7 @@ void HeatTransferModel::addDumpFieldToDumper(const std::string & dumper_name,
                                                                      _not_ghost,
                                                                      _ek_regular));
   } else {
-    AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << id);
+    AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << Model::id);
   }
 #endif
 }
@@ -795,7 +759,7 @@ void HeatTransferModel::addDumpFieldVectorToDumper(const std::string & dumper_na
 #ifdef AKANTU_USE_IOHELPER
   IF_ADD_ELEM_FIELD (dumper_name, temperature_gradient, Real, false)
   {
-    AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << id
+    AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << Model::id
 		       << " or is not dumpable as a vector");
   }
 #endif
@@ -805,7 +769,7 @@ void HeatTransferModel::addDumpFieldVectorToDumper(const std::string & dumper_na
 void HeatTransferModel::addDumpFieldTensorToDumper(const std::string & dumper_name,
 						   const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-  AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << id
+  AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << Model::id
 		       << " or is not dumpable as a Tensor");
 #endif
 }

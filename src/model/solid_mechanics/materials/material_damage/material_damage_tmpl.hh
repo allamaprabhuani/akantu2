@@ -40,17 +40,18 @@ template<UInt spatial_dimension, template<UInt> class Parent>
 MaterialDamage<spatial_dimension, Parent>::MaterialDamage(SolidMechanicsModel & model,
 						  const ID & id)  :
   Material(model, id), Parent<spatial_dimension>(model, id),
-  damage("damage", id),
-  dissipated_energy("dissipated energy", id),
-  int_sigma("integral of sigma", id) {
+  damage("damage", *this),
+  dissipated_energy("damage dissipated energy", *this),
+  int_sigma("integral of sigma", *this) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = false;
-  this->initInternalArray(this->damage, 1);
-  this->initInternalArray(this->dissipated_energy, 1);
-  this->initInternalArray(this->previous_strain, spatial_dimension * spatial_dimension);
-  this->initInternalArray(this->previous_stress, spatial_dimension * spatial_dimension);
-  this->initInternalArray(this->int_sigma, 1);
+  this->use_previous_stress = true;
+  this->use_previous_strain = true;
+
+  this->damage           .initialize(1);
+  this->dissipated_energy.initialize(1);
+  this->int_sigma        .initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -60,13 +61,6 @@ template<UInt spatial_dimension, template<UInt> class Parent>
 void MaterialDamage<spatial_dimension, Parent>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent<spatial_dimension>::initMaterial();
-
-  this->resizeInternalArray(this->damage);
-  this->resizeInternalArray(this->dissipated_energy);
-  this->resizeInternalArray(this->previous_strain);
-  this->resizeInternalArray(this->previous_stress);
-  this->resizeInternalArray(this->int_sigma);
-
   AKANTU_DEBUG_OUT();
 }
 

@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 
   SolidMechanicsModelCohesive model(mesh);
   model.initParallel(partition, NULL, true);
-  model.initFull("material.dat", _explicit_lumped_mass, true);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   Array<Real> & position = mesh.getNodes();
 

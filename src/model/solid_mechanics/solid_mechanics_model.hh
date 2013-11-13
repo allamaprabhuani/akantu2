@@ -53,6 +53,7 @@
 
 #include "integration_scheme_2nd_order.hh"
 #include "solver.hh"
+#include "material_selector.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -63,6 +64,16 @@ namespace akantu {
 }
 
 __BEGIN_AKANTU__
+
+struct SolidMechanicsModelOptions : public ModelOptions {
+  SolidMechanicsModelOptions(AnalysisMethod analysis_method = _explicit_lumped_mass,
+			     bool no_init_materials = false) :
+    analysis_method(analysis_method), no_init_materials(no_init_materials) {}
+  AnalysisMethod analysis_method;
+  bool no_init_materials;
+};
+
+extern const SolidMechanicsModelOptions default_solid_mechanics_model_options;
 
 class SolidMechanicsModel : public Model, public DataAccessor,
                             public MeshEventHandler,
@@ -97,7 +108,7 @@ public:
 
   /// initialize completely the model
   virtual void initFull(std::string material_file,
-                        AnalysisMethod method = _explicit_lumped_mass);
+                        const ModelOptions & options = default_solid_mechanics_model_options);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary();
@@ -112,7 +123,7 @@ public:
   void initArraysPreviousDisplacment();
 
   /// initialize all internal arrays for materials
-  void initMaterials();
+  virtual void initMaterials();
 
   /// initialize the model
   virtual void initModel();
@@ -210,10 +221,10 @@ public:
 
 public:
   /// solve @f[ A\delta u = f_ext - f_int @f] in displacement
-  void solveDynamic() __attribute__((deprecated));
+  void solveDynamic();
 
   /// solve Ku = f
-  void solveStatic() __attribute__((deprecated));
+  void solveStatic();
 
   /// solve Ku = f
   void solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles);
@@ -246,7 +257,8 @@ protected:
   /// compute the support reaction and store it in force
   void updateSupportReaction();
 
-public://protected: Daniel changed it just for a test
+public:
+  //protected: Daniel changed it just for a test
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
   void solve(Array<Real> & increment);
@@ -266,23 +278,24 @@ public:
   /* Materials (solid_mechanics_model_material.cc)                            */
   /* ------------------------------------------------------------------------ */
 public:
+  /// registers all the custom materials of a given types present in the input file
+  template <typename M>
+  void registerNewCustomMaterials(const ID & mat_type);
+
+  /// register an empty material of a given type
+  template <typename M>
+  Material & registerNewEmptyMaterial(const ID & mat_type, const std::string & name);
+
+  // /// Use a UIntData in the mesh to specify the material to use per element
+  // void setMaterialIDsFromIntData(const std::string & data_name);
+
+protected:
   /// register a material in the dynamic database
-  Material & registerNewMaterial(const ID & mat_type,
-                                 const std::string & opt_param = "");
-
   template <typename M>
-  Material & registerNewCustomMaterial(const ID & mat_type,
-                                       const std::string & opt_param = "");
+  Material & registerNewMaterial(const ParserSection & mat_section);
+
   /// read the material files to instantiate all the materials
-  void readMaterials(const std::string & filename);
-
-  /// read a custom material with a keyword and class as template
-  template <typename M>
-  UInt readCustomMaterial(const std::string & filename,
-                                const std::string & keyword);
-
-  /// Use a UIntData in the mesh to specify the material to use per element
-  void setMaterialIDsFromIntData(const std::string & data_name);
+  void instantiateMaterials();
 
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
@@ -371,25 +384,25 @@ public:
   virtual void addDumpFieldToDumper(const std::string & dumper_name,
 				    const std::string & field_id);
 
-  virtual void addDumpBoundaryField(const std::string & field_id,
-				    const std::string & boundary_name);
-  virtual void addDumpBoundaryFieldToDumper(const std::string & dumper_name,
+  virtual void addDumpGroupField(const std::string & field_id,
+				    const std::string & group_name);
+  virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
 					    const std::string & field_id,
-					    const std::string & boundary_name);
-  virtual void removeDumpBoundaryField(const std::string & field_id,
-				       const std::string & boundary_name);
-  virtual void removeDumpBoundaryFieldFromDumper(const std::string & dumper_name,
+					    const std::string & group_name);
+  virtual void removeDumpGroupField(const std::string & field_id,
+				       const std::string & group_name);
+  virtual void removeDumpGroupFieldFromDumper(const std::string & dumper_name,
 						 const std::string & field_id,
-						 const std::string & boundary_name);
+						 const std::string & group_name);
 
   virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
 					  const std::string & field_id);
 
-  virtual void addDumpBoundaryFieldVector(const std::string & field_id,
-					  const std::string & boundary_name);
-  virtual void addDumpBoundaryFieldVectorToDumper(const std::string & dumper_name,
+  virtual void addDumpGroupFieldVector(const std::string & field_id,
+					  const std::string & group_name);
+  virtual void addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
 						  const std::string & field_id,
-						  const std::string & boundary_name);
+						  const std::string & group_name);
 
   virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
 					  const std::string & field_id);
@@ -408,56 +421,67 @@ public:
 
   /// get the value of the conversion from forces/ mass to acceleration
   AKANTU_GET_MACRO(F_M2A, f_m2a, Real);
+
   /// set the value of the conversion from forces/ mass to acceleration
   AKANTU_SET_MACRO(F_M2A, f_m2a, Real);
 
   /// get the SolidMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement,    *displacement,           Array<Real> &);
+
   /// get the SolidMechanicsModel::previous_displacement vector
   AKANTU_GET_MACRO(PreviousDisplacement, *previous_displacement, Array<Real> &);
+
   /// get the SolidMechanicsModel::current_position vector \warn only consistent
   /// after a call to SolidMechanicsModel::updateCurrentPosition
   AKANTU_GET_MACRO(CurrentPosition, *current_position, const Array<Real> &);
+
   /// get  the SolidMechanicsModel::increment  vector \warn  only  consistent if
   /// SolidMechanicsModel::setIncrementFlagOn has been called before
   AKANTU_GET_MACRO(Increment,       *increment,              Array<Real> &);
+
   /// get the lumped SolidMechanicsModel::mass vector
   AKANTU_GET_MACRO(Mass,            *mass,                   Array<Real> &);
+
   /// get the SolidMechanicsModel::velocity vector
   AKANTU_GET_MACRO(Velocity,        *velocity,               Array<Real> &);
+
   /// get    the    SolidMechanicsModel::acceleration    vector,   updated    by
   /// SolidMechanicsModel::updateAcceleration
   AKANTU_GET_MACRO(Acceleration,    *acceleration,           Array<Real> &);
+
   /// get the SolidMechanicsModel::force vector (boundary forces)
   AKANTU_GET_MACRO(Force,           *force,                  Array<Real> &);
+
   /// get     the    SolidMechanicsModel::residual    vector,     computed    by
   /// SolidMechanicsModel::updateResidual
   AKANTU_GET_MACRO(Residual,        *residual,               Array<Real> &);
+
   /// get the SolidMechanicsModel::boundary vector
   AKANTU_GET_MACRO(Boundary,        *boundary,               Array<bool> &);
+
   /// get the SolidMechnicsModel::incrementAcceleration vector
   AKANTU_GET_MACRO(IncrementAcceleration, *increment_acceleration, Array<Real> &);
 
   /// get the value of the SolidMechanicsModel::increment_flag
   AKANTU_GET_MACRO(IncrementFlag, increment_flag, bool);
 
-  /// get  the SolidMechanicsModel::element_material  vector corresponding  to a
-  /// given akantu::ElementType
-  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementMaterial, element_material, UInt);
-  //  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
-  //AKANTU_GET_MACRO(ElementMaterial, element_material, const ByElementTypeArray<UInt> &);
-
-  /// vectors containing local material element index for each global element index
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
-  AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeArray<UInt> &);
-
-  /// get a particular material
+  /// get a particular material (by material index)
   inline Material & getMaterial(UInt mat_index);
+  /// get a particular material (by material index)
   inline const Material & getMaterial(UInt mat_index) const;
+
+  /// get a particular material (by material name)
+  inline Material & getMaterial(const std::string & name);
+  /// get a particular material (by material name)
+  inline const Material & getMaterial(const std::string & name) const;
+
+  /// get a particular material id from is name
+  inline UInt getMaterialIndex(const std::string & name) const;
 
   /// give the number of materials
   inline UInt getNbMaterials() const { return materials.size(); };
+
+  inline void setMaterialSelector(MaterialSelector & selector);
 
   /// give the material internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
@@ -511,6 +535,16 @@ public:
   /// get synchronizer
   AKANTU_GET_MACRO(Synchronizer, *synch_parallel, const DistributedSynchronizer &);
 
+  AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeArray<UInt> &);
+protected:
+  /// vectors containing local material element index for each global element index
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
+
+  friend Material;
+
+  template<UInt DIM, template <UInt> class WeightFunction>
+  friend class MaterialNonLocal;
 protected:
   /// compute the stable time step
   Real getStableTimeStep(const GhostType & ghost_type);
@@ -519,8 +553,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  friend class BoundaryCondition;
-
   /// time step
   Real time_step;
 
@@ -566,7 +598,8 @@ protected:
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;
 
-  /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Delta t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
+  /// jacobian matrix @f[A = cM + dD + K@f] with @f[c = \frac{1}{\beta \Delta
+  /// t^2}, d = \frac{\gamma}{\beta \Delta t} @f]
   SparseMatrix * jacobian_matrix;
 
   /// vectors containing local material element index for each global element index
@@ -574,6 +607,15 @@ protected:
 
   /// list of used materials
   std::vector<Material *> materials;
+
+  /// mapping between material name and material internal id
+  std::map<std::string, UInt> materials_names_to_id;
+
+  /// class defining of to choose a material
+  MaterialSelector * material_selector;
+
+  /// define if it is the default selector or not
+  bool is_default_material_selector;
 
   /// integration scheme of second order used
   IntegrationScheme2ndOrder * integrator;
@@ -590,9 +632,14 @@ protected:
   /// object to resolve the contact
   Contact * contact;
 
+  /// analysis method check the list in akantu::AnalysisMethod
   AnalysisMethod method;
 
+  /// internal synchronizer for parallel computations
   DistributedSynchronizer * synch_parallel;
+
+  /// tells if the material are instantiated
+  bool are_materials_instantiated;
 };
 
 __END_AKANTU__
@@ -619,5 +666,8 @@ inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsMod
 }
 
 __END_AKANTU__
+
+#include "material_selector_tmpl.hh"
+
 
 #endif /* __AKANTU_SOLID_MECHANICS_MODEL_HH__ */

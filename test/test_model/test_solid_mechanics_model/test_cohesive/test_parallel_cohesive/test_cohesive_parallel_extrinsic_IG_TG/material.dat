@@ -9,12 +9,12 @@ material cohesive_linear [
 	 name = TG_cohesive
 	 beta = 0
 	 G_cI = 10
-         sigma_c_generator = uniform(1) 100 100
+         sigma_c = 100
 ]
 
 material cohesive_linear [
 	 name = IG_cohesive
 	 beta = 0
 	 G_cI = 10
-         sigma_c_generator = uniform(1) 20 20
+         sigma_c = 20
 ]

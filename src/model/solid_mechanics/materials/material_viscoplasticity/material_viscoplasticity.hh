@@ -5,7 +5,7 @@
  *
  * @date   Tue Jul 09 18:15:37 20130
  *
- * @brief  Specialization of the material class for isotropic finite deformation linear hardening plasticityviscoplastic (small deformation) 
+ * @brief  Specialization of the material class for isotropic finite deformation linear hardening plasticityviscoplastic (small deformation)
  *
  * @section LICENSE
  *
@@ -30,23 +30,13 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
+#include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_VISCOPLASTICITY_HH__
 #define __AKANTU_MATERIAL_VISCOPLASTICITY_HH__
 
 __BEGIN_AKANTU__
-
-/**
- * Material elastic isotropic
- *
- * parameters in the material files :
- *   - rho : density (default: 0)
- *   - E   : Young's modulus (default: 0)
- *   - nu  : Poisson's ratio (default: 1/2)
- *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
- */
 
 /**
  * Material plastic isotropic
@@ -62,80 +52,49 @@ __BEGIN_AKANTU__
 
 
 template <UInt spatial_dimension>
-class MaterialViscoPlasticity : public virtual Material {
+class MaterialViscoPlasticity : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   MaterialViscoPlasticity(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialViscoPlasticity() {};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
-  virtual void initMaterial();
-
-/// constitutive law for all element of a type
+  /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
                             Array<Real> & tangent_matrix,
-                            GhostType ghost_type = _not_ghost);  
-
-  /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed() const;
-
-  /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed() const;
+                            GhostType ghost_type = _not_ghost);
 
 protected:
+  inline void computeStressOnQuad(Matrix<Real> & grad_u,
+				  Matrix<Real> & grad_delta_u,
+				  Matrix<Real> & sigma,
+				  Matrix<Real> & inelas_strain,
+				  Real & iso_hardening);
 
-  /// constitutive law for a given quadrature point
-  //inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
-  //Matrix<Real> & S);
-
-  /// constitutive law for a given quadrature point
-  //inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
-  //      Matrix<Real> & delta_S);
-
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening);
-
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_delta_u, Matrix<Real>  & sigma_tensor, Matrix<Real>  & previous_sigma_tensor, Real & iso_hardening);
- 
-  virtual void updateInternalParameters();
- 
+  void computeTangentModuliOnQuad(Matrix<Real> & tangent,
+				  Matrix<Real> & grad_delta_u,
+				  Matrix<Real> & sigma_tensor,
+				  Matrix<Real> & previous_sigma_tensor,
+				  Real & iso_hardening);
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-   /// the young modulus
-  Real E;
-
-  /// Poisson coefficient
-  Real nu;
-
-  /// First Lamé coefficient
-  Real lambda;
-
-  /// Second Lamé coefficient (shear modulus)
-  Real mu;
-
-  /// Bulk modulus
-  Real kpa;
-
   /// Yield stresss
   Real sigmay;
 
@@ -152,7 +111,7 @@ private:
   bool plane_stress;
 
   /// Isotropic hardening (r)
-  ByElementTypeReal iso_hardening;
+  InternalField<Real> iso_hardening;
 
   /// Time step (ts)
   Real ts;

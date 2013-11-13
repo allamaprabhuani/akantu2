@@ -39,7 +39,7 @@ using namespace akantu;
 
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
-  debug::setDebugLevel(dblInfo);
+  debug::setDebugLevel(dblWarning);
 
   const UInt max_steps = 350;
 
@@ -66,9 +66,9 @@ int main(int argc, char *argv[]) {
 
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
-    debug::setDebugLevel(dblDump);
+    //    debug::setDebugLevel(dblDump);
     partition->partitionate(psize);
-    debug::setDebugLevel(dblInfo);
+    //   debug::setDebugLevel(dblWarning);
   }
 
   SolidMechanicsModelCohesive model(mesh);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
   debug::setDebugLevel(dblDump);
   std::cout << mesh << std::endl;
-  debug::setDebugLevel(dblInfo);
+  debug::setDebugLevel(dblWarning);
 
 
   model.initFull("material.dat");

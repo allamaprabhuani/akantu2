@@ -283,7 +283,10 @@ void SolverMumps::initialize(SolverOptions & options) {
 /* -------------------------------------------------------------------------- */
 void SolverMumps::setRHS(Array<Real> & rhs) {
   if(prank == 0) {
+    DebugLevel dbl = debug::getDebugLevel();
+    debug::setDebugLevel(dblError);
     matrix->getDOFSynchronizer().gather(rhs, 0, this->rhs);
+    debug::setDebugLevel(dbl);
   } else {
     matrix->getDOFSynchronizer().gather(rhs, 0);
   }

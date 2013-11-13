@@ -38,49 +38,21 @@ __BEGIN_AKANTU__
 template<UInt dim>
 MaterialPlasticityinc<dim>::MaterialPlasticityinc(SolidMechanicsModel & model, const ID & id) :
   Material(model, id),
-  MaterialThermal<dim>(model, id),
-  iso_hardening("iso_hardening", id) {
+  MaterialElastic<dim>(model, id),
+  iso_hardening("iso_hardening", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("h", h, 0., _pat_parsable | _pat_modifiable, "Hardening  modulus");
   this->registerParam("sigmay", sigmay, 0., _pat_parsable | _pat_modifiable, "Yield stress");
-  this->registerParam("Plane_Stress", plane_stress, false, _pat_parsmod, "Is plane stress"); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
-  this->registerParam("lambda", lambda, _pat_readable, "First Lamé coefficient");
-  this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");
-  this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
 
-  this->initInternalArray(this->iso_hardening, 1);
+  this->iso_hardening.initialize(1);
 
-  this->inelastic_deformation=true;
-  this->finite_deformation=false;
-  this->use_previous_stress=true;
-  this->use_previous_stress_thermal=true;
+  this->inelastic_deformation       = true;
+  this->finite_deformation          = false;
+  this->use_previous_stress         = true;
+  this->use_previous_stress_thermal = true;
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt dim>
-void MaterialPlasticityinc<dim>::initMaterial() {
-  AKANTU_DEBUG_IN();
-  Material::initMaterial();
-  MaterialThermal<dim>::initMaterial();
-  this->resizeInternalArray(this->iso_hardening);
-  if (dim == 1) this->nu = 0.;
-  updateInternalParameters();
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt dim>
-void MaterialPlasticityinc<dim>::updateInternalParameters() {
-  MaterialThermal<dim>::updateInternalParameters();
-  lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2 * this->nu));
-  mu = this->E / (2 * (1 + this->nu));
-
-  if (plane_stress) lambda = this->nu * this->E / ((1 + this->nu)*(1 - this->nu));
-
-  kpa = lambda + 2. / 3. * mu;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -153,12 +125,6 @@ void MaterialPlasticityinc<spatial_dimension>::computeTangentModuli(__attribute_
   AKANTU_DEBUG_IN();
 
   Int dim=spatial_dimension;
-  //     Array<Real>::iterator< Matrix<Real> > d_strain_it =
-  //       this->delta_strain(el_type, ghost_type).begin(dim, dim);
-
-  //  Array<Real>::iterator< Matrix<Real> > sigma_it =
-  //  this->stress(el_type, ghost_type).begin(dim, dim);
-
 
   Array<Real>::iterator< Matrix<Real> > previous_sigma_it =
     this->previous_stress(el_type, ghost_type).begin(dim, dim);
@@ -179,18 +145,6 @@ void MaterialPlasticityinc<spatial_dimension>::computeTangentModuli(__attribute_
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_FINITE_DEFORMATION_END;
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-Real MaterialPlasticityinc<spatial_dimension>::getPushWaveSpeed() const {
-  return sqrt((lambda + 2 * mu) / this->rho);
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-Real MaterialPlasticityinc<spatial_dimension>::getShearWaveSpeed() const {
-  return sqrt(mu / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */

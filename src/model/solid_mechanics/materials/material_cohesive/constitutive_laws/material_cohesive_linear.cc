@@ -41,27 +41,23 @@ template<UInt spatial_dimension>
 MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(SolidMechanicsModel & model,
 								  const ID & id) :
   MaterialCohesive(model,id),
-  sigma_c_eff("sigma_c_eff",id),
-  delta_c("delta_c",id),
-  insertion_stress("insertion_stress", id) {
+  sigma_c_eff("sigma_c_eff", *this),
+  delta_c("delta_c", *this),
+  insertion_stress("insertion_stress", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta"   , beta   , 0. ,
-		      ParamAccessType(_pat_parsable | _pat_readable),
+		      _pat_parsable | _pat_readable,
 		      "Beta parameter"         );
-
   this->registerParam("G_cI"   , G_cI   , 0. ,
-		      ParamAccessType(_pat_parsable | _pat_readable),
+		      _pat_parsable | _pat_readable,
 		      "Mode I fracture energy" );
-
   this->registerParam("G_cII"  , G_cII  , 0. ,
-		      ParamAccessType(_pat_parsable | _pat_readable),
+		      _pat_parsable | _pat_readable,
 		      "Mode II fracture energy");
-
   this->registerParam("penalty", penalty, 0. ,
-		      ParamAccessType(_pat_parsable | _pat_readable),
+		      _pat_parsable | _pat_readable,
 		      "Penalty coefficient"    );
-
   this->registerParam("kappa"  , kappa  , 1. , _pat_readable, "Kappa parameter");
 
   AKANTU_DEBUG_OUT();
@@ -86,15 +82,15 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   else
     beta2_inv = 1./beta/beta;
 
-  initInternalArray(      sigma_c_eff,                 1, false, _ek_cohesive);
-  initInternalArray(          delta_c,                 1, false, _ek_cohesive);
-  initInternalArray( insertion_stress, spatial_dimension, false, _ek_cohesive);
+  sigma_c_eff     .initialize(                1);
+  delta_c         .initialize(                1);
+  insertion_stress.initialize(spatial_dimension);
 
   /// keep tolerance small enough for the constitutive law
   if (sigma_c != 0) {
     Real delta_limit = 2 * G_cI / sigma_c / 20.;
     if (Math::getTolerance() > delta_limit)
-      Math::setTolerance(delta_limit);
+      Math::setTolerance(delta_limit); // @todo: Really you change the tolerance for the while code
   }
 
   AKANTU_DEBUG_OUT();
@@ -112,7 +108,6 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
   Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
 
   for (; it != last; ++it) {
-
     ElementType type_facet = *it;
     ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
     Array<bool> & facets_check = model->getFacetsCheck(type_facet);
@@ -123,7 +118,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
     Array<Real> & ins_stress = insertion_stress(type_cohesive);
     Array<Real> & trac_old = tractions_old(type_cohesive);
     const Array<Real> & f_stress = facet_stress(type_facet);
-    const Array<Real> & sigma_lim = sigma_limit(type_facet);
+    const Array<Real> & sigma_lim = sigma_c(type_facet);
 
     UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
     UInt nb_facet = f_filter.getSize();
@@ -131,7 +126,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
 
     UInt tot_nb_quad = nb_facet * nb_quad_facet;
 
-    Array<Real> stress_check(tot_nb_quad);
+    Array<Real> stress_check (tot_nb_quad);
     Array<Real> normal_stress(tot_nb_quad, spatial_dimension);
 
     computeStressNorms(f_stress, stress_check, normal_stress, type_facet);
@@ -141,7 +136,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
     Array<Real>::iterator<Matrix<Real> > normal_stress_it =
       normal_stress.begin_reinterpret(nb_quad_facet, spatial_dimension, nb_facet);
 
-    Real * sigma_lim_it = sigma_lim.storage();
+    Array<Real>::const_iterator<Real> sigma_lim_it = sigma_lim.begin();
 
     for (UInt f = 0; f < nb_facet; ++f, ++sigma_lim_it, ++stress_check_it,
 	   ++normal_stress_it) {

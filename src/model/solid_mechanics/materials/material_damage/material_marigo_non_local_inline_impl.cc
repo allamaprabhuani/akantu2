@@ -42,11 +42,11 @@ template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::MaterialMarigoNonLocal(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id),
   MaterialMarigoNonLocalParent(model, id),
-  Y("Y", id), Ynl("Y non local", id) {
+  Y("Y", *this), Ynl("Y non local", *this) {
   AKANTU_DEBUG_IN();
   this->is_non_local = true;
-  this->initInternalArray(this->Y, 1);
-  this->initInternalArray(this->Ynl, 1);
+  this->Y.initialize(1);
+  this->Ynl.initialize(1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -54,13 +54,8 @@ MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::MaterialMarigoNonLoca
 template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 void MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
-
-  this->resizeInternalArray(this->Y);
-  this->resizeInternalArray(this->Ynl);
   this->registerNonLocalVariable(Y, Ynl, 1);
-
   MaterialMarigoNonLocalParent::initMaterial();
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -71,7 +66,7 @@ void MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::computeStress(El
 
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * Yt  = this->Y(el_type, ghost_type).storage();
-  Real * Ydq = this->Yd_rand(el_type, ghost_type).storage();
+  Real * Ydq = this->Yd(el_type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   MaterialMarigo<spatial_dimension>::computeStressOnQuad(grad_u, sigma,
@@ -91,7 +86,7 @@ void MaterialMarigoNonLocal<spatial_dimension, WeigthFunction>::computeNonLocalS
   AKANTU_DEBUG_IN();
 
   Real * dam  = this->damage(type, ghost_type).storage();
-  Real * Ydq  = this->Yd_rand(type, ghost_type).storage();
+  Real * Ydq  = this->Yd(type, ghost_type).storage();
   Real * Ynlt = this->Ynl(type, ghost_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(type, ghost_type);

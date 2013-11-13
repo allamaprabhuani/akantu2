@@ -31,6 +31,7 @@
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "solid_mechanics_model.hh"
+#include "parsable.hh"
 #include <cmath>
 #if defined(AKANTU_DEBUG_TOOLS)
 #include "aka_debug_tools.hh"
@@ -50,13 +51,19 @@ __BEGIN_AKANTU__
 /*  Normal weight function                                                    */
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-class BaseWeightFunction {
+class BaseWeightFunction : public Parsable {
 public:
-  BaseWeightFunction(Material & material) : material(material) {}
+  BaseWeightFunction(Material & material, const std::string & type = "base") :
+    Parsable(_st_non_local, "weight_function:" + type), material(material), type(type) {
+    this->registerParam("radius"       , R             , 100.,
+			_pat_parsable | _pat_readable  , "Non local radius");
+    this->registerParam("update_rate"  , update_rate, 0U  ,
+			_pat_parsmod, "Update frequency");
+  }
 
   virtual ~BaseWeightFunction() {}
 
-  virtual void init() {};
+  virtual void init() { R2 = R * R; };
 
   virtual void updateInternals(__attribute__((unused)) const ByElementTypeReal & quadrature_points_coordinates) {};
 
@@ -83,16 +90,17 @@ public:
     return w;
   }
 
-  /* ------------------------------------------------------------------------ */
-  bool parseParam(__attribute__((unused)) const std::string & key,
-                  __attribute__((unused)) const std::string & value) {
-    return false;
+  void printself(std::ostream & stream, int indent) const {
+    std::string space;
+    for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+    stream << space << "WeightFunction " << type << " [" << std::endl;
+    Parsable::printself(stream, indent);
+    stream << space << "]" << std::endl;
   }
 
-  /* ------------------------------------------------------------------------ */
-  virtual void printself(std::ostream & stream) const {
-    stream << "BaseWeightFunction";
-  }
+public:
+  Real getRadius() { return R; }
+  UInt getUpdateRate() { return update_rate; }
 
 public:
   virtual UInt getNbDataForElements(__attribute__((unused)) const Array<Element> & elements,
@@ -112,6 +120,10 @@ protected:
 
   Real R;
   Real R2;
+
+  UInt update_rate;
+
+  const std::string type;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -120,7 +132,7 @@ protected:
 template<UInt spatial_dimension>
 class DamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  DamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+  DamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material, "damaged") {}
 
   inline void selectType(__attribute__((unused)) ElementType type1,
                          __attribute__((unused)) GhostType ghost_type1,
@@ -163,17 +175,6 @@ public:
     return w;
   }
 
-  /* ------------------------------------------------------------------------ */
-  bool parseParam(__attribute__((unused)) const std::string & key,
-                  __attribute__((unused)) const std::string & value) {
-    return false;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  virtual void printself(std::ostream & stream) const {
-    stream << "DamagedWeightFunction";
-  }
-
 private:
   const Array<Real> * selected_damage;
 };
@@ -184,7 +185,9 @@ private:
 template<UInt spatial_dimension>
 class RemoveDamagedWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  RemoveDamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+  RemoveDamagedWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material, "remove_damaged") {
+    this->registerParam("damage_limit", this->damage_limit, 1., _pat_parsable, "Damage Threshold");
+  }
 
   inline void selectType(__attribute__((unused)) ElementType type1,
                          __attribute__((unused)) GhostType ghost_type1,
@@ -207,19 +210,6 @@ public:
     return w;
   }
 
-  /* ------------------------------------------------------------------------ */
-  bool parseParam(const std::string & key,
-                  const std::string & value) {
-    std::stringstream sstr(value);
-    if(key == "damage_limit") { sstr >> damage_limit; }
-    else return BaseWeightFunction<spatial_dimension>::parseParam(key, value);
-    return true;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  virtual void printself(std::ostream & stream) const {
-    stream << "RemoveDamagedWeightFunction [damage_limit: " << damage_limit << "]";
-  }
 
   virtual UInt getNbDataForElements(const Array<Element> & elements,
                                     SynchronizationTag tag) const {
@@ -303,7 +293,9 @@ private:
 template<UInt spatial_dimension>
 class RemoveDamagedWithDamageRateWeightFunction : public BaseWeightFunction<spatial_dimension> {
 public:
-  RemoveDamagedWithDamageRateWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material) {}
+  RemoveDamagedWithDamageRateWeightFunction(Material & material) : BaseWeightFunction<spatial_dimension>(material, "remove_damage_with_damage_rate") {
+    this->registerParam("damage_limit", this->damage_limit_with_damage_rate, 1, _pat_parsable, "Damage Threshold");
+  }
 
   inline void selectType(__attribute__((unused)) ElementType type1,
                          __attribute__((unused)) GhostType ghost_type1,
@@ -328,19 +320,6 @@ public:
     }
 
     return w;
-  }
-  /* ------------------------------------------------------------------------ */
-  bool setParam(const std::string & key,
-                const std::string & value) {
-    std::stringstream sstr(value);
-    if(key == "damage_limit") { sstr >> damage_limit_with_damage_rate; }
-    else return BaseWeightFunction<spatial_dimension>::setParam(key, value);
-    return true;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  virtual void printself(std::ostream & stream) const {
-    stream << "RemoveDamagedWithDamageRateWeightFunction [damage_limit: " << damage_limit_with_damage_rate << "]";
   }
 
 private:
@@ -383,35 +362,23 @@ public:
                                Matrix<Real> & eigenvects,
                                Vector<Real> & x_s);
 
-  /* ------------------------------------------------------------------------ */
-  bool parseParam(const std::string & key, const std::string & value) {
-    std::stringstream sstr(value);
-    if(key == "ft") { sstr >> ft; }
-    else return BaseWeightFunction<spatial_dimension>::parseParam(key, value);
-    return true;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  virtual void printself(std::ostream & stream) const {
-    stream << "StressBasedWeightFunction [ft: " << ft << "]";
-  }
-
 private:
   Real ft;
 
-  ByElementTypeReal stress_diag;
+  InternalField<Real> stress_diag;
   Array<Real> * selected_stress_diag;
-  ByElementTypeReal stress_base;
+  InternalField<Real> stress_base;
   Array<Real> * selected_stress_base;
 
 
-  ByElementTypeReal quadrature_points_coordinates;
+  //  InternalField<Real> quadrature_points_coordinates;
   Array<Real> * selected_position_1;
   Array<Real> * selected_position_2;
 
-  ByElementTypeReal characteristic_size;
+  InternalField<Real> characteristic_size;
   Array<Real> * selected_characteristic_size;
 };
+
 
 template<UInt spatial_dimension>
 inline std::ostream & operator <<(std::ostream & stream,
@@ -420,33 +387,6 @@ inline std::ostream & operator <<(std::ostream & stream,
   _this.printself(stream);
   return stream;
 }
-
-
-template<UInt spatial_dimension>
-inline std::ostream & operator <<(std::ostream & stream,
-                                  const BaseWeightFunction<spatial_dimension> * _this)
-{
-  _this->printself(stream);
-  return stream;
-}
-
-
-template<UInt d>
-inline std::ostream & operator >>(std::ostream & stream,
-                                  __attribute__((unused)) const BaseWeightFunction<d> * _this)
-{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
-template<UInt d>
-inline std::ostream & operator >>(std::ostream & stream,
-                                  __attribute__((unused)) const RemoveDamagedWeightFunction<d> * _this)
-{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
-template<UInt d>
-inline std::ostream & operator >>(std::ostream & stream,
-                                  __attribute__((unused)) const DamagedWeightFunction<d> * _this)
-{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
-template<UInt d>
-inline std::ostream & operator >>(std::ostream & stream,
-                                  __attribute__((unused)) const StressBasedWeightFunction<d> * _this)
-{  AKANTU_DEBUG_TO_IMPLEMENT(); return stream; }
 
 
 #include "weight_function_tmpl.hh"

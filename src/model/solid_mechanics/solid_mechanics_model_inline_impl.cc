@@ -46,6 +46,42 @@ inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
   return *materials[mat_index];
 }
 
+/* -------------------------------------------------------------------------- */
+inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
+  AKANTU_DEBUG_IN();
+  std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
+  AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
+		      "The model " << id << " has no material named "<< name);
+  AKANTU_DEBUG_OUT();
+  return *materials[it->second];
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt SolidMechanicsModel::getMaterialIndex(const std::string & name) const {
+  AKANTU_DEBUG_IN();
+  std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
+  AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
+		      "The model " << id << " has no material named "<< name);
+  AKANTU_DEBUG_OUT();
+  return it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+inline const Material & SolidMechanicsModel::getMaterial(const std::string & name) const {
+  AKANTU_DEBUG_IN();
+  std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
+  AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
+		      "The model " << id << " has no material named "<< name);
+  AKANTU_DEBUG_OUT();
+  return *materials[it->second];
+}
+
+/* -------------------------------------------------------------------------- */
+inline void SolidMechanicsModel::setMaterialSelector(MaterialSelector & selector) {
+  if(is_default_material_selector) delete material_selector;
+  material_selector = &selector;
+  is_default_material_selector = false;
+}
 
 /* -------------------------------------------------------------------------- */
 inline FEM & SolidMechanicsModel::getFEMBoundary(const ID & name) {
@@ -57,21 +93,22 @@ inline void SolidMechanicsModel::splitElementByMaterial(const Array<Element> & e
 							Array<Element> * elements_per_mat) const {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
-  UInt * elem_mat = NULL;
+  const Array<UInt> * elem_mat = NULL;
 
   Array<Element>::const_iterator<Element> it  = elements.begin();
   Array<Element>::const_iterator<Element> end = elements.end();
   for (; it != end; ++it) {
     Element el = *it;
+
     if(el.type != current_element_type || el.ghost_type != current_ghost_type) {
       current_element_type = el.type;
       current_ghost_type   = el.ghost_type;
-      elem_mat = element_index_by_material(el.type, el.ghost_type).storage();
+      elem_mat = &element_index_by_material(el.type, el.ghost_type);
     }
 
     UInt old_id = el.element;
-    el.element = elem_mat[2*old_id+0];
-    elements_per_mat[elem_mat[2*old_id+1]].push_back(el);
+    el.element = (*elem_mat)(old_id, 1);
+    elements_per_mat[(*elem_mat)(old_id, 0)].push_back(el);
   }
 }
 
@@ -208,9 +245,10 @@ inline void SolidMechanicsModel::unpackBarycenter(const Mesh & mesh,
     Vector<Real> barycenter(spatial_dimension);
     buffer >> barycenter;
     Real tolerance = 1e-15;
+    Real bary_norm = barycenter.norm();
     for (UInt i = 0; i < spatial_dimension; ++i) {
-      if((std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i)) <= tolerance) ||
-	 (barycenter_loc(i) == 0 && std::abs(barycenter(i)) <= tolerance)) continue;
+      if((std::abs((barycenter(i) - barycenter_loc(i))/bary_norm) <= tolerance) ||
+	 (std::abs(barycenter_loc(i)) <= 0 && std::abs(barycenter(i)) <= tolerance)) continue;
       AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
 			 << element
 			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
@@ -405,6 +443,8 @@ template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solve(Array<Real> & increment) {
   jacobian_matrix->clear();
 
+  updateResidualInternal();
+
   Real c = 0.,d = 0.,e = 0.;
 
   if(method == _static) {
@@ -467,6 +507,7 @@ bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
 
   switch (cmethod) {
   case _scm_newton_raphson_tangent:
+  case _scm_newton_raphson_tangent_not_computed:
     break;
   case _scm_newton_raphson_tangent_modified:
     this->assembleStiffnessMatrix();
@@ -477,26 +518,31 @@ bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
 
   UInt iter = 0;
   bool converged = false;
+  Real error = 0.;
+  if(criteria == _scc_residual) {
+    converged = this->testConvergence<criteria> (tolerance, error);
+    if(converged) return converged;
+  }
 
   do {
-    Real error = 0.;
-
     if (cmethod == _scm_newton_raphson_tangent)
       this->assembleStiffnessMatrix();
 
-    solve<NewmarkBeta::_displacement_corrector > (*increment);
+    solve<NewmarkBeta::_displacement_corrector> (*increment);
 
     this->implicitCorr();
-    this->updateResidual();
 
-    converged = this->testConvergence<criteria > (tolerance, error);
+    if(criteria == _scc_residual) this->updateResidual();
 
+    converged = this->testConvergence<criteria> (tolerance, error);
+
+    if(criteria == _scc_increment && !converged) this->updateResidual();
     //this->dump();
 
     iter++;
     AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
 		      << std::setw(std::log10(max_iteration)) << iter
-		      << ": error " << error << (converged ? " < " : " > ") << tolerance << std::endl);
+		      << ": error " << error << (converged ? " < " : " > ") << tolerance);
 
   } while (!converged && iter < max_iteration);
 

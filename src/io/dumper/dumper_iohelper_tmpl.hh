@@ -29,6 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <io_helper.hh>
+#include "mesh.hh"
 
 #ifndef __AKANTU_DUMPER_IOHELPER_TMPL_HH__
 #define __AKANTU_DUMPER_IOHELPER_TMPL_HH__

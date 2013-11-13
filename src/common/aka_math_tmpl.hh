@@ -87,7 +87,7 @@ inline void Math::matrixt_vector(UInt im, UInt in,
   int m = im;
   int n = in;
 
-  aka_gemv(&tran_A, &m, &n, &alpha, A, &n, x, &incx, &beta, y, &incy);
+  aka_gemv(&tran_A, &m, &n, &alpha, A, &m, x, &incx, &beta, y, &incy);
 #else
   memset(y, 0, im*sizeof(Real));
   for (UInt i = 0; i < im; ++i) {

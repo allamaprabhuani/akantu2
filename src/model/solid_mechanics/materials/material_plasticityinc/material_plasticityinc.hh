@@ -6,7 +6,7 @@
  *
  * @date   Tue Jul 09 18:15:37 20130
  *
- * @brief  Specialization of the material class for isotropic finite deformation linear hardening plasticity 
+ * @brief  Specialization of the material class for isotropic finite deformation linear hardening plasticity
  *
  * @section LICENSE
  *
@@ -31,7 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material_thermal.hh"
+#include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_PLASTICITYINC_HH__
@@ -39,15 +39,6 @@
 
 __BEGIN_AKANTU__
 
-/**
- * Material elastic isotropic
- *
- * parameters in the material files :
- *   - rho : density (default: 0)
- *   - E   : Young's modulus (default: 0)
- *   - nu  : Poisson's ratio (default: 1/2)
- *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
- */
 
 /**
  * Material plastic isotropic
@@ -56,25 +47,21 @@ __BEGIN_AKANTU__
  *   - h : Hardening parameter (default: 0)
  *   - sigmay : Yield stress
  */
-
-
 template <UInt spatial_dimension>
-class MaterialPlasticityinc : public MaterialThermal<spatial_dimension> {
+class MaterialPlasticityinc : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
+
   MaterialPlasticityinc(SolidMechanicsModel & model, const ID & id = "");
 
   virtual ~MaterialPlasticityinc() {};
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
-  virtual void initMaterial();
 
 /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
@@ -82,13 +69,7 @@ public:
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
                             Array<Real> & tangent_matrix,
-                            GhostType ghost_type = _not_ghost);  
-
-  /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed() const;
-
-  /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed() const;
+                            GhostType ghost_type = _not_ghost);
 
 protected:
 
@@ -103,42 +84,19 @@ protected:
   inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening, Real sigma_th_cur, Real sigma_th_prev);
 
   void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_delta_u, Matrix<Real>  & sigma_tensor, Matrix<Real>  & previous_sigma_tensor, Real & iso_hardening);
- 
-  virtual void updateInternalParameters();
- 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-  /// First Lamé coefficient
-  Real lambda;
-
-  /// Second Lamé coefficient (shear modulus)
-  Real mu;
-
-  /// Bulk modulus
-  Real kpa;
-
   /// Yield stresss
   Real sigmay;
 
   /// hardening modulus
   Real h;
 
-  /// Plane stress or plane strain
-  bool plane_stress;
-
   /// isotropic hardening, r
-  ByElementTypeReal iso_hardening;
-
+  InternalField<Real> iso_hardening;
 };
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

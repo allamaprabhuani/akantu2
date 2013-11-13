@@ -40,16 +40,13 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL(dim, elem)		\
-  material =								\
-    &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(mat_type, \
-								       opt_param))
+  registerNewMaterial< BOOST_PP_ARRAY_ELEM(1, elem)< dim > >(section)
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL_EACH(r, data, i, elem)	\
   BOOST_PP_EXPR_IF(BOOST_PP_NOT_EQUAL(0, i), else )			\
   if(opt_param == BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))) { \
-    material =								\
-      &(registerNewCustomMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
-	BOOST_PP_SEQ_ENUM(BOOST_PP_TUPLE_ELEM(2, 1, elem)) > >(mat_type, opt_param)); \
+    registerNewMaterial< BOOST_PP_ARRAY_ELEM(1, data)< BOOST_PP_ARRAY_ELEM(0, data), \
+						       BOOST_PP_SEQ_ENUM(BOOST_PP_TUPLE_ELEM(2, 1, elem)) > >(section); \
     }
 
 
@@ -63,8 +60,8 @@ __BEGIN_AKANTU__
 
 #define AKANTU_INTANTIATE_MATERIAL_BY_DIM(dim, elem)			\
   BOOST_PP_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem) ),		\
-   	      AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL,			\
-    	      AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL)(dim, elem)
+	      AKANTU_INTANTIATE_MATERIAL_BY_DIM_TMPL,			\
+	      AKANTU_INTANTIATE_MATERIAL_BY_DIM_NO_TMPL)(dim, elem)
 
 
 #define AKANTU_INTANTIATE_MATERIAL(elem)				\
@@ -89,68 +86,83 @@ __BEGIN_AKANTU__
       BOOST_PP_SEQ_FOR_EACH(AKANTU_INTANTIATE_OTHER_MATERIAL,		\
 			    _,						\
 			    BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST))	\
-    else								\
-      AKANTU_DEBUG_ERROR("Malformed material file : unknown material type " \
-			 << mat_type);					\
+    else {								\
+      if(!Parser::parser_permissive)					\
+	AKANTU_DEBUG_INFO("Malformed material file " <<			\
+			 ": unknown material type '"			\
+			 << mat_type << "'");				\
+      else								\
+	AKANTU_DEBUG_WARNING("Malformed material file "			\
+			     <<": unknown material type " << mat_type	\
+			     << ". This is perhaps a user"		\
+			     << " defined material ?");			\
+    }									\
   } while(0)
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::readMaterials(const std::string & filename) {
-  Parser parser;
-  parser.open(filename);
-  std::string opt_param;
-  std::string mat_type = parser.getNextSection("material", opt_param);
+void SolidMechanicsModel::instantiateMaterials() {
+  std::pair<Parser::const_section_iterator, Parser::const_section_iterator>
+    sub_sect = parser.getSubSections(_st_material);
 
-  while (mat_type != ""){
-    Material & mat = registerNewMaterial(mat_type, opt_param);
-    parser.readSection(mat.getID(), mat);
-    mat_type = parser.getNextSection("material", opt_param);
+  Parser::const_section_iterator it = sub_sect.first;
+  for (; it != sub_sect.second; ++it) {
+    try {
+      const ParserSection & section = *it;
+      std::string mat_type  = section.getName();
+      std::string opt_param = section.getOption();
+      AKANTU_INSTANTIATE_MATERIALS();
+
+    } catch(debug::Exception & e) {
+      AKANTU_DEBUG_WARNING(e.what());
+    }
   }
-  parser.close();
-}
 
-/* -------------------------------------------------------------------------- */
-Material & SolidMechanicsModel::registerNewMaterial(const ID & mat_type,
-						    const std::string & opt_param) {
-  // UInt mat_count = materials.size();
-
-  // std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;
-  // Material * material;
-  // ID mat_id = sstr_mat.str();
-
-  // // add all the new materials in the AKANTU_MATERIAL_LIST in the material.hh file
-  // AKANTU_INSTANTIATE_MATERIALS();
-  // materials.push_back(material);
-  Material * material = NULL;
-
-  AKANTU_INSTANTIATE_MATERIALS();
-
-  return *material;
+  are_materials_instantiated = true;
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initMaterials() {
   AKANTU_DEBUG_ASSERT(materials.size() != 0, "No material to initialize !");
 
+  if(!are_materials_instantiated) instantiateMaterials();
+
   Material ** mat_val = &(materials.at(0));
 
-  /// @todo synchronize element material
+  Element element;
+  element.ghost_type = _not_ghost;
+  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost, _ek_not_defined);
+  Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost, _ek_not_defined);
+
+  // Fill the element material array from the material selector
+  for(; it != end; ++it) {
+    UInt nb_element = mesh.getNbElement(*it, _not_ghost);
+    element.type = *it;
+    Array<UInt> & el_id_by_mat = element_index_by_material(*it, _not_ghost);
+    for (UInt el = 0; el < nb_element; ++el) {
+      element.element = el;
+      UInt mat_index = (*material_selector)(element);
+      AKANTU_DEBUG_ASSERT(mat_index < materials.size(), "The material selector returned an index that does not exists");
+      el_id_by_mat(el, 0) = mat_index;
+    }
+  }
+
+  // synchronize the element material arrays
   synch_registry->synchronize(_gst_material_id);
 
+
+  /// fill the element filters of the materials using the element_material arrays
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-
-    /// fill the element filters of the materials using the element_material arrays
-    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
-    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
+    it  = mesh.firstType(spatial_dimension, gt, _ek_not_defined);
+    end = mesh.lastType(spatial_dimension, gt, _ek_not_defined);
 
     for(; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-
       Array<UInt> & el_id_by_mat = element_index_by_material(*it, gt);
       for (UInt el = 0; el < nb_element; ++el) {
-	UInt index = mat_val[el_id_by_mat(el, 1)]->addElement(*it, el, gt);
-	el_id_by_mat(el, 0) = index;
+	UInt mat_index = el_id_by_mat(el, 0);
+	UInt index = mat_val[mat_index]->addElement(*it, el, gt);
+	el_id_by_mat(el, 1) = index;
       }
     }
   }
@@ -174,41 +186,13 @@ void SolidMechanicsModel::initMaterials() {
     break;
   case _static: break;
   }
-  
+
+  // initialize the previous displacement array if at least on material needs it
   for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
     if (mat.isFiniteDeformation() || mat.isInelasticDeformation()) {
       initArraysPreviousDisplacment();
       break;
-    }
-  }
-}
-
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::setMaterialIDsFromIntData(const std::string & data_name) {
-  for(UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType) g;
-
-    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt);
-    Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt);
-
-    for(; it != end; ++it) {
-      try {
-	const Array<UInt> & data = mesh.getData<UInt>(*it, data_name, gt);
-
-	AKANTU_DEBUG_ASSERT(element_index_by_material.exists(*it, gt),
-			    "element_material for type (" << gt << ":" << *it
-			    << ") does not exists!");
-	for (UInt i = 0; i < data.getSize(); ++i) {
-	  element_index_by_material(*it, gt)(i, 1) = data(i);	  
-	}
-
-      } catch(...) {
-	AKANTU_DEBUG_ERROR("No data named " << data_name
-			   << " present in the mesh " << id
-			   << " for the element type " << *it);
-      }
     }
   }
 }
@@ -229,4 +213,5 @@ Int SolidMechanicsModel::getInternalIndexFromID(const ID & id) const {
   AKANTU_DEBUG_OUT();
   return -1;
 }
+
 __END_AKANTU__

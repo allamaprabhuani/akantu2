@@ -34,10 +34,6 @@
 /* -------------------------------------------------------------------------- */
 #include <ostream>
 #include <sstream>
-#include <sys/time.h>
-
-/* -------------------------------------------------------------------------- */
-//#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -76,8 +72,12 @@ namespace akantu {
   };
 
   /* -------------------------------------------------------------------------- */
+#define AKANTU_LOCATION "(" << __func__ << "(): " << __FILE__ << ":" << __LINE__ << ")"
+
+  /* -------------------------------------------------------------------------- */
   namespace debug {
     void setDebugLevel(const DebugLevel & level);
+    const DebugLevel & getDebugLevel();
 
     void initSignalHandler();
     std::string demangle(const char * symbol);
@@ -106,15 +106,15 @@ namespace akantu {
       /* ------------------------------------------------------------------------ */
     public:
       virtual const char* what() const throw() {
+        return _info.c_str();
+      }
+
+      virtual const char* info() const throw() {
         std::stringstream stream;
         stream << "akantu::Exception"
                << " : " << _info
                << " ["  << _file << ":" << _line << "]";
         return stream.str().c_str();
-      }
-
-      virtual const char* info() const throw() {
-        return _info.c_str();
       }
 
       /* ------------------------------------------------------------------------ */
@@ -147,21 +147,17 @@ namespace akantu {
       virtual ~Debugger();
 
       void exit(int status) __attribute__ ((noreturn));
-      void throwException(const std::string & info) throw(akantu::debug::Exception) __attribute__ ((noreturn));
 
-      inline void printMessage(const std::string & prefix,
-                               const DebugLevel & level,
-                               const std::string & info) const {
-        if(this->level >= level) {
-          struct timeval time;
-          gettimeofday(&time, NULL);
-          double  timestamp = time.tv_sec*1e6 + time.tv_usec; /*in us*/
-          *(cout) << parallel_context
-                  << "{" << (unsigned int)timestamp << "} "
-                  << prefix << " " << info
-                  << std::endl;
-        }
-      }
+      void throwException(const std::string & info,
+			  const std::string & file,
+			  unsigned int line,
+			  __attribute__((unused)) bool silent,
+			  __attribute__((unused)) const std::string & location)
+	const throw(akantu::debug::Exception) __attribute__ ((noreturn));
+
+      void printMessage(const std::string & prefix,
+			const DebugLevel & level,
+			const std::string & info) const;
 
       void setOutStream(std::ostream & out) { cout = &out; }
       std::ostream & getOutStream() { return  *cout; }
@@ -190,9 +186,6 @@ namespace akantu {
   }
 
   /* -------------------------------------------------------------------------- */
-#define AKANTU_LOCATION "(" << __func__ << "(): " << __FILE__ << ":" << __LINE__ << ")"
-
-  /* -------------------------------------------------------------------------- */
 #define AKANTU_STRINGSTREAM_IN(_str, _sstr);    \
   do {                                          \
     std::stringstream _dbg_s_info;              \
@@ -201,11 +194,22 @@ namespace akantu {
   } while(0)
 
   /* -------------------------------------------------------------------------- */
-#define AKANTU_EXCEPTION(info)                          \
-  do {                                                  \
-    std::string _dbg_str;                               \
-    AKANTU_STRINGSTREAM_IN(_dbg_str, info);             \
-    ::akantu::debug::debugger.throwException(_dbg_str); \
+#define AKANTU_EXCEPTION(info)			\
+  AKANTU_EXCEPTION_(info, false)
+
+#define AKANTU_SILENT_EXCEPTION(info)		\
+  AKANTU_EXCEPTION_(info, true)
+
+#define AKANTU_EXCEPTION_(info, silent)				\
+  do {                                                          \
+    std::stringstream _dbg_str;                                 \
+    _dbg_str << info;                                           \
+    std::stringstream _dbg_loc; _dbg_loc << AKANTU_LOCATION;	\
+    ::akantu::debug::debugger.throwException(_dbg_str.str(),	\
+                                             __FILE__,		\
+                                             __LINE__,		\
+					     silent,		\
+					     _dbg_loc.str());	\
   } while(0)
 
   /* -------------------------------------------------------------------------- */

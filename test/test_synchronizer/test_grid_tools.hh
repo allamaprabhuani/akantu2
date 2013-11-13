@@ -61,8 +61,8 @@ public:
     }
   }
 private:
-  Real pos[dim];
   UInt id;
+  Real pos[dim];
   double tol;
 };
 

@@ -118,15 +118,13 @@ private:
   Real eta, Ev, E_inf;
 
   /// history of deviatoric stress
-  ByElementTypeReal stress_dev;
+  InternalField<Real> stress_dev;
 
   /// Internal variable: history integral
-  ByElementTypeReal history_integral;
+  InternalField<Real> history_integral;
 
   /// Dissipated energy
-  ByElementTypeReal dissipated_energy;
-
-  std::map<std::string, MaterialParam> params;
+  InternalField<Real> dissipated_energy;
 };
 
 __END_AKANTU__

@@ -87,13 +87,13 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// damage internal variable
-  ByElementTypeReal damage;
+  InternalField<Real> damage;
 
   /// dissipated energy
-  ByElementTypeReal dissipated_energy;
+  InternalField<Real> dissipated_energy;
 
   /// contain the current value of @f$ \int_0^{\epsilon}\sigma(\omega)d\omega @f$ the dissipated energy
-  ByElementTypeReal int_sigma;
+  InternalField<Real> int_sigma;
 };
 
 __END_AKANTU__

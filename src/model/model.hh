@@ -46,10 +46,14 @@
 #include "mesh_partition.hh"
 #include "dof_synchronizer.hh"
 #include "pbc_synchronizer.hh"
-
+#include "parser.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
+
+struct ModelOptions {
+  virtual ~ModelOptions() {}
+};
 
 class DumperIOHelper;
 
@@ -74,6 +78,8 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  virtual void initFull(std::string input_file, const ModelOptions & options);
+
   virtual void initModel() = 0;
 
   /// create the synchronizer registry object
@@ -84,7 +90,7 @@ public:
 						DataAccessor * data_accessor);
 
   /// change local equation number so that PBC is assembled properly
-  void changeLocalEquationNumberforPBC(std::map<UInt,UInt> & pbc_pair,UInt dimension);
+  void changeLocalEquationNumberForPBC(std::map<UInt,UInt> & pbc_pair,UInt dimension);
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
@@ -99,22 +105,22 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Access to the dumpable interface of the boundaries                       */
   /* ------------------------------------------------------------------------ */
-  /// Dump the data for a given boundary
-  void dumpBoundary(const std::string & boundary_name);
-  void dumpBoundary(const std::string & boundary_name,
-		    const std::string & dumper_name);
+  /// Dump the data for a given group
+  void dumpGroup(const std::string & group_name);
+  void dumpGroup(const std::string & group_name,
+                 const std::string & dumper_name);
   /// Dump the data for all boundaries
-  void dumpBoundary();
-  /// Set the directory for a given boundary
-  void setBoundaryDirectory(const std::string & directory,
-			    const std::string & boundary_name);
+  void dumpGroup();
+  /// Set the directory for a given group
+  void setGroupDirectory(const std::string & directory,
+                         const std::string & group_name);
   /// Set the directory for all boundaries
-  void setBoundaryDirectory(const std::string & directory);
-  /// Set the base name for a given boundary
-  void setBoundaryBaseName(const std::string & basename,
-			   const std::string & boundary_name);
-  /// Get the internal dumper of a given boundary
-  DumperIOHelper & getBoundaryDumper(const std::string & boundary_name);
+  void setGroupDirectory(const std::string & directory);
+  /// Set the base name for a given group
+  void setGroupBaseName(const std::string & basename,
+                        const std::string & group_name);
+  /// Get the internal dumper of a given group
+  DumperIOHelper & getGroupDumper(const std::string & group_name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                 */
@@ -147,6 +153,9 @@ public:
 
   /// return the synchronizer registry
   SynchronizerRegistry & getSynchronizerRegistry();
+
+  /// Get access to the parser
+  AKANTU_GET_MACRO(Parser, parser, const Parser &);
 
 public:
   /// return the fem object associated with a provided name
@@ -192,6 +201,9 @@ protected:
 
   /// default fem object
   std::string default_fem;
+
+  /// Parser containing the information parsed by the input file given to initFull
+  Parser parser;
 
   /// synchronizer registry
   SynchronizerRegistry * synch_registry;

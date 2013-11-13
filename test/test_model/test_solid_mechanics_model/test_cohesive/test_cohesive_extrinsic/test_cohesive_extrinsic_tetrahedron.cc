@@ -41,9 +41,6 @@
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
 #include "material_cohesive_linear.hh"
-// #if defined(AKANTU_USE_IOHELPER)
-// #  include "io_helper.hh"
-// #endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -71,12 +68,12 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _explicit_lumped_mass, true);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   const MaterialCohesiveLinear<3> & mat_cohesive
     = dynamic_cast < const MaterialCohesiveLinear<3> & > (model.getMaterial(1));
 
-  const Real sigma_c = mat_cohesive.getParam<Real>("sigma_c");
+  const Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
   const Real beta = mat_cohesive.getParam<Real>("beta");
   //  const Real G_cI = mat_cohesive.getParam<Real>("G_cI");
 
@@ -143,10 +140,6 @@ int main(int argc, char *argv[]) {
     	(*stress_it)(i, j) = (*stress_it)(j, i);
       }
     }
-
-    // stress_it->clear();
-    // for (UInt i = 0; i < spatial_dimension; ++i)
-    //   (*stress_it)(i, i) = sigma_c * 5;
   }
 
 
@@ -174,22 +167,7 @@ int main(int argc, char *argv[]) {
     	(*stress_facets_it)(i, j) = (*stress_facets_it)(j, i);
       }
     }
-
-
-    // stress_facets_it->clear();
-    // for (UInt i = 0; i < spatial_dimension; ++i)
-    //   (*stress_facets_it)(i, i) = sigma_c * 5;
   }
-
-  // /// compute facet area
-  // Array<Real> integration_constant(nb_tot_quad);
-  // integration_constant.set(1.);
-
-  // Real facets_area = model.getFEM("FacetsFEM").integrate(integration_constant,
-  // 							 type_facet);
-
-  // facets_area -= 2 * 2 * 6;
-
 
   /// insert cohesive elements
   model.checkCohesiveStress();
@@ -256,138 +234,6 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-
-  // /* ------------------------------------------------------------------------ */
-  // /* Check dissipated energy                                                  */
-  // /* ------------------------------------------------------------------------ */
-
-
-  // model.setBaseName("extrinsic_tetrahedron");
-  // model.addDumpFieldVector("displacement");
-  // model.addDumpField("stress");
-  // model.dump();
-
-  // DumperParaview dumper("cohesive_elements_tetrahedron_fragmentation");
-  // dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  // DumperIOHelper::Field * cohesive_displacement =
-  //   new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  // cohesive_displacement->setPadding(3);
-  // dumper.registerField("displacement", cohesive_displacement);
-  // // dumper.registerField("damage", new DumperIOHelper::
-  // // 		       HomogenizedField<Real,
-  // // 					DumperIOHelper::InternalMaterialField>(model,
-  // // 									       "damage",
-  // // 									       spatial_dimension,
-  // // 									       _not_ghost,
-  // // 									       _ek_cohesive));
-
-  // dumper.dump();
-
-  // /// update displacement
-  // UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  // Real * bary = new Real[spatial_dimension];
-
-  // const Array<UInt> & connectivity = mesh.getConnectivity(type);
-  // Array<Real> & displacement = model.getDisplacement();
-
-  // for (UInt s = 1; s <= max_steps; ++s) {
-
-  //   model.updateResidual();
-
-  //   for (UInt el = 0; el < nb_element; ++el) {
-  //     mesh.getBarycenter(el, type, bary);
-  //     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-  // 	UInt node = connectivity(el, n);
-
-  // 	for (UInt dim = 0; dim < spatial_dimension; ++dim) {
-  // 	  displacement(node, dim) += increment * bary[dim];
-  // 	}
-  //     }
-  //   }
-
-  //   if (s % 100 == 0) {
-  //     model.dump();
-  //     dumper.dump();
-  //   }
-  // }
-
-  // delete[] bary;
-
-
-  // Real theoretical_Ed = facets_area * G_cI;
-  // Real Ed = model.getEnergy("dissipated");
-
-  // std::cout << Ed << " " << theoretical_Ed << std::endl;
-
-  // Array<Real> & velocity = model.getVelocity();
-  // Array<bool> & boundary = model.getBoundary();
-  // Array<Real> & displacement = model.getDisplacement();
-  // //  const Array<Real> & residual = model.getResidual();
-
-  // UInt nb_nodes = mesh.getNbNodes();
-
-  // /// boundary conditions
-  // for (UInt n = 0; n < nb_nodes; ++n) {
-  //   if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
-  //     boundary(n, 0) = true;
-  // }
-
-  // model.updateResidual();
-
-  // model.setBaseName("extrinsic_tetrahedron");
-  // model.addDumpFieldVector("displacement");
-  // model.addDumpField("velocity"    );
-  // model.addDumpField("acceleration");
-  // model.addDumpField("residual"    );
-  // model.addDumpField("stress");
-  // model.addDumpField("strain");
-  // model.dump();
-
-  // /// initial conditions
-  // Real loading_rate = 0.5;
-  // Real disp_update = loading_rate * time_step;
-  // for (UInt n = 0; n < nb_nodes; ++n) {
-  //   velocity(n, 0) = loading_rate * position(n, 0);
-  // }
-
-  // //  const Array<Real> & stress = model.getMaterial(0).getStress(type);
-
-  // /// Main loop
-  // for (UInt s = 1; s <= max_steps; ++s) {
-
-  //   /// update displacement on extreme nodes
-  //   for (UInt n = 0; n < nb_nodes; ++n) {
-  //     if (position(n, 0) > 0.99 || position(n, 0) < -0.99)
-  // 	displacement(n, 0) += disp_update * position(n, 0);
-  //   }
-
-  //   model.checkCohesiveStress();
-
-  //   model.explicitPred();
-  //   model.updateResidual();
-  //   model.updateAcceleration();
-  //   model.explicitCorr();
-
-  //   if(s % 10 == 0) {
-  //     model.dump();
-
-  //     std::cout << "passing step " << s << "/" << max_steps << std::endl;
-  //   }
-
-  // }
-
-  // //  mesh.write("mesh_final.msh");
-
-  // Real Ed = model.getEnergy("dissipated");
-  // Real Edt = 400;
-
-  // std::cout << Ed << " " << Edt << std::endl;
-
-  // // if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
-  // //   std::cout << "The dissipated energy is incorrect" << std::endl;
-  // //   return EXIT_FAILURE;
-  // // }
-
 
   finalize();
 

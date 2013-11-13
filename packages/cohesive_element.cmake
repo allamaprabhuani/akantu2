@@ -40,6 +40,9 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
 
   fem/shape_cohesive_inline_impl.cc
 
+  model/solid_mechanics/materials/material_cohesive/cohesive_internal_field_tmpl.hh
+  model/solid_mechanics/materials/material_cohesive/cohesive_internal_field.hh
+
   model/solid_mechanics/materials/material_cohesive/material_cohesive_inline_impl.cc
 
   model/solid_mechanics/solid_mechanics_model_cohesive.cc

@@ -46,26 +46,11 @@ class ByElementType;
 /* -------------------------------------------------------------------------- */
 /* ByElementTypeBase                                                          */
 /* -------------------------------------------------------------------------- */
-
+/// Common non templated base class for the ByElementType class
 class ByElementTypeBase {
 public:
   virtual ~ByElementTypeBase() {};
-//
-//  template<class Stored>
-//   ByElementTypeVector<Stored> & get();
-//
-//  template<class Stored>
-//  const ByElementTypeVector<Stored> & get() const;
-//
-//protected:
-//  template<class Stored>
-//  const ByElementTypeVector<Stored> & getTyped() const;
-//
-//  template<class Stored>
-//  ByElementTypeVector<Stored> & getTyped();
-
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* ByElementType                                                              */
@@ -154,9 +139,6 @@ protected:
   DataMap ghost_data;
 };
 
-
-
-
 /* -------------------------------------------------------------------------- */
 /* Some typedefs                                                              */
 /* -------------------------------------------------------------------------- */
@@ -175,7 +157,7 @@ public:
   ByElementTypeArray() {};
 
   ByElementTypeArray(const ID & id, const ID & parent_id,
-		      const MemoryID & memory_id = 0) :
+		     const MemoryID & memory_id = 0) :
     parent(id, parent_id), Memory(memory_id) {};
 
   inline Array<T> & alloc(UInt size,
@@ -202,7 +184,6 @@ public:
   inline void onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
-
 
 private:
   ByElementTypeArray operator=(__attribute__((unused)) const ByElementTypeArray & other) {};

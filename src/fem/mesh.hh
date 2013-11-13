@@ -43,15 +43,13 @@
 #include "element_class.hh"
 #include "by_element_type.hh"
 #include "aka_event_handler.hh"
-#include "boundary.hh"
+#include "group_manager.hh"
 
 /* -------------------------------------------------------------------------- */
 #include <set>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
-
-class SubBoundary;
 
 /* -------------------------------------------------------------------------- */
 /* Element                                                                    */
@@ -218,21 +216,21 @@ public:
  * Mesh::ConnectivityTypeList
  *
  * In order to loop on all element you have to loop on all types like this :
- * @code
+ * @code{.cpp}
  Mesh::type_iterator it = mesh.firstType(dim, ghost_type);
  Mesh::type_iterator end = mesh.lastType(dim, ghost_type);
-
  for(; it != end; ++it) {
- UInt nb_element  = mesh.getNbElement(*it);
- const Array<UInt> & conn = mesh.getConnectivity(*it);
-
- for(UInt e = 0; e < nb_element; ++e) {
- ...
- }
+   UInt nb_element  = mesh.getNbElement(*it);
+   const Array<UInt> & conn = mesh.getConnectivity(*it);
+   for(UInt e = 0; e < nb_element; ++e) {
+     ...
+   }
  }
  @endcode
 */
-class Mesh : protected Memory, public EventHandlerManager<MeshEventHandler> {
+class Mesh : protected Memory,
+             public EventHandlerManager<MeshEventHandler>,
+             public GroupManager {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -285,19 +283,8 @@ public:
   void computeBoundingBox();
 
 #ifdef AKANTU_CORE_CXX11
-  template <typename... Args>
-  void translate(Args... params) {
-    // check that the number of parameters corresponds to the dimension
-    AKANTU_DEBUG_ASSERT(sizeof...(Args) <= spatial_dimension , "Number of arguments greater than dimension.");
-
-    // unpack parameters
-    Real s[] = { params... };
-
-    Array<Real>& nodes = getNodes();
-    for (UInt i = 0; i < nodes.getSize(); ++i)
-      for (UInt k = 0; k < sizeof...(Args); ++k)
-        nodes(i, k) += s[k];
-  }
+  /// translate the mesh by the given amount in x[, y[, z]] directions
+  template <typename... Args> void translate(Args... params);
 #endif
 
   /// init a by-element-type real vector with provided ids
@@ -453,29 +440,16 @@ public:
   Array<Element> & getSubelementToElement(const ElementType & el_type,
                                           const GhostType & ghost_type = _not_ghost);
 
-
-  inline UInt getNbBoundaries() const;
-  inline const SubBoundary & getSubBoundary(const std::string & name) const;
-  inline SubBoundary & getSubBoundary(const std::string & name);
-
-  // // XXX TODO FIXME old prototype
-  // inline const Array<UInt> & getUIntData(const ElementType & el_type,
-  //                                        const std::string & data_name,
-  //                                        const GhostType & ghost_type = _not_ghost) const;
-
-  AKANTU_GET_MACRO(Boundary, boundaries, const Boundary &);
-  AKANTU_GET_MACRO_NOT_CONST(Boundary, boundaries, Boundary &);
-
   /// get a name field associated to the mesh
   template<typename T>
-  inline const Array<T> & getData(const ElementType & el_type,
-                                  const std::string & data_name,
+  inline const Array<T> & getData(const std::string & data_name,
+				  const ElementType & el_type,
                                   const GhostType & ghost_type = _not_ghost) const;
 
   /// get a name field associated to the mesh
   template<typename T>
-  inline Array<T> & getData(const ElementType & el_type,
-                            const std::string & data_name,
+  inline Array<T> & getData(const std::string & data_name,
+			    const ElementType & el_type,
                             const GhostType & ghost_type = _not_ghost);
 
   /// get a name field associated to the mesh
@@ -488,8 +462,8 @@ public:
 
   /// templated getter returning the pointer to data in MeshData (modifiable)
   template<typename T>
-  inline Array<T> * getDataPointer(const ElementType & el_type,
-                                   const std::string & data_name,
+  inline Array<T> * getDataPointer(const std::string & data_name,
+				   const ElementType & el_type,
                                    const GhostType & ghost_type = _not_ghost,
                                    UInt nb_component = 1);
 
@@ -500,6 +474,7 @@ public:
   /// Parent mesh accessor
   AKANTU_GET_MACRO(MeshParent, *mesh_parent, const Mesh &);
   AKANTU_GET_MACRO_NOT_CONST(MeshParent, *mesh_parent, Mesh &);
+
 
   inline bool isMeshFacets() const {return is_mesh_facets;}
 
@@ -643,8 +618,8 @@ private:
   /// Extra data loaded from the mesh file
   MeshData mesh_data;
 
-  /// List of boundaries either read from the mesh file or created directly
-  Boundary boundaries;
+  /// Group manager for nodes and elements groups in the mesh
+  // GroupManager group_manager;
 
   /// facets' mesh
   Mesh * mesh_facets;

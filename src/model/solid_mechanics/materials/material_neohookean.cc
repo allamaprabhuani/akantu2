@@ -129,5 +129,4 @@ Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
 
 INSTANSIATE_MATERIAL(MaterialNeohookean);
 
-
 __END_AKANTU__

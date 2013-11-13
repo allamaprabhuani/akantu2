@@ -39,18 +39,7 @@
 #include "heat_transfer_model.hh"
 
 /* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_IOHELPER
-#include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
-
 using namespace akantu;
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(HeatTransferModel & model, iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-iohelper::ElemType paraview_type = iohelper::TETRA1;
-#endif
 
 UInt spatial_dimension = 3;
 ElementType type = _tetrahedron_4;
@@ -92,15 +81,6 @@ int main(int argc, char *argv[])
     //temperature(i) = t1 - (t1 - t2) * sin(nodes(i, 0) * M_PI / length);
     temperature(i) = 100.;
 
-    // if(nodes(i,0) < eps) {
-    //   boundary(i) = true;
-    //   temperature(i) = 100.0;
-    // }
-    //set the second boundary condition
-    // if(std::abs(nodes(i,0) - length) < eps) {
-    //   boundary(i) = true;
-    //   temperature(i) = 100.;
-    // }
     //to insert a heat source
     Real dx = nodes(i,0) - length/2.;
     Real dy = nodes(i,1) - length/2.;

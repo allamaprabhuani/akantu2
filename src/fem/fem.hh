@@ -64,7 +64,7 @@ public:
     position((Real *)NULL, 0) { this->position.shallowCopy(position); };
 
   QuadraturePoint(const QuadraturePoint & quad) :
-    Element(quad), num_point(quad.num_point), global_num(global_num), position((Real *) NULL, 0) {
+    Element(quad), num_point(quad.num_point), global_num(quad.global_num), position((Real *) NULL, 0) {
     position.shallowCopy(quad.position);
   };
 

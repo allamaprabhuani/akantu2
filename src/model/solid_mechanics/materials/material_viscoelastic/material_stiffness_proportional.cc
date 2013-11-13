@@ -39,14 +39,14 @@ template<UInt spatial_dimension>
 MaterialStiffnessProportional<spatial_dimension>::MaterialStiffnessProportional(SolidMechanicsModel & model,
 										const ID & id)  :
   Material(model, id), MaterialElastic<spatial_dimension>(model, id),
-  stress_viscosity("stress_viscosity", id),
-  stress_elastic("stress_elastic", id) {
+  stress_viscosity("stress_viscosity", *this),
+  stress_elastic("stress_elastic", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Alpha", alpha, 0., ParamAccessType(_pat_parsable | _pat_modifiable), "Artificial viscous ratio");
 
-  this->initInternalArray(this->stress_viscosity, spatial_dimension * spatial_dimension);
-  this->initInternalArray(this->stress_elastic  , spatial_dimension * spatial_dimension);
+  this->stress_viscosity.initialize(spatial_dimension * spatial_dimension);
+  this->stress_elastic  .initialize(spatial_dimension * spatial_dimension);
 
 
   AKANTU_DEBUG_OUT();
@@ -57,10 +57,6 @@ template<UInt spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic<spatial_dimension>::initMaterial();
-
-  this->resizeInternalArray(this->stress_viscosity);
-  this->resizeInternalArray(this->stress_elastic  );
-
   AKANTU_DEBUG_OUT();
 }
 

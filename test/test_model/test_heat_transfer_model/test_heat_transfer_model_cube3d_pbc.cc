@@ -32,46 +32,27 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "heat_transfer_model.hh"
-#include "pbc_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <fstream>
-#include <string.h>
+
 using namespace std;
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#include "io_helper.hh"
-
-#endif //AKANTU_USE_IOHELPER
-
-#ifdef AKANTU_USE_IOHELPER
-static void paraviewInit(akantu::HeatTransferModel & model, iohelper::Dumper & dumper);
-static void paraviewDump(iohelper::Dumper & dumper);
-iohelper::ElemType paraview_type = iohelper::TETRA1;
-#endif
-
-akantu::UInt spatial_dimension = 3;
-akantu:: ElementType type = akantu::_tetrahedron_4;
-
-
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[])
 {
   akantu::initialize(argc, argv);
 
+  akantu::UInt spatial_dimension = 3;
   //create mesh
   akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("cube_tet4.msh", mesh);
+  mesh.read("cube_tet4.msh");
 
   akantu::HeatTransferModel model(mesh);
   //initialize everything
   model.initFull("material.dat");
-  
+
   //initialize PBC
   model.setPBC(1,1,1);
   model.initPBC();
@@ -129,7 +110,7 @@ int main(int argc, char *argv[])
       if(i % 100 == 0) model.dump();
 
       if(i % 10 == 0)
-	std::cout << "Step " << i << "/" << max_steps << std::endl;
+        std::cout << "Step " << i << "/" << max_steps << std::endl;
     }
   cout<< "\n\n Stable Time Step is : " << time_step << "\n \n" <<endl;
 

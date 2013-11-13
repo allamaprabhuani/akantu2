@@ -51,10 +51,8 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   virtual void initMaterial();
-  virtual void updateInternalParameters();
- 
+
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
   /// Saves the previous thermal stresses
@@ -74,26 +72,23 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// The Young modulus
+  /// Young modulus
   Real E;
 
-  /// Poisson coefficient
+  /// Poisson ratio
   Real nu;
 
   /// Thermal expansion coefficient
   Real alpha;
 
   /// Temperature field
-  ByElementTypeReal delta_t;
-
-  /// Uniform temperature field (for test puposes)
-  Real delta_t_init;
+  InternalField<Real> delta_T;
 
   /// Current thermal stress
-  ByElementTypeReal sigma_th_cur;
+  InternalField<Real> sigma_th_cur;
 
   /// Previous thermal stress
-  ByElementTypeReal sigma_th_prev;
+  InternalField<Real> sigma_th_prev;
 
   /// Tell if we need to use the previous thermal stress
   bool use_previous_stress_thermal;

@@ -111,21 +111,15 @@ public:
 protected:
 
   /// resistance to damage
-  Real Yd;
+  RandomInternalField<Real> Yd;
 
   /// damage threshold
   Real Sd;
-
-  /// randomness on Yd
-  Real Yd_randomness;
 
   /// critical epsilon when the material is considered as broken
   Real epsilon_c;
 
   Real Yc;
-
-  /// Yd random internal variable
-  ByElementTypeReal Yd_rand;
 
   bool damage_in_y;
   bool yc_limit;

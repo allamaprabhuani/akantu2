@@ -122,53 +122,38 @@ int main(int argc, char *argv[])
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
   if(PLANE_STRAIN)
-    my_model.initFull("material_check_stress_plane_strain.dat", _static);
+    my_model.initFull("material_check_stress_plane_strain.dat", SolidMechanicsModelOptions(_static));
   else
-    my_model.initFull("material_check_stress_plane_stress.dat", _static);
+    my_model.initFull("material_check_stress_plane_stress.dat", SolidMechanicsModelOptions(_static));
 
   const Array<Real> & coordinates = my_mesh.getNodes();
   Array<Real> & displacement = my_model.getDisplacement();
   Array<bool> & boundary = my_model.getBoundary();
   MeshUtils::buildFacets(my_mesh);
 
-  my_mesh.getBoundary().createBoundariesFromGeometry();
+  my_mesh.createBoundaryGroupFromGeometry();
+
   // Loop over (Sub)Boundar(ies)
-  const Boundary & boundaries = my_mesh.getBoundary();
-  for(Boundary::const_iterator it(boundaries.begin()); it != boundaries.end(); ++it) {
-    for(akantu::SubBoundary::nodes_const_iterator nodes_it(it->nodes_begin()); nodes_it!= it->nodes_end(); ++nodes_it) {
+  for(GroupManager::const_element_group_iterator it(my_mesh.element_group_begin());
+      it != my_mesh.element_group_end(); ++it) {
+    for(ElementGroup::const_node_iterator nodes_it(it->second->node_begin());
+        nodes_it!= it->second->node_end(); ++nodes_it) {
       UInt n(*nodes_it);
       std::cout << "Node " << *nodes_it << std::endl;
       for (UInt i = 0; i < dim; ++i) {
-	      displacement(n, i) = alpha[i][0];
-	      for (UInt j = 0; j < dim; ++j) {
-	        displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
-	      }
-	      boundary(n, i) = true;
+	displacement(n, i) = alpha[i][0];
+	for (UInt j = 0; j < dim; ++j) {
+	  displacement(n, i) += alpha[i][j + 1] * coordinates(n, j);
+	}
+	boundary(n, i) = true;
       }
     }
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Main loop                                                                */
+  /* Static solve                                                             */
   /* ------------------------------------------------------------------------ */
-  akantu::UInt count = 0;
-  my_model.assembleStiffnessMatrix();
-  my_model.updateResidual();
-
-  my_model.getStiffnessMatrix().saveMatrix("K.mtx");
-
-  while(!my_model.testConvergenceResidual(2e-4) && (count < 100)) {
-    std::cout << "Iter : " << ++count << std::endl;
-    my_model.solveStatic();
-    my_model.updateResidual();
-  }
-
-  if(count > 1) {
-    std::cerr << "The code did not converge in 1 step !" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  my_model.computeStresses();
+  my_model.solveStep<_scm_newton_raphson_tangent_modified, _scc_residual>(2e-4, 2);
 
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
@@ -186,25 +171,40 @@ int main(int argc, char *argv[])
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
 
+  Real strain_tolerance = 1e-13;
+  Real stress_tolerance = 1e-13;
+
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       Matrix<Real> & stress = *stress_it;
       Matrix<Real> & strain = *strain_it;
 
-      for (UInt i = 0; i < dim; ++i) {
-	for (UInt j = 0; j < dim; ++j) {
-	  if(!(std::abs(strain(i, j) - presc_strain(i, j)) < 2e-15)) {
-	    std::cerr << "strain[" << i << "," << j << "] = " << strain(i, j) << " but should be = " << presc_strain(i, j) << " (-" << std::abs(strain(i, j) - presc_strain(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
-	    std::cerr << "computed : " << strain << "reference : " << presc_strain << std::endl;
-	    return EXIT_FAILURE;
-	  }
+      Matrix<Real> diff(dim, dim);
 
-	  if(!(std::abs(stress(i, j) - presc_stress(i, j)) < 1e-3)) {
-	    std::cerr << "stress[" << i << "," << j << "] = " << stress(i, j) << " but should be = " << presc_stress(i, j) << " (-" << std::abs(stress(i, j) - presc_stress(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
-	    std::cerr << "computed : " << stress << "reference : " << presc_stress << std::endl;
-	    return EXIT_FAILURE;
-	  }
-	}
+      diff  = strain;
+      diff -= presc_strain;
+      Real strain_error = diff.norm<L_inf>() / strain.norm<L_inf>();
+
+      if(strain_error > strain_tolerance) {
+	std::cerr << "strain error: " << strain_error << " > " << strain_tolerance << std::endl;
+	std::cerr << "strain: " << strain << std::endl
+		  << "prescribed strain: " << presc_strain << std::endl;
+	return EXIT_FAILURE;
+      } else {
+	std::cerr << "strain error: " << strain_error << " < " << strain_tolerance << std::endl;
+      }
+
+      diff  = stress;
+      diff -= presc_stress;
+      Real stress_error = diff.norm<L_inf>() / stress.norm<L_inf>();
+
+      if(stress_error > stress_tolerance) {
+	std::cerr << "stress error: " << stress_error << " > " << stress_tolerance << std::endl;
+	std::cerr << "stress: " << stress << std::endl
+		  << "prescribed stress: " << presc_stress << std::endl;
+	return EXIT_FAILURE;
+      } else {
+	std::cerr << "stress error: " << stress_error << " < " << stress_tolerance << std::endl;
       }
 
       ++stress_it;

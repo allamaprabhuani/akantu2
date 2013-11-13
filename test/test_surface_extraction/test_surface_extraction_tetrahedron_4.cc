@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
   MeshUtils::buildFacets(mesh);
 
-  mesh.getBoundary().createBoundariesFromGeometry();
+  mesh.createBoundaryGroupFromGeometry();
 //  MeshUtils::buildSurfaceID(mesh);
 
   unsigned int nb_nodes = mesh.getNbNodes();
@@ -83,12 +83,12 @@ int main(int argc, char *argv[])
 
   UInt * surf_id = new UInt[mesh.getNbElement(_triangle_3)];
 
-  const Boundary & boundary = mesh.getBoundary();
-  for(Boundary::const_iterator it(boundary.begin()); it != boundary.end(); ++it) {
-    const Array<UInt> & element_ids = it->getElements(_triangle_3);
+  for(Mesh::const_element_group_iterator it(mesh.element_group_begin());
+      it != mesh.element_group_end(); ++it) {
+    const Array<UInt> & element_ids = it->second->getElements(_triangle_3);
     for(UInt i(0); i << element_ids.getSize(); ++i) {
       UInt elem_idx = element_ids(i);
-      surf_id[elem_idx] = atoi((it->getName().c_str()));
+      surf_id[elem_idx] = atoi((it->first.c_str()));
     }
   }
 

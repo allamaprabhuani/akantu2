@@ -50,17 +50,14 @@ __BEGIN_AKANTU__
 template<UInt DIM, template <UInt> class WeightFunction>
 MaterialNonLocal<DIM, WeightFunction>::MaterialNonLocal(SolidMechanicsModel & model,
                                                         const ID & id)  :
-  Material(model, id), radius(100.), weight_func(NULL), spatial_grid(NULL),
-  update_weights(0), compute_stress_calls(0), is_creating_grid(false), grid_synchronizer(NULL) {
+  Material(model, id), weight_func(NULL), spatial_grid(NULL),
+  compute_stress_calls(0), is_creating_grid(false), grid_synchronizer(NULL) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("radius"         , radius        , 100., _pat_readable  , "Non local radius");
-  this->registerParam("UpdateWeights"  , update_weights, 0U  , _pat_modifiable, "Update weights frequency");
-  this->registerParam("Weight function", weight_func   ,       _pat_internal);
-
   this->is_non_local = true;
-
   this->weight_func = new WeightFunction<DIM>(*this);
+
+  this->registerSubSection(_st_non_local, "weight_function", *weight_func);
 
   AKANTU_DEBUG_OUT();
 }
@@ -84,8 +81,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   //  Material::initMaterial();
   Mesh & mesh = this->model->getFEM().getMesh();
 
-  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", id);
-  this->initInternalArray(quadrature_points_coordinates, spatial_dimension, true);
+  InternalField<Real> quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", *this);
+  quadrature_points_coordinates.initialize(spatial_dimension);
 
   ByElementType<UInt> nb_ghost_protected;
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost);
@@ -116,7 +113,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
 
 
   if(prank == 0) std::cout << "Computing weights" << std::endl;
-  weight_func->setRadius(radius);
+  weight_func->setRadius(weight_func->getRadius());
   weight_func->init();
 
 
@@ -347,7 +344,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
   mesh.getLocalLowerBounds(lower_bounds);
   mesh.getLocalUpperBounds(upper_bounds);
 
-  Vector<Real> spacing(spatial_dimension, radius * safety_factor);
+  Vector<Real> spacing(spatial_dimension, weight_func->getRadius() * safety_factor);
 
   Vector<Real> center(spatial_dimension);
   for (UInt i = 0; i < spatial_dimension; ++i) {
@@ -527,11 +524,11 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
           }
 
           const Vector<UInt> & el_mat = element_index_material_it[quad.element];
-          UInt neigh_num_quad = el_mat(0) * nb_quad_per_elem + quad.num_point;
+          UInt neigh_num_quad = el_mat(1) * nb_quad_per_elem + quad.num_point;
           const Vector<Real> & neigh_quad = quad_coord_it[neigh_num_quad];
 
           Real distance = first_quad->distance(neigh_quad);
-          if(distance <= radius &&
+          if(distance <= weight_func->getRadius() &&
              (quad.ghost_type == _ghost ||
               (quad.ghost_type == _not_ghost && my_num_quad <= neigh_num_quad))) { // storing only half lists
             UInt pair[2];
@@ -573,9 +570,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
   GhostType ghost_type1;
   ghost_type1 = _not_ghost;
 
-  ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", id, memory_id);
-  this->initInternalArray(quadrature_points_volumes, 1, true);
-  resizeInternalArray(quadrature_points_volumes);
+  InternalField<Real> quadrature_points_volumes("quadrature_points_volumes", *this);
+  quadrature_points_volumes.initialize(1);
 
   const FEM & fem = this->model->getFEM();
 
@@ -747,8 +743,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
 
   // Update the weights for the non local variable averaging
   if(ghost_type == _not_ghost &&
-     this->update_weights &&
-     (this->compute_stress_calls % this->update_weights == 0)) {
+     this->weight_func->getUpdateRate() &&
+     (this->compute_stress_calls % this->weight_func->getUpdateRate() == 0)) {
     ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
     Mesh & mesh = this->model->getFEM().getMesh();
     mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
@@ -771,7 +767,8 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStresses(GhostType ghost_type) {
   // Update the weights for the non local variable averaging
   if(ghost_type == _not_ghost) {
-    if(this->update_weights && (this->compute_stress_calls % this->update_weights == 0)) {
+    if(this->weight_func->getUpdateRate() &&
+       (this->compute_stress_calls % this->weight_func->getUpdateRate() == 0)) {
       this->model->getSynchronizerRegistry().asynchronousSynchronize(_gst_mnl_weight);
 
       ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
@@ -790,7 +787,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
     for(;it != end; ++it) {
       NonLocalVariable & non_local_variable = it->second;
 
-      resizeInternalArray(*non_local_variable.non_local);
+      non_local_variable.non_local->resize();
       this->weightedAvergageOnNeighbours(*non_local_variable.local, *non_local_variable.non_local,
                                          non_local_variable.nb_component, _not_ghost);
     }
@@ -995,18 +992,6 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-bool MaterialNonLocal<spatial_dimension, WeightFunction>::parseParam(const std::string & key,
-                                                                   const std::string & value,
-                                                                   __attribute__((unused)) const ID & id) {
-  std::stringstream sstr(value);
-  if(key == "radius") { sstr >> radius; }
-  else if(key == "UpdateWeights") { sstr >> update_weights; }
-  else if(!weight_func->parseParam(key, value)) return Material::parseParam(key, value, id);
-  return true;
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template <UInt> class WeightFunction>
 void MaterialNonLocal<spatial_dimension, WeightFunction>::savePairs(const std::string & filename) const {
   std::ofstream pout;
 
@@ -1063,13 +1048,12 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int prank = comm.whoAmI();
 
+  InternalField<UInt> nb_neighbors("nb_neighbours", *const_cast<MaterialNonLocal *>(this));
+  nb_neighbors.initialize(1);
+
   for(UInt gt = _not_ghost; gt <= _ghost; ++gt) {
     GhostType ghost_type2 = (GhostType) gt;
     UInt existing_pairs_num = gt - _not_ghost;
-
-    ByElementTypeUInt nb_neighbors("nb_neighbours", id, memory_id);
-    mesh.initByElementTypeArray(nb_neighbors, 1, spatial_dimension);
-    resizeInternalArray(nb_neighbors);
 
     pair_type::const_iterator first_pair_types = existing_pairs[existing_pairs_num].begin();
     pair_type::const_iterator last_pair_types = existing_pairs[existing_pairs_num].end();

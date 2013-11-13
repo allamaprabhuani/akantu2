@@ -89,10 +89,10 @@ public:
 private:
 
   /// non local version of equivalent strain
-  ByElementTypeReal equi_strain_non_local;
+  InternalField<Real> equi_strain_non_local;
 
   /// non local version of equivalent strain rate
-  ByElementTypeReal equi_strain_rate_non_local;
+  InternalField<Real> equi_strain_rate_non_local;
 
 };
 

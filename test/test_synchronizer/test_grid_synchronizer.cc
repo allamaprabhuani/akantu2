@@ -77,7 +77,9 @@ static void updatePairList(const ByElementTypeReal & barycenter,
       barycenter_vect.end(sp);
 
     for(;bary != bary_end; ++bary, e.element++) {
+#if !defined(AKANTU_NDEBUG)
       Point<spatial_dimension> pt1(*bary);
+#endif
 
       SpatialGrid<Element>::CellID cell_id = grid.getCellID(*bary);
       SpatialGrid<Element>::neighbor_cells_iterator first_neigh_cell =
@@ -103,9 +105,10 @@ static void updatePairList(const ByElementTypeReal & barycenter,
 
           Real distance = bary->distance(neigh_bary);
           if(distance <= radius) {
+#if !defined(AKANTU_NDEBUG)
             Point<spatial_dimension> pt2(neigh_bary);
             neighbors_map[pt1].push_back(pt2);
-
+#endif
             std::pair<Element, Element> pair = std::make_pair(e, elem);
             pair_list::iterator p = neighbors.find(pair);
             if(p != neighbors.end()) {

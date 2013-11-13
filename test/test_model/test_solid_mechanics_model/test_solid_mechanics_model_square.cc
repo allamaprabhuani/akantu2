@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
   Mesh mesh(2);
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
-  mesh.getBoundary().createBoundariesFromGeometry();
+  mesh.createBoundaryGroupFromGeometry();
 
   SolidMechanicsModel model(mesh);
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   // Boundary condition (Neumann)
   Matrix<Real> stress(2,2);
   stress.eye(1e3);
-  model.applyBC(BC::Neumann::FromHigherDim(stress), "0");
+  model.applyBC(BC::Neumann::FromHigherDim(stress), "boundary_0");
 
   model.setBaseName("square");
   model.addDumpField("displacement");

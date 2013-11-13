@@ -116,7 +116,7 @@ private:
   Real kpa;
 
   /// damage internal variable
-  ByElementTypeReal damage;
+  InternalField<Real> damage;
 
 };
 

@@ -88,7 +88,6 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
 
   /// regular element case
   if (elements(0).kind == _ek_regular) {
-
 #ifndef AKANTU_NDEBUG
     if (tag == _gst_smmc_facets ||
 	tag == _gst_smmc_facets_conn ||

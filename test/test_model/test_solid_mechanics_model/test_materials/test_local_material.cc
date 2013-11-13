@@ -53,13 +53,13 @@ int main(int argc, char *argv[])
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
   mesh_io.read("barre_trou.msh", mesh);
-  mesh.getBoundary().createBoundariesFromMeshData("physical_names");
+  mesh.createGroupsFromMeshData<std::string>("physical_names");
 
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initFull("");
-  model.readCustomMaterial<LocalMaterialDamage>("material.dat", "local_damage");
+  model.initFull("material.dat", SolidMechanicsModelOptions(_explicit_lumped_mass, true));
+  model.registerNewCustomMaterials<LocalMaterialDamage>("local_damage");
   model.initMaterials();
 
   Real time_step = model.getStableTimeStep();

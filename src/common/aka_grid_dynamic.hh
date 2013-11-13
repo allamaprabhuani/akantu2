@@ -371,7 +371,7 @@ void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
 
   mesh.addConnectivityType(type);
   Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh.getConnectivity(type));
-  Array<UInt> & uint_data = *mesh.getDataPointer<UInt>(type, "tag_1");
+  Array<UInt> & uint_data = *mesh.getDataPointer<UInt>("tag_1", type);
 
   typename cells_container::const_iterator it  = cells.begin();
   typename cells_container::const_iterator end = cells.end();
@@ -426,8 +426,8 @@ void SpatialGrid<T>::saveAsMesh(Mesh & mesh) const {
 #if not defined(AKANTU_NDEBUG)
   mesh.addConnectivityType(_point_1);
   Array<UInt> & connectivity_pos = const_cast<Array<UInt> &>(mesh.getConnectivity(_point_1));
-  Array<UInt> & uint_data_pos = *mesh.getDataPointer<UInt>(_point_1, "tag_1");
-  Array<UInt> & uint_data_pos_ghost = *mesh.getDataPointer<UInt>(_point_1, "tag_0");
+  Array<UInt> & uint_data_pos = *mesh.getDataPointer<UInt>( "tag_1", _point_1);
+  Array<UInt> & uint_data_pos_ghost = *mesh.getDataPointer<UInt>("tag_0", _point_1);
 
   it  = cells.begin();
   global_id = 0;

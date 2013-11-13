@@ -1,11 +1,11 @@
 /**
- * @file   material_parameters.hh
+ * @file   parsable.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Thu Aug 09 21:06:34 2012
+ * @date   Fri Aug  2 13:13:31 2013
  *
- * @brief  class to handle the material parameters
+ * @brief  Interface of parsable objects
  *
  * @section LICENSE
  *
@@ -29,12 +29,12 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include <map>
-
+#include "parser.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_PARAMETERS_HH__
-#define __AKANTU_MATERIAL_PARAMETERS_HH__
+
+#ifndef __AKANTU_PARSABLE_HH__
+#define __AKANTU_PARSABLE_HH__
 
 __BEGIN_AKANTU__
 
@@ -53,17 +53,21 @@ inline ParamAccessType operator|(const ParamAccessType & a, const ParamAccessTyp
   ParamAccessType tmp = ParamAccessType(UInt(a) | UInt(b));
   return tmp;
 }
-
-template<typename T> class MaterialParamTyped;
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-class MaterialParam {
+template<typename T> class ParsableParamTyped;
+
+/* -------------------------------------------------------------------------- */
+/**
+ * Interface for the ParsableParamTyped
+ */
+class ParsableParam {
 public:
-  MaterialParam();
-  MaterialParam(std::string name, std::string description, ParamAccessType param_type);
+  ParsableParam();
+  ParsableParam(std::string name, std::string description, ParamAccessType param_type);
 
-  virtual ~MaterialParam() {};
+  virtual ~ParsableParam() {};
   /* ------------------------------------------------------------------------ */
   bool isInternal() const;
   bool isWritable() const;
@@ -74,52 +78,59 @@ public:
   template<typename T> void set(T & value);
   template<typename T> const T & get() const;
 
-  virtual void parseParam(std::string value);
+  virtual void parseParam(const ParserParameter & param);
 
   /* ------------------------------------------------------------------------ */
   virtual void printself(std::ostream & stream) const;
 
 protected:
   template<typename T>
-  const MaterialParamTyped<T> & getMaterialParamTyped() const;
+  const ParsableParamTyped<T> & getParsableParamTyped() const;
 
   template<typename T>
-  MaterialParamTyped<T> & getMaterialParamTyped();
+  ParsableParamTyped<T> & getParsableParamTyped();
 
-protected:
-  std::string name;
 private:
+  std::string name;
   std::string description;
   ParamAccessType param_type;
 };
 
 /* -------------------------------------------------------------------------- */
-
+/* Typed Parameter                                                            */
 /* -------------------------------------------------------------------------- */
+/**
+ * Type parameter transfering a ParserParameter (string: string) to a typed parameter in the memory of the p
+ */
 template<typename T>
-class MaterialParamTyped : public MaterialParam {
+class ParsableParamTyped : public ParsableParam {
 public:
-  MaterialParamTyped(std::string name, std::string description,
+  ParsableParamTyped(std::string name, std::string description,
 		     ParamAccessType param_type, T & param);
 
   /* ------------------------------------------------------------------------ */
   void setTyped(T & value);
   const T & getTyped() const;
 
-  void parseParam(std::string value);
+  void parseParam(const ParserParameter & param);
 
   virtual void printself(std::ostream & stream) const;
 private:
   T & param;
 };
 
-/* -------------------------------------------------------------------------- */
+
 
 /* -------------------------------------------------------------------------- */
-class MaterialParameters {
+/* Parsable Interface                                                         */
+/* -------------------------------------------------------------------------- */
+class Parsable {
 public:
-  ~MaterialParameters();
+  Parsable(const SectionType & section_type,
+           const ID & id = std::string()) : section_type(section_type), id(id) {};
+  virtual ~Parsable();
 
+  /* ------------------------------------------------------------------------ */
   template<typename T>
   void registerParam(std::string name, T & variable,
 		     ParamAccessType type,
@@ -130,21 +141,35 @@ public:
 		     ParamAccessType type,
 		     const std::string description = "");
 
-  /* ------------------------------------------------------------------------ */
-  template<typename T> void set(std::string name, T value);
-  template<typename T> const T & get(std::string name) const;
-
-  void parseParam(std::string name, std::string value);
+  void registerSubSection(const SectionType & type,
+			  const std::string & name,
+			  Parsable & sub_section);
 
   /* ------------------------------------------------------------------------ */
-  void printself(std::ostream & stream, int indent) const;
+  template<typename T> void setParam(std::string name, T value);
+  template<typename T> const T & getParam(std::string name) const;
+
+  /* ------------------------------------------------------------------------ */
+  virtual void parseSection(const ParserSection & section);
+
+  virtual void parseSubSection(const ParserSection & section);
+
+  virtual void parseParam(const ParserParameter & parameter);
+  /* ------------------------------------------------------------------------ */
+  virtual void printself(std::ostream & stream, int indent) const;
 
 private:
-  std::map<std::string, MaterialParam *> params;
+  SectionType section_type;
+  ID id;
+  std::map<std::string, ParsableParam *> params;
+  typedef std::pair<SectionType, std::string> SubSectionKey;
+  typedef std::map<SubSectionKey, Parsable *> SubSections;
+  SubSections sub_sections;
 };
-
-#include "material_parameters_tmpl.hh"
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_PARAMETERS_HH__ */
+#include "parsable_tmpl.hh"
+
+
+#endif /* __AKANTU_PARSABLE_HH__ */

@@ -34,7 +34,6 @@
 #include "dumper_iohelper.hh"
 #include "dumper_iohelper_tmpl.hh"
 /* -------------------------------------------------------------------------- */
-#include "sub_boundary.hh"
 
 __BEGIN_AKANTU__
 

@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _explicit_lumped_mass, true);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
   Array<Real> limits(spatial_dimension, 2);
   limits(0, 0) = -100;
-  limits(0, 1) = 100;
+  limits(0, 1) =  100;
   limits(1, 0) = -0.30;
   limits(1, 1) = -0.20;
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 
   Real Ed = model.getEnergy("dissipated");
 
-  Real Edt = 200*std::sqrt(2);
+  Real Edt = 200 * std::sqrt(2);
 
   std::cout << Ed << " " << Edt << std::endl;
 

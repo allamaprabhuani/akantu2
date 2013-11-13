@@ -32,16 +32,16 @@ option(AKANTU_STRUCTURAL_MECHANICS "Use Structural mechanics model package of Ak
 add_internal_package_dependencies(STRUCTURAL_MECHANICS IMPLICIT)
 
 set(AKANTU_STRUCTURAL_MECHANICS_FILES
+  fem/element_class_structural.hh
+  fem/element_classes/element_class_bernoulli_beam_inline_impl.cc
+  io/mesh_io/mesh_io_msh_struct.cc
+  io/mesh_io/mesh_io_msh_struct.hh
+  io/model_io/model_io_ibarras.cc
+  io/model_io/model_io_ibarras.hh
   model/structural_mechanics/structural_mechanics_model.cc
   model/structural_mechanics/structural_mechanics_model.hh
   model/structural_mechanics/structural_mechanics_model_boundary.cc
   model/structural_mechanics/structural_mechanics_model_inline_impl.cc
-  fem/element_class_structural.hh
-  fem/element_classes/element_class_bernoulli_beam_inline_impl.cc
-  io/model_io/model_io_ibarras.cc
-  io/model_io/model_io_ibarras.hh
-  io/mesh_io/mesh_io_msh_struct.cc
-  io/mesh_io/mesh_io_msh_struct.hh
   )
 
 set(AKANTU_STRUCTURAL_MECHANICS_DOC

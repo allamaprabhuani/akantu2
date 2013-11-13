@@ -1,11 +1,11 @@
 /**
- * @file   boundary.cc
+ * @file   node_group_inline_impl.cc
  *
- * @author Dana Christen <dana.christen@gmail.com>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Mar 06 09:30:00 2013
+ * @date   Fri Jun  7 12:57:24 2013
  *
- * @brief  Stores information relevent to the notion of domain boundary and surfaces.
+ * @brief  Node group inline function definitions
  *
  * @section LICENSE
  *
@@ -28,43 +28,34 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <sstream>
-#include <algorithm>
-#include <iterator>
-#include "sub_boundary.hh"
-#include "mesh.hh"
-#include "aka_csr.hh"
-#include "mesh_utils.hh"
 
 __BEGIN_AKANTU__
 
-
-SubBoundary::SubBoundary(const std::string & boundary_name,
-                         const std::string & id,
-                         const MemoryID & mem_id) :
-  Memory(mem_id), Dumpable(),
-  id(id),
-  name(boundary_name),
-  nodes(alloc<UInt>(std::string(id + ":nodes"), 0, 1)),
-  elements("elements", id, mem_id) {
+/* -------------------------------------------------------------------------- */
+inline NodeGroup::const_node_iterator NodeGroup::begin() const {
+  return node_group.begin();
 }
 
 /* -------------------------------------------------------------------------- */
-void SubBoundary::printself(std::ostream & stream) const {
+inline NodeGroup::const_node_iterator NodeGroup::end() const {
+  return node_group.end();
 }
 
 /* -------------------------------------------------------------------------- */
-void SubBoundary::cleanUpNodeList() {
-  UInt size_before = nodes.getSize();
-  UInt * newEnd;
-  UInt * begin = nodes.storage();
-  UInt * end = nodes.storage()+nodes.getSize();
-  std::sort(begin, end);
-  newEnd = std::unique(begin, end);
-  UInt crop_size = end-newEnd;
-  UInt size_after = size_before - crop_size;
-  nodes.resize(size_after);
+inline NodeGroup::const_node_iterator NodeGroup::add(UInt node) {
+  const_node_iterator it = std::find(begin(), end(), node);
+  if(it == node_group.end()) {
+    node_group.push_back(node);
+    return (node_group.end() - 1);
+  }
+
+  return it;
 }
+
+/* -------------------------------------------------------------------------- */
+inline UInt NodeGroup::getSize() const {
+  return node_group.getSize();
+}
+
 
 __END_AKANTU__
-

@@ -40,6 +40,24 @@
 
 __BEGIN_AKANTU__
 
+/* -------------------------------------------------------------------------- */
+struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
+  SolidMechanicsModelCohesiveOptions(AnalysisMethod analysis_method = _explicit_lumped_mass,
+				     bool extrinsic = false,
+				     bool no_init_materials = false,
+				     bool init_facet_filter = true) :
+    SolidMechanicsModelOptions(analysis_method, no_init_materials),
+    extrinsic(extrinsic), init_facet_filter(init_facet_filter) {}
+  bool extrinsic;
+  bool init_facet_filter;
+};
+
+extern const SolidMechanicsModelCohesiveOptions default_solid_mechanics_model_cohesive_options;
+
+/* -------------------------------------------------------------------------- */
+/* Solid Mechanics Model for Cohesive elements                                */
+/* -------------------------------------------------------------------------- */
+
 class SolidMechanicsModelCohesive : public SolidMechanicsModel {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -79,16 +97,13 @@ public:
 
   /// initialize the cohesive model
   void initFull(std::string material_file,
-		AnalysisMethod method = _explicit_lumped_mass,
-		bool extrinsic = false,
-		bool init_facet_filter = true);
+		const ModelOptions & options = default_solid_mechanics_model_cohesive_options);
 
   /// initialize the model
   void initModel();
 
   /// initialize cohesive material
-  void initCohesiveMaterials(bool extrinsic,
-			     bool init_facet_filter);
+  void initMaterials();
 
   /// build fragments and compute their data (mass, velocity..)
   void computeFragmentsData();
@@ -164,6 +179,12 @@ public:
   /// get facet material
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetMaterial, facet_material, UInt);
 
+  /// get facet material
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetMaterial, facet_material, UInt);
+
+  /// get facet material
+  AKANTU_GET_MACRO(FacetMaterial, facet_material, const ByElementTypeArray<UInt> &);
+
   /// THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
@@ -214,6 +235,8 @@ private:
   /// material to use if a cohesive element is created on a facet
   ByElementTypeUInt facet_material;
 
+  bool is_extrinsic;
+
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #include "solid_mechanics_model_cohesive_parallel.hh"
 #endif
@@ -228,6 +251,40 @@ private:
 #if defined (AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #  include "solid_mechanics_model_cohesive_inline_impl.cc"
 #endif
+
+/* -------------------------------------------------------------------------- */
+class DefaultMaterialCohesiveSelector : public DefaultMaterialSelector {
+public:
+  DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model) :
+    DefaultMaterialSelector(model.getElementIndexByMaterial()),
+    facet_material(model.getFacetMaterial()),
+    mesh(model.getMesh()),
+    mesh_facets(model.getMeshFacets()) { }
+
+  inline virtual UInt operator()(const Element & element) {
+    if(Mesh::getKind(element.type) == _ek_cohesive) {
+      try {
+	const Array<Element> & cohesive_el_to_facet
+	  = mesh.getSubelementToElement(element.type, element.ghost_type);
+	bool third_dimension = (mesh.getSpatialDimension() == 3);
+	const Element & facet = cohesive_el_to_facet(element.element, third_dimension);
+	return facet_material(facet.type, facet.ghost_type)(facet.element);
+      } catch(...) {
+	return MaterialSelector::operator()(element);
+      }
+    } else if (Mesh::getSpatialDimension(element.type) == mesh.getSpatialDimension() - 1) {
+      return facet_material(element.type, element.ghost_type)(element.element);
+    } else {
+      return DefaultMaterialSelector::operator()(element);
+    }
+  }
+
+private:
+  const ByElementTypeUInt & facet_material;
+  const Mesh & mesh;
+  const Mesh & mesh_facets;
+};
+
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsModelCohesive & _this)

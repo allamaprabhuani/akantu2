@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", _explicit_lumped_mass, true);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);

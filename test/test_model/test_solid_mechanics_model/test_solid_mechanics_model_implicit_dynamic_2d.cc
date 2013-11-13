@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
   model.initParallel(partition);
 
   /// model initialization
-  model.initFull("material_implicit_dynamic.dat", _implicit_dynamic);
+  model.initFull("material_implicit_dynamic.dat", SolidMechanicsModelOptions(_implicit_dynamic));
   Material &mat = model.getMaterial(0);
   mat.setParam("E", E);
   mat.setParam("rho", rho);
@@ -179,29 +179,30 @@ int main(int argc, char *argv[])
   }
 
   Real time = 0;
-  UInt count = 0;
-  Real error;
+  // UInt count = 0;
+  // Real error;
 
   model.assembleStiffnessMatrix();
-  model.assembleMass();
-
-  model.getMassMatrix().saveMatrix("M.mtx");
-  model.getStiffnessMatrix().saveMatrix("K.mtx");
+  //model.assembleMass();
 
   /// time loop
-  for (UInt s = 1; time < 0.62; ++s) {
-    model.implicitPred();
-    /// convergence loop
-    do {
-      if(count > 0 && prank == 0)
-    	std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
-      model.updateResidual();
-      model.solveDynamic();
-      model.implicitCorr();
-      count++;
-    } while(!model.testConvergenceIncrement(1e-12, error) && (count < 1000));
-    if(prank == 0) std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
-    count = 0;
+  for (UInt s = 1; time < 0.0062; ++s) {
+    model.solveStep<_scm_newton_raphson_tangent_modified, _scc_increment>(1e-12, 1000);
+
+    // model.implicitPred();
+    // /// convergence loop
+    // do {
+    //   if(count > 0 && prank == 0)
+    // 	std::cout << "passing step " << s << " " << s * time_step << "s - " << std::setw(4) << count << " : " << std::scientific << error << "\r" << std::flush;
+    //   model.updateResidual();
+    //   model.solveDynamic();
+    //   model.implicitCorr();
+    //   count++;
+    // } while(!model.testConvergenceIncrement(1e-12, error) && (count < 1000));
+    // count = 0;
+
+    if(prank == 0) std::cout << "passing step " << s << " " << s * time_step << "s\r" << std::flush;
+
 
     if(print_node) pos << s << "," << s * time_step << "," << displacment(node_to_print,  1) << "," << analytical_solution(s*time_step) << std::endl;
 

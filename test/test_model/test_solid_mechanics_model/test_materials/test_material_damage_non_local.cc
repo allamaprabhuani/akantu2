@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   MeshIOMSH mesh_io;
 
   mesh_io.read("mesh.msh", mesh);
-  mesh.getBoundary().createBoundariesFromMeshData("physical_names");
+  mesh.createGroupsFromMeshData<std::string>("physical_names");
 
   SolidMechanicsModel model(mesh);
 

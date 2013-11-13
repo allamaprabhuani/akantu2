@@ -32,10 +32,8 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 #include "mesh_utils.hh"
-#include "sub_boundary.hh"
+#include "element_group.hh"
 /* -------------------------------------------------------------------------- */
-
-
 
 __BEGIN_AKANTU__
 
@@ -71,9 +69,9 @@ private:
 
 /* -------------------------------------------------------------------------- */
 // void MeshUtils::tweakConnectivityForPBC(Mesh & mesh,
-// 					bool flag_x,
-// 					bool flag_y,
-// 					bool flag_z){
+//					bool flag_x,
+//					bool flag_y,
+//					bool flag_z){
 //   std::map<UInt,UInt> pbc_pair;
 //   mesh.computeBoundingBox();
 //   mesh.pbc_directions[0] = flag_x;
@@ -95,13 +93,13 @@ private:
 //       UInt i2 = (*it).second;
 
 //       AKANTU_DEBUG_INFO("pairing " << i1 << "("
-// 			<< coords[dim*i1] << "," << coords[dim*i1+1] << ","
-// 			<< coords[dim*i1+2]
-// 			<< ") with"
-// 			<< i2 << "("
-// 			<< coords[dim*i2] << "," << coords[dim*i2+1] << ","
-// 			<< coords[dim*i2+2]
-// 			<< ")");
+//			<< coords[dim*i1] << "," << coords[dim*i1+1] << ","
+//			<< coords[dim*i1+2]
+//			<< ") with"
+//			<< i2 << "("
+//			<< coords[dim*i2] << "," << coords[dim*i2+1] << ","
+//			<< coords[dim*i2+2]
+//			<< ")");
 //       ++it;
 //     }
 //   }
@@ -121,26 +119,26 @@ private:
 //     for (UInt el = 0; el < nb_elem; el++) {
 //       UInt flag_should_register_elem = false;
 //       for (UInt k = 0; k < nb_nodes_per_elem; ++k,++index){
-// 	if (pbc_pair.count(conn[index])){
-// 	  flag_should_register_elem = true;
-// 	  AKANTU_DEBUG_INFO("elem list size " << list.getSize());
-// 	  AKANTU_DEBUG_INFO("node " << conn[index] +1
-// 			    << " switch to "
-// 			    << pbc_pair[conn[index]]+1);
-// 	  // for (UInt toto = 0; toto < 3; ++toto) {
-// 	  //   AKANTU_DEBUG_INFO("dir " << toto << " coords "
-// 	  // 		      << mesh.nodes->values[conn[index]*3+toto]
-// 	  // 		      << " switch to "
-// 	  // 		      << mesh.nodes->values[pbc_pair[conn[index]]*3+toto]);
-// 	  // }
-// 	  std::stringstream str_temp;
-// 	  str_temp << "initial elem(" << el << ") is ";
-// 	  for (UInt l = 0 ; l < nb_nodes_per_elem ; ++ l){
-// 	    str_temp << conn[el*nb_nodes_per_elem+l]+1 << " ";
-// 	  }
-// 	  AKANTU_DEBUG_INFO(str_temp.str());
-// 	  conn[index] = pbc_pair[conn[index]];
-// 	}
+//	if (pbc_pair.count(conn[index])){
+//	  flag_should_register_elem = true;
+//	  AKANTU_DEBUG_INFO("elem list size " << list.getSize());
+//	  AKANTU_DEBUG_INFO("node " << conn[index] +1
+//			    << " switch to "
+//			    << pbc_pair[conn[index]]+1);
+//	  // for (UInt toto = 0; toto < 3; ++toto) {
+//	  //   AKANTU_DEBUG_INFO("dir " << toto << " coords "
+//	  //		      << mesh.nodes->values[conn[index]*3+toto]
+//	  //		      << " switch to "
+//	  //		      << mesh.nodes->values[pbc_pair[conn[index]]*3+toto]);
+//	  // }
+//	  std::stringstream str_temp;
+//	  str_temp << "initial elem(" << el << ") is ";
+//	  for (UInt l = 0 ; l < nb_nodes_per_elem ; ++ l){
+//	    str_temp << conn[el*nb_nodes_per_elem+l]+1 << " ";
+//	  }
+//	  AKANTU_DEBUG_INFO(str_temp.str());
+//	  conn[index] = pbc_pair[conn[index]];
+//	}
 //       }
 //       if (flag_should_register_elem) list.push_back(el);
 //     }
@@ -200,11 +198,11 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 //  UInt nodes_per_surface_element = mymesh.getNbNodesPerElement(type);
 
   // find nodes on surfaces
-  const SubBoundary & first_surf = mymesh.getBoundary()(surface_pair.first);
-  const SubBoundary & second_surf = mymesh.getBoundary()(surface_pair.second);
+  const ElementGroup & first_surf = mymesh.getElementGroup(surface_pair.first);
+  const ElementGroup & second_surf = mymesh.getElementGroup(surface_pair.second);
 
-  SubBoundary::nodes_const_iterator nodes_iter(first_surf.nodes_begin());
-  SubBoundary::nodes_const_iterator nodes_iter_end(first_surf.nodes_end());
+  ElementGroup::const_node_iterator nodes_iter(first_surf.node_begin());
+  ElementGroup::const_node_iterator nodes_iter_end(first_surf.node_end());
 
   for(; nodes_iter != nodes_iter_end; ++nodes_iter) {
     selected_first.push_back(*nodes_iter);
@@ -220,9 +218,9 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   std::sort(selected_second.begin(), selected_second.end());
   it_s = std::unique(selected_second.begin(), selected_second.end());
   selected_second.resize(it_s - selected_second.begin());
-  
-  nodes_iter = second_surf.nodes_begin();
-  nodes_iter_end = second_surf.nodes_end();
+
+  nodes_iter = second_surf.node_begin();
+  nodes_iter_end = second_surf.node_end();
 
   for(; nodes_iter != nodes_iter_end; ++nodes_iter) {
     selected_second.push_back(*nodes_iter);
@@ -236,7 +234,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 //    }
 //    else if (surface_id(i) == surface_pair.second) {
 //      for(UInt j=0; j<nodes_per_surface_element; ++j) {
-//      	selected_second.push_back(connect(i,j));
+//		selected_second.push_back(connect(i,j));
 //      }
 //    }
 //  }
@@ -378,18 +376,18 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
     if (fabs(dx*dx+dy*dy) < Math::getTolerance()) {
       //then i match these pairs
       if (pbc_pair.count(i2)){
-        i2 = pbc_pair[i2];
+	i2 = pbc_pair[i2];
       }
       pbc_pair[i1] = i2;
 
       AKANTU_DEBUG_TRACE("pairing " << i1 << "("
-                         << coords[dim*i1] << "," << coords[dim*i1+1] << ","
-                         << coords[dim*i1+2]
-                         << ") with"
-                         << i2 << "("
-                         << coords[dim*i2] << "," << coords[dim*i2+1] << ","
-                         << coords[dim*i2+2]
-                         << ") in direction " << dir);
+			 << coords[dim*i1] << "," << coords[dim*i1+1] << ","
+			 << coords[dim*i1+2]
+			 << ") with"
+			 << i2 << "("
+			 << coords[dim*i2] << "," << coords[dim*i2+1] << ","
+			 << coords[dim*i2+2]
+			 << ") in direction " << dir);
       ++it_left;
       ++it_right;
     } else if (compare_nodes(i1, i2)) {

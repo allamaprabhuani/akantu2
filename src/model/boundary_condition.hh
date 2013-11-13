@@ -36,7 +36,6 @@
 #include "boundary_condition_functor.hh"
 #include "mesh.hh"
 #include "fem.hh"
-#include "sub_boundary.hh"
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -70,10 +69,14 @@ public:
   inline void applyBC(const FunctorType & func);
 
   template<class FunctorType>
-  inline void applyBC(const FunctorType & func, const std::string & boundary_name);
+  inline void applyBC(const FunctorType & func, const std::string & group_name);
 
   template<class FunctorType>
-  inline void applyBC(const FunctorType & func, const SubBoundary & boundary_ref);
+  inline void applyBC(const FunctorType & func, const ElementGroup & element_group);
+
+  AKANTU_GET_MACRO_NOT_CONST(Model, *model, ModelType &);
+  AKANTU_GET_MACRO_NOT_CONST(Primal,*primal, Array<Real> &);
+  AKANTU_GET_MACRO_NOT_CONST(Dual,  *dual,   Array<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -92,10 +95,9 @@ private:
   Array<Real> * primal_increment;
 };
 
-#include "boundary_condition_tmpl.hh"
-
 __END_AKANTU__
 
+#include "boundary_condition_tmpl.hh"
 
 #endif /* __AKANTU_BOUNDARY_CONDITION_HH__ */
 

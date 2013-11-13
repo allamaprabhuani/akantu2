@@ -34,6 +34,7 @@
 #include "material.hh"
 #include "fem_template.hh"
 #include "aka_common.hh"
+#include "cohesive_internal_field.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -95,8 +96,8 @@ public:
 
   virtual void computeAllStresses(__attribute__((unused)) GhostType ghost_type = _not_ghost) { };
 
-  /// generate random sigma_c distributions
-  void generateRandomDistribution(const Mesh & mesh_facets);
+  // add the facet to be handled by the material
+  UInt addFacet(const Element & element);
 
 protected:
   virtual void computeTangentTraction(__attribute__((unused)) const ElementType & el_type,
@@ -159,6 +160,8 @@ public:
   /// get facet filter
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
+  AKANTU_GET_MACRO(FacetFilter, facet_filter, const ByElementTypeUInt &);
+  // AKANTU_GET_MACRO(ElementFilter, element_filter, const ByElementTypeUInt &);
 
   /// compute reversible energy
   Real getReversibleEnergy();
@@ -181,58 +184,50 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
-
-  /// reversible energy by quadrature point
-  ByElementTypeReal reversible_energy;
-
-  /// total energy by quadrature point
-  ByElementTypeReal total_energy;
-
-  /// opening in all elements and quadrature points (previous time step)
-  ByElementTypeReal opening_old;
-
 protected:
-
-  /// traction in all elements and quadrature points
-  ByElementTypeReal tractions;
-
-  /// traction in all elements and quadrature points (previous time step)
-  ByElementTypeReal tractions_old;
-
-  /// opening in all elements and quadrature points
-  ByElementTypeReal opening;
-
-  /// traction due to contact
-  ByElementTypeReal contact_tractions;
-
-  /// normal openings for contact tractions
-  ByElementTypeReal contact_opening;
+  /// list of facets assigned to this material
+  ByElementTypeUInt facet_filter;
 
   /// Link to the cohesive fem object in the model
   MyFEMCohesiveType * fem_cohesive;
 
-  /// critical stress
-  Real sigma_c;
+private:
+  /// reversible energy by quadrature point
+  CohesiveInternalField<Real> reversible_energy;
 
-  /// random generator
-  RandomGenerator<Real> * random_generator;
+  /// total energy by quadrature point
+  CohesiveInternalField<Real> total_energy;
+
+protected:
+  /// opening in all elements and quadrature points
+  CohesiveInternalField<Real> opening;
+
+  /// opening in all elements and quadrature points (previous time step)
+  CohesiveInternalField<Real> opening_old;
+
+  /// traction in all elements and quadrature points
+  CohesiveInternalField<Real> tractions;
+
+  /// traction in all elements and quadrature points (previous time step)
+  CohesiveInternalField<Real> tractions_old;
+
+  /// traction due to contact
+  CohesiveInternalField<Real> contact_tractions;
+
+  /// normal openings for contact tractions
+  CohesiveInternalField<Real> contact_opening;
 
   /// maximum displacement
-  ByElementTypeReal delta_max;
+  CohesiveInternalField<Real> delta_max;
 
   /// damage
-  ByElementTypeReal damage;
+  CohesiveInternalField<Real> damage;
 
   /// pointer to the solid mechanics model for cohesive elements
   SolidMechanicsModelCohesive * model;
 
-  /// list of facets assigned to this material
-  ByElementTypeUInt facet_filter;
-
-  /// vector containing a sigma limit for automatic insertion
-  ByElementTypeReal sigma_limit;
-
+  /// critical stress
+  RandomInternalField<Real, FacetInternalField> sigma_c;
 };
 
 
@@ -243,5 +238,7 @@ protected:
 #include "material_cohesive_inline_impl.cc"
 
 __END_AKANTU__
+
+#include "cohesive_internal_field_tmpl.hh"
 
 #endif /* __AKANTU_MATERIAL_COHESIVE_HH__ */

@@ -3,7 +3,7 @@ Material elastic [
  rwp E        [Young's modulus]                      : 2.1e+11
  rwp Plane_Stress [Is plane stress]                  : false
  rwp alpha    [Thermal expansion coefficient]        : 0
- rwp delta_t_init [Uniform temperature field (for test purposes)] : 0
+ rwp delta_T  [Uniform temperature field]            : InternalField [ solid_mechanics_model:0:elastic:delta_T {1 types - 0 ghost types} ]
  rwp finite_deformation [Is finite deformation]      : false
  r-- id                                              : solid_mechanics_model:0:elastic
  rwp inelastic_deformation [Is inelastic deformation] : false
@@ -14,25 +14,6 @@ Material elastic [
  rwp nu       [Poisson's ratio]                      : 0
  rwp rho      [Density]                              : 7800
 ]
-
--- Boundary "Bottom":
----- 9 nodes:
------- 0 1 2 3 11 13 17 18 23 
----- Elements:
------- Type _quadrangle_4:
--------- 12 13 14 15 
--- Boundary "Sides":
----- 24 nodes:
------- 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 24 25 
----- Elements:
------- Type _quadrangle_4:
--------- 0 1 2 3 8 9 10 11 16 17 18 19 20 21 22 23 
--- Boundary "Top":
----- 9 nodes:
------- 4 5 6 7 9 15 16 19 21 
----- Elements:
------- Type _quadrangle_4:
--------- 4 5 6 7 
 
 Array<double> [
  + id             : solid_mechanics_model:displacement

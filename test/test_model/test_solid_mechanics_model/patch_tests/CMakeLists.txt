@@ -47,6 +47,7 @@ set(LIST_TYPES
   tetrahedron_4
   tetrahedron_10
   hexahedron_8
+#  pentahedron_6
   )
 
 set(LIST_TYPES_2D

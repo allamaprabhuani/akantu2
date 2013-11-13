@@ -40,7 +40,7 @@ MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(SolidMecha
   AKANTU_DEBUG_IN();
 
   this->registerParam("delta_0", delta_0, 0.,
-		      ParamAccessType(_pat_parsable | _pat_readable),
+		      _pat_parsable | _pat_readable,
 		      "Elastic limit displacement");
 
   AKANTU_DEBUG_OUT();
@@ -50,8 +50,6 @@ MaterialCohesiveBilinear<spatial_dimension>::MaterialCohesiveBilinear(SolidMecha
 template<UInt spatial_dimension>
 void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-
-  MaterialCohesiveLinear<spatial_dimension>::initMaterial();
 
   /**
    * Recompute sigma_c as
@@ -63,7 +61,21 @@ void MaterialCohesiveBilinear<spatial_dimension>::initMaterial() {
 
   AKANTU_DEBUG_ASSERT(current_delta_c > delta_0, "Check your material file");
 
-  this->sigma_c *= current_delta_c / (current_delta_c - delta_0);
+  Real sigma_c = current_delta_c / (current_delta_c - delta_0);
+
+  MaterialCohesiveLinear<spatial_dimension>::initMaterial();
+
+  this->sigma_c_eff     .setDefaultValue(sigma_c);
+  this->delta_c         .setDefaultValue(current_delta_c);
+  this->delta_max       .setDefaultValue(delta_0);
+  this->insertion_stress.setDefaultValue(0);
+  this->sigma_c         .setDefaultValue(sigma_c);
+
+  this->sigma_c_eff     .reset();
+  this->delta_c         .reset();
+  this->delta_max       .reset();
+  this->insertion_stress.reset();
+  this->sigma_c         .reset();
 
   AKANTU_DEBUG_OUT();
 }
@@ -74,21 +86,10 @@ void MaterialCohesiveBilinear<spatial_dimension>::resizeCohesiveArrays() {
   AKANTU_DEBUG_IN();
 
   MaterialCohesive::resizeCohesiveArrays();
-  this->resizeInternalArray(this->sigma_c_eff, _ek_cohesive);
-  this->resizeInternalArray(this->delta_c, _ek_cohesive);
 
-  const Mesh & mesh = this->model->getFEM("CohesiveFEM").getMesh();
-
-  GhostType gt = _not_ghost;
-  ElementKind element_kind = _ek_cohesive;
-
-  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, gt, element_kind);
-  Mesh::type_iterator end = mesh.lastType(spatial_dimension, gt, element_kind);
-  for(; it != end; ++it) {
-    this->sigma_c_eff(*it, gt).set(this->sigma_c);
-    this->delta_c(*it, gt).set(current_delta_c);
-    this->delta_max(*it, gt).set(delta_0);
-  }
+  this->sigma_c_eff     .resize();
+  this->delta_c         .resize();
+  this->insertion_stress.resize();
 
   AKANTU_DEBUG_OUT();
 }

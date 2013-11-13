@@ -36,14 +36,14 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::Mat
 												const ID & id)  :
   Material(model, id),
   MaterialVreePeerlingsNonLocalParent(model, id),
-  equi_strain_non_local("equi-strain_non_local", id),
-  equi_strain_rate_non_local("equi-strain-rate_non_local", id) {
+  equi_strain_non_local("equi-strain_non_local", *this),
+  equi_strain_rate_non_local("equi-strain-rate_non_local", *this) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = true;
 
-  this->initInternalArray(this->equi_strain_non_local, 1);
-  this->initInternalArray(this->equi_strain_rate_non_local, 1);
+  this->equi_strain_non_local.initialize(1);
+  this->equi_strain_rate_non_local.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -52,9 +52,6 @@ MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::Mat
 template<UInt spatial_dimension, template <UInt> class WeigthFunction, template <UInt> class MatParent>
 void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>::initMaterial() {
   AKANTU_DEBUG_IN();
-
-  this->resizeInternalArray(this->equi_strain_non_local);
-  this->resizeInternalArray(this->equi_strain_rate_non_local);
 
   this->registerNonLocalVariable(this->equi_strain, this->equi_strain_non_local, 1);
   this->registerNonLocalVariable(this->equi_strain_rate, this->equi_strain_rate_non_local, 1);
