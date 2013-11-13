@@ -80,6 +80,7 @@ template <UInt dim> const UInt VoigtHelper<dim>::size = dim*(dim-(dim-1)/2);
  * \endcode
  *
  */
+
 class Material : public Memory, public DataAccessor, public Parsable, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

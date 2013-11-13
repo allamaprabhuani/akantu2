@@ -278,13 +278,13 @@ public:
   /* Materials (solid_mechanics_model_material.cc)                            */
   /* ------------------------------------------------------------------------ */
 public:
-  /// registers all the custom materials of a given types present in the input file
+  /// registers all the custom materials of a given type present in the input file
   template <typename M>
   void registerNewCustomMaterials(const ID & mat_type);
 
   /// register an empty material of a given type
   template <typename M>
-  Material & registerNewEmptyMaterial(const ID & mat_type, const std::string & name);
+  Material & registerNewEmptyMaterial(const std::string & name);
 
   // /// Use a UIntData in the mesh to specify the material to use per element
   // void setMaterialIDsFromIntData(const std::string & data_name);
@@ -536,10 +536,12 @@ public:
   AKANTU_GET_MACRO(Synchronizer, *synch_parallel, const DistributedSynchronizer &);
 
   AKANTU_GET_MACRO(ElementIndexByMaterial, element_index_by_material, const ByElementTypeArray<UInt> &);
-protected:
+
   /// vectors containing local material element index for each global element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
+
+protected:
 
   friend Material;
 

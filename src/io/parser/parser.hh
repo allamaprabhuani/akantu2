@@ -1,4 +1,3 @@
-
 /**
  * @file   boost_spirit_parser.cc
  *

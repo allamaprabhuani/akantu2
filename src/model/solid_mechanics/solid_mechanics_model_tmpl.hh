@@ -67,8 +67,7 @@ Material & SolidMechanicsModel::registerNewMaterial(const ParserSection & sectio
 
 /* -------------------------------------------------------------------------- */
 template <typename M>
-Material & SolidMechanicsModel::registerNewEmptyMaterial(const ID & mat_type,
-							 const std::string & mat_name) {
+Material & SolidMechanicsModel::registerNewEmptyMaterial(const std::string & mat_name) {
 
   AKANTU_DEBUG_ASSERT(materials_names_to_id.find(mat_name) == materials_names_to_id.end(),
 		      "A material with this name '" << mat_name
@@ -78,7 +77,7 @@ Material & SolidMechanicsModel::registerNewEmptyMaterial(const ID & mat_type,
   UInt mat_count = materials.size();
   materials_names_to_id[mat_name] = mat_count;
 
-  std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;
+  std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_name;
   ID mat_id = sstr_mat.str();
 
   Material * material;

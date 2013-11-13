@@ -58,8 +58,10 @@ ElementGroup::ElementGroup(const std::string & boundary_name,
   dimension(dimension) {
   AKANTU_DEBUG_IN();
 
+#if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_"  + boundary_name, boundary_name, true);
   this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(), dimension);
+#endif
 
   AKANTU_DEBUG_OUT();
 }

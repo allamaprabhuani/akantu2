@@ -33,7 +33,6 @@
 #include "aka_common.hh"
 #include "solid_mechanics_model.hh"
 #include "integration_scheme_2nd_order.hh"
-#include "dumper_paraview.hh"
 #include "element_group.hh"
 
 #include "static_communicator.hh"
@@ -112,9 +111,10 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
 
   mesh.registerEventHandler(*this);
 
+#if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_all", id, true);
   this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
-
+#endif
   AKANTU_DEBUG_OUT();
 }
 
