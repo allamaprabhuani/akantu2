@@ -2028,7 +2028,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
             }
           }
 
-          std::set<Element> connected_elements;
+          std::vector<Element> connected_elements;
           std::map<Element, UInt>::iterator cit  = element_seen_counter.begin();
           std::map<Element, UInt>::iterator cend = element_seen_counter.end();
           for(;cit != cend; ++cit) {
