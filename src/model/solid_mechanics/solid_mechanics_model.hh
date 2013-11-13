@@ -543,7 +543,7 @@ public:
 
 protected:
 
-  friend Material;
+  friend class Material;
 
   template<UInt DIM, template <UInt> class WeightFunction>
   friend class MaterialNonLocal;

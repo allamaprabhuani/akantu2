@@ -202,7 +202,6 @@ namespace akantu {
 	  ("acosh" , &std::acosh )
 	  ("asinh" , &std::asinh )
 	  ("atanh" , &std::atanh )
-	  ("crbt"  , &std::crbt  )
 	  ("exp2"  , &std::exp2  )
 	  ("expm1" , &std::expm1 )
 	  ("log1p" , &std::log1p )
@@ -213,6 +212,7 @@ namespace akantu {
 	  ("tgamma", &std::tgamma)
 	  ("trunc" , &std::trunc )
 	  ("round" , &std::round )
+	  //	  ("crbt"  , &std::crbt  )
 #endif
 	  ;
 
