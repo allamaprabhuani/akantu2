@@ -51,7 +51,7 @@ __BEGIN_AKANTU__
 GroupManager::GroupManager(const Mesh & mesh,
                            const ID & id,
                            const MemoryID & mem_id) : id(id),
-						      memory_id(memory_id),
+						      memory_id(mem_id),
                                                       mesh(mesh) {
 
   AKANTU_DEBUG_OUT();
