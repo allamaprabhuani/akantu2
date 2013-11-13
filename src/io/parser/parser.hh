@@ -131,7 +131,7 @@ private:
     parent_section = &sect;
   }
 
-  friend ParserSection;
+  friend class ParserSection;
 private:
   const ParserSection * parent_section;
   std::string name;
