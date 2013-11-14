@@ -242,7 +242,7 @@ namespace debug {
 				__attribute__((unused)) bool silent,
 				__attribute__((unused)) const std::string & location) const throw(akantu::debug::Exception){
 #if !defined(AKANTU_NDEBUG)
-    if(silent) {
+    if(!silent) {
       printMessage("###", dblWarning, info + location);
     }
 #endif
