@@ -76,9 +76,10 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   this->residual = NULL;
   this->boundary = NULL;
 
+#ifdef AKANTU_USE_IOHELPER
   this->registerDumper<DumperParaview>("paraview_all", id, true);
   this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
-
+#endif
 
   this->registerParam("conductivity"          , conductivity              , _pat_parsmod);
   this->registerParam("conductivity_variation", conductivity_variation, 0., _pat_parsmod);
