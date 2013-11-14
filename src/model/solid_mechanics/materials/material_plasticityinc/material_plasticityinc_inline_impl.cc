@@ -55,7 +55,7 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
   Real delta_sigma_th = sigma_th_cur - sigma_th_prev;
 
   //Compute trial stress, sigma_tr
-  MaterialElastic<dim>::computeStressOnQuad(sigma, grad_delta_u, delta_sigma_th);
+  MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr, delta_sigma_th);
   sigma_tr += sigma;
 
   // Compute deviatoric trial stress,  sigma_tr_dev
@@ -86,12 +86,12 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
     d_inelas_strain *= 3./2. * dp / sigma_tr_dev_eff;
   }
 
-  Matrix<Real> grad_u_elsatic(dim, dim);
-  grad_u_elsatic  = grad_delta_u;
-  grad_u_elsatic -= d_inelas_strain;
+  Matrix<Real> grad_u_elastic(dim, dim);
+  grad_u_elastic  = grad_delta_u;
+  grad_u_elastic -= d_inelas_strain;
 
   Matrix<Real> sigma_elastic(dim, dim);
-  MaterialElastic<dim>::computeStressOnQuad(sigma_elastic, grad_u_elsatic, delta_sigma_th);
+  MaterialElastic<dim>::computeStressOnQuad(grad_u_elastic, sigma_elastic, delta_sigma_th);
   sigma += sigma_elastic;
 
   inelas_strain += d_inelas_strain;
@@ -112,7 +112,7 @@ inline void MaterialPlasticityinc<dim>::computeTangentModuliOnQuad(Matrix<Real> 
   // Real r=iso_hardening;
 
   //Compute trial stress, sigma_tr
-  MaterialElastic<dim>::computeStressOnQuad(sigma_tr, grad_delta_u);
+  MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr);
   sigma_tr += previous_sigma_tensor;
 
   // Compute deviatoric trial stress,  sigma_tr_dev
@@ -142,22 +142,22 @@ inline void MaterialPlasticityinc<dim>::computeTangentModuliOnQuad(Matrix<Real> 
     UInt j = VoigtHelper<dim>::vec[m][1];
 
     for (UInt n = 0; n < cols; ++n) {
-      UInt k = VoigtHelper<dim>::vec[m][0];
-      UInt l = VoigtHelper<dim>::vec[m][1];
+      UInt k = VoigtHelper<dim>::vec[n][0];
+      UInt l = VoigtHelper<dim>::vec[n][1];
 
       if (((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) && (xr > 0)) {
-	tangent(m,n) =
-	  2. * this->mu * q * (sigma_tr_dev (i,j) / sigma_tr_dev_eff) * (sigma_tr_dev (k,l) / sigma_tr_dev_eff) +
-	  (i==k) * (j==l) * 2. * this->mu * xr +
-	  (i==j) * (k==l) * (this->kpa - 2./3. * this->mu * xr);
-	if ((m == n) && (m>=dim))
-	  tangent(m, n) = tangent(m, n) - this->mu * xr;
+        tangent(m,n) =
+          2. * this->mu * q * (sigma_tr_dev (i,j) / sigma_tr_dev_eff) * (sigma_tr_dev (k,l) / sigma_tr_dev_eff) +
+          (i==k) * (j==l) * 2. * this->mu * xr +
+          (i==j) * (k==l) * (this->kpa - 2./3. * this->mu * xr);
+        if ((m == n) && (m>=dim))
+          tangent(m, n) = tangent(m, n) - this->mu * xr;
       } else {
-	tangent(m,n) =
-	  (i==k) * (j==l) * 2. * this->mu +
-	  (i==j) * (k==l) * this->lambda;
-	if ((m==n) && (m>=dim))
-	  tangent(m,n) = tangent(m,n) - this->mu;
+        tangent(m,n) =
+          (i==k) * (j==l) * 2. * this->mu +
+          (i==j) * (k==l) * this->lambda;
+        if ((m==n) && (m>=dim))
+          tangent(m,n) = tangent(m,n) - this->mu;
       }
       //correct tangent stiffness for shear component
     }

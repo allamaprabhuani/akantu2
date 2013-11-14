@@ -81,7 +81,8 @@ public:
 protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-				  Matrix<Real> & sigma, Real sigma_th = 0);
+				  Matrix<Real> & sigma,
+          const Real sigma_th = 0);
 
   /// compute the tangent stiffness matrix for an element
   void computeTangentModuliOnQuad(Matrix<Real> & tangent);
