@@ -106,15 +106,10 @@ void SolidMechanicsModel::instantiateMaterials() {
 
   Parser::const_section_iterator it = sub_sect.first;
   for (; it != sub_sect.second; ++it) {
-    try {
-      const ParserSection & section = *it;
-      std::string mat_type  = section.getName();
-      std::string opt_param = section.getOption();
-      AKANTU_INSTANTIATE_MATERIALS();
-
-    } catch(debug::Exception & e) {
-      AKANTU_DEBUG_WARNING(e.what());
-    }
+    const ParserSection & section = *it;
+    std::string mat_type  = section.getName();
+    std::string opt_param = section.getOption();
+    AKANTU_INSTANTIATE_MATERIALS();
   }
 
   are_materials_instantiated = true;
