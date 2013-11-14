@@ -266,4 +266,13 @@ find_program(ADDR2LINE_COMMAND addr2line)
 mark_as_advanced(READLINK_COMMAND)
 mark_as_advanced(ADDR2LINE_COMMAND)
 
+include(CheckFunctionExists)
+
+check_function_exists(clock_gettime _clock_gettime)
+
+if(NOT _clock_gettime)
+  set(AKANTU_USE_OBSOLETE_GETTIMEOFDAY ON)
+else()
+  set(AKANTU_USE_OBSOLETE_GETTIMEOFDAY OFF)
+endif()
 

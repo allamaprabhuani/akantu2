@@ -48,14 +48,9 @@ mark_as_advanced(AKANTU_USE_THIRD_PARTY_SCOTCH)
 if(AKANTU_USE_THIRD_PARTY_SCOTCH)
   set(AKANTU_USE_SCOTCH ON CACHE BOOL "Add Scotch support in akantu" FORCE)
 
-
-INCLUDE (CheckFunctionExists)
-
-CHECK_FUNCTION_EXISTS(clock_gettime _clock_gettime)
-
-if (NOT _clock_gettime)
-  set (SCOTCH_TIMMING_OPTION -DCOMMON_TIMING_OLD)
-endif()
+  if (AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
+    set (SCOTCH_TIMMING_OPTION -DCOMMON_TIMING_OLD)
+  endif()
 
 
   if(TARGET Scotch)
