@@ -29,9 +29,9 @@
 #===============================================================================
 option(AKANTU_CPPARRAY "Use cpp-array library" OFF)
 find_package(Subversion)
+mark_as_advanced(AKANTU_CPPARRAY)
 
 if(SUBVERSION_FOUND)
-  mark_as_advanced(AKANTU_CPPARRAY)
   if(AKANTU_CPPARRAY)
     if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/cpp-array)
       execute_process(

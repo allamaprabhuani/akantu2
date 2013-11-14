@@ -45,6 +45,7 @@ set(AKANTU_SCOTCH_TESTS
 
 option(AKANTU_USE_THIRD_PARTY_SCOTCH "Use the third-party Scotch instead of the one from the system" OFF)
 mark_as_advanced(AKANTU_USE_THIRD_PARTY_SCOTCH)
+
 if(AKANTU_USE_THIRD_PARTY_SCOTCH)
   set(AKANTU_USE_SCOTCH ON CACHE BOOL "Add Scotch support in akantu" FORCE)
 

@@ -74,6 +74,7 @@ endmacro()
 
 macro(include_boost)
   find_package(Boost REQUIRED)
+  mark_as_advanced(Boost_DIR)
   if(Boost_FOUND)
     list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
   endif()

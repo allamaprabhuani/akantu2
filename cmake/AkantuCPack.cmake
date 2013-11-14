@@ -47,7 +47,7 @@ else()
   set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
 endif()
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${${_project}_PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
-
+mark_as_advanced(CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
 # RPM package configuration
 #set(CPACK_RPM_PACKAGE_REQUIRES "${${_project}_PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
 

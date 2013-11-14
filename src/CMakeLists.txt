@@ -45,6 +45,7 @@ if(AKANTU_LAPACK OR AKANTU_BLAS)
   FortranCInterface_HEADER(
     ${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh
     MACRO_NAMESPACE "AKA_FC_")
+  mark_as_advanced(CDEFS)
 endif()
 
 #===========================================================================

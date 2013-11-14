@@ -27,7 +27,8 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 add_optional_external_package(PETSc "Add PETSc support in akantu" OFF DEPENDS MPI ARGS COMPONENT ARGS CXX)
+
+mark_as_advanced(AKANTU_USE_PETSC)
 set(AKANTU_PETSC_FILES
   )

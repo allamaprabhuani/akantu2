@@ -69,7 +69,7 @@ include(AkantuMacros)
 #===============================================================================
 # AKANTU version number.  An even minor number corresponds to releases.
 set(AKANTU_MAJOR_VERSION 2)
-set(AKANTU_MINOR_VERSION 0)
+set(AKANTU_MINOR_VERSION 1)
 set(AKANTU_PATCH_VERSION 0)
 define_project_version()
 
@@ -154,6 +154,7 @@ endif()
 if(AKANTU_TESTS)
   enable_testing()
   include(CTest)
+  mark_as_advanced(BUILD_TESTING)
   set(AKANTU_TESTS_EXCLUDE_FILES "" CACHE INTERNAL "")
   add_subdirectory(test)
 else()

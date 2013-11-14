@@ -36,3 +36,5 @@ set(AKANTU_MPI_FILES
   synchronizer/static_communicator_mpi_inline_impl.hh
   synchronizer/static_communicator_mpi.hh
   )
+
+mark_as_advanced(MPI_EXTRA_LIBRARY MPI_LIBRARY)

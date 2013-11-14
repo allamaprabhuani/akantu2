@@ -26,12 +26,11 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
-option(AKANTU_USE_BLACKDYNAMITE "Use cpp-array library" OFF)
+option(AKANTU_USE_BLACKDYNAMITE "Use blackdynamite library" OFF)
+mark_as_advanced(AKANTU_USE_BLACKDYNAMITE)
 find_package(Subversion)
 
 if(SUBVERSION_FOUND)
-  mark_as_advanced(AKANTU_BLACKDYNAMITE)
   if(AKANTU_USE_BLACKDYNAMITE)
     set(BLACKDYNAMITE_SOURCE_DIR ${PROJECT_SOURCE_DIR}/third-party/blackdynamite)
 
@@ -64,8 +63,4 @@ if(SUBVERSION_FOUND)
   else()
     set(AKANTU_BLACKDYNAMITE OFF)
   endif()
-else()
-  add_optional_external_package(BlackDynamite "Add BlackDynamite support in akantu" OFF FOUND BlackDynamite_FOUND)
 endif()
-
-mark_as_advanced(AKANTU_BLACKDYNAMITE)
