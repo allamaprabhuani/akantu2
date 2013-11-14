@@ -326,6 +326,29 @@ Vector<T> operator-(const Vector<T>& a, const Vector<T>& b) {
   return r;
 }
 
+template <typename T>
+Matrix<T> operator*(T scalar, const Matrix<T>& a) {
+  Matrix<T> r(a.rows(), a.cols());
+  r = a;
+  r *= scalar;
+  return r;
+}
+
+template <typename T>
+Matrix<T> operator+(const Matrix<T>& a, const Matrix<T>& b) {
+  Matrix<T> r(a.rows(), a.cols());
+  r = a;
+  r += b;
+  return r;
+}
+
+template <typename T>
+Matrix<T> operator-(const Matrix<T>& a, const Matrix<T>& b) {
+  Matrix<T> r(a.rows(), a.cols());
+  r = a;
+  r -= b;
+  return r;
+}
 
 
 
