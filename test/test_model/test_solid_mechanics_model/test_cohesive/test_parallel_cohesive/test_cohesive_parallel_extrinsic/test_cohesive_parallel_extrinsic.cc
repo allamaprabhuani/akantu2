@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
   initialize(argc, argv);
   debug::setDebugLevel(dblWarning);
 
-  const UInt max_steps = 1000;
+  const UInt max_steps = 500;
 
   UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   // std::cout << mesh_facets << std::endl;
   // debug::setDebugLevel(dblWarning);
 
-  Real time_step = model.getStableTimeStep()*0.05;
+  Real time_step = model.getStableTimeStep()*0.1;
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;
 
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
     model.updateAcceleration();
     model.explicitCorr();
 
-    model.dump();
+    // model.dump();
     if(s % 10 == 0) {
       if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }

@@ -85,7 +85,7 @@ StaticCommunicatorMPI::~StaticCommunicatorMPI() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void StaticCommunicatorMPI::send(T * buffer, Int size,
-					Int receiver, Int tag) {
+				 Int receiver, Int tag) {
   MPI_Comm communicator = mpi_data->getMPICommunicator();
   MPI_Datatype type = MPITypeWrapper::getMPIDatatype<T>();
 #if !defined(AKANTU_NDEBUG)
@@ -99,7 +99,7 @@ void StaticCommunicatorMPI::send(T * buffer, Int size,
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void StaticCommunicatorMPI::receive(T * buffer, Int size,
-					   Int sender, Int tag) {
+				    Int sender, Int tag) {
   MPI_Comm communicator = mpi_data->getMPICommunicator();
   MPI_Status status;
   MPI_Datatype type = MPITypeWrapper::getMPIDatatype<T>();
@@ -115,7 +115,7 @@ void StaticCommunicatorMPI::receive(T * buffer, Int size,
 /* -------------------------------------------------------------------------- */
 template<typename T>
 CommunicationRequest * StaticCommunicatorMPI::asyncSend(T * buffer, Int size,
-							       Int receiver, Int tag) {
+							Int receiver, Int tag) {
   MPI_Comm communicator = mpi_data->getMPICommunicator();
   CommunicationRequestMPI * request = new CommunicationRequestMPI(prank, receiver);
   MPI_Datatype type = MPITypeWrapper::getMPIDatatype<T>();
@@ -132,7 +132,7 @@ CommunicationRequest * StaticCommunicatorMPI::asyncSend(T * buffer, Int size,
 /* -------------------------------------------------------------------------- */
 template<typename T>
 CommunicationRequest * StaticCommunicatorMPI::asyncReceive(T * buffer, Int size,
-								  Int sender, Int tag) {
+							   Int sender, Int tag) {
   MPI_Comm communicator = mpi_data->getMPICommunicator();
   CommunicationRequestMPI * request = new CommunicationRequestMPI(sender, prank);
   MPI_Datatype type = MPITypeWrapper::getMPIDatatype<T>();
@@ -149,7 +149,7 @@ CommunicationRequest * StaticCommunicatorMPI::asyncReceive(T * buffer, Int size,
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void StaticCommunicatorMPI::probe(Int sender, Int tag,
-					 CommunicationStatus & status) {
+				  CommunicationStatus & status) {
   MPI_Comm communicator = mpi_data->getMPICommunicator();
   MPI_Status mpi_status;
 #if !defined(AKANTU_NDEBUG)
@@ -223,7 +223,7 @@ void StaticCommunicatorMPI::barrier() {
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void StaticCommunicatorMPI::allReduce(T * values, Int nb_values,
-					     const SynchronizerOperation & op) {
+				      const SynchronizerOperation & op) {
   MPI_Comm communicator = mpi_data->getMPICommunicator();
   MPI_Datatype type = MPITypeWrapper::getMPIDatatype<T>();
 

@@ -384,6 +384,12 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 void MaterialCohesive::computeTraction(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+#if defined(AKANTU_DEBUG_TOOLS)
+  debug::element_manager.printData(debug::_dm_material_cohesive,
+				   "Cohesive Openings",
+				   opening);
+#endif
+
   Mesh & mesh = fem_cohesive->getMesh();
   Mesh::type_iterator it = mesh.firstType(spatial_dimension,
 					  ghost_type, _ek_cohesive);

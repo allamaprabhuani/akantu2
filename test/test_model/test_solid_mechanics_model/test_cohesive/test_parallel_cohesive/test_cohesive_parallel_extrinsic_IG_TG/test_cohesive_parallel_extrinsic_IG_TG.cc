@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
 
   const UInt spatial_dimension = 2;
-  const UInt max_steps = 1000;
+  const UInt max_steps = 500;
 
   Mesh mesh(spatial_dimension);
 
@@ -135,67 +135,13 @@ int main(int argc, char *argv[]) {
   model.setMaterialSelector(material_selector);
   model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true, false));
 
-  Real time_step = model.getStableTimeStep()*0.05;
+  Real time_step = model.getStableTimeStep()*0.1;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
 
-  model.assembleMassLumped();
-
-
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
   //  std::cout << mesh << std::endl;
-
-  const Mesh & mesh_facets = model.getMeshFacets();
 
   Array<Real> & position = mesh.getNodes();
-
-  Real * bary_facet = new Real[spatial_dimension];
-  // first, the tag which shows grain ID should be read for each element
-
-  for (ghost_type_t::iterator gt = ghost_type_t::begin();
-       gt != ghost_type_t::end();
-       ++gt) {
-    GhostType gt_facet = *gt;
-    Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
-    Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
-
-    for(;first != last; ++first) {
-      ElementType type_facet = *first;
-
-      Array<bool> & facet_check = model.getFacetsCheck(type_facet);
-      if (gt_facet == _not_ghost)
-	facet_check.clear();
-
-      UInt nb_facet = mesh_facets.getNbElement(type_facet, gt_facet);
-      ////////////////////////////////////////////
-
-      for (UInt f = 0; f < nb_facet; ++f) {
-	mesh_facets.getBarycenter(f, type_facet, bary_facet, gt_facet);
-	if ((bary_facet[1] < 0.1 && bary_facet[1] > -0.1) ||(bary_facet[0] < 0.1 && bary_facet[0] > -0.1)) {
-	  if (gt_facet == _not_ghost)
-	    facet_check(f) = true;
-	}
-      }
-    }
-  }
-  delete[] bary_facet;
-
-  // std::cout << nb_IG << " " << nb_TG << std::endl;
-
-  //  model.initFacetFilter();
-
-   //  for ( UInt i = 0; i < nb_facet; ++i){
-
-  // }
-  //  std::cout << mesh << std::endl;
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
-
   Array<Real> & velocity = model.getVelocity();
   Array<bool> & boundary = model.getBoundary();
   Array<Real> & displacement = model.getDisplacement();
@@ -278,8 +224,6 @@ int main(int argc, char *argv[]) {
     model.updateAcceleration();
     model.explicitCorr();
 
-    model.dump();
-    dumper.dump();
     if(s % 10 == 0) {
       if(prank == 0)
 	std::cout << "passing step " << s << "/" << max_steps << std::endl;
@@ -295,6 +239,9 @@ int main(int argc, char *argv[]) {
 
   }
 
+  model.dump();
+  dumper.dump();
+
   // edis.close();
   // erev.close();
 
@@ -307,7 +254,7 @@ int main(int argc, char *argv[]) {
   if(prank == 0)
     std::cout << Ed << " " << Edt << std::endl;
 
-  if (Ed < Edt * 0.999 || Ed > Edt * 1.001 || std::isnan(Ed)) {
+  if (Ed < Edt * 0.99 || Ed > Edt * 1.01 || std::isnan(Ed)) {
     if(prank == 0)
       std::cout << "The dissipated energy is incorrect" << std::endl;
     finalize();

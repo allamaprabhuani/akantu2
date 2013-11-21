@@ -45,11 +45,14 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
   SolidMechanicsModelCohesiveOptions(AnalysisMethod analysis_method = _explicit_lumped_mass,
 				     bool extrinsic = false,
 				     bool no_init_materials = false,
-				     bool init_facet_filter = true) :
+				     bool init_facet_filter = true,
+				     bool stress_interpolation = true) :
     SolidMechanicsModelOptions(analysis_method, no_init_materials),
-    extrinsic(extrinsic), init_facet_filter(init_facet_filter) {}
+    extrinsic(extrinsic), init_facet_filter(init_facet_filter),
+    stress_interpolation(stress_interpolation) {}
   bool extrinsic;
   bool init_facet_filter;
+  bool stress_interpolation;
 };
 
 extern const SolidMechanicsModelCohesiveOptions default_solid_mechanics_model_cohesive_options;
@@ -119,6 +122,9 @@ private:
   /// initialize completely the model for extrinsic elements
   void initAutomaticInsertion();
 
+  /// initialize stress interpolation
+  void initStressInterpolation();
+
   /// build fragments list
   void buildFragmentsList();
 
@@ -135,6 +141,12 @@ private:
 
   /// init facets_check array
   void initFacetsCheck();
+
+  /// fill stress_on_facet
+  void fillStressOnFacet();
+
+  /// compute average stress on elements
+  void averageStressOnFacets(UInt material_index);
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
@@ -234,6 +246,9 @@ private:
 
   /// material to use if a cohesive element is created on a facet
   ByElementTypeUInt facet_material;
+
+  /// stress interpolation flag
+  bool stress_interpolation;
 
   bool is_extrinsic;
 

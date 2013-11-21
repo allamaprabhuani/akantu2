@@ -86,13 +86,6 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   delta_c         .initialize(                1);
   insertion_stress.initialize(spatial_dimension);
 
-  /// keep tolerance small enough for the constitutive law
-  if (sigma_c != 0) {
-    Real delta_limit = 2 * G_cI / sigma_c / 20.;
-    if (Math::getTolerance() > delta_limit)
-      Math::setTolerance(delta_limit); // @todo: Really you change the tolerance for the while code
-  }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -404,9 +397,9 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
 
     if (Math::are_float_equal(*damage_it, 1.))
       traction_it->clear();
-    else if (Math::are_float_equal(*damage_it, 0.)) {
-      if (Math::are_float_equal(normal_opening_norm, 0.))
-	*traction_it = *insertion_stress_it;
+    else if (Math::are_float_equal(*delta_max_it, 0.)) {
+      if (normal_opening_norm > 0.)
+      	*traction_it = *insertion_stress_it;
       else
 	traction_it->clear();
     }

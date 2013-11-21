@@ -223,7 +223,6 @@ void MeshUtils::buildFacets(Mesh & mesh){
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
-  ByElementTypeReal barycenter("barycenter_tmp", mesh.getID());
   ByElementTypeUInt prank_to_element("prank_to_elem", mesh.getID());
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -241,7 +240,6 @@ void MeshUtils::buildFacets(Mesh & mesh){
 		       mesh,
 		       true,
 		       spatial_dimension,
-		       barycenter,
 		       prank_to_element);
 
   AKANTU_DEBUG_OUT();
@@ -266,42 +264,12 @@ void MeshUtils::buildAllFacetsParallel(Mesh & mesh,
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  ByElementTypeReal barycenter("barycenter_tmp", mesh.getID());
-
   /// generate facets
   buildFacetsDimension(mesh,
 		       mesh_facets,
 		       false,
 		       spatial_dimension,
-		       barycenter,
 		       prank_to_element);
-
-  /// compute their barycenters
-  mesh_facets.initByElementTypeArray(barycenter,
-				     spatial_dimension,
-				     spatial_dimension - 1);
-
-  for (ghost_type_t::iterator gt = ghost_type_t::begin();
-       gt != ghost_type_t::end();
-       ++gt) {
-
-    Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, *gt);
-    Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, *gt);
-
-    for(; it != end; ++it) {
-      UInt nb_element = mesh_facets.getNbElement(*it, *gt);
-      barycenter(*it, *gt).resize(nb_element);
-
-      Array<Real>::iterator< Vector<Real> > bary
-	= barycenter(*it, *gt).begin(spatial_dimension);
-      Array<Real>::iterator< Vector<Real> > bary_end
-	= barycenter(*it, *gt).end(spatial_dimension);
-
-      for (UInt el = 0; bary != bary_end; ++bary, ++el) {
-	mesh_facets.getBarycenter(el, *it, bary->storage(), *gt);
-      }
-    }
-  }
 
   /// copy nodes type pointer
   mesh_facets.nodes_type = mesh.nodes_type;
@@ -312,7 +280,6 @@ void MeshUtils::buildAllFacetsParallel(Mesh & mesh,
 			 mesh_facets,
 			 false,
 			 i,
-			 barycenter,
 			 prank_to_element);
   }
 
@@ -325,7 +292,6 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 				     Mesh & mesh_facets,
 				     bool boundary_only,
 				     UInt dimension,
-				     ByElementTypeReal & barycenter,
 				     ByElementTypeUInt & prank_to_element){
   AKANTU_DEBUG_IN();
 
@@ -368,9 +334,6 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
   buildNode2Elements(mesh, node_to_elem, dimension);
 
   Array<UInt> counter;
-
-  const Array<Int> * nodes_type = NULL;
-  nodes_type = &(mesh.getNodesType());
 
   Element current_element;
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
@@ -441,11 +404,9 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 	  if (minimum_el == current_element) {
 	    bool full_ghost_facet = false;
 
-	    if (nodes_type != NULL) {
-	      UInt n = 0;
-	      while (n < nb_nodes_per_facet && (*nodes_type)(facet(n)) == -3) ++n;
-	      if (n == nb_nodes_per_facet) full_ghost_facet = true;
-	    }
+	    UInt n = 0;
+	    while (n < nb_nodes_per_facet && mesh.isPureGhostNode(facet(n))) ++n;
+	    if (n == nb_nodes_per_facet) full_ghost_facet = true;
 
 	    if (!full_ghost_facet) {
 	      if (!boundary_only || (boundary_only && nb_element_connected_to_facet == 1)) {
@@ -507,12 +468,6 @@ void MeshUtils::buildFacetsDimension(Mesh & mesh,
 		  for (UInt i = 1; i < nb_element_connected_to_facet; ++i) {
 		    elements.push_back(connected_elements(i));
 		  }
-
-		  /// check if sorting is needed:
-		  /// - in 3D to sort triangles around segments
-		  /// - in 2D to sort segments around points
-		  if (dimension == spatial_dimension - 1)
-                    MeshUtils::sortElements(elements, facet, mesh, mesh_facets, barycenter);
 		}
 
 		element_to_subelement->push_back(elements);
@@ -846,37 +801,15 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
     resetFacetToDouble(mesh_facets);
   }
 
-  UInt nb_new_nodes = doubled_nodes.getSize();
-  UInt total_nb_new_nodes = nb_new_nodes;
-
-  /// @todo update node global id
-
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  Int psize = comm.getNbProc();
-
-  if (psize > 1 && extrinsic) {
-    Array<Int> & nodes_type = *mesh.nodes_type;
-    UInt nb_old_nodes = nodes_type.getSize();
-    nodes_type.resize(nb_old_nodes + nb_new_nodes);
-
-    /// update nodes' type
-    for (UInt n = 0; n < nb_new_nodes; ++n) {
-      UInt old_node = doubled_nodes(n, 0);
-      UInt new_node = doubled_nodes(n, 1);
-      nodes_type(new_node) = nodes_type(old_node);
-    }
-
-    comm.allReduce(&total_nb_new_nodes, 1, _so_sum);
-    comm.allReduce(&total_nb_new_elements, 1, _so_sum);
-
-    (*mesh.nodes_global_ids).resize(nb_old_nodes + nb_new_nodes);
-  }
-
-  mesh.nb_global_nodes += total_nb_new_nodes;
-  mesh_facets.nb_global_nodes += total_nb_new_nodes;
-
-  if (total_nb_new_nodes > 0 || !extrinsic) {
+  /// update global IDs
+  /// @todo this function should work but it hasn't been deeply tested
+  UInt total_nb_new_nodes = updateGlobalIDs(mesh, mesh_facets, doubled_nodes);
+  if (total_nb_new_nodes > 0)
     mesh.sendEvent(node_event);
+
+  if (mesh.nodes_type) {
+    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+    comm.allReduce(&total_nb_new_elements, 1, _so_sum);
   }
 
   if (total_nb_new_elements > 0 || !extrinsic) {
@@ -885,6 +818,190 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
   }
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+UInt MeshUtils::updateGlobalIDs(Mesh & mesh,
+				Mesh & mesh_facets,
+				const Array<UInt> & doubled_nodes) {
+  AKANTU_DEBUG_IN();
+
+  UInt local_nb_new_nodes = doubled_nodes.getSize();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int rank = comm.whoAmI();
+  Int nb_proc = comm.getNbProc();
+
+  if (nb_proc == 1 || !mesh.nodes_type) {
+    mesh.nb_global_nodes += local_nb_new_nodes;
+    mesh_facets.nb_global_nodes += local_nb_new_nodes;
+    return local_nb_new_nodes;
+  }
+
+  /// update nodes' type
+  Array<Int> & nodes_type = *mesh.nodes_type;
+  UInt nb_old_nodes = nodes_type.getSize();
+  nodes_type.resize(nb_old_nodes + local_nb_new_nodes);
+
+  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+    UInt old_node = doubled_nodes(n, 0);
+    UInt new_node = doubled_nodes(n, 1);
+    nodes_type(new_node) = nodes_type(old_node);
+  }
+
+  /// resize global ids array
+  Array<UInt> & nodes_global_ids = *mesh.nodes_global_ids;
+  nodes_global_ids.resize(nb_old_nodes + local_nb_new_nodes);
+
+  /// compute amount of local or master doubled nodes
+  Vector<UInt> local_master_nodes(nb_proc);
+
+  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+    UInt old_node = doubled_nodes(n, 0);
+    if (mesh.isLocalOrMasterNode(old_node)) ++local_master_nodes(rank);
+  }
+
+  comm.allGather(local_master_nodes.storage(), 1);
+
+  /// update global number of nodes
+  UInt total_nb_new_nodes = std::accumulate(local_master_nodes.storage(),
+					    local_master_nodes.storage() + nb_proc,
+					    0);
+
+  if (total_nb_new_nodes == 0) return 0;
+
+  /// set global ids of local and master nodes
+  UInt starting_index = std::accumulate(local_master_nodes.storage(),
+					local_master_nodes.storage() + rank,
+					mesh.nb_global_nodes);
+
+  for (UInt n = 0; n < local_master_nodes(rank); ++n, ++starting_index) {
+    UInt current_node = nb_old_nodes + n;
+    nodes_global_ids(current_node) = starting_index;
+  }
+
+  /// create list of slave global ids for old nodes
+  Array< Array<UInt> > slave_global_ids_send(nb_proc);
+
+  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+    UInt old_node = doubled_nodes(n, 0);
+    Int p = nodes_type(old_node);
+    if (p >= 0) {
+      UInt global_id = nodes_global_ids(old_node);
+      slave_global_ids_send(p).push_back(global_id);
+    }
+  }
+
+  /// add dummy variable at the end to avoid void communications
+  for (Int p = 0; p < nb_proc; ++p) {
+    if (p != rank)
+      slave_global_ids_send(p).push_back(UInt(-1));
+  }
+
+  /// send slave nodes global ids
+  std::vector<CommunicationRequest *> requests;
+
+  for (Int p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
+
+    requests.push_back(comm.asyncSend(slave_global_ids_send(p).storage(),
+				      slave_global_ids_send(p).getSize(),
+				      p, rank));
+  }
+
+  /// allocate memory and receive slave global ids from other processors
+  Array< Array<UInt> > slave_global_ids_recv(nb_proc);
+
+  for (Int p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
+
+    CommunicationStatus status;
+    comm.probe<UInt>(p, p, status);
+
+    slave_global_ids_recv(p).resize(status.getSize());
+
+    comm.receive(slave_global_ids_recv(p).storage(),
+		 slave_global_ids_recv(p).getSize(),
+		 p, p);
+  }
+
+  /// create master nodes global ids
+  Array<UInt> old_master_nodes_global_ids;
+  Array<UInt> old_master_nodes_index;
+
+  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+    UInt old_node = doubled_nodes(n, 0);
+    if (mesh.isMasterNode(old_node)) {
+      old_master_nodes_global_ids.push_back(nodes_global_ids(old_node));
+      old_master_nodes_index.push_back(n);
+    }
+  }
+
+  /// substitute the obtained slaved ids for old nodes with those of new nodes
+  Array<UInt>::iterator<UInt> glob_old_begin = old_master_nodes_global_ids.begin();
+  Array<UInt>::iterator<UInt> glob_old_end = old_master_nodes_global_ids.end();
+
+  for (Int p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
+
+    /// last value is dummy
+    UInt nb_nodes_to_find = slave_global_ids_recv(p).getSize() - 1;
+
+    for (UInt n = 0; n < nb_nodes_to_find; ++n) {
+      UInt & id_to_find = slave_global_ids_recv(p)(n);
+      UInt n_position
+	= std::find(glob_old_begin, glob_old_end, id_to_find) - glob_old_begin;
+
+      AKANTU_DEBUG_ASSERT(n_position < old_master_nodes_index.getSize(),
+			  "Node global id not found");
+
+      UInt index = old_master_nodes_index(n_position);
+      id_to_find = nodes_global_ids(doubled_nodes(index, 1));
+    }
+  }
+
+  /// wait for all communications and reset requests
+  comm.waitAll(requests);
+  comm.freeCommunicationRequest(requests);
+  requests.resize(0);
+
+  /// communicate back the substituted global ids
+  for (Int p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
+
+    requests.push_back(comm.asyncSend(slave_global_ids_recv(p).storage(),
+				      slave_global_ids_recv(p).getSize(),
+				      p, rank));
+  }
+
+  for (Int p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
+    comm.receive(slave_global_ids_send(p).storage(),
+		 slave_global_ids_send(p).getSize(),
+		 p, p);
+  }
+
+  /// set global ids for slave nodes
+  Vector<UInt> node_index(nb_proc);
+
+  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+    UInt new_node = doubled_nodes(n, 1);
+    Int p = nodes_type(new_node);
+    if (p >= 0) {
+      nodes_global_ids(new_node) = slave_global_ids_send(p)(node_index(p));
+      ++node_index(p);
+    }
+  }
+
+  mesh.nb_global_nodes += total_nb_new_nodes;
+  mesh_facets.nb_global_nodes += total_nb_new_nodes;
+
+  /// wait for all communications and free requests
+  comm.waitAll(requests);
+  comm.freeCommunicationRequest(requests);
+
+  AKANTU_DEBUG_OUT();
+  return total_nb_new_nodes;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -905,6 +1022,9 @@ void MeshUtils::doubleNodes(Mesh & mesh,
   position.resize(new_nb_nodes);
   doubled_nodes.resize(new_nb_doubled_nodes);
 
+  Array<Real>::iterator<Vector<Real> > position_begin
+    = position.begin(spatial_dimension);
+
   for (UInt n = 0; n < old_nodes.getSize(); ++n) {
     UInt new_node = old_nb_nodes + n;
 
@@ -913,9 +1033,9 @@ void MeshUtils::doubleNodes(Mesh & mesh,
     doubled_nodes(old_nb_doubled_nodes + n, 1) = new_node;
 
     /// update position
-    std::copy(position.begin(spatial_dimension) + old_nodes(n),
-	      position.begin(spatial_dimension) + old_nodes(n) + 1,
-	      position.begin(spatial_dimension) + new_node);
+    std::copy(position_begin + old_nodes(n),
+	      position_begin + old_nodes(n) + 1,
+	      position_begin + new_node);
   }
 
   AKANTU_DEBUG_OUT();
@@ -968,6 +1088,11 @@ void MeshUtils::doubleFacet(Mesh & mesh,
       UInt new_facet = old_nb_facet - 1;
       Element new_facet_el(type_facet, 0, gt_facet);
 
+      Array<Element>::iterator<Vector<Element> > subfacet_to_facet_begin
+	= subfacet_to_facet.begin(nb_subfacet_per_facet);
+      Array<UInt>::iterator<Vector<UInt> > conn_facet_begin
+	= conn_facet.begin(nb_nodes_per_facet);
+
       for (UInt facet = 0; facet < nb_facet_to_double; ++facet) {
 	UInt old_facet = f_to_double(facet);
 	++new_facet;
@@ -975,14 +1100,14 @@ void MeshUtils::doubleFacet(Mesh & mesh,
 	/// adding a new facet by copying original one
 
 	/// copy connectivity in new facet
-	std::copy(conn_facet.begin(nb_nodes_per_facet) + old_facet,
-		  conn_facet.begin(nb_nodes_per_facet) + old_facet + 1,
-		  conn_facet.begin(nb_nodes_per_facet) + new_facet);
+	std::copy(conn_facet_begin + old_facet,
+		  conn_facet_begin + old_facet + 1,
+		  conn_facet_begin + new_facet);
 
 	/// update subfacet_to_facet
-	std::copy(subfacet_to_facet.begin(nb_subfacet_per_facet) + old_facet,
-		  subfacet_to_facet.begin(nb_subfacet_per_facet) + old_facet + 1,
-		  subfacet_to_facet.begin(nb_subfacet_per_facet) + new_facet);
+	std::copy(subfacet_to_facet_begin + old_facet,
+		  subfacet_to_facet_begin + old_facet + 1,
+		  subfacet_to_facet_begin + new_facet);
 
 	new_facet_el.element = new_facet;
 
@@ -1568,11 +1693,15 @@ void MeshUtils::updateQuadraticSegments(Mesh & mesh,
   }
 
   Array<UInt> middle_nodes;
-  middle_nodes.resize(0);
+  Array<UInt> subfacets;
 
   for (UInt facet = 0; facet < nb_facet_to_double; ++facet) {
     UInt old_facet = f_to_double(facet);
-    middle_nodes.push_back(conn_facet(old_facet, 2));
+    UInt node = conn_facet(old_facet, 2);
+    if (!mesh.isPureGhostNode(node)) {
+      middle_nodes.push_back(node);
+      subfacets.push_back(facet);
+    }
   }
 
   UInt old_nb_doubled_nodes = doubled_nodes.getSize();
@@ -1582,7 +1711,7 @@ void MeshUtils::updateQuadraticSegments(Mesh & mesh,
   for (UInt n = old_nb_doubled_nodes; n < doubled_nodes.getSize(); ++n) {
     UInt old_node = doubled_nodes(n, 0);
     UInt new_node = doubled_nodes(n, 1);
-    UInt sf = n - old_nb_doubled_nodes;
+    UInt sf = subfacets(n - old_nb_doubled_nodes);
     UInt new_facet = old_nb_facet + sf;
 
     conn_facet(new_facet, 2) = new_node;
@@ -2033,8 +2162,6 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
           for(;cit != cend; ++cit) {
             if(cit->second == nb_nodes_per_facet) connected_elements.push_back(cit->first);
           }
-          if(connected_elements.size() == 1)
-            MeshUtils::sortElements(connected_elements, facet, mesh, mesh, barycenters);
 
           std::vector<Element>::iterator ceit  = connected_elements.begin();
           std::vector<Element>::iterator ceend = connected_elements.end();

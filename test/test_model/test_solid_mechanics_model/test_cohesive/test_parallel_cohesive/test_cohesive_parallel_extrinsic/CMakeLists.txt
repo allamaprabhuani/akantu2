@@ -45,4 +45,11 @@ if(AKANTU_PARALLEL)
     PACKAGE cohesive_element
     FILES_TO_COPY material.dat
     DIRECTORIES_TO_CREATE paraview)
+
+  register_test(test_cohesive_parallel_extrinsic_tetrahedron_displacement
+    SOURCES test_cohesive_parallel_extrinsic_tetrahedron_displacement.cc
+    DEPENDENCIES test_cohesive_parallel_extrinsic_tetrahedron_mesh
+    PACKAGE cohesive_element
+    FILES_TO_COPY material.dat
+    DIRECTORIES_TO_CREATE paraview displacement)
 endif()

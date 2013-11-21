@@ -94,7 +94,6 @@ public:
 				   Mesh & mesh_facets,
 				   bool boundary_only,
 				   UInt dimension,
-				   ByElementTypeReal & barycenter,
 				   ByElementTypeUInt & prank_to_element);
 
   /// build normal to some elements
@@ -265,6 +264,11 @@ private:
 				      ElementType type_facet,
 				      GhostType gt_facet,
 				      Array<UInt> & doubled_nodes);
+
+  /// update nodes type and global ids for parallel simulations
+  static UInt updateGlobalIDs(Mesh & mesh,
+			      Mesh & mesh_facets,
+			      const Array<UInt> & doubled_nodes);
 
   /// remove elements on a vector
   inline static bool removeElementsInVector(const std::vector<Element> & elem_to_remove,

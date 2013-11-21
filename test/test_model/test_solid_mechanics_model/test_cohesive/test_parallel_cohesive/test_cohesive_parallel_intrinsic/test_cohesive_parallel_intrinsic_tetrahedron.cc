@@ -49,7 +49,8 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
 
 void findNodesToCheck(const Mesh & mesh,
 		      const ByElementTypeUInt & elements,
-		      Array<UInt> & nodes_to_check);
+		      Array<UInt> & nodes_to_check,
+		      Int psize);
 
 bool checkEquilibrium(const Mesh & mesh,
 		      const Array<Real> & residual);
@@ -69,6 +70,7 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 3;
   const UInt max_steps = 60;
   const Real increment_constant = 0.01;
+  ElementType type = _tetrahedron_10;
 
   Mesh mesh(spatial_dimension);
 
@@ -78,6 +80,7 @@ int main(int argc, char *argv[]) {
 
   UInt nb_nodes_to_check_serial = 0;
   UInt total_nb_nodes = 0;
+  UInt nb_elements_check_serial = 0;
   Array<UInt> nodes_to_check_serial;
 
   akantu::MeshPartition * partition = NULL;
@@ -108,7 +111,9 @@ int main(int argc, char *argv[]) {
     /// find nodes to check in serial
     ByElementTypeUInt elements_serial("elements_serial", "");
     findElementsToDisplace(mesh, elements_serial);
-    findNodesToCheck(mesh, elements_serial, nodes_to_check_serial);
+    nb_elements_check_serial = elements_serial(type).getSize();
+
+    findNodesToCheck(mesh, elements_serial, nodes_to_check_serial, 1);
 
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
@@ -118,6 +123,7 @@ int main(int argc, char *argv[]) {
   }
 
   comm.broadcast(&nb_nodes_to_check_serial, 1, 0);
+  comm.broadcast(&nb_elements_check_serial, 1, 0);
 
   SolidMechanicsModelCohesive model(mesh);
 
@@ -153,9 +159,10 @@ int main(int argc, char *argv[]) {
 
     comm.allGatherV(global_nodes_list.storage(), nb_local_nodes.storage());
 
-    std::cout << "Maximum node index: "
-	      << *(std::max_element(global_nodes_list.begin(),
-				    global_nodes_list.end())) << std::endl;
+    if (prank == 0)
+      std::cout << "Maximum node index: "
+		<< *(std::max_element(global_nodes_list.begin(),
+				      global_nodes_list.end())) << std::endl;
 
     Array<UInt> repeated_nodes;
     repeated_nodes.resize(0);
@@ -233,9 +240,22 @@ int main(int argc, char *argv[]) {
   ByElementTypeUInt elements("elements", "");
   findElementsToDisplace(mesh, elements);
 
+  UInt nb_elements_check = elements(type).getSize();
+  comm.allReduce(&nb_elements_check, 1, _so_sum);
+
+  if (nb_elements_check != nb_elements_check_serial) {
+    if (prank == 0) {
+      std::cout << "Error: number of elements to check is wrong" << std::endl;
+      std::cout << "Serial: " << nb_elements_check_serial
+		<< " Parallel: " << nb_elements_check << std::endl;
+    }
+    finalize();
+    return EXIT_FAILURE;
+  }
+
   /// find nodes to check
   Array<UInt> nodes_to_check;
-  findNodesToCheck(mesh, elements, nodes_to_check);
+  findNodesToCheck(mesh, elements, nodes_to_check, psize);
 
   Vector<Int> nodes_to_check_size(psize);
   nodes_to_check_size(prank) = nodes_to_check.getSize();
@@ -261,7 +281,7 @@ int main(int argc, char *argv[]) {
     if (prank == 0) {
       std::cout << "Error: number of nodes to check is wrong in parallel" << std::endl;
       std::cout << "Serial: " << nb_nodes_to_check_serial
-  		<< "Parallel: " << nodes_to_check_global_size << std::endl;
+  		<< " Parallel: " << nodes_to_check_global_size << std::endl;
 
       for (UInt n = 0; n < nodes_to_check_serial.getSize(); ++n) {
   	if (std::find(nodes_to_check_global.begin(),
@@ -359,7 +379,8 @@ int main(int argc, char *argv[]) {
     updateDisplacement(model, elements, increment);
 
     if(s % 10 == 0) {
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      if (prank == 0)
+	std::cout << "passing step " << s << "/" << max_steps << std::endl;
       model.dump();
       dumper.dump();
     }
@@ -372,7 +393,9 @@ int main(int argc, char *argv[]) {
 
   theoretical_Ed *= 4.;
 
-  std::cout << Ed << " " << theoretical_Ed << std::endl;
+  if (prank == 0)
+    std::cout << "Dissipated energy: " << Ed
+	      << ", theoretical value: " << theoretical_Ed << std::endl;
 
   if (!Math::are_float_equal(Ed, theoretical_Ed) || std::isnan(Ed)) {
 
@@ -533,7 +556,16 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
 
 void findNodesToCheck(const Mesh & mesh,
 		      const ByElementTypeUInt & elements,
-		      Array<UInt> & nodes_to_check) {
+		      Array<UInt> & nodes_to_check,
+		      Int psize) {
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int prank = comm.whoAmI();
+
+  nodes_to_check.resize(0);
+
+  Array<UInt> global_nodes_to_check;
+
   UInt spatial_dimension = mesh.getSpatialDimension();
   const Array<Real> & position = mesh.getNodes();
 
@@ -561,12 +593,48 @@ void findNodesToCheck(const Mesh & mesh,
       for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
 	UInt node = conn_el(n);
 	if (Math::are_float_equal(position(node, 0), 0.)
-	    && !checked_nodes(node)
-	    && mesh.isLocalOrMasterNode(node)) {
+	    && !checked_nodes(node)) {
 	  checked_nodes(node) = true;
 	  nodes_to_check.push_back(node);
+	  global_nodes_to_check.push_back(mesh.getNodeGlobalId(node));
 	}
       }
+    }
+  }
+
+  std::vector<CommunicationRequest *> requests;
+
+  for (Int p = prank + 1; p < psize; ++p) {
+    requests.push_back(comm.asyncSend(global_nodes_to_check.storage(),
+				      global_nodes_to_check.getSize(),
+				      p, prank));
+  }
+
+  Array<UInt> recv_nodes;
+
+  for (Int p = 0; p < prank; ++p) {
+    CommunicationStatus status;
+    comm.probe<UInt>(p, p, status);
+
+    UInt recv_nodes_size = recv_nodes.getSize();
+    recv_nodes.resize(recv_nodes_size + status.getSize());
+
+    comm.receive(recv_nodes.storage() + recv_nodes_size, status.getSize(), p, p);
+  }
+
+  comm.waitAll(requests);
+  comm.freeCommunicationRequest(requests);
+
+  for (UInt i = 0; i < recv_nodes.getSize(); ++i) {
+    Array<UInt>::iterator<UInt> node_position
+      = std::find(global_nodes_to_check.begin(),
+		  global_nodes_to_check.end(),
+		  recv_nodes(i));
+
+    if (node_position != global_nodes_to_check.end()) {
+      UInt index = node_position - global_nodes_to_check.begin();
+      nodes_to_check.erase(index);
+      global_nodes_to_check.erase(index);
     }
   }
 }
@@ -672,7 +740,7 @@ void findElementsToDisplace(const Mesh & mesh,
 
       for (UInt el = 0; el < nb_element; ++el) {
 	mesh.getBarycenter(el, type, bary.storage(), ghost_type);
-	if (bary(0) > 0.01) elem.push_back(el);
+	if (bary(0) > 0.0001) elem.push_back(el);
       }
     }
   }
