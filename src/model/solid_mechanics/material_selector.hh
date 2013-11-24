@@ -50,7 +50,7 @@ public:
   }
 
   void setFallback(UInt f) { fallback_value = f; }
-private:
+protected:
   UInt fallback_value;
 };
 
@@ -64,7 +64,12 @@ public:
     try {
       DebugLevel dbl = debug::getDebugLevel();
       debug::setDebugLevel(dblError);
-      UInt mat = element_index_by_material(element.type, element.ghost_type)(element.element, 0);
+
+      const Array<UInt> & el_by_mat = element_index_by_material(element.type, element.ghost_type);
+      UInt mat = this->fallback_value;
+      if(element.element < el_by_mat.getSize())
+	 mat = el_by_mat(element.element, 0);
+
       debug::setDebugLevel(dbl);
       return mat;
     } catch (...) {

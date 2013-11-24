@@ -374,7 +374,7 @@ void HeatTransferModel::computeKgradT(const GhostType & ghost_type) {
     Array<Real> & gradient = temperature_gradient(*it, ghost_type);
     this->getFEM().gradientOnQuadraturePoints(*temperature,
 					      gradient,
-					      1 ,*it,ghost_type);
+					      1 ,*it, ghost_type);
 
     Array<Real>::iterator< Matrix<Real> > C_it =
       conductivity_on_qpoints(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
