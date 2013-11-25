@@ -28,6 +28,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <map>
+
+/* -------------------------------------------------------------------------- */
 
 #include "shape_cohesive.hh"
 #include "solid_mechanics_model_cohesive.hh"
@@ -354,6 +357,8 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
                               spatial_dimension,
                               spatial_dimension);
 
+  std::map<ElementType, UInt> interp_points_per_el_type;
+
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end(); ++gt) {
 
@@ -379,6 +384,8 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
 
       UInt nb_quad_per_facet =
         getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
+
+      interp_points_per_el_type[type] = nb_quad_per_facet * nb_facet_per_elem;
 
       el_q_facet.resize(nb_element * nb_facet_per_elem * nb_quad_per_facet);
 
@@ -408,7 +415,8 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
 	dynamic_cast<MaterialCohesive &>(*materials[m]);
     } catch(std::bad_cast&) {
       /// initialize the interpolation function
-      materials[m]->initElementalFieldInterpolation(elements_quad_facets);
+      materials[m]->initElementalFieldInterpolation(elements_quad_facets,
+						    interp_points_per_el_type);
     }
   }
 

@@ -29,6 +29,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <map>
+
+/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "parser.hh"
@@ -157,14 +160,15 @@ public:
    * interpolate stress on given positions for each element by means
    * of a geometrical interpolation on quadrature points
    */
-  virtual void interpolateStress(ByElementTypeReal & result,
-				 const GhostType ghost_type = _not_ghost);
+  void interpolateStress(ByElementTypeReal & result,
+			 const GhostType ghost_type = _not_ghost);
 
   /**
    * function to initialize the elemental field interpolation
    * function by inverting the quadrature points' coordinates
    */
-  virtual void initElementalFieldInterpolation(ByElementTypeReal & interpolation_points_coordinates);
+  void initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates,
+				       std::map<ElementType, UInt> & interp_points_per_el_type);
 
 protected:
 
@@ -269,6 +273,7 @@ protected:
   template <ElementType type>
   void initElementalFieldInterpolation(const Array<Real> & quad_coordinates,
 				       const Array<Real> & interpolation_points_coordinates,
+				       const UInt nb_interpolation_points_per_elem,
 				       const GhostType ghost_type);
 
   /// build the coordinate matrix for the interpolation on elemental field

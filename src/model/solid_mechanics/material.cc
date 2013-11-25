@@ -1101,7 +1101,8 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation_points_coordinates) {
+void Material::initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates,
+					       std::map<ElementType, UInt> & interp_points_per_el_type) {
   AKANTU_DEBUG_IN();
   const Mesh & mesh = model->getFEM().getMesh();
 
@@ -1122,9 +1123,14 @@ void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation
       UInt nb_element = mesh.getNbElement(type, ghost_type);
       if (nb_element == 0) continue;
 
+      AKANTU_DEBUG_ASSERT(interp_points_per_el_type.find(type)
+			  != interp_points_per_el_type.end(),
+			  "Element type not found in the map");
+
 #define AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD(type)			\
       initElementalFieldInterpolation<type>(quadrature_points_coordinates(type, ghost_type), \
                                             interpolation_points_coordinates(type, ghost_type),	\
+					    interp_points_per_el_type[type], \
                                             ghost_type)			\
 
       AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD);
@@ -1139,6 +1145,7 @@ void Material::initElementalFieldInterpolation(ByElementTypeReal & interpolation
 template <ElementType type>
 void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordinates,
                                                const Array<Real> & interpolation_points_coordinates,
+					       const UInt nb_interpolation_points_per_elem,
                                                const GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   UInt size_inverse_coords =
@@ -1147,11 +1154,6 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
   Array<UInt> & elem_fil = element_filter(type, ghost_type);
   UInt nb_element = elem_fil.getSize();
   UInt nb_quad_per_element = model->getFEM().getNbQuadraturePoints(type, ghost_type);
-
-  UInt nb_interpolation_points = interpolation_points_coordinates.getSize();
-  AKANTU_DEBUG_ASSERT(nb_interpolation_points % nb_element == 0,
-                      "Can't interpolate elemental field on elements, the coordinates vector has a wrong size");
-  UInt nb_interpolation_points_per_elem = nb_interpolation_points / nb_element;
 
   if(!interpolation_inverse_coordinates.exists(type, ghost_type))
     interpolation_inverse_coordinates.alloc(nb_element,
@@ -1168,7 +1170,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
   Matrix<Real> quad_coord_matrix(size_inverse_coords, size_inverse_coords);
 
-  Array<Real>::const_iterator< Matrix<Real> > quad_coords_it =
+  Array<Real>::const_iterator< Matrix<Real> > quad_coords_begin =
     quad_coordinates.begin_reinterpret(spatial_dimension,
                                        nb_quad_per_element,
                                        nb_element);
@@ -1187,7 +1189,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
   /// loop over the elements of the current material and element type
   for (UInt el = 0; el < nb_element; ++el) {
     /// matrix containing the quadrature points coordinates
-    const Matrix<Real> & quad_coords = *quad_coords_it;
+    const Matrix<Real> & quad_coords = quad_coords_begin[elem_fil(el)];
     /// matrix to store the matrix inversion result
     Matrix<Real> & inv_quad_coord_matrix = *inv_quad_coord_it;
 
@@ -1212,7 +1214,6 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
     ++inv_quad_coord_it;
     ++inv_points_mat_it;
-    ++quad_coords_it;
     ++points_coords_it;
   }
 
