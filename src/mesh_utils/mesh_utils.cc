@@ -802,7 +802,7 @@ void MeshUtils::insertCohesiveElements(Mesh & mesh,
   }
 
   /// update global IDs
-  /// @todo this function should work but it hasn't been deeply tested
+  /// @todo this function doesn't work
   UInt total_nb_new_nodes = updateGlobalIDs(mesh, mesh_facets, doubled_nodes);
   if (total_nb_new_nodes > 0)
     mesh.sendEvent(node_event);
@@ -870,135 +870,143 @@ UInt MeshUtils::updateGlobalIDs(Mesh & mesh,
 
   if (total_nb_new_nodes == 0) return 0;
 
-  /// set global ids of local and master nodes
-  UInt starting_index = std::accumulate(local_master_nodes.storage(),
-					local_master_nodes.storage() + rank,
-					mesh.nb_global_nodes);
+  // /// set global ids of local and master nodes
+  // UInt starting_index = std::accumulate(local_master_nodes.storage(),
+  // 					local_master_nodes.storage() + rank,
+  // 					mesh.nb_global_nodes);
 
-  for (UInt n = 0; n < local_master_nodes(rank); ++n, ++starting_index) {
-    UInt current_node = nb_old_nodes + n;
-    nodes_global_ids(current_node) = starting_index;
-  }
+  // for (UInt n = 0; n < local_master_nodes(rank); ++n, ++starting_index) {
+  //   UInt current_node = nb_old_nodes + n;
+  //   nodes_global_ids(current_node) = starting_index;
+  // }
 
-  /// create list of slave global ids for old nodes
-  Array< Array<UInt> > slave_global_ids_send(nb_proc);
+  // /// create list of slave global ids for old nodes
+  // Array< Array<UInt> > slave_global_ids_send(nb_proc);
 
-  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
-    UInt old_node = doubled_nodes(n, 0);
-    Int p = nodes_type(old_node);
-    if (p >= 0) {
-      UInt global_id = nodes_global_ids(old_node);
-      slave_global_ids_send(p).push_back(global_id);
-    }
-  }
+  // for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+  //   UInt old_node = doubled_nodes(n, 0);
+  //   Int p = nodes_type(old_node);
+  //   if (p >= 0) {
+  //     UInt global_id = nodes_global_ids(old_node);
+  //     slave_global_ids_send(p).push_back(global_id);
+  //   }
+  // }
 
-  /// add dummy variable at the end to avoid void communications
-  for (Int p = 0; p < nb_proc; ++p) {
-    if (p != rank)
-      slave_global_ids_send(p).push_back(UInt(-1));
-  }
+  // /// add dummy variable at the end to avoid void communications
+  // for (Int p = 0; p < nb_proc; ++p) {
+  //   if (p != rank)
+  //     slave_global_ids_send(p).push_back(UInt(-1));
+  // }
 
-  /// send slave nodes global ids
-  std::vector<CommunicationRequest *> requests;
+  // /// send slave nodes global ids
+  // std::vector<CommunicationRequest *> requests;
 
-  for (Int p = 0; p < nb_proc; ++p) {
-    if (p == rank) continue;
+  // for (Int p = 0; p < nb_proc; ++p) {
+  //   if (p == rank) continue;
 
-    requests.push_back(comm.asyncSend(slave_global_ids_send(p).storage(),
-				      slave_global_ids_send(p).getSize(),
-				      p, rank));
-  }
+  //   requests.push_back(comm.asyncSend(slave_global_ids_send(p).storage(),
+  // 				      slave_global_ids_send(p).getSize(),
+  // 				      p, rank));
+  // }
 
-  /// allocate memory and receive slave global ids from other processors
-  Array< Array<UInt> > slave_global_ids_recv(nb_proc);
+  // /// allocate memory and receive slave global ids from other processors
+  // Array< Array<UInt> > slave_global_ids_recv(nb_proc);
 
-  for (Int p = 0; p < nb_proc; ++p) {
-    if (p == rank) continue;
+  // for (Int p = 0; p < nb_proc; ++p) {
+  //   if (p == rank) continue;
 
-    CommunicationStatus status;
-    comm.probe<UInt>(p, p, status);
+  //   CommunicationStatus status;
+  //   comm.probe<UInt>(p, p, status);
 
-    slave_global_ids_recv(p).resize(status.getSize());
+  //   slave_global_ids_recv(p).resize(status.getSize());
 
-    comm.receive(slave_global_ids_recv(p).storage(),
-		 slave_global_ids_recv(p).getSize(),
-		 p, p);
-  }
+  //   comm.receive(slave_global_ids_recv(p).storage(),
+  // 		 slave_global_ids_recv(p).getSize(),
+  // 		 p, p);
+  // }
 
-  /// create master nodes global ids
-  Array<UInt> old_master_nodes_global_ids;
-  Array<UInt> old_master_nodes_index;
+  // /// create master nodes global ids
+  // Array<UInt> old_master_nodes_global_ids;
+  // Array<UInt> old_master_nodes_index;
 
-  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
-    UInt old_node = doubled_nodes(n, 0);
-    if (mesh.isMasterNode(old_node)) {
-      old_master_nodes_global_ids.push_back(nodes_global_ids(old_node));
-      old_master_nodes_index.push_back(n);
-    }
-  }
+  // for (UInt n = 0; n < mesh.getNbNodes(); ++n) {
+  //   if (mesh.isMasterNode(n)) {
+  //     old_master_nodes_global_ids.push_back(nodes_global_ids(n));
+  //     old_master_nodes_index.push_back(n);
+  //   }
+  // }
 
-  /// substitute the obtained slaved ids for old nodes with those of new nodes
-  Array<UInt>::iterator<UInt> glob_old_begin = old_master_nodes_global_ids.begin();
-  Array<UInt>::iterator<UInt> glob_old_end = old_master_nodes_global_ids.end();
+  // // for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+  // //   UInt old_node = doubled_nodes(n, 0);
+  // //   if (mesh.isMasterNode(old_node)) {
+  // //     old_master_nodes_global_ids.push_back(nodes_global_ids(old_node));
+  // //     old_master_nodes_index.push_back(n);
+  // //   }
+  // // }
 
-  for (Int p = 0; p < nb_proc; ++p) {
-    if (p == rank) continue;
+  // /// substitute the obtained slaved ids for old nodes with those of new nodes
+  // Array<UInt>::iterator<UInt> glob_old_begin = old_master_nodes_global_ids.begin();
+  // Array<UInt>::iterator<UInt> glob_old_end = old_master_nodes_global_ids.end();
 
-    /// last value is dummy
-    UInt nb_nodes_to_find = slave_global_ids_recv(p).getSize() - 1;
+  // for (Int p = 0; p < nb_proc; ++p) {
+  //   if (p == rank) continue;
 
-    for (UInt n = 0; n < nb_nodes_to_find; ++n) {
-      UInt & id_to_find = slave_global_ids_recv(p)(n);
-      UInt n_position
-	= std::find(glob_old_begin, glob_old_end, id_to_find) - glob_old_begin;
+  //   /// last value is dummy
+  //   UInt nb_nodes_to_find = slave_global_ids_recv(p).getSize() - 1;
 
-      AKANTU_DEBUG_ASSERT(n_position < old_master_nodes_index.getSize(),
-			  "Node global id not found");
+  //   for (UInt n = 0; n < nb_nodes_to_find; ++n) {
+  //     UInt & id_to_find = slave_global_ids_recv(p)(n);
+  //     UInt n_position
+  // 	= std::find(glob_old_begin, glob_old_end, id_to_find) - glob_old_begin;
 
-      UInt index = old_master_nodes_index(n_position);
-      id_to_find = nodes_global_ids(doubled_nodes(index, 1));
-    }
-  }
+  //     AKANTU_DEBUG_ASSERT(n_position < old_master_nodes_index.getSize(),
+  // 			  "Node global id not found");
 
-  /// wait for all communications and reset requests
-  comm.waitAll(requests);
-  comm.freeCommunicationRequest(requests);
-  requests.resize(0);
+  //     UInt index = old_master_nodes_index(n_position);
+  //     id_to_find = nodes_global_ids(doubled_nodes(index, 1));
+  //   }
+  // }
 
-  /// communicate back the substituted global ids
-  for (Int p = 0; p < nb_proc; ++p) {
-    if (p == rank) continue;
+  // /// wait for all communications and reset requests
+  // comm.waitAll(requests);
+  // comm.freeCommunicationRequest(requests);
+  // requests.resize(0);
 
-    requests.push_back(comm.asyncSend(slave_global_ids_recv(p).storage(),
-				      slave_global_ids_recv(p).getSize(),
-				      p, rank));
-  }
+  // /// communicate back the substituted global ids
+  // for (Int p = 0; p < nb_proc; ++p) {
+  //   if (p == rank) continue;
 
-  for (Int p = 0; p < nb_proc; ++p) {
-    if (p == rank) continue;
-    comm.receive(slave_global_ids_send(p).storage(),
-		 slave_global_ids_send(p).getSize(),
-		 p, p);
-  }
+  //   requests.push_back(comm.asyncSend(slave_global_ids_recv(p).storage(),
+  // 				      slave_global_ids_recv(p).getSize(),
+  // 				      p, rank));
+  // }
 
-  /// set global ids for slave nodes
-  Vector<UInt> node_index(nb_proc);
+  // for (Int p = 0; p < nb_proc; ++p) {
+  //   if (p == rank) continue;
+  //   comm.receive(slave_global_ids_send(p).storage(),
+  // 		 slave_global_ids_send(p).getSize(),
+  // 		 p, p);
+  // }
 
-  for (UInt n = 0; n < local_nb_new_nodes; ++n) {
-    UInt new_node = doubled_nodes(n, 1);
-    Int p = nodes_type(new_node);
-    if (p >= 0) {
-      nodes_global_ids(new_node) = slave_global_ids_send(p)(node_index(p));
-      ++node_index(p);
-    }
-  }
+  // /// set global ids for slave nodes
+  // Vector<UInt> node_index(nb_proc);
+
+  // for (UInt n = 0; n < local_nb_new_nodes; ++n) {
+  //   UInt new_node = doubled_nodes(n, 1);
+  //   Int p = nodes_type(new_node);
+  //   if (p >= 0) {
+  //     nodes_global_ids(new_node) = slave_global_ids_send(p)(node_index(p));
+  //     ++node_index(p);
+  //   }
+  // }
+
+  // /// wait for all communications and free requests
+  // comm.waitAll(requests);
+  // comm.freeCommunicationRequest(requests);
+
 
   mesh.nb_global_nodes += total_nb_new_nodes;
   mesh_facets.nb_global_nodes += total_nb_new_nodes;
-
-  /// wait for all communications and free requests
-  comm.waitAll(requests);
-  comm.freeCommunicationRequest(requests);
 
   AKANTU_DEBUG_OUT();
   return total_nb_new_nodes;
