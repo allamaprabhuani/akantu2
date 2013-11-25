@@ -1170,7 +1170,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
   Matrix<Real> quad_coord_matrix(size_inverse_coords, size_inverse_coords);
 
-  Array<Real>::const_iterator< Matrix<Real> > quad_coords_begin =
+  Array<Real>::const_iterator< Matrix<Real> > quad_coords_it =
     quad_coordinates.begin_reinterpret(spatial_dimension,
                                        nb_quad_per_element,
                                        nb_element);
@@ -1187,9 +1187,10 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
     interp_points_mat.begin(nb_interpolation_points_per_elem, size_inverse_coords);
 
   /// loop over the elements of the current material and element type
-  for (UInt el = 0; el < nb_element; ++el) {
+  for (UInt el = 0; el < nb_element; ++el, ++inv_quad_coord_it,
+	 ++inv_points_mat_it, ++quad_coords_it) {
     /// matrix containing the quadrature points coordinates
-    const Matrix<Real> & quad_coords = quad_coords_begin[elem_fil(el)];
+    const Matrix<Real> & quad_coords = *quad_coords_it;
     /// matrix to store the matrix inversion result
     Matrix<Real> & inv_quad_coord_matrix = *inv_quad_coord_it;
 
@@ -1210,10 +1211,6 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
     /// insert the quad coordinates in a matrix compatible with the interpolation
     buildElementalFieldInterpolationCoodinates<type>(points_coords,
                                                      inv_points_coord_matrix);
-
-
-    ++inv_quad_coord_it;
-    ++inv_points_mat_it;
   }
 
   AKANTU_DEBUG_OUT();
@@ -1276,18 +1273,17 @@ void Material::interpolateElementalField(const Array<Real> & field,
   Array<Real>::const_iterator< Matrix<Real> > interpolation_points_coordinates_it =
     interp_points_coord.begin(nb_interpolation_points_per_elem, size_inverse_coords);
 
-  Array<Real>::iterator< Matrix<Real> > result_it
+  Array<Real>::iterator< Matrix<Real> > result_begin
     = result.begin_reinterpret(field.getNbComponent(),
                                nb_interpolation_points_per_elem,
-                               nb_element);
+                               result.getSize() / nb_interpolation_points_per_elem);
 
   Array<Real>::const_iterator< Matrix<Real> > inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
 
   /// loop over the elements of the current material and element type
   for (UInt el = 0; el < nb_element;
-       ++el, ++field_it, ++result_it,
-         ++inv_quad_coord_it, ++interpolation_points_coordinates_it) {
+       ++el, ++field_it, ++inv_quad_coord_it, ++interpolation_points_coordinates_it) {
     /**
      * matrix containing the inversion of the quadrature points'
      * coordinates
@@ -1304,7 +1300,7 @@ void Material::interpolateElementalField(const Array<Real> & field,
     const Matrix<Real> & coord = *interpolation_points_coordinates_it;
 
     /// multiply the coordinates matrix by the coefficients matrix and store the result
-    (*result_it).mul<true, true>(coefficients, coord);
+    result_begin[elem_fil(el)].mul<true, true>(coefficients, coord);
   }
 
 
