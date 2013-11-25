@@ -29,6 +29,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <numeric>
+
+/* -------------------------------------------------------------------------- */
 #include "material_cohesive_linear.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
