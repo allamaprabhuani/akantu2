@@ -1175,10 +1175,10 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
                                        nb_quad_per_element,
                                        nb_element);
 
-  Array<Real>::const_iterator< Matrix<Real> > points_coords_it =
+  Array<Real>::const_iterator< Matrix<Real> > points_coords_begin =
     interpolation_points_coordinates.begin_reinterpret(spatial_dimension,
                                                        nb_interpolation_points_per_elem,
-                                                       nb_element);
+                                                       interpolation_points_coordinates.getSize() / nb_interpolation_points_per_elem);
 
   Array<Real>::iterator< Matrix<Real> > inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
@@ -1202,7 +1202,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
 
     /// matrix containing the interpolation points coordinates
-    const Matrix<Real> & points_coords = *points_coords_it;
+    const Matrix<Real> & points_coords = points_coords_begin[elem_fil(el)];
     /// matrix to store the interpolation points coordinates
     /// compatible with these functions
     Matrix<Real> & inv_points_coord_matrix = *inv_points_mat_it;
@@ -1214,7 +1214,6 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
     ++inv_quad_coord_it;
     ++inv_points_mat_it;
-    ++points_coords_it;
   }
 
   AKANTU_DEBUG_OUT();
