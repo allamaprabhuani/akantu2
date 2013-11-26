@@ -1101,8 +1101,7 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates,
-					       std::map<ElementType, UInt> & interp_points_per_el_type) {
+void Material::initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates) {
   AKANTU_DEBUG_IN();
   const Mesh & mesh = model->getFEM().getMesh();
 
@@ -1123,14 +1122,16 @@ void Material::initElementalFieldInterpolation(const ByElementTypeReal & interpo
       UInt nb_element = mesh.getNbElement(type, ghost_type);
       if (nb_element == 0) continue;
 
-      AKANTU_DEBUG_ASSERT(interp_points_per_el_type.find(type)
-			  != interp_points_per_el_type.end(),
-			  "Element type not found in the map");
+      const Array<Real> & interp_points_coord = interpolation_points_coordinates(type, ghost_type);
+      UInt nb_interpolation_points_per_elem = interp_points_coord.getSize() / nb_element;
+
+      AKANTU_DEBUG_ASSERT(interp_points_coord.getSize() % nb_element == 0,
+			  "Number of interpolation points is wrong");
 
 #define AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD(type)			\
       initElementalFieldInterpolation<type>(quadrature_points_coordinates(type, ghost_type), \
-                                            interpolation_points_coordinates(type, ghost_type),	\
-					    interp_points_per_el_type[type], \
+                                            interp_points_coord,	\
+					    nb_interpolation_points_per_elem, \
                                             ghost_type)			\
 
       AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(AKANTU_INIT_INTERPOLATE_ELEMENTAL_FIELD);

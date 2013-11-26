@@ -29,9 +29,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <map>
-
-/* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "parser.hh"
@@ -167,8 +164,7 @@ public:
    * function to initialize the elemental field interpolation
    * function by inverting the quadrature points' coordinates
    */
-  void initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates,
-				       std::map<ElementType, UInt> & interp_points_per_el_type);
+  void initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates);
 
 protected:
 
