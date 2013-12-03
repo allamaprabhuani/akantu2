@@ -32,6 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
+#include "material_elastic.hh"
 #include <vector>
 
 /* -------------------------------------------------------------------------- */
@@ -83,6 +84,10 @@ public:
 protected:
   // compute C from Cprime
   void rotateCprime();
+  //worker function computing stress
+  template<bool viscous>
+  inline void computeStressWorker(ElementType el_type,
+                                  GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -109,6 +114,8 @@ protected:
   /// eigenvalues of stiffness tensor
   Vector<Real> eigC;
   bool symmetric;
+  /// viscous proportion
+  Real alpha;
 
 };
 __END_AKANTU__

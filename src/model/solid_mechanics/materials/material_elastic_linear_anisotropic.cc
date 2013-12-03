@@ -50,7 +50,8 @@ MaterialElasticLinearAnisotropic(SolidMechanicsModel & model,
          spatial_dimension*spatial_dimension),
   C(this->voigt_h.size, this->voigt_h.size),
   eigC(this->voigt_h.size),
-  symmetric(symmetric){
+  symmetric(symmetric),
+  alpha(0){
   AKANTU_DEBUG_IN();
 
   this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
@@ -81,6 +82,9 @@ MaterialElasticLinearAnisotropic(SolidMechanicsModel & model,
                           "Coefficient " + param.str());
     }
   }
+
+  this->registerParam("alpha", this->alpha, _pat_parsmod,
+                      "Proportion of viscous stress");
 
   AKANTU_DEBUG_OUT();
   }
@@ -200,8 +204,21 @@ void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementType el_type,
-                                                                        GhostType ghost_type) {
+void MaterialElasticLinearAnisotropic<spatial_dimension>::
+computeStress(ElementType el_type, GhostType ghost_type) {
+  if (this->alpha == 0.) {
+    this->computeStressWorker<false>(el_type, ghost_type);
+  } else {
+    this->computeStressWorker<true>(el_type, ghost_type);
+  }
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+template<bool viscous>
+void MaterialElasticLinearAnisotropic<spatial_dimension>::
+computeStressWorker(ElementType el_type, GhostType ghost_type) {
 
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
@@ -215,6 +232,19 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementT
   Array<Real>::iterator< Matrix<Real> > strain_end =
     this->strain(el_type, ghost_type).end(spatial_dimension,
                                           spatial_dimension);
+
+  Array<Real> strain_rate(0, spatial_dimension * spatial_dimension,
+                          "strain_rate");
+  Array<Real>::iterator< Matrix<Real> > strain_rate_it;
+  if (viscous) {
+    const Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+    Array<Real> & velocity = this->model->getVelocity();
+    this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
+                                                     spatial_dimension, el_type,
+                                                     ghost_type,
+                                                     elem_filter);
+    strain_rate_it = strain_rate.begin(spatial_dimension, spatial_dimension);
+  }
   this->stress(el_type, ghost_type).resize(this->strain(el_type,
                                                         ghost_type).getSize());
 
@@ -224,15 +254,27 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementT
   // for efficient computation of stress
   Matrix<Real> voigt_strains(this->voigt_h.size, nb_quad_pts);
   Matrix<Real> voigt_stresses(this->voigt_h.size, nb_quad_pts);
-
+  Matrix<Real> * grad_u_dot;
   // copy strains
   for (UInt q = 0; strain_it != strain_end ; ++strain_it, ++q) {
     Matrix<Real> & grad_u = *strain_it;
+    if (viscous) {
+      grad_u_dot = &(*strain_rate_it);
+    }
     for (UInt i = 0 ; i < spatial_dimension ; ++i) {
       for (UInt j = i ; j < spatial_dimension ; ++j) {
         UInt I = this->voigt_h.mat[i][j];
-        voigt_strains(I, q) = 0.5 * this->voigt_h.factors[I]*(grad_u(j,i) + grad_u(i,j));
+        voigt_strains(I, q) = 0.5 * this->voigt_h.factors[I]*(grad_u(j,i)
+                                                              + grad_u(i,j));
+        if (viscous) {
+          voigt_strains(I, q) += (0.5 * this->alpha * this->voigt_h.factors[I] *
+                                  (grad_u_dot->operator()(j, i)
+                                   + grad_u_dot->operator()(i, j)));
+        }
       }
+    }
+    if (viscous) {
+      ++strain_rate_it;
     }
   }
 
