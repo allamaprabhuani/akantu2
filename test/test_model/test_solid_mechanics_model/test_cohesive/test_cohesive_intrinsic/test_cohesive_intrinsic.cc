@@ -72,13 +72,9 @@ int main(int argc, char *argv[]) {
 
   std::cout << mesh << std::endl;
 
-  Array<Real> limits(spatial_dimension, 2);
-  limits(0, 0) = -0.26;
-  limits(0, 1) = -0.24;
-  limits(1, 0) = -100;
-  limits(1, 1) = 100;
-
-  MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
+  CohesiveElementInserter inserter(mesh);
+  inserter.setLimit('x', -0.26, -0.24);
+  inserter.insertIntrinsicElements();
 
   mesh.write("mesh_cohesive.msh");
 

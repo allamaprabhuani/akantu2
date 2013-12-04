@@ -158,7 +158,8 @@ int main(int argc, char *argv[]) {
   /* ------------------------------------------------------------------------ */
 
   const Array<Real> & facet_stress = model.getStressOnFacets(type_facet);
-  const Array<bool> & facet_check = model.getFacetsCheck(type_facet);
+  const Array<bool> & facet_check
+    = model.getElementInserter().getCheckFacets(type_facet);
   const Array<std::vector<Element> > & elements_to_facet
     = model.getMeshFacets().getElementToSubelement(type_facet);
 

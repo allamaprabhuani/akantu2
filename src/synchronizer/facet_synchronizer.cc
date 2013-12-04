@@ -62,14 +62,14 @@ createFacetSynchronizer(DistributedSynchronizer & distributed_synchronizer,
 /* -------------------------------------------------------------------------- */
 void FacetSynchronizer::updateDistributedSynchronizer(DistributedSynchronizer & distributed_synchronizer,
 						      DataAccessor & data_accessor,
-						      const ByElementTypeUInt & cohesive_el_to_facet) {
+						      const Mesh & mesh_cohesive) {
   AKANTU_DEBUG_IN();
 
   Array<Element> * distrib_send_element = distributed_synchronizer.send_element;
   Array<Element> * distrib_recv_element = distributed_synchronizer.recv_element;
 
-  updateElementList(distrib_send_element, send_element, cohesive_el_to_facet);
-  updateElementList(distrib_recv_element, recv_element, cohesive_el_to_facet);
+  updateElementList(distrib_send_element, send_element, mesh_cohesive);
+  updateElementList(distrib_recv_element, recv_element, mesh_cohesive);
 
   std::map<SynchronizationTag, Communication>::iterator it
     = distributed_synchronizer.communications.begin();
@@ -88,18 +88,14 @@ void FacetSynchronizer::updateDistributedSynchronizer(DistributedSynchronizer & 
 /* -------------------------------------------------------------------------- */
 void FacetSynchronizer::updateElementList(Array<Element> * elements,
 					  const Array<Element> * facets,
-					  const ByElementTypeUInt & cohesive_el_to_facet) {
+					  const Mesh & mesh_cohesive) {
   AKANTU_DEBUG_IN();
 
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
 
-  ElementType current_coh_element_type = _not_defined;
-
-  UInt max_uint = std::numeric_limits<UInt>::max();
-  const Array<UInt> * cohesive_el_to_f = NULL;
-
-  Element cohesive_element(_not_defined, 0, _not_ghost, _ek_cohesive);
+  UInt old_nb_cohesive_elements = 0;
+  const Array< std::vector<Element> > * element_to_facet = NULL;
 
   for (UInt p = 0; p < nb_proc; ++p) {
     const Array<Element> & fa = facets[p];
@@ -113,17 +109,27 @@ void FacetSynchronizer::updateElementList(Array<Element> * elements,
 
       if(facet.type != current_element_type || facet.ghost_type != current_ghost_type) {
 	current_element_type = facet.type;
-	current_coh_element_type = FEM::getCohesiveElementType(current_element_type);
 	current_ghost_type   = facet.ghost_type;
-	cohesive_el_to_f = &(cohesive_el_to_facet(current_element_type,
-						  current_ghost_type));
-	cohesive_element.type = current_coh_element_type;
-	cohesive_element.ghost_type = current_ghost_type;
+
+	ElementType current_coh_element_type
+	  = FEM::getCohesiveElementType(current_element_type);
+
+	/// compute old number of cohesive elements
+	old_nb_cohesive_elements = mesh_cohesive.getNbElement(current_coh_element_type,
+							      current_ghost_type);
+	old_nb_cohesive_elements -= mesh.getData<UInt>("facet_to_double",
+						       current_element_type,
+						       current_ghost_type).getSize();
+
+	element_to_facet = & mesh.getData<std::vector<Element> >("element_to_subelement",
+								 current_element_type,
+								 current_ghost_type);
       }
 
-      cohesive_element.element = (*cohesive_el_to_f)(facet.element);
+      const Element & cohesive_element = (*element_to_facet)(facet.element)[1];
 
-      if (cohesive_element.element != max_uint)
+      if (cohesive_element.kind == _ek_cohesive &&
+	  cohesive_element.element >= old_nb_cohesive_elements)
 	el.push_back(cohesive_element);
     }
   }

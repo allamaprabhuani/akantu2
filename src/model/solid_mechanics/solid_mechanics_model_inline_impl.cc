@@ -118,11 +118,6 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & ele
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-
-#ifndef AKANTU_NDEBUG
-  size += elements.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-#endif
-
   UInt nb_nodes_per_element = 0;
 
   Array<Element>::const_iterator<Element> it  = elements.begin();
@@ -168,32 +163,12 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & ele
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::packBarycenter(const Mesh & mesh,
-						CommunicationBuffer & buffer,
-						const Array<Element> & elements,
-                                                SynchronizationTag tag) const {
-  Array<Element>::const_iterator<Element> bit  = elements.begin();
-  Array<Element>::const_iterator<Element> bend = elements.end();
-  for (; bit != bend; ++bit) {
-    const Element & element = *bit;
-    Vector<Real> barycenter(spatial_dimension);
-    mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
-    buffer << barycenter;
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 						 const Array<Element> & elements,
 						 SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-#ifndef AKANTU_NDEBUG
-  packBarycenter(mesh, buffer, elements, tag);
-#endif
-
   switch(tag) {
-
   case _gst_material_id: {
     packElementalDataHelper(element_index_by_material, buffer, elements, false, getFEM());
     break;
@@ -230,44 +205,10 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SolidMechanicsModel::unpackBarycenter(const Mesh & mesh,
-						  CommunicationBuffer & buffer,
-						  const Array<Element> & elements,
-						  SynchronizationTag tag) {
-  Array<Element>::const_iterator<Element> bit  = elements.begin();
-  Array<Element>::const_iterator<Element> bend = elements.end();
-
-  for (; bit != bend; ++bit) {
-    const Element & element = *bit;
-
-    Vector<Real> barycenter_loc(spatial_dimension);
-    mesh.getBarycenter(element.element, element.type, barycenter_loc.storage(), element.ghost_type);
-    Vector<Real> barycenter(spatial_dimension);
-    buffer >> barycenter;
-    Real tolerance = 1e-15;
-    Real bary_norm = barycenter.norm();
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      if((std::abs((barycenter(i) - barycenter_loc(i))/bary_norm) <= tolerance) ||
-	 (std::abs(barycenter_loc(i)) <= 0 && std::abs(barycenter(i)) <= tolerance)) continue;
-      AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
-			 << element
-			 << "(barycenter[" << i << "] = " << barycenter_loc(i)
-			 << " and buffer[" << i << "] = " << barycenter(i) << ") ["
-			 << std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i))
-			 << "] - tag: " << tag);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
 						   const Array<Element> & elements,
 						   SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
-
-#ifndef AKANTU_NDEBUG
-  unpackBarycenter(mesh, buffer, elements, tag);
-#endif
 
   switch(tag) {
   case _gst_material_id: {

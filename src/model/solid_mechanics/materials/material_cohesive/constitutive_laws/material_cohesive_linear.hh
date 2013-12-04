@@ -69,8 +69,7 @@ public:
   virtual void initMaterial();
 
   /// check stress for cohesive elements' insertion
-  virtual void checkInsertion(const ByElementTypeReal & facet_stress,
-			      ByElementTypeArray<bool> & facet_insertion);
+  virtual void checkInsertion();
 
 protected:
 

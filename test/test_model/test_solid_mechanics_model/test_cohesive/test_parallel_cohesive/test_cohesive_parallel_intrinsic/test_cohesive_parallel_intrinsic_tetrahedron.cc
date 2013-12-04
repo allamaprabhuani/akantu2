@@ -96,15 +96,9 @@ int main(int argc, char *argv[]) {
     }
 
     /// insert cohesive elements
-    Array<Real> limits(spatial_dimension, 2);
-    limits(0, 0) = -0.01;
-    limits(0, 1) = 0.01;
-    limits(1, 0) = -100;
-    limits(1, 1) = 100;
-    limits(2, 0) = -100;
-    limits(2, 1) = 100;
-
-    MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
+    CohesiveElementInserter inserter(mesh);
+    inserter.setLimit('x', -0.01, 0.01);
+    inserter.insertIntrinsicElements();
 
     total_nb_nodes = mesh.getNbNodes();
 

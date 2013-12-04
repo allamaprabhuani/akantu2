@@ -142,7 +142,7 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
     synch_registry->synchronize(_gst_smmc_facets_conn);
 
     /// flip facets
-    MeshUtils::flipFacets(mesh_facets, *global_connectivity, _ghost);
+    MeshUtils::flipFacets(mesh_facets, g_connectivity, _ghost);
 
     delete global_connectivity;
   }
@@ -152,32 +152,19 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
 
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::updateFacetSynchronizer() {
-  /// update synchronizer if needed
-  if (facet_synchronizer != NULL) {
-    DataAccessor * data_accessor = this;
+void SolidMechanicsModelCohesive::updateFacetSynchronizers() {
+  /// update synchronizers if needed
 
+  if (facet_synchronizer != NULL)
     facet_synchronizer->updateDistributedSynchronizer(*cohesive_distributed_synchronizer,
-						      *data_accessor,
-                                                      cohesive_el_to_facet);
+						      *this,
+                                                      mesh);
 
-    for (ghost_type_t::iterator gt = ghost_type_t::begin();
-         gt != ghost_type_t::end(); ++gt) {
+  if (facet_stress_synchronizer != NULL)
+    facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
+							     *rank_to_element,
+							     *this);
 
-      GhostType gt_facet = *gt;
-
-      Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
-      Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
-
-      for(; it != end; ++it) {
-        ElementType type_facet = *it;
-        Array<UInt> & cohesive_el_to_f = cohesive_el_to_facet(type_facet, gt_facet);
-
-        for (UInt f = 0; f < cohesive_el_to_f.getSize(); ++f)
-          cohesive_el_to_f(f) = std::numeric_limits<UInt>::max();
-      }
-    }
-  }
 }
 
 __END_AKANTU__

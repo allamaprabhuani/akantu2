@@ -67,14 +67,14 @@ public:
   /// update distributed synchronizer after elements' insertion
   void updateDistributedSynchronizer(DistributedSynchronizer & distributed_synchronizer,
 				     DataAccessor & data_accessor,
-				     const ByElementTypeUInt & cohesive_el_to_facet);
+				     const Mesh & mesh_cohesive);
 
 protected:
 
   /// update elements list based on facets list
   void updateElementList(Array<Element> * elements,
 			 const Array<Element> * facets,
-			 const ByElementTypeUInt & cohesive_el_to_facet);
+			 const Mesh & mesh_cohesive);
 
   /// setup facet synchronization
   void setupFacetSynchronization(DistributedSynchronizer & distributed_synchronizer);

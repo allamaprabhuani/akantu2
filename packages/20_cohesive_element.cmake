@@ -33,6 +33,9 @@ add_external_package_dependencies(cohesive_element lapack)
 set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive_includes.hh
 
+  mesh_utils/cohesive_element_inserter.hh
+  mesh_utils/cohesive_element_inserter.cc
+
   fem/cohesive_element.cc
   fem/shape_cohesive.hh
   fem/cohesive_element.hh

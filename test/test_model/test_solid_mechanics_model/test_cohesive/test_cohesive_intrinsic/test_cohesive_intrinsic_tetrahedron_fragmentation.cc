@@ -61,43 +61,8 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  // Array<Real> limits(spatial_dimension, 2);
-  // limits(0, 0) = -100;
-  // limits(0, 1) = 100;
-  // limits(1, 0) = -100;
-  // limits(1, 1) = 100;
-  // limits(2, 0) = -100;
-  // limits(2, 1) = 100;
-
-  // MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
-
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-  MeshUtils::buildAllFacets(mesh, mesh_facets);
-
-  MeshUtils::resetFacetToDouble(mesh_facets);
-
-  ByElementTypeArray<bool> facet_insertion("facet_insertion", "");
-  mesh_facets.initByElementTypeArray(facet_insertion, 1, spatial_dimension - 1,
-				     false, _ek_regular, true);
-
-  const ElementType type_facet = Mesh::getFacetType(type);
-  Array<bool> & f_insertion = facet_insertion(type_facet);
-  Array<std::vector<Element> > & element_to_facet
-    = mesh_facets.getElementToSubelement(type_facet);
-
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-
-  for (UInt f = 0; f < nb_facet; ++f) {
-
-    if (element_to_facet(f)[1] == ElementNull) continue;
-
-    f_insertion(f) = true;
-
-    MeshUtils::insertCohesiveElements(mesh,
-				      mesh_facets,
-				      facet_insertion,
-				      false);
-  }
+  CohesiveElementInserter inserter(mesh);
+  inserter.insertIntrinsicElements();
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */

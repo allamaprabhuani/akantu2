@@ -29,6 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
+#include "cohesive_element_inserter.hh"
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #  include "facet_synchronizer.hh"
 #  include "facet_stress_synchronizer.hh"
@@ -117,6 +118,9 @@ public:
   /// limit the cohesive element insertion to a given area
   void enableFacetsCheckOnArea(const Array<Real> & limits);
 
+  /// update automatic insertion after a change in the element inserter
+  void updateAutomaticInsertion();
+
 private:
 
   /// initialize completely the model for extrinsic elements
@@ -134,10 +138,8 @@ private:
   /// compute facets' normals
   void computeNormals();
 
-  /// resize facet array
-  template<typename T>
-  void resizeFacetArray(ByElementTypeArray<T> & by_el_type_array,
-			bool per_quadrature_point_data = true) const;
+  /// resize facet stress
+  void resizeFacetStress();
 
   /// init facets_check array
   void initFacetsCheck();
@@ -166,9 +168,6 @@ public:
 
   /// get facet mesh
   AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
-
-  /// get facets check vector
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetsCheck, facets_check, bool);
 
   /// get stress on facets vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressOnFacets, facet_stress, Real);
@@ -200,6 +199,9 @@ public:
   /// THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
+  /// get element inserter
+  AKANTU_GET_MACRO_NOT_CONST(ElementInserter, inserter, CohesiveElementInserter &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -207,9 +209,6 @@ private:
 
   /// mesh containing facets and their data structures
   Mesh & mesh_facets;
-
-  /// vector containing facets in which cohesive elements can be automatically inserted
-  ByElementTypeArray<bool> facets_check;
 
   /// @todo store tangents when normals are computed:
   ByElementTypeReal tangents;
@@ -235,12 +234,6 @@ private:
   /// center of mass coordinates for each element
   Array<Real> fragment_center;
 
-  /// facet in which cohesive elements are inserted
-  ByElementTypeArray<bool> facet_insertion;
-
-  /// cohesive elements connected to each facet
-  ByElementTypeUInt cohesive_el_to_facet;
-
   /// flag to know if facets have been generated
   bool facet_generated;
 
@@ -251,6 +244,9 @@ private:
   bool stress_interpolation;
 
   bool is_extrinsic;
+
+  /// cohesive element inserter
+  CohesiveElementInserter inserter;
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #include "solid_mechanics_model_cohesive_parallel.hh"

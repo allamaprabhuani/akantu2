@@ -316,6 +316,7 @@ enum SynchronizationTag {
   _gst_smmc_facets,      //< synchronization of facet data to setup facet synch
   _gst_smmc_facets_conn, //< synchronization of facet global connectivity
   _gst_smmc_facets_stress,  //< synchronization of facets' stress to setup facet synch
+  _gst_inserter,         //< synchronization of global nodes id of newly inserted cohesive elements
   //--- HeatTransfer tags ---
   _gst_htm_capacity,     //< synchronization of the nodal heat capacity
   _gst_htm_temperature,  //< synchronization of the nodal temperature

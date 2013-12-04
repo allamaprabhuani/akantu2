@@ -352,16 +352,6 @@ protected:
   inline void splitElementByMaterial(const Array<Element> & elements,
                                      Array<Element> * elements_per_mat) const;
 
-  inline virtual void packBarycenter(const Mesh & mesh,
-                                     CommunicationBuffer & buffer,
-                                     const Array<Element> & elements,
-                                     SynchronizationTag tag) const;
-
-  inline virtual void unpackBarycenter(const Mesh & mesh,
-                                       CommunicationBuffer & buffer,
-                                       const Array<Element> & elements,
-                                       SynchronizationTag tag);
-
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */

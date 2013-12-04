@@ -89,15 +89,11 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  Array<Real> limits(spatial_dimension, 2);
-  limits(0, 0) = -0.01;
-  limits(0, 1) = 0.01;
-  limits(1, 0) = -100;
-  limits(1, 1) = 100;
-  limits(2, 0) = -100;
-  limits(2, 1) = 100;
+  CohesiveElementInserter inserter(mesh);
 
-  MeshUtils::insertIntrinsicCohesiveElementsInArea(mesh, limits);
+  Array<Real> limits(spatial_dimension, 2);
+  inserter.setLimit('x', -0.01, 0.01);
+  inserter.insertIntrinsicElements();
 
   //  std::cout << mesh << std::endl;
 

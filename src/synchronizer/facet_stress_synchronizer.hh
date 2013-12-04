@@ -32,6 +32,7 @@
 
 #include "distributed_synchronizer.hh"
 #include "facet_synchronizer.hh"
+#include "cohesive_element_inserter.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -60,14 +61,14 @@ public:
 				SynchronizerID id = "facet_stress_synchronizer",
 				MemoryID memory_id = 0);
 
-  void updateFacetStressSynchronizer(const ByElementTypeArray<bool> & facets_check,
+  void updateFacetStressSynchronizer(const CohesiveElementInserter & inserter,
 				     const ByElementTypeUInt & rank_to_element,
 				     DataAccessor & data_accessor);
 
 protected:
 
   void updateElementList(Array<Element> * elements,
-			 const ByElementTypeArray<bool> & facets_check,
+			 const CohesiveElementInserter & inserter,
 			 const ByElementTypeUInt & rank_to_element);
 
   /* ------------------------------------------------------------------------ */

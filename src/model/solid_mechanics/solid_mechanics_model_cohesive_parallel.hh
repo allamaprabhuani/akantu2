@@ -46,7 +46,7 @@ void fillSynchronizeNormals(ByElementTypeReal & facet_normals,
 
 void synchronizeGhostFacets();
 
-void updateFacetSynchronizer();
+void updateFacetSynchronizers();
 
 void fillGlobalConnectivity(ByElementTypeUInt & global_connectivity,
 			    GhostType ghost_type,
@@ -100,8 +100,8 @@ FacetStressSynchronizer * facet_stress_synchronizer;
 /// cohesive elements synchronizer
 DistributedSynchronizer * cohesive_distributed_synchronizer;
 
-/// stored ghost facet normals sent by other processors
-ByElementTypeUInt * global_connectivity;
-
 /// store processor rank for each element
 ByElementTypeUInt * rank_to_element;
+
+/// global connectivity
+ByElementTypeUInt * global_connectivity;

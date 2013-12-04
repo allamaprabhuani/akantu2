@@ -88,12 +88,6 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
 
   /// regular element case
   if (elements(0).kind == _ek_regular) {
-#ifndef AKANTU_NDEBUG
-    if (tag == _gst_smmc_facets ||
-	tag == _gst_smmc_facets_conn ||
-	tag == _gst_smmc_facets_stress)
-      size += elements.getSize() * spatial_dimension * sizeof(Real);
-#endif
 
     switch(tag) {
     case _gst_smmc_facets: {
@@ -117,9 +111,6 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
   }
   /// cohesive element case
   else if (elements(0).kind == _ek_cohesive) {
-#ifndef AKANTU_NDEBUG
-    size += elements.getSize() * spatial_dimension * sizeof(Real); /// position of the barycenter of the element (only for check)
-#endif
 
     UInt nb_nodes_per_element = 0;
 
@@ -168,18 +159,11 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
   if (elements(0).kind == _ek_regular) {
 
-#ifndef AKANTU_NDEBUG
-    if (tag == _gst_smmc_facets ||
-	tag == _gst_smmc_facets_conn ||
-	tag == _gst_smmc_facets_stress)
-      packBarycenter(mesh_facets, buffer, elements, tag);
-#endif
-
     switch(tag) {
 
     case _gst_smmc_facets: {
-      packElementalDataHelper(facet_insertion, buffer, elements,
-			      false, getFEM());
+      packElementalDataHelper(inserter.getInsertionFacetsByElement(),
+			      buffer, elements, false, getFEM());
       break;
     }
     case _gst_smmc_facets_conn: {
@@ -197,9 +181,6 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
     }
   }
   else if (elements(0).kind == _ek_cohesive) {
-#ifndef AKANTU_NDEBUG
-    packBarycenter(mesh, buffer, elements, tag);
-#endif
 
     switch(tag) {
 
@@ -242,17 +223,10 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 
   if (elements(0).kind == _ek_regular) {
 
-#ifndef AKANTU_NDEBUG
-    if (tag == _gst_smmc_facets ||
-	tag == _gst_smmc_facets_conn ||
-	tag == _gst_smmc_facets_stress)
-      unpackBarycenter(mesh_facets, buffer, elements, tag);
-#endif
-
     switch(tag) {
     case _gst_smmc_facets: {
-      unpackElementalDataHelper(facet_insertion, buffer, elements,
-				false, getFEM());
+      unpackElementalDataHelper(inserter.getInsertionFacetsByElement(),
+				buffer, elements, false, getFEM());
       break;
     }
     case _gst_smmc_facets_conn: {
@@ -270,9 +244,6 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
     }
   }
   else if (elements(0).kind == _ek_cohesive) {
-#ifndef AKANTU_NDEBUG
-    unpackBarycenter(mesh, buffer, elements, tag);
-#endif
 
     switch(tag) {
     case _gst_material_id: {

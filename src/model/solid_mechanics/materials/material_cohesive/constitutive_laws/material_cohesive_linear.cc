@@ -94,11 +94,11 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTypeReal & facet_stress,
-							       ByElementTypeArray<bool> & facet_insertion) {
+void MaterialCohesiveLinear<spatial_dimension>::checkInsertion() {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh_facets = model->getMeshFacets();
+  CohesiveElementInserter & inserter = model->getElementInserter();
 
   Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
   Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
@@ -106,14 +106,14 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
   for (; it != last; ++it) {
     ElementType type_facet = *it;
     ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
-    Array<bool> & facets_check = model->getFacetsCheck(type_facet);
-    Array<bool> & f_insertion = facet_insertion(type_facet);
+    const Array<bool> & facets_check = inserter.getCheckFacets(type_facet);
+    Array<bool> & f_insertion = inserter.getInsertionFacets(type_facet);
     Array<UInt> & f_filter = facet_filter(type_facet);
     Array<Real> & sig_c_eff = sigma_c_eff(type_cohesive);
     Array<Real> & del_c = delta_c(type_cohesive);
     Array<Real> & ins_stress = insertion_stress(type_cohesive);
     Array<Real> & trac_old = tractions_old(type_cohesive);
-    const Array<Real> & f_stress = facet_stress(type_facet);
+    const Array<Real> & f_stress = model->getStressOnFacets(type_facet);
     const Array<Real> & sigma_lim = sigma_c(type_facet);
 
     UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
@@ -145,6 +145,8 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
       mean_stress /= nb_quad_facet;
 
       if (mean_stress > *sigma_lim_it) {
+	f_insertion(facet) = true;
+
 	for (UInt q = 0; q < nb_quad_facet; ++q) {
 	  Real new_sigma = (*stress_check_it)(q);
 	  Real new_delta = 2 * G_cI / new_sigma;
@@ -176,9 +178,6 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(const ByElementTy
 						   return sout.str();
 						 });
 	#endif
-
-	f_insertion(facet) = true;
-	facets_check(facet) = false;
       }
     }
   }
@@ -233,7 +232,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
 								   ElementType type_facet) {
   AKANTU_DEBUG_IN();
 
-  Array<bool> & facets_check = model->getFacetsCheck(type_facet);
+  Array<bool> & facets_check = model->getElementInserter().getCheckFacets(type_facet);
   Array<UInt> & f_filter = facet_filter(type_facet);
 
   UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);

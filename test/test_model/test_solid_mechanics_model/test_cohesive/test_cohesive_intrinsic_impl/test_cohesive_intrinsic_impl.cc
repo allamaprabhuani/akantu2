@@ -54,26 +54,9 @@ int main(int argc, char *argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("implicit.msh");
 
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-  MeshUtils::buildAllFacets(mesh, mesh_facets);
-
-  const ElementType type_facet = mesh.getFacetType(type);
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-
-  Array<bool> facet_insertion(nb_facet);
-  facet_insertion.clear();
-  Real * bary_facet = new Real[spatial_dimension];
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 1.1 && bary_facet[1] > .9)
-      facet_insertion(f) = true;
-  }
-  delete[] bary_facet;
-
-  MeshUtils::insertIntrinsicCohesiveElements(mesh,
-					     mesh_facets,
-					     type_facet,
-					     facet_insertion);
+  CohesiveElementInserter inserter(mesh);
+  inserter.setLimit('y', 0.9, 1.1);
+  inserter.insertIntrinsicElements();
 
   //  mesh.write("implicit_cohesive.msh");
 
@@ -87,6 +70,7 @@ int main(int argc, char *argv[]) {
   UInt nb_nodes = mesh.getNbNodes();
   Array<Real> & position = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
+  const ElementType type_facet = mesh.getFacetType(type);
 
   for (UInt n = 0; n < nb_nodes; ++n) {
 

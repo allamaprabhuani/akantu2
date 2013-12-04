@@ -57,8 +57,6 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   const UInt max_steps = 1000;
 
-  const ElementType type = _quadrangle_8;
-
   Mesh mesh(spatial_dimension);
   mesh.read("quadrangle.msh");
 
@@ -77,33 +75,15 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  //  std::cout << mesh << std::endl;
-
-  const Mesh & mesh_facets = model.getMeshFacets();
-
-  const ElementType type_facet = mesh.getFacetType(type);
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  const Array<Real> & position = mesh.getNodes();
-  //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
-
-  Array<bool> & facet_check = model.getFacetsCheck(type_facet);
-
-  Real * bary_facet = new Real[spatial_dimension];
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[1] < 0.05 && bary_facet[1] > -0.05)
-      facet_check(f) = true;
-    else
-      facet_check(f) = false;
-  }
-  delete[] bary_facet;
-
-  //  std::cout << mesh << std::endl;
+  CohesiveElementInserter & inserter = model.getElementInserter();
+  inserter.setLimit('y', -0.05, 0.05);
+  model.updateAutomaticInsertion();
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
 
+  const Array<Real> & position = mesh.getNodes();
   Array<Real> & velocity = model.getVelocity();
   Array<bool> & boundary = model.getBoundary();
   Array<Real> & displacement = model.getDisplacement();

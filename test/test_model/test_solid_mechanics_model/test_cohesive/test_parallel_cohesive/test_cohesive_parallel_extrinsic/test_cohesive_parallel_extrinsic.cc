@@ -76,13 +76,9 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  Array<Real> limits(spatial_dimension, 2);
-  limits(0, 0) = -100;
-  limits(0, 1) = 100;
-  limits(1, 0) = -0.30;
-  limits(1, 1) = -0.20;
-
-  model.enableFacetsCheckOnArea(limits);
+  CohesiveElementInserter & inserter = model.getElementInserter();
+  inserter.setLimit('y', -0.30, -0.20);
+  model.updateAutomaticInsertion();
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */

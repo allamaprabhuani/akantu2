@@ -139,23 +139,12 @@ public:
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
 
-  /// function to insert intrinsic cohesive elements in a zone
-  /// delimited by provided limits
-  static void insertIntrinsicCohesiveElementsInArea(Mesh & mesh,
-						    const Array<Real> & limits);
-
-  /// function to insert intrinsic cohesive elements on the selected
-  /// facets
-  static void insertIntrinsicCohesiveElements(Mesh & mesh,
-					      Mesh & mesh_facets,
-					      ElementType type_facet,
-					      const Array<bool> & facet_insertion);
-
   /// function to insert cohesive elements on the selected facets
   static void insertCohesiveElements(Mesh & mesh,
 				     Mesh & mesh_facets,
-				     ByElementTypeArray<bool> & facet_insertion,
-				     const bool extrinsic);
+				     const ByElementTypeArray<bool> & facet_insertion,
+				     Array<UInt> & doubled_nodes,
+				     Array<Element> & new_elements);
 
   /// fill the subelement to element and the elements to subelements data
   static void fillElementToSubElementsData(Mesh & mesh);
@@ -248,7 +237,7 @@ private:
   /// update cohesive element data
   static void updateCohesiveData(Mesh & mesh,
 				 Mesh & mesh_facets,
-				 NewElementsEvent & element_event);
+				 Array<Element> & new_elements);
 
   /// update elemental connectivity after doubling a node
   inline static void updateElementalConnectivity(Mesh & mesh,
@@ -264,11 +253,6 @@ private:
 				      ElementType type_facet,
 				      GhostType gt_facet,
 				      Array<UInt> & doubled_nodes);
-
-  /// update nodes type and global ids for parallel simulations
-  static UInt updateGlobalIDs(Mesh & mesh,
-			      Mesh & mesh_facets,
-			      const Array<UInt> & doubled_nodes);
 
   /// remove elements on a vector
   inline static bool removeElementsInVector(const std::vector<Element> & elem_to_remove,

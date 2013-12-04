@@ -536,6 +536,9 @@ private:
   friend class DistributedSynchronizer;
   template<class T> friend class SpatialGrid;
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  friend class CohesiveElementInserter;
+#endif
 
   AKANTU_GET_MACRO(NodesPointer, nodes, Array<Real> *);
 

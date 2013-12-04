@@ -35,6 +35,7 @@
 #include "fem_template.hh"
 #include "aka_common.hh"
 #include "cohesive_internal_field.hh"
+#include "cohesive_element_inserter.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -54,7 +55,7 @@ class MaterialCohesive : public Material {
   /* ------------------------------------------------------------------------ */
 public:
   typedef FEMTemplate<IntegratorGauss,
-		      ShapeLagrange, _ek_cohesive>         MyFEMCohesiveType;
+		      ShapeLagrange, _ek_cohesive> MyFEMCohesiveType;
 public:
 
   MaterialCohesive(SolidMechanicsModel& model, const ID & id = "");
@@ -84,8 +85,7 @@ public:
   void computeEnergies();
 
   /// check stress for cohesive elements' insertion
-  virtual void checkInsertion(const ByElementTypeReal & facet_stress,
-			      ByElementTypeArray<bool> & facet_insertion) {
+  virtual void checkInsertion() {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 

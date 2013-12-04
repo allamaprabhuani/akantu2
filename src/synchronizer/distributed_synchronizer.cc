@@ -811,6 +811,16 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
     AKANTU_DEBUG_INFO("Packing data for proc " << p
                       << " (" << ssize << "/" << nb_elements
                       <<" data to send/elements)");
+
+    /// pack barycenters in debug mode
+    Array<Element>::const_iterator<Element> bit  = send_element[p].begin();
+    Array<Element>::const_iterator<Element> bend = send_element[p].end();
+    for (; bit != bend; ++bit) {
+      const Element & element = *bit;
+      Vector<Real> barycenter(mesh.getSpatialDimension());
+      mesh.getBarycenter(element.element, element.type, barycenter.storage(), element.ghost_type);
+      buffer << barycenter;
+    }
 #endif
 
     data_accessor.packElementData(buffer, send_element[p], tag);
@@ -913,6 +923,37 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
         AKANTU_DEBUG_INFO("Unpacking data coming from proc " << proc);
         CommunicationBuffer & buffer = communication.recv_buffer[proc];
 
+#ifndef AKANTU_NDEBUG
+	Array<Element>::const_iterator<Element> bit  = recv_element[proc].begin();
+	Array<Element>::const_iterator<Element> bend = recv_element[proc].end();
+
+	UInt spatial_dimension = mesh.getSpatialDimension();
+
+	for (; bit != bend; ++bit) {
+	  const Element & element = *bit;
+
+	  Vector<Real> barycenter_loc(spatial_dimension);
+	  mesh.getBarycenter(element.element,
+			     element.type,
+			     barycenter_loc.storage(),
+			     element.ghost_type);
+	  Vector<Real> barycenter(spatial_dimension);
+	  buffer >> barycenter;
+	  Real tolerance = Math::getTolerance();
+	  Real bary_norm = barycenter.norm();
+	  for (UInt i = 0; i < spatial_dimension; ++i) {
+	    if((std::abs((barycenter(i) - barycenter_loc(i))/bary_norm) <= tolerance) ||
+	       (std::abs(barycenter_loc(i)) <= 0 && std::abs(barycenter(i)) <= tolerance)) continue;
+	    AKANTU_DEBUG_ERROR("Unpacking an unknown value for the element: "
+			       << element
+			       << "(barycenter[" << i << "] = " << barycenter_loc(i)
+			       << " and buffer[" << i << "] = " << barycenter(i) << ") ["
+			       << std::abs((barycenter(i) - barycenter_loc(i))/barycenter_loc(i))
+			       << "] - tag: " << tag);
+	  }
+	}
+#endif
+
         data_accessor.unpackElementData(buffer, recv_element[proc], tag);
         buffer.resize(0);
 
@@ -961,14 +1002,20 @@ void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
     UInt sreceive = 0;
     if(p != rank) {
       if(send_element[p].getSize() != 0) {
-        ssend    = data_accessor.getNbDataForElements(send_element[p], tag);
+#ifndef AKANTU_NDEBUG
+	ssend += send_element[p].getSize() * mesh.getSpatialDimension() * sizeof(Real);
+#endif
+        ssend += data_accessor.getNbDataForElements(send_element[p], tag);
         AKANTU_DEBUG_INFO("I have " << ssend << "(" << ssend / 1024.
                           << "kB - "<< send_element[p].getSize() <<" element(s)) data to send to " << p << " for tag "
                           << tag);
       }
 
       if(recv_element[p].getSize() != 0) {
-        sreceive = data_accessor.getNbDataForElements(recv_element[p], tag);
+#ifndef AKANTU_NDEBUG
+	sreceive += recv_element[p].getSize() * mesh.getSpatialDimension() * sizeof(Real);
+#endif
+        sreceive += data_accessor.getNbDataForElements(recv_element[p], tag);
         AKANTU_DEBUG_INFO("I have " << sreceive << "(" << sreceive / 1024.
                           << "kB - "<< recv_element[p].getSize() <<" element(s)) data to receive for tag "
                           << tag);
@@ -1131,10 +1178,6 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
 void DistributedSynchronizer::buildPrankToElement(ByElementTypeUInt & prank_to_element) {
   AKANTU_DEBUG_IN();
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  UInt psize = comm.getNbProc();
-  UInt prank = comm.whoAmI();
-
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   mesh.initByElementTypeArray(prank_to_element,
@@ -1157,12 +1200,12 @@ void DistributedSynchronizer::buildPrankToElement(ByElementTypeUInt & prank_to_e
     UInt nb_element = mesh.getNbElement(*it);
     Array<UInt> & prank_to_el = prank_to_element(*it);
     for (UInt el = 0; el < nb_element; ++el) {
-      prank_to_el(el) = prank;
+      prank_to_el(el) = rank;
     }
   }
 
   /// assign prank to all ghost elements
-  for (UInt p = 0; p < psize; ++p) {
+  for (UInt p = 0; p < nb_proc; ++p) {
     UInt nb_ghost_element = recv_element[p].getSize();
 
     for (UInt el = 0; el < nb_ghost_element; ++el) {
@@ -1188,9 +1231,6 @@ void DistributedSynchronizer::filterElementsByKind(DistributedSynchronizer * new
 
   Array<Element> * new_send_element = new Array<Element>[nb_proc];
   Array<Element> * new_recv_element = new Array<Element>[nb_proc];
-
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  UInt nb_proc = comm.getNbProc();
 
   for (UInt p = 0; p < nb_proc; ++p) {
 
@@ -1228,5 +1268,18 @@ void DistributedSynchronizer::filterElementsByKind(DistributedSynchronizer * new
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void DistributedSynchronizer::reset() {
+  AKANTU_DEBUG_IN();
+
+  for (UInt p = 0; p < nb_proc; ++p) {
+    send_element[p].resize(0);
+    recv_element[p].resize(0);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 __END_AKANTU__

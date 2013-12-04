@@ -87,15 +87,15 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  Array<Real> limits(spatial_dimension, 2);
-  limits(0, 0) = -0.01;
-  limits(0, 1) = 0.01;
-  limits(1, 0) = -100;
-  limits(1, 1) = 100;
-  limits(2, 0) = -100;
-  limits(2, 1) = 100;
+  // Array<Real> limits(spatial_dimension, 2);
+  // limits(0, 0) = -0.01;
+  // limits(0, 1) = 0.01;
+  // limits(1, 0) = -100;
+  // limits(1, 1) = 100;
+  // limits(2, 0) = -100;
+  // limits(2, 1) = 100;
 
-  model.enableFacetsCheckOnArea(limits);
+  // model.enableFacetsCheckOnArea(limits);
 
   /* ------------------------------------------------------------------------ */
   /* End of facet part                                                        */
@@ -219,13 +219,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  model.dump();
+  dumper.dump();
+
   if (!checkDisplacement(model, type, error_output, max_steps, false)) {
     finalize();
     return EXIT_FAILURE;
   }
-
-  model.dump();
-  dumper.dump();
 
   finalize();
   return EXIT_SUCCESS;
@@ -407,7 +407,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model,
 		   << min_error << std::endl;
     }
 
-    if (max_error > 1.e-13) {
+    if (max_error > 1.e-9) {
       std::cout << "Displacement error is too big!" << std::endl;
       return false;
     }

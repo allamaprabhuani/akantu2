@@ -64,13 +64,13 @@ createFacetStressSynchronizer(FacetSynchronizer & facet_synchronizer,
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetStressSynchronizer::updateFacetStressSynchronizer(const ByElementTypeArray<bool> & facets_check,
+void FacetStressSynchronizer::updateFacetStressSynchronizer(const CohesiveElementInserter & inserter,
 							    const ByElementTypeUInt & rank_to_element,
 							    DataAccessor & data_accessor) {
   AKANTU_DEBUG_IN();
 
-  updateElementList(send_element, facets_check, rank_to_element);
-  updateElementList(recv_element, facets_check, rank_to_element);
+  updateElementList(send_element, inserter, rank_to_element);
+  updateElementList(recv_element, inserter, rank_to_element);
 
   std::map<SynchronizationTag, Communication>::iterator it = communications.begin();
   std::map<SynchronizationTag, Communication>::iterator end = communications.end();
@@ -85,7 +85,7 @@ void FacetStressSynchronizer::updateFacetStressSynchronizer(const ByElementTypeA
 
 /* -------------------------------------------------------------------------- */
 void FacetStressSynchronizer::updateElementList(Array<Element> * elements,
-						const ByElementTypeArray<bool> & facets_check,
+						const CohesiveElementInserter & inserter,
 						const ByElementTypeUInt & rank_to_element) {
   AKANTU_DEBUG_IN();
 
@@ -110,7 +110,7 @@ void FacetStressSynchronizer::updateElementList(Array<Element> * elements,
 
 	element_to_facet = & mesh.getElementToSubelement(el.type, el.ghost_type);
 
-	f_check = & facets_check(el.type, el.ghost_type);
+	f_check = & inserter.getCheckFacets(el.type, el.ghost_type);
       }
 
       if ( (*f_check)(el.element) ) {

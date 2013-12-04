@@ -66,34 +66,13 @@ int main(int argc, char *argv[]) {
   /* Facet part                                                               */
   /* ------------------------------------------------------------------------ */
 
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-  MeshUtils::buildAllFacets(mesh, mesh_facets);
-
   debug::setDebugLevel(dblDump);
   std::cout << mesh << std::endl;
-  std::cout << mesh_facets << std::endl;
   debug::setDebugLevel(dblWarning);
 
-  const ElementType type_facet = Mesh::getFacetType(type);
-
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  //  const Array<Real> & position = mesh.getNodes();
-  //  Array<Real> & displacement = model.getDisplacement();
-  //  const Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet);
-
-  Array<bool> facet_insertion(nb_facet);
-  facet_insertion.clear();
-  Real * bary_facet = new Real[spatial_dimension];
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[0] > -0.01 && bary_facet[0] < 0.01) facet_insertion(f) = true;
-  }
-  delete[] bary_facet;
-
-  MeshUtils::insertIntrinsicCohesiveElements(mesh,
-					     mesh_facets,
-					     type_facet,
-					     facet_insertion);
+  CohesiveElementInserter inserter(mesh);
+  inserter.setLimit('x', -0.01, 0.01);
+  inserter.insertIntrinsicElements();
 
   mesh.write("mesh_cohesive_quadrangle.msh");
 

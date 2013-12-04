@@ -31,6 +31,8 @@ option(AKANTU_PARALLEL_COHESIVE_ELEMENT "Use parallel cohesive_element package o
 add_internal_package_dependencies(parallel_cohesive_element cohesive_element parallel)
 
 set(AKANTU_PARALLEL_COHESIVE_ELEMENT_FILES
+  mesh_utils/cohesive_element_inserter_parallel.cc
+  mesh_utils/cohesive_element_inserter_inline_impl.cc
   model/solid_mechanics/solid_mechanics_model_cohesive_parallel.hh
   model/solid_mechanics/solid_mechanics_model_cohesive_parallel.cc
   model/solid_mechanics/solid_mechanics_model_cohesive_inline_impl.cc

@@ -95,6 +95,9 @@ public:
   void filterElementsByKind(DistributedSynchronizer * new_synchronizer,
 			    ElementKind kind);
 
+  /// reset send and recv element lists
+  void reset();
+
 protected:
   /// fill the nodes type vector
   void fillNodesType(Mesh & mesh);
