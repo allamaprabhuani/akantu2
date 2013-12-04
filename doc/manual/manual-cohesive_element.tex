@@ -179,47 +179,46 @@ simulating crack propagation without remeshing the domain.
 
 \subsubsection{Usage}
 When the intrinsic approach is chosen, cohesive elements are to be
-inserted just after reading the mesh by using the relative function in
-\code{MeshUtils}. Here an example is given:
+inserted just after reading the mesh by using the
+\code{CohesiveElementInserter} class. Here an example is given:
 \begin{cpp}
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
-  MeshUtils::buildAllFacets(mesh, mesh_facets);
-
-  const ElementType type_facet = Mesh::getFacetType(type);
-  UInt nb_facet = mesh_facets.getNbElement(type_facet);
-
-  Array<bool> facet_insertion(nb_facet);
-  facet_insertion.clear();
-  Real * bary_facet = new Real[spatial_dimension];
-  for (UInt f = 0; f < nb_facet; ++f) {
-    mesh_facets.getBarycenter(f, type_facet, bary_facet);
-    if (bary_facet[0] > 0 && bary_facet[0] < 1) facet_insertion(f) = true;
-  }
-  delete[] bary_facet;
-
-  MeshUtils::insertIntrinsicCohesiveElements(mesh,
-					     mesh_facets,
-					     type_facet,
-					     facet_insertion);
+  CohesiveElementInserter inserter(mesh);
+  inserter.setLimit('x', -1, 1);
+  inserter.insertIntrinsicElements();
 \end{cpp}
-First facets are built and stored in a mesh called
-\code{mesh\_facets}. Then for each facet its barycenter is computed
-and, if it is within a given range, that facet is marked for
-insertion.
+First the element inserter is created and then the insertion is
+limited to the range $[-1,1]$ in $x$ direction. Additional ranges in
+$y$ and $z$ directions can be added as well. In this way cohesive
+elements are inserted only on those facets whose barycenter is inside
+the ranges. Then the \code{insertIntrinsicElements} can be called.
 
-In order to use cohesive elements a cohesive model
-should be created as
+Then a cohesive model should be created and initialized as
 \begin{cpp}
   SolidMechanicsModelCohesive model(mesh);
-  model.initFull("material.dat", _explicit_lumped_mass, true);
+  model.initFull("material.dat");
 \end{cpp}
-where the last flag indicates if extrinsic approach should be used
-instead of intrinsic one. When extrinsic simulations are carried out,
-in order to check stress for automatic element insertion it is
+
+When extrinsic simulations are carried out, the model should be
+initialized as follows:
+\begin{cpp}
+  SolidMechanicsModelCohesive model(mesh);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+\end{cpp}
+In order to check stress for automatic element insertion it is
 necessary to call the following function in the main loop:
 \begin{cpp}
   model.checkCohesiveStress();
 \end{cpp}
+By default the check is performed on all facet, but it can be
+restricted by providing ranges as for intrinsic element insertion. The
+cohesive model for extrinsic simulations has an element inserter that
+can be called:
+\begin{cpp}
+  CohesiveElementInserter & inserter = model.getElementInserter();
+  inserter.setLimit('y', 0.5, 3);
+  model.updateAutomaticInsertion();
+\end{cpp}
+
 Anytime during the simulation it is possible to access the following
 energies with the relative function:
 \begin{cpp}
@@ -231,24 +230,23 @@ The material name of the linear decreasing cohesive law  is
 \code{material\_cohesive\_linear} and its parameters with their
 relative default values are:
 \begin{itemize}
-\item \code{sigma\_c}: 0
+\item \code{sigma\_c}: 0 (random variable)
 \item \code{beta}: 0
 \item \code{G\_cI}: 0
 \item \code{G\_cII}: 0
 \item \code{kappa}: 1
 \item \code{penalty}: 0
 \end{itemize}
-A $\sigma_\mathrm{c}$ generator can be use to obtain a random value
-for each facet following a given distribution. Its usage is:
+A random number generator can be use to assign a random
+$\sigma_\mathrm{c}$ to each facet following a given distribution. To
+the base value of $\sigma_\mathrm{c}$ a random quantity can be added:
 \begin{cpp}
-  sigma_c_generator = uniform(seed) minimum maximum
-  sigma_c_generator = weibull(seed) m lambda minimum
+  sigma_c = $base$ uniform [$minimum$, $maximum$]
+  sigma_c = $base$ weibull [$m$, $lambda$]
 \end{cpp}
-where \code{seed} is an integer used to assign the seed. If no seed is
-specified, a random one is assigned. All other parameters are real
-numbers. For the uniform distribution minimum and maximum values have
-to be specified. Weibull distribution is characterized by the
-following cumulative distribution function:
+All parameters are real numbers. For the uniform distribution minimum
+and maximum values have to be specified. Weibull distribution is
+characterized by the following cumulative distribution function:
 \begin{equation}
     F(\sigma_\mathrm{c}) = 1- e^{-\left(
       \frac{\sigma_c-\sigma_\mathrm{c, min}}{\lambda} \right)^m}
@@ -259,10 +257,11 @@ parameter.
 
 Bilinear constitutive law works exactly in the same way of the linear
 one, except for the additional parameter \code{delta\_0} that by
-default is zero. In this case no random distribution of
-$\sigma_\mathrm{c}$ is needed since this law is intrinsic.
-Two examples for the extrinsic and intrinsic cohesive elements and also an example to assign different porperties to intergranular and transgranular cohesive elements can be 
-found in \code{\examplesdir/cohesive\_element/} folder.
+default is zero. Two examples for the extrinsic and intrinsic cohesive
+elements and also an example to assign different porperties to
+intergranular and transgranular cohesive elements can be found in
+\code{\examplesdir/cohesive\_element/} folder.
+
 \subsubsection{Exponential cohesive law}
 
 Ortiz and Pandolfi proposed this cohesive law in 1999~\cite{ortiz1999}.  The
