@@ -69,11 +69,20 @@ GroupManager::~GroupManager() {
 }
 
 /* -------------------------------------------------------------------------- */
-NodeGroup & GroupManager::createNodeGroup(const std::string & group_name) {
+NodeGroup & GroupManager::createNodeGroup(const std::string & group_name,
+					  bool replace_group) {
   AKANTU_DEBUG_IN();
 
-  if(node_groups.find(group_name + "_nodes") != node_groups.end()) {
-    AKANTU_EXCEPTION("Trying to create a node group that already exists:" << group_name << "_nodes");
+  NodeGroups::iterator it = node_groups.find(group_name);
+
+  if(it != node_groups.end()) {
+    if (replace_group) {
+      it->second->empty();
+      AKANTU_DEBUG_OUT();
+      return *(it->second);
+    }
+    else
+      AKANTU_EXCEPTION("Trying to create a node group that already exists:" << group_name << "_nodes");
   }
 
   NodeGroup * node_group = new NodeGroup(group_name, id + ":" + group_name + "_node_group",
@@ -88,25 +97,31 @@ NodeGroup & GroupManager::createNodeGroup(const std::string & group_name) {
 
 
 /* -------------------------------------------------------------------------- */
-ElementGroup & GroupManager::createElementGroup(const std::string & group_name, UInt dimension) {
+ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
+						UInt dimension,
+						bool replace_group) {
   AKANTU_DEBUG_IN();
-  if(node_groups.find(group_name + "_nodes") != node_groups.end()) {
-    AKANTU_EXCEPTION("Trying to create a node group that already exists:" << group_name << "_nodes");
+
+  NodeGroup & new_node_group = createNodeGroup(group_name + "_nodes", replace_group);
+
+  ElementGroups::iterator it = element_groups.find(group_name);
+
+  if(it != element_groups.end()) {
+    if (replace_group) {
+      it->second->empty();
+      AKANTU_DEBUG_OUT();
+      return *(it->second);
+    }
+    else
+      AKANTU_EXCEPTION("Trying to create a element group that already exists:" << group_name);
   }
 
-  if(element_groups.find(group_name) != element_groups.end()) {
-    AKANTU_EXCEPTION("Trying to create a element group that already exists:" << group_name);
-  }
-
-  NodeGroup * node_group = new NodeGroup(group_name + "_nodes", id + ":" + group_name + "_node_group",
-                                         memory_id);
-
-  ElementGroup * element_group = new ElementGroup(group_name, mesh, *node_group,
+  ElementGroup * element_group = new ElementGroup(group_name, mesh, new_node_group,
                                                   dimension,
                                                   id + ":" + group_name + "_element_group",
                                                   memory_id);
 
-  node_groups[group_name + "_nodes"] = node_group;
+  node_groups[group_name + "_nodes"] = &new_node_group;
   element_groups[group_name] = element_group;
 
   AKANTU_DEBUG_OUT();
@@ -137,69 +152,111 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
 }
 
 /* -------------------------------------------------------------------------- */
-void GroupManager::createBoundaryGroupFromGeometry() {
+UInt GroupManager::createBoundaryGroupFromGeometry() {
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  return createClusters(spatial_dimension - 1, "boundary_");
+}
+
+/* -------------------------------------------------------------------------- */
+//// \todo if needed element list construction can be optimized by
+//// templating the filter class
+UInt GroupManager::createClusters(UInt element_dimension,
+				  std::string cluster_name_prefix,
+				  const GroupManager::ClusteringFilter & filter) {
   AKANTU_DEBUG_IN();
 
   CSR<Element> node_to_elem;
 
-  /// Get list of surface elements
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  /// Get list of all elements to check
+  MeshUtils::buildNode2Elements(mesh, node_to_elem, element_dimension);
 
-  //  buildNode2Elements(mesh, node_offset, node_to_elem, spatial_dimension-1);
-  MeshUtils::buildNode2Elements(mesh, node_to_elem, spatial_dimension-1);
+  std::list<Element> unseen_elements;
+  Element el;
 
-  std::list<Element> boundaries_elements;
-  Mesh::type_iterator type_it = mesh.firstType(spatial_dimension - 1);
-  Mesh::type_iterator type_end  = mesh.lastType(spatial_dimension - 1);
-  Element el; el.ghost_type = _not_ghost;
-  for (; type_it != type_end; ++type_it) {
-    el.type = *type_it;
-    for (UInt e = 0; e < mesh.getNbElement(*type_it, _not_ghost); ++e) {
-      el.element = e;
-      boundaries_elements.push_back(el);
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end(); ++gt) {
+
+    GhostType ghost_type = *gt;
+    el.ghost_type = ghost_type;
+
+    Mesh::type_iterator type_it  = mesh.firstType(element_dimension,
+						  ghost_type, _ek_not_defined);
+    Mesh::type_iterator type_end = mesh.lastType (element_dimension,
+						  ghost_type, _ek_not_defined);
+
+    for (; type_it != type_end; ++type_it) {
+      el.type = *type_it;
+      el.kind = Mesh::getKind(*type_it);
+      for (UInt e = 0; e < mesh.getNbElement(*type_it, ghost_type); ++e) {
+	el.element = e;
+	if (filter(el))
+	  unseen_elements.push_back(el);
+      }
     }
   }
 
-  UInt nb_boundaries = 0;
+  UInt nb_cluster = 0;
 
-  while(!boundaries_elements.empty()) {
+  /// keep looping until all elements are seen
+  while(!unseen_elements.empty()) {
+    /// create a new cluster
+    std::stringstream sstr;
+    sstr << cluster_name_prefix << nb_cluster;
+    ElementGroup & cluster = createElementGroup(sstr.str(),
+						element_dimension,
+						true);
+    ++nb_cluster;
+
+    /// initialize the queue of elements to check in the current cluster
     std::queue<Element> element_to_add;
-    element_to_add.push(*(boundaries_elements.begin()));
-    boundaries_elements.erase(boundaries_elements.begin());
+    element_to_add.push(*(unseen_elements.begin()));
+    unseen_elements.erase(unseen_elements.begin());
 
-    std::stringstream sstr; sstr << "boundary_" << nb_boundaries;
-    ElementGroup & boundary = createElementGroup(sstr.str(), spatial_dimension - 1);
-    ++nb_boundaries;
-
+    /// keep looping until current cluster is complete (no more
+    /// connected elements)
     while(!element_to_add.empty()) {
+
+      /// take first element and erase it in the queue
       Element el = element_to_add.front();
-      boundary.add(el);
-      UInt nb_nodes_per_element = mesh.getNbNodesPerElement(el.type);
       element_to_add.pop();
+
+      /// add current element to the cluster
+      cluster.add(el);
+
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
       Vector<UInt> connect =
 	mesh.getConnectivity(el.type, el.ghost_type).begin(nb_nodes_per_element)[el.element];
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	UInt node = connect[n];
-	boundary.addNode(node);
 
+	/// add element's nodes to the cluster
+	UInt node = connect[n];
+	cluster.addNode(node);
+
+	/// loop over neighbors
 	CSR<Element>::iterator it_n;
 	for (it_n = node_to_elem.begin(node); it_n != node_to_elem.end(node); ++it_n) {
 	  Element & check_el = *it_n;
-	  std::list<Element>::iterator it_boun = std::find(boundaries_elements.begin(),
-							   boundaries_elements.end(),
+	  std::list<Element>::iterator it_clus = std::find(unseen_elements.begin(),
+							   unseen_elements.end(),
 							   check_el);
-	  if(it_boun != boundaries_elements.end()) {
-	    boundaries_elements.erase(it_boun);
+
+	  /// if neighbor not seen yet, add it to check list and
+	  /// remove it from unseen elements
+	  if(it_clus != unseen_elements.end()) {
+	    unseen_elements.erase(it_clus);
 	    element_to_add.push(check_el);
 	  }
 	}
       }
     }
-    boundary.getNodeGroup().removeDuplicate();
+    /// remove duplicated nodes
+    cluster.getNodeGroup().removeDuplicate();
   }
 
   AKANTU_DEBUG_OUT();
+  return nb_cluster;
 }
+
 
 /* -------------------------------------------------------------------------- */
 template<typename T>

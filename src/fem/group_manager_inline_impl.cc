@@ -27,6 +27,8 @@
  *
  */
 
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 inline const ElementGroup & GroupManager::getElementGroup(const std::string & name) const {
   const_element_group_iterator it = element_group_find(name);
@@ -71,3 +73,6 @@ inline NodeGroup & GroupManager::getNodeGroup(const std::string & name) {
 
   return *(it->second);
 }
+
+__END_AKANTU__
+

@@ -53,33 +53,34 @@ int main(int argc, char *argv[]) {
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 200;
-  ElementType type_facet = _segment_2;
+  Real strain_rate = 1.e5;
+  ElementType type = _quadrangle_4;
+
+  Real L = 0.03;
+  Real theoretical_mass = L * L/20. * 2500;
+
+  ElementType type_facet = Mesh::getFacetType(type);
+  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
 
   Mesh mesh(spatial_dimension);
   mesh.read("mesh.msh");
+  mesh.createGroupsFromMeshData<std::string>("physical_names");
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull("material.dat",
+		 SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
 
-  model.assembleMassLumped();
-
-  Real strain_rate = 1.e5;
-  Real L = 0.03;
-  Real theoretical_mass = L * L/20. * 2500;
   Real disp_increment = strain_rate * L / 2. * time_step;
 
-  Real epsilon = std::numeric_limits<Real>::epsilon();
+  model.assembleMassLumped();
 
   Array<Real> & velocity = model.getVelocity();
-  Array<bool> & boundary = model.getBoundary();
-  Array<Real> & displacement = model.getDisplacement();
-  //  const Array<Real> & residual = model.getResidual();
 
   const Array<Real> & position = mesh.getNodes();
   UInt nb_nodes = mesh.getNbNodes();
@@ -89,21 +90,13 @@ int main(int argc, char *argv[]) {
     velocity(n, 0) = strain_rate * position(n, 0);
 
   /// boundary conditions
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    if (std::abs((position(n, 0) - L/2) / (L/2)) < epsilon) {
-      boundary(n, 0) = true;
-      displacement(n, 0) += disp_increment;
-    }
-    if (std::abs((position(n, 0) - (-1.) * L/2) / ( (-1) * L/2)) < epsilon) {
-      boundary(n, 0) = true;
-      displacement(n, 0) -= disp_increment;
-    }
-  }
+  model.applyBC(BC::Dirichlet::FixedValue(0, BC::_x), "Left_side");
+  model.applyBC(BC::Dirichlet::FixedValue(0, BC::_x), "Right_side");
 
   model.updateResidual();
 
   // model.setBaseName("extrinsic");
-  // model.addDumpFieldArray("displacement");
+  // model.addDumpFieldVector("displacement");
   // model.addDumpField("velocity"    );
   // model.addDumpField("acceleration");
   // model.addDumpField("residual"    );
@@ -111,8 +104,6 @@ int main(int argc, char *argv[]) {
   // model.addDumpField("strain");
   // model.dump();
 
-  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
-  //  UInt cohesive_index = model.getCohesiveIndex();
   UInt cohesive_index = 1;
 
   UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
@@ -125,26 +116,19 @@ int main(int argc, char *argv[]) {
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 
-    model.explicitPred();
-    model.updateResidual();
-
     model.checkCohesiveStress();
 
+    model.explicitPred();
+    model.updateResidual();
     model.updateAcceleration();
     model.explicitCorr();
 
     /// apply boundary conditions
-    for (UInt n = 0; n < nb_nodes; ++n) {
-      if (std::abs((position(n, 0) - L/2) / (L/2)) < epsilon) {
-	displacement(n, 0) += disp_increment;
-      }
-      if (std::abs((position(n, 0) - (-1.) * L/2) / ( (-1) * L/2)) < epsilon) {
-	displacement(n, 0) -= disp_increment;
-      }
-    }
+    model.applyBC(BC::Dirichlet::IncrementValue(-disp_increment, BC::_x), "Left_side");
+    model.applyBC(BC::Dirichlet::IncrementValue( disp_increment, BC::_x), "Right_side");
 
     if(s % 1 == 0) {
-      //      model.dump();
+      // model.dump();
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
@@ -159,7 +143,7 @@ int main(int argc, char *argv[]) {
       for (UInt el = 0; el < nb_cohesive_elements; ++el) {
 	UInt q = 0;
 	while (q < nb_quad_per_facet &&
-	       std::abs(damage(el * nb_quad_per_facet + q) - 1) < epsilon) ++q;
+	       Math::are_float_equal(damage(el*nb_quad_per_facet + q), 1)) ++q;
 
 	if (q == nb_quad_per_facet) {
 	  ++nb_fragment;
@@ -177,7 +161,7 @@ int main(int argc, char *argv[]) {
 	total_mass += fragment_mass(frag);
       }
 
-      if (std::abs(theoretical_mass - total_mass) > epsilon * theoretical_mass * 100) {
+      if (!Math::are_float_equal(theoretical_mass, total_mass)) {
 	std::cout << "The fragments' mass is wrong!" << std::endl;
 	return EXIT_FAILURE;
       }
@@ -188,11 +172,24 @@ int main(int argc, char *argv[]) {
   /// check velocities
   UInt nb_fragment = model.getNbFragment();
   const Array<Real> & fragment_velocity = model.getFragmentsVelocity();
+  const Array<Real> & fragment_center = model.getFragmentsCenter();
+
+  Real fragment_length = L / nb_fragment;
+  Real initial_position = -L / 2. + fragment_length / 2.;
 
   for (UInt frag = 0; frag < nb_fragment; ++frag) {
-    Real vel = ((frag + 0.5) / nb_fragment * 2 - 1) * disp_increment / time_step;
+    Real theoretical_center = initial_position + fragment_length * frag;
 
-    if (std::abs(fragment_velocity(frag) - vel) > 100) {
+    if (!Math::are_float_equal(fragment_center(frag, 0), theoretical_center)) {
+      std::cout << "The fragments' center is wrong!" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    Real initial_vel = fragment_center(frag, 0) * strain_rate;
+
+    Math::setTolerance(100);
+
+    if (!Math::are_float_equal(fragment_velocity(frag), initial_vel)) {
       std::cout << "The fragments' velocity is wrong!" << std::endl;
       return EXIT_FAILURE;
     }

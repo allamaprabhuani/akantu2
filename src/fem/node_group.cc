@@ -47,6 +47,11 @@ NodeGroup::NodeGroup(const std::string & name,
 NodeGroup::~NodeGroup() {}
 
 /* -------------------------------------------------------------------------- */
+void NodeGroup::empty() {
+  node_group.resize(0);
+}
+
+/* -------------------------------------------------------------------------- */
 void NodeGroup::removeDuplicate() {
   std::sort(node_group.begin(), node_group.end());
   std::unique(node_group.begin(), node_group.end());

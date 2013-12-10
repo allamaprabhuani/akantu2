@@ -96,9 +96,6 @@ public:
 				   UInt dimension,
 				   ByElementTypeUInt & prank_to_element);
 
-  /// build normal to some elements
-  //  static void buildNormals(Mesh & mesh, UInt spatial_dimension=0);
-
   /// take  the local_connectivity  array  as  the array  of  local and  ghost
   /// connectivity, renumber the nodes and set the connectivity of the mesh
   static void renumberMeshNodes(Mesh & mesh,
@@ -107,12 +104,6 @@ public:
 				UInt nb_ghost_element,
 				ElementType type,
 				Array<UInt> & old_nodes);
-
-//  static void setUIntData(Mesh & mesh, UInt * data, UInt nb_tags, const ElementType & type);
-
-  /// Detect closed surfaces of the mesh and save the surface id
-  /// of the surface elements in the array surface_id
-  static void buildSurfaceID(Mesh & mesh);
 
   /// compute pbc pair for on given direction
   static void computePBCMap(const Mesh & mymesh,const UInt dir,
@@ -123,18 +114,8 @@ public:
 			    const ElementType type,
 			    std::map<UInt,UInt> & pbc_pair);
 
-
-  // /// tweak mesh connectivity to activate pbc
-  // static void tweakConnectivityForPBC(Mesh & mesh,
-  // 				      bool flag_x,
-  // 				      bool flag_y = false,
-  // 				      bool flag_z = false);
-
   /// create a multimap of nodes per surfaces
   static void buildNodesPerSurface(const Mesh & mesh, CSR<UInt> & nodes_per_surface);
-
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
@@ -258,10 +239,6 @@ private:
   inline static bool removeElementsInVector(const std::vector<Element> & elem_to_remove,
 					    std::vector<Element> & elem_list);
 
-  static void sortElements(std::vector<Element> & elements, const Vector<UInt> facet,
-                           const Mesh & mesh, const Mesh & mesh_facets,
-                           const ByElementTypeReal & barycenters);
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -274,33 +251,10 @@ private:
 
 };
 
-
-class ElementSorter {
-public:
-  ElementSorter(const ElementSorter & e) : atan2(e.atan2) {}
-
-  ElementSorter(std::map<Element, Real, CompElementLess> & atan2) : atan2(atan2) {}
-
-  inline bool operator()(const Element & first, const Element & second);
-private:
-  std::map<Element, Real, CompElementLess> & atan2;
-};
-
-
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "mesh_utils_inline_impl.cc"
-#endif
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshUtils & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
+#include "mesh_utils_inline_impl.cc"
 
 __END_AKANTU__
 #endif /* __AKANTU_MESH_UTILS_HH__ */

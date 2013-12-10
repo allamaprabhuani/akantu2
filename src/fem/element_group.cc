@@ -66,6 +66,11 @@ ElementGroup::ElementGroup(const std::string & boundary_name,
 }
 
 /* -------------------------------------------------------------------------- */
+void ElementGroup::empty() {
+  elements.free();
+}
+
+/* -------------------------------------------------------------------------- */
 void ElementGroup::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

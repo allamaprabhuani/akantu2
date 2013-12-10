@@ -13,6 +13,8 @@ Line(4) = {4, 1};
 Line Loop(5) = {4, 1, 2, 3};
 Plane Surface(6) = {5};
 Physical Surface(7) = {6};
+Physical Line("Left_side") = {4};
+Physical Line("Right_side") = {2};
 
 Transfinite Line {2, 4} = 2;
 Transfinite Surface "*";

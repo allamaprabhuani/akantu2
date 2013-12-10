@@ -214,11 +214,12 @@ inline void ByElementTypeArray<T, SupportType>::free() {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    const DataMap & data = this->getData(gt);
+    DataMap & data = this->getData(gt);
     typename DataMap::const_iterator it;
     for(it = data.begin(); it != data.end(); ++it) {
       dealloc(it->second->getID());
     }
+    data.clear();
   }
 
   AKANTU_DEBUG_OUT();

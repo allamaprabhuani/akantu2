@@ -28,7 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
+#include <algorithm>
 #include "shape_cohesive.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
@@ -54,7 +54,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   tangents("tangents", id),
   stress_on_facet("stress_on_facet", id),
   facet_stress("facet_stress", id),
-  fragment_to_element("fragment_to_element", id),
+  fragment_mass(0, spatial_dimension, "fragment_mass"),
   fragment_velocity(0, spatial_dimension, "fragment_velocity"),
   fragment_center(0, spatial_dimension, "fragment_center"),
   facet_material("facet_material", id),
@@ -744,140 +744,58 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes
 }
 
 /* -------------------------------------------------------------------------- */
+class CohesiveElementFilter : public GroupManager::ClusteringFilter {
+public:
+  CohesiveElementFilter(const SolidMechanicsModelCohesive & model,
+			const Real max_damage = 1.) :
+    model(model), is_unbroken(max_damage) {}
+
+  bool operator() (const Element & el) const {
+    if (el.kind == _ek_regular)
+      return true;
+
+    const Array<UInt> & el_id_by_mat = model.getElementIndexByMaterial(el.type,
+								       el.ghost_type);
+
+    const MaterialCohesive & mat
+      = static_cast<const MaterialCohesive &>
+      (model.getMaterial(el_id_by_mat(el.element, 0)));
+
+    UInt el_index = el_id_by_mat(el.element, 1);
+    UInt nb_quad_per_element
+      = model.getFEM("CohesiveFEM").getNbQuadraturePoints(el.type, el.ghost_type);
+
+    const Vector<Real> & damage
+      = mat.getDamage(el.type, el.ghost_type).begin(nb_quad_per_element)[el_index];
+
+    UInt unbroken_quads = std::count_if(damage.storage(),
+					damage.storage() + nb_quad_per_element,
+					is_unbroken);
+
+    if (unbroken_quads > 0)
+      return true;
+
+    return false;
+  }
+
+private:
+
+  struct IsUnbrokenFunctor {
+    IsUnbrokenFunctor(const Real & max_damage) : max_damage(max_damage) {}
+    const bool operator() (const Real & x) {return x < max_damage;}
+    const Real max_damage;
+  };
+
+  const SolidMechanicsModelCohesive & model;
+  const IsUnbrokenFunctor is_unbroken;
+};
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::buildFragmentsList() {
   AKANTU_DEBUG_IN();
 
-  UInt cohesive_index = 0;
-
-  while ((dynamic_cast<MaterialCohesive *>(materials[cohesive_index]) == NULL)
-         && cohesive_index <= materials.size())
-    ++cohesive_index;
-
-  /// find element type for _not_ghost facet
-  Mesh::type_iterator it_f   = mesh_facets.firstType(spatial_dimension - 1);
-  Mesh::type_iterator last_f = mesh_facets.lastType(spatial_dimension - 1);
-
-  ElementType internal_facet_type = _not_defined;
-
-  for (; it_f != last_f; ++it_f) {
-    UInt nb_facet = mesh_facets.getNbElement(*it_f);
-    if (nb_facet != 0) {
-      internal_facet_type = *it_f;
-      break;
-    }
-  }
-
-  AKANTU_DEBUG_ASSERT(internal_facet_type != _not_defined, "No facets in the mesh");
-
-
-  Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last = mesh.lastType(spatial_dimension);
-
-  UInt max = std::numeric_limits<UInt>::max();
-
-  for (; it != last; ++it) {
-    UInt nb_element = mesh.getNbElement(*it);
-    if (nb_element != 0) {
-      /// initialize the list of checked elements and the list of
-      /// elements to be checked
-      fragment_to_element.alloc(nb_element, 1, *it);
-      fragment_to_element(*it).set(max);
-    }
-  }
-
-  Array< std::vector<Element> > & element_to_facet
-    = mesh_facets.getElementToSubelement(internal_facet_type);
-
-  ElementType type_cohesive = FEM::getCohesiveElementType(internal_facet_type);
-  if (mesh.getNbElement(type_cohesive) == 0) return;
-  const Array<Element> & f_to_cohesive_el
-    = mesh.getSubelementToElement(type_cohesive);
-
-  nb_fragment = 0;
-  it = mesh.firstType(spatial_dimension);
-
-  MaterialCohesive * mat_cohesive
-    = dynamic_cast<MaterialCohesive*>(materials[cohesive_index]);
-  const Array<Real> & damage = mat_cohesive->getDamage(type_cohesive);
-  UInt nb_quad_cohesive = getFEM("CohesiveFEM").getNbQuadraturePoints(type_cohesive);
-
-  for (; it != last; ++it) {
-    Array<UInt> & checked_el = fragment_to_element(*it);
-    UInt nb_element = checked_el.getSize();
-    if (nb_element != 0) {
-
-      Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(*it);
-      UInt nb_facet_per_elem = facet_to_element.getNbComponent();
-
-      /// loop on elements
-      for (UInt el = 0; el < nb_element; ++el) {
-        if (checked_el(el) == max) {
-          /// build fragment
-          ++nb_fragment;
-          checked_el(el) = nb_fragment - 1;
-          Array<Element> elem_to_check;
-
-          Element first_el(*it, el);
-          elem_to_check.push_back(first_el);
-
-          /// keep looping while there are elements to check
-          while (elem_to_check.getSize() != 0) {
-            UInt nb_elem_check = elem_to_check.getSize();
-
-            for (UInt el_check = 0; el_check < nb_elem_check; ++el_check) {
-              Element current_el = elem_to_check(el_check);
-
-              for (UInt f = 0; f < nb_facet_per_elem; ++f) {
-                /// find adjacent element on current facet
-                UInt global_facet = facet_to_element(current_el.element, f).element;
-                Element next_el;
-                for (UInt i = 0; i < 2; ++i) {
-                  next_el = element_to_facet(global_facet)[i];
-                  if (next_el != current_el) break;
-                }
-
-                if (next_el.kind == _ek_cohesive) {
-                  /// fragmention occurs when the cohesive element has
-                  /// reached damage = 1 on every quadrature point
-                  UInt q = 0;
-                  while (q < nb_quad_cohesive &&
-			 Math::are_float_equal(damage(next_el.element
-						      * nb_quad_cohesive + q), 1)) ++q;
-
-                  if (q == nb_quad_cohesive)
-                    next_el = ElementNull;
-                  else {
-                    /// check which facet is the correct one
-                    UInt other_facet_index
-                      = f_to_cohesive_el(next_el.element, 0).element == global_facet;
-                    UInt other_facet
-                      = f_to_cohesive_el(next_el.element, other_facet_index).element;
-
-                    /// get the other regualar element
-                    next_el = element_to_facet(other_facet)[0];
-                  }
-                }
-
-                /// if it exists, add it to the fragment list
-                if (next_el != ElementNull) {
-                  Array<UInt> & checked_next_el = fragment_to_element(next_el.type);
-                  /// check if the element isn't already part of a fragment
-                  if (checked_next_el(next_el.element) == max) {
-                    checked_next_el(next_el.element) = nb_fragment - 1;
-                    elem_to_check.push_back(next_el);
-                  }
-                }
-              }
-            }
-
-            /// erase elements that have already been checked
-            for (UInt el_check = nb_elem_check; el_check > 0; --el_check)
-              elem_to_check.erase(el_check - 1);
-          }
-        }
-      }
-    }
-  }
+  nb_fragment = mesh.createClusters(spatial_dimension, "fragment_",
+				    CohesiveElementFilter(*this));
 
   AKANTU_DEBUG_OUT();
 }
@@ -895,49 +813,53 @@ void SolidMechanicsModelCohesive::computeFragmentsMV() {
   fragment_center.resize(nb_fragment);
   fragment_center.clear();
 
-  UInt nb_nodes = mesh.getNbNodes();
-  Array<bool> checked_node(nb_nodes);
-  checked_node.clear();
+  Array<Real>::const_iterator< Vector<Real> > it_mass =
+    mass->begin(spatial_dimension);
+  Array<Real>::const_iterator< Vector<Real> > it_velocity =
+    velocity->begin(spatial_dimension);
+  Array<Real>::const_iterator< Vector<Real> > it_position =
+    mesh.getNodes().begin(spatial_dimension);
 
-  const Array<Real> & position = mesh.getNodes();
+  Array<Real>::iterator< Vector<Real> > it_frag_mass =
+    fragment_mass.begin(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > it_frag_velocity =
+    fragment_velocity.begin(spatial_dimension);
+  Array<Real>::iterator< Vector<Real> > it_frag_center =
+    fragment_center.begin(spatial_dimension);
 
-  Mesh::type_iterator it   = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last = mesh.lastType(spatial_dimension);
 
-  for (; it != last; ++it) {
-    UInt nb_element = mesh.getNbElement(*it);
-    if (nb_element != 0) {
-      const Array<UInt> & frag_to_el = fragment_to_element(*it);
-      const Array<UInt> & connectivity = mesh.getConnectivity(*it);
-      UInt nb_nodes_per_elem = connectivity.getNbComponent();
+  for (UInt frag = 0;
+       frag < nb_fragment;
+       ++frag, ++it_frag_mass, ++it_frag_velocity, ++it_frag_center) {
+    std::stringstream sstr;
+    sstr << "fragment_" << frag;
 
-      /// loop over each node of every element
-      for (UInt el = 0; el < nb_element; ++el) {
-        for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
-          UInt node = connectivity(el, n);
-          /// if the node hasn't been checked, store its data
-          if (!checked_node(node)) {
-            fragment_mass(frag_to_el(el)) += (*mass)(node);
+    const NodeGroup & node_group = mesh.getElementGroup(sstr.str()).getNodeGroup();
+    NodeGroup::const_node_iterator it = node_group.begin();
+    NodeGroup::const_node_iterator end = node_group.end();
 
-            for (UInt s = 0; s < spatial_dimension; ++s) {
-              fragment_velocity(frag_to_el(el), s)
-                += (*mass)(node) * (*velocity)(node, s);
+    for (; it != end; ++it) {
+      UInt node = *it;
+      if (mesh.isLocalOrMasterNode(node)) {
+	const Vector<Real> & node_mass = it_mass[node];
+	const Vector<Real> & node_velocity = it_velocity[node];
+	const Vector<Real> & node_position = it_position[node];
 
-              fragment_center(frag_to_el(el), s)
-                += (*mass)(node) * position(node, s);
-            }
+	*it_frag_mass += node_mass;
 
-            checked_node(node) = true;
-          }
-        }
+	for (UInt s = 0; s < spatial_dimension; ++s) {
+	  (*it_frag_velocity)(s)
+	    += node_mass(s) * node_velocity(s);
+
+	  (*it_frag_center)(s)
+	    += node_mass(s) * node_position(s);
+	}
       }
     }
-  }
 
-  for (UInt frag = 0; frag < nb_fragment; ++frag) {
     for (UInt s = 0; s < spatial_dimension; ++s) {
-      fragment_velocity(frag, s) /= fragment_mass(frag);
-      fragment_center(frag, s) /= fragment_mass(frag);
+      fragment_velocity(frag, s) /= fragment_mass(frag, s);
+      fragment_center(frag, s) /= fragment_mass(frag, s);
     }
   }
 

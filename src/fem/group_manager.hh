@@ -44,6 +44,7 @@ __BEGIN_AKANTU__
 class ElementGroup;
 class NodeGroup;
 class Mesh;
+class Element;
 
 class GroupManager {
   /* ------------------------------------------------------------------------ */
@@ -99,17 +100,30 @@ public:
   AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION(element_group, find, const std::string & name, name);
   AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION(node_group, find, const std::string & name, name);
 
+  /* ------------------------------------------------------------------------ */
+  /* Clustering filter                                                        */
+  /* ------------------------------------------------------------------------ */
+public:
 
+  class ClusteringFilter {
+  public:
+    virtual bool operator() (const Element &) const {
+      return true;
+    }
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// create a node group
-  NodeGroup & createNodeGroup(const std::string & group_name);
+  NodeGroup & createNodeGroup(const std::string & group_name,
+			      bool replace_group = false);
 
   /// create an element group and the associated node group
-  ElementGroup & createElementGroup(const std::string & group_name, UInt dimension);
+  ElementGroup & createElementGroup(const std::string & group_name,
+				    UInt dimension,
+				    bool replace_group = false);
 
   /// create a element group using an existing node group
   ElementGroup & createElementGroup(const std::string & group_name, UInt dimension, NodeGroup & node_group);
@@ -119,7 +133,12 @@ public:
   void createGroupsFromMeshData(const std::string & dataset_name);
 
   /// create boundaries group by a clustering algorithm \todo extend to parallel
-  void createBoundaryGroupFromGeometry();
+  UInt createBoundaryGroupFromGeometry();
+
+  /// create element clusters for a given dimension
+  UInt createClusters(UInt element_dimension,
+		      std::string cluster_name_prefix = "cluster_",
+		      const ClusteringFilter & filter = ClusteringFilter());
 
   /// Create an ElementGroup based on a NodeGroup
   void createElementGroupFromNodeGroup(const std::string & name,
@@ -160,9 +179,6 @@ private:
   const Mesh & mesh;
 };
 
-
-#include "group_manager_inline_impl.cc"
-
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const GroupManager & _this)
 {
@@ -171,6 +187,8 @@ inline std::ostream & operator <<(std::ostream & stream, const GroupManager & _t
 }
 
 __END_AKANTU__
+
+#include "group_manager_inline_impl.cc"
 
 #endif /* __AKANTU_GROUP_MANAGER_HH__ */
 

@@ -28,14 +28,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-
-inline bool ElementSorter::operator()(const Element & first,
-				      const Element & second) {
-  return atan2[first] < atan2[second];
-}
-
-/* -------------------------------------------------------------------------- */
 inline bool MeshUtils::hasElement(const Array<UInt> & connectivity,
 				  const Element & el,
 				  const Vector<UInt> & nodes) {

@@ -94,6 +94,9 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// empty the element group
+  void empty();
+
   inline void add(const Element & el);
   inline void addNode(UInt node_id);
 

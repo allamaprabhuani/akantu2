@@ -57,6 +57,9 @@ public:
 public:
   typedef Array<UInt>::const_iterator<UInt> const_node_iterator;
 
+  /// empty the node group
+  void empty();
+
   /// iterator to the beginning of the node group
   inline const_node_iterator begin() const;
   /// iterator to the end of the node group

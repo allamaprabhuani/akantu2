@@ -322,7 +322,7 @@ public:
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
 			const ByElementTypeArray<UInt> * filter = NULL) :
-    parent(model.getFEM(), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
+    parent(model.getFEM((element_kind == _ek_cohesive ? "CohesiveFEM": "")), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     // init();
   }
@@ -334,7 +334,7 @@ public:
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
 			const ByElementTypeArray<UInt> * filter = NULL) :
-    parent(model.getFEM(), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
+    parent(model.getFEM((element_kind == _ek_cohesive ? "CohesiveFEM": "")), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     // init();
   }

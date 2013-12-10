@@ -175,9 +175,6 @@ public:
   /// get number of fragments
   AKANTU_GET_MACRO(NbFragment, nb_fragment, UInt);
 
-  /// get fragment_to_element vectors
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FragmentToElement, fragment_to_element, UInt);
-
   /// get mass for each fragment
   AKANTU_GET_MACRO(FragmentsMass, fragment_mass, const Array<Real> &);
 
@@ -218,9 +215,6 @@ private:
 
   /// stress on facets on the two sides by quadrature point
   ByElementTypeReal facet_stress;
-
-  /// fragment number for each element
-  ByElementTypeUInt fragment_to_element;
 
   /// number of fragments
   UInt nb_fragment;
