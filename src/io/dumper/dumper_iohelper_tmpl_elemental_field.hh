@@ -432,10 +432,17 @@ public:
     type_iterator tit;
     type_iterator end;
 
+    /// type iterators on the elemental field
     tit = field.firstType(spatial_dimension, ghost_type, element_kind);
     end = field.lastType(spatial_dimension, ghost_type, element_kind);
 
-    const Array<T> & vect = field(*tit, ghost_type);
+    /// skip all types without data
+    ElementType type = *tit;
+    for (;tit != end && field(*tit, ghost_type).getSize() == 0; ++tit)
+      type = *tit;
+
+    /// getting information for the field of the given type
+    const Array<T> & vect = field(type, ghost_type);
     UInt * fit = NULL;
     if(filtered) {
       const Array<UInt> & typed_filter = (*filter)(*tit, ghost_type);
@@ -445,11 +452,19 @@ public:
     UInt nb_component = vect.getNbComponent();
     UInt size = vect.getSize() / nb_data;
     UInt ln = nb_component;
+
+    /// if nb_components to be dumped is explicitly defined, use it
     if(itn != 0) ln = itn;
 
+    /// define element-wise iterator
     internal_iterator it = iterator_helper<T, ret_type>::begin(vect, ln, nb_component / ln * nb_data, size);
-    iterator rit = iterator(field, n, tit, end, it, *tit, ghost_type, filter, fit);
+
+    /// define data iterator
+    iterator rit = iterator(field, n, tit, end, it, type, ghost_type, filter, fit);
+
+    /// set user defined padding
     rit.setPadding(padding_n, padding_m);
+
     return rit;
   }
 
