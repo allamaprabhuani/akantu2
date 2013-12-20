@@ -52,6 +52,8 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
   this->registerParam("Bt"  , Bt  , 12000., _pat_parsable, "Bt");
   this->registerParam("beta", beta, 1.06  , _pat_parsable, "beta");
 
+  this->K0.initialize(1);
+
   AKANTU_DEBUG_OUT();
 }
 
