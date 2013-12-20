@@ -175,11 +175,15 @@ void SolidMechanicsModel::initMaterials() {
     case _explicit_lumped_mass:
       assembleMassLumped();
       break;
-  case _explicit_consistent_mass:
-  case _implicit_dynamic:
-    assembleMass();
-    break;
-  case _static: break;
+    case _explicit_consistent_mass:
+    case _implicit_dynamic:
+      assembleMass();
+      break;
+    case _static:
+      break;
+    default:
+      AKANTU_EXCEPTION("analysis method not recognised by SolidMechanicsModel");
+      break;
   }
 
   // initialize the previous displacement array if at least on material needs it

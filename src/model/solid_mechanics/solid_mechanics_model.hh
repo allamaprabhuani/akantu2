@@ -158,7 +158,7 @@ public:
   void initExplicit(AnalysisMethod analysis_method = _explicit_lumped_mass);
 
   bool isExplicit()
-  { return method == _explicit_lumped_mass || method == _explicit_consistent_mass; }
+  { return method == _explicit_lumped_mass|| method == _explicit_consistent_mass; }
 
   /// initialize the array needed by updateResidual (residual, current_position)
   void initializeUpdateResidualData();

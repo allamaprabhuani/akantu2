@@ -207,6 +207,9 @@ void SolidMechanicsModel::initFull(std::string input_file, const ModelOptions & 
     case _static:
       initImplicit(false);
       break;
+    default:
+      AKANTU_EXCEPTION("analysis method not recognised by SolidMechanicsModel");
+      break;
   }
 
   // initialize the materials
@@ -278,7 +281,7 @@ void SolidMechanicsModel::initArraysPreviousDisplacment() {
     UInt nb_nodes = mesh.getNbNodes();
     std::stringstream sstr_disp_t;
     sstr_disp_t << id << ":previous_displacement";
-    previous_displacement = &(alloc<Real > (sstr_disp_t.str(), nb_nodes, spatial_dimension, REAL_INIT_VALUE));
+    previous_displacement = &(alloc<Real > (sstr_disp_t.str(), nb_nodes, spatial_dimension, 0.));
 
     AKANTU_DEBUG_OUT();
 }
@@ -632,8 +635,10 @@ void SolidMechanicsModel::solveLumped(Array<Real> & x,
 void SolidMechanicsModel::explicitPred() {
   AKANTU_DEBUG_IN();
 
-  if(increment_flag) increment->copy(*displacement);
-  if(previous_displacement) previous_displacement->copy(*displacement);
+  if(increment_flag) {
+    if(previous_displacement) increment->copy(*previous_displacement);
+    else increment->copy(*displacement);
+  }
 
   AKANTU_DEBUG_ASSERT(integrator,"itegrator should have been allocated: "
                       << "have called initExplicit ? "
@@ -670,6 +675,8 @@ void SolidMechanicsModel::explicitCorr() {
                                          *acceleration,
                                          *boundary,
                                          *increment_acceleration);
+
+  if(previous_displacement) previous_displacement->copy(*displacement);
 
   AKANTU_DEBUG_OUT();
 }

@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
     {
       model.explicitPred();
       model.updateResidual();
+      model.solveExplicitLumped();
       model.explicitCorr();
       if(i % 100 == 0) model.dump();
       if(i % 10 == 0)

@@ -54,7 +54,6 @@ inline void MaterialElastic<1>::computeStressOnQuad(const Matrix<Real> & grad_u,
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
 }
 
-
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> & tangent) {

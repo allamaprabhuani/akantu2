@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_voigthelper.hh"
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -63,13 +64,28 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-/// constitutive law for all element of a type
+  /// Compute the stresses and the plastic strain energy
+  virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
+
+  /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
+
+  virtual Real getPlasticEnergy();
+  virtual Real getEnergy(std::string type);
+
+  /// Compute the plastic energy
+  virtual void updatePlasticEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// Compute the plastic energy increment
+  virtual void computePlasticEnergyIncrement(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// Compute the true potential energy
+  virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type);
 
 protected:
 
@@ -81,9 +97,25 @@ protected:
   //inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
   //      Matrix<Real> & delta_S);
 
-  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening, Real sigma_th_cur, Real sigma_th_prev);
+  inline void computeStressOnQuad(Matrix<Real> & grad_u,
+                                  Matrix<Real> & grad_delta_u,
+                                  Matrix<Real> & sigma,
+                                  Matrix<Real> & inelas_strain,
+                                  Matrix<Real> & d_inelas_strain,
+                                  Real & iso_hardening,
+                                  Real sigma_th_cur,
+                                  Real sigma_th_prev);
 
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_delta_u, Matrix<Real>  & sigma_tensor, Matrix<Real>  & previous_sigma_tensor, Real & iso_hardening);
+  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent,
+                                         Matrix<Real> & grad_delta_u,
+                                         Matrix<Real> & sigma_tensor,
+                                         Matrix<Real> & previous_sigma_tensor,
+                                         Real & iso_hardening);
+
+  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+                                           Matrix<Real> & sigma,
+                                           const Matrix<Real> & inelas_strain,
+                                           Real & epot);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -97,6 +129,15 @@ private:
 
   /// isotropic hardening, r
   InternalField<Real> iso_hardening;
+
+  /// Plastic energy
+  InternalField<Real> plastic_energy;
+
+  /// Plastic energy increment
+  InternalField<Real> d_plastic_energy;
+
+  /// Plastic strain increment
+  InternalField<Real> d_inelas_strain;
 };
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

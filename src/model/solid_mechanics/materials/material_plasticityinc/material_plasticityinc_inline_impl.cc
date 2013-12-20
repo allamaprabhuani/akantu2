@@ -37,16 +37,16 @@
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
-							    Matrix<Real> & grad_delta_u,
-							    Matrix<Real> & sigma,
-							    Matrix<Real> & inelas_strain,
-							    Real & iso_hardening,
-							    Real sigma_th_cur,
-							    Real sigma_th_prev) {
+							                                              Matrix<Real> & grad_delta_u,
+                                                            Matrix<Real> & sigma,
+                                                            Matrix<Real> & inelas_strain,
+                                                            Matrix<Real> & d_inelas_strain,
+                                                            Real & iso_hardening,
+                                                            Real sigma_th_cur,
+                                                            Real sigma_th_prev) {
   //Infinitesimal plasticity
   Matrix<Real> sigma_tr(dim, dim);
   Matrix<Real> sigma_tr_dev(dim, dim);
-  Matrix<Real> d_inelas_strain(dim,dim);
   //Real r=iso_hardening;
   Real dp=0.0;
   Real d_dp=0.0;
@@ -98,12 +98,27 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline void MaterialPlasticityinc<spatial_dimension>::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+                                         Matrix<Real> & sigma,
+                                         const Matrix<Real> & inelas_strain,
+                                         Real & epot) {
+  epot = 0.;
+
+  Matrix<Real> elas_strain(spatial_dimension, spatial_dimension);
+  elas_strain = grad_u;
+  elas_strain -= inelas_strain;
+
+  epot = 0.5 * sigma.doubleDot(elas_strain);
+}
+
+/* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void MaterialPlasticityinc<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent,
-								   Matrix<Real> & grad_delta_u,
-								   Matrix<Real> & sigma_tensor,
-								   Matrix<Real> & previous_sigma_tensor,
-								   Real & iso_hardening) {
+                                                                   Matrix<Real> & grad_delta_u,
+                                                                   Matrix<Real> & sigma_tensor,
+                                                                   Matrix<Real> & previous_sigma_tensor,
+                                                                   Real & iso_hardening) {
   UInt cols = tangent.cols();
   UInt rows = tangent.rows();
   Matrix<Real> sigma_dev(dim, dim);
@@ -135,7 +150,7 @@ inline void MaterialPlasticityinc<dim>::computeTangentModuliOnQuad(Matrix<Real> 
   if(sigma_tr_dev_eff > sigma_dev_eff * Math::getTolerance())
     xr = sigma_dev_eff / sigma_tr_dev_eff;
 
-  Real q = 1.5 * (1. / (1. +  3. * this->mu  / h) - xr);
+  Real __attribute__((unused)) q = 1.5 * (1. / (1. +  3. * this->mu  / h) - xr);
 
   for (UInt m = 0; m < rows; ++m) {
     UInt i = VoigtHelper<dim>::vec[m][0];
@@ -145,21 +160,24 @@ inline void MaterialPlasticityinc<dim>::computeTangentModuliOnQuad(Matrix<Real> 
       UInt k = VoigtHelper<dim>::vec[n][0];
       UInt l = VoigtHelper<dim>::vec[n][1];
 
-      if (((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) && (xr > 0)) {
+      // This section of the code is commented
+      // There were some problems with the convergence of plastic-coupled simulations with thermal expansion
+      // XXX: DO NOT REMOVE
+      /*if (((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) && (xr > 0)) {
         tangent(m,n) =
           2. * this->mu * q * (sigma_tr_dev (i,j) / sigma_tr_dev_eff) * (sigma_tr_dev (k,l) / sigma_tr_dev_eff) +
           (i==k) * (j==l) * 2. * this->mu * xr +
           (i==j) * (k==l) * (this->kpa - 2./3. * this->mu * xr);
         if ((m == n) && (m>=dim))
           tangent(m, n) = tangent(m, n) - this->mu * xr;
-      } else {
+      } else {*/
         tangent(m,n) =
           (i==k) * (j==l) * 2. * this->mu +
           (i==j) * (k==l) * this->lambda;
-        if ((m==n) && (m>=dim))
-          tangent(m,n) = tangent(m,n) - this->mu;
-      }
-      //correct tangent stiffness for shear component
+        tangent(m,n) -= (m==n) * (m>=dim) * this->mu;
+      //}
+        //correct tangent stiffness for shear component
     }
   }
 }
+

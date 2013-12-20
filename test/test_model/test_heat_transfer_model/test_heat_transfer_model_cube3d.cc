@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
     {
       model.explicitPred();
       model.updateResidual();
+      model.solveExplicitLumped();
       model.explicitCorr();
 
 

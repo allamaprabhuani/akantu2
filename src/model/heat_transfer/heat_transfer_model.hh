@@ -4,6 +4,7 @@
  * @author Rui Wang <rui.wang@epfl.ch>
  * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Sun May 01 19:14:43 2011
  *
@@ -36,12 +37,15 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_types.hh"
+#include "aka_voigthelper.hh"
 #include "aka_memory.hh"
 #include "model.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
 #include "dumpable.hh"
 #include "parsable.hh"
+#include "solver.hh"
 
 
 namespace akantu {
@@ -49,6 +53,13 @@ namespace akantu {
 }
 
 __BEGIN_AKANTU__
+
+struct HeatTransferModelOptions : public ModelOptions {
+  HeatTransferModelOptions(AnalysisMethod analysis_method = _explicit_lumped_capacity ) : analysis_method(analysis_method) {}
+  AnalysisMethod analysis_method;
+};
+
+extern const HeatTransferModelOptions default_heat_transfer_model_options;
 
 class HeatTransferModel : public Model, public DataAccessor, public Dumpable, public Parsable {
   /* ------------------------------------------------------------------------ */
@@ -71,7 +82,7 @@ public:
 public:
 
   /// generic function to initialize everything ready for explicit dynamics
-  void initFull(const std::string & material_file, const ModelOptions & options = ModelOptions());
+  void initFull(const std::string & material_file, const ModelOptions & options = default_heat_transfer_model_options);
 
   /// initialize the fem object of the boundary
   void initFEMBoundary(bool create_surface = true);
@@ -91,6 +102,12 @@ public:
   /// init PBC synchronizer
   void initPBC();
 
+  /// initialize the solver and the jacobian_matrix (called by initImplicit)
+  void initSolver(SolverOptions & solver_options);
+
+  /// initialize the stuff for the implicit solver
+  void initImplicit(SolverOptions & solver_options = _solver_no_options);
+
   /// function to print the contain of the class
   virtual void printself(__attribute__ ((unused)) std::ostream & stream,
 			 __attribute__ ((unused)) int indent = 0) const {};
@@ -108,29 +125,47 @@ public:
 
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityLumped();
-
+  
   /// update the temperature from the temperature rate
   void explicitPred();
 
   /// update the temperature rate from the increment
   void explicitCorr();
 
+  /// solve the system in temperature rate  @f$C\delta \dot T = q_{n+1} - C \dot T_{n}@f$
+  /// this function needs to be run for dynamics
+  void solveExplicitLumped();
 
   // /// initialize the heat flux
   // void initializeResidual(Array<Real> &temp);
   // /// initialize temperature
   // void initializeTemperature(Array<Real> &temp);
 
-private:
+  /* ------------------------------------------------------------------------ */
+  /* Methods for implicit                                                     */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// solve the static equilibrium
+  void solveStatic();
+  //
+  /// assemble the stiffness matrix
+  void assembleStiffnessMatrix();
 
-  /// solve the system in temperature rate  @f$C\delta \dot T = q_{n+1} - C \dot T_{n}@f$
-  void solveExplicitLumped();
+private:
 
   /// compute the heat flux on ghost types
   void updateResidual(const GhostType & ghost_type);
 
   /// calculate the lumped capacity vector for heat transfer problem (w ghosttype)
   void assembleCapacityLumped(const GhostType & ghost_type);
+
+  /// assemble the stiffness matrix (w/ ghost type)
+  template <UInt dim>
+  void assembleStiffnessMatrix(const GhostType & ghost_type);
+
+  /// assemble the stiffness matrix
+  template <UInt dim>
+  void assembleStiffnessMatrix(const ElementType & type, const GhostType & ghost_type);
 
   /// compute the conductivity tensor for each quadrature point in an array
   void computeConductivityOnQuadPoints(const GhostType & ghost_type);
@@ -181,6 +216,8 @@ public:
 
   inline FEM & getFEMBoundary(std::string name = "");
 
+  AKANTU_GET_MACRO(Density, density, Real);
+  AKANTU_GET_MACRO(Capacity, capacity, Real);
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
   /// get the current value of the time step
@@ -193,6 +230,8 @@ public:
   AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Array<Real>&);
   /// get the boundary vector
   AKANTU_GET_MACRO(Boundary, * boundary, Array<bool>&);
+  /// get stiffness matrix
+  AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, const SparseMatrix&);
   /// get the external heat rate vector
   AKANTU_GET_MACRO(ExternalHeatRate, * external_heat_rate, Array<Real>&);
   /// get the temperature gradient
@@ -246,6 +285,12 @@ private:
 
   /// increment array (@f$\delta \dot T@f$ or @f$\delta T@f$)
   Array<Real> * increment;
+  
+  /// stiffness matrix
+  SparseMatrix * stiffness_matrix;
+
+  /// jacobian matrix
+  SparseMatrix * jacobian_matrix;
 
   /// the density
   Real density;
@@ -303,6 +348,12 @@ private:
 
   /// thermal energy by element
   ByElementTypeReal thermal_energy;
+
+  /// Solver
+  Solver * solver;
+
+  /// analysis method
+  AnalysisMethod method;
 
 };
 

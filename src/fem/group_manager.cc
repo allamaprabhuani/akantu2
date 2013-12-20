@@ -46,6 +46,7 @@
 #include <iterator>
 #include <list>
 #include <queue>
+#include <numeric>
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__

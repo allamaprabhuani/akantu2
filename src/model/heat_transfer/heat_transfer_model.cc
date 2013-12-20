@@ -6,6 +6,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Sun May 01 19:14:43 2011
  *
@@ -42,6 +43,10 @@
 #include "parser.hh"
 #include "generalized_trapezoidal.hh"
 
+#ifdef AKANTU_USE_MUMPS
+#include "solver_mumps.hh"
+#endif
+
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
 #  include "dumper_iohelper_tmpl_homogenizing_field.hh"
@@ -50,6 +55,8 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
+const HeatTransferModelOptions default_heat_transfer_model_options(_explicit_lumped_capacity);
+
 /* -------------------------------------------------------------------------- */
 HeatTransferModel::HeatTransferModel(Mesh & mesh,
 				     UInt dim,
@@ -57,6 +64,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
 				     const MemoryID & memory_id) :
   Model(mesh, dim, id, memory_id), Dumpable(), Parsable(_st_heat, id),
   integrator(new ForwardEuler()),
+  stiffness_matrix(NULL),
+  jacobian_matrix(NULL),
   temperature_gradient    ("temperature_gradient", id),
   temperature_on_qpoints  ("temperature_on_qpoints", id),
   conductivity_on_qpoints ("conductivity_on_qpoints", id),
@@ -223,6 +232,44 @@ void HeatTransferModel::initArrays() {
 }
 
 /* -------------------------------------------------------------------------- */
+void HeatTransferModel::initSolver(__attribute__((unused)) SolverOptions & options) {
+#if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#else
+  UInt nb_global_nodes = mesh.getNbGlobalNodes();
+
+  delete jacobian_matrix;
+  std::stringstream sstr; sstr << Memory::id << ":jacobian_matrix";
+  jacobian_matrix = new SparseMatrix(nb_global_nodes, _symmetric,
+                                     1, sstr.str(), memory_id);
+
+  jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
+
+  delete stiffness_matrix;
+  std::stringstream sstr_sti; sstr_sti << Memory::id << ":stiffness_matrix";
+  stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr_sti.str(), memory_id);
+
+#ifdef AKANTU_USE_MUMPS
+  std::stringstream sstr_solv; sstr_solv << Memory::id << ":solver";
+  solver = new SolverMumps(*jacobian_matrix, sstr_solv.str());
+
+  dof_synchronizer->initScatterGatherCommunicationScheme();
+#else
+  AKANTU_DEBUG_ERROR("You should at least activate one solver.");
+#endif //AKANTU_USE_MUMPS
+
+  if(solver)
+    solver->initialize(options);
+#endif //AKANTU_HAS_SOLVER
+}
+
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::initImplicit(SolverOptions & solver_options) {
+  method = _static;
+  initSolver(solver_options);
+}
+
+/* -------------------------------------------------------------------------- */
 
 HeatTransferModel::~HeatTransferModel()
 {
@@ -295,31 +342,137 @@ void HeatTransferModel::updateResidual() {
   // update for the received ghosts
   updateResidual(_ghost);
 
-  /// finally @f$ r -= C \dot T @f$
-  // lumped C
-  UInt nb_nodes            = temperature_rate->getSize();
-  UInt nb_degree_of_freedom = temperature_rate->getNbComponent();
+/*  if (method == _explicit_lumped_capacity) {
+    this->solveExplicitLumped();
+  }*/
 
-  Real * capacity_val  = capacity_lumped->values;
-  Real * temp_rate_val = temperature_rate->values;
-  Real * res_val       = residual->values;
-  bool * boundary_val  = boundary->values;
 
-  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
-    if(!(*boundary_val)) {
-      *res_val -= *capacity_val * *temp_rate_val;
-    }
-    boundary_val++;
-    res_val++;
-    capacity_val++;
-    temp_rate_val++;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::assembleStiffnessMatrix() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_INFO("Assemble the new stiffness matrix.");
+
+  stiffness_matrix->clear();
+
+  switch(mesh.getSpatialDimension()) {
+    case 1: this->assembleStiffnessMatrix<1>(_not_ghost); break;
+    case 2: this->assembleStiffnessMatrix<2>(_not_ghost); break;
+    case 3: this->assembleStiffnessMatrix<3>(_not_ghost); break;
   }
 
-#ifndef AKANTU_NDEBUG
-  getSynchronizerRegistry().synchronize(akantu::_gst_htm_gradient_temperature);
-#endif
+  AKANTU_DEBUG_OUT();
+}
 
-  solveExplicitLumped();
+/* -------------------------------------------------------------------------- */
+template <UInt dim>
+void HeatTransferModel::assembleStiffnessMatrix(const GhostType & ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Mesh & mesh = this->getFEM().getMesh();
+  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  for(; it != last_type; ++it) {
+    this->assembleStiffnessMatrix<dim>(*it, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+  
+/* -------------------------------------------------------------------------- */
+template <UInt dim>
+void HeatTransferModel::assembleStiffnessMatrix(const ElementType & type, const GhostType & ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  SparseMatrix & K = *stiffness_matrix;
+  const Array<Real> & shapes_derivatives = this->getFEM().getShapesDerivatives(type, ghost_type);
+
+  UInt nb_element                 = mesh.getNbElement(type, ghost_type);
+  UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
+  UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(type, ghost_type);
+
+  Array<Real> & t_gradient = temperature_gradient(type, ghost_type);
+  this->getFEM().gradientOnQuadraturePoints(*temperature, t_gradient,
+                                             1, type, ghost_type);
+
+  /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+  UInt bt_d_b_size = nb_nodes_per_element;
+
+  Array<Real> * bt_d_b = new Array<Real>(nb_element * nb_quadrature_points,
+					                               bt_d_b_size * bt_d_b_size,
+					                               "B^t*D*B");
+
+  Matrix<Real> Bt_D(nb_nodes_per_element, dim);
+
+  Array<Real>::const_iterator< Matrix<Real> > shapes_derivatives_it = shapes_derivatives.begin(dim, nb_nodes_per_element);
+
+  Array<Real>::iterator< Matrix<Real> > Bt_D_B_it = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
+
+  this->computeConductivityOnQuadPoints(ghost_type);
+  Array<Real>::iterator< Matrix<Real> > D_it = conductivity_on_qpoints(type, ghost_type).begin(dim, dim);
+  Array<Real>::iterator< Matrix<Real> > D_end = conductivity_on_qpoints(type, ghost_type).end(dim, dim);
+
+  for (; D_it != D_end; ++D_it, ++Bt_D_B_it, ++shapes_derivatives_it) {
+    Matrix<Real> & D = *D_it;
+    const Matrix<Real> & B = *shapes_derivatives_it;
+    Matrix<Real> & Bt_D_B = *Bt_D_B_it;
+
+    Bt_D.mul<true, false>(B, D);
+    Bt_D_B.mul<false, false>(Bt_D, B);
+  }
+
+  /// compute @f$ k_e = \int_e \mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
+  Array<Real> * K_e = new Array<Real>(nb_element,
+				      bt_d_b_size * bt_d_b_size,
+				      "K_e");
+
+  this->getFEM().integrate(*bt_d_b, *K_e,
+                            bt_d_b_size * bt_d_b_size,
+                            type, ghost_type);
+
+  delete bt_d_b;
+
+  this->getFEM().assembleMatrix(*K_e, K, 1, type, ghost_type);
+  delete K_e;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void HeatTransferModel::solveStatic() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_INFO("Solving Ku = f");
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+  UInt nb_nodes = temperature->getSize();
+  UInt nb_degree_of_freedom = temperature->getNbComponent() * nb_nodes;
+
+  jacobian_matrix->copyContent(*stiffness_matrix);
+  jacobian_matrix->applyBoundary(*boundary);
+
+  increment->clear();
+
+  solver->setRHS(*residual);
+  solver->solve(*increment);
+
+  Real * increment_val = increment->storage();
+  Real * temperature_val = temperature->storage();
+  bool * boundary_val = boundary->storage();
+
+  for (UInt j = 0; j < nb_degree_of_freedom;
+       ++j, ++temperature_val, ++increment_val, ++boundary_val) {
+    if (!(*boundary_val)) {
+      *temperature_val += *increment_val;
+    }
+    else {
+      *increment_val = 0.0;
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -446,28 +599,51 @@ void HeatTransferModel::updateResidual(const GhostType & ghost_type) {
 				  dof_synchronizer->getLocalDOFEquationNumbers(),
 				 1, *it,ghost_type, empty_filter, -1);
   }
+
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::solveExplicitLumped() {
   AKANTU_DEBUG_IN();
-  UInt nb_nodes = increment->getSize();
-  UInt nb_degree_of_freedom = increment->getNbComponent();
+  
+  /// finally @f$ r -= C \dot T @f$
+  // lumped C
+  UInt nb_nodes            = temperature_rate->getSize();
+  UInt nb_degree_of_freedom = temperature_rate->getNbComponent();
 
-  Real * capa_val      = capacity_lumped->values;
+  Real * capacity_val  = capacity_lumped->values;
+  Real * temp_rate_val = temperature_rate->values;
   Real * res_val       = residual->values;
   bool * boundary_val  = boundary->values;
+
+  for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
+    if(!(*boundary_val)) {
+      *res_val -= *capacity_val * *temp_rate_val;
+    }
+    boundary_val++;
+    res_val++;
+    capacity_val++;
+    temp_rate_val++;
+  }
+
+#ifndef AKANTU_NDEBUG
+  getSynchronizerRegistry().synchronize(akantu::_gst_htm_gradient_temperature);
+#endif
+
+  capacity_val      = capacity_lumped->values;
+  res_val           = residual->values;
+  boundary_val      = boundary->values;
   Real * inc           = increment->values;
 
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
-      *inc = (*res_val / *capa_val);
+      *inc = (*res_val / *capacity_val);
     }
     res_val++;
     boundary_val++;
     inc++;
-    capa_val++;
+    capacity_val++;
   }
 
   AKANTU_DEBUG_OUT();
@@ -574,11 +750,19 @@ void HeatTransferModel::initFull(const std::string & material_file, const ModelO
 
   readMaterials();
 
+  const HeatTransferModelOptions & my_options = dynamic_cast<const HeatTransferModelOptions &>(options);
+
   //initialize the vectors
   initArrays();
   temperature->clear();
   temperature_rate->clear();
   external_heat_rate->clear();
+
+  method = my_options.analysis_method;
+
+  if (method == _static) {
+    initImplicit();
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -670,7 +854,7 @@ Real HeatTransferModel::getThermalEnergy() {
     Array<Real>::iterator<Real> T_end = this->temperature_on_qpoints(*it).end();
     getThermalEnergy(Eth_per_quad.begin(), T_it, T_end);
 
-    Eth += getFEM().integrate(Eth, *it);
+    Eth += getFEM().integrate(Eth_per_quad, *it);
   }
 
   return Eth;

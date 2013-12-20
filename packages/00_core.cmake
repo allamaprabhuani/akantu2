@@ -64,6 +64,8 @@ set(AKANTU_CORE_FILES
   common/aka_vector.hh
   common/aka_vector_tmpl.hh
   common/aka_visitor.hh
+  common/aka_voigthelper.hh
+  common/aka_voigthelper.cc
 
   fem/by_element_type.hh
   fem/by_element_type_tmpl.hh

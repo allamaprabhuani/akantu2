@@ -33,37 +33,10 @@
 #include "solid_mechanics_model.hh"
 #include "sparse_matrix.hh"
 #include "dof_synchronizer.hh"
-
 /* -------------------------------------------------------------------------- */
 
 
 __BEGIN_AKANTU__
-/* -------------------------------------------------------------------------- */
-template <> const UInt VoigtHelper<1>::mat[][1] = {{0}};
-template <> const UInt VoigtHelper<2>::mat[][2] = {{0, 2},
-                                                  {3, 1}};
-template <> const UInt VoigtHelper<3>::mat[][3] = {{0, 5, 4},
-                                                   {8, 1, 3},
-                                                   {7, 6, 2}};
-template <> const UInt VoigtHelper<1>::vec[][2] = {{0, 0}};
-template <> const UInt VoigtHelper<2>::vec[][2] = {{0, 0},
-                                                   {1, 1},
-                                                   {0, 1},
-                                                   {1, 0}};
-template <> const UInt VoigtHelper<3>::vec[][2] = {{0, 0},
-                                                   {1, 1},
-                                                   {2, 2},
-                                                   {1, 2},
-                                                   {0, 2},
-                                                   {0, 1},
-                                                   {2, 1},
-                                                   {2, 0},
-                                                   {1, 0}};
-template <> const Real VoigtHelper<1>::factors[] = {1.};
-template <> const Real VoigtHelper<2>::factors[] = {1., 1., 1., 2.};
-template <> const Real VoigtHelper<3>::factors[] = {1., 1., 1.,
-                                                    2., 2., 2.};
-
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const ID & id) :
@@ -533,7 +506,7 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
     Matrix<Real> & D = *D_it;
     Matrix<Real> & Bt_D_B = *Bt_D_B_it;
 
-    transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
     Bt_D.mul<true, false>(B, D);
     Bt_D_B.mul<false, false>(Bt_D, B);
   }
@@ -623,7 +596,7 @@ void Material::assembleStiffnessMatrixNL(const ElementType & type,
     Matrix<Real> & Piola_kirchhoff_matrix = *piola_it;
 
     SetCauchyStressMatrix< dim >(Piola_kirchhoff_matrix, S);
-    transferBMatrixToBNL< dim > (*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+    VoigtHelper<dim>::transferBMatrixToBNL(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
     Bt_S.mul < true, false > (B, S);
     Bt_S_B.mul < false, false > (Bt_S, B);
   }
@@ -726,8 +699,8 @@ void Material::assembleStiffnessMatrixL2(const ElementType & type,
     Matrix<Real> & Bt_D_B = *Bt_D_B_it;
 
     //transferBMatrixToBL1<dim > (*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
-    transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
-    transferBMatrixToBL2< dim > (*shapes_derivatives_filtered_it, grad_u, B2, nb_nodes_per_element);
+    VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+    VoigtHelper<dim>::transferBMatrixToBL2(*shapes_derivatives_filtered_it, grad_u, B2, nb_nodes_per_element);
     B += B2;
     Bt_D.mul < true, false > (B, D);
     Bt_D_B.mul < false, false > (Bt_D, B);
@@ -815,8 +788,8 @@ void Material::assembleResidual(GhostType ghost_type){
       Matrix<Real> & S_it = *stress_it;
 
       SetCauchyStressArray <dim> (S_it, S_vect);
-      transferBMatrixToSymVoigtBMatrix<dim >(*shapes_derivatives_filtered_it, B_tensor, nb_nodes_per_element);
-      transferBMatrixToBL2 <dim > (*shapes_derivatives_filtered_it, grad_u, B2_tensor, nb_nodes_per_element);
+      VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(*shapes_derivatives_filtered_it, B_tensor, nb_nodes_per_element);
+      VoigtHelper<dim>::transferBMatrixToBL2(*shapes_derivatives_filtered_it, grad_u, B2_tensor, nb_nodes_per_element);
 
       B_tensor += B2_tensor;
 
@@ -930,7 +903,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
       Matrix<Real> & sigma = *sigma_it;
       Matrix<Real> & D = *D_it;
 
-      transferBMatrixToSymVoigtBMatrix<dim>(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+      VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
 
       Bu.mul<false>(B, u);
       DBu.mul<false>(D, Bu);

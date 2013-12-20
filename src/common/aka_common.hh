@@ -222,6 +222,7 @@ enum AnalysisMethod {
   _static,
   _implicit_dynamic,
   _explicit_lumped_mass,
+  _explicit_lumped_capacity,
   _explicit_consistent_mass
 };
 

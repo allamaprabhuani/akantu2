@@ -35,108 +35,63 @@
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void MaterialViscoPlasticity<dim>::computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma, Matrix<Real> & inelas_strain, Real & iso_hardening) {
-    //Infinitesimal plasticity
-
+inline void MaterialViscoPlasticity<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
+                                                              Matrix<Real> & grad_delta_u,
+                                                              Matrix<Real> & sigma,
+                                                              Matrix<Real> & inelas_strain,
+                                                              Real & iso_hardening) {
+  // Infinitesimal plasticity
   Matrix<Real> d_inelas_strain(dim,dim);
-  //Real r=iso_hardening;
 
   // Compute stress magnitude
-
   Real s = sigma.doubleDot(sigma);
   Real sigma_mag=sqrt(s);
 
-  //Compute plastic strain increment
-
-  for (UInt i = 0; i < dim; ++i)
-    for (UInt j = 0; j < dim; ++j)
+  // Compute plastic strain increment
+  for (UInt i = 0; i < dim; ++i) {
+    for (UInt j = 0; j < dim; ++j) {
       d_inelas_strain(i,j) = (ts * edot0 * pow(sigma_mag,(rate-1)) / pow(sigmay+iso_hardening,rate)) * sigma(i,j);
+    }
+  }
 
- // Compute plastic strain increment magnitude
-
+  // Compute plastic strain increment magnitude
   s = d_inelas_strain.doubleDot(d_inelas_strain);
   Real dep_mag = std::sqrt(s);
 
-  //Update stress and plastic strain
+  // Update stress and plastic strain
   Matrix<Real> grad_u_elsatic(dim, dim);
   grad_u_elsatic = grad_delta_u;
   grad_u_elsatic -= d_inelas_strain;
 
   Matrix<Real> sigma_elastic(dim, dim);
-  MaterialElastic<dim>::computeStressOnQuad(sigma_elastic, grad_u_elsatic);
+  MaterialElastic<dim>::computeStressOnQuad(grad_u_elsatic, sigma_elastic);
   sigma += sigma_elastic;
 
   inelas_strain += d_inelas_strain;
 
-
   //Update resistance stress
-
   iso_hardening = iso_hardening + h * dep_mag;
-
 }
-
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void MaterialViscoPlasticity<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_delta_u, Matrix<Real> & sigma_tensor, Matrix<Real>  & previous_sigma_tensor, Real & iso_hardening) {
-
+inline void MaterialViscoPlasticity<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent,
+                                                                     Matrix<Real> & grad_delta_u,
+                                                                     Matrix<Real> & sigma_tensor,
+                                                                     Matrix<Real> & previous_sigma_tensor,
+                                                                     Real & iso_hardening) {
   UInt cols = tangent.cols();
   UInt rows = tangent.rows();
 
-for (UInt m = 0; m < rows; m++) {
-  UInt i, j;
-        if (m < dim) {
-            i = m;
-            j = m;
-        } else {
-            if (dim == 3) {
-                if (m == 3) {
-                    i = 1;
-                    j = 2;
-                } else if (m == 4) {
-                    i = 0;
-                    j = 2;
-                } else if (m == 5) {
-                    i = 0;
-                    j = 1;
-                }
-            } else if (dim == 2) {
-                if (m == 2) {
-                    i = 0;
-                    j = 1;
-                }
-            }
-        }
+  for (UInt m = 0; m < rows; ++m) {
+    UInt i = VoigtHelper<dim>::vec[m][0];
+    UInt j = VoigtHelper<dim>::vec[m][1];
 
-        for (UInt n = 0; n < cols; n++) {
-            UInt k, l;
-            if (n < dim) {
-                k = n;
-                l = n;
-            } else {
-                if (dim == 3) {
-                    if (n == 3) {
-                        k = 1;
-                        l = 2;
-                    } else if (n == 4) {
-                        k = 0;
-                        l = 2;
-                    } else if (n == 5) {
-                        k = 0;
-                        l = 1;
-                    }
-                } else if (dim == 2) {
-                    if (n == 2) {
-                        k = 0;
-                        l = 1;
-                    }
-                }
-            }
-
-              tangent(m,n) = (i==k) * (j==l) * 2. * this->mu + (i==j) * (k==l) * this->lambda;
-              if ((m==n) && (m>=dim))
-                tangent(m,n) = tangent(m,n) - this->mu;
-
-        }
- }
+    for (UInt n = 0; n < cols; ++n) {
+      UInt k = VoigtHelper<dim>::vec[n][0];
+      UInt l = VoigtHelper<dim>::vec[n][1];
+      tangent(m,n) = (i==k) * (j==l) * 2. * this->mu + (i==j) * (k==l) * this->lambda;
+      tangent(m,n) -= (m==n) * (m>=dim) * this->mu;
+    }
+  }
 }

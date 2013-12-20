@@ -97,9 +97,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// id of thr Solver
-  ID id;
-
   /// the matrix
   SparseMatrix * matrix;
 

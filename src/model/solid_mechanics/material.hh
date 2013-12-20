@@ -31,6 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
+#include "aka_voigthelper.hh"
 #include "parser.hh"
 #include "parsable.hh"
 #include "data_accessor.hh"
@@ -48,20 +49,6 @@ namespace akantu {
 }
 
 __BEGIN_AKANTU__
-
-template <UInt dim>
-class VoigtHelper {
-public:
-  const static UInt size;
-  // matrix of vector index I as function of tensor indices i,j
-  const static UInt mat[dim][dim];
-  // array of matrix indices ij as function of vector index I
-  const static UInt vec[dim*dim][2];
-  // factors to multiply the strain by for voigt notation
-  const static Real factors[dim*(dim-(dim-1)/2)];
-};
-template <UInt dim> const UInt VoigtHelper<dim>::size = dim*(dim-(dim-1)/2);
-
 
 /**
  * Interface of all materials
@@ -218,28 +205,9 @@ protected:
   void assembleStiffnessMatrixL2(const ElementType & type,
                                  GhostType ghost_type);
 
-
-  /// transfer the B matrix to a Voigt notation B matrix
-  template<UInt dim>
-  inline void transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
-                                               Matrix<Real> & Bvoigt,
-                                               UInt nb_nodes_per_element) const;
-
-  /// transfer the BNL and BL2 matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
-  template<UInt dim>
-  inline void transferBMatrixToBNL(const Matrix<Real> & B,
-                                   Matrix<Real> & Bvoigt,
-                                   UInt nb_nodes_per_element) const;
-
-  template<UInt dim>
-  inline void transferBMatrixToBL2(const Matrix<Real> & B, const Matrix<Real> & grad_u,
-                                   Matrix<Real> & Bvoigt,
-                                   UInt nb_nodes_per_element) const;
-
   /// write the stress tensor in the Voigt notation.
   template<UInt dim>
   inline void SetCauchyStressArray(const Matrix<Real> & S_t, Matrix<Real> & Stress_vect);
-
 
   inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
 
@@ -448,7 +416,7 @@ protected:
   /// strain increment arrays ordered by element types (Finite deformation)
   InternalField<Real> delta_strain;
 
-  /// strain increment arrays ordered by element types (inelastic deformation)
+  /// inelastic strain arrays ordered by element types (inelastic deformation)
   InternalField<Real> inelas_strain;
 
   /// Second Piola-Kirchhoff stress tensor arrays ordered by element types (Finite deformation)
