@@ -44,7 +44,7 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
   damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("K0"  , K0  , 1e-4  , _pat_parsable, "K0");
+  this->registerParam("K0"  , K0  ,         _pat_parsable, "K0");
   this->registerParam("At"  , At  , 0.8   , _pat_parsable, "At");
   this->registerParam("Ac"  , Ac  , 1.4   , _pat_parsable, "Ac");
   this->registerParam("Bc"  , Bc  , 1900. , _pat_parsable, "Bc");

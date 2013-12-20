@@ -100,7 +100,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// damage threshold
-  Real K0;
+  RandomInternalField<Real>  K0;
   ///parameter damage traction 1
   Real At ;
   ///parameter damage traction 2
