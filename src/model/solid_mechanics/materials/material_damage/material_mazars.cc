@@ -41,6 +41,7 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
 						  const ID & id)  :
   Material(model, id),
   MaterialDamage<spatial_dimension>(model, id),
+  K0("K0", *this),
   damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
 
