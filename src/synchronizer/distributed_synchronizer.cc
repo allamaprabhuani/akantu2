@@ -782,10 +782,8 @@ void DistributedSynchronizer::asynchronousSynchronize(DataAccessor & data_access
                                                       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  if (communications.find(tag) == communications.end()) {
-    communications[tag].resize(nb_proc);
+  if (communications.find(tag) == communications.end())
     computeBufferSize(data_accessor, tag);
-  }
 
   Communication & communication = communications[tag];
 
@@ -996,6 +994,8 @@ void DistributedSynchronizer::waitEndSynchronize(DataAccessor & data_accessor,
 void DistributedSynchronizer::computeBufferSize(DataAccessor & data_accessor,
                                                 SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
+
+  communications[tag].resize(nb_proc);
 
   for (UInt p = 0; p < nb_proc; ++p) {
     UInt ssend    = 0;

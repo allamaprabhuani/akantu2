@@ -75,7 +75,7 @@ protected:
 
   /* ------------------------------------------------------------------------ */
   /// free an array
-  inline void dealloc(const ID & name);
+  inline void dealloc(ID name);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

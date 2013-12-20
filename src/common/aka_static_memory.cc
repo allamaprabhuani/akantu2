@@ -89,9 +89,9 @@ void StaticMemory::sfree(const MemoryID & memory_id,
     ArrayMap::iterator vector_it;
     vector_it = vectors.find(name);
     if(vector_it != vectors.end()) {
+      AKANTU_DEBUG_INFO("Array " << name << " removed from the static memory number " << memory_id);
       delete vector_it->second;
       vectors.erase(vector_it);
-      AKANTU_DEBUG_INFO("Array " << name << " removed from the static memory number " << memory_id);
       AKANTU_DEBUG_OUT();
       return;
     }

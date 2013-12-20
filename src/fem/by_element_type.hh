@@ -153,9 +153,9 @@ public:
     parent(), Memory(parent_id + ":" + id, memory_id) {};
 
   inline Array<T> & alloc(UInt size,
-			   UInt nb_component,
-			   const SupportType & type,
-			   const GhostType & ghost_type);
+			  UInt nb_component,
+			  const SupportType & type,
+			  const GhostType & ghost_type);
 
   inline void alloc(UInt size,
 		    UInt nb_component,

@@ -71,6 +71,9 @@ public:
   /// remove duplicated nodes
   void removeDuplicate();
 
+  /// append a group to current one
+  void append(const NodeGroup & other_group);
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 

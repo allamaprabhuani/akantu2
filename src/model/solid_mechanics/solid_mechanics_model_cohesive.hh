@@ -129,8 +129,8 @@ private:
   /// initialize stress interpolation
   void initStressInterpolation();
 
-  /// build fragments list
-  void buildFragmentsList();
+  /// build fragments
+  void buildFragments();
 
   /// compute fragments' mass and velocity
   void computeFragmentsMV();

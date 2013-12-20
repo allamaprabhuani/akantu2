@@ -35,7 +35,6 @@
 #include "mesh_utils.hh"
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-#  include "synchronizer_registry.hh"
 #  include "facet_synchronizer.hh"
 #endif
 
@@ -161,9 +160,6 @@ private:
   ByElementTypeArray<bool> check_facets;
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  /// synchronizer registry
-  SynchronizerRegistry * synch_registry;
-
   /// facet synchronizer
   FacetSynchronizer * facet_synchronizer;
 

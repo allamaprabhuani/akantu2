@@ -67,7 +67,6 @@ CohesiveElementInserter::~CohesiveElementInserter() {
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   delete distributed_synchronizer;
-  delete synch_registry;
 #endif
 }
 
@@ -98,7 +97,6 @@ void CohesiveElementInserter::init() {
   }
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  synch_registry = NULL;
   facet_synchronizer = NULL;
   distributed_synchronizer = NULL;
 #endif

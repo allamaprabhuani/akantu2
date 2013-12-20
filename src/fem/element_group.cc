@@ -71,6 +71,58 @@ void ElementGroup::empty() {
 }
 
 /* -------------------------------------------------------------------------- */
+void ElementGroup::append(const ElementGroup & other_group) {
+  AKANTU_DEBUG_IN();
+
+  node_group.append(other_group.node_group);
+
+  /// loop on all element types in all dimensions
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end(); ++gt) {
+
+    GhostType ghost_type = *gt;
+
+    type_iterator it = other_group.firstType(_all_dimensions, 
+					     ghost_type,
+					     _ek_not_defined);
+    type_iterator last = other_group.lastType(_all_dimensions, 
+					      ghost_type,
+					      _ek_not_defined);
+
+    for (; it != last; ++it) {
+      ElementType type = *it;
+      const Array<UInt> & other_elem_list = other_group.elements(type, ghost_type);
+      UInt nb_other_elem = other_elem_list.getSize();
+
+      Array<UInt> * elem_list;
+      UInt nb_elem = 0;
+
+      /// create current type if doesn't exists, otherwise get information
+      if (elements.exists(type, ghost_type)) {
+	elem_list = &elements(type, ghost_type);
+	nb_elem = elem_list->getSize();
+      }
+      else {
+	elem_list = &(elements.alloc(0, 1, type, ghost_type));
+      }
+
+      /// append new elements to current list
+      elem_list->resize(nb_elem + nb_other_elem);
+      std::copy(other_elem_list.begin(),
+		other_elem_list.end(),
+		elem_list->begin() + nb_elem);
+
+      /// remove duplicates
+      std::sort(elem_list->begin(), elem_list->end());
+      Array<UInt>::iterator<> end = std::unique(elem_list->begin(), elem_list->end());
+      elem_list->resize(end - elem_list->begin());
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void ElementGroup::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

@@ -45,6 +45,7 @@ class ElementGroup;
 class NodeGroup;
 class Mesh;
 class Element;
+class DistributedSynchronizer;
 
 class GroupManager {
   /* ------------------------------------------------------------------------ */
@@ -120,10 +121,17 @@ public:
   NodeGroup & createNodeGroup(const std::string & group_name,
 			      bool replace_group = false);
 
+  /// destroy a node group
+  void destroyNodeGroup(const std::string & group_name);
+
   /// create an element group and the associated node group
   ElementGroup & createElementGroup(const std::string & group_name,
 				    UInt dimension,
 				    bool replace_group = false);
+
+  /// destroy an element group and the associated node group
+  void destroyElementGroup(const std::string & group_name,
+			   bool destroy_node_group = false);
 
   /// create a element group using an existing node group
   ElementGroup & createElementGroup(const std::string & group_name, UInt dimension, NodeGroup & node_group);
@@ -138,7 +146,8 @@ public:
   /// create element clusters for a given dimension
   UInt createClusters(UInt element_dimension,
 		      std::string cluster_name_prefix = "cluster_",
-		      const ClusteringFilter & filter = ClusteringFilter());
+		      const ClusteringFilter & filter = ClusteringFilter(),
+		      DistributedSynchronizer * distributed_synchronizer = NULL);
 
   /// Create an ElementGroup based on a NodeGroup
   void createElementGroupFromNodeGroup(const std::string & name,

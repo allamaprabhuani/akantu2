@@ -112,21 +112,21 @@ inline UInt SolidMechanicsModelCohesive::getNbDataForElements(const Array<Elemen
   /// cohesive element case
   else if (elements(0).kind == _ek_cohesive) {
 
-    UInt nb_nodes_per_element = 0;
-
-    Array<Element>::const_iterator<Element> it  = elements.begin();
-    Array<Element>::const_iterator<Element> end = elements.end();
-    for (; it != end; ++it) {
-      const Element & el = *it;
-      nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
-    }
-
     switch(tag) {
     case _gst_material_id: {
       size += elements.getSize() * 2 * sizeof(UInt);
       break;
     }
     case _gst_smm_boundary: {
+      UInt nb_nodes_per_element = 0;
+
+      Array<Element>::const_iterator<Element> it  = elements.begin();
+      Array<Element>::const_iterator<Element> end = elements.end();
+      for (; it != end; ++it) {
+	const Element & el = *it;
+	nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+      }
+
       // force, displacement, boundary
       size += nb_nodes_per_element * spatial_dimension * (2 * sizeof(Real) + sizeof(bool));
       break;

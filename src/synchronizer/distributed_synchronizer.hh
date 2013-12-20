@@ -98,6 +98,9 @@ public:
   /// reset send and recv element lists
   void reset();
 
+  /// compute buffer size for a given tag and data accessor
+  void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag);
+
 protected:
   /// fill the nodes type vector
   void fillNodesType(Mesh & mesh);
@@ -147,9 +150,6 @@ protected:
                                UInt nb_local_element,
                                UInt nb_ghost_element,
                                ElementType type);
-
-  /// compute buffer size for a given tag and data accessor
-  void computeBufferSize(DataAccessor & data_accessor, SynchronizationTag tag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

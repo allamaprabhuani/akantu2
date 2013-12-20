@@ -36,6 +36,13 @@
 #include "dof_synchronizer.hh"
 #include "material_cohesive_linear.hh"
 
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_paraview.hh"
+#  include "dumper_iohelper_tmpl.hh"
+#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_iohelper_tmpl_material_internal_field.hh"
+#endif
+
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
@@ -178,13 +185,13 @@ int main(int argc, char *argv[]) {
     new DumperIOHelper::NodalField<Real>(model.getDisplacement());
   cohesive_displacement->setPadding(3);
   dumper.registerField("displacement", cohesive_displacement);
-  // dumper.registerField("damage", new DumperIOHelper::
-  // 		       HomogenizedField<Real,
-  // 					DumperIOHelper::InternalMaterialField>(model,
-  // 									       "damage",
-  // 									       spatial_dimension,
-  // 									       _not_ghost,
-  // 									       _ek_cohesive));
+  dumper.registerField("damage", new DumperIOHelper::
+  		       HomogenizedField<Real,
+  					DumperIOHelper::InternalMaterialField>(model,
+  									       "damage",
+  									       spatial_dimension,
+  									       _not_ghost,
+  									       _ek_cohesive));
   dumper.dump();
 
 

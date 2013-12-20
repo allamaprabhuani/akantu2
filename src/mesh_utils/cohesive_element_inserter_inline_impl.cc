@@ -35,7 +35,7 @@ inline UInt CohesiveElementInserter::getNbDataForElements(const Array<Element> &
 
   UInt size = 0;
 
-  if (tag == _gst_inserter) {
+  if (tag == _gst_ce_inserter) {
     UInt nb_nodes = 0;
 
     Array<Element>::const_iterator<Element> it  = elements.begin();
@@ -58,7 +58,7 @@ inline void CohesiveElementInserter::packElementData(CommunicationBuffer & buffe
 						     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  if (tag == _gst_inserter)
+  if (tag == _gst_ce_inserter)
     packUnpackGlobalConnectivity<true>(buffer, elements);
 
   AKANTU_DEBUG_OUT();
@@ -70,7 +70,7 @@ inline void CohesiveElementInserter::unpackElementData(CommunicationBuffer & buf
 						       SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
-  if (tag == _gst_inserter)
+  if (tag == _gst_ce_inserter)
     packUnpackGlobalConnectivity<false>(buffer, elements);
 
   AKANTU_DEBUG_OUT();

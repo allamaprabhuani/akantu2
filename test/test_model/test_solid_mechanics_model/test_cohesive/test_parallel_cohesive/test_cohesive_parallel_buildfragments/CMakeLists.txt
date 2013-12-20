@@ -3,9 +3,9 @@
 #
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
-# @date   Tue May 08 13:01:18 2012
+# @date   Wed Jun 13 11:29:49 2012
 #
-# @brief  configuration for cohesive elements tests
+# @brief  configuration for build fragments tests
 #
 # @section LICENSE
 #
@@ -29,8 +29,12 @@
 #
 #===============================================================================
 
-add_akantu_test(test_cohesive_parallel_intrinsic "test_cohesive_parallel_intrinsic")
-add_akantu_test(test_cohesive_facet_stress_synchronizer "test_cohesive_facet_stress_synchronizer")
-add_akantu_test(test_cohesive_parallel_extrinsic "test_cohesive_parallel_extrinsic")
-add_akantu_test(test_cohesive_parallel_extrinsic_IG_TG "test_cohesive_parallel_extrinsic_IG_TG")
-add_akantu_test(test_cohesive_parallel_buildfragments "test_cohesive_parallel_buildfragments")
+add_mesh(test_cohesive_parallel_buildfragments_mesh mesh.geo 2 1)
+
+register_test(test_cohesive_parallel_buildfragments
+  SOURCES test_cohesive_parallel_buildfragments.cc
+  DEPENDENCIES test_cohesive_parallel_buildfragments_mesh
+  FILES_TO_COPY material.dat
+  DIRECTORIES_TO_CREATE paraview)
+
+add_dependencies(test_cohesive_parallel_buildfragments test_cohesive_parallel_buildfragments_mesh)

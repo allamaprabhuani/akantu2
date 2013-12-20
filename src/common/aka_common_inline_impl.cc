@@ -100,7 +100,9 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
     case _gst_smmc_facets	       : stream << "_gst_smmc_facets"     	  ; break;
     case _gst_smmc_facets_conn	       : stream << "_gst_smmc_facets_conn"     	  ; break;
     case _gst_smmc_facets_stress       : stream << "_gst_smmc_facets_stress"   	  ; break;
-    case _gst_inserter                 : stream << "_gst_inserter"      	  ; break;
+    case _gst_smmc_damage              : stream << "_gst_smmc_damage"   	  ; break;
+    case _gst_ce_inserter              : stream << "_gst_ce_inserter"      	  ; break;
+    case _gst_gm_clusters              : stream << "_gst_gm_clusters"      	  ; break;
     case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
     case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
     case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;

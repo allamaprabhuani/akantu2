@@ -34,14 +34,10 @@ __BEGIN_AKANTU__
 void CohesiveElementInserter::initParallel(FacetSynchronizer * facet_synchronizer) {
   AKANTU_DEBUG_IN();
 
-  synch_registry = new SynchronizerRegistry(*this);
   this->facet_synchronizer = facet_synchronizer;
 
   distributed_synchronizer
     = new DistributedSynchronizer(mesh, "inserter_synchronizer");
-
-  synch_registry->registerSynchronizer(*distributed_synchronizer,
-				       _gst_inserter);
 
   AKANTU_DEBUG_OUT();
 }
@@ -108,7 +104,8 @@ UInt CohesiveElementInserter::updateGlobalIDs(NewNodesEvent & node_event) {
 						    *this, mesh);
 
   /// communicate global ids
-  synch_registry->synchronize(_gst_inserter);
+  distributed_synchronizer->asynchronousSynchronize(*this, _gst_ce_inserter);
+  distributed_synchronizer->waitEndSynchronize(*this, _gst_ce_inserter);
 
   AKANTU_DEBUG_OUT();
   return total_nb_new_nodes;

@@ -4,6 +4,7 @@
  * @author Dana Christen <dana.christen@gmail.com>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Kammer <david.kammer@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date   Wed Mar 06 09:30:00 2013
  *
@@ -37,6 +38,8 @@
 
 #include "element_group.hh"
 #include "node_group.hh"
+#include "data_accessor.hh"
+#include "distributed_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <sstream>
 #include <algorithm>
@@ -95,6 +98,19 @@ NodeGroup & GroupManager::createNodeGroup(const std::string & group_name,
   return *node_group;
 }
 
+/* -------------------------------------------------------------------------- */
+void GroupManager::destroyNodeGroup(const std::string & group_name) {
+  AKANTU_DEBUG_IN();
+
+  NodeGroups::iterator nit = node_groups.find(group_name);
+  NodeGroups::iterator nend = node_groups.end();
+  if (nit != nend) {
+    delete (nit->second);
+    node_groups.erase(nit);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
@@ -130,6 +146,23 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
 }
 
 /* -------------------------------------------------------------------------- */
+void GroupManager::destroyElementGroup(const std::string & group_name,
+				       bool destroy_node_group) {
+  AKANTU_DEBUG_IN();
+
+  ElementGroups::iterator eit = element_groups.find(group_name);
+  ElementGroups::iterator eend = element_groups.end();
+  if (eit != eend) {
+    if (destroy_node_group)
+      destroyNodeGroup(eit->second->getNodeGroup().getName());
+    delete (eit->second);
+    element_groups.erase(eit);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
                                                 UInt dimension,
                                                 NodeGroup & node_group) {
@@ -152,9 +185,261 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
 }
 
 /* -------------------------------------------------------------------------- */
+class ClusterSynchronizer : public DataAccessor {
+  typedef std::set< std::pair<UInt, UInt> > DistantIDs;
+
+public:
+  ClusterSynchronizer(GroupManager & group_manager,
+		      UInt element_dimension,
+		      std::string cluster_name_prefix,
+		      ByElementTypeUInt & element_to_fragment,
+		      DistributedSynchronizer & distributed_synchronizer,
+		      UInt nb_cluster) :
+    group_manager(group_manager),
+    element_dimension(element_dimension),
+    cluster_name_prefix(cluster_name_prefix),
+    element_to_fragment(element_to_fragment),
+    distributed_synchronizer(distributed_synchronizer),
+    nb_cluster(nb_cluster) { }
+
+  UInt synchronize() {
+    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+    UInt rank = comm.whoAmI();
+    UInt nb_proc = comm.getNbProc();
+
+    /// find starting index to renumber local clusters
+    Array<UInt> nb_cluster_per_proc(nb_proc);
+    nb_cluster_per_proc(rank) = nb_cluster;
+    comm.allGather(nb_cluster_per_proc.storage(), 1);
+
+    starting_index = std::accumulate(nb_cluster_per_proc.begin(),
+				     nb_cluster_per_proc.begin() + rank,
+				     0);
+
+    UInt global_nb_fragment = std::accumulate(nb_cluster_per_proc.begin() + rank,
+					      nb_cluster_per_proc.end(),
+					      starting_index);
+
+    /// create the local to distant cluster pairs with neighbors
+    distributed_synchronizer.computeBufferSize(*this, _gst_gm_clusters);
+    distributed_synchronizer.asynchronousSynchronize(*this, _gst_gm_clusters);
+    distributed_synchronizer.waitEndSynchronize(*this, _gst_gm_clusters);
+
+    /// count total number of pairs
+    Array<Int> nb_pairs(nb_proc);
+    nb_pairs(rank) = distant_ids.size();
+    comm.allGather(nb_pairs.storage(), 1);
+
+    UInt total_nb_pairs = std::accumulate(nb_pairs.begin(), nb_pairs.end(), 0);
+
+    /// generate pairs global array
+    UInt local_pair_index = std::accumulate(nb_pairs.storage(),
+					    nb_pairs.storage() + rank, 0);
+
+    Array<UInt> total_pairs(total_nb_pairs, 2);
+
+    DistantIDs::iterator ids_it = distant_ids.begin();
+    DistantIDs::iterator ids_end = distant_ids.end();
+
+    for (; ids_it != ids_end; ++ids_it, ++local_pair_index) {
+      total_pairs(local_pair_index, 0) = ids_it->first;
+      total_pairs(local_pair_index, 1) = ids_it->second;
+    }
+
+    /// communicate pairs to all processors
+    nb_pairs *= 2;
+    comm.allGatherV(total_pairs.storage(), nb_pairs.storage());
+
+    /// renumber clusters
+    Array<UInt>::iterator<Vector<UInt> > pairs_it = total_pairs.begin(2);
+    Array<UInt>::iterator<Vector<UInt> > pairs_end = total_pairs.end(2);
+
+    /// generate fragment list
+    std::vector< std::set<UInt> > global_clusters;
+    UInt total_nb_cluster = 0;
+
+    Array<bool> is_fragment_in_cluster(global_nb_fragment, 1, false);
+    std::queue<UInt> fragment_check_list;
+
+    while (total_pairs.getSize() != 0) {
+      /// create a new cluster
+      ++total_nb_cluster;
+      global_clusters.resize(total_nb_cluster);
+      std::set<UInt> & current_cluster = global_clusters[total_nb_cluster - 1];
+
+      UInt first_fragment = total_pairs(0, 0);
+      UInt second_fragment = total_pairs(0, 1);
+      total_pairs.erase(0);
+
+      fragment_check_list.push(first_fragment);
+      fragment_check_list.push(second_fragment);
+
+      while (!fragment_check_list.empty()) {
+	UInt current_fragment = fragment_check_list.front();
+
+	UInt * total_pairs_end = total_pairs.storage() + total_pairs.getSize() * 2;
+
+	UInt * fragment_found = std::find(total_pairs.storage(),
+					  total_pairs_end,
+					  current_fragment);
+
+	if (fragment_found != total_pairs_end) {
+	  UInt position = fragment_found - total_pairs.storage();
+	  UInt pair = position / 2;
+	  UInt other_index = (position + 1) % 2;
+	  fragment_check_list.push(total_pairs(pair, other_index));
+	  total_pairs.erase(pair);
+	}
+	else {
+	  fragment_check_list.pop();
+	  current_cluster.insert(current_fragment);
+	  is_fragment_in_cluster(current_fragment) = true;
+	}
+      }
+    }
+
+    /// add to FragmentToCluster all local fragments
+    for (UInt c = 0; c < global_nb_fragment; ++c) {
+      if (!is_fragment_in_cluster(c)) {
+	++total_nb_cluster;
+	global_clusters.resize(total_nb_cluster);
+	std::set<UInt> & current_cluster = global_clusters[total_nb_cluster - 1];
+
+	current_cluster.insert(c);
+      }
+    }
+
+    if (rank == 0) {
+      std::cout << "total_nb_pairs: " << total_nb_pairs << std::endl;
+      std::cout << "global_nb_fragment: " << global_nb_fragment << std::endl;
+
+      std::cout << std::endl;
+
+      for (UInt p = 0; p < nb_proc; ++p)
+	std::cout << "frag_proc_" << p << ": " << nb_cluster_per_proc(p) << std::endl;
+
+      std::cout << std::endl;
+
+      for (UInt i = 0; i < total_pairs.getSize(); ++i) {
+	std::cout << "Pair " << i << ": " << total_pairs(i, 0)
+		  << ", " << total_pairs(i, 1) << std::endl;
+      }
+
+      std::cout << std::endl;
+
+      for (UInt i = 0; i < global_clusters.size(); ++i) {
+	std::set<UInt>::iterator it = global_clusters[i].begin();
+	std::set<UInt>::iterator end = global_clusters[i].end();
+
+	std::cout << "Cluster " << i << ": ";
+	for (; it != end; ++it) {
+	  std::cout << *it << ", ";
+	}
+	std::cout << std::endl;
+      }
+
+    }
+
+    /// reorganize element groups to match global clusters
+    for (UInt c = 0; c < global_clusters.size(); ++c) {
+
+      /// create new element group corresponding to current cluster
+      std::stringstream sstr;
+      sstr << cluster_name_prefix << "_" << c;
+      ElementGroup & cluster = group_manager.createElementGroup(sstr.str(),
+								element_dimension,
+								true);
+
+      std::set<UInt>::iterator it = global_clusters[c].begin();
+      std::set<UInt>::iterator end = global_clusters[c].end();
+
+      /// append to current element group all fragments that belong to
+      /// the same cluster if they exist
+      for (; it != end; ++it) {
+	Int local_index = *it - starting_index;
+
+	if (local_index < 0 || local_index >= Int(nb_cluster)) continue;
+
+	std::stringstream tmp_sstr;
+	tmp_sstr << "tmp_" << cluster_name_prefix << "_" << local_index;
+	GroupManager::element_group_iterator eg_it
+	  = group_manager.element_group_find(tmp_sstr.str());
+
+	AKANTU_DEBUG_ASSERT(eg_it != group_manager.element_group_end(),
+			    "Temporary fragment \""<< tmp_sstr.str() << "\" not found");
+
+	cluster.append(*(eg_it->second));
+	group_manager.destroyElementGroup(tmp_sstr.str(), true);
+      }
+    }
+
+    return total_nb_cluster;
+  }
+
+private:
+  /// functions for parallel communications
+  inline UInt getNbDataForElements(const Array<Element> & elements,
+				   SynchronizationTag tag) const {
+    if (tag == _gst_gm_clusters)
+      return elements.getSize() * sizeof(UInt);
+
+    return 0;
+  }
+
+  inline void packElementData(CommunicationBuffer & buffer,
+			      const Array<Element> & elements,
+			      SynchronizationTag tag) const {
+    if (tag != _gst_gm_clusters) return;
+
+    Array<Element>::const_iterator<> el_it = elements.begin();
+    Array<Element>::const_iterator<> el_end = elements.end();
+
+    for (; el_it != el_end; ++el_it) {
+
+      const Element & el = *el_it;
+
+      /// for each element pack its global cluster index
+      buffer << element_to_fragment(el.type, el.ghost_type)(el.element) + starting_index;
+    }
+  }
+
+  inline void unpackElementData(CommunicationBuffer & buffer,
+				const Array<Element> & elements,
+				SynchronizationTag tag) {
+    if (tag != _gst_gm_clusters) return;
+
+    Array<Element>::const_iterator<> el_it = elements.begin();
+    Array<Element>::const_iterator<> el_end = elements.end();
+
+    for (; el_it != el_end; ++el_it) {
+      UInt distant_cluster;
+
+      buffer >> distant_cluster;
+
+      const Element & el = *el_it;
+      UInt local_cluster = element_to_fragment(el.type, el.ghost_type)(el.element) + starting_index;
+
+      distant_ids.insert(std::make_pair(local_cluster, distant_cluster));
+    }
+  }
+
+private:
+  GroupManager & group_manager;
+  UInt element_dimension;
+  std::string cluster_name_prefix;
+  ByElementTypeUInt & element_to_fragment;
+  DistributedSynchronizer & distributed_synchronizer;
+
+  UInt nb_cluster;
+  DistantIDs distant_ids;
+
+  UInt starting_index;
+};
+
+/* -------------------------------------------------------------------------- */
 UInt GroupManager::createBoundaryGroupFromGeometry() {
   UInt spatial_dimension = mesh.getSpatialDimension();
-  return createClusters(spatial_dimension - 1, "boundary_");
+  return createClusters(spatial_dimension - 1, "boundary");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -162,10 +447,22 @@ UInt GroupManager::createBoundaryGroupFromGeometry() {
 //// templating the filter class
 UInt GroupManager::createClusters(UInt element_dimension,
 				  std::string cluster_name_prefix,
-				  const GroupManager::ClusteringFilter & filter) {
+				  const GroupManager::ClusteringFilter & filter,
+				  DistributedSynchronizer * distributed_synchronizer) {
   AKANTU_DEBUG_IN();
 
+  UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
+  std::string tmp_cluster_name_prefix = cluster_name_prefix;
+
   CSR<Element> node_to_elem;
+  ByElementTypeUInt * element_to_fragment = NULL;
+
+  if (nb_proc > 1 && distributed_synchronizer) {
+    element_to_fragment = new ByElementTypeUInt;
+    mesh.initByElementTypeArray(*element_to_fragment, 1, element_dimension,
+				false, _ek_not_defined, true);
+    tmp_cluster_name_prefix = "tmp_" + tmp_cluster_name_prefix;
+  }
 
   /// Get list of all elements to check
   MeshUtils::buildNode2Elements(mesh, node_to_elem, element_dimension);
@@ -201,7 +498,7 @@ UInt GroupManager::createClusters(UInt element_dimension,
   while(!unseen_elements.empty()) {
     /// create a new cluster
     std::stringstream sstr;
-    sstr << cluster_name_prefix << nb_cluster;
+    sstr << tmp_cluster_name_prefix << "_" << nb_cluster;
     ElementGroup & cluster = createElementGroup(sstr.str(),
 						element_dimension,
 						true);
@@ -219,6 +516,10 @@ UInt GroupManager::createClusters(UInt element_dimension,
       /// take first element and erase it in the queue
       Element el = element_to_add.front();
       element_to_add.pop();
+
+      /// if parallel, store cluster index per element
+      if (nb_proc > 1 && distributed_synchronizer)
+	(*element_to_fragment)(el.type, el.ghost_type)(el.element) = nb_cluster - 1;
 
       /// add current element to the cluster
       cluster.add(el);
@@ -253,10 +554,19 @@ UInt GroupManager::createClusters(UInt element_dimension,
     cluster.getNodeGroup().removeDuplicate();
   }
 
+  if (nb_proc > 1 && distributed_synchronizer) {
+    ClusterSynchronizer cluster_synchronizer(*this, element_dimension,
+					     cluster_name_prefix,
+					     *element_to_fragment,
+					     *distributed_synchronizer,
+					     nb_cluster);
+    nb_cluster = cluster_synchronizer.synchronize();
+    delete element_to_fragment;
+  }
+
   AKANTU_DEBUG_OUT();
   return nb_cluster;
 }
-
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
