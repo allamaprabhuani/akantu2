@@ -159,6 +159,16 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
 }
 
 /* -------------------------------------------------------------------------- */
+void Mesh::defineMeshParent(const Mesh & mesh) {
+  AKANTU_DEBUG_IN();
+
+  mesh_parent = &mesh;
+  is_mesh_facets = true;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void Mesh::init() {
   nodes_type = NULL;
   mesh_facets = NULL;

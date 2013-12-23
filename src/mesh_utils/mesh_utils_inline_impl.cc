@@ -77,7 +77,7 @@ inline void MeshUtils::updateElementalConnectivity(Mesh & mesh,
       nb_nodes_per_element = conn_elem->getNbComponent();
 
       if (elem.kind == _ek_cohesive)
-	cohesive_facets = & mesh.getSubelementToElement(el_type, gt_type);
+	cohesive_facets = & mesh.getMeshFacets().getSubelementToElement(el_type, gt_type);
     }
 
     if (elem.kind == _ek_cohesive) {

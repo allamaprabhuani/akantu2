@@ -82,7 +82,7 @@ public:
   void waitEndSynchronize(DataAccessor & data_accessor,SynchronizationTag tag);
 
   /// build processor to element corrispondance
-  void buildPrankToElement(ByElementTypeUInt & prank_to_element);
+  void buildPrankToElement();
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -156,6 +156,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
+  AKANTU_GET_MACRO(PrankToElement, prank_to_element, const ByElementTypeUInt &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -212,6 +214,8 @@ protected:
 
   friend class FilteredSynchronizer;
   friend class FacetSynchronizer;
+
+  ByElementTypeUInt prank_to_element;
 
 };
 

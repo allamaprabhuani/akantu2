@@ -452,8 +452,8 @@ void FacetSynchronizer::buildRankToFacet(ByElementTypeUInt & rank_to_facet,
       GhostType gt = elem(el).ghost_type;
       UInt el_index = elem(el).element;
 
-      const Array<Element> & facet_to_element =
-	mesh.getSubelementToElement(type, gt);
+      const Array<Element> & facet_to_element
+	= mesh.getSubelementToElement(type, gt);
       UInt nb_facets_per_element = Mesh::getNbFacetsPerElement(type);
       ElementType facet_type = Mesh::getFacetType(type);
 

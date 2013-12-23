@@ -50,7 +50,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
                                                          const ID & id,
                                                          const MemoryID & memory_id) :
   SolidMechanicsModel(mesh, dim, id, memory_id),
-  mesh_facets(mesh.initMeshFacets()),
+  mesh_facets(mesh.initMeshFacets("mesh_facets")),
   tangents("tangents", id),
   stress_on_facet("stress_on_facet", id),
   facet_stress("facet_stress", id),
@@ -67,7 +67,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   facet_synchronizer = NULL;
   facet_stress_synchronizer = NULL;
   cohesive_distributed_synchronizer = NULL;
-  rank_to_element = NULL;
   global_connectivity = NULL;
 #endif
 
@@ -86,7 +85,6 @@ SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() {
   delete cohesive_distributed_synchronizer;
   delete facet_synchronizer;
   delete facet_stress_synchronizer;
-  delete rank_to_element;
 #endif
 
   AKANTU_DEBUG_OUT();
@@ -133,8 +131,10 @@ void SolidMechanicsModelCohesive::initMaterials() {
 
   if (facet_stress_synchronizer != NULL) {
     DataAccessor * data_accessor = this;
+    const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
+
     facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
-							     *rank_to_element,
+							     rank_to_element,
 							     *data_accessor);
   }
 #endif
@@ -290,8 +290,10 @@ void SolidMechanicsModelCohesive::updateAutomaticInsertion() {
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
     if (facet_stress_synchronizer != NULL) {
       DataAccessor * data_accessor = this;
+      const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
+
       facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
-							       *rank_to_element,
+							       rank_to_element,
 							       *data_accessor);
     }
 #endif
@@ -804,7 +806,8 @@ void SolidMechanicsModelCohesive::buildFragments() {
 
   nb_fragment = mesh.createClusters(spatial_dimension, "fragment",
 				    CohesiveElementFilter(*this),
-				    synch_parallel);
+				    synch_parallel,
+				    &mesh_facets);
 
   AKANTU_DEBUG_OUT();
 }

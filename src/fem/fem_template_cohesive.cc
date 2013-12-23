@@ -142,7 +142,7 @@ computeNormalsOnControlPoints<_cohesive_1d_2>(__attribute__((unused)) const Arra
   normal.resize(nb_element);
 
   Array<Element> & facets =
-    mesh.getSubelementToElement(type, ghost_type);
+    mesh.getMeshFacets().getSubelementToElement(type, ghost_type);
   Array<std::vector<Element> > & segments =
     mesh.getMeshFacets().getElementToSubelement(facet_type, ghost_type);
 

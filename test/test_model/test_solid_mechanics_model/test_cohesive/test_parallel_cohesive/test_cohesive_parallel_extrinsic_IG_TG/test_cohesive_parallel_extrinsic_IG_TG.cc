@@ -6,8 +6,9 @@
  *
  * @date   Thu April 18 13:31:00 2013
  *
- * @brief  Test for considering different cohesive properties for intergranular (IG) and
- * transgranular (TG) fractures in extrinsic cohesive elements
+ * @brief Test for considering different cohesive properties for
+ * intergranular (IG) and transgranular (TG) fractures in extrinsic
+ * cohesive elements
  *
  * @section LICENSE
  *
@@ -44,6 +45,8 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material.hh"
+#include "material_cohesive_linear.hh"
+
 #if defined(AKANTU_USE_IOHELPER)
 #  include "dumper_paraview.hh"
 #endif
@@ -130,6 +133,8 @@ int main(int argc, char *argv[]) {
 
   /// model initialization
   model.initParallel(partition, NULL, true);
+
+  delete partition;
 
   MultiGrainMaterialSelector material_selector(model, "TG_cohesive", "IG_cohesive");
   model.setMaterialSelector(material_selector);
@@ -218,11 +223,7 @@ int main(int argc, char *argv[]) {
 
     model.checkCohesiveStress();
 
-    model.explicitPred();
-    // nb_coh_elem = mesh.getNbElement (FEM::getCohesiveElementType(type_facet));
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     if(s % 10 == 0) {
       if(prank == 0)

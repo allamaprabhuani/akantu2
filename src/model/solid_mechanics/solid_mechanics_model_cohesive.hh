@@ -270,7 +270,7 @@ public:
     if(Mesh::getKind(element.type) == _ek_cohesive) {
       try {
 	const Array<Element> & cohesive_el_to_facet
-	  = mesh.getSubelementToElement(element.type, element.ghost_type);
+	  = mesh_facets.getSubelementToElement(element.type, element.ghost_type);
 	bool third_dimension = (mesh.getSpatialDimension() == 3);
 	const Element & facet = cohesive_el_to_facet(element.element, third_dimension);
 	return facet_material(facet.type, facet.ghost_type)(facet.element);

@@ -255,7 +255,11 @@ inline Array<T> * Mesh::getDataPointer(const std::string & data_name,
   Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(data_name,
                                                            el_type, ghost_type,
                                                            nb_component);
-  tmp.resize(getNbElement(el_type, ghost_type));
+  if (is_mesh_facets && getSpatialDimension(el_type) == spatial_dimension)
+    tmp.resize(mesh_parent->getNbElement(el_type, ghost_type));
+  else
+    tmp.resize(getNbElement(el_type, ghost_type));
+
   return &tmp;
 }
 

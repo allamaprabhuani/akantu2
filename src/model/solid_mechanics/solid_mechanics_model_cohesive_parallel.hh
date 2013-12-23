@@ -100,8 +100,5 @@ FacetStressSynchronizer * facet_stress_synchronizer;
 /// cohesive elements synchronizer
 DistributedSynchronizer * cohesive_distributed_synchronizer;
 
-/// store processor rank for each element
-ByElementTypeUInt * rank_to_element;
-
 /// global connectivity
 ByElementTypeUInt * global_connectivity;

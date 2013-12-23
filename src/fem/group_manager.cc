@@ -310,37 +310,6 @@ public:
       }
     }
 
-    if (rank == 0) {
-      std::cout << "total_nb_pairs: " << total_nb_pairs << std::endl;
-      std::cout << "global_nb_fragment: " << global_nb_fragment << std::endl;
-
-      std::cout << std::endl;
-
-      for (UInt p = 0; p < nb_proc; ++p)
-	std::cout << "frag_proc_" << p << ": " << nb_cluster_per_proc(p) << std::endl;
-
-      std::cout << std::endl;
-
-      for (UInt i = 0; i < total_pairs.getSize(); ++i) {
-	std::cout << "Pair " << i << ": " << total_pairs(i, 0)
-		  << ", " << total_pairs(i, 1) << std::endl;
-      }
-
-      std::cout << std::endl;
-
-      for (UInt i = 0; i < global_clusters.size(); ++i) {
-	std::set<UInt>::iterator it = global_clusters[i].begin();
-	std::set<UInt>::iterator end = global_clusters[i].end();
-
-	std::cout << "Cluster " << i << ": ";
-	for (; it != end; ++it) {
-	  std::cout << *it << ", ";
-	}
-	std::cout << std::endl;
-      }
-
-    }
-
     /// reorganize element groups to match global clusters
     for (UInt c = 0; c < global_clusters.size(); ++c) {
 
@@ -438,6 +407,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
+/// \todo this function doesn't work in 1D
 UInt GroupManager::createBoundaryGroupFromGeometry() {
   UInt spatial_dimension = mesh.getSpatialDimension();
   return createClusters(spatial_dimension - 1, "boundary");
@@ -449,13 +419,13 @@ UInt GroupManager::createBoundaryGroupFromGeometry() {
 UInt GroupManager::createClusters(UInt element_dimension,
 				  std::string cluster_name_prefix,
 				  const GroupManager::ClusteringFilter & filter,
-				  DistributedSynchronizer * distributed_synchronizer) {
+				  DistributedSynchronizer * distributed_synchronizer,
+				  Mesh * mesh_facets) {
   AKANTU_DEBUG_IN();
 
   UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
   std::string tmp_cluster_name_prefix = cluster_name_prefix;
 
-  CSR<Element> node_to_elem;
   ByElementTypeUInt * element_to_fragment = NULL;
 
   if (nb_proc > 1 && distributed_synchronizer) {
@@ -465,8 +435,20 @@ UInt GroupManager::createClusters(UInt element_dimension,
     tmp_cluster_name_prefix = "tmp_" + tmp_cluster_name_prefix;
   }
 
-  /// Get list of all elements to check
-  MeshUtils::buildNode2Elements(mesh, node_to_elem, element_dimension);
+  /// Get facets
+  bool mesh_facets_created = false;
+
+  if (!mesh_facets) {
+    mesh_facets = new Mesh(mesh.getSpatialDimension(),
+			   mesh.getNodes().getID(),
+			   "mesh_facets_for_clusters");
+
+    mesh_facets->defineMeshParent(mesh);
+
+    MeshUtils::buildAllFacets(mesh, *mesh_facets,
+			      element_dimension - 1,
+			      distributed_synchronizer);
+  }
 
   std::list<Element> unseen_elements;
   Element el;
@@ -485,13 +467,16 @@ UInt GroupManager::createClusters(UInt element_dimension,
     for (; type_it != type_end; ++type_it) {
       el.type = *type_it;
       el.kind = Mesh::getKind(*type_it);
-      for (UInt e = 0; e < mesh.getNbElement(*type_it, ghost_type); ++e) {
+      UInt nb_element = mesh.getNbElement(*type_it, ghost_type);
+      for (UInt e = 0; e < nb_element; ++e) {
 	el.element = e;
 	if (filter(el))
 	  unseen_elements.push_back(el);
       }
     }
   }
+
+  Array<bool> checked_node(mesh.getNbNodes(), 1, false);
 
   UInt nb_cluster = 0;
 
@@ -525,19 +510,24 @@ UInt GroupManager::createClusters(UInt element_dimension,
       /// add current element to the cluster
       cluster.add(el);
 
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-      Vector<UInt> connect =
-	mesh.getConnectivity(el.type, el.ghost_type).begin(nb_nodes_per_element)[el.element];
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+      const Array<Element> & element_to_facet
+	= mesh_facets->getSubelementToElement(el.type, el.ghost_type);
 
-	/// add element's nodes to the cluster
-	UInt node = connect[n];
-	cluster.addNode(node);
+      UInt nb_facet_per_element = element_to_facet.getNbComponent();
 
-	/// loop over neighbors
-	CSR<Element>::iterator it_n;
-	for (it_n = node_to_elem.begin(node); it_n != node_to_elem.end(node); ++it_n) {
-	  Element & check_el = *it_n;
+      for (UInt f = 0; f < nb_facet_per_element; ++f) {
+	const Element & facet = element_to_facet(el.element, f);
+
+	if (facet == ElementNull) continue;
+
+	const std::vector<Element> & connected_elements
+	  = mesh_facets->getElementToSubelement(facet.type, facet.ghost_type)(facet.element);
+
+	for (UInt elem = 0; elem < connected_elements.size(); ++elem) {
+	  const Element & check_el = connected_elements[elem];
+
+	  if (check_el == ElementNull || check_el == el) continue;
+
 	  std::list<Element>::iterator it_clus = std::find(unseen_elements.begin(),
 							   unseen_elements.end(),
 							   check_el);
@@ -550,9 +540,20 @@ UInt GroupManager::createClusters(UInt element_dimension,
 	  }
 	}
       }
+
+
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+      Vector<UInt> connect =
+	mesh.getConnectivity(el.type, el.ghost_type).begin(nb_nodes_per_element)[el.element];
+      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	/// add element's nodes to the cluster
+	UInt node = connect[n];
+	if (!checked_node(node)) {
+	  cluster.addNode(node);
+	  checked_node(node) = true;
+	}
+      }
     }
-    /// remove duplicated nodes
-    cluster.getNodeGroup().removeDuplicate();
   }
 
   if (nb_proc > 1 && distributed_synchronizer) {
@@ -564,6 +565,9 @@ UInt GroupManager::createClusters(UInt element_dimension,
     nb_cluster = cluster_synchronizer.synchronize();
     delete element_to_fragment;
   }
+
+  if (mesh_facets_created)
+    delete mesh_facets;
 
   AKANTU_DEBUG_OUT();
   return nb_cluster;

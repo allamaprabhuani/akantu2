@@ -36,6 +36,7 @@
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "aka_csr.hh"
+#include "distributed_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
 #include <vector>
@@ -80,21 +81,18 @@ public:
   /// build facets elements on boundary
   static void buildFacets(Mesh & mesh);
 
-  /// build facets elements : boundary and internals (for serial simulations)
-  static void buildAllFacets(Mesh & mesh,
-			     Mesh & mesh_facets);
-
-  /// build facets elements : boundary and internals (for parallel simulations)
-  static void buildAllFacetsParallel(Mesh & mesh,
-				     Mesh & mesh_facets,
-				     ByElementTypeUInt & prank_to_element);
+  /// build facets elements: boundary and internals
+  static void buildAllFacets(const Mesh & mesh,
+			     Mesh & mesh_facets,
+			     UInt to_dimension = 0,
+			     DistributedSynchronizer * synchronizer = NULL);
 
   /// build facets for a given spatial dimension
-  static void buildFacetsDimension(Mesh & mesh,
+  static void buildFacetsDimension(const Mesh & mesh,
 				   Mesh & mesh_facets,
 				   bool boundary_only,
 				   UInt dimension,
-				   ByElementTypeUInt & prank_to_element);
+				   const ByElementTypeUInt * prank_to_element = NULL);
 
   /// take  the local_connectivity  array  as  the array  of  local and  ghost
   /// connectivity, renumber the nodes and set the connectivity of the mesh

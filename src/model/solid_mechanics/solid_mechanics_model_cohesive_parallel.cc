@@ -53,24 +53,17 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
   synch_registry->registerSynchronizer(*cohesive_distributed_synchronizer,
   				       _gst_smm_boundary);
 
-  DistributedSynchronizer & distributed_synchronizer =
-    dynamic_cast<DistributedSynchronizer &>(*synch_parallel);
-
-  distributed_synchronizer.filterElementsByKind(cohesive_distributed_synchronizer,
-						_ek_cohesive);
+  synch_parallel->filterElementsByKind(cohesive_distributed_synchronizer,
+				       _ek_cohesive);
 
   /// create the facet synchronizer for extrinsic simulations
   if (extrinsic) {
-    rank_to_element = new ByElementTypeUInt("prank_to_element", id);
-    ByElementTypeUInt & prank_to_element = *rank_to_element;
 
-    distributed_synchronizer.buildPrankToElement(prank_to_element);
-
-    MeshUtils::buildAllFacetsParallel(mesh, mesh_facets, prank_to_element);
+    MeshUtils::buildAllFacets(mesh, mesh_facets, 0, synch_parallel);
     facet_generated = true;
 
     facet_synchronizer =
-      FacetSynchronizer::createFacetSynchronizer(distributed_synchronizer,
+      FacetSynchronizer::createFacetSynchronizer(*synch_parallel,
                                                  mesh_facets);
 
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
@@ -160,11 +153,14 @@ void SolidMechanicsModelCohesive::updateFacetSynchronizers() {
 						      *this,
                                                       mesh);
 
-  if (facet_stress_synchronizer != NULL)
-    facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
-							     *rank_to_element,
-							     *this);
+  if (facet_stress_synchronizer != NULL) {
+    const ByElementTypeUInt & prank_to_element
+      = synch_parallel->getPrankToElement();
 
+    facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
+							     prank_to_element,
+							     *this);
+  }
 }
 
 __END_AKANTU__

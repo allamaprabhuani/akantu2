@@ -147,7 +147,8 @@ public:
   UInt createClusters(UInt element_dimension,
 		      std::string cluster_name_prefix = "cluster_",
 		      const ClusteringFilter & filter = ClusteringFilter(),
-		      DistributedSynchronizer * distributed_synchronizer = NULL);
+		      DistributedSynchronizer * distributed_synchronizer = NULL,
+		      Mesh * mesh_facets = NULL);
 
   /// Create an ElementGroup based on a NodeGroup
   void createElementGroupFromNodeGroup(const std::string & name,

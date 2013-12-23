@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
 
   const UInt spatial_dimension = 2;
-  const UInt total_nb_fragment = 2;
+  const UInt total_nb_fragment = 100;
 
   Mesh mesh(spatial_dimension);
 
@@ -109,43 +109,18 @@ int main(int argc, char *argv[]) {
 
   /// impose initial displacement
   Array<Real> & displacement = model.getDisplacement();
+  Array<Real> & velocity = model.getVelocity();
   const Array<Real> & position = mesh.getNodes();
   UInt nb_nodes = mesh.getNbNodes();
 
-  for (UInt n = 0; n < nb_nodes; ++n)
-    displacement(n, 0) = position(n, 0) * 10;
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    displacement(n, 0) = position(n, 0) * 0.1;
+    velocity(n, 0) = position(n, 0);
+  }
 
   model.updateResidual();
   model.checkCohesiveStress();
   model.dump();
-
-  {
-    ElementType cohesive_type = _cohesive_2d_4;
-    UInt nb_element = mesh.getNbElement(cohesive_type);
-    UInt nb_element_ghost = mesh.getNbElement(cohesive_type, _ghost);
-
-    std::cout << "Proc " << prank << ": " << nb_element
-  	      << " _not_ghost, " << nb_element_ghost
-  	      << " _ghost" << std::endl;
-
-    // Vector<Real> barycenter(spatial_dimension);
-
-    // for (UInt el = 0; el < nb_element; ++el) {
-    //   mesh.getBarycenter(el, cohesive_type, barycenter.storage());
-
-    //   std::cout << "  " << el << ": (" << barycenter(0)
-    // 		<< ", " << barycenter(1) << ")" << std::endl;
-    // }
-
-    // std::cout << "Ghost:" << std::endl;
-
-    // for (UInt el = 0; el < nb_element_ghost; ++el) {
-    //   mesh.getBarycenter(el, cohesive_type, barycenter.storage(), _ghost);
-
-    //   std::cout << "  " << el << ": (" << barycenter(0)
-    // 		<< ", " << barycenter(1) << ")" << std::endl;
-    // }
-  }
 
   const Array<Real> & fragment_mass = model.getFragmentsMass();
 
@@ -194,13 +169,15 @@ int main(int argc, char *argv[]) {
     /// displace fragments
     displaceElements(model, lim, el_size * 2);
     model.updateResidual();
-    model.dump();
 
     lim += el_size;
   }
 
+  model.dump();
+
   /// check centers
   const Array<Real> & fragment_center = model.getFragmentsCenter();
+  const Array<Real> & fragment_velocity = model.getFragmentsVelocity();
 
   Real initial_position = -L / 2. + el_size / 2.;
 
@@ -216,98 +193,18 @@ int main(int argc, char *argv[]) {
       AKANTU_DEBUG_ERROR("The fragments' center is wrong!");
       return EXIT_FAILURE;
     }
+
+    f_index = 0;
+    while (f_index < total_nb_fragment &&
+  	   !Math::are_float_equal(fragment_velocity(f_index, 0),
+				  theoretical_center))
+      ++f_index;
+
+    if (f_index == total_nb_fragment) {
+      AKANTU_DEBUG_ERROR("The fragments' velocity is wrong!");
+      return EXIT_FAILURE;
+    }
   }
-
-  // /// Main loop
-  // for (UInt s = 1; s <= max_steps; ++s) {
-
-  //   model.checkCohesiveStress();
-
-  //   model.explicitPred();
-  //   model.updateResidual();
-  //   model.updateAcceleration();
-  //   model.explicitCorr();
-
-  //   /// apply boundary conditions
-  //   try {
-  //     model.applyBC(BC::Dirichlet::IncrementValue(-disp_increment, BC::_x), "Left_side");
-  //   } catch(...) {}
-  //   try {
-  //     model.applyBC(BC::Dirichlet::IncrementValue( disp_increment, BC::_x), "Right_side");
-  //   } catch(...) {}
-
-  //   if(s % 1 == 0) {
-  //     // model.dump();
-
-  //     std::cout << "passing step " << s << "/" << max_steps << std::endl;
-
-  //     model.computeFragmentsData();
-
-  //     /// check number of fragments
-  //     UInt nb_fragment_num = model.getNbFragment();
-  //     UInt nb_fragment = countFragments(model);
-
-  //     if (nb_fragment != nb_fragment_num) {
-  // 	std::cout << "The number of fragments is wrong at step "
-  // 		  << s << std::endl;
-  // 	std::cout << "Theoretical: " << nb_fragment
-  // 		  << " Computed: " << nb_fragment_num << std::endl;
-  // 	return EXIT_FAILURE;
-  //     }
-
-  //     /// check mass computation
-  //     Real total_mass = 0.;
-  //     for (UInt frag = 0; frag < nb_fragment_num; ++frag) {
-  // 	total_mass += fragment_mass(frag, 0);
-  //     }
-
-  //     if (!Math::are_float_equal(theoretical_mass, total_mass)) {
-  // 	std::cout << "The fragments' mass is wrong!" << std::endl;
-  // 	return EXIT_FAILURE;
-  //     }
-
-  //   }
-  // }
-
-  // /// check that all cohesive elements are broken
-  // UInt nb_fragment = model.getNbFragment();
-  // UInt nb_element = mesh.getNbElement(type);
-  // comm.allReduce(&nb_element, 1, _so_sum);
-
-  // if (nb_fragment != nb_element) {
-  //   std::cout << "The bar isn't breaking everywhere, increase strain rate" << std::endl;
-  //   return EXIT_FAILURE;
-  // }
-
-  // /// check velocities
-  // const Array<Real> & fragment_velocity = model.getFragmentsVelocity();
-  // const Array<Real> & fragment_center = model.getFragmentsCenter();
-
-  // Real fragment_length = L / nb_fragment;
-  // Real initial_position = -L / 2. + fragment_length / 2.;
-
-  // for (UInt frag = 0; frag < nb_fragment; ++frag) {
-  //   Real theoretical_center = initial_position + fragment_length * frag;
-
-  //   UInt f_index = 0;
-  //   while (f_index < nb_fragment &&
-  // 	   !Math::are_float_equal(fragment_center(f_index, 0), theoretical_center))
-  //     ++f_index;
-
-  //   if (f_index == nb_fragment) {
-  //     std::cout << "The fragments' center is wrong!" << std::endl;
-  //     return EXIT_FAILURE;
-  //   }
-
-  //   Real initial_vel = fragment_center(frag, 0) * strain_rate;
-
-  //   Math::setTolerance(100);
-
-  //   if (!Math::are_float_equal(fragment_velocity(frag), initial_vel)) {
-  //     std::cout << "The fragments' velocity is wrong!" << std::endl;
-  //     return EXIT_FAILURE;
-  //   }
-  // }
 
   finalize();
 
@@ -352,10 +249,7 @@ void verticalInsertionLimit(SolidMechanicsModelCohesive & model) {
 
 	if (nb_aligned_nodes != nb_nodes_per_facet) {
 	  Vector<Real> barycenter(spatial_dimension);
-
 	  mesh_facets.getBarycenter(f, type, barycenter.storage(), ghost_type);
-	  std::cout << barycenter(0) << " " << barycenter(1) << std::endl;
-
 	  check_facets(f) = false;
 	}
       }

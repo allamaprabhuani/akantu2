@@ -52,7 +52,9 @@ DistributedSynchronizer::DistributedSynchronizer(Mesh & mesh,
                                                  SynchronizerID id,
                                                  MemoryID memory_id) :
   Synchronizer(id, memory_id),
-  mesh(mesh), static_communicator(&StaticCommunicator::getStaticCommunicator())
+  mesh(mesh),
+  static_communicator(&StaticCommunicator::getStaticCommunicator()),
+  prank_to_element("prank_to_element", id)
 {
   AKANTU_DEBUG_IN();
 
@@ -1175,7 +1177,7 @@ void DistributedSynchronizer::onElementsRemoved(const Array<Element> & element_t
 // }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::buildPrankToElement(ByElementTypeUInt & prank_to_element) {
+void DistributedSynchronizer::buildPrankToElement() {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();

@@ -245,7 +245,7 @@ public:
   Mesh(UInt spatial_dimension,
        const ID & nodes_id,
        const ID & id,
-       const MemoryID & memory_id);
+       const MemoryID & memory_id = 0);
 
   /**
    * constructor that use an existing nodes coordinates
@@ -346,6 +346,9 @@ public:
 
   /// init facets' mesh
   Mesh & initMeshFacets(const ID & id = "mesh_facets");
+
+  /// define parent mesh
+  void defineMeshParent(const Mesh & mesh);
 
   /// get global connectivity array
   void getGlobalConnectivity(Array<UInt> & global_connectivity,
@@ -474,8 +477,6 @@ public:
 
   /// Parent mesh accessor
   AKANTU_GET_MACRO(MeshParent, *mesh_parent, const Mesh &);
-  AKANTU_GET_MACRO_NOT_CONST(MeshParent, *mesh_parent, Mesh &);
-
 
   inline bool isMeshFacets() const {return is_mesh_facets;}
 
@@ -626,7 +627,7 @@ private:
   Mesh * mesh_facets;
 
   /// parent mesh (this is set for mesh_facets meshes)
-  Mesh * mesh_parent;
+  const Mesh * mesh_parent;
 
   /// defines if current mesh is mesh_facets or not
   bool is_mesh_facets;

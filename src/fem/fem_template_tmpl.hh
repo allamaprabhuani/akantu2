@@ -916,7 +916,7 @@ inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::computeNor
   Array< std::vector<Element> > segments = mesh.getElementToSubelement(type, ghost_type);
   Array<Real> coords = mesh.getNodes();
 
-  Mesh * mesh_segment;
+  const Mesh * mesh_segment;
   if (mesh.isMeshFacets())
     mesh_segment = &(mesh.getMeshParent());
   else
