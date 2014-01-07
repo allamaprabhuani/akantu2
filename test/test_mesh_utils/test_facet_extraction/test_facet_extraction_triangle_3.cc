@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
   Mesh mesh(dim);
   mesh.read("square.msh");
-  Mesh mesh_facets(dim, const_cast<Array<Real> &>(mesh.getNodes()), "mesh_facets", 1);
+  Mesh mesh_facets(mesh.initMeshFacets("mesh_facets"));
 
   MeshUtils::buildAllFacets(mesh, mesh_facets);
 
