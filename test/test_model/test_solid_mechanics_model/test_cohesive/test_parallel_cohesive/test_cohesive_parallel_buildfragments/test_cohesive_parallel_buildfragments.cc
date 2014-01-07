@@ -41,6 +41,13 @@
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
 
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_paraview.hh"
+#  include "dumper_iohelper_tmpl.hh"
+#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_iohelper_tmpl_material_internal_field.hh"
+#endif
+
 //#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -54,8 +61,8 @@ int main(int argc, char *argv[]) {
 
   debug::setDebugLevel(dblWarning);
 
-  const UInt spatial_dimension = 2;
-  const UInt total_nb_fragment = 100;
+  const UInt spatial_dimension = 3;
+  const UInt total_nb_fragment = 50;
 
   Mesh mesh(spatial_dimension);
 
@@ -88,18 +95,30 @@ int main(int argc, char *argv[]) {
   Real h = mesh.getYMax() - mesh.getYMin();
   Real rho = model.getMaterial("bulk").getParam<Real>("rho");
 
-  Real theoretical_mass = L * h * rho;
+  Real theoretical_mass = L * h * h * rho;
   Real frag_theo_mass = theoretical_mass / total_nb_fragment;
 
   model.setBaseName("extrinsic");
   model.addDumpFieldVector("displacement");
   model.addDumpField("velocity"    );
-  model.addDumpField("acceleration");
-  model.addDumpField("residual"    );
   model.addDumpField("stress");
-  model.addDumpField("strain");
   model.addDumpField("partitions");
   model.dump();
+
+  DumperParaview dumper("cohesive_elements");
+  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+  DumperIOHelper::Field * cohesive_displacement =
+    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
+  cohesive_displacement->setPadding(3);
+  dumper.registerField("displacement", cohesive_displacement);
+  dumper.registerField("damage", new DumperIOHelper::
+  		       HomogenizedField<Real,
+  					DumperIOHelper::InternalMaterialField>(model,
+  									       "damage",
+  									       spatial_dimension,
+  									       _not_ghost,
+  									       _ek_cohesive));
+  dumper.dump();
 
   /// set check facets
   verticalInsertionLimit(model);
@@ -121,11 +140,12 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
   model.checkCohesiveStress();
   model.dump();
+  dumper.dump();
 
   const Array<Real> & fragment_mass = model.getFragmentsMass();
 
   Real el_size = L / total_nb_fragment;
-  Real lim = -L/2 + el_size * 0.75;
+  Real lim = -L/2 + el_size * 0.99;
 
   /// displace one fragment each time
   for (UInt frag = 1; frag <= total_nb_fragment; ++frag) {
@@ -170,10 +190,14 @@ int main(int argc, char *argv[]) {
     displaceElements(model, lim, el_size * 2);
     model.updateResidual();
 
+    // model.dump();
+    // dumper.dump();
+
     lim += el_size;
   }
 
   model.dump();
+  dumper.dump();
 
   /// check centers
   const Array<Real> & fragment_center = model.getFragmentsCenter();

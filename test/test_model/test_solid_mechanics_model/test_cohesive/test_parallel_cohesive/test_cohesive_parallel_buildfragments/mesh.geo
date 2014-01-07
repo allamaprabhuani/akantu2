@@ -1,23 +1,14 @@
 L = 0.03;
 h = L/10;
-s = L/100;
+s = L/50;
 
 Point(1) = {-L/2., 0, 0, s};
-Point(2) = {L/2., 0, 0, s};
-Point(3) = {L/2., h, 0, s};
-Point(4) = {-L/2., h, 0, s};
-Line(1) = {1, 2};
-Line(2) = {2, 3};
-Line(3) = {3, 4};
-Line(4) = {4, 1};
-Line Loop(5) = {4, 1, 2, 3};
-Plane Surface(6) = {5};
-Physical Surface(7) = {6};
-Physical Line("Left_side") = {4};
-Physical Line("Right_side") = {2};
 
-Transfinite Line {1, 3} = L / s + 1;
-Transfinite Line {2, 4} = h / s + 1;
+line[] = Extrude{L,0,0}{ Point{1}; };
+surface[] = Extrude{0,h,0}{ Line{line[1]}; };
+volume[] = Extrude{0,0,h}{ Surface{surface[1]}; };
+
+Physical Volume(1) = {volume[1]};
+
 Transfinite Surface "*";
-// Recombine Surface "*";
-Mesh.SecondOrderIncomplete = 1;
+Transfinite Volume "*";

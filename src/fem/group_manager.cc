@@ -410,6 +410,12 @@ private:
 /// \todo this function doesn't work in 1D
 UInt GroupManager::createBoundaryGroupFromGeometry() {
   UInt spatial_dimension = mesh.getSpatialDimension();
+
+  if (spatial_dimension == 1) {
+    AKANTU_DEBUG_WARNING("The function createBoundaryGroupFromGeometry does not work in 1D");
+    return 0;
+  }
+
   return createClusters(spatial_dimension - 1, "boundary");
 }
 
