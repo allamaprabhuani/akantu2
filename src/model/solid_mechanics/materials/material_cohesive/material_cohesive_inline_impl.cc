@@ -48,7 +48,7 @@ inline UInt MaterialCohesive::getNbDataForElements(const Array<Element> & elemen
 
   switch (tag) {
   case _gst_smm_stress: {
-    return spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
+    return 2 * spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
   }
   case _gst_smmc_damage: {
     return sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
@@ -64,8 +64,11 @@ inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
 					      const Array<Element> & elements,
 					      SynchronizationTag tag) const {
   switch (tag) {
-  case _gst_smm_stress:
-    packElementDataHelper(tractions, buffer, elements, "CohesiveFEM"); break;
+  case _gst_smm_stress: {
+    packElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
+    packElementDataHelper(contact_tractions, buffer, elements, "CohesiveFEM");
+    break;
+  }
   case _gst_smmc_damage:
     packElementDataHelper(damage, buffer, elements, "CohesiveFEM"); break;
   default: {}
@@ -77,8 +80,11 @@ inline void MaterialCohesive::unpackElementData(CommunicationBuffer & buffer,
 						const Array<Element> & elements,
 						SynchronizationTag tag) {
   switch (tag) {
-  case _gst_smm_stress:
-    unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEM"); break;
+  case _gst_smm_stress: {
+    unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
+    unpackElementDataHelper(contact_tractions, buffer, elements, "CohesiveFEM");
+    break;
+  }
   case _gst_smmc_damage:
     unpackElementDataHelper(damage, buffer, elements, "CohesiveFEM"); break;
   default: {}
