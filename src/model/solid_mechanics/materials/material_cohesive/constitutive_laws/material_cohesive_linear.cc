@@ -399,7 +399,7 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
 
     if (Math::are_float_equal(*damage_it, 1.))
       traction_it->clear();
-    else if (Math::are_float_equal(*delta_max_it, 0.)) {
+    else if (Math::are_float_equal(*damage_it, 0.)) {
       if (normal_opening_norm > 0.)
       	*traction_it = *insertion_stress_it;
       else
