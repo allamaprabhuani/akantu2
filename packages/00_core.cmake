@@ -263,6 +263,73 @@ set(AKANTU_CORE_TESTS
   test_weight
   )
 
+set(AKANTU_CORE_MANUAL_FILES
+  manual.sty
+  manual.cls
+  manual.tex
+  manual-macros.sty
+  manual-titlepages.tex
+  manual-introduction.tex
+  manual-gettingstarted.tex
+  manual-io.tex
+  manual-solidmechanicsmodel.tex
+  manual-lumping.tex
+  manual-elements.tex
+  manual-appendix-elements.tex
+  manual-backmatter.tex
+  manual-bibliography.bib
+  manual-bibliographystyle.bst
+
+  figures/bc_and_ic_example.pdf
+  figures/boundary.pdf
+  figures/boundary.svg
+  figures/dirichlet.pdf
+  figures/dirichlet.svg
+  figures/doc_wheel.pdf
+  figures/doc_wheel.svg
+  figures/dynamic_analysis.png
+  figures/explicit_dynamic.pdf
+  figures/explicit_dynamic.svg
+  figures/hooke_law.pdf
+  figures/hot-point-1.png
+  figures/hot-point-2.png
+  figures/implicit_dynamic.pdf
+  figures/implicit_dynamic.svg
+  figures/implicit_static.pdf
+  figures/implicit_static.svg
+  figures/insertion.pdf
+  figures/interpolate.pdf
+  figures/interpolate.svg
+  figures/law.pdf
+  figures/static_analysis.png
+  figures/stress_strain_el.pdf
+  figures/tangent.pdf
+  figures/tangent.svg
+  figures/vectors.pdf
+  figures/vectors.svg
+
+
+  figures/elements/hexahedron_8.pdf
+  figures/elements/hexahedron_8.svg
+  figures/elements/quadrangle_4.pdf
+  figures/elements/quadrangle_4.svg
+  figures/elements/quadrangle_8.pdf
+  figures/elements/quadrangle_8.svg
+  figures/elements/segment_2.pdf
+  figures/elements/segment_2.svg
+  figures/elements/segment_3.pdf
+  figures/elements/segment_3.svg
+  figures/elements/tetrahedron_10.pdf
+  figures/elements/tetrahedron_10.svg
+  figures/elements/tetrahedron_4.pdf
+  figures/elements/tetrahedron_4.svg
+  figures/elements/triangle_3.pdf
+  figures/elements/triangle_3.svg
+  figures/elements/triangle_6.pdf
+  figures/elements/triangle_6.svg
+  figures/elements/xtemp.pdf
+  )
+
 find_program(READLINK_COMMAND readlink)
 find_program(ADDR2LINE_COMMAND addr2line)
 mark_as_advanced(READLINK_COMMAND)

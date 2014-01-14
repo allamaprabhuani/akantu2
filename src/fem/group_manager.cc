@@ -411,11 +411,6 @@ private:
 UInt GroupManager::createBoundaryGroupFromGeometry() {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  if (spatial_dimension == 1) {
-    AKANTU_DEBUG_WARNING("The function createBoundaryGroupFromGeometry does not work in 1D");
-    return 0;
-  }
-
   return createClusters(spatial_dimension - 1, "boundary");
 }
 
@@ -444,7 +439,7 @@ UInt GroupManager::createClusters(UInt element_dimension,
   /// Get facets
   bool mesh_facets_created = false;
 
-  if (!mesh_facets) {
+  if (!mesh_facets && element_dimension > 0) {
     mesh_facets = new Mesh(mesh.getSpatialDimension(),
 			   mesh.getNodes().getID(),
 			   "mesh_facets_for_clusters");
@@ -497,9 +492,31 @@ UInt GroupManager::createClusters(UInt element_dimension,
     ++nb_cluster;
 
     /// initialize the queue of elements to check in the current cluster
+    std::list<Element>::iterator uns_it = unseen_elements.begin();
+    Element uns_el = *uns_it;
+    unseen_elements.erase(uns_it);
+
+    // point element are cluster by themself
+    if(element_dimension == 0) {
+      cluster.add(uns_el);
+
+      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+      Vector<UInt> connect =
+	mesh.getConnectivity(uns_el.type, uns_el.ghost_type).begin(nb_nodes_per_element)[uns_el.element];
+      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+	/// add element's nodes to the cluster
+	UInt node = connect[n];
+	if (!checked_node(node)) {
+	  cluster.addNode(node);
+	  checked_node(node) = true;
+	}
+      }
+
+      continue;
+    }
+
     std::queue<Element> element_to_add;
-    element_to_add.push(*(unseen_elements.begin()));
-    unseen_elements.erase(unseen_elements.begin());
+    element_to_add.push(uns_el);
 
     /// keep looping until current cluster is complete (no more
     /// connected elements)

@@ -66,10 +66,13 @@ set(CPACK_COMPONENT_DEV_GROUP "Development")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PACKAGE_FILE_NAME}-${AKANTU_VERSION}-src")
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/COPYING")
 
+string(TOUPPER ${PROJECT_NAME} _project)
+
 list(APPEND CPACK_SOURCE_IGNORE_FILES ${AKANTU_EXCLUDE_SOURCE_FILES} ${AKANTU_TESTS_EXCLUDE_FILES} ${AKANTU_DOC_EXCLUDE_FILES})
 foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_OFF})
-  list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${_pkg}.cmake)
+  string(TOUPPER "${_pkg}" _pkg)
+  list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${${_project}_${_pkg}_FILE})
 endforeach()
-list(APPEND CPACK_SOURCE_IGNORE_FILES "/doc/manual/;/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.hgignore;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
+list(APPEND CPACK_SOURCE_IGNORE_FILES "/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.hgignore;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 
 include(CPack)

@@ -173,10 +173,9 @@ register_test(test_solid_mechanics_model_cube3d_pbc
   DIRECTORIES_TO_CREATE paraview
   )
 
-add_mesh(test_solid_mechanics_model_boundary_condition_mesh cube_physical_names.geo 3 1)
+#add_mesh(test_solid_mechanics_model_boundary_condition_mesh cube_physical_names.geo 3 1)
 
 register_test(test_solid_mechanics_model_boundary_condition
   SOURCES test_solid_mechanics_model_boundary_condition.cc
-  FILES_TO_COPY material.dat
-  DEPENDENCIES test_solid_mechanics_model_boundary_condition_mesh
+  FILES_TO_COPY material.dat cube_physical_names.msh
   )

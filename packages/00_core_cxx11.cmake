@@ -20,9 +20,14 @@ set(AKANTU_CORE_CXX11_FILES
 
 if(HAVE_NEW_STD)
   option(AKANTU_CORE_CXX11 "core CXX11 additions for Akantu" ON)
-  add_definitions(-std=c++0x)
+  if(AKANTU_CORE_CXX11)
+    add_flags(cxx "-std=c++0x")
+  else()
+    remove_flags(cxx "-std=c++0x")
+  endif()
 else()
   set(AKANTU_CORE_CXX11 OFF CACHE BOOL "core package for Akantu" FORCE)
+  remove_flags(cxx "-std=c++0x")
 endif()
 
 mark_as_advanced(AKANTU_CORE_CXX11)

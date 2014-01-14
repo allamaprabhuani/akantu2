@@ -39,7 +39,7 @@
  *
  * @subsection quad_points Position of quadrature points
  * @f{eqnarray*}{
- * \q0 &=& 0
+ * q_0 &=& 0
  * @f}
  */
 

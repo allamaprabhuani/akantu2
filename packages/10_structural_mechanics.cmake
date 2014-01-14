@@ -59,3 +59,12 @@ set(AKANTU_STRUCTURAL_MECHANICS_TESTS
   test_structural_mechanics_model_bernoulli_beam_3_local_force
   test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13
   )
+
+set(AKANTU_STRUCTURAL_MECHANICS_MANUAL_FILES
+  manual-structuralmechanicsmodel.tex
+  manual-structuralmechanicsmodel-elements.tex
+
+  figures/beam_example.pdf
+  figures/elements/bernoulli_2.pdf
+  figures/elements/bernoulli_2.svg
+  )

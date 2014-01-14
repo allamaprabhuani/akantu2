@@ -29,7 +29,6 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-
 include_directories(
   ${AKANTU_INCLUDE_DIRS}
   ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR}
@@ -44,7 +43,7 @@ add_akantu_test(test_static_memory "Test static memory")
 add_akantu_test(test_fem "Test finite element functionalties")
 add_akantu_test(test_mesh_utils "Test mesh utils")
 add_akantu_test(test_model "Test model objects")
-add_akantu_test(test_solver "Test solver function" PACKAGE solver)
+add_akantu_test(test_solver "Test solver function" PACKAGE mumps)
 add_akantu_test(test_io "Test the IO modules")
 
 
@@ -77,3 +76,7 @@ foreach(_file ${_all_files})
 endforeach()
 
 set(AKANTU_TESTS_EXCLUDE_FILES ${AKANTU_TESTS_EXCLUDE_FILES} PARENT_SCOPE)
+
+#foreach(f ${AKANTU_TESTS_EXCLUDE_FILES})
+#  message(${f})
+#endforeach()

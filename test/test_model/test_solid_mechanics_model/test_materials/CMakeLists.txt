@@ -29,29 +29,13 @@
 #
 #===============================================================================
 
-add_akantu_test(test_material_viscoelastic "test the visco elastic materials"
-  PACKAGE extra_materials)
-add_mesh(test_local_material_square_mesh triangle.geo 2 2)
-add_mesh(test_local_material_circle_mesh circle.geo 2 2)
-add_mesh(test_local_material_bar_mesh bar.geo 2 1)
 add_mesh(test_local_material_barre_trou_mesh barre_trou.geo 2 2)
-
 register_test(test_local_material
   SOURCES  test_local_material.cc local_material_damage.cc
   EXTRA_FILES local_material_damage.hh local_material_damage_inline_impl.cc
-  DEPENDENCIES test_local_material_square_mesh test_local_material_circle_mesh
-  test_local_material_barre_trou_mesh
+  DEPENDENCIES test_local_material_barre_trou_mesh
   FILES_TO_COPY material.dat
   DIRECTORIES_TO_CREATE paraview
-  )
-
-add_mesh(test_material_non_local_mesh mesh.geo 2 2 OUTPUT mesh.msh)
-register_test(test_material_damage_non_local
-  SOURCES test_material_damage_non_local.cc
-  DEPENDENCIES test_material_non_local_mesh
-  FILES_TO_COPY material_damage_non_local.dat
-  DIRECTORIES_TO_CREATE paraview
-  PACKAGE damage_non_local
   )
 
 #===============================================================================
@@ -63,3 +47,9 @@ register_test(test_interpolate_stress test_interpolate_stress.cc
 #===============================================================================
 add_akantu_test(test_material_plasticity "test material plasticity "
   PACKAGE extra_materials)
+
+add_akantu_test(test_material_viscoelastic "test the visco elastic materials"
+  PACKAGE extra_materials)
+
+add_akantu_test(test_material_non_local "test the non-local materials"
+  PACKAGE damage_non_local)

@@ -36,3 +36,7 @@ set(AKANTU_PARALLEL_TESTS
   test_synchronizer_communication
   test_dof_synchronizer
   )
+
+set(AKANTU_PARALLEL_MANUAL_FILES
+  manual-parallel.tex
+  )

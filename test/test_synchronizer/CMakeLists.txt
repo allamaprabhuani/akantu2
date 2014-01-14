@@ -47,17 +47,17 @@ if(AKANTU_DAMAGE_NON_LOCAL)
 endif()
 
 register_test(test_grid_synchronizer
-  SOURCES test_grid_synchronizer.cc
+  SOURCES test_grid_synchronizer.cc test_data_accessor.hh
   DEPENDENCIES test_synchronizer_communication_mesh test_grid_synchronizer_check_neighbors
   PACKAGE damage_non_local
   )
 
 register_test(test_dof_synchronizer
-  SOURCES test_dof_synchronizer.cc
+  SOURCES test_dof_synchronizer.cc test_data_accessor.hh
   FILES_TO_COPY bar.msh)
 
 register_test(test_facet_synchronizer
-  SOURCES test_facet_synchronizer.cc
+  SOURCES test_facet_synchronizer.cc test_data_accessor.hh
   DEPENDENCIES test_facet_synchronizer_mesh
   PACKAGE parallel_cohesive_element
   )

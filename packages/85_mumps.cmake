@@ -142,3 +142,10 @@ else()
   add_optional_external_package(Mumps "Add Mumps support in akantu" OFF)
 
 endif()
+
+set(AKANTU_MUMPS_TESTS
+  test_sparse_matrix_profile
+  test_sparse_matrix_assemble
+  test_solver_mumps
+  test_sparse_matrix_product
+  )

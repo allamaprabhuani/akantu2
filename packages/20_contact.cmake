@@ -66,4 +66,8 @@ if(AKANTU_CONTACT)
     )
 endif()
 
+set(AKANTU_CONTACT_MANUAL_FILES
+  manual-contact.tex
+)
+
 #add_internal_package_dependencies(contact optimization)

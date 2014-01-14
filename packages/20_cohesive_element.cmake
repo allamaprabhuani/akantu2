@@ -78,3 +78,11 @@ set(AKANTU_COHESIVE_ELEMENT_TESTS
 set(AKANTU_COHESIVE_ELEMENT_DOC
   manual/manual-cohesive_element.tex
   )
+
+set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
+  manual-cohesive_element.tex
+
+  figures/cohesive2d.pdf
+  figures/cohesive3d.pdf
+  figures/cohesive_exponential.pdf
+  )

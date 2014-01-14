@@ -45,32 +45,7 @@ ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = NO
 SEARCH_INCLUDES        = YES
-INCLUDE_PATH           = @CMAKE_SOURCE_DIR@/src/mesh_utils \
-		       	 @CMAKE_SOURCE_DIR@/src/mesh_utils/mesh_partition \
-			 @CMAKE_SOURCE_DIR@/src/solver \
-			 @CMAKE_SOURCE_DIR@/src/fem \
-			 @CMAKE_SOURCE_DIR@/src/fem/element_classes \
-			 @CMAKE_SOURCE_DIR@/src/io \
-			 @CMAKE_SOURCE_DIR@/src/io/dumper \
-			 @CMAKE_SOURCE_DIR@/src/io/model_io \
-			 @CMAKE_SOURCE_DIR@/src/io/mesh_io \
-			 @CMAKE_SOURCE_DIR@/src/common \
-			 @CMAKE_SOURCE_DIR@/src/model \
-			 @CMAKE_SOURCE_DIR@/src/model/heat_transfer \
-			 @CMAKE_SOURCE_DIR@/src/model/structural_mechanics \
-			 @CMAKE_SOURCE_DIR@/src/model/integration_scheme \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/contact \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/contact/friction_coefficient \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/contact/friction_coefficient/velocity_dependent_fric_coef \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/contact/friction_coefficient/simplified_dieterich_fric_coef \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/materials \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/materials/material_damage \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/materials/material_viscoelastic \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/materials/material_cohesive \
-			 @CMAKE_SOURCE_DIR@/src/model/solid_mechanics/materials/material_cohesive/constitutive_laws \
-			 @CMAKE_SOURCE_DIR@/src/contact \
-			 @CMAKE_SOURCE_DIR@/src/synchronizer
+INCLUDE_PATH           = @AKANTU_DOXYGEN_INCLUDE_DIRS@
 
 INCLUDE_FILE_PATTERNS  = *.hh
 PREDEFINED             = @AKANTU_DOXYGEN_DEFINTIONS@

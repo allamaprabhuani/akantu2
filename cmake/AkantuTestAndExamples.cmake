@@ -150,9 +150,11 @@ function(register_test test_name)
     )
 
   # add the test in a package if needed
+  set(_test_define_package 0)
   set(_package_name AKANTU_CORE)
   if(register_test_PACKAGE)
     package_pkg_name(${register_test_PACKAGE} _package_name)
+    set(_test_define_package 1)
     list(FIND ${_package_name}_TESTS ${test_name} _ret)
     if(_ret EQUAL -1)
       list(APPEND ${_package_name}_TESTS ${test_name})
@@ -179,7 +181,7 @@ function(register_test test_name)
     endif()
   endforeach()
 
-  if(NOT _present_in_packages)
+  if(NOT _present_in_packages AND NOT _test_define_package)
     message("The test ${test_name} is not registered in any packages")
   endif()
 

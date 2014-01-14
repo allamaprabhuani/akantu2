@@ -88,3 +88,11 @@ set(AKANTU_EXTRA_MATERIALS_TESTS
 set(AKANTU_EXTRA_MATERIALS_DOC
   manual/manual-extra_materials.tex
   )
+
+set(AKANTU_EXTRA_MATERIALS_MANUAL_FILES
+  manual-extra_materials.tex
+
+  figures/stress_strain_neo.pdf
+  figures/stress_strain_visco.pdf
+  figures/visco_elastic_law.pdf
+  )

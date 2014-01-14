@@ -28,6 +28,7 @@
 #===============================================================================
 
 option(AKANTU_HEAT_TRANSFER "Use Heat Transfer package of Akantu" OFF)
+
 set(AKANTU_HEAT_TRANSFER_FILES
   model/heat_transfer/heat_transfer_model.cc
   model/heat_transfer/heat_transfer_model.hh
@@ -45,3 +46,7 @@ set(AKANTU_HEAT_TRANSFER_TESTS
    test_heat_transfer_model_square2d
    test_heat_transfer_model_cube3d_istropic_conductivity
    )
+
+set(AKANTU_HEAT_TRANSFER_MANUAL_FILES
+  manual-heattransfermodel.tex
+)

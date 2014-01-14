@@ -1,6 +1,6 @@
 \chapter{Elements\index{Elements}}
 
-The base for every Finite Elements computation is its mesh and the elements that are used within that mesh. The element types that can be used depend on the mesh, but also on the dimensionality of the problem (1D, 2D or 3D). In \akantu several isoparametric Langrangian element types are supported (and one serendipity element). Each of these types is discussed in some detail below, starting with the 1D-elements all the way to the 3D-elements. More detailed information (shape function, location of Gaussian quadrature points, and so on) can be found in Appendix~\ref{app:elements}. 
+The base for every Finite Elements computation is its mesh and the elements that are used within that mesh. The element types that can be used depend on the mesh, but also on the dimensionality of the problem (1D, 2D or 3D). In \akantu several isoparametric Langrangian element types are supported (and one serendipity element). Each of these types is discussed in some detail below, starting with the 1D-elements all the way to the 3D-elements. More detailed information (shape function, location of Gaussian quadrature points, and so on) can be found in Appendix~\ref{app:elements}.
 
 %%%%%%%%%% 1D %%%%%%%%%
 \section{Isoparametric Elements\index{Elements!Isoparametric}}
@@ -19,7 +19,7 @@ In \akantu there are two types of isoparametric elements defined in 1D. These el
 \subfloat[\code{\_segment\_3}]{
   \includegraphics[width=0.3\textwidth]{figures/elements/segment_3}
   \label{fig:elements:segment3}
-} 
+}
 \end{tabular}
 \end{center}
 \caption{Schematic overview of the two 1D element types in \akantu. In each element the node numbering as used in \akantu is indicated and also the quadrature points are highlighted (gray circles).}
@@ -62,7 +62,7 @@ In \akantu there are four types of isoparametric elements defined in 2D. These e
 \subfloat[\code{\_quadrangle\_8}]{
   \includegraphics[width=0.3\textwidth]{figures/elements/quadrangle_8}
   \label{fig:elements:quadrangle8}
-} 
+}
 \end{tabular}
 \end{center}
 \caption{Schematic overview of the four 2D element types in \akantu. In each element the node numbering as used in \akantu is indicated and also the quadrature points are highlighted (gray circles).}
@@ -104,7 +104,7 @@ In \akantu there are three types of isoparametric elements defined in 3D. These 
 \subfloat[\code{\_hexahedron\_8}]{
   \includegraphics[width=0.3\textwidth]{figures/elements/hexahedron_8}
   \label{fig:elements:hexahedron8}
-} 
+}
 \end{tabular}
 \caption{Schematic overview of the three 3D element types in \akantu. In each element the node numbering as used in \akantu is indicated and also the quadrature points are highlighted (gray spheres).}
 \label{fig:elements:3D}
@@ -128,36 +128,9 @@ Element type & Order & \# nodes & \# quad. points  \\
 
 
 %%%%%%%%%% STRUCTURAL ELEMENTS %%%%%%%%%
-
-\section{Structural elements\index{Elements!Structural}}
-
-\subsection*{Bernoulli beam elements\index{Elements!Bernoulli}}
-These elements allow to compute the displacements and rotations of structures constituted by Bernoulli beams. \akantu defines them for both 2D and 3D problems in the element types \code{\_bernoulli\_beam\_2} and \code{\_bernoulli\_beam\_3}. A schematic depiction of a beam element is shown in Figure~\ref{fig:elements:bernoulli} and some of its properties are listed in Table~\ref{tab:elements:bernoulli}.
-
-\note{Beam elements are of mixed order: the axial displacement is linearly interpolated while transverse displacements and rotations use cubic shape functions.}
-
-\begin{figure}[htb]
-  \centering
-  \includegraphics[width=0.3\textwidth]{figures/elements/bernoulli_2}
-  \caption{Schematic depiction of a Bernoulli beam element (applies to 2D and 3D) in \akantu. The node numbering as used in \akantu is indicated and also the quadrature points are highlighted (gray circles).}
-  \label{fig:elements:bernoulli}
-\end{figure}
-\begin{table}[htb]
-  \centering
-  \begin{tabular}{c||c|c|c|c}
-    Element type &\#nodes &\#quad. points & \#dimensions & \#d.o.f.\\\hline\hline
-    \code{\_bernoulli\_beam\_2} & 2&3 &2 &4\\\hline
-    \code{\_bernoulli\_beam\_3} & 2&3 &3 &6
-  \end{tabular}
-  \caption{Some basic properties of \akantu's beam elements}
-  \label{tab:elements:bernoulli}
-\end{table}
-
-
+\IfFileExists{manual-structuralmechanicsmodel-elements.tex}{\input{manual-structuralmechanicsmodel-elements}}{}
 
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"
 %%% End:
-
-
