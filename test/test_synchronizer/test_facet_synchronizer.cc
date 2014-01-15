@@ -60,12 +60,9 @@ int main(int argc, char *argv[]) {
   }
 
   /// create facets
-  Mesh mesh_facets(spatial_dimension, mesh.getNodes(), "mesh_facets");
+  Mesh mesh_facets(mesh.initMeshFacets("mesh_facets"));
 
-  ByElementTypeUInt prank_to_element("prank_to_element", "prank_to_el");
-  dist->buildPrankToElement(prank_to_element);
-
-  MeshUtils::buildAllFacetsParallel(mesh, mesh_facets, prank_to_element);
+  MeshUtils::buildAllFacets(mesh, mesh_facets, 0, dist);
 
   // debug::setDebugLevel(dblDump);
   // std::cout << mesh << std::endl;

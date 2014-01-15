@@ -253,6 +253,9 @@ void MeshUtils::buildAllFacets(const Mesh & mesh,
 			       DistributedSynchronizer * synchronizer) {
   AKANTU_DEBUG_IN();
 
+  AKANTU_DEBUG_ASSERT(mesh_facets.isMeshFacets(),
+		      "The mesh_facets should be initialized with initMeshFacets");
+
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   const ByElementTypeUInt * prank_to_element = NULL;
