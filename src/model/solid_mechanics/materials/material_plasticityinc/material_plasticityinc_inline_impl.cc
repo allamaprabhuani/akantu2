@@ -66,12 +66,13 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
   Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
   Real sigma_tr_dev_eff = std::sqrt(3./2. * s);
 
+  const Real iso_hardening_t = iso_hardening;
   //Loop for correcting stress based on yield function
   while ((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) {
     //r = r +  h * dp;
     d_dp = (sigma_tr_dev_eff - 3. * this->mu *dp -  iso_hardening - sigmay) / (3. * this->mu + h);
 
-    iso_hardening = iso_hardening + h * d_dp;
+    iso_hardening = iso_hardening_t + h * d_dp;
     dp = dp + d_dp;
 
     ++n;
@@ -91,7 +92,7 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
   grad_u_elastic -= d_inelas_strain;
 
   Matrix<Real> sigma_elastic(dim, dim);
-  MaterialElastic<dim>::computeStressOnQuad(grad_u_elastic, sigma_elastic, delta_sigma_th);
+  MaterialElastic<dim>::computeStressOnQuad(grad_u_elastic, sigma_elastic);
   sigma += sigma_elastic;
 
   inelas_strain += d_inelas_strain;

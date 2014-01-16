@@ -394,10 +394,6 @@ void HeatTransferModel::assembleStiffnessMatrix(const ElementType & type, const 
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(type, ghost_type);
 
-  Array<Real> & t_gradient = temperature_gradient(type, ghost_type);
-  this->getFEM().gradientOnQuadraturePoints(*temperature, t_gradient,
-                                             1, type, ghost_type);
-
   /// compute @f$\mathbf{B}^t * \mathbf{D} * \mathbf{B}@f$
   UInt bt_d_b_size = nb_nodes_per_element;
 

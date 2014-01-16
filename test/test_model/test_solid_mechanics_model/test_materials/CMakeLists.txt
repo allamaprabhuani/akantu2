@@ -38,6 +38,12 @@ register_test(test_local_material
   DIRECTORIES_TO_CREATE paraview
   )
 
+add_mesh(test_material_thermal_mesh square.geo 2 1)
+register_test(test_material_thermal
+  SOURCES test_material_thermal.cc
+  DEPENDENCIES test_material_thermal_mesh
+  FILES_TO_COPY material_thermal.dat
+)
 #===============================================================================
 add_mesh(test_interpolate_stress_mesh interpolation.geo 3 2)
 register_test(test_interpolate_stress test_interpolate_stress.cc
@@ -45,7 +51,7 @@ register_test(test_interpolate_stress test_interpolate_stress.cc
   DEPENDENCIES test_interpolate_stress_mesh
   DIRECTORIES_TO_CREATE paraview)
 #===============================================================================
-add_akantu_test(test_material_plasticity "test material plasticity "
+add_akantu_test(test_material_plasticity "test material plasticity"
   PACKAGE extra_materials)
 
 add_akantu_test(test_material_viscoelastic "test the visco elastic materials"

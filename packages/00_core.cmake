@@ -237,6 +237,7 @@ set(AKANTU_CORE_TESTS
   test_interpolate_stress
   test_local_material
   test_material_damage_non_local
+  test_material_thermal
   test_matrix
   test_mesh_boundary
   test_mesh_data
