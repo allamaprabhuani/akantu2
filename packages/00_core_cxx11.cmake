@@ -19,7 +19,14 @@ set(AKANTU_CORE_CXX11_FILES
 
 
 if(HAVE_NEW_STD)
-  option(AKANTU_CORE_CXX11 "core CXX11 additions for Akantu" ON)
+  option(AKANTU_CORE_CXX11 "C++ 11 additions for Akantu core" ON)
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.6")
+      set(AKANTU_CORE_CXX11 OFF CACHE BOOL "C++ 11 additions for Akantu core - not supported by the selected compiler" FORCE)
+    endif()
+  endif()
+
   if(AKANTU_CORE_CXX11)
     add_flags(cxx "-std=c++0x")
   else()

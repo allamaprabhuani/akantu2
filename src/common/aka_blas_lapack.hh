@@ -73,9 +73,12 @@ extern "C" {
 __BEGIN_AKANTU__
 #if defined(__INTEL_COMPILER)
 //#pragma warning ( disable : 383 )
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused"
+#elif defined(__GNUG__)
+#  define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#  if GCC_VERSION > 40600
+#    pragma GCC diagnostic push
+#  endif
+#  pragma GCC diagnostic ignored "-Wunused"
 #endif
 template<typename T>
 inline T aka_dot(int *n, T *x, int *incx, T *y, int *incy) {
@@ -204,13 +207,6 @@ extern "C" {
 
 __BEGIN_AKANTU__
 
-#if defined(__INTEL_COMPILER)
-//#pragma warning ( disable : 383 )
-#else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused"
-#endif
-
 template<typename T>
 inline void aka_geev(char* jobvl, char* jobvr, int* n, T* a,
 		       int* lda, T* wr, T* wi, T* vl, int* ldvl,
@@ -237,9 +233,12 @@ inline void aka_getrs(char *trans, int * n, int * nrhs,
 		       T * b, int * ldb, int * info) {
 AKANTU_DEBUG_ERROR(debug::demangle(typeid(T).name()) << "is not a type recognized, or you didn't activated LAPACK in the compilation options!");
 }
-#if defined(__INTEL_COMPILER)
-#else
-#pragma GCC diagnostic pop
+#if defined(__GNUG__)
+#  if GCC_VERSION > 40600
+#    pragma GCC diagnostic pop
+#  else
+#    pragma GCC diagnostic warning "-Wunused"
+#  endif
 #endif
 
 #ifdef AKANTU_USE_LAPACK

@@ -283,16 +283,16 @@ class DumperIOHelper::filtered_connectivity_field_iterator : public element_iter
                                                                                      filtered_connectivity_field_iterator, true> {
 public:
   typedef element_iterator<UInt, UInt, Vector, filtered_connectivity_field_iterator, true> parent;
-  typedef typename parent::it_type     it_type;
-  typedef typename parent::data_type   data_type;
-  typedef typename parent::return_type return_type;
-  typedef typename parent::field_type  field_type;
-  typedef typename parent::internal_iterator internal_iterator;
+  typedef parent::it_type     it_type;
+  typedef parent::data_type   data_type;
+  typedef parent::return_type return_type;
+  typedef parent::field_type  field_type;
+  typedef parent::internal_iterator internal_iterator;
 public:
   filtered_connectivity_field_iterator(const field_type & field,
                                        UInt n,
-                                       const typename field_type::type_iterator & t_it,
-                                       const typename field_type::type_iterator & t_it_end,
+                                       const field_type::type_iterator & t_it,
+                                       const field_type::type_iterator & t_it_end,
                                        const internal_iterator & it,
                                        ElementType element_type,
                                        const GhostType ghost_type = _not_ghost,

@@ -60,11 +60,15 @@
 __BEGIN_AKANTU__
 
 namespace debug {
+  static void printBacktraceAndExit(int sig) {
+    printBacktrace(sig);
+    debugger.exit(EXIT_FAILURE);
+  }
   /* ------------------------------------------------------------------------ */
   void initSignalHandler() {
     struct sigaction action;
 
-    action.sa_handler = &printBacktrace;
+    action.sa_handler = &printBacktraceAndExit;
     sigemptyset(&(action.sa_mask));
     action.sa_flags = SA_RESETHAND;
 
@@ -198,8 +202,6 @@ namespace debug {
     free(stack_strings);
 
     std::cerr << "END BACKTRACE" << std::endl;
-
-    if(sig != SIGKILL && sig != SIGABRT) debugger.exit(EXIT_FAILURE);
   }
 
   /* ------------------------------------------------------------------------ */

@@ -77,7 +77,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     set(MUMPS_LIBRARY_MPI ${PROJECT_BINARY_DIR}/third-party/lib/libmpiseq${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
     mark_as_advanced(MUMPS_LIBRARY_MPI)
   else()
-    set(MUMPS_LIBRARY_MPI "" CACHE INTERNAL)
+    set(MUMPS_LIBRARY_MPI "")
   endif()
 
   configure_file(${PROJECT_SOURCE_DIR}/third-party/MUMPSmake.inc.cmake

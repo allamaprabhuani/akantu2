@@ -52,12 +52,12 @@ if(SUBVERSION_FOUND)
     add_subdirectory(third-party/blackdynamite)
 
     list(APPEND AKANTU_EXTERNAL_LIBRARIES blackdynamite)
-    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/blackdynamite/src)
+    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/blackdynamite/src ${BLACKDYNAMITE_EXTERNAL_INCLUDE_DIR})
 
     list(APPEND AKANTU_EXPORT_LIST blackdynamite)
     list(APPEND AKANTU_OPTION_LIST BLACKDYNAMITE)
 
-    set(AKANTU_BLACKDYNAMITE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/blackdynamite/src)
+    set(AKANTU_BLACKDYNAMITE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/blackdynamite/src ${BLACKDYNAMITE_EXTERNAL_INCLUDE_DIR})
 
     set(AKANTU_BLACKDYNAMITE ON)
   else()
