@@ -79,6 +79,7 @@ protected:
   Real nu;
 
   /// Thermal expansion coefficient
+  /// TODO : implement alpha as a matrix
   Real alpha;
 
   /// Temperature field

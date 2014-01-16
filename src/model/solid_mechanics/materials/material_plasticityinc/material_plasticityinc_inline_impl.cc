@@ -76,6 +76,8 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
     dp = dp + d_dp;
 
     ++n;
+
+    /// TODO : explicit this criterion with an error message
     if ((d_dp < 1e-5) || (n>50))
       break;
   }

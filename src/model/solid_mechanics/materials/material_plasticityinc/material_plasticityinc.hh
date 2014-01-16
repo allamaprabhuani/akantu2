@@ -127,6 +127,9 @@ private:
   /// hardening modulus
   Real h;
 
+  /// TODO : add a coefficient beta that will multiply the plastic energy increment
+  // to compute the energy converted to heat
+
   /// isotropic hardening, r
   InternalField<Real> iso_hardening;
 

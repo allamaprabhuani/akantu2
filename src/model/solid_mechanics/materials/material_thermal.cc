@@ -61,6 +61,7 @@ void MaterialThermal<dim>::computeStress(ElementType el_type, GhostType ghost_ty
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
+  /// TODO : implement with the matrix alpha
   if (dim == 1) {
     *sigma_th_cur_it = - this->E * this->alpha * *delta_t_it;
   }
