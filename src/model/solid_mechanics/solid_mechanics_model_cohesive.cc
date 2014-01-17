@@ -104,6 +104,15 @@ SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::setTimeStep(Real time_step) {
+  SolidMechanicsModel::setTimeStep(time_step);
+
+#if defined(AKANTU_USE_IOHELPER)
+  getDumper("cohesive_elements").setTimeStep(time_step);
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::initFull(std::string material_file,
 					   const ModelOptions & options) {
   AKANTU_DEBUG_IN();
@@ -123,9 +132,6 @@ void SolidMechanicsModelCohesive::initFull(std::string material_file,
 
   if (is_extrinsic)
     initAutomaticInsertion();
-
-  // if(material_file != "")
-  //   initCohesiveMaterials(smmc_options.extrinsic, smmc_options.init_facet_filter);
 
   AKANTU_DEBUG_OUT();
 }

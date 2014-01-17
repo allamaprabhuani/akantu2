@@ -89,6 +89,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// set the value of the time step
+  void setTimeStep(Real time_step);
+
   /// assemble the residual for the explicit scheme
   virtual void updateResidual(bool need_initialize = true);
 
