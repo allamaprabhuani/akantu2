@@ -112,6 +112,12 @@ public:
   /// initialize cohesive material
   void initMaterials();
 
+  /// build fragments
+  void buildFragments();
+
+  /// compute fragments' mass and velocity
+  void computeFragmentsMassVelocity();
+
   /// build fragments and compute their data (mass, velocity..)
   void computeFragmentsData();
 
@@ -131,12 +137,6 @@ private:
 
   /// initialize stress interpolation
   void initStressInterpolation();
-
-  /// build fragments
-  void buildFragments();
-
-  /// compute fragments' mass and velocity
-  void computeFragmentsMV();
 
   /// compute facets' normals
   void computeNormals();

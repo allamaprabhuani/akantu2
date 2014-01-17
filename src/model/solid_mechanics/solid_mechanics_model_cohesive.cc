@@ -832,7 +832,7 @@ void SolidMechanicsModelCohesive::buildFragments() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::computeFragmentsMV() {
+void SolidMechanicsModelCohesive::computeFragmentsMassVelocity() {
   AKANTU_DEBUG_IN();
 
   fragment_mass.resize(nb_fragment);
@@ -928,7 +928,7 @@ void SolidMechanicsModelCohesive::computeFragmentsData() {
   AKANTU_DEBUG_IN();
 
   buildFragments();
-  computeFragmentsMV();
+  computeFragmentsMassVelocity();
 
   AKANTU_DEBUG_OUT();
 }
