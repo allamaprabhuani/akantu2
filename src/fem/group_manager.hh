@@ -136,6 +136,9 @@ public:
   /// create a element group using an existing node group
   ElementGroup & createElementGroup(const std::string & group_name, UInt dimension, NodeGroup & node_group);
 
+  /// create mesh data based on clusters
+  void createMeshDataFromClusters(const std::string cluster_name_prefix);
+
   /// create groups based on values stored in a given mesh data
   template <typename T>
   void createGroupsFromMeshData(const std::string & dataset_name);

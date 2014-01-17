@@ -358,6 +358,8 @@ public:
   const ByElementTypeArray<Real> & getInternal(const ID & id) const;
   ByElementTypeArray<Real> & getInternal(const ID & id);
 
+  inline bool isInternal(const ID & id) const;
+
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
 

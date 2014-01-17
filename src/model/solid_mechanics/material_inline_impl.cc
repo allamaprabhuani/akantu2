@@ -490,3 +490,7 @@ template<> inline void Material::unregisterInternal<UInt>(InternalField<UInt> & 
   internal_vectors_uint.erase(vect.getID());
 }
 
+/* -------------------------------------------------------------------------- */
+inline bool Material::isInternal(const ID & id) const {
+  return internal_vectors_real.find(this->getID()+":"+id) != internal_vectors_real.end();
+}

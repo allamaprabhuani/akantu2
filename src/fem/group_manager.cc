@@ -597,6 +597,66 @@ UInt GroupManager::createClusters(UInt element_dimension,
 }
 
 /* -------------------------------------------------------------------------- */
+void GroupManager::createMeshDataFromClusters(const std::string cluster_name_prefix) {
+  AKANTU_DEBUG_IN();
+
+  std::string mesh_data_name(cluster_name_prefix);
+  Mesh & mesh_not_const = const_cast<Mesh &>(mesh);
+
+  /// loop over clusters
+  for(const_element_group_iterator it(element_group_begin());
+      it != element_group_end(); ++it) {
+
+    /// search for prefix in cluster name
+    UInt pos = it->first.find(cluster_name_prefix);
+
+    /// if not found continue
+    if (pos == std::string::npos) continue;
+
+    AKANTU_DEBUG_ASSERT(pos == 0, "cluster_name_prefix is wrong");
+
+    /// get cluster index
+    std::string cluster_index_string
+      = it->first.substr(cluster_name_prefix.size() + 1);
+    std::stringstream sstr(cluster_index_string.c_str());
+    UInt cluster_index;
+    sstr >> cluster_index;
+
+    AKANTU_DEBUG_ASSERT(!sstr.fail(), "cluster_index is not an integer");
+
+    /// loop over cluster types
+    for (ghost_type_t::iterator gt = ghost_type_t::begin();
+	 gt != ghost_type_t::end(); ++gt) {
+      GhostType ghost_type = *gt;
+
+      ElementGroup::type_iterator type_it
+	= it->second->firstType(_all_dimensions, ghost_type);
+      ElementGroup::type_iterator type_end
+	= it->second->lastType(_all_dimensions, ghost_type);
+
+      for(; type_it != type_end; ++type_it) {
+	ElementType type = *type_it;
+
+	/// init mesh data
+	Array<UInt> * mesh_data
+	  = mesh_not_const.getDataPointer<UInt>(mesh_data_name, type, ghost_type, 1);
+
+	ElementGroup::const_element_iterator el_it
+	  = it->second->element_begin(type, ghost_type);
+	ElementGroup::const_element_iterator el_end
+	  = it->second->element_end(type, ghost_type);
+
+	/// fill mesh data with cluster index
+	for (; el_it != el_end; ++el_it)
+	  (*mesh_data)(*el_it) = cluster_index;
+      }
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 template<typename T>
 void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
   std::set<std::string> group_names;

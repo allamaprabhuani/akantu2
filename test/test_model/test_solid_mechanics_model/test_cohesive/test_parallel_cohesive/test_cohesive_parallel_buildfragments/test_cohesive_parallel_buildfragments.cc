@@ -98,27 +98,21 @@ int main(int argc, char *argv[]) {
   Real theoretical_mass = L * h * h * rho;
   Real frag_theo_mass = theoretical_mass / total_nb_fragment;
 
+  model.computeFragmentsData();
+  mesh.createMeshDataFromClusters("fragment");
+
   model.setBaseName("extrinsic");
   model.addDumpFieldVector("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("stress");
   model.addDumpField("partitions");
+  model.addDumpField("fragment");
   model.dump();
 
-  DumperParaview dumper("cohesive_elements");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
-  dumper.registerField("damage", new DumperIOHelper::
-  		       HomogenizedField<Real,
-  					DumperIOHelper::InternalMaterialField>(model,
-  									       "damage",
-  									       spatial_dimension,
-  									       _not_ghost,
-  									       _ek_cohesive));
-  dumper.dump();
+  model.setBaseNameToDumper("cohesive_elements", "cohesive_elements_test");
+  model.addDumpFieldVectorToDumper("cohesive_elements", "displacement");
+  model.addDumpFieldToDumper("cohesive_elements", "damage");
+  model.dump("cohesive_elements");
 
   /// set check facets
   verticalInsertionLimit(model);
@@ -140,7 +134,7 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
   model.checkCohesiveStress();
   model.dump();
-  dumper.dump();
+  model.dump("cohesive_elements");
 
   const Array<Real> & fragment_mass = model.getFragmentsMass();
 
@@ -153,6 +147,7 @@ int main(int argc, char *argv[]) {
       std::cout << "Generating fragment: " << frag << std::endl;
 
     model.computeFragmentsData();
+    mesh.createMeshDataFromClusters("fragment");
 
     /// check number of fragments
     UInt nb_fragment_num = model.getNbFragment();
@@ -186,18 +181,18 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    model.dump();
+    model.dump("cohesive_elements");
+
     /// displace fragments
     displaceElements(model, lim, el_size * 2);
     model.updateResidual();
-
-    // model.dump();
-    // dumper.dump();
 
     lim += el_size;
   }
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive_elements");
 
   /// check centers
   const Array<Real> & fragment_center = model.getFragmentsCenter();

@@ -33,6 +33,13 @@
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
 
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_paraview.hh"
+#  include "dumper_iohelper_tmpl.hh"
+#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_iohelper_tmpl_material_internal_field.hh"
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
@@ -72,6 +79,12 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
 
   delete material_selector;
   material_selector = new DefaultMaterialCohesiveSelector(*this);
+
+#if defined(AKANTU_USE_IOHELPER)
+  this->registerDumper<DumperParaview>("cohesive_elements", id);
+  this->addDumpMeshToDumper("cohesive_elements",
+			    mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+#endif
 
   AKANTU_DEBUG_OUT();
 }
@@ -949,6 +962,30 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
 
       facet_stress(type, ghost_type).resize(new_size);
     }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::addDumpFieldToDumper(const std::string & dumper_name,
+						       const std::string & field_id) {
+  AKANTU_DEBUG_IN();
+
+  if (dumper_name == "cohesive_elements") {
+    if (field_id == "damage") {
+      internalAddDumpFieldToDumper
+	("cohesive_elements",
+	 field_id, new DumperIOHelper::
+	 HomogenizedField<Real,
+			  DumperIOHelper::InternalMaterialField>(*this,
+								 field_id,
+								 spatial_dimension,
+								 _not_ghost,
+								 _ek_cohesive));
+    }
+  } else {
+    SolidMechanicsModel::addDumpFieldToDumper(dumper_name, field_id);
   }
 
   AKANTU_DEBUG_OUT();

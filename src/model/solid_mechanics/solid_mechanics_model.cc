@@ -1569,7 +1569,7 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else if(field_id == "boundary"    ) { ADD_FIELD(boundary    , bool); }
-  else if(field_id == "increment"   ) { ADD_FIELD(increment    , Real); }
+  else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
   else if(field_id == "partitions"  ) {
     internalAddDumpFieldToDumper(dumper_name,
                          field_id,
@@ -1586,14 +1586,35 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
                                                                   _not_ghost,
                                                                   _ek_regular));
   } else {
-    internalAddDumpFieldToDumper(dumper_name,
-                         field_id,
-                         new DumperIOHelper::HomogenizedField<Real,
-                         DumperIOHelper::InternalMaterialField>(*this,
-                                                                field_id,
-                                                                spatial_dimension,
-                                                                _not_ghost,
-                                                                _ek_regular));
+    bool is_internal = false;
+
+    /// check if at least one material contains field_id as an internal
+    for (UInt m = 0; m < materials.size() && !is_internal; ++m) {
+      is_internal |= materials[m]->isInternal(field_id);
+    }
+
+    if (is_internal) {
+      internalAddDumpFieldToDumper
+	(dumper_name,
+	 field_id,
+	 new DumperIOHelper::HomogenizedField<Real,
+					      DumperIOHelper::InternalMaterialField>
+	 (*this,
+	  field_id,
+	  spatial_dimension,
+	  _not_ghost,
+	  _ek_regular));
+    } else {
+      try {
+	internalAddDumpFieldToDumper
+	  (dumper_name,
+	   field_id,
+	   new DumperIOHelper::ElementalField<UInt>(mesh.getData<UInt>(field_id),
+						    spatial_dimension,
+						    _not_ghost,
+						    _ek_regular));
+      } catch (...) {}
+    }
   }
 #undef ADD_FIELD
 #endif

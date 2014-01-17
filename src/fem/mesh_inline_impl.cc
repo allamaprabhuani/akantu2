@@ -251,14 +251,21 @@ template<typename T>
 inline Array<T> * Mesh::getDataPointer(const std::string & data_name,
 				       const ElementType & el_type,
                                        const GhostType & ghost_type,
-                                       UInt nb_component) {
+                                       UInt nb_component,
+				       bool size_to_nb_element) {
   Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(data_name,
                                                            el_type, ghost_type,
                                                            nb_component);
-  if (is_mesh_facets && getSpatialDimension(el_type) == spatial_dimension)
-    tmp.resize(mesh_parent->getNbElement(el_type, ghost_type));
-  else
-    tmp.resize(getNbElement(el_type, ghost_type));
+
+  if (size_to_nb_element) {
+    if (is_mesh_facets && getSpatialDimension(el_type) == spatial_dimension)
+      tmp.resize(mesh_parent->getNbElement(el_type, ghost_type));
+    else
+      tmp.resize(getNbElement(el_type, ghost_type));
+  }
+  else {
+    tmp.resize(0);
+  }
 
   return &tmp;
 }

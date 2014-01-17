@@ -885,16 +885,16 @@ void MeshUtils::resetFacetToDouble(Mesh & mesh_facets) {
     Mesh::type_iterator end = mesh_facets.lastType(_all_dimensions, gt);
     for(; it != end; ++it) {
       ElementType type = *it;
-      mesh_facets.getDataPointer<UInt>("facet_to_double", type, gt, 1)->resize(0);
+      mesh_facets.getDataPointer<UInt>("facet_to_double", type, gt, 1, false);
 
       mesh_facets.getDataPointer<std::vector<Element> >
-	("facets_to_subfacet_double", type, gt, 1)->resize(0);
+	("facets_to_subfacet_double", type, gt, 1, false);
 
       mesh_facets.getDataPointer<std::vector<Element> >
-	("elements_to_subfacet_double", type, gt, 1)->resize(0);
+	("elements_to_subfacet_double", type, gt, 1, false);
 
       mesh_facets.getDataPointer<std::vector<Element> >
-	("subfacets_to_subsubfacet_double", type, gt, 1)->resize(0);
+	("subfacets_to_subsubfacet_double", type, gt, 1, false);
     }
   }
 
