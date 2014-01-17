@@ -608,7 +608,7 @@ void GroupManager::createMeshDataFromClusters(const std::string cluster_name_pre
       it != element_group_end(); ++it) {
 
     /// search for prefix in cluster name
-    UInt pos = it->first.find(cluster_name_prefix);
+    size_t pos = it->first.find(cluster_name_prefix);
 
     /// if not found continue
     if (pos == std::string::npos) continue;
