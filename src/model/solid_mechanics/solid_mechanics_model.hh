@@ -76,9 +76,9 @@ struct SolidMechanicsModelOptions : public ModelOptions {
 extern const SolidMechanicsModelOptions default_solid_mechanics_model_options;
 
 class SolidMechanicsModel : public Model, public DataAccessor,
-                            public MeshEventHandler,
-                            public Dumpable,
-                            public BoundaryCondition<SolidMechanicsModel> {
+			    public MeshEventHandler,
+			    public Dumpable,
+			    public BoundaryCondition<SolidMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -95,9 +95,9 @@ public:
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
   SolidMechanicsModel(Mesh & mesh,
-                      UInt spatial_dimension = _all_dimensions,
-                      const ID & id = "solid_mechanics_model",
-                      const MemoryID & memory_id = 0);
+		      UInt spatial_dimension = _all_dimensions,
+		      const ID & id = "solid_mechanics_model",
+		      const MemoryID & memory_id = 0);
 
   virtual ~SolidMechanicsModel();
 
@@ -108,7 +108,7 @@ public:
 
   /// initialize completely the model
   virtual void initFull(std::string material_file,
-                        const ModelOptions & options = default_solid_mechanics_model_options);
+			const ModelOptions & options = default_solid_mechanics_model_options);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary();
@@ -179,13 +179,13 @@ public:
 
   void updateIncrement();
   void updatePreviousDisplacement();
- 
+
   /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
   void solveLumped(Array<Real> & x,
-                   const Array<Real> & A,
-                   const Array<Real> & b,
-                   const Array<bool> & boundary,
-                   Real alpha);
+		   const Array<Real> & A,
+		   const Array<Real> & b,
+		   const Array<bool> & boundary,
+		   Real alpha);
 
   /// explicit integration predictor
   void explicitPred();
@@ -206,7 +206,7 @@ public:
 
   /// initialize the stuff for the implicit solver
   void initImplicit(bool dynamic = false,
-                    SolverOptions & solver_options = _solver_no_options);
+		    SolverOptions & solver_options = _solver_no_options);
 
   /// solve Ma = f to get the initial acceleration
   void initialAcceleration();
@@ -217,7 +217,7 @@ public:
 public:
   template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
   bool solveStep(Real tolerance,
-                 UInt max_iteration = 100);
+		 UInt max_iteration = 100);
 
 public:
   /// solve @f[ A\delta u = f_ext - f_int @f] in displacement
@@ -317,8 +317,8 @@ protected:
 
   /// fill a vector of rho
   void computeRho(Array<Real> & rho,
-                  ElementType type,
-                  GhostType ghost_type);
+		  ElementType type,
+		  GhostType ghost_type);
 
 
   /* ------------------------------------------------------------------------ */
@@ -327,45 +327,45 @@ protected:
 public:
 
   inline virtual UInt getNbDataForElements(const Array<Element> & elements,
-                                           SynchronizationTag tag) const;
+					   SynchronizationTag tag) const;
 
   inline virtual void packElementData(CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      SynchronizationTag tag) const;
+				      const Array<Element> & elements,
+				      SynchronizationTag tag) const;
 
   inline virtual void unpackElementData(CommunicationBuffer & buffer,
-                                        const Array<Element> & elements,
-                                        SynchronizationTag tag);
+					const Array<Element> & elements,
+					SynchronizationTag tag);
 
   inline virtual UInt getNbDataToPack(SynchronizationTag tag) const;
   inline virtual UInt getNbDataToUnpack(SynchronizationTag tag) const;
 
   inline virtual void packData(CommunicationBuffer & buffer,
-                               const UInt index,
-                               SynchronizationTag tag) const;
+			       const UInt index,
+			       SynchronizationTag tag) const;
 
   inline virtual void unpackData(CommunicationBuffer & buffer,
-                                 const UInt index,
-                                 SynchronizationTag tag);
+				 const UInt index,
+				 SynchronizationTag tag);
 
 protected:
   inline void splitElementByMaterial(const Array<Element> & elements,
-                                     Array<Element> * elements_per_mat) const;
+				     Array<Element> * elements_per_mat) const;
 
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
   virtual void onNodesAdded  (const Array<UInt> & nodes_list,
-                              const NewNodesEvent & event);
+			      const NewNodesEvent & event);
   virtual void onNodesRemoved(const Array<UInt> & element_list,
-                              const Array<UInt> & new_numbering,
-                              const RemovedNodesEvent & event);
+			      const Array<UInt> & new_numbering,
+			      const RemovedNodesEvent & event);
   virtual void onElementsAdded  (const Array<Element> & nodes_list,
-                                 const NewElementsEvent & event);
+				 const NewElementsEvent & event);
   virtual void onElementsRemoved(const Array<Element> & element_list,
-                                 const ByElementTypeUInt & new_numbering,
-                                 const RemovedElementsEvent & event);
+				 const ByElementTypeUInt & new_numbering,
+				 const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */

@@ -178,7 +178,7 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   /// compute DBu
   D_B = d_b->begin(tangent_size, d_b_size);
-  Array<Real>::iterator< Vector<Real>> DBu = sigma.begin(tangent_size);
+  Array<Real>::iterator< Vector<Real> > DBu = sigma.begin(tangent_size);
   Vector<Real> ul (d_b_size);
 
   Array<Real> u_el(0, d_b_size);
@@ -233,7 +233,7 @@ void StructuralMechanicsModel::computeForcesByLocalTractionArray(const Array<Rea
   Array<Real>::const_iterator< Vector<Real> > te_it = tractions.begin(nb_degree_of_freedom);
 
   Array<Real> funct(nb_element * nb_quad, nb_degree_of_freedom * nb_nodes_per_element, 0.);
-  Array<Real>::iterator< Vector<Real>> Fe_it = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::iterator< Vector<Real> > Fe_it = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
 
   Vector<Real> fe(nb_degree_of_freedom * nb_nodes_per_element);
   for (UInt e = 0; e < nb_element; ++e, ++T_it) {
@@ -281,8 +281,8 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(const Array<Re
   Array<Real>::const_iterator< Matrix<Real> > T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
 										  nb_degree_of_freedom * nb_nodes_per_element);
 
-  Array<Real>::const_iterator< Vector<Real>> Te_it = traction_global.begin(nb_degree_of_freedom);
-  Array<Real>::iterator< Vector<Real>> te_it = traction_local.begin(nb_degree_of_freedom);
+  Array<Real>::const_iterator< Vector<Real> > Te_it = traction_global.begin(nb_degree_of_freedom);
+  Array<Real>::iterator< Vector<Real> > te_it = traction_local.begin(nb_degree_of_freedom);
 
   Matrix<Real> R(nb_degree_of_freedom, nb_degree_of_freedom);
   for (UInt e = 0; e < nb_element; ++e, ++T_it) {

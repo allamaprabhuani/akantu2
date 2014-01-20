@@ -61,16 +61,7 @@ int main(int argc, char *argv[]) {
 
   /// create facets
   Mesh mesh_facets(mesh.initMeshFacets("mesh_facets"));
-
   MeshUtils::buildAllFacets(mesh, mesh_facets, 0, dist);
-
-  // debug::setDebugLevel(dblDump);
-  // std::cout << mesh << std::endl;
-  // debug::setDebugLevel(dblInfo);
-
-  // debug::setDebugLevel(dblDump);
-  // std::cout << mesh_facets << std::endl;
-  // debug::setDebugLevel(dblInfo);
 
   /// compute barycenter for each facet
   ByElementTypeReal barycenters("barycenters", "", 0);

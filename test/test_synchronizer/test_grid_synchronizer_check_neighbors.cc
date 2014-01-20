@@ -48,12 +48,12 @@ int main(int argc, char *argv[]) {
   std::ifstream nin;
 
   neighbors_map_t<spatial_dimension>::type neighbors_map_read;
-  nin.open(file_ref);
+  nin.open(file_ref.c_str());
   readNeighbors(nin, neighbors_map_read);
   nin.close();
 
   neighbors_map_t<spatial_dimension>::type neighbors_map;
-  nin.open(file);
+  nin.open(file.c_str());
   readNeighbors(nin, neighbors_map);
   nin.close();
 

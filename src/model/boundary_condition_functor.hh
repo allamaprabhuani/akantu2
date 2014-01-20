@@ -64,10 +64,10 @@ namespace BC {
 
     public:
       void operator()(UInt node,
-                      Vector<bool> & flags,
-                      Vector<Real> & primal,
-                      const Vector<Real> & coord) const {
-        AKANTU_DEBUG_TO_IMPLEMENT();
+		      Vector<bool> & flags,
+		      Vector<Real> & primal,
+		      const Vector<Real> & coord) const {
+	AKANTU_DEBUG_TO_IMPLEMENT();
       }
 
     public:
@@ -84,9 +84,9 @@ namespace BC {
 
     public:
       inline void operator()(UInt node,
-                             Vector<bool> & flags,
-                             Vector<Real> & primal,
-                             const Vector<Real> & coord) const;
+			     Vector<bool> & flags,
+			     Vector<Real> & primal,
+			     const Vector<Real> & coord) const;
 
     };
 
@@ -96,10 +96,10 @@ namespace BC {
       FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(UInt node, 
-                             Vector<bool> & flags, 
-                             Vector<Real> & primal,
-                             const Vector<Real> & coord) const;
+      inline void operator()(UInt node,
+			     Vector<bool> & flags,
+			     Vector<Real> & primal,
+			     const Vector<Real> & coord) const;
 
     protected:
       Real value;
@@ -111,10 +111,10 @@ namespace BC {
       IncrementValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
 
     public:
-      inline void operator()(UInt node, 
-                             Vector<bool> & flags, 
-                             Vector<Real> & primal, 
-                             const Vector<Real> & coord) const;
+      inline void operator()(UInt node,
+			     Vector<bool> & flags,
+			     Vector<Real> & primal,
+			     const Vector<Real> & coord) const;
 
       inline void setIncrement(Real val) { this->value = val; }
     protected:
@@ -133,10 +133,10 @@ namespace BC {
       NeumannFunctor() {}
     public:
       void operator()(UInt node,
-                      Vector<bool> & flags,
-                      Vector<Real> & primal,
-                      const Vector<Real> & coord) const {
-        AKANTU_DEBUG_TO_IMPLEMENT();
+		      Vector<bool> & flags,
+		      Vector<Real> & primal,
+		      const Vector<Real> & coord) const {
+	AKANTU_DEBUG_TO_IMPLEMENT();
       }
 
     public:
@@ -150,9 +150,9 @@ namespace BC {
 
     public:
       inline void operator()(QuadraturePoint quad_point,
-                             Vector<Real> & dual,
-                             const Vector<Real> & coord,
-                             const Vector<Real> & normals) const;
+			     Vector<Real> & dual,
+			     const Vector<Real> & coord,
+			     const Vector<Real> & normals) const;
 
     protected:
       Matrix<Real> bc_data;
@@ -165,9 +165,9 @@ namespace BC {
 
     public:
       inline void operator()(QuadraturePoint quad_point,
-                             Vector<Real> & dual,
-                             const Vector<Real> & coord,
-                             const Vector<Real> & normals) const;
+			     Vector<Real> & dual,
+			     const Vector<Real> & coord,
+			     const Vector<Real> & normals) const;
 
     protected:
       Vector<Real> bc_data;
@@ -177,9 +177,9 @@ namespace BC {
     class FreeBoundary : public NeumannFunctor {
     public:
       inline void operator()(QuadraturePoint quad_point,
-                             Vector<Real> & dual,
-                             const Vector<Real> & coord,
-                             const Vector<Real> & normals) const;
+			     Vector<Real> & dual,
+			     const Vector<Real> & coord,
+			     const Vector<Real> & normals) const;
     };
 
     typedef FromHigherDim FromStress;
@@ -193,4 +193,3 @@ __END_AKANTU__
 #include "boundary_condition_functor_inline_impl.cc"
 
 #endif /* __AKANTU_BOUNDARY_CONDITION_FUNCTOR_HH__ */
-
