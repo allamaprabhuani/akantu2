@@ -40,13 +40,8 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
+#include "fragment_manager.hh"
 
-#ifdef AKANTU_USE_IOHELPER
-#  include "dumper_paraview.hh"
-#  include "dumper_iohelper_tmpl.hh"
-#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
-#  include "dumper_iohelper_tmpl_material_internal_field.hh"
-#endif
 
 //#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
@@ -98,15 +93,18 @@ int main(int argc, char *argv[]) {
   Real theoretical_mass = L * h * h * rho;
   Real frag_theo_mass = theoretical_mass / total_nb_fragment;
 
-  model.computeFragmentsData();
-  mesh.createMeshDataFromClusters("fragment");
+  FragmentManager fragment_manager(model);
+
+  fragment_manager.computeAllData();
 
   model.setBaseName("extrinsic");
   model.addDumpFieldVector("displacement");
   model.addDumpField("velocity"    );
   model.addDumpField("stress");
   model.addDumpField("partitions");
-  model.addDumpField("fragment");
+  model.addDumpField("fragments");
+  model.addDumpField("fragments mass");
+  model.addDumpField("moments of inertia");
   model.dump();
 
   model.setBaseNameToDumper("cohesive_elements", "cohesive_elements_test");
@@ -136,7 +134,8 @@ int main(int argc, char *argv[]) {
   model.dump();
   model.dump("cohesive_elements");
 
-  const Array<Real> & fragment_mass = model.getFragmentsMass();
+  const Array<Real> & fragment_mass = fragment_manager.getMass();
+  const Array<Real> & fragment_center = fragment_manager.getCenterOfMass();
 
   Real el_size = L / total_nb_fragment;
   Real lim = -L/2 + el_size * 0.99;
@@ -146,11 +145,10 @@ int main(int argc, char *argv[]) {
     if (prank == 0)
       std::cout << "Generating fragment: " << frag << std::endl;
 
-    model.computeFragmentsData();
-    mesh.createMeshDataFromClusters("fragment");
+    fragment_manager.computeAllData();
 
     /// check number of fragments
-    UInt nb_fragment_num = model.getNbFragment();
+    UInt nb_fragment_num = fragment_manager.getNbFragment();
 
     if (nb_fragment_num != frag) {
       AKANTU_DEBUG_ERROR("The number of fragments is wrong! Numerical: " << nb_fragment_num << " Theoretical: " << frag);
@@ -164,6 +162,13 @@ int main(int argc, char *argv[]) {
 
       for (UInt f = 0; f < nb_fragment_num; ++f) {
 	if (Math::are_float_equal(fragment_mass(f, 0), frag_theo_mass)) {
+
+	  /// check center of mass
+	  if (fragment_center(f, 0) > (L * frag / total_nb_fragment - L / 2)) {
+	    std::cout << "Fragment center is wrong!" << std::endl;
+	    return EXIT_FAILURE;
+	  }
+
 	  ++small_fragments;
 	  total_mass += frag_theo_mass;
 	}
@@ -195,8 +200,7 @@ int main(int argc, char *argv[]) {
   model.dump("cohesive_elements");
 
   /// check centers
-  const Array<Real> & fragment_center = model.getFragmentsCenter();
-  const Array<Real> & fragment_velocity = model.getFragmentsVelocity();
+  const Array<Real> & fragment_velocity = fragment_manager.getVelocity();
 
   Real initial_position = -L / 2. + el_size / 2.;
 

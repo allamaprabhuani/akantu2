@@ -28,6 +28,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
+#define __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
+
 #include "solid_mechanics_model.hh"
 #include "cohesive_element_inserter.hh"
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
@@ -35,9 +38,6 @@
 #  include "facet_stress_synchronizer.hh"
 #endif
 /* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
 
 __BEGIN_AKANTU__
 
@@ -112,15 +112,6 @@ public:
   /// initialize cohesive material
   void initMaterials();
 
-  /// build fragments
-  void buildFragments();
-
-  /// compute fragments' mass and velocity
-  void computeFragmentsMassVelocity();
-
-  /// build fragments and compute their data (mass, velocity..)
-  void computeFragmentsData();
-
   /// init facet filters for cohesive materials
   void initFacetFilter();
 
@@ -182,18 +173,6 @@ public:
   /// get stress on facets vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressOnFacets, facet_stress, Real);
 
-  /// get number of fragments
-  AKANTU_GET_MACRO(NbFragment, nb_fragment, UInt);
-
-  /// get mass for each fragment
-  AKANTU_GET_MACRO(FragmentsMass, fragment_mass, const Array<Real> &);
-
-  /// get average velocity for each fragment
-  AKANTU_GET_MACRO(FragmentsVelocity, fragment_velocity, const Array<Real> &);
-
-  /// get center of mass coordinates for each fragment
-  AKANTU_GET_MACRO(FragmentsCenter, fragment_center, const Array<Real> &);
-
   /// get facet material
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetMaterial, facet_material, UInt);
 
@@ -203,7 +182,7 @@ public:
   /// get facet material
   AKANTU_GET_MACRO(FacetMaterial, facet_material, const ByElementTypeArray<UInt> &);
 
-  /// THIS HAS TO BE CHANGED
+  /// @todo THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
   /// get element inserter
@@ -225,18 +204,6 @@ private:
 
   /// stress on facets on the two sides by quadrature point
   ByElementTypeReal facet_stress;
-
-  /// number of fragments
-  UInt nb_fragment;
-
-  /// mass for each fragment
-  Array<Real> fragment_mass;
-
-  /// average velocity for each fragment
-  Array<Real> fragment_velocity;
-
-  /// center of mass coordinates for each element
-  Array<Real> fragment_center;
 
   /// flag to know if facets have been generated
   bool facet_generated;

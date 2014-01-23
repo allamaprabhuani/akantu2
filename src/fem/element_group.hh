@@ -86,9 +86,9 @@ public:
 
   typedef Array<UInt>::const_iterator<UInt> const_element_iterator;
   inline const_element_iterator element_begin(const ElementType & type,
-					      const GhostType & ghost_type) const;
+					      const GhostType & ghost_type = _not_ghost) const;
   inline const_element_iterator element_end(const ElementType & type,
-					    const GhostType & ghost_type) const;
+					    const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

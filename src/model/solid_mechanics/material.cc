@@ -283,9 +283,10 @@ void Material::computeAllStresses(GhostType ghost_type) {
 
     if(finite_deformation || inelastic_deformation){ /// compute @f$\nabla \delta u@f$
       Array<Real> & delta_strain_vect = delta_strain(*it, ghost_type);
-      model->getFEM().gradientOnQuadraturePoints(model->getIncrement(), delta_strain_vect,
-                spatial_dimension,
-                *it, ghost_type, elem_filter);
+      model->getFEM().gradientOnQuadraturePoints(model->getIncrement(),
+						 delta_strain_vect,
+						 spatial_dimension,
+						 *it, ghost_type, elem_filter);
     }
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$

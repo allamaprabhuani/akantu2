@@ -40,6 +40,8 @@
 #include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
+#include "fragment_manager.hh"
+
 
 //#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
@@ -111,7 +113,8 @@ int main(int argc, char *argv[]) {
     = dynamic_cast<MaterialCohesive&>(model.getMaterial(cohesive_index));
   const Array<Real> & damage = mat_cohesive.getDamage(type_cohesive);
 
-  const Array<Real> & fragment_mass = model.getFragmentsMass();
+  FragmentManager fragment_manager(model, false);
+  const Array<Real> & fragment_mass = fragment_manager.getMass();
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
@@ -132,10 +135,10 @@ int main(int argc, char *argv[]) {
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
-      model.computeFragmentsData();
+      fragment_manager.computeAllData();
 
       /// check number of fragments
-      UInt nb_fragment_num = model.getNbFragment();
+      UInt nb_fragment_num = fragment_manager.getNbFragment();
 
       UInt nb_cohesive_elements = mesh.getNbElement(type_cohesive);
 
@@ -170,9 +173,9 @@ int main(int argc, char *argv[]) {
   }
 
   /// check velocities
-  UInt nb_fragment = model.getNbFragment();
-  const Array<Real> & fragment_velocity = model.getFragmentsVelocity();
-  const Array<Real> & fragment_center = model.getFragmentsCenter();
+  UInt nb_fragment = fragment_manager.getNbFragment();
+  const Array<Real> & fragment_velocity = fragment_manager.getVelocity();
+  const Array<Real> & fragment_center = fragment_manager.getCenterOfMass();
 
   Real fragment_length = L / nb_fragment;
   Real initial_position = -L / 2. + fragment_length / 2.;

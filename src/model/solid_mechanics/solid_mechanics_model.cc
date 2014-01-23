@@ -1441,6 +1441,7 @@ void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
   if(residual    ) residual    ->resize(nb_nodes);
   if(boundary    ) boundary    ->resize(nb_nodes);
 
+  if(previous_displacement) previous_displacement->resize(nb_nodes);
   if(increment_acceleration) increment_acceleration->resize(nb_nodes);
   if(increment) increment->resize(nb_nodes);
 
@@ -1610,6 +1611,15 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
 	  (dumper_name,
 	   field_id,
 	   new DumperIOHelper::ElementalField<UInt>(mesh.getData<UInt>(field_id),
+						    spatial_dimension,
+						    _not_ghost,
+						    _ek_regular));
+      } catch (...) {}
+      try {
+	internalAddDumpFieldToDumper
+	  (dumper_name,
+	   field_id,
+	   new DumperIOHelper::ElementalField<Real>(mesh.getData<Real>(field_id),
 						    spatial_dimension,
 						    _not_ghost,
 						    _ek_regular));

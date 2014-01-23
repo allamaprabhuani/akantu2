@@ -215,9 +215,12 @@ public:
 				     UInt nb_degree_of_freedom,
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
-                                     const Array<UInt> & filter_elements = empty_filter) const =0;
+                                     const Array<UInt> & filter_elements = empty_filter) const = 0;
 
-
+  virtual
+  void interpolateOnQuadraturePoints(const Array<Real> & u,
+				     ByElementTypeReal & uq,
+                                     const ByElementTypeUInt * filter_elements = NULL) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */

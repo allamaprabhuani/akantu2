@@ -65,12 +65,12 @@ public:
   GroupManager(const Mesh & mesh,
 	       const ID & id = "group_manager",
 	       const MemoryID & memory_id = 0);
-  ~GroupManager();
+  virtual ~GroupManager();
 
   /* ------------------------------------------------------------------------ */
   /* Groups iterators                                                         */
   /* ------------------------------------------------------------------------ */
- public:
+public:
   typedef NodeGroups::iterator node_group_iterator;
   typedef ElementGroups::iterator element_group_iterator;
 
@@ -136,9 +136,6 @@ public:
   /// create a element group using an existing node group
   ElementGroup & createElementGroup(const std::string & group_name, UInt dimension, NodeGroup & node_group);
 
-  /// create mesh data based on clusters
-  void createMeshDataFromClusters(const std::string cluster_name_prefix);
-
   /// create groups based on values stored in a given mesh data
   template <typename T>
   void createGroupsFromMeshData(const std::string & dataset_name);
@@ -148,7 +145,7 @@ public:
 
   /// create element clusters for a given dimension
   UInt createClusters(UInt element_dimension,
-		      std::string cluster_name_prefix = "cluster_",
+		      std::string cluster_name_prefix = "cluster",
 		      const ClusteringFilter & filter = ClusteringFilter(),
 		      DistributedSynchronizer * distributed_synchronizer = NULL,
 		      Mesh * mesh_facets = NULL);
@@ -158,7 +155,7 @@ public:
                                        const std::string & node_group,
                                        UInt dimension = _all_dimensions);
 
-  void printself(std::ostream & stream, int indent = 0) const;
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
@@ -176,7 +173,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// id to create element and node groups
   ID id;
   /// memory_id to create element and node groups

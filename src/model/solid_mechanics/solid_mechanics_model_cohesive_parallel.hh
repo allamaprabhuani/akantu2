@@ -53,6 +53,16 @@ void fillGlobalConnectivity(ByElementTypeUInt & global_connectivity,
 			    bool just_init);
 
 /* ------------------------------------------------------------------------ */
+/* Accessors                                                                */
+/* ------------------------------------------------------------------------ */
+public:
+
+/// get cohesive elements synchronizer
+AKANTU_GET_MACRO(CohesiveSynchronizer,
+		 cohesive_distributed_synchronizer,
+		 const DistributedSynchronizer *);
+
+/* ------------------------------------------------------------------------ */
 /* Data Accessor inherited members                                          */
 /* ------------------------------------------------------------------------ */
 public:

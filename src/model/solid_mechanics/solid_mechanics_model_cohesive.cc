@@ -61,9 +61,6 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   tangents("tangents", id),
   stress_on_facet("stress_on_facet", id),
   facet_stress("facet_stress", id),
-  fragment_mass(0, spatial_dimension, "fragment_mass"),
-  fragment_velocity(0, spatial_dimension, "fragment_velocity"),
-  fragment_center(0, spatial_dimension, "fragment_center"),
   facet_material("facet_material", id),
   inserter(mesh, mesh_facets) {
   AKANTU_DEBUG_IN();
@@ -329,32 +326,7 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   mesh_facets.initByElementTypeArray(quad_facets,
                                      spatial_dimension, spatial_dimension - 1);
 
-  for (ghost_type_t::iterator gt = ghost_type_t::begin();
-       gt != ghost_type_t::end(); ++gt) {
-
-    GhostType facet_gt = *gt;
-    Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1, facet_gt);
-    Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1, facet_gt);
-
-    for (; it != last; ++it) {
-      ElementType facet_type = *it;
-
-      UInt nb_quad_per_facet =
-        getFEM("FacetsFEM").getNbQuadraturePoints(facet_type);
-
-      UInt nb_facet = mesh_facets.getNbElement(facet_type, facet_gt);
-      UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
-
-      Array<Real> & quad_f = quad_facets(facet_type, facet_gt);
-      quad_f.resize(nb_tot_quad);
-
-      getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
-                                                        quad_f,
-                                                        spatial_dimension,
-                                                        facet_type,
-                                                        facet_gt);
-    }
-  }
+  getFEM("FacetsFEM").interpolateOnQuadraturePoints(position, quad_facets);
 
   /// compute elements quadrature point positions and build
   /// element-facet quadrature points data structure
@@ -758,177 +730,12 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes
 
       if (increment)
         (*increment)(new_node, dim) = (*increment)(old_node, dim);
+
+      if (previous_displacement)
+	(*previous_displacement)(new_node, dim)
+	  = (*previous_displacement)(old_node, dim);
     }
   }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-class CohesiveElementFilter : public GroupManager::ClusteringFilter {
-public:
-  CohesiveElementFilter(const SolidMechanicsModelCohesive & model,
-			const Real max_damage = 1.) :
-    model(model), is_unbroken(max_damage) {}
-
-  bool operator() (const Element & el) const {
-    if (el.kind == _ek_regular)
-      return true;
-
-    const Array<UInt> & el_id_by_mat = model.getElementIndexByMaterial(el.type,
-								       el.ghost_type);
-
-    const MaterialCohesive & mat
-      = static_cast<const MaterialCohesive &>
-      (model.getMaterial(el_id_by_mat(el.element, 0)));
-
-    UInt el_index = el_id_by_mat(el.element, 1);
-    UInt nb_quad_per_element
-      = model.getFEM("CohesiveFEM").getNbQuadraturePoints(el.type, el.ghost_type);
-
-    Vector<Real> damage
-      = mat.getDamage(el.type, el.ghost_type).begin(nb_quad_per_element)[el_index];
-
-    UInt unbroken_quads = std::count_if(damage.storage(),
-					damage.storage() + nb_quad_per_element,
-					is_unbroken);
-
-    if (unbroken_quads > 0)
-      return true;
-
-    return false;
-  }
-
-private:
-
-  struct IsUnbrokenFunctor {
-    IsUnbrokenFunctor(const Real & max_damage) : max_damage(max_damage) {}
-    bool operator() (const Real & x) {return x < max_damage;}
-    const Real max_damage;
-  };
-
-  const SolidMechanicsModelCohesive & model;
-  const IsUnbrokenFunctor is_unbroken;
-};
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::buildFragments() {
-  AKANTU_DEBUG_IN();
-
-#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  if (cohesive_distributed_synchronizer) {
-    cohesive_distributed_synchronizer->computeBufferSize(*this, _gst_smmc_damage);
-    cohesive_distributed_synchronizer->asynchronousSynchronize(*this, _gst_smmc_damage);
-    cohesive_distributed_synchronizer->waitEndSynchronize(*this, _gst_smmc_damage);
-  }
-#endif
-
-  nb_fragment = mesh.createClusters(spatial_dimension, "fragment",
-				    CohesiveElementFilter(*this),
-				    synch_parallel,
-				    &mesh_facets);
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::computeFragmentsMassVelocity() {
-  AKANTU_DEBUG_IN();
-
-  fragment_mass.resize(nb_fragment);
-  fragment_mass.clear();
-
-  fragment_velocity.resize(nb_fragment);
-  fragment_velocity.clear();
-
-  fragment_center.resize(nb_fragment);
-  fragment_center.clear();
-
-  Array<Real>::const_iterator< Vector<Real> > it_mass =
-    mass->begin(spatial_dimension);
-  Array<Real>::const_iterator< Vector<Real> > it_velocity =
-    velocity->begin(spatial_dimension);
-  Array<Real>::const_iterator< Vector<Real> > it_position =
-    mesh.getNodes().begin(spatial_dimension);
-
-  Array<Real>::iterator< Vector<Real> > it_frag_mass =
-    fragment_mass.begin(spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > it_frag_velocity =
-    fragment_velocity.begin(spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > it_frag_center =
-    fragment_center.begin(spatial_dimension);
-
-
-  /// compute data for local fragments
-  for (UInt frag = 0; frag < nb_fragment; ++frag) {
-    std::stringstream sstr;
-    sstr << "fragment_" << frag;
-
-    GroupManager::const_element_group_iterator eg_it
-      = mesh.element_group_find(sstr.str());
-
-    if (eg_it == mesh.element_group_end()) continue;
-
-    Vector<Real> & frag_mass = it_frag_mass[frag];
-    Vector<Real> & frag_velocity = it_frag_velocity[frag];
-    Vector<Real> & frag_center = it_frag_center[frag];
-
-    const NodeGroup & node_group = eg_it->second->getNodeGroup();
-    NodeGroup::const_node_iterator it = node_group.begin();
-    NodeGroup::const_node_iterator end = node_group.end();
-
-    for (; it != end; ++it) {
-      UInt node = *it;
-      if (mesh.isLocalOrMasterNode(node)) {
-	const Vector<Real> & node_mass = it_mass[node];
-	const Vector<Real> & node_velocity = it_velocity[node];
-	const Vector<Real> & node_position = it_position[node];
-
-	frag_mass += node_mass;
-
-	for (UInt s = 0; s < spatial_dimension; ++s) {
-	  frag_velocity(s)
-	    += node_mass(s) * node_velocity(s);
-
-	  frag_center(s)
-	    += node_mass(s) * node_position(s);
-	}
-      }
-    }
-  }
-
-#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  /// reduce all data
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  comm.allReduce(fragment_mass.storage()    , nb_fragment * spatial_dimension, _so_sum);
-  comm.allReduce(fragment_velocity.storage(), nb_fragment * spatial_dimension, _so_sum);
-  comm.allReduce(fragment_center.storage()  , nb_fragment * spatial_dimension, _so_sum);
-#endif
-
-  /// compute averages
-  it_frag_mass = fragment_mass.begin(spatial_dimension);
-  it_frag_velocity = fragment_velocity.begin(spatial_dimension);
-  it_frag_center = fragment_center.begin(spatial_dimension);
-
-  for (UInt frag = 0;
-       frag < nb_fragment;
-       ++frag, ++it_frag_mass, ++it_frag_velocity, ++it_frag_center) {
-
-    for (UInt s = 0; s < spatial_dimension; ++s) {
-      (*it_frag_velocity)(s) /= (*it_frag_mass)(s);
-      (*it_frag_center)(s) /= (*it_frag_mass)(s);
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::computeFragmentsData() {
-  AKANTU_DEBUG_IN();
-
-  buildFragments();
-  computeFragmentsMassVelocity();
 
   AKANTU_DEBUG_OUT();
 }
@@ -996,6 +803,5 @@ void SolidMechanicsModelCohesive::addDumpFieldToDumper(const std::string & dumpe
 
   AKANTU_DEBUG_OUT();
 }
-
 
 __END_AKANTU__

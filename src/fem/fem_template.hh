@@ -104,16 +104,16 @@ public:
 
   /// get shapes precomputed
   const Array<Real> & getShapes(const ElementType & type,
-				 const GhostType & ghost_type = _not_ghost) const;
+				const GhostType & ghost_type = _not_ghost) const;
 
   /// get the derivatives of shapes
   const Array<Real> & getShapesDerivatives(const ElementType & type,
-					    const GhostType & ghost_type = _not_ghost,
-					    UInt id=0) const;
+					   const GhostType & ghost_type = _not_ghost,
+					   UInt id=0) const;
 
   /// get quadrature points
   const inline Matrix<Real> & getQuadraturePoints(const ElementType & type,
-							 const GhostType & ghost_type = _not_ghost) const;
+						  const GhostType & ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
@@ -134,6 +134,11 @@ public:
 				     const ElementType & type,
 				     const GhostType & ghost_type = _not_ghost,
 				     const Array<UInt> & filter_elements = empty_filter) const;
+
+  /// interpolate a nodal field on the quadrature points given a by_element_type
+  void interpolateOnQuadraturePoints(const Array<Real> & u,
+				     ByElementTypeReal & uq,
+                                     const ByElementTypeUInt * filter_elements = NULL) const;
 
   /// find natural coords from real coords provided an element
   void inverseMap(const Vector<Real> & real_coords,
