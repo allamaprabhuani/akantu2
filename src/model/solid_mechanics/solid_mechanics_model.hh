@@ -531,6 +531,9 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementIndexByMaterial, element_index_by_material, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementIndexByMaterial, element_index_by_material, UInt);
 
+  /// Get the type of analysis method used
+  AKANTU_GET_MACRO(AnalysisMethod, method, AnalysisMethod);
+
 protected:
 
   friend class Material;
