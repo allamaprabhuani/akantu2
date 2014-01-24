@@ -63,7 +63,7 @@ Mesh::Mesh(UInt spatial_dimension,
            const MemoryID & memory_id) :
   Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
-  nodes_global_ids(NULL), nodes_type(NULL),
+  nodes_global_ids(NULL), nodes_type(0, 1, id + ":nodes_type"),
   created_nodes(true),
   connectivities("connectivities", id),
   normals("normals", id),
@@ -97,7 +97,7 @@ Mesh::Mesh(UInt spatial_dimension,
            const MemoryID & memory_id) :
   Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
-  nodes_global_ids(NULL), nodes_type(NULL),
+  nodes_global_ids(NULL), nodes_type(0, 1, id + ":nodes_type"),
   created_nodes(false),
   connectivities("connectivities", id),
   normals("normals", id),
@@ -122,7 +122,7 @@ Mesh::Mesh(UInt spatial_dimension,
            const MemoryID & memory_id) :
   Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
-  nodes_global_ids(NULL), nodes_type(NULL),
+  nodes_global_ids(NULL), nodes_type(0, 1, id + ":nodes_type"),
   created_nodes(false),
   connectivities("connectivities", id),
   normals("normals", id),
@@ -170,7 +170,6 @@ void Mesh::defineMeshParent(const Mesh & mesh) {
 
 /* -------------------------------------------------------------------------- */
 void Mesh::init() {
-  nodes_type = NULL;
   mesh_facets = NULL;
   is_mesh_facets = false;
   mesh_parent = NULL;

@@ -385,7 +385,10 @@ public:
   inline UInt getNbGlobalNodes() const;
 
   /// get the nodes type Array
-  AKANTU_GET_MACRO(NodesType, *nodes_type, const Array<Int> &);
+  AKANTU_GET_MACRO(NodesType, nodes_type, const Array<Int> &);
+protected:
+  AKANTU_GET_MACRO_NOT_CONST(NodesType, nodes_type, Array<Int> &);
+public:
   inline Int getNodeType(UInt local_id) const;
 
   /// say if a node is a pure ghost node
@@ -578,7 +581,7 @@ private:
 
   /// node type,  -3 pure ghost, -2  master for the  node, -1 normal node,  i in
   /// [0-N] slave node and master is proc i
-  Array<Int> * nodes_type;
+  Array<Int> nodes_type;
 
   /// global number of nodes;
   UInt nb_global_nodes;

@@ -286,7 +286,7 @@ void CohesiveElementInserter::insertExtrinsicElements() {
   UInt nb_new_elements = element_event.getList().getSize();
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  if (mesh.nodes_type) {
+  if (mesh.getNodesType().getSize()) {
     /// update global ids
     nb_new_nodes = updateGlobalIDs(node_event);
 

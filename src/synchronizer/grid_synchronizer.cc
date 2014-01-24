@@ -314,7 +314,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
    * Receives the connectivity and store them in the ghosts elements
    */
   Array<UInt> & global_nodes_ids = const_cast<Array<UInt> &>(mesh.getGlobalNodesIds());
-  Array<Int> & nodes_type = const_cast<Array<Int> &>(mesh.getNodesType());
+  Array<Int> & nodes_type = const_cast<Array<Int> &>(const_cast<const Mesh &>(mesh).getNodesType());
   std::vector<CommunicationRequest *> isend_nodes_requests;
   UInt nb_nodes_to_recv[nb_proc];
   UInt nb_total_nodes_to_recv = 0;

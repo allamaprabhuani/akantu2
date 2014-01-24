@@ -54,7 +54,7 @@ UInt CohesiveElementInserter::updateGlobalIDs(NewNodesEvent & node_event) {
   Int nb_proc = comm.getNbProc();
 
   /// update nodes' type
-  Array<Int> & nodes_type = *mesh.nodes_type;
+  Array<Int> & nodes_type = mesh.getNodesType();
   UInt nb_old_nodes = nodes_type.getSize();
   nodes_type.resize(nb_old_nodes + local_nb_new_nodes);
 
