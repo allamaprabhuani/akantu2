@@ -390,7 +390,7 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrix::applyBoundary(const Array<bool> & boundary) {
+void SparseMatrix::applyBoundary(const Array<bool> & boundary, Real block_val) {
   AKANTU_DEBUG_IN();
 
   const DOFSynchronizer::GlobalEquationNumberMap & local_eq_num_to_global = dof_synchronizer->getGlobalEquationNumberToLocal();
@@ -405,7 +405,7 @@ void SparseMatrix::applyBoundary(const Array<bool> & boundary) {
      if (*irn_val != *jcn_val) *a_val = 0;
      else {
        if(dof_synchronizer->getDOFTypes()(ni) >= 0) *a_val = 0;
-       else *a_val = 1;
+       else *a_val = block_val;
      }
     }
     irn_val++; jcn_val++; a_val++;

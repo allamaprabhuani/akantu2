@@ -101,8 +101,8 @@ public:
   void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer);
 
   /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(const Array<bool> & boundary);
-  
+  void applyBoundary(const Array<bool> & boundary, Real block_val = 1.);
+
   /// modify the matrix to "remove" the blocked dof
   void applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real> & EulerAngles, Array<Real> & rhs, const Array<Real> & matrix, Array<Real> & rhs_rotated);
 

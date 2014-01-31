@@ -411,7 +411,7 @@ void SolidMechanicsModel::solve(Array<Real> & increment) {
     jacobian_matrix->add(*mass_matrix, c);
 
 #if !defined(AKANTU_NDEBUG)
-  if(AKANTU_DEBUG_TEST(dblDump))
+  if(mass_matrix && AKANTU_DEBUG_TEST(dblDump))
     mass_matrix->saveMatrix("M.mtx");
 #endif
 

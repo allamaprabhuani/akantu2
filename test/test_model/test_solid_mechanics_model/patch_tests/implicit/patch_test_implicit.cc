@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
   /* Static solve                                                             */
   /* ------------------------------------------------------------------------ */
   my_model.solveStep<_scm_newton_raphson_tangent_modified, _scc_residual>(2e-4, 2);
-
+  my_model.getStiffnessMatrix().saveMatrix("clown_matrix.mtx");
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
   /* ------------------------------------------------------------------------ */
