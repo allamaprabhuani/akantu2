@@ -381,7 +381,8 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
-void SolidMechanicsModel::solve(Array<Real> & increment) {
+void SolidMechanicsModel::solve(Array<Real> & increment,
+                                Real block_val) {
   jacobian_matrix->clear();
 
   updateResidualInternal(); //doesn't do anything for static
@@ -418,7 +419,7 @@ void SolidMechanicsModel::solve(Array<Real> & increment) {
   if(velocity_damping_matrix)
     jacobian_matrix->add(*velocity_damping_matrix, d);
 
-  jacobian_matrix->applyBoundary(*boundary);
+  jacobian_matrix->applyBoundary(*boundary, block_val);
 
 #if !defined(AKANTU_NDEBUG)
   if(AKANTU_DEBUG_TEST(dblDump))

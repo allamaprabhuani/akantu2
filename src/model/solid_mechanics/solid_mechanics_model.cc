@@ -1128,8 +1128,8 @@ void SolidMechanicsModel::implicitCorr() {
     bool * boun_val = boundary->values;
 
     for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++boun_val){
-      *disp_val += (1. - *boun_val) * *incr_val;
       *incr_val *= (1. - *boun_val);
+      *disp_val += *incr_val;
     }
   }
 

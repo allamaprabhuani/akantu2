@@ -128,8 +128,8 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
 
       const Vector<Real> & elem_data = (*elem_it)(n);
       for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-	nodal_it[equation_number(offset_node + d)]
-	  += scale_factor * elem_data(d);
+        nodal_it[equation_number(offset_node + d)]
+          += scale_factor * elem_data(d);
       }
     }
   }

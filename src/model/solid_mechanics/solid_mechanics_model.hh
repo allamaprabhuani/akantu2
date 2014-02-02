@@ -261,7 +261,7 @@ public:
   //protected: Daniel changed it just for a test
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template<NewmarkBeta::IntegrationSchemeCorrectorType type>
-  void solve(Array<Real> & increment);
+  void solve(Array<Real> & increment, Real block_val = 1.);
 
   /* ------------------------------------------------------------------------ */
   /* Explicit/Implicit                                                        */

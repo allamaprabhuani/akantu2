@@ -404,8 +404,11 @@ void SparseMatrix::applyBoundary(const Array<bool> & boundary, Real block_val) {
     if(boundary.values[ni]  || boundary.values[nj]) {
      if (*irn_val != *jcn_val) *a_val = 0;
      else {
-       if(dof_synchronizer->getDOFTypes()(ni) >= 0) *a_val = 0;
-       else *a_val = block_val;
+       if(dof_synchronizer->getDOFTypes()(ni) >= 0) {
+         *a_val = 0;
+       } else {
+         *a_val = block_val;
+       }
      }
     }
     irn_val++; jcn_val++; a_val++;
