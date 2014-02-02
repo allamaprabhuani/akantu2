@@ -384,7 +384,7 @@ template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solve(Array<Real> & increment) {
   jacobian_matrix->clear();
 
-  updateResidualInternal();
+  updateResidualInternal(); //doesn't do anything for static
 
   Real c = 0.,d = 0.,e = 0.;
 

@@ -507,6 +507,9 @@ public:
   /// get the stiffness matrix
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, SparseMatrix &);
 
+  /// get the global jacobian matrix of the system
+  AKANTU_GET_MACRO(GlobalJacobianMatrix, *jacobian_matrix, const SparseMatrix &);
+
   /// get the mass matrix
   AKANTU_GET_MACRO(MassMatrix, *mass_matrix, SparseMatrix &);
 

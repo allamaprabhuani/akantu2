@@ -190,7 +190,7 @@ void FEM::assembleMatrix(const Array<Real> & elementary_mat,
     for (UInt i = 0; i < nb_nodes_per_element; ++i) {
       UInt n = conn_val[i];
       for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-	*tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degree_of_freedom + d];
+        *tmp_local_eq_nb_val++ = eq_nb_val[n * nb_degree_of_freedom + d];
       }
       // memcpy(tmp_local_eq_nb_val, eq_nb_val + n * nb_degree_of_freedom, nb_degree_of_freedom * sizeof(Int));
       // tmp_local_eq_nb_val += nb_degree_of_freedom;
@@ -199,13 +199,13 @@ void FEM::assembleMatrix(const Array<Real> & elementary_mat,
     for (UInt i = 0; i < size_mat; ++i) {
       UInt c_irn = local_eq_nb_val[i];
       if(c_irn < size) {
-	UInt j_start = (matrix.getSparseMatrixType() == _symmetric) ? i : 0;
-	for (UInt j = j_start; j < size_mat; ++j) {
-	  UInt c_jcn = local_eq_nb_val[j];
-	  if(c_jcn < size) {
-	    matrix(c_irn, c_jcn) += elementary_mat_val[j * size_mat + i];
-	  }
-	}
+        UInt j_start = (matrix.getSparseMatrixType() == _symmetric) ? i : 0;
+        for (UInt j = j_start; j < size_mat; ++j) {
+          UInt c_jcn = local_eq_nb_val[j];
+          if(c_jcn < size) {
+            matrix(c_irn, c_jcn) += elementary_mat_val[j * size_mat + i];
+          }
+        }
       }
     }
     elementary_mat_val += offset_elementary_mat;
