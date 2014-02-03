@@ -98,6 +98,9 @@ protected:
   /// update nodes type and global ids for parallel simulations
   UInt updateGlobalIDs(NewNodesEvent & node_event);
 
+  /// update nodes type
+  void updateNodesType(Mesh & mesh, NewNodesEvent & node_event);
+
   /// functions for parallel communications
   inline UInt getNbDataForElements(const Array<Element> & elements,
 				   SynchronizationTag tag) const;

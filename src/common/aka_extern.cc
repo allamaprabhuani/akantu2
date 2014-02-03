@@ -37,6 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include <iostream>
+#include <limits>
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_DEBUG_TOOLS)
 #  include "aka_debug_tools.hh"
@@ -73,7 +74,7 @@ namespace debug {
 
 bool Parser::parser_permissive = false;
 
-Real Math::tolerance = 1e-8;
+Real Math::tolerance = std::numeric_limits<Real>::epsilon();
 
 const UInt _all_dimensions = UInt(-1);
 

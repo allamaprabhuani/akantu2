@@ -43,17 +43,13 @@ void CohesiveElementInserter::initParallel(FacetSynchronizer * facet_synchronize
 }
 
 /* -------------------------------------------------------------------------- */
-UInt CohesiveElementInserter::updateGlobalIDs(NewNodesEvent & node_event) {
+void CohesiveElementInserter::updateNodesType(Mesh & mesh,
+					      NewNodesEvent & node_event) {
   AKANTU_DEBUG_IN();
 
   Array<UInt> & doubled_nodes = node_event.getList();
   UInt local_nb_new_nodes = doubled_nodes.getSize();
-
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  Int rank = comm.whoAmI();
-  Int nb_proc = comm.getNbProc();
-
-  /// update nodes' type
+  
   Array<Int> & nodes_type = mesh.getNodesType();
   UInt nb_old_nodes = nodes_type.getSize();
   nodes_type.resize(nb_old_nodes + local_nb_new_nodes);
@@ -64,8 +60,24 @@ UInt CohesiveElementInserter::updateGlobalIDs(NewNodesEvent & node_event) {
     nodes_type(new_node) = nodes_type(old_node);
   }
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+UInt CohesiveElementInserter::updateGlobalIDs(NewNodesEvent & node_event) {
+  AKANTU_DEBUG_IN();
+
+  Array<UInt> & doubled_nodes = node_event.getList();
+  UInt local_nb_new_nodes = doubled_nodes.getSize();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int rank = comm.whoAmI();
+  Int nb_proc = comm.getNbProc();
+
   /// resize global ids array
   Array<UInt> & nodes_global_ids = *mesh.nodes_global_ids;
+  UInt nb_old_nodes = nodes_global_ids.getSize();
+
   nodes_global_ids.resize(nb_old_nodes + local_nb_new_nodes);
 
   /// compute amount of local or master doubled nodes

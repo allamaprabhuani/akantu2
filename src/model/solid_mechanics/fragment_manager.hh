@@ -66,7 +66,9 @@ private:
 
   /// create dump data for a single array
   template <typename T>
-  void createDumpDataArray(Array<T> & data, std::string name);
+  void createDumpDataArray(Array<T> & data,
+			   std::string name,
+			   bool fragment_index_output = false);
 
 public:
 

@@ -271,8 +271,9 @@ void MeshUtils::buildAllFacets(const Mesh & mesh,
 		       spatial_dimension,
 		       prank_to_element);
 
-  /// copy nodes type pointer
-  mesh_facets.nodes_type = mesh.nodes_type;
+  /// copy nodes type
+  mesh_facets.nodes_type.resize(mesh.nodes_type.getSize());
+  mesh_facets.nodes_type.copy(mesh.nodes_type);
 
   /// sort facets and generate subfacets
   for (UInt i = spatial_dimension - 1; i > to_dimension; --i) {

@@ -401,6 +401,8 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
   synch_registry->asynchronousSynchronize(_gst_smm_uv);
   synch_registry->waitEndSynchronize(_gst_smm_uv);
 
+  updateCurrentPosition();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -425,8 +427,6 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
 
   // f = f_ext
   if(need_initialize) initializeUpdateResidualData();
-
-  updateCurrentPosition();
 
   AKANTU_DEBUG_INFO("Compute local stresses");
 

@@ -78,8 +78,8 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   material_selector = new DefaultMaterialCohesiveSelector(*this);
 
 #if defined(AKANTU_USE_IOHELPER)
-  this->registerDumper<DumperParaview>("cohesive_elements", id);
-  this->addDumpMeshToDumper("cohesive_elements",
+  this->registerDumper<DumperParaview>("cohesive elements", id);
+  this->addDumpMeshToDumper("cohesive elements",
 			    mesh, spatial_dimension, _not_ghost, _ek_cohesive);
 #endif
 
@@ -105,7 +105,7 @@ void SolidMechanicsModelCohesive::setTimeStep(Real time_step) {
   SolidMechanicsModel::setTimeStep(time_step);
 
 #if defined(AKANTU_USE_IOHELPER)
-  getDumper("cohesive_elements").setTimeStep(time_step);
+  getDumper("cohesive elements").setTimeStep(time_step);
 #endif
 }
 
@@ -785,10 +785,10 @@ void SolidMechanicsModelCohesive::addDumpFieldToDumper(const std::string & dumpe
 						       const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
-  if (dumper_name == "cohesive_elements") {
+  if (dumper_name == "cohesive elements") {
     if (field_id == "damage") {
       internalAddDumpFieldToDumper
-	("cohesive_elements",
+	("cohesive elements",
 	 field_id, new DumperIOHelper::
 	 HomogenizedField<Real,
 			  DumperIOHelper::InternalMaterialField>(*this,

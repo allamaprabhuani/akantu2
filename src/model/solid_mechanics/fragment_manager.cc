@@ -92,11 +92,16 @@ public:
     UInt nb_quad_per_element
       = model.getFEM("CohesiveFEM").getNbQuadraturePoints(el.type, el.ghost_type);
 
-    Vector<Real> damage
-      = mat.getDamage(el.type, el.ghost_type).begin(nb_quad_per_element)[el_index];
+    const Array<Real> & damage_array = mat.getDamage(el.type, el.ghost_type);
 
-    UInt unbroken_quads = std::count_if(damage.storage(),
-					damage.storage() + nb_quad_per_element,
+    AKANTU_DEBUG_ASSERT(nb_quad_per_element * el_index < damage_array.getSize(),
+			"This quadrature point is out of range");
+
+    const Real * element_damage
+      = damage_array.storage() + nb_quad_per_element * el_index;
+
+    UInt unbroken_quads = std::count_if(element_damage,
+					element_damage + nb_quad_per_element,
 					is_unbroken);
 
     if (unbroken_quads > 0)
@@ -168,7 +173,7 @@ void FragmentManager::buildFragments() {
   computeMass();
 
   if (dump_data) {
-    createDumpDataArray(fragment_index, "fragments");
+    createDumpDataArray(fragment_index, "fragments", true);
     createDumpDataArray(mass, "fragments mass");
   }
 
@@ -270,7 +275,7 @@ void FragmentManager::computeVelocity() {
  * \mathbf{I} - \mathbf{r}\mathbf{r}^\mathrm{T} \f] for more
  * information check Wikipedia
  * (http://en.wikipedia.org/wiki/Moment_of_inertia#Identities_for_a_skew-symmetric_matrix)
- * 
+ *
  */
 
 void FragmentManager::computeInertiaMoments() {
@@ -528,7 +533,9 @@ void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void FragmentManager::createDumpDataArray(Array<T> & data, std::string name) {
+void FragmentManager::createDumpDataArray(Array<T> & data,
+					  std::string name,
+					  bool fragment_index_output) {
   AKANTU_DEBUG_IN();
 
   if (data.getSize() == 0) return;
@@ -564,9 +571,14 @@ void FragmentManager::createDumpDataArray(Array<T> & data, std::string name) {
       ElementGroup::const_element_iterator el_it = fragment.element_begin(type);
       ElementGroup::const_element_iterator el_end = fragment.element_end(type);
 
-      /// fill mesh data with cluster index
-      for (; el_it != el_end; ++el_it)
-	mesh_data_begin[*el_it] = data_begin[*fragment_index_it];
+      /// fill mesh data
+      if (fragment_index_output) {
+	for (; el_it != el_end; ++el_it)
+	  mesh_data_begin[*el_it](0) = *fragment_index_it;
+      } else {
+	for (; el_it != el_end; ++el_it)
+	  mesh_data_begin[*el_it] = data_begin[*fragment_index_it];
+      }
     }
   }
 
