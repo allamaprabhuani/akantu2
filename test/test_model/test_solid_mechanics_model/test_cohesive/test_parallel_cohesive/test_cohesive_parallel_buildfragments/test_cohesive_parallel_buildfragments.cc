@@ -50,6 +50,7 @@ using namespace akantu;
 
 void verticalInsertionLimit(SolidMechanicsModelCohesive &);
 void displaceElements(SolidMechanicsModelCohesive &, const Real, const Real);
+bool isInertiaEqual(const Vector<Real> &, const Vector<Real> &);
 
 int main(int argc, char *argv[]) {
   initialize(argc, argv);
@@ -57,7 +58,8 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
 
   const UInt spatial_dimension = 3;
-  const UInt total_nb_fragment = 50;
+  const UInt total_nb_fragment = 5;
+  Math::setTolerance(1.e-11);
 
   Mesh mesh(spatial_dimension);
 
@@ -107,10 +109,10 @@ int main(int argc, char *argv[]) {
   model.addDumpField("moments of inertia");
   model.dump();
 
-  model.setBaseNameToDumper("cohesive_elements", "cohesive_elements_test");
-  model.addDumpFieldVectorToDumper("cohesive_elements", "displacement");
-  model.addDumpFieldToDumper("cohesive_elements", "damage");
-  model.dump("cohesive_elements");
+  model.setBaseNameToDumper("cohesive elements", "cohesive_elements_test");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
+  model.dump("cohesive elements");
 
   /// set check facets
   verticalInsertionLimit(model);
@@ -132,13 +134,23 @@ int main(int argc, char *argv[]) {
   model.updateResidual();
   model.checkCohesiveStress();
   model.dump();
-  model.dump("cohesive_elements");
+  model.dump("cohesive elements");
 
   const Array<Real> & fragment_mass = fragment_manager.getMass();
   const Array<Real> & fragment_center = fragment_manager.getCenterOfMass();
 
   Real el_size = L / total_nb_fragment;
   Real lim = -L/2 + el_size * 0.99;
+
+  /// define theoretical inertia moments
+  Vector<Real> small_frag_inertia(spatial_dimension);
+  small_frag_inertia(0) = frag_theo_mass * (h*h + h*h) / 12.;
+  small_frag_inertia(1) = frag_theo_mass * (el_size*el_size + h*h) / 12.;
+  small_frag_inertia(2) = frag_theo_mass * (el_size*el_size + h*h) / 12.;
+
+  const Array<Real> & inertia_moments = fragment_manager.getMomentsOfInertia();
+  Array<Real>::const_iterator< Vector<Real> > inertia_moments_begin
+    = inertia_moments.begin(spatial_dimension);
 
   /// displace one fragment each time
   for (UInt frag = 1; frag <= total_nb_fragment; ++frag) {
@@ -161,16 +173,42 @@ int main(int argc, char *argv[]) {
       UInt small_fragments = 0;
 
       for (UInt f = 0; f < nb_fragment_num; ++f) {
+	const Vector<Real> & current_inertia = inertia_moments_begin[f];
+
 	if (Math::are_float_equal(fragment_mass(f, 0), frag_theo_mass)) {
 
 	  /// check center of mass
 	  if (fragment_center(f, 0) > (L * frag / total_nb_fragment - L / 2)) {
-	    std::cout << "Fragment center is wrong!" << std::endl;
+	    AKANTU_DEBUG_ERROR("Fragment center is wrong!");
+	    return EXIT_FAILURE;
+	  }
+
+	  /// check moment of inertia
+	  if (!isInertiaEqual(current_inertia, small_frag_inertia)) {
+	    AKANTU_DEBUG_ERROR("Inertia moments are wrong");
 	    return EXIT_FAILURE;
 	  }
 
 	  ++small_fragments;
 	  total_mass += frag_theo_mass;
+	}
+	else {
+	  /// check the moment of inertia for the biggest fragment
+	  Real big_frag_mass = frag_theo_mass * (total_nb_fragment - frag + 1);
+	  Real big_frag_size = el_size * (total_nb_fragment - frag + 1);
+
+	  Vector<Real> big_frag_inertia(spatial_dimension);
+	  big_frag_inertia(0) = big_frag_mass * (h*h + h*h) / 12.;
+	  big_frag_inertia(1)
+	    = big_frag_mass * (big_frag_size*big_frag_size + h*h) / 12.;
+	  big_frag_inertia(2)
+	    = big_frag_mass * (big_frag_size*big_frag_size + h*h) / 12.;
+
+	  if (!isInertiaEqual(current_inertia, big_frag_inertia)) {
+	    AKANTU_DEBUG_ERROR("Inertia moments are wrong");
+	    return EXIT_FAILURE;
+	  }
+
 	}
       }
 
@@ -187,7 +225,7 @@ int main(int argc, char *argv[]) {
     }
 
     model.dump();
-    model.dump("cohesive_elements");
+    model.dump("cohesive elements");
 
     /// displace fragments
     displaceElements(model, lim, el_size * 2);
@@ -197,7 +235,7 @@ int main(int argc, char *argv[]) {
   }
 
   model.dump();
-  model.dump("cohesive_elements");
+  model.dump("cohesive elements");
 
   /// check centers
   const Array<Real> & fragment_velocity = fragment_manager.getVelocity();
@@ -324,4 +362,16 @@ void displaceElements(SolidMechanicsModelCohesive & model,
       }
     }
   }
+}
+
+bool isInertiaEqual(const Vector<Real> & a, const Vector<Real> & b) {
+  UInt nb_terms = a.size();
+  UInt equal_terms = 0;
+  Real tolerance = 1.e-2;
+
+  while (equal_terms < nb_terms &&
+	 std::abs(a(equal_terms) - b(equal_terms)) / a(equal_terms) < tolerance)
+    ++equal_terms;
+
+  return equal_terms == nb_terms;
 }

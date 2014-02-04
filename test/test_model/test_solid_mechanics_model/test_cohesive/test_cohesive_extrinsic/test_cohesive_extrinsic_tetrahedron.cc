@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
   // const UInt max_steps = 1000;
   // Real increment = 0.005;
   const UInt spatial_dimension = 3;
+  Math::setTolerance(1.e-12);
 
   ElementType type = _tetrahedron_10;
   ElementType type_facet = Mesh::getFacetType(type);

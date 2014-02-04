@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
 
   ElementType type = _tetrahedron_10;
   ElementType type_facet = Mesh::getFacetType(type);
+  Math::setTolerance(1.e-11);
 
   Mesh mesh(spatial_dimension);
 

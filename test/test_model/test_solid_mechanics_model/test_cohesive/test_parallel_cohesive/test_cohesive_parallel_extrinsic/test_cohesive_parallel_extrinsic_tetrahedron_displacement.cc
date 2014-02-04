@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
 
   const UInt max_steps = 500;
+  Math::setTolerance(1.e-12);
 
   UInt spatial_dimension = 3;
   ElementType type = _tetrahedron_10;

@@ -42,12 +42,6 @@
 #include "material.hh"
 #include "material_cohesive.hh"
 
-#ifdef AKANTU_USE_IOHELPER
-#  include "dumper_paraview.hh"
-#  include "dumper_iohelper_tmpl.hh"
-#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
-#  include "dumper_iohelper_tmpl_material_internal_field.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -83,6 +77,7 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 3;
   const UInt max_steps = 60;
   const Real increment_constant = 0.01;
+  Math::setTolerance(1.e-12);
 
   const ElementType type = _tetrahedron_10;
 
@@ -122,24 +117,13 @@ int main(int argc, char *argv[]) {
 
   model.setBaseName("intrinsic_tetrahedron");
   model.addDumpFieldVector("displacement");
-  model.addDumpField("residual"    );
+  model.addDumpField("residual");
   model.dump();
 
-  DumperParaview dumper("cohesive_elements_tetrahedron");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
-  dumper.registerField("damage", new DumperIOHelper::
-  		       HomogenizedField<Real,
-  					DumperIOHelper::InternalMaterialField>(model,
-  									       "damage",
-  									       spatial_dimension,
-  									       _not_ghost,
-  									       _ek_cohesive));
-
-  dumper.dump();
+  model.setBaseNameToDumper("cohesive elements", "cohesive_elements_tetrahedron");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
+  model.dump("cohesive elements");
 
   /// find elements to displace
   Array<UInt> elements;
@@ -186,7 +170,7 @@ int main(int argc, char *argv[]) {
     position_it->mul<false>(rotation, *position_tmp_it);
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive elements");
 
   updateDisplacement(model, elements, type, increment);
 
@@ -239,12 +223,12 @@ int main(int argc, char *argv[]) {
     if(s % 10 == 0) {
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
       model.dump();
-      dumper.dump();
+      model.dump("cohesive elements");
     }
   }
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive elements");
 
   Real Ed = model.getEnergy("dissipated");
   theoretical_Ed *= 4.;

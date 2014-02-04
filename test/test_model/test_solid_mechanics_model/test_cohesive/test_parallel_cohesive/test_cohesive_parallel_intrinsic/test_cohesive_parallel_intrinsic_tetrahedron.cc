@@ -71,6 +71,7 @@ int main(int argc, char *argv[]) {
   const UInt max_steps = 60;
   const Real increment_constant = 0.01;
   ElementType type = _tetrahedron_10;
+  Math::setTolerance(1.e-12);
 
   Mesh mesh(spatial_dimension);
 

@@ -526,7 +526,7 @@ void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
 
   /// sum output over all processors
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  comm.allReduce(output.storage(), global_nb_fragment * spatial_dimension, _so_sum);
+  comm.allReduce(output.storage(), global_nb_fragment * nb_component, _so_sum);
 
   AKANTU_DEBUG_OUT();
 }
