@@ -63,7 +63,8 @@ int main(int argc, char *argv[]) {
   mesh.read("interpolation.msh");
   const ElementType type_facet = mesh.getFacetType(type);
 
-  MeshUtils::buildAllFacets(mesh, mesh);
+  Mesh mesh_facets(mesh.initMeshFacets("mesh_facets"));
+  MeshUtils::buildAllFacets(mesh, mesh_facets);
 
   SolidMechanicsModel model(mesh);
 
@@ -71,13 +72,13 @@ int main(int argc, char *argv[]) {
   model.initFull("../material.dat");
 
   Array<Real> & position = mesh.getNodes();
-  UInt nb_facet = mesh.getNbElement(type_facet);
+  UInt nb_facet = mesh_facets.getNbElement(type_facet);
   UInt nb_element = mesh.getNbElement(type);
 
   /// compute quadrature points positions on facets
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
-  model.registerFEMObject<MyFEMType>("FacetsFEM", mesh, spatial_dimension-1);
+  model.registerFEMObject<MyFEMType>("FacetsFEM", mesh_facets, spatial_dimension-1);
   model.getFEM("FacetsFEM").initShapeFunctions();
 
   UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
@@ -90,7 +91,7 @@ int main(int argc, char *argv[]) {
 							  spatial_dimension,
 							  type_facet);
 
-  Array<Element> & facet_to_element = mesh.getSubelementToElement(type);
+  Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(type);
   UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
   ByElementTypeReal element_quad_facet;
