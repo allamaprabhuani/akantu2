@@ -31,6 +31,7 @@
 #include "aka_common.hh"
 #include "aka_vector.hh"
 #include "aka_memory.hh"
+#include "mesh_filter.hh"
 /* -------------------------------------------------------------------------- */
 
 
@@ -73,6 +74,9 @@ public:
 
   /// append a group to current one
   void append(const NodeGroup & other_group);
+
+  /// apply a filter on current node group
+  void applyNodeFilter(NodeFilterFunctor & filter);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

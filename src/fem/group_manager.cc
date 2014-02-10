@@ -100,6 +100,27 @@ NodeGroup & GroupManager::createNodeGroup(const std::string & group_name,
 }
 
 /* -------------------------------------------------------------------------- */
+template<typename T>
+NodeGroup & GroupManager::createFilteredNodeGroup(const std::string & group_name,
+						  const NodeGroup & source_node_group,
+						  T & filter) {
+  AKANTU_DEBUG_IN();
+
+  NodeGroup & node_group = this->createNodeGroup(group_name);
+  node_group.append(source_node_group);
+  if (T::type == FilterFunctor::_node_filter_functor) {
+    node_group.applyNodeFilter(filter);
+  }
+  else {
+    AKANTU_DEBUG_ERROR("ElementFilter cannot be applied to NodeGroup yet."
+		       << " Needs to be implemented.");
+  }
+
+  AKANTU_DEBUG_OUT();
+  return node_group;
+}
+
+/* -------------------------------------------------------------------------- */
 void GroupManager::destroyNodeGroup(const std::string & group_name) {
   AKANTU_DEBUG_IN();
 
@@ -179,6 +200,33 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
                                                   memory_id);
 
   element_groups[group_name] = element_group;
+
+  AKANTU_DEBUG_OUT();
+
+  return *element_group;
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+ElementGroup & GroupManager::createFilteredElementGroup(const std::string & group_name,
+							UInt dimension,
+							const NodeGroup & node_group,
+							T & filter) {
+  AKANTU_DEBUG_IN();
+
+  ElementGroup * element_group = NULL;
+
+  if (T::type == FilterFunctor::_node_filter_functor) {
+    NodeGroup & filtered_node_group = this->createFilteredNodeGroup(group_name + "_nodes",
+								    node_group,
+								    filter);
+    element_group = &(this->createElementGroup(group_name,
+					       dimension,
+					       filtered_node_group));
+  }
+  else if (T::type == FilterFunctor::_element_filter_functor) {
+    AKANTU_DEBUG_ERROR("Cannot handle an ElementFilter yet. Needs to be implemented.");
+  }
 
   AKANTU_DEBUG_OUT();
 

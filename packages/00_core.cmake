@@ -106,6 +106,7 @@ set(AKANTU_CORE_FILES
   fem/interpolation_element_tmpl.hh
   fem/mesh.cc
   fem/mesh.hh
+  fem/mesh_filter.hh
   fem/mesh_data.cc
   fem/mesh_data.hh
   fem/mesh_data_tmpl.hh

@@ -121,20 +121,36 @@ public:
   NodeGroup & createNodeGroup(const std::string & group_name,
 			      bool replace_group = false);
 
+  /// create a node group from another node group but filtered
+  template <typename T>
+  NodeGroup & createFilteredNodeGroup(const std::string & group_name,
+				      const NodeGroup & node_group,
+				      T & filter);
+				      
   /// destroy a node group
   void destroyNodeGroup(const std::string & group_name);
+
 
   /// create an element group and the associated node group
   ElementGroup & createElementGroup(const std::string & group_name,
 				    UInt dimension,
 				    bool replace_group = false);
 
+  /// create an element group from another element group but filtered
+  template <typename T>
+  ElementGroup & createFilteredElementGroup(const std::string & group_name,
+					    UInt dimension,
+					    const NodeGroup & node_group,
+					    T & filter);
+
   /// destroy an element group and the associated node group
   void destroyElementGroup(const std::string & group_name,
 			   bool destroy_node_group = false);
 
   /// create a element group using an existing node group
-  ElementGroup & createElementGroup(const std::string & group_name, UInt dimension, NodeGroup & node_group);
+  ElementGroup & createElementGroup(const std::string & group_name,
+				    UInt dimension,
+				    NodeGroup & node_group);
 
   /// create groups based on values stored in a given mesh data
   template <typename T>

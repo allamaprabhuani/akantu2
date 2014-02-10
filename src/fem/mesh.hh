@@ -5,6 +5,7 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Dana Christen <dana.christen@epfl.ch>
+ * @author David Kammer <david.kammer@epfl.ch>
  *
  * @date   Fri Jun 18 11:47:19 2010
  *
