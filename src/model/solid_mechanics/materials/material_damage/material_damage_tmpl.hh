@@ -123,6 +123,62 @@ void MaterialDamage<spatial_dimension, Parent>::computeAllStresses(GhostType gho
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template<UInt> class Parent>
+void MaterialDamage<spatial_dimension, Parent>::computeStress(ElementType el_type,
+							      GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+
+  Real * dam = this->damage(el_type, ghost_type).storage();
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  computeStressOnQuad(grad_u, sigma, *dam);
+  
+  ++dam;
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension, template<UInt> class Parent>
+void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(const ElementType & el_type,
+								     Array<Real> & tangent_matrix,
+								     GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  Real * dam = this->damage(el_type, ghost_type).storage();
+
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+  computeTangentModuliOnQuad(tangent, *dam);
+
+  ++dam;
+
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension, template<UInt> class Parent>
+void MaterialDamage<spatial_dimension, Parent>::computeStressOnQuad(const Matrix<Real> & grad_u,
+								    Matrix<Real> & sigma,
+
+								    Real & dam) {
+  Parent<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+  sigma *= (1-dam);
+
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension, template<UInt> class Parent>
+void MaterialDamage<spatial_dimension, Parent>::computeTangentModuliOnQuad(Matrix<Real> & tangent,
+									   Real & dam) {
+  Parent<spatial_dimension>::computeTangentModuliOnQuad(tangent);
+  tangent *= (1-dam);
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension, template<UInt> class Parent>
 Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
   AKANTU_DEBUG_IN();
 

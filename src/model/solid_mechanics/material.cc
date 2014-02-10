@@ -50,6 +50,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   spatial_dimension(this->model->getSpatialDimension()),
   element_filter("element_filter", id, this->memory_id),
   stress("stress", *this),
+  pre_strain("pre_strain", *this),
   strain("strain", *this),
   delta_stress("delta_stress", *this),
   delta_strain("delta_strain", *this),
@@ -80,6 +81,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   registerParam("inelastic_deformation", inelastic_deformation, false        , _pat_parsable | _pat_modifiable, "Is inelastic deformation");
 
   /// allocate strain stress for local elements
+  pre_strain.initialize(spatial_dimension * spatial_dimension);
   strain.initialize(spatial_dimension * spatial_dimension);
   stress.initialize(spatial_dimension * spatial_dimension);
 
@@ -280,6 +282,8 @@ void Material::computeAllStresses(GhostType ghost_type) {
     model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
                                                spatial_dimension,
                                                *it, ghost_type, elem_filter);
+
+    strain_vect += pre_strain(*it, ghost_type);
 
     if(finite_deformation || inelastic_deformation){ /// compute @f$\nabla \delta u@f$
       Array<Real> & delta_strain_vect = delta_strain(*it, ghost_type);
@@ -1340,6 +1344,170 @@ ByElementTypeArray<Real> & Material::getInternal(const ID & int_id) {
                      << int_id << " (" << (getID() + ":" + int_id) << ")");
   }
   return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::addElements(const Array<Element> & elements_to_add) {
+  AKANTU_DEBUG_IN();
+  UInt mat_id = model->getInternalIndexFromID(getID());
+  Array<Element>::const_iterator<Element> el_begin = elements_to_add.begin();
+  Array<Element>::const_iterator<Element> el_end   = elements_to_add.end();
+  for(;el_begin != el_end; ++el_begin) {
+    const Element & element = *el_begin;
+    Array<UInt> & element_index_material = model->getElementIndexByMaterial(element.type, element.ghost_type);
+    UInt index = this->addElement(element.type, element.element, element.ghost_type);
+    element_index_material(element.element, 0) = mat_id;
+    element_index_material(element.element, 1) = index;
+  }
+
+  this->resizeInternals();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::removeElements(const Array<Element> & elements_to_remove) {
+  AKANTU_DEBUG_IN();
+
+  Array<Element>::const_iterator<Element> el_begin = elements_to_remove.begin();
+  Array<Element>::const_iterator<Element> el_end   = elements_to_remove.end();
+
+  ByElementTypeUInt material_local_new_numbering("remove mat filter elem", getID());
+
+  Element element;
+  for (ghost_type_t::iterator gt = ghost_type_t::begin(); gt != ghost_type_t::end(); ++gt) {
+    GhostType ghost_type = *gt;
+    element.ghost_type = ghost_type;
+
+    ByElementTypeArray<UInt>::type_iterator it  = element_filter.firstType(_all_dimensions, ghost_type, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = element_filter.lastType(_all_dimensions, ghost_type, _ek_not_defined);
+
+    for(; it != end; ++it) {
+      ElementType type = *it;
+      element.type = type;
+
+      Array<UInt> & elem_filter = this->element_filter(type, ghost_type);
+      Array<UInt> & element_index_material = model->getElementIndexByMaterial(type, ghost_type);
+
+      if(!material_local_new_numbering.exists(type, ghost_type))
+	material_local_new_numbering.alloc(elem_filter.getSize(), 1, type, ghost_type);
+      Array<UInt> & mat_renumbering = material_local_new_numbering(type, ghost_type);
+
+      UInt nb_element = elem_filter.getSize();
+      Array<UInt> elem_filter_tmp;
+
+      UInt new_id = 0;
+      for (UInt el = 0; el < nb_element; ++el) {
+	element.element = elem_filter(el);
+
+	if(std::find(el_begin, el_end, element) == el_end) {
+	  elem_filter_tmp.push_back(element.element);
+
+	  mat_renumbering(el) = new_id;
+	  element_index_material(element.element, 1) = new_id;
+	  ++new_id;
+	} else {
+	  mat_renumbering(el) = UInt(-1);
+	}
+      }
+
+      elem_filter.resize(elem_filter_tmp.getSize());
+      elem_filter.copy(elem_filter_tmp);
+    }
+  }
+
+  for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
+       it != internal_vectors_real.end();
+       ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
+
+  for (std::map<ID, InternalField<UInt> *>::iterator it = internal_vectors_uint.begin();
+       it != internal_vectors_uint.end();
+       ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::resizeInternals() {
+  AKANTU_DEBUG_IN();
+  for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
+       it != internal_vectors_real.end();
+       ++it) it->second->resize();
+
+  for (std::map<ID, InternalField<UInt> *>::iterator it = internal_vectors_uint.begin();
+       it != internal_vectors_uint.end();
+       ++it) it->second->resize();
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::onElementsAdded(__attribute__((unused)) const Array<Element> & element_list,
+			       __attribute__((unused)) const NewElementsEvent & event) {
+  this->resizeInternals();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::onElementsRemoved(const Array<Element> & element_list,
+				 const ByElementTypeUInt & new_numbering,
+				 __attribute__((unused)) const RemovedElementsEvent & event) {
+  UInt my_num = model->getInternalIndexFromID(getID());
+
+  ByElementTypeUInt material_local_new_numbering("remove mat filter elem", getID());
+
+  Array<Element>::const_iterator<Element> el_begin = element_list.begin();
+  Array<Element>::const_iterator<Element> el_end   = element_list.end();
+
+  for (ghost_type_t::iterator g = ghost_type_t::begin(); g != ghost_type_t::end(); ++g) {
+    GhostType gt = *g;
+
+    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
+    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
+    for (; it != end; ++it) {
+      ElementType type = *it;
+      if(element_filter.exists(type, gt)){
+	Array<UInt> & elem_filter = element_filter(type, gt);
+
+	Array<UInt> & element_index_material = model->getElementIndexByMaterial(type, gt);
+	element_index_material.resize(model->getFEM().getMesh().getNbElement(type, gt)); // all materials will resize of the same size...
+
+	if(!material_local_new_numbering.exists(type, gt))
+	  material_local_new_numbering.alloc(elem_filter.getSize(), 1, type, gt);
+
+	Array<UInt> & mat_renumbering = material_local_new_numbering(type, gt);
+	const Array<UInt> & renumbering = new_numbering(type, gt);
+	Array<UInt> elem_filter_tmp;
+	UInt ni = 0;
+	Element el;
+	el.type = type;
+	el.ghost_type = gt;
+	for (UInt i = 0; i < elem_filter.getSize(); ++i) {
+	  el.element = elem_filter(i);
+	  if(std::find(el_begin, el_end, el) == el_end) {
+	    UInt new_el = renumbering(el.element);
+	    AKANTU_DEBUG_ASSERT(new_el != UInt(-1), "A not removed element as been badly renumbered");
+	    elem_filter_tmp.push_back(new_el);
+	    mat_renumbering(i) = ni;
+	    element_index_material(new_el, 0) = my_num;
+	    element_index_material(new_el, 1) = ni;
+	    ++ni;
+	  } else {
+	    mat_renumbering(i) = UInt(-1);
+	  }
+	}
+
+	elem_filter.resize(elem_filter_tmp.getSize());
+	elem_filter.copy(elem_filter);
+      }
+    }
+  }
+
+  for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
+       it != internal_vectors_real.end();
+       ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
+
+  for (std::map<ID, InternalField<UInt> *>::iterator it = internal_vectors_uint.begin();
+       it != internal_vectors_uint.end();
+       ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
 }
 
 /* -------------------------------------------------------------------------- */

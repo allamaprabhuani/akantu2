@@ -179,3 +179,18 @@ register_test(test_solid_mechanics_model_boundary_condition
   SOURCES test_solid_mechanics_model_boundary_condition.cc
   FILES_TO_COPY material.dat cube_physical_names.msh
   )
+
+#===============================================================================
+add_mesh(test_cube3d_two_mat_mesh cube_two_materials.geo 3 1)
+
+register_test(test_solid_mechanics_model_reassign_material
+  SOURCES test_solid_mechanics_model_reassign_material.cc
+  DEPENDENCIES test_cube3d_two_mat_mesh
+  FILES_TO_COPY two_materials.dat
+  )
+
+#===============================================================================
+register_test(test_solid_mechanics_model_prestrain_material
+  SOURCES test_solid_mechanics_model_prestrain_material.cc
+  FILES_TO_COPY cube_3d_tet_4.msh; material_elastic_plane_strain.dat
+  )

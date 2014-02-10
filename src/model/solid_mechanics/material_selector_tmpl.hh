@@ -75,7 +75,7 @@ public:
       return MaterialSelector::operator()(element);
     }
   }
-private:
+protected:
   const ByElementTypeArray<UInt> indexes;
   const SolidMechanicsModel & model;
   UInt first_index;

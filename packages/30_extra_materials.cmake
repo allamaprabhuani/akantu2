@@ -83,6 +83,7 @@ set(AKANTU_EXTRA_MATERIALS_TESTS
   test_material_standard_linear_solid_deviatoric_relaxation
   test_material_standard_linear_solid_deviatoric_relaxation_tension
   test_material_plasticity
+  test_material_damage
   )
 
 set(AKANTU_EXTRA_MATERIALS_DOC

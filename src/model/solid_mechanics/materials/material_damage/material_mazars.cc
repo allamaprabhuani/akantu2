@@ -72,7 +72,7 @@ void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
   ++dam;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
+ 
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */

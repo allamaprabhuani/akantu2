@@ -137,6 +137,12 @@ public:
                          UInt element,
                          const GhostType & ghost_type);
 
+  /// add many elements at once
+  void addElements(const Array<Element> & elements_to_add);
+
+  /// remove many element at once
+  void removeElements(const Array<Element> & elements_to_remove);
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -220,6 +226,9 @@ protected:
 
   /// compute the potential energy by element
   void computePotentialEnergyByElement();
+
+  /// resize the intenals arrays 
+  void resizeInternals();
 
 public:
   /// compute the coordinates of the quadrature points
@@ -314,12 +323,12 @@ public:
 
 public:
   /* ------------------------------------------------------------------------ */
-  virtual inline void onElementsAdded(const Array<Element> & element_list,
-                                      const NewElementsEvent & event);
+  virtual void onElementsAdded(const Array<Element> & element_list,
+			       const NewElementsEvent & event);
 
-  virtual inline void onElementsRemoved(const Array<Element> & element_list,
-                                        const ByElementTypeUInt & new_numbering,
-                                        const RemovedElementsEvent & event);
+  virtual void onElementsRemoved(const Array<Element> & element_list,
+				 const ByElementTypeUInt & new_numbering,
+				 const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -408,6 +417,9 @@ protected:
 
   /// stresses arrays ordered by element types
   InternalField<Real> stress;
+
+  /// strains arrays ordered by element types
+  InternalField<Real> pre_strain;
 
   /// strains arrays ordered by element types
   InternalField<Real> strain;

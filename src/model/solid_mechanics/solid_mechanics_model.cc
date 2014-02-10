@@ -1553,6 +1553,50 @@ void SolidMechanicsModel::onNodesRemoved(__attribute__((unused)) const Array<UIn
   dof_synchronizer->initGlobalDOFEquationNumbers();
 }
 
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::reassignMaterial() {
+  AKANTU_DEBUG_IN();
+
+  std::vector< Array<Element> > element_to_add   (materials.size());
+  std::vector< Array<Element> > element_to_remove(materials.size());
+
+  Element element;
+  for (ghost_type_t::iterator gt = ghost_type_t::begin(); gt != ghost_type_t::end(); ++gt) {
+    GhostType ghost_type = *gt;
+    element.ghost_type = ghost_type;
+
+    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, ghost_type, _ek_not_defined);
+    Mesh::type_iterator end = mesh.lastType(_all_dimensions, ghost_type, _ek_not_defined);
+    for(; it != end; ++it) {
+      ElementType type = *it;
+      element.type = type;
+
+      UInt nb_element = mesh.getNbElement(type, ghost_type);
+      Array<UInt> & el_index_by_mat = element_index_by_material(type, ghost_type);
+
+      for (UInt el = 0; el < nb_element; ++el) {
+	element.element = el;
+
+	UInt old_material = el_index_by_mat(el, 0);
+	UInt new_material = (*material_selector)(element);
+
+	if(old_material != new_material) {
+	  element_to_add   [new_material].push_back(element);
+	  element_to_remove[old_material].push_back(element);
+	}
+      }
+    }
+  }
+  
+  std::vector<Material *>::iterator mat_it;
+  UInt mat_index = 0;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it, ++mat_index) {
+    (*mat_it)->removeElements(element_to_remove[mat_index]);
+    (*mat_it)->addElements   (element_to_add[mat_index]);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,

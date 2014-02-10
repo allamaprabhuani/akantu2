@@ -51,7 +51,11 @@ register_test(test_interpolate_stress test_interpolate_stress.cc
   DEPENDENCIES test_interpolate_stress_mesh
   DIRECTORIES_TO_CREATE paraview)
 #===============================================================================
+
 add_akantu_test(test_material_plasticity "test material plasticity"
+  PACKAGE extra_materials)
+
+add_akantu_test(test_material_damage "test material damage"
   PACKAGE extra_materials)
 
 add_akantu_test(test_material_viscoelastic "test the visco elastic materials"

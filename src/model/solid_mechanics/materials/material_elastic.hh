@@ -68,7 +68,7 @@ public:
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
+  virtual void computeTangentModuli(const ElementType & el_type,
 			    Array<Real> & tangent_matrix,
 			    GhostType ghost_type = _not_ghost);
 
@@ -85,7 +85,7 @@ protected:
           const Real sigma_th = 0);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent);
+  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent);
 
   /// recompute the lame coefficient if E or nu changes
   virtual void updateInternalParameters();

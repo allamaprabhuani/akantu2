@@ -68,7 +68,8 @@ __BEGIN_AKANTU__
 struct SolidMechanicsModelOptions : public ModelOptions {
   SolidMechanicsModelOptions(AnalysisMethod analysis_method = _explicit_lumped_mass,
 			     bool no_init_materials = false) :
-    analysis_method(analysis_method), no_init_materials(no_init_materials) {}
+    analysis_method(analysis_method),
+    no_init_materials(no_init_materials) {}
   AnalysisMethod analysis_method;
   bool no_init_materials;
 };
@@ -288,6 +289,9 @@ public:
 
   // /// Use a UIntData in the mesh to specify the material to use per element
   // void setMaterialIDsFromIntData(const std::string & data_name);
+
+  /// reassigns materials depending on the material selector
+  void reassignMaterial();
 
 protected:
   /// register a material in the dynamic database
