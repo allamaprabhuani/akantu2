@@ -45,6 +45,8 @@ int main(int argc, char *argv[])
   debug::setDebugLevel(dblWarning);
   initialize(argc, argv);
 
+  Math::setTolerance(1.e-13);
+
   Mesh mesh(2);
   MeshIOMSH mesh_io;
   mesh_io.read("square.msh", mesh);
@@ -84,14 +86,11 @@ int main(int argc, char *argv[])
   model.solveStatic();
   model.updateResidual();
 
-  int result;
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
     if (Math::are_float_equal(pos(i, 0), xmax) && Math::are_float_equal(pos(i, 1), ymax)) {
-      if (Math::are_float_equal(disp(i, 0), 1.0) && Math::are_float_equal(disp(i, 1), 1.0)) {
-        result = EXIT_SUCCESS;
-      }
-      else {
-        result = EXIT_FAILURE;
+      if (!Math::are_float_equal(disp(i, 0), 1.0) || !Math::are_float_equal(disp(i, 1), 1.0)) {
+	AKANTU_DEBUG_ERROR("Test not passed");
+        return EXIT_FAILURE;
       }
     }
   }
@@ -100,7 +99,8 @@ int main(int argc, char *argv[])
 
   finalize();
 
-  return result;
+  std::cout << "Test passed" << std::endl;
+  return EXIT_SUCCESS;
 }
 
 
