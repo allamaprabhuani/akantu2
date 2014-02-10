@@ -147,6 +147,9 @@ public:
   void destroyElementGroup(const std::string & group_name,
 			   bool destroy_node_group = false);
 
+  /// destroy all element groups and the associated node groups
+  void destroyAllElementGroups(bool destroy_node_groups = false);
+
   /// create a element group using an existing node group
   ElementGroup & createElementGroup(const std::string & group_name,
 				    UInt dimension,

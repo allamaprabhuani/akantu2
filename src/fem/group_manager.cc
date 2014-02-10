@@ -185,6 +185,20 @@ void GroupManager::destroyElementGroup(const std::string & group_name,
 }
 
 /* -------------------------------------------------------------------------- */
+void GroupManager::destroyAllElementGroups(bool destroy_node_groups) {
+  AKANTU_DEBUG_IN();
+
+  ElementGroups::iterator eit = element_groups.begin();
+  ElementGroups::iterator eend = element_groups.end();
+  for(; eit != eend ; ++eit) {
+    this->destroyElementGroup(eit->first, 
+			      destroy_node_groups);
+  }
+  
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
                                                 UInt dimension,
                                                 NodeGroup & node_group) {
