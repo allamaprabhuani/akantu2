@@ -6,7 +6,7 @@
  *
  * @date   Mon Jan 13 16:05:48 2014
  *
- * @brief  test for material damage class
+ * @brief  test of interface material damage
  *
  * @section LICENSE
  *
@@ -35,7 +35,8 @@
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
+//#include "material.hh"
+#include "material_damage.hh"
 #include "element_class.hh"
 
 using namespace akantu;
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
   
   Real prescribed_dam = 0.1;
 
-  UInt dim = 3;
+  const UInt dim = 3;
   const ElementType element_type = _tetrahedron_4;
   const bool plane_strain = true;
 
@@ -123,9 +124,23 @@ int main(int argc, char *argv[])
   UInt nb_nodes = my_mesh.getNbNodes();
 
   /// declaration of model
-  SolidMechanicsModel  my_model(my_mesh);
-  /// model initialization
-  my_model.initFull("material_damage.dat", SolidMechanicsModelOptions(_static));
+  SolidMechanicsModel my_model(my_mesh);
+
+  /// model initialization without initializing the material
+  my_model.initFull("", SolidMechanicsModelOptions(_static, true));
+
+  /// instantiate material
+  Material & my_material = my_model.registerNewEmptyMaterial<MaterialDamage<dim> >("steel");
+
+  /// initialize material
+  my_model.initMaterials();
+
+  /// set material properties
+  my_material.setParam("rho", 7800.);
+  my_material.setParam("E", 2.1e11);
+  my_material.setParam("nu", 0.3);
+  my_material.setParam("Plane_Stress", false);
+
 
   const Array<Real> & coordinates = my_mesh.getNodes();
   Array<Real> & displacement = my_model.getDisplacement();

@@ -39,7 +39,6 @@
 #include "material_elastic_linear_anisotropic.hh"
 
 // damage materials
-#include "material_damage.hh"
 #include "material_marigo.hh"
 #include "material_mazars.hh"
 #include "material_damage_linear.hh"
@@ -54,7 +53,6 @@
 
 #define  AKANTU_EXTRA_MATERIAL_LIST                                     \
   ((2, (damage_linear      , MaterialDamageLinear                 )))   \
-  ((2, (damage             , MaterialDamage                 )))		\
   ((2, (marigo             , MaterialMarigo                       )))   \
   ((2, (mazars             , MaterialMazars                       )))   \
   ((2, (vreepeerlings      , MaterialVreePeerlings                )))   \

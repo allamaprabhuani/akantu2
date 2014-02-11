@@ -53,7 +53,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  void initMaterial();
+  virtual void initMaterial();
 
   virtual void computeAllStresses(GhostType ghost_type);
 
