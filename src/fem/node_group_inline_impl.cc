@@ -57,5 +57,25 @@ inline UInt NodeGroup::getSize() const {
   return node_group.getSize();
 }
 
+/* -------------------------------------------------------------------------- */
+template <typename T>
+void NodeGroup::applyNodeFilter(T & filter) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(T::type == FilterFunctor::_node_filter_functor,
+		      "NodeFilter can only apply node filter functor");
+
+  Array<UInt>::iterator<> it = this->node_group.begin();
+
+  for (; it != node_group.end(); ++it) {
+    /// filter == true -> keep node
+    if (!filter(*it)) { 
+      it = node_group.erase(it);
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 __END_AKANTU__

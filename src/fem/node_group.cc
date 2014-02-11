@@ -76,22 +76,6 @@ void NodeGroup::append(const NodeGroup & other_group) {
 }
 
 /* -------------------------------------------------------------------------- */
-void NodeGroup::applyNodeFilter(NodeFilterFunctor & filter) {
-  AKANTU_DEBUG_IN();
-
-  Array<UInt>::iterator<> it = this->node_group.begin();
-
-  for (; it != node_group.end(); ++it) {
-    /// filter == true -> keep node
-    if (!filter(*it)) { 
-      it = node_group.erase(it);
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void NodeGroup::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

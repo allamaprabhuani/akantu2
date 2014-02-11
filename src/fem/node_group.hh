@@ -76,7 +76,8 @@ public:
   void append(const NodeGroup & other_group);
 
   /// apply a filter on current node group
-  void applyNodeFilter(NodeFilterFunctor & filter);
+  template <typename T>
+  void applyNodeFilter(T & filter);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
