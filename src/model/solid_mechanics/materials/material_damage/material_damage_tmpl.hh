@@ -127,6 +127,7 @@ void MaterialDamage<spatial_dimension, Parent>::computeStress(ElementType el_typ
 							      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  Parent<spatial_dimension>::computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
 
@@ -146,6 +147,8 @@ void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(const Eleme
 								     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix, ghost_type);
+
   Real * dam = this->damage(el_type, ghost_type).storage();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
@@ -164,7 +167,6 @@ void MaterialDamage<spatial_dimension, Parent>::computeStressOnQuad(const Matrix
 								    Matrix<Real> & sigma,
 
 								    Real & dam) {
-  Parent<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
   sigma *= (1-dam);
 
 }
@@ -173,7 +175,6 @@ void MaterialDamage<spatial_dimension, Parent>::computeStressOnQuad(const Matrix
 template<UInt spatial_dimension, template<UInt> class Parent>
 void MaterialDamage<spatial_dimension, Parent>::computeTangentModuliOnQuad(Matrix<Real> & tangent,
 									   Real & dam) {
-  Parent<spatial_dimension>::computeTangentModuliOnQuad(tangent);
   tangent *= (1-dam);
 }
 
