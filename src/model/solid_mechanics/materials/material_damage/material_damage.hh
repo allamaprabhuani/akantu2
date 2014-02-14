@@ -3,6 +3,7 @@
  *
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
  * @date   Tue Mar 15 16:06:20 2011
  *
@@ -57,9 +58,6 @@ public:
 
   virtual void computeAllStresses(GhostType ghost_type);
 
-  /// constitutive law for all element of a type
-  virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
   /// compute the tangent stiffness matrix for an element type
   virtual void computeTangentModuli(const ElementType & el_type,
 			    Array<Real> & tangent_matrix,
@@ -68,11 +66,6 @@ public:
 protected:
   /// update the dissipated energy, must be called after the stress have been computed
   void updateDissipatedEnergy(GhostType ghost_type);
-
-  /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-				  Matrix<Real> & sigma,
-				  Real & dam);
 
   /// compute the tangent stiffness matrix for a given quadrature point
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);

@@ -4,6 +4,7 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
  * @date   Tue Mar 15 16:06:20 2011
  *
@@ -123,31 +124,13 @@ void MaterialDamage<spatial_dimension, Parent>::computeAllStresses(GhostType gho
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template<UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::computeStress(ElementType el_type,
-							      GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Parent<spatial_dimension>::computeStress(el_type, ghost_type);
-
-  Real * dam = this->damage(el_type, ghost_type).storage();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  computeStressOnQuad(grad_u, sigma, *dam);
-  
-  ++dam;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template<UInt> class Parent>
 void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(const ElementType & el_type,
 								     Array<Real> & tangent_matrix,
 								     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix, ghost_type);
+  
+  if(!this->is_non_local)
+    Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
 
@@ -159,16 +142,6 @@ void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(const Eleme
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template<UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::computeStressOnQuad(const Matrix<Real> & grad_u,
-								    Matrix<Real> & sigma,
-
-								    Real & dam) {
-  sigma *= (1-dam);
-
 }
 
 /* -------------------------------------------------------------------------- */
