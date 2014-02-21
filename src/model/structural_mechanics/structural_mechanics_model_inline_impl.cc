@@ -147,6 +147,7 @@ void StructuralMechanicsModel::computeStressOnQuad() {
   Array<Real> * tangent_moduli =
     new Array<Real>(nb_element*nb_quadrature_points, tangent_size * tangent_size,
 		     "tangent_stiffness_matrix");
+  tangent_moduli->clear();
 
   computeTangentModuli<type>(*tangent_moduli);
 
