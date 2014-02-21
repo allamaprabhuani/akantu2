@@ -147,6 +147,7 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(ElementType el_ty
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
     computeNormalizedEquivalentStress(el_type, ghost_type);
+    norm_max_equivalent_stress = 0;
     findMaxNormalizedEquivalentStress(el_type, ghost_type);
   }
 
