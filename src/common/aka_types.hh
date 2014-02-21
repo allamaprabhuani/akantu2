@@ -530,7 +530,8 @@ public:
                         "Eigenvectors needs to be a square matrix of size "
                         << n << " x " << n << ".");
 
-    Matrix<T> temp = *this;
+    Matrix<T> temp;
+    temp = *this;
     Math::matrixEig(temp.n, temp.values, eigenvalues.storage(), eigenvectors.storage());
   }
 
@@ -539,7 +540,8 @@ public:
     AKANTU_DEBUG_ASSERT(n == m, "eig is not a valid operation on a rectangular matrix");
     AKANTU_DEBUG_ASSERT(eigenvalues.size() == n, "eigenvalues should be of size "
                         << n << ".");
-    Matrix<T> temp = *this;
+    Matrix<T> temp;
+    temp = *this;
     Math::matrixEig(temp.n, temp.values, eigenvalues.storage());
   }
 
