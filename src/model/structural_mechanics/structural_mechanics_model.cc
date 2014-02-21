@@ -238,8 +238,10 @@ void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_2>(Array<Re
     Matrix<Real> & R = *R_it;
     Vector<UInt> & connec = *connec_it;
 
-    Vector<Real> x2 = nodes_it[connec(1)]; // X2
-    Vector<Real> x1 = nodes_it[connec(0)]; // X1
+    Vector<Real> x2;
+    x2 = nodes_it[connec(1)]; // X2
+    Vector<Real> x1;
+    x1 = nodes_it[connec(0)]; // X1
 
     Real le = x1.distance(x2);
     Real c = (x2(0) - x1(0)) / le;
@@ -276,8 +278,10 @@ void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_3>(Array<Re
     Matrix<Real> & R = *R_it;
     Vector<UInt> & connec = *connec_it;
 
-    Vector<Real> x = nodes_it[connec(1)]; // X2
-    Vector<Real> y = nodes_it[connec(0)]; // X1
+    Vector<Real> x;
+    x = nodes_it[connec(1)]; // X2
+    Vector<Real> y;
+    y = nodes_it[connec(0)]; // X1
 
     Real l = x.distance(y);
     x -= y; // X2 - X1
