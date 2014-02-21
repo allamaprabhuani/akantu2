@@ -154,7 +154,7 @@ int main(int argc, char *argv[]){
   UInt count = 0;
   std::cout<<"Matrix saved"<<std::endl;
 
-  model.addDumpField("displacememt");
+  model.addDumpField("displacement");
   model.addDumpField("rotation");
   model.addDumpField("force");
   model.addDumpField("momentum");
