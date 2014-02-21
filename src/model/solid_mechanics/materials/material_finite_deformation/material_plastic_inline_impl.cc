@@ -223,8 +223,6 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
             break;
     }
 
-    Real Mu_NH = mu;
-
     for (UInt m = 0; m < rows; m++) {
         UInt i, j;
         if (m < dim) {
@@ -276,7 +274,7 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
             }
 
             tangent(m, n) = J*( lambda * Cminus(i, j) * Cminus(k, l) +
-                                Mu_NH * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j)));
+                                mu * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j)));
 
         }
     }
