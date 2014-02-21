@@ -255,10 +255,10 @@ iohelper::ElemType getIOHelperType<_cohesive_3d_12>() { return iohelper::COH3D12
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 template <>
-iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() { return iohelper::LINE1; }
+iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() { return iohelper::BEAM2; }
 
 template <>
-iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() { return iohelper::LINE2; }
+iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() { return iohelper::BEAM3; }
 #endif
 
 /* -------------------------------------------------------------------------- */
