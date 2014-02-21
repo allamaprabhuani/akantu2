@@ -189,7 +189,6 @@ std::pair<size_t, size_t> extreme_points(const point_container& pts) {
   
   typedef typename point_container::value_type point_type;
   typedef typename point_type::value_type value_type;
-  typedef typename point_container::const_iterator const_iterator;
   
   size_t min[] = { 0, 0, 0 };
   size_t max[] = { 0, 0, 0 };

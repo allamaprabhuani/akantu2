@@ -405,7 +405,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh,
 		  /// prank of the ghost element is lower than prank of
 		  /// the normal one, the facet is not ghost, otherwise
 		  /// it's ghost
-		  GhostType gt[2];
+		  GhostType gt[2] = { _not_ghost, _not_ghost };
 		  for (UInt el = 0; el < connected_elements.getSize(); ++el)
 		    gt[el] = connected_elements(el).ghost_type;
 

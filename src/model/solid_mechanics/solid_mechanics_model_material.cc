@@ -87,15 +87,15 @@ __BEGIN_AKANTU__
 			    _,						\
 			    BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST))	\
     else {								\
-      if(!Parser::parser_permissive)					\
+      if(Parser::parser_permissive)					\
 	AKANTU_DEBUG_INFO("Malformed material file " <<			\
-			 ": unknown material type '"			\
-			 << mat_type << "'");				\
+			  ": unknown material type '"			\
+			  << mat_type << "'");				\
       else								\
-	AKANTU_DEBUG_WARNING("Malformed material file "			\
-			     <<": unknown material type " << mat_type	\
-			     << ". This is perhaps a user"		\
-			     << " defined material ?");			\
+	AKANTU_DEBUG_ERROR("Malformed material file "			\
+			   <<": unknown material type " << mat_type	\
+			   << ". This is perhaps a user"		\
+			   << " defined material ?");			\
     }									\
   } while(0)
 
