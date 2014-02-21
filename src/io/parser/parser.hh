@@ -43,10 +43,11 @@ __BEGIN_AKANTU__
 #define AKANTU_SECTION_TYPES                    \
   (global)                                      \
   (material)                                    \
-  (model)                                       \
-  (heat)                                        \
-  (rules)                                       \
+  (model)					\
+  (heat)					\
+  (rules)					\
   (non_local)					\
+  (user)					\
   (not_defined)
 
 
@@ -304,6 +305,16 @@ public:
     return it->second;
   }
 
+  /* -------------------------------------------------------------------------- */
+  template<class T>
+  T getParameterValue(const std::string & name,
+		      ParserParameterSearchCxt search_ctx = _ppsc_current_scope) const {
+    const ParserParameter & tmp_param = getParameter(name, search_ctx);
+    T t = tmp_param;
+    return t;
+  }
+
+  /* -------------------------------------------------------------------------- */
   const std::string & getName()   const { return name; }
   const SectionType & getType()   const { return type; }
   const std::string & getOption() const { return option; }
