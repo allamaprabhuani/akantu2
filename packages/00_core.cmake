@@ -265,6 +265,7 @@ set(AKANTU_CORE_TESTS
   test_vector
   test_vector_iterator
   test_weight
+  test_math
   )
 
 set(AKANTU_CORE_MANUAL_FILES

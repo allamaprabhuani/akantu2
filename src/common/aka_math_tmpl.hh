@@ -89,10 +89,10 @@ inline void Math::matrixt_vector(UInt im, UInt in,
 
   aka_gemv(&tran_A, &m, &n, &alpha, A, &m, x, &incx, &beta, y, &incy);
 #else
-  memset(y, 0, im*sizeof(Real));
+  memset(y, 0, in*sizeof(Real));
   for (UInt i = 0; i < im; ++i) {
     for (UInt j = 0; j < in; ++j) {
-      y[i] += A[i * in + j] * x[j];
+      y[j] += A[j * im + i] * x[i];
     }
     y[i] *= alpha;
   }
