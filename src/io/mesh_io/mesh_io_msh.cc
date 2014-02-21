@@ -205,6 +205,7 @@ MeshIOMSH::MeshIOMSH() {
   _akantu_to_msh_element_types[_pentahedron_6   ] = _msh_prism_1;
   _akantu_to_msh_element_types[_point_1         ] = _msh_point;
   _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
+  _akantu_to_msh_element_types[_bernoulli_beam_3] = _msh_segment_2;
 
   std::map<ElementType, MSHElementType>::iterator it;
   for(it = _akantu_to_msh_element_types.begin();
@@ -476,8 +477,8 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
 
   outfile << "$Elements" << std::endl;;
 
-  Mesh::type_iterator it  = mesh.firstType();
-  Mesh::type_iterator end = mesh.lastType();
+  Mesh::type_iterator it  = mesh.firstType(_all_dimensions, _not_ghost, _ek_not_defined);
+  Mesh::type_iterator end = mesh.lastType(_all_dimensions, _not_ghost, _ek_not_defined);
 
   Int nb_elements = 0;
   for(; it != end; ++it) {
@@ -487,7 +488,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   outfile << nb_elements << std::endl;
 
   UInt element_idx = 1;
-  for(it  = mesh.firstType(); it != end; ++it) {
+  for(it  = mesh.firstType(_all_dimensions, _not_ghost, _ek_not_defined); it != end; ++it) {
     ElementType type = *it;
     const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
