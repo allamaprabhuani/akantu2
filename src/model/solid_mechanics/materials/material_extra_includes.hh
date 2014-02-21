@@ -41,6 +41,7 @@
 // damage materials
 #include "material_marigo.hh"
 #include "material_brittle.hh"
+#include "material_damage_iterative.hh"
 #include "material_mazars.hh"
 #include "material_damage_linear.hh"
 #include "material_vreepeerlings.hh"
@@ -56,6 +57,7 @@
   ((2, (damage_linear      , MaterialDamageLinear                 )))   \
   ((2, (marigo             , MaterialMarigo                       )))   \
   ((2, (brittle            , MaterialBrittle                      )))   \
+  ((2, (damage_iterative   , MaterialDamageIterative              )))   \
   ((2, (mazars             , MaterialMazars                       )))   \
   ((2, (vreepeerlings      , MaterialVreePeerlings                )))   \
   ((2, (ve_stiffness_prop  , MaterialStiffnessProportional        )))   \
