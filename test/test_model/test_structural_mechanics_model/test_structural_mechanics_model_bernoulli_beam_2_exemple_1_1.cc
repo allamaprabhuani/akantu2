@@ -175,7 +175,7 @@ int main(int argc, char *argv[]){
   std::cout<< " M1 = " << N_M(0,1) << std::endl;
   std::cout<< " M2 = " << N_M(2*(nb_nodes-2),1) << std::endl;
 
-  //  model.dump();
+  model.dump();
 
   finalize();
 }
