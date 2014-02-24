@@ -314,10 +314,15 @@ void SolverMumps::solve() {
   mumps_data.job = _smj_factorize_solve; //solve
   dmumps_c(&mumps_data);
 
-  AKANTU_DEBUG_ASSERT(info(1) != -10, "Singular matrix");
-  AKANTU_DEBUG_ASSERT(info(1) == 0,
-		      "Error in mumps during solve process, check mumps user guide INFO(1) ="
-		      << info(1));
+  if(info(1) != 0) {
+    switch(info(1)) {
+    case -10: AKANTU_DEBUG_ERROR("The matrix is singular"); break;
+    case -9:  AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
+    default:
+      AKANTU_DEBUG_ERROR("Error in mumps during solve process, check mumps user guide INFO(1) ="
+			 << info(1));
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }
