@@ -221,7 +221,7 @@ public:
 		 UInt max_iteration = 100);
 
 public:
-  /// solve @f[ A\delta u = f_ext - f_int @f] in displacement
+  /// solve @f[ A\delta u = f_{ext} - f_{int} @f] in displacement
   void solveDynamic();
 
   /// solve Ku = f
