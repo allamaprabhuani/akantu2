@@ -132,20 +132,18 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 
   delete integrator;
 
-  if(solver) delete solver;
-  if(mass_matrix) delete mass_matrix;
-  if(velocity_damping_matrix) delete velocity_damping_matrix;
+  delete solver;
+  delete mass_matrix;
+  delete velocity_damping_matrix;
 
   if(stiffness_matrix && stiffness_matrix != jacobian_matrix)
     delete stiffness_matrix;
 
-  if(jacobian_matrix) delete jacobian_matrix;
+  delete jacobian_matrix;
 
-  if(dof_synchronizer) delete dof_synchronizer;
+  delete synch_parallel;
 
-  if(synch_parallel) delete synch_parallel;
-
-  if(is_default_material_selector) delete material_selector;
+  delete material_selector;
 
   AKANTU_DEBUG_OUT();
 }

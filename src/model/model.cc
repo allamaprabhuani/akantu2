@@ -46,6 +46,26 @@ Model::Model(Mesh& m, UInt dim, const ID & id,
 }
 
 /* -------------------------------------------------------------------------- */
+Model::~Model() {
+  AKANTU_DEBUG_IN();
+
+  FEMMap::iterator it;
+  for (it = fems.begin(); it != fems.end(); ++it) {
+    if(it->second) delete it->second;
+  }
+
+  for (it = fems_boundary.begin(); it != fems_boundary.end(); ++it) {
+    if(it->second) delete it->second;
+  }
+
+  delete synch_registry;
+
+  delete dof_synchronizer;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void Model::initFull(std::string input_file, const ModelOptions & options) {
   AKANTU_DEBUG_IN();
 
@@ -138,24 +158,6 @@ DistributedSynchronizer & Model::createParallelSynch(MeshPartition * partition,
 
   AKANTU_DEBUG_OUT();
   return *synch;
-}
-
-/* -------------------------------------------------------------------------- */
-Model::~Model() {
-  AKANTU_DEBUG_IN();
-
-  FEMMap::iterator it;
-  for (it = fems.begin(); it != fems.end(); ++it) {
-    if(it->second) delete it->second;
-  }
-
-  for (it = fems_boundary.begin(); it != fems_boundary.end(); ++it) {
-    if(it->second) delete it->second;
-  }
-
-  delete synch_registry;
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

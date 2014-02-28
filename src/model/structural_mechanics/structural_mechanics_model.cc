@@ -54,6 +54,7 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
   element_material("element_material", id, memory_id),
   set_ID("beam sets", id, memory_id),
   stiffness_matrix(NULL),
+  jacobian_matrix(NULL),
   solver(NULL),
   rotation_matrix("rotation_matices", id, memory_id) {
   AKANTU_DEBUG_IN();
@@ -62,9 +63,9 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 
   this->displacement_rotation = NULL;
   this->force_momentum        = NULL;
-  this->residual     = NULL;
-  this->boundary     = NULL;
-  this->increment    = NULL;
+  this->residual              = NULL;
+  this->boundary              = NULL;
+  this->increment             = NULL;
 
   if(spatial_dimension == 2)
     nb_degree_of_freedom = 3;
@@ -84,8 +85,9 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 StructuralMechanicsModel::~StructuralMechanicsModel() {
   AKANTU_DEBUG_IN();
 
-  if(solver) delete solver;
-  if(stiffness_matrix) delete stiffness_matrix;
+  delete solver;
+  delete stiffness_matrix;
+  delete jacobian_matrix;
 
   AKANTU_DEBUG_OUT();
 }
