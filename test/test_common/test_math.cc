@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
   checkVect(y1, y1_ref, 3);
 
   Real y2[5];
-  Math::matrixt_vector(3, 5, A, x2, y2, 1.);
+  Math::matVectMul<true>(3, 5, 1., A, x2, 0., y2);
   Real y2_ref[5] = { 5, 14, 23, 32, 41 };
 
   checkVect(y2, y2_ref, 5);

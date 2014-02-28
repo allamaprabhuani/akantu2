@@ -699,7 +699,7 @@ inline void Vector<T>::mul(const Matrix<T> & A,
     AKANTU_DEBUG_ASSERT(this->n == A.rows(), "matrix and vector to multiply have no fit dimensions");
   }
 #endif
-  Math::matVectMul<tr_A>(this->n, n, alpha, A.storage(), x.storage(), 0., values);
+  Math::matVectMul<tr_A>(A.rows(), A.cols(), alpha, A.storage(), x.storage(), 0., values);
 }
 
 
