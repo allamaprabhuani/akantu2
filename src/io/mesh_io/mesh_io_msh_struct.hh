@@ -48,6 +48,9 @@ public:
 
   MeshIOMSHStruct();
 
+  /// read a mesh from the file
+  virtual void read(const std::string & filename, Mesh & mesh);
+
 };
 
 

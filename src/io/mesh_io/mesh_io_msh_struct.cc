@@ -46,6 +46,7 @@ MeshIOMSHStruct::MeshIOMSHStruct() : MeshIOMSH() {
   _akantu_to_msh_element_types.clear();
   _akantu_to_msh_element_types[_not_defined     ] = _msh_not_defined;
   _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
+  _akantu_to_msh_element_types[_bernoulli_beam_3] = _msh_segment_2;
 
   std::map<ElementType, MSHElementType>::iterator it;
   for(it = _akantu_to_msh_element_types.begin();
@@ -55,8 +56,21 @@ MeshIOMSHStruct::MeshIOMSHStruct() : MeshIOMSH() {
     for (UInt i = 0; i < nb_nodes; ++i) tmp[i] = i;
     _read_order[it->first] = tmp;
   }
-
 }
+
+
+/* -------------------------------------------------------------------------- */
+void MeshIOMSHStruct::read(const std::string & filename, Mesh & mesh) {
+  if(mesh.getSpatialDimension() == 2) {
+    _msh_to_akantu_element_types[_msh_segment_2     ] = _bernoulli_beam_2;
+  } else if (mesh.getSpatialDimension() == 3) {
+    _msh_to_akantu_element_types[_msh_segment_2     ] = _bernoulli_beam_3;
+    AKANTU_DEBUG_WARNING("The MeshIOMSHStruct is reading bernoulli beam 3D be sure to provide the missing normals");
+  }
+
+  MeshIOMSH::read(filename, mesh);
+}
+
 
 __END_AKANTU__
 
