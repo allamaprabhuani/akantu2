@@ -143,7 +143,10 @@ SolidMechanicsModel::~SolidMechanicsModel() {
 
   delete synch_parallel;
 
-  delete material_selector;
+  if(is_default_material_selector) {
+    delete material_selector;
+    material_selector = NULL;
+  }
 
   AKANTU_DEBUG_OUT();
 }

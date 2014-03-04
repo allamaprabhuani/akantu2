@@ -61,6 +61,7 @@ Model::~Model() {
   delete synch_registry;
 
   delete dof_synchronizer;
+  dof_synchronizer = NULL;
 
   AKANTU_DEBUG_OUT();
 }
