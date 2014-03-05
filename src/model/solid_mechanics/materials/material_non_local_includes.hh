@@ -31,6 +31,7 @@
 #  include "material_marigo_non_local.hh"
 #  include "material_mazars_non_local.hh"
 #  include "material_vreepeerlings_non_local.hh"
+#  include "material_brittle_non_local.hh"
 
 #define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
   ((stress_wf, (StressBasedWeightFunction  )))				\
@@ -39,9 +40,10 @@
   ((base_wf,   (BaseWeightFunction         )))
 
 #define AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS                         \
-  ((sls_deviatoric     , (RemoveDamagedWeightFunction)(MaterialStandardLinearSolidDeviatoric))) \
-  ((neohookean         , (RemoveDamagedWeightFunction)(MaterialPlastic                      ))) \
-  ((elastic            , (RemoveDamagedWeightFunction)(MaterialElastic                      )))
+  ((sls_deviatoric      , (RemoveDamagedWeightFunction)(MaterialStandardLinearSolidDeviatoric))) \
+  ((neohookean_base_wf  , (BaseWeightFunction)(MaterialPlastic                               ))) \
+  ((neohookean_remove_wf, (RemoveDamagedWeightFunction)(MaterialPlastic                      ))) \
+  ((elastic             , (RemoveDamagedWeightFunction)(MaterialElastic                      )))
 
 #define AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST		\
   AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST				\
@@ -52,4 +54,7 @@
 	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))			\
   ((2, (mazars_non_local       , MaterialMazarsNonLocal       )))	\
   ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal,		\
-	AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS)))
+	AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS)))                      \
+  ((3, (brittle_non_local       , MaterialBrittleNonLocal,		\
+	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
+
