@@ -32,10 +32,12 @@
 template<UInt spatial_dimension>
 inline void
  MaterialBrittle<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
-                                                       Matrix<Real> & grad_v,
-                                                       Matrix<Real> & sigma,
-                                                       Real & dam,
-                                                       Real & sigma_equivalent) {
+                                                         Matrix<Real> & grad_v,
+                                                         Matrix<Real> & sigma,
+                                                         Real & dam,
+                                                         Real & sigma_equivalent,
+                                                         Real & fracture_stress) {
+
   MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
   Real equiv_strain_rate=0.;
@@ -56,15 +58,15 @@ inline void
 
   equiv_strain_rate=sqrt(equiv_strain_rate);
 
-  Real fracture_stress=S_0;
+  fracture_stress=S_0;
   if(equiv_strain_rate>E_0)
     fracture_stress=A*pow(equiv_strain_rate,3)+B*pow(equiv_strain_rate,2)+C*equiv_strain_rate+D;
 
   Vector<Real> principal_stress(spatial_dimension);
   sigma.eig(principal_stress);
-  Real sigma_c = principal_stress(0);
+  sigma_equivalent = principal_stress(0);
   for(UInt i=1; i<spatial_dimension; ++i)
-    sigma_c = std::max(sigma_c, principal_stress(i));
+    sigma_equivalent = std::max(sigma_equivalent, principal_stress(i));
 
 
 
@@ -81,7 +83,7 @@ inline void
   if(yc_limit) Y = std::min(Y, Yc);
   */
   if(!this->is_non_local) {
-    computeDamageAndStressOnQuad(sigma, dam, sigma_c, fracture_stress);
+    computeDamageAndStressOnQuad(sigma, dam, sigma_equivalent, fracture_stress);
   }
 }
 

@@ -115,9 +115,10 @@ void MaterialBrittle<spatial_dimension>::computeStress(ElementType el_type,
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   Real sigma_equivalent = 0;
+  Real fracture_stress = 0;
   Matrix<Real> & grad_v = *strain_rate_it;
 
-  computeStressOnQuad(grad_u, grad_v,  sigma, *dam, sigma_equivalent);
+  computeStressOnQuad(grad_u, grad_v,  sigma, *dam, sigma_equivalent, fracture_stress);
 
   ++strain_rate_it;
   ++dam;
