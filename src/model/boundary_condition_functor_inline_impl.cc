@@ -61,6 +61,17 @@ namespace BC {
     }
 
     /* ---------------------------------------------------------------------- */
+    inline void FreeBoundary::operator()(UInt node,
+                                         Vector<bool> & flags,
+                                         Vector<Real> & primal,
+                                         const Vector<Real> & coord) const {
+
+      DIRICHLET_SANITY_CHECK;
+
+      flags(axis) = false;
+    }
+
+    /* ---------------------------------------------------------------------- */
     inline void FixedValue::operator()(UInt node,
                                        Vector<bool> & flags,
                                        Vector<Real> & primal,

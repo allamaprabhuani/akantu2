@@ -91,6 +91,19 @@ namespace BC {
     };
 
     /* ---------------------------------------------------------------------- */
+    class FreeBoundary : public DirichletFunctor {
+    public:
+      FreeBoundary(Axis ax = _x) : DirichletFunctor(ax) {}
+
+    public:
+      inline void operator()(UInt node,
+			     Vector<bool> & flags,
+			     Vector<Real> & primal,
+			     const Vector<Real> & coord) const;
+
+    };
+
+    /* ---------------------------------------------------------------------- */
     class FixedValue : public DirichletFunctor {
     public:
       FixedValue(Real val, Axis ax = _x) : DirichletFunctor(ax), value(val) {}
