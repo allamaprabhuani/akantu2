@@ -532,6 +532,55 @@ void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
 }
 
 /* -------------------------------------------------------------------------- */
+void FragmentManager::filterBigFragments(Array<bool> & fragment_filter,
+					 UInt minimum_nb_elements) {
+  AKANTU_DEBUG_IN();
+
+  UInt spatial_dimension = model.getSpatialDimension();
+  Array<UInt> nb_element_per_fragment(global_nb_fragment);
+  nb_element_per_fragment.clear();
+
+  UInt * fragment_index_it = fragment_index.storage();
+
+  /// loop over fragments
+  for(const_element_group_iterator it(element_group_begin());
+      it != element_group_end(); ++it, ++fragment_index_it) {
+
+    const ByElementTypeUInt & el_list = it->second->getElements();
+
+    ByElementTypeUInt::type_iterator type_it = el_list.firstType(spatial_dimension,
+								 _not_ghost,
+								 _ek_regular);
+    ByElementTypeUInt::type_iterator type_end = el_list.lastType(spatial_dimension,
+								 _not_ghost,
+								 _ek_regular);
+
+    /// loop over elements of the fragment
+    for (; type_it != type_end; ++type_it) {
+      ElementType type = *type_it;
+      UInt nb_element = el_list(type).getSize();
+
+      nb_element_per_fragment(*fragment_index_it) += nb_element;
+    }
+  }
+
+  /// sum values over all processors
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  comm.allReduce(nb_element_per_fragment.storage(), global_nb_fragment, _so_sum);
+
+  /// filter fragments
+  fragment_filter.resize(global_nb_fragment);
+  fragment_filter.clear();
+
+  for (UInt frag = 0; frag < global_nb_fragment; ++frag) {
+    if (nb_element_per_fragment(frag) >= minimum_nb_elements)
+      fragment_filter(frag) = true;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 template <typename T>
 void FragmentManager::createDumpDataArray(Array<T> & data,
 					  std::string name,

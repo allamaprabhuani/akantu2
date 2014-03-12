@@ -152,12 +152,35 @@ int main(int argc, char *argv[]) {
   Array<Real>::const_iterator< Vector<Real> > inertia_moments_begin
     = inertia_moments.begin(spatial_dimension);
 
+  Array<bool> fragment_filter;
+  UInt nb_element = mesh.getNbElement(spatial_dimension, _not_ghost, _ek_regular);
+  comm.allReduce(&nb_element, 1, _so_sum);
+  UInt nb_element_per_fragment = nb_element / total_nb_fragment;
+
   /// displace one fragment each time
   for (UInt frag = 1; frag <= total_nb_fragment; ++frag) {
     if (prank == 0)
       std::cout << "Generating fragment: " << frag << std::endl;
 
     fragment_manager.computeAllData();
+    fragment_manager.filterBigFragments(fragment_filter, nb_element_per_fragment + 1);
+
+    /// check number of big fragments
+    UInt nb_big_fragment = std::accumulate(fragment_filter.begin(),
+					   fragment_filter.end(), 0);
+
+    if (frag < total_nb_fragment) {
+      if (nb_big_fragment != 1) {
+	AKANTU_DEBUG_ERROR("The number of big fragments is wrong: " << nb_big_fragment);
+	return EXIT_FAILURE;
+      }
+    }
+    else {
+      if (nb_big_fragment != 0) {
+	AKANTU_DEBUG_ERROR("The number of big fragments is wrong: " << nb_big_fragment);
+	return EXIT_FAILURE;
+      }
+    }
 
     /// check number of fragments
     UInt nb_fragment_num = fragment_manager.getNbFragment();

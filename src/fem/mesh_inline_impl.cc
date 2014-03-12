@@ -314,12 +314,14 @@ inline UInt Mesh::getNbElement(const ElementType & type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbElement(const UInt spatial_dimension, const GhostType & ghost_type) const {
+inline UInt Mesh::getNbElement(const UInt spatial_dimension,
+			       const GhostType & ghost_type,
+			       const ElementKind & kind) const {
   AKANTU_DEBUG_IN();
   UInt nb_element = 0;
 
-  type_iterator it   = firstType(spatial_dimension, ghost_type, _ek_not_defined);
-  type_iterator last = lastType(spatial_dimension, ghost_type, _ek_not_defined);
+  type_iterator it   = firstType(spatial_dimension, ghost_type, kind);
+  type_iterator last = lastType(spatial_dimension, ghost_type, kind);
   for (; it != last; ++it) nb_element += getNbElement(*it, ghost_type);
 
   AKANTU_DEBUG_OUT();

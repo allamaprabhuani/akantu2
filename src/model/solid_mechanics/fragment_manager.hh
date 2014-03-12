@@ -88,6 +88,10 @@ public:
   /// compute all fragments' data
   void computeAllData();
 
+  /// filter elements that consist of a minimum number of elements
+  void filterBigFragments(Array<bool> & fragment_filter,
+			  UInt minimum_nb_elements);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

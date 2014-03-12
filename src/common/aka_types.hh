@@ -689,8 +689,8 @@ template<bool tr_A>
 inline void Vector<T>::mul(const Matrix<T> & A,
 			  const Vector<T> & x,
 			  Real alpha) {
-  UInt n = x.n;
 #ifndef AKANTU_NDEBUG
+  UInt n = x.n;
   if (tr_A){
     AKANTU_DEBUG_ASSERT(n == A.rows(), "matrix and vector to multiply have no fit dimensions");
     AKANTU_DEBUG_ASSERT(this->n == A.cols(), "matrix and vector to multiply have no fit dimensions");
