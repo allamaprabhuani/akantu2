@@ -95,18 +95,24 @@ int main(int argc, char *argv[]) {
   Real theoretical_mass = L * h * h * rho;
   Real frag_theo_mass = theoretical_mass / total_nb_fragment;
 
+  UInt nb_element = mesh.getNbElement(spatial_dimension, _not_ghost, _ek_regular);
+  comm.allReduce(&nb_element, 1, _so_sum);
+  UInt nb_element_per_fragment = nb_element / total_nb_fragment;
+
   FragmentManager fragment_manager(model);
 
   fragment_manager.computeAllData();
+  fragment_manager.getNbBigFragments(nb_element_per_fragment + 1);
 
   model.setBaseName("extrinsic");
   model.addDumpFieldVector("displacement");
-  model.addDumpField("velocity"    );
+  model.addDumpField("velocity");
   model.addDumpField("stress");
   model.addDumpField("partitions");
   model.addDumpField("fragments");
   model.addDumpField("fragments mass");
   model.addDumpField("moments of inertia");
+  model.addDumpField("elements per fragment");
   model.dump();
 
   model.setBaseNameToDumper("cohesive elements", "cohesive_elements_test");
@@ -152,22 +158,16 @@ int main(int argc, char *argv[]) {
   Array<Real>::const_iterator< Vector<Real> > inertia_moments_begin
     = inertia_moments.begin(spatial_dimension);
 
-  Array<bool> fragment_filter;
-  UInt nb_element = mesh.getNbElement(spatial_dimension, _not_ghost, _ek_regular);
-  comm.allReduce(&nb_element, 1, _so_sum);
-  UInt nb_element_per_fragment = nb_element / total_nb_fragment;
-
   /// displace one fragment each time
   for (UInt frag = 1; frag <= total_nb_fragment; ++frag) {
     if (prank == 0)
       std::cout << "Generating fragment: " << frag << std::endl;
 
     fragment_manager.computeAllData();
-    fragment_manager.filterBigFragments(fragment_filter, nb_element_per_fragment + 1);
 
     /// check number of big fragments
-    UInt nb_big_fragment = std::accumulate(fragment_filter.begin(),
-					   fragment_filter.end(), 0);
+    UInt nb_big_fragment
+      = fragment_manager.getNbBigFragments(nb_element_per_fragment + 1);
 
     if (frag < total_nb_fragment) {
       if (nb_big_fragment != 1) {

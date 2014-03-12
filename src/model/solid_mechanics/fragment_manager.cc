@@ -532,8 +532,7 @@ void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
 }
 
 /* -------------------------------------------------------------------------- */
-void FragmentManager::filterBigFragments(Array<bool> & fragment_filter,
-					 UInt minimum_nb_elements) {
+UInt FragmentManager::getNbBigFragments(UInt minimum_nb_elements) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model.getSpatialDimension();
@@ -568,16 +567,19 @@ void FragmentManager::filterBigFragments(Array<bool> & fragment_filter,
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   comm.allReduce(nb_element_per_fragment.storage(), global_nb_fragment, _so_sum);
 
-  /// filter fragments
-  fragment_filter.resize(global_nb_fragment);
-  fragment_filter.clear();
+  /// count big enough fragments
+  UInt nb_big_fragment = 0;
 
   for (UInt frag = 0; frag < global_nb_fragment; ++frag) {
     if (nb_element_per_fragment(frag) >= minimum_nb_elements)
-      fragment_filter(frag) = true;
+      ++nb_big_fragment;
   }
 
+  if (dump_data)
+    createDumpDataArray(nb_element_per_fragment, "elements per fragment");
+
   AKANTU_DEBUG_OUT();
+  return nb_big_fragment;
 }
 
 /* -------------------------------------------------------------------------- */
