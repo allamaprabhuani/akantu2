@@ -112,7 +112,7 @@ private:
 template<typename T>
 class WeibullDistribution : public RandomDistributionBase<T> {
 public:
-  WeibullDistribution(T shape, T scale) : m(scale), lambda(shape) { };
+  WeibullDistribution(T shape, T scale) : m(shape), lambda(scale) { };
 
   /* ------------------------------------------------------------------------ */
   template<template<class> class RandomGenerator>
@@ -130,7 +130,7 @@ public:
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
-    stream << "Weibull [ shape=" << lambda << ", scale=" << m << "]";
+    stream << "Weibull [ scale=" << lambda << ", shape=" << m << "]";
   }
 
   /* ------------------------------------------------------------------------ */

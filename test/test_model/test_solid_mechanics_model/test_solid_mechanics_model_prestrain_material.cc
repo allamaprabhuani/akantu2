@@ -64,9 +64,9 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_prestrain) {
   Matrix<Real> stress(spatial_dimension, spatial_dimension);
 
   //plane strain in 2d
-  Matrix<Real> strain(spatial_dimension, spatial_dimension);
+  Matrix<Real> strain(spatial_dimension, spatial_dimension); 
   Matrix<Real> pstrain; 
-  pstrain = prescribed_strain<type, is_plane_strain>() + prescribed_prestrain;
+  pstrain = prescribed_strain<type, is_plane_strain>();
   Real nu = 0.3;
   Real E  = 2.1e11;
   Real trace = 0;
@@ -76,7 +76,8 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_prestrain) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       strain(i,j) = 0.5 * (pstrain(i, j) + pstrain(j, i));
 
-
+  // total strain is equal to elastic strain minus the eigenstrain
+  strain -= prescribed_prestrain;
   for (UInt i = 0; i < spatial_dimension; ++i) trace += strain(i,i);
 
   Real lambda   = nu * E / ((1 + nu) * (1 - 2*nu));

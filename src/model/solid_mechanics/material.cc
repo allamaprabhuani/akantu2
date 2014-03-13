@@ -3,6 +3,7 @@
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
  * @date   Tue Jul 27 18:15:37 2010
  *
@@ -283,7 +284,7 @@ void Material::computeAllStresses(GhostType ghost_type) {
                                                spatial_dimension,
                                                *it, ghost_type, elem_filter);
 
-    strain_vect += pre_strain(*it, ghost_type);
+    strain_vect -= pre_strain(*it, ghost_type);
 
     if(finite_deformation || inelastic_deformation){ /// compute @f$\nabla \delta u@f$
       Array<Real> & delta_strain_vect = delta_strain(*it, ghost_type);
