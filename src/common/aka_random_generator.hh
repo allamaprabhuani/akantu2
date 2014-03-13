@@ -112,7 +112,7 @@ private:
 template<typename T>
 class WeibullDistribution : public RandomDistributionBase<T> {
 public:
-  WeibullDistribution(T shape, T scale) : m(shape), lambda(scale) { };
+  WeibullDistribution(T scale, T shape) : m(shape), lambda(scale) { };
 
   /* ------------------------------------------------------------------------ */
   template<template<class> class RandomGenerator>
