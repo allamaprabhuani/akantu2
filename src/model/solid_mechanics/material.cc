@@ -51,7 +51,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   spatial_dimension(this->model->getSpatialDimension()),
   element_filter("element_filter", id, this->memory_id),
   stress("stress", *this),
-  pre_strain("pre_strain", *this),
+  eigenstrain("eigenstrain", *this),
   strain("strain", *this),
   delta_stress("delta_stress", *this),
   delta_strain("delta_strain", *this),
@@ -82,7 +82,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   registerParam("inelastic_deformation", inelastic_deformation, false        , _pat_parsable | _pat_modifiable, "Is inelastic deformation");
 
   /// allocate strain stress for local elements
-  pre_strain.initialize(spatial_dimension * spatial_dimension);
+  eigenstrain.initialize(spatial_dimension * spatial_dimension);
   strain.initialize(spatial_dimension * spatial_dimension);
   stress.initialize(spatial_dimension * spatial_dimension);
 
@@ -284,7 +284,7 @@ void Material::computeAllStresses(GhostType ghost_type) {
                                                spatial_dimension,
                                                *it, ghost_type, elem_filter);
 
-    strain_vect -= pre_strain(*it, ghost_type);
+    strain_vect -= eigenstrain(*it, ghost_type);
 
     if(finite_deformation || inelastic_deformation){ /// compute @f$\nabla \delta u@f$
       Array<Real> & delta_strain_vect = delta_strain(*it, ghost_type);

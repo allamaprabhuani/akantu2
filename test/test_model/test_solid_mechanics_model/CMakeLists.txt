@@ -190,7 +190,7 @@ register_test(test_solid_mechanics_model_reassign_material
   )
 
 #===============================================================================
-register_test(test_solid_mechanics_model_prestrain_material
-  SOURCES test_solid_mechanics_model_prestrain_material.cc
+register_test(test_solid_mechanics_model_material_eigenstrain
+  SOURCES test_solid_mechanics_model_material_eigenstrain.cc
   FILES_TO_COPY cube_3d_tet_4.msh; material_elastic_plane_strain.dat
   )

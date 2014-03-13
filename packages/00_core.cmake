@@ -257,7 +257,7 @@ set(AKANTU_CORE_TESTS
   test_solid_mechanics_model_cube3d_pbc
   test_solid_mechanics_model_cube3d_tetra10
   test_solid_mechanics_model_square
-  test_solid_mechanics_model_prestrain_material
+  test_solid_mechanics_model_material_eigenstrain
   test_static_memory
   test_surface_extraction_tetrahedron_4
   test_surface_extraction_triangle_3

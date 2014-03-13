@@ -418,8 +418,8 @@ protected:
   /// stresses arrays ordered by element types
   InternalField<Real> stress;
 
-  /// strains arrays ordered by element types
-  InternalField<Real> pre_strain;
+  /// eigenstrain arrays ordered by element types
+  InternalField<Real> eigenstrain;
 
   /// strains arrays ordered by element types
   InternalField<Real> strain;

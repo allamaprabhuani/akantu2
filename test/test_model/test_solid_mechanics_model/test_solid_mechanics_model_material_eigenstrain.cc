@@ -59,7 +59,7 @@ static Matrix<Real> prescribed_strain() {
 }
 
 template<ElementType type, bool is_plane_strain>
-static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_prestrain) {
+static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigenstrain) {
   UInt spatial_dimension = ElementClass<type>::getSpatialDimension();
   Matrix<Real> stress(spatial_dimension, spatial_dimension);
 
@@ -76,8 +76,8 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_prestrain) {
     for (UInt j = 0; j < spatial_dimension; ++j)
       strain(i,j) = 0.5 * (pstrain(i, j) + pstrain(j, i));
 
-  // total strain is equal to elastic strain minus the eigenstrain
-  strain -= prescribed_prestrain;
+  // elastic strain is equal to elastic strain minus the eigenstrain
+  strain -= prescribed_eigenstrain;
   for (UInt i = 0; i < spatial_dimension; ++i) trace += strain(i,i);
 
   Real lambda   = nu * E / ((1 + nu) * (1 - 2*nu));
@@ -110,11 +110,11 @@ int main(int argc, char *argv[])
   UInt dim = 3;
   const ElementType element_type = _tetrahedron_4;
   const bool plane_strain = true;
-  Matrix<Real> prescribed_prestrain(dim, dim);
-  prescribed_prestrain.clear();
+  Matrix<Real> prescribed_eigenstrain(dim, dim);
+  prescribed_eigenstrain.clear();
   for (UInt i = 0; i < dim; ++i) {
     for (UInt j = 0; j < dim; ++j) 
-      prescribed_prestrain(i,j) += 0.1;   
+      prescribed_eigenstrain(i,j) += 0.1;   
   }
 
 
@@ -155,18 +155,18 @@ int main(int argc, char *argv[])
   }
 
   /* ------------------------------------------------------------------------ */
-  /* Apply prestrain in each element                                          */
+  /* Apply eigenstrain in each element                                          */
   /* ------------------------------------------------------------------------ */
   
 
-  Array<Real> & prestrain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getInternal("pre_strain")(element_type));
-  Array<Real>::iterator< Matrix<Real> > prestrain_it = prestrain_vect.begin(dim, dim);
-  Array<Real>::iterator< Matrix<Real> > prestrain_end = prestrain_vect.end(dim, dim);
+  Array<Real> & eigenstrain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getInternal("eigenstrain")(element_type));
+  Array<Real>::iterator< Matrix<Real> > eigenstrain_it = eigenstrain_vect.begin(dim, dim);
+  Array<Real>::iterator< Matrix<Real> > eigenstrain_end = eigenstrain_vect.end(dim, dim);
 
-  for (; prestrain_it != prestrain_end; ++prestrain_it) {
+  for (; eigenstrain_it != eigenstrain_end; ++eigenstrain_it) {
     for (UInt i = 0; i < dim; ++i)
       for (UInt j = 0; j < dim; ++j)
-	(*prestrain_it)(i,j) += prescribed_prestrain(i,j);
+	(*eigenstrain_it)(i,j) += prescribed_eigenstrain(i,j);
   }
   /* ------------------------------------------------------------------------ */
   /* Static solve                                                             */
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
   Array<Real>::iterator< Matrix<Real> > stress_end = stress_vect.end(dim, dim);
 
   Matrix<Real> presc_stress; 
-  presc_stress = prescribed_stress<element_type, plane_strain>(prescribed_prestrain);
+  presc_stress = prescribed_stress<element_type, plane_strain>(prescribed_eigenstrain);
 
   Real stress_tolerance = 1e-13;
 
