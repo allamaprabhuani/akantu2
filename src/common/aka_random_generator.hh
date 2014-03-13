@@ -130,7 +130,7 @@ public:
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
-    stream << "Weibull [ scale=" << lambda << ", shape=" << m << "]";
+    stream << "Weibull [ shape=" << m << ", scale=" << lambda << "]";
   }
 
   /* ------------------------------------------------------------------------ */
