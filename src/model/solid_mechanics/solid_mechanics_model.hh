@@ -55,6 +55,8 @@
 #include "solver.hh"
 #include "material_selector.hh"
 
+#include "solid_mechanics_model_event_handler.hh"
+
 /* -------------------------------------------------------------------------- */
 namespace akantu {
   class Material;
@@ -79,7 +81,8 @@ extern const SolidMechanicsModelOptions default_solid_mechanics_model_options;
 class SolidMechanicsModel : public Model, public DataAccessor,
 			    public MeshEventHandler,
 			    public Dumpable,
-			    public BoundaryCondition<SolidMechanicsModel> {
+			    public BoundaryCondition<SolidMechanicsModel>,
+                            public EventHandlerManager<SolidMechanicsModelEventHandler> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -95,6 +98,10 @@ public:
 
   typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
 
+protected:
+  typedef EventHandlerManager<SolidMechanicsModelEventHandler> EventManager;
+
+public:
   SolidMechanicsModel(Mesh & mesh,
 		      UInt spatial_dimension = _all_dimensions,
 		      const ID & id = "solid_mechanics_model",
@@ -216,11 +223,24 @@ public:
   void assembleStiffnessMatrix();
 
 public:
+  /**
+   * solve a step (predictor + convergence loop + corrector) using the
+   * the given convergence method (see akantu::SolveConvergenceMethod)
+   * and the given convergence criteria (see
+   * akantu::SolveConvergenceCriteria)
+   **/
   template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
   bool solveStep(Real tolerance,
 		 UInt max_iteration = 100);
 
-public:
+  /**
+   * solve Ku = f using the the given convergence method (see
+   * akantu::SolveConvergenceMethod) and the given convergence
+   * criteria (see akantu::SolveConvergenceCriteria)
+   **/
+  template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
+  void solveStatic(Real tolerance, UInt max_iteration);
+
   /// solve @f[ A\delta u = f_{ext} - f_{int} @f] in displacement
   void solveDynamic();
 

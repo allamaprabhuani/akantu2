@@ -64,6 +64,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   previous_stress("previous_stress", *this),
   use_previous_strain(false),
   previous_strain("previous_strain", *this),
+  use_previous_inelastic_strain(false),
+  previous_inelas_strain("previous_inelas_strain", *this),
   interpolation_inverse_coordinates("interpolation inverse coordinates", *this),
   interpolation_points_matrices("interpolation points matrices", *this) {
   AKANTU_DEBUG_IN();
@@ -85,6 +87,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   eigenstrain.initialize(spatial_dimension * spatial_dimension);
   strain.initialize(spatial_dimension * spatial_dimension);
   stress.initialize(spatial_dimension * spatial_dimension);
+
+  model.registerEventHandler(*this);
 
   AKANTU_DEBUG_OUT();
 }
@@ -120,6 +124,10 @@ void Material::initMaterial() {
     this->previous_strain.initialize(spatial_dimension * spatial_dimension);
   }
 
+  if(use_previous_inelastic_strain) {
+    this->previous_inelas_strain.initialize(spatial_dimension * spatial_dimension);
+  }
+
 
   for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
@@ -142,11 +150,13 @@ void Material::savePreviousState(const GhostType ghost_type) {
     for (; it != last_type; ++it) {
       if(use_previous_stress) previous_stress(*it, ghost_type).copy(piola_kirchhoff_stress(*it, ghost_type));
       if(use_previous_strain) previous_strain(*it, ghost_type).copy(strain(*it, ghost_type));
+      if(use_previous_inelastic_strain) previous_inelas_strain(*it, ghost_type).copy(inelas_strain(*it, ghost_type));
     }
   else
     for (; it != last_type; ++it) {
       if(use_previous_stress) previous_stress(*it, ghost_type).copy(stress(*it, ghost_type));
       if(use_previous_strain) previous_strain(*it, ghost_type).copy(strain(*it, ghost_type));
+      if(use_previous_inelastic_strain) previous_inelas_strain(*it, ghost_type).copy(inelas_strain(*it, ghost_type));
     }
 
   AKANTU_DEBUG_OUT();
@@ -1509,6 +1519,18 @@ void Material::onElementsRemoved(const Array<Element> & element_list,
   for (std::map<ID, InternalField<UInt> *>::iterator it = internal_vectors_uint.begin();
        it != internal_vectors_uint.end();
        ++it) it->second->removeQuadraturePoints(material_local_new_numbering);
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::onBeginningSolveStep(const AnalysisMethod & method) {
+  this->savePreviousState(_not_ghost);
+  this->savePreviousState(_ghost);
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::onEndSolveStep(const AnalysisMethod & method) {
+  if(this->isFiniteDeformation())
+    this->computeAllCauchyStresses(_not_ghost);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -32,7 +32,7 @@
 inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(mat_index < materials.size(),
-		      "The model " << id << " has no material no "<< mat_index);
+                     "The model " << id << " has no material no "<< mat_index);
   AKANTU_DEBUG_OUT();
   return *materials[mat_index];
 }
@@ -41,7 +41,7 @@ inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
 inline const Material & SolidMechanicsModel::getMaterial(UInt mat_index) const {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(mat_index < materials.size(),
-		      "The model " << id << " has no material no "<< mat_index);
+                     "The model " << id << " has no material no "<< mat_index);
   AKANTU_DEBUG_OUT();
   return *materials[mat_index];
 }
@@ -51,7 +51,7 @@ inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
   AKANTU_DEBUG_IN();
   std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
-		      "The model " << id << " has no material named "<< name);
+		     "The model " << id << " has no material named "<< name);
   AKANTU_DEBUG_OUT();
   return *materials[it->second];
 }
@@ -90,7 +90,7 @@ inline FEM & SolidMechanicsModel::getFEMBoundary(const ID & name) {
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::splitElementByMaterial(const Array<Element> & elements,
-							Array<Element> * elements_per_mat) const {
+                                                       Array<Element> * elements_per_mat) const {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
   const Array<UInt> * elem_mat = NULL;
@@ -114,7 +114,7 @@ inline void SolidMechanicsModel::splitElementByMaterial(const Array<Element> & e
 
 /* -------------------------------------------------------------------------- */
 inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & elements,
-						      SynchronizationTag tag) const {
+                                                     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -164,8 +164,8 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & ele
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
-						 const Array<Element> & elements,
-						 SynchronizationTag tag) const {
+                                                const Array<Element> & elements,
+                                                SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   switch(tag) {
@@ -206,14 +206,14 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
-						   const Array<Element> & elements,
-						   SynchronizationTag tag) {
+                                                  const Array<Element> & elements,
+                                                  SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   switch(tag) {
   case _gst_material_id: {
     unpackElementalDataHelper(element_index_by_material, buffer, elements,
-			      false, getFEM());
+                             false, getFEM());
     break;
   }
   case _gst_smm_mass: {
@@ -309,8 +309,8 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(SynchronizationTag tag) const
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
-					  const UInt index,
-					  SynchronizationTag tag) const {
+                                         const UInt index,
+                                         SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
   switch(tag) {
@@ -342,8 +342,8 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
-					    const UInt index,
-					    SynchronizationTag tag) {
+                                           const UInt index,
+                                           SynchronizationTag tag) {
   AKANTU_DEBUG_IN();
 
   switch(tag) {
@@ -433,7 +433,30 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
+void SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration) {
+
+  AKANTU_DEBUG_INFO("Solving Ku = f");
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+  AnalysisMethod analysis_method=method;
+
+  method=_static;
+  solveStep<cmethod, criteria>(tolerance, max_iteration);
+  Real error = 0.;
+  if(criteria == _scc_residual) {
+    bool converged = this->testConvergence<criteria> (tolerance, error);
+    if(converged) return converged;
+  }
+
+  method=analysis_method;
+
+}
+
+/* -------------------------------------------------------------------------- */
+template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
 bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
+  EventManager::sendEvent(SolidMechanicsModelEvent::BeforeSolveStepEvent(method));
   this->implicitPred();
   this->updateResidual();
 
@@ -488,6 +511,15 @@ bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
 
   } while (!converged && iter < max_iteration);
 
+
+  if (converged) {
+    EventManager::sendEvent(SolidMechanicsModelEvent::AfterSolveStepEvent(method));
+  }
+
+  if(iter == max_iteration)
+    AKANTU_DEBUG_WARNING("[" << criteria << "] Convergence not reached after "
+                         << std::setw(std::log10(max_iteration)) << iter <<
+                         " iteration" << (iter == 1 ? "" : "s") << "!" << std::endl);
+
   return converged;
 }
-

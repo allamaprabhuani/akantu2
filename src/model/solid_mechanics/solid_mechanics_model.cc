@@ -434,11 +434,7 @@ void SolidMechanicsModel::updateResidual(bool need_initialize) {
   std::vector<Material *>::iterator mat_it;
   for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     Material & mat = **mat_it;
-    mat.savePreviousState(_not_ghost);
-    mat.savePreviousState(_ghost);
     mat.computeAllStresses(_not_ghost);
-    if(mat.isFiniteDeformation())
-      mat.computeAllCauchyStresses(_not_ghost);
   }
 
 #ifdef AKANTU_DAMAGE_NON_LOCAL
@@ -500,11 +496,7 @@ void SolidMechanicsModel::computeStresses() {
     std::vector<Material *>::iterator mat_it;
     for (mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
       Material & mat = **mat_it;
-      mat.savePreviousState(_not_ghost);
-      mat.savePreviousState(_ghost);
       mat.computeAllStresses(_not_ghost);
-      if(mat.isFiniteDeformation())
-        mat.computeAllCauchyStresses(_not_ghost);
     }
 
     /* ------------------------------------------------------------------------ */
@@ -686,10 +678,14 @@ void SolidMechanicsModel::explicitCorr() {
 void SolidMechanicsModel::solveStep() {
   AKANTU_DEBUG_IN();
 
+  EventManager::sendEvent(SolidMechanicsModelEvent::BeforeSolveStepEvent(method));
+
   this->explicitPred();
   this->updateResidual();
   this->updateAcceleration();
   this->explicitCorr();
+
+  EventManager::sendEvent(SolidMechanicsModelEvent::AfterSolveStepEvent(method));
 
   AKANTU_DEBUG_OUT();
 }
@@ -1778,6 +1774,7 @@ void SolidMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_
   else if(field_id == "acceleration") { ADD_FIELD(acceleration, Real); }
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
+  else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
   else {
     typedef DumperIOHelper::HomogenizedField<Real,
                                              DumperIOHelper::InternalMaterialField> Field;

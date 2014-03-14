@@ -171,7 +171,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Internal code                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
+private:
   inline void sendEvent(const NewNodesEvent & event)     { onNodesAdded  (event.getList(),
                                                                           event); }
   inline void sendEvent(const RemovedNodesEvent & event) { onNodesRemoved(event.getList(),

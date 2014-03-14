@@ -37,6 +37,8 @@
 #include "data_accessor.hh"
 #include "internal_field.hh"
 #include "random_internal_field.hh"
+#include "solid_mechanics_model_event_handler.hh"
+
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_HH__
@@ -68,7 +70,9 @@ __BEGIN_AKANTU__
  *
  */
 
-class Material : public Memory, public DataAccessor, public Parsable, public MeshEventHandler {
+class Material : public Memory, public DataAccessor, public Parsable,
+                 public MeshEventHandler,
+                 protected SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -104,6 +108,10 @@ public:
 
   /// assemble the residual for this material
   virtual void assembleResidual(GhostType ghost_type);
+
+  /// Operations before and after solveStep in implicit
+  virtual void beforeSolveStep() {}
+  virtual void afterSolveStep() {}
 
   /// save the stress in the precious_stress if needed
   virtual void savePreviousState(GhostType ghost_type);
@@ -321,6 +329,9 @@ public:
                                       const Array<Element> & elements,
                                       const ID & fem_id = ID());
 
+  /* ------------------------------------------------------------------------ */
+  /* MeshEventHandler inherited members                                       */
+  /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
   virtual void onElementsAdded(const Array<Element> & element_list,
@@ -329,6 +340,13 @@ public:
   virtual void onElementsRemoved(const Array<Element> & element_list,
 				 const ByElementTypeUInt & new_numbering,
 				 const RemovedElementsEvent & event);
+
+  /* ------------------------------------------------------------------------ */
+  /* SolidMechanicsModelEventHandler inherited members                        */
+  /* ------------------------------------------------------------------------ */
+public:
+  virtual void onBeginningSolveStep(const AnalysisMethod & method);
+  virtual void onEndSolveStep(const AnalysisMethod & method);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -454,6 +472,12 @@ protected:
   /// previous strain
   InternalField<Real> previous_strain;
 
+  /// tell if the material need the previous strain state
+  bool use_previous_inelastic_strain;
+
+  /// previous strain
+  InternalField<Real> previous_inelas_strain;
+
   /// elemental field interpolation coordinates
   InternalField<Real> interpolation_inverse_coordinates;
 
@@ -496,13 +520,15 @@ __END_AKANTU__
                                                ghost_type).getSize());  \
                                                                         \
   Array<Real>::iterator< Matrix<Real> > stress_it =			\
-    this->stress(el_type, ghost_type).begin(spatial_dimension,		\
-                                            spatial_dimension);		\
+    this->stress(el_type, ghost_type).begin(spatial_dimension,          \
+                                            spatial_dimension);         \
                                                                         \
   if(this->isFiniteDeformation())                                       \
-    Array<Real>::iterator< Matrix<Real> > stress_it =			\
-      this->piola_kirchhoff_stress(el_type, ghost_type).begin(spatial_dimension,        \
-                                              spatial_dimension);       \
+    stress_it =                                                         \
+      this->piola_kirchhoff_stress(el_type,                             \
+                                   ghost_type).begin(spatial_dimension, \
+                                                     spatial_dimension);\
+                                                                        \
   for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
     Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;         \
     Matrix<Real> & __attribute__((unused)) sigma  = *stress_it

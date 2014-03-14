@@ -190,6 +190,7 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/solid_mechanics_model_mass.cc
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
+  model/solid_mechanics/solid_mechanics_model_event_handler.hh
 
   solver/solver.cc
   solver/solver.hh

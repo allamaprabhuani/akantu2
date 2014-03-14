@@ -55,6 +55,7 @@ public:
 
 private:
   const ByElementTypeArray<std::string> & names;
+protected:
   const SolidMechanicsModel & model;
 };
 
