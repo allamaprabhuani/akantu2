@@ -273,8 +273,17 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
                 }
             }
 
-            tangent(m, n) = J*( lambda * Cminus(i, j) * Cminus(k, l) +
-                                mu * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j)));
+            //book Bathe
+            /*            tangent(m, n) = J*( lambda * Cminus(i, j) * Cminus(k, l) +
+                          mu * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j)));*/
+
+            //Linear elastic
+            /*            tangent(m, n) = lambda * (i==j) *  (k==l) +
+                          mu * ((i==k) * (j==l) + (i==l) *(k==j));*/
+
+            //book belytchko
+            tangent(m, n) = lambda * Cminus(i, j) * Cminus(k, l) +
+              (mu - lambda * log(J)) * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j));
 
         }
     }

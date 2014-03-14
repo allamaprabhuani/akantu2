@@ -47,7 +47,7 @@ Material(model, id) {
     this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
 
     finite_deformation=true;
-    use_previous_stress=true;
+    //    use_previous_stress=true;
 
     AKANTU_DEBUG_OUT();
 }
