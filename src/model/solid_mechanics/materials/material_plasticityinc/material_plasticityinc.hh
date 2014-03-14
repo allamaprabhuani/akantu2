@@ -2,6 +2,7 @@
  * @file   material_plasticityinc.hh
  *
  * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
+ * @author Daniel Pino Munoz <daniel.pinomunoz@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Tue Jul 09 18:15:37 20130
@@ -98,11 +99,15 @@ protected:
   //      Matrix<Real> & delta_S);
 
   inline void computeStressOnQuad(Matrix<Real> & grad_u,
+                                  Matrix<Real> & previous_grad_u,
                                   Matrix<Real> & grad_delta_u,
                                   Matrix<Real> & sigma,
+                                  Matrix<Real> & previous_sigma,
                                   Matrix<Real> & inelas_strain,
+                                  Matrix<Real> & previous_inelas_strain,
                                   Matrix<Real> & d_inelas_strain,
                                   Real & iso_hardening,
+                                  Real & previous_iso_hardening,
                                   Real sigma_th_cur,
                                   Real sigma_th_prev);
 
@@ -116,6 +121,13 @@ protected:
                                            Matrix<Real> & sigma,
                                            const Matrix<Real> & inelas_strain,
                                            Real & epot);
+
+  /* ------------------------------------------------------------------------ */
+  /* SolidMechanicsModelEventHandler inherited members                        */
+  /* ------------------------------------------------------------------------ */
+public:
+  virtual void onBeginningSolveStep(const AnalysisMethod & method);
+  virtual void onEndSolveStep(const AnalysisMethod & method);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -133,6 +145,9 @@ private:
   /// isotropic hardening, r
   InternalField<Real> iso_hardening;
 
+  /// previous isotropic hardening, r
+  InternalField<Real> previous_iso_hardening;
+
   /// Plastic energy
   InternalField<Real> plastic_energy;
 
@@ -141,6 +156,7 @@ private:
 
   /// Plastic strain increment
   InternalField<Real> d_inelas_strain;
+
 };
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

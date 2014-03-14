@@ -2,6 +2,7 @@
  * @file   material_plasticity_inc.cc
  *
  * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
+ * @author Daniel Pino Munoz <daniel.pinomunoz@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
  * @date   Tue Jul 09 18:15:37 20130
@@ -37,11 +38,15 @@
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
-							                                              Matrix<Real> & grad_delta_u,
+                                                            Matrix<Real> & previous_grad_u,
+                                                            Matrix<Real> & grad_delta_u,
                                                             Matrix<Real> & sigma,
+                                                            Matrix<Real> & previous_sigma,
                                                             Matrix<Real> & inelas_strain,
+                                                            Matrix<Real> & previous_inelas_strain,
                                                             Matrix<Real> & d_inelas_strain,
                                                             Real & iso_hardening,
+                                                            Real & previous_iso_hardening,
                                                             Real sigma_th_cur,
                                                             Real sigma_th_prev) {
   //Infinitesimal plasticity
@@ -54,19 +59,21 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
 
   Real delta_sigma_th = sigma_th_cur - sigma_th_prev;
 
+  grad_delta_u.copy(grad_u);
+  grad_delta_u -= previous_grad_u;
   //Compute trial stress, sigma_tr
   MaterialElastic<dim>::computeStressOnQuad(grad_delta_u, sigma_tr, delta_sigma_th);
-  sigma_tr += sigma;
+  sigma_tr += previous_sigma;
 
   // Compute deviatoric trial stress,  sigma_tr_dev
-  sigma_tr_dev  = sigma_tr;
+  sigma_tr_dev.copy(sigma_tr);
   sigma_tr_dev -= Matrix<Real>::eye(dim, sigma_tr.trace() / 3.0);
 
   // Compute effective deviatoric trial stress
   Real s = sigma_tr_dev.doubleDot(sigma_tr_dev);
   Real sigma_tr_dev_eff = std::sqrt(3./2. * s);
 
-  const Real iso_hardening_t = iso_hardening;
+  const Real iso_hardening_t = previous_iso_hardening;
   //Loop for correcting stress based on yield function
   while ((sigma_tr_dev_eff-iso_hardening-sigmay) > 0) {
     //r = r +  h * dp;
@@ -85,18 +92,20 @@ inline void MaterialPlasticityinc<dim>::computeStressOnQuad(Matrix<Real> & grad_
   //Update internal variable
   if (std::abs(sigma_tr_dev_eff) >
       sigma_tr_dev.norm<L_inf>() * Math::getTolerance()) {
-    d_inelas_strain = sigma_tr_dev;
+    d_inelas_strain.copy(sigma_tr_dev);
     d_inelas_strain *= 3./2. * dp / sigma_tr_dev_eff;
   }
 
   Matrix<Real> grad_u_elastic(dim, dim);
-  grad_u_elastic  = grad_delta_u;
+  grad_u_elastic.copy(grad_delta_u);
   grad_u_elastic -= d_inelas_strain;
 
   Matrix<Real> sigma_elastic(dim, dim);
   MaterialElastic<dim>::computeStressOnQuad(grad_u_elastic, sigma_elastic);
+  sigma.copy(previous_sigma);
   sigma += sigma_elastic;
 
+  inelas_strain.copy(previous_inelas_strain);
   inelas_strain += d_inelas_strain;
 }
 
@@ -109,7 +118,7 @@ inline void MaterialPlasticityinc<spatial_dimension>::computePotentialEnergyOnQu
   epot = 0.;
 
   Matrix<Real> elas_strain(spatial_dimension, spatial_dimension);
-  elas_strain = grad_u;
+  elas_strain.copy(grad_u);
   elas_strain -= inelas_strain;
 
   epot = 0.5 * sigma.doubleDot(elas_strain);
