@@ -111,6 +111,9 @@ public:
   /// get fragments' principal moments of inertia
   AKANTU_GET_MACRO(MomentsOfInertia, inertia_moments, const Array<Real> &);
 
+  /// get fragments' filter
+  AKANTU_GET_MACRO(Filter, fragment_filter, const Array<bool> &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -146,6 +149,9 @@ private:
 
   /// mass density per quadrature point
   ByElementTypeReal mass_density;
+
+  /// fragment filter
+  Array<bool> fragment_filter;
 
   /// dump data
   bool dump_data;

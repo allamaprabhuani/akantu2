@@ -45,6 +45,7 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
   inertia_moments(0, model.getSpatialDimension(), "inertia_moments"),
   quad_coordinates("quad_coordinates", id),
   mass_density("mass_density", id),
+  fragment_filter(0, 1, "fragment_filter"),
   dump_data(dump_data) {
   AKANTU_DEBUG_IN();
 
@@ -568,11 +569,15 @@ UInt FragmentManager::getNbBigFragments(UInt minimum_nb_elements) {
   comm.allReduce(nb_element_per_fragment.storage(), global_nb_fragment, _so_sum);
 
   /// count big enough fragments
+  fragment_filter.resize(global_nb_fragment);
+  fragment_filter.clear();
   UInt nb_big_fragment = 0;
 
   for (UInt frag = 0; frag < global_nb_fragment; ++frag) {
-    if (nb_element_per_fragment(frag) >= minimum_nb_elements)
+    if (nb_element_per_fragment(frag) >= minimum_nb_elements) {
+      fragment_filter(frag) = true;
       ++nb_big_fragment;
+    }
   }
 
   if (dump_data)
