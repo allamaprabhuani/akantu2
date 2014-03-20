@@ -455,7 +455,17 @@ void SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration) {
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
+bool SolidMechanicsModel::solveStep(Real tolerance,
+				    UInt max_iteration) {
+  Real error = 0.;
+  return this->template solveStep<cmethod,criteria>(tolerance,
+						    error,
+						    max_iteration);
+}
+
+/* -------------------------------------------------------------------------- */
+template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
+bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_iteration) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeSolveStepEvent(method));
   this->implicitPred();
   this->updateResidual();
@@ -483,7 +493,7 @@ bool SolidMechanicsModel::solveStep(Real tolerance, UInt max_iteration) {
 
   UInt iter = 0;
   bool converged = false;
-  Real error = 0.;
+  error = 0.;
   if(criteria == _scc_residual) {
     converged = this->testConvergence<criteria> (tolerance, error);
     if(converged) return converged;

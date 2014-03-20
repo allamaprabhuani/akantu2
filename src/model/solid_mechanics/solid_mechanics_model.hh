@@ -233,6 +233,12 @@ public:
   bool solveStep(Real tolerance,
 		 UInt max_iteration = 100);
 
+  template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
+  bool solveStep(Real tolerance,
+		 Real & error,
+		 UInt max_iteration = 100);
+
+public:
   /**
    * solve Ku = f using the the given convergence method (see
    * akantu::SolveConvergenceMethod) and the given convergence
