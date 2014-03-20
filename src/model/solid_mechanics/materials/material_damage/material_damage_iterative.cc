@@ -166,6 +166,9 @@ template<UInt spatial_dimension>
 UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
 
+  AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
+		      "Your prescribed damage must be greater than zero");
+
   if (q_point.type != _not_defined) {
     //const Array<Real> & Sc_vect = material.getInternal("Sc")(q_point.type);
 
