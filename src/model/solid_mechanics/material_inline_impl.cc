@@ -57,16 +57,14 @@ inline UInt Material::getCauchyStressMatrixSize(UInt dim) const {
 template<UInt dim>
 inline void Material::gradUToF(const Matrix<Real> & grad_u,
 			       Matrix<Real> & F) {
-  UInt size_F = F.rows();
-
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim*dim,
             "The dimension of the tensor F should be greater or equal to the dimension of the tensor grad_u.");
 
+  F.eye();
+
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)
-      F(i, j) = grad_u(i, j);
-
-  for (UInt i = 0; i < size_F; ++i) F(i, i) += 1;
+      F(i, j) += grad_u(i, j);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -124,6 +122,16 @@ inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
       epsilon(i, j) = 0.5*(grad_u(i, j) + grad_u(j, i));
+}
+
+/* -------------------------------------------------------------------------- */
+inline void Material::gradUToGreenStrain(const Matrix<Real> & grad_u,
+					 Matrix<Real> & epsilon) {
+  epsilon.mul<true, false>(grad_u, grad_u, 0.5);
+
+  for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt j = 0; j < spatial_dimension; ++j)
+      epsilon(i, j) += 0.5 * (grad_u(i, j) + grad_u(j, i));
 }
 
 /* -------------------------------------------------------------------------- */

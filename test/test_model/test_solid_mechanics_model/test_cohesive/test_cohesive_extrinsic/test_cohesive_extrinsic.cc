@@ -135,11 +135,7 @@ int main(int argc, char *argv[]) {
     }
 
     model.checkCohesiveStress();
-
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     if(s % 1 == 0) {
       model.dump();

@@ -301,6 +301,8 @@ public:
   inline void deformationJacobian(const Matrix<Real> & F, Real & J);
 
   inline void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon);
+  inline void gradUToGreenStrain(const Matrix<Real> & grad_u,
+				 Matrix<Real> & epsilon);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */

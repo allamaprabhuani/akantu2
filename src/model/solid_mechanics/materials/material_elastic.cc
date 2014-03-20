@@ -83,10 +83,33 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
   MaterialThermal<spatial_dimension>::computeStress(el_type, ghost_type);
   Array<Real>::iterator<> sigma_th_it = this->sigma_th_cur(el_type, ghost_type).begin();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  computeStressOnQuad(grad_u, sigma, *sigma_th_it);
-  ++sigma_th_it;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  if (!this->finite_deformation) {
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+    computeStressOnQuad(grad_u, sigma, *sigma_th_it);
+    ++sigma_th_it;
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  } else {
+
+    /// deformation gradient
+    Matrix<Real> F(spatial_dimension, spatial_dimension);
+    /// finite strains
+    Matrix<Real> E(spatial_dimension, spatial_dimension);
+
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+    /// compute F
+    this->template gradUToF<spatial_dimension> (grad_u, F);
+    /// compute E
+    this->gradUToGreenStrain(grad_u, E);
+
+    /// compute second Piola-Kirchhoff stress tensor
+    computeStressOnQuad(E, sigma, *sigma_th_it);
+    /// convert it to its Cauchy stress tensor
+    this->template computeCauchyStressOnQuad<spatial_dimension>(F, sigma, sigma);
+
+    ++sigma_th_it;
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  }
+
   AKANTU_DEBUG_OUT();
 }
 
