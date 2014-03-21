@@ -28,11 +28,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
+#ifndef AKANTU_CMAKE_LIST_MATERIALS
 #include "material_cohesive.hh"
 #include "material_cohesive_linear.hh"
 #include "material_cohesive_bilinear.hh"
 #include "material_cohesive_exponential.hh"
+#endif
 
 #define AKANTU_COHESIVE_MATERIAL_LIST					\
   ((2, (cohesive_linear, MaterialCohesiveLinear )))			\

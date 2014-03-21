@@ -99,7 +99,7 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
     /// compute F
     this->template gradUToF<spatial_dimension> (grad_u, F);
     /// compute E
-    this->gradUToGreenStrain(grad_u, E);
+    this->template gradUToGreenStrain<spatial_dimension>(grad_u, E);
 
     /// compute second Piola-Kirchhoff stress tensor
     computeStressOnQuad(E, sigma, *sigma_th_it);
@@ -114,8 +114,8 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
-							      Array<Real> & tangent_matrix,
-							      __attribute__((unused)) GhostType ghost_type) {
+                                                              Array<Real> & tangent_matrix,
+                                                              __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
@@ -138,6 +138,55 @@ Real MaterialElastic<spatial_dimension>::getShearWaveSpeed() const {
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::computePotentialEnergy(ElementType el_type,
+								GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  if(ghost_type != _not_ghost) return;
+  Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+
+  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
+  ++epot;
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(ElementType type, UInt index,
+									 Vector<Real> & epot_on_quad_points) {
+  Array<Real>::matrix_iterator strain_it =
+    this->strain(type).begin(spatial_dimension,
+                             spatial_dimension);
+  Array<Real>::matrix_iterator strain_end =
+    this->strain(type).begin(spatial_dimension,
+                             spatial_dimension);
+  Array<Real>::matrix_iterator stress_it =
+    this->stress(type).begin(spatial_dimension,
+                             spatial_dimension);
+
+  UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(type);
+
+  strain_it  += index*nb_quadrature_points;
+  strain_end += (index+1)*nb_quadrature_points;
+  stress_it  += index*nb_quadrature_points;
+
+  Real * epot_quad = epot_on_quad_points.storage();
+
+  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++epot_quad) {
+    Matrix<Real> & grad_u = *strain_it;
+    Matrix<Real> & sigma  = *stress_it;
+    computePotentialEnergyOnQuad(grad_u, sigma, *epot_quad);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 
 INSTANSIATE_MATERIAL(MaterialElastic);
 

@@ -124,7 +124,7 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement,  nb_nodes_per_element, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbFacetTypes,  nb_facet_types, UInt);
   static inline UInt getNbFacetsPerElement(UInt t = 0);
-  static inline const Matrix<UInt> getFacetLocalConnectivityPerElement(UInt t = 0);
+  static inline const MatrixProxy<UInt> getFacetLocalConnectivityPerElement(UInt t = 0);
 protected:
   /// Number of nodes per element
   static UInt nb_nodes_per_element;

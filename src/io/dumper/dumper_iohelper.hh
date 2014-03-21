@@ -30,7 +30,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_types.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 #include "by_element_type.hh"
 
 /* -------------------------------------------------------------------------- */

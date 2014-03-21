@@ -182,18 +182,27 @@ InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(const vector_type 
 template<>
 inline Real
 GeometricalElement<_gt_hexahedron_8>::getInradius(const Matrix<Real> & coord) {
-  Real a = coord(0).distance(coord(1));
-  Real b = coord(1).distance(coord(2));
-  Real c = coord(2).distance(coord(3));
-  Real d = coord(3).distance(coord(0));
-  Real e = coord(0).distance(coord(4));
-  Real f = coord(1).distance(coord(5));
-  Real g = coord(2).distance(coord(6));
-  Real h = coord(3).distance(coord(7));
-  Real i = coord(4).distance(coord(5));
-  Real j = coord(5).distance(coord(6));
-  Real k = coord(6).distance(coord(7));
-  Real l = coord(7).distance(coord(4));
+  Vector<Real> u0 = coord(0);
+  Vector<Real> u1 = coord(1);
+  Vector<Real> u2 = coord(2);
+  Vector<Real> u3 = coord(3);
+  Vector<Real> u4 = coord(4);
+  Vector<Real> u5 = coord(5);
+  Vector<Real> u6 = coord(6);
+  Vector<Real> u7 = coord(7);
+
+  Real a = u0.distance(u1);
+  Real b = u1.distance(u2);
+  Real c = u2.distance(u3);
+  Real d = u3.distance(u0);
+  Real e = u0.distance(u4);
+  Real f = u1.distance(u5);
+  Real g = u2.distance(u6);
+  Real h = u3.distance(u7);
+  Real i = u4.distance(u5);
+  Real j = u5.distance(u6);
+  Real k = u6.distance(u7);
+  Real l = u7.distance(u4);
 
   Real x = std::min(a, std::min(b, std::min(c, d)));
   Real y = std::min(e, std::min(f, std::min(g, h)));

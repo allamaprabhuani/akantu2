@@ -1,5 +1,5 @@
 /**
- * @file   aka_vector.cc
+ * @file   aka_array.cc
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 
 __BEGIN_AKANTU__
 
@@ -110,14 +110,5 @@ Array<char> & Array<char>::operator+=(__attribute__((unused)) const Array<char> 
   return *this;
 }
 
-/* -------------------------------------------------------------------------- */
-// template class Array<Int>;
-// template class Array<UInt>;
-// template class Array<UInt64>;
-// template class Array<Real>;
-// template class Array<bool>;
-// template class Array<ElementType>;
-// template class Array<char>;
-// template class Array<QuadraturePoint>;
 
 __END_AKANTU__

@@ -1,5 +1,5 @@
 #include "aka_bounding_box.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 
 __BEGIN_AKANTU__
 

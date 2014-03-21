@@ -113,6 +113,9 @@ private:
 			 UInt elem_id,
 			 const GhostType & ghost_type);
 
+  void optimize();
+  friend class GroupManager;
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

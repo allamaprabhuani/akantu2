@@ -206,7 +206,7 @@ inline void LevelSetModel::packData(CommunicationBuffer & buffer,
     break;
   }
   case _gst_htm_gradient_phi: {
-    Array<Real>::const_iterator< Vector<Real> > it_gphi =
+    Array<Real>::const_vector_iterator it_gphi =
       phi_gradient(element.type, ghost_type).begin(spatial_dimension);
 
     buffer << it_gphi[element.element];
@@ -216,7 +216,7 @@ inline void LevelSetModel::packData(CommunicationBuffer & buffer,
       buffer << (*phi)(offset_conn);
     }
 
-    Array<Real>::const_iterator< Matrix<Real> > it_shaped =
+    Array<Real>::const_matrix_iterator it_shaped =
       getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
     buffer << it_shaped[element.element];
     break;
@@ -289,7 +289,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
     break;
   }
   case _gst_htm_gradient_phi: {
-    Array<Real>::iterator< Vector<Real> > it_gphi =
+    Array<Real>::vector_iterator it_gphi =
       phi_gradient(element.type, ghost_type).begin(spatial_dimension);
     Vector<Real> gphi(spatial_dimension);
     Vector<Real> phi_nodes(nb_nodes_per_element);
@@ -310,7 +310,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
 	UInt offset_conn = conn[el_offset + n];
 	phi_str << (*phi)(offset_conn) << " ";
       }
-      Array<Real>::iterator< Matrix<Real> > it_shaped =
+      Array<Real>::matrix_iterator it_shaped =
 	const_cast<Array<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
 	.begin(nb_nodes_per_element,spatial_dimension);
 

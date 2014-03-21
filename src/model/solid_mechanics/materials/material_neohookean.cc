@@ -94,7 +94,7 @@ Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
   UInt nb_quadrature_points =
     this->model->getFEM().getNbQuadraturePoints(elem.type, elem.ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > strain_it = this->strain(elem.type, elem.ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator strain_it = this->strain(elem.type, elem.ghost_type).begin(spatial_dimension, spatial_dimension);
   strain_it += elem.element*nb_quadrature_points;
 
   Real cele = 0.;

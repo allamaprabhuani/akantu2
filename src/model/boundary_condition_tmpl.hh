@@ -38,9 +38,9 @@ __BEGIN_AKANTU__
 template<typename ModelType>
 void BoundaryCondition<ModelType>::initBC(ModelType & model, Array<Real> & primal, Array<Real> & dual)
 {
-  this->model = &model;
+  this->model  = &model;
   this->primal = &primal;
-  this->dual = &dual;
+  this->dual   = &dual;
   if(this->model->getSpatialDimension() > 1)
     this->model->initFEMBoundary();
 }
@@ -69,9 +69,9 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     Array<bool>       & boundary_flags = model.getBoundary();
     UInt dim = model.getMesh().getSpatialDimension();
 
-    Array<Real>::iterator<Vector<Real> > primal_iter = primal.begin(primal.getNbComponent());
-    Array<Real>::const_iterator<Vector<Real> > coords_iter = coords.begin(dim);
-    Array<bool>::iterator<Vector<bool> > flags_iter = boundary_flags.begin(boundary_flags.getNbComponent());
+    Array<Real>::vector_iterator primal_iter = primal.begin(primal.getNbComponent());
+    Array<Real>::const_vector_iterator coords_iter = coords.begin(dim);
+    Array<bool>::vector_iterator flags_iter = boundary_flags.begin(boundary_flags.getNbComponent());
 
     for(ElementGroup::const_node_iterator nodes_it(group.node_begin());
         nodes_it!= group.node_end();
@@ -115,6 +115,9 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     UInt dim = model.getSpatialDimension();
     UInt nb_degree_of_freedom = dual.getNbComponent();
 
+    QuadraturePoint quad_point;
+    quad_point.ghost_type = ghost_type;
+
     Mesh::type_iterator type_it  = mesh.firstType(dim - 1, ghost_type);
     Mesh::type_iterator type_end = mesh.lastType (dim - 1, ghost_type);
 
@@ -122,72 +125,76 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     for(; type_it != type_end; ++type_it) {
       const Array<UInt> & element_ids = group.getElements(*type_it, ghost_type);
 
-      Array<UInt>::const_iterator<UInt> elem_iter = element_ids.begin();
-      Array<UInt>::const_iterator<UInt> elem_iter_end = element_ids.end();
+      Array<UInt>::const_scalar_iterator elem_iter = element_ids.begin();
+      Array<UInt>::const_scalar_iterator elem_iter_end = element_ids.end();
 
       UInt nb_quad_points = fem_boundary.getNbQuadraturePoints(*type_it, ghost_type);
       UInt nb_elements = element_ids.getSize();
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*type_it);
 
-      Array<Real> * dual_before_integ = new Array<Real>(nb_elements * nb_quad_points, nb_degree_of_freedom, 0.);
+      Array<Real> * dual_before_integ = new Array<Real>(nb_elements * nb_quad_points,
+							nb_degree_of_freedom,
+							0.);
       Array<Real> * quad_coords = new Array<Real>(nb_elements * nb_quad_points, dim);
 
-      Array<Real>::iterator<Vector<Real> > dual_iter = dual_before_integ->begin(nb_degree_of_freedom);
+      const Array<Real> & normals_on_quad =
+	fem_boundary.getNormalsOnQuadPoints(*type_it, ghost_type);
 
-      const Array<Real> & normals_on_quad = fem_boundary.getNormalsOnQuadPoints(*type_it, ghost_type);
+      fem_boundary.interpolateOnQuadraturePoints(nodes_coords, *quad_coords,
+						 dim,
+						 *type_it, ghost_type,
+						 element_ids);
+      Array<Real>::const_vector_iterator normals_begin = normals_on_quad.begin(dim);
+      Array<Real>::const_vector_iterator normals_iter;
+      Array<Real>::const_vector_iterator quad_coords_iter  = quad_coords->begin(dim);
+      Array<Real>::vector_iterator dual_iter = dual_before_integ->begin(nb_degree_of_freedom);
 
-      fem_boundary.interpolateOnQuadraturePoints(nodes_coords,
-         *quad_coords, dim, *type_it, ghost_type, element_ids);
-
-      Array<Real>::const_iterator< Vector<Real> > normals_iter = normals_on_quad.begin(dim);
-      Array<Real>::const_iterator< Vector<Real> > quad_coords_iter  = quad_coords->begin(dim);
-
-      QuadraturePoint quad_point;
       quad_point.type = *type_it;
-
       for(; elem_iter != elem_iter_end; ++elem_iter) {
-        UInt n = *elem_iter;
-        quad_point.element = n;
-        UInt offset = (n*nb_quad_points);
-        for(UInt j(0); j<nb_quad_points; ++j) {
-
-          quad_point.num_point = j;
-
+        UInt el = *elem_iter;
+        quad_point.element = el;
+	normals_iter = normals_begin + el * nb_quad_points;
+        for(UInt q(0); q < nb_quad_points; ++q) {
+          quad_point.num_point = q;
           func(quad_point,
                *dual_iter,
                *quad_coords_iter,
-               normals_iter[offset]);
-
+               *normals_iter);
           ++dual_iter;
           ++quad_coords_iter;
-          ++offset;
+          ++normals_iter;
         }
       }
+
       delete quad_coords;
 
       /* -------------------------------------------------------------------- */
       // Initialization of iterators
-      Array<Real>::iterator<Matrix<Real> > dual_iter_mat =
+      Array<Real>::matrix_iterator dual_iter_mat =
 	dual_before_integ->begin(nb_degree_of_freedom,1);
       elem_iter = element_ids.begin();
-      Array<Real>::const_iterator<Matrix<Real> > shapes_iter_begin =
+      Array<Real>::const_matrix_iterator shapes_iter_begin =
 	fem_boundary.getShapes(*type_it, ghost_type).begin(1, nb_nodes_per_element);
 
       Array<Real> * dual_by_shapes =
 	new Array<Real>(nb_elements*nb_quad_points, nb_degree_of_freedom*nb_nodes_per_element);
-      Array<Real>::iterator<Matrix<Real> > dual_by_shapes_iter =
+
+      Array<Real>::matrix_iterator dual_by_shapes_iter =
 	dual_by_shapes->begin(nb_degree_of_freedom, nb_nodes_per_element);
+
+      Array<Real>::const_matrix_iterator shapes_iter;
 
       /* -------------------------------------------------------------------- */
       // Loop computing dual x shapes
       for(; elem_iter != elem_iter_end; ++elem_iter) {
-        Array<Real>::const_iterator<Matrix<Real> > shapes_iter =
-	  shapes_iter_begin + *elem_iter*nb_quad_points;
+	shapes_iter = shapes_iter_begin + *elem_iter*nb_quad_points;
 
-        for(UInt j(0); j<nb_quad_points; ++j, ++dual_iter_mat, ++dual_by_shapes_iter, ++shapes_iter) {
+        for(UInt q(0); q < nb_quad_points; ++q,
+	      ++dual_iter_mat, ++dual_by_shapes_iter, ++shapes_iter) {
           dual_by_shapes_iter->mul<false, false>(*dual_iter_mat, *shapes_iter);
         }
       }
+
       delete dual_before_integ;
 
       Array<Real> * dual_by_shapes_integ =

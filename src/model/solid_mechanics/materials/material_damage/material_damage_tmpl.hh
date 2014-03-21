@@ -80,13 +80,13 @@ void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType
 
   for(; it != end; ++it) {
     ElementType el_type = *it;
-    Array<Real>::iterator< Matrix<Real> > sigma =
+    Array<Real>::matrix_iterator sigma =
       this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::iterator< Matrix<Real> > sigma_p =
+    Array<Real>::matrix_iterator sigma_p =
       this->previous_stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::iterator< Matrix<Real> > epsilon =
+    Array<Real>::matrix_iterator epsilon =
       this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::iterator< Matrix<Real> > epsilon_p =
+    Array<Real>::matrix_iterator epsilon_p =
       this->previous_strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 
@@ -128,7 +128,7 @@ void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(const Eleme
 								     Array<Real> & tangent_matrix,
 								     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  
+
   if(!this->is_non_local)
     Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix, ghost_type);
 

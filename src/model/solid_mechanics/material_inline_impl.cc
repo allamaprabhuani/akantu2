@@ -68,39 +68,17 @@ inline void Material::gradUToF(const Matrix<Real> & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline void Material::deformationJacobian<3>(const Matrix<Real> & F,
-			       Real & J) {
-  J = Math::det3(F.storage());
-}
-
-/* -------------------------------------------------------------------------- */
-template<>
-inline void Material::deformationJacobian<2>(const Matrix<Real> & F,
-			       Real & J) {
-  J = Math::det2(F.storage());
-}
-
-/* -------------------------------------------------------------------------- */
-template<>
-inline void Material::deformationJacobian<1>(const Matrix<Real> & F,
-			       Real & J) {
-  J = *(F.storage());
-}
-
-/* -------------------------------------------------------------------------- */
 template<UInt dim >
 inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F,
 						const Matrix<Real> & piola,
 						Matrix<Real> & sigma) {
 
-    Real J = 1.0;
-    deformationJacobian<dim>(F, J);
+  Real J = F.det();
 
-    Matrix<Real> F_S(dim, dim);
-    F_S.mul<false, false>(F, piola);
-    Real constant = J ? 1. /J : 0;
-    sigma.mul<false, true>(F_S, F, constant);
+  Matrix<Real> F_S(dim, dim);
+  F_S.mul<false, false>(F, piola);
+  Real constant = J ? 1./J : 0;
+  sigma.mul<false, true>(F_S, F, constant);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,36 +94,24 @@ inline void Material::leftCauchy(const Matrix<Real> & F,
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt dim>
 inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
-			       Matrix<Real> & epsilon) {
- 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
+				     Matrix<Real> & epsilon) {
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
       epsilon(i, j) = 0.5*(grad_u(i, j) + grad_u(j, i));
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt dim>
 inline void Material::gradUToGreenStrain(const Matrix<Real> & grad_u,
 					 Matrix<Real> & epsilon) {
-  epsilon.mul<true, false>(grad_u, grad_u, 0.5);
+  epsilon.mul<true, false>(grad_u, grad_u, .5);
 
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
       epsilon(i, j) += 0.5 * (grad_u(i, j) + grad_u(j, i));
 }
-
-/* -------------------------------------------------------------------------- */
-inline void Material::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
-						   Matrix<Real> & sigma,
-						   Real & epot) {
-  epot = 0.;
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
-      epot += sigma(i, j) * grad_u(i, j);
-
-  epot *= .5;
-}
-
 
 /* ---------------------------------------------------------------------------*/
 template<UInt dim>
@@ -178,13 +144,14 @@ inline void Material::SetCauchyStressArray(const Matrix<Real> & S_t, Matrix<Real
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void Material::SetCauchyStressMatrix(const Matrix<Real> & S_t, Matrix<Real> & Stress_matrix) {
+inline void Material::setCauchyStressMatrix(const Matrix<Real> & S_t, Matrix<Real> & Stress_matrix) {
 
     AKANTU_DEBUG_IN();
 
     Stress_matrix.clear();
 
-    /// see Finite ekement formulations for large deformation dynamic analysis, Bathe et al. IJNME vol 9, 1975, page 364 ^t\tau
+    /// see Finite ekement formulations for large deformation dynamic analysis,
+    /// Bathe et al. IJNME vol 9, 1975, page 364 ^t\tau
 
     for (UInt i = 0; i < dim; ++i) {
         for (UInt m = 0; m < dim; ++m) {

@@ -32,14 +32,19 @@
 #ifndef __AKANTU_MATERIAL_LIST_HH__
 #define __AKANTU_MATERIAL_LIST_HH__
 
+#include "aka_config.hh"
+
 /* -------------------------------------------------------------------------- */
 /* Material list                                                              */
 /* -------------------------------------------------------------------------- */
+#ifndef AKANTU_CMAKE_LIST_MATERIALS
+
 #include "material_elastic.hh"
 
-#define AKANTU_CORE_MATERIAL_LIST					\
-  ((2, (elastic            , MaterialElastic           )))
+#endif
 
+#define AKANTU_CORE_MATERIAL_LIST				\
+  ((2, (elastic            , MaterialElastic           )))
 
 #if defined(AKANTU_EXTRA_MATERIALS)
 #  include "material_extra_includes.hh"

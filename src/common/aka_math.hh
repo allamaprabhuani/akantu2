@@ -163,6 +163,16 @@ public:
   template<typename T>
   static inline void solve(UInt n, const T * A, T * x, const T * b);
 
+  /// return the double dot product between 2 tensors in 2d
+  static inline Real matrixDoubleDot22(Real * A, Real * B);
+
+  /// return the double dot product between 2 tensors in 3d
+  static inline Real matrixDoubleDot33(Real * A, Real * B);
+
+  /// extension of the double dot product to two 2nd order tensor in dimension n
+  static inline Real matrixDoubleDot(UInt n, Real * A, Real * B);
+
+
   /* ------------------------------------------------------------------------ */
   /* Array algebra                                                            */
   /* ------------------------------------------------------------------------ */
@@ -198,14 +208,6 @@ public:
 
   /// return the dot product between 2 vectors
   static inline Real vectorDot(Real * v1, Real * v2, UInt n);
-
-  /// return the double dot product between 2 tensors in 2d
-  static inline Real matrixDoubleDot22(Real * A, Real * B);
-
-  /// return the double dot product between 2 tensors in 3d
-  static inline Real matrixDoubleDot33(Real * A, Real * B);
-
-
 
   /* ------------------------------------------------------------------------ */
   /* Geometry                                                                 */

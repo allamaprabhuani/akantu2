@@ -118,9 +118,9 @@ void ShapeLinked<_ek_structural>::precomputeShapesOnControlPoints(const Array<Re
     shapes_tmp[s] = &(alloc<Real>(sstr_shapes.str(),
 				  nb_element*nb_points,
 				  size_of_shapes));
-    Array<Real>::iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+    Array<Real>::matrix_iterator x_it = x_el.begin(spatial_dimension,
 								    nb_nodes_per_element);
-    Array<Real>::iterator< Matrix<Real> > shapes_it =
+    Array<Real>::matrix_iterator shapes_it =
       shapes_tmp[s]->begin_reinterpret(size_of_shapes, nb_points, nb_element);
 
     for (UInt elem = 0; elem < nb_element; ++elem, ++shapes_it, ++x_it) {
@@ -175,7 +175,7 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
 					      size_of_shapesd));
     Real * shapesd_val   = shapes_derivatives_tmp[s]->values;
 
-    Array<Real>::iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+    Array<Real>::matrix_iterator x_it = x_el.begin(spatial_dimension,
 								    nb_nodes_per_element);
 
     for (UInt elem = 0; elem < nb_element; ++elem, ++x_it) {
@@ -313,8 +313,8 @@ void ShapeLinked<kind>::gradientOnControlPoints(const Array<Real> &in_u,
 							     *shapesd_loc,
 							     filter_elements);
 
-  Array<Real>::iterator< Matrix<Real> > nabla_u_it = nablauq.begin(1, element_dimension);
-  Array<Real>::iterator< Matrix<Real> > out_nabla_u_it = out_nablauq.begin(nb_degree_of_freedom, element_dimension);
+  Array<Real>::matrix_iterator nabla_u_it = nablauq.begin(1, element_dimension);
+  Array<Real>::matrix_iterator out_nabla_u_it = out_nablauq.begin(nb_degree_of_freedom, element_dimension);
   for (UInt q = 0; q < nb_points; ++q, ++nabla_u_it, ++out_nabla_u_it) {
     for (UInt s = 0; s < element_dimension; ++s) {
       (*out_nabla_u_it)(num_degre_of_freedom_to_interpolate, s) += (*nabla_u_it)(0, s);

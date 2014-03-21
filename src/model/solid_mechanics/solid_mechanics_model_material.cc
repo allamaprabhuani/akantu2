@@ -92,10 +92,10 @@ __BEGIN_AKANTU__
 			  ": unknown material type '"			\
 			  << mat_type << "'");				\
       else								\
-	AKANTU_DEBUG_ERROR("Malformed material file "			\
-			   <<": unknown material type " << mat_type	\
-			   << ". This is perhaps a user"		\
-			   << " defined material ?");			\
+	AKANTU_DEBUG_WARNING("Malformed material file "			\
+			     <<": unknown material type " << mat_type	\
+			     << ". This is perhaps a user"		\
+			     << " defined material ?");			\
     }									\
   } while(0)
 

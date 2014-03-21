@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper("test-scotch-partition");
   DumperIOHelper::Field * field = new DumperIOHelper::ElementalField<UInt>(partition->getPartitions(),
-									   dim);
+										    dim);
   dumper.registerMesh(mesh, dim);
   dumper.registerField("partitions", field);
   dumper.dump();

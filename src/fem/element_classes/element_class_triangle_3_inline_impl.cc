@@ -100,9 +100,9 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(__attribute__ ((unus
 template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const Matrix<Real> & J,
-								       Real & jac){
+								       Real & jac) {
   Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt = J.transpose();
+  Matrix<Real> Jt(J.transpose(), true);
   vprod.crossProduct(Jt(0), Jt(1));
   jac = vprod.norm();
 }
@@ -111,7 +111,7 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(const Mat
 
 /* -------------------------------------------------------------------------- */
 template<>
-inline Real 
+inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
   return Math::triangle_inradius(coord(0).storage(),
 				 coord(1).storage(),

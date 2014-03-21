@@ -93,7 +93,7 @@ const T & ParsableParamTyped<T>::getTyped() const { return param; }
 template<typename T>
 inline void ParsableParamTyped<T>::parseParam(const ParserParameter & in_param) {
   ParsableParam::parseParam(in_param);
-  param = in_param;
+  param = static_cast<T>(in_param);
 }
 
 /* -------------------------------------------------------------------------- */

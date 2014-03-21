@@ -33,7 +33,7 @@
 #define __AKANTU_BY_ELEMENT_TYPE_HH__
 
 #include "aka_common.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 #include "aka_memory.hh"
 
 __BEGIN_AKANTU__

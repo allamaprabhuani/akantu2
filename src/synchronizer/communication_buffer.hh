@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 
 #ifndef __AKANTU_COMMUNICATION_BUFFER_HH__
 #define __AKANTU_COMMUNICATION_BUFFER_HH__

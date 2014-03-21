@@ -147,20 +147,29 @@ inline Real
 GeometricalElement<_gt_quadrangle_8>::getInradius(const Matrix<Real> & coord) {
   Real a, b, h;
 
-  a = coord(0).distance(coord(4));
-  b = coord(4).distance(coord(1));
+  Vector<Real> u0 = coord(0);
+  Vector<Real> u1 = coord(1);
+  Vector<Real> u2 = coord(2);
+  Vector<Real> u3 = coord(3);
+  Vector<Real> u4 = coord(4);
+  Vector<Real> u5 = coord(5);
+  Vector<Real> u6 = coord(6);
+  Vector<Real> u7 = coord(7);
+
+  a = u0.distance(u4);
+  b = u4.distance(u1);
   h = std::min(a, b);
 
-  a = coord(1).distance(coord(5));
-  b = coord(5).distance(coord(2));
+  a = u1.distance(u5);
+  b = u5.distance(u2);
   h = std::min(h, std::min(a, b));
 
-  a = coord(2).distance(coord(6));
-  b = coord(6).distance(coord(3));
+  a = u2.distance(u6);
+  b = u6.distance(u3);
   h = std::min(h, std::min(a, b));
 
-  a = coord(3).distance(coord(7));
-  b = coord(7).distance(coord(0));
+  a = u3.distance(u7);
+  b = u7.distance(u0);
   h = std::min(h, std::min(a, b));
 
   return h;

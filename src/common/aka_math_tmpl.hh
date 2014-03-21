@@ -252,37 +252,6 @@ inline Real Math::vectorDot(Real * v1, Real * v2, UInt in) {
 
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::matrixDoubleDot22(Real * A, Real * B) {
-  //#ifdef AKANTU_USE_BLAS
- 
-  //#else
-  Real d = 0.0;
-  for (UInt i = 0; i < 2; ++i) {
-    for (UInt j = 0; j < 2; ++j) {
-      d = d + A[2*i+j] * B[2*i+j];
-    }
-  }
-  //#endif
-  return d;
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real Math::matrixDoubleDot33(Real * A, Real * B) {
-  //#ifdef AKANTU_USE_BLAS
- 
-  //#else
-  Real d = 0.0;
-  for (UInt i = 0; i < 3; ++i) {
-    for (UInt j = 0; j < 3; ++j) {
-      d = d + A[3*i+j] * B[3*i+j];
-    }
-  }
-  //#endif
-  return d;
-}
-
-
-/* -------------------------------------------------------------------------- */
 template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
 			 Real alpha, Real * A, Real * B,
@@ -556,6 +525,35 @@ inline void Math::solve(UInt n, const T * A, T * x, const T * b) {
 
   delete [] ipiv;
   delete [] lu_A;
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+inline Real Math::matrixDoubleDot22(Real * A, Real * B) {
+  Real d;
+  d = A[0] * B[0] + A[1] * B[1]
+    + A[2] * B[2] + A[3] * B[3];
+  return d;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::matrixDoubleDot33(Real * A, Real * B) {
+  Real d;
+  d = A[0] * B[0] + A[1] * B[1] + A[2] * B[2]
+    + A[3] * B[3] + A[4] * B[4] + A[5] * B[5]
+    + A[6] * B[6] + A[7] * B[7] + A[8] * B[8];
+  return d;
+}
+
+/* -------------------------------------------------------------------------- */
+inline Real Math::matrixDoubleDot(UInt n, Real * A, Real * B) {
+  Real d = 0.;
+  for (UInt i = 0; i < n; ++i) {
+    for (UInt j = 0; j < n; ++j) {
+      d += A[i*n+j] * B[i*n+j];
+    }
+  }
+  return d;
 }
 
 /* -------------------------------------------------------------------------- */

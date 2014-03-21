@@ -62,25 +62,6 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
 
   updateInternalParameters();
 
-  this->Yd.resize();
-  // const Mesh & mesh = this->model->getFEM().getMesh();
-
-  // Mesh::type_iterator it = mesh.firstType(spatial_dimension);
-  // Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
-
-  // for(; it != last_type; ++it) {
-  //   UInt nb_element  = this->element_filter(*it).getSize();
-  //   UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
-
-  //   Array <Real> & Yd_rand_vec = Yd_rand(*it);
-  //   for(UInt e = 0; e < nb_element; ++e) {
-  //     Real rand_part = (2 * drand48()-1) * Yd_randomness * Yd;
-
-  //     for(UInt q = 0; q < nb_quad; ++q)
-  // 	Yd_rand_vec(nb_quad*e+q,0) = Yd + rand_part;
-  //   }
-  // }
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -100,13 +81,12 @@ void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
 						      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Yd_q = Yd(el_type, ghost_type).storage();
+  Array<Real>::scalar_iterator dam  = this->damage(el_type, ghost_type).begin();
+  Array<Real>::scalar_iterator Yd_q = this->Yd(el_type, ghost_type)    .begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  Real Y = 0;
-
+  Real Y = 0.;
   computeStressOnQuad(grad_u, sigma, *dam, Y, *Yd_q);
 
   ++dam;

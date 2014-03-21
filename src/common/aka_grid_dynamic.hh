@@ -27,6 +27,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_array.hh"
 #include "aka_types.hh"
 
 #include <iostream>
@@ -222,7 +223,8 @@ public:
   };
 
 public:
-  Cell & insert(const T & d, const Vector<Real> & position) {
+  template<class vector_type>
+  Cell & insert(const T & d, const vector_type & position) {
     CellID cell_id = getCellID(position);
 
     typename cells_container::iterator it = cells.find(cell_id);
@@ -261,8 +263,8 @@ public:
   }
 
 
-
-  CellID getCellID(Vector<Real> position) const {
+  template<class vector_type>
+  CellID getCellID(const vector_type & position) const {
     CellID cell_id(dimension);
     for (UInt i = 0; i < dimension; ++i) {
       cell_id.setID(i, getCellID(position(i), i));
@@ -300,7 +302,9 @@ public:
     Vector<Real> dist(this->dimension);
     dist = upper;
     dist -= lower;
-    dist /= spacing;
+    for (UInt i = 0; i < this->dimension; ++i) {
+      dist(i) /= spacing(i); 
+    }
     UInt nb_cells = std::ceil(dist(0));
     for (UInt i = 1; i < this->dimension; ++i) {
       nb_cells *= std::ceil(dist(i));

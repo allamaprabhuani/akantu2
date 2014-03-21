@@ -69,8 +69,15 @@ public:
 
   /// compute the tangent stiffness matrix for an element type
   virtual void computeTangentModuli(const ElementType & el_type,
-			    Array<Real> & tangent_matrix,
-			    GhostType ghost_type = _not_ghost);
+				    Array<Real> & tangent_matrix,
+				    GhostType ghost_type = _not_ghost);
+
+  /// compute the elastic potential energy
+  virtual void computePotentialEnergy(ElementType el_type,
+				      GhostType ghost_type = _not_ghost);
+
+  virtual void computePotentialEnergyByElement(ElementType type, UInt index,
+					       Vector<Real> & epot_on_quad_points);
 
   /// compute the p-wave speed in the material
   virtual Real getPushWaveSpeed() const;
@@ -82,13 +89,17 @@ protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(const Matrix<Real> & grad_u,
 				  Matrix<Real> & sigma,
-          const Real sigma_th = 0);
+				  const Real sigma_th = 0);
 
   /// compute the tangent stiffness matrix for an element
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent);
 
   /// recompute the lame coefficient if E or nu changes
   virtual void updateInternalParameters();
+
+  static inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+						  const Matrix<Real> & sigma,
+						  Real & epot);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

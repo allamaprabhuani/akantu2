@@ -35,7 +35,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 #include "sparse_matrix.hh"
 #include "mesh.hh"
 #include "static_communicator.hh"

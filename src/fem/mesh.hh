@@ -40,7 +40,7 @@
 #include "aka_config.hh"
 #include "aka_common.hh"
 #include "aka_memory.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 #include "element_class.hh"
 #include "by_element_type.hh"
 #include "aka_event_handler.hh"
@@ -239,7 +239,7 @@ public:
 
   /// constructor that create nodes coordinates array
   Mesh(UInt spatial_dimension,
-       const ID id = "mesh",
+       const ID & id = "mesh",
        const MemoryID & memory_id = 0);
 
   /// constructor that use an existing nodes coordinates array, by knowing its ID
@@ -508,7 +508,7 @@ public:
   static inline UInt getNbFacetsPerElement(const ElementType & type);
 
   /// get local connectivity of a facet for a given facet type
-  static inline Matrix<UInt> getFacetLocalConnectivity(const ElementType & type);
+  static inline MatrixProxy<UInt> getFacetLocalConnectivity(const ElementType & type);
 
   /// get connectivity of facets for a given element
   inline Matrix<UInt> getFacetConnectivity(UInt element, const ElementType & type, const GhostType & ghost_type) const;
@@ -626,9 +626,6 @@ private:
 
   /// Extra data loaded from the mesh file
   MeshData mesh_data;
-
-  /// Group manager for nodes and elements groups in the mesh
-  // GroupManager group_manager;
 
   /// facets' mesh
   Mesh * mesh_facets;

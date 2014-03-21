@@ -159,10 +159,10 @@ namespace BC {
     /* ---------------------------------------------------------------------- */
     class FromHigherDim : public NeumannFunctor {
     public:
-      FromHigherDim(Matrix<Real> mat) : bc_data(mat) {}
+      FromHigherDim(const Matrix<Real> & mat) : bc_data(mat) {}
 
     public:
-      inline void operator()(QuadraturePoint quad_point,
+      inline void operator()(const QuadraturePoint & quad_point,
 			     Vector<Real> & dual,
 			     const Vector<Real> & coord,
 			     const Vector<Real> & normals) const;
@@ -174,10 +174,10 @@ namespace BC {
     /* ---------------------------------------------------------------------- */
     class FromSameDim : public NeumannFunctor {
     public:
-      FromSameDim(Vector<Real> vec) : bc_data(vec) {}
+      FromSameDim(const Vector<Real> & vec) : bc_data(vec) {}
 
     public:
-      inline void operator()(QuadraturePoint quad_point,
+      inline void operator()(const QuadraturePoint & quad_point,
 			     Vector<Real> & dual,
 			     const Vector<Real> & coord,
 			     const Vector<Real> & normals) const;
@@ -189,7 +189,7 @@ namespace BC {
     /* ---------------------------------------------------------------------- */
     class FreeBoundary : public NeumannFunctor {
     public:
-      inline void operator()(QuadraturePoint quad_point,
+      inline void operator()(const QuadraturePoint & quad_point,
 			     Vector<Real> & dual,
 			     const Vector<Real> & coord,
 			     const Vector<Real> & normals) const;

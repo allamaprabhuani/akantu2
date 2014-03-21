@@ -101,8 +101,7 @@ inline void MaterialPlastic<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
 
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
-  Real J = 1.0;
-  deformationJacobian<dim>(F, J);
+  Real J = F.det();
 
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)
@@ -150,8 +149,8 @@ inline void MaterialPlastic<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real>
 /**************************************************************************************/
 /*  Computation of the potential energy for a this neo hookean material */
 template<UInt dim>
-inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
-                                                               Matrix<Real> & sigma,
+inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+                                                               const Matrix<Real> & sigma,
                                                                Real & epot){
   Matrix<Real> F(dim, dim);
   Matrix<Real> C(dim, dim);//Right green
@@ -169,7 +168,6 @@ inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(Matrix<Real> & gr
   }
 
   epot=0.5*lambda*pow(log(J),2.)+ mu * (-log(J)+0.5*(C.trace()-dim));
-
 }
 
 /*template<UInt spatial_dimension>

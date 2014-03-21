@@ -118,7 +118,7 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
 
   nodal_values.resize(mesh.getNbNodes());
   Real * nodal_it  = nodal_values.storage();
-  Array<Real>::const_iterator< Matrix<Real> > elem_it  = elementary_vect.begin(nb_degree_of_freedom,
+  Array<Real>::const_matrix_iterator elem_it  = elementary_vect.begin(nb_degree_of_freedom,
                                                                                nb_nodes_per_element);
 
   for (UInt el = 0; el < nb_element; ++el, ++elem_it, ++conn_it) {

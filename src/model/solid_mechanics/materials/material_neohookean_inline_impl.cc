@@ -33,7 +33,7 @@
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
+MaterialNeohookean<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
 							   Matrix<Real> & sigma) {
   Matrix<Real> F(3, 3);
   this->template gradUToF<spatial_dimension>(grad_u, F);
@@ -66,7 +66,7 @@ MaterialNeohookean<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> & grad_u,
+MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(const Matrix<Real> & grad_u,
 								  Matrix<Real> & tangent) {
   UInt n = tangent.cols();
   Matrix<Real> F(3, 3);
@@ -102,7 +102,7 @@ MaterialNeohookean<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> &
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 inline void
-MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
 								    Real & epot) {
 
   Matrix<Real> F(3, 3);

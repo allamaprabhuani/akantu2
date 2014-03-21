@@ -171,7 +171,7 @@ inline void
 InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian( const Matrix<Real> & J,
 								       Real & jac){
   Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt = J.transpose();
+  Matrix<Real> Jt(J.transpose(), true);
   vprod.crossProduct(Jt(0), Jt(1));
   jac = vprod.norm();
 }

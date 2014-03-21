@@ -78,7 +78,8 @@ struct SolidMechanicsModelOptions : public ModelOptions {
 
 extern const SolidMechanicsModelOptions default_solid_mechanics_model_options;
 
-class SolidMechanicsModel : public Model, public DataAccessor,
+class SolidMechanicsModel : public Model,
+                            public DataAccessor,
 			    public MeshEventHandler,
 			    public Dumpable,
 			    public BoundaryCondition<SolidMechanicsModel>,

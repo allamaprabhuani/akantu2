@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
       output_data << s*time_step << " " << solution;
 
       // data output
-      Array<Real>::const_iterator< Matrix<Real> > stress_it = stress.begin(dim, dim);
-      Array<Real>::const_iterator< Matrix<Real> > stress_end = stress.end(dim, dim);
+      Array<Real>::const_matrix_iterator stress_it = stress.begin(dim, dim);
+      Array<Real>::const_matrix_iterator stress_end = stress.end(dim, dim);
       for(;stress_it != stress_end; ++stress_it) {
 	output_data << " " << (*stress_it)(1,1);
 

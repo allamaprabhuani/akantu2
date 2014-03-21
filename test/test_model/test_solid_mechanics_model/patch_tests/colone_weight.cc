@@ -37,7 +37,7 @@
 #include <iostream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 #include "mesh.hh"
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"

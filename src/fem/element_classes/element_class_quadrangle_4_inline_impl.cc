@@ -118,7 +118,7 @@ inline void
 InterpolationElement<_itp_lagrange_quadrangle_4>::computeSpecialJacobian(const Matrix<Real> & J,
                                                                          Real & jac){
   Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt = J.transpose();
+  Matrix<Real> Jt(J.transpose(), true);
   vprod.crossProduct(Jt(0), Jt(1));
   jac = vprod.norm();
 }
@@ -127,10 +127,14 @@ InterpolationElement<_itp_lagrange_quadrangle_4>::computeSpecialJacobian(const M
 template<>
 inline Real
 GeometricalElement<_gt_quadrangle_4>::getInradius(const Matrix<Real> & coord) {
-  Real a = coord(0).distance(coord(1));
-  Real b = coord(1).distance(coord(2));
-  Real c = coord(2).distance(coord(3));
-  Real d = coord(3).distance(coord(0));
+  Vector<Real> u0 = coord(0);
+  Vector<Real> u1 = coord(1);
+  Vector<Real> u2 = coord(2);
+  Vector<Real> u3 = coord(3);
+  Real a = u0.distance(u1);
+  Real b = u1.distance(u2);
+  Real c = u2.distance(u3);
+  Real d = u3.distance(u0);
 
   // Real septimetre = (a + b + c + d) / 2.;
 

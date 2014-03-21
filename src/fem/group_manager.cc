@@ -204,9 +204,8 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
                                                 NodeGroup & node_group) {
   AKANTU_DEBUG_IN();
 
-  if(element_groups.find(group_name) != element_groups.end()) {
+  if(element_groups.find(group_name) != element_groups.end())
     AKANTU_EXCEPTION("Trying to create a element group that already exists:" << group_name);
-  }
 
   ElementGroup * element_group = new ElementGroup(group_name, mesh, node_group,
                                                   dimension,
@@ -722,8 +721,11 @@ void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
   }
 
   git  = group_names.begin();
-  for (;git != gend; ++git) getElementGroup(*git).getNodeGroup().removeDuplicate();
- }
+  for (;git != gend; ++git) {
+    getElementGroup(*git).getNodeGroup().removeDuplicate();
+    getElementGroup(*git).optimize();
+  }
+}
 
 template void GroupManager::createGroupsFromMeshData<std::string>(const std::string & dataset_name);
 template void GroupManager::createGroupsFromMeshData<UInt>(const std::string & dataset_name);
@@ -765,6 +767,8 @@ void GroupManager::createElementGroupFromNodeGroup(const std::string & name,
       seen.insert(elem);
     }
   }
+
+  group.optimize();
 }
 
 /* -------------------------------------------------------------------------- */

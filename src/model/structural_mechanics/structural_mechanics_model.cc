@@ -233,8 +233,8 @@ void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_2>(Array<Re
   UInt nb_element = mesh.getNbElement(type);
 
   Array<UInt>::iterator< Vector<UInt> > connec_it = mesh.getConnectivity(type).begin(2);
-  Array<Real>::iterator< Vector<Real> > nodes_it = mesh.getNodes().begin(spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > R_it = rotations.begin(nb_degree_of_freedom, nb_degree_of_freedom);
+  Array<Real>::vector_iterator nodes_it = mesh.getNodes().begin(spatial_dimension);
+  Array<Real>::matrix_iterator R_it = rotations.begin(nb_degree_of_freedom, nb_degree_of_freedom);
 
   for (UInt e = 0; e < nb_element; ++e, ++R_it, ++connec_it) {
     Matrix<Real> & R = *R_it;
@@ -263,16 +263,16 @@ void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_3>(Array<Re
   Mesh & mesh = getFEM().getMesh();
   UInt nb_element = mesh.getNbElement(type);
 
-  Array<Real>::iterator< Vector<Real> > n_it = mesh.getNormals(type).begin(spatial_dimension);
+  Array<Real>::vector_iterator n_it = mesh.getNormals(type).begin(spatial_dimension);
   Array<UInt>::iterator< Vector<UInt> > connec_it = mesh.getConnectivity(type).begin(2);
-  Array<Real>::iterator< Vector<Real> > nodes_it = mesh.getNodes().begin(spatial_dimension);
+  Array<Real>::vector_iterator nodes_it = mesh.getNodes().begin(spatial_dimension);
 
   Matrix<Real> Pe    (spatial_dimension, spatial_dimension);
   Matrix<Real> Pg    (spatial_dimension, spatial_dimension);
   Matrix<Real> inv_Pg(spatial_dimension, spatial_dimension);
   Vector<Real> x_n(spatial_dimension); // x vect n
 
-  Array<Real>::iterator< Matrix<Real> > R_it =
+  Array<Real>::matrix_iterator R_it =
     rotations.begin(nb_degree_of_freedom, nb_degree_of_freedom);
 
   for (UInt e=0 ; e < nb_element; ++e, ++n_it, ++connec_it, ++R_it) {
@@ -335,8 +335,8 @@ void StructuralMechanicsModel::computeRotationMatrix(const ElementType & type) {
 #undef COMPUTE_ROTATION_MATRIX
 
 
-  Array<Real>::iterator< Matrix<Real> > R_it = rotations.begin(nb_degree_of_freedom, nb_degree_of_freedom);
-  Array<Real>::iterator< Matrix<Real> > T_it =
+  Array<Real>::matrix_iterator R_it = rotations.begin(nb_degree_of_freedom, nb_degree_of_freedom);
+  Array<Real>::matrix_iterator T_it =
     rotation_matrix(type).begin(nb_degree_of_freedom*nb_nodes_per_element,
 				nb_degree_of_freedom*nb_nodes_per_element);
 
@@ -466,7 +466,7 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_2>(Array<Rea
   UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_2);
   UInt tangent_size = 2;
 
-  Array<Real>::iterator< Matrix<Real> > D_it = tangent_moduli.begin(tangent_size, tangent_size);
+  Array<Real>::matrix_iterator D_it = tangent_moduli.begin(tangent_size, tangent_size);
   Array<UInt> & el_mat = element_material(_bernoulli_beam_2, _not_ghost);
 
   for (UInt e = 0; e < nb_element; ++e) {
@@ -488,7 +488,7 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(Array<Rea
   UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_3);
   UInt tangent_size = 4;
 
-  Array<Real>::iterator< Matrix<Real> > D_it = tangent_moduli.begin(tangent_size, tangent_size);
+  Array<Real>::matrix_iterator D_it = tangent_moduli.begin(tangent_size, tangent_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     UInt mat = element_material(_bernoulli_beam_3, _not_ghost)(e);
@@ -515,14 +515,14 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_
   UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_2);
 
   MyFEMType & fem = getFEMClass<MyFEMType>();
-  Array<Real>::const_iterator< Vector<Real> > shape_Np  = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Mpp = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Lpp = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Np  = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Mpp = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Lpp = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
 
   UInt tangent_size = getTangentStiffnessVoigtSize<_bernoulli_beam_2>();
   UInt bt_d_b_size  = nb_nodes_per_element * nb_degree_of_freedom;
   b.clear();
-  Array<Real>::iterator< Matrix<Real> > B_it = b.begin(tangent_size, bt_d_b_size);
+  Array<Real>::matrix_iterator B_it = b.begin(tangent_size, bt_d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
@@ -558,16 +558,16 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(_bernoulli_beam_3);
   UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_3);
 
-  Array<Real>::const_iterator< Vector<Real> > shape_Np  = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 0).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Mpp = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 1).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Lpp = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Np  = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Mpp = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Lpp = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 2).begin(nb_nodes_per_element);
 
   UInt tangent_size = getTangentStiffnessVoigtSize<_bernoulli_beam_3>();
   UInt bt_d_b_size  = nb_nodes_per_element * nb_degree_of_freedom;
 
   b.clear();
 
-  Array<Real>::iterator< Matrix<Real> > B_it = b.begin(tangent_size, bt_d_b_size);
+  Array<Real>::matrix_iterator B_it = b.begin(tangent_size, bt_d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {

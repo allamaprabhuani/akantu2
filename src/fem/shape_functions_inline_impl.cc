@@ -87,9 +87,9 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Array<Real> 
   UInt nb_nodes_per_element = ElementClass<type>::getShapeSize();
   UInt nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
-  Array<Real>::const_iterator< Matrix<Real> > N_it;
-  Array<Real>::const_iterator< Matrix<Real> > u_it;
-  Array<Real>::iterator< Matrix<Real> > inter_u_it;
+  Array<Real>::const_matrix_iterator N_it;
+  Array<Real>::const_matrix_iterator u_it;
+  Array<Real>::matrix_iterator inter_u_it;
 
   Array<Real> * filtered_N = NULL;
   if(filter_elements != empty_filter) {
@@ -132,9 +132,9 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Array<Real> &u_
   UInt element_dimension     = ElementClass<type>::getNaturalSpaceDimension();
   UInt nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
-  Array<Real>::const_iterator< Matrix<Real> > B_it;
-  Array<Real>::const_iterator< Matrix<Real> > u_it;
-  Array<Real>::iterator< Matrix<Real> > nabla_u_it;
+  Array<Real>::const_matrix_iterator B_it;
+  Array<Real>::const_matrix_iterator u_it;
+  Array<Real>::matrix_iterator nabla_u_it;
 
   UInt nb_element;
   Array<Real> * filtered_B = NULL;

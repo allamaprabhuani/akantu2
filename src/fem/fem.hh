@@ -50,6 +50,8 @@ __BEGIN_AKANTU__
 
 class QuadraturePoint : public Element {
 public:
+  typedef Vector<Real> position_type;
+public:
   QuadraturePoint(ElementType type = _not_defined, UInt element = 0,
 		  UInt num_point = 0, GhostType ghost_type = _not_ghost) :
     Element(type, element, ghost_type), num_point(num_point), global_num(0),
@@ -57,7 +59,7 @@ public:
 
   QuadraturePoint(UInt element, UInt num_point,
 		  UInt global_num,
-		  const Vector<Real> & position,
+		  const position_type & position,
 		  ElementType type,
 		  GhostType ghost_type = _not_ghost) :
     Element(type, element, ghost_type), num_point(num_point), global_num(global_num),
@@ -81,9 +83,9 @@ public:
     return *this;
   }
 
-  AKANTU_GET_MACRO(Position, position, const Vector<Real> &);
+  AKANTU_GET_MACRO(Position, position, const position_type &);
 
-  void setPosition(const Vector<Real> & position) {
+  void setPosition(const position_type & position) {
     this->position.shallowCopy(position);
   }
 
@@ -100,7 +102,7 @@ public:
   UInt num_point;
   UInt global_num;
 private:
-  Vector<Real> position;
+  position_type position;
 };
 
 /**

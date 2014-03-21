@@ -91,6 +91,19 @@ inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(Matri
 }
 
 /* -------------------------------------------------------------------------- */
+template<UInt dim>
+inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+							       const Matrix<Real> & sigma,
+							       Real & epot) {
+  epot = 0.;
+  for (UInt i = 0; i < dim; ++i)
+    for (UInt j = 0; j < dim; ++j)
+      epot += sigma(i, j) * grad_u(i, j);
+
+  epot *= .5;
+}
+
+/* -------------------------------------------------------------------------- */
 template<>
 inline void MaterialElastic<1>::computeTangentModuliOnQuad(Matrix<Real> & tangent) {
   tangent(0, 0) = E;

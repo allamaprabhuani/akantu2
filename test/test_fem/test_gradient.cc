@@ -100,8 +100,8 @@ int main(int argc, char *argv[]) {
   std::cout << grad_on_quad << std::endl;
 
   /// check the results
-  Array<Real>::iterator< Matrix<Real> > it = grad_on_quad.begin(2,dim);
-  Array<Real>::iterator< Matrix<Real> > it_end = grad_on_quad.end(2,dim);
+  Array<Real>::matrix_iterator it = grad_on_quad.begin(2,dim);
+  Array<Real>::matrix_iterator it_end = grad_on_quad.end(2,dim);
   for (;it != it_end; ++it) {
     for (UInt d = 0; d < dim; ++d) {
       Matrix<Real> & grad = *it;
@@ -125,8 +125,8 @@ int main(int argc, char *argv[]) {
   my_file << my_mesh.getNodes() << std::endl;
   my_file << grad_coord_on_quad << std::endl;
 
-  Array<Real>::iterator< Matrix<Real> > itp = grad_coord_on_quad.begin(dim, dim);
-  Array<Real>::iterator< Matrix<Real> > itp_end = grad_coord_on_quad.end(dim, dim);
+  Array<Real>::matrix_iterator itp = grad_coord_on_quad.begin(dim, dim);
+  Array<Real>::matrix_iterator itp_end = grad_coord_on_quad.end(dim, dim);
 
   for (;itp != itp_end; ++itp) {
     for (UInt i = 0; i < dim; ++i) {

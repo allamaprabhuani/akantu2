@@ -53,7 +53,7 @@ Material & SolidMechanicsModel::registerNewMaterial(const ParserSection & sectio
   UInt mat_count = materials.size();
   materials_names_to_id[mat_name] = mat_count;
 
-  std::stringstream sstr_mat; sstr_mat << id << ":" << mat_count << ":" << mat_type;
+  std::stringstream sstr_mat; sstr_mat << this->id << ":" << mat_count << ":" << mat_type;
   ID mat_id = sstr_mat.str();
 
   Material * material;

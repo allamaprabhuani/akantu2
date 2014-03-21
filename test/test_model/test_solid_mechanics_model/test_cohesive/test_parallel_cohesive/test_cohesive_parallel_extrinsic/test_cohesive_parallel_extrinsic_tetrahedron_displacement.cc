@@ -180,20 +180,10 @@ int main(int argc, char *argv[]) {
   //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
 
-  DumperParaview dumper("cohesive_elements");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
-  dumper.registerField("damage", new DumperIOHelper::
-  		       HomogenizedField<Real,
-  					DumperIOHelper::InternalMaterialField>(model,
-  									       "damage",
-  									       spatial_dimension,
-  									       _not_ghost,
-  									       _ek_cohesive));
-  dumper.dump();
+
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldVectorToDumper("cohesive elements", "damage");
+  model.dump("cohesive elements");
 
 
   std::stringstream error_stream;
@@ -228,7 +218,7 @@ int main(int argc, char *argv[]) {
   }
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive elements");
 
   if (!checkDisplacement(model, type, error_output, max_steps, false)) {
     finalize();

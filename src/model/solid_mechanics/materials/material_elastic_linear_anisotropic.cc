@@ -142,18 +142,19 @@ void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
   // construction of rotator tensor
   // normalise rotation matrix
   for (UInt j = 0 ;  j < Dim ; ++j) {
-    this->rot_mat(j) = *this->dir_vecs[j];
-    this->rot_mat(j).normalize();
+    Vector<Real> rot_vec = this->rot_mat(j);
+    rot_vec = *this->dir_vecs[j];
+    rot_vec.normalize();
   }
 
   // make sure the vectors form a right-handed base
   Vector<Real> test_axis(3);
-  Vector<Real> v1(3),v2(3),v3(3);
+  Vector<Real> v1(3), v2(3), v3(3);
 
   if (Dim == 2){
     for (UInt i = 0; i < Dim; ++i) {
-      v1[i] = this->rot_mat(0)[i];
-      v2[i] = this->rot_mat(1)[i];
+      v1[i] = this->rot_mat(0, i);
+      v2[i] = this->rot_mat(1, i);
       v3[i] = 0.;
     }
     v3[2] = 1.;
@@ -165,7 +166,7 @@ void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
     v2 = this->rot_mat(1);
     v3 = this->rot_mat(2);
   }
-  
+
   test_axis.crossProduct(v1,v2);
   test_axis -= v3;
   if (test_axis.norm() > 8*std::numeric_limits<Real>::epsilon()) {

@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 
 #if defined(AKANTU_USE_CXX11)
 #  define __CONST_EXPR constexpr

@@ -125,7 +125,7 @@ private:
 class Parsable {
 public:
   Parsable(const SectionType & section_type,
-           const ID & id = std::string()) : section_type(section_type), id(id) {};
+           const ID & id = std::string()) : section_type(section_type), pid(id) {};
   virtual ~Parsable();
 
   /* ------------------------------------------------------------------------ */
@@ -158,7 +158,7 @@ public:
 
 private:
   SectionType section_type;
-  ID id;
+  ID pid;
   std::map<std::string, ParsableParam *> params;
   typedef std::pair<SectionType, std::string> SubSectionKey;
   typedef std::map<SubSectionKey, Parsable *> SubSections;

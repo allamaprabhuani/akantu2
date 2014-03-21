@@ -79,15 +79,15 @@ private:
   Real celerity(const Element & element);
 
   /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
+  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
 					   Real & epot);
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u,
+  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
 				  Matrix<Real> & sigma);
 
   // /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(Matrix<Real> & grad_u,
+  void computeTangentModuliOnQuad(const Matrix<Real> & grad_u,
 				  Matrix<Real> & tangent);
 
   /* ------------------------------------------------------------------------ */

@@ -34,8 +34,8 @@ Section(_st_global) global [
  ]
 ]
 56.2832==56.2832
-Vector<double>(4): [1, 25, 5, 56.2832]
-Matrix<double>(4,2): [[1, 25, 5, 56.2832], [1, 25, 5, 56.2832]]
+Vector<double>(4) : [1, 25, 5, 56.2832]
+Matrix<double>(2,4) :[[1, 25, 5, 56.2832], [1, 25, 5, 56.2832]]
 10 Uniform [ min=0.2, max=0.5 ]
 10 Weibull [ shape=0.2, scale=0.5]
 10

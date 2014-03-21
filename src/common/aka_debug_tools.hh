@@ -125,7 +125,7 @@ namespace akantu {
             Array<Real> & barycenter = barycenters(*it, *gt);
             barycenter.resize(nb_element);
 
-            Array<Real>::iterator< Vector<Real> > bary_it = barycenter.begin(spatial_dimension);
+            Array<Real>::vector_iterator bary_it = barycenter.begin(spatial_dimension);
             for (UInt elem = 0; elem < nb_element; ++elem) {
               mesh->getBarycenter(elem, *it, bary_it->storage(), *gt);
               ++bary_it;

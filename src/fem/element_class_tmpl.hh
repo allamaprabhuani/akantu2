@@ -48,7 +48,6 @@ struct GaussIntergrationTypeDataHelper {
   static const Vector<Real> getWeights() {
     return Vector<Real>(git_data::quad_weights,
 			git_data::nb_quadrature_points);
-
   }
 };
 
@@ -108,7 +107,8 @@ const Matrix<Real> GaussIntegrationElement<element_type, order>::getQuadraturePo
   typedef GaussIntergrationTypeDataHelper<ElementClassProperty<element_type>::gauss_integration_type,
 					  interpolation_property::natural_space_dimension,
 					  order> data_helper;
-  return data_helper::getQuadraturePoints();
+  Matrix<Real> tmp(data_helper::getQuadraturePoints());
+  return tmp;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -119,7 +119,8 @@ const Vector<Real> GaussIntegrationElement<element_type, order>::getWeights() {
   typedef GaussIntergrationTypeDataHelper<ElementClassProperty<element_type>::gauss_integration_type,
 					  interpolation_property::natural_space_dimension,
 					  order> data_helper;
-  return data_helper::getWeights();
+  Vector<Real> tmp(data_helper::getWeights());
+  return tmp;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -137,9 +138,9 @@ UInt GaussIntegrationElement<element_type, order>::getNbQuadraturePoints() {
 /* GeometricalElement                                                         */
 /* -------------------------------------------------------------------------- */
 template<GeometricalType geometrical_type, GeometricalShapeType shape>
-inline const Matrix<UInt>
+inline const MatrixProxy<UInt>
 GeometricalElement<geometrical_type, shape>::getFacetLocalConnectivityPerElement(UInt t) {
-  return Matrix<UInt>(facet_connectivity[t], nb_facets[t], nb_nodes_per_facet[t]);
+  return MatrixProxy<UInt>(facet_connectivity[t], nb_facets[t], nb_nodes_per_facet[t]);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -192,8 +193,8 @@ template<>
 inline bool
 GeometricalShapeContains<_gst_prism>::contains(const Vector<Real> & coords) {
   bool in = ((coords(0) >= -1.) && (coords(0) <= 1.)); // x in segement [-1, 1]
-  
-  // y and z in triangle 
+
+  // y and z in triangle
   in &= ((coords(1) >= 0) && (coords(1) <= 1.));
   in &= ((coords(2) >= 0) && (coords(2) <= 1.));
   Real sum = coords(1) + coords(2);
@@ -210,8 +211,9 @@ InterpolationElement<interpolation_type, kind>::computeShapes(const Matrix<Real>
 							      Matrix<Real> & N) {
   UInt nb_points = natural_coord.cols();
   for (UInt p = 0; p < nb_points; ++p) {
-    Vector<Real> Np = N(p);
-    computeShapes(natural_coord(p), Np);
+    Vector<Real> Np(N(p));
+    Vector<Real> ncoord_p(natural_coord(p));
+    computeShapes(ncoord_p, Np);
   }
 }
 
@@ -222,8 +224,9 @@ InterpolationElement<interpolation_type, kind>::computeDNDS(const Matrix<Real> &
 							    Tensor3<Real> & dnds) {
   UInt nb_points = natural_coord.cols();
   for (UInt p = 0; p < nb_points; ++p) {
-    Matrix<Real> dnds_p = dnds(p);
-    computeDNDS(natural_coord(p), dnds_p);
+    Matrix<Real> dnds_p(dnds(p));
+    Vector<Real> ncoord_p(natural_coord(p));
+    computeDNDS(ncoord_p, dnds_p);
   }
 }
 
@@ -274,8 +277,9 @@ inline void ElementClass<type, kind>::computeJMat(const Tensor3<Real> & dnds,
 						  Tensor3<Real> & J) {
   UInt nb_points = dnds.size(2);
   for (UInt p = 0; p < nb_points; ++p) {
-    Matrix<Real> J_p = J(p);
-    computeJMat(dnds(p), node_coords, J_p);
+    Matrix<Real> J_p(J(p));
+    Matrix<Real> dnds_p(dnds(p));
+    computeJMat(dnds_p, node_coords, J_p);
   }
 }
 
@@ -300,7 +304,8 @@ inline void ElementClass<type, kind>::computeJacobian(const Matrix<Real> & natur
 			node_coords.rows());
 
   for (UInt p = 0; p < nb_points; ++p) {
-    interpolation_element::computeDNDS(natural_coords(p), dnds);
+    Vector<Real> ncoord_p(natural_coords(p));
+    interpolation_element::computeDNDS(ncoord_p, dnds);
     computeJMat(dnds, node_coords, J);
     computeJacobian(J, jacobians(p));
   }
@@ -337,7 +342,7 @@ ElementClass<type, kind>::computeShapeDerivatives(const Tensor3<Real> & J,
 						  Tensor3<Real> & shape_deriv) {
   UInt nb_points = J.size(2);
   for (UInt p = 0; p < nb_points; ++p) {
-    Matrix<Real> shape_deriv_p = shape_deriv(p);
+    Matrix<Real> shape_deriv_p(shape_deriv(p));
     computeShapeDerivatives(J(p), dnds(p), shape_deriv_p);
   }
 }
@@ -353,7 +358,6 @@ ElementClass<type, kind>::computeShapeDerivatives(const Matrix<Real> & J,
 
   shape_deriv.mul<false, false>(inv_J, dnds);
 }
-
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type, ElementKind kind>
@@ -490,7 +494,7 @@ inline void ElementClass<type, kind>::inverseMap(const Vector<Real> & real_coord
     dxi.mul<false,false>(F, f);
 
     //update our guess
-    natural_coords += dxi(0);
+    natural_coords += Vector<Real>(dxi(0));
 
     //interpolate
     interpolation_element::interpolateOnNaturalCoordinates(natural_coords,

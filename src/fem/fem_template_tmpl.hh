@@ -120,7 +120,7 @@ void FEMTemplate<I, S, kind>::initShapeFunctions(const Array<Real> & nodes,
   for(; it != end; ++it) {
     ElementType type = *it;
     integrator.initIntegrator(nodes, type, ghost_type);
-    const Matrix<Real> control_points =
+    const Matrix<Real> & control_points =
       getQuadraturePoints(type, ghost_type);
     shape_functions.initShapeFunctions(nodes, control_points, type, ghost_type);
   }
@@ -496,16 +496,16 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
 
   UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
   normal.resize(nb_element * nb_points);
-  Array<Real>::iterator< Matrix<Real> > normals_on_quad = normal.begin_reinterpret(spatial_dimension,
-										   nb_points,
-										   nb_element);
+  Array<Real>::matrix_iterator normals_on_quad = normal.begin_reinterpret(spatial_dimension,
+									  nb_points,
+									  nb_element);
   Array<Real> f_el(0, spatial_dimension * nb_nodes_per_element);
   FEM::extractNodalToElementField(mesh, field, f_el, type, ghost_type);
 
-  const Matrix<Real> quads =
+  const Matrix<Real> & quads =
     integrator. template getQuadraturePoints<type>(ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > f_it = f_el.begin(spatial_dimension, nb_nodes_per_element);
+  Array<Real>::matrix_iterator f_it = f_el.begin(spatial_dimension, nb_nodes_per_element);
 
   for (UInt elem = 0; elem < nb_element; ++elem) {
     ElementClass<type>::computeNormalsOnNaturalCoordinates(quads,
@@ -712,7 +712,7 @@ void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
   modified_shapes->clear();
   Array<Real> * local_mat = new Array<Real>(vect_size, lmat_size * lmat_size);
 
-  Array<Real>::iterator< Matrix<Real> > shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
+  Array<Real>::matrix_iterator shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
   Real * sh  = shapes.values;
   for(UInt q = 0; q < vect_size; ++q) {
     Real * msh = shape_vect->storage();
@@ -728,7 +728,7 @@ void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
   }
 
   shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
-  Array<Real>::iterator< Matrix<Real> > lmat = local_mat->begin(lmat_size, lmat_size);
+  Array<Real>::matrix_iterator lmat = local_mat->begin(lmat_size, lmat_size);
   Real * field_val = field_1.values;
 
   for(UInt q = 0; q < vect_size; ++q) {
@@ -958,12 +958,9 @@ inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::computeNor
 
   UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
   normal.resize(nb_element * nb_points);
-  Array<Real>::iterator< Matrix<Real> > normals_on_quad = normal.begin_reinterpret(spatial_dimension,
-										   nb_points,
-										   nb_element);
-  const Matrix<Real> quads =
-    integrator.getQuadraturePoints<type>(ghost_type);
-
+  Array<Real>::matrix_iterator normals_on_quad = normal.begin_reinterpret(spatial_dimension,
+                                                                          nb_points,
+									  nb_element);
   Array< std::vector<Element> > segments = mesh.getElementToSubelement(type, ghost_type);
   Array<Real> coords = mesh.getNodes();
 

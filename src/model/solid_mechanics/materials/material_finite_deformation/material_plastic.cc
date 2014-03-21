@@ -82,22 +82,22 @@ void MaterialPlastic<dim>::computeStress(ElementType el_type, GhostType ghost_ty
     //Array<UInt> & elem_filter = element_filter(el_type, ghost_type);
     //UInt nb_element = elem_filter.getSize();
 
-    //Array<Real>::iterator< Matrix<Real> > green_it =
+    //Array<Real>::matrix_iterator green_it =
     //        this->delta_strain(el_type, ghost_type).begin(dim, dim);
 
-    //Array<Real>::iterator< Matrix<Real> > S_it =
+    //Array<Real>::matrix_iterator S_it =
     //        this->delta_stress(el_type, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > strain_it =
+    Array<Real>::matrix_iterator strain_it =
             this->strain(el_type, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > strain_end =
+    Array<Real>::matrix_iterator strain_end =
       this->strain(el_type, ghost_type).end(dim, dim);
 
-    //Array<Real>::iterator< Matrix<Real> > previous_stress_it =
+    //Array<Real>::matrix_iterator previous_stress_it =
     //        this->previous_stress(el_type, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > piola_it =
+    Array<Real>::matrix_iterator piola_it =
             this->piola_kirchhoff_stress(el_type, ghost_type).begin(dim, dim);
 
     //Matrix<Real> F_tensor(dim, dim);

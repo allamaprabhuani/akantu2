@@ -38,7 +38,7 @@
 
 #include "aka_ball.hh"
 #include "aka_bounding_box.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 
 //#define DEBUG_TREE 1
 

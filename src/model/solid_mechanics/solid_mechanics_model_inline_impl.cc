@@ -315,20 +315,20 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_uv: {
-    Array<Real>::iterator< Vector<Real> > it_disp = displacement->begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > it_velo = velocity->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_disp = displacement->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_velo = velocity->begin(spatial_dimension);
     buffer << it_disp[index];
     buffer << it_velo[index];
     break;
   }
   case _gst_smm_res: {
-    Array<Real>::iterator< Vector<Real> > it_res = residual->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_res = residual->begin(spatial_dimension);
     buffer << it_res[index];
     break;
   }
   case _gst_smm_mass: {
     AKANTU_DEBUG_INFO("pack mass of node " << index << " which is " << (*mass)(index,0));
-    Array<Real>::iterator< Vector<Real> > it_mass = mass->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_mass = mass->begin(spatial_dimension);
     buffer << it_mass[index];
     break;
   }
@@ -348,20 +348,20 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_smm_uv: {
-    Array<Real>::iterator< Vector<Real> > it_disp = displacement->begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > it_velo = velocity->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_disp = displacement->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_velo = velocity->begin(spatial_dimension);
     buffer >> it_disp[index];
     buffer >> it_velo[index];
     break;
   }
   case _gst_smm_res: {
-    Array<Real>::iterator< Vector<Real> > it_res = residual->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_res = residual->begin(spatial_dimension);
     buffer >> it_res[index];
     break;
   }
   case _gst_smm_mass: {
     AKANTU_DEBUG_INFO("mass of node " << index << " was " << (*mass)(index,0));
-    Array<Real>::iterator< Vector<Real> > it_mass = mass->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_mass = mass->begin(spatial_dimension);
     buffer >> it_mass[index];
     AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index,0));
     break;

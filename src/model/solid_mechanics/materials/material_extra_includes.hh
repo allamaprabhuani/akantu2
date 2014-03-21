@@ -28,6 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#ifndef AKANTU_CMAKE_LIST_MATERIALS
 
 // visco-elastic materials
 #include "material_stiffness_proportional.hh"
@@ -51,7 +52,7 @@
 #include "material_plasticityinc.hh"
 #include "material_viscoplasticity.hh"
 
-
+#endif
 
 #define  AKANTU_EXTRA_MATERIAL_LIST                                     \
   ((2, (damage_linear      , MaterialDamageLinear                 )))   \

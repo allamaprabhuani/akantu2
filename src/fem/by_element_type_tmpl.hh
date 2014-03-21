@@ -65,22 +65,6 @@ inline const Stored & ByElementType<Stored, SupportType>::operator()(const Suppo
 template<class Stored, typename SupportType>
 inline Stored & ByElementType<Stored, SupportType>::operator()(const SupportType & type,
 							       const GhostType & ghost_type) {
-  // typename DataMap::iterator it =
-  //   this->getData(ghost_type).find(type);
-
-  // // if(it == this->getData(ghost_type).end())
-  // //   AKANTU_EXCEPTION("No element of type "
-  // //                 << ByElementType<Stored, SupportType>::printType(type, ghost_type)
-  // //                 << " in this ByElementType<"
-  // //                 << debug::demangle(typeid(Stored).name()) << "> class");
-
-  // if(it == this->getData(ghost_type).end()) {
-  //   DataMap & data = this->getData(ghost_type);
-  //   const std::pair<typename DataMap::iterator, bool> & res =
-  //     data.insert(std::pair<ElementType, Stored>(type, Stored()));
-  //   it = res.first;
-  // }
-  // return it->second;
   return this->getData(ghost_type)[type];
 }
 

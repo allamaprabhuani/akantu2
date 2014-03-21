@@ -46,6 +46,7 @@ inline void ElementGroup::addElement(const ElementType & elem_type,
   if(!(elements.exists(elem_type, ghost_type))) {
     elements.alloc(0, 1, elem_type, ghost_type);
   }
+
   elements(elem_type, ghost_type).push_back(elem_id);
 }
 

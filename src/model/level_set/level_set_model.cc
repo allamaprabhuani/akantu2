@@ -499,11 +499,11 @@ void LevelSetModel::computeVReinit(Real Epsilon) {
 
 
 
-      Array<Real>::iterator< Vector<Real> > grad_phi_qpoints_it = grad_phi.begin(spatial_dimension);
-      Array<Real>::iterator< Vector<Real> > grad_phi_qpoints_end = grad_phi.end(spatial_dimension);
+      Array<Real>::vector_iterator grad_phi_qpoints_it = grad_phi.begin(spatial_dimension);
+      Array<Real>::vector_iterator grad_phi_qpoints_end = grad_phi.end(spatial_dimension);
 
-      Array<Real>::iterator< Vector<Real> > phi_qpoints_it = phi_qpoints.begin(1);
-      Array<Real>::iterator< Vector<Real> > v_r_qpoints_it = v_r_qpoints.begin(spatial_dimension);
+      Array<Real>::vector_iterator phi_qpoints_it = phi_qpoints.begin(1);
+      Array<Real>::vector_iterator v_r_qpoints_it = v_r_qpoints.begin(spatial_dimension);
 
       for (; grad_phi_qpoints_it != grad_phi_qpoints_end; ++grad_phi_qpoints_it, ++v_r_qpoints_it, ++phi_qpoints_it) {
 
@@ -566,9 +566,9 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
                                                       nb_nodes_per_element,
                                                       "shapes filtered");
 
-    Array<Real>::iterator< Matrix<Real> > shapes_it = shapes.begin(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator shapes_it = shapes.begin(1, nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
 
     UInt * elem_filter_val = elem_filter.storage();
     for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
@@ -585,14 +585,14 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
     //Compute term phixN_i/Delta_t
 
-    Array<Real>::iterator< Vector<Real> > Ni_it = shapes_filtered->begin(nb_nodes_per_element);
+    Array<Real>::vector_iterator Ni_it = shapes_filtered->begin(nb_nodes_per_element);
 
     Array<Real> & phi_qpoints = phi_on_qpoints(*it, ghost_type);
 
-    Array<Real>::iterator< Vector<Real> > phi_qpoints_it = phi_qpoints.begin_reinterpret(1, nb_quadrature_points * nb_element);
-    Array<Real>::iterator< Vector<Real> > phi_qpoints_end = phi_qpoints.end_reinterpret(1, nb_quadrature_points * nb_element);
+    Array<Real>::vector_iterator phi_qpoints_it = phi_qpoints.begin_reinterpret(1, nb_quadrature_points * nb_element);
+    Array<Real>::vector_iterator phi_qpoints_end = phi_qpoints.end_reinterpret(1, nb_quadrature_points * nb_element);
 
-    Array<Real>::iterator< Vector<Real> > phi_Ni_it = phi_Ni->begin(nb_nodes_per_element);
+    Array<Real>::vector_iterator phi_Ni_it = phi_Ni->begin(nb_nodes_per_element);
 
     for (; phi_qpoints_it != phi_qpoints_end; ++phi_qpoints_it, ++phi_Ni_it, ++Ni_it) {
       Real phi_q = (*phi_qpoints_it)[0];
@@ -659,12 +659,12 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
     Ni_it = shapes_filtered->begin(nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > grad_phi_qpoints_it = grad_phi.begin(1, spatial_dimension);
-    Array<Real>::iterator< Matrix<Real> > grad_phi_qpoints_end = grad_phi.end(1, spatial_dimension);
+    Array<Real>::matrix_iterator grad_phi_qpoints_it = grad_phi.begin(1, spatial_dimension);
+    Array<Real>::matrix_iterator grad_phi_qpoints_end = grad_phi.end(1, spatial_dimension);
 
-    Array<Real>::iterator< Matrix<Real> > v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
+    Array<Real>::matrix_iterator v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
 
-    Array<Real>::iterator< Matrix<Real> > v_grad_phi_it = v_grad_phi->begin_reinterpret(1, 1, nb_element * nb_quadrature_points);
+    Array<Real>::matrix_iterator v_grad_phi_it = v_grad_phi->begin_reinterpret(1, 1, nb_element * nb_quadrature_points);
 
     phi_Ni_it = phi_Ni->begin(nb_nodes_per_element);
     Ni_it = shapes_filtered->begin(nb_nodes_per_element);
@@ -862,18 +862,18 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
       const Array<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it, gt);
 
-      Array<Real>::const_iterator< Matrix<Real> > shapes_derivatives_it = shapes_derivatives.begin(nb_nodes_per_element, spatial_dimension);
-      Array<Real>::const_iterator< Matrix<Real> > shapes_it = shapes.begin(nb_nodes_per_element, 1);
-      Array<Real>::const_iterator< Matrix<Real> > shapes_derivatives_end = shapes_derivatives.end(nb_nodes_per_element, spatial_dimension);
-      Array<Real>::iterator< Matrix<Real> > v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
+      Array<Real>::const_matrix_iterator shapes_derivatives_it = shapes_derivatives.begin(nb_nodes_per_element, spatial_dimension);
+      Array<Real>::const_matrix_iterator shapes_it = shapes.begin(nb_nodes_per_element, 1);
+      Array<Real>::const_matrix_iterator shapes_derivatives_end = shapes_derivatives.end(nb_nodes_per_element, spatial_dimension);
+      Array<Real>::matrix_iterator v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
 
-      Array<Real>::iterator< Matrix<Real> > supg_qpoints_it = supg_qpoints.begin(nb_nodes_per_element, 1);
+      Array<Real>::matrix_iterator supg_qpoints_it = supg_qpoints.begin(nb_nodes_per_element, 1);
 
 
       Array<Real> X(0, nb_nodes_per_element * spatial_dimension);
       FEM::extractNodalToElementField(mesh, position, X, *it, _not_ghost);
 
-      Array<Real>::iterator< Matrix<Real> > X_el = X.begin(spatial_dimension, nb_nodes_per_element);
+      Array<Real>::matrix_iterator X_el = X.begin(spatial_dimension, nb_nodes_per_element);
 
 
 
@@ -947,10 +947,10 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
   nb_nodes_per_element,
   "shapes filtered");
 
-  Array<Real>::const_iterator< Matrix<Real> > shapes_it = shapes.begin(1, nb_nodes_per_element);
+  Array<Real>::const_matrix_iterator shapes_it = shapes.begin(1, nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
-  Array<Real>::iterator< Matrix<Real> > shapes_filtered_end = shapes_filtered->end(1, nb_nodes_per_element);
+  Array<Real>::matrix_iterator shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
+  Array<Real>::matrix_iterator shapes_filtered_end = shapes_filtered->end(1, nb_nodes_per_element);
 
   UInt * elem_filter_val = elem_filter.storage();
   for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
@@ -972,9 +972,9 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   const Array<Real> & normals_qpoints = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
-  Array<Real>::const_iterator< Matrix<Real> > normals_qpoints_it = normals_qpoints.begin(1, spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > v_n_it = v_n.begin(1, 1);
+  Array<Real>::matrix_iterator v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
+  Array<Real>::const_matrix_iterator normals_qpoints_it = normals_qpoints.begin(1, spatial_dimension);
+  Array<Real>::matrix_iterator v_n_it = v_n.begin(1, 1);
 
 
   UInt nb_qpoints_elements = nb_element * nb_quadrature_points;
@@ -999,7 +999,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > Ni_Nj_it = Ni_Nj->begin(Ni_Nj_size, Ni_Nj_size);
+  Array<Real>::matrix_iterator Ni_Nj_it = Ni_Nj->begin(Ni_Nj_size, Ni_Nj_size);
 
   v_n_qpoint = v_n.values;
 
@@ -1045,16 +1045,16 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   //Compute term phixN_i/Delta_t
 
-  Array<Real>::iterator< Vector<Real> > Ni_it = shapes_filtered->begin(nb_nodes_per_element);
+  Array<Real>::vector_iterator Ni_it = shapes_filtered->begin(nb_nodes_per_element);
 
   Array<Real> & phi_qpoints = phi_on_qpoints_boundary(*it, ghost_type);
 
-  Array<Real>::iterator< Vector<Real> > phi_qpoints_it = phi_qpoints.begin_reinterpret(1, nb_quadrature_points * nb_element);
-  Array<Real>::iterator< Vector<Real> > phi_qpoints_end = phi_qpoints.end_reinterpret(1, nb_quadrature_points * nb_element);
+  Array<Real>::vector_iterator phi_qpoints_it = phi_qpoints.begin_reinterpret(1, nb_quadrature_points * nb_element);
+  Array<Real>::vector_iterator phi_qpoints_end = phi_qpoints.end_reinterpret(1, nb_quadrature_points * nb_element);
 
-  Array<Real>::iterator< Vector<Real> > v_n_qpoints_it = v_n.begin_reinterpret(1, nb_quadrature_points * nb_element);
+  Array<Real>::vector_iterator v_n_qpoints_it = v_n.begin_reinterpret(1, nb_quadrature_points * nb_element);
 
-  Array<Real>::iterator< Vector<Real> > phi_Ni_it = phi_Ni->begin(nb_nodes_per_element);
+  Array<Real>::vector_iterator phi_Ni_it = phi_Ni->begin(nb_nodes_per_element);
 
   for (; phi_qpoints_it != phi_qpoints_end; ++phi_qpoints_it, ++phi_Ni_it, ++v_n_qpoints_it, ++Ni_it) {
 
@@ -1136,17 +1136,17 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
                                                     "supg filtered");
 
 
-    Array<Real>::const_iterator< Matrix<Real> > shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
+    Array<Real>::const_matrix_iterator shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
                                                                                                  nb_nodes_per_element);
-    Array<Real>::const_iterator< Matrix<Real> > shapes_it = shapes.begin(1, nb_nodes_per_element);
+    Array<Real>::const_matrix_iterator shapes_it = shapes.begin(1, nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > supg_it = supg.begin(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator supg_it = supg.begin(1, nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension,
+    Array<Real>::matrix_iterator shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension,
                                                                                                               nb_nodes_per_element);
-    Array<Real>::iterator< Matrix<Real> > shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > supg_filtered_it = supg_filtered->begin(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator supg_filtered_it = supg_filtered->begin(1, nb_nodes_per_element);
 
     UInt * elem_filter_val = elem_filter.storage();
     for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val) {
@@ -1166,11 +1166,11 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
     //Compute term N_ixN_j/Delta_t
 
     shapes_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element);
-    Array<Real>::iterator< Matrix<Real> > shapes_filtered_end = shapes_filtered->end(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator shapes_filtered_end = shapes_filtered->end(1, nb_nodes_per_element);
 
     supg_filtered_it = supg_filtered->begin(1, nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > Ni_Nj_it = Ni_Nj->begin(Ni_Nj_size, Ni_Nj_size);
+    Array<Real>::matrix_iterator Ni_Nj_it = Ni_Nj->begin(Ni_Nj_size, Ni_Nj_size);
 
 
 
@@ -1206,13 +1206,13 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
       v_tmp = &v_r_on_qpoints(*it, ghost_type);
     Array<Real> & v_qpoints = *v_tmp;
 
-    Array<Real>::iterator< Matrix<Real> > grad_phi_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
-    Array<Real>::iterator< Matrix<Real> > grad_phi_end = shapes_derivatives_filtered->end(nb_nodes_per_element, spatial_dimension);
+    Array<Real>::matrix_iterator grad_phi_it = shapes_derivatives_filtered->begin(nb_nodes_per_element, spatial_dimension);
+    Array<Real>::matrix_iterator grad_phi_end = shapes_derivatives_filtered->end(nb_nodes_per_element, spatial_dimension);
 
-    Array<Real>::iterator< Matrix<Real> > v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
+    Array<Real>::matrix_iterator v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
 
     Array<Real> * v_x_grad_phi = new Array<Real > (nb_element * nb_quadrature_points, nb_nodes_per_element, "v_x_grad_phi");
-    Array<Real>::iterator< Matrix<Real> > v_x_grad_phi_it = v_x_grad_phi->begin(nb_nodes_per_element, 1);
+    Array<Real>::matrix_iterator v_x_grad_phi_it = v_x_grad_phi->begin(nb_nodes_per_element, 1);
 
     for (; grad_phi_it != grad_phi_end; ++v_x_grad_phi_it, ++grad_phi_it, ++v_qpoints_it) {
       Matrix<Real> & grad_phi_element = *grad_phi_it;
@@ -1227,10 +1227,10 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
     //Compute term N_ixN_j/Delta_t
 
     supg_filtered_it = supg_filtered->begin(1, nb_nodes_per_element);
-    Array<Real>::iterator< Matrix<Real> > supg_filtered_end = supg_filtered->end(1, nb_nodes_per_element);
+    Array<Real>::matrix_iterator supg_filtered_end = supg_filtered->end(1, nb_nodes_per_element);
 
     //supg_filtered_it = shapes_filtered->begin(1, nb_nodes_per_element); //TEST
-    //Array<Real>::iterator< Matrix<Real> > supg_filtered_end = shapes_filtered->end(1, nb_nodes_per_element); //TEST
+    //Array<Real>::matrix_iterator supg_filtered_end = shapes_filtered->end(1, nb_nodes_per_element); //TEST
 
     Ni_Nj_it = Ni_Nj->begin(Ni_Nj_size, Ni_Nj_size);
     v_x_grad_phi_it = v_x_grad_phi->begin(1, nb_nodes_per_element);

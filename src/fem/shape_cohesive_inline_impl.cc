@@ -87,7 +87,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapesOnControlPoints(__attribute__(
 					   itp_type,
 					   ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > shapes_it =
+  Array<Real>::matrix_iterator shapes_it =
     shapes_tmp.begin_reinterpret(ElementClass<type>::getNbNodesPerInterpolationElement(), nb_points,
 				 nb_element);
 
@@ -158,7 +158,7 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(const Array<Real> &
 
   elemental_f.resize(nb_element);
 
-  Array<Real>::iterator< Matrix<Real> > u_it = elemental_f.begin(nb_degree_of_freedom,
+  Array<Real>::matrix_iterator u_it = elemental_f.begin(nb_degree_of_freedom,
 								  nb_nodes_per_itp_element);
 
   UInt * el_conn;
@@ -264,8 +264,8 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnControlPoints(const Array<Real
 								ghost_type,
 								filter_elements);
 
-  Array<Real>::iterator< Vector<Real> > normal     = normals_u.begin(spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > normal_end = normals_u.end(spatial_dimension);
+  Array<Real>::vector_iterator normal     = normals_u.begin(spatial_dimension);
+  Array<Real>::vector_iterator normal_end = normals_u.end(spatial_dimension);
 
   Real * tangent = tangents_u.storage();
 

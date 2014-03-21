@@ -110,7 +110,7 @@ protected:
   /// Elastic stiffness tensor in material frame and full vectorised notation
   Matrix<Real> Cprime;
   /// Elastic stiffness tensor in voigt notation
-  Matrix<Real>  C;
+  Matrix<Real> C;
   /// eigenvalues of stiffness tensor
   Vector<Real> eigC;
   bool symmetric;

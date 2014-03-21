@@ -299,7 +299,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh,
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   const Array<Real> & mesh_facets_nodes = mesh_facets.getNodes();
-  const Array<Real>::const_iterator< Vector<Real> > mesh_facets_nodes_it =
+  const Array<Real>::const_vector_iterator mesh_facets_nodes_it =
     mesh_facets_nodes.begin(spatial_dimension);
 
   CSR<Element> node_to_elem;
@@ -1724,8 +1724,8 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
       UInt nb_element = mesh.getNbElement(*it, *gt);
       Array<Real> & barycenters_arr = barycenters(*it, *gt);
       barycenters_arr.resize(nb_element);
-      Array<Real>::iterator< Vector<Real> > bary = barycenters_arr.begin(spatial_dimension);
-      Array<Real>::iterator< Vector<Real> > bary_end = barycenters_arr.end(spatial_dimension);
+      Array<Real>::vector_iterator bary = barycenters_arr.begin(spatial_dimension);
+      Array<Real>::vector_iterator bary_end = barycenters_arr.end(spatial_dimension);
 
       for (UInt el = 0; bary != bary_end; ++bary, ++el) {
         mesh.getBarycenter(el, *it, bary->storage(), *gt);

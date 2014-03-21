@@ -96,8 +96,8 @@ protected:
   //                              Matrix<Real> & cauchy_sigma);
 
   /// compute the potential energy for a quadrature point
-  inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
-                                           Matrix<Real> & sigma,
+  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+                                           const Matrix<Real> & sigma,
                                            Real & epot);
 
   /// compute the tangent stiffness matrix for an element

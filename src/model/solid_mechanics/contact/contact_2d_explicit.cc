@@ -31,7 +31,7 @@
 
 #include "contact_2d_explicit.hh"
 #include "contact_search.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 
 #define PROJ_TOL 1.E-8
 

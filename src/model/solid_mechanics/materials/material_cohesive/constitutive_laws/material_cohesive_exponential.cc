@@ -58,19 +58,19 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Array
   AKANTU_DEBUG_IN();
 
   /// define iterators
-  Array<Real>::iterator< Vector<Real> > traction_it =
+  Array<Real>::vector_iterator traction_it =
     tractions(el_type, ghost_type).begin(spatial_dimension);
 
-  Array<Real>::iterator< Vector<Real> > opening_it =
+  Array<Real>::vector_iterator opening_it =
     opening(el_type, ghost_type).begin(spatial_dimension);
 
-  Array<Real>::const_iterator< Vector<Real> > normal_it =
+  Array<Real>::const_vector_iterator normal_it =
     normal.begin(spatial_dimension);
 
-  Array<Real>::iterator< Vector<Real> >traction_end =
+  Array<Real>::vector_iterator traction_end =
     tractions(el_type, ghost_type).end(spatial_dimension);
 
-  Array<Real>::iterator<Real>delta_max_it =
+  Array<Real>::iterator<Real> delta_max_it =
     delta_max(el_type, ghost_type).begin();
 
   /// compute scalars
@@ -137,11 +137,11 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
                                                                             GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<Real>::iterator< Matrix<Real> > tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
-  Array<Real>::const_iterator< Vector<Real> > normal_it = normal.begin(spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > opening_it = opening(el_type, ghost_type).begin(spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > traction_it = tractions(el_type, ghost_type).begin(spatial_dimension);
+  Array<Real>::matrix_iterator tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
+  Array<Real>::const_vector_iterator normal_it = normal.begin(spatial_dimension);
+  Array<Real>::vector_iterator opening_it = opening(el_type, ghost_type).begin(spatial_dimension);
+  Array<Real>::vector_iterator traction_it = tractions(el_type, ghost_type).begin(spatial_dimension);
   Array<Real>::iterator<Real>delta_max_it = delta_max(el_type, ghost_type).begin();
   Real beta2 = beta*beta;
 

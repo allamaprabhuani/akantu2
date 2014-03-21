@@ -1,5 +1,5 @@
 /**
- * @file   aka_vector.hh
+ * @file   aka_array.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
@@ -167,33 +167,41 @@ public:
 // #else
   template<typename R = T>  class iterator;
 // #endif
+  typedef iterator< T > scalar_iterator;
+  typedef const_iterator< T > const_scalar_iterator;
+
+  typedef iterator< Vector<T> > vector_iterator;
+  typedef const_iterator< Vector<T> > const_vector_iterator;
+
+  typedef iterator< Matrix<T> > matrix_iterator;
+  typedef const_iterator< Matrix<T> > const_matrix_iterator;
 
   inline iterator<T> begin();
   inline iterator<T> end();
   inline const_iterator<T> begin() const;
   inline const_iterator<T> end() const;
 
-  inline iterator< Vector<T> > begin(UInt n);
-  inline iterator< Vector<T> > end(UInt n);
-  inline const_iterator< Vector<T> > begin(UInt n) const;
-  inline const_iterator< Vector<T> > end(UInt n) const;
+  inline vector_iterator begin(UInt n);
+  inline vector_iterator end(UInt n);
+  inline const_vector_iterator begin(UInt n) const;
+  inline const_vector_iterator end(UInt n) const;
 
-  inline iterator< Matrix<T> > begin(UInt m, UInt n);
-  inline iterator< Matrix<T> > end(UInt m, UInt n);
-  inline const_iterator< Matrix<T> > begin(UInt m, UInt n) const;
-  inline const_iterator< Matrix<T> > end(UInt m, UInt n) const;
+  inline matrix_iterator begin(UInt m, UInt n);
+  inline matrix_iterator end(UInt m, UInt n);
+  inline const_matrix_iterator begin(UInt m, UInt n) const;
+  inline const_matrix_iterator end(UInt m, UInt n) const;
 
   /// /!\ to use with caution
-  inline iterator< Vector<T> > begin_reinterpret(UInt n, UInt size);
-  inline iterator< Vector<T> > end_reinterpret(UInt n, UInt size);
-  inline const_iterator< Vector<T> > begin_reinterpret(UInt n, UInt size) const;
-  inline const_iterator< Vector<T> > end_reinterpret(UInt n, UInt size) const;
+  inline vector_iterator begin_reinterpret(UInt n, UInt size);
+  inline vector_iterator end_reinterpret(UInt n, UInt size);
+  inline const_vector_iterator begin_reinterpret(UInt n, UInt size) const;
+  inline const_vector_iterator end_reinterpret(UInt n, UInt size) const;
 
 
-  inline iterator< Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size);
-  inline iterator< Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size);
-  inline const_iterator< Matrix<T> > begin_reinterpret(UInt m, UInt n, UInt size) const;
-  inline const_iterator< Matrix<T> > end_reinterpret(UInt m, UInt n, UInt size) const;
+  inline matrix_iterator begin_reinterpret(UInt m, UInt n, UInt size);
+  inline matrix_iterator end_reinterpret(UInt m, UInt n, UInt size);
+  inline const_matrix_iterator begin_reinterpret(UInt m, UInt n, UInt size) const;
+  inline const_matrix_iterator end_reinterpret(UInt m, UInt n, UInt size) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -295,9 +303,10 @@ public:
 __END_AKANTU__
 
 #include "aka_types.hh"
+
 __BEGIN_AKANTU__
 
-#include "aka_vector_tmpl.hh"
+#include "aka_array_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Inline Functions Array<T, is_scal>                                         */

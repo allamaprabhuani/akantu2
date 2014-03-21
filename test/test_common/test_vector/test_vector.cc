@@ -31,9 +31,9 @@
 #include <cstdlib>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
 #include "aka_types.hh"
-#include "aka_vector.hh"
-
+#include "aka_array.hh"
 
 /* -------------------------------------------------------------------------- */
 

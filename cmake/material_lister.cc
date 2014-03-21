@@ -1,10 +1,11 @@
 /**
- * @file   aka_fwd.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @date   Thu Jan 3 15:15:00 2013
+ * @file   material_lister.cc
  *
- * @brief  File containing forward declarations in akantu
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date   Fri Mar 21 13:03:55 2014
+ *
+ * @brief  Small code that print out the list of materials
  *
  * @section LICENSE
  *
@@ -27,25 +28,26 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_FWD_HH__
-#define __AKANTU_FWD_HH__
+#include "material_list.hh"
 
-namespace akantu {
+#include <boost/preprocessor.hpp>
+#include <iostream>
 
-  template<typename T> class Matrix;
-  template<typename T> class Vector;
-  template<typename T> class Tensor3;
+int main(int argc, char *argv[]) {
+#define PRINT_OUT_OPTIONS(r, data, i, elem)	\
+  << ":" << BOOST_PP_STRINGIZE(BOOST_PP_TUPLE_ELEM(2, 0, elem))
 
-  template<typename T, bool is_scal = is_scalar<T>::value > class Array;
+#define PRINT_OUT(r, data, elem)		\
+  std::cout << BOOST_PP_STRINGIZE(BOOST_PP_ARRAY_ELEM(0, elem)) << ":"	\
+	    << BOOST_PP_STRINGIZE(BOOST_PP_ARRAY_ELEM(1, elem))		\
+    BOOST_PP_IF(BOOST_PP_EQUAL(3, BOOST_PP_ARRAY_SIZE(elem)),		\
+		BOOST_PP_SEQ_FOR_EACH_I(PRINT_OUT_OPTIONS,		\
+					_,				\
+					BOOST_PP_ARRAY_ELEM(2, elem)),	\
+		)							\
+	    << std::endl;
 
-  template <class T> class SpatialGrid;
+  BOOST_PP_SEQ_FOR_EACH(PRINT_OUT, _, AKANTU_MATERIAL_LIST);
 
-  // Model element
-  template <class ModelPolicy> class ModelElement;
-
-  extern const Array<UInt> empty_filter;
-
+  return 0;
 }
-
-
-#endif /* __AKANTU_FWD_HH__ */

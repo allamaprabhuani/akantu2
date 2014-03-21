@@ -28,10 +28,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#ifndef AKANTU_CMAKE_LIST_MATERIALS
 #  include "material_marigo_non_local.hh"
 #  include "material_mazars_non_local.hh"
 #  include "material_vreepeerlings_non_local.hh"
 #  include "material_brittle_non_local.hh"
+#endif
 
 #define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
   ((stress_wf, (StressBasedWeightFunction  )))				\

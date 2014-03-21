@@ -205,26 +205,26 @@ void Material::assembleResidual(GhostType ghost_type) {
       UInt nb_element = elem_filter.getSize();
       /// compute @f$\sigma \frac{\partial \varphi}{\partial X}@f$ by @f$\mathbf{B}^t \mathbf{\sigma}_q@f$
       Array<Real> * sigma_dphi_dx =
-        new Array<Real>(nb_element*nb_quadrature_points,
-                        size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
+	new Array<Real>(nb_element*nb_quadrature_points,
+			size_of_shapes_derivatives, "sigma_x_dphi_/_dX");
 
       Array<Real> * shapesd_filtered =
-        new Array<Real>(0, size_of_shapes_derivatives, "filtered shapesd");
+	new Array<Real>(0, size_of_shapes_derivatives, "filtered shapesd");
 
       FEM::filterElementalData(mesh, shapes_derivatives, *shapesd_filtered,
-                             *it, ghost_type, elem_filter);
+			       *it, ghost_type, elem_filter);
 
       Array<Real> & stress_vect = stress(*it, ghost_type);
 
-      Array<Real>::iterator< Matrix<Real> > sigma =
-        stress_vect.begin(spatial_dimension, spatial_dimension);
-      Array<Real>::iterator< Matrix<Real> > B =
-        shapesd_filtered->begin(spatial_dimension, nb_nodes_per_element);
-      Array<Real>::iterator< Matrix<Real> > Bt_sigma_it =
-        sigma_dphi_dx->begin(spatial_dimension, nb_nodes_per_element);
+      Array<Real>::matrix_iterator sigma =
+	stress_vect.begin(spatial_dimension, spatial_dimension);
+      Array<Real>::matrix_iterator B =
+	shapesd_filtered->begin(spatial_dimension, nb_nodes_per_element);
+      Array<Real>::matrix_iterator Bt_sigma_it =
+	sigma_dphi_dx->begin(spatial_dimension, nb_nodes_per_element);
 
       for (UInt q = 0; q < nb_element*nb_quadrature_points; ++q, ++sigma, ++B, ++Bt_sigma_it)
-        Bt_sigma_it->mul<false,false>(*sigma, *B);
+	Bt_sigma_it->mul<false,false>(*sigma, *B);
 
 
       delete shapesd_filtered;
@@ -234,21 +234,21 @@ void Material::assembleResidual(GhostType ghost_type) {
        * \mathbf{\sigma}_q \overline w_q J_q@f$
        */
       Array<Real> * int_sigma_dphi_dx = new Array<Real>(nb_element,
-                                                        nb_nodes_per_element * spatial_dimension,
-                                                        "int_sigma_x_dphi_/_dX");
+							nb_nodes_per_element * spatial_dimension,
+							"int_sigma_x_dphi_/_dX");
 
       model->getFEM().integrate(*sigma_dphi_dx, *int_sigma_dphi_dx,
-                              size_of_shapes_derivatives,
-                              *it, ghost_type,
-                              elem_filter);
+				size_of_shapes_derivatives,
+				*it, ghost_type,
+				elem_filter);
       delete sigma_dphi_dx;
 
 
       /// assemble
       model->getFEM().assembleArray(*int_sigma_dphi_dx, residual,
-                                    model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
-                                    residual.getNbComponent(),
-                                    *it, ghost_type, elem_filter, -1);
+				    model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
+				    residual.getNbComponent(),
+				    *it, ghost_type, elem_filter, -1);
       delete int_sigma_dphi_dx;
     }
 
@@ -341,32 +341,32 @@ void Material::computeAllCauchyStresses(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::computeCauchyStress(ElementType el_type, GhostType ghost_type) {
-    AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_IN();
 
-    Array<Real>::iterator< Matrix<Real> > strain_it =
-            this->strain(el_type, ghost_type).begin(dim, dim);
+  Array<Real>::matrix_iterator strain_it =
+    this->strain(el_type, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > strain_end =
-            this->strain(el_type, ghost_type).end(dim, dim);
+  Array<Real>::matrix_iterator strain_end =
+    this->strain(el_type, ghost_type).end(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > piola_it =
-            this->piola_kirchhoff_stress(el_type, ghost_type).begin(dim, dim);
+  Array<Real>::matrix_iterator piola_it =
+    this->piola_kirchhoff_stress(el_type, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > stress_it =
-            this->stress(el_type, ghost_type).begin(dim, dim);
+  Array<Real>::matrix_iterator stress_it =
+    this->stress(el_type, ghost_type).begin(dim, dim);
 
-    Matrix<Real> F_tensor(dim, dim);
+  Matrix<Real> F_tensor(dim, dim);
 
-    for (; strain_it != strain_end; ++strain_it, ++piola_it, ++stress_it) {
-        Matrix<Real> & grad_u = *strain_it;
-        Matrix<Real> & piola = *piola_it;
-        Matrix<Real> & sigma = *stress_it;
+  for (; strain_it != strain_end; ++strain_it, ++piola_it, ++stress_it) {
+    Matrix<Real> & grad_u = *strain_it;
+    Matrix<Real> & piola = *piola_it;
+    Matrix<Real> & sigma = *stress_it;
 
-        gradUToF<dim > (grad_u, F_tensor);
-        computeCauchyStressOnQuad<dim >(F_tensor, piola, sigma);
-    }
+    gradUToF<dim > (grad_u, F_tensor);
+    computeCauchyStressOnQuad<dim >(F_tensor, piola, sigma);
+  }
 
-    AKANTU_DEBUG_OUT();
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -388,8 +388,8 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
     /// compute @f$\nabla u@f$
     model->getFEM().gradientOnQuadraturePoints(displacement, strain_vect,
-                                              spatial_dimension,
-                                              *it, ghost_type, elem_filter);
+					       spatial_dimension,
+					       *it, ghost_type, elem_filter);
 
     setToSteadyState(*it, ghost_type);
   }
@@ -418,23 +418,23 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
     if(finite_deformation){
       switch (spatial_dimension) {
       case 1:
-        {
-          assembleStiffnessMatrixNL < 1 > (*it, ghost_type);
-          assembleStiffnessMatrixL2 < 1 > (*it, ghost_type);
-          break;
-        }
+	{
+	  assembleStiffnessMatrixNL < 1 > (*it, ghost_type);
+	  assembleStiffnessMatrixL2 < 1 > (*it, ghost_type);
+	  break;
+	}
       case 2:
-        {
-          assembleStiffnessMatrixNL < 2 > (*it, ghost_type);
-          assembleStiffnessMatrixL2 < 2 > (*it, ghost_type);
-          break;
-        }
+	{
+	  assembleStiffnessMatrixNL < 2 > (*it, ghost_type);
+	  assembleStiffnessMatrixL2 < 2 > (*it, ghost_type);
+	  break;
+	}
       case 3:
-        {
-          assembleStiffnessMatrixNL < 3 > (*it, ghost_type);
-          assembleStiffnessMatrixL2 < 3 > (*it, ghost_type);
-          break;
-        }
+	{
+	  assembleStiffnessMatrixNL < 3 > (*it, ghost_type);
+	  assembleStiffnessMatrixL2 < 3 > (*it, ghost_type);
+	  break;
+	}
       }
     } else {
       switch(spatial_dimension) {
@@ -451,13 +451,13 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::assembleStiffnessMatrix(const ElementType & type,
-                                       GhostType ghost_type) {
+				       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
 
   const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(
-                                                               type,ghost_type);
+										type,ghost_type);
 
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
   Array<Real> & strain_vect = strain(type, ghost_type);
@@ -510,16 +510,16 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   Matrix<Real> B(tangent_size, dim * nb_nodes_per_element);
   Matrix<Real> Bt_D(dim * nb_nodes_per_element, tangent_size);
 
-  Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it =
+  Array<Real>::matrix_iterator shapes_derivatives_filtered_it =
     shapesd_filtered->begin(dim, nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > Bt_D_B_it
+  Array<Real>::matrix_iterator Bt_D_B_it
     = bt_d_b->begin(dim*nb_nodes_per_element, dim*nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > D_it
+  Array<Real>::matrix_iterator D_it
     = tangent_stiffness_matrix->begin(tangent_size, tangent_size);
 
-  Array<Real>::iterator< Matrix<Real> > D_end
+  Array<Real>::matrix_iterator D_end
     = tangent_stiffness_matrix->end  (tangent_size, tangent_size);
 
 
@@ -528,7 +528,7 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
     Matrix<Real> & Bt_D_B = *Bt_D_B_it;
 
     VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
-                      *shapes_derivatives_filtered_it, B, nb_nodes_per_element);
+						       *shapes_derivatives_filtered_it, B, nb_nodes_per_element);
     Bt_D.mul<true, false>(B, D);
     Bt_D_B.mul<false, false>(Bt_D, B);
   }
@@ -542,9 +542,9 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 				      "K_e");
 
   model->getFEM().integrate(*bt_d_b, *K_e,
-                            bt_d_b_size * bt_d_b_size,
-                            type, ghost_type,
-                            elem_filter);
+			    bt_d_b_size * bt_d_b_size,
+			    type, ghost_type,
+			    elem_filter);
 
   delete bt_d_b;
 
@@ -582,10 +582,10 @@ void Material::assembleStiffnessMatrixNL(const ElementType & type,
 								"shapes derivatives filtered");
 
 
-  Array<Real>::const_iterator< Matrix<Real> > shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
+  Array<Real>::const_matrix_iterator shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
 											       nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension,
+  Array<Real>::matrix_iterator shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension,
 													    nb_nodes_per_element);
   UInt * elem_filter_val = elem_filter.storage();
   for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
@@ -607,18 +607,18 @@ void Material::assembleStiffnessMatrixNL(const ElementType & type,
 
   shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension, nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > Bt_S_B_it = bt_s_b->begin(bt_s_b_size,
+  Array<Real>::matrix_iterator Bt_S_B_it = bt_s_b->begin(bt_s_b_size,
 								  bt_s_b_size);
-  Array<Real>::iterator< Matrix<Real> > Bt_S_B_end = bt_s_b->end(bt_s_b_size,
+  Array<Real>::matrix_iterator Bt_S_B_end = bt_s_b->end(bt_s_b_size,
 								 bt_s_b_size);
 
-  Array<Real>::iterator< Matrix<Real> > piola_it = piola_kirchhoff_stress(type, ghost_type).begin(dim, dim);
+  Array<Real>::matrix_iterator piola_it = piola_kirchhoff_stress(type, ghost_type).begin(dim, dim);
 
   for (; Bt_S_B_it != Bt_S_B_end; ++Bt_S_B_it, ++shapes_derivatives_filtered_it, ++piola_it) {
     Matrix<Real> & Bt_S_B = *Bt_S_B_it;
     Matrix<Real> & Piola_kirchhoff_matrix = *piola_it;
 
-    SetCauchyStressMatrix< dim >(Piola_kirchhoff_matrix, S);
+    setCauchyStressMatrix< dim >(Piola_kirchhoff_matrix, S);
     VoigtHelper<dim>::transferBMatrixToBNL(*shapes_derivatives_filtered_it, B, nb_nodes_per_element);
     Bt_S.mul < true, false > (B, S);
     Bt_S_B.mul < false, false > (Bt_S, B);
@@ -682,10 +682,10 @@ void Material::assembleStiffnessMatrixL2(const ElementType & type,
 								"shapes derivatives filtered");
 
 
-  Array<Real>::const_iterator< Matrix<Real> > shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
+  Array<Real>::const_matrix_iterator shapes_derivatives_it = shapes_derivatives.begin(spatial_dimension,
 											       nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension,
+  Array<Real>::matrix_iterator shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension,
 													    nb_nodes_per_element);
   UInt * elem_filter_val = elem_filter.storage();
   for (UInt e = 0; e < nb_element; ++e, ++elem_filter_val)
@@ -705,14 +705,14 @@ void Material::assembleStiffnessMatrixL2(const ElementType & type,
 
   shapes_derivatives_filtered_it = shapes_derivatives_filtered->begin(spatial_dimension, nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
+  Array<Real>::matrix_iterator Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
 								  dim * nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > grad_u_it = strain_vect.begin(dim, dim);
+  Array<Real>::matrix_iterator grad_u_it = strain_vect.begin(dim, dim);
 
-  Array<Real>::iterator< Matrix<Real> > D_it = tangent_stiffness_matrix->begin(tangent_size,
+  Array<Real>::matrix_iterator D_it = tangent_stiffness_matrix->begin(tangent_size,
 									       tangent_size);
-  Array<Real>::iterator< Matrix<Real> > D_end = tangent_stiffness_matrix->end(tangent_size,
+  Array<Real>::matrix_iterator D_end = tangent_stiffness_matrix->end(tangent_size,
 									      tangent_size);
 
 
@@ -777,7 +777,7 @@ void Material::assembleResidual(GhostType ghost_type){
     FEM::filterElementalData(mesh, shapes_derivatives, *shapesd_filtered,
 			     *it, ghost_type, elem_filter);
 
-    Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it = shapesd_filtered->begin(dim,
+    Array<Real>::matrix_iterator shapes_derivatives_filtered_it = shapesd_filtered->begin(dim,
 												   nb_nodes_per_element);
 
     //Set stress vectors
@@ -791,15 +791,15 @@ void Material::assembleResidual(GhostType ghost_type){
 					   bt_s_size,
 					   "B^t*S");
 
-    Array<Real>::iterator< Matrix<Real> > grad_u_it = this->strain(*it, ghost_type).begin(dim, dim);
+    Array<Real>::matrix_iterator grad_u_it = this->strain(*it, ghost_type).begin(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > grad_u_end = this->strain(*it, ghost_type).end(dim, dim);
+    Array<Real>::matrix_iterator grad_u_end = this->strain(*it, ghost_type).end(dim, dim);
 
-    Array<Real>::iterator< Matrix<Real> > stress_it = this->piola_kirchhoff_stress(*it, ghost_type).begin(dim, dim);
+    Array<Real>::matrix_iterator stress_it = this->piola_kirchhoff_stress(*it, ghost_type).begin(dim, dim);
 
     shapes_derivatives_filtered_it = shapesd_filtered->begin(dim, nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > bt_s_it = bt_s->begin(bt_s_size, 1);
+    Array<Real>::matrix_iterator bt_s_it = bt_s->begin(bt_s_size, 1);
 
     Matrix<Real> S_vect(stress_size, 1);
     Matrix<Real> B_tensor(stress_size, bt_s_size);
@@ -867,7 +867,7 @@ void Material::computeAllStressesFromTangentModuli(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 void Material::computeAllStressesFromTangentModuli(const ElementType & type,
-                                                   GhostType ghost_type) {
+						   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type, ghost_type);
@@ -884,7 +884,7 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   Array<Real> & disp = model->getDisplacement();
 
   model->getFEM().gradientOnQuadraturePoints(disp, strain_vect,
-                                             dim, type, ghost_type, elem_filter);
+					     dim, type, ghost_type, elem_filter);
 
   UInt tangent_moduli_size = getTangentStiffnessVoigtSize(dim);
 
@@ -904,17 +904,17 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
   Array<Real> filtered_u(nb_element, nb_nodes_per_element * spatial_dimension);
 
   FEM::extractNodalToElementField(model->getFEM().getMesh(), disp, filtered_u,
-                                  type, ghost_type, elem_filter);
+				  type, ghost_type, elem_filter);
 
   /// compute @f$\mathbf{D} \mathbf{B} \mathbf{u}@f$
-  Array<Real>::iterator< Matrix<Real> > shapes_derivatives_filtered_it =
+  Array<Real>::matrix_iterator shapes_derivatives_filtered_it =
     shapesd_filtered->begin(dim, nb_nodes_per_element);
 
-  Array<Real>::iterator< Matrix<Real> > D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
-									      tangent_moduli_size);
-  Array<Real>::iterator< Matrix<Real> > sigma_it  = stress(type, ghost_type).begin(spatial_dimension,
-										   spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > u_it = filtered_u.begin(spatial_dimension * nb_nodes_per_element);
+  Array<Real>::matrix_iterator D_it  = tangent_moduli_tensors->begin(tangent_moduli_size,
+								     tangent_moduli_size);
+  Array<Real>::matrix_iterator sigma_it  = stress(type, ghost_type).begin(spatial_dimension,
+									  spatial_dimension);
+  Array<Real>::vector_iterator u_it = filtered_u.begin(spatial_dimension * nb_nodes_per_element);
 
   Matrix<Real> B(tangent_moduli_size, spatial_dimension * nb_nodes_per_element);
   Vector<Real> Bu(tangent_moduli_size);
@@ -934,11 +934,11 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
       // Voigt notation to full symmetric tensor
       for (UInt i = 0; i < dim; ++i) sigma(i, i) = DBu(i);
       if(dim == 2) {
-        sigma(0,1) = sigma(1,0) = DBu(2);
+	sigma(0,1) = sigma(1,0) = DBu(2);
       } else if(dim == 3) {
-        sigma(1,2) = sigma(2,1) = DBu(3);
-        sigma(0,2) = sigma(2,0) = DBu(4);
-        sigma(0,1) = sigma(1,0) = DBu(5);
+	sigma(1,2) = sigma(2,1) = DBu(3);
+	sigma(0,2) = sigma(2,0) = DBu(4);
+	sigma(0,1) = sigma(1,0) = DBu(5);
       }
     }
   }
@@ -947,26 +947,8 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
 }
 
 
-
 /* -------------------------------------------------------------------------- */
-void Material::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  if(ghost_type != _not_ghost) return;
-  Real * epot = potential_energy(el_type, ghost_type).storage();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-  epot++;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void Material::computePotentialEnergyByElement() {
+void Material::computePotentialEnergyByElements() {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = model->getFEM().getMesh();
@@ -979,7 +961,7 @@ void Material::computePotentialEnergyByElement() {
       UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(*it, _not_ghost);
 
       potential_energy.alloc(nb_element * nb_quadrature_points, 1,
-                             *it, _not_ghost);
+			     *it, _not_ghost);
     }
 
     computePotentialEnergy(*it);
@@ -987,41 +969,13 @@ void Material::computePotentialEnergyByElement() {
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
-void Material::computePotentialEnergyByElement(ElementType type, UInt index,
-                                               Vector<Real> & epot_on_quad_points){
-
-  Array<Real>::iterator< Matrix<Real> > strain_it =
-    this->strain(type).begin(spatial_dimension,
-                             spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > strain_end =
-    this->strain(type).begin(spatial_dimension,
-                             spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > stress_it =
-    this->stress(type).begin(spatial_dimension,
-                             spatial_dimension);
-
-  UInt nb_quadrature_points = model->getFEM().getNbQuadraturePoints(type);
-
-  strain_it  += index*nb_quadrature_points;
-  strain_end += (index+1)*nb_quadrature_points;
-  stress_it  += index*nb_quadrature_points;
-
-  Real * epot_quad = epot_on_quad_points.storage();
-
-  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++epot_quad) {
-    Matrix<Real> & grad_u = *strain_it;
-    Matrix<Real> & sigma  = *stress_it;
-    computePotentialEnergyOnQuad(grad_u, sigma, *epot_quad);
-  }
-}
 
 /* -------------------------------------------------------------------------- */
 Real Material::getPotentialEnergy() {
   AKANTU_DEBUG_IN();
   Real epot = 0.;
 
-  computePotentialEnergyByElement();
+  computePotentialEnergyByElements();
 
   /// integrate the potential energy for each type of elements
   Mesh & mesh = model->getFEM().getMesh();
@@ -1030,7 +984,7 @@ Real Material::getPotentialEnergy() {
   for(; it != last_type; ++it) {
 
     epot += model->getFEM().integrate(potential_energy(*it, _not_ghost), *it,
-                                      _not_ghost, element_filter(*it, _not_ghost));
+				      _not_ghost, element_filter(*it, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -1044,7 +998,7 @@ Real Material::getPotentialEnergy(ElementType & type, UInt index) {
 
   Vector<Real> epot_on_quad_points(model->getFEM().getNbQuadraturePoints(type));
 
-  computePotentialEnergyByElement(type,index,epot_on_quad_points);
+  computePotentialEnergyByElement(type, index, epot_on_quad_points);
 
   epot = model->getFEM().integrate(epot_on_quad_points, type, element_filter(type)(index));
 
@@ -1069,7 +1023,8 @@ Real Material::getEnergy(std::string energy_id, ElementType type, UInt index) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates, const GhostType & ghost_type) const {
+void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates,
+						  const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   const Mesh & mesh = model->getFEM().getMesh();
@@ -1089,8 +1044,8 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
     quads.resize(nb_tot_quad);
 
     model->getFEM().interpolateOnQuadraturePoints(nodes_coordinates,
-                                                  quads, spatial_dimension,
-                                                  *it, ghost_type, elem_filter);
+						  quads, spatial_dimension,
+						  *it, ghost_type, elem_filter);
   }
 
   AKANTU_DEBUG_OUT();
@@ -1167,20 +1122,20 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
   Matrix<Real> quad_coord_matrix(size_inverse_coords, size_inverse_coords);
 
-  Array<Real>::const_iterator< Matrix<Real> > quad_coords_it =
+  Array<Real>::const_matrix_iterator quad_coords_it =
     quad_coordinates.begin_reinterpret(spatial_dimension,
                                        nb_quad_per_element,
                                        nb_element);
 
-  Array<Real>::const_iterator< Matrix<Real> > points_coords_begin =
+  Array<Real>::const_matrix_iterator points_coords_begin =
     interpolation_points_coordinates.begin_reinterpret(spatial_dimension,
                                                        nb_interpolation_points_per_elem,
                                                        interpolation_points_coordinates.getSize() / nb_interpolation_points_per_elem);
 
-  Array<Real>::iterator< Matrix<Real> > inv_quad_coord_it =
+  Array<Real>::matrix_iterator inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
 
-  Array<Real>::iterator< Matrix<Real> > inv_points_mat_it =
+  Array<Real>::matrix_iterator inv_points_mat_it =
     interp_points_mat.begin(nb_interpolation_points_per_elem, size_inverse_coords);
 
   /// loop over the elements of the current material and element type
@@ -1193,7 +1148,7 @@ void Material::initElementalFieldInterpolation(const Array<Real> & quad_coordina
 
     /// insert the quad coordinates in a matrix compatible with the interpolation
     buildElementalFieldInterpolationCoodinates<type>(quad_coords,
-                                                     quad_coord_matrix);
+						     quad_coord_matrix);
 
     /// invert the interpolation matrix
     inv_quad_coord_matrix.inverse(quad_coord_matrix);
@@ -1244,8 +1199,8 @@ void Material::interpolateStress(ByElementTypeReal & result,
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void Material::interpolateElementalField(const Array<Real> & field,
-                                         Array<Real> & result,
-                                         const GhostType ghost_type) {
+					 Array<Real> & result,
+					 const GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<UInt> & elem_fil = element_filter(type, ghost_type);
@@ -1262,20 +1217,20 @@ void Material::interpolateElementalField(const Array<Real> & field,
 
   UInt nb_interpolation_points_per_elem = interp_points_coord.getNbComponent() / size_inverse_coords;
 
-  Array<Real>::const_iterator< Matrix<Real> > field_it
+  Array<Real>::const_matrix_iterator field_it
     = field.begin_reinterpret(field.getNbComponent(),
                               nb_quad_per_element,
                               nb_element);
 
-  Array<Real>::const_iterator< Matrix<Real> > interpolation_points_coordinates_it =
+  Array<Real>::const_matrix_iterator interpolation_points_coordinates_it =
     interp_points_coord.begin(nb_interpolation_points_per_elem, size_inverse_coords);
 
-  Array<Real>::iterator< Matrix<Real> > result_begin
+  Array<Real>::matrix_iterator result_begin
     = result.begin_reinterpret(field.getNbComponent(),
                                nb_interpolation_points_per_elem,
                                result.getSize() / nb_interpolation_points_per_elem);
 
-  Array<Real>::const_iterator< Matrix<Real> > inv_quad_coord_it =
+  Array<Real>::const_matrix_iterator inv_quad_coord_it =
     interp_inv_coord.begin(size_inverse_coords, size_inverse_coords);
 
   /// loop over the elements of the current material and element type
@@ -1544,6 +1499,5 @@ void Material::printself(std::ostream & stream, int indent) const {
   Parsable::printself(stream, indent);
   stream << space << "]" << std::endl;
 }
-
 
 __END_AKANTU__

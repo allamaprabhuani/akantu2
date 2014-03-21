@@ -129,7 +129,8 @@ inline const Matrix<Real> & IntegratorGauss<kind>::getQuadraturePoints(const Gho
 template <ElementKind kind>
 template <ElementType type>
 inline void IntegratorGauss<kind>::computeQuadraturePoints(const GhostType & ghost_type) {
-  quadrature_points(type, ghost_type) = GaussIntegrationElement<type>::getQuadraturePoints();
+  Matrix<Real> & quads = quadrature_points(type, ghost_type);
+  quads = GaussIntegrationElement<type>::getQuadraturePoints();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -206,7 +207,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
     jacobians_tmp->resize(nb_element*nb_quadrature_points);
   }
 
-  Array<Real>::iterator< Vector<Real> > jacobians_it =
+  Array<Real>::vector_iterator jacobians_it =
     jacobians_tmp->begin_reinterpret(nb_quadrature_points, nb_element);
 
   Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
@@ -214,7 +215,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
-  Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+  Array<Real>::const_matrix_iterator x_it = x_el.begin(spatial_dimension,
 		    nb_nodes_per_element);
 
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
@@ -233,7 +234,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
                                 nb_element, nb_quadrature_points](const Element & el)->std::string {
                                  std::stringstream out;
                                  if(el.ghost_type == ghost_type) {
-                                   Array<Real>::iterator< Vector<Real> > jacobians_it =
+                                   Array<Real>::vector_iterator jacobians_it =
                                      jacobians(el.type, el.ghost_type).begin(nb_quadrature_points);
                                    out << " jacobian: " << jacobians_it[el.element];
                                  }
@@ -272,7 +273,7 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
     jacobians_tmp->resize(nb_element*nb_quadrature_points);
   }
 
-  Array<Real>::iterator< Vector<Real> > jacobians_it =
+  Array<Real>::vector_iterator jacobians_it =
     jacobians_tmp->begin_reinterpret(nb_quadrature_points, nb_element);
 
   Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
@@ -280,7 +281,7 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
   FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
-  Array<Real>::const_iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+  Array<Real>::const_matrix_iterator x_it = x_el.begin(spatial_dimension,
 								nb_nodes_per_element);
 
   UInt nb_nodes_per_subelement = nb_nodes_per_element / 2;
@@ -325,9 +326,9 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 
   const Array<Real> & jac_loc = jacobians(type, ghost_type);
 
-  Array<Real>::const_iterator< Matrix<Real> > J_it;
-  Array<Real>::iterator< Matrix<Real> > inte_it;
-  Array<Real>::const_iterator< Matrix<Real> > f_it;
+  Array<Real>::const_matrix_iterator J_it;
+  Array<Real>::matrix_iterator inte_it;
+  Array<Real>::const_matrix_iterator f_it;
 
   UInt nb_element;
   Array<Real> * filtered_J = NULL;
@@ -421,9 +422,9 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f
 
   const Array<Real> & jac_loc = jacobians(type, ghost_type);
 
-  Array<Real>::const_iterator< Real > J_it;
-  Array<Real>::iterator< Vector<Real> > inte_it;
-  Array<Real>::const_iterator< Vector<Real> > f_it;
+  Array<Real>::const_scalar_iterator J_it;
+  Array<Real>::vector_iterator inte_it;
+  Array<Real>::const_vector_iterator f_it;
 
   Array<Real> * filtered_J = NULL;
   if(filter_elements != empty_filter) {

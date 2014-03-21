@@ -59,8 +59,8 @@ void Element::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension,
-           const ID id,
-           const MemoryID & memory_id) :
+	   const ID & id,
+	   const MemoryID & memory_id) :
   Memory(id, memory_id),
   GroupManager(*this, id + ":group_manager", memory_id),
   nodes_global_ids(NULL), nodes_type(0, 1, id + ":nodes_type"),

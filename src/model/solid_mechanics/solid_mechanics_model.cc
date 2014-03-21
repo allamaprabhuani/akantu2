@@ -38,6 +38,8 @@
 #include "static_communicator.hh"
 
 #include "dof_synchronizer.hh"
+#include "element_group.hh"
+
 #include <cmath>
 
 #ifdef AKANTU_USE_MUMPS
@@ -128,6 +130,7 @@ SolidMechanicsModel::~SolidMechanicsModel() {
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
     delete *mat_it;
   }
+
   materials.clear();
 
   delete integrator;
@@ -1243,7 +1246,7 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
     FEM::extractNodalToElementField(mesh, *current_position,
                                     X, *it, _not_ghost);
 
-    Array<Real>::iterator< Matrix<Real> > X_el =
+    Array<Real>::matrix_iterator X_el =
     X.begin(spatial_dimension, nb_nodes_per_element);
 
     for (UInt el = 0; el < nb_element; ++el, ++X_el, ++eibm) {
@@ -1327,8 +1330,8 @@ Real SolidMechanicsModel::getKineticEnergy(const ElementType & type, UInt index)
                                          type, _not_ghost,
                                          filter_element);
 
-  Array<Real>::iterator< Vector<Real> > vit   = vel_on_quad.begin(spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > vend  = vel_on_quad.end(spatial_dimension);
+  Array<Real>::vector_iterator vit   = vel_on_quad.begin(spatial_dimension);
+  Array<Real>::vector_iterator vend  = vel_on_quad.end(spatial_dimension);
 
   Vector<Real> rho_v2(nb_quadrature_points);
 

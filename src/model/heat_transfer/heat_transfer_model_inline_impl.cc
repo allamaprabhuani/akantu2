@@ -266,7 +266,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
     //     UInt offset_conn = conn[el_offset + n];
     //     temperatures_str << (*temperature)(offset_conn) << " ";
     //   }
-    //   Array<Real>::iterator< Matrix<Real> > it_shaped =
+    //   Array<Real>::matrix_iterator it_shaped =
     //     const_cast<Array<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
     //     .begin(nb_nodes_per_element,spatial_dimension);
 

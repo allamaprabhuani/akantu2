@@ -81,10 +81,10 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
   Matrix<Real> Bt_D(bt_d_b_size, tangent_size);
   Matrix<Real> BT(tangent_size, bt_d_b_size);
 
-  Array<Real>::iterator< Matrix<Real> > B = b->begin(tangent_size, bt_d_b_size);
-  Array<Real>::iterator< Matrix<Real> > D = tangent_moduli->begin(tangent_size, tangent_size);
-  Array<Real>::iterator< Matrix<Real> > Bt_D_B = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
-  Array<Real>::iterator< Matrix<Real> > T = rotation_matrix(type).begin(bt_d_b_size, bt_d_b_size);
+  Array<Real>::matrix_iterator B = b->begin(tangent_size, bt_d_b_size);
+  Array<Real>::matrix_iterator D = tangent_moduli->begin(tangent_size, tangent_size);
+  Array<Real>::matrix_iterator Bt_D_B = bt_d_b->begin(bt_d_b_size, bt_d_b_size);
+  Array<Real>::matrix_iterator T = rotation_matrix(type).begin(bt_d_b_size, bt_d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e, ++T) {
     for (UInt q = 0; q < nb_quadrature_points; ++q, ++B, ++D, ++Bt_D_B) {
@@ -164,9 +164,9 @@ void StructuralMechanicsModel::computeStressOnQuad() {
 
   transferBMatrixToSymVoigtBMatrix<type>(*b);
 
-  Array<Real>::iterator< Matrix<Real> > B = b->begin(tangent_size, d_b_size);
-  Array<Real>::iterator< Matrix<Real> > D = tangent_moduli->begin(tangent_size, tangent_size);
-  Array<Real>::iterator< Matrix<Real> > D_B = d_b->begin(tangent_size, d_b_size);
+  Array<Real>::matrix_iterator B = b->begin(tangent_size, d_b_size);
+  Array<Real>::matrix_iterator D = tangent_moduli->begin(tangent_size, tangent_size);
+  Array<Real>::matrix_iterator D_B = d_b->begin(tangent_size, d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e) {
     for (UInt q = 0; q < nb_quadrature_points; ++q, ++B, ++D, ++D_B) {
@@ -185,8 +185,8 @@ void StructuralMechanicsModel::computeStressOnQuad() {
   Array<Real> u_el(0, d_b_size);
   FEM::extractNodalToElementField(mesh, *displacement_rotation, u_el, type);
 
-  Array<Real>::iterator< Vector<Real> > ug = u_el.begin(d_b_size);
-  Array<Real>::iterator< Matrix<Real> > T = rotation_matrix(type).begin(d_b_size, d_b_size);
+  Array<Real>::vector_iterator ug = u_el.begin(d_b_size);
+  Array<Real>::matrix_iterator T = rotation_matrix(type).begin(d_b_size, d_b_size);
 
   for (UInt e = 0; e < nb_element; ++e, ++T, ++ug) {
     ul.mul<false>(*T, *ug);
@@ -227,11 +227,11 @@ void StructuralMechanicsModel::computeForcesByLocalTractionArray(const Array<Rea
   Array<Real> Nvoigt(nb_element * nb_quad, nb_degree_of_freedom * nb_degree_of_freedom * nb_nodes_per_element);
   transferNMatrixToSymVoigtNMatrix<type>(Nvoigt);
 
-  Array<Real>::const_iterator< Matrix<Real> > N_it = Nvoigt.begin(nb_degree_of_freedom,
+  Array<Real>::const_matrix_iterator N_it = Nvoigt.begin(nb_degree_of_freedom,
 								   nb_degree_of_freedom * nb_nodes_per_element);
-  Array<Real>::const_iterator< Matrix<Real> > T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
+  Array<Real>::const_matrix_iterator T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
 										  nb_degree_of_freedom * nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > te_it = tractions.begin(nb_degree_of_freedom);
+  Array<Real>::const_vector_iterator te_it = tractions.begin(nb_degree_of_freedom);
 
   Array<Real> funct(nb_element * nb_quad, nb_degree_of_freedom * nb_nodes_per_element, 0.);
   Array<Real>::iterator< Vector<Real> > Fe_it = funct.begin(nb_degree_of_freedom * nb_nodes_per_element);
@@ -279,7 +279,7 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(const Array<Re
   name << id << ":structuralmechanics:imposed_linear_load";
   Array<Real> traction_local(nb_element*nb_quad, nb_degree_of_freedom, name.str());
 
-  Array<Real>::const_iterator< Matrix<Real> > T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
+  Array<Real>::const_matrix_iterator T_it = rotation_matrix(type).begin(nb_degree_of_freedom * nb_nodes_per_element,
 										  nb_degree_of_freedom * nb_nodes_per_element);
 
   Array<Real>::const_iterator< Vector<Real> > Te_it = traction_global.begin(nb_degree_of_freedom);

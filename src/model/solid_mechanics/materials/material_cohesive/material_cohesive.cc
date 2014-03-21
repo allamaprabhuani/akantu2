@@ -319,14 +319,14 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     Array<Real>::iterator<Vector<Real> > shapes_filt_it =
       shapes_filtered->begin(size_of_shapes);
 
-    Array<Real>::iterator< Matrix<Real> > D_it =
+    Array<Real>::matrix_iterator D_it =
       tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
 
-    Array<Real>::iterator< Matrix<Real> > At_Nt_D_N_A_it =
+    Array<Real>::matrix_iterator At_Nt_D_N_A_it =
       at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
 			 spatial_dimension * nb_nodes_per_element);
 
-    Array<Real>::iterator< Matrix<Real> > At_Nt_D_N_A_end =
+    Array<Real>::matrix_iterator At_Nt_D_N_A_end =
       at_nt_d_n_a->end(spatial_dimension * nb_nodes_per_element,
 		       spatial_dimension * nb_nodes_per_element);
 
@@ -488,16 +488,16 @@ void MaterialCohesive::computeEnergies() {
       reversible_energy(*it, _not_ghost).begin();
     Array<Real>::iterator<Real> etot =
       total_energy(*it, _not_ghost).begin();
-    Array<Real>::iterator< Vector<Real> > traction_it =
+    Array<Real>::vector_iterator traction_it =
       tractions(*it, _not_ghost).begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > traction_old_it =
+    Array<Real>::vector_iterator traction_old_it =
       tractions_old(*it, _not_ghost).begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > opening_it =
+    Array<Real>::vector_iterator opening_it =
       opening(*it, _not_ghost).begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > opening_old_it =
+    Array<Real>::vector_iterator opening_old_it =
       opening_old(*it, _not_ghost).begin(spatial_dimension);
 
-    Array<Real>::iterator< Vector<Real> >traction_end =
+    Array<Real>::vector_iterator traction_end =
       tractions(*it, _not_ghost).end(spatial_dimension);
 
     /// loop on each quadrature point
@@ -594,9 +594,9 @@ Real MaterialCohesive::getContactEnergy() {
     UInt nb_quad_points = el_filter.getSize() * nb_quad_per_el;
     Array<Real> contact_energy(nb_quad_points);
 
-    Array<Real>::iterator< Vector<Real> > contact_traction_it =
+    Array<Real>::vector_iterator contact_traction_it =
       contact_tractions(*it, _not_ghost).begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > contact_opening_it =
+    Array<Real>::vector_iterator contact_opening_it =
       contact_opening(*it, _not_ghost).begin(spatial_dimension);
 
     /// loop on each quadrature point

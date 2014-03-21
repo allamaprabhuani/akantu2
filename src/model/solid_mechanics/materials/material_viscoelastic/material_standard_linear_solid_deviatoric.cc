@@ -83,8 +83,8 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::setToSteadyState(
   Array<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
   /// Loop on all quadrature points
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
@@ -122,8 +122,8 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Array<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
   Matrix<Real> s(spatial_dimension, spatial_dimension);
 
@@ -147,7 +147,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::computeStress(Ele
   Real gamma_inf = E_inf / this->E;
   Real gamma_v   = Ev    / this->E;
 
-  this->gradUToEpsilon(grad_u, epsilon_d);
+  this->template gradUToEpsilon<spatial_dimension>(grad_u, epsilon_d);
   Real Theta = epsilon_d.trace();
   epsilon_v.eye(1./3. * Theta);
   epsilon_d -= epsilon_v;
@@ -190,8 +190,8 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::updateDissipatedE
   Array<Real> & stress_dev_vect  = stress_dev(el_type, ghost_type);
   Array<Real> & history_int_vect = history_integral(el_type, ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator stress_d = stress_dev_vect.begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator history_int = history_int_vect.begin(spatial_dimension, spatial_dimension);
 
   Matrix<Real> q(spatial_dimension, spatial_dimension);
   Matrix<Real> q_rate(spatial_dimension, spatial_dimension);
@@ -210,7 +210,7 @@ void MaterialStandardLinearSolidDeviatoric<spatial_dimension>::updateDissipatedE
   Matrix<Real> & h = *history_int;
 
   /// Compute the first invariant of strain
-  this->gradUToEpsilon(grad_u, epsilon_d);
+  this->template gradUToEpsilon<spatial_dimension>(grad_u, epsilon_d);
 
   Real Theta = epsilon_d.trace();
   epsilon_v.eye(1./3. * Theta);
@@ -267,7 +267,7 @@ Real MaterialStandardLinearSolidDeviatoric<spatial_dimension>::getDissipatedEner
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(type);
-  Array<Real>::const_iterator< Vector<Real> > it = this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
+  Array<Real>::const_vector_iterator it = this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
   UInt gindex = (this->element_filter(type, _not_ghost))(index);
 
   AKANTU_DEBUG_OUT();

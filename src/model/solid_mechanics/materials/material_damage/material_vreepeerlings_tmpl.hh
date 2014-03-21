@@ -93,7 +93,7 @@ void MaterialVreePeerlings<spatial_dimension, MatParent>::computeStress(ElementT
 						   spatial_dimension,
 						   el_type, ghost_type, elem_filter);
 
-  Array<Real>::iterator< Matrix<Real> > strain_rate_vrplgs_it =
+  Array<Real>::matrix_iterator strain_rate_vrplgs_it =
         strain_rate_vrplgs.begin(spatial_dimension, spatial_dimension);
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);

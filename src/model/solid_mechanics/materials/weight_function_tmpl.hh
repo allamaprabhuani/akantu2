@@ -86,13 +86,13 @@ void StressBasedWeightFunction<spatial_dimension>::updatePrincipalStress(GhostTy
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
-    Array<Real>::const_iterator< Matrix<Real> > sigma =
+    Array<Real>::const_matrix_iterator sigma =
       this->material.getStress(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > eigenvalues =
+    Array<Real>::vector_iterator eigenvalues =
       stress_diag(*it, ghost_type).begin(spatial_dimension);
-    Array<Real>::iterator< Vector<Real> > eigenvalues_end =
+    Array<Real>::vector_iterator eigenvalues_end =
       stress_diag(*it, ghost_type).end(spatial_dimension);
-    Array<Real>::iterator< Matrix<Real> > eigenvector =
+    Array<Real>::matrix_iterator eigenvector =
       stress_base(*it, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 #ifndef __trick__
@@ -232,7 +232,7 @@ inline Real StressBasedWeightFunction<3>::computeRhoSquare(Real r,
   }
 
   Real cos_p = u3.dot(x_s) / r;
-  
+
   Real cos_t_2;
   Real sin_t_2;
   Real cos_p_2;

@@ -134,5 +134,20 @@ void ElementGroup::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
+/* -------------------------------------------------------------------------- */
+void ElementGroup::optimize() {
+  // increasing the locality of data when iterating on the element of a group
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
+    GhostType ghost_type = *gt;
+    ElementList::type_iterator it = elements.firstType(_all_dimensions, ghost_type);
+    ElementList::type_iterator last = elements.lastType(_all_dimensions, ghost_type);
+    for (; it != last; ++it) {
+      Array<UInt> & els = elements(*it, ghost_type);
+      std::sort(els.begin(), els.end());
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 __END_AKANTU__
 

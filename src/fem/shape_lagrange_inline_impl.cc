@@ -182,7 +182,7 @@ void ShapeLagrange<kind>::precomputeShapesOnControlPoints(__attribute__((unused)
 					   itp_type,
 					   ghost_type);
 
-  Array<Real>::iterator< Matrix<Real> > shapes_it =
+  Array<Real>::matrix_iterator shapes_it =
     shapes_tmp.begin_reinterpret(ElementClass<type>::getNbNodesPerInterpolationElement(), nb_points,
 				 nb_element);
 
@@ -222,7 +222,7 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Array<
 				  type, ghost_type);
 
   Real * shapesd_val = shapes_derivatives_tmp.storage();
-  Array<Real>::iterator< Matrix<Real> > x_it = x_el.begin(spatial_dimension,
+  Array<Real>::matrix_iterator x_it = x_el.begin(spatial_dimension,
 								  nb_nodes_per_element);
 
   for (UInt elem = 0; elem < nb_element; ++elem, ++x_it) {

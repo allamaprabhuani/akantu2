@@ -140,10 +140,10 @@ void Parsable::parseParam(const ParserParameter & in_param) {
   if(it == params.end()) {
     if(Parser::parser_permissive) {
       AKANTU_DEBUG_WARNING("No parameter named " << in_param.getName()
-			   << " registered in " << id << ".");
+			   << " registered in " << pid << ".");
       return;
     } else AKANTU_EXCEPTION("No parameter named " << in_param.getName()
-			  << " registered in " << id << ".");
+			  << " registered in " << pid << ".");
   }
   ParsableParam & param = *(it->second);
   param.parseParam(in_param);
@@ -152,7 +152,7 @@ void Parsable::parseParam(const ParserParameter & in_param) {
 /* -------------------------------------------------------------------------- */
 void Parsable::parseSection(const ParserSection & section) {
   if(section_type != section.getType())
-    AKANTU_EXCEPTION("The object " << id
+    AKANTU_EXCEPTION("The object " << pid
                      << " is meant to parse section of type " << section_type
                      << ", so it cannot parse section of type " << section.getType());
 
@@ -178,9 +178,9 @@ void Parsable::parseSubSection(const ParserSection & section) {
     it->second->parseSection(section);
   } else if(!Parser::parser_permissive) {
       AKANTU_EXCEPTION("No parsable defined for sub sections of type <"
-		       << key.first << "," << key.second << "> in " << id);
+		       << key.first << "," << key.second << "> in " << pid);
   } else AKANTU_DEBUG_WARNING("No parsable defined for sub sections of type <"
-			      << key.first << "," << key.second << "> in " << id);
+			      << key.first << "," << key.second << "> in " << pid);
 
 }
 

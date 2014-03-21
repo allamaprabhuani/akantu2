@@ -40,12 +40,19 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A multipurpose finite element library, Ak
 set(CPACK_PACKAGE_NAME "akantu")
 
 # Debian config package
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "guillaume.anciaux@epfl.ch, nicolas.richart@epfl.ch")
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64" CACHE STRING "Architecture of debian package generation")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "nicolas.richart@epfl.ch, guillaume.anciaux@epfl.ch")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "i.86" OR CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64" CACHE STRING "Architecture of debian package generation")
+  else()
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
+  endif()
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc")
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "powerpc" CACHE STRING "Architecture of debian package generation")
 else()
-  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386" CACHE STRING "Architecture of debian package generation")
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "unknown" CACHE STRING "Architecture of debian package generation")
 endif()
+
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${${_project}_PACKAGE_SYSTEM_DEBIAN_PACKAGE_DEPENDS}")
 mark_as_advanced(CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
 # RPM package configuration

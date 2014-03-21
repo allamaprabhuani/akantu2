@@ -426,10 +426,10 @@ inline UInt Mesh::getNbFacetsPerElement(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Matrix<UInt> Mesh::getFacetLocalConnectivity(const ElementType & type) {
+inline MatrixProxy<UInt> Mesh::getFacetLocalConnectivity(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  Matrix<UInt> mat;
+  MatrixProxy<UInt> mat;
 
 #define GET_FACET_CON(type)						\
   mat = ElementClass<type>::getFacetLocalConnectivityPerElement()
@@ -447,7 +447,7 @@ inline Matrix<UInt> Mesh::getFacetConnectivity(UInt element,
 					       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  Matrix<UInt> local_facets = getFacetLocalConnectivity(type);
+  Matrix<UInt> local_facets(getFacetLocalConnectivity(type), false);
   Matrix<UInt> facets(local_facets.rows(), local_facets.cols());
 
   const Array<UInt> & conn = connectivities(type, ghost_type);

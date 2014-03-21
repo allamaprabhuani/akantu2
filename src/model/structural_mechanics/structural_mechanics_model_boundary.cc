@@ -39,15 +39,15 @@ void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_
   MyFEMType & fem = getFEMClass<MyFEMType>();
   UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(_bernoulli_beam_2);
 
-  Array<Real>::const_iterator< Vector<Real> > shape_N0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_M0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_L0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Mp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 3).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Lp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 4).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_N0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_M0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_L0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Mp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 3).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Lp = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 4).begin(nb_nodes_per_element);
 
   N_matrix.clear();
-  Array<Real>::iterator< Matrix<Real> > N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
-  Array<Real>::iterator< Matrix<Real> > N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::matrix_iterator N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::matrix_iterator N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
 
   for (;N_it != N_end; ++N_it, ++shape_N0, ++shape_M0, ++shape_L0, ++shape_Mp, ++shape_Lp) {
     Matrix<Real> & N = *N_it;
@@ -84,15 +84,15 @@ void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_
   MyFEMType & fem = getFEMClass<MyFEMType>();
   UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(type);
 
-  Array<Real>::const_iterator< Vector<Real> > shape_N0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 0).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_M0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 1).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_L0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 2).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Mp = fem.getShapeFunctions().getShapes(type, _not_ghost, 3).begin(nb_nodes_per_element);
-  Array<Real>::const_iterator< Vector<Real> > shape_Lp = fem.getShapeFunctions().getShapes(type, _not_ghost, 4).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_N0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_M0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_L0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Mp = fem.getShapeFunctions().getShapes(type, _not_ghost, 3).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Lp = fem.getShapeFunctions().getShapes(type, _not_ghost, 4).begin(nb_nodes_per_element);
 
   N_matrix.clear();
-  Array<Real>::iterator< Matrix<Real> > N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
-  Array<Real>::iterator< Matrix<Real> > N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::matrix_iterator N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::matrix_iterator N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
 
   for (; N_it != N_end; ++N_it, ++shape_N0, ++shape_M0, ++shape_L0, ++shape_Mp, ++shape_Lp) {
     Matrix<Real> & N = *N_it;

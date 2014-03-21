@@ -31,6 +31,9 @@
 set(AKANTU_CORE ON CACHE INTERNAL "core package for Akantu" FORCE)
 
 set(AKANTU_CORE_FILES
+  common/aka_array.cc
+  common/aka_array.hh
+  common/aka_array_tmpl.hh
   common/aka_blas_lapack.hh
   common/aka_circular_vector.hh
   common/aka_circular_vector_inline_impl.cc
@@ -60,9 +63,6 @@ set(AKANTU_CORE_FILES
   common/aka_static_memory_tmpl.hh
   common/aka_typelist.hh
   common/aka_types.hh
-  common/aka_vector.cc
-  common/aka_vector.hh
-  common/aka_vector_tmpl.hh
   common/aka_visitor.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper.cc

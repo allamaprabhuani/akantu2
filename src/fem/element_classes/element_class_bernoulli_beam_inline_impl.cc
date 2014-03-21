@@ -119,7 +119,10 @@ InterpolationElement<_itp_bernoulli_beam>::computeShapes(const Vector<Real> & na
 							 const Matrix<Real> & real_coord,
 							 UInt id) {
   /// Compute the dimension of the beam
-  Real a = .5 * real_coord(0).distance(real_coord(1));
+  Vector<Real> x1 = real_coord(0);
+  Vector<Real> x2 = real_coord(1);
+
+  Real a = .5 * x1.distance(x2);
   /// natural coordinate
   Real c = natural_coords(0);
 
@@ -160,7 +163,10 @@ InterpolationElement<_itp_bernoulli_beam>::computeDNDS(const Vector<Real> & natu
 						       const Matrix<Real> & real_nodes_coord,
 						       UInt id) {
   /// Compute the dimension of the beam
-  Real a = .5 * real_nodes_coord(0).distance(real_nodes_coord(1));
+  Vector<Real> x1 = real_nodes_coord(0);
+  Vector<Real> x2 = real_nodes_coord(1);
+
+  Real a = .5 * x1.distance(x2);
   /// natural coordinate
   Real c = natural_coords(0)*a;
 
@@ -190,7 +196,10 @@ inline void
 ElementClass<_bernoulli_beam_2>::computeJacobian(const Matrix<Real> & natural_coord,
 						 const Matrix<Real> & nodes_coords,
 						 Vector<Real> & jac){
-  Real a = 0.5 * nodes_coords(0).distance(nodes_coords(1));
+  Vector<Real> x1 = nodes_coords(0);
+  Vector<Real> x2 = nodes_coords(1);
+
+  Real a = .5 * x1.distance(x2);
   for (UInt i = 0; i < jac.size(); ++i) jac(i) = a;
 }
 
@@ -200,6 +209,9 @@ inline void
 ElementClass<_bernoulli_beam_3>::computeJacobian(const Matrix<Real> & natural_coord,
 						 const Matrix<Real> & nodes_coords,
 						 Vector<Real> & jac){
-  Real a = 0.5 * nodes_coords(0).distance(nodes_coords(1));
+  Vector<Real> x1 = nodes_coords(0);
+  Vector<Real> x2 = nodes_coords(1);
+
+  Real a = .5 * x1.distance(x2);
   for (UInt i = 0; i < jac.size(); ++i) jac(i) = a;
 }

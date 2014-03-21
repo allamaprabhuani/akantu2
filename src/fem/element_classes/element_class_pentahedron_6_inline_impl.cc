@@ -176,10 +176,15 @@ InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(const vector_type
 template<>
 inline Real
 GeometricalElement<_gt_pentahedron_6>::getInradius(const Matrix<Real> & coord) {
-  Real a = coord(0).distance(coord(1));
-  Real b = coord(1).distance(coord(2));
-  Real c = coord(2).distance(coord(3));
-  Real d = coord(3).distance(coord(0));
+  Vector<Real> u0 = coord(0);
+  Vector<Real> u1 = coord(1);
+  Vector<Real> u2 = coord(2);
+  Vector<Real> u3 = coord(3);
+
+  Real a = u0.distance(u1);
+  Real b = u1.distance(u2);
+  Real c = u2.distance(u3);
+  Real d = u3.distance(u0);
   Real s = (a+b+c)/2;
   Real A = std::sqrt(s*(s-a)*(s-b)*(s-c));
   Real ra = 2*s/A;

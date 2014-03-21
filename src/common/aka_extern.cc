@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_vector.hh"
+#include "aka_array.hh"
 #include "aka_math.hh"
 #include "aka_random_generator.hh"
 #include "parser.hh"
