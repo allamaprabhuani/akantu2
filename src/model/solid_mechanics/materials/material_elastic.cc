@@ -103,8 +103,6 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
 
     /// compute second Piola-Kirchhoff stress tensor
     computeStressOnQuad(E, sigma, *sigma_th_it);
-    /// convert it to its Cauchy stress tensor
-    this->template computeCauchyStressOnQuad<spatial_dimension>(F, sigma, sigma);
 
     ++sigma_th_it;
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
