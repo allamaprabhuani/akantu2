@@ -90,14 +90,10 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   } else {
 
-    /// deformation gradient
-    Matrix<Real> F(spatial_dimension, spatial_dimension);
     /// finite strains
     Matrix<Real> E(spatial_dimension, spatial_dimension);
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-    /// compute F
-    this->template gradUToF<spatial_dimension> (grad_u, F);
     /// compute E
     this->template gradUToGreenStrain<spatial_dimension>(grad_u, E);
 
