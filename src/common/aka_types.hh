@@ -65,14 +65,52 @@ enum NormType {
   L_inf = UInt(-1)
 };
 
+
+template<UInt dim>
+struct DimHelper {
+  static inline void setDims(UInt m, UInt n, UInt p, UInt dims[dim]);
+};
+
+template<>
+struct DimHelper<1> {
+  static inline void setDims(UInt m,
+			     __attribute__((unused)) UInt n,
+			     __attribute__((unused)) UInt p,
+			     UInt dims[1]) {
+    dims[0] = m;
+  }
+};
+
+template<>
+struct DimHelper<2> {
+  static inline void setDims(UInt m,
+			     UInt n,
+			     __attribute__((unused)) UInt p,
+			     UInt dims[2]) {
+    dims[0] = m;
+    dims[1] = n;
+  }
+};
+
+template<>
+struct DimHelper<3> {
+  static inline void setDims(UInt m,
+			     UInt n,
+			     UInt p,
+			     UInt dims[3]) {
+    dims[0] = m;
+    dims[1] = n;
+    dims[2] = p;
+  }
+};
+
+
 /* -------------------------------------------------------------------------- */
 template<typename T, UInt ndim>
 class TensorProxy {
 protected:
   TensorProxy(T * data, UInt m, UInt n, UInt p) {
-    this->n[0] = m;
-    if(ndim > 1) this->n[1] = n;
-    if(ndim > 2) this->n[2] = p;
+    DimHelper<ndim>::setDims(m, n, p, this->n);
     this->values = data;
   }
 
@@ -168,9 +206,7 @@ public:
 
 protected:
   TensorStorage(UInt m, UInt n, UInt p, const T & def) {
-    this->n[0] = m;
-    if(ndim > 1) this->n[1] = n;
-    if(ndim > 2) this->n[2] = p;
+    DimHelper<ndim>::setDims(m, n, p, this->n);
 
     this->computeSize();
     this->values = new T[this->_size];
@@ -179,9 +215,7 @@ protected:
   }
 
   TensorStorage(T * data, UInt m, UInt n, UInt p) {
-    this->n[0] = m;
-    if(ndim > 1) this->n[1] = n;
-    if(ndim > 2) this->n[2] = p;
+    DimHelper<ndim>::setDims(m, n, p, this->n);
 
     this->computeSize();
     this->values = data;
@@ -551,6 +585,17 @@ Matrix<T> operator-(const Matrix<T>& a, const Matrix<T>& b) {
   r -= b;
   return r;
 }
+
+/* ------------------------------------------------------------------------ */
+template<>
+inline bool Vector<UInt>::equal(const Vector<UInt> & v, __attribute__((unused)) Real tolerance) const {
+  UInt * a = this->storage();
+  UInt * b = v.storage();
+  UInt i = 0;
+  while (i < this->_size && (*(a++) == *(b++))) ++i;
+  return i == this->_size;
+}
+
 
 /* ------------------------------------------------------------------------ */
 /* Matrix                                                                   */
