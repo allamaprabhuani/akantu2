@@ -177,29 +177,29 @@ public:
   typedef const_iterator< Matrix<T> > const_matrix_iterator;
 
   /*! Get an iterator that behaves like a pointer T * to the
-   *  first entry in the member array values 
+   *  first entry in the member array values
    *  @return a scalar_iterator
    */
   inline iterator<T> begin();
   /*! Get an iterator that behaves like a pointer T * that points *past* the
-   *  last entry in the member array values 
+   *  last entry in the member array values
    *  @return a scalar_iterator
    */
   inline iterator<T> end();
   /*! Get a const iterator that behaves like a pointer T * to the
-   *  first entry in the member array values 
+   *  first entry in the member array values
    *  @return a const_scalar_iterator
    */
   inline const_iterator<T> begin() const;
   /*! Get a const iterator that behaves like a pointer T * that points *past* the
-   *  last entry in the member array values 
+   *  last entry in the member array values
    *  @return a const_scalar_iterator
    */
   inline const_iterator<T> end() const;
 
   /*! Get an iterator that behaves like a pointer akantu::Vector<T> * to the
    *  first tuple of the array.
-   *  @param n Vector size. Has to be equal to nb_component. This unfortunate
+   *  @param n vector size. Has to be equal to nb_component. This unfortunate
    *  redundancy is necessary to distinguish it from ::begin() which it
    *  overloads. If compiled in debug mode, an incorrect value of n will result
    *  in an exception being thrown. Optimized code will fail in an unpredicted
@@ -209,28 +209,132 @@ public:
   inline vector_iterator begin(UInt n);
   /*! Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
    *  *past* the last tuple of the array.
-   *  @param n Vector size. @see ::begin(Uint n)
+   *  @param n vector size. see Array::begin(UInt n) for more
    *  @return a vector_iterator
    */
   inline vector_iterator end(UInt n);
+  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * to the
+   *  first tuple of the array.
+   *  @param n vector size. see Array::begin(UInt n) for more
+   *  @return a vector_iterator
+   */
   inline const_vector_iterator begin(UInt n) const;
+  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param n vector size. see Array::begin(UInt n) for more
+   *  @return a const_vector_iterator
+   */
   inline const_vector_iterator end(UInt n) const;
 
+  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * to the
+   *  first tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns. m times n has to equal nb_component.
+   *  If compiled in debug mode, an incorrect combination of m and n will result
+   *  in an exception being thrown. Optimized code will fail in an unpredicted
+   *  manner.
+   *  @return a matrix_iterator
+   */
   inline matrix_iterator begin(UInt m, UInt n);
+  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns. See Array::begin(UInt m, UInt n)
+   *  @return a matrix_iterator
+   */
   inline matrix_iterator end(UInt m, UInt n);
+  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * to the
+   *  first tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns. See Array::begin(UInt m, UInt n)
+   *  @return a matrix_iterator
+   */
   inline const_matrix_iterator begin(UInt m, UInt n) const;
+  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns. See Array::begin(UInt m, UInt n)
+   *  @return a const_matrix_iterator
+   */
   inline const_matrix_iterator end(UInt m, UInt n) const;
 
-  /// /!\ to use with caution
+  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * to the
+   *  first tuple of the array.
+   *
+   *  The reinterpret iterators allow to iterate over an array in any way that
+   *  preserves the number of entries of the array. This can for instance be use
+   *  full if the shape of the data in an array is not initially known.
+   *  @param n vector size.
+   *  @param size number of tuples in array. n times size must match the number
+   *  of entries of the array. If compiled in debug mode, an incorrect
+   *  combination of n and size will result
+   *  in an exception being thrown. Optimized code will fail in an unpredicted
+   *  manner.
+   *  @return a vector_iterator
+   */
   inline vector_iterator begin_reinterpret(UInt n, UInt size);
+  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param n vector size.
+   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
+   *  @return a vector_iterator
+   */
   inline vector_iterator end_reinterpret(UInt n, UInt size);
+  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * to the
+   *  first tuple of the array.
+   *  @param n vector size.
+   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
+   *  @return a const_vector_iterator
+   */
   inline const_vector_iterator begin_reinterpret(UInt n, UInt size) const;
+  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param n vector size.
+   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
+   *  @return a const_vector_iterator
+   */
   inline const_vector_iterator end_reinterpret(UInt n, UInt size) const;
 
 
+  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * to the
+   *  first tuple of the array.
+   *
+   *  The reinterpret iterators allow to iterate over an array in any way that
+   *  preserves the number of entries of the array. This can for instance be use
+   *  full if the shape of the data in an array is not initially known.
+   *  @param m number of rows
+   *  @param n number of columns
+   *  @param size number of tuples in array. m times n times size must match the number
+   *  of entries of the array. If compiled in debug mode, an incorrect
+   *  combination of m, n and size will result
+   *  in an exception being thrown. Optimized code will fail in an unpredicted
+   *  manner.
+   *  @return a matrix_iterator
+   */
   inline matrix_iterator begin_reinterpret(UInt m, UInt n, UInt size);
+  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns
+   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
+   *  @return a matrix_iterator
+   */
   inline matrix_iterator end_reinterpret(UInt m, UInt n, UInt size);
+  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * to the
+   *  first tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns
+   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
+   *  @return a const_matrix_iterator
+   */
   inline const_matrix_iterator begin_reinterpret(UInt m, UInt n, UInt size) const;
+  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param m number of rows
+   *  @param n number of columns
+   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
+   *  @return a const_matrix_iterator
+   */
   inline const_matrix_iterator end_reinterpret(UInt m, UInt n, UInt size) const;
 
   /* ------------------------------------------------------------------------ */
@@ -238,34 +342,49 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// add an  element at  the end  of the vector  with the  value value  for all
-  /// component
+  /*! append a tuple to the array with the value value for all
+   * components
+   * @param value the new last tuple or the array will contain nb_component copies of value
+   */
   inline void push_back(const_reference value);
 
-  /// add an element at the end of the vector
+  /*! append a tuple to the array
+   *  @param new_elem a C-array containing the values to be copied to the end of the array */
   inline void push_back(const value_type new_elem[]);
 
+  /*! append a tuple to the array
+   * @param it an iterator to the tuple to be copied to the end of the array */
   template<typename Ret>
   inline void push_back(const iterator<Ret> & it);
 
-  /// push_back for Vector<T> and Matrix<T>
+  /*! append a matrix or a vector to the array
+   *  @param new_elem a reference to a Matrix<T> or Vector<T> */
   template<template<typename> class C>
   inline void push_back(const C<T> & new_elem);
 
   /**
-   * remove an element and move the last one in the hole
-   * /!\ change the order in the vector
+   * erase an element. If the erased element is not the last of the array, the
+   * last element is moved into the hole in order to maintain contiguity. This
+   * may invalidate existing iterators (For instance an iterator obtained by
+   * Array::end() is no longer correct) and will change the order of the
+   * elements.
+   * @param i index of element to erase
    */
   inline void erase(UInt i);
 
+
+  /// ask Nico, clarify
   template<typename R>
   inline iterator<R> erase(const iterator<R> & it);
 
 
-  /// change the size of the vector and allocate more memory if needed
+  /*! change the size of the array and allocate or free memory if needed. If the
+   *  size increases, the new tuples are filled with zeros
+   *  @param size new number of tuples contained in the array */
   void resize(UInt size);
 
   /// change the number of components by interlacing data
+  /// ask Nico, clarify
   void extendComponentsInterlaced(UInt multiplicator, UInt stride);
 
   /// function to print the containt of the class
@@ -275,20 +394,30 @@ public:
 
   /// search elem in the vector, return  the position of the first occurrence or
   /// -1 if not found
-  Int find(const_reference elem) const;
+  /// @param elem the element to look for
+  /// @return index of the first occurrence of elem or -1 if elem is not present
+  Int find(const_reference elem) const;\
+  /// @see Array::find(const_reference elem) const
   Int find(T elem[]) const;
 
-  /// set a vvector to 0
+  /// set all entries of the array to 0
   inline void clear() { std::fill_n(values, size*nb_component, T()); }
 
-  /// set a vector to the value t
+  /// set all entries of the array to the value t
+  /// @param t value to fill the array with
   inline void set(T t) { std::fill_n(values, size*nb_component, t); }
 
+  /// set all tuples of the array to a given vector or matrix
+  /// @param vm Matrix or Vector to fill the array with
   template<template<typename> class C>
   inline void set(const C<T> & vm);
 
-  /// copy the content of an other vector
-  void copy(const Array<T, is_scal> & vect);
+  /*! copy the content of another array. This overwrites the current content.
+   *  @param other Array to copy into this array. It has to have the same
+   *  nb_component as this. If compiled in debug mode, an incorrect other will
+   *  result in an exception being thrown. Optimised code may result in
+   *  unpredicted behaviour. */
+  void copy(const Array<T, is_scal> & other);
 
   /// give the address of the memory allocated for this vector
   T * storage() const { return values; };
@@ -304,21 +433,42 @@ protected:
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /*! Subtract another array entry by entry from this array in place. Both arrays must
+   *  have the same size and nb_component. If the arrays have different shapes,
+   *  code compiled in debug mode will throw an expeption and optimised code
+   *  will behave in an unpredicted manner
+   *  @param other array to subtract from this
+   *  @return reference to modified this */
+  Array<T, is_scal> & operator-=(const Array<T, is_scal> & other);
+  /*! Add another array entry by entry to this array in place. Both arrays must
+   *  have the same size and nb_component. If the arrays have different shapes,
+   *  code compiled in debug mode will throw an expeption and optimised code
+   *  will behave in an unpredicted manner
+   *  @param other array to add to this
+   *  @return reference to modified this */
+  Array<T, is_scal> & operator+=(const Array<T, is_scal> & other);
+  /*! Multiply all entries of this array by a scalar in place
+   *  @param alpha scalar multiplicant
+   *  @return reference to modified this */
+  array<T, is_scal> & operator*=(const T & alpha);
 
-  Array<T, is_scal> & operator-=(const Array<T, is_scal> & vect);
-  Array<T, is_scal> & operator+=(const Array<T, is_scal> & vect);
-  Array<T, is_scal> & operator*=(const T & alpha);
+  /*! Compare this array element by element to another.
+   *  @param other array to compare to
+   *  @return true it all element are equal and arrays have the same shape, else false */
+  bool operator==(const Array<T, is_scal> & other) const;
+  /// @see Array::operator==(const Array<T, is_scal> & other) const
+  bool operator!=(const Array<T, is_scal> & other) const;
 
-  bool operator==(const Array<T, is_scal> & vect) const;
-  bool operator!=(const Array<T, is_scal> & vect) const;
-
+  /// return a reference to the j-th entry of the i-th tuple
   inline reference operator()(UInt i, UInt j = 0);
+  /// return a const reference to the j-th entry of the i-th tuple
   inline const_reference operator()(UInt i, UInt j = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get the number of tuples contained in the array
   UInt getSize() const{ return this->size; };
 
   /* ------------------------------------------------------------------------ */
