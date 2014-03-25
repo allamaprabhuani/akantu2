@@ -176,12 +176,42 @@ public:
   typedef iterator< Matrix<T> > matrix_iterator;
   typedef const_iterator< Matrix<T> > const_matrix_iterator;
 
+  /*! Get an iterator that behaves like a pointer T * to the
+   *  first entry in the member array values 
+   *  @return a scalar_iterator
+   */
   inline iterator<T> begin();
+  /*! Get an iterator that behaves like a pointer T * that points *past* the
+   *  last entry in the member array values 
+   *  @return a scalar_iterator
+   */
   inline iterator<T> end();
+  /*! Get a const iterator that behaves like a pointer T * to the
+   *  first entry in the member array values 
+   *  @return a const_scalar_iterator
+   */
   inline const_iterator<T> begin() const;
+  /*! Get a const iterator that behaves like a pointer T * that points *past* the
+   *  last entry in the member array values 
+   *  @return a const_scalar_iterator
+   */
   inline const_iterator<T> end() const;
 
+  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * to the
+   *  first tuple of the array.
+   *  @param n Vector size. Has to be equal to nb_component. This unfortunate
+   *  redundancy is necessary to distinguish it from ::begin() which it
+   *  overloads. If compiled in debug mode, an incorrect value of n will result
+   *  in an exception being thrown. Optimized code will fail in an unpredicted
+   *  manner.
+   *  @return a vector_iterator
+   */
   inline vector_iterator begin(UInt n);
+  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
+   *  *past* the last tuple of the array.
+   *  @param n Vector size. @see ::begin(Uint n)
+   *  @return a vector_iterator
+   */
   inline vector_iterator end(UInt n);
   inline const_vector_iterator begin(UInt n) const;
   inline const_vector_iterator end(UInt n) const;
