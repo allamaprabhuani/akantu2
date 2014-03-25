@@ -142,12 +142,24 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergy(ElementType el_t
   if(ghost_type != _not_ghost) return;
   Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  if (!this->finite_deformation) {
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
-  ++epot;
+    computePotentialEnergyOnQuad(grad_u, sigma, *epot);
+    ++epot;
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  } else {
+    Matrix<Real> E(spatial_dimension, spatial_dimension);
+
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+    this->template gradUToGreenStrain<spatial_dimension>(grad_u, E);
+
+    computePotentialEnergyOnQuad(E, sigma, *epot);
+    ++epot;
+
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -166,6 +178,10 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(Element
     this->stress(type).begin(spatial_dimension,
                              spatial_dimension);
 
+  if (this->finite_deformation)
+    stress_it = this->piola_kirchhoff_stress(type).begin(spatial_dimension,
+							 spatial_dimension);
+
   UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(type);
 
   strain_it  += index*nb_quadrature_points;
@@ -174,10 +190,16 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(Element
 
   Real * epot_quad = epot_on_quad_points.storage();
 
+  Matrix<Real> strain_matrix(spatial_dimension, spatial_dimension);
+
   for(;strain_it != strain_end; ++strain_it, ++stress_it, ++epot_quad) {
-    Matrix<Real> & grad_u = *strain_it;
-    Matrix<Real> & sigma  = *stress_it;
-    computePotentialEnergyOnQuad(grad_u, sigma, *epot_quad);
+
+    if (this->finite_deformation)
+      this->template gradUToGreenStrain<spatial_dimension>(*strain_it, strain_matrix);
+    else
+      strain_matrix.copy(*strain_it);
+
+    computePotentialEnergyOnQuad(strain_matrix, *stress_it, *epot_quad);
   }
 }
 
