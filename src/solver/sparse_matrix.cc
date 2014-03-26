@@ -402,14 +402,15 @@ void SparseMatrix::applyBoundary(const Array<bool> & boundary, Real block_val) {
     UInt ni = local_eq_num_to_global.find(*irn_val - 1)->second;
     UInt nj = local_eq_num_to_global.find(*jcn_val - 1)->second;
     if(boundary.values[ni]  || boundary.values[nj]) {
-     if (*irn_val != *jcn_val) *a_val = 0;
-     else {
-       if(dof_synchronizer->getDOFTypes()(ni) >= 0) {
-         *a_val = 0;
-       } else {
-         *a_val = block_val;
-       }
-     }
+      if (*irn_val != *jcn_val) {
+        *a_val = 0;
+      } else {
+        if(dof_synchronizer->getDOFTypes()(ni) >= 0) {
+          *a_val = 0;
+        } else {
+          *a_val = block_val;
+        }
+      }
     }
     irn_val++; jcn_val++; a_val++;
   }

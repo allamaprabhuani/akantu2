@@ -384,8 +384,9 @@ public:
   void resize(UInt size);
 
   /// change the number of components by interlacing data
-  /// ask Nico, clarify
-  void extendComponentsInterlaced(UInt multiplicator, UInt stride);
+  /// deprecated, do not use
+  void extendComponentsInterlaced(UInt multiplicator, UInt stride)
+                                      __attribute__((deprecated)) ;
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -450,7 +451,7 @@ public:
   /*! Multiply all entries of this array by a scalar in place
    *  @param alpha scalar multiplicant
    *  @return reference to modified this */
-  array<T, is_scal> & operator*=(const T & alpha);
+  Array<T, is_scal> & operator*=(const T & alpha);
 
   /*! Compare this array element by element to another.
    *  @param other array to compare to

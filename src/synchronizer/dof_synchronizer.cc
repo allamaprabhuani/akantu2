@@ -193,11 +193,11 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
       local_dof_val[0] = *dof_global_id;
 
       if(*dof_type == -1 || *dof_type == -2) {
-	local_dof_val[1] = 0; // master for this node, shared or not
-	nb_local_dofs++;
+        local_dof_val[1] = 0; // master for this node, shared or not
+        nb_local_dofs++;
       } else if (*dof_type >= 0) {
-	nb_needed_dofs++;
-	local_dof_val[1] = 1; // slave node
+        nb_needed_dofs++;
+        local_dof_val[1] = 1; // slave node
       }
       local_dofs->push_back(local_dof_val);
     }
@@ -209,7 +209,7 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
   nb_dof_per_proc[prank] = local_dofs->getSize();
   communicator->allGather(nb_dof_per_proc, 1);
   AKANTU_DEBUG(dblDebug, "I have " << local_dofs->getSize() << " not ghost dofs ("
-	       << nb_local_dofs << " local and " << nb_needed_dofs << " slave)");
+               << nb_local_dofs << " local and " << nb_needed_dofs << " slave)");
 
   UInt pos = 0;
   for (UInt p = 0; p < prank; ++p)  pos += nb_dof_per_proc[p];
@@ -233,16 +233,16 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
       AKANTU_DEBUG(dblDebug, "I get " << proc_p_nb_dof << "(" << nb_values[p] << ") dofs from " << p + 1);
       proc_informations[p].dofs.resize(0);
       for (UInt dd = 0; dd < proc_p_nb_dof; ++dd) {
-	UInt dof = tmp_buffer[2*dd];
-	if(tmp_buffer[2*dd + 1] == 0)
-	  proc_informations[p].dofs.push_back(dof);
-	else
-	  proc_informations[p].needed_dofs.push_back(dof);
+        UInt dof = tmp_buffer[2*dd];
+        if(tmp_buffer[2*dd + 1] == 0)
+          proc_informations[p].dofs.push_back(dof);
+        else
+          proc_informations[p].needed_dofs.push_back(dof);
       }
 
       AKANTU_DEBUG(dblDebug, "Proc " << p + 1 << " sends me "
-		   << proc_informations[p].dofs.getSize()	<< " local dofs, and "
-		   << proc_informations[p].needed_dofs.getSize() << " slave dofs");
+                   << proc_informations[p].dofs.getSize()	<< " local dofs, and "
+                   << proc_informations[p].needed_dofs.getSize() << " slave dofs");
     }
     tmp_buffer += 2*proc_p_nb_dof;
   }
