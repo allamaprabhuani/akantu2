@@ -76,8 +76,8 @@ int main(int argc, char *argv[]) {
   Array<Real> val_on_quad(nb_quadrature_points, 2, "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
-    const_val.values[i * 2 + 0] = 1.;
-    const_val.values[i * 2 + 1] = 2.;
+    const_val.storage()[i * 2 + 0] = 1.;
+    const_val.storage()[i * 2 + 1] = 2.;
   }
 
   fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, type);

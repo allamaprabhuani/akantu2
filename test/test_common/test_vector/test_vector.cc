@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 
   for (unsigned int i = 5; i < int_vect.getSize(); ++i) {
     for (unsigned int j = 0; j < int_vect.getNbComponent(); ++j) {
-      int_vect.values[i*int_vect.getNbComponent() + j] = def_value[j]*10;
+      int_vect.storage()[i*int_vect.getNbComponent() + j] = def_value[j]*10;
     }
   }
 

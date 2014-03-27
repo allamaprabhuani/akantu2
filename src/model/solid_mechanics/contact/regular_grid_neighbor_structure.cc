@@ -108,8 +108,8 @@ void RegularGridNeighborStructure<spatial_dimension>::initNeighborStructure() {
   AKANTU_DEBUG_IN();
 
   this->setMinimalGridSpacing();
-  //Real * node_coordinates = mesh.getNodes().values;
-  Real * node_coordinates = contact_search.getContact().getModel().getCurrentPosition().values;
+  //Real * node_coordinates = mesh.getNodes().storage();
+  Real * node_coordinates = contact_search.getContact().getModel().getCurrentPosition().storage();
   this->update(node_coordinates);
 
   AKANTU_DEBUG_OUT();
@@ -125,7 +125,7 @@ void RegularGridNeighborStructure<spatial_dimension>::update() {
   delete this->neighbor_list;
   this->constructNeighborList();
 
-  Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().values;
+  Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().storage();
   this->update(node_current_position);
 
   /// reset max_increment to zero
@@ -162,8 +162,8 @@ void RegularGridNeighborStructure<spatial_dimension>::update(Real * node_positio
   }
 
   // get nodes that are on a given surface
-  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
+  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().storage();
 
   /// find max and min values of current position for each surface
   for(UInt surf = 0; surf < nb_surfaces; ++surf) {
@@ -418,8 +418,8 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
 									    UInt * master_nodes_cell) {
   AKANTU_DEBUG_IN();
 
-  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
+  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().storage();
   UInt nb_surfaces = mesh.getNbSurfaces();
   UInt nb_surface_nodes = surface_to_nodes_offset[nb_surfaces];
 
@@ -427,7 +427,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
   UInt nb_impactor_nodes = impactor_nodes_cell_offset[nb_cells];
 
   //neighbor_list->impactor_nodes.resize(nb_impactor_nodes);
-  //UInt * impactor_nodes_val = neighbor_list->impactor_nodes.values;
+  //UInt * impactor_nodes_val = neighbor_list->impactor_nodes.storage();
 
   /// define maximal number of neighbor cells and include it-self
   UInt max_nb_neighbor_cells;
@@ -459,10 +459,10 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
     const Array<UInt> & node_to_elements_offset = contact_search.getContact().getNodeToElementsOffset(type, _not_ghost);
     const Array<UInt> & node_to_elements = contact_search.getContact().getNodeToElements(type, _not_ghost);
 
-    UInt * node_to_elements_offset_val = node_to_elements_offset.values;
-    UInt * node_to_elements_val        = node_to_elements.values;
+    UInt * node_to_elements_offset_val = node_to_elements_offset.storage();
+    UInt * node_to_elements_val        = node_to_elements.storage();
 
-    UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).values;
+    UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).storage();
 
     Array<bool> * visited_node = new Array<bool>(nb_impactor_nodes, 1, false); // does it need a delete at the end ?
     bool * visited_node_val = visited_node->values;
@@ -545,7 +545,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNeighborList(Int 
     }
 
     tmp_facets_offset.resize(tmp_facets_offset.getSize()+1); // increase size off offset table by one
-    UInt * tmp_facets_offset_val = tmp_facets_offset.values;
+    UInt * tmp_facets_offset_val = tmp_facets_offset.storage();
 
     for (UInt i = 1; i < neighbor_list->impactor_nodes.getSize(); ++i) tmp_facets_offset_val[i] += tmp_facets_offset_val[i - 1];
     for (UInt i = neighbor_list->impactor_nodes.getSize(); i > 0; --i) tmp_facets_offset_val[i]  = tmp_facets_offset_val[i - 1];
@@ -571,8 +571,8 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList
 
   NodesNeighborList * nodes_neighbor_list = dynamic_cast<NodesNeighborList *>(neighbor_list);
 
-  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
+  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().storage();
   UInt nb_surfaces = mesh.getNbSurfaces();
   UInt nb_surface_nodes = surface_to_nodes_offset[nb_surfaces];
 
@@ -631,7 +631,7 @@ void RegularGridNeighborStructure<spatial_dimension>::constructNodesNeighborList
   }
 
   nodes_neighbor_list->master_nodes_offset.resize(nodes_neighbor_list->master_nodes_offset.getSize()+1); // increase size off offset table by one
-  UInt * master_nodes_offset_val = nodes_neighbor_list->master_nodes_offset.values;
+  UInt * master_nodes_offset_val = nodes_neighbor_list->master_nodes_offset.storage();
 
   for (UInt i = 1; i < nodes_neighbor_list->impactor_nodes.getSize(); ++i) master_nodes_offset_val[i] += master_nodes_offset_val[i - 1];
   for (UInt i = nodes_neighbor_list->impactor_nodes.getSize(); i > 0; --i) master_nodes_offset_val[i]  = master_nodes_offset_val[i - 1];
@@ -649,7 +649,7 @@ bool RegularGridNeighborStructure<spatial_dimension>::check() {
 
   bool need_update = false;
   UInt nb_surfaces = mesh.getNbSurfaces();
-  Real * current_increment = contact_search.getContact().getModel().getIncrement().values;
+  Real * current_increment = contact_search.getContact().getModel().getIncrement().storage();
 
   Real max[spatial_dimension];
 
@@ -658,8 +658,8 @@ bool RegularGridNeighborStructure<spatial_dimension>::check() {
     max[dim] = 0.0;
 
   // get the nodes that are on the surfaces
-  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().values;
+  UInt * surface_to_nodes_offset = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surface_to_nodes        = contact_search.getContact().getSurfaceToNodes().storage();
 
   /// find maximal increment of surface nodes in all directions
   for(UInt surf = 0; surf < nb_surfaces; ++surf) {
@@ -694,7 +694,7 @@ void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
 
   Real min_cell_size[3] = {0.,0.,0.};
   Real margin = 1.2;
-  Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().values;
+  Real * node_current_position = contact_search.getContact().getModel().getCurrentPosition().storage();
 
   const Mesh::ConnectivityTypeList & type_list = this->mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
@@ -715,9 +715,9 @@ void RegularGridNeighborStructure<spatial_dimension>::setMinimalGridSpacing() {
     ElementType type = facet_type[el_type];
     UInt nb_element  = mesh.getNbElement(type);
     UInt nb_nodes_element = mesh.getNbNodesPerElement(type);
-    UInt * conn      = mesh.getConnectivity(type, _not_ghost).values;
+    UInt * conn      = mesh.getConnectivity(type, _not_ghost).storage();
 
-    const UInt *surf_id_val = mesh.getSurfaceID(type, _not_ghost).values;
+    const UInt *surf_id_val = mesh.getSurfaceID(type, _not_ghost).storage();
 
     for(UInt e = 0; e < nb_element; ++e) {
       if(surf_id_val[e] == master_surface) {

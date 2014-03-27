@@ -101,14 +101,14 @@ int main(int argc, char *argv[])
   Real imposed_disp = 0.1;
   for (UInt i = 0; i < nb_nodes; ++i) {
     // block lower nodes
-    if(mesh.getNodes().values[i*dim+1] < 0.5) {
+    if(mesh.getNodes().storage()[i*dim+1] < 0.5) {
       for (UInt j=0; j<dim; ++j) 
-	model.getBoundary().values[dim*i + j] = true;
+	model.getBoundary().storage()[dim*i + j] = true;
     }
     // impose displacement
     else {
-      model.getBoundary().values[dim*i + 0] = true;
-      model.getDisplacement().values[dim*i + 1] = imposed_disp;
+      model.getBoundary().storage()[dim*i + 0] = true;
+      model.getDisplacement().storage()[dim*i + 1] = imposed_disp;
       the_nodes.push_back(i);
     }
   }
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
   /*
   for (UInt i=0; i<the_nodes.getSize(); ++i) {
-    std::cout << "disp " <<  model.getDisplacement().values[the_nodes(i)*dim+1] << "; vel " << model.getVelocity().values[the_nodes(i)*dim+1] << std::endl;
+    std::cout << "disp " <<  model.getDisplacement().storage()[the_nodes(i)*dim+1] << "; vel " << model.getVelocity().storage()[the_nodes(i)*dim+1] << std::endl;
   }
   */
 
@@ -177,13 +177,13 @@ int main(int argc, char *argv[])
   }
 
   for (UInt i=0; i<the_nodes.getSize(); ++i) {
-    UInt node = the_nodes.values[i];
-    if (!testFloat(model.getDisplacement().values[node*dim+1], disp->values[i], disp_tol)) {
-      std::cout << "Node " << node << " has wrong disp. Computed = " << model.getDisplacement().values[node*dim+1] << " Solution = " << disp->values[i] << std::endl;
+    UInt node = the_nodes.storage()[i];
+    if (!testFloat(model.getDisplacement().storage()[node*dim+1], disp->storage()[i], disp_tol)) {
+      std::cout << "Node " << node << " has wrong disp. Computed = " << model.getDisplacement().storage()[node*dim+1] << " Solution = " << disp->storage()[i] << std::endl;
       return EXIT_FAILURE;
     }
-    if (!testFloat(model.getVelocity().values[node*dim+1], velo->values[i], velo_tol)) {
-      std::cout << "Node " << node << " has wrong velo. Computed = " << model.getVelocity().values[node*dim+1] << " Solution = " << velo->values[i] << std::endl;
+    if (!testFloat(model.getVelocity().storage()[node*dim+1], velo->storage()[i], velo_tol)) {
+      std::cout << "Node " << node << " has wrong velo. Computed = " << model.getVelocity().storage()[node*dim+1] << " Solution = " << velo->storage()[i] << std::endl;
       return EXIT_FAILURE;
     }
   }

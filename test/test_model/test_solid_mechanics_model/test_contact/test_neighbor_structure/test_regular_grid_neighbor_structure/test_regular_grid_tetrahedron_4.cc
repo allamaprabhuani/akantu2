@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
   iohelper::DumperParaview dumper;
   dumper.setMode(iohelper::TEXT);
 
-  dumper.setPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-surface-extraction");
-  dumper.setConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
+  dumper.setPoints(my_mesh.getNodes().storage(), dim, nb_nodes, "tetrahedron_4_test-surface-extraction");
+  dumper.setConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).storage(),
    			 iohelper::TETRA1, my_mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
   dumper.setPrefix("paraview/");
   dumper.init();
@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
   /// model initialization
   my_model.initArrays();
   // initialize the vectors
-  memset(my_model.getForce().values,        0, 3*nb_nodes*sizeof(Real));
-  memset(my_model.getVelocity().values,     0, 3*nb_nodes*sizeof(Real));
-  memset(my_model.getAcceleration().values, 0, 3*nb_nodes*sizeof(Real));
-  memset(my_model.getDisplacement().values, 0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getForce().storage(),        0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getVelocity().storage(),     0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getAcceleration().storage(), 0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getDisplacement().storage(), 0, 3*nb_nodes*sizeof(Real));
 
   my_model.initModel();
   my_model.readMaterials("material.dat");
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Array<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
-  UInt * impact_nodes_val = impact_nodes.values;
+  UInt * impact_nodes_val = impact_nodes.storage();
 
   UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_triangle_3).storage();
   UInt * node_to_elem_val = my_neighbor_list.facets(_triangle_3).storage();
@@ -143,8 +143,8 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper_neighbor;
   dumper_neighbor.setMode(iohelper::TEXT);
-  dumper_neighbor.setPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_test-neighbor-elements");
-  dumper_neighbor.setConnectivity((int *)my_mesh.getConnectivity(_triangle_3).values,
+  dumper_neighbor.setPoints(my_mesh.getNodes().storage(), dim, nb_nodes, "tetrahedron_4_test-neighbor-elements");
+  dumper_neighbor.setConnectivity((int *)my_mesh.getConnectivity(_triangle_3).storage(),
 				 iohelper::TRIANGLE1, my_mesh.getNbElement(_triangle_3), iohelper::C_MODE);
 
   double * neigh_elem = new double [my_mesh.getNbElement(_triangle_3)];

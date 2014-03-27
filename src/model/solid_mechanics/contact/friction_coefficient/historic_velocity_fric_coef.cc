@@ -169,7 +169,7 @@ void HistoricVelocityFricCoef::initializeComputeFricCoef() {
     (*historic_velocities)(nb_historic_velocities-1)->clear();
   }
   Array<Real> * current_velocities = (*historic_velocities)(nb_historic_velocities-1);
-  Real * velocity_val = this->contact.getModel().getVelocity().values;
+  Real * velocity_val = this->contact.getModel().getVelocity().storage();
   
   // access the master normals
   Array<Real> * master_normals = impactor_info->master_normals;

@@ -144,16 +144,16 @@ int main(int argc, char *argv[])
 #ifdef CHECK_STRESS
     /// search the position of the maximum of stress to determine the wave speed
     akantu::Real max_stress = std::numeric_limits<akantu::Real>::min();
-    akantu::Real * stress = model.getMaterial(0).getStress(type).values;
+    akantu::Real * stress = model.getMaterial(0).getStress(type).storage();
     for (akantu::UInt i = 0; i < nb_element; ++i) {
       if(max_stress < stress[i*spatial_dimension*spatial_dimension]) {
 	max_stress = stress[i*spatial_dimension*spatial_dimension];
       }
     }
 
-    akantu::Real * coord    = model.getFEM().getMesh().getNodes().values;
-    akantu::Real * disp_val = model.getDisplacement().values;
-    akantu::UInt * conn     = model.getFEM().getMesh().getConnectivity(type).values;
+    akantu::Real * coord    = model.getFEM().getMesh().getNodes().storage();
+    akantu::Real * disp_val = model.getDisplacement().storage();
+    akantu::UInt * conn     = model.getFEM().getMesh().getConnectivity(type).storage();
     akantu::UInt nb_nodes_per_element = model.getFEM().getMesh().getNbNodesPerElement(type);
     akantu::Real * coords = new akantu::Real[spatial_dimension];
     akantu::Real min_x = std::numeric_limits<akantu::Real>::max();

@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
     UInt nb_global_nodes = mesh.getNbGlobalNodes();
     Array<Real> to_scatter(nb_global_nodes, spatial_dimension, "to scatter information");
     for (UInt d = 0; d < nb_global_nodes * spatial_dimension; ++d) {
-      to_scatter.values[d] = d;
+      to_scatter.storage()[d] = d;
     }
     dof_synchronizer.scatter(dof_vector, 0, &to_scatter);
   } else {

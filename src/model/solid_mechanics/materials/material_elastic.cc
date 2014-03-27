@@ -123,13 +123,13 @@ void MaterialElastic<spatial_dimension>::computeTangentModuli(__attribute__((unu
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getPushWaveSpeed() const {
+Real MaterialElastic<spatial_dimension>::getPushWaveSpeed(__attribute__((unused)) const Element & element) const {
   return sqrt((lambda + 2*mu)/this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getShearWaveSpeed() const {
+Real MaterialElastic<spatial_dimension>::getShearWaveSpeed(__attribute__((unused)) const Element & element) const {
   return sqrt(mu/this->rho);
 }
 

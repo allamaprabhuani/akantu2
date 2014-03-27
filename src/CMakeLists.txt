@@ -48,6 +48,9 @@ if(AKANTU_LAPACK OR AKANTU_BLAS)
   mark_as_advanced(CDEFS)
 endif()
 
+configure_file(common/aka_config.hh.in "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
+list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
+
 #===========================================================================
 # header precompilation
 #===========================================================================
@@ -63,10 +66,11 @@ set(AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS
   ${CMAKE_CURRENT_BINARY_DIR}/fem/
   )
 
-set(AKANTU_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR} ${AKANTU_LIBRARY_INCLUDE_DIRS} ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS} CACHE INTERNAL "Internal include directories to link with Akantu as a subproject")
+set(AKANTU_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR} ${AKANTU_LIBRARY_INCLUDE_DIRS} ${AKANTU_PRECOMPILE_HDR_INCLUDE_DIRS}
+  CACHE INTERNAL "Internal include directories to link with Akantu as a subproject")
 
 include_directories(${AKANTU_INCLUDE_DIRS} ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR})
-
 
 function(generate_material_list)
   message(STATUS "Determining the list of recognized materials...")
@@ -119,9 +123,6 @@ endif()
 #===============================================================================
 # Library generation
 #===============================================================================
-configure_file(common/aka_config.hh.in "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
-list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh)
-
 add_library(akantu ${AKANTU_LIBRARY_SRCS})
 target_link_libraries(akantu ${AKANTU_EXTERNAL_LIBRARIES})
 

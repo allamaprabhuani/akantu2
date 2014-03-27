@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_test-surface-extraction");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).values,
+  dumper.SetPoints(my_mesh.getNodes().storage(), dim, nb_nodes, "triangle_3_test-surface-extraction");
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_triangle_3).storage(),
    			 iohelper::TRIANGLE1, my_mesh.getNbElement(_triangle_3), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
@@ -83,10 +83,10 @@ int main(int argc, char *argv[])
   /// model initialization
   my_model.initArrays();
   /// initialize the vectors
-  memset(my_model.getForce().values,        0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getVelocity().values,     0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getAcceleration().values, 0, dim*nb_nodes*sizeof(Real));
-  memset(my_model.getDisplacement().values, 0, dim*nb_nodes*sizeof(Real));
+  memset(my_model.getForce().storage(),        0, dim*nb_nodes*sizeof(Real));
+  memset(my_model.getVelocity().storage(),     0, dim*nb_nodes*sizeof(Real));
+  memset(my_model.getAcceleration().storage(), 0, dim*nb_nodes*sizeof(Real));
+  memset(my_model.getDisplacement().storage(), 0, dim*nb_nodes*sizeof(Real));
   
   my_model.initModel();
   my_model.readMaterials("material.dat");
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Array<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
-  UInt * impact_nodes_val = impact_nodes.values;
+  UInt * impact_nodes_val = impact_nodes.storage();
 
   UInt * node_to_elem_offset_val = my_neighbor_list.facets_offset(_segment_2).storage();
   UInt * node_to_elem_val = my_neighbor_list.facets(_segment_2).storage();
@@ -142,8 +142,8 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper_neighbor;
   dumper_neighbor.SetMode(iohelper::TEXT);
-  dumper_neighbor.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "triangle_3_test-neighbor-elements");
-  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_segment_2).values,
+  dumper_neighbor.SetPoints(my_mesh.getNodes().storage(), dim, nb_nodes, "triangle_3_test-neighbor-elements");
+  dumper_neighbor.SetConnectivity((int *)my_mesh.getConnectivity(_segment_2).storage(),
 				 iohelper::LINE1, my_mesh.getNbElement(_segment_2), iohelper::C_MODE);
 
   double * neigh_elem = new double [my_mesh.getNbElement(_segment_2)];

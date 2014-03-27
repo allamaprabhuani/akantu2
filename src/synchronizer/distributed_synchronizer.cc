@@ -184,7 +184,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       }
 
       /// copying the local connectivity
-      UInt * conn_val = mesh.getConnectivity(type, _not_ghost).values;
+      UInt * conn_val = mesh.getConnectivity(type, _not_ghost).storage();
       for (UInt el = 0; el < nb_element; ++el) {
         memcpy(buffers_tmp[partition_num(el)],
                conn_val + el * nb_nodes_per_element,
@@ -427,7 +427,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       } else {
         nb_nodes = old_nodes->getSize();
         nb_nodes_per_proc[p] = nb_nodes;
-        nodes_per_proc[p] = old_nodes->values;
+        nodes_per_proc[p] = old_nodes->storage();
       }
 
       /// get the coordinates for the selected nodes
@@ -435,7 +435,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       Real * nodes_to_send_tmp = nodes_to_send;
       for (UInt n = 0; n < nb_nodes; ++n) {
         memcpy(nodes_to_send_tmp,
-               nodes->values + spatial_dimension * nodes_per_proc[p][n],
+               nodes->storage() + spatial_dimension * nodes_per_proc[p][n],
                spatial_dimension * sizeof(Real));
         // nodes_to_proc.insert(std::make_pair(buffer[n], std::make_pair(p, n)));
         nodes_to_send_tmp += spatial_dimension;
@@ -455,7 +455,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /// construct the local nodes coordinates
     UInt nb_nodes = old_nodes->getSize();
     nodes->resize(nb_nodes);
-    memcpy(nodes->values, local_nodes, nb_nodes * spatial_dimension * sizeof(Real));
+    memcpy(nodes->storage(), local_nodes, nb_nodes * spatial_dimension * sizeof(Real));
     delete [] local_nodes;
 
     Array<Int> * nodes_type_per_proc[nb_proc];
@@ -469,7 +469,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
         AKANTU_DEBUG_INFO("Receiving first nodes types from proc " << p << " TAG("<< Tag::genTag(my_rank, count, TAG_NODES_TYPE) <<")");
-        comm.receive(nodes_type_per_proc[p]->values,
+        comm.receive(nodes_type_per_proc[p]->storage(),
                      nb_nodes_per_proc[p], p, Tag::genTag(p, 0, TAG_NODES_TYPE));
       } else {
         nodes_type_per_proc[p]->copy(mesh.getNodesType());
@@ -492,7 +492,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
         UInt proc = it_node->second.first;
         UInt node = it_node->second.second;
         if(proc != node_type)
-          nodes_type_per_proc[proc]->values[node] = node_type;
+          nodes_type_per_proc[proc]->storage()[node] = node_type;
       }
     }
 
@@ -501,7 +501,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     for (UInt p = 0; p < nb_proc; ++p) {
       if(p != root) {
         AKANTU_DEBUG_INFO("Sending nodes types to proc " << p << " TAG("<< Tag::genTag(my_rank, 0, TAG_NODES_TYPE) <<")");
-        requests.push_back(comm.asyncSend(nodes_type_per_proc[p]->values,
+        requests.push_back(comm.asyncSend(nodes_type_per_proc[p]->storage(),
                                           nb_nodes_per_proc[p], p, Tag::genTag(my_rank, 0, TAG_NODES_TYPE)));
       } else {
         mesh.getNodesTypePointer()->copy(*nodes_type_per_proc[p]);
@@ -635,16 +635,16 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
     UInt nb_nodes = old_nodes->getSize();
     comm.send(&nb_nodes, 1, root, Tag::genTag(my_rank, 0, TAG_NB_NODES));
-    comm.send(old_nodes->values, nb_nodes, root, Tag::genTag(my_rank, 0, TAG_NODES));
+    comm.send(old_nodes->storage(), nb_nodes, root, Tag::genTag(my_rank, 0, TAG_NODES));
 
     /* --------<<<<-COORDINATES---------------------------------------------- */
     nodes->resize(nb_nodes);
     AKANTU_DEBUG_INFO("Receiving coordinates from proc " << root);
-    comm.receive(nodes->values, nb_nodes * spatial_dimension, root, Tag::genTag(root, 0, TAG_COORDINATES));
+    comm.receive(nodes->storage(), nb_nodes * spatial_dimension, root, Tag::genTag(root, 0, TAG_COORDINATES));
 
     communicator.fillNodesType(mesh);
     /* -------->>>>-NODES_TYPE-1--------------------------------------------- */
-    Int * nodes_types = mesh.getNodesTypePointer()->values;
+    Int * nodes_types = mesh.getNodesTypePointer()->storage();
     AKANTU_DEBUG_INFO("Sending first nodes types to proc " << root);
     comm.send(nodes_types, nb_nodes,
               root, Tag::genTag(my_rank, 0, TAG_NODES_TYPE));
@@ -689,7 +689,7 @@ void DistributedSynchronizer::fillNodesType(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = mesh.getNbNodes();
-  Int * nodes_type = mesh.getNodesTypePointer()->values;
+  Int * nodes_type = mesh.getNodesTypePointer()->storage();
 
   UInt * nodes_set = new UInt[nb_nodes];
   std::fill_n(nodes_set, nb_nodes, 0);

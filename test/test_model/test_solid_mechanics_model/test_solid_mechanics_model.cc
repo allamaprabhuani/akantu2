@@ -58,10 +58,10 @@ int main(int argc, char *argv[])
   /// model initialization
   model->initArrays();
   UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  memset(model->getForce().values,        0, 2*nb_nodes*sizeof(Real));
-  memset(model->getVelocity().values,     0, 2*nb_nodes*sizeof(Real));
-  memset(model->getAcceleration().values, 0, 2*nb_nodes*sizeof(Real));
-  memset(model->getDisplacement().values, 0, 2*nb_nodes*sizeof(Real));
+  memset(model->getForce().storage(),        0, 2*nb_nodes*sizeof(Real));
+  memset(model->getVelocity().storage(),     0, 2*nb_nodes*sizeof(Real));
+  memset(model->getAcceleration().storage(), 0, 2*nb_nodes*sizeof(Real));
+  memset(model->getDisplacement().storage(), 0, 2*nb_nodes*sizeof(Real));
 
   model->readMaterials("material.dat");
   model->initMaterials();
@@ -77,15 +77,15 @@ int main(int argc, char *argv[])
   /// boundary conditions
   // Real eps = 1e-16;
   // for (UInt i = 0; i < nb_nodes; ++i) {
-  //   model->getDisplacement().values[2*i] = model->getFEM().getMesh().getNodes().values[2*i] / 100.;
+  //   model->getDisplacement().storage()[2*i] = model->getFEM().getMesh().getNodes().storage()[2*i] / 100.;
 
-  //   if(model->getFEM().getMesh().getNodes().values[2*i] <= eps) {
-  //     model->getBoundary().values[2*i    ] = true;
-  //     if(model->getFEM().getMesh().getNodes().values[2*i + 1] <= eps)
-  // 	model->getBoundary().values[2*i + 1] = true;
+  //   if(model->getFEM().getMesh().getNodes().storage()[2*i] <= eps) {
+  //     model->getBoundary().storage()[2*i    ] = true;
+  //     if(model->getFEM().getMesh().getNodes().storage()[2*i + 1] <= eps)
+  // 	model->getBoundary().storage()[2*i + 1] = true;
   //   }
-  //   if(model->getFEM().getMesh().getNodes().values[2*i + 1] <= eps) {
-  //     model->getBoundary().values[2*i + 1] = true;
+  //   if(model->getFEM().getMesh().getNodes().storage()[2*i + 1] <= eps) {
+  //     model->getBoundary().storage()[2*i + 1] = true;
   //   }
 
   // }
@@ -119,13 +119,13 @@ int main(int argc, char *argv[])
   //   Array<Real> * sigma_funct = new Array<Real>(nb_element, 4*nb_quad, "myfunction");
   //   Array<Real> * funct = new Array<Real>(nb_element, 2*nb_quad, "myfunction");
 
-  //   Real * sigma_funct_val = sigma_funct->values;
-  //   Real * shapes_val = shapes->values;
+  //   Real * sigma_funct_val = sigma_funct->storage();
+  //   Real * shapes_val = shapes->storage();
 
   //   /// compute t * \phi_i for each nodes of each element
   //   for (UInt el = 0; el < nb_element; ++el) {
   //     for (UInt q = 0; q < nb_quad; ++q) {
-  // 	trac(quad_coords.values+el*nb_quad*2+q,sigma_funct_val);
+  // 	trac(quad_coords.storage()+el*nb_quad*2+q,sigma_funct_val);
   // 	sigma_funct_val += 4;
   //     }
   //   }
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
   //   Math::matrix_vector(2,2,*sigma_funct,*normals_on_quad,*funct);
   //   funct->extendComponentsInterlaced(nb_nodes_per_element,2);
 
-  //   Real * funct_val = funct->values;
+  //   Real * funct_val = funct->storage();
   //   for (UInt el = 0; el < nb_element; ++el) {
   //     for (UInt q = 0; q < nb_quad; ++q) {
   // 	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
@@ -154,22 +154,22 @@ int main(int argc, char *argv[])
   // }
 
 
-  //  model->getDisplacement().values[1] = 0.1;
+  //  model->getDisplacement().storage()[1] = 0.1;
 
 
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
 
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values, 2, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_3).values,
+  dumper.SetPoints(model->getFEM().getMesh().getNodes().storage(), 2, nb_nodes, "coordinates");
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_3).storage(),
 			 iohelper::TRIANGLE1, model->getFEM().getMesh().getNbElement(_triangle_3), iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values, 2, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values, 2, "velocity");
-  dumper.AddNodeDataField(model->getForce().values, 2, "force");
-  dumper.AddNodeDataField(model->getResidual().values, 2, "residual");
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_3).values, 4, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_3).values, 4, "stress");
+  dumper.AddNodeDataField(model->getDisplacement().storage(), 2, "displacements");
+  dumper.AddNodeDataField(model->getVelocity().storage(), 2, "velocity");
+  dumper.AddNodeDataField(model->getForce().storage(), 2, "force");
+  dumper.AddNodeDataField(model->getResidual().storage(), 2, "residual");
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(_triangle_3).storage(), 4, "strain");
+  dumper.AddElemDataField(model->getMaterial(0).getStress(_triangle_3).storage(), 4, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("force", 1);
   dumper.SetPrefix("paraview/");

@@ -104,11 +104,11 @@ inline void Mesh::translate(Args... params) {
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::elementToLinearized(const Element & elem) const {
   AKANTU_DEBUG_ASSERT(elem.type < _max_element_type &&
-		      elem.element < types_offsets.values[elem.type+1],
+		      elem.element < types_offsets.storage()[elem.type+1],
 		      "The element " << elem
 		      << "does not exists in the mesh " << getID());
 
-  return types_offsets.values[elem.type] + elem.element;
+  return types_offsets.storage()[elem.type] + elem.element;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -127,7 +127,7 @@ inline Element Mesh::linearizedToElement (UInt linearized_element) const {
   --t;
   ElementType type = ElementType(t);
   return Element(type,
-		 linearized_element - types_offsets.values[t],
+		 linearized_element - types_offsets.storage()[t],
 		 _not_ghost,
 		 getKind(type));
 }
@@ -335,7 +335,7 @@ inline void Mesh::getBarycenter(UInt element, const ElementType & type,
 				GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt * conn_val = getConnectivity(type, ghost_type).values;
+  UInt * conn_val = getConnectivity(type, ghost_type).storage();
   UInt nb_nodes_per_element = getNbNodesPerElement(type);
 
   Real local_coord[spatial_dimension * nb_nodes_per_element];

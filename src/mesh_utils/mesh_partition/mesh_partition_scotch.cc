@@ -110,7 +110,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
 
     /// count number of occurrence of each node
     for (UInt el = 0; el < nb_element; ++el) {
-      UInt * conn_val = connectivity.values + el * nb_nodes_per_element;
+      UInt * conn_val = connectivity.storage() + el * nb_nodes_per_element;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
 	verttab[*(conn_val++)]++;
       }
@@ -137,7 +137,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
 
     for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
-      UInt * conn_val = connectivity.values + el * nb_nodes_per_element;
+      UInt * conn_val = connectivity.storage() + el * nb_nodes_per_element;
       for (UInt n = 0; n < nb_nodes_per_element; ++n)
 	edgetab[verttab[*(conn_val++)]++] = linearized_el + velmbas;
     }
@@ -161,7 +161,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     for (UInt el = 0; el < nb_element; ++el) {
       *verttab_tmp = *(verttab_tmp - 1) + nb_nodes_per_element;
       verttab_tmp++;
-      UInt * conn  = connectivity.values + el * nb_nodes_per_element;
+      UInt * conn  = connectivity.storage() + el * nb_nodes_per_element;
       for (UInt i = 0; i < nb_nodes_per_element; ++i) {
 	*(edgetab_tmp++) = *(conn++) + vnodbas;
       }
@@ -197,7 +197,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
     const Array<Real> & nodes = mesh.getNodes();
-    Real * nodes_val = nodes.values;
+    Real * nodes_val = nodes.storage();
     for (UInt i = 0; i < nb_nodes; ++i) {
       fgeominit << i << " ";
       for (UInt s = 0; s < spatial_dimension; ++s)
@@ -326,9 +326,9 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
       for (UInt el = 0; el < nb_element; ++el) {
 	memset(mid, 0, spatial_dimension*sizeof(Real));
 	for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-	  UInt node = connectivity.values[nb_nodes_per_element * el + n];
+	  UInt node = connectivity.storage()[nb_nodes_per_element * el + n];
 	  for (UInt s = 0; s < spatial_dimension; ++s)
-	    mid[s] += ((Real) nodes.values[node * spatial_dimension + s]) / ((Real) nb_nodes_per_element);
+	    mid[s] += ((Real) nodes.storage()[node * spatial_dimension + s]) / ((Real) nb_nodes_per_element);
 	}
 
 	fgeominit << out_linerized_el++ << " ";
@@ -451,7 +451,7 @@ void MeshPartitionScotch::reorder() {
 
       const Array<UInt> & connectivity = mesh.getConnectivity(type, gt);
 
-      UInt * conn  = connectivity.values;
+      UInt * conn  = connectivity.storage();
       for (UInt el = 0; el < nb_element * nb_nodes_per_element; ++el, ++conn) {
 	*conn = permtab[*conn];
       }
@@ -460,7 +460,7 @@ void MeshPartitionScotch::reorder() {
 
   /// \todo think of a in-place way to do it
   Real * new_coordinates = new Real[spatial_dimension * nb_nodes];
-  Real * old_coordinates = mesh.getNodes().values;
+  Real * old_coordinates = mesh.getNodes().storage();
   for (UInt i = 0; i < nb_nodes; ++i) {
     memcpy(new_coordinates + permtab[i] * spatial_dimension,
 	   old_coordinates + i * spatial_dimension,

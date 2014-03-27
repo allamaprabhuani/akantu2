@@ -248,11 +248,11 @@ void ContactRigid::solveContact() {
     }
   }
 
-  Real * current_position = model.getCurrentPosition().values;
-  Real * displacement     = model.getDisplacement().values;
-  Real * increment        = model.getIncrement().values;
+  Real * current_position = model.getCurrentPosition().storage();
+  Real * displacement     = model.getDisplacement().storage();
+  Real * increment        = model.getIncrement().storage();
 
-  UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
+  UInt * penetrating_nodes = penet_list.penetrating_nodes.storage();
 
   for (UInt n=0; n < penet_list.penetrating_nodes.getSize(); ++n) {
     UInt current_node = penetrating_nodes[n];
@@ -270,9 +270,9 @@ void ContactRigid::solveContact() {
 
     // easy case: node penetrated only one facet
     if(nb_penetrated_facets == 1) {
-      Real * facets_normals      = penet_list.facets_normals[penetrated_type].values;
-      Real * gaps                = penet_list.gaps[penetrated_type].values;
-      Real * projected_positions = penet_list.projected_positions[penetrated_type].values;
+      Real * facets_normals      = penet_list.facets_normals[penetrated_type].storage();
+      Real * gaps                = penet_list.gaps[penetrated_type].storage();
+      Real * projected_positions = penet_list.projected_positions[penetrated_type].storage();
 
       UInt offset_min = penet_list.penetrated_facets_offset[penetrated_type].get(n);
       for(UInt i=0; i < dim; ++i) {
@@ -351,7 +351,7 @@ bool ContactRigid::isAlreadyActiveImpactor(const Surface master,
 
   bool is_active = false;
 
-  UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
+  UInt * penetrating_nodes = penet_list.penetrating_nodes.storage();
   UInt impactor_node = penetrating_nodes[impactor_index];
 
   // find facet normal
@@ -393,16 +393,16 @@ void ContactRigid::projectImpactor(const PenetrationList & penet_list, const UIn
 
   const bool increment_flag = model.getIncrementFlag();
 
-  UInt * penetrating_nodes   = penet_list.penetrating_nodes.values;
+  UInt * penetrating_nodes   = penet_list.penetrating_nodes.storage();
   Real * facets_normals      = penet_list.facets_normals(facet_type, _not_ghost).storage();
   Real * gaps                = penet_list.gaps(facet_type, _not_ghost).storage();
   Real * projected_positions = penet_list.projected_positions(facet_type, _not_ghost).storage();
 
-  Real * current_position = model.getCurrentPosition().values;
-  Real * displacement     = model.getDisplacement().values;
+  Real * current_position = model.getCurrentPosition().storage();
+  Real * displacement     = model.getDisplacement().storage();
   Real * increment = NULL;
   if(increment_flag)
-    increment = model.getIncrement().values;
+    increment = model.getIncrement().storage();
 
   UInt impactor_node = penetrating_nodes[impactor_index];
 
@@ -423,7 +423,7 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
 
   bool init_state_stick = true; // node is in sticking when it gets in contact
 
-  UInt * penetrating_nodes = penet_list.penetrating_nodes.values;
+  UInt * penetrating_nodes = penet_list.penetrating_nodes.storage();
   UInt impactor_node = penetrating_nodes[impactor_index];
 
   Real * facets_normals = penet_list.facets_normals(facet_type, _not_ghost).storage();
@@ -431,11 +431,11 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
   Real normal[this->spatial_dimension];
   //Int * normal_val = &normal[0];
 
-  bool * bound_val    = this->model.getBoundary().values;
-  Real * position_val = this->model.getCurrentPosition().values;
-  Real * veloc_val    = this->model.getVelocity().values;
-  Real * accel_val    = this->model.getAcceleration().values;
-  Real * residual_val = this->model.getResidual().values;
+  bool * bound_val    = this->model.getBoundary().storage();
+  Real * position_val = this->model.getCurrentPosition().storage();
+  Real * veloc_val    = this->model.getVelocity().storage();
+  Real * accel_val    = this->model.getAcceleration().storage();
+  Real * residual_val = this->model.getResidual().storage();
 
   for(UInt i = 0; i < this->spatial_dimension; ++i)
     normal[i] = floor(facet_normal[i] + 0.5);
@@ -491,8 +491,8 @@ void ContactRigid::lockImpactorNode(const Surface master, const PenetrationList 
 void ContactRigid::avoidAdhesion() {
   AKANTU_DEBUG_IN();
 
-  Real * residual_val = this->model.getResidual().values;
-  bool * bound_val    = this->model.getBoundary().values;
+  Real * residual_val = this->model.getResidual().storage();
+  bool * bound_val    = this->model.getBoundary().storage();
 
   for(UInt m=0; m < this->master_surfaces.size(); ++m) {
     Surface master = this->master_surfaces.at(m);
@@ -537,9 +537,9 @@ void ContactRigid::frictionPredictor() {
 
   const Real null_tolerance = std::numeric_limits<Real>::epsilon() * 2.;
 
-  Real * residual_val     = this->model.getResidual().values;
-  Real * acceleration_val = this->model.getAcceleration().values;
-  Real * velocity_val     = this->model.getVelocity().values;
+  Real * residual_val     = this->model.getResidual().storage();
+  Real * acceleration_val = this->model.getAcceleration().storage();
+  Real * velocity_val     = this->model.getVelocity().storage();
 
   for(UInt m=0; m < this->master_surfaces.size(); ++m) {
     Surface master = this->master_surfaces.at(m);
@@ -561,7 +561,7 @@ void ContactRigid::frictionPredictor() {
 
     // compute the friction coefficient for each active impactor node
     Array<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
-    Real * friction_coefficient_values_p = friction_coefficient_values.values;
+    Real * friction_coefficient_values_p = friction_coefficient_values.storage();
     fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
     UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->storage();
@@ -761,9 +761,9 @@ void ContactRigid::frictionCorrector() {
 
   const Real tolerance = std::numeric_limits<Real>::epsilon() * 100.;
 
-  Real * residual_val     = this->model.getResidual().values;
-  Real * acceleration_val = this->model.getAcceleration().values;
-  Real * velocity_val     = this->model.getVelocity().values;
+  Real * residual_val     = this->model.getResidual().storage();
+  Real * acceleration_val = this->model.getAcceleration().storage();
+  Real * velocity_val     = this->model.getVelocity().storage();
 
   Real time_step = this->model.getTimeStep();
 
@@ -851,8 +851,8 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
   AKANTU_DEBUG_ASSERT(this->spatial_dimension == 2,
 			"addRegularizedFriction is implemented only for 2D");
 
-  Real * residual_val = this->model.getResidual().values;
-  Real * position_val = this->model.getCurrentPosition().values;
+  Real * residual_val = this->model.getResidual().storage();
+  Real * position_val = this->model.getCurrentPosition().storage();
 
   for(UInt m=0; m < this->master_surfaces.size(); ++m) {
     Surface master = this->master_surfaces.at(m);
@@ -876,7 +876,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
 
     // compute the friction coefficient for each active impactor node
     Array<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
-    Real * friction_coefficient_values_p = friction_coefficient_values.values;
+    Real * friction_coefficient_values_p = friction_coefficient_values.storage();
     fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
     UInt * active_impactor_nodes_val = impactor_info->active_impactor_nodes->storage();
@@ -949,7 +949,7 @@ void ContactRigid::addRegularizedFriction(const Real & regularizer) {
 void ContactRigid::setStickPositionsToCurrentPositions(const Surface master) {
   AKANTU_DEBUG_IN();
 
-  Real * position_val = this->model.getCurrentPosition().values;
+  Real * position_val = this->model.getCurrentPosition().storage();
 
   // find the impactors information for this master surface
   ContactRigid::SurfaceToImpactInfoMap::iterator it_imp;
@@ -1194,7 +1194,7 @@ void ContactRigid::setSimplifiedPrakashCliftonFriction(Real t_star) {
 void ContactRigid::setPrakashCliftonToSteadyState(const Surface master) {
   AKANTU_DEBUG_IN();
 
-  Real * residual_val = this->model.getResidual().values;
+  Real * residual_val = this->model.getResidual().storage();
 
   // find the impactors information for this master surface
   ContactRigid::SurfaceToImpactInfoMap::iterator it_imp;
@@ -1217,7 +1217,7 @@ void ContactRigid::setPrakashCliftonToSteadyState(const Surface master) {
 
   // compute the friction coefficient for each active impactor node
   Array<Real> friction_coefficient_values(nb_active_impactor_nodes, 1);
-  Real * friction_coefficient_values_p = friction_coefficient_values.values;
+  Real * friction_coefficient_values_p = friction_coefficient_values.storage();
   fric_coef->computeFrictionCoefficient(friction_coefficient_values);
 
   for (UInt n=0; n < nb_active_impactor_nodes; ++n) {

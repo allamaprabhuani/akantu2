@@ -60,8 +60,8 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
 
   nb_global_dofs = mesh.getNbGlobalNodes() * nb_degree_of_freedom;
 
-  UInt * dof_global_id       = dof_global_ids.values;
-  Int  * dof_type            = dof_types.values;
+  UInt * dof_global_id       = dof_global_ids.storage();
+  Int  * dof_type            = dof_types.storage();
   for(UInt n = 0, ld = 0; n < nb_nodes; ++n) {
     UInt node_global_id = mesh.getNodeGlobalId(n);
     UInt node_type      = mesh.getNodeType(n);
@@ -78,8 +78,8 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
   if(psize == 1) return;
 
   /// creating communication scheme
-  dof_global_id  = dof_global_ids.values;
-  dof_type       = dof_types.values;
+  dof_global_id  = dof_global_ids.storage();
+  dof_type       = dof_types.storage();
 
   for (UInt n = 0; n < nb_dofs; ++n) {
     if(*dof_type >= 0) {
@@ -94,7 +94,7 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
     UInt recvfrom = (psize + prank - p) % psize;
 
     UInt nb_master_dofs = proc_informations[sendto].master_dofs.getSize();
-    UInt * master_dofs = proc_informations[sendto].master_dofs.values;
+    UInt * master_dofs = proc_informations[sendto].master_dofs.storage();
     UInt * send_buffer = new UInt[nb_master_dofs];
     for (UInt d = 0; d < nb_master_dofs; ++d) {
       send_buffer[d] = dof_global_id[master_dofs[d]];
@@ -112,7 +112,7 @@ DOFSynchronizer::DOFSynchronizer(const Mesh & mesh, UInt nb_degree_of_freedom) :
     if(nb_slave_dofs != 0) {
       AKANTU_DEBUG(dblInfo, "Receiving "<< nb_slave_dofs << " nodes from " << recvfrom + 1);
       proc_informations[recvfrom].slave_dofs.resize(nb_slave_dofs);
-      recv_buffer = proc_informations[recvfrom].slave_dofs.values;
+      recv_buffer = proc_informations[recvfrom].slave_dofs.storage();
       communicator->receive(recv_buffer, nb_slave_dofs, recvfrom, 1);
     }
 
@@ -138,7 +138,7 @@ void DOFSynchronizer::initLocalDOFEquationNumbers() {
   AKANTU_DEBUG_IN();
   local_dof_equation_numbers.resize(nb_dofs);
 
-  Int  * dof_equation_number = local_dof_equation_numbers.values;
+  Int  * dof_equation_number = local_dof_equation_numbers.storage();
   for (UInt d = 0; d < nb_dofs; ++d) {
     *(dof_equation_number++) = d;
   }
@@ -152,9 +152,9 @@ void DOFSynchronizer::initGlobalDOFEquationNumbers() {
   AKANTU_DEBUG_IN();
   global_dof_equation_numbers.resize(nb_dofs);
 
-  Int  * dof_type            = dof_types.values;
-  UInt * dof_global_id       = dof_global_ids.values;
-  Int  * dof_equation_number = global_dof_equation_numbers.values;
+  Int  * dof_type            = dof_types.storage();
+  UInt * dof_global_id       = dof_global_ids.storage();
+  Int  * dof_equation_number = global_dof_equation_numbers.storage();
   for(UInt d = 0; d < nb_dofs; ++d) {
     /// if ghost dof the equation_number is greater than nb_global_dofs
     Int global_eq_num = *dof_global_id + (*dof_type > -3 ? 0 : nb_global_dofs);
@@ -180,8 +180,8 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
   }
 
   /// creating communication scheme
-  UInt * dof_global_id = dof_global_ids.values;
-  Int * dof_type       = dof_types.values;
+  UInt * dof_global_id = dof_global_ids.storage();
+  Int * dof_type       = dof_types.storage();
 
   Array<UInt> * local_dofs = new Array<UInt>(0,2);
   UInt local_dof_val[2];
@@ -220,7 +220,7 @@ void DOFSynchronizer::initScatterGatherCommunicationScheme() {
   for (UInt p = 0; p < psize; ++p) nb_values[p] = nb_dof_per_proc[p] * 2;
 
   UInt * buffer = new UInt[2*nb_total_dofs];
-  memcpy(buffer + 2 * pos, local_dofs->values, local_dofs->getSize() * 2 * sizeof(UInt));
+  memcpy(buffer + 2 * pos, local_dofs->storage(), local_dofs->getSize() * 2 * sizeof(UInt));
   delete local_dofs;
 
   communicator->allGatherV(buffer, nb_values);

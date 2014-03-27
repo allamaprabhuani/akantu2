@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
   Array<Real> val_on_quad(nb_quadrature_points, 2 , "val_on_quad");
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
-    const_val.values[i * 2 + 0] = 1.;
-    const_val.values[i * 2 + 1] = 2.;
+    const_val.storage()[i * 2 + 0] = 1.;
+    const_val.storage()[i * 2 + 1] = 2.;
   }
 
   //interpolate function on quadrature points
@@ -90,8 +90,8 @@ int main(int argc, char *argv[]) {
   Real value[2] = {0,0};
   my_file << val_on_quad << std::endl << int_val_on_elem << std::endl;
   for (UInt i = 0; i < fem->getMesh().getNbElement(type); ++i) {
-    value[0] += int_val_on_elem.values[2*i];
-    value[1] += int_val_on_elem.values[2*i+1];
+    value[0] += int_val_on_elem.storage()[2*i];
+    value[1] += int_val_on_elem.storage()[2*i+1];
   }
 
   my_file << "integral on the mesh of 1 is " << value[0] << " and of 2 is " << value[1] << std::endl;

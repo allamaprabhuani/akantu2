@@ -291,9 +291,9 @@ void dumpParaview(Mesh & mesh, std::string name,
 
   iohelper::DumperParaview dumper;
   dumper.setMode(iohelper::TEXT);
-  dumper.setPoints(mesh.getNodes().values, mesh.getSpatialDimension(),
+  dumper.setPoints(mesh.getNodes().storage(), mesh.getSpatialDimension(),
 		   nb_nodes, name);
-  dumper.setConnectivity((int*) mesh.getConnectivity(type).values,
+  dumper.setConnectivity((int*) mesh.getConnectivity(type).storage(),
    			 iohelper::QUAD1, nb_element, iohelper::C_MODE);
 
   dumper.addElemDataField("partition_1", part_1, 1, nb_element);
@@ -318,7 +318,7 @@ void getPartition(const Mesh & mesh,
 
   parts.resize(nb_element);
   //  double * part = new double[nb_element*nb_quadrature_points];
-  UInt * part_val = partition->getPartition(type).values;
+  UInt * part_val = partition->getPartition(type).storage();
   for (unsigned int i = 0; i < nb_element; ++i)
     for (unsigned int q = 0; q < nb_quadrature_points; ++q)
       //part[i*nb_quadrature_points + q] = part_val[i];

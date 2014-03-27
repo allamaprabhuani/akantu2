@@ -72,8 +72,8 @@ int main(int argc, char *argv[]) {
   /// initialize the paraview output
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(mesh.getNodes().values, dim, nb_nodes, "dam_diana");
-  dumper.SetConnectivity((int *)mesh.getConnectivity(element_type).values, paraview_type, nb_elements, iohelper::C_MODE);
+  dumper.SetPoints(mesh.getNodes().storage(), dim, nb_nodes, "dam_diana");
+  dumper.SetConnectivity((int *)mesh.getConnectivity(element_type).storage(), paraview_type, nb_elements, iohelper::C_MODE);
 
   UInt i = 0;
 

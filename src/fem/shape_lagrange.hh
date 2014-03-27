@@ -86,10 +86,10 @@ public:
 			       GhostType ghost_type = _not_ghost,
 			       const Array<UInt> & filter_elements = empty_filter) const;
 
-  /// multiply a field by shape functions
+  /// multiply a field by shape functions  @f$ fts_{ij} = f_i * \varphi_j @f$
   template <ElementType type>
   void fieldTimesShapes(const Array<Real> & field,
-			Array<Real> & fiedl_times_shapes,
+			Array<Real> & field_times_shapes,
 			GhostType ghost_type) const;
 
   /// find natural coords from real coords provided an element

@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
   iohelper::DumperParaview dumper;
   dumper.setMode(iohelper::TEXT);
 
-  dumper.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction");
-  dumper.setConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).values,
+  dumper.setPoints(mesh.getNodes().storage(), dim, nb_nodes, "test-surface-extraction");
+  dumper.setConnectivity((int*)mesh.getConnectivity(_tetrahedron_4).storage(),
    			 iohelper::TETRA1, mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
   dumper.setPrefix("paraview/");
   dumper.init();
@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
   iohelper::DumperParaview dumper_surface;
   dumper_surface.setMode(iohelper::TEXT);
 
-  dumper_surface.setPoints(mesh.getNodes().values, dim, nb_nodes, "test-surface-extraction_boundary");
+  dumper_surface.setPoints(mesh.getNodes().storage(), dim, nb_nodes, "test-surface-extraction_boundary");
 
-  dumper_surface.setConnectivity((int *)mesh.getConnectivity(_triangle_3).values,
+  dumper_surface.setConnectivity((int *)mesh.getConnectivity(_triangle_3).storage(),
   			       iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
 
   UInt * surf_id = new UInt[mesh.getNbElement(_triangle_3)];
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   }
 
 //  for (UInt i = 0; i < mesh.getSurfaceID(_triangle_3).getSize(); ++i)
-//    surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).values[i];
+//    surf_id[i] = (double)mesh.getSurfaceID(_triangle_3).storage()[i];
 
   dumper_surface.addElemDataField("surface_id", surf_id, 1, mesh.getNbElement(_triangle_3));
   dumper_surface.setPrefix("paraview/");

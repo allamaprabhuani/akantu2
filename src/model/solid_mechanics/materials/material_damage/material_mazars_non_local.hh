@@ -73,10 +73,6 @@ public:
 			     ElementType el_type,
 			     GhostType ghost_type = _not_ghost);
 
-  inline Real getStableTimeStep(Real h, const Element & element) {
-    return MaterialMazars<spatial_dimension>::getStableTimeStep(h, element);
-  };
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

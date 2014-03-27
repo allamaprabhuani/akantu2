@@ -169,7 +169,7 @@ inline Array<T> & ByElementTypeArray<T, SupportType>::alloc(UInt size,
     tmp = &(Memory::alloc<T>(sstr.str(), size,
 			     nb_component, T()));
     std::stringstream sstrg; sstrg << ghost_type;
-    tmp->setTag(sstrg.str());
+    //tmp->setTag(sstrg.str());
     this->getData(ghost_type)[type] = tmp;
   } else {
     AKANTU_DEBUG_INFO("The vector " << this->id << this->printType(type, ghost_type)

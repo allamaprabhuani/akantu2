@@ -108,7 +108,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
 
   coordinate_list_map::iterator irn_jcn_k_it;
 
-  Int * eq_nb_val = dof_synchronizer.getGlobalDOFEquationNumbers().values;
+  Int * eq_nb_val = dof_synchronizer.getGlobalDOFEquationNumbers().storage();
 
   Mesh::type_iterator it  = mesh.firstType(mesh.getSpatialDimension(), _not_ghost, _ek_not_defined);
   Mesh::type_iterator end = mesh.lastType (mesh.getSpatialDimension(), _not_ghost, _ek_not_defined);
@@ -117,7 +117,7 @@ void SparseMatrix::buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_s
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
     UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom;
 
-    UInt * conn_val = mesh.getConnectivity(*it, _not_ghost).values;
+    UInt * conn_val = mesh.getConnectivity(*it, _not_ghost).storage();
     Int * local_eq_nb_val = new Int[nb_degree_of_freedom * nb_nodes_per_element];
 
 
@@ -195,10 +195,10 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
 
     const DOFSynchronizer::GlobalEquationNumberMap & local_eq_num_to_global = dof_synchronizer->getGlobalEquationNumberToLocal();
 
-    Int * irn_val = irn.values;
-    Int * jcn_val = jcn.values;
-    Int * eq_nb_val = dof_synchronizer->getGlobalDOFEquationNumbers().values;
-    Int * eq_nb_rhs_val = dof_synchronizer->getLocalDOFEquationNumbers().values;
+    Int * irn_val = irn.storage();
+    Int * jcn_val = jcn.storage();
+    Int * eq_nb_val = dof_synchronizer->getGlobalDOFEquationNumbers().storage();
+    Int * eq_nb_rhs_val = dof_synchronizer->getLocalDOFEquationNumbers().storage();
     
     Array<bool> * nodes_rotated = new Array<bool > (nb_nodes, dim, "nodes_rotated");
     nodes_rotated->clear();
@@ -265,16 +265,16 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
                 Tj(2,2)=cos(Theta_x)*cos(Theta_y);
             }
             for (UInt j = 0; j < nb_degree_of_freedom; ++j){
-                local_eq_nb_val_node_i->values[j] = eq_nb_val[node_i * nb_degree_of_freedom + j];
-                local_eq_nb_val_node_j->values[j] = eq_nb_val[node_j * nb_degree_of_freedom + j];
+                local_eq_nb_val_node_i->storage()[j] = eq_nb_val[node_i * nb_degree_of_freedom + j];
+                local_eq_nb_val_node_j->storage()[j] = eq_nb_val[node_j * nb_degree_of_freedom + j];
             }
             for (UInt j = 0; j < nb_degree_of_freedom; ++j) {
                 for (UInt k = 0; k < nb_degree_of_freedom; ++k) {
-                    KeyCOO jcn_irn = key(local_eq_nb_val_node_i->values[j], local_eq_nb_val_node_j->values[k]);
+                    KeyCOO jcn_irn = key(local_eq_nb_val_node_i->storage()[j], local_eq_nb_val_node_j->storage()[k]);
                     coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
-                    small_matrix(j, k) = matrix.values[irn_jcn_k_it->second];
+                    small_matrix(j, k) = matrix.storage()[irn_jcn_k_it->second];
                 }
-                small_rhs(j,0)=rhs.values[eq_nb_rhs_val[node_i*dim+j]];
+                small_rhs(j,0)=rhs.storage()[eq_nb_rhs_val[node_i*dim+j]];
             }
             
             Ti_small_matrix.mul < false, false > (Ti, small_matrix);
@@ -283,26 +283,26 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
             
             /*for (UInt j = 0; j < nb_degree_of_freedom; ++j) {
                 for (UInt k = 0; k < nb_degree_of_freedom; ++k) {
-                    KeyCOO jcn_irn = key(local_eq_nb_val_node_i->values[j], local_eq_nb_val_node_j->values[k]);
+                    KeyCOO jcn_irn = key(local_eq_nb_val_node_i->storage()[j], local_eq_nb_val_node_j->storage()[k]);
                     coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
-                    a.values[irn_jcn_k_it->second] = T_small_matrix_T(j,k);
+                    a.storage()[irn_jcn_k_it->second] = T_small_matrix_T(j,k);
                 }
-                if(node_constrain==node_i && !( nodes_rotated->values[node_i]))
-                    rhs.values[eq_nb_rhs_val[node_i*dim+j]]=T_small_rhs(j,0);
+                if(node_constrain==node_i && !( nodes_rotated->storage()[node_i]))
+                    rhs.storage()[eq_nb_rhs_val[node_i*dim+j]]=T_small_rhs(j,0);
             }*/
             KeyCOO jcn_irn = key(ni, nj);
             coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
-            a.values[irn_jcn_k_it->second] = Ti_small_matrix_Tj(ni % nb_degree_of_freedom, nj % nb_degree_of_freedom);
+            a.storage()[irn_jcn_k_it->second] = Ti_small_matrix_Tj(ni % nb_degree_of_freedom, nj % nb_degree_of_freedom);
             //this->saveMatrix("stiffness_partial.out");
-            if (!(nodes_rotated->values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]])) {
-                rhs_rotated.values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = Ti_small_rhs(ni % nb_degree_of_freedom, 0);
-                nodes_rotated->values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = true;
+            if (!(nodes_rotated->storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]])) {
+                rhs_rotated.storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = Ti_small_rhs(ni % nb_degree_of_freedom, 0);
+                nodes_rotated->storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = true;
             }
         }
         else{
-            if (!(nodes_rotated->values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]])) {
-                rhs_rotated.values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = rhs.values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]];
-                nodes_rotated->values[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = true;
+            if (!(nodes_rotated->storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]])) {
+                rhs_rotated.storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = rhs.storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]];
+                nodes_rotated->storage()[eq_nb_rhs_val[node_i * dim + ni % nb_degree_of_freedom]] = true;
             }
         }
         irn_val++;
@@ -318,14 +318,14 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
     /*Real norm = 0;
     UInt n_zeros = 0;
     for (UInt j = 0; j < nb_degree_of_freedom; ++j) {
-        norm += Normal.values[j] * Normal.values[j];
-        if (std::abs(Normal.values[j]) < Math::getTolerance())
+        norm += Normal.storage()[j] * Normal.storage()[j];
+        if (std::abs(Normal.storage()[j]) < Math::getTolerance())
             n_zeros++;
     }
     norm = sqrt(norm);
     AKANTU_DEBUG_ASSERT(norm > Math::getTolerance(), "The normal is not right");
     for (UInt j = 0; j < nb_degree_of_freedom; ++j)
-        Normal.values[j] /= norm;
+        Normal.storage()[j] /= norm;
     
     if (n_zeros == nb_degree_of_freedom - 1) {
         UInt nb_nodes = boundary_normal.getSize();
@@ -338,8 +338,8 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
 
         const DOFSynchronizer::GlobalEquationNumberMap & local_eq_num_to_global = dof_synchronizer->getGlobalEquationNumberToLocal();
 
-        Int * irn_val = irn.values;
-        Int * eq_nb_val = dof_synchronizer->getGlobalDOFEquationNumbers().values;
+        Int * irn_val = irn.storage();
+        Int * eq_nb_val = dof_synchronizer->getGlobalDOFEquationNumbers().storage();
         Array<Int> * local_eq_nb_val = new Array<Int > (1, nb_degree_of_freedom, "local_eq_nb_val");
         local_eq_nb_val->clear();
         UInt nb_nodes = boundary_normal.getSize();
@@ -349,34 +349,34 @@ void SparseMatrix::applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real
         for (UInt i = 0; i < nb_non_zero; ++i) {
             UInt ni = local_eq_num_to_global.find(*irn_val - 1)->second;
             UInt node_i = (ni - ni % nb_degree_of_freedom) / nb_degree_of_freedom;
-            if (boundary_normal.values[ni]) {
-                if ((!number.values[ni]) && (!node_set->values[node_i])) {
+            if (boundary_normal.storage()[ni]) {
+                if ((!number.storage()[ni]) && (!node_set->storage()[node_i])) {
                     UInt normal_component_i = ni % nb_degree_of_freedom; //DOF of node node_i to be removed
-                    if (std::abs(Normal.values[normal_component_i]) > Math::getTolerance()) {
+                    if (std::abs(Normal.storage()[normal_component_i]) > Math::getTolerance()) {
                         for (UInt j = 0; j < nb_degree_of_freedom; ++j)
-                            local_eq_nb_val->values[j] = eq_nb_val[node_i * nb_degree_of_freedom + j];
+                            local_eq_nb_val->storage()[j] = eq_nb_val[node_i * nb_degree_of_freedom + j];
 
-                        UInt DOF_remove = local_eq_nb_val->values[normal_component_i];
+                        UInt DOF_remove = local_eq_nb_val->storage()[normal_component_i];
                         KeyCOO jcn_irn = key(DOF_remove, DOF_remove);
                         coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
 
-                        Real aii = a.values[irn_jcn_k_it->second];
-                        Real normal_constant = (1 - aii) / (Normal.values[normal_component_i] * Normal.values[normal_component_i]);
+                        Real aii = a.storage()[irn_jcn_k_it->second];
+                        Real normal_constant = (1 - aii) / (Normal.storage()[normal_component_i] * Normal.storage()[normal_component_i]);
 
                         for (UInt j = 0; j < nb_degree_of_freedom; ++j) {
-                            UInt line_j = local_eq_nb_val->values[j];
+                            UInt line_j = local_eq_nb_val->storage()[j];
                             for (UInt k = 0; k < nb_degree_of_freedom; ++k) {
-                                UInt column_k = local_eq_nb_val->values[k];
+                                UInt column_k = local_eq_nb_val->storage()[k];
                                 jcn_irn = key(line_j, column_k);
                                 if ((line_j == column_k) && (line_j == DOF_remove))
-                                    a.values[irn_jcn_k_it->second] = 1;
+                                    a.storage()[irn_jcn_k_it->second] = 1;
                                 else
-                                    a.values[irn_jcn_k_it->second] += Normal.values[j] * Normal.values[k] * normal_constant;
+                                    a.storage()[irn_jcn_k_it->second] += Normal.storage()[j] * Normal.storage()[k] * normal_constant;
                             }
                         }
 
-                        number.values[ni]++;
-                        node_set->values[node_i] = false;
+                        number.storage()[ni]++;
+                        node_set->storage()[node_i] = false;
                     }
                 }
             }
@@ -394,14 +394,14 @@ void SparseMatrix::applyBoundary(const Array<bool> & boundary, Real block_val) {
   AKANTU_DEBUG_IN();
 
   const DOFSynchronizer::GlobalEquationNumberMap & local_eq_num_to_global = dof_synchronizer->getGlobalEquationNumberToLocal();
-  Int * irn_val = irn.values;
-  Int * jcn_val = jcn.values;
-  Real * a_val   = a.values;
+  Int * irn_val = irn.storage();
+  Int * jcn_val = jcn.storage();
+  Real * a_val   = a.storage();
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
     UInt ni = local_eq_num_to_global.find(*irn_val - 1)->second;
     UInt nj = local_eq_num_to_global.find(*jcn_val - 1)->second;
-    if(boundary.values[ni]  || boundary.values[nj]) {
+    if(boundary.storage()[ni]  || boundary.storage()[nj]) {
       if (*irn_val != *jcn_val) {
         *a_val = 0;
       } else {
@@ -435,7 +435,7 @@ void SparseMatrix::removeBoundary(const Array<bool> & boundary) {
   size_save = size;
   size = 0;
   for (UInt i = 0; i < n; ++i) {
-    if(!boundary.values[i]) {
+    if(!boundary.storage()[i]) {
       perm[i] = size;
       //      std::cout <<  "perm["<< i <<"] = " << size << std::endl;
       size++;
@@ -443,7 +443,7 @@ void SparseMatrix::removeBoundary(const Array<bool> & boundary) {
   }
 
   for (UInt i = 0; i < nb_non_zero;) {
-    if(boundary.values[irn(i) - 1] || boundary.values[jcn(i) - 1]) {
+    if(boundary.storage()[irn(i) - 1] || boundary.storage()[jcn(i) - 1]) {
       irn.erase(i);
       jcn.erase(i);
       a.erase(i);
@@ -471,8 +471,8 @@ void SparseMatrix::restoreProfile() {
   a.resize(nb_non_zero);
   size = size_save;
 
-  memcpy(irn.values, irn_save->values, irn.getSize()*sizeof(Int));
-  memcpy(jcn.values, jcn_save->values, jcn.getSize()*sizeof(Int));
+  memcpy(irn.storage(), irn_save->storage(), irn.getSize()*sizeof(Int));
+  memcpy(jcn.storage(), jcn_save->storage(), jcn.getSize()*sizeof(Int));
 
   delete irn_save; irn_save = NULL;
   delete jcn_save; jcn_save = NULL;
@@ -497,7 +497,7 @@ void SparseMatrix::saveProfile(const std::string & filename) const {
   outfile << m << " " << m << " " << nb_non_zero << std::endl;
 
   for (UInt i = 0; i < nb_non_zero; ++i) {
-    outfile << irn.values[i] << " " << jcn.values[i] << " 1" << std::endl;
+    outfile << irn.storage()[i] << " " << jcn.storage()[i] << " 1" << std::endl;
   }
 
   outfile.close();
@@ -547,11 +547,11 @@ Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat) {
   Real * tmp = new Real [vect.getNbComponent() * vect.getSize()];
   std::fill_n(tmp, vect.getNbComponent() * vect.getSize(), 0);
 
-  Int * i_val  = mat.getIRN().values;
-  Int * j_val  = mat.getJCN().values;
-  Real * a_val = mat.getA().values;
+  Int * i_val  = mat.getIRN().storage();
+  Int * j_val  = mat.getJCN().storage();
+  Real * a_val = mat.getA().storage();
 
-  Real * vect_val = vect.values;
+  Real * vect_val = vect.storage();
 
   for (UInt k = 0; k < nb_non_zero; ++k) {
     UInt i = *(i_val++);
@@ -586,7 +586,7 @@ void SparseMatrix::copyContent(const SparseMatrix & matrix) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(nb_non_zero == matrix.getNbNonZero(),
 		      "The to matrix don't have the same profiles");
-  memcpy(a.values, matrix.getA().values, nb_non_zero * sizeof(Real));
+  memcpy(a.storage(), matrix.getA().storage(), nb_non_zero * sizeof(Real));
   AKANTU_DEBUG_OUT();
 }
 
@@ -595,8 +595,8 @@ void SparseMatrix::add(const SparseMatrix & matrix, Real alpha) {
   AKANTU_DEBUG_ASSERT(nb_non_zero == matrix.getNbNonZero(),
 		      "The to matrix don't have the same profiles");
 
-  Real * a_val = a.values;
-  Real * b_val = matrix.a.values;
+  Real * a_val = a.storage();
+  Real * b_val = matrix.a.storage();
 
   for (UInt n = 0; n < nb_non_zero; ++n) {
     *a_val++ += alpha * *b_val++;
@@ -617,11 +617,11 @@ void SparseMatrix::lump(Array<Real> & lumped) {
   lumped.resize(vect_size);
   lumped.clear();
 
-  Int * i_val  = irn.values;
-  Int * j_val  = jcn.values;
-  Real * a_val = a.values;
+  Int * i_val  = irn.storage();
+  Int * j_val  = jcn.storage();
+  Real * a_val = a.storage();
 
-  Real * vect_val = lumped.values;
+  Real * vect_val = lumped.storage();
 
   for (UInt k = 0; k < nb_non_zero; ++k) {
     UInt i = *(i_val++);

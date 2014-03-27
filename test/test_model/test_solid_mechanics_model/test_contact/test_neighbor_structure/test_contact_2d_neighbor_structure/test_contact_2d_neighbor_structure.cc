@@ -85,19 +85,19 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   /// set vectors to zero
-  memset(model->getForce().values,        0,
+  memset(model->getForce().storage(),        0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getVelocity().values,     0,
+  memset(model->getVelocity().storage(),     0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getAcceleration().values, 0,
+  memset(model->getAcceleration().storage(), 0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getDisplacement().values, 0,
+  memset(model->getDisplacement().storage(), 0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getResidual().values, 0,
+  memset(model->getResidual().storage(), 0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getMaterial(0).getStrain(_triangle_3).values, 0,
+  memset(model->getMaterial(0).getStrain(_triangle_3).storage(), 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
-  memset(model->getMaterial(0).getStress(_triangle_3).values, 0,
+  memset(model->getMaterial(0).getStress(_triangle_3).storage(), 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
 
   /// Paraview Helper
@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
 //   iohelper::DumperParaview dumper;
 //   dumper.SetMode(iohelper::TEXT);
   
-//   dumper.SetPoints(mesh.getNodes().values, spatial_dimension, nb_nodes, "triangle_3_test-surface-extraction");
-//   dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
+//   dumper.SetPoints(mesh.getNodes().storage(), spatial_dimension, nb_nodes, "triangle_3_test-surface-extraction");
+//   dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).storage(),
 //    			 iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
 //   dumper.SetPrefix("paraview/");
 //   dumper.Init();
@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
   
     UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
-    UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
+    UInt * impactors_val = my_neighbor_list.impactor_nodes.storage();
   
     UInt * node_facet_off_val = my_neighbor_list.facets_offset(_segment_2).storage();
     UInt * node_facet_val = my_neighbor_list.facets(_segment_2).storage();
@@ -196,8 +196,8 @@ static void initParaview(Mesh & mesh) {
   dumper.SetMode(iohelper::TEXT);
 
   UInt  nb_nodes = mesh.getNbNodes();
-  dumper.SetPoints(mesh.getNodes().values, 2, nb_nodes, "test-2d-neighbor");
-  dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).values,
+  dumper.SetPoints(mesh.getNodes().storage(), 2, nb_nodes, "test-2d-neighbor");
+  dumper.SetConnectivity((int*)mesh.getConnectivity(_triangle_3).storage(),
    			 iohelper::TRIANGLE1, mesh.getNbElement(_triangle_3), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
@@ -212,10 +212,10 @@ static void initParaviewSurface(Mesh & mesh) {
   dumper_surface.SetMode(iohelper::TEXT);
 
   UInt  nb_nodes = mesh.getNbNodes();
-  dumper_surface.SetPoints(mesh.getNodes().values, 2, nb_nodes, "test-2d-neighbor-surface");
+  dumper_surface.SetPoints(mesh.getNodes().storage(), 2, nb_nodes, "test-2d-neighbor-surface");
 
 
-  dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).values,
+  dumper_surface.SetConnectivity((int *)mesh.getConnectivity(_segment_2).storage(),
 			       iohelper::LINE1, mesh.getNbElement(_segment_2), iohelper::C_MODE);
 
   
@@ -239,7 +239,7 @@ static void initParaviewSurface(Mesh & mesh) {
 static void printParaviewSurface(Mesh & mesh, const NeighborList & my_neighbor_list) {
 
   UInt nb_impactors = my_neighbor_list.impactor_nodes.getSize();
-  UInt * impactors_val = my_neighbor_list.impactor_nodes.values;
+  UInt * impactors_val = my_neighbor_list.impactor_nodes.storage();
   
   UInt nb_facets = my_neighbor_list.facets(_segment_2).getSize();
   UInt * node_facet_val = my_neighbor_list.facets(_segment_2).storage();

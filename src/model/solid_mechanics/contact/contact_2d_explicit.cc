@@ -81,14 +81,14 @@ Contact2dExplicit::~Contact2dExplicit()
 //   ElementType facet_type;
 //     // if(type == _line_1) {
 //   nb_facet_elements = mesh.getNbElement(facet_type);
-//   facet_conn_val = mesh.getConnectivity(facet_type).values;
+//   facet_conn_val = mesh.getConnectivity(facet_type).storage();
 //       // buildNode2ElementsByElementType(mesh, facet_type, node_offset, node_to_elem);
 
 //   /// Ricominciamo usando le funzioni di più alto livello in mesh
 
 //   const UInt nb_surfaces = getNbSurfaces(facet_type);
 //   nb_facet_elements = mesh.getNbElement(facet_type);
-//   const Array<UInt> * elem_to_surf_val = getSurfaceValues(facet_type).values;
+//   const Array<UInt> * elem_to_surf_val = getSurfaceValues(facet_type).storage();
 
 //   for (UInt i = 0; i < nb_surfaces; ++i)
 //     addMasterSurface(i);
@@ -100,9 +100,9 @@ Contact2dExplicit::~Contact2dExplicit()
 //     surf_to_elem_offset.val[elem_to_surf_val[i]]++;
 
 //   ///  rearrange surf_to_elem_offset
-//   for (UInt i = 1; i < nb_surfaces; ++i) surf_to_elem_offset.values[i] += surf_to_elem_offset.values[i-1];
-//   for (UInt i = nb_surfaces; i > 0; --i) surf_to_elem_offset.values[i]  = surf_to_elem_offset[i-1];
-//   surf_to_elem_offset.values[0] = 0;
+//   for (UInt i = 1; i < nb_surfaces; ++i) surf_to_elem_offset.storage()[i] += surf_to_elem_offset.storage()[i-1];
+//   for (UInt i = nb_surfaces; i > 0; --i) surf_to_elem_offset.storage()[i]  = surf_to_elem_offset[i-1];
+//   surf_to_elem_offset.storage()[0] = 0;
 
 //   for (UInt i = 0; i < nb_facet_elements; ++i)
 //     surf_to_elem[elem_to_surf_val[]]
@@ -155,9 +155,9 @@ void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Array
   ElementType el_type = _segment_2;
 
   const SolidMechanicsModel & model = getModel();
-  Real * inc_val = model.getIncrement().values;
-  Real * disp_val = model.getDisplacement().values;
-  Real * pos_val = model.getCurrentPosition().values;
+  Real * inc_val = model.getIncrement().storage();
+  Real * disp_val = model.getDisplacement().storage();
+  Real * pos_val = model.getCurrentPosition().storage();
 
   Array<UInt> & pen_nodes = pen_list.penetrating_nodes;
   Array<UInt> & pen_facets_off = pen_list.penetrated_facets_offset(el_type, _not_ghost);
@@ -168,12 +168,12 @@ void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Array
 
   Real * delta = new Real[dim*pen_nodes.getSize()];
 
-  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
   nodes_index.resize(3*pen_nodes.getSize());
 
-  UInt * index = nodes_index.values;
+  UInt * index = nodes_index.storage();
 
   for (UInt n = 0; n < pen_nodes.getSize(); ++n) {
     const UInt i_node = pen_nodes(n);
@@ -218,7 +218,7 @@ void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Array
 
   /// Update displacement and increment of the projected nodes
   for (UInt n = 0; n < pen_nodes.getSize(); ++n) {
-    //    UInt i_node = pen_nodes.values[n];
+    //    UInt i_node = pen_nodes.storage()[n];
 
     pos_val[dim*index[n*3+2]]    += delta[2*n];
     pos_val[dim*index[n*3+2]+1]  += delta[2*n+1];
@@ -241,19 +241,19 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
   const UInt dim = 2;
   const SolidMechanicsModel & model = getModel();
   const ElementType el_type = _segment_2;
-  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
   //  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
   Array<Real> & projected_positions = pen_list.projected_positions(el_type, _not_ghost);
   Array<Real> & facets_normals = pen_list.facets_normals(el_type, _not_ghost);
 
-  Real * vel_val = model.getVelocity().values;
-  Real * mass_val = model.getMass().values;
-  Real * pos_val = model.getCurrentPosition().values;
+  Real * vel_val = model.getVelocity().storage();
+  Real * mass_val = model.getMass().storage();
+  Real * pos_val = model.getCurrentPosition().storage();
 
   vel_norm.resize(6*pen_list.penetrating_nodes.getSize());
-  Real * v_n = vel_norm.values;
-  UInt * index = nodes_index.values;
+  Real * v_n = vel_norm.storage();
+  UInt * index = nodes_index.storage();
   Real dg[6];
 
   /// Loop over projected nodes
@@ -318,24 +318,24 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
   vel_fric.resize(6*pen_list.penetrating_nodes.getSize());
   if (getFrictionCoefficient() == 0) {
-    memset(vel_fric.values, 0, (6*pen_list.penetrating_nodes.getSize())*sizeof(Real));
+    memset(vel_fric.storage(), 0, (6*pen_list.penetrating_nodes.getSize())*sizeof(Real));
     return;
   }
 
   const ElementType el_type = _segment_2;
   const SolidMechanicsModel & model = getModel();
-  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
   //  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   const UInt dim = 2;
 
   Array<Real> & projected_positions = pen_list.projected_positions(el_type, _not_ghost);
 
-  Real * vel_val = model.getVelocity().values;
-  Real * mass_val = model.getMass().values;
+  Real * vel_val = model.getVelocity().storage();
+  Real * mass_val = model.getMass().storage();
 
-  Real * v_n = vel_norm.values;
-  Real * v_f = vel_fric.values;
-  UInt * index = nodes_index.values;
+  Real * v_n = vel_norm.storage();
+  Real * v_f = vel_fric.storage();
+  UInt * index = nodes_index.storage();
 
   /// Loop over projected nodes
   for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n) {
@@ -390,10 +390,10 @@ void Contact2dExplicit::updatePostImpactVelocities(PenetrationList & pen_list,
 
   const UInt dim = 2;
 
-  Real * v = model.getVelocity().values;
-  Real * v_n = vel_norm.values;
-  Real * v_f = vel_fric.values;
-  UInt * index = nodes_index.values;
+  Real * v = model.getVelocity().storage();
+  Real * v_n = vel_norm.storage();
+  Real * v_f = vel_fric.storage();
+  UInt * index = nodes_index.storage();
 
   /// Loop over projected nodes
   for (UInt n = 0; n < pen_list.penetrating_nodes.getSize(); ++n)

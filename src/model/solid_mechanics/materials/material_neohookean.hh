@@ -74,10 +74,6 @@ public:
   /// compute the potential energy for all elements
   virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
-private:
-  /// compute the celerity of wave in the material
-  Real celerity(const Element & element);
-
   /// compute the potential energy for on element
   inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
 					   Real & epot);
@@ -94,8 +90,11 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
+
+  /// compute the celerity of wave in the material
+  virtual Real getCelerity(const Element & element) const;
+
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

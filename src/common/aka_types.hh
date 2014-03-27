@@ -115,7 +115,7 @@ protected:
   }
 
   TensorProxy(const TensorProxy & other) {
-    this->values = other.values;
+    this->values = other.storage();
     for (UInt i = 0; i < ndim; ++i)
       this->n[i] = other.n[i];
   }
@@ -720,7 +720,7 @@ public:
 
     Matrix<T> temp;
     temp = *this;
-    Math::matrixEig(temp.cols(), temp.values, eigenvalues.storage(), eigenvectors.storage());
+    Math::matrixEig(temp.cols(), temp.storage(), eigenvalues.storage(), eigenvectors.storage());
   }
 
   /* ---------------------------------------------------------------------- */
@@ -732,7 +732,7 @@ public:
                         << this->cols() << ".");
     Matrix<T> temp;
     temp = *this;
-    Math::matrixEig(temp.cols(), temp.values, eigenvalues.storage());
+    Math::matrixEig(temp.cols(), temp.storage(), eigenvalues.storage());
   }
 
   /* ---------------------------------------------------------------------- */
@@ -779,10 +779,10 @@ public:
     AKANTU_DEBUG_ASSERT(this->cols() == A.cols(),
 			"the matrix should have the same size as its inverse");
 
-    if(this->cols() == 1) *this->values = 1./ *A.values;
-    else if(this->cols() == 2) Math::inv2(A.values, this->values);
-    else if(this->cols() == 3) Math::inv3(A.values, this->values);
-    else Math::inv(this->cols(), A.values, this->values);
+    if(this->cols() == 1) *this->values = 1./ *A.storage();
+    else if(this->cols() == 2) Math::inv2(A.storage(), this->values);
+    else if(this->cols() == 3) Math::inv3(A.storage(), this->values);
+    else Math::inv(this->cols(), A.storage(), this->values);
   }
 
   /* --------------------------------------------------------------------- */
@@ -799,8 +799,8 @@ public:
   inline T doubleDot(const Matrix<T> & other) const {
      AKANTU_DEBUG_ASSERT(this->cols() == this->rows(),
 			 "doubleDot is not a valid operation on a rectangular matrix");
-     if(this->cols() == 2) return Math::matrixDoubleDot22(this->values, other.values);
-     else if(this->cols() == 3) return Math::matrixDoubleDot33(this->values, other.values);
+     if(this->cols() == 2) return Math::matrixDoubleDot22(this->values, other.storage());
+     else if(this->cols() == 3) return Math::matrixDoubleDot33(this->values, other.storage());
      else AKANTU_DEBUG_ERROR("doubleDot is not defined for other spatial dimensions"
                              << " than 2 or 3.");
      return T();

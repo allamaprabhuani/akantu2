@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
   
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "tetrahedron_4_nodes_no_neighbors_test-surface-extraction");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).values,
+  dumper.SetPoints(my_mesh.getNodes().storage(), dim, nb_nodes, "tetrahedron_4_nodes_no_neighbors_test-surface-extraction");
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(_tetrahedron_4).storage(),
    			 iohelper::TETRA1, my_mesh.getNbElement(_tetrahedron_4), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
@@ -84,10 +84,10 @@ int main(int argc, char *argv[])
   /// model initialization
   my_model.initArrays();
   // initialize the vectors
-  memset(my_model.getForce().values,        0, 3*nb_nodes*sizeof(Real));
-  memset(my_model.getVelocity().values,     0, 3*nb_nodes*sizeof(Real));
-  memset(my_model.getAcceleration().values, 0, 3*nb_nodes*sizeof(Real));
-  memset(my_model.getDisplacement().values, 0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getForce().storage(),        0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getVelocity().storage(),     0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getAcceleration().storage(), 0, 3*nb_nodes*sizeof(Real));
+  memset(my_model.getDisplacement().storage(), 0, 3*nb_nodes*sizeof(Real));
 
   my_model.initModel();  
   my_model.readMaterials("material.dat");
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Array<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
-  UInt * impact_nodes_val = impact_nodes.values;
+  UInt * impact_nodes_val = impact_nodes.storage();
 
   /// print impactor nodes
   std::cout << "we have " << nb_nodes_neigh << " impactor nodes:";
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
   }
   std::cout << std::endl;
 
-  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
-  UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
+  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.storage();
+  UInt * master_nodes_val = my_neighbor_list.master_nodes.storage();
   
   for (UInt i = 0; i < nb_nodes_neigh; ++i) {
     std::cout << " Impactor node: " << impact_nodes_val[i] << " has master nodes:";

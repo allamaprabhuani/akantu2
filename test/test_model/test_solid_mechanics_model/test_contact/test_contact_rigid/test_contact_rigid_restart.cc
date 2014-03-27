@@ -104,8 +104,8 @@ int main(int argc, char *argv[])
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(my_mesh.getNodes().values, dim, nb_nodes, "restart_triangle_3");
-  dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).values,
+  dumper.SetPoints(my_mesh.getNodes().storage(), dim, nb_nodes, "restart_triangle_3");
+  dumper.SetConnectivity((int*)my_mesh.getConnectivity(element_type).storage(),
                          iohelper::TRIANGLE1, my_mesh.getNbElement(element_type), iohelper::C_MODE);
   dumper.SetPrefix("paraview/");
   dumper.Init();
@@ -121,8 +121,8 @@ int main(int argc, char *argv[])
   my_model.getAcceleration().clear();
   my_model.getDisplacement().clear();
 
-  displacement = my_model.getDisplacement().values;
-  boundary = my_model.getBoundary().values;
+  displacement = my_model.getDisplacement().storage();
+  boundary = my_model.getBoundary().storage();
 
   my_model.initExplicit();
   my_model.initModel();
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 
     /// apply a displacement to the slave body
     if(s == 2) {
-      Real * coord = my_mesh.getNodes().values;
+      Real * coord = my_mesh.getNodes().storage();
       for(UInt n = 0; n < nb_nodes; ++n) {
         if(coord[n*dim + 0] > 0.5) {
           displacement[n*dim+0] = -0.02;
@@ -284,7 +284,7 @@ void loadRestartInformation(ContactRigid * contact, std::map < std::string, Arra
       }
     }
   }
-  memcpy(boundary, boundary_r->values, dim*nb_nodes*sizeof(bool));
+  memcpy(boundary, boundary_r->storage(), dim*nb_nodes*sizeof(bool));
 
   tmp_r = restart_reader->GetNodeDataField("active_impactor_nodes");
   Array<bool> * ai_nodes = new Array<bool>(nb_nodes, 1, false, "a_imp_nodes");
@@ -385,17 +385,17 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBa
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperRestart dumper;
 
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().storage(),
                    dim,nb_nodes,"restart_test");
-  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
+  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).storage(),
                          paraview_type, nb_elements, iohelper::C_MODE);
-  dumper.AddNodeDataField(my_model.getDisplacement().values,
+  dumper.AddNodeDataField(my_model.getDisplacement().storage(),
                           dim, "displacements");
-  dumper.AddNodeDataField(my_model.getVelocity().values,
+  dumper.AddNodeDataField(my_model.getVelocity().storage(),
                           dim, "velocities");
-  dumper.AddNodeDataField(my_model.getAcceleration().values
+  dumper.AddNodeDataField(my_model.getAcceleration().storage()
                           ,dim, "accelerations");
-  dumper.AddNodeDataField(my_model.getResidual().values,
+  dumper.AddNodeDataField(my_model.getResidual().storage(),
                           dim, "forces");
 
   Array<Real> * boundary_r = new Array<Real>(nb_nodes, dim, 0.);
@@ -406,7 +406,7 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBa
       }
     }
   }
-  dumper.AddNodeDataField(boundary_r->values, dim, "boundaries");
+  dumper.AddNodeDataField(boundary_r->storage(), dim, "boundaries");
 
   // contact information
   std::map < std::string, ArrayBase* >::iterator it;
@@ -418,7 +418,7 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBa
     if((*tmp_vec_b)(i))
       (*active_impactor_nodes)(i) = 1.;
   }
-  dumper.AddNodeDataField(active_impactor_nodes->values, 1, "active_impactor_nodes");
+  dumper.AddNodeDataField(active_impactor_nodes->storage(), 1, "active_impactor_nodes");
 
   it = map.find("master_element_type");
   Array<ElementType> * tmp_vec_t = (Array<ElementType> *)(it->second);
@@ -426,10 +426,10 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBa
   for (UInt i=0; i<nb_nodes; ++i) {
     (*master_element_type)(i) = (Real)((*tmp_vec_t)(i));
   }
-  dumper.AddNodeDataField(master_element_type->values, 1, "master_element_type");
+  dumper.AddNodeDataField(master_element_type->storage(), 1, "master_element_type");
 
   it = map.find("master_normals");
-  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "master_normals");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->storage(), dim, "master_normals");
 
   it = map.find("node_is_sticking");
   tmp_vec_b = (Array<bool> *)(it->second);
@@ -440,18 +440,18 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBa
         (*node_is_sticking)(i,j) = 1.;
     }
   }
-  dumper.AddNodeDataField(node_is_sticking->values, 2, "node_is_sticking");
+  dumper.AddNodeDataField(node_is_sticking->storage(), 2, "node_is_sticking");
 
   it = map.find("friction_forces");
-  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "friction_forces");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->storage(), dim, "friction_forces");
 
   it = map.find("stick_positions");
-  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "stick_positions");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->storage(), dim, "stick_positions");
 
   it = map.find("residual_forces");
-  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "residual_forces");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->storage(), dim, "residual_forces");
   it = map.find("previous_velocities");
-  dumper.AddNodeDataField(((Array<Real> *)it->second)->values, dim, "previous_velocities");
+  dumper.AddNodeDataField(((Array<Real> *)it->second)->storage(), dim, "previous_velocities");
 
   dumper.SetMode(iohelper::COMPRESSED);
   dumper.SetPrefix("restart");
@@ -546,14 +546,14 @@ void printContact(ContactRigid * contact) {
   it_imp = contact->getImpactorsInformation().find(master);
   ContactRigid::ImpactorInformationPerMaster * impactor_info = it_imp->second;
 
-  UInt * active_nodes = impactor_info->active_impactor_nodes->values;
+  UInt * active_nodes = impactor_info->active_impactor_nodes->storage();
   ElementType * element_type_imp = &(*impactor_info->master_element_type)[0];
-  Real * master_normal = impactor_info->master_normals->values;
-  bool * node_stick = impactor_info->node_is_sticking->values;
-  Real * friction_force = impactor_info->friction_forces->values;
-  Real * stick_position = impactor_info->stick_positions->values;
-  Real * residual_force = impactor_info->residual_forces->values;
-  Real * previous_velocity = impactor_info->previous_velocities->values;
+  Real * master_normal = impactor_info->master_normals->storage();
+  bool * node_stick = impactor_info->node_is_sticking->storage();
+  Real * friction_force = impactor_info->friction_forces->storage();
+  Real * stick_position = impactor_info->stick_positions->storage();
+  Real * residual_force = impactor_info->residual_forces->storage();
+  Real * previous_velocity = impactor_info->previous_velocities->storage();
 
   UInt nb_active_nodes = impactor_info->active_impactor_nodes->getSize();
   test_output << "Active impactor nodes (contact):" << std::endl << std::endl;

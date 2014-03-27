@@ -321,7 +321,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
 
         /// read the coordinates
         for(UInt j = 0; j < spatial_dimension; ++j)
-          nodes.values[offset + j] = coord[j];
+          nodes.storage()[offset + j] = coord[j];
       }
       std::getline(infile, line); /// the end of block line
     }
@@ -464,7 +464,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     Int offset = i * nodes.getNbComponent();
     outfile << i+1;
     for(UInt j = 0; j < nodes.getNbComponent(); ++j) {
-      outfile << " " << nodes.values[offset + j];
+      outfile << " " << nodes.storage()[offset + j];
     }
 
     for (UInt p = nodes.getNbComponent(); p < 3; ++p)
@@ -513,7 +513,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
         else outfile << " 0";
 
       for(UInt j = 0; j < connectivity.getNbComponent(); ++j) {
-        outfile << " " << connectivity.values[offset + j] + 1;
+        outfile << " " << connectivity.storage()[offset + j] + 1;
       }
       outfile << std::endl;
       element_idx++;

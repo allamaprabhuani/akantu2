@@ -65,7 +65,7 @@ inline void IntegratorGauss<kind>::integrateOnElement(const Array<Real> & f,
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom ,
 		      "The vector f do not have the good number of component.");
 
-  Real * f_val    = f.values + elem * f.getNbComponent();
+  Real * f_val    = f.storage() + elem * f.getNbComponent();
   Real * jac_val  = jac_loc.storage() + elem * nb_quadrature_points;
 
   integrate(f_val, jac_val, intf, nb_degree_of_freedom, nb_quadrature_points);

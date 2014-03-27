@@ -73,9 +73,9 @@ void Math::matrix_vector(UInt m, UInt n,
 
   y.resize(nb_element);
 
-  Real * A_val = A.values;
-  Real * x_val = x.values;
-  Real * y_val = y.values;
+  Real * A_val = A.storage();
+  Real * x_val = x.storage();
+  Real * y_val = y.storage();
 
   for (UInt el = 0; el < nb_element; ++el) {
     matrix_vector(m, n, A_val, x_val, y_val, alpha);
@@ -120,9 +120,9 @@ void Math::matrix_matrix(UInt m, UInt n, UInt k,
 
   C.resize(nb_element);
 
-  Real * A_val = A.values;
-  Real * B_val = B.values;
-  Real * C_val = C.values;
+  Real * A_val = A.storage();
+  Real * B_val = B.storage();
+  Real * C_val = C.storage();
 
   for (UInt el = 0; el < nb_element; ++el) {
     matrix_matrix(m, n, k, A_val, B_val, C_val, alpha);
@@ -168,9 +168,9 @@ void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 
   C.resize(nb_element);
 
-  Real * A_val = A.values;
-  Real * B_val = B.values;
-  Real * C_val = C.values;
+  Real * A_val = A.storage();
+  Real * B_val = B.storage();
+  Real * C_val = C.storage();
 
   for (UInt el = 0; el < nb_element; ++el) {
     matrix_matrixt(m, n, k, A_val, B_val, C_val, alpha);

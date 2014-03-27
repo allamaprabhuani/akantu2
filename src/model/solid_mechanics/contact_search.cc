@@ -224,15 +224,15 @@ void ContactSearch::computeMaxIncrement(Real * max_increment) {
 
   UInt spatial_dimension = contact.getModel().getFEM().getMesh().getSpatialDimension();
   UInt nb_surfaces = contact.getModel().getFEM().getMesh().getNbSurfaces();
-  Real * current_increment = contact.getModel().getIncrement().values;
+  Real * current_increment = contact.getModel().getIncrement().storage();
 
   /// initialize max table with zeros
   for(UInt dim = 0; dim < spatial_dimension; ++dim)
     max_increment[dim] = 0.0;
 
   // get the nodes that are on the surfaces
-  UInt * surface_to_nodes_offset = contact.getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = contact.getSurfaceToNodes().values;
+  UInt * surface_to_nodes_offset = contact.getSurfaceToNodesOffset().storage();
+  UInt * surface_to_nodes        = contact.getSurfaceToNodes().storage();
 
   /// find maximal increment of surface nodes in all directions
   for(UInt surf = 0; surf < nb_surfaces; ++surf) {

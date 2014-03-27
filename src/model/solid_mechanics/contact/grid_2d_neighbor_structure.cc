@@ -87,11 +87,11 @@ bool Grid2dNeighborStructure::check() {
   AKANTU_DEBUG_IN();
 
   UInt nb_surfaces = mesh.getNbSurfaces();
-  Real * inc_val = contact_search.getContact().getModel().getIncrement().values;
+  Real * inc_val = contact_search.getContact().getModel().getIncrement().storage();
 
   Real max[2] = {0. ,0.};
-  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surf_nodes = contact_search.getContact().getSurfaceToNodes().values;
+  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surf_nodes = contact_search.getContact().getSurfaceToNodes().storage();
 
   for (UInt s = 0; s < nb_surfaces; ++s)
     for (UInt n = surf_nodes_off[s]; n < surf_nodes_off[n+1]; ++n) {
@@ -133,9 +133,9 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 
   Real * coord;
   if (initial_position)
-    coord = mesh.getNodes().values;
+    coord = mesh.getNodes().storage();
   else
-    coord = contact_search.getContact().getModel().getCurrentPosition().values;
+    coord = contact_search.getContact().getModel().getCurrentPosition().storage();
 
   UInt nb_surfaces = mesh.getNbSurfaces();
 
@@ -189,13 +189,13 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 
 
   /// loop over slave nodes to find out impactor ones
-  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surf_nodes     = contact_search.getContact().getSurfaceToNodes().values;
-  //  UInt * impactors      = neighbor_list->impactor_nodes.values;
-  UInt * cell_seg_val   = cell_to_segments.values;
+  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surf_nodes     = contact_search.getContact().getSurfaceToNodes().storage();
+  //  UInt * impactors      = neighbor_list->impactor_nodes.storage();
+  UInt * cell_seg_val   = cell_to_segments.storage();
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
-  UInt * conn_val = contact_search.getContact().getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+  UInt * conn_val = contact_search.getContact().getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   //  std::stringstream sstr_fo; sstr_fo << id << ":facets_offset:" << el_type;
   neighbor_list->facets_offset.alloc(0, 1, el_type, _not_ghost);
@@ -264,7 +264,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
 	  UInt i_segment = cell_seg_val[el];
 	  bool i_checked = false;
 	  for (UInt l=0; l<checked.getSize(); l++) {
-	    if(i_segment == checked.values[l]) { /* Segment already visited */
+	    if(i_segment == checked.storage()[l]) { /* Segment already visited */
 	      i_checked = true;
 	      break;
 	    }
@@ -342,10 +342,10 @@ Real Grid2dNeighborStructure::getMinSize(Real * coord) {
   AKANTU_DEBUG_IN();
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
-  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).values;
+  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).storage();
 
   UInt nb_elements = mesh.getConnectivity(el_type, _not_ghost).getSize();
-  UInt * surface_id_val = mesh.getSurfaceID(el_type, _not_ghost).values;
+  UInt * surface_id_val = mesh.getSurfaceID(el_type, _not_ghost).storage();
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   Real min_size = std::numeric_limits<Real>::max();
 
@@ -378,8 +378,8 @@ void Grid2dNeighborStructure::getBounds(Real * coord, Real * x_bounds, Real * y_
     y_bounds[s*2+1] = -std::numeric_limits<Real>::max();
   }
 
-  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().values;
-  UInt * surf_nodes     = contact_search.getContact().getSurfaceToNodes().values;
+  UInt * surf_nodes_off = contact_search.getContact().getSurfaceToNodesOffset().storage();
+  UInt * surf_nodes     = contact_search.getContact().getSurfaceToNodes().storage();
 
   /// find min and max coordinates of each surface
   for (UInt s = 0; s < nb_surfaces; ++s) {
@@ -510,8 +510,8 @@ void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin,
   UInt index[2] = {0, 0};
   ElementType el_type = _segment_2; /* Only linear element at the moment */
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
-  UInt * surface_id_val = mesh.getSurfaceID(el_type, _not_ghost).values;
-  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).values;
+  UInt * surface_id_val = mesh.getSurfaceID(el_type, _not_ghost).storage();
+  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).storage();
   UInt nb_segments = mesh.getConnectivity(el_type, _not_ghost).getSize();
 
   Int nb_x = nb_cells[0];
@@ -611,8 +611,8 @@ void Grid2dNeighborStructure::traceSegments(Real * coord, Real * origin,
 
   /// rearrange segments to get the cell-segments list
   cell_to_segments.resize(cell_to_seg_off[nb_cells[2]]);
-  UInt * cell_val = cell_to_segments.values;
-  UInt * tmp = temp.values;
+  UInt * cell_val = cell_to_segments.storage();
+  UInt * tmp = temp.storage();
   UInt nb_traced = temp.getSize();
   for (UInt i = 0; i < nb_traced; i++) {
     cell_val[cell_to_seg_off[tmp[2*i]]] = tmp[2*i+1];

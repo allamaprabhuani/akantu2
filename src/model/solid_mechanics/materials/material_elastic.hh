@@ -80,10 +80,10 @@ public:
 					       Vector<Real> & epot_on_quad_points);
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed() const;
+  virtual Real getPushWaveSpeed(const Element & element) const;
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed() const;
+  virtual Real getShearWaveSpeed(const Element & element) const;
 
 protected:
   /// constitutive law for a given quadrature point
@@ -105,8 +105,6 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

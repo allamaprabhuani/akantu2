@@ -43,14 +43,14 @@ template<typename T> void DOFSynchronizer::gather(const Array<T> & to_gather, UI
     return;
   }
 
-  UInt * dof_global_id = dof_global_ids.values;
-  Int  * dof_type      = dof_types.values;
-  T * to_gather_val    = to_gather.values;
+  UInt * dof_global_id = dof_global_ids.storage();
+  Int  * dof_type      = dof_types.storage();
+  T * to_gather_val    = to_gather.storage();
 
   T  * buffer;
   if(prank == root) {
     gathered->resize(nb_global_dofs / gathered->getNbComponent());
-    buffer = gathered->values;
+    buffer = gathered->storage();
   } else
     buffer = new T[nb_local_dofs];
 
@@ -77,9 +77,9 @@ template<typename T> void DOFSynchronizer::gather(const Array<T> & to_gather, UI
 	communicator->receive(buffer, nb_dofs, p, 0);
 
 	T * buffer_tmp = buffer;
-	UInt * remote_dofs = proc_informations[p].dofs.values;
+	UInt * remote_dofs = proc_informations[p].dofs.storage();
 	for (UInt d = 0; d < nb_dofs; ++d) {
-	  gathered->values[*remote_dofs++] = *(buffer_tmp++);
+	  gathered->storage()[*remote_dofs++] = *(buffer_tmp++);
 	}
 
 	delete [] buffer;
@@ -112,8 +112,8 @@ template<typename T> void DOFSynchronizer::scatter(Array<T> & scattered, UInt ro
 
   scattered.resize(nb_dofs / scattered.getNbComponent());
 
-  UInt * dof_global_id = dof_global_ids.values;
-  Int  * dof_type      = dof_types.values;
+  UInt * dof_global_id = dof_global_ids.storage();
+  Int  * dof_type      = dof_types.storage();
 
   if (prank == root) {
     for (UInt p = 0; p < psize; ++p) {
@@ -128,14 +128,14 @@ template<typename T> void DOFSynchronizer::scatter(Array<T> & scattered, UInt ro
 
 	T * buffer_tmp = send_buffer;
 
-	UInt * remote_dofs = proc_informations[p].dofs.values;
+	UInt * remote_dofs = proc_informations[p].dofs.storage();
 	for (UInt d = 0; d < nb_local_dof; ++d) {
-	  *(buffer_tmp++) = to_scatter->values[*remote_dofs++];
+	  *(buffer_tmp++) = to_scatter->storage()[*remote_dofs++];
 	}
 
-	remote_dofs = proc_informations[p].needed_dofs.values;
+	remote_dofs = proc_informations[p].needed_dofs.storage();
 	for (UInt d = 0; d < nb_needed_dof; ++d) {
-	  *(buffer_tmp++) = to_scatter->values[*remote_dofs++];
+	  *(buffer_tmp++) = to_scatter->storage()[*remote_dofs++];
 	}
 
 	communicator->send(send_buffer, nb_local_dof + nb_needed_dof, p, 0);
@@ -143,11 +143,11 @@ template<typename T> void DOFSynchronizer::scatter(Array<T> & scattered, UInt ro
       }
     }
 
-    T * scattered_val = scattered.values;
+    T * scattered_val = scattered.storage();
     for (UInt d = 0; d < nb_dofs; ++d) {
       if(*dof_type != -3) {
 	if(*dof_type >= -2)
-	  *scattered_val = to_scatter->values[*dof_global_id];
+	  *scattered_val = to_scatter->storage()[*dof_global_id];
       }
       scattered_val++;
       dof_type++;
@@ -161,7 +161,7 @@ template<typename T> void DOFSynchronizer::scatter(Array<T> & scattered, UInt ro
       communicator->receive(buffer, nb_local_dofs + nb_needed_dofs, root, 0);
 
 
-      T * scattered_val = scattered.values;
+      T * scattered_val = scattered.storage();
       UInt local_dofs = 0;
       UInt needed_dofs = nb_local_dofs;
       for (UInt d = 0; d < nb_dofs; ++d) {
@@ -196,10 +196,10 @@ template<typename T> void DOFSynchronizer::synchronize(Array<T> & dof_vector) co
     UInt recvfrom = (psize + prank - p) % psize;
 
     UInt nb_slave_dofs = proc_informations[sendto].slave_dofs.getSize();
-    UInt * slave_dofs  = proc_informations[sendto].slave_dofs.values;
+    UInt * slave_dofs  = proc_informations[sendto].slave_dofs.storage();
 
     UInt nb_master_dofs = proc_informations[recvfrom].master_dofs.getSize();
-    UInt * master_dofs  = proc_informations[recvfrom].master_dofs.values;
+    UInt * master_dofs  = proc_informations[recvfrom].master_dofs.storage();
 
     T * send_buffer = new T[nb_slave_dofs];
     T * recv_buffer = new T[nb_master_dofs];
@@ -209,7 +209,7 @@ template<typename T> void DOFSynchronizer::synchronize(Array<T> & dof_vector) co
 			  "Sending node " << slave_dofs[d]
 			  << "(gid" << dof_global_ids(d) << ") to proc "
 			  << sendto << " but it is not a master node.");
-      send_buffer[d] = dof_vector.values[slave_dofs[d]];
+      send_buffer[d] = dof_vector.storage()[slave_dofs[d]];
     }
 
     /// ring blocking communications
@@ -222,7 +222,7 @@ template<typename T> void DOFSynchronizer::synchronize(Array<T> & dof_vector) co
 			  "Received node " << master_dofs[d]
 			  << "(gid" << dof_global_ids(d) << ")  from proc "
 			  << recvfrom << " but it is not a slave node.");
-      dof_vector.values[master_dofs[d]] = recv_buffer[d];
+      dof_vector.storage()[master_dofs[d]] = recv_buffer[d];
     }
 
     if(nb_slave_dofs != 0) {
@@ -251,16 +251,16 @@ template<template <class> class Op, typename T> void DOFSynchronizer::reduceSync
     UInt recvfrom = (psize + prank - p) % psize;
 
     UInt nb_slave_dofs = proc_informations[recvfrom].slave_dofs.getSize();
-    UInt * slave_dofs  = proc_informations[recvfrom].slave_dofs.values;
+    UInt * slave_dofs  = proc_informations[recvfrom].slave_dofs.storage();
 
     UInt nb_master_dofs = proc_informations[sendto].master_dofs.getSize();
-    UInt * master_dofs  = proc_informations[sendto].master_dofs.values;
+    UInt * master_dofs  = proc_informations[sendto].master_dofs.storage();
 
     T * send_buffer = new T[nb_master_dofs];
     T * recv_buffer = new T[nb_slave_dofs];
 
     for (UInt d = 0; d < nb_master_dofs; ++d) {
-      send_buffer[d] = dof_vector.values[master_dofs[d]];
+      send_buffer[d] = dof_vector.storage()[master_dofs[d]];
     }
 
     CommunicationRequest * request = NULL;
@@ -270,7 +270,7 @@ template<template <class> class Op, typename T> void DOFSynchronizer::reduceSync
     Op<T> oper;
 
     for (UInt d = 0; d < nb_slave_dofs; ++d) {
-      dof_vector.values[slave_dofs[d]] = oper(dof_vector.values[slave_dofs[d]], recv_buffer[d]);
+      dof_vector.storage()[slave_dofs[d]] = oper(dof_vector.storage()[slave_dofs[d]], recv_buffer[d]);
     }
 
     if(nb_master_dofs != 0) {

@@ -93,16 +93,16 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   Real eps = 1e-16;
   for (UInt i = 0; i < nb_nodes; ++i) {
-    if(mesh.getNodes().values[dim*i] >= 9)
-      model.getDisplacement().values[dim*i]
-     	= (mesh.getNodes().values[dim*i] - 9) / 100.;
+    if(mesh.getNodes().storage()[dim*i] >= 9)
+      model.getDisplacement().storage()[dim*i]
+     	= (mesh.getNodes().storage()[dim*i] - 9) / 100.;
 
-    if(mesh.getNodes().values[dim*i] <= eps)
-      model.getBoundary().values[dim*i] = true;
+    if(mesh.getNodes().storage()[dim*i] <= eps)
+      model.getBoundary().storage()[dim*i] = true;
 
-    if(mesh.getNodes().values[dim*i + 1] <= eps ||
-       mesh.getNodes().values[dim*i + 1] >= 1 - eps ) {
-      model.getBoundary().values[dim*i + 1] = true;
+    if(mesh.getNodes().storage()[dim*i + 1] <= eps ||
+       mesh.getNodes().storage()[dim*i + 1] >= 1 - eps ) {
+      model.getBoundary().storage()[dim*i + 1] = true;
     }
   }
 

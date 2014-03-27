@@ -433,7 +433,7 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
 							    const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  //  Real * coord = mesh.getNodes().values;
+  //  Real * coord = mesh.getNodes().storage();
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   //allocate the normal arrays
@@ -597,17 +597,27 @@ void FEMTemplate<I, S, kind>::assembleLumpedRowSum(const Array<Real> & field_1,
 
   UInt shapes_size = ElementClass<type>::getShapeSize();
 
-  Array<Real> * field_times_shapes = new Array<Real>(0, 1);//shapes_size);
-  shape_functions.template fieldTimesShapes<type>(field_1, *field_times_shapes, ghost_type);
+  Array<Real> * field_times_shapes = new Array<Real>(0, shapes_size * nb_degree_of_freedom);
+  Array<Real> * field = new Array<Real>(field_1.getSize(), nb_degree_of_freedom);
+
+  Array<Real>::const_scalar_iterator f1_it  = field_1.begin();
+  Array<Real>::const_scalar_iterator f1_end = field_1.end();
+  Array<Real>::vector_iterator f_it = field->begin(nb_degree_of_freedom);
+
+  for(;f1_it != f1_end; ++f1_it, ++f_it) {
+    f_it->set(*f1_it);
+  }
+
+  shape_functions.template fieldTimesShapes<type>(*field, *field_times_shapes, ghost_type);
+  delete field;
 
   UInt nb_element = mesh.getNbElement(type, ghost_type);
-  Array<Real> * int_field_times_shapes = new Array<Real>(nb_element, shapes_size,
+  Array<Real> * int_field_times_shapes = new Array<Real>(nb_element, shapes_size * nb_degree_of_freedom,
 							 "inte_rho_x_shapes");
   integrator.template integrate<type>(*field_times_shapes, *int_field_times_shapes,
-				      shapes_size, ghost_type, empty_filter);
+				      nb_degree_of_freedom * shapes_size, ghost_type, empty_filter);
   delete field_times_shapes;
 
-  int_field_times_shapes->extendComponentsInterlaced(nb_degree_of_freedom,1);
   assembleArray(*int_field_times_shapes, lumped, equation_number,nb_degree_of_freedom, type, ghost_type);
   delete int_field_times_shapes;
 
@@ -630,7 +640,8 @@ void FEMTemplate<I, S, kind>::assembleLumpedDiagonalScaling(const Array<Real> & 
 							    const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element_p1 = ElementClass<type>::getNbNodesPerElement();
+  const ElementType & type_p1  = ElementClass<type>::getP1ElementType();
+  UInt nb_nodes_per_element_p1 = Mesh::getNbNodesPerElement(type_p1);
   UInt nb_nodes_per_element    = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points    = integrator.template getQuadraturePoints<type>(ghost_type).cols();
 
@@ -665,24 +676,30 @@ void FEMTemplate<I, S, kind>::assembleLumpedDiagonalScaling(const Array<Real> & 
   integrator.template integrate<type>(field_1, *int_field_1, 1, ghost_type, empty_filter);
 
   /// distribute the mass of the element to the nodes
-  Array<Real> * lumped_per_node = new Array<Real>(nb_element, nb_nodes_per_element, "mass_per_node");
-  Real * int_field_1_val = int_field_1->values;
-  Real * lumped_per_node_val = lumped_per_node->values;
+  Array<Real> * lumped_per_node = new Array<Real>(nb_element, nb_degree_of_freedom * nb_nodes_per_element, "mass_per_node");
+  Array<Real>::const_scalar_iterator int_field_1_it = int_field_1->begin();
+  Array<Real>::matrix_iterator lumped_per_node_it
+    = lumped_per_node->begin(nb_degree_of_freedom, nb_nodes_per_element);
 
   for (UInt e = 0; e < nb_element; ++e) {
-    Real lmass = *int_field_1_val * corner_factor;
-    for (UInt n = 0; n < nb_nodes_per_element_p1; ++n)
-      *lumped_per_node_val++ = lmass; /// corner points
+    Real lmass = *int_field_1_it * corner_factor;
+    for (UInt n = 0; n < nb_nodes_per_element_p1; ++n) {
+      Vector<Real> l = (*lumped_per_node_it)(n);
+      l.set(lmass); /// corner points
+    }
 
-    lmass = *int_field_1_val * mid_factor;
-    for (UInt n = nb_nodes_per_element_p1; n < nb_nodes_per_element; ++n)
-      *lumped_per_node_val++ = lmass; /// mid points
+    lmass = *int_field_1_it * mid_factor;
+    for (UInt n = nb_nodes_per_element_p1; n < nb_nodes_per_element; ++n) {
+      Vector<Real> l = (*lumped_per_node_it)(n);
+      l.set(lmass); /// mid points
+    }
 
-    int_field_1_val++;
+    ++int_field_1_it;
+    ++lumped_per_node_it;
   }
   delete int_field_1;
 
-  lumped_per_node->extendComponentsInterlaced(nb_degree_of_freedom,1);
+  //  lumped_per_node->extendComponentsInterlaced(nb_degree_of_freedom,1);
   assembleArray(*lumped_per_node, lumped, equation_number, nb_degree_of_freedom, type, ghost_type);
   delete lumped_per_node;
 
@@ -713,7 +730,7 @@ void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
   Array<Real> * local_mat = new Array<Real>(vect_size, lmat_size * lmat_size);
 
   Array<Real>::matrix_iterator shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
-  Real * sh  = shapes.values;
+  Real * sh  = shapes.storage();
   for(UInt q = 0; q < vect_size; ++q) {
     Real * msh = shape_vect->storage();
     for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
@@ -729,7 +746,7 @@ void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
 
   shape_vect  = modified_shapes->begin(nb_degree_of_freedom, lmat_size);
   Array<Real>::matrix_iterator lmat = local_mat->begin(lmat_size, lmat_size);
-  Real * field_val = field_1.values;
+  Real * field_val = field_1.storage();
 
   for(UInt q = 0; q < vect_size; ++q) {
     (*lmat).mul<true, false>(*shape_vect, *shape_vect, *field_val);
@@ -914,7 +931,8 @@ assembleLumpedTemplate<_triangle_6>(const Array<Real> & field_1,
 				    Array<Real> & lumped,
 				    const Array<Int> & equation_number,
 				    const GhostType & ghost_type) const {
-  assembleLumpedDiagonalScaling<_triangle_6>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
+  assembleLumpedDiagonalScaling<_triangle_6>(field_1, nb_degree_of_freedom,
+					     lumped, equation_number, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -926,7 +944,8 @@ assembleLumpedTemplate<_tetrahedron_10>(const Array<Real> & field_1,
 					Array<Real> & lumped,
 					const Array<Int> & equation_number,
 					const GhostType & ghost_type) const {
-  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
+  assembleLumpedDiagonalScaling<_tetrahedron_10>(field_1, nb_degree_of_freedom,
+						 lumped,  equation_number, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -939,7 +958,8 @@ assembleLumpedTemplate<_quadrangle_8>(const Array<Real> & field_1,
 				      Array<Real> & lumped,
 				      const Array<Int> & equation_number,
 				      const GhostType & ghost_type) const {
-  assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, nb_degree_of_freedom,lumped, equation_number, ghost_type);
+  assembleLumpedDiagonalScaling<_quadrangle_8>(field_1, nb_degree_of_freedom,
+					       lumped, equation_number, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */

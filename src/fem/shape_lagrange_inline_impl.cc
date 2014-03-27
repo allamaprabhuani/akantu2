@@ -105,7 +105,7 @@ void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
   UInt spatial_dimension = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).values;
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
   mesh.extractNodalValuesFromElement(mesh.getNodes(),
@@ -203,7 +203,7 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Array<
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
 
-  //  Real * coord = mesh.getNodes().values;
+  //  Real * coord = mesh.getNodes().storage();
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
@@ -297,20 +297,24 @@ void ShapeLagrange<kind>::gradientOnControlPoints(const Array<Real> &in_u,
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::fieldTimesShapes(const Array<Real> & field,
-				     Array<Real> & field_times_shapes,
-				     GhostType ghost_type) const {
-  field_times_shapes.copy(field);
-  field_times_shapes.extendComponentsInterlaced(ElementClass<type>::getShapeSize(), 1);
+					   Array<Real> & field_times_shapes,
+					   GhostType ghost_type) const {
+  field_times_shapes.resize(field.getSize());
 
-  UInt nb_element = field_times_shapes.getSize() * ElementClass<type>::getShapeSize();
-
+  UInt size_of_shapes = ElementClass<type>::getShapeSize();
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
-  Real * field_times_shapes_val = field_times_shapes.storage();
-  Real * shapes_val = shapes(itp_type, ghost_type).storage();
+  UInt nb_degree_of_freedom = field.getNbComponent();
 
-  /// compute @f$ rho * \varphi_i @f$ for each nodes of each element
-  for (UInt el = 0; el < nb_element; ++el) {
-    *field_times_shapes_val++ *= *shapes_val++;
+  const Array<Real> & shape = shapes(itp_type, ghost_type);
+
+  Array<Real>::const_matrix_iterator field_it  = field.begin(nb_degree_of_freedom, 1);
+  Array<Real>::const_matrix_iterator shapes_it = shape.begin(1, size_of_shapes);
+
+  Array<Real>::matrix_iterator it  = field_times_shapes.begin(nb_degree_of_freedom, size_of_shapes);
+  Array<Real>::matrix_iterator end = field_times_shapes.end  (nb_degree_of_freedom, size_of_shapes);
+
+  for (; it != end; ++it, ++field_it, ++shapes_it) {
+    it->mul<false, false>(*field_it, *shapes_it);
   }
 }
 

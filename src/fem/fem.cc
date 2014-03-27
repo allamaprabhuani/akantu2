@@ -171,14 +171,14 @@ void FEM::assembleMatrix(const Array<Real> & elementary_mat,
 		      "The vector elementary_mat(" << elementary_mat.getID()
 		      << ") has not the good number of component.");
 
-  Real * elementary_mat_val = elementary_mat.values;
+  Real * elementary_mat_val = elementary_mat.storage();
   UInt offset_elementary_mat = elementary_mat.getNbComponent();
-  UInt * connectivity_val = mesh.getConnectivity(type, ghost_type).values;
+  UInt * connectivity_val = mesh.getConnectivity(type, ghost_type).storage();
 
   UInt size_mat = nb_nodes_per_element * nb_degree_of_freedom;
   UInt size = mesh.getNbGlobalNodes() * nb_degree_of_freedom;
 
-  Int * eq_nb_val = matrix.getDOFSynchronizer().getGlobalDOFEquationNumbers().values;
+  Int * eq_nb_val = matrix.getDOFSynchronizer().getGlobalDOFEquationNumbers().storage();
   Int * local_eq_nb_val = new Int[size_mat];
 
   for (UInt e = 0; e < nb_element; ++e) {

@@ -69,7 +69,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
   bool * has_closest_master_node_val = has_closest_master_node->values;
 
   /// get list of impactor and master nodes from neighbor list
-  UInt * impactor_nodes_val = neighbor_list.impactor_nodes.values;
+  UInt * impactor_nodes_val = neighbor_list.impactor_nodes.storage();
 
   //const Mesh & mesh = contact.getModel().getFEM().getMesh();
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
@@ -127,12 +127,12 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
     for (UInt el_type = 0; el_type < nb_facet_types; ++el_type) {
       ElementType type = facet_type[el_type];
 
-      UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).values;
+      UInt * surface_id_val = mesh.getSurfaceID(type, _not_ghost).storage();
 
       const Array<UInt> & node_to_elements_offset = contact.getNodeToElementsOffset(type, _not_ghost);
       const Array<UInt> & node_to_elements = contact.getNodeToElements(type, _not_ghost);
-      UInt * node_to_elements_offset_val = node_to_elements_offset.values;
-      UInt * node_to_elements_val        = node_to_elements.values;
+      UInt * node_to_elements_offset_val = node_to_elements_offset.storage();
+      UInt * node_to_elements_val        = node_to_elements.storage();
 
       UInt min_element_offset = node_to_elements_offset_val[closest_master_node];
       UInt max_element_offset = node_to_elements_offset_val[closest_master_node + 1];
@@ -271,7 +271,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
       penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost).resize(tmp_nb_facets+1);
 
       Array<UInt> & tmp_penetrated_facets_offset = (penetration_list.penetrated_facets_offset(current_facet_type, _not_ghost));
-      UInt * tmp_penetrated_facets_offset_val = tmp_penetrated_facets_offset.values;
+      UInt * tmp_penetrated_facets_offset_val = tmp_penetrated_facets_offset.storage();
 
       for (UInt i = 1; i < tmp_nb_facets; ++i)
 	tmp_penetrated_facets_offset_val[i] += tmp_penetrated_facets_offset_val[i - 1];
@@ -307,9 +307,9 @@ void ContactSearchExplicit::findClosestMasterNodes(const Surface & master_surfac
   const NodesNeighborList & neighbor_list = dynamic_cast<const NodesNeighborList&>(it->second->getNeighborList());
 
   /// get list of impactor and master nodes from neighbor list
-  UInt * impactor_nodes_val = neighbor_list.impactor_nodes.values;
-  UInt * master_nodes_offset_val = neighbor_list.master_nodes_offset.values;
-  UInt * master_nodes_val = neighbor_list.master_nodes.values;
+  UInt * impactor_nodes_val = neighbor_list.impactor_nodes.storage();
+  UInt * master_nodes_offset_val = neighbor_list.master_nodes_offset.storage();
+  UInt * master_nodes_val = neighbor_list.master_nodes.storage();
 
   /// loop over all impactor nodes and find for each the closest master node
   UInt nb_impactor_nodes = neighbor_list.impactor_nodes.getSize();
@@ -414,8 +414,8 @@ void ContactSearchExplicit::computeComponentsOfProjectionSegment2(const UInt imp
   const ElementType type = _segment_2;
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
 
-  Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
+  Real * current_position = contact.getModel().getCurrentPosition().storage();
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).storage();
 
   UInt node_1 = surface_element * nb_nodes_element;
   Real * position_node_1 = &(current_position[connectivity[node_1 + 0] * spatial_dimension]);
@@ -454,8 +454,8 @@ void ContactSearchExplicit::computeComponentsOfProjectionTriangle3(const UInt im
   const ElementType type = _triangle_3;
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
 
-  Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
+  Real * current_position = contact.getModel().getCurrentPosition().storage();
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).storage();
 
   UInt node_1 = surface_element * nb_nodes_element;
   Real * position_node_1 = &(current_position[connectivity[node_1 + 0] * spatial_dimension]);
@@ -498,8 +498,8 @@ void ContactSearchExplicit::checkPenetrationSituationSegment2(const UInt impacto
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
   const Real tolerance = std::numeric_limits<Real>::epsilon();
 
-  Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
+  Real * current_position = contact.getModel().getCurrentPosition().storage();
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).storage();
 
   Real gap;
   Real normal[2];
@@ -555,8 +555,8 @@ void ContactSearchExplicit::checkPenetrationSituationTriangle3(const UInt impact
   const UInt nb_nodes_element = Mesh::getNbNodesPerElement(type);
   const Real tolerance = std::numeric_limits<Real>::epsilon();
 
-  Real * current_position = contact.getModel().getCurrentPosition().values;
-  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).values;
+  Real * current_position = contact.getModel().getCurrentPosition().storage();
+  UInt * connectivity = mesh.getConnectivity(type, _not_ghost).storage();
 
   Real gap;
   Real normal[3];

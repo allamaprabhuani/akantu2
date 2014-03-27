@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
     }
 
     if(coords(i,1) <= eps || coords(i,1) >= 1 - eps ) {
-      model.getBoundary().values[spatial_dimension*i + 1] = true;
+      model.getBoundary().storage()[spatial_dimension*i + 1] = true;
     }
   }
 

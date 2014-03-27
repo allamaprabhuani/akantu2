@@ -58,13 +58,13 @@ int main(int argc, char *argv[]) {
   Array<Real> C4(nbm, n*n);
 
   for (UInt i = 0; i < n*n; ++i) {
-    A.values[i] = drand48();
-    B.values[i] = drand48();
+    A.storage()[i] = drand48();
+    B.storage()[i] = drand48();
   }
 
   for (UInt i = 1; i < nbm; ++i) {
-    memcpy(A.values + i * n * n, A.values, n*n*sizeof(Real));
-    memcpy(B.values + i * n * n, B.values, n*n*sizeof(Real));
+    memcpy(A.storage() + i * n * n, A.storage(), n*n*sizeof(Real));
+    memcpy(B.storage() + i * n * n, B.storage(), n*n*sizeof(Real));
   }
 
   struct timeval begin, end;

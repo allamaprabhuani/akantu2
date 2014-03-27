@@ -136,14 +136,14 @@ void LevelSetModel::reinitializeLevelSet(Real delta_t, Real tol, UInt max_step, 
   Real ratio = 1.01;
   if (filtered_flag) {
     UInt nb_nodes = mesh.getNbNodes();
-    Real Phi_min = *(phi->values);
-    Real Phi_max = *(phi->values);
+    Real Phi_min = *(phi->storage());
+    Real Phi_max = *(phi->storage());
     for (UInt i = 1; i < nb_nodes; i++) {
-      if (*(phi->values + i) > Phi_max)
-        Phi_max = *(phi->values + i);
+      if (*(phi->storage() + i) > Phi_max)
+        Phi_max = *(phi->storage() + i);
 
-      if (*(phi->values + i) < Phi_min)
-        Phi_min = *(phi->values + i);
+      if (*(phi->storage() + i) < Phi_min)
+        Phi_min = *(phi->storage() + i);
     }
     if (Phi_max > 2 * ratio * Filter_parameter / 3.1415927 || Phi_min<-2 * ratio * Filter_parameter / 3.1415927)
       reinitialize = true;
@@ -165,14 +165,14 @@ void LevelSetModel::reinitializeLevelSet(Real delta_t, Real tol, UInt max_step, 
     counter++;
     if (filtered_flag) {
       UInt nb_nodes = mesh.getNbNodes();
-      Real Phi_min = *(phi->values);
-      Real Phi_max = *(phi->values);
+      Real Phi_min = *(phi->storage());
+      Real Phi_max = *(phi->storage());
       for (UInt i = 1; i < nb_nodes; i++) {
-        if (*(phi->values + i) > Phi_max)
-          Phi_max = *(phi->values + i);
+        if (*(phi->storage() + i) > Phi_max)
+          Phi_max = *(phi->storage() + i);
 
-        if (*(phi->values + i) < Phi_min)
-          Phi_min = *(phi->values + i);
+        if (*(phi->storage() + i) < Phi_min)
+          Phi_min = *(phi->storage() + i);
       }
       if (Phi_max > 2 * ratio * Filter_parameter / 3.1415927 || Phi_min<-2 * ratio * Filter_parameter / 3.1415927)
         reinitialize = true;
@@ -408,9 +408,9 @@ void LevelSetModel::solveStatic() {
 
   solver->solve(*increment);
 
-  Real * increment_val = increment->values;
-  Real * phi_val = phi->values;
-  bool * boundary_val = boundary->values;
+  Real * increment_val = increment->storage();
+  Real * phi_val = phi->storage();
+  bool * boundary_val = boundary->storage();
 
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if (!(*boundary_val)) {
@@ -445,8 +445,8 @@ void LevelSetModel::initPhi(geometry & geo, bool filter, Real epsilon) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
   Array<Real> & node_vec = mesh.getNodes();
-  Real * node = node_vec.values;
-  Real * phi_node = phi->values;
+  Real * node = node_vec.storage();
+  Real * phi_node = phi->storage();
   for (UInt i = 0; i < nb_nodes; i++) {
     if (filter) {
       filtered_flag = 1;
@@ -715,9 +715,9 @@ bool LevelSetModel::testConvergenceResidual(Real tolerance, Real & norm) {
 
 
   norm = 0;
-  Real * RHS_val = residual->values;
-  Real * residual_val = Ku->values;
-  bool * boundary_val = boundary->values;
+  Real * RHS_val = residual->storage();
+  Real * residual_val = Ku->storage();
+  bool * boundary_val = boundary->storage();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
@@ -985,7 +985,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
   v_n_element.mul < false, true > (v_qpoints_element, normals_qpoints_element);
   }
 
-  Real * v_n_qpoint = v_n.values;
+  Real * v_n_qpoint = v_n.storage();
 
   if (matrix) {
 
@@ -1001,7 +1001,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   Array<Real>::matrix_iterator Ni_Nj_it = Ni_Nj->begin(Ni_Nj_size, Ni_Nj_size);
 
-  v_n_qpoint = v_n.values;
+  v_n_qpoint = v_n.storage();
 
   for (; shapes_filtered_it != shapes_filtered_end; ++Ni_Nj_it, ++shapes_filtered_it, ++v_n_qpoint) {
 

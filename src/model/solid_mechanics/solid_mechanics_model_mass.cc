@@ -51,7 +51,7 @@ void SolidMechanicsModel::assembleMassLumped() {
 
   /// for not connected nodes put mass to one in order to avoid
   /// wrong range in paraview
-  Real * mass_values = mass->values;
+  Real * mass_values = mass->storage();
   for (UInt i = 0; i < nb_nodes; ++i) {
     if (fabs(mass_values[i]) < std::numeric_limits<Real>::epsilon() || Math::isnan(mass_values[i]))
       mass_values[i] = 1.;
@@ -139,7 +139,7 @@ void SolidMechanicsModel::computeRho(Array<Real> & rho,
   UInt nb_quadrature_points = fem.getNbQuadraturePoints(type, ghost_type);
 
   rho.resize(nb_element * nb_quadrature_points);
-  Real * rho_1_val = rho.values;
+  Real * rho_1_val = rho.storage();
 
   /// compute @f$ rho @f$ for each nodes of each element
   for (UInt el = 0; el < nb_element; ++el) {

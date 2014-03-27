@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
   my_model.getAcceleration().clear();
   my_model.getDisplacement().clear();
 
-  Real * displacement = my_model.getDisplacement().values;
+  Real * displacement = my_model.getDisplacement().storage();
 
   my_model.initExplicit();
   my_model.initModel();  
@@ -126,9 +126,9 @@ int main(int argc, char *argv[])
 
   UInt nb_nodes_neigh = my_neighbor_list.impactor_nodes.getSize();
   Array<UInt> impact_nodes = my_neighbor_list.impactor_nodes;
-  UInt * impact_nodes_val = impact_nodes.values;
-  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.values;
-  UInt * master_nodes_val = my_neighbor_list.master_nodes.values;
+  UInt * impact_nodes_val = impact_nodes.storage();
+  UInt * master_nodes_offset_val = my_neighbor_list.master_nodes_offset.storage();
+  UInt * master_nodes_val = my_neighbor_list.master_nodes.storage();
 
   /// print impactor nodes
   test_output << "we have " << nb_nodes_neigh << " impactor nodes:";
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 
     /// apply a displacement to the slave body
     if(s == 2) {
-      Real * coord = my_mesh.getNodes().values;
+      Real * coord = my_mesh.getNodes().storage();
       for(UInt n = 0; n < nb_nodes; ++n) {
 	if(coord[n*dim + 0] > 0.5) {
 	  displacement[n*dim+0] = -0.02;
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
     UInt nb_nodes_pen = my_penetration_list->penetrating_nodes.getSize();
     Array<UInt> pen_nodes = my_penetration_list->penetrating_nodes;
-    UInt * pen_nodes_val = pen_nodes.values;
+    UInt * pen_nodes_val = pen_nodes.storage();
     test_output << "we have " << nb_nodes_pen << " penetrating nodes:" << std::endl;
     for (UInt i = 0; i < nb_nodes_pen; ++i) {
       test_output << "node " << pen_nodes_val[i] << " with disp:";
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 
     UInt nb_nodes_pen_2 = my_penetration_list_2->penetrating_nodes.getSize();
     Array<UInt> pen_nodes_2 = my_penetration_list_2->penetrating_nodes;
-    UInt * pen_nodes_2_val = pen_nodes_2.values;
+    UInt * pen_nodes_2_val = pen_nodes_2.storage();
     test_output << "we have " << nb_nodes_pen_2 << " penetrating nodes:";
     for (UInt i = 0; i < nb_nodes_pen_2; ++i)
       test_output << " " << pen_nodes_2_val[i];

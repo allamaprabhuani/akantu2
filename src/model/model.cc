@@ -113,7 +113,7 @@ void Model::initPBC() {
 
   is_pbc_slave_node.resize(mesh.getNbNodes());
 #ifndef AKANTU_NDEBUG
-  Real * coords = mesh.getNodes().values;
+  Real * coords = mesh.getNodes().storage();
   UInt dim = mesh.getSpatialDimension();
 #endif
   while(it != end){

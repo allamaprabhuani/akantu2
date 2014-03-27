@@ -73,16 +73,17 @@ public:
   /* Accessors                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  /// Get the real size allocated in memory
   AKANTU_GET_MACRO(AllocatedSize, allocated_size, UInt);
-
+  /// Get the Size of the Array
   AKANTU_GET_MACRO(Size, size, UInt);
-
+  /// Get the number of components
   AKANTU_GET_MACRO(NbComponent, nb_component, UInt);
-
+  /// Get the name of th array
   AKANTU_GET_MACRO(ID, id, const ID &);
 
-  AKANTU_GET_MACRO(Tag, tag, const std::string &);
-  AKANTU_SET_MACRO(Tag, tag, const std::string &);
+  // AKANTU_GET_MACRO(Tag, tag, const std::string &);
+  // AKANTU_SET_MACRO(Tag, tag, const std::string &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -103,8 +104,8 @@ protected:
   /// size of the stored type
   UInt size_of_type;
 
-  /// User defined tag
-  std::string tag;
+  // /// User defined tag
+  // std::string tag;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -156,247 +157,105 @@ public:
   /* ------------------------------------------------------------------------ */
 
   /* ------------------------------------------------------------------------ */
-// #if defined(AKANTU_CORE_CXX11)
-//   template<class R> using const_iterator = iterator_internal<const R, R>;
-// #else
   template<typename R = T>  class const_iterator;
-// #endif
-
-// #if defined(AKANTU_CORE_CXX11)
-//   template<class R> using iterator = iterator_internal<R>;
-// #else
   template<typename R = T>  class iterator;
-// #endif
+
+  /* ------------------------------------------------------------------------ */
+
+  /// iterator for Array of nb_component = 1
   typedef iterator< T > scalar_iterator;
+  /// const_iterator for Array of nb_component = 1
   typedef const_iterator< T > const_scalar_iterator;
 
+  /// iterator rerturning Vectors of size n  on entries of Array with nb_component = n
   typedef iterator< Vector<T> > vector_iterator;
+  /// const_iterator rerturning Vectors of n size on entries of Array with nb_component = n
   typedef const_iterator< Vector<T> > const_vector_iterator;
 
+  /// iterator rerturning Matrices of size (m, n) on entries of Array with nb_component = m*n
   typedef iterator< Matrix<T> > matrix_iterator;
+  /// const iterator rerturning Matrices of size (m, n) on entries of Array with nb_component = m*n
   typedef const_iterator< Matrix<T> > const_matrix_iterator;
 
-  /*! Get an iterator that behaves like a pointer T * to the
-   *  first entry in the member array values
-   *  @return a scalar_iterator
-   */
+  /* ------------------------------------------------------------------------ */
+
+  /// Get an iterator that behaves like a pointer T * to the first entry
   inline iterator<T> begin();
-  /*! Get an iterator that behaves like a pointer T * that points *past* the
-   *  last entry in the member array values
-   *  @return a scalar_iterator
-   */
+  /// Get an iterator that behaves like a pointer T * to the end of the Array
   inline iterator<T> end();
-  /*! Get a const iterator that behaves like a pointer T * to the
-   *  first entry in the member array values
-   *  @return a const_scalar_iterator
-   */
+  /// Get a const_iterator to the beginging of an Array of scalar
   inline const_iterator<T> begin() const;
-  /*! Get a const iterator that behaves like a pointer T * that points *past* the
-   *  last entry in the member array values
-   *  @return a const_scalar_iterator
-   */
+  /// Get a const_iterator to the end of an Array of scalar
   inline const_iterator<T> end() const;
 
-  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * to the
-   *  first tuple of the array.
-   *  @param n vector size. Has to be equal to nb_component. This unfortunate
-   *  redundancy is necessary to distinguish it from ::begin() which it
-   *  overloads. If compiled in debug mode, an incorrect value of n will result
-   *  in an exception being thrown. Optimized code will fail in an unpredicted
-   *  manner.
-   *  @return a vector_iterator
-   */
+  /* ------------------------------------------------------------------------ */
+  /// Get a vector_iterator on the begining of the Array
   inline vector_iterator begin(UInt n);
-  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param n vector size. see Array::begin(UInt n) for more
-   *  @return a vector_iterator
-   */
+  /// Get a vector_iterator on the end of the Array
   inline vector_iterator end(UInt n);
-  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * to the
-   *  first tuple of the array.
-   *  @param n vector size. see Array::begin(UInt n) for more
-   *  @return a vector_iterator
-   */
+  /// Get a vector_iterator on the begining of the Array
   inline const_vector_iterator begin(UInt n) const;
-  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param n vector size. see Array::begin(UInt n) for more
-   *  @return a const_vector_iterator
-   */
+  /// Get a vector_iterator on the end of the Array
   inline const_vector_iterator end(UInt n) const;
 
-  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * to the
-   *  first tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns. m times n has to equal nb_component.
-   *  If compiled in debug mode, an incorrect combination of m and n will result
-   *  in an exception being thrown. Optimized code will fail in an unpredicted
-   *  manner.
-   *  @return a matrix_iterator
-   */
+  /// Get a vector_iterator on the begining of the Array considered of shape (new_size, n)
+  inline vector_iterator begin_reinterpret(UInt n, UInt new_size);
+  /// Get a vector_iterator on the end of the Array considered of shape (new_size, n)
+  inline vector_iterator end_reinterpret(UInt n, UInt new_size);
+  /// Get a const_vector_iterator on the begining of the Array considered of shape (new_size, n)
+  inline const_vector_iterator begin_reinterpret(UInt n, UInt new_size) const;
+  /// Get a const_vector_iterator on the end of the Array considered of shape (new_size, n)
+  inline const_vector_iterator end_reinterpret(UInt n, UInt new_size) const;
+
+  /* ------------------------------------------------------------------------ */
+  /// Get a matrix_iterator on the begining of the Array (Matrices of size (m, n))
   inline matrix_iterator begin(UInt m, UInt n);
-  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns. See Array::begin(UInt m, UInt n)
-   *  @return a matrix_iterator
-   */
+  /// Get a matrix_iterator on the end of the Array (Matrices of size (m, n))
   inline matrix_iterator end(UInt m, UInt n);
-  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * to the
-   *  first tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns. See Array::begin(UInt m, UInt n)
-   *  @return a matrix_iterator
-   */
+  /// Get a const_matrix_iterator on the begining of the Array (Matrices of size (m, n))
   inline const_matrix_iterator begin(UInt m, UInt n) const;
-  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns. See Array::begin(UInt m, UInt n)
-   *  @return a const_matrix_iterator
-   */
+  /// Get a const_matrix_iterator on the end of the Array (Matrices of size (m, n))
   inline const_matrix_iterator end(UInt m, UInt n) const;
 
-  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * to the
-   *  first tuple of the array.
-   *
-   *  The reinterpret iterators allow to iterate over an array in any way that
-   *  preserves the number of entries of the array. This can for instance be use
-   *  full if the shape of the data in an array is not initially known.
-   *  @param n vector size.
-   *  @param size number of tuples in array. n times size must match the number
-   *  of entries of the array. If compiled in debug mode, an incorrect
-   *  combination of n and size will result
-   *  in an exception being thrown. Optimized code will fail in an unpredicted
-   *  manner.
-   *  @return a vector_iterator
-   */
-  inline vector_iterator begin_reinterpret(UInt n, UInt size);
-  /*! Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param n vector size.
-   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
-   *  @return a vector_iterator
-   */
-  inline vector_iterator end_reinterpret(UInt n, UInt size);
-  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * to the
-   *  first tuple of the array.
-   *  @param n vector size.
-   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
-   *  @return a const_vector_iterator
-   */
-  inline const_vector_iterator begin_reinterpret(UInt n, UInt size) const;
-  /*! Get a const iterator that behaves like a pointer akantu::Vector<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param n vector size.
-   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
-   *  @return a const_vector_iterator
-   */
-  inline const_vector_iterator end_reinterpret(UInt n, UInt size) const;
-
-
-  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * to the
-   *  first tuple of the array.
-   *
-   *  The reinterpret iterators allow to iterate over an array in any way that
-   *  preserves the number of entries of the array. This can for instance be use
-   *  full if the shape of the data in an array is not initially known.
-   *  @param m number of rows
-   *  @param n number of columns
-   *  @param size number of tuples in array. m times n times size must match the number
-   *  of entries of the array. If compiled in debug mode, an incorrect
-   *  combination of m, n and size will result
-   *  in an exception being thrown. Optimized code will fail in an unpredicted
-   *  manner.
-   *  @return a matrix_iterator
-   */
+  /// Get a matrix_iterator on the begining of the Array considered of shape (new_size, m*n)
   inline matrix_iterator begin_reinterpret(UInt m, UInt n, UInt size);
-  /*! Get an iterator that behaves like a pointer akantu::Matrix<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns
-   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
-   *  @return a matrix_iterator
-   */
+  /// Get a matrix_iterator on the end of the Array considered of shape (new_size, m*n)
   inline matrix_iterator end_reinterpret(UInt m, UInt n, UInt size);
-  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * to the
-   *  first tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns
-   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
-   *  @return a const_matrix_iterator
-   */
+  /// Get a const_matrix_iterator on the begining of the Array considered of shape (new_size, m*n)
   inline const_matrix_iterator begin_reinterpret(UInt m, UInt n, UInt size) const;
-  /*! Get a const iterator that behaves like a pointer akantu::Matrix<T> * pointing
-   *  *past* the last tuple of the array.
-   *  @param m number of rows
-   *  @param n number of columns
-   *  @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
-   *  @return a const_matrix_iterator
-   */
+  /// Get a const_matrix_iterator on the end of the Array considered of shape (new_size, m*n)
   inline const_matrix_iterator end_reinterpret(UInt m, UInt n, UInt size) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
-  /*! append a tuple to the array with the value value for all
-   * components
-   * @param value the new last tuple or the array will contain nb_component copies of value
-   */
+  /// append a tuple of size nb_component containing value
   inline void push_back(const_reference value);
-
-  /*! append a tuple to the array
-   *  @param new_elem a C-array containing the values to be copied to the end of the array */
+  /// append a vector
   inline void push_back(const value_type new_elem[]);
-
-  /*! append a tuple to the array
-   * @param it an iterator to the tuple to be copied to the end of the array */
+  /// append a Vector or a Matrix
+  template<template<typename> class C>
+  inline void push_back(const C<T> & new_elem);
+  /// append the value of the iterator
   template<typename Ret>
   inline void push_back(const iterator<Ret> & it);
 
-  /*! append a matrix or a vector to the array
-   *  @param new_elem a reference to a Matrix<T> or Vector<T> */
-  template<template<typename> class C>
-  inline void push_back(const C<T> & new_elem);
-
-  /**
-   * erase an element. If the erased element is not the last of the array, the
-   * last element is moved into the hole in order to maintain contiguity. This
-   * may invalidate existing iterators (For instance an iterator obtained by
-   * Array::end() is no longer correct) and will change the order of the
-   * elements.
-   * @param i index of element to erase
-   */
+  /// erase the value at position i
   inline void erase(UInt i);
-
-
   /// ask Nico, clarify
   template<typename R>
   inline iterator<R> erase(const iterator<R> & it);
 
-
-  /*! change the size of the array and allocate or free memory if needed. If the
-   *  size increases, the new tuples are filled with zeros
-   *  @param size new number of tuples contained in the array */
+  /// change the size of the Array
   void resize(UInt size);
 
   /// change the number of components by interlacing data
   /// deprecated, do not use
   void extendComponentsInterlaced(UInt multiplicator, UInt stride)
-                                      __attribute__((deprecated)) ;
+    __attribute__((deprecated));
 
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-
-  //  Array<T, is_scal>& operator=(const Array<T, is_scal>& vect);
-
-  /// search elem in the vector, return  the position of the first occurrence or
-  /// -1 if not found
-  /// @param elem the element to look for
-  /// @return index of the first occurrence of elem or -1 if elem is not present
+  /// search elem in the vector, return  the position of the first occurrence or -1 if not found
   Int find(const_reference elem) const;\
   /// @see Array::find(const_reference elem) const
   Int find(T elem[]) const;
@@ -413,16 +272,14 @@ public:
   template<template<typename> class C>
   inline void set(const C<T> & vm);
 
-  /*! copy the content of another array. This overwrites the current content.
-   *  @param other Array to copy into this array. It has to have the same
-   *  nb_component as this. If compiled in debug mode, an incorrect other will
-   *  result in an exception being thrown. Optimised code may result in
-   *  unpredicted behaviour. */
+  /// copy another Array in the current Array
   void copy(const Array<T, is_scal> & other);
 
   /// give the address of the memory allocated for this vector
   T * storage() const { return values; };
 
+  /// function to print the containt of the class
+  virtual void printself(std::ostream & stream, int indent = 0) const;
 protected:
   /// perform the allocation for the constructors
   void allocate(UInt size, UInt nb_component = 1);
@@ -434,28 +291,14 @@ protected:
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /*! Subtract another array entry by entry from this array in place. Both arrays must
-   *  have the same size and nb_component. If the arrays have different shapes,
-   *  code compiled in debug mode will throw an expeption and optimised code
-   *  will behave in an unpredicted manner
-   *  @param other array to subtract from this
-   *  @return reference to modified this */
+  /// substraction entry-wise
   Array<T, is_scal> & operator-=(const Array<T, is_scal> & other);
-  /*! Add another array entry by entry to this array in place. Both arrays must
-   *  have the same size and nb_component. If the arrays have different shapes,
-   *  code compiled in debug mode will throw an expeption and optimised code
-   *  will behave in an unpredicted manner
-   *  @param other array to add to this
-   *  @return reference to modified this */
+  /// addition entry-wise
   Array<T, is_scal> & operator+=(const Array<T, is_scal> & other);
-  /*! Multiply all entries of this array by a scalar in place
-   *  @param alpha scalar multiplicant
-   *  @return reference to modified this */
+  /// multiply evry entry by alpha
   Array<T, is_scal> & operator*=(const T & alpha);
 
-  /*! Compare this array element by element to another.
-   *  @param other array to compare to
-   *  @return true it all element are equal and arrays have the same shape, else false */
+  /// check if the array are identical entry-wise
   bool operator==(const Array<T, is_scal> & other) const;
   /// @see Array::operator==(const Array<T, is_scal> & other) const
   bool operator!=(const Array<T, is_scal> & other) const;
@@ -475,7 +318,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
   /// array of values
   T * values; // /!\ very dangerous
 

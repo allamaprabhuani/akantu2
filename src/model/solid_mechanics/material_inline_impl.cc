@@ -56,7 +56,7 @@ inline UInt Material::getCauchyStressMatrixSize(UInt dim) const {
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void Material::gradUToF(const Matrix<Real> & grad_u,
-			       Matrix<Real> & F) {
+			       Matrix<Real> & F) const {
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim*dim,
             "The dimension of the tensor F should be greater or equal to the dimension of the tensor grad_u.");
 
@@ -71,7 +71,7 @@ inline void Material::gradUToF(const Matrix<Real> & grad_u,
 template<UInt dim >
 inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F,
 						const Matrix<Real> & piola,
-						Matrix<Real> & sigma) {
+						Matrix<Real> & sigma) const {
 
   Real J = F.det();
 
@@ -83,20 +83,20 @@ inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F,
 
 /* -------------------------------------------------------------------------- */
 inline void Material::rightCauchy(const Matrix<Real> & F,
-				  Matrix<Real> & C) {
+				  Matrix<Real> & C) const {
   C.mul<true, false>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Material::leftCauchy(const Matrix<Real> & F,
-				 Matrix<Real> & B) {
+				 Matrix<Real> & B) const {
   B.mul<false, true>(F, F);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
-				     Matrix<Real> & epsilon) {
+				     Matrix<Real> & epsilon) const {
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)
       epsilon(i, j) = 0.5*(grad_u(i, j) + grad_u(j, i));
@@ -105,7 +105,7 @@ inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void Material::gradUToGreenStrain(const Matrix<Real> & grad_u,
-					 Matrix<Real> & epsilon) {
+					 Matrix<Real> & epsilon) const {
   epsilon.mul<true, false>(grad_u, grad_u, .5);
 
   for (UInt i = 0; i < dim; ++i)

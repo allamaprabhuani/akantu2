@@ -181,16 +181,16 @@ Int main(int argc, char *argv[])
   std::cout << "The time step is " << time_step << std::endl;
 
   // accessors to model elements
-  coordinates      = mesh->getNodes().values;
-  displacement     = model->getDisplacement().values;
-  velocity         = model->getVelocity().values;
-  acceleration     = model->getAcceleration().values;
-  boundary         = model->getBoundary().values;
-  residual         = model->getResidual().values;
+  coordinates      = mesh->getNodes().storage();
+  displacement     = model->getDisplacement().storage();
+  velocity         = model->getVelocity().storage();
+  acceleration     = model->getAcceleration().storage();
+  boundary         = model->getBoundary().storage();
+  residual         = model->getResidual().storage();
   model->updateCurrentPosition();
-  current_position = model->getCurrentPosition().values; 
-  force            = model->getForce().values;
-  mass             = model->getMass().values;
+  current_position = model->getCurrentPosition().storage(); 
+  force            = model->getForce().storage();
+  mass             = model->getMass().storage();
     
   model->assembleMassLumped();
 
@@ -346,24 +346,24 @@ void paraviewInit(iohelper::Dumper & dumper) {
   name << "paraview/" << folder_name << "/";
 
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(model->getFEM().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(element_type).values,
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(element_type).storage(),
 			 paraview_type, nb_elements, iohelper::C_MODE);
-  dumper.AddNodeDataField(model->getDisplacement().values,
+  dumper.AddNodeDataField(model->getDisplacement().storage(),
 			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model->getVelocity().values,
+  dumper.AddNodeDataField(model->getVelocity().storage(),
 			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model->getResidual().values,
+  dumper.AddNodeDataField(model->getResidual().storage(),
 			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model->getMass().values,
+  dumper.AddNodeDataField(model->getMass().storage(),
 			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model->getForce().values,
+  dumper.AddNodeDataField(model->getForce().storage(),
 			  spatial_dimension, "applied_force");
     
-  dumper.AddElemDataField(model->getMaterial(0).getStrain(element_type).values, 
+  dumper.AddElemDataField(model->getMaterial(0).getStrain(element_type).storage(), 
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model->getMaterial(0).getStress(element_type).values, 
+  dumper.AddElemDataField(model->getMaterial(0).getStress(element_type).storage(), 
 			  spatial_dimension*spatial_dimension, "stress");
     
   dumper.SetEmbeddedValue("displacements", 1);
@@ -384,7 +384,7 @@ void loadRestartInformation(ContactRigid * contact) {
   (*boundary_r)(2,0) = true;  (*boundary_r)(2,1) = true;
   // the impactor node
   (*boundary_r)(0,1) = true;
-  memcpy(boundary, boundary_r->values, spatial_dimension*nb_nodes*sizeof(bool));
+  memcpy(boundary, boundary_r->storage(), spatial_dimension*nb_nodes*sizeof(bool));
 
   // set the active impactor node
   Array<bool> * ai_nodes = new Array<bool>(nb_nodes, 1, false);
@@ -470,8 +470,8 @@ void printCorrector(__attribute__ ((unused)) UInt step, ContactRigid * contact, 
   // find the total contact force and contact area
   ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
 
-  Real * friction_forces_val = imp_info->friction_forces->values;  
-  bool * sticking_nodes_val = imp_info->node_is_sticking->values;
+  Real * friction_forces_val = imp_info->friction_forces->storage();  
+  bool * sticking_nodes_val = imp_info->node_is_sticking->storage();
   
   out_stream << " " << friction_forces_val[0] << " " << residual[the_node * spatial_dimension] << " " << friction_forces_val[0] / residual[the_node * spatial_dimension + 1] << " " << displacement[the_node * spatial_dimension] << " " << velocity[the_node * spatial_dimension] << " " << sticking_nodes_val[0] << " " << ekin << " " << epot << " " << ekin+epot << std::endl;
 
@@ -491,7 +491,7 @@ void getStickInfo(ContactRigid * contact) {
   // find the total contact force and contact area
   ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
 
-  bool * sticking_nodes_val = imp_info->node_is_sticking->values;
+  bool * sticking_nodes_val = imp_info->node_is_sticking->storage();
 
   if (sticking_nodes_val[the_node*2])
     stick_counter++;

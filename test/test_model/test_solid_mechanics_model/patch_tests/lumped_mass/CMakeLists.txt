@@ -4,9 +4,9 @@
 # @author David Simon Kammer <david.kammer@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Wed Apr 20 18:08:58 2011
+# @date   Thu Feb 17 16:05:48 2011
 #
-# @brief  configuration for patch tests
+# @brief  configuration for the explicit patch test
 #
 # @section LICENSE
 #
@@ -30,34 +30,15 @@
 #
 #===============================================================================
 
-add_mesh(test_weight_hexa_mesh colone_hexa.geo 3 1)
-add_mesh(test_weight_tetra_mesh colone_tetra.geo 3 1)
+macro(register_patch_test name type)
+  register_test(test_lumped_mass_${name}
+    SOURCES test_lumped_mass.cc
+    FILES_TO_COPY ../data/_${type}.msh ../data/material.dat
+    COMPILE_OPTIONS "TYPE=_${type}"
+    PACKAGE core
+    )
+endmacro()
 
-register_test(test_weight
-  SOURCES colone_weight.cc
-  DEPENDENCIES test_weight_hexa_mesh test_weight_tetra_mesh
-  FILES_TO_COPY material_colone.dat
-  DIRECTORIES_TO_CREATE paraview/test_weight_hexa paraview/test_weight_tetra
-  )
-
-#===============================================================================
-set(LIST_TYPES
-  segment_2
-  segment_3
-  tetrahedron_4
-  tetrahedron_10
-  hexahedron_8
-#  pentahedron_6
-  )
-
-set(LIST_TYPES_2D
-  triangle_3
-  triangle_6
-  quadrangle_4
-  quadrangle_8
-)
-
-add_akantu_test(explicit "Explicit patch tests" PACKAGE core)
-add_akantu_test(implicit "Implicit patch tests" PACKAGE implicit)
-
-add_akantu_test(lumped_mass "Test the mass lumping" PACKAGE core)
+foreach(_type ${LIST_TYPES} ${LIST_TYPES_2D})
+  register_patch_test(${_type} ${_type})
+endforeach()

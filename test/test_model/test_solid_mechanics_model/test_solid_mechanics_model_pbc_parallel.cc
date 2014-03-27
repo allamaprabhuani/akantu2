@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
     // block top and bottom nodes
     if(std::abs(coords(i,1)-mesh.getYMax()) <= eps 
        || std::abs(coords(i,1)-mesh.getYMin()) <= eps) {
-      model->getBoundary().values[spatial_dimension*i + 1] = true;
+      model->getBoundary().storage()[spatial_dimension*i + 1] = true;
     }
     // correct coordinates (gmsh's unprecision)
     for (akantu::UInt d=0; d<spatial_dimension; ++d) {
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
   akantu::Real solution = 2.826923077e6;
   akantu::Real adm_error = 1e-3;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    akantu::Real trac = std::abs(model->getResidual().values[spatial_dimension*i + 1]);
+    akantu::Real trac = std::abs(model->getResidual().storage()[spatial_dimension*i + 1]);
     if((std::abs(coords(i,1)-mesh.getYMax()) <= eps 
        || std::abs(coords(i,1)-mesh.getYMin()) <= eps) &&
        std::abs(trac - solution) > adm_error) {
@@ -218,27 +218,27 @@ void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel &
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
   dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "pbc_parallel");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).values,
+  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).storage(),
 			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
+  dumper.AddNodeDataField(model.getDisplacement().storage(),
 			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
+  dumper.AddNodeDataField(model.getVelocity().storage(),
 			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
+  dumper.AddNodeDataField(model.getAcceleration().storage(),
 			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getResidual().values,
+  dumper.AddNodeDataField(model.getResidual().storage(),
 			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model.getMass().values,
+  dumper.AddNodeDataField(model.getMass().storage(),
 			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model.getForce().values,
+  dumper.AddNodeDataField(model.getForce().storage(),
 			  spatial_dimension, "applied_force");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).storage(),
    			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStress(type).storage(),
    			  spatial_dimension*spatial_dimension, "stress");
-  dumper.AddElemDataField(proc_rank.values, 1, "rank");
+  dumper.AddElemDataField(proc_rank.storage(), 1, "rank");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");
   dumper.Init();

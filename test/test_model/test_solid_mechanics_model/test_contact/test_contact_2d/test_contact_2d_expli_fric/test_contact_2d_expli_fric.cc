@@ -117,19 +117,19 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   /// set vectors to zero
-  memset(model->getForce().values,        0,
+  memset(model->getForce().storage(),        0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getVelocity().values,     0,
+  memset(model->getVelocity().storage(),     0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getAcceleration().values, 0,
+  memset(model->getAcceleration().storage(), 0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getDisplacement().values, 0,
+  memset(model->getDisplacement().storage(), 0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getResidual().values, 0,
+  memset(model->getResidual().storage(), 0,
 	 spatial_dimension*nb_nodes*sizeof(Real));
-  memset(model->getMaterial(0).getStrain(_triangle_3).values, 0,
+  memset(model->getMaterial(0).getStrain(_triangle_3).storage(), 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
-  memset(model->getMaterial(0).getStress(_triangle_3).values, 0,
+  memset(model->getMaterial(0).getStress(_triangle_3).storage(), 0,
 	 spatial_dimension*spatial_dimension*nb_elements*sizeof(Real));
 
   /// Paraview Helper
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap) {
 
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  Real * coord = model.getFEM().getMesh().getNodes().values;
+  Real * coord = model.getFEM().getMesh().getNodes().storage();
   Real y_top = HUGE_VAL, y_bot = -HUGE_VAL;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
@@ -217,7 +217,7 @@ static void reduceGap(const SolidMechanicsModel & model, const Real threshold, c
 static void setBoundaryConditions(SolidMechanicsModel & model) {
 
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  Real * coord = model.getFEM().getMesh().getNodes().values;
+  Real * coord = model.getFEM().getMesh().getNodes().storage();
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (coord[2*n+1] > y_max)
       y_max = coord[2*n+1];
@@ -228,7 +228,7 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
   FEM & b_fem = model.getFEMBoundary();
   b_fem.initShapeFunctions();
   b_fem.computeNormalsOnQuadPoints();
-  bool * id = model.getBoundary().values;
+  bool * id = model.getBoundary().storage();
   memset(id, 0, 2*nb_nodes*sizeof(bool));
   std::cout << "Nodes ";
   for (UInt i = 0; i < nb_nodes; ++i) {
@@ -255,7 +255,7 @@ void my_force(double * coord, double *T) {
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio)
 {
   UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  Real * velocities = model.getVelocity().values;
+  Real * velocities = model.getVelocity().storage();
 
   if(ratio>1.) {
     fprintf(stderr,"**error** in Reduce_Velocities ratio bigger than 1!\n");
@@ -276,19 +276,19 @@ static void initParaview(SolidMechanicsModel & model)
   UInt nb_elements = model.getFEM().getMesh().getNbElement(_triangle_3);
 
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_3).values,
+  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_3).storage(),
 			 iohelper::TRIANGLE1, nb_elements, iohelper::C_MODE);
-  dumper.AddNodeDataField(model.getDisplacement().values,
+  dumper.AddNodeDataField(model.getDisplacement().storage(),
 			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
+  dumper.AddNodeDataField(model.getVelocity().storage(),
 			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getResidual().values,
+  dumper.AddNodeDataField(model.getResidual().storage(),
 			  spatial_dimension, "force");
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(_triangle_3).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStrain(_triangle_3).storage(),
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(_triangle_3).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStress(_triangle_3).storage(),
 			  spatial_dimension*spatial_dimension, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetPrefix("paraview/");

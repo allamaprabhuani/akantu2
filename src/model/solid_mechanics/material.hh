@@ -121,17 +121,15 @@ protected:
   virtual void updateInternalParameters() {}
 
 public:
-  /// compute the stable time step for an element of size h
-  virtual Real getStableTimeStep(__attribute__((unused)) Real h,
-                                 __attribute__((unused)) const Element & element = ElementNull)  {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed() const { AKANTU_DEBUG_TO_IMPLEMENT(); };
+  virtual Real getPushWaveSpeed(const Element & element) const { AKANTU_DEBUG_TO_IMPLEMENT(); }
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed() const { AKANTU_DEBUG_TO_IMPLEMENT(); };
+  virtual Real getShearWaveSpeed(const Element & element) const { AKANTU_DEBUG_TO_IMPLEMENT(); }
+
+  /// get a material celerity to compute the stable time step (default: is the push wave speed)
+  virtual Real getCelerity(const Element & element) const { return getPushWaveSpeed(element); }
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -218,7 +216,7 @@ protected:
 
   template<UInt dim >
   inline void computeCauchyStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
-					Matrix<Real> & cauchy);
+					Matrix<Real> & cauchy) const;
 
   template<UInt dim>
   void computeAllStressesFromTangentModuli(const ElementType & type,
@@ -298,15 +296,15 @@ public:
   /* Conversion functions                                                     */
   /* ------------------------------------------------------------------------ */
   template<UInt dim>
-  inline void gradUToF   (const Matrix<Real> & grad_u, Matrix<Real> & F);
-  inline void rightCauchy(const Matrix<Real> & F,      Matrix<Real> & C);
-  inline void leftCauchy (const Matrix<Real> & F,      Matrix<Real> & B);
+  inline void gradUToF   (const Matrix<Real> & grad_u, Matrix<Real> & F) const;
+  inline void rightCauchy(const Matrix<Real> & F,      Matrix<Real> & C) const;
+  inline void leftCauchy (const Matrix<Real> & F,      Matrix<Real> & B) const;
 
   template<UInt dim>
-  inline void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon);
+  inline void gradUToEpsilon(const Matrix<Real> & grad_u, Matrix<Real> & epsilon) const;
   template<UInt dim>
   inline void gradUToGreenStrain(const Matrix<Real> & grad_u,
-                                 Matrix<Real> & epsilon);
+                                 Matrix<Real> & epsilon) const;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */

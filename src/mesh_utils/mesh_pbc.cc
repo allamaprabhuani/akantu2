@@ -152,7 +152,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   std::vector<UInt> selected_left;
   std::vector<UInt> selected_right;
 
-  Real * coords = mymesh.nodes->values;
+  Real * coords = mymesh.nodes->storage();
   const UInt nb_nodes = mymesh.nodes->getSize();
   const UInt dim = mymesh.getSpatialDimension();
 
@@ -318,7 +318,7 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 			      std::vector<UInt> & selected_right,
 			      std::map<UInt,UInt> & pbc_pair) {
 
-  Real * coords = mymesh.nodes->values;
+  Real * coords = mymesh.nodes->storage();
   const UInt dim = mymesh.getSpatialDimension();
 
   UInt dir_x = UInt(-1) ,dir_y = UInt(-1);

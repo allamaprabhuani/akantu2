@@ -120,10 +120,3 @@ MaterialNeohookean<spatial_dimension>::computePotentialEnergyOnQuad(const Matrix
   /// potential energy
   epot = (0.5*p - this->mu)*defvol + 0.5*this->mu*(traceC - 3.);
 }
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline Real MaterialNeohookean<spatial_dimension>::getStableTimeStep(Real h,
-								     const Element & element) {
-  return (h/celerity(element));
-}

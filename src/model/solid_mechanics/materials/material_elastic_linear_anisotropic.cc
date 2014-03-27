@@ -320,14 +320,8 @@ void MaterialElasticLinearAnisotropic<spatial_dimension>::computeTangentModuli(c
 
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-Real MaterialElasticLinearAnisotropic<dim>::getStableTimeStep(Real h,
-                                                              __attribute__ ((unused)) const Element & element) {
-  return h/this->getCelerity();
-}
-/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialElasticLinearAnisotropic<spatial_dimension>::getCelerity() const {
+Real MaterialElasticLinearAnisotropic<spatial_dimension>::getCelerity(__attribute__((unused)) const Element & element) const {
   return std::sqrt( this->eigC(0) / rho);
 }
 

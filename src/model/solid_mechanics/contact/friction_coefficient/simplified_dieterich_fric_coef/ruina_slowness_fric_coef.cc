@@ -49,8 +49,8 @@ RuinaSlownessFricCoef<compute_analytic_solution>::RuinaSlownessFricCoef(ContactR
 
   const Array<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
   const Array<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
-  UInt * surface_to_nodes_offset_val = surface_to_nodes_offset.values;
-  UInt * surface_to_nodes_val = surface_to_nodes.values;
+  UInt * surface_to_nodes_offset_val = surface_to_nodes_offset.storage();
+  UInt * surface_to_nodes_val = surface_to_nodes.storage();
 
   for(UInt s = 0; s < imp_surfaces->size(); ++s) {
     UInt surf = imp_surfaces->at(s);
@@ -172,7 +172,7 @@ void RuinaSlownessFricCoef<compute_analytic_solution>::addImpactorSurface(const 
   // add new impactor nodes to the map
   const Array<UInt> surface_to_nodes_offset = this->contact.getSurfaceToNodesOffset();
   const Array<UInt> surface_to_nodes = this->contact.getSurfaceToNodes();
-  UInt * surface_to_nodes_val = surface_to_nodes.values;
+  UInt * surface_to_nodes_val = surface_to_nodes.storage();
 
   UInt min_surf_offset = surface_to_nodes_val[impactor_surface];
   UInt max_surf_offset = surface_to_nodes_val[impactor_surface+1];

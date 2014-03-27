@@ -66,8 +66,8 @@ int main(int argc, char *argv[]) {
   const Array<Real> & shapes = fem->getShapes(_segment_2);
 
   for (UInt i = 0; i < const_val.getSize(); ++i) {
-    const_val.values[i * 2 + 0] = 1.;
-    const_val.values[i * 2 + 1] = 2.;
+    const_val.storage()[i * 2 + 0] = 1.;
+    const_val.storage()[i * 2 + 1] = 2.;
   }
 
   fem->interpolateOnQuadraturePoints(const_val, val_on_quad, 2, _segment_2);
@@ -81,10 +81,10 @@ int main(int argc, char *argv[]) {
   std::cout << int_val_on_elem << std::endl;
 
   for (UInt el = 0; el < shapes.getSize(); ++el) {
-    val_on_nodes_per_elem.values[el * 4 + 0] = val_on_quad.values[el * 2 + 0] * shapes.values[el * 2 + 0];
-    val_on_nodes_per_elem.values[el * 4 + 1] = val_on_quad.values[el * 2 + 1] * shapes.values[el * 2 + 0];
-    val_on_nodes_per_elem.values[el * 4 + 2] = val_on_quad.values[el * 2 + 0] * shapes.values[el * 2 + 1];
-    val_on_nodes_per_elem.values[el * 4 + 3] = val_on_quad.values[el * 2 + 1] * shapes.values[el * 2 + 1];
+    val_on_nodes_per_elem.storage()[el * 4 + 0] = val_on_quad.storage()[el * 2 + 0] * shapes.storage()[el * 2 + 0];
+    val_on_nodes_per_elem.storage()[el * 4 + 1] = val_on_quad.storage()[el * 2 + 1] * shapes.storage()[el * 2 + 0];
+    val_on_nodes_per_elem.storage()[el * 4 + 2] = val_on_quad.storage()[el * 2 + 0] * shapes.storage()[el * 2 + 1];
+    val_on_nodes_per_elem.storage()[el * 4 + 3] = val_on_quad.storage()[el * 2 + 1] * shapes.storage()[el * 2 + 1];
 
   }
   std::cout << val_on_nodes_per_elem << std::endl;

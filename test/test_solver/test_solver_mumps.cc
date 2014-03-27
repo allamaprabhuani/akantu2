@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     rhs = new akantu::Array<akantu::Real>(n, 1);
     rhs->clear();
     for(akantu::UInt i = 0; i < n; ++i) {
-      rhs->values[i] = 1.;
+      rhs->storage()[i] = 1.;
     }
     solver->setRHS(*rhs);
     rhs->clear();

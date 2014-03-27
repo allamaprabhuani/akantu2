@@ -256,7 +256,7 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
       partitions(type, _not_ghost)(el) = part;
       std::list<UInt> list_adj_part;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-        UInt node = connectivity.values[el * nb_nodes_per_element + n];
+        UInt node = connectivity.storage()[el * nb_nodes_per_element + n];
         CSR<UInt>::iterator ne;
         for (ne = node_to_elem.begin(node); ne != node_to_elem.end(node); ++ne) {
           UInt adj_el = *ne;

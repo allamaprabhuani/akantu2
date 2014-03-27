@@ -35,9 +35,9 @@ template<UInt spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
 								    Matrix<Real> & sigma,
 								    const Real sigma_th) {
-  Real trace = grad_u.trace();/// trace = (\nabla u)_{kk}
+  Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
-  /// \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
+  // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) =  (i == j)*lambda*trace + mu*(grad_u(i, j) + grad_u(j, i)) + (i == j) * sigma_th;
@@ -109,9 +109,3 @@ inline void MaterialElastic<1>::computeTangentModuliOnQuad(Matrix<Real> & tangen
   tangent(0, 0) = E;
 }
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline Real MaterialElastic<spatial_dimension>::getStableTimeStep(Real h,
-								  __attribute__ ((unused)) const Element & element) {
-  return (h/getPushWaveSpeed());
-}

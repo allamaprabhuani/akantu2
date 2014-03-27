@@ -227,7 +227,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
   }
 
   // Vector<Real> coords(spatial_dimension);
-  // Real * nodes = getFEM().getMesh().getNodes().values;
+  // Real * nodes = getFEM().getMesh().getNodes().storage();
   // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
   //   buffer >> coords;
   //   UInt offset_conn = conn[el_offset + n];

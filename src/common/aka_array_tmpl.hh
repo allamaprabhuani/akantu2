@@ -60,6 +60,11 @@ inline const T & Array<T, is_scal>::operator()(UInt i, UInt j) const {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * append a tuple to the array with the value value for all
+ * components
+ * @param value the new last tuple or the array will contain nb_component copies of value
+ */
 template <class T, bool is_scal>
 inline void Array<T, is_scal>::push_back(const T & value) {
   UInt pos = size;
@@ -70,6 +75,9 @@ inline void Array<T, is_scal>::push_back(const T & value) {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * append a tuple to the array
+ * @param new_elem a C-array containing the values to be copied to the end of the array */
 template <class T, bool is_scal>
 inline void Array<T, is_scal>::push_back(const T new_elem[]) {
   UInt pos = size;
@@ -81,6 +89,9 @@ inline void Array<T, is_scal>::push_back(const T new_elem[]) {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * append a matrix or a vector to the array
+ * @param new_elem a reference to a Matrix<T> or Vector<T> */
 template <class T, bool is_scal>
 template<template<typename> class C>
 inline void Array<T, is_scal>::push_back(const C<T> & new_elem) {
@@ -94,6 +105,9 @@ inline void Array<T, is_scal>::push_back(const C<T> & new_elem) {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * append a tuple to the array
+ * @param it an iterator to the tuple to be copied to the end of the array */
 template <class T, bool is_scal>
 template<class Ret>
 inline void Array<T, is_scal>::push_back(const Array<T, is_scal>::iterator<Ret> & it) {
@@ -107,6 +121,14 @@ inline void Array<T, is_scal>::push_back(const Array<T, is_scal>::iterator<Ret> 
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * erase an element. If the erased element is not the last of the array, the
+ * last element is moved into the hole in order to maintain contiguity. This
+ * may invalidate existing iterators (For instance an iterator obtained by
+ * Array::end() is no longer correct) and will change the order of the
+ * elements.
+ * @param i index of element to erase
+ */
 template <class T, bool is_scal>
 inline void Array<T, is_scal>::erase(UInt i){
   AKANTU_DEBUG_IN();
@@ -127,13 +149,21 @@ inline void Array<T, is_scal>::erase(UInt i){
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Subtract another array entry by entry from this array in place. Both arrays must
+ * have the same size and nb_component. If the arrays have different shapes,
+ * code compiled in debug mode will throw an expeption and optimised code
+ * will behave in an unpredicted manner
+ * @param other array to subtract from this
+ * @return reference to modified this
+ */
 template <class T, bool is_scal>
 Array<T, is_scal> & Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
 		      "The too vector don't have the same sizes");
 
   T * a = values;
-  T * b = vect.values;
+  T * b = vect.storage();
   for (UInt i = 0; i < size*nb_component; ++i) {
     *a -= *b;
     ++a;++b;
@@ -143,13 +173,21 @@ Array<T, is_scal> & Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Add another array entry by entry to this array in place. Both arrays must
+ * have the same size and nb_component. If the arrays have different shapes,
+ * code compiled in debug mode will throw an expeption and optimised code
+ * will behave in an unpredicted manner
+ * @param other array to add to this
+ * @return reference to modified this
+ */
 template <class T, bool is_scal>
 Array<T, is_scal> & Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
 		      "The too vector don't have the same sizes");
 
   T * a = values;
-  T * b = vect.values;
+  T * b = vect.storage();
   for (UInt i = 0; i < size*nb_component; ++i) {
     *a++ += *b++;
   }
@@ -158,6 +196,11 @@ Array<T, is_scal> & Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Multiply all entries of this array by a scalar in place
+ * @param alpha scalar multiplicant
+ * @return reference to modified this
+ */
 template <class T, bool is_scal>
 Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
   T * a = values;
@@ -169,14 +212,19 @@ Array<T, is_scal> & Array<T, is_scal>::operator*=(const T & alpha) {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Compare this array element by element to another.
+ * @param other array to compare to
+ * @return true it all element are equal and arrays have the same shape, else false
+ */
 template <class T, bool is_scal>
 bool Array<T, is_scal>::operator==(const Array<T, is_scal> & array) const {
   bool equal = nb_component == array.nb_component && size == array.size && id == array.id;
   if(!equal) return false;
 
-  if(values == array.values) return true;
+  if(values == array.storage()) return true;
   else return std::equal(values, values + size*nb_component,
-                         array.values);
+                         array.storage());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -263,9 +311,9 @@ Array<T, is_scal>::Array(const Array<T, is_scal> & vect,
   if (deep) {
     allocate(vect.size, vect.nb_component);
     T * tmp = values;
-    std::uninitialized_copy(vect.values, vect.values + size * nb_component, tmp);
+    std::uninitialized_copy(vect.storage(), vect.storage() + size * nb_component, tmp);
   } else {
-    this->values = vect.values;
+    this->values = vect.storage();
     this->size = vect.size;
     this->nb_component = vect.nb_component;
     this->allocated_size = vect.allocated_size;
@@ -340,6 +388,10 @@ void Array<T, is_scal>::allocate(UInt size,
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * change the size of the array and allocate or free memory if needed. If the
+ * size increases, the new tuples are filled with zeros
+ * @param size new number of tuples contained in the array */
 template <class T, bool is_scal>
 void Array<T, is_scal>::resize(UInt new_size) {
   UInt old_size = size;
@@ -448,6 +500,12 @@ void Array<T, is_scal>::extendComponentsInterlaced(UInt multiplicator,
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * search elem in the vector, return  the position of the first occurrence or
+ * -1 if not found
+ *  @param elem the element to look for
+ *  @return index of the first occurrence of elem or -1 if elem is not present
+ */
 template <class T, bool is_scal>
 Int Array<T, is_scal>::find(const T & elem) const {
   AKANTU_DEBUG_IN();
@@ -481,6 +539,13 @@ Int Array<T, is_scal>::find(T elem[]) const {
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * copy the content of another array. This overwrites the current content.
+ * @param other Array to copy into this array. It has to have the same
+ * nb_component as this. If compiled in debug mode, an incorrect other will
+ * result in an exception being thrown. Optimised code may result in
+ * unpredicted behaviour.
+ */
 template <class T, bool is_scal>
 void Array<T, is_scal>::copy(const Array<T, is_scal>& vect) {
   AKANTU_DEBUG_IN();
@@ -493,8 +558,8 @@ void Array<T, is_scal>::copy(const Array<T, is_scal>& vect) {
   resize((vect.size * vect.nb_component) / nb_component);
 
   T * tmp = values;
-  std::uninitialized_copy(vect.values, vect.values + size * nb_component, tmp);
-  //  memcpy(this->values, vect.values, vect.size * vect.nb_component * sizeof(T));
+  std::uninitialized_copy(vect.storage(), vect.storage() + size * nb_component, tmp);
+  //  memcpy(this->values, vect.storage(), vect.size * vect.nb_component * sizeof(T));
 
   AKANTU_DEBUG_OUT();
 }
@@ -735,6 +800,16 @@ protected:
 /* Begin/End functions implementation                                         */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Vector<T> * to the
+ * first tuple of the array.
+ * @param n vector size. Has to be equal to nb_component. This unfortunate
+ * redundancy is necessary to distinguish it from ::begin() which it
+ * overloads. If compiled in debug mode, an incorrect value of n will result
+ * in an exception being thrown. Optimized code will fail in an unpredicted
+ * manner.
+ * @return a vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::vector_iterator Array<T, is_scal>::begin(UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n,
@@ -744,6 +819,12 @@ inline typename Array<T, is_scal>::vector_iterator Array<T, is_scal>::begin(UInt
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
+ * *past* the last tuple of the array.
+ * @param n vector size. see Array::begin(UInt n) for more
+ * @return a vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::vector_iterator Array<T, is_scal>::end(UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n,
@@ -754,6 +835,12 @@ inline typename Array<T, is_scal>::vector_iterator Array<T, is_scal>::end(UInt n
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Vector<T> * to the
+ * first tuple of the array.
+ * @param n vector size. see Array::begin(UInt n) for more
+ * @return a vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_vector_iterator Array<T, is_scal>::begin(UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n,
@@ -763,6 +850,12 @@ inline typename Array<T, is_scal>::const_vector_iterator Array<T, is_scal>::begi
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Vector<T> * pointing
+ * *past* the last tuple of the array.
+ * @param n vector size. see Array::begin(UInt n) for more
+ * @return a const_vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_vector_iterator Array<T, is_scal>::end(UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n,
@@ -773,51 +866,101 @@ inline typename Array<T, is_scal>::const_vector_iterator Array<T, is_scal>::end(
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Vector<T> * to the
+ * first tuple of the array.
+ *
+ * The reinterpret iterators allow to iterate over an array in any way that
+ * preserves the number of entries of the array. This can for instance be use
+ * full if the shape of the data in an array is not initially known.
+ * @param n vector size.
+ * @param size number of tuples in array. n times size must match the number
+ * of entries of the array. If compiled in debug mode, an incorrect
+ * combination of n and size will result
+ * in an exception being thrown. Optimized code will fail in an unpredicted
+ * manner.
+ * @return a vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::vector_iterator
 Array<T, is_scal>::begin_reinterpret(UInt n, __attribute__((unused)) UInt size) {
   AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << n
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return vector_iterator(new Vector<T>(values, n));
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Vector<T> * pointing
+ * *past* the last tuple of the array.
+ * @param n vector size.
+ * @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
+ * @return a vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::vector_iterator
 Array<T, is_scal>::end_reinterpret(UInt n, UInt size) {
   AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << n
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return vector_iterator(new Vector<T>(values + n * size, n));
 }
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Vector<T> * to the
+ * first tuple of the array.
+ * @param n vector size.
+ * @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
+ * @return a const_vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_vector_iterator
 Array<T, is_scal>::begin_reinterpret(UInt n, __attribute__((unused)) UInt size) const {
   AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << n
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return const_vector_iterator(new Vector<T>(values, n));
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Vector<T> * pointing
+ * *past* the last tuple of the array.
+ * @param n vector size.
+ * @param size number of tuples in array. See Array::begin_reinterpret(UInt n, UInt size)
+ * @return a const_vector_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_vector_iterator
 Array<T, is_scal>::end_reinterpret(UInt n, UInt size) const {
   AKANTU_DEBUG_ASSERT(n * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << n
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return const_vector_iterator(new Vector<T>(values + n * size, n));
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Matrix<T> * to the
+ * first tuple of the array.
+ * @param m number of rows
+ * @param n number of columns. m times n has to equal nb_component.
+ * If compiled in debug mode, an incorrect combination of m and n will result
+ * in an exception being thrown. Optimized code will fail in an unpredicted
+ * manner.
+ * @return a matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::matrix_iterator Array<T, is_scal>::begin(UInt m, UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
@@ -827,6 +970,13 @@ inline typename Array<T, is_scal>::matrix_iterator Array<T, is_scal>::begin(UInt
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Matrix<T> * pointing
+ * *past* the last tuple of the array.
+ * @param m number of rows
+ * @param n number of columns. See Array::begin(UInt m, UInt n)
+ * @return a matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::matrix_iterator Array<T, is_scal>::end(UInt m, UInt n) {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
@@ -835,8 +985,14 @@ inline typename Array<T, is_scal>::matrix_iterator Array<T, is_scal>::end(UInt m
   return matrix_iterator(new Matrix<T>(values + nb_component * size, m, n));
 }
 
-
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Matrix<T> * to the
+ * first tuple of the array.
+ * @param m number of rows
+ * @param n number of columns. See Array::begin(UInt m, UInt n)
+ * @return a matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_matrix_iterator Array<T, is_scal>::begin(UInt m, UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
@@ -846,6 +1002,13 @@ inline typename Array<T, is_scal>::const_matrix_iterator Array<T, is_scal>::begi
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Matrix<T> * pointing
+ * *past* the last tuple of the array.
+ * @param m number of rows
+ * @param n number of columns. See Array::begin(UInt m, UInt n)
+ * @return a const_matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_matrix_iterator Array<T, is_scal>::end(UInt m, UInt n) const {
   AKANTU_DEBUG_ASSERT(nb_component == n*m,
@@ -855,62 +1018,99 @@ inline typename Array<T, is_scal>::const_matrix_iterator Array<T, is_scal>::end(
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Matrix<T> * to the
+ * first tuple of the array.
+ *
+ * The reinterpret iterators allow to iterate over an array in any way that
+ * preserves the number of entries of the array. This can for instance be use
+ * full if the shape of the data in an array is not initially known.
+ * @param m number of rows
+ * @param n number of columns
+ * @param size number of tuples in array. m times n times size must match the number
+ * of entries of the array. If compiled in debug mode, an incorrect
+ * combination of m, n and size will result
+ * in an exception being thrown. Optimized code will fail in an unpredicted
+ * manner.
+ * @return a matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::matrix_iterator
 Array<T, is_scal>::begin_reinterpret(UInt m, UInt n, __attribute__((unused)) UInt size) {
   AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n * m <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << m << "," << n << " = " << n * m
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return matrix_iterator(new Matrix<T>(values, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get an iterator that behaves like a pointer akantu::Matrix<T> * pointing
+ * *past* the last tuple of the array.
+ * @param m number of rows
+ * @param n number of columns
+ * @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
+ * @return a matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::matrix_iterator
 Array<T, is_scal>::end_reinterpret(UInt m, UInt n, UInt size) {
   AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n * m <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << m << "," << n << " = " << n * m
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return matrix_iterator(new Matrix<T>(values + n * m * size, m, n));
 }
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Matrix<T> * to the
+ * first tuple of the array.
+ * @param m number of rows
+ * @param n number of columns
+ * @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
+ * @return a const_matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_matrix_iterator
 Array<T, is_scal>::begin_reinterpret(UInt m, UInt n, __attribute__((unused)) UInt size) const {
   AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n * m <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << m << "," << n << " = " << n * m
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return const_matrix_iterator(new Matrix<T>(values, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Get a const iterator that behaves like a pointer akantu::Matrix<T> * pointing
+ * *past* the last tuple of the array.
+ * @param m number of rows
+ * @param n number of columns
+ * @param size number of tuples in array. See Array::begin_reinterpret(UInt m, UInt n, UInt size)
+ * @return a const_matrix_iterator
+ */
 template <class T, bool is_scal>
 inline typename Array<T, is_scal>::const_matrix_iterator
 Array<T, is_scal>::end_reinterpret(UInt m, UInt n, UInt size) const {
   AKANTU_DEBUG_ASSERT(n * m * size == this->nb_component * this->size,
 		      "The new values for size (" << size
-		      << ") and nb_component (" << n * m <<
-		      ") are not compatible with the one of this vector");
+		      << ") and nb_component (" << m << "," << n << " = " << n * m
+		      << ") are not compatible with the one of this array("
+		      << this->size << "," << this->nb_component << ")");
   return const_matrix_iterator(new Matrix<T>(values + n * m * size, m, n));
 }
 
 /* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-template<typename R>
-inline Array<T, is_scal>::iterator<R> Array<T, is_scal>::erase(const iterator<R> & it) {
-  T * curr = it.data();
-  UInt pos = (curr - values) / nb_component;
-  erase(pos);
-  iterator<R> rit = it;
-  return --rit;
-}
-
-/* -------------------------------------------------------------------------- */
+/** Get an iterator that behaves like a pointer T * to the
+ *  first entry in the member array values
+ *  @return a scalar_iterator
+ */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::begin() {
   AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
@@ -918,6 +1118,10 @@ inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::begin() {
 }
 
 /* -------------------------------------------------------------------------- */
+  /*! Get an iterator that behaves like a pointer T * that points *past* the
+   *  last entry in the member array values
+   *  @return a scalar_iterator
+   */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::end() {
   AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
@@ -925,6 +1129,10 @@ inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::end() {
 }
 
 /* -------------------------------------------------------------------------- */
+/*! Get a const iterator that behaves like a pointer T * to the
+ *  first entry in the member array values
+ *  @return a const_scalar_iterator
+ */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::const_iterator<T> Array<T, is_scal>::begin() const {
   AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
@@ -932,6 +1140,10 @@ inline Array<T, is_scal>::const_iterator<T> Array<T, is_scal>::begin() const {
 }
 
 /* -------------------------------------------------------------------------- */
+/*! Get a const iterator that behaves like a pointer T * that points *past* the
+ *  last entry in the member array values
+ *  @return a const_scalar_iterator
+ */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::const_iterator<T> Array<T, is_scal>::end() const {
   AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
@@ -1030,6 +1242,18 @@ public:
   inline iterator & operator+=(const UInt n)
   { parent::operator+=(n); return *this; }
 };
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+template<typename R>
+inline Array<T, is_scal>::iterator<R> Array<T, is_scal>::erase(const iterator<R> & it) {
+  T * curr = it.data();
+  UInt pos = (curr - values) / nb_component;
+  erase(pos);
+  iterator<R> rit = it;
+  return --rit;
+}
+
 
 // #endif
 

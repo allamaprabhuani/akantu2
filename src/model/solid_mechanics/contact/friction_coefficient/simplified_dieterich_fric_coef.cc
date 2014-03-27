@@ -89,7 +89,7 @@ void SimplifiedDieterichFricCoef::initializeComputeFricCoef() {
   Array<Real> * master_normals = impactor_info->master_normals;
   Real * master_normals_val = master_normals->values;
 
-  Real * velocity_val = this->contact.getModel().getVelocity().values;
+  Real * velocity_val = this->contact.getModel().getVelocity().storage();
 
   // resize the relative sliding velocity vector to the nb of active impactor nodes
   this->relative_sliding_velocities->resize(active_nodes->getSize());

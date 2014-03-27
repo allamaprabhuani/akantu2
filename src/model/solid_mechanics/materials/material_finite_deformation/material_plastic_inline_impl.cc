@@ -359,9 +359,3 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
   tangent(0, 0) = E;
   }*/
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-inline Real MaterialPlastic<spatial_dimension>::getStableTimeStep(Real h,
-								  __attribute__((unused)) const Element & element) {
-  return (h / getPushWaveSpeed());
-}

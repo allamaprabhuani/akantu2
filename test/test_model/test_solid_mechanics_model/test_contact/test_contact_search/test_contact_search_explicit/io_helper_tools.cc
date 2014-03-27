@@ -82,27 +82,27 @@ void paraviewInit(iohelper::Dumper & dumper,
   dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(whoami, nproc);
 
-  dumper.SetPoints(mesh.getNodes().values,
+  dumper.SetPoints(mesh.getNodes().storage(),
 		   spatial_dimension, nb_nodes, filename_sstr.str().c_str());
-  dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+  dumper.SetConnectivity((int *)mesh.getConnectivity(type).storage(),
 			 getIOHelperType(type), nb_element, iohelper::C_MODE);
 
-  dumper.AddNodeDataField(model.getDisplacement().values,
+  dumper.AddNodeDataField(model.getDisplacement().storage(),
 			  spatial_dimension, "displacements");
-  dumper.AddNodeDataField(model.getVelocity().values,
+  dumper.AddNodeDataField(model.getVelocity().storage(),
 			  spatial_dimension, "velocity");
-  dumper.AddNodeDataField(model.getAcceleration().values,
+  dumper.AddNodeDataField(model.getAcceleration().storage(),
 			  spatial_dimension, "acceleration");
-  dumper.AddNodeDataField(model.getMass().values,
+  dumper.AddNodeDataField(model.getMass().storage(),
 			  spatial_dimension, "mass");
-  dumper.AddNodeDataField(model.getResidual().values,
+  dumper.AddNodeDataField(model.getResidual().storage(),
 			  spatial_dimension, "force");
-  dumper.AddNodeDataField(model.getForce().values,
+  dumper.AddNodeDataField(model.getForce().storage(),
 			  spatial_dimension, "applied_force");
 
-  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStrain(type).storage(),
 			  spatial_dimension*spatial_dimension, "strain");
-  dumper.AddElemDataField(model.getMaterial(0).getStress(type).values,
+  dumper.AddElemDataField(model.getMaterial(0).getStress(type).storage(),
 			  spatial_dimension*spatial_dimension, "stress");
 
   dumper.SetEmbeddedValue("displacements", 1);
@@ -165,9 +165,9 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //     dumper.SetMode(iohelper::COMPRESSED);
 //     dumper.SetParallelContext(whoami, nproc);
 
-//     dumper.SetPoints(mesh.getNodes().values,
+//     dumper.SetPoints(mesh.getNodes().storage(),
 // 		     spatial_dimension, nb_nodes, filename_sstr.str().c_str());
-//     dumper.SetConnectivity((int *)mesh.getConnectivity(type).values,
+//     dumper.SetConnectivity((int *)mesh.getConnectivity(type).storage(),
 // 			   getIOHelperType(type), nb_element, iohelper::C_MODE);
 
 //     dumper.AddNodeDataField(checkpoint_displacements.storage(), spatial_dimension, "displacements");

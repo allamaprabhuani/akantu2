@@ -93,10 +93,8 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// compute stable timestep
-  virtual Real getStableTimeStep(Real h, const Element & element);
   /// compute max wave celerity
-  Real getCelerity() const;
+  virtual Real getCelerity(const Element & element) const;
 
 
   /* ------------------------------------------------------------------------ */

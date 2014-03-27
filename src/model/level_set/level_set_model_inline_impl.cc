@@ -182,13 +182,13 @@ inline void LevelSetModel::packData(CommunicationBuffer & buffer,
   GhostType ghost_type = _not_ghost;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).values;
+  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).storage();
 
 #ifndef AKANTU_NDEBUG
   Vector<Real> barycenter(spatial_dimension);
   getFEM().getMesh().getBarycenter(element.element, element.type, barycenter.storage(), ghost_type);
   buffer << barycenter;
-  Real * nodes = getFEM().getMesh().getNodes().values;
+  Real * nodes = getFEM().getMesh().getNodes().storage();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt offset_conn = conn[el_offset + n];
     for (UInt s = 0; s < spatial_dimension; ++s) {
@@ -234,7 +234,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
   GhostType ghost_type = _ghost;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).values;
+  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).storage();
 
 #ifndef AKANTU_NDEBUG
   Vector<Real> barycenter_loc(spatial_dimension);
@@ -252,7 +252,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
   }
 
   Vector<Real> coords(spatial_dimension);
-  Real * nodes = getFEM().getMesh().getNodes().values;
+  Real * nodes = getFEM().getMesh().getNodes().storage();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     buffer >> coords;
     UInt offset_conn = conn[el_offset + n];

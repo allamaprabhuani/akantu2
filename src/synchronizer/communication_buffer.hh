@@ -73,7 +73,7 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline char * storage() { return buffer.values; };
+  inline char * storage() { return buffer.storage(); };
 
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
@@ -125,9 +125,9 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   /// return the size in bytes of the stored values
-  inline UInt getPackedSize(){ return ptr_pack - buffer.values; };
+  inline UInt getPackedSize(){ return ptr_pack - buffer.storage(); };
   /// return the size in bytes of data left to be unpacked
-  inline UInt getLeftToUnpack(){ return buffer.getSize() - (ptr_unpack - buffer.values); };
+  inline UInt getLeftToUnpack(){ return buffer.getSize() - (ptr_unpack - buffer.storage()); };
   /// return the global size allocated
   inline UInt getSize(){ return buffer.getSize(); };
 

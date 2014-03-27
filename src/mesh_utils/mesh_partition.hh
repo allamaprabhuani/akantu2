@@ -73,15 +73,14 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
+  /// defini a partition of the mesh
   virtual void partitionate(UInt nb_part,
 			    const EdgeLoadFunctor & edge_load_func = ConstEdgeLoadFunctor(),
 			    const Array<UInt> & pairs = Array<UInt>()) = 0;
 
+  /// reorder the nodes to reduce the filling during the factorization of a
+  /// matrix that has a profil based on the connectivity of the mesh
   virtual void reorder() = 0;
-
-  /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const = 0;
 
   /// fill the partitions array with a given linearized partition information
   void fillPartitionInformation(const Mesh & mesh, const Int * linearized_partitions);
@@ -105,8 +104,6 @@ public:
 
   AKANTU_GET_MACRO(Partitions, partitions, const ByElementTypeUInt &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartition, ghost_partitions, UInt);
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GhostPartitionOffset, ghost_partitions_offset, UInt);
 
   AKANTU_GET_MACRO(GhostPartitionCSR, ghost_partitions_csr, const ByElementType< CSR<UInt> > &);
 
@@ -141,20 +138,6 @@ protected:
   ByElementTypeUInt saved_connectivity;
 
 };
-
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-//#include "mesh_partition_inline_impl.cc"
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshPartition & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
 
 __END_AKANTU__
 

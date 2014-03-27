@@ -120,8 +120,8 @@ int main(int argc, char *argv[]){
 									   NULL, true,
 									   4, 3, 3);
 
-    Real * don= displ_on_nodes.values;
-    Real * doq= displ_on_quad.values;
+    Real * don= displ_on_nodes.storage();
+    Real * doq= displ_on_quad.storage();
 
  std::ofstream my_file("out.txt");
   my_file << don << std::endl;

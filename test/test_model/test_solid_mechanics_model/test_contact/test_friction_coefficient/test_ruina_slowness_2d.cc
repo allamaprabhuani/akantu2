@@ -95,11 +95,11 @@ int main(int argc, char *argv[])
   /// model initialization
   my_model.initArrays();
   // initialize the vectors
-  memset(my_model.getForce().values,        0,     dim*nb_nodes*sizeof(Real));
-  memset(my_model.getVelocity().values,     0,     dim*nb_nodes*sizeof(Real));
-  memset(my_model.getAcceleration().values, 0,     dim*nb_nodes*sizeof(Real));
-  memset(my_model.getDisplacement().values, 0,     dim*nb_nodes*sizeof(Real));
-  memset(my_model.getBoundary().values,     false, dim*nb_nodes*sizeof(bool));
+  memset(my_model.getForce().storage(),        0,     dim*nb_nodes*sizeof(Real));
+  memset(my_model.getVelocity().storage(),     0,     dim*nb_nodes*sizeof(Real));
+  memset(my_model.getAcceleration().storage(), 0,     dim*nb_nodes*sizeof(Real));
+  memset(my_model.getDisplacement().storage(), 0,     dim*nb_nodes*sizeof(Real));
+  memset(my_model.getBoundary().storage(),     false, dim*nb_nodes*sizeof(bool));
 
   my_model.initExplicit();
   my_model.initModel();
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
   //UInt max_steps = static_cast<UInt>(needed_time*10/time_step) + imposing_steps + damping_steps + additional_steps;
   std::cout << "The number of time steps is found to be: " << max_steps << std::endl;
-  Real * velocity_val = my_model.getVelocity().values;
+  Real * velocity_val = my_model.getVelocity().storage();
   
   my_model.assembleMassLumped();
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
   my_mesh.setNbSurfaces(++nb_surfaces); 
   ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
   UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
-  UInt * surface_id_val = my_mesh.getSurfaceID(surface_element_type).values;
+  UInt * surface_id_val = my_mesh.getSurfaceID(surface_element_type).storage();
   for(UInt i=0; i < nb_surface_element; ++i) {
     if (surface_id_val[i] == rigid_body_surface) {
       Real barycenter[dim];
@@ -173,11 +173,11 @@ int main(int argc, char *argv[])
   // boundary conditions
   Array<UInt> * top_nodes = new Array<UInt>(0, 1);
   Array<UInt> * push_nodes = new Array<UInt>(0, 1);
-  Real * coordinates = my_mesh.getNodes().values;
-  Real * displacement = my_model.getDisplacement().values;
-  bool * boundary = my_model.getBoundary().values;
-  UInt * surface_to_nodes_offset = my_contact->getSurfaceToNodesOffset().values;
-  UInt * surface_to_nodes        = my_contact->getSurfaceToNodes().values;
+  Real * coordinates = my_mesh.getNodes().storage();
+  Real * displacement = my_model.getDisplacement().storage();
+  bool * boundary = my_model.getBoundary().storage();
+  UInt * surface_to_nodes_offset = my_contact->getSurfaceToNodesOffset().storage();
+  UInt * surface_to_nodes        = my_contact->getSurfaceToNodes().storage();
   // normal force boundary conditions
   for(UInt n = surface_to_nodes_offset[impactor]; n < surface_to_nodes_offset[impactor+1]; ++n) {
     UInt node = surface_to_nodes[n];
@@ -200,24 +200,24 @@ int main(int argc, char *argv[])
       boundary[node*dim]     = true;
       boundary[node*dim + 1] = true;
   }
-  UInt * top_nodes_val = top_nodes->values;
-  UInt * push_nodes_val = push_nodes->values;
+  UInt * top_nodes_val = top_nodes->storage();
+  UInt * push_nodes_val = push_nodes->storage();
 
   my_model.updateResidual();
 #ifdef AKANTU_USE_IOHELPER
   /// initialize the paraview output
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().values, dim, nb_nodes, "coord_ruina_slowness_2d");
-  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).values,
+  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().storage(), dim, nb_nodes, "coord_ruina_slowness_2d");
+  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).storage(),
 			 paraview_type, nb_element, iohelper::C_MODE);
-  dumper.AddNodeDataField(my_model.getDisplacement().values,
+  dumper.AddNodeDataField(my_model.getDisplacement().storage(),
 			  dim, "displacements");
-  dumper.AddNodeDataField(my_model.getVelocity().values, dim, "velocity");
-  dumper.AddNodeDataField(my_model.getResidual().values, dim, "force");
-  dumper.AddNodeDataField(my_model.getForce().values, dim, "applied_force");
-  dumper.AddElemDataField(my_model.getMaterial(0).getStrain(element_type).values, dim*dim, "strain");
-  dumper.AddElemDataField(my_model.getMaterial(0).getStress(element_type).values, dim*dim, "stress");
+  dumper.AddNodeDataField(my_model.getVelocity().storage(), dim, "velocity");
+  dumper.AddNodeDataField(my_model.getResidual().storage(), dim, "force");
+  dumper.AddNodeDataField(my_model.getForce().storage(), dim, "applied_force");
+  dumper.AddElemDataField(my_model.getMaterial(0).getStrain(element_type).storage(), dim*dim, "strain");
+  dumper.AddElemDataField(my_model.getMaterial(0).getStress(element_type).storage(), dim*dim, "stress");
   dumper.SetEmbeddedValue("displacements", 1);
   dumper.SetEmbeddedValue("applied_force", 1);
   dumper.SetPrefix("paraview/ruina_slowness_2d/");
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
   energy.open("ruina_slowness_2d_energy.csv");
   energy << "%id,kin,pot,tot" << std::endl;
 
-  Real * current_position = my_model.getCurrentPosition().values; 
+  Real * current_position = my_model.getCurrentPosition().storage(); 
 
   /* ------------------------------------------------------------------------ */
   /* Main loop                                                                */
@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
     my_contact->frictionPredictor();
 
     // find the total force applied at the imposed displacement surface (top)
-    Real * residual = my_model.getResidual().values; 
+    Real * residual = my_model.getResidual().storage(); 
     Real top_force = 0.;
     for(UInt n=0; n<top_nodes->getSize(); ++n) {
       UInt node = top_nodes_val[n];
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 
     // find the total contact force and contact area
     ContactRigid::ImpactorInformationPerMaster * imp_info = it_imp->second;
-    UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->values;
+    UInt * active_imp_nodes_val = imp_info->active_impactor_nodes->storage();
     Real contact_force = 0.;
     Real contact_zone = 0.;
     for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
     my_model.updateAcceleration();
 
     const Array<bool> * sticking_nodes = imp_info->node_is_sticking;
-    bool * sticking_nodes_val = sticking_nodes->values;
+    bool * sticking_nodes_val = sticking_nodes->storage();
     UInt nb_sticking_nodes = 0;
     for (UInt i = 0; i < imp_info->active_impactor_nodes->getSize(); ++i) {
       if(sticking_nodes_val[i*2])

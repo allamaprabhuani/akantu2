@@ -607,10 +607,10 @@ void HeatTransferModel::solveExplicitLumped() {
   UInt nb_nodes            = temperature_rate->getSize();
   UInt nb_degree_of_freedom = temperature_rate->getNbComponent();
 
-  Real * capacity_val  = capacity_lumped->values;
-  Real * temp_rate_val = temperature_rate->values;
-  Real * res_val       = residual->values;
-  bool * boundary_val  = boundary->values;
+  Real * capacity_val  = capacity_lumped->storage();
+  Real * temp_rate_val = temperature_rate->storage();
+  Real * res_val       = residual->storage();
+  bool * boundary_val  = boundary->storage();
 
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
@@ -626,10 +626,10 @@ void HeatTransferModel::solveExplicitLumped() {
   getSynchronizerRegistry().synchronize(akantu::_gst_htm_gradient_temperature);
 #endif
 
-  capacity_val      = capacity_lumped->values;
-  res_val           = residual->values;
-  boundary_val      = boundary->values;
-  Real * inc           = increment->values;
+  capacity_val      = capacity_lumped->storage();
+  res_val           = residual->storage();
+  boundary_val      = boundary->storage();
+  Real * inc           = increment->storage();
 
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
@@ -656,7 +656,7 @@ void HeatTransferModel::explicitPred() {
   UInt nb_nodes = temperature->getSize();
   UInt nb_degree_of_freedom = temperature->getNbComponent();
 
-  Real * temp = temperature->values;
+  Real * temp = temperature->storage();
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n, ++temp)
     if(*temp < 0.) *temp = 0.;
 

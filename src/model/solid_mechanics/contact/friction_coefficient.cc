@@ -60,7 +60,7 @@ void FrictionCoefficient::computeFrictionCoefficient(Array<Real> & fric_coef) {
   AKANTU_DEBUG_IN();
 
   UInt nb_fric_coef_elements = fric_coef.getSize();
-  Real * fric_coef_val = fric_coef.values;
+  Real * fric_coef_val = fric_coef.storage();
   
   initializeComputeFricCoef();
 

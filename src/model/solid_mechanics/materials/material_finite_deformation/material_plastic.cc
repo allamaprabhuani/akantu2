@@ -146,13 +146,13 @@ void MaterialPlastic<spatial_dimension>::computeTangentModuli(__attribute__((unu
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialPlastic<spatial_dimension>::getPushWaveSpeed() const {
+Real MaterialPlastic<spatial_dimension>::getPushWaveSpeed(__attribute__((unused)) const Element & element) const {
     return sqrt((lambda + 2 * mu) / rho);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialPlastic<spatial_dimension>::getShearWaveSpeed() const {
+Real MaterialPlastic<spatial_dimension>::getShearWaveSpeed(__attribute__((unused)) const Element & element) const {
     return sqrt(mu / rho);
 }
 

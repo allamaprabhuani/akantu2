@@ -409,7 +409,7 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
     }
 
     // loop over elements
-    //    UInt * temp_id_val = temp_id.values;
+    //    UInt * temp_id_val = temp_id.storage();
     for (UInt i = 0; i < temp_id.getSize(); ++i)
       for (UInt j = temp_id(i, 0); j <= temp_id(i, 1); ++j) {
 	Element & element = global_to_local_index[j - 1];

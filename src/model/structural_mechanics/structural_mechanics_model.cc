@@ -401,9 +401,9 @@ void StructuralMechanicsModel::solve() {
 
   solver->solve(*increment);
 
-  Real * increment_val     = increment->values;
-  Real * displacement_val  = displacement_rotation->values;
-  bool * boundary_val      = boundary->values;
+  Real * increment_val     = increment->storage();
+  Real * displacement_val  = displacement_rotation->storage();
+  bool * boundary_val      = boundary->storage();
 
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
@@ -436,8 +436,8 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & e
   UInt nb_degree_of_freedom = displacement_rotation->getNbComponent();
 
   Real norm = 0;
-  Real * increment_val     = increment->values;
-  bool * boundary_val      = boundary->values;
+  Real * increment_val     = increment->storage();
+  bool * boundary_val      = boundary->storage();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);

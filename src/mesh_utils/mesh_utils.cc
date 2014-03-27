@@ -138,7 +138,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
     if(Mesh::getSpatialDimension(type) != spatial_dimension) continue;
 
     nb_nodes_per_element[nb_good_types]    = Mesh::getNbNodesPerElement(type);
-    conn_val[nb_good_types] = mesh.getConnectivity(type, _not_ghost).values;
+    conn_val[nb_good_types] = mesh.getConnectivity(type, _not_ghost).storage();
     nb_element[nb_good_types] = mesh.getConnectivity(type, _not_ghost).getSize();
     nb_good_types++;
   }
@@ -521,13 +521,13 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   /// copy the renumbered connectivity to the right place
   Array<UInt> * local_conn = mesh.getConnectivityPointer(type);
   local_conn->resize(nb_local_element);
-  memcpy(local_conn->values,
+  memcpy(local_conn->storage(),
 	 local_connectivities,
 	 nb_local_element * nb_nodes_per_element * sizeof(UInt));
 
   Array<UInt> * ghost_conn = mesh.getConnectivityPointer(type, _ghost);
   ghost_conn->resize(nb_ghost_element);
-  memcpy(ghost_conn->values,
+  memcpy(ghost_conn->storage(),
 	 local_connectivities + nb_local_element * nb_nodes_per_element,
 	 nb_ghost_element * nb_nodes_per_element * sizeof(UInt));
 

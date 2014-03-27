@@ -35,7 +35,7 @@ inline Real ContactSearchExplicit::computeSquareDistanceBetweenNodes(const UInt 
   
   /// get the spatial dimension and current position of nodes
   //UInt spatial_dimension = contact.getModel().getSpatialDimension();
-  Real * current_position = contact.getModel().getCurrentPosition().values; 
+  Real * current_position = contact.getModel().getCurrentPosition().storage(); 
 
   /// compute the square distance between the nodes
   for(UInt dim = 0; dim < spatial_dimension; ++dim) {

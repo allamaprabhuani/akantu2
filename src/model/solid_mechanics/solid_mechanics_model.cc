@@ -380,9 +380,9 @@ void SolidMechanicsModel::updateCurrentPosition() {
   UInt nb_nodes = mesh.getNbNodes();
 
   current_position->resize(nb_nodes);
-  Real * current_position_val = current_position->values;
-  Real * position_val         = mesh.getNodes().values;
-  Real * displacement_val     = displacement->values;
+  Real * current_position_val = current_position->storage();
+  Real * position_val         = mesh.getNodes().storage();
+  Real * displacement_val     = displacement->storage();
 
   /// compute current_position = initial_position + displacement
   memcpy(current_position_val, position_val, nb_nodes*spatial_dimension*sizeof(Real));
@@ -399,7 +399,7 @@ void SolidMechanicsModel::initializeUpdateResidualData() {
   residual->resize(nb_nodes);
 
   /// copy the forces in residual for boundary conditions
-  memcpy(residual->values, force->values, nb_nodes*spatial_dimension*sizeof(Real));
+  memcpy(residual->storage(), force->storage(), nb_nodes*spatial_dimension*sizeof(Real));
 
   // start synchronization
   synch_registry->asynchronousSynchronize(_gst_smm_uv);
@@ -551,10 +551,10 @@ void SolidMechanicsModel::updateResidualInternal() {
       UInt nb_nodes = acceleration->getSize();
       UInt nb_degree_of_freedom = acceleration->getNbComponent();
 
-      Real * mass_val     = mass->values;
-      Real * accel_val    = acceleration->values;
-      Real * res_val      = residual->values;
-      bool * boundary_val = boundary->values;
+      Real * mass_val     = mass->storage();
+      Real * accel_val    = acceleration->storage();
+      Real * res_val      = residual->storage();
+      bool * boundary_val = boundary->storage();
 
       for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
         if(!(*boundary_val)) {
@@ -647,8 +647,8 @@ void SolidMechanicsModel::explicitPred() {
                                     *boundary);
 
   if(increment_flag) {
-    Real * inc_val = increment->values;
-    Real * dis_val = displacement->values;
+    Real * inc_val = increment->storage();
+    Real * dis_val = displacement->storage();
     UInt nb_degree_of_freedom = displacement->getSize() * displacement->getNbComponent();
 
     for (UInt n = 0; n < nb_degree_of_freedom; ++n) {
@@ -898,9 +898,9 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
     Matrix<Real> small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
     Matrix<Real> T_small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
 
-    Real * increment_val = increment->values;
-    Real * displacement_val = displacement->values;
-    bool * boundary_val = boundary->values;
+    Real * increment_val = increment->storage();
+    Real * displacement_val = displacement->storage();
+    bool * boundary_val = boundary->storage();
 
     for (UInt n = 0; n < nb_nodes; ++n) {
         bool constrain_ij = false;
@@ -1022,8 +1022,8 @@ bool SolidMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & 
   UInt nb_nodes = residual->getSize();
 
   norm = 0;
-  Real * residual_val = residual->values;
-  bool * boundary_val = boundary->values;
+  Real * residual_val = residual->storage();
+  bool * boundary_val = boundary->storage();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
@@ -1123,9 +1123,9 @@ void SolidMechanicsModel::implicitCorr() {
     UInt nb_nodes = displacement->getSize();
     UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
 
-    Real * incr_val = increment->values;
-    Real * disp_val = displacement->values;
-    bool * boun_val = boundary->values;
+    Real * incr_val = increment->storage();
+    Real * disp_val = displacement->storage();
+    bool * boun_val = boundary->storage();
 
     for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++boun_val){
       *incr_val *= (1. - *boun_val);
@@ -1146,9 +1146,9 @@ void SolidMechanicsModel::updateIncrement() {
   UInt nb_nodes = displacement->getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
 
-  Real * incr_val = increment->values;
-  Real * disp_val = displacement->values;
-  Real * prev_disp_val = previous_displacement->values;
+  Real * incr_val = increment->storage();
+  Real * disp_val = displacement->storage();
+  Real * prev_disp_val = previous_displacement->storage();
 
   for (UInt j = 0; j < nb_degree_of_freedom; ++j, ++disp_val, ++incr_val, ++prev_disp_val)
     *incr_val = (*disp_val - *prev_disp_val);
@@ -1250,9 +1250,11 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
     X.begin(spatial_dimension, nb_nodes_per_element);
 
     for (UInt el = 0; el < nb_element; ++el, ++X_el, ++eibm) {
-      elem.element = el;
-      Real el_size    = getFEM().getElementInradius(*X_el, *it);
-      Real el_dt      = mat_val[(*eibm)(0)]->getStableTimeStep(el_size, elem);
+      elem.element = (*eibm)(1);
+      Real el_h  = getFEM().getElementInradius(*X_el, *it);
+      Real el_c  = mat_val[(*eibm)(0)]->getCelerity(elem);
+      Real el_dt = el_h / el_c;
+
       min_dt = std::min(min_dt, el_dt);
     }
   }
@@ -1292,8 +1294,8 @@ Real SolidMechanicsModel::getKineticEnergy() {
 
   UInt nb_nodes = mesh.getNbNodes();
 
-  Real * vel_val  = velocity->values;
-  Real * mass_val = mass->values;
+  Real * vel_val  = velocity->storage();
+  Real * mass_val = mass->storage();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     Real mv2 = 0;

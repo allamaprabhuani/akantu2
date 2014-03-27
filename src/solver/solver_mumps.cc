@@ -183,14 +183,14 @@ void SolverMumps::initMumpsData(SolverMumpsOptions::ParallelMethod parallel_meth
       icntl(28) = 0; //automatic choice
 
       mumps_data.nz_loc  = matrix->getNbNonZero();
-      mumps_data.irn_loc = matrix->getIRN().values;
-      mumps_data.jcn_loc = matrix->getJCN().values;
+      mumps_data.irn_loc = matrix->getIRN().storage();
+      mumps_data.jcn_loc = matrix->getJCN().storage();
       break;
   case SolverMumpsOptions::_master_slave_distributed:
     if(prank == 0) {
       mumps_data.nz  = matrix->getNbNonZero();
-      mumps_data.irn = matrix->getIRN().values;
-      mumps_data.jcn = matrix->getJCN().values;
+      mumps_data.irn = matrix->getIRN().storage();
+      mumps_data.jcn = matrix->getJCN().storage();
     } else {
       mumps_data.nz  = 0;
       mumps_data.irn = NULL;
@@ -297,14 +297,14 @@ void SolverMumps::solve() {
   AKANTU_DEBUG_IN();
 
   if(parallel_method == SolverMumpsOptions::_fully_distributed)
-    mumps_data.a_loc  = matrix->getA().values;
+    mumps_data.a_loc  = matrix->getA().storage();
   else
     if(prank == 0) {
-      mumps_data.a  = matrix->getA().values;
+      mumps_data.a  = matrix->getA().storage();
     }
 
   if(prank == 0) {
-    mumps_data.rhs = rhs->values;
+    mumps_data.rhs = rhs->storage();
   }
 
   /// Default centralized dense second member
@@ -317,7 +317,7 @@ void SolverMumps::solve() {
   if(info(1) != 0) {
     switch(info(1)) {
     case -10: AKANTU_DEBUG_ERROR("The matrix is singular"); break;
-    case -9:  AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
+    case  -9: AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
     default:
       AKANTU_DEBUG_ERROR("Error in mumps during solve process, check mumps user guide INFO(1) ="
 			 << info(1));

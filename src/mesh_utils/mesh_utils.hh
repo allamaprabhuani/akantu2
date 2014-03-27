@@ -64,24 +64,29 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// build map from nodes to elements
-  static void buildNode2Elements(const Mesh & mesh, 
+  /// build a CSR<UInt> that contains for each node the linearized number of
+  /// the connected elements of a given spatial dimension
+  static void buildNode2Elements(const Mesh & mesh,
 				 CSR<UInt> & node_to_elem,
 				 UInt spatial_dimension = _all_dimensions);
+  /// build a CSR<Element> that contains for each node the list of connected
+  /// elements ofr a given spatial dimension
   static void buildNode2Elements(const Mesh & mesh,
 				 CSR<Element> & node_to_elem,
 				 UInt spatial_dimension = _all_dimensions);
 
-  /// build map from nodes to elements for a specific element type
+  /// build a CSR<UInt> that contains for each node the number of
+  /// the connected elements of a given ElementType
   static void buildNode2ElementsByElementType(const Mesh & mesh,
 					      CSR<UInt> & node_to_elem,
 					      const ElementType & type,
 					      const GhostType & ghost_type = _not_ghost);
 
-  /// build facets elements on boundary
+  /// build the facets elements on the boundaries of a mesh
   static void buildFacets(Mesh & mesh);
 
-  /// build facets elements: boundary and internals
+  /// build all the facets elements: boundary and internals and store them in
+  /// the mesh_facets
   static void buildAllFacets(const Mesh & mesh,
 			     Mesh & mesh_facets,
 			     UInt to_dimension = 0,
@@ -103,9 +108,9 @@ public:
 				ElementType type,
 				Array<UInt> & old_nodes);
 
-  /// compute pbc pair for on given direction
-  static void computePBCMap(const Mesh & mymesh,const UInt dir,
-		     std::map<UInt,UInt> & pbc_pair);
+  /// compute pbc pair for on given a direction
+  static void computePBCMap(const Mesh & mymesh, const UInt dir,
+			    std::map<UInt,UInt> & pbc_pair);
   /// compute pbc pair for a surface pair
   static void computePBCMap(const Mesh & mymesh,
 			    const std::pair<Surface, Surface> & surface_pair,
@@ -150,7 +155,7 @@ public:
 				const Element & el,
 				const Vector<UInt> & nodes);
 
-  /// reset facet to double arrays
+  /// reset facet_to_double arrays in the Mesh
   static void resetFacetToDouble(Mesh & mesh_facets);
 
 private:

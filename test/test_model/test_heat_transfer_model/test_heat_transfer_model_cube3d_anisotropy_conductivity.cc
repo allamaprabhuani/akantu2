@@ -225,17 +225,17 @@ int main(int argc, char *argv[])
 
 void paraviewInit(iohelper::Dumper & dumper) {
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(model->getFEM().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).values,
+  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).storage(),
 			 paraview_type, nb_element, iohelper::C_MODE);
-   dumper.AddNodeDataField(model->getTemperature().values,
+   dumper.AddNodeDataField(model->getTemperature().storage(),
     1, "temperature");
-  dumper.AddNodeDataField(model->getHeatFlux().values,
+  dumper.AddNodeDataField(model->getHeatFlux().storage(),
    			  1, "heat_flux");
-  dumper.AddNodeDataField(model->getLumped().values,
+  dumper.AddNodeDataField(model->getLumped().storage(),
    			  1, "lumped");
-  dumper.AddElemDataField(model->getTemperatureGradient(type).values,
+  dumper.AddElemDataField(model->getTemperatureGradient(type).storage(),
     			  spatial_dimension, "temperature_gradient");
   dumper.SetPrefix("paraview/");
   dumper.Init();

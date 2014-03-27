@@ -89,7 +89,7 @@ void ShapeLinked<_ek_structural>::precomputeShapesOnControlPoints(const Array<Re
 								  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  //  Real * coord = mesh.getNodes().values;
+  //  Real * coord = mesh.getNodes().storage();
   UInt spatial_dimension    = mesh.getSpatialDimension();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
@@ -144,7 +144,7 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
 								  const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
-  // Real * coord = mesh.getNodes().values;
+  // Real * coord = mesh.getNodes().storage();
   UInt spatial_dimension = mesh.getSpatialDimension();
   UInt natural_spatial_dimension = ElementClass<type>::getNaturalSpaceDimension();
 
@@ -173,7 +173,7 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
     shapes_derivatives_tmp[s] = &(alloc<Real>(sstr_shapesd.str(),
 					      nb_element*nb_points,
 					      size_of_shapesd));
-    Real * shapesd_val   = shapes_derivatives_tmp[s]->values;
+    Real * shapesd_val   = shapes_derivatives_tmp[s]->storage();
 
     Array<Real>::matrix_iterator x_it = x_el.begin(spatial_dimension,
 								    nb_nodes_per_element);

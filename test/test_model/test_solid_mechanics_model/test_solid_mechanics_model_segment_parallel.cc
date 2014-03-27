@@ -87,10 +87,10 @@ int main(int argc, char *argv[])
 
   /// boundary conditions
   for (akantu::UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    model.getDisplacement().values[spatial_dimension*i] = model.getFEM().getMesh().getNodes().values[i] / 100. ;
+    model.getDisplacement().storage()[spatial_dimension*i] = model.getFEM().getMesh().getNodes().storage()[i] / 100. ;
 
-    if(model.getFEM().getMesh().getNodes().values[spatial_dimension*i] <= 1e-15)
-      model.getBoundary().values[i] = true;
+    if(model.getFEM().getMesh().getNodes().storage()[spatial_dimension*i] <= 1e-15)
+      model.getBoundary().storage()[i] = true;
   }
 
   akantu::Real time_step = model.getStableTimeStep() * time_factor;

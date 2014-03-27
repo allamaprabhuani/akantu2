@@ -73,10 +73,10 @@ public:
                             GhostType ghost_type = _not_ghost);
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed() const;
+  virtual Real getPushWaveSpeed(const Element & element) const;
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed() const;
+  virtual Real getShearWaveSpeed(const Element & element) const;
 
 protected:
 
@@ -110,8 +110,6 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

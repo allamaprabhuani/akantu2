@@ -90,11 +90,11 @@ void MaterialNeohookean<spatial_dimension>::computeTangentModuli(const ElementTy
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
+Real MaterialNeohookean<spatial_dimension>::getCelerity(const Element & elem) const {
   UInt nb_quadrature_points =
     this->model->getFEM().getNbQuadraturePoints(elem.type, elem.ghost_type);
 
-  Array<Real>::matrix_iterator strain_it = this->strain(elem.type, elem.ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::const_matrix_iterator strain_it = this->strain(elem.type, elem.ghost_type).begin(spatial_dimension, spatial_dimension);
   strain_it += elem.element*nb_quadrature_points;
 
   Real cele = 0.;
@@ -104,7 +104,7 @@ Real MaterialNeohookean<spatial_dimension>::celerity(const Element & elem) {
   Matrix<Real> Cinv(3, 3);
 
   for (UInt q = 0; q < nb_quadrature_points; ++q, ++strain_it) {
-    Matrix<Real> & grad_u = *strain_it;
+    const Matrix<Real> & grad_u = *strain_it;
 
     Material::gradUToF<spatial_dimension>(grad_u, F);
     this->rightCauchy(F, C);

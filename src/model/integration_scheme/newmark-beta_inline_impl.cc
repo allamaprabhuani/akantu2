@@ -46,10 +46,10 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
   UInt nb_nodes = u.getSize();
   UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
-  Real * u_val         = u.values;
-  Real * u_dot_val     = u_dot.values;
-  Real * u_dot_dot_val = u_dot_dot.values;
-  bool * boundary_val  = boundary.values;
+  Real * u_val         = u.storage();
+  Real * u_dot_val     = u_dot.storage();
+  Real * u_dot_dot_val = u_dot_dot.storage();
+  bool * boundary_val  = boundary.storage();
 
   for (UInt d = 0; d < nb_degree_of_freedom; d++) {
     if(!(*boundary_val)) {
@@ -206,11 +206,11 @@ void NewmarkBeta::integrationSchemeCorr(Real delta_t,
   Real d = getVelocityCoefficient<type>(delta_t);
   Real e = getDisplacementCoefficient<type>(delta_t);
 
-  Real * u_val         = u.values;
-  Real * u_dot_val     = u_dot.values;
-  Real * u_dot_dot_val = u_dot_dot.values;
-  Real * delta_val     = delta.values;
-  bool * boundary_val  = boundary.values;
+  Real * u_val         = u.storage();
+  Real * u_dot_val     = u_dot.storage();
+  Real * u_dot_dot_val = u_dot_dot.storage();
+  Real * delta_val     = delta.storage();
+  bool * boundary_val  = boundary.storage();
 
   for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
     if(!(*boundary_val)) {

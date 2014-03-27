@@ -63,16 +63,16 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
   const ContactNeighborStructure & structure = getContactNeighborStructure(master_surface);
   const NeighborList & neigh_list = const_cast<ContactNeighborStructure&>(structure).getNeighborList();
 
-  // Real * inc_val = contact.getModel().getIncrement().values;
-  // Real * disp_val = contact.getModel().getDisplacement().values;
-  // Real * vel_val = contact.getModel().getVelocity().values;
+  // Real * inc_val = contact.getModel().getIncrement().storage();
+  // Real * disp_val = contact.getModel().getDisplacement().storage();
+  // Real * vel_val = contact.getModel().getVelocity().storage();
   const Contact & contact = getContact();
-  Real * pos_val = contact.getModel().getCurrentPosition().values;
+  Real * pos_val = contact.getModel().getCurrentPosition().storage();
 
   //contact.getModel().updateCurrentPosition();
   /// compute current_position = initial_position + displacement temp
-  // Real * coord = contact.getModel().getFEM().getMesh().getNodes().values;
-  // Real * disp = contact.getModel().getDisplacement().values;
+  // Real * coord = contact.getModel().getFEM().getMesh().getNodes().storage();
+  // Real * disp = contact.getModel().getDisplacement().storage();
   // Real * pos_val = new Real[contact.getModel().getFEM().getMesh().getNodes().getSize()];
   // for (UInt n = 0; n < contact.getModel().getFEM().getMesh().getNodes().getSize(); ++n)
   //   pos_val[n] = coord[n] + disp[n];
@@ -103,16 +103,16 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
   UInt * facets_off_val = neigh_list.facets_offset(el_type, _not_ghost).storage();
   UInt * facets_val = neigh_list.facets(el_type, _not_ghost).storage();
 
-  UInt * node_to_el_off_val = contact.getNodeToElementsOffset(el_type, _not_ghost).values;
-  UInt * node_to_el_val = contact.getNodeToElements(el_type, _not_ghost).values;
+  UInt * node_to_el_off_val = contact.getNodeToElementsOffset(el_type, _not_ghost).storage();
+  UInt * node_to_el_val = contact.getNodeToElements(el_type, _not_ghost).storage();
 
-  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).values;
+  UInt * conn_val = mesh.getConnectivity(el_type, _not_ghost).storage();
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
   /// Loop over the impactor nodes to detect possible penetrations
   for (UInt i = 0; i < neigh_list.impactor_nodes.getSize(); ++i) {
 
-    UInt i_node = neigh_list.impactor_nodes.values[i];
+    UInt i_node = neigh_list.impactor_nodes.storage()[i];
     Real *x3 = &pos_val[i_node*2];
 
     /// Loop over elements nearby the impactor node
@@ -219,7 +219,7 @@ AKANTU_DEBUG_IN();
 
   Real a[2], b[2], c[2], d[2], den, delta, t[2]={-1.,-1.}, l[2]={-1.,-1.}, k, j;
 
-    Real * inc_val = getContact().getModel().getIncrement().values;
+    Real * inc_val = getContact().getModel().getIncrement().storage();
 
   /* Initialize vectors of Equation to solve : 0 = a + b*l +c*t + d*t*l */
   for(UInt i=0; i<2; i++) {
@@ -370,13 +370,13 @@ bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList & pen
  {
    AKANTU_DEBUG_IN();
 
-   UInt * conn_val = contact.getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).values;
+   UInt * conn_val = contact.getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
    UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
    UInt node1 = conn_val[c_facet*elem_nodes];
    UInt node2 = conn_val[c_facet*elem_nodes+1];
 
-   Real * pos_val = contact.getModel().getCurrentPosition().values;
+   Real * pos_val = contact.getModel().getCurrentPosition().storage();
    Real * x1 = &pos_val[2*node1];
    Real * x2 = &pos_val[2*node2];
    Real * x3 = &pos_val[2*i_node];

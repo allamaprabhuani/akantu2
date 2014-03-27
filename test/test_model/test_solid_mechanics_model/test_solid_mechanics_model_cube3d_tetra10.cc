@@ -66,17 +66,17 @@ int main(int argc, char *argv[])
   akantu::Real eps = 1e-2;
   akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    model.getDisplacement().values[3*i] = model.getFEM().getMesh().getNodes().values[3*i] / 100.;
+    model.getDisplacement().storage()[3*i] = model.getFEM().getMesh().getNodes().storage()[3*i] / 100.;
 
-    if(model.getFEM().getMesh().getNodes().values[3*i] <= eps) {
-      model.getBoundary().values[3*i    ] = true;
+    if(model.getFEM().getMesh().getNodes().storage()[3*i] <= eps) {
+      model.getBoundary().storage()[3*i    ] = true;
     }
 
-    if(model.getFEM().getMesh().getNodes().values[3*i + 1] <= eps) {
-      model.getBoundary().values[3*i + 1] = true;
+    if(model.getFEM().getMesh().getNodes().storage()[3*i + 1] <= eps) {
+      model.getBoundary().storage()[3*i + 1] = true;
     }
   }
-  //  model.getDisplacement().values[1] = 0.1;
+  //  model.getDisplacement().storage()[1] = 0.1;
   model.setBaseName("cube3d_t10");
   model.addDumpField("displacement");
   model.addDumpField("mass"        );

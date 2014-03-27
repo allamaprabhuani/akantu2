@@ -35,13 +35,16 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  const ElementType type = _triangle_6;
-  const UInt spatial_dimension = 2;
+  UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
+  const ElementType type = TYPE;
 
   akantu::initialize(argc, argv);
 
   Mesh mesh(spatial_dimension);
-  mesh.read("bar2.msh");
+
+  std::stringstream filename; filename << TYPE << ".msh";
+  mesh.read(filename.str());
+
   SolidMechanicsModel model(mesh);
 
   /// model initialization

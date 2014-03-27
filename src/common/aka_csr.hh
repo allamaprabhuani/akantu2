@@ -147,14 +147,14 @@ public:
   typedef iterator_internal<T> iterator;
   typedef iterator_internal<const T> const_iterator;
 
-  inline iterator begin(UInt row) { return iterator(rows.values + rows_offsets(row)); };
-  inline iterator end(UInt row) { return iterator(rows.values + rows_offsets(row+1)); };
+  inline iterator begin(UInt row) { return iterator(rows.storage() + rows_offsets(row)); };
+  inline iterator end(UInt row) { return iterator(rows.storage() + rows_offsets(row+1)); };
 
-  inline const_iterator begin(UInt row) const { return const_iterator(rows.values + rows_offsets(row)); };
-  inline const_iterator end(UInt row) const { return const_iterator(rows.values + rows_offsets(row+1)); };
+  inline const_iterator begin(UInt row) const { return const_iterator(rows.storage() + rows_offsets(row)); };
+  inline const_iterator end(UInt row) const { return const_iterator(rows.storage() + rows_offsets(row+1)); };
 
-  inline iterator rbegin(UInt row) { return iterator(rows.values + rows_offsets(row+1) - 1); };
-  inline iterator rend(UInt row) { return iterator(rows.values + rows_offsets(row) - 1); };
+  inline iterator rbegin(UInt row) { return iterator(rows.storage() + rows_offsets(row+1) - 1); };
+  inline iterator rend(UInt row) { return iterator(rows.storage() + rows_offsets(row) - 1); };
 
   inline const Array<UInt> & getRowsOffset() const { return rows_offsets; };
   inline const Array<T> & getRows() const { return rows; };

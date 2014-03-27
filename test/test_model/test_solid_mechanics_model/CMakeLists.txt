@@ -194,8 +194,3 @@ register_test(test_solid_mechanics_model_material_eigenstrain
   SOURCES test_solid_mechanics_model_material_eigenstrain.cc
   FILES_TO_COPY cube_3d_tet_4.msh; material_elastic_plane_strain.dat
   )
-
-register_test(test_solid_mechanics_model_lumped_mass
-  SOURCES test_solid_mechanics_model_lumped_mass.cc
-  DEPENDENCIES test_bar_traction_2d_mesh2
-  )

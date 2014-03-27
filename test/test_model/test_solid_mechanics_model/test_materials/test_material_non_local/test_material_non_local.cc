@@ -168,9 +168,9 @@ void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) 
   dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(StaticCommunicator::getStaticCommunicator()->whoAmI(),
 			    StaticCommunicator::getStaticCommunicator()->getNbProc());
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().values,
+  dumper.SetPoints(model.getFEM().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, filename.str().c_str());
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).values,
+  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).storage(),
 			 paraviewType<TYPE>(), nb_element, iohelper::C_MODE);
   dumper.AddElemDataField(quadrature_points_volumes(TYPE).storage(),
    			  1, "volume");

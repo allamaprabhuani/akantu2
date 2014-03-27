@@ -60,7 +60,7 @@ inline void SparseMatrix::clearProfile() {
 
 /* -------------------------------------------------------------------------- */
 inline void SparseMatrix::clear() {
-  memset(a.values, 0, nb_non_zero*sizeof(Real));
+  memset(a.storage(), 0, nb_non_zero*sizeof(Real));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -71,7 +71,7 @@ inline void SparseMatrix::addToMatrix(UInt i, UInt j, Real value) {
   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
 		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
 
-  a.values[irn_jcn_k_it->second] += value;
+  a.storage()[irn_jcn_k_it->second] += value;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -79,7 +79,7 @@ inline Real SparseMatrix::operator()(UInt i, UInt j) const {
   KeyCOO jcn_irn = key(i, j);
   coordinate_list_map::const_iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
   if(irn_jcn_k_it == irn_jcn_k.end()) return 0;
-  return a.values[irn_jcn_k_it->second];
+  return a.storage()[irn_jcn_k_it->second];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -89,7 +89,7 @@ inline Real & SparseMatrix::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
 		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
 
-  return a.values[irn_jcn_k_it->second];
+  return a.storage()[irn_jcn_k_it->second];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -101,9 +101,9 @@ inline Real & SparseMatrix::operator()(UInt i, UInt j) {
 //   UInt nb_values_per_elem   = element_to_sparse_profile[element.type]->getNbComponent();
 //   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
 
-//   Real * mat_val = local_matrix.values;
+//   Real * mat_val = local_matrix.storage();
 //   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
-//   Real * a_val = a.values;
+//   Real * a_val = a.storage();
 
 //   for (UInt j = 0; j < nb_nodes_per_element * nb_degree_of_freedom; ++j) {
 //     UInt i_end = (sparse_matrix_type == _symmetric) ? j + 1 :
@@ -127,7 +127,7 @@ inline Real & SparseMatrix::operator()(UInt i, UInt j) {
 
 //   Real * mat_val = local_matrix;
 //   UInt * elem_to_sparse_val = element_to_sparse_profile[element.type]->values + element.element * nb_values_per_elem;
-//   Real * a_val = a.values;
+//   Real * a_val = a.storage();
 
 //   for (UInt i = 0; i < nb_nodes_per_element * nb_degree_of_freedom; ++i) {
 //     UInt j_start = (sparse_matrix_type == _symmetric) ? i : 0;

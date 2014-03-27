@@ -189,7 +189,7 @@ template<bool is_static>
 template<typename T> inline std::string
 CommunicationBufferTemplated<is_static>::extractStream(UInt block_size) {
   std::stringstream str;
-  T * ptr = reinterpret_cast<T*>(buffer.values);
+  T * ptr = reinterpret_cast<T*>(buffer.storage());
   UInt sz = buffer.getSize()/sizeof(T);
   UInt sz_block = block_size/sizeof(T);
 
