@@ -24,12 +24,6 @@
 #
 #------------------------------------------------------------------------------
 
-register_test(test_structural_mechanics_model_bernoulli_beam_2
-  test_structural_mechanics_model_bernoulli_beam_2.cc)
-
-register_test(test_structural_mechanics_model_boundary_bernoulli_beam_2
-  test_structural_mechanics_model_boundary_bernoulli_beam_2.cc)
-
 register_test(test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1
   test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc)
 
@@ -41,9 +35,6 @@ register_test(test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_xy
 
 register_test(test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_zy
   test_structural_mechanics_model_bernoulli_beam_3_exemple_1_1_zy.cc)
-
-register_test(test_structural_mechanics_model_bernoulli_beam_3_local_force
-  test_structural_mechanics_model_bernoulli_beam_local_force.cc)
 
 register_test(test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13
   test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13.cc)

@@ -125,10 +125,10 @@ int main(int argc, char *argv[]){
   boundary(5,0) = true;
   boundary(5,1) = true;
   boundary(5,2) = true;
-  //boundary(2,1) = true;
-  //boundary(2,0) = true;
-  //boundary(1,1) = true;
-  //boundary(1,0) = true;
+  boundary(2,1) = true;
+  boundary(2,0) = true;
+  boundary(1,1) = true;
+  boundary(1,0) = true;
 
 
   /* -------------------------------------------------------------------------- */
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]){
   model.getStiffnessMatrix().saveMatrix("Kb.mtx");
   UInt count = 0;
 
-  model.addDumpField("displacememt");
+  model.addDumpFieldVector("displacement");
   model.addDumpField("rotation");
   model.addDumpField("force");
   model.addDumpField("momentum");

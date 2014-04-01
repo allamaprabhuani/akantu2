@@ -397,6 +397,8 @@ void StructuralMechanicsModel::solve() {
   jacobian_matrix->copyContent(*stiffness_matrix);
   jacobian_matrix->applyBoundary(*boundary);
 
+  increment->clear();
+
   solver->setRHS(*residual);
 
   solver->solve(*increment);
@@ -408,6 +410,9 @@ void StructuralMechanicsModel::solve() {
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
     if(!(*boundary_val)) {
       *displacement_val += *increment_val;
+    }
+    else {
+      *increment_val = 0.0;
     }
 
     displacement_val++;
@@ -615,7 +620,7 @@ void StructuralMechanicsModel::addDumpFieldToDumper(const std::string & dumper_n
   } else n = 3;
 
   if(field_id == "displacement" ) { ADD_FIELD(dumper_name, "displacement", displacement_rotation, Real,
-						  n, 0); }
+						  n, nb_degree_of_freedom - n); }
   else if(field_id == "rotation") { ADD_FIELD(dumper_name, "rotation", displacement_rotation, Real,
 						  nb_degree_of_freedom - n, n); }
   else if(field_id == "force"   ) { ADD_FIELD(dumper_name, "force", force_momentum, Real,

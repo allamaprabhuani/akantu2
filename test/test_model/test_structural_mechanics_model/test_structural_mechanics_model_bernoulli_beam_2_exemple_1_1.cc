@@ -53,11 +53,13 @@ static void lin_load(double * position, double * load,
 
 int main(int argc, char *argv[]){
   initialize(argc, argv);
-  Mesh beams(2);
   debug::setDebugLevel(dblWarning);
 
   /* -------------------------------------------------------------------------- */
   // Defining the mesh
+
+  Mesh beams(2);
+
   UInt nb_nodes=3;
   UInt nb_nodes_1=1;
   UInt nb_nodes_2=nb_nodes-nb_nodes_1 - 1;
@@ -94,7 +96,7 @@ int main(int argc, char *argv[]){
   // Defining the materials
   //  akantu::ElementType type = akantu::_bernoulli_beam_2;
 
-  akantu::StructuralMechanicsModel model(beams);
+  StructuralMechanicsModel model(beams);
 
   StructuralMaterial mat1;
   mat1.E=3e10;
