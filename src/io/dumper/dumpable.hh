@@ -142,12 +142,12 @@ public:
   void setTimeStepToDumper(const std::string & dumper_name,
                            Real time_step);
 
-  void dump();
-  void dump(UInt step);
-  void dump(Real time, UInt step);
-  void dump(const std::string & dumper_name);
-  void dump(const std::string & dumper_name, UInt step);
-  void dump(const std::string & dumper_name, Real time, UInt step);
+  virtual void dump();
+  virtual void dump(UInt step);
+  virtual void dump(Real time, UInt step);
+  virtual void dump(const std::string & dumper_name);
+  virtual void dump(const std::string & dumper_name, UInt step);
+  virtual void dump(const std::string & dumper_name, Real time, UInt step);
 
 
 protected:

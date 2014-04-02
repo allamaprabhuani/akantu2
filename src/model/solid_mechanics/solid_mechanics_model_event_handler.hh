@@ -43,6 +43,9 @@ namespace SolidMechanicsModelEvent {
     AfterSolveStepEvent(AnalysisMethod & method) : method(method) {}
     AnalysisMethod method;
   };
+  struct BeforeDumpEvent {
+    BeforeDumpEvent() {}
+  };
 
 }
 
@@ -65,6 +68,9 @@ protected:
   inline void sendEvent(const SolidMechanicsModelEvent::AfterSolveStepEvent & event) {
     onEndSolveStep(event.method);
   }
+  inline void sendEvent(const SolidMechanicsModelEvent::BeforeDumpEvent & event) {
+    onDump();
+  }
 
   template<class EventHandler>
   friend class EventHandlerManager;
@@ -75,6 +81,7 @@ protected:
 public:
   virtual void onBeginningSolveStep(__attribute__((unused)) const AnalysisMethod & method) {}
   virtual void onEndSolveStep(__attribute__((unused)) const AnalysisMethod & method) {}
+  virtual void onDump() {}
 };
 
 

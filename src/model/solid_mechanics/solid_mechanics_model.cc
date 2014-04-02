@@ -1005,11 +1005,14 @@ bool SolidMechanicsModel::testConvergence<_scc_increment>(Real tolerance, Real &
 
   norm[0] = sqrt(norm[0]);
   norm[1] = sqrt(norm[1]);
-  AKANTU_DEBUG_ASSERT(!Math::isnan(norm[0]), "Something goes wrong in the solve phase");
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm[0]), "Something went wrong in the solve phase");
 
 
   AKANTU_DEBUG_OUT();
-  error = norm[0] / norm[1];
+  if(norm[1] > Math::getTolerance())
+    error = norm[0] / norm[1];
+  else
+    error = norm[0]; //In case the total displacement is zero!
   return (error < tolerance);
 }
 
@@ -1902,6 +1905,39 @@ void SolidMechanicsModel::addDumpFieldTensorToDumper(const std::string & dumper_
     internalAddDumpFieldToDumper(dumper_name, field_id, field);
   }
 #endif
+}
+
+/* ------------------------------------------------------------------------- */
+void SolidMechanicsModel::dump(const std::string & dumper_name) {
+  EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  Dumpable::dump(dumper_name);
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::dump(const std::string & dumper_name, UInt step) {
+  EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  Dumpable::dump(dumper_name, step);
+}
+
+/* ------------------------------------------------------------------------- */
+void SolidMechanicsModel::dump(const std::string & dumper_name, Real time, UInt step) {
+  EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  Dumpable::dump(dumper_name, time, step);
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::dump() {
+  Dumpable::dump();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::dump(UInt step) {
+  Dumpable::dump(step);
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::dump(Real time, UInt step) {
+  Dumpable::dump(time, step);
 }
 
 /* -------------------------------------------------------------------------- */

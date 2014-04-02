@@ -1489,6 +1489,12 @@ void Material::onEndSolveStep(const AnalysisMethod & method) {
 }
 
 /* -------------------------------------------------------------------------- */
+void Material::onDump(){
+  if(this->isFiniteDeformation())
+    this->computeAllCauchyStresses(_not_ghost);
+}
+
+/* -------------------------------------------------------------------------- */
 void Material::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
