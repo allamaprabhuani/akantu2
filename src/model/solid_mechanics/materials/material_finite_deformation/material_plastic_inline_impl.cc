@@ -102,10 +102,12 @@ inline void MaterialPlastic<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
   Real J = F.det();
+  Cminus.inverse(C);
 
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)
       sigma(i, j) = (i == j) *  mu  + (lambda * log(J) - mu) * Cminus(i, j);
+
   //Neo hookean book
   /*Matrix<Real> F(dim, dim);
     Matrix<Real> C(dim, dim);//Right green
@@ -156,15 +158,7 @@ inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real
 
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
-  Real J = 1.0;
-  switch (dim) {
-  case 2:
-    J = Math::det2(F.storage());
-    break;
-  case 3:
-    J = Math::det3(F.storage());
-    break;
-  }
+  Real J = F.det();
 
   epot=0.5*lambda*pow(log(J),2.)+ mu * (-log(J)+0.5*(C.trace()-dim));
 }
@@ -198,67 +192,15 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
   Matrix<Real> Cminus(dim, dim);
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
-  Real J = 1.0;
-  switch (dim){
-  case 2:
-    Math::inv2(C.storage(), Cminus.storage());
-    J = Math::det2(F.storage());
-    break;
-  case 3:
-    Math::inv3(C.storage(), Cminus.storage());
-    J = Math::det3(F.storage());
-    break;
-  }
+  Real J = F.det();
+  Cminus.inverse(C);
 
   for (UInt m = 0; m < rows; m++) {
-    UInt i, j;
-    if (m < dim) {
-      i = m;
-      j = m;
-    } else {
-      if (dim == 3) {
-	if (m == 3) {
-	  i = 1;
-	  j = 2;
-	} else if (m == 4) {
-	  i = 0;
-	  j = 2;
-	} else if (m == 5) {
-	  i = 0;
-	  j = 1;
-	}
-      } else if (dim == 2) {
-	if (m == 2) {
-	  i = 0;
-	  j = 1;
-	}
-      }
-    }
-
+    UInt i = VoigtHelper<dim>::vec[m][0];
+    UInt j = VoigtHelper<dim>::vec[m][1];
     for (UInt n = 0; n < cols; n++) {
-      UInt k, l;
-      if (n < dim) {
-	k = n;
-	l = n;
-      } else {
-	if (dim == 3) {
-	  if (n == 3) {
-	    k = 1;
-	    l = 2;
-	  } else if (n == 4) {
-	    k = 0;
-	    l = 2;
-	  } else if (n == 5) {
-	    k = 0;
-	    l = 1;
-	  }
-	} else if (dim == 2) {
-	  if (n == 2) {
-	    k = 0;
-	    l = 1;
-	  }
-	}
-      }
+      UInt k = VoigtHelper<dim>::vec[n][0];
+      UInt l = VoigtHelper<dim>::vec[n][1];
 
       //book Bathe
       /*            tangent(m, n) = J*( lambda * Cminus(i, j) * Cminus(k, l) +
