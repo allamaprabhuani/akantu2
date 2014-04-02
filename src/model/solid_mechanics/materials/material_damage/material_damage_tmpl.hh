@@ -129,8 +129,7 @@ void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(const Eleme
 								     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  if(!this->is_non_local)
-    Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix, ghost_type);
+  Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
 

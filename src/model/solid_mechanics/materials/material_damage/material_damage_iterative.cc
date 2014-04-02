@@ -3,8 +3,8 @@
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Fri Feb 14 14:54:44 2014
  *
- * @brief  Specialization of the class material damage to damage only one gauss 
- * point at a time and propagate damage in a linear way. Max principal stress 
+ * @brief  Specialization of the class material damage to damage only one gauss
+ * point at a time and propagate damage in a linear way. Max principal stress
  * criterion is used as a failure criterion.
  *
  * @section LICENSE
@@ -40,13 +40,14 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(SolidMechani
   Material(model, id),
   MaterialDamage<spatial_dimension>(model, id),
   Sc("Sc", *this),
-  equivalent_stress("equivalent_stress", *this), 
-  norm_max_equivalent_stress(0), 
-  q_point() { 
+  equivalent_stress("equivalent_stress", *this),
+  norm_max_equivalent_stress(0),
+  q_point() {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("Sc",                   Sc, _pat_parsable, "critical stress threshold");
-  this->registerParam("prescribed_dam",       prescribed_dam, _pat_parsable | _pat_modifiable, "increase of damage in every step" );
+  this->registerParam("Sc",                  Sc,                  _pat_parsable, "critical stress threshold");
+  this->registerParam("prescribed_dam",      prescribed_dam, 0.1, _pat_parsable | _pat_modifiable, "increase of damage in every step" );
+  this->registerParam("dam_threshold",       dam_threshold,  0.8,  _pat_parsable | _pat_modifiable, "damage threshold at which damage damage will be set to 1" );
 
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
@@ -55,26 +56,36 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(SolidMechani
 }
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialDamageIterative<spatial_dimension>::computeNormalizedEquivalentStress(ElementType el_type,
-						      GhostType ghost_type) {
+void MaterialDamageIterative<spatial_dimension>::computeNormalizedEquivalentStress(const Array<Real> & grad_u,
+										   ElementType el_type,
+										   GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  /// Vector to store eigenvalues of current stress tensor 
+  /// Vector to store eigenvalues of current stress tensor
   Vector<Real> eigenvalues(spatial_dimension);
 
   Array<Real>::const_iterator<Real> Sc_it = Sc(el_type).begin();
   Array<Real>::iterator<Real> equivalent_stress_it = equivalent_stress(el_type).begin();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  Array<Real>::const_matrix_iterator grad_u_it = grad_u.begin(spatial_dimension,
+							      spatial_dimension);
+  Array<Real>::const_matrix_iterator grad_u_end = grad_u.end(spatial_dimension,
+							     spatial_dimension);
+  Real * dam = this->damage(el_type, ghost_type).storage();
+  Matrix<Real> sigma(spatial_dimension, spatial_dimension);
+  for(;grad_u_it != grad_u_end; ++ grad_u_it) {
+    sigma.clear();
+    MaterialElastic<spatial_dimension>::computeStressOnQuad(*grad_u_it, sigma, 0.);
+    computeDamageAndStressOnQuad(sigma,*dam);
 
-  /// compute eigenvalues
-  sigma.eig(eigenvalues);
-  /// find max eigenvalue and normalize by tensile strength 
-  *equivalent_stress_it = *(std::max_element(eigenvalues.storage(),
-					     eigenvalues.storage() + spatial_dimension)) / *(Sc_it);
-  ++Sc_it;
-  ++equivalent_stress_it;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    /// compute eigenvalues
+    sigma.eig(eigenvalues);
+    /// find max eigenvalue and normalize by tensile strength
+    *equivalent_stress_it = *(std::max_element(eigenvalues.storage(),
+					       eigenvalues.storage() + spatial_dimension)) / *(Sc_it);
+    ++Sc_it;
+    ++equivalent_stress_it;
+    ++dam;
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -90,7 +101,7 @@ void MaterialDamageIterative<spatial_dimension>::computeAllStresses(GhostType gh
     q_point.ghost_type = ghost_type;
   }
   MaterialDamage<spatial_dimension>::computeAllStresses(ghost_type);
-  
+
   /// find global Gauss point with highest stress
   StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
   Real global_norm_max_equivalent_stress = norm_max_equivalent_stress;
@@ -129,27 +140,24 @@ void MaterialDamageIterative<spatial_dimension>::findMaxNormalizedEquivalentStre
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::computeStress(ElementType el_type,
-						      GhostType ghost_type) {
+							       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+
   MaterialDamage<spatial_dimension>::computeStress(el_type, ghost_type);
 
+  Real * dam = this->damage(el_type, ghost_type).storage();
 
-  if(!this->is_non_local){
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-    Real * dam = this->damage(el_type, ghost_type).storage();
+  computeDamageAndStressOnQuad(sigma,*dam);
+  ++dam;
 
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-    computeDamageAndStressOnQuad(sigma,*dam);
-
-    ++dam;
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-    computeNormalizedEquivalentStress(el_type, ghost_type);
-    norm_max_equivalent_stress = 0;
-    findMaxNormalizedEquivalentStress(el_type, ghost_type);
-  }
+  computeNormalizedEquivalentStress(this->strain(el_type, ghost_type), el_type, ghost_type);
+  norm_max_equivalent_stress = 0;
+  findMaxNormalizedEquivalentStress(el_type, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -158,7 +166,6 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(ElementType el_ty
 template<UInt spatial_dimension>
 inline void
 MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam) {
-
   sigma *= 1-dam;
 }
 /* -------------------------------------------------------------------------- */
@@ -181,7 +188,9 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
       /// update internal field damage and increment # if damaged elements
       Array<Real> & dam_vect = this->damage(q_point.type);
 
-      dam_vect(q_point.global_num) += prescribed_dam;
+      if (dam_vect(q_point.global_num) <= dam_threshold)
+	dam_vect(q_point.global_num) += prescribed_dam;
+      else dam_vect(q_point.global_num) = 1.;
 
       nb_damaged_elements += 1;
 
@@ -192,7 +201,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   comm.allReduce(&nb_damaged_elements, 1, _so_sum);
 
   return nb_damaged_elements;
-  
+
 }
 /* -------------------------------------------------------------------------- */
 

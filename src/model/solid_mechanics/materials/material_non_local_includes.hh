@@ -33,6 +33,7 @@
 #  include "material_mazars_non_local.hh"
 #  include "material_vreepeerlings_non_local.hh"
 #  include "material_brittle_non_local.hh"
+#  include "material_damage_iterative_non_local.hh"
 #endif
 
 #define AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST			\
@@ -58,5 +59,6 @@
   ((3, (vreepeerlings_non_local, MaterialVreePeerlingsNonLocal,		\
 	AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS)))                      \
   ((3, (brittle_non_local       , MaterialBrittleNonLocal,		\
+	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))                    \
+  ((3, (damage_iterative_non_local       , MaterialDamageIterativeNonLocal, \
 	AKANTU_MATERIAL_WEIGHT_FUNCTION_TMPL_LIST)))
-
