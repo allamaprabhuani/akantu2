@@ -108,12 +108,12 @@ inline UInt MaterialBrittle<spatial_dimension>::getNbDataForElements(const Array
                                                                     SynchronizationTag tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
+  /*UInt size = 0;
   if(tag == _gst_smm_init_mat) {
     size += sizeof(Real) * this->getModel().getNbQuadraturePoints(elements);
   }
-
-  size += MaterialDamage<spatial_dimension>::getNbDataForElements(elements, tag);
+  */ 
+  UInt size = MaterialDamage<spatial_dimension>::getNbDataForElements(elements, tag);
 
   AKANTU_DEBUG_OUT();
   return size;

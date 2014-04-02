@@ -130,6 +130,24 @@ void MaterialPlastic<dim>::computeStress(ElementType el_type, GhostType ghost_ty
     AKANTU_DEBUG_OUT();
 }
 
+template<UInt spatial_dimension>
+void MaterialPlastic<spatial_dimension>::computePotentialEnergy(ElementType el_type,
+								GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  if(ghost_type != _not_ghost) return;
+  Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+
+  computePotentialEnergyOnQuad(grad_u, *epot);
+  ++epot;
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialPlastic<spatial_dimension>::computeTangentModuli(__attribute__((unused)) const ElementType & el_type,

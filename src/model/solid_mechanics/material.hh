@@ -527,11 +527,15 @@ __END_AKANTU__
     this->stress(el_type, ghost_type).begin(spatial_dimension,          \
                                             spatial_dimension);         \
                                                                         \
-  if(this->isFiniteDeformation())                                       \
+  if(this->isFiniteDeformation()){                                      \
+    this->piola_kirchhoff_stress(el_type,                               \
+               ghost_type).resize(this->strain(el_type,                 \
+                                               ghost_type).getSize());  \
     stress_it =                                                         \
       this->piola_kirchhoff_stress(el_type,                             \
                                    ghost_type).begin(spatial_dimension, \
                                                      spatial_dimension); \
+  }                                                                     \
                                                                         \
   for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
     Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;		\

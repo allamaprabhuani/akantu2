@@ -150,7 +150,6 @@ inline void MaterialPlastic<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real>
 /*  Computation of the potential energy for a this neo hookean material */
 template<UInt dim>
 inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                                               const Matrix<Real> & sigma,
                                                                Real & epot){
   Matrix<Real> F(dim, dim);
   Matrix<Real> C(dim, dim);//Right green

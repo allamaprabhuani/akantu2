@@ -67,6 +67,10 @@ public:
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
+  /// compute the elastic potential energy
+  virtual void computePotentialEnergy(ElementType el_type,
+				      GhostType ghost_type = _not_ghost);
+
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
                             Array<Real> & tangent_matrix,
@@ -97,7 +101,6 @@ protected:
 
   /// compute the potential energy for a quadrature point
   inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-                                           const Matrix<Real> & sigma,
                                            Real & epot);
 
   /// compute the tangent stiffness matrix for an element
