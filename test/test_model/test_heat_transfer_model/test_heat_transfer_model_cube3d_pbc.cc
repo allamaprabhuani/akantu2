@@ -42,7 +42,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
 
   akantu::UInt spatial_dimension = 3;
   //create mesh
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
   akantu::HeatTransferModel model(mesh);
   //initialize everything
-  model.initFull("material.dat");
+  model.initFull();
 
   //initialize PBC
   model.setPBC(1,1,1);

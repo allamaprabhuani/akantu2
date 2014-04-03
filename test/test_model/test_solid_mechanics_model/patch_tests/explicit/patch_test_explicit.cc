@@ -32,13 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "element_class.hh"
 
 using namespace akantu;
 
@@ -107,7 +101,13 @@ static Matrix<Real> prescribed_stress() {
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  initialize(argc, argv);
+  std::string input_file;
+  if(PLANE_STRAIN)
+    input_file = "material_check_stress_plane_strain.dat";
+  else
+    input_file = "material_check_stress_plane_stress.dat";
+
+  initialize(input_file, argc, argv);
 
   debug::setDebugLevel(dblWarning);
   UInt dim = ElementClass<TYPE>::getSpatialDimension();
@@ -122,20 +122,16 @@ int main(int argc, char *argv[])
 
   /// load mesh
   Mesh my_mesh(dim);
-  MeshIOMSH mesh_io;
 
   std::stringstream filename; filename << TYPE << ".msh";
-  mesh_io.read(filename.str(), my_mesh);
+  my_mesh.read(filename.str());
 
   UInt nb_nodes = my_mesh.getNbNodes();
 
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  if(PLANE_STRAIN)
-    my_model.initFull("material_check_stress_plane_strain.dat");
-  else
-    my_model.initFull("material_check_stress_plane_stress.dat");
+  my_model.initFull();
 
 
   std::cout << my_model.getMaterial(0) << std::endl;

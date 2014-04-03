@@ -26,12 +26,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_io.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "dumper_paraview.hh"
-#include "static_communicator.hh"
-#include "dof_synchronizer.hh"
 #include "material_cohesive_linear.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -42,7 +37,7 @@ Real function(Real constant, Real x, Real y, Real z) {
 }
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
@@ -75,7 +70,7 @@ int main(int argc, char *argv[]) {
 
   /// model initialization
   model.initParallel(partition, NULL, true);
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   const MaterialCohesiveLinear<3> & mat_cohesive
     = dynamic_cast < const MaterialCohesiveLinear<3> & > (model.getMaterial(1));

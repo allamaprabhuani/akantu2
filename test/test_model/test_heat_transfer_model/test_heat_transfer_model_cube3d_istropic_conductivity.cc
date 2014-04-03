@@ -46,7 +46,7 @@ akantu::UInt spatial_dimension = 3;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
   akantu::MeshIOMSH mesh_io;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
   akantu::HeatTransferModel model(mesh);
   //initialize everything
-  model.initFull("material.dat");
+  model.initFull();
   //assemble the lumped capacity
   model.assembleCapacityLumped();
 

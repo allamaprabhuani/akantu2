@@ -30,13 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "element_class.hh"
 
 using namespace akantu;
 
@@ -64,8 +58,8 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigenstrain) {
   Matrix<Real> stress(spatial_dimension, spatial_dimension);
 
   //plane strain in 2d
-  Matrix<Real> strain(spatial_dimension, spatial_dimension); 
-  Matrix<Real> pstrain; 
+  Matrix<Real> strain(spatial_dimension, spatial_dimension);
+  Matrix<Real> pstrain;
   pstrain = prescribed_strain<type, is_plane_strain>();
   Real nu = 0.3;
   Real E  = 2.1e11;
@@ -105,30 +99,29 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigenstrain) {
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  initialize(argc, argv);
-    
+  initialize("material_elastic_plane_strain.dat", argc, argv);
+
   UInt dim = 3;
   const ElementType element_type = _tetrahedron_4;
   const bool plane_strain = true;
   Matrix<Real> prescribed_eigenstrain(dim, dim);
   prescribed_eigenstrain.clear();
   for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) 
-      prescribed_eigenstrain(i,j) += 0.1;   
+    for (UInt j = 0; j < dim; ++j)
+      prescribed_eigenstrain(i,j) += 0.1;
   }
 
 
   /// load mesh
   Mesh my_mesh(dim);
-  MeshIOMSH mesh_io;
 
   std::stringstream filename; filename << "cube_3d_tet_4.msh";
-  mesh_io.read(filename.str(), my_mesh);
+  my_mesh.read(filename.str());
 
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initFull("material_elastic_plane_strain.dat", SolidMechanicsModelOptions(_static));
+  my_model.initFull(SolidMechanicsModelOptions(_static));
 
   const Array<Real> & coordinates = my_mesh.getNodes();
   Array<Real> & displacement = my_model.getDisplacement();
@@ -141,7 +134,7 @@ int main(int argc, char *argv[])
   for(GroupManager::const_element_group_iterator it(my_mesh.element_group_begin());
       it != my_mesh.element_group_end(); ++it) {
     for(ElementGroup::const_node_iterator nodes_it(it->second->node_begin());
-        nodes_it!= it->second->node_end(); ++nodes_it) {
+	nodes_it!= it->second->node_end(); ++nodes_it) {
       UInt n(*nodes_it);
       std::cout << "Node " << *nodes_it << std::endl;
       for (UInt i = 0; i < dim; ++i) {
@@ -157,7 +150,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Apply eigenstrain in each element                                          */
   /* ------------------------------------------------------------------------ */
-  
+
 
   Array<Real> & eigenstrain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getInternal("eigenstrain")(element_type));
   Array<Real>::iterator< Matrix<Real> > eigenstrain_it = eigenstrain_vect.begin(dim, dim);
@@ -176,14 +169,14 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
   /* ------------------------------------------------------------------------ */
- 
+
 
   Array<Real> & stress_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStress(element_type));
 
   Array<Real>::iterator< Matrix<Real> > stress_it = stress_vect.begin(dim, dim);
   Array<Real>::iterator< Matrix<Real> > stress_end = stress_vect.end(dim, dim);
 
-  Matrix<Real> presc_stress; 
+  Matrix<Real> presc_stress;
   presc_stress = prescribed_stress<element_type, plane_strain>(prescribed_eigenstrain);
 
   Real stress_tolerance = 1e-13;
@@ -205,7 +198,7 @@ int main(int argc, char *argv[])
       std::cerr << "stress error: " << stress_error << " < " << stress_tolerance << std::endl;
     }
 
-    
+
   }
 
 
@@ -213,5 +206,3 @@ int main(int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-
-

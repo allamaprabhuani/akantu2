@@ -82,7 +82,7 @@ public:
 public:
 
   /// generic function to initialize everything ready for explicit dynamics
-  void initFull(const std::string & material_file, const ModelOptions & options = default_heat_transfer_model_options);
+  void initFull(const ModelOptions & options = default_heat_transfer_model_options);
 
   /// initialize the fem object of the boundary
   void initFEMBoundary(bool create_surface = true);

@@ -458,12 +458,15 @@ struct is_same<T, T> {
   AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, GeometricalType, const)
 
 /* -------------------------------------------------------------------------- */
+/// initialize the static part of akantu
 void initialize(int & argc, char ** & argv);
-
+/// initialize the static part of akantu and read the global input_file
+void initialize(const std::string & input_file, int & argc, char ** & argv);
 /* -------------------------------------------------------------------------- */
+/// finilize correctly akantu and clean the memory
 void finalize ();
-
 /* -------------------------------------------------------------------------- */
+
 /*
  * For intel compiler annoying remark
  */
@@ -482,6 +485,21 @@ void finalize ();
 inline std::string to_lower(const std::string & str);
 /* -------------------------------------------------------------------------- */
 inline std::string trim(const std::string & to_trim);
+
+__END_AKANTU__
+
+#include "aka_fwd.hh"
+
+__BEGIN_AKANTU__
+
+/// get access to the internal argument parser
+cppargparse::ArgumentParser & getStaticArgumentParser();
+
+/// get access to the internal input file parser
+const Parser & getStaticParser();
+
+/// get access to the user part of the internal input file parser
+const ParserSection & getUserParser();
 
 __END_AKANTU__
 
@@ -538,9 +556,5 @@ __END_AKANTU__
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_COHESIVE_ELEMENT_TYPE)
 
 #include "aka_common_inline_impl.cc"
-
-
-#include "aka_fwd.hh"
-
 
 #endif /* __AKANTU_COMMON_HH__ */

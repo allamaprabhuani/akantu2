@@ -34,25 +34,21 @@
 #include <fstream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
+
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
   UInt spatial_dimension = 1;
 
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("segment1.msh", mesh);
+  mesh.read("segment1.msh");
 
   SolidMechanicsModel model(mesh);
-  model.initFull("material.dat", SolidMechanicsModelOptions(_static));
+  model.initFull( SolidMechanicsModelOptions(_static));
 
   std::cout << model.getMaterial(0) << std::endl;
 

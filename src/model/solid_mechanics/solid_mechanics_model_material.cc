@@ -87,7 +87,7 @@ __BEGIN_AKANTU__
 			    _,						\
 			    BOOST_PP_SEQ_TAIL(AKANTU_MATERIAL_LIST))	\
     else {								\
-      if(Parser::parser_permissive)					\
+      if(getStaticParser().isPermissive())				\
 	AKANTU_DEBUG_INFO("Malformed material file " <<			\
 			  ": unknown material type '"			\
 			  << mat_type << "'");				\
@@ -102,7 +102,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::instantiateMaterials() {
   std::pair<Parser::const_section_iterator, Parser::const_section_iterator>
-    sub_sect = parser.getSubSections(_st_material);
+    sub_sect = getStaticParser().getSubSections(_st_material);
 
   Parser::const_section_iterator it = sub_sect.first;
   for (; it != sub_sect.second; ++it) {

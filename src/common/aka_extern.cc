@@ -34,6 +34,7 @@
 #include "aka_math.hh"
 #include "aka_random_generator.hh"
 #include "parser.hh"
+#include "cppargparse.hh"
 
 /* -------------------------------------------------------------------------- */
 #include <iostream>
@@ -59,9 +60,6 @@ namespace debug {
   /// standard output for normal messages
   std::ostream & _akantu_cout = std::cout;
 
-  /// debug level
-  DebugLevel _debug_level = dblInfo;
-
   /// parallel context used in debug messages
   std::string _parallel_context = "";
 
@@ -71,6 +69,12 @@ namespace debug {
   DebugElementManager element_manager;
 #endif
 }
+
+/// Paser for commandline arguments
+::cppargparse::ArgumentParser static_argparser;
+
+/// Parser containing the information parsed by the input file given to initFull
+Parser static_parser;
 
 bool Parser::parser_permissive = false;
 

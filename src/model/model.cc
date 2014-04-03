@@ -67,12 +67,8 @@ Model::~Model() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::initFull(std::string input_file, const ModelOptions & options) {
+void Model::initFull(const ModelOptions & options) {
   AKANTU_DEBUG_IN();
-
-  if(input_file != "") {
-    parser.parse(input_file);
-  }
 
   initModel();
 

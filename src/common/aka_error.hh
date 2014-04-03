@@ -146,7 +146,7 @@ namespace akantu {
       Debugger();
       virtual ~Debugger();
 
-      void exit(int status) __attribute__ ((noreturn));
+      static void exit(int status) __attribute__ ((noreturn));
 
       void throwException(const std::string & info,
 			  const std::string & file,

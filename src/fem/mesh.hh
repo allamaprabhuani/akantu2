@@ -476,7 +476,8 @@ public:
 				   const ElementType & el_type,
                                    const GhostType & ghost_type = _not_ghost,
                                    UInt nb_component = 1,
-				   bool size_to_nb_element = true);
+				   bool size_to_nb_element = true,
+				   bool resize_with_parent = false);
 
   /// Facets mesh accessor
   AKANTU_GET_MACRO(MeshFacets, *mesh_facets, const Mesh &);

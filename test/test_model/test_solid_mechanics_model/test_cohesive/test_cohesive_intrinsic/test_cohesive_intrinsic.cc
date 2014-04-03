@@ -53,7 +53,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive &,
 			       Real);
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat");
+  model.initFull();
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;

@@ -212,13 +212,18 @@ inline Array<UInt> * Mesh::getConnectivityPointer(const ElementType & type,
 /* -------------------------------------------------------------------------- */
 inline Array< std::vector<Element> > * Mesh::getElementToSubelementPointer(const ElementType & type,
                                                                            const GhostType & ghost_type) {
-  return getDataPointer< std::vector<Element> >("element_to_subelement", type, ghost_type);
+  Array< std::vector<Element> > * tmp =
+    getDataPointer< std::vector<Element> >("element_to_subelement", type, ghost_type, 1, true);
+  return tmp;
 }
 
 /* -------------------------------------------------------------------------- */
 inline Array<Element > * Mesh::getSubelementToElementPointer(const ElementType & type,
                                                              const GhostType & ghost_type) {
-  return getDataPointer<Element>("subelement_to_element", type, ghost_type, getNbFacetsPerElement(type));
+  Array<Element> * tmp =
+    getDataPointer<Element>("subelement_to_element", type, ghost_type,
+			    getNbFacetsPerElement(type), true, is_mesh_facets);
+  return tmp;
 }
 
 
@@ -252,18 +257,18 @@ inline Array<T> * Mesh::getDataPointer(const std::string & data_name,
 				       const ElementType & el_type,
                                        const GhostType & ghost_type,
                                        UInt nb_component,
-				       bool size_to_nb_element) {
+				       bool size_to_nb_element,
+				       bool resize_with_parent) {
   Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(data_name,
                                                            el_type, ghost_type,
                                                            nb_component);
 
   if (size_to_nb_element) {
-    if (is_mesh_facets && getSpatialDimension(el_type) == spatial_dimension)
+    if (resize_with_parent)
       tmp.resize(mesh_parent->getNbElement(el_type, ghost_type));
     else
-      tmp.resize(getNbElement(el_type, ghost_type));
-  }
-  else {
+      tmp.resize(this->getNbElement(el_type, ghost_type));
+  } else {
     tmp.resize(0);
   }
 

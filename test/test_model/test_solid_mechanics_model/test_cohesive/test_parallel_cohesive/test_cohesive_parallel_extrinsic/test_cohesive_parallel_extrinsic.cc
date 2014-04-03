@@ -26,19 +26,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_io.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "dumper_paraview.hh"
-#include "static_communicator.hh"
-#include "dof_synchronizer.hh"
-
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
-  debug::setDebugLevel(dblWarning);
+  initialize("material.dat", argc, argv);
 
   const UInt max_steps = 500;
 
@@ -70,7 +64,7 @@ int main(int argc, char *argv[]) {
   // debug::setDebugLevel(dblWarning);
 
 
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   /* ------------------------------------------------------------------------ */
   /* Facet part                                                               */

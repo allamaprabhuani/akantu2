@@ -91,7 +91,7 @@ Material & SolidMechanicsModel::registerNewEmptyMaterial(const std::string & mat
 template <typename M>
 void SolidMechanicsModel::registerNewCustomMaterials(const ID & mat_type) {
   std::pair<Parser::const_section_iterator, Parser::const_section_iterator>
-    sub_sect = parser.getSubSections(_st_material);
+    sub_sect = getStaticParser().getSubSections(_st_material);
 
   Parser::const_section_iterator it = sub_sect.first;
   for (; it != sub_sect.second; ++it) {

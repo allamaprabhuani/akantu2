@@ -35,15 +35,9 @@
 
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
 #include "fragment_manager.hh"
-
-
-//#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -53,9 +47,7 @@ void displaceElements(SolidMechanicsModelCohesive &, const Real, const Real);
 bool isInertiaEqual(const Vector<Real> &, const Vector<Real> &);
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
-
-  debug::setDebugLevel(dblWarning);
+  initialize("material.dat", argc, argv);
 
   const UInt spatial_dimension = 3;
   const UInt total_nb_fragment = 5;
@@ -84,8 +76,7 @@ int main(int argc, char *argv[]) {
   delete partition;
 
   /// model initialization
-  model.initFull("material.dat",
-		 SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   mesh.computeBoundingBox();
   Real L = mesh.getXMax() - mesh.getXMin();

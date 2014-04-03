@@ -116,8 +116,7 @@ public:
 public:
 
   /// initialize completely the model
-  virtual void initFull(std::string material_file,
-			const ModelOptions & options = default_solid_mechanics_model_options);
+  virtual void initFull(const ModelOptions & options = default_solid_mechanics_model_options);
 
   /// initialize the fem object needed for boundary conditions
   void initFEMBoundary();

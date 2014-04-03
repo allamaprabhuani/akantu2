@@ -34,19 +34,13 @@
 #include <sstream>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
 
 using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
-  akantu::debug::setDebugLevel(akantu::dblWarning);
+  akantu::initialize("material_standard_linear_solid_deviatoric_relaxation.dat", argc, argv);
 
   // sim data
   Real T = 10.;
@@ -61,8 +55,7 @@ int main(int argc, char *argv[])
   Real tolerance = 1e-5;
 
   Mesh mesh(dim);
-  MeshIOMSH mesh_io;
-  mesh_io.read("test_material_standard_linear_solid_deviatoric_relaxation.msh",mesh);
+  mesh.read("test_material_standard_linear_solid_deviatoric_relaxation.msh");
   //  mesh_io.read("hexa_structured.msh",mesh);
   //const ElementType element_type = _hexahedron_8;
   const ElementType element_type = _quadrangle_4;
@@ -71,7 +64,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Initialization                                                           */
   /* ------------------------------------------------------------------------ */
-  model.initFull("material_standard_linear_solid_deviatoric_relaxation.dat");
+  model.initFull();
   std::cout << model.getMaterial(0) << std::endl;
 
   model.assembleMassLumped();

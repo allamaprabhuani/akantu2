@@ -36,13 +36,9 @@
 #include <fstream>
 #include <iostream>
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "aka_array.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
 /* -------------------------------------------------------------------------- */
+
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
@@ -75,7 +71,7 @@ int main(int argc, char *argv[]) {
   akantu::UInt max_steps = 2000;
   akantu::Real time_factor = 0.8;
 
-  akantu::initialize(argc, argv);
+  akantu::initialize("material_colone.dat", argc, argv);
 
   //  akantu::Real epot, ekin;
   akantu::Mesh mesh(spatial_dimension);
@@ -89,7 +85,7 @@ int main(int argc, char *argv[]) {
   std::cout << "Nb nodes : " << nb_nodes << " - nb elements : " << nb_element << std::endl;
 
   /// model initialization
-  model.initFull("material_colone.dat");
+  model.initFull();
 
   std::cout << model.getMaterial(0) << std::endl;
 

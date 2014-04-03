@@ -78,7 +78,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void initFull(std::string input_file, const ModelOptions & options);
+  virtual void initFull(const ModelOptions & options);
 
   virtual void initModel() = 0;
 
@@ -154,9 +154,6 @@ public:
   /// return the synchronizer registry
   SynchronizerRegistry & getSynchronizerRegistry();
 
-  /// Get access to the parser
-  AKANTU_GET_MACRO(Parser, parser, const Parser &);
-
 public:
   /// return the fem object associated with a provided name
   template <typename FEMClass>
@@ -198,9 +195,6 @@ protected:
 
   /// default fem object
   std::string default_fem;
-
-  /// Parser containing the information parsed by the input file given to initFull
-  Parser parser;
 
   /// synchronizer registry
   SynchronizerRegistry * synch_registry;

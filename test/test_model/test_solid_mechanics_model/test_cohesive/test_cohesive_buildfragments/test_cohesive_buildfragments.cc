@@ -35,23 +35,18 @@
 
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
 #include "fragment_manager.hh"
 
-
-//#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat",argc, argv);
 
-  debug::setDebugLevel(dblWarning);
+  Math::setTolerance(1e-14);
 
   const UInt spatial_dimension = 2;
   const UInt max_steps = 200;
@@ -71,8 +66,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat",
-		 SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
@@ -97,14 +91,14 @@ int main(int argc, char *argv[]) {
 
   model.updateResidual();
 
-  // model.setBaseName("extrinsic");
-  // model.addDumpFieldVector("displacement");
-  // model.addDumpField("velocity"    );
-  // model.addDumpField("acceleration");
-  // model.addDumpField("residual"    );
-  // model.addDumpField("stress");
-  // model.addDumpField("strain");
-  // model.dump();
+  model.setBaseName("extrinsic");
+  model.addDumpFieldVector("displacement");
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("residual"    );
+  model.addDumpField("stress");
+  model.addDumpField("strain");
+  model.dump();
 
   UInt cohesive_index = 1;
 
@@ -131,8 +125,7 @@ int main(int argc, char *argv[]) {
     model.applyBC(BC::Dirichlet::IncrementValue( disp_increment, BC::_x), "Right_side");
 
     if(s % 1 == 0) {
-      // model.dump();
-
+      model.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
       fragment_manager.computeAllData();

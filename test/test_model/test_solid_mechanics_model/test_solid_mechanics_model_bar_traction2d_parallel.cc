@@ -33,28 +33,16 @@
 #include "mpi.h"
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "static_communicator.hh"
-#include "mesh_partition_scotch.hh"
 
 using namespace akantu;
 
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "dumper_iohelper.hh"
-#endif //AKANTU_USE_IOHELPER
-
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.8;
 
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
 
   akantu::Mesh mesh(spatial_dimension);
 
@@ -67,8 +55,7 @@ int main(int argc, char *argv[])
 
   akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
-    akantu::MeshIOMSH mesh_io;
-    mesh_io.read("bar2.msh", mesh);
+    mesh.read("bar2.msh");
     partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
   }
@@ -81,7 +68,7 @@ int main(int argc, char *argv[])
   /// model initialization
   model.initParallel(partition);
 
-  model.initFull("material.dat");
+  model.initFull();
 
   if(prank == 0)
     std::cout << model.getMaterial(0) << std::endl;

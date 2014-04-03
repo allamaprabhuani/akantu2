@@ -34,19 +34,7 @@
 #include <fstream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "static_communicator.hh"
-#include "mesh_partition_scotch.hh"
-
-/* -------------------------------------------------------------------------- */
-
-#ifdef AKANTU_USE_SCOTCH
-#include "mesh_partition_scotch.hh"
-#endif
 
 #define bar_length 1
 #define bar_height 1
@@ -57,7 +45,7 @@ using namespace akantu;
 int main(int argc, char *argv[])
 {
   debug::setDebugLevel(dblWarning);
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   UInt spatial_dimension = 2;
 
@@ -69,9 +57,7 @@ int main(int argc, char *argv[])
 
   MeshPartition * partition = NULL;
   if(prank == 0) {
-    MeshIOMSH mesh_io;
-    mesh_io.read("square_implicit2.msh", mesh);
-
+    mesh.read("square_implicit2.msh");
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
     //   partition->reorder();
     partition->partitionate(psize);
@@ -82,7 +68,7 @@ int main(int argc, char *argv[])
   model.initParallel(partition);
   delete partition;
 
-  model.initFull("material.dat", SolidMechanicsModelOptions(_static));
+  model.initFull(SolidMechanicsModelOptions(_static));
 
   if (prank == 0) std::cout << model.getMaterial("steel") << std::endl;
 

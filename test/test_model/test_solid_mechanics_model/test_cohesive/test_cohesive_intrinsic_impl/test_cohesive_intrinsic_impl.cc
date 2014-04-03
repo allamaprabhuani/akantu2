@@ -34,9 +34,6 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
 /* -------------------------------------------------------------------------- */
@@ -44,7 +41,7 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblError);
 
@@ -63,7 +60,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_static));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_static));
 
   /// boundary conditions
   Array<bool> & boundary = model.getBoundary();

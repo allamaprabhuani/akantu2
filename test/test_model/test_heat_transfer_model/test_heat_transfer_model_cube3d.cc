@@ -48,7 +48,7 @@ ElementType type = _tetrahedron_4;
 
 int main(int argc, char *argv[])
 {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   MeshIOMSH mesh_io;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
   HeatTransferModel model(mesh);
   //initialize everything
-  model.initFull("material.dat");
+  model.initFull();
   //assemble the lumped capacity
   model.assembleCapacityLumped();
   //get and set stable time step

@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 {
     UInt spatial_dimension(3);
 
-    akantu::initialize(argc, argv);
+    akantu::initialize("material.dat", argc, argv);
 
     Mesh mesh(spatial_dimension, "mesh_names");
 
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     std::stringstream sstr;
 
     SolidMechanicsModel model(mesh);
-    model.initFull("material.dat");
+    model.initFull();
     std::cout << model.getMaterial(0) << std::endl;
 
     Vector<Real> surface_traction(3);

@@ -208,7 +208,7 @@ namespace debug {
   /* ------------------------------------------------------------------------ */
   Debugger::Debugger() {
     cout = &std::cerr;
-    level = dblInfo;
+    level = dblWarning;
     parallel_context = "";
     file_open = false;
   }
@@ -223,18 +223,19 @@ namespace debug {
 
    /* ------------------------------------------------------------------------ */
   void Debugger::exit(int status) {
+    if (status != EXIT_SUCCESS) {
 #ifndef AKANTU_NDEBUG
-    int * a = NULL;
-    *a = 1;
+      int * a = NULL;
+      *a = 1;
 #endif
 
-    if (status != EXIT_SUCCESS)
-      akantu::debug::printBacktrace(15);
 #ifdef AKANTU_USE_MPI
-    MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);
+      MPI_Abort(MPI_COMM_WORLD, MPI_ERR_UNKNOWN);
 #endif
-    exit(status); // not  called when compiled  with MPI  due to  MPI_Abort, but
-                  // MPI_Abort does not have the noreturn attribute
+    }
+
+    std::exit(status); // not  called when compiled  with MPI  due to  MPI_Abort, but
+                       // MPI_Abort does not have the noreturn attribute
   }
 
   /*------------------------------------------------------------------------- */

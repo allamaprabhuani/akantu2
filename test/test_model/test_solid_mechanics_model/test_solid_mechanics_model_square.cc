@@ -31,30 +31,23 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "fem.hh"
-/* -------------------------------------------------------------------------- */
+
 using namespace akantu;
 
-int main(int argc, char *argv[])
-{
-  akantu::initialize(argc, argv);
+int main(int argc, char *argv[]) {
+  akantu::initialize("material.dat", argc, argv);
   UInt max_steps = 1000;
   Real epot, ekin;
 
   Mesh mesh(2);
-  MeshIOMSH mesh_io;
-  mesh_io.read("square.msh", mesh);
+  mesh.read("square.msh");
   mesh.createBoundaryGroupFromGeometry();
 
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initFull("material.dat");
+  model.initFull();
 
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);

@@ -143,6 +143,9 @@ set(AKANTU_CORE_FILES
   io/parser/parser.cc
   io/parser/parser.hh
   io/parser/parser_tmpl.hh
+  io/parser/cppargparse/cppargparse.hh
+  io/parser/cppargparse/cppargparse.cc
+  io/parser/cppargparse/cppargparse_tmpl.hh
 
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_partition.hh

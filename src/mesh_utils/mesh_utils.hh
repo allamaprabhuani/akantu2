@@ -86,11 +86,20 @@ public:
   static void buildFacets(Mesh & mesh);
 
   /// build all the facets elements: boundary and internals and store them in
+  /// the mesh_facets for element of dimension from_dimension to to_dimension
+  static void buildAllFacets(const Mesh & mesh,
+			     Mesh & mesh_facets,
+			     UInt from_dimension,
+			     UInt to_dimension,
+			     DistributedSynchronizer * synchronizer = NULL);
+
+  /// build all the facets elements: boundary and internals and store them in
   /// the mesh_facets
   static void buildAllFacets(const Mesh & mesh,
 			     Mesh & mesh_facets,
 			     UInt to_dimension = 0,
 			     DistributedSynchronizer * synchronizer = NULL);
+
 
   /// build facets for a given spatial dimension
   static void buildFacetsDimension(const Mesh & mesh,

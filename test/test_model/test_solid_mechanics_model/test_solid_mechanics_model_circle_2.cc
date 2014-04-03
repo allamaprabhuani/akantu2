@@ -31,30 +31,24 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "fem.hh"
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
   UInt max_steps = 10000;
-  Real epot, ekin;
+  Real epot, ekin, wext = 0;
 
   Mesh mesh(2);
-  MeshIOMSH mesh_io;
-  mesh_io.read("circle2.msh", mesh);
+  mesh.read("circle2.msh");
   mesh.createBoundaryGroupFromGeometry();
 
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initFull("material.dat");
+  model.initFull();
 
   Real time_step = model.getStableTimeStep() / 10.;
   model.setTimeStep(time_step);
@@ -86,10 +80,11 @@ int main(int argc, char *argv[])
     model.updateAcceleration();
     model.explicitCorr();
 
-    epot = model.getPotentialEnergy();
-    ekin = model.getKineticEnergy();
+    epot  = model.getEnergy("potential");
+    ekin  = model.getEnergy("kinetic");
+    wext += model.getEnergy("external work");
 
-    std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
+    std::cout << s << "," << epot << "," << ekin << "," << wext << "," << epot + ekin - wext
 	      << std::endl;
 
     if(s % 100 == 0) model.dump();

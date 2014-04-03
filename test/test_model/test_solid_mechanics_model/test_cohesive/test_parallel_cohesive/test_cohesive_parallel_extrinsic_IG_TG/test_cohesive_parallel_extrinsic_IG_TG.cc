@@ -38,13 +38,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "material.hh"
 #include "material_cohesive_linear.hh"
 
 #if defined(AKANTU_USE_IOHELPER)
@@ -109,7 +103,7 @@ private:
 
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
@@ -138,7 +132,7 @@ int main(int argc, char *argv[]) {
 
   MultiGrainMaterialSelector material_selector(model, "TG_cohesive", "IG_cohesive");
   model.setMaterialSelector(material_selector);
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true, false));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true, false));
 
   Real time_step = model.getStableTimeStep()*0.1;
   model.setTimeStep(time_step);

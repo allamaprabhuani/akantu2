@@ -103,8 +103,7 @@ public:
   void checkCohesiveStress();
 
   /// initialize the cohesive model
-  void initFull(std::string material_file,
-		const ModelOptions & options = default_solid_mechanics_model_cohesive_options);
+  void initFull(const ModelOptions & options = default_solid_mechanics_model_cohesive_options);
 
   /// initialize the model
   void initModel();

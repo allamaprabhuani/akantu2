@@ -32,16 +32,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "material.hh"
-// #if defined(AKANTU_USE_IOHELPER)
-// #  include "io_helper.hh"
-// #endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -51,9 +42,7 @@ Real function(Real constant, Real x, Real y, Real z) {
 }
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
-
-  debug::setDebugLevel(dblWarning);
+  initialize("material.dat", argc, argv);
 
   const UInt spatial_dimension = 3;
 
@@ -79,7 +68,7 @@ int main(int argc, char *argv[]) {
 
   SolidMechanicsModelCohesive model(mesh);
   model.initParallel(partition, NULL, true);
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   Array<Real> & position = mesh.getNodes();
 

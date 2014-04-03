@@ -32,13 +32,7 @@
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "element_class.hh"
 
 using namespace akantu;
 
@@ -127,9 +121,8 @@ static Matrix<Real> prescribed_stress() {
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[])
 {
-  initialize(argc, argv);
+  initialize("material_anisotropic.dat", argc, argv);
 
-  debug::setDebugLevel(dblWarning);
   UInt dim = ElementClass<TYPE>::getSpatialDimension();
   const ElementType element_type = TYPE;
 
@@ -142,17 +135,16 @@ int main(int argc, char *argv[])
 
   /// load mesh
   Mesh my_mesh(dim);
-  MeshIOMSH mesh_io;
 
   std::stringstream filename; filename << TYPE << ".msh";
-  mesh_io.read(filename.str(), my_mesh);
+  my_mesh.read(filename.str());
 
   UInt nb_nodes = my_mesh.getNbNodes();
 
   /// declaration of model
   SolidMechanicsModel  my_model(my_mesh);
   /// model initialization
-  my_model.initFull("material_anisotropic.dat", SolidMechanicsModelOptions(_explicit_lumped_mass));
+  my_model.initFull(SolidMechanicsModelOptions(_explicit_lumped_mass));
 
 
   std::cout << my_model.getMaterial(0) << std::endl;

@@ -252,10 +252,22 @@ void MeshUtils::buildAllFacets(const Mesh & mesh,
 			       DistributedSynchronizer * synchronizer) {
   AKANTU_DEBUG_IN();
 
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  buildAllFacets(mesh, mesh_facets, spatial_dimension, to_dimension, synchronizer);
+
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+void MeshUtils::buildAllFacets(const Mesh & mesh,
+			       Mesh & mesh_facets,
+			       UInt from_dimension,
+			       UInt to_dimension,
+			       DistributedSynchronizer * synchronizer) {
+  AKANTU_DEBUG_IN();
+
   AKANTU_DEBUG_ASSERT(mesh_facets.isMeshFacets(),
 		      "The mesh_facets should be initialized with initMeshFacets");
-
-  UInt spatial_dimension = mesh.getSpatialDimension();
 
   const ByElementTypeUInt * prank_to_element = NULL;
 
@@ -268,7 +280,7 @@ void MeshUtils::buildAllFacets(const Mesh & mesh,
   buildFacetsDimension(mesh,
 		       mesh_facets,
 		       false,
-		       spatial_dimension,
+		       from_dimension,
 		       prank_to_element);
 
   /// copy nodes type
@@ -276,7 +288,7 @@ void MeshUtils::buildAllFacets(const Mesh & mesh,
   mesh_facets.nodes_type.copy(mesh.nodes_type);
 
   /// sort facets and generate subfacets
-  for (UInt i = spatial_dimension - 1; i > to_dimension; --i) {
+  for (UInt i = from_dimension - 1; i > to_dimension; --i) {
     buildFacetsDimension(mesh_facets,
 			 mesh_facets,
 			 false,
@@ -296,6 +308,12 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh,
 				     const ByElementTypeUInt * prank_to_element){
   AKANTU_DEBUG_IN();
 
+  // save the current parent of mesh_facets and set it temporarly to mesh since
+  // mesh is the one containing the elements for which mesh_facets has the subelements
+  // example: if the function is called with mesh = mesh_facets
+  const Mesh & mesh_facets_parent = mesh_facets.getMeshParent();
+  mesh_facets.defineMeshParent(mesh);
+
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   const Array<Real> & mesh_facets_nodes = mesh_facets.getNodes();
@@ -306,6 +324,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh,
   buildNode2Elements(mesh, node_to_elem, dimension);
 
   Array<UInt> counter;
+
 
   Element current_element;
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
@@ -485,8 +504,10 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh,
     }
   }
 
-  AKANTU_DEBUG_OUT();
+  // restore the parent of mesh_facet
+  mesh_facets.defineMeshParent(mesh_facets_parent);
 
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

@@ -175,8 +175,8 @@ void SolidMechanicsModel::setTimeStep(Real time_step) {
  * @param method the analysis method wanted.  See the akantu::AnalysisMethod for
  * the different possibilities
  */
-void SolidMechanicsModel::initFull(std::string input_file, const ModelOptions & options) {
-  Model::initFull(input_file, options);
+void SolidMechanicsModel::initFull(const ModelOptions & options) {
+  Model::initFull(options);
 
   const SolidMechanicsModelOptions & smm_options =
     dynamic_cast<const SolidMechanicsModelOptions &>(options);
@@ -217,7 +217,7 @@ void SolidMechanicsModel::initFull(std::string input_file, const ModelOptions & 
   }
 
   // initialize the materials
-  if(input_file != "") {
+  if(getStaticParser().getLastParsedFile() != "") {
     instantiateMaterials();
   }
 

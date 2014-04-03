@@ -34,17 +34,7 @@
 #include <fstream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "static_communicator.hh"
-#include "mesh_partition_scotch.hh"
-
-#ifdef AKANTU_USE_SCOTCH
-#include "mesh_partition_scotch.hh"
-#endif
 
 using namespace akantu;
 
@@ -78,7 +68,7 @@ static Real analytical_solution(Real time) {
 int main(int argc, char *argv[])
 {
   debug::setDebugLevel(dblError);
-  initialize(argc, argv);
+  initialize("material_implicit_dynamic.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
 
@@ -88,9 +78,7 @@ int main(int argc, char *argv[])
 
   MeshPartition * partition = NULL;
   if(prank == 0) {
-    MeshIOMSH mesh_io;
-    mesh_io.read("beam_2d_quad.msh", mesh);
-
+    mesh.read("beam_2d_quad.msh");
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
   }
@@ -99,7 +87,7 @@ int main(int argc, char *argv[])
   model.initParallel(partition);
 
   /// model initialization
-  model.initFull("material_implicit_dynamic.dat", SolidMechanicsModelOptions(_implicit_dynamic));
+  model.initFull(SolidMechanicsModelOptions(_implicit_dynamic));
   Material &mat = model.getMaterial(0);
   mat.setParam("E", E);
   mat.setParam("rho", rho);

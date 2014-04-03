@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 {
   int dim = 3;
 
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
   debug::setDebugLevel(akantu::dblInfo);
 
   Mesh mesh(dim);
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 
   SolidMechanicsModel model(mesh);
   /* -------------------------------------------------------------------------- */
-  model.initFull("material.dat");
+  model.initFull();
   /* -------------------------------------------------------------------------- */
   model.setPBC(1,1,1);
   model.initPBC();

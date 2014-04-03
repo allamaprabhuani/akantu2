@@ -34,20 +34,10 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-/* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#  include "io_helper.hh"
-#endif //AKANTU_USE_IOHELPER
 
-int main(int argc, char *argv[])
-{
-  akantu::initialize(argc, argv);
+int main(int argc, char *argv[]) {
+  akantu::initialize("material.dat", argc, argv);
   akantu::UInt spatial_dimension = 2;
   akantu::UInt max_steps = 10000;
   akantu::Real time_factor = 0.2;
@@ -55,17 +45,14 @@ int main(int argc, char *argv[])
   akantu::Real epot, ekin;
 
   akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
-
-  mesh_io.read("bar_structured1.msh", mesh);
+  mesh.read("bar_structured1.msh");
 
   akantu::SolidMechanicsModel * model = new akantu::SolidMechanicsModel(mesh);
 
   /// model initialization
-  model->initFull("material.dat");
+  model->initFull();
 
   std::cout << model->getMaterial(0) << std::endl;
-
 
   /// boundary conditions
   akantu::Real eps = 1e-16;

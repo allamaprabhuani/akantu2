@@ -346,6 +346,9 @@ public:
 
   void parse(const std::string & filename);
 
+  std::string getLastParsedFile() const;
+
+  static bool isPermissive() { return parser_permissive; }
 public:
 
   static Real         parseReal  (const std::string & value, const ParserSection & section);
@@ -356,8 +359,10 @@ protected:
   template <class T, class Grammar>
   static T parseType(const std::string & value, Grammar & grammar);
 
-public:
+protected:
+  friend class Parsable;
   static bool parser_permissive;
+  std::string last_parsed_file;
 };
 
 inline std::ostream & operator <<(std::ostream & stream, const ParserParameter &_this) {

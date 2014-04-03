@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
   const ElementType type = TYPE;
 
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initFull("material.dat");
+  model.initFull();
   model.assembleMassLumped();
 
   Real rho = model.getMaterial(0).getRho();

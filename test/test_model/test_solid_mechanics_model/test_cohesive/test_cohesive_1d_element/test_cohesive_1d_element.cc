@@ -33,8 +33,7 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
-  debug::setDebugLevel(dblWarning);
+  initialize("material.dat", argc, argv);
 
   const UInt max_steps = 2000;
   const Real strain_rate = 4;
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]) {
   mesh.read("bar.msh");
 
   SolidMechanicsModelCohesive model(mesh);
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   Real time_step = model.getStableTimeStep()*0.01;
   model.setTimeStep(time_step);

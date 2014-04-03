@@ -508,6 +508,7 @@ UInt GroupManager::createClusters(UInt element_dimension,
     mesh_facets->defineMeshParent(mesh);
 
     MeshUtils::buildAllFacets(mesh, *mesh_facets,
+			      element_dimension,
 			      element_dimension - 1,
 			      distributed_synchronizer);
   }

@@ -26,13 +26,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_io.hh"
-#include "mesh_utils.hh"
-#include "model.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "dumper_paraview.hh"
-#include "static_communicator.hh"
-#include "dof_synchronizer.hh"
 #include "material_cohesive.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -64,8 +59,7 @@ void findElementsToDisplace(const Mesh & mesh,
 			    ByElementTypeUInt & elements);
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
-  debug::setDebugLevel(dblInfo);
+  initialize("material_tetrahedron.dat", argc, argv);
 
   const UInt spatial_dimension = 3;
   const UInt max_steps = 60;
@@ -123,7 +117,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   model.initParallel(partition);
-  model.initFull("material_tetrahedron.dat");
+  model.initFull();
 
   {
     comm.broadcast(&total_nb_nodes, 1, 0);

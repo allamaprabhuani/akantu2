@@ -33,24 +33,14 @@
 #include <fstream>
 #include <iostream>
 
-
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "material.hh"
-// #if defined(AKANTU_USE_IOHELPER)
-// #  include "io_helper.hh"
-// #endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
@@ -63,7 +53,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;

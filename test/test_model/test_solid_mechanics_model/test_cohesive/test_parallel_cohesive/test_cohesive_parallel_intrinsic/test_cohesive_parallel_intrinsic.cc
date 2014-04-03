@@ -26,20 +26,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_io.hh"
-#include "mesh_utils.hh"
-#include "model.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "dumper_paraview.hh"
-#include "static_communicator.hh"
-#include "dof_synchronizer.hh"
 
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
-  debug::setDebugLevel(dblWarning);
+  initialize("material.dat", argc, argv);
 
   const UInt max_steps = 350;
 
@@ -76,7 +69,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
 
 
-  model.initFull("material.dat");
+  model.initFull();
 
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
@@ -111,7 +104,6 @@ int main(int argc, char *argv[]) {
   model.addDumpField("strain");
   //model.addDumpField("partitions");
   model.addDumpField("force");
-  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
 
   /// initial conditions

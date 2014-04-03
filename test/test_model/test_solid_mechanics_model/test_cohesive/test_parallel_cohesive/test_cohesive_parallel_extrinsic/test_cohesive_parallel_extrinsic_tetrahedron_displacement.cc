@@ -28,12 +28,8 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_io.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "dumper_paraview.hh"
-#include "static_communicator.hh"
-#include "dof_synchronizer.hh"
 #include "material_cohesive_linear.hh"
 
 #ifdef AKANTU_USE_IOHELPER
@@ -53,7 +49,7 @@ bool checkDisplacement(SolidMechanicsModelCohesive & model,
 		       bool barycenters);
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
@@ -89,7 +85,7 @@ int main(int argc, char *argv[]) {
   // std::cout << mesh << std::endl;
   // debug::setDebugLevel(dblWarning);
 
-  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   /* ------------------------------------------------------------------------ */
   /* Facet part                                                               */

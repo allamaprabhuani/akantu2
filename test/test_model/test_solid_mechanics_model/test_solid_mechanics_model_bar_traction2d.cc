@@ -61,7 +61,7 @@ akantu::Array<akantu::Real> * strain;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
   akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.8;
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
   nb_element = mesh.getNbElement(type);
 
   /// model initialization
-  model.initFull("material.dat");
+  model.initFull();
 
   std::cout << model.getMaterial(0) << std::endl;
 

@@ -47,9 +47,8 @@ int main(int argc, char *argv[])
 {
   const UInt spatial_dimension = 2;
 
-  debug::setDebugLevel(dblDebug);
-
   initialize(argc, argv);
+
   StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();

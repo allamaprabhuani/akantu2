@@ -35,13 +35,7 @@
 
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -52,7 +46,7 @@ Real function(Real x, Real y, Real z) {
 }
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("../material.dat", argc, argv);
 
   debug::setDebugLevel(dblWarning);
 
@@ -69,7 +63,7 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initFull("../material.dat");
+  model.initFull();
 
   Array<Real> & position = mesh.getNodes();
   UInt nb_facet = mesh_facets.getNbElement(type_facet);

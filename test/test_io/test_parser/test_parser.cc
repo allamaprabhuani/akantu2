@@ -36,13 +36,10 @@
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
-  debug::setDebugLevel(dblInfo);
+  initialize("input_file.dat", argc, argv);
 
-  initialize(argc, argv);
+  const Parser & p = getStaticParser();
 
-  Parser p;
-
-  p.parse("input_file.dat");
 
   std::cout << RandGenerator<Real>::seed() <<"==123456" << std::endl;
 

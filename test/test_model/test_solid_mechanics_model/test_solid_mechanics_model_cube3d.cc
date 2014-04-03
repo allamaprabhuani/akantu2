@@ -31,25 +31,21 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
+
 /* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
   akantu::UInt max_steps = 10000;
   akantu::Real epot, ekin;
 
   akantu::Mesh mesh(3);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("cube1.msh", mesh);
+  mesh.read("cube1.msh");
 
   akantu::SolidMechanicsModel model(mesh);
-  model.initFull("material.dat");
+  model.initFull();
 
   akantu::Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);

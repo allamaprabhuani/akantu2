@@ -30,8 +30,12 @@
 #ifndef __AKANTU_FWD_HH__
 #define __AKANTU_FWD_HH__
 
-namespace akantu {
 
+namespace cppargparse {
+  class ArgumentParser;
+}
+
+namespace akantu {
   template<typename T> class Matrix;
   template<typename T> class Vector;
   template<typename T> class Tensor3;
@@ -45,6 +49,12 @@ namespace akantu {
 
   extern const Array<UInt> empty_filter;
 
+  class Parser;
+  class ParserSection;
+
+  extern Parser static_parser;
+
+  extern cppargparse::ArgumentParser static_argparser;
 }
 
 

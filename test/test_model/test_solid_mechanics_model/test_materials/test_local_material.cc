@@ -32,12 +32,7 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "fem.hh"
 #include "local_material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -45,20 +40,19 @@ using namespace akantu;
 
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
   UInt max_steps = 200;
   Real epot, ekin;
 
   const UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-  mesh_io.read("barre_trou.msh", mesh);
+  mesh.read("barre_trou.msh");
   mesh.createGroupsFromMeshData<std::string>("physical_names");
 
   SolidMechanicsModel model(mesh);
 
   /// model initialization
-  model.initFull("material.dat", SolidMechanicsModelOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelOptions(_explicit_lumped_mass, true));
   model.registerNewCustomMaterials<LocalMaterialDamage>("local_damage");
   model.initMaterials();
 

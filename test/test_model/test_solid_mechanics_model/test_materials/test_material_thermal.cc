@@ -31,28 +31,23 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "fem.hh"
+
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
 int main(int argc, char *argv[])
 {
   debug::setDebugLevel(dblWarning);
-  initialize(argc, argv);
+  initialize("material_thermal.dat", argc, argv);
 
   Math::setTolerance(1.e-13);
 
   Mesh mesh(2);
-  MeshIOMSH mesh_io;
-  mesh_io.read("square.msh", mesh);
+  mesh.read("square.msh");
 
   SolidMechanicsModel model(mesh);
-  model.initFull("material_thermal.dat", SolidMechanicsModelOptions(_static));
+  model.initFull(SolidMechanicsModelOptions(_static));
 
   mesh.computeBoundingBox();
   Real xmin = mesh.getXMin();

@@ -189,16 +189,16 @@ public:
 				     const GhostType & ghost_type = _not_ghost) const = 0;
   /// get the precomputed shapes
   const virtual Array<Real> & getShapes(const ElementType & type,
-					 const GhostType & ghost_type = _not_ghost) const = 0;
+					const GhostType & ghost_type = _not_ghost) const = 0;
 
   /// get the derivatives of shapes
   const virtual Array<Real> & getShapesDerivatives(const ElementType & type,
-						    const GhostType & ghost_type = _not_ghost,
-						    UInt id = 0) const = 0;
+						   const GhostType & ghost_type = _not_ghost,
+						   UInt id = 0) const = 0;
 
   /// get quadrature points
   const virtual Matrix<Real> & getQuadraturePoints(const ElementType & type,
-							  const GhostType & ghost_type = _not_ghost) const = 0;
+						   const GhostType & ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */

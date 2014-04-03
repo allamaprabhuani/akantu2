@@ -71,6 +71,12 @@ ParserSection & ParserSection::addSubSection(const ParserSection & section) {
 }
 
 /* -------------------------------------------------------------------------- */
+std::string Parser::getLastParsedFile() const {
+  return last_parsed_file;
+}
+
+
+/* -------------------------------------------------------------------------- */
 void Parser::parse(const std::string& filename) {
   std::ifstream input(filename.c_str());
   input.unsetf(std::ios::skipws);
@@ -115,21 +121,7 @@ void Parser::parse(const std::string& filename) {
   } catch (debug::Exception & e) {
   }
 
-  try {
-    DebugLevel dbl = debug::getDebugLevel();
-    debug::setDebugLevel(dblError);
-    long int seed = getParameter("seed", _ppsc_current_scope);
-    debug::setDebugLevel(dbl);
-
-    seed *= (StaticCommunicator::getStaticCommunicator().whoAmI() + 1);
-
-    Rand48Generator<Real>::seed(seed);
-    RandGenerator<Real>::seed(seed);
-    AKANTU_DEBUG_INFO("Random seed set to " << seed);
-  } catch (debug::Exception & e) {
-  }
-
-
+  last_parsed_file = filename;
   input.close();
 }
 

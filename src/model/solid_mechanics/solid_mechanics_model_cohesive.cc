@@ -110,8 +110,7 @@ void SolidMechanicsModelCohesive::setTimeStep(Real time_step) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::initFull(std::string material_file,
-					   const ModelOptions & options) {
+void SolidMechanicsModelCohesive::initFull(const ModelOptions & options) {
   AKANTU_DEBUG_IN();
 
   const SolidMechanicsModelCohesiveOptions & smmc_options =
@@ -125,7 +124,7 @@ void SolidMechanicsModelCohesive::initFull(std::string material_file,
       MeshUtils::buildAllFacets(mesh, mesh_facets);
   }
 
-  SolidMechanicsModel::initFull(material_file, options);
+  SolidMechanicsModel::initFull(options);
 
   if (is_extrinsic)
     initAutomaticInsertion();

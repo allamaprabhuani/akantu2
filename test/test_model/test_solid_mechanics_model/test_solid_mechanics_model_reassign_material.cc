@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
   bool test_passed;
 
   debug::setDebugLevel(dblWarning);
-  initialize(argc, argv);
+  initialize("two_materials.dat", argc, argv);
 
   /// specify position and orientation of material interface plane
   bool horizontal = true;
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
   mat_selector = new StraightInterfaceMaterialSelector(model, "mat_1", "mat_2", horizontal, pos_interface);
 
   model.setMaterialSelector(*mat_selector);
-  model.initFull("two_materials.dat", SolidMechanicsModelOptions(_static));
+  model.initFull(SolidMechanicsModelOptions(_static));
 
   // model.setBaseName("test_reassign_material");
   // model.addDumpField("element_index_by_material");
@@ -188,8 +188,6 @@ int main(int argc, char *argv[]) {
     AKANTU_DEBUG_ERROR("materials not correctly assigned");
     return EXIT_FAILURE;
   }
-
-
 
   /// change orientation of material interface plane
   horizontal = false;

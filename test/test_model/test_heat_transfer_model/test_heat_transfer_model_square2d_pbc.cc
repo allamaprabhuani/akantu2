@@ -28,12 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
 #include "heat_transfer_model.hh"
-#include "pbc_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <iostream>
 #include <fstream>
@@ -44,17 +39,15 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   akantu::UInt spatial_dimension = 2;
-  akantu::debug::setDebugLevel(akantu::dblWarning);
-  akantu::initialize(argc, argv);
+  akantu::initialize("material.dat", argc, argv);
 
   //create mesh
   akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("square_tri3.msh", mesh);
+  mesh.read("square_tri3.msh");
 
   akantu::HeatTransferModel model(mesh);
   //initialize everything
-  model.initFull("material.dat");
+  model.initFull();
 
   //initialize PBC
   model.setPBC(1,1,1);

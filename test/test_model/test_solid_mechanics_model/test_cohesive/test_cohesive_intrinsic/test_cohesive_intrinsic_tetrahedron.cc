@@ -33,15 +33,8 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "mesh_io_msh.hh"
-#include "mesh_utils.hh"
 #include "solid_mechanics_model_cohesive.hh"
-#include "material.hh"
 #include "material_cohesive.hh"
-
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -70,7 +63,7 @@ bool checkResidual(const Array<Real> & residual,
 		   const Matrix<Real> & rotation);
 
 int main(int argc, char *argv[]) {
-  initialize(argc, argv);
+  initialize("material_tetrahedron.dat", argc, argv);
 
   //  debug::setDebugLevel(dblDump);
 
@@ -101,12 +94,10 @@ int main(int argc, char *argv[]) {
   /* End of facet part                                                        */
   /* ------------------------------------------------------------------------ */
 
-
-
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull("material_tetrahedron.dat");
+  model.initFull();
 
   Array<bool> & boundary = model.getBoundary();
   boundary.set(true);

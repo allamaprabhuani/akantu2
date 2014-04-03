@@ -31,12 +31,7 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
-#include "material.hh"
-#include "fem.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -45,26 +40,22 @@ int main(int argc, char *argv[])
 {
   debug::setDebugLevel(dblWarning);
 
-  akantu::initialize(argc, argv);
+  akantu::initialize("material_damage_non_local.dat", argc, argv);
   UInt max_steps = 40000;
 
   const UInt spatial_dimension = 2;
   Mesh mesh(spatial_dimension);
-  MeshIOMSH mesh_io;
-
-  mesh_io.read("mesh.msh", mesh);
+  mesh.read("mesh.msh");
   mesh.createGroupsFromMeshData<std::string>("physical_names");
 
   SolidMechanicsModel model(mesh);
 
   /// model initialization
 
-  model.initFull("material_damage_non_local.dat");
+  model.initFull();
 
   Real time_step = model.getStableTimeStep();
   model.setTimeStep(time_step/10.);
-
-  model.assembleMassLumped();
 
   std::cout << model << std::endl;
 
