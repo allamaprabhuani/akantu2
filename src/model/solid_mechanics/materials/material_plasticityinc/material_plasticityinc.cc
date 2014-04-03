@@ -41,7 +41,6 @@ MaterialPlasticityinc<dim>::MaterialPlasticityinc(SolidMechanicsModel & model, c
   Material(model, id),
   MaterialElastic<dim>(model, id),
   iso_hardening("iso_hardening", *this),
-  previous_iso_hardening("previous_iso_hardening", *this),
   plastic_energy("plastic_energy", *this),
   d_plastic_energy("d_plastic_energy", *this),
   d_inelas_strain("d_inelas_strain", *this) {
@@ -51,7 +50,8 @@ MaterialPlasticityinc<dim>::MaterialPlasticityinc(SolidMechanicsModel & model, c
   this->registerParam("sigmay", sigmay, 0., _pat_parsable | _pat_modifiable, "Yield stress");
 
   this->iso_hardening.initialize(1);
-  this->previous_iso_hardening.initialize(1);
+  this->iso_hardening.initializeHistory();
+
   this->plastic_energy.initialize(1);
   this->d_plastic_energy.initialize(1);
   this->d_inelas_strain.initialize(dim * dim);
@@ -92,16 +92,16 @@ void MaterialPlasticityinc<spatial_dimension>::computeStress(ElementType el_type
   MaterialThermal<spatial_dimension>::computeStress(el_type, ghost_type);
 
   Array<Real>::iterator<> sigma_th_cur_it =
-    this->sigma_th_cur(el_type, ghost_type).begin();
+    this->sigma_th(el_type, ghost_type).begin();
 
   Array<Real>::iterator<> sigma_th_prev_it =
-    this->sigma_th_prev(el_type, ghost_type).begin();
+    this->sigma_th.previous(el_type, ghost_type).begin();
 
   Array<Real>::iterator< Matrix<Real> > previous_strain_it =
-    this->previous_strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
   Array<Real>::iterator< Matrix<Real> > previous_stress_it =
-    this->previous_stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
   Array<Real>::iterator< Matrix<Real> > d_strain_it =
     this->delta_strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
@@ -110,7 +110,7 @@ void MaterialPlasticityinc<spatial_dimension>::computeStress(ElementType el_type
     this->inelas_strain(el_type, ghost_type).begin(spatial_dimension,spatial_dimension);
 
   Array<Real>::iterator< Matrix<Real> > previous_inelas_strain_it =
-    this->previous_inelas_strain(el_type, ghost_type).begin(spatial_dimension,spatial_dimension);
+    this->inelas_strain.previous(el_type, ghost_type).begin(spatial_dimension,spatial_dimension);
 
   Array<Real>::iterator< Matrix<Real> > d_inelas_strain_it =
     this->d_inelas_strain(el_type, ghost_type).begin(spatial_dimension,spatial_dimension);
@@ -119,7 +119,7 @@ void MaterialPlasticityinc<spatial_dimension>::computeStress(ElementType el_type
     this->iso_hardening(el_type, ghost_type).begin();
 
   Array<Real>::iterator<> previous_iso_hardening_it =
-    this->previous_iso_hardening(el_type, ghost_type).begin();
+    this->iso_hardening.previous(el_type, ghost_type).begin();
 
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
@@ -222,7 +222,7 @@ void MaterialPlasticityinc<spatial_dimension>::computeTangentModuli(__attribute_
   Int dim=spatial_dimension;
 
   Array<Real>::iterator< Matrix<Real> > previous_sigma_it =
-    this->previous_stress(el_type, ghost_type).begin(dim, dim);
+    this->stress.previous(el_type, ghost_type).begin(dim, dim);
 
   Real * iso_hardening= this->iso_hardening(el_type, ghost_type).storage();
 
@@ -287,29 +287,6 @@ void MaterialPlasticityinc<spatial_dimension>::computePlasticEnergyIncrement(Ele
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialPlasticityinc<spatial_dimension>::onBeginningSolveStep(const AnalysisMethod & method) {
-  Material::onBeginningSolveStep(method);
-
-  Mesh::type_iterator it = this->model->getMesh().firstType(spatial_dimension, _not_ghost);
-  Mesh::type_iterator last_type = this->model->getMesh().lastType(spatial_dimension, _not_ghost);
-  for (; it != last_type; ++it)
-    previous_iso_hardening(*it, _not_ghost).copy(iso_hardening(*it, _not_ghost));
-
-  it = this->model->getMesh().firstType(spatial_dimension, _ghost);
-  last_type = this->model->getMesh().lastType(spatial_dimension, _ghost);
-  for (; it != last_type; ++it)
-    previous_iso_hardening(*it, _ghost).copy(iso_hardening(*it, _ghost));
-}
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-void MaterialPlasticityinc<spatial_dimension>::onEndSolveStep(const AnalysisMethod & method) {
-  Material::onEndSolveStep(method);
-}
-
 
 /* -------------------------------------------------------------------------- */
 

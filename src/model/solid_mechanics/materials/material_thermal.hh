@@ -54,9 +54,7 @@ public:
   virtual void initMaterial();
 
   /// constitutive law for all element of a type
-  virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-  /// Saves the previous thermal stresses
-  void savePreviousState(const GhostType ghost_type);
+  virtual void computeStress(ElementType el_type, GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -86,10 +84,7 @@ protected:
   InternalField<Real> delta_T;
 
   /// Current thermal stress
-  InternalField<Real> sigma_th_cur;
-
-  /// Previous thermal stress
-  InternalField<Real> sigma_th_prev;
+  InternalField<Real> sigma_th;
 
   /// Tell if we need to use the previous thermal stress
   bool use_previous_stress_thermal;

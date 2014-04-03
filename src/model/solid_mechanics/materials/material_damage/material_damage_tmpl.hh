@@ -82,12 +82,13 @@ void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType
     ElementType el_type = *it;
     Array<Real>::matrix_iterator sigma =
       this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::matrix_iterator sigma_p =
-      this->previous_stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
     Array<Real>::matrix_iterator epsilon =
       this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+
     Array<Real>::matrix_iterator epsilon_p =
-      this->previous_strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+      this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    Array<Real>::matrix_iterator sigma_p =
+      this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
 
     Array<Real>::iterator<Real> ints = int_sigma(el_type, ghost_type).begin();
@@ -103,7 +104,7 @@ void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType
 	  dint += .5 * ((*sigma_p)(i,j) + (*sigma)(i,j)) * ((*epsilon)(i,j) - (*epsilon_p)(i,j)); /// \f$ \frac{.5 \sigma(\epsilon(t-h)) + \sigma(\epsilon(t))}{\epsilon(t) - \epsilon(t-h)} \f$
 
 	  (*epsilon_p)(i,j) = (*epsilon)(i,j);
-	  (*sigma_p)(i,j) = (*sigma)(i,j);
+	  (*sigma_p)(i,j)   = (*sigma)(i,j);
 	}
       }
 

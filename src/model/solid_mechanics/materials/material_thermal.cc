@@ -37,8 +37,7 @@ template<UInt spatial_dimension>
 MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model, const ID & id)  :
   Material(model, id),
   delta_T("delta_T", *this),
-  sigma_th_cur("sigma_th_cur", *this),
-  sigma_th_prev("sigma_th_prev", *this),
+  sigma_th("sigma_th", *this),
   use_previous_stress_thermal(false) {
   AKANTU_DEBUG_IN();
 
@@ -52,39 +51,15 @@ MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void MaterialThermal<dim>::computeStress(ElementType el_type, GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-
-  Array<Real>::iterator<> delta_t_it = this->delta_T(el_type, ghost_type).begin();
-  Array<Real>::iterator<> sigma_th_cur_it = this->sigma_th_cur(el_type, ghost_type).begin();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  /// TODO : implement with the matrix alpha
-  if (dim == 1) {
-    *sigma_th_cur_it = - this->E * this->alpha * *delta_t_it;
-  }
-  else {
-    *sigma_th_cur_it = - this->E/(1-2*this->nu) * this->alpha * *delta_t_it;
-  }
-
-  ++delta_t_it;
-  ++sigma_th_cur_it;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialThermal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  sigma_th_cur .initialize(1);
+  sigma_th.initialize(1);
+
 
   if(use_previous_stress_thermal) {
-    sigma_th_prev.initialize(1);
+    sigma_th.initializeHistory();
   }
 
   Material::initMaterial();
@@ -93,23 +68,32 @@ void MaterialThermal<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-void MaterialThermal<dim>::savePreviousState(const GhostType ghost_type) {
+template <UInt dim>
+void MaterialThermal<dim>::computeStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Material::savePreviousState(ghost_type);
-  UInt spatial_dimension = model->getSpatialDimension();
-  Mesh::type_iterator it = model->getMesh().firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = model->getMesh().lastType(spatial_dimension, ghost_type);
+  Array<Real>::iterator<> delta_t_it = this->delta_T(el_type, ghost_type).begin();
+  Array<Real>::iterator<> sigma_th_it = this->sigma_th(el_type, ghost_type).begin();
 
-  if(use_previous_stress_thermal) {
-    for (; it != last_type; ++it) {
-      sigma_th_prev(*it, ghost_type).copy(sigma_th_cur(*it, ghost_type));
-    }
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+
+  /// TODO : implement with the matrix alpha
+  if (dim == 1) {
+    *sigma_th_it = - this->E * this->alpha * *delta_t_it;
   }
+  else {
+    *sigma_th_it = - this->E/(1.-2.*this->nu) * this->alpha * *delta_t_it;
+  }
+
+  ++delta_t_it;
+  ++sigma_th_it;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+
 
 INSTANSIATE_MATERIAL(MaterialThermal);
 

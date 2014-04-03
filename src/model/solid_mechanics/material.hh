@@ -160,7 +160,7 @@ public:
   virtual void afterSolveStep() {}
 
   /// save the stress in the precious_stress if needed
-  virtual void savePreviousState(GhostType ghost_type);
+  virtual void savePreviousState();
 
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
@@ -468,20 +468,11 @@ protected:
   /// tell if the material need the previous stress state
   bool use_previous_stress;
 
-  /// previous stresses
-  InternalField<Real> previous_stress;
-
   /// tell if the material need the previous strain state
   bool use_previous_strain;
 
-  /// previous strain
-  InternalField<Real> previous_strain;
-
   /// tell if the material need the previous strain state
   bool use_previous_inelastic_strain;
-
-  /// previous strain
-  InternalField<Real> previous_inelas_strain;
 
   /// elemental field interpolation coordinates
   InternalField<Real> interpolation_inverse_coordinates;

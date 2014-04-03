@@ -61,11 +61,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   potential_energy("potential_energy", *this),
   is_non_local(false),
   use_previous_stress(false),
-  previous_stress("previous_stress", *this),
   use_previous_strain(false),
-  previous_strain("previous_strain", *this),
   use_previous_inelastic_strain(false),
-  previous_inelas_strain("previous_inelas_strain", *this),
   interpolation_inverse_coordinates("interpolation inverse coordinates", *this),
   interpolation_points_matrices("interpolation points matrices", *this) {
   AKANTU_DEBUG_IN();
@@ -116,18 +113,9 @@ void Material::initMaterial() {
     this->inelas_strain.initialize(spatial_dimension * spatial_dimension);
   }
 
-  if(use_previous_stress) {
-    this->previous_stress.initialize(spatial_dimension * spatial_dimension);
-  }
-
-  if(use_previous_strain) {
-    this->previous_strain.initialize(spatial_dimension * spatial_dimension);
-  }
-
-  if(use_previous_inelastic_strain) {
-    this->previous_inelas_strain.initialize(spatial_dimension * spatial_dimension);
-  }
-
+  if(use_previous_stress) this->stress.initializeHistory();
+  if(use_previous_strain) this->strain.initializeHistory();
+  if(use_previous_inelastic_strain) this->inelas_strain.initializeHistory();
 
   for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
@@ -139,25 +127,14 @@ void Material::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::savePreviousState(const GhostType ghost_type) {
+void Material::savePreviousState() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model->getSpatialDimension();
-  Mesh::type_iterator it = model->getMesh().firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = model->getMesh().lastType(spatial_dimension, ghost_type);
-
-  if(finite_deformation)
-    for (; it != last_type; ++it) {
-      if(use_previous_stress) previous_stress(*it, ghost_type).copy(piola_kirchhoff_stress(*it, ghost_type));
-      if(use_previous_strain) previous_strain(*it, ghost_type).copy(strain(*it, ghost_type));
-      if(use_previous_inelastic_strain) previous_inelas_strain(*it, ghost_type).copy(inelas_strain(*it, ghost_type));
-    }
-  else
-    for (; it != last_type; ++it) {
-      if(use_previous_stress) previous_stress(*it, ghost_type).copy(stress(*it, ghost_type));
-      if(use_previous_strain) previous_strain(*it, ghost_type).copy(strain(*it, ghost_type));
-      if(use_previous_inelastic_strain) previous_inelas_strain(*it, ghost_type).copy(inelas_strain(*it, ghost_type));
-    }
+  for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
+       it != internal_vectors_real.end();
+       ++it) {
+    if(it->second->hasHistory()) it->second->saveCurrentValues();
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -192,8 +169,8 @@ void Material::assembleResidual(GhostType ghost_type) {
     Array<Real> & residual = const_cast<Array<Real> &>(model->getResidual());
 
     Mesh & mesh = model->getFEM().getMesh();
-    Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
-    Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+    Mesh::type_iterator it = element_filter.firstType(spatial_dimension, ghost_type);
+    Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension, ghost_type);
     for(; it != last_type; ++it) {
       const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(*it, ghost_type);
       Array<UInt> & elem_filter = element_filter(*it, ghost_type);
@@ -359,8 +336,8 @@ void Material::computeCauchyStress(ElementType el_type, GhostType ghost_type) {
 
   for (; strain_it != strain_end; ++strain_it, ++piola_it, ++stress_it) {
     Matrix<Real> & grad_u = *strain_it;
-    Matrix<Real> & piola = *piola_it;
-    Matrix<Real> & sigma = *stress_it;
+    Matrix<Real> & piola  = *piola_it;
+    Matrix<Real> & sigma  = *stress_it;
 
     gradUToF<dim > (grad_u, F_tensor);
     computeCauchyStressOnQuad<dim >(F_tensor, piola, sigma);
@@ -1478,8 +1455,7 @@ void Material::onElementsRemoved(const Array<Element> & element_list,
 
 /* -------------------------------------------------------------------------- */
 void Material::onBeginningSolveStep(const AnalysisMethod & method) {
-  this->savePreviousState(_not_ghost);
-  this->savePreviousState(_ghost);
+  this->savePreviousState();
 }
 
 /* -------------------------------------------------------------------------- */

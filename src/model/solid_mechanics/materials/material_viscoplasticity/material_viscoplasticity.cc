@@ -109,7 +109,7 @@ void MaterialViscoPlasticity<spatial_dimension>::computeTangentModuli(__attribut
 
 
     Array<Real>::iterator< Matrix<Real> > previous_sigma_it =
-       this->previous_stress(el_type, ghost_type).begin(dim, dim);
+       this->stress.previous(el_type, ghost_type).begin(dim, dim);
 
     Real * iso_hardening= this->iso_hardening(el_type, ghost_type).storage();
 

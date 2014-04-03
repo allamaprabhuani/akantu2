@@ -47,7 +47,8 @@ InternalField<T>::InternalField(const ID & id, Material & material) :
   spatial_dimension(material.getModel().getSpatialDimension()),
   element_kind(_ek_regular),
   nb_component(0),
-  is_init(false) {
+  is_init(false),
+  previous_values(NULL) {
 }
 
 /* -------------------------------------------------------------------------- */
@@ -62,8 +63,29 @@ InternalField<T>::InternalField(const ID & id, Material & material, FEM & fem,
   spatial_dimension(material.getModel().getSpatialDimension()),
   element_kind(_ek_regular),
   nb_component(0),
-  is_init(false) {
+  is_init(false),
+  previous_values(NULL) {
 }
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+InternalField<T>::InternalField(const ID & id, const InternalField<T> & other) :
+  ByElementTypeArray<T>(id, other.material.getID(), other.material.getMemoryID()),
+  material(other.material),
+  fem(other.fem),
+  element_filter(other.element_filter),
+  default_value(other.default_value),
+  spatial_dimension(other.spatial_dimension),
+  element_kind(other.element_kind),
+  nb_component(other.nb_component),
+  is_init(other.is_init),
+  previous_values(NULL) {
+
+  if(other.is_init) {
+    this->internalInitialize(this->nb_component);
+  }
+}
+
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -71,12 +93,21 @@ InternalField<T>::~InternalField() {
   if(this->is_init) {
     this->material.unregisterInternal(*this);
   }
+
+  delete previous_values;
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void InternalField<T>::initialize(UInt nb_component) {
   internalInitialize(nb_component);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+void InternalField<T>::initializeHistory() {
+  if(!previous_values)
+    previous_values = new InternalField<T>("previous_" + this->getID(), *this);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -165,12 +196,33 @@ void InternalField<T>::internalInitialize(UInt nb_component) {
     this->is_init = true;
   }
   this->reset();
+
+  if(previous_values) previous_values->internalInitialize(nb_component);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
 void InternalField<T>::setArrayValues(T * begin, T * end) {
   for(; begin < end; ++begin) *begin = default_value;
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+void InternalField<T>::saveCurrentValues() {
+  AKANTU_DEBUG_ASSERT(previous_values != NULL,
+		      "The history of the internal " << this->getID()
+		      << " has not been activated");
+
+  if(!is_init) return;
+
+  for(UInt g = _not_ghost; g <= _ghost; ++g) {
+    GhostType gt = (GhostType) g;
+    typename ByElementTypeArray<T>::type_iterator it  = this->firstType(spatial_dimension, gt, element_kind);
+    typename ByElementTypeArray<T>::type_iterator end = this->lastType(spatial_dimension, gt, element_kind);
+    for(; it != end; ++it) {
+      this->previous_values->operator()(*it, gt).copy(this->operator()(*it, gt));
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */

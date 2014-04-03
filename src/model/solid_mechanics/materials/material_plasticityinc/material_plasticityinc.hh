@@ -126,8 +126,6 @@ protected:
   /* SolidMechanicsModelEventHandler inherited members                        */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void onBeginningSolveStep(const AnalysisMethod & method);
-  virtual void onEndSolveStep(const AnalysisMethod & method);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -139,17 +137,14 @@ private:
   /// hardening modulus
   Real h;
 
-  /// TODO : add a coefficient beta that will multiply the plastic energy increment
-  // to compute the energy converted to heat
-
   /// isotropic hardening, r
   InternalField<Real> iso_hardening;
 
-  /// previous isotropic hardening, r
-  InternalField<Real> previous_iso_hardening;
-
   /// Plastic energy
   InternalField<Real> plastic_energy;
+
+  /// TODO : add a coefficient beta that will multiply the plastic energy increment
+  /// to compute the energy converted to heat
 
   /// Plastic energy increment
   InternalField<Real> d_plastic_energy;

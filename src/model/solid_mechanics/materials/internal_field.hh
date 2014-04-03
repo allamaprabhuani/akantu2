@@ -52,12 +52,17 @@ public:
 protected:
   InternalField(const ID & id, Material & material, FEM & fem,
 		const ByElementTypeArray<UInt> & element_filter);
+
+  InternalField(const ID & id, const InternalField<T> & other);
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// initialize the field to a given number of component
   virtual void initialize(UInt nb_component);
+
+  /// activate the history of this field
+  virtual void initializeHistory();
 
   /// resize the arrays and set the new element to 0
   virtual void resize();
@@ -67,6 +72,9 @@ public:
 
   /// reset all the fields to the default value
   virtual void reset();
+
+  /// save the current values in the history
+  virtual void saveCurrentValues();
 
   /// remove the quadrature points corresponding to suppressed elements
   virtual void removeQuadraturePoints(const ByElementTypeUInt & new_numbering);
@@ -85,6 +93,47 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// get the Array corresponding to the type en ghost_type specified
+  virtual Array<T> & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost) {
+    return ByElementTypeArray<T>::operator()(type, ghost_type);
+  }
+
+  virtual const Array<T> & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost) const {
+    return ByElementTypeArray<T>::operator()(type, ghost_type);
+  }
+
+  virtual Array<T> & previous(const ElementType & type, const GhostType & ghost_type = _not_ghost) {
+    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+			"The history of the internal " << this->getID()
+			<< " has not been activated");
+    return this->previous_values->operator()(type, ghost_type);
+  }
+
+  virtual const Array<T> & previous(const ElementType & type, const GhostType & ghost_type = _not_ghost) const {
+    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+			"The history of the internal " << this->getID()
+			<< " has not been activated");
+    return this->previous_values->operator()(type, ghost_type);
+  }
+
+
+  virtual InternalField<T> & previous() {
+    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+			"The history of the internal " << this->getID()
+			<< " has not been activated");
+    return *(this->previous_values);
+  }
+
+  virtual const InternalField<T> & previous() const {
+    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+			"The history of the internal " << this->getID()
+			<< " has not been activated");
+    return *(this->previous_values);
+  }
+
+  /// check if the history is used or not
+  bool hasHistory() const { return (previous_values != NULL); }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -113,6 +162,9 @@ protected:
 
   /// Is the field initialized
   bool is_init;
+
+  /// previous values
+  InternalField<T> * previous_values;
 };
 
 /// standard output stream operator

@@ -108,9 +108,6 @@ private:
   /// Reference strain rate (edot0)
   Real edot0;
 
-  /// Plane stress or plane strain
-  bool plane_stress;
-
   /// Isotropic hardening (r)
   InternalField<Real> iso_hardening;
 
