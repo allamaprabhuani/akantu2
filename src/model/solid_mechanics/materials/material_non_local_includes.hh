@@ -44,8 +44,8 @@
 
 #define AKANTU_POSSIBLE_DAMAGE_PARENT_MATERIALS                         \
   ((sls_deviatoric      , (RemoveDamagedWeightFunction)(MaterialStandardLinearSolidDeviatoric))) \
-  ((neohookean_base_wf  , (BaseWeightFunction)(MaterialPlastic                               ))) \
-  ((neohookean_remove_wf, (RemoveDamagedWeightFunction)(MaterialPlastic                      ))) \
+  ((neohookean_base_wf  , (BaseWeightFunction)(MaterialNeohookean                            ))) \
+  ((neohookean_remove_wf, (RemoveDamagedWeightFunction)(MaterialNeohookean                   ))) \
   ((elastic             , (RemoveDamagedWeightFunction)(MaterialElastic                      )))
 
 #define AKANTU_MATERIAL_VREEPEERLINGS_WEIGHT_FUNCTION_TMPL_LIST		\

@@ -77,6 +77,8 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   delete material_selector;
   material_selector = new DefaultMaterialCohesiveSelector(*this);
 
+  this->registerEventHandler(*this);
+
 #if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("cohesive elements", id);
   this->addDumpMeshToDumper("cohesive elements",
@@ -738,6 +740,27 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::onEndSolveStep(const AnalysisMethod & method) {
+
+  AKANTU_DEBUG_IN();
+
+  /******************************************************************************
+    This is required because the Cauchy stress is the stress measure that is used
+     to check the insertion of cohesive elements 
+  ******************************************************************************/
+
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    Material & mat = **mat_it;
+    if(mat.isFiniteDeformation())
+      mat.computeAllCauchyStresses(_not_ghost);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::printself(std::ostream & stream, int indent) const {

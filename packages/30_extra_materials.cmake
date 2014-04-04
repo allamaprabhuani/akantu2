@@ -31,56 +31,57 @@ option(AKANTU_EXTRA_MATERIALS "Add the extra list of materials in Akantu" OFF)
 add_external_package_dependencies(extra_materials lapack)
 
 set(AKANTU_EXTRA_MATERIALS_FILES
-  model/solid_mechanics/materials/material_neohookean.cc
-  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
-  model/solid_mechanics/materials/material_elastic_linear_anisotropic.cc
-  model/solid_mechanics/materials/material_elastic_orthotropic.cc
-
-  model/solid_mechanics/materials/material_damage/material_marigo.cc
-  model/solid_mechanics/materials/material_damage/material_brittle.cc
-  model/solid_mechanics/materials/material_damage/material_damage_iterative.cc
-  model/solid_mechanics/materials/material_damage/material_mazars.cc
-  model/solid_mechanics/materials/material_damage/material_damage_linear.cc
-
   model/solid_mechanics/materials/material_extra_includes.hh
-  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
-  model/solid_mechanics/materials/material_elastic_linear_anisotropic.hh
-  model/solid_mechanics/materials/material_elastic_orthotropic.hh
-  model/solid_mechanics/materials/material_neohookean.hh
+
+  model/solid_mechanics/materials/material_damage/material_brittle.cc
+  model/solid_mechanics/materials/material_damage/material_brittle.hh
+  model/solid_mechanics/materials/material_damage/material_brittle_inline_impl.cc
+
   model/solid_mechanics/materials/material_damage/material_damage.hh
   model/solid_mechanics/materials/material_damage/material_damage_tmpl.hh
-  model/solid_mechanics/materials/material_damage/material_marigo.hh
-  model/solid_mechanics/materials/material_damage/material_brittle.hh
-  model/solid_mechanics/materials/material_damage/material_damage_iterative.hh
-  model/solid_mechanics/materials/material_damage/material_mazars.hh
-  model/solid_mechanics/materials/material_damage/material_damage_linear.hh
-  model/solid_mechanics/materials/material_damage/material_vreepeerlings.hh
 
-  model/solid_mechanics/materials/material_neohookean_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_brittle_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_damage_iterative.cc
+  model/solid_mechanics/materials/material_damage/material_damage_iterative.hh
   model/solid_mechanics/materials/material_damage/material_damage_iterative_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
+
+  model/solid_mechanics/materials/material_damage/material_damage_linear.cc
+  model/solid_mechanics/materials/material_damage/material_damage_linear.hh
   model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
+
+  model/solid_mechanics/materials/material_damage/material_marigo.cc
+  model/solid_mechanics/materials/material_damage/material_marigo.hh
+  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
+
+  model/solid_mechanics/materials/material_damage/material_mazars.cc
+  model/solid_mechanics/materials/material_damage/material_mazars.hh
+  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
+
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings.hh
   model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
   model/solid_mechanics/materials/material_damage/material_vreepeerlings_tmpl.hh
+
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic.cc
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic.hh
+
+  model/solid_mechanics/materials/material_elastic_orthotropic.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic.hh
+
+  model/solid_mechanics/materials/material_finite_deformation/material_neohookean.cc
+  model/solid_mechanics/materials/material_finite_deformation/material_neohookean.hh
+  model/solid_mechanics/materials/material_finite_deformation/material_neohookean_inline_impl.cc
+
+  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.cc
+  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.hh
+  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc_inline_impl.cc
 
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
 
-  model/solid_mechanics/materials/material_finite_deformation.cc
-  model/solid_mechanics/materials/material_finite_deformation/material_plastic.cc
-  model/solid_mechanics/materials/material_finite_deformation.hh
-  model/solid_mechanics/materials/material_finite_deformation/material_plastic.hh
-  model/solid_mechanics/materials/material_finite_deformation/material_plastic_inline_impl.cc
-  model/solid_mechanics/materials/material_finite_deformation_inline_impl.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
 
-  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.hh
-  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.cc
-  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc_inline_impl.cc
-
-  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.hh
   model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.cc
+  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.hh
   model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity_inline_impl.cc
 
   )

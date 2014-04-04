@@ -32,6 +32,7 @@
 #define __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
 
 #include "solid_mechanics_model.hh"
+#include "solid_mechanics_model_event_handler.hh"
 #include "cohesive_element_inserter.hh"
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #  include "facet_synchronizer.hh"
@@ -62,7 +63,8 @@ extern const SolidMechanicsModelCohesiveOptions default_solid_mechanics_model_co
 /* Solid Mechanics Model for Cohesive elements                                */
 /* -------------------------------------------------------------------------- */
 
-class SolidMechanicsModelCohesive : public SolidMechanicsModel {
+class SolidMechanicsModelCohesive : public SolidMechanicsModel,
+                                    public SolidMechanicsModelEventHandler{
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -153,6 +155,12 @@ protected:
 			      const NewNodesEvent & event);
   virtual void onElementsAdded  (const Array<Element> & nodes_list,
 				 const NewElementsEvent & event);
+
+  /* ------------------------------------------------------------------------ */
+  /* SolidMechanicsModelEventHandler inherited members                        */
+  /* ------------------------------------------------------------------------ */
+public:
+  virtual void onEndSolveStep(const AnalysisMethod & method);
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */

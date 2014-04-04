@@ -60,7 +60,8 @@ inline void
 
   fracture_stress=S_0;
   if(equiv_strain_rate>E_0)
-    fracture_stress=A*pow(equiv_strain_rate,3)+B*pow(equiv_strain_rate,2)+C*equiv_strain_rate+D;
+    //fracture_stress=A*pow(equiv_strain_rate,3)+B*pow(equiv_strain_rate,2)+C*equiv_strain_rate+D;
+    fracture_stress=A;
 
   Vector<Real> principal_stress(spatial_dimension);
   sigma.eig(principal_stress);

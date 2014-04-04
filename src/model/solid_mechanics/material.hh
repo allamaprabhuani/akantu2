@@ -350,7 +350,6 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void onBeginningSolveStep(const AnalysisMethod & method);
-  virtual void onEndSolveStep(const AnalysisMethod & method);
   virtual void onDump();
 
   /* ------------------------------------------------------------------------ */

@@ -1459,12 +1459,6 @@ void Material::onBeginningSolveStep(const AnalysisMethod & method) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::onEndSolveStep(const AnalysisMethod & method) {
-  if(this->isFiniteDeformation())
-    this->computeAllCauchyStresses(_not_ghost);
-}
-
-/* -------------------------------------------------------------------------- */
 void Material::onDump(){
   if(this->isFiniteDeformation())
     this->computeAllCauchyStresses(_not_ghost);

@@ -1,5 +1,5 @@
 /**
- * @file   material_plastic_inline_impl.cc
+ * @file   material_neohookean_inline_impl.cc
  *
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
@@ -28,14 +28,14 @@
  */
 
 #include <cmath>
-#include "material_plastic.hh"
+#include "material_neohookean.hh"
 
 
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void MaterialPlastic<dim>::computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
+inline void MaterialNeohookean<dim>::computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
 							   Matrix<Real> & delta_S){
 
   /*Real J = 1.0;
@@ -91,7 +91,7 @@ inline void MaterialPlastic<dim>::computeDeltaStressOnQuad(const Matrix<Real> & 
 }
 
 template<UInt dim>
-inline void MaterialPlastic<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
+inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
 						      Matrix<Real> & sigma) {
   //Neo hookean book
   Matrix<Real> F(dim, dim);
@@ -135,7 +135,7 @@ inline void MaterialPlastic<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
 }
 
 template<UInt dim>
-inline void MaterialPlastic<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
+inline void MaterialNeohookean<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
 							      Matrix<Real> & S) {
 
   Real trace = E.trace(); /// trace = (\nabla u)_{kk}
@@ -151,7 +151,7 @@ inline void MaterialPlastic<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real>
 /**************************************************************************************/
 /*  Computation of the potential energy for a this neo hookean material */
 template<UInt dim>
-inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
                                                                Real & epot){
   Matrix<Real> F(dim, dim);
   Matrix<Real> C(dim, dim);//Right green
@@ -164,7 +164,7 @@ inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real
 }
 
 /*template<UInt spatial_dimension>
-  inline void MaterialPlastic<spatial_dimension>::updateStressOnQuad(const Matrix<Real> & sigma,
+  inline void MaterialNeohookean<spatial_dimension>::updateStressOnQuad(const Matrix<Real> & sigma,
   Matrix<Real> & cauchy_sigma) {
 
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -175,14 +175,14 @@ inline void MaterialPlastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real
 
 /* -------------------------------------------------------------------------- */
 /*template<>
-  inline void MaterialPlastic < 1 > ::computeStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
+  inline void MaterialNeohookean < 1 > ::computeStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
   Matrix<Real> & cauchy) {
   cauchy(0, 0) = E * F(0, 0);
   }*/
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u) {
+inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u) {
 
   //Neo hookean book
   UInt cols = tangent.cols();
@@ -296,7 +296,7 @@ inline void MaterialPlastic<dim>::computeTangentModuliOnQuad(Matrix<Real> & tang
 
 /* -------------------------------------------------------------------------- */
 /*template<>
-  inline void MaterialPlastic < 1 > ::computeTangentModuliOnQuad(Matrix<Real> & tangent) {
+  inline void MaterialNeohookean < 1 > ::computeTangentModuliOnQuad(Matrix<Real> & tangent) {
   tangent(0, 0) = E;
   }*/
 

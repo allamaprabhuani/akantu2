@@ -1,5 +1,5 @@
 /**
- * @file   material_plastic.cc
+ * @file   material_neohookean.cc
  *
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
@@ -28,18 +28,24 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_plastic.hh"
+#include "material_neohookean.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model, const ID & id) :
+MaterialNeohookean<spatial_dimension>::MaterialNeohookean(SolidMechanicsModel & model, const ID & id) :
 Material(model, id) {
     AKANTU_DEBUG_IN();
 
     this->registerParam("E", E, 0., _pat_parsable | _pat_modifiable, "Young's modulus");
+    /// Neohookean 2
+    this->registerParam("E1", E1, 0., _pat_parsable | _pat_modifiable, "Young's modulus at infinite strain");
+    this->registerParam("alpha", alpha, 0., _pat_parsable | _pat_modifiable, "Young's modulus decay parameter");
+    this->registerParam("lambda1", lambda1, _pat_readable, "First Lamé coefficient at infinite strain");
+    this->registerParam("mu1", mu1, _pat_readable, "Second Lamé coefficient at infinite strain");
+
     this->registerParam("nu", nu, 0.5, _pat_parsable | _pat_modifiable, "Poisson's ratio");
     this->registerParam("Plane_Stress", plane_stress, false, _pat_parsmod, "Is plane stress"); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
     this->registerParam("lambda", lambda, _pat_readable, "First Lamé coefficient");
@@ -54,7 +60,7 @@ Material(model, id) {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialPlastic<spatial_dimension>::initMaterial() {
+void MaterialNeohookean<spatial_dimension>::initMaterial() {
     AKANTU_DEBUG_IN();
     Material::initMaterial();
     if (spatial_dimension == 1) nu = 0.;
@@ -64,9 +70,13 @@ void MaterialPlastic<spatial_dimension>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialPlastic<spatial_dimension>::updateInternalParameters() {
+void MaterialNeohookean<spatial_dimension>::updateInternalParameters() {
     lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
     mu = E / (2 * (1 + nu));
+
+    ///Neohookean 2
+    lambda1 = nu * E1 / ((1 + nu) * (1 - 2 * nu));
+    mu1 = E1 / (2 * (1 + nu));
 
     if (plane_stress) lambda = nu * E / ((1 + nu)*(1 - nu));
 
@@ -75,7 +85,7 @@ void MaterialPlastic<spatial_dimension>::updateInternalParameters() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void MaterialPlastic<dim>::computeStress(ElementType el_type, GhostType ghost_type) {
+void MaterialNeohookean<dim>::computeStress(ElementType el_type, GhostType ghost_type) {
     AKANTU_DEBUG_IN();
 
 
@@ -131,7 +141,7 @@ void MaterialPlastic<dim>::computeStress(ElementType el_type, GhostType ghost_ty
 }
 
 template<UInt spatial_dimension>
-void MaterialPlastic<spatial_dimension>::computePotentialEnergy(ElementType el_type,
+void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(ElementType el_type,
 								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -150,7 +160,7 @@ void MaterialPlastic<spatial_dimension>::computePotentialEnergy(ElementType el_t
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialPlastic<spatial_dimension>::computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
+void MaterialNeohookean<spatial_dimension>::computeTangentModuli(__attribute__((unused)) const ElementType & el_type,
         Array<Real> & tangent_matrix,
         __attribute__((unused)) GhostType ghost_type) {
     AKANTU_DEBUG_IN();
@@ -164,18 +174,18 @@ void MaterialPlastic<spatial_dimension>::computeTangentModuli(__attribute__((unu
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialPlastic<spatial_dimension>::getPushWaveSpeed(__attribute__((unused)) const Element & element) const {
+Real MaterialNeohookean<spatial_dimension>::getPushWaveSpeed(__attribute__((unused)) const Element & element) const {
     return sqrt((lambda + 2 * mu) / rho);
 }
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-Real MaterialPlastic<spatial_dimension>::getShearWaveSpeed(__attribute__((unused)) const Element & element) const {
+Real MaterialNeohookean<spatial_dimension>::getShearWaveSpeed(__attribute__((unused)) const Element & element) const {
     return sqrt(mu / rho);
 }
 
 /* -------------------------------------------------------------------------- */
 
-INSTANSIATE_MATERIAL(MaterialPlastic);
+INSTANSIATE_MATERIAL(MaterialNeohookean);
 
 __END_AKANTU__

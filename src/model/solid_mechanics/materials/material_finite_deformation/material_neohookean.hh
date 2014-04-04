@@ -1,12 +1,11 @@
 /**
  * @file   material_neohookean.hh
  *
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
- * @date   Wed Jun 15 10:45:12 2011
+ * @date   Wed Aug 04 10:58:42 2010
  *
- * @brief  Material Neo Hookean
+ * @brief  Material isotropic elastic
  *
  * @section LICENSE
  *
@@ -30,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material_elastic.hh"
+#include "material.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_NEOHOOKEAN_HH__
@@ -45,10 +44,10 @@ __BEGIN_AKANTU__
  *   - rho : density (default: 0)
  *   - E   : Young's modulus (default: 0)
  *   - nu  : Poisson's ratio (default: 1/2)
- *   - Plain_Stress : if 0: plain strain, else: plain stress (default: 0)
+ *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 template<UInt spatial_dimension>
-class MaterialNeohookean : public MaterialElastic<spatial_dimension> {
+class MaterialNeohookean : public virtual Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -63,42 +62,90 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  virtual void initMaterial();
+
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// compute the elastic potential energy
+  virtual void computePotentialEnergy(ElementType el_type,
+				      GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
-			    Array<Real> & tangent_matrix,
-			    GhostType ghost_type = _not_ghost);
+                            Array<Real> & tangent_matrix,
+                            GhostType ghost_type = _not_ghost);
 
-  /// compute the potential energy for all elements
-  virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
+  /// compute the p-wave speed in the material
+  virtual Real getPushWaveSpeed(const Element & element) const;
 
-  /// compute the potential energy for on element
-  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-					   Real & epot);
+  /// compute the s-wave speed in the material
+  virtual Real getShearWaveSpeed(const Element & element) const;
+
 protected:
-  /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-				  Matrix<Real> & sigma);
 
-  // /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(const Matrix<Real> & grad_u,
-				  Matrix<Real> & tangent);
+  /// constitutive law for a given quadrature point
+  inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
+                                          Matrix<Real> & S);
+
+  /// constitutive law for a given quadrature point
+  inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
+        Matrix<Real> & delta_S);
+
+  inline void computeStressOnQuad(Matrix<Real> & grad_u,
+                                  Matrix<Real> & sigma);
+
+  /// constitutive law for a given quadrature point
+  //inline void updateStressOnQuad(const Matrix<Real> & sigma,
+  //                              Matrix<Real> & cauchy_sigma);
+
+  /// compute the potential energy for a quadrature point
+  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+                                           Real & epot);
+
+  /// compute the tangent stiffness matrix for an element
+  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u);
+
+  /// recompute the lame coefficient if E or nu changes
+  virtual void updateInternalParameters();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// compute the celerity of wave in the material
-  virtual Real getCelerity(const Element & element) const;
-
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+
+  /// the young modulus
+  Real E;
+
+  /// Poisson coefficient
+  Real nu;
+
+  /// Neohookean 2
+  /// the young modulus at infinite strain
+  Real E1;
+  /// the young modulus  decay parameter
+  Real alpha;
+  /// Second Lamé coefficient (shear modulus) at infinite strain
+  Real mu1;
+  /// First Lamé coefficient at infinite strain
+  Real lambda1;
+
+  /// First Lamé coefficient
+  Real lambda;
+
+  /// Second Lamé coefficient (shear modulus)
+  Real mu;
+
+  /// Bulk modulus
+  Real kpa;
+
+  /// Plane stress or plane strain
+  bool plane_stress;
 
 };
 
@@ -107,7 +154,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 #include "material_neohookean_inline_impl.cc"
-
 
 __END_AKANTU__
 
