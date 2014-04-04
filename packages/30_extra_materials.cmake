@@ -70,19 +70,19 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_finite_deformation/material_neohookean.hh
   model/solid_mechanics/materials/material_finite_deformation/material_neohookean_inline_impl.cc
 
-  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.cc
-  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc.hh
-  model/solid_mechanics/materials/material_plasticityinc/material_plasticityinc_inline_impl.cc
+  model/solid_mechanics/materials/material_plastic/material_plasticityinc.cc
+  model/solid_mechanics/materials/material_plastic/material_plasticityinc.hh
+  model/solid_mechanics/materials/material_plastic/material_plasticityinc_inline_impl.cc
+
+  model/solid_mechanics/materials/material_plastic/material_viscoplasticity.cc
+  model/solid_mechanics/materials/material_plastic/material_viscoplasticity.hh
+  model/solid_mechanics/materials/material_plastic/material_viscoplasticity_inline_impl.cc
 
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
 
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
-
-  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.cc
-  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity.hh
-  model/solid_mechanics/materials/material_viscoplasticity/material_viscoplasticity_inline_impl.cc
 
   )
 
