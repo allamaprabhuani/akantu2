@@ -312,12 +312,13 @@ void Mesh::getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
     ElementType type = *it;
 
     Array<UInt> & local_conn = connectivities(type, ghost_type);
+    Array<UInt> & g_connectivity = global_connectivity(type, ghost_type);
+
     if (!nodes_global_ids)
       nodes_global_ids = mesh_parent->nodes_global_ids;
 
     UInt * local_c = local_conn.storage();
-    Array<UInt> & g_conn = global_connectivity(type, ghost_type);
-    UInt * global_c = global_connectivity(type, ghost_type).storage();
+    UInt * global_c = g_connectivity.storage();
 
     UInt nb_terms = local_conn.getSize() * local_conn.getNbComponent();
 
