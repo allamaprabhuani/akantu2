@@ -97,19 +97,21 @@
  */
 
 /* -------------------------------------------------------------------------- */
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
-				     _gt_segment_2,
-				     _itp_bernoulli_beam,
-				     _ek_structural,
-				     2,
-				     _git_segment, 2);
+AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_2,
+						_gt_segment_2,
+						_itp_bernoulli_beam,
+						_segment_2,
+						_ek_structural,
+						2,
+						_git_segment, 2);
 
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
-				     _gt_segment_2,
-				     _itp_bernoulli_beam,
-				     _ek_structural,
-				     3,
-				     _git_segment, 3);
+AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(_bernoulli_beam_3,
+						_gt_segment_2,
+						_itp_bernoulli_beam,
+						_segment_2,
+						_ek_structural,
+						3,
+						_git_segment, 3);
 
 /* -------------------------------------------------------------------------- */
 template <>
@@ -188,30 +190,4 @@ InterpolationElement<_itp_bernoulli_beam>::computeDNDS(const Vector<Real> & natu
     break;
   }
   }
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline void
-ElementClass<_bernoulli_beam_2>::computeJacobian(const Matrix<Real> & natural_coord,
-						 const Matrix<Real> & nodes_coords,
-						 Vector<Real> & jac){
-  Vector<Real> x1 = nodes_coords(0);
-  Vector<Real> x2 = nodes_coords(1);
-
-  Real a = .5 * x1.distance(x2);
-  for (UInt i = 0; i < jac.size(); ++i) jac(i) = a;
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-inline void
-ElementClass<_bernoulli_beam_3>::computeJacobian(const Matrix<Real> & natural_coord,
-						 const Matrix<Real> & nodes_coords,
-						 Vector<Real> & jac){
-  Vector<Real> x1 = nodes_coords(0);
-  Vector<Real> x2 = nodes_coords(1);
-
-  Real a = .5 * x1.distance(x2);
-  for (UInt i = 0; i < jac.size(); ++i) jac(i) = a;
 }

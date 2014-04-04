@@ -83,7 +83,7 @@ template <>
 inline void
 InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(const Matrix<Real> & dxds,
 								      Real & jac) {
-  jac = Math::norm2(dxds.storage());
+  jac = dxds.norm<L_2>();
 }
 
 /* -------------------------------------------------------------------------- */

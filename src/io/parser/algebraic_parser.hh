@@ -116,8 +116,8 @@ namespace akantu {
     };
 
     template<class Iterator, typename Skipper = spirit::unused_type>
-    struct AlgebraicGammar : qi::grammar<Iterator, Real(), Skipper> {
-      AlgebraicGammar(const ParserSection & section) : AlgebraicGammar::base_type(start,
+    struct AlgebraicGrammar : qi::grammar<Iterator, Real(), Skipper> {
+      AlgebraicGrammar(const ParserSection & section) : AlgebraicGrammar::base_type(start,
 										  "algebraic_grammar"),
 						       section(section) {
 	phx::function<algebraic_error_handler_> const error_handler = algebraic_error_handler_();
@@ -310,8 +310,8 @@ namespace akantu {
 
     /* ---------------------------------------------------------------------- */
     template<class Iterator, typename Skipper = spirit::unused_type>
-    struct VectorGammar : qi::grammar<Iterator, parsable_vector(), Skipper> {
-      VectorGammar(const ParserSection & section) : VectorGammar::base_type(start,
+    struct VectorGrammar : qi::grammar<Iterator, parsable_vector(), Skipper> {
+      VectorGrammar(const ParserSection & section) : VectorGrammar::base_type(start,
 									    "vector_algebraic_grammar"),
 						    number(section) {
         phx::function<algebraic_error_handler_> const error_handler = algebraic_error_handler_();
@@ -341,7 +341,7 @@ namespace akantu {
       qi::rule<Iterator, parsable_vector(), Skipper> start;
       qi::rule<Iterator, parsable_vector(), qi::locals<parsable_vector>, Skipper> vector;
       qi::rule<Iterator, Real(), Skipper> value;
-      AlgebraicGammar<Iterator, Skipper> number;
+      AlgebraicGrammar<Iterator, Skipper> number;
     };
 
     /* ---------------------------------------------------------------------- */
@@ -354,7 +354,7 @@ namespace akantu {
 	std::string value = section.getParameter(a, _ppsc_current_and_parent_scope);
 	std::string::const_iterator b = value.begin();
 	std::string::const_iterator e = value.end();
-	parser::VectorGammar<std::string::const_iterator, qi::space_type> grammar(section);
+	parser::VectorGrammar<std::string::const_iterator, qi::space_type> grammar(section);
 	return qi::phrase_parse(b, e, grammar, qi::space, result);
       }
     };
@@ -363,8 +363,8 @@ namespace akantu {
 
     /* ---------------------------------------------------------------------- */
     template<class Iterator, typename Skipper = spirit::unused_type>
-    struct MatrixGammar : qi::grammar<Iterator, parsable_matrix(), Skipper> {
-      MatrixGammar(const ParserSection & section) : MatrixGammar::base_type(start,
+    struct MatrixGrammar : qi::grammar<Iterator, parsable_matrix(), Skipper> {
+      MatrixGrammar(const ParserSection & section) : MatrixGrammar::base_type(start,
 									    "matrix_algebraic_grammar"),
 						    vector(section) {
         phx::function<algebraic_error_handler_> const error_handler = algebraic_error_handler_();
@@ -411,7 +411,7 @@ namespace akantu {
       qi::rule<Iterator, parsable_vector(), Skipper> rows;
       qi::rule<Iterator, parsable_vector(), qi::locals<parsable_vector>, Skipper> eval_vector;
       qi::rule<Iterator, std::string(), Skipper> key;
-      VectorGammar<Iterator, Skipper> vector;
+      VectorGrammar<Iterator, Skipper> vector;
     };
 
     /* ---------------------------------------------------------------------- */
@@ -430,8 +430,8 @@ namespace akantu {
 
     /* ---------------------------------------------------------------------- */
     template<class Iterator, typename Skipper = spirit::unused_type>
-    struct RandomGeneratorGammar : qi::grammar<Iterator, ParsableRandomGenerator(), Skipper> {
-      RandomGeneratorGammar(const ParserSection & section) : RandomGeneratorGammar::base_type(start,
+    struct RandomGeneratorGrammar : qi::grammar<Iterator, ParsableRandomGenerator(), Skipper> {
+      RandomGeneratorGrammar(const ParserSection & section) : RandomGeneratorGrammar::base_type(start,
 											      "random_generator_grammar"),
 							     number(section) {
         phx::function<algebraic_error_handler_> const error_handler = algebraic_error_handler_();
@@ -488,7 +488,7 @@ namespace akantu {
       qi::rule<Iterator, ParsableRandomGenerator(), Skipper> generator;
       qi::rule<Iterator, ParsableRandomGenerator(), Skipper> distribution;
       qi::rule<Iterator, parsable_vector(), qi::locals<parsable_vector>, Skipper> generator_params;
-      AlgebraicGammar<Iterator, Skipper> number;
+      AlgebraicGrammar<Iterator, Skipper> number;
       qi::symbols<char, RandomDistributionType> generator_type;
     };
   }

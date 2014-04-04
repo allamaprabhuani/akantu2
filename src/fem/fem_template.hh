@@ -196,6 +196,16 @@ public:
 			   ElementType type,
 			   const GhostType & ghost_type = _not_ghost) const;
 
+#ifdef AKANTU_SEBASTIEN_BRANCH
+
+  void assembleFieldMatrix(const Array<Real> & field,
+			   UInt nb_degree_of_freedom,
+			   SparseMatrix & matrix,
+			   UInt id,
+			   ElementType type,
+			   const GhostType & ghost_type = _not_ghost) const;
+
+#endif
 
 private:
 
@@ -252,6 +262,13 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+
+
+#if defined(AKANTU_SEBASTIEN_BRANCH)
+
+# include "fem_template_tmpl_struct.hh"
+
+#endif
 
 #include "fem_template_tmpl.hh"
 

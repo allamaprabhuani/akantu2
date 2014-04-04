@@ -1024,11 +1024,13 @@ inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::computeNor
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+
+
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
 __END_AKANTU__
 #include "shape_linked.hh"
 __BEGIN_AKANTU__
 
-#if defined(AKANTU_STRUCTURAL_MECHANICS)
 /* -------------------------------------------------------------------------- */
 template <>
 inline const Array<Real> &

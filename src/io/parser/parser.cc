@@ -91,7 +91,7 @@ void Parser::parse(const std::string& filename) {
   pos_iterator_type position_end;
 
   // parse
-  parser::InputFileGammar<pos_iterator_type> ag(this);
+  parser::InputFileGrammar<pos_iterator_type> ag(this);
 
   bool result = qi::phrase_parse(position_begin,
 				 position_end,
@@ -155,28 +155,28 @@ T Parser::parseType(const std::string & value, Grammar & grammar) {
 /* -------------------------------------------------------------------------- */
 Real Parser::parseReal(const std::string & value, const ParserSection & section) {
   using boost::spirit::ascii::space_type;
-  parser::AlgebraicGammar<std::string::const_iterator, space_type> grammar(section);
+  parser::AlgebraicGrammar<std::string::const_iterator, space_type> grammar(section);
   return Parser::parseType<Real>(value, grammar);
 }
 
 /* -------------------------------------------------------------------------- */
 Vector<Real> Parser::parseVector(const std::string & value, const ParserSection & section) {
   using boost::spirit::ascii::space_type;
-  parser::VectorGammar<std::string::const_iterator, space_type> grammar(section);
+  parser::VectorGrammar<std::string::const_iterator, space_type> grammar(section);
   return Parser::parseType<parser::parsable_vector>(value, grammar);
 }
 
 /* -------------------------------------------------------------------------- */
 Matrix<Real> Parser::parseMatrix(const std::string & value, const ParserSection & section) {
   using boost::spirit::ascii::space_type;
-  parser::MatrixGammar<std::string::const_iterator, space_type> grammar(section);
+  parser::MatrixGrammar<std::string::const_iterator, space_type> grammar(section);
   return Parser::parseType<parser::parsable_matrix>(value, grammar);
 }
 
 /* -------------------------------------------------------------------------- */
 RandomParameter<Real> Parser::parseRandomParameter(const std::string & value, const ParserSection & section) {
   using boost::spirit::ascii::space_type;
-  parser::RandomGeneratorGammar<std::string::const_iterator, space_type> grammar(section);
+  parser::RandomGeneratorGrammar<std::string::const_iterator, space_type> grammar(section);
   parser::ParsableRandomGenerator rg = Parser::parseType<parser::ParsableRandomGenerator>(value, grammar);
   Vector<Real> params = rg.parameters;
   switch(rg.type) {

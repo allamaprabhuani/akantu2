@@ -86,6 +86,27 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
+#define AKANTU_DEFINE_STRUCTURAL_ELEMENT_CLASS_PROPERTY(elem_type,	\
+							geom_type,	\
+							interp_type,	\
+							parent_el_type,	\
+							elem_kind,	\
+							sp,		\
+							gauss_int_type,	\
+							min_int_order)	\
+  template<>								\
+  struct ElementClassProperty<elem_type> {				\
+    static const GeometricalType geometrical_type = geom_type;		\
+    static const InterpolationType interpolation_type = interp_type;	\
+    static const ElementType parent_element_type = parent_el_type;	\
+    static const ElementKind element_kind = elem_kind;			\
+    static const UInt spatial_dimension = sp;				\
+    static const GaussIntergrationType gauss_integration_type = gauss_int_type;	\
+    static const UInt minimal_integration_order = min_int_order;	\
+  }
+
+
+/* -------------------------------------------------------------------------- */
 template<ElementType element_type>
 class ElementClass<element_type, _ek_structural> :
   public GeometricalElement<ElementClassProperty<element_type>::geometrical_type>,
@@ -93,6 +114,7 @@ class ElementClass<element_type, _ek_structural> :
 protected:
   typedef GeometricalElement<ElementClassProperty<element_type>::geometrical_type> geometrical_element;
   typedef InterpolationElement<ElementClassProperty<element_type>::interpolation_type> interpolation_element;
+  typedef ElementClass<ElementClassProperty<element_type>::parent_element_type> parent_element;
 public:
   /// compute shape derivatives (input is dxds) for a set of points
   static inline void computeShapeDerivatives(const Matrix<Real> & natural_coord,
@@ -109,7 +131,10 @@ public:
   /// compute jacobian (or integration variable change factor) for a given point
   static inline void computeJacobian(const Matrix<Real> & natural_coords,
 				     const Matrix<Real> & nodal_coords,
-				     Vector<Real> & jacobians);
+				     Vector<Real> & jacobians) {
+    parent_element::computeJacobian(natural_coords, nodal_coords, jacobians);
+  }
+
 public:
   static AKANTU_GET_MACRO_NOT_CONST(Kind, _ek_structural, ElementKind);
   static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, _not_defined, const ElementType);

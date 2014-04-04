@@ -61,15 +61,15 @@ int main(int argc, char *argv[]) {
   stress.eye(1e3);
   model.applyBC(BC::Neumann::FromHigherDim(stress), "boundary_0");
 
-  model.setBaseName("square");
-  model.addDumpField("displacement");
-  model.addDumpField("mass"        );
-  model.addDumpField("velocity"    );
-  model.addDumpField("acceleration");
-  model.addDumpField("force"       );
-  model.addDumpField("residual"    );
-  model.addDumpField("stress"      );
-  model.addDumpField("strain"      );
+  model.setBaseName       ("square"      );
+  model.addDumpFieldVector("displacement");
+  model.addDumpField      ("mass"        );
+  model.addDumpField      ("velocity"    );
+  model.addDumpField      ("acceleration");
+  model.addDumpFieldVector("force"       );
+  model.addDumpField      ("residual"    );
+  model.addDumpField      ("stress"      );
+  model.addDumpField      ("strain"      );
   model.dump();
 
   std::ofstream energy;

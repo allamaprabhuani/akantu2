@@ -5,7 +5,7 @@
  *
  * @date   Fri Aug  2 11:56:51 2013
  *
- * @brief  Gammar definition for the input files
+ * @brief  Grammar definition for the input files
  *
  * @section LICENSE
  *
@@ -140,11 +140,11 @@ namespace parser {
   /* Grammars definitions                                                   */
   /* ---------------------------------------------------------------------- */
   template<class Iterator>
-  struct InputFileGammar : qi::grammar<Iterator, void(),
-                                       typename Skipper<Iterator>::type> {
-    InputFileGammar(ParserSection * sect) : InputFileGammar::base_type(start,
-                                                                       "input_file_grammar"),
-                                            parent_section(sect) {
+  struct InputFileGrammar : qi::grammar<Iterator, void(),
+					typename Skipper<Iterator>::type> {
+    InputFileGrammar(ParserSection * sect) : InputFileGrammar::base_type(start,
+									 "input_file_grammar"),
+					     parent_section(sect) {
       phx::function<error_handler_> const error_handler = error_handler_();
       phx::function< lazy_create_parameter_<Iterator> >  lazy_create_parameter
         = lazy_create_parameter_<Iterator>(error_message);
