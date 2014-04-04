@@ -83,35 +83,6 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::fillGlobalConnectivity(ByElementTypeUInt & global_connectivity,
-							 GhostType ghost_type,
-							 bool just_init) {
-  AKANTU_DEBUG_IN();
-
-  Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, ghost_type);
-  Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, ghost_type);
-
-  for(; it != end; ++it) {
-    ElementType type_facet = *it;
-
-    Array<UInt> & connectivity = mesh_facets.getConnectivity(type_facet, ghost_type);
-    Array<UInt> & g_connectivity = global_connectivity(type_facet, ghost_type);
-
-    UInt nb_nodes_per_facet = connectivity.getNbComponent();
-    UInt nb_facet = connectivity.getSize();
-
-    g_connectivity.extendComponentsInterlaced(nb_nodes_per_facet, 1);
-    g_connectivity.resize(nb_facet);
-
-    if (just_init) continue;
-
-    mesh_facets.getGlobalConnectivity(g_connectivity, type_facet, ghost_type);
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
   AKANTU_DEBUG_IN();
 
@@ -120,22 +91,21 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
 
   if (psize > 1) {
 
-    /// correct facets' connectivity according to normals
+    /// get global connectivity for not ghost facets
     global_connectivity = new ByElementTypeUInt("global_connectivity", id);
-    ByElementTypeUInt & g_connectivity = *global_connectivity;
 
-    mesh_facets.initByElementTypeArray(g_connectivity, 1,
-				       spatial_dimension - 1);
+    mesh_facets.initByElementTypeArray(*global_connectivity, 1,
+				       spatial_dimension - 1, true,
+				       _ek_regular, true);
 
-    /// copy facet normals for not ghost elements
-    fillGlobalConnectivity(g_connectivity, _not_ghost, false);
-    fillGlobalConnectivity(g_connectivity, _ghost, true);
+    mesh_facets.getGlobalConnectivity(*global_connectivity,
+				      spatial_dimension - 1, _not_ghost);
 
     /// communicate
     synch_registry->synchronize(_gst_smmc_facets_conn);
 
     /// flip facets
-    MeshUtils::flipFacets(mesh_facets, g_connectivity, _ghost);
+    MeshUtils::flipFacets(mesh_facets, *global_connectivity, _ghost);
 
     delete global_connectivity;
   }

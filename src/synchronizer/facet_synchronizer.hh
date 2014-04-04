@@ -95,9 +95,6 @@ protected:
 					 Array<ByElementTypeUInt *> & connectivity,
 					 Array<ByElementTypeUInt *> & facets);
 
-  /// init connectivities of send/recv elements
-  void initGlobalConnectivity(Array<ByElementTypeUInt *> & connectivity);
-
   /// initialize ByElementType containing correspondance between
   /// facets and processors
   void initRankToFacet(ByElementTypeUInt & rank_to_facet);

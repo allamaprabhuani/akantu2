@@ -48,10 +48,6 @@ void synchronizeGhostFacets();
 
 void updateFacetSynchronizers();
 
-void fillGlobalConnectivity(ByElementTypeUInt & global_connectivity,
-			    GhostType ghost_type,
-			    bool just_init);
-
 /* ------------------------------------------------------------------------ */
 /* Accessors                                                                */
 /* ------------------------------------------------------------------------ */

@@ -352,8 +352,8 @@ public:
   void defineMeshParent(const Mesh & mesh);
 
   /// get global connectivity array
-  void getGlobalConnectivity(Array<UInt> & global_connectivity,
-			     ElementType type,
+  void getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
+			     UInt dimension,
 			     GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */

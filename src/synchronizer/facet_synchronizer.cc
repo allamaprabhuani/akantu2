@@ -158,6 +158,7 @@ void FacetSynchronizer::setupFacetSynchronization(DistributedSynchronizer & dist
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   for (UInt p = 0; p < nb_proc; ++p) {
+    if (p == rank) continue;
     std::stringstream sstr; sstr << p;
 
     temp_send_element(p) =
@@ -170,13 +171,12 @@ void FacetSynchronizer::setupFacetSynchronization(DistributedSynchronizer & dist
 
     send_connectivity(p) =
       new ByElementTypeUInt("send_connectivity_proc_"+sstr.str(), id);
+    mesh.initByElementTypeArray(*send_connectivity(p), 1, spatial_dimension - 1, true);
 
     recv_connectivity(p) =
       new ByElementTypeUInt("recv_connectivity_proc_"+sstr.str(), id);
+    mesh.initByElementTypeArray(*recv_connectivity(p), 1, spatial_dimension - 1, true);
   }
-
-  initGlobalConnectivity(send_connectivity);
-  initGlobalConnectivity(recv_connectivity);
 
   /// build global connectivity arrays
   getFacetGlobalConnectivity<_not_ghost>(distributed_synchronizer,
@@ -372,37 +372,6 @@ void FacetSynchronizer::buildRecvElementList(const Array<ByElementTypeUInt *> & 
       for (UInt f = 0; f < nb_local_facets; ++f) {
 	facet.element = list(f);
 	recv_element[p].push_back(facet);
-      }
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void FacetSynchronizer::initGlobalConnectivity(Array<ByElementTypeUInt *> & connectivity) {
-  AKANTU_DEBUG_IN();
-
-  UInt spatial_dimension = mesh.getSpatialDimension();
-
-  for (UInt p = 0; p < nb_proc; ++p) {
-    if (p == rank) continue;
-
-    ByElementTypeUInt & global_conn = (*connectivity(p));
-    mesh.initByElementTypeArray(global_conn, 1, spatial_dimension - 1);
-
-    for (ghost_type_t::iterator gt = ghost_type_t::begin();
-	 gt != ghost_type_t::end(); ++gt) {
-      GhostType ghost_type = *gt;
-
-      Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_type);
-      Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_type);
-
-      for (; first != last; ++first) {
-	ElementType type = *first;
-	Array<UInt> & g_conn = global_conn(type, ghost_type);
-	UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-	g_conn.extendComponentsInterlaced(nb_nodes_per_element, 1);
       }
     }
   }

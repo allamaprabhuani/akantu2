@@ -1617,10 +1617,21 @@ void MeshUtils::flipFacets(Mesh & mesh_facets,
 
   UInt spatial_dimension = mesh_facets.getSpatialDimension();
 
+  /// get global connectivity for local mesh
+  ByElementTypeUInt global_connectivity_tmp;
+
+  mesh_facets.initByElementTypeArray(global_connectivity_tmp, 1,
+				     spatial_dimension - 1, gt_facet,
+				     true, _ek_regular, true);
+
+  mesh_facets.getGlobalConnectivity(global_connectivity_tmp,
+				    spatial_dimension - 1, gt_facet);
+
+
   Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, gt_facet);
   Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, gt_facet);
 
-  /// loop on every ghost facet
+  /// loop on every facet
   for(; it != end; ++it) {
     ElementType type_facet = *it;
 
@@ -1639,9 +1650,7 @@ void MeshUtils::flipFacets(Mesh & mesh_facets,
     UInt nb_nodes_per_P1_facet
       = Mesh::getNbNodesPerElement(Mesh::getP1ElementType(type_facet));
 
-    /// get global connectivity for local mesh
-    Array<UInt> global_conn_tmp(nb_facet, nb_nodes_per_facet);
-    mesh_facets.getGlobalConnectivity(global_conn_tmp, type_facet, gt_facet);
+    Array<UInt> & global_conn_tmp = global_connectivity_tmp(type_facet, gt_facet);
 
     Array<UInt>::iterator<Vector<UInt> > conn_it =
       connectivity.begin(nb_nodes_per_facet);

@@ -40,10 +40,6 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive_linear.hh"
-
-#if defined(AKANTU_USE_IOHELPER)
-#  include "dumper_paraview.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -101,6 +97,46 @@ private:
   UInt nb_TG;
 };
 
+/* -------------------------------------------------------------------------- */
+void limitInsertion(SolidMechanicsModelCohesive & model) {
+
+  Real tolerance = 0.1;
+
+  const Mesh & mesh = model.getMesh();
+  const Mesh & mesh_facets = model.getMeshFacets();
+  CohesiveElementInserter & inserter = model.getElementInserter();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  Vector<Real> bary_facet(spatial_dimension);
+
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end();
+       ++gt) {
+    GhostType ghost_type = *gt;
+
+    Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, ghost_type);
+    Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, ghost_type);
+    for(; it != end; ++it) {
+      ElementType type = *it;
+      Array<bool> & f_check = inserter.getCheckFacets(type, ghost_type);
+      UInt nb_facet = mesh_facets.getNbElement(type, ghost_type);
+
+      for (UInt f = 0; f < nb_facet; ++f) {
+	if (f_check(f)) {
+
+	  mesh_facets.getBarycenter(f, type, bary_facet.storage(), ghost_type);
+
+	  if ( !(bary_facet(0) > -tolerance && bary_facet(0) < tolerance) &&
+	       !(bary_facet(1) > -tolerance && bary_facet(1) < tolerance) )
+	    f_check(f) = false;
+	}
+      }
+    }
+  }
+
+  model.updateAutomaticInsertion();
+}
+
 
 int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
@@ -108,7 +144,7 @@ int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
 
   const UInt spatial_dimension = 2;
-  const UInt max_steps = 500;
+  const UInt max_steps = 600;
 
   Mesh mesh(spatial_dimension);
 
@@ -137,6 +173,8 @@ int main(int argc, char *argv[]) {
   Real time_step = model.getStableTimeStep()*0.1;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
+
+  limitInsertion(model);
 
   //  std::cout << mesh << std::endl;
 
@@ -169,14 +207,12 @@ int main(int argc, char *argv[]) {
   model.addDumpField("strain");
   model.addDumpField("partitions");
 
-  DumperParaview dumper("cohesive_elements");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
+  model.setBaseNameToDumper("cohesive elements", "extrinsic_cohesive");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
 
-  dumper.dump();
+  model.dump();
+  model.dump("cohesive elements");
 
   /// initial conditions
   Real loading_rate = 0.1;
@@ -191,7 +227,7 @@ int main(int argc, char *argv[]) {
   // std::ofstream erev("erev.txt");
 
   //  Array<Real> & residual = model.getResidual();
-  model.dump();
+  //  model.dump();
   //  const Array<Real> & stress = model.getMaterial(0).getStress(type);
   Real dispy = 0;
   // UInt nb_coh_elem = 0;
@@ -222,6 +258,9 @@ int main(int argc, char *argv[]) {
     if(s % 10 == 0) {
       if(prank == 0)
 	std::cout << "passing step " << s << "/" << max_steps << std::endl;
+
+      // model.dump();
+      // model.dump("cohesive elements");
     }
 
     // Real Ed = model.getEnergy("dissipated");
@@ -231,11 +270,10 @@ int main(int argc, char *argv[]) {
 
     // erev << s << " "
     //	 << Er << std::endl;
-
   }
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive elements");
 
   // edis.close();
   // erev.close();

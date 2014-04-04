@@ -300,22 +300,30 @@ void Mesh::initNormals() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::getGlobalConnectivity(Array<UInt> & global_connectivity,
-				 ElementType type,
+void Mesh::getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
+				 UInt dimension,
 				 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<UInt> & local_conn = connectivities(type, ghost_type);
-  if (!nodes_global_ids)
-    nodes_global_ids = mesh_parent->nodes_global_ids;
+  Mesh::type_iterator it  = firstType(dimension, ghost_type);
+  Mesh::type_iterator end = lastType(dimension, ghost_type);
 
-  UInt * local_c = local_conn.storage();
-  UInt * global_c = global_connectivity.storage();
+  for(; it != end; ++it) {
+    ElementType type = *it;
 
-  UInt nb_terms = local_conn.getSize() * local_conn.getNbComponent();
+    Array<UInt> & local_conn = connectivities(type, ghost_type);
+    if (!nodes_global_ids)
+      nodes_global_ids = mesh_parent->nodes_global_ids;
 
-  for (UInt i = 0; i < nb_terms; ++i, ++local_c, ++global_c)
-    *global_c = (*nodes_global_ids)(*local_c);
+    UInt * local_c = local_conn.storage();
+    Array<UInt> & g_conn = global_connectivity(type, ghost_type);
+    UInt * global_c = global_connectivity(type, ghost_type).storage();
+
+    UInt nb_terms = local_conn.getSize() * local_conn.getNbComponent();
+
+    for (UInt i = 0; i < nb_terms; ++i, ++local_c, ++global_c)
+      *global_c = (*nodes_global_ids)(*local_c);
+  }
 
   AKANTU_DEBUG_OUT();
 }
