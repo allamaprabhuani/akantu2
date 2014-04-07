@@ -799,10 +799,11 @@ public:
   inline T doubleDot(const Matrix<T> & other) const {
      AKANTU_DEBUG_ASSERT(this->cols() == this->rows(),
 			 "doubleDot is not a valid operation on a rectangular matrix");
-     if(this->cols() == 2) return Math::matrixDoubleDot22(this->values, other.storage());
+     if(this->cols() == 1) return *(this->values) * *(other.storage());
+     else if(this->cols() == 2) return Math::matrixDoubleDot22(this->values, other.storage());
      else if(this->cols() == 3) return Math::matrixDoubleDot33(this->values, other.storage());
      else AKANTU_DEBUG_ERROR("doubleDot is not defined for other spatial dimensions"
-                             << " than 2 or 3.");
+                             << " than 1, 2 or 3.");
      return T();
   }
 
