@@ -72,55 +72,39 @@ void MaterialDamage<spatial_dimension, Parent>::initMaterial() {
  * @f$ Ed = \int_0^{\epsilon}\sigma(\omega)d\omega - \frac{1}{2}\sigma:\epsilon@f$
  */
 template<UInt spatial_dimension, template<UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::updateDissipatedEnergy(GhostType ghost_type) {
-  // compute the dissipated energy per element
-  const Mesh & mesh = this->model->getFEM().getMesh();
-  Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type);
+void MaterialDamage<spatial_dimension, Parent>::updateEnergies(ElementType el_type, GhostType ghost_type) {
+  Parent<spatial_dimension>::updateEnergies(el_type, ghost_type);
 
-  for(; it != end; ++it) {
-    ElementType el_type = *it;
-    Array<Real>::matrix_iterator sigma =
-      this->stress(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::matrix_iterator epsilon =
-      this->strain(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+  this->computePotentialEnergy(el_type, ghost_type);
 
-    Array<Real>::matrix_iterator epsilon_p =
-      this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
-    Array<Real>::matrix_iterator sigma_p =
-      this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator epsilon_p =
+    this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator sigma_p =
+    this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
+  Array<Real>::const_scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
 
-    Array<Real>::iterator<Real> ints = int_sigma(el_type, ghost_type).begin();
-    Array<Real>::iterator<Real> ed   = dissipated_energy(el_type, ghost_type).begin();
-    Array<Real>::iterator<Real> ed_end  = dissipated_energy(el_type, ghost_type).end();
+  Array<Real>::scalar_iterator ints = this->int_sigma(el_type, ghost_type).begin();
+  Array<Real>::scalar_iterator ed   = this->dissipated_energy(el_type, ghost_type).begin();
 
-    for (; ed != ed_end; ++ed, ++ints, ++epsilon, ++sigma, ++epsilon_p, ++sigma_p) {
-      Real epot = 0.;
-      Real dint = 0.;
-      for (UInt i = 0; i < spatial_dimension; ++i) {
-	for (UInt j = 0; j < spatial_dimension; ++j) {
-	  epot += (*sigma)(i,j) * (*epsilon)(i,j); /// \f$ epot = .5 \sigma : \epsilon \f$
-	  dint += .5 * ((*sigma_p)(i,j) + (*sigma)(i,j)) * ((*epsilon)(i,j) - (*epsilon_p)(i,j)); /// \f$ \frac{.5 \sigma(\epsilon(t-h)) + \sigma(\epsilon(t))}{\epsilon(t) - \epsilon(t-h)} \f$
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-	  (*epsilon_p)(i,j) = (*epsilon)(i,j);
-	  (*sigma_p)(i,j)   = (*sigma)(i,j);
-	}
-      }
+  Matrix<Real> delta_strain_it(*strain_it);
+  delta_strain_it -= *epsilon_p;
 
-      epot *= .5;
+  Matrix<Real> sigma_h(sigma);
+  sigma_h += *sigma_p;
 
-      *ints += dint;
-      *ed = *ints - epot;
-    }
-  }
-}
+  Real dint = .5 * sigma_h.doubleDot(delta_strain_it);
 
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension, template<UInt> class Parent>
-void MaterialDamage<spatial_dimension, Parent>::computeAllStresses(GhostType ghost_type) {
-  Material::computeAllStresses(ghost_type);
-  if(!this->is_non_local) this->updateDissipatedEnergy(ghost_type);
+  *ints += dint;
+  *ed = *ints - *epot;
+
+  ++epot;
+  ++ints;
+  ++ed;
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -284,6 +284,9 @@ protected:
   /// compute the support reaction and store it in force
   void updateSupportReaction();
 
+  /// compute the Cauchy stress on user demand.
+  void computeCauchyStresses();
+
 public:
   //protected: Daniel changed it just for a test
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]

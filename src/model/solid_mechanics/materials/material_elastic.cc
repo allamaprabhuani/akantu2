@@ -53,7 +53,6 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model, const ID & id
 template<UInt dim>
 void MaterialElastic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
-  Material::initMaterial();
   MaterialThermal<dim>::initMaterial();
 
   if (dim == 1) this->nu = 0.;
@@ -182,7 +181,7 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(Element
                              spatial_dimension);
 
   if (this->finite_deformation)
-    stress_it = this->piola_kirchhoff_stress(type).begin(spatial_dimension,
+    stress_it = this->piola_kirchhoff_2(type).begin(spatial_dimension,
 							 spatial_dimension);
 
   UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(type);

@@ -105,8 +105,6 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostTyp
     this->computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
   }
 
-  this->updateDissipatedEnergy(ghost_type);
-
   AKANTU_DEBUG_OUT();
 }
 

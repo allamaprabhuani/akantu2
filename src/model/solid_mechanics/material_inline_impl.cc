@@ -309,7 +309,7 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
 				      SynchronizationTag tag) const {
   if(tag == _gst_smm_stress) {
     if(this->isFiniteDeformation()) {
-      packElementDataHelper(piola_kirchhoff_stress, buffer, elements);
+      packElementDataHelper(piola_kirchhoff_2, buffer, elements);
       packElementDataHelper(strain, buffer, elements);
     }
     packElementDataHelper(stress, buffer, elements);
@@ -322,7 +322,7 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
 					SynchronizationTag tag) {
   if(tag == _gst_smm_stress) {
     if(this->isFiniteDeformation()) {
-      unpackElementDataHelper(piola_kirchhoff_stress, buffer, elements);
+      unpackElementDataHelper(piola_kirchhoff_2, buffer, elements);
       unpackElementDataHelper(strain, buffer, elements);
     }
     unpackElementDataHelper(stress, buffer, elements);

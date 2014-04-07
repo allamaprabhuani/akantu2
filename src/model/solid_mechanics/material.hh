@@ -111,10 +111,12 @@ protected:
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
+  virtual void updateEnergies(__attribute__((unused)) ElementType el_type,
+                              __attribute__((unused)) GhostType ghost_type = _not_ghost) {  }
+
   /// set the material to steady state (to be implemented for materials that need it)
   virtual void setToSteadyState(__attribute__((unused)) ElementType el_type,
-                                __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-  }
+                                __attribute__((unused)) GhostType ghost_type = _not_ghost) {  }
 
   /// function called to update the internal parameters when the modifiable
   /// parameters are modified
@@ -350,6 +352,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void onBeginningSolveStep(const AnalysisMethod & method);
+  virtual void onEndSolveStep(const AnalysisMethod & method);
   virtual void onDump();
 
   /* ------------------------------------------------------------------------ */
@@ -446,17 +449,8 @@ protected:
   /// strains arrays ordered by element types
   InternalField<Real> strain;
 
-  /// stress increment arrays ordered by element types (Finite deformation)
-  InternalField<Real> delta_stress;
-
-  /// strain increment arrays ordered by element types (Finite deformation)
-  InternalField<Real> delta_strain;
-
-  /// inelastic strain arrays ordered by element types (inelastic deformation)
-  InternalField<Real> inelas_strain;
-
   /// Second Piola-Kirchhoff stress tensor arrays ordered by element types (Finite deformation)
-  InternalField<Real> piola_kirchhoff_stress;
+  InternalField<Real> piola_kirchhoff_2;
 
   /// potential energy by element
   InternalField<Real> potential_energy;
@@ -469,9 +463,6 @@ protected:
 
   /// tell if the material need the previous strain state
   bool use_previous_strain;
-
-  /// tell if the material need the previous strain state
-  bool use_previous_inelastic_strain;
 
   /// elemental field interpolation coordinates
   InternalField<Real> interpolation_inverse_coordinates;
@@ -519,11 +510,11 @@ __END_AKANTU__
                                             spatial_dimension);         \
                                                                         \
   if(this->isFiniteDeformation()){                                      \
-    this->piola_kirchhoff_stress(el_type,                               \
+    this->piola_kirchhoff_2(el_type,                                    \
                ghost_type).resize(this->strain(el_type,                 \
                                                ghost_type).getSize());  \
     stress_it =                                                         \
-      this->piola_kirchhoff_stress(el_type,                             \
+      this->piola_kirchhoff_2(el_type,                                  \
                                    ghost_type).begin(spatial_dimension, \
                                                      spatial_dimension); \
   }                                                                     \
@@ -562,39 +553,6 @@ __END_AKANTU__
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\
-  }                                                                     \
-
-
-#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_FINITE_DEFORMATION_BEGIN(tangent_mat) \
-  Array<Real>::matrix_iterator strain_it =				\
-    this->strain(el_type, ghost_type).begin(spatial_dimension,		\
-                                            spatial_dimension);		\
-  Array<Real>::matrix_iterator strain_end =				\
-    this->strain(el_type, ghost_type).end(spatial_dimension,		\
-                                          spatial_dimension);		\
-  Array<Real>::matrix_iterator green_it =				\
-    this->delta_strain(el_type, ghost_type).begin(spatial_dimension,    \
-                                                  spatial_dimension);   \
-  Array<Real>::matrix_iterator sigma_it =				\
-    this->stress(el_type, ghost_type).begin(spatial_dimension,          \
-                                            spatial_dimension);		\
-                                                                        \
-  tangent_mat.resize(this->strain(el_type, ghost_type).getSize());      \
-                                                                        \
-  UInt tangent_size =							\
-    this->getTangentStiffnessVoigtSize(spatial_dimension);		\
-  Array<Real>::matrix_iterator tangent_it =				\
-    tangent_mat.begin(tangent_size,					\
-                      tangent_size);					\
-                                                                        \
-  for(;strain_it != strain_end; ++strain_it, ++green_it, ++sigma_it, ++tangent_it) { \
-    Matrix<Real> & __attribute__((unused)) grad_u  = *strain_it;	\
-    Matrix<Real> & __attribute__((unused)) grad_delta_u = *green_it;    \
-    Matrix<Real> & __attribute__((unused)) sigma_tensor = *sigma_it;    \
-    Matrix<Real> & tangent = *tangent_it
-
-
-#define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_FINITE_DEFORMATION_END	\
   }                                                                     \
 
 

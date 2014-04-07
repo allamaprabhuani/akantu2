@@ -69,7 +69,7 @@ protected:
     for(; it != last_type; ++it) {
       computeNonLocalStress(*it, ghost_type);
     }
-    this->updateDissipatedEnergy(ghost_type);
+
     AKANTU_DEBUG_OUT();
   }
 

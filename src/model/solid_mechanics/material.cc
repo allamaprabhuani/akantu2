@@ -45,7 +45,6 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   Parsable(_st_material, id),
   is_init(false),
   finite_deformation(false),
-  inelastic_deformation(false),
   name(""),
   model(&model),
   spatial_dimension(this->model->getSpatialDimension()),
@@ -53,16 +52,12 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   stress("stress", *this),
   eigenstrain("eigenstrain", *this),
   strain("strain", *this),
-  delta_stress("delta_stress", *this),
-  delta_strain("delta_strain", *this),
-  inelas_strain("inelas_strain", *this),
-  piola_kirchhoff_stress("piola_kirchhoff_stress", *this),
+  piola_kirchhoff_2("piola_kirchhoff_2", *this),
   //  potential_energy_vector(false),
   potential_energy("potential_energy", *this),
   is_non_local(false),
   use_previous_stress(false),
   use_previous_strain(false),
-  use_previous_inelastic_strain(false),
   interpolation_inverse_coordinates("interpolation inverse coordinates", *this),
   interpolation_points_matrices("interpolation points matrices", *this) {
   AKANTU_DEBUG_IN();
@@ -102,20 +97,12 @@ void Material::initMaterial() {
   AKANTU_DEBUG_IN();
 
   if(finite_deformation) {
-    this->delta_strain.initialize(spatial_dimension * spatial_dimension);
-    this->delta_stress.initialize(spatial_dimension * spatial_dimension);
-    this->piola_kirchhoff_stress.initialize(spatial_dimension * spatial_dimension);
-  }
-
-  if(inelastic_deformation) {
-    this->delta_strain.initialize(spatial_dimension * spatial_dimension);
-    this->delta_stress.initialize(spatial_dimension * spatial_dimension);
-    this->inelas_strain.initialize(spatial_dimension * spatial_dimension);
+    this->piola_kirchhoff_2.initialize(spatial_dimension * spatial_dimension);
+    if(use_previous_stress) this->piola_kirchhoff_2.initializeHistory();
   }
 
   if(use_previous_stress) this->stress.initializeHistory();
   if(use_previous_strain) this->strain.initializeHistory();
-  if(use_previous_inelastic_strain) this->inelas_strain.initializeHistory();
 
   for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
@@ -273,14 +260,6 @@ void Material::computeAllStresses(GhostType ghost_type) {
 
     strain_vect -= eigenstrain(*it, ghost_type);
 
-    if(finite_deformation || inelastic_deformation){ /// compute @f$\nabla \delta u@f$
-      Array<Real> & delta_strain_vect = delta_strain(*it, ghost_type);
-      model->getFEM().gradientOnQuadraturePoints(model->getIncrement(),
-						 delta_strain_vect,
-						 spatial_dimension,
-						 *it, ghost_type, elem_filter);
-    }
-
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
   }
@@ -327,7 +306,7 @@ void Material::computeCauchyStress(ElementType el_type, GhostType ghost_type) {
     this->strain(el_type, ghost_type).end(dim, dim);
 
   Array<Real>::matrix_iterator piola_it =
-    this->piola_kirchhoff_stress(el_type, ghost_type).begin(dim, dim);
+    this->piola_kirchhoff_2(el_type, ghost_type).begin(dim, dim);
 
   Array<Real>::matrix_iterator stress_it =
     this->stress(el_type, ghost_type).begin(dim, dim);
@@ -433,8 +412,8 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   SparseMatrix & K = const_cast<SparseMatrix &>(model->getStiffnessMatrix());
 
-  const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(
-										type,ghost_type);
+  const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(type,
+                                                                                ghost_type);
 
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
   Array<Real> & strain_vect = strain(type, ghost_type);
@@ -449,16 +428,6 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
   model->getFEM().gradientOnQuadraturePoints(model->getDisplacement(),
                                              strain_vect, dim, type, ghost_type,
                                              elem_filter);
-
-  if(inelastic_deformation){ /// compute @f$\nabla \delta u@f$
-
-    Array<Real> & delta_strain_vect = delta_strain(type, ghost_type);
-    delta_strain_vect.resize(nb_quadrature_points * nb_element);
-    model->getFEM().gradientOnQuadraturePoints(model->getIncrement(),
-                                               delta_strain_vect,
-                                               dim, type, ghost_type,
-                                               elem_filter);
-  }
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 
@@ -589,7 +558,7 @@ void Material::assembleStiffnessMatrixNL(const ElementType & type,
   Array<Real>::matrix_iterator Bt_S_B_end = bt_s_b->end(bt_s_b_size,
 								 bt_s_b_size);
 
-  Array<Real>::matrix_iterator piola_it = piola_kirchhoff_stress(type, ghost_type).begin(dim, dim);
+  Array<Real>::matrix_iterator piola_it = piola_kirchhoff_2(type, ghost_type).begin(dim, dim);
 
   for (; Bt_S_B_it != Bt_S_B_end; ++Bt_S_B_it, ++shapes_derivatives_filtered_it, ++piola_it) {
     Matrix<Real> & Bt_S_B = *Bt_S_B_it;
@@ -772,7 +741,7 @@ void Material::assembleResidual(GhostType ghost_type){
 
     Array<Real>::matrix_iterator grad_u_end = this->strain(*it, ghost_type).end(dim, dim);
 
-    Array<Real>::matrix_iterator stress_it = this->piola_kirchhoff_stress(*it, ghost_type).begin(dim, dim);
+    Array<Real>::matrix_iterator stress_it = this->piola_kirchhoff_2(*it, ghost_type).begin(dim, dim);
 
     shapes_derivatives_filtered_it = shapesd_filtered->begin(dim, nb_nodes_per_element);
 
@@ -1456,6 +1425,18 @@ void Material::onElementsRemoved(const Array<Element> & element_list,
 /* -------------------------------------------------------------------------- */
 void Material::onBeginningSolveStep(const AnalysisMethod & method) {
   this->savePreviousState();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::onEndSolveStep(const AnalysisMethod & method) {
+  ByElementTypeArray<UInt>::type_iterator it
+    = this->element_filter.firstType(_all_dimensions, _not_ghost, _ek_not_defined);
+  ByElementTypeArray<UInt>::type_iterator end
+    = element_filter.lastType(_all_dimensions, _not_ghost, _ek_not_defined);
+
+  for(; it != end; ++it) {
+    this->updateEnergies(*it, _not_ghost);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

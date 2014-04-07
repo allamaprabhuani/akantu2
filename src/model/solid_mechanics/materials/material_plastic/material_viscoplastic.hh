@@ -1,11 +1,13 @@
 /**
- * @file   material_plasticityinc.hh
+ * @file   material_viscoplastic.hh
  *
  * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
  *
  * @date   Tue Jul 09 18:15:37 20130
  *
- * @brief  Specialization of the material class for isotropic finite deformation linear hardening plasticityviscoplastic (small deformation)
+ * @brief Specialization of the material class for
+ * MaterialLinearIsotropicHardening to include viscous effects (small
+ * deformation)
  *
  * @section LICENSE
  *
@@ -30,12 +32,12 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material_elastic.hh"
+#include "material_plastic.hh"
 #include "aka_voigthelper.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VISCOPLASTICITY_HH__
-#define __AKANTU_MATERIAL_VISCOPLASTICITY_HH__
+#ifndef __AKANTU_MATERIAL_VISCOPLASTIC_HH__
+#define __AKANTU_MATERIAL_VISCOPLASTIC_HH__
 
 __BEGIN_AKANTU__
 
@@ -53,15 +55,13 @@ __BEGIN_AKANTU__
 
 
 template <UInt spatial_dimension>
-class MaterialViscoPlasticity : public MaterialElastic<spatial_dimension> {
+class MaterialViscoPlastic : public MaterialPlastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  MaterialViscoPlasticity(SolidMechanicsModel & model, const ID & id = "");
-
-  virtual ~MaterialViscoPlasticity() {};
+  MaterialViscoPlastic(SolidMechanicsModel & model, const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -76,17 +76,20 @@ public:
                             GhostType ghost_type = _not_ghost);
 
 protected:
-  inline void computeStressOnQuad(Matrix<Real> & grad_u,
-				  Matrix<Real> & grad_delta_u,
+  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
+				  const Matrix<Real> & previous_grad_u,
 				  Matrix<Real> & sigma,
-				  Matrix<Real> & inelas_strain,
-				  Real & iso_hardening);
+                                  const Matrix<Real> & previous_sigma,
+				  Matrix<Real> & inelastic_strain,
+				  const Matrix<Real> & previous_inelastic_strain,
+				  Real & iso_hardening) const;
 
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent,
-				  Matrix<Real> & grad_delta_u,
-				  Matrix<Real> & sigma_tensor,
-				  Matrix<Real> & previous_sigma_tensor,
-				  Real & iso_hardening);
+  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent,
+                                         const Matrix<Real> & grad_u,
+                                         const Matrix<Real> & previous_grad_u,
+                                         const Matrix<Real> & sigma_tensor,
+                                         const Matrix<Real> & previous_sigma_tensor,
+                                         const Real & iso_hardening) const;
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -96,20 +99,11 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// Yield stresss
-  Real sigmay;
-
-  /// Hardening modulus
-  Real h;
-
   /// Rate sensitivity component (rate)
   Real rate;
 
   /// Reference strain rate (edot0)
   Real edot0;
-
-  /// Isotropic hardening (r)
-  InternalField<Real> iso_hardening;
 
   /// Time step (ts)
   Real ts;
@@ -118,8 +112,8 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "material_viscoplasticity_inline_impl.cc"
+#include "material_viscoplastic_inline_impl.cc"
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MATERIAL_VISCOPLASTICITY_HH__ */
+#endif /* __AKANTU_MATERIAL_VISCOPLASTIC_HH__ */

@@ -48,8 +48,8 @@
 #include "material_vreepeerlings.hh"
 
 // plasticity
-#include "material_plasticityinc.hh"
-#include "material_viscoplasticity.hh"
+#include "material_linear_isotropic_hardening.hh"
+#include "material_viscoplastic.hh"
 
 #endif
 
@@ -65,7 +65,5 @@
   ((2, (neohookean         , MaterialNeohookean                   )))   \
   ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
   ((2, (anisotropic        , MaterialElasticLinearAnisotropic     )))   \
-  ((2, (plasticity         , MaterialPlasticityinc                )))   \
-  ((2, (viscoplasticity    , MaterialViscoPlasticity              )))               
-
-
+  ((2, (plastic_linear_isotropic_hardening, MaterialLinearIsotropicHardening)))   \
+  ((2, (visco_plastic      , MaterialViscoPlastic                 )))

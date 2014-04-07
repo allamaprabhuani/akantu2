@@ -108,7 +108,7 @@ void MaterialNeohookean<dim>::computeStress(ElementType el_type, GhostType ghost
     //        this->previous_stress(el_type, ghost_type).begin(dim, dim);
 
     Array<Real>::matrix_iterator piola_it =
-            this->piola_kirchhoff_stress(el_type, ghost_type).begin(dim, dim);
+            this->piola_kirchhoff_2(el_type, ghost_type).begin(dim, dim);
 
     //Matrix<Real> F_tensor(dim, dim);
     //Matrix<Real> E_tensor(dim, dim);

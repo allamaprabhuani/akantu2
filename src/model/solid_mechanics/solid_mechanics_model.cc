@@ -1941,6 +1941,21 @@ void SolidMechanicsModel::dump(Real time, UInt step) {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::computeCauchyStresses() {
+  AKANTU_DEBUG_IN();
+
+  // call compute stiffness matrix on each local elements
+  std::vector<Material *>::iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    Material & mat = **mat_it;
+    if(mat.isFiniteDeformation())
+      mat.computeAllCauchyStresses(_not_ghost);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

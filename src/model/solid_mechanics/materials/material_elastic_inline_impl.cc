@@ -34,7 +34,7 @@
 template<UInt spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix<Real> & grad_u,
 								    Matrix<Real> & sigma,
-								    const Real sigma_th) {
+								    const Real sigma_th) const {
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
   // \sigma_{ij} = \lambda * (\nabla u)_{kk} * \delta_{ij} + \mu * (\nabla u_{ij} + \nabla u_{ji})
@@ -50,7 +50,7 @@ inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(const Matrix
 template<>
 inline void MaterialElastic<1>::computeStressOnQuad(const Matrix<Real> & grad_u,
 						    Matrix<Real> & sigma,
-						    Real sigma_th) {
+						    Real sigma_th) const {
   sigma(0, 0) = this->E * grad_u(0, 0) + sigma_th;
 }
 
@@ -95,12 +95,7 @@ template<UInt dim>
 inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
 							       const Matrix<Real> & sigma,
 							       Real & epot) {
-  epot = 0.;
-  for (UInt i = 0; i < dim; ++i)
-    for (UInt j = 0; j < dim; ++j)
-      epot += sigma(i, j) * grad_u(i, j);
-
-  epot *= .5;
+  epot = .5 * sigma.doubleDot(grad_u);
 }
 
 /* -------------------------------------------------------------------------- */
