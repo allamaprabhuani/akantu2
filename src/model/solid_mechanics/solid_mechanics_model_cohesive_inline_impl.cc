@@ -162,7 +162,7 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
     switch(tag) {
 
     case _gst_smmc_facets: {
-      packElementalDataHelper(inserter.getInsertionFacetsByElement(),
+      packElementalDataHelper(inserter->getInsertionFacetsByElement(),
 			      buffer, elements, false, getFEM());
       break;
     }
@@ -225,7 +225,7 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 
     switch(tag) {
     case _gst_smmc_facets: {
-      unpackElementalDataHelper(inserter.getInsertionFacetsByElement(),
+      unpackElementalDataHelper(inserter->getInsertionFacetsByElement(),
 				buffer, elements, false, getFEM());
       break;
     }

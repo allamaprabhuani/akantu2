@@ -127,7 +127,7 @@ void SolidMechanicsModelCohesive::updateFacetSynchronizers() {
     const ByElementTypeUInt & prank_to_element
       = synch_parallel->getPrankToElement();
 
-    facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
+    facet_stress_synchronizer->updateFacetStressSynchronizer(*inserter,
 							     prank_to_element,
 							     *this);
   }

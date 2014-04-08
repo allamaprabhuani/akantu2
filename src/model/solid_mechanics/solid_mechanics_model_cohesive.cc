@@ -47,7 +47,6 @@ __BEGIN_AKANTU__
 const SolidMechanicsModelCohesiveOptions default_solid_mechanics_model_cohesive_options(_explicit_lumped_mass,
 											false,
 											false,
-											true,
 											true);
 
 /* -------------------------------------------------------------------------- */
@@ -61,10 +60,10 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   tangents("tangents", id),
   stress_on_facet("stress_on_facet", id),
   facet_stress("facet_stress", id),
-  facet_material("facet_material", id),
-  inserter(mesh, mesh_facets) {
+  facet_material("facet_material", id) {
   AKANTU_DEBUG_IN();
 
+  inserter = NULL;
   facet_generated = false;
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
@@ -92,6 +91,8 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::~SolidMechanicsModelCohesive() {
   AKANTU_DEBUG_IN();
+
+  delete inserter;
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   delete cohesive_distributed_synchronizer;
@@ -138,23 +139,6 @@ void SolidMechanicsModelCohesive::initFull(const ModelOptions & options) {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::initMaterials() {
   AKANTU_DEBUG_IN();
-
-  /// init element inserter
-  inserter.init();
-
-#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  if (facet_synchronizer != NULL)
-    inserter.initParallel(facet_synchronizer);
-
-  if (facet_stress_synchronizer != NULL) {
-    DataAccessor * data_accessor = this;
-    const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
-
-    facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
-							     rank_to_element,
-							     *data_accessor);
-  }
-#endif
 
   // make sure the material are instantiated
   if(!are_materials_instantiated) instantiateMaterials();
@@ -266,6 +250,23 @@ void SolidMechanicsModelCohesive::initModel() {
 void SolidMechanicsModelCohesive::initAutomaticInsertion() {
   AKANTU_DEBUG_IN();
 
+  /// init element inserter
+  inserter = new CohesiveElementInserter(mesh, mesh_facets);
+
+#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
+  if (facet_synchronizer != NULL)
+    inserter->initParallel(facet_synchronizer);
+
+  if (facet_stress_synchronizer != NULL) {
+    DataAccessor * data_accessor = this;
+    const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
+
+    facet_stress_synchronizer->updateFacetStressSynchronizer(*inserter,
+							     rank_to_element,
+							     *data_accessor);
+  }
+#endif
+
   mesh_facets.initByElementTypeArray(facet_stress,
 				     2 * spatial_dimension * spatial_dimension,
 				     spatial_dimension - 1);
@@ -302,14 +303,14 @@ void SolidMechanicsModelCohesive::initAutomaticInsertion() {
 void SolidMechanicsModelCohesive::updateAutomaticInsertion() {
   AKANTU_DEBUG_IN();
 
-  inserter.limitCheckFacets();
+  inserter->limitCheckFacets();
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
     if (facet_stress_synchronizer != NULL) {
       DataAccessor * data_accessor = this;
       const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
 
-      facet_stress_synchronizer->updateFacetStressSynchronizer(inserter,
+      facet_stress_synchronizer->updateFacetStressSynchronizer(*inserter,
 							       rank_to_element,
 							       *data_accessor);
     }
@@ -608,7 +609,7 @@ void SolidMechanicsModelCohesive::fillStressOnFacet() {
               nb_quad_per_facet =
                 getFEM("FacetsFEM").getNbQuadraturePoints(facet_type, facet_gt);
 
-              f_check = &( inserter.getCheckFacets(facet_type, facet_gt) );
+              f_check = &( inserter->getCheckFacets(facet_type, facet_gt) );
             }
 
 	    if (!(*f_check)(global_facet)) {
@@ -669,7 +670,7 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
   synch_registry->synchronize(_gst_smmc_facets);
 
   /// insert cohesive elements
-  inserter.insertExtrinsicElements();
+  inserter->insertExtrinsicElements();
 
   AKANTU_DEBUG_OUT();
 }
@@ -684,10 +685,6 @@ void SolidMechanicsModelCohesive::onElementsAdded(const Array<Element> & element
   /// update shape functions
   getFEM("CohesiveFEM").initShapeFunctions(_not_ghost);
   getFEM("CohesiveFEM").initShapeFunctions(_ghost);
-  if(is_extrinsic) {
-    getFEM("FacetsFEM").initShapeFunctions(_not_ghost);
-    getFEM("FacetsFEM").initShapeFunctions(_ghost);
-  }
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   updateFacetSynchronizers();

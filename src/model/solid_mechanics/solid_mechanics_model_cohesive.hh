@@ -47,13 +47,11 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
   SolidMechanicsModelCohesiveOptions(AnalysisMethod analysis_method = _explicit_lumped_mass,
 				     bool extrinsic = false,
 				     bool no_init_materials = false,
-				     bool init_facet_filter = true,
 				     bool stress_interpolation = true) :
     SolidMechanicsModelOptions(analysis_method, no_init_materials),
-    extrinsic(extrinsic), init_facet_filter(init_facet_filter),
+    extrinsic(extrinsic),
     stress_interpolation(stress_interpolation) {}
   bool extrinsic;
-  bool init_facet_filter;
   bool stress_interpolation;
 };
 
@@ -193,7 +191,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
   /// get element inserter
-  AKANTU_GET_MACRO_NOT_CONST(ElementInserter, inserter, CohesiveElementInserter &);
+  AKANTU_GET_MACRO_NOT_CONST(ElementInserter, *inserter, CohesiveElementInserter &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -224,7 +222,7 @@ private:
   bool is_extrinsic;
 
   /// cohesive element inserter
-  CohesiveElementInserter inserter;
+  CohesiveElementInserter * inserter;
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
 #include "solid_mechanics_model_cohesive_parallel.hh"
