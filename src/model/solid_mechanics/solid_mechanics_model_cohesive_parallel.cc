@@ -69,7 +69,7 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
     synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets_conn);
 
-    synchronizeGhostFacets();
+    synchronizeGhostFacetsConnectivity();
 
     facet_stress_synchronizer =
       FacetStressSynchronizer::createFacetStressSynchronizer(*facet_synchronizer,
@@ -83,7 +83,7 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
+void SolidMechanicsModelCohesive::synchronizeGhostFacetsConnectivity() {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
@@ -115,7 +115,7 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacets() {
 
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::updateFacetSynchronizers() {
+void SolidMechanicsModelCohesive::updateCohesiveSynchronizers() {
   /// update synchronizers if needed
 
   if (facet_synchronizer != NULL)

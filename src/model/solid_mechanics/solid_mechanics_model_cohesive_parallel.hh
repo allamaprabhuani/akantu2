@@ -41,12 +41,9 @@ void initParallel(MeshPartition * partition,
 		  bool extrinsic = false);
 
 protected:
-void fillSynchronizeNormals(ByElementTypeReal & facet_normals,
-			    GhostType ghost_type);
+void synchronizeGhostFacetsConnectivity();
 
-void synchronizeGhostFacets();
-
-void updateFacetSynchronizers();
+void updateCohesiveSynchronizers();
 
 /* ------------------------------------------------------------------------ */
 /* Accessors                                                                */

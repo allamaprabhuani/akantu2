@@ -687,7 +687,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(const Array<Element> & element
   getFEM("CohesiveFEM").initShapeFunctions(_ghost);
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-  updateFacetSynchronizers();
+  updateCohesiveSynchronizers();
 #endif
 
   resizeFacetStress();
