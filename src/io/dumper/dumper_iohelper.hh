@@ -59,10 +59,12 @@ public:
   class Field;
   class VariableBase;
 
+  /// register a given Mesh for the current dumper
   virtual void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 			    const GhostType & ghost_type = _not_ghost,
 			    const ElementKind & element_kind = _ek_not_defined);
 
+  /// register a filtered Mesh (provided filter lists) for the current dumper
   virtual void registerFilteredMesh(const Mesh & mesh,
 				    const ByElementTypeArray<UInt> & elements_filter,
 				    const Array<UInt> & nodes_filter,
@@ -70,18 +72,26 @@ public:
 				    const GhostType & ghost_type = _not_ghost,
 				    const ElementKind & element_kind = _ek_not_defined);
 
+  /// register a Field object identified by name and provided by pointer
   void registerField(const std::string & field_id, Field * field);
+  /// remove the Field identified by name from managed fields
   void unRegisterField(const std::string & field_id);
-
+  /// register a VariableBase object identified by name and provided by pointer
   void registerVariable(const std::string & variable_id, VariableBase * variable);
+  /// remove a VariableBase identified by name from managed fields
   void unRegisterVariable(const std::string & variable_id);
 
+  /// request dump: this calls IOHelper dump routine 
   virtual void dump();
+  /// request dump: this first set the current step and then calls IOHelper dump routine 
   virtual void dump(UInt step);
+  /// request dump: this first set the current step and current time and then calls IOHelper dump routine 
   virtual void dump(Real current_time, UInt step);
-
+  /// set the parallel context for IOHeper
   virtual void setParallelContext(bool is_parallel);
+  /// set the directory where to generate the dumped files
   virtual void setDirectory(const std::string & directory);
+  /// set the base name (needed by most IOHelper dumpers)
   virtual void setBaseName(const std::string & basename);
 
   /* ------------------------------------------------------------------------ */

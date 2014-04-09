@@ -55,24 +55,30 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// create a new dumper (of templated type T) and register it under dumper_name. file_name is used for construction of T. is default states if this dumper is the default dumper. 
   template<class T>
   void registerDumper(const std::string & dumper_name,
                       const std::string & file_name = "",
                       const bool is_default = false);
 
+  /// register an externally created dumper
   void registerExternalDumper(DumperIOHelper & dumper,
                               const std::string & dumper_name,
                               const bool is_default = false);
 
+  /// register a mesh to the default dumper
   void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
                    const GhostType & ghost_type = _not_ghost,
                    const ElementKind & element_kind = _ek_not_defined);
 
+  /// register a mesh to the default identified by its name
   void addDumpMeshToDumper(const std::string & dumper_name,
                            const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
                            const GhostType & ghost_type = _not_ghost,
                            const ElementKind & element_kind = _ek_not_defined);
 
+  /// register a filtered mesh as the default dumper
   void addDumpFilteredMesh(const Mesh & mesh,
                            const ByElementTypeArray<UInt> & elements_filter,
                            const Array<UInt> & nodes_filter,
@@ -80,6 +86,7 @@ public:
                            const GhostType & ghost_type = _not_ghost,
                            const ElementKind & element_kind = _ek_not_defined);
 
+  /// register a filtered mesh and provides a name
   void addDumpFilteredMeshToDumper(const std::string & dumper_name,
                                    const Mesh & mesh,
                                    const ByElementTypeArray<UInt> & elements_filter,
@@ -88,9 +95,13 @@ public:
                                    const GhostType & ghost_type = _not_ghost,
                                    const ElementKind & element_kind = _ek_not_defined);
 
+  /// to implement
   virtual void addDumpField(const std::string & field_id);
+  /// to implement
   virtual void addDumpFieldToDumper(const std::string & dumper_name,
                                     const std::string & field_id);
+  
+  /// add a field 
   virtual void addDumpFieldExternal(const std::string & field_id,
                                     DumperIOHelper::Field * field);
   virtual void addDumpFieldExternalToDumper(const std::string & dumper_name,
