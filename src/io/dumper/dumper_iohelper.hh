@@ -98,8 +98,11 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// direct access to the iohelper::Dumper object
   AKANTU_GET_MACRO(Dumper, *dumper, iohelper::Dumper &)
 
+  /// set the timestep of the iohelper::Dumper
   void setTimeStep(Real time_step);
 
 public:
