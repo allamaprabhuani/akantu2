@@ -376,10 +376,10 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
       *contact_traction_it = normal_opening;
       *contact_traction_it *= penalty;
       *contact_opening_it = normal_opening;
+      /// don't consider penetration contribution for delta
       *opening_it = tangential_opening;
       normal_opening.clear();
     }
-    /// don't consider penetration contribution for delta
     else {
       delta += normal_opening_norm * normal_opening_norm;
       contact_traction_it->clear();
