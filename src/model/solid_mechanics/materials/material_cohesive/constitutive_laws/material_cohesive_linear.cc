@@ -369,19 +369,21 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
      */
     Real delta = tangential_opening_norm * tangential_opening_norm * beta2_kappa2;
 
-    /// don't consider penetration contribution for delta
-    if (normal_opening_norm > 0) {
-      delta += normal_opening_norm * normal_opening_norm;
-      contact_traction_it->clear();
-      contact_opening_it->clear();
-    }
-    else {
+    bool penetration = normal_opening_norm < -Math::getTolerance();
+
+    if (penetration) {
       /// use penalty coefficient in case of penetration
       *contact_traction_it = normal_opening;
       *contact_traction_it *= penalty;
       *contact_opening_it = normal_opening;
       *opening_it = tangential_opening;
       normal_opening.clear();
+    }
+    /// don't consider penetration contribution for delta
+    else {
+      delta += normal_opening_norm * normal_opening_norm;
+      contact_traction_it->clear();
+      contact_opening_it->clear();
     }
 
     delta = std::sqrt(delta);
@@ -400,10 +402,10 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(const Array<Real
     if (Math::are_float_equal(*damage_it, 1.))
       traction_it->clear();
     else if (Math::are_float_equal(*damage_it, 0.)) {
-      if (normal_opening_norm > 0.)
-      	*traction_it = *insertion_stress_it;
-      else
+      if (penetration)
 	traction_it->clear();
+      else
+	*traction_it = *insertion_stress_it;
     }
     else {
       *traction_it  = tangential_opening;
