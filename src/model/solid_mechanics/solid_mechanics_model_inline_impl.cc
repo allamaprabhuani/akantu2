@@ -524,12 +524,11 @@ bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_itera
 
   if (converged) {
     EventManager::sendEvent(SolidMechanicsModelEvent::AfterSolveStepEvent(method));
-  }
-
-  if(iter == max_iteration)
+  } else if(iter == max_iteration) {
     AKANTU_DEBUG_WARNING("[" << criteria << "] Convergence not reached after "
                          << std::setw(std::log10(max_iteration)) << iter <<
                          " iteration" << (iter == 1 ? "" : "s") << "!" << std::endl);
+  }
 
   return converged;
 }
