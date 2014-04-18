@@ -77,12 +77,14 @@ public:
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(NbShapeFunctions, nb_shape_functions, UInt);
+  static AKANTU_GET_MACRO_NOT_CONST(NbShapeDerivatives, nb_shape_derivatives, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(ShapeSize, interpolation_property::nb_nodes_per_element, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(ShapeDerivativesSize, (interpolation_property::nb_nodes_per_element * interpolation_property::natural_space_dimension), UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NaturalSpaceDimension, interpolation_property::natural_space_dimension, UInt);
 protected:
   /// nb shape functions
   static const UInt nb_shape_functions;
+  static const UInt nb_shape_derivatives;
 };
 
 /* -------------------------------------------------------------------------- */

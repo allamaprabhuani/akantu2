@@ -164,7 +164,7 @@ void ShapeLinked<kind>::precomputeShapeDerivativesOnControlPoints(const Array<Re
   FEM::extractNodalToElementField(mesh, nodes, x_el,
 				  type, ghost_type);
 
-  UInt nb_shape_functions = ElementClass<type>::getNbShapeFunctions();
+  UInt nb_shape_functions = ElementClass<type>::getNbShapeDerivatives();
 
   Array<Real> ** shapes_derivatives_tmp = new Array<Real> *[nb_shape_functions];
   for (UInt s = 0; s < nb_shape_functions; ++s) {
