@@ -87,6 +87,7 @@ public:
 
   AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ByElementTypeReal &);
   AKANTU_GET_MACRO(Damage, damage, const ByElementTypeReal &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real)
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

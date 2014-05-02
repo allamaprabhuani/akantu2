@@ -1438,6 +1438,30 @@ void Material::onEndSolveStep(const AnalysisMethod & method) {
     this->updateEnergies(*it, _not_ghost);
   }
 }
+/* -------------------------------------------------------------------------- */
+void Material::onDamageIteration() {
+  this->savePreviousState();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::onDamageUpdate() {
+  ByElementTypeArray<UInt>::type_iterator it
+    = this->element_filter.firstType(_all_dimensions, _not_ghost, _ek_not_defined);
+  ByElementTypeArray<UInt>::type_iterator end
+    = element_filter.lastType(_all_dimensions, _not_ghost, _ek_not_defined);
+
+  for(; it != end; ++it) {
+
+    if(!this->potential_energy.exists(*it, _not_ghost)) {
+      UInt nb_element = this->element_filter(*it, _not_ghost).getSize();
+      UInt nb_quadrature_points = this->model->getFEM().getNbQuadraturePoints(*it, _not_ghost);
+
+      this->potential_energy.alloc(nb_element * nb_quadrature_points, 1,
+				   *it, _not_ghost);
+    }
+    this->updateEnergiesAfterDamage(*it, _not_ghost);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 void Material::onDump(){

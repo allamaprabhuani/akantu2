@@ -46,6 +46,12 @@ namespace SolidMechanicsModelEvent {
   struct BeforeDumpEvent {
     BeforeDumpEvent() {}
   };
+  struct BeginningOfDamageIterationEvent {
+    BeginningOfDamageIterationEvent() {}
+  };
+  struct AfterDamageEvent {
+    AfterDamageEvent() {}
+  };
 
 }
 
@@ -71,6 +77,12 @@ protected:
   inline void sendEvent(const SolidMechanicsModelEvent::BeforeDumpEvent & event) {
     onDump();
   }
+  inline void sendEvent(const SolidMechanicsModelEvent::BeginningOfDamageIterationEvent & event) {
+    onDamageIteration();
+  }
+  inline void sendEvent(const SolidMechanicsModelEvent::AfterDamageEvent & event) {
+    onDamageUpdate();
+  }
 
   template<class EventHandler>
   friend class EventHandlerManager;
@@ -82,6 +94,8 @@ public:
   virtual void onBeginningSolveStep(__attribute__((unused)) const AnalysisMethod & method) {}
   virtual void onEndSolveStep(__attribute__((unused)) const AnalysisMethod & method) {}
   virtual void onDump() {}
+  virtual void onDamageIteration() {}
+  virtual void onDamageUpdate() {}
 };
 
 

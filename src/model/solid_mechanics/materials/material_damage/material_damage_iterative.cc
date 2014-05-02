@@ -49,6 +49,9 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(SolidMechani
   this->registerParam("prescribed_dam",      prescribed_dam, 0.1, _pat_parsable | _pat_modifiable, "increase of damage in every step" );
   this->registerParam("dam_threshold",       dam_threshold,  0.8,  _pat_parsable | _pat_modifiable, "damage threshold at which damage damage will be set to 1" );
 
+
+  this->use_previous_stress           = true;
+  this->use_previous_strain           = true;
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
 
@@ -164,12 +167,6 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(ElementType el_ty
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-inline void
-MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam) {
-  sigma *= 1-dam;
-}
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
 UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
 
@@ -203,6 +200,12 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   return nb_damaged_elements;
 
 }
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialDamageIterative<spatial_dimension>::updateEnergiesAfterDamage(ElementType el_type, GhostType ghost_type) {
+  MaterialDamage<spatial_dimension>::updateEnergies(el_type, ghost_type);
+}
+
 /* -------------------------------------------------------------------------- */
 
 INSTANSIATE_MATERIAL(MaterialDamageIterative);

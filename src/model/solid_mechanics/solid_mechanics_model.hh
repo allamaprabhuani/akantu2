@@ -187,6 +187,8 @@ public:
 
   void updateIncrement();
   void updatePreviousDisplacement();
+  void saveStressAndStrainBeforeDamage();
+  void updateEnergiesAfterDamage();
 
   /// Solve the system @f[ A x = \alpha b @f] with A a lumped matrix
   void solveLumped(Array<Real> & x,

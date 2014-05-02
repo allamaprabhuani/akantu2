@@ -114,6 +114,9 @@ protected:
   virtual void updateEnergies(__attribute__((unused)) ElementType el_type,
                               __attribute__((unused)) GhostType ghost_type = _not_ghost) {  }
 
+  virtual void updateEnergiesAfterDamage(__attribute__((unused)) ElementType el_type,
+					 __attribute__((unused)) GhostType ghost_type = _not_ghost) {}
+
   /// set the material to steady state (to be implemented for materials that need it)
   virtual void setToSteadyState(__attribute__((unused)) ElementType el_type,
                                 __attribute__((unused)) GhostType ghost_type = _not_ghost) {  }
@@ -353,6 +356,8 @@ public:
 public:
   virtual void onBeginningSolveStep(const AnalysisMethod & method);
   virtual void onEndSolveStep(const AnalysisMethod & method);
+  virtual void onDamageIteration();
+  virtual void onDamageUpdate(); 
   virtual void onDump();
 
   /* ------------------------------------------------------------------------ */

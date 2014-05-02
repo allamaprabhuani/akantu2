@@ -26,5 +26,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+inline void
+MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam) {
+  sigma *= 1-dam;
+}
 
-
+/* -------------------------------------------------------------------------- */

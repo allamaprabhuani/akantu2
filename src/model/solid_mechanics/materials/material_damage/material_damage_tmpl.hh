@@ -100,6 +100,8 @@ void MaterialDamage<spatial_dimension, Parent>::updateEnergies(ElementType el_ty
   *ints += dint;
   *ed = *ints - *epot;
 
+  ++epsilon_p;
+  ++sigma_p;
   ++epot;
   ++ints;
   ++ed;

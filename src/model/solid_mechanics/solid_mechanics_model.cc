@@ -1956,6 +1956,16 @@ void SolidMechanicsModel::computeCauchyStresses() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::saveStressAndStrainBeforeDamage() {
+  EventManager::sendEvent(SolidMechanicsModelEvent::BeginningOfDamageIterationEvent());
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::updateEnergiesAfterDamage() {
+  EventManager::sendEvent(SolidMechanicsModelEvent::AfterDamageEvent());
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);

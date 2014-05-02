@@ -167,7 +167,7 @@ public:
    		 const GhostType & ghost_type = _not_ghost,
    		 const Array<UInt> & filter_elements = empty_filter) const = 0;
 
-  /// integrate f for all quadrature points of type "type"
+  /// integrate f for all quadrature points of type "type" but don't sum over all quadrature points
   virtual void integrateOnQuadraturePoints(const Array<Real> & f,
 					   Array<Real> &intf,
 					   UInt nb_degree_of_freedom,

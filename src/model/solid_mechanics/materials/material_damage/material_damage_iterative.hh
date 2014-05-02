@@ -67,6 +67,12 @@ public:
   /// update internal field damage
   UInt updateDamage();
 
+  /// update energies after damage has been updated
+  virtual void updateEnergiesAfterDamage(ElementType el_type, GhostType ghost_typ);
+  
+  virtual void onBeginningSolveStep(const AnalysisMethod & method) { };
+
+  virtual void onEndSolveStep(const AnalysisMethod & method) { };
 protected:
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
@@ -91,6 +97,7 @@ protected:
 public:
   /// get max normalized equivalent stress
   AKANTU_GET_MACRO(NormMaxEquivalentStress, norm_max_equivalent_stress, Real);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
