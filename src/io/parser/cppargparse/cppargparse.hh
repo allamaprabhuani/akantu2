@@ -125,11 +125,11 @@ public:
   /// the argument does not exist or was not set (parsed or default value)
   const Argument & operator[](const std::string & name) const;
 
-private:
+public:
   class _Argument;
   template<class T> class ArgumentStorage;
 
-
+private:
   _Argument & _addArgument(const std::string & name_or_flag,
 			     const std::string & description,
 			     int nargs,

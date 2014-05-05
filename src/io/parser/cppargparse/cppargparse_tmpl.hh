@@ -152,10 +152,10 @@ template<class T>
 struct is_vector< std::vector<T> > {
   enum { value = true };
 };
-
+  
 
 /* -------------------------------------------------------------------------- */
-template<class T, bool is_vector = is_vector<T>::value>
+template<class T, bool is_vector = cppargparse::is_vector<T>::value>
 struct cast_helper {
   static T cast(const ArgumentParser::Argument & arg) {
     const ArgumentParser::ArgumentStorage<T> & _arg =
