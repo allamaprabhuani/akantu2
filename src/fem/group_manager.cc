@@ -739,7 +739,7 @@ void GroupManager::createElementGroupFromNodeGroup(const std::string & name,
   ElementGroup & group = createElementGroup(name, dimension, node_group);
 
   CSR<Element> node_to_elem;
-  MeshUtils::buildNode2Elements(mesh, node_to_elem, _all_dimensions);
+  MeshUtils::buildNode2Elements(mesh, node_to_elem, dimension);
 
   std::set<Element> seen;
 
