@@ -78,14 +78,14 @@ public:
   typedef ElementGroups::const_iterator const_element_group_iterator;
 
 #define AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION(group_type,       \
-                                                      function,         \
-                                                      param_in,         \
-                                                      param_out)        \
+						      function,         \
+						      param_in,         \
+						      param_out)        \
   inline BOOST_PP_CAT(BOOST_PP_CAT(const_, group_type), _iterator)      \
     BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const { \
     return BOOST_PP_CAT(group_type, s).function(param_out);             \
   };                                                                    \
-                                                                        \
+									\
   inline BOOST_PP_CAT(group_type, _iterator)                            \
     BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {     \
     return BOOST_PP_CAT(group_type, s).function(param_out);             \
@@ -117,7 +117,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// create a node group
+  /// create an empty node group
   NodeGroup & createNodeGroup(const std::string & group_name,
 			      bool replace_group = false);
 
@@ -126,7 +126,7 @@ public:
   NodeGroup & createFilteredNodeGroup(const std::string & group_name,
 				      const NodeGroup & node_group,
 				      T & filter);
-				      
+
   /// destroy a node group
   void destroyNodeGroup(const std::string & group_name);
 
@@ -171,8 +171,8 @@ public:
 
   /// Create an ElementGroup based on a NodeGroup
   void createElementGroupFromNodeGroup(const std::string & name,
-                                       const std::string & node_group,
-                                       UInt dimension = _all_dimensions);
+				       const std::string & node_group,
+				       UInt dimension = _all_dimensions);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
@@ -185,7 +185,7 @@ public:
 
   inline ElementGroup & getElementGroup(const std::string & name);
   inline NodeGroup    & getNodeGroup(const std::string & name);
-  
+
 
   UInt getNbElementGroups(UInt dimension = _all_dimensions) const;
 
@@ -220,4 +220,3 @@ __END_AKANTU__
 #include "group_manager_inline_impl.cc"
 
 #endif /* __AKANTU_GROUP_MANAGER_HH__ */
-

@@ -102,7 +102,7 @@ public:
   /// BE CAREFUL: it doesn't conserve the element order
   void append(const ElementGroup & other_group);
 
-  inline void add(const Element & el);
+  inline void add(const Element & el, bool add_nodes = false);
   inline void addNode(UInt node_id);
 
   /// function to print the contain of the class

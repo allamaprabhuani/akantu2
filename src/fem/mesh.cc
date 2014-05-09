@@ -207,10 +207,11 @@ void Mesh::printself(std::ostream & stream, int indent) const {
   stream << space << " + spatial dimension : " << this->spatial_dimension << std::endl;
   stream << space << " + nodes [" << std::endl;
   nodes->printself(stream, indent+2);
-  stream << space << " ]" << std::endl;
-
   stream << space << " + connectivities [" << std::endl;
   connectivities.printself(stream, indent+2);
+  stream << space << " ]" << std::endl;
+
+  GroupManager::printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
 

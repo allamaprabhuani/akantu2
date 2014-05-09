@@ -128,6 +128,8 @@ set(AKANTU_CORE_FILES
 
   io/mesh_io.cc
   io/mesh_io.hh
+  io/mesh_io/mesh_io_abaqus.cc
+  io/mesh_io/mesh_io_abaqus.hh
   io/mesh_io/mesh_io_diana.cc
   io/mesh_io/mesh_io_diana.hh
   io/mesh_io/mesh_io_msh.cc

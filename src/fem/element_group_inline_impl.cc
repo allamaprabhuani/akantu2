@@ -30,8 +30,14 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::add(const Element & el) {
+inline void ElementGroup::add(const Element & el, bool add_nodes) {
   addElement(el.type, el.element, el.ghost_type);
+  if(add_nodes) {
+    Array<UInt>::const_vector_iterator it =
+      mesh.getConnectivity(el.type, el.ghost_type).begin(mesh.getNbNodesPerElement(el.type)) + el.element;
+    const Vector<UInt> & conn = *it;
+    for (UInt i = 0; i < conn.size(); ++i) addNode(conn[i]);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

@@ -605,13 +605,36 @@ void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  Real real_size = allocated_size * nb_component * size_of_type / 1024.0;
+  Real real_size = allocated_size * nb_component * size_of_type;
+
+  UInt mult = (std::log(real_size) / std::log(2)) / 10;
+
+  std::string size_prefix;
+  switch(mult) {
+  case 0: size_prefix = "";  break;
+  case 1: size_prefix = "Ki"; break;
+  case 2: size_prefix = "Mi"; break;
+  case 3: size_prefix = "Gi"; break; // I started on this type of machines
+				     // (32bit computers) (Nicolas)
+  case 4: size_prefix = "Ti"; break;
+  case 5: size_prefix = "Pi"; break;
+  case 6: size_prefix = "Ei"; break; // theoritical limit of RAM of the current
+				     // computers in 2014 (64bit computers) (Nicolas)
+  case 7: size_prefix = "Zi"; break;
+  case 8: size_prefix = "Yi"; break;
+  default:
+    AKANTU_DEBUG_ERROR("The programmer in 2014 didn't thought so far (even wikipedia does not go further)."
+		       << " You have at least 1024 times more than a yobibit of RAM!!!"
+		       << " Just add the prefix corresponding in this switch case.");
+  }
+
+  real_size /= Real(1 << (10 * mult));
 
   std::streamsize prec        = stream.precision();
   std::ios_base::fmtflags ff  = stream.flags();
 
   stream.setf (std::ios_base::showbase);
-  stream.precision(2);
+  stream.precision(1);
 
   stream << space << "Array<" << debug::demangle(typeid(T).name()) << "> [" << std::endl;
   stream << space << " + id             : " << this->id << std::endl;
@@ -619,7 +642,7 @@ void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
   stream << space << " + nb_component   : " << this->nb_component << std::endl;
   stream << space << " + allocated size : " << this->allocated_size << std::endl;
   stream << space << " + memory size    : "
-	 << real_size << "kB" << std::endl;
+	 << std::fixed << real_size << size_prefix << "bit" << std::endl;
   if(!AKANTU_DEBUG_LEVEL_IS_TEST())
     stream << space << " + address        : " << std::hex << this->values
 	   << std::dec << std::endl;

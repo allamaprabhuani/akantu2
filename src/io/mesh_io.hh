@@ -93,3 +93,4 @@ __END_AKANTU__
 
 #include "mesh_io_msh.hh"
 #include "mesh_io_diana.hh"
+#include "mesh_io_abaqus.hh"

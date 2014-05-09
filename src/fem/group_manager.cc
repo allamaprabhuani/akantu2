@@ -194,7 +194,7 @@ void GroupManager::destroyAllElementGroups(bool destroy_node_groups) {
     this->destroyElementGroup(eit->first, 
 			      destroy_node_groups);
   }
-  
+
   AKANTU_DEBUG_OUT();
 }
 

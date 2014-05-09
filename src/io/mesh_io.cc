@@ -57,16 +57,18 @@ MeshIO * MeshIO::getMeshIO(const std::string & filename, const MeshIOType & type
       ext = filename.substr(idx+1);
     }
 
-    if(ext == "msh") t = _miot_gmsh;
-    else if(ext == "diana") t = _miot_diana;
-    else AKANTU_EXCEPTION("Cannot guess the type of file of "
-			  << filename << " (ext "<< ext <<"). "
-			  << "Please provide the MeshIOType to the read function");
+    if(ext == "msh") { t = _miot_gmsh;
+    } else if(ext == "diana") { t = _miot_diana;
+    } else if(ext == "inp")   { t = _miot_abaqus;
+    } else AKANTU_EXCEPTION("Cannot guess the type of file of "
+			    << filename << " (ext "<< ext <<"). "
+			    << "Please provide the MeshIOType to the read function");
   }
 
   switch(t) {
-  case _miot_gmsh: return new MeshIOMSH();
-  case _miot_diana: return new MeshIODiana();
+  case _miot_gmsh  : return new MeshIOMSH();
+  case _miot_diana : return new MeshIODiana();
+  case _miot_abaqus: return new MeshIOAbaqus();
   default:
     return NULL;
   }

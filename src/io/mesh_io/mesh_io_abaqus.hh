@@ -26,34 +26,29 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
 #ifndef __AKANTU_MESH_IO_ABAQUS_HH__
 #define __AKANTU_MESH_IO_ABAQUS_HH__
 
-
 #include "mesh_io.hh"
-
 
 __BEGIN_AKANTU__
 
+/* -------------------------------------------------------------------------- */
 class MeshIOAbaqus : public MeshIO {
-  
-  
 public:
-  
-  MeshIOAbaqus() {}
-  virtual ~MeshIOAbaqus() {}
-  
+  MeshIOAbaqus();
+  virtual ~MeshIOAbaqus();
+
   /// read a mesh from the file
   virtual void read(const std::string & filename, Mesh & mesh);
-  
+
   /// write a mesh to a file
-  virtual void write(const std::string & filename, const Mesh & mesh) {}
+  //  virtual void write(const std::string & filename, const Mesh & mesh);
 
+private:
+  /// correspondence between msh element types and akantu element types
+  std::map<std::string, ElementType> _abaqus_to_akantu_element_types;
 };
-
-
-
 
 __END_AKANTU__
 

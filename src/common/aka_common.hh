@@ -214,7 +214,8 @@ enum ElementKind {
 enum MeshIOType {
   _miot_auto,
   _miot_gmsh,
-  _miot_diana
+  _miot_diana,
+  _miot_abaqus,
 };
 
 /// enum AnalysisMethod type of solving method used to solve the equation of motion
