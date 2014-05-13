@@ -49,7 +49,7 @@ public:
   
   typedef T value_type;
   
-  static int dim()
+  constexpr static int dim()
   { return d; }
   
   Point() {
@@ -62,7 +62,12 @@ public:
     for (UInt i=0; i<d; ++i)
       coord_[i] = coordinates[i];
   }
-  
+
+  explicit Point(value_type * coordinates) {
+    for (UInt i=0; i<d; ++i)
+      coord_[i] = coordinates[i];
+  }
+
   // parameter constructor
   template <typename... Args>
   explicit Point(const Args&... args) {
@@ -148,7 +153,7 @@ public:
   
 private:
   
-  Real coord_[d];
+  value_type coord_[d];
 };
 
 

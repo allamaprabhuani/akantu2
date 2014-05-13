@@ -165,6 +165,9 @@ else()
   set(AKANTU_TESTS_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/test" CACHE INTERNAL "")
 endif()
 
+# add directory for local development
+add_subdirectory(dev)
+
 #===============================================================================
 # Install and Packaging
 #===============================================================================

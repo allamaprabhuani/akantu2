@@ -118,10 +118,13 @@ public:
   /// save the matrix in a file using the MatrixMarket file format
   void saveMatrix(const std::string & filename) const;
 
-  /// copy assuming the profil are the same
+  /// copy assuming the profile are the same
   void copyContent(const SparseMatrix & matrix);
+  
+  /// copy profile
+//  void copyProfile(const SparseMatrix & matrix);
 
-  /// add matrix assuming the profil are the same
+  /// add matrix assuming the profile are the same
   void add(const SparseMatrix & matrix, Real alpha);
 
   /// diagonal lumping

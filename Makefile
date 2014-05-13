@@ -63,7 +63,7 @@ test:
 	@if [ ! -f $(BUILDDIR)/Makefile ]; then \
 		more README; \
 	else \
-	  	make -C $(BUILDDIR) check $(MAKEFLAGS); \
+	  	make -C $(BUILDDIR) test $(MAKEFLAGS); \
 	fi
 
 uninstall:

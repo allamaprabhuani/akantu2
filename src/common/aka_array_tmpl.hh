@@ -59,6 +59,27 @@ inline const T & Array<T, is_scal>::operator()(UInt i, UInt j) const {
   return values[i*nb_component + j];
 }
 
+template <class T, bool is_scal>
+inline T & Array<T, is_scal>::operator[](UInt i) {
+  AKANTU_DEBUG_ASSERT(size > 0,
+                      "The vector \"" << id << "\" is empty");
+  AKANTU_DEBUG_ASSERT((i < size*nb_component),
+                      "The value at position [" << i << "] is out of range in vector \"" << id << "\"");
+  return values[i];
+}
+
+/* -------------------------------------------------------------------------- */
+template <class T, bool is_scal>
+inline const T & Array<T, is_scal>::operator[](UInt i) const {
+  AKANTU_DEBUG_ASSERT(size > 0,
+                      "The vector \"" << id << "\" is empty");
+  AKANTU_DEBUG_ASSERT((i < size*nb_component),
+                      "The value at position [" << i << "] is out of range in vector \"" << id << "\"");
+  return values[i];
+}
+
+
+
 /* -------------------------------------------------------------------------- */
 /**
  * append a tuple to the array with the value value for all

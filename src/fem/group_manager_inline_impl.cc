@@ -74,5 +74,15 @@ inline NodeGroup & GroupManager::getNodeGroup(const std::string & name) {
   return *(it->second);
 }
 
+///* -------------------------------------------------------------------------- */
+//template <class node_container>
+//NodeGroup & GroupManager::createNodeGroup(const std::string & group_name, const node_container& c) {
+//  
+//  NodeGroup &ng = createNodeGroup(group_name);
+//  for (typename node_container::const_iterator it = c.begin(); it != c.end(); ++it)
+//    ng.add(*it);
+//}
+
+
 __END_AKANTU__
 

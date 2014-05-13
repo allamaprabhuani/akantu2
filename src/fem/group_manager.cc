@@ -672,7 +672,7 @@ void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
       const Array<T> & dataset = datas(*type_it, *gt);
       UInt nb_element = mesh.getNbElement(*type_it, *gt);
       AKANTU_DEBUG_ASSERT(dataset.getSize() == nb_element,
-			  "Not the same number of elements in the map from MeshData and in the mesh!");
+			  "Not the same number of elements in the map from MeshData "<<dataset_name<<" and in the mesh!");
       for(UInt e(0); e < nb_element; ++e) {
 	std::stringstream sstr; sstr << dataset(e);
 	group_names.insert(sstr.str());

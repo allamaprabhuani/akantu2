@@ -225,6 +225,22 @@ public:
   void assembleStiffnessMatrix();
 
 public:
+
+                              
+  struct PostAssemblyEmptyFunctor {
+    void operator()() const {}
+  };
+                              
+  struct SearchBase {
+    virtual int search(const Real*)
+    { std::cout<<" - Warning: calling default base searcher"<<std::endl; return -1; }
+  };
+  
+  typedef SearchBase search_base;
+                              
+  template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria,class contact_data, class PostAssemblyFunctor>
+  void solveContactStep(contact_data& cd, SearchBase* = new SearchBase(), const PostAssemblyFunctor& = PostAssemblyEmptyFunctor());
+                            
   /**
    * solve a step (predictor + convergence loop + corrector) using the
    * the given convergence method (see akantu::SolveConvergenceMethod)
@@ -232,8 +248,7 @@ public:
    * akantu::SolveConvergenceCriteria)
    **/
   template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
-  bool solveStep(Real tolerance,
-		 UInt max_iteration = 100);
+  bool solveStep(Real tolerance, UInt max_iteration = 100);
 
   template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
   bool solveStep(Real tolerance,
@@ -241,6 +256,7 @@ public:
 		 UInt max_iteration = 100);
 
 public:
+
   /**
    * solve Ku = f using the the given convergence method (see
    * akantu::SolveConvergenceMethod) and the given convergence

@@ -46,21 +46,17 @@ if(SUBVERSION_FOUND)
 	OUTPUT_QUIET)
     endif()
 
-    set(CPPARRAY_SOURCE_DIR ${PROJECT_SOURCE_DIR}/third-party/cpp-array)
-    configure_file(
-      ${CPPARRAY_SOURCE_DIR}/cmake/array-config.hpp.in
-      ${CPPARRAY_SOURCE_DIR}/array/array-config.hpp
-      )
+    add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
+    
+#    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
 
-    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third-party/cpp-array)
-    file(GLOB CPPARRAY_HEADER_FILES "${PROJECT_SOURCE_DIR}/third-party/cpp-array/array/*.hpp")
+    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS})
+
+    list(APPEND CPACK_SOURCE_IGNORE_FILES ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
 
     set(AKANTU_CPPARRAY_INCLUDE_DIR ${CMAKE_PREFIX}/include)
     list(APPEND AKANTU_OPTION_LIST CPPARRAY)
 
-    install(FILES ${CPPARRAY_HEADER_FILES}
-      DESTINATION include/array
-      COMPONENT dev)
   endif()
 else()
   set(AKANTU_USE_CPPARRAY ${AKANTU_CPPARRAY} CACHE BOOL "Use cpp-array library" FORCE)

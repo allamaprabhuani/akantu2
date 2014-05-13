@@ -28,6 +28,15 @@
  *
  */
 
+__END_AKANTU__
+
+#include "solver_mumps.hh"
+
+__BEGIN_AKANTU__
+
+using std::cout;
+using std::endl;
+
 /* -------------------------------------------------------------------------- */
 inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
   AKANTU_DEBUG_IN();
@@ -383,8 +392,19 @@ __BEGIN_AKANTU__
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solve(Array<Real> & increment,
                                 Real block_val) {
-  jacobian_matrix->clear();
 
+  delete jacobian_matrix;
+  std::stringstream sstr_sti; sstr_sti << id << ":jacobian_matrix";
+  jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_sti.str(), memory_id);
+  
+  std::stringstream sstr_solv; sstr_solv << id << ":solver";
+  delete solver;
+  solver = new SolverMumps(*jacobian_matrix, sstr_solv.str());
+  if(solver)
+    solver->initialize(_solver_no_options);
+
+  jacobian_matrix->clear();
+  
   updateResidualInternal(); //doesn't do anything for static
 
   Real c = 0.,d = 0.,e = 0.;
@@ -404,9 +424,6 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
   // J = c M + d C + e K
   if(stiffness_matrix)
     jacobian_matrix->add(*stiffness_matrix, e);
-
-//  if(type != NewmarkBeta::_acceleration_corrector)
-//    jacobian_matrix->add(*stiffness_matrix, e);
 
   if(mass_matrix)
     jacobian_matrix->add(*mass_matrix, c);
@@ -429,7 +446,117 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
   solver->setRHS(*residual);
   // solve @f[ J \delta w = r @f]
   solver->solve(increment);
+  
+  UInt nb_nodes = displacement-> getSize();
+  UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
+
+  bool * boundary_val = boundary->storage();
+  Real * increment_val = increment.storage();
+
+  for (UInt j = 0; j < nb_degree_of_freedom;
+       ++j,++increment_val, ++boundary_val) {
+    if ((*boundary_val)) 
+      *increment_val = 0.0;
+    }
+    
 }
+
+
+template <typename T>
+T Macauley(T v)
+{ return v < 0 ? 0 : v; }
+
+
+
+///* -------------------------------------------------------------------------- */
+//template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria, class contact_data>
+//void SolidMechanicsModel::solveContactStep(contact_data& cd, Real tolerance,
+//                                           UInt max_iteration) {
+//  
+//  
+//  this->implicitPred();
+//  this->updateResidual();
+//  
+//  //this->dump();
+//  
+//  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+//                      "You should first initialize the implicit solver and assemble the stiffness matrix");
+//  
+//  if (method==_implicit_dynamic) {
+//    AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
+//                        "You should first initialize the implicit solver and assemble the mass matrix");
+//  }
+//  
+//  switch (cmethod) {
+//    case _scm_newton_raphson_tangent:
+//      break;
+//    case _scm_newton_raphson_tangent_modified:
+//      this->assembleStiffnessMatrix();
+//      break;
+//    default:
+//      AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
+//  }
+//  
+//  
+//  // implementation of the Uzawa method for solving contact
+//  bool uzawa_converged = false;
+//  UInt k = 0;
+//  
+//
+//  cd.resetMultipliers();
+//  
+//  cout<<"____________"<<endl;
+//  do {
+//    
+//    cout<<"__UZAWA__ "<<k<<endl;
+//    
+//    // initialize Lagrange multipliers
+//    
+//    bool converged = false;
+//    UInt j = 0;
+//    
+//    do {
+//      Real error = 0.;
+//
+//      cout<<"__NEWTON__ "<<j<<endl;
+//
+//      // assemble material matrix
+//      if (cmethod == _scm_newton_raphson_tangent)
+//        this->assembleStiffnessMatrix();
+//      
+//      // compute gaps
+//      uzawa_converged = cd.computeTangentAndResidual();
+//      
+//      // solve
+//      solve<NewmarkBeta::_displacement_corrector > (*increment);
+//      
+//      this->implicitCorr();
+//      this->updateResidual();
+//      
+//      converged = this->testConvergence<criteria > (tolerance, error);
+//      
+//      //      this->dump();
+//      
+//      ++j;
+//      AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
+//                        << std::setw(std::log10(max_iteration)) << j
+//                        << ": error " << error << (converged ? " < " : " > ") << tolerance << std::endl);
+//      
+//    } while (!converged && j < max_iteration);
+//    
+//    // increment uzawa loop counter
+//    ++k;
+//    
+//    AKANTU_DEBUG_INFO("[" << criteria << "] Uzawa convergence iteration "
+//                      << std::setw(std::log10(max_iteration)) << k
+//                      << std::endl);
+//    
+//    
+//  } while (!uzawa_converged && k < max_iteration);
+//  
+//}
+
+
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>

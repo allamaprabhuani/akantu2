@@ -30,17 +30,6 @@
 
 __BEGIN_AKANTU__
 
-const UInt Distance_minimzer<_segment_2>::d;
-const UInt Distance_minimzer<_segment_2>::nb_nodes;
-
-const UInt Distance_minimzer<_triangle_3>::d;
-const UInt Distance_minimzer<_triangle_3>::nb_nodes;
-
-const UInt Distance_minimzer<_triangle_6>::d;
-const UInt Distance_minimzer<_triangle_6>::nb_nodes;
-
-
-
 std::ostream& operator<<(std::ostream& os, nlopt::result r) {
   
   switch (r) {

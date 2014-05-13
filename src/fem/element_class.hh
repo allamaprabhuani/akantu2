@@ -97,7 +97,8 @@ struct GeometricalShape {
 
 template<GeometricalShapeType shape>
 struct GeometricalShapeContains {
-  static inline bool contains(const Vector<Real> & coord);
+  template <class vector_type>
+  static inline bool contains(const vector_type & coord);
 };
 
 #define AKANTU_DEFINE_SHAPE(geom_type, geom_shape)			\
@@ -118,7 +119,8 @@ public:
   }
 
   /// true if the natural coordinates are in the element
-  static inline bool contains(const Vector<Real> & coord);
+  template <class vector_type>
+  static inline bool contains(const vector_type & coord);
 public:
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension,   spatial_dimension,    UInt);
   static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement,  nb_nodes_per_element, UInt);

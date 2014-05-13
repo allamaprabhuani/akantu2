@@ -158,6 +158,8 @@ set(AKANTU_CORE_FILES
   mesh_utils/mesh_utils.cc
   mesh_utils/mesh_utils.hh
   mesh_utils/mesh_utils_inline_impl.cc
+  mesh_utils/mesh_graph.cc
+  mesh_utils/mesh_graph.hh
 
   model/boundary_condition.hh
   model/boundary_condition_functor.hh
@@ -354,4 +356,8 @@ if(NOT _clock_gettime)
 else()
   set(AKANTU_USE_OBSOLETE_GETTIMEOFDAY OFF)
 endif()
+
+list(APPEND AKANTU_BOOST_COMPONENTS
+    graph
+    )
 

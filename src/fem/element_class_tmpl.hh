@@ -152,22 +152,25 @@ GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(UInt t) {
 
 /* -------------------------------------------------------------------------- */
 template<GeometricalType geometrical_type, GeometricalShapeType shape>
+template <class vector_type>
 inline bool
-GeometricalElement<geometrical_type, shape>::contains(const Vector<Real> & coords) {
+GeometricalElement<geometrical_type, shape>::contains(const vector_type & coords) {
   return GeometricalShapeContains<shape>::contains(coords);
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
+template <class vector_type>
 inline bool
-GeometricalShapeContains<_gst_point>::contains(const Vector<Real> & coords) {
+GeometricalShapeContains<_gst_point>::contains(const vector_type & coords) {
   return (coords(0) < std::numeric_limits<Real>::epsilon());
 }
 
 /* -------------------------------------------------------------------------- */
 template<>
+template <class vector_type>
 inline bool
-GeometricalShapeContains<_gst_square>::contains(const Vector<Real> & coords) {
+GeometricalShapeContains<_gst_square>::contains(const vector_type & coords) {
   bool in = true;
   for (UInt i = 0; i < coords.size() && in; ++i)
     in &= ((coords(i) >= -1.) && (coords(i) <= 1.));
@@ -176,8 +179,9 @@ GeometricalShapeContains<_gst_square>::contains(const Vector<Real> & coords) {
 
 /* -------------------------------------------------------------------------- */
 template<>
+template <class vector_type>
 inline bool
-GeometricalShapeContains<_gst_triangle>::contains(const Vector<Real> & coords) {
+GeometricalShapeContains<_gst_triangle>::contains(const vector_type & coords) {
   bool in = true;
   Real sum = 0;
     for (UInt i = 0; (i < coords.size()) && in; ++i) {
@@ -190,8 +194,9 @@ GeometricalShapeContains<_gst_triangle>::contains(const Vector<Real> & coords) {
 
 /* -------------------------------------------------------------------------- */
 template<>
+template <class vector_type>
 inline bool
-GeometricalShapeContains<_gst_prism>::contains(const Vector<Real> & coords) {
+GeometricalShapeContains<_gst_prism>::contains(const vector_type & coords) {
   bool in = ((coords(0) >= -1.) && (coords(0) <= 1.)); // x in segement [-1, 1]
 
   // y and z in triangle

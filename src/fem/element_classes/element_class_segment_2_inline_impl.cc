@@ -71,12 +71,12 @@ template <class vector_type, class matrix_type>
 inline void
 InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(__attribute__ ((unused)) const vector_type & natural_coords,
 							   matrix_type & dnds){
+  
   /// dN1/de
   dnds(0, 0) = - .5;
   /// dN2/de
   dnds(0, 1) =   .5;
 }
-
 
 /* -------------------------------------------------------------------------- */
 template <>

@@ -160,10 +160,7 @@ Point<2> minimize_distance<2>(UInt node, const Element* el, SolidMechanicsModel&
 
 template <>
 Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel& model) {
-#if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)
-  typedef boost::chrono::high_resolution_clock clock_type;
-  typedef typename clock_type::time_point time_type;
-#endif
+
   const UInt d = 3;
   typedef Point<d> point_type;
   
@@ -181,6 +178,8 @@ Point<3> minimize_distance<3>(UInt node, const Element* el, SolidMechanicsModel&
       Distance_minimzer<_triangle_3> data(&x(node), el, model);
 
 #if defined(AKANTU_BOOST_CHRONO) && !defined(AKANTU_NDEBUG)     
+      typedef boost::chrono::high_resolution_clock clock_type;
+      typedef typename clock_type::time_point time_type;
       time_type start = clock_type::now();
 #endif
       data.optimize();

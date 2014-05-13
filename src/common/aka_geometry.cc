@@ -32,6 +32,8 @@
 
 __BEGIN_AKANTU__
 
+using std::cout;
+using std::endl;
 
 /*! \param p - A constant reference to the first point that defines the line segment.
  * \param q - A constant reference to the second point that defines the line segment.
@@ -40,10 +42,11 @@ __BEGIN_AKANTU__
  * on the other side.
  */
 Real left_turn(const Point<2>& p, const Point<2>& q, const Point<2>& r) {
-  if((q[0]-p[0]) * (r[1]-p[1]) > (r[0]-p[0]) * (q[1]-p[1]) )
-    return Real(1.0);
+    
+  if(((q[0]-p[0]) * (r[1]-p[1])) > ((r[0]-p[0]) * (q[1]-p[1])))
+    return 1.;
   else
-    return Real(-1.0);
+    return -1.;
 }
 
 

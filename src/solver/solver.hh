@@ -97,6 +97,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
+
   /// the matrix
   SparseMatrix * matrix;
 

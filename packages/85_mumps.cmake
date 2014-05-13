@@ -36,6 +36,7 @@ mark_as_advanced(AKANTU_USE_THIRD_PARTY_MUMPS)
 if(AKANTU_USE_THIRD_PARTY_MUMPS)
   set(AKANTU_USE_MUMPS ON CACHE BOOL "Add Mumps support in akantu" FORCE)
   set(MUMPS_DEPENDS)
+  enable_language(Fortran)
 
   include(ExternalProject)
   if(AKANTU_USE_MPI)
@@ -61,7 +62,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
   set(MUMPS_LIBRARIES_ALL)
   if(AKANTU_USE_THIRD_PARTY_SCOTCH)
     if(NOT TARGET Scotch)
-      include(${PROJECT_SOURCE_DIR}/packages/scotch.cmake)
+      include(${PROJECT_SOURCE_DIR}/packages/90_scotch.cmake)
     endif()
     list(APPEND MUMPS_DEPENDS Scotch)
     list(APPEND MUMPS_LIBRARIES_ALL ${SCOTCH_LIBRARIES})
@@ -87,7 +88,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS)
     DEPENDS ${MUMPS_DEPENDS}
     PREFIX ${PROJECT_BINARY_DIR}/third-party/build/mumps
     URL ${PROJECT_SOURCE_DIR}/third-party/MUMPS_4.9.2.tar.gz
-#    URL_HASH MD5=1c896cdb61878cf094b779404c6512fd
+    URL_HASH MD5=1c896cdb61878cf094b779404c6512fd
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND cmake -E create_symlink ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc Makefile.inc
     BUILD_COMMAND make d

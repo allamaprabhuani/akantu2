@@ -1,12 +1,11 @@
 #===============================================================================
-# @file   petsc.cmake
+# @file   CMakeLists.txt
 #
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
 #
-# @date   Mon Nov 21 18:19:15 2011
+# @date   Mon Mar 24 11:30:00 2014
 #
-# @brief  package description for PETSc support
+# @brief  configuration file for contact tests
 #
 # @section LICENSE
 #
@@ -26,12 +25,23 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
+# @section DESCRIPTION
+#
 #===============================================================================
 
-add_optional_external_package(PETSc "Add PETSc support in akantu" OFF DEPENDS MPI ARGS COMPONENT ARGS CXX)
+add_mesh(hertz_2D_mesh_test hertz_2D.geo 2 1)
 
-mark_as_advanced(AKANTU_USE_PETSC)
-set(AKANTU_PETSC_FILES  
-solver/solver_petsc.hh
-solver/solver_petsc.cc
-  )
+register_test(test_hertz_2D
+  SOURCES hertz_2D.cc
+  DEPENDENCIES hertz_2D_mesh_test
+  FILES_TO_COPY steel.dat
+)
+
+add_mesh(hertz_3D_mesh_test hertz_3D.geo 3 1)
+
+register_test(test_hertz_3D
+  SOURCES hertz_3D.cc
+  DEPENDENCIES hertz_3D_mesh_test
+  FILES_TO_COPY steel.dat
+)
+

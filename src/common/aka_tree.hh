@@ -100,28 +100,30 @@ static Tree_node_base* local_leaf_increment(Tree_node_base* x) throw () {
   
   Tree_node_base* y = x->parent_;
   if (y->parent_ == x)
-    return y;
+  return y;
   while (x == y->right_) {
     x = y;
     y = y->parent_;
   }
   if (y->parent_ == x)
-    return y;
+  return y;
   if (x->right_ != y)
-    x = y;
+  x = y;
   if (x->right_ != 0)  {
     x = x->right_;
     while (x->left_ != 0)
-      x = x->left_;
+    x = x->left_;
   }
   return x;
 }
 
-Tree_node_base* _tree_leaf_increment(Tree_node_base* x) throw ()
+template <class tree_pointer>
+tree_pointer* _tree_leaf_increment(tree_pointer* x) throw ()
 { return local_leaf_increment(x); }
 
-const Tree_node_base* _tree_leaf_increment(const Tree_node_base* x) throw ()
-{ return local_leaf_increment(const_cast<Tree_node_base*>(x)); }
+template <class tree_pointer>
+const tree_pointer* _tree_leaf_increment(const tree_pointer* x) throw ()
+{ return local_leaf_increment(const_cast<tree_pointer*>(x)); }
 
 
 template<typename _Tp>
@@ -240,50 +242,53 @@ inline bool operator!=(const Tree_leaf_iterator<_Val>& x,
 
 
 
-
-static Tree_node_base*
-local_tree_increment(Tree_node_base* x) throw ()
+template <class tree_pointer>
+static tree_pointer*
+local_tree_increment(tree_pointer* x) throw ()
 {
   if (x->right_ != 0)
   {
     x = x->right_;
     while (x->left_ != 0)
-      x = x->left_;
+    x = x->left_;
   }
   else
   {
-    Tree_node_base* y = x->parent_;
+    tree_pointer* y = x->parent_;
     while (x == y->right_)
     {
       x = y;
       y = y->parent_;
     }
     if (x->right_ != y)
-      x = y;
+    x = y;
   }
   return x;
 }
 
 
-Tree_node_base* _tree_increment(Tree_node_base* x) throw ()
+template <class tree_pointer>
+tree_pointer* _tree_increment(tree_pointer* x) throw ()
 { return local_tree_increment(x); }
 
-const Tree_node_base*
-_tree_increment(const Tree_node_base* x) throw ()
-{ return local_tree_increment(const_cast<Tree_node_base*>(x)); }
+template <class tree_pointer>
+const tree_pointer*
+_tree_increment(const tree_pointer* x) throw ()
+{ return local_tree_increment(const_cast<tree_pointer*>(x)); }
 
-static Tree_node_base*
-local_tree_decrement(Tree_node_base* x) throw () {
+template <class tree_pointer>
+static tree_pointer*
+local_tree_decrement(tree_pointer* x) throw () {
   if (x->parent_->parent_ == x)
-    x = x->right_;
+  x = x->right_;
   else if (x->left_ != 0) {
     Tree_node_base* y = x->left_;
     while (y->right_ != 0)
-      y = y->right_;
+    y = y->right_;
     x = y;
   }
   else {
-    Tree_node_base* y = x->parent_;
+    tree_pointer* y = x->parent_;
     while (x == y->left_) {
       x = y;
       y = y->parent_;
@@ -293,11 +298,13 @@ local_tree_decrement(Tree_node_base* x) throw () {
   return x;
 }
 
-Tree_node_base* _tree_decrement(Tree_node_base* x) throw ()
+template <class tree_pointer>
+tree_pointer* _tree_decrement(tree_pointer* x) throw ()
 { return local_tree_decrement(x); }
 
-const Tree_node_base* _tree_decrement(const Tree_node_base* x) throw ()
-{ return local_tree_decrement(const_cast<Tree_node_base*>(x)); }
+template <class tree_pointer>
+const tree_pointer* _tree_decrement(const tree_pointer* x) throw ()
+{ return local_tree_decrement(const_cast<tree_pointer*>(x)); }
 
 
 // iterators
@@ -351,7 +358,7 @@ struct Tree_iterator
     self_type tmp = *this;
     node_ = _tree_decrement(node_);
     return tmp;
-  }  
+  }
   
   
   self_type left()
@@ -367,7 +374,7 @@ struct Tree_iterator
     assert(node_ != nullptr);
     return node_->left_ == nullptr && node_->right_ == nullptr;
   }
-
+  
   
   bool operator==(const self_type& x) const
   { return node_ == x.node_; }
@@ -443,12 +450,12 @@ struct Tree_const_iterator
   
   self_type parent()
   { return self_type(static_cast<link_type>(node_->parent_)); }
-
+  
   bool is_leaf() {
     assert(node_ != nullptr);
     return node_->left_ == nullptr && node_->right_ == nullptr;
   }
-
+  
   
   bool operator==(const self_type& x) const
   { return node_ == x.node_; }
@@ -479,7 +486,7 @@ inline bool operator!=(const Tree_iterator<_Val>& x,
 template <class iterator_type, class functor_type>
 void inorder(iterator_type it, functor_type& fn) {
   if (it.node_ == nullptr)
-    return;
+  return;
   inorder(it.left(), fn);
   fn(it);
   inorder(it.right(), fn);
@@ -488,7 +495,7 @@ void inorder(iterator_type it, functor_type& fn) {
 template <class iterator_type, class functor_type>
 void preorder(iterator_type it, functor_type& fn) {
   if (it.node_ == nullptr)
-    return;
+  return;
   fn(it);
   preorder(it.left(), fn);
   preorder(it.right(), fn);
@@ -497,7 +504,7 @@ void preorder(iterator_type it, functor_type& fn) {
 template <class iterator_type, class functor_type>
 void postorder(iterator_type it, functor_type& fn) {
   if (it.node_ == nullptr)
-    return;
+  return;
   postorder(it.left(), fn);
   postorder(it.right(), fn);
   fn(it);
@@ -512,11 +519,11 @@ class Tree
   typedef typename _Alloc::template rebind<Tree_node<T> >::other
   _Node_allocator;
   
-protected:
+  protected:
   typedef Tree_node_base* base_ptr;
   typedef const Tree_node_base* const_base_ptr;
   
-public:
+  public:
   
   typedef T value_type;
   typedef value_type* pointer;
@@ -540,7 +547,7 @@ public:
   get_allocator() const
   { return allocator_type(_get_Node_allocator()); }
   
-private:
+  private:
   
   link_type _get_node()
   { return impl_._Node_allocator::allocate(1); }
@@ -577,7 +584,7 @@ private:
     return tmp;
 	}
   
-private:
+  private:
   
   template<typename _Cost_functor>
   struct Tree_impl : public _Node_allocator
@@ -601,7 +608,7 @@ private:
     header_(), node_count_(0)
     { _M_initialize(); }
     
-	private:
+    private:
     void
     _M_initialize()
     {
@@ -611,7 +618,7 @@ private:
     }
 	};
   
-private:
+  private:
   
   Tree_impl<cost_functor> impl_;          //!< Tree implementation instance
   
@@ -701,7 +708,7 @@ private:
     try
     {
       if (x->right_)
-        top->right_ = _copy(_right(x), top);
+      top->right_ = _copy(_right(x), top);
       p = top;
       x = _left(x);
       
@@ -711,7 +718,7 @@ private:
         p->left_ = y;
         y->parent_ = p;
         if (x->right_)
-          y->right_ = _copy(_right(x), y);
+        y->right_ = _copy(_right(x), y);
         p = y;
         x = _left(x);
       }
@@ -730,25 +737,25 @@ private:
       
       link_type r = _right(x);
       if (r)
-        if (r->parent_ != x) {
-          cout<<"*** ERROR *** Integrity check failed"<<endl;
-          cout<<"Right child parent mismatch"<<endl;
-          exit(1);
-        }
+      if (r->parent_ != x) {
+        cout<<"*** ERROR *** Integrity check failed"<<endl;
+        cout<<"Right child parent mismatch"<<endl;
+        exit(1);
+      }
       link_type l = _left(x);
       if (l)
-        if (l->parent_ != x) {
-          cout<<"*** ERROR *** Integrity check failed"<<endl;
-          cout<<"Left child parent mismatch"<<endl;
-          exit(1);
-        }
+      if (l->parent_ != x) {
+        cout<<"*** ERROR *** Integrity check failed"<<endl;
+        cout<<"Left child parent mismatch"<<endl;
+        exit(1);
+      }
       _check_integrity(r);
       x = _left(x);
     }
   }
   
   
-public:
+  public:
   
   typedef Tree_iterator<value_type> iterator;
   typedef Tree_const_iterator<value_type> const_iterator;
@@ -841,13 +848,13 @@ public:
   
   const_leaf_iterator leaves_end() const
   { return const_leaf_iterator(static_cast<const_link_type>(&impl_.header_)); }
-
+  
   iterator root()
   { return iterator(static_cast<link_type>(impl_.header_.parent_)); }
-
+  
   const_iterator root() const
   { return const_iterator(static_cast<const_link_type>(impl_.header_.parent_)); }
-    
+  
   bool empty() const
   { return impl_.node_count_ == 0; }
   
@@ -881,7 +888,7 @@ public:
   }
   
   
-private:
+  private:
   
   void _add_level(std::queue<link_type>& q, base_ptr x, size_t h, size_t level) {
     
@@ -890,9 +897,9 @@ private:
       if (x->right_ != 0) _add_level(q, x->right_, h+1, level);
     }
     else if (h == level)
-      q.push(static_cast<link_type>(x));
+    q.push(static_cast<link_type>(x));
     else
-      return;
+    return;
   }
   
   
@@ -903,7 +910,7 @@ private:
     cout<<"inside inserting two for iterators"<<endl;
     cout<<"left pointer "<<l<<endl;
     if (l)
-      cout<<"left "<<_value(l)<<endl;
+    cout<<"left "<<_value(l)<<endl;
     cout<<"right pointer "<<r<<endl;
     cout<<"right "<<_value(r)<<endl;
 #endif
@@ -915,7 +922,7 @@ private:
     // get left most
     base_ptr lt = r;
     while (lt->left_ != 0)
-      lt = lt->left_;
+    lt = lt->left_;
     
 #ifdef DEBUG_TREE
     cout<<"left most -> "<<_value(lt)<<endl;
@@ -923,13 +930,13 @@ private:
     
     // count nodes
     if (count)
-      for (iterator it(static_cast<link_type>(lt)); it != end(); ++it)
-        ++impl_.node_count_;
+    for (iterator it(static_cast<link_type>(lt)); it != end(); ++it)
+    ++impl_.node_count_;
     
     // get right most
     base_ptr rt = r;
     while (rt->right_ != 0)
-      rt = rt->right_;
+    rt = rt->right_;
     
     // if l is not null, create a new node
     link_type lr = static_cast<link_type>(r);
@@ -948,7 +955,7 @@ private:
       l->parent_ = lr;
       
     } else
-      _leftmost() = lt;
+    _leftmost() = lt;
     
     // fix header
     if (lr->parent_ == _end()) {
@@ -959,9 +966,9 @@ private:
     } else {
       // fix parent pointers
       if (p->right_ == l)
-        p->right_ = lr;
+      p->right_ = lr;
       else if (p->left_ == l)
-        p->left_ = lr;
+      p->left_ = lr;
     }
     
     // recursively fix parents
@@ -981,7 +988,7 @@ private:
   
   
   
-public:
+  public:
   
   
   struct _Queue_compare {
@@ -1010,11 +1017,11 @@ public:
     
     // check for empty tree
     if (!result)
-      return iterator(nullptr);
+    return iterator(nullptr);
     
     // check for leaf node
     else if (_is_leaf(result))
-      return iterator(result);
+    return iterator(result);
     
     // compute combined cost
     Real bcost = impl_.cost_(impl_.cost_(v, _value(result)));
@@ -1077,7 +1084,7 @@ public:
 #endif
       }
       if(!_is_leaf(nd->left_))
-        q.push(std::make_tuple(_left(nd), e, c));
+      q.push(std::make_tuple(_left(nd), e, c));
       
       // do right node
       c = impl_.cost_(impl_.cost_(v, _value(nd->right_)));
@@ -1092,7 +1099,7 @@ public:
 #endif
       }
       if(!_is_leaf(nd->right_))
-        q.push(std::make_tuple(_right(nd), e, c));
+      q.push(std::make_tuple(_right(nd), e, c));
       
     } // while queue is not empty
     
@@ -1114,7 +1121,7 @@ public:
     link_type x = _begin();
     
     if (!x)
-      return iterator(nullptr);
+    return iterator(nullptr);
     
 #ifdef DEBUG_TREE
     cout<<"root -> "<<_value(x)<<endl;
@@ -1154,7 +1161,7 @@ public:
       
       // cannot do any better, insert the volumes in the tree
       if (ae >= bcost)
-        break;
+      break;
       else {
         
         auto lv = impl_.cost_(v, _value(x->left_));
@@ -1201,6 +1208,56 @@ public:
     return iterator(result);
   }
   
+  private:
+  
+  template <class functor_type>
+  void _execute_at_leaves(iterator x, std::set<base_ptr>& visited, functor_type& fn) {
+    
+    auto it = visited.find(x.node_);
+    if (it != visited.end())
+    return;
+    
+    visited.insert(x.node_);
+    
+    if (x.is_leaf())
+    fn(x);
+    else {
+      if (x.node_->left_ != 0) _execute_at_leaves(iterator(static_cast<link_type>(x.node_->left_)), visited, fn);
+      if (x.node_->right_ != 0) _execute_at_leaves(iterator(static_cast<link_type>(x.node_->right_)), visited, fn);
+    }
+  }
+  
+  public:
+  
+  //! Collect neighbors
+  /*! This function is used to collect neighbors from a tree given a functor.
+   * The functor should implement a parameterless and a one-parameter operator() overloads.
+   * The first load is used as the predicate to finish the search of neighbors, whereas
+   * the second one is executed at leaves.
+   */
+  template <class functor_type>
+  void collect_neighbors(iterator it, functor_type& fn) {
+    
+    // check for null ptr
+    if (it.node_ == nullptr)
+    return;
+    
+    std::set<base_ptr> visited;
+    
+    base_ptr p = it.node_;
+    
+    // execute while predicate is not true
+    while (!fn()) {
+      
+      p = p->parent_;
+      
+      // root node
+      if (p == _root()->parent_)
+      break;
+      
+      _execute_at_leaves(iterator(static_cast<link_type>(p)), visited, fn);
+    }
+  }
   
   template <typename Arg>
   std::pair<iterator,bool> cheap_insert(Arg&& v) {
@@ -1211,7 +1268,7 @@ public:
     return std::pair<iterator, bool>(_insert(it.node_, r), true);
   }
   
-    
+  
   template <typename Arg>
   std::pair<iterator,bool> insert(Arg&& v) {
     
@@ -1236,24 +1293,24 @@ public:
     
     base_ptr x = it.node_;
     if (!x)
-      return iterator(nullptr);
+    return iterator(nullptr);
     if (x == _root())
-      return end();
+    return end();
     
     base_ptr p = x->parent_;
     assert (p != 0);
     if (p->left_ == x)
-      return iterator(_right(p));
+    return iterator(_right(p));
     return iterator(_left(p));
   }
   
-public:
+  public:
   
   iterator relocate_parent(iterator it) {
     
 #if DEBUG_TREE
     if (it.node_)
-      cout<<"relocating node "<<_value(it.node_)<<endl;
+    cout<<"relocating node "<<_value(it.node_)<<endl;
 #endif
     
     link_type x = static_cast<link_type>(it.node_);
@@ -1261,14 +1318,14 @@ public:
     
     // null pointer
     if (!x)
-      return end();
+    return end();
     
     // get parent
     link_type p = _parent(x);
     
     // if parent is header return root
     if (p == _end())
-      return iterator(_begin());
+    return iterator(_begin());
     
     // get grand-parent
     link_type gp = _parent(p);
@@ -1302,7 +1359,7 @@ public:
       cout<<"setting parent->parent->right to sibling"<<endl;
 #endif
     } else
-      assert(false);
+    assert(false);
     
     // set parent of sibling
     s->parent_ = p->parent_;
@@ -1327,7 +1384,7 @@ public:
 #ifdef DEBUG_TREE
     cout<<"best sibling for relocation -> "<<bit.node_<<endl;
     if (it.node_)
-      cout<<" best sibling value -> "<<_value(bit.node_)<<endl;
+    cout<<" best sibling value -> "<<_value(bit.node_)<<endl;
 #endif
     
     iterator result = _insert(bit.node_, x, false);
@@ -1335,12 +1392,12 @@ public:
     // set leftmost and rightmost
     base_ptr lt = _root();
     while (lt->left_ != 0)
-      lt = lt->left_;
+    lt = lt->left_;
     _leftmost() = lt;
     
     base_ptr rt = _root();
     while (rt->right_ != 0)
-      rt = rt->right_;
+    rt = rt->right_;
     _rightmost() = rt;
     
     return result;
@@ -1353,7 +1410,7 @@ public:
     
     // null pointer
     if (!x)
-      return end();
+    return end();
     
     // root node
     else if (x == _root()) {
@@ -1381,7 +1438,7 @@ public:
     if (_leftmost() == x) {
       base_ptr l = s;
       while (l->left_ != 0)
-        l = l->left_;
+      l = l->left_;
       _leftmost() = l;
 #ifdef DEBUG_TREE
       cout<<"x is leftmost, so setting leftmost to "<<_value(l)<<endl;
@@ -1389,7 +1446,7 @@ public:
     } if (_rightmost() == x) {
       base_ptr r = s;
       while (r->right_ != 0)
-        r = r->right_;
+      r = r->right_;
       _rightmost() = r;
 #ifdef DEBUG_TREE
       cout<<"x is rightmost, so setting rightmost to "<<_value(r)<<endl;
@@ -1420,9 +1477,9 @@ public:
     cout<<"p right -> "<<p->right_<<endl;
     cout<<"p left -> "<<p->left_<<endl;
     if (p->right_)
-      cout<<"p right value -> "<<_value(p->right_)<<endl;
+    cout<<"p right value -> "<<_value(p->right_)<<endl;
     if (p->left_)
-      cout<<"p left value -> "<<_value(p->left_)<<endl;
+    cout<<"p left value -> "<<_value(p->left_)<<endl;
 #endif
     
     // recursively fix parents
@@ -1443,7 +1500,7 @@ public:
   Real volume() const {
     Real v = 0;
     for (const_iterator it = begin(); it != end(); ++it)
-      v += it->measure();
+    v += it->measure();
     return v;
   }
   
@@ -1453,7 +1510,7 @@ public:
     os<<"Tree: count "<<t.impl_.node_count_<<endl;
     os<<"  header: "<<&t.impl_.header_<<endl;
     if (t.impl_.header_.parent_)
-      os<<"  ROOT: "<<t.impl_.header_.parent_<<", value "<<_value(t.impl_.header_.parent_)<<endl;
+    os<<"  ROOT: "<<t.impl_.header_.parent_<<", value "<<_value(t.impl_.header_.parent_)<<endl;
     os<<"  left: "<<t.impl_.header_.left_<<endl;
     os<<"  right: "<<t.impl_.header_.right_<<endl;
     size_t c = 0;
@@ -1466,27 +1523,27 @@ public:
       if (it.node_ == t.impl_.header_.parent_) {
         os<<"    ROOT "<<it.node_;
         if (it.node_ == t._leftmost())
-          os<<" [LEFTMOST]";
+        os<<" [LEFTMOST]";
         if (it.node_ == t._rightmost())
-          os<<" [RIGHTMOST]";
+        os<<" [RIGHTMOST]";
         os<<"\n      value: "<<*it<<endl;
         os<<"      parent: "<<it.node_->parent_<<endl;
       } else {
         os<<"    pointer "<<it.node_;
         if (it.node_ == t._leftmost())
-          os<<" [LEFTMOST]";
+        os<<" [LEFTMOST]";
         if (it.node_ == t._rightmost())
-          os<<" [RIGHTMOST]";
+        os<<" [RIGHTMOST]";
         os<<"\n      value: "<<*it<<endl;
         os<<"      parent: "<<it.node_->parent_<<", value "<<_value(it.node_->parent_)<<endl;
       }
       
       if (it.node_->left_)
-        os<<"      left: "<<it.node_->left_<<", value "<<_value(it.node_->left_)<<endl;
+      os<<"      left: "<<it.node_->left_<<", value "<<_value(it.node_->left_)<<endl;
       if (it.node_->right_)
-        os<<"      right: "<<it.node_->right_<<", value "<<_value(it.node_->right_)<<endl;
+      os<<"      right: "<<it.node_->right_<<", value "<<_value(it.node_->right_)<<endl;
       if (!it.node_->left_ && !it.node_->right_)
-        os<<"      leaf"<<endl;
+      os<<"      leaf"<<endl;
       os<<"      cost: "<<cost<<endl;
       os<<endl;
       
@@ -1495,16 +1552,16 @@ public:
     cout<<"total cost -> "<<v<<endl;
     
     if (c != t.impl_.node_count_)
-      cout<<"*** WARNING *** Tree node count mismatch "<<t.impl_.node_count_<<" != "<<c<<endl;
+    cout<<"*** WARNING *** Tree node count mismatch "<<t.impl_.node_count_<<" != "<<c<<endl;
     return os;
   }
-      
+  
   template <class functor_type>
   functor_type execute_at_level(size_t level, functor_type fn) {
     
     link_type x = _begin();
     if (x == nullptr)
-      return fn;
+    return fn;
     
     std::queue<link_type> q;
     _add_level(q, x, 0, level);
@@ -1528,10 +1585,10 @@ struct Cost_functor {
   
   auto operator()(const object_type& o) const -> decltype(o.measure())
   { return o.measure(); }
-
+  
   auto operator()(const object_type& o1, const object_type& o2) const -> decltype(o1+o2)
   { return (o1+o2); }
-
+  
 };
 
 
@@ -1551,7 +1608,6 @@ tree_type* construct_tree_bottom_up(const volume_container& volumes)
   // online tree type definitions
   typedef typename tree_type::value_type volume_type;
   typedef typename tree_type::cost_functor cost_functor;
-  typedef typename tree_type::link_type link_type;
   typedef typename tree_type::iterator iterator_type;
   
   // queue type definitions
@@ -1609,11 +1665,11 @@ tree_type* construct_tree_bottom_up(const volume_container& volumes)
     
     paired_iterator it = s.find(node);
     if (it != s.end())
-      continue;
+    continue;
     
     it = s.find(pair);
     if (it != s.end())
-      continue;
+    continue;
     
 #if DEBUG_TREE
     cout<<t<<endl;
@@ -1707,7 +1763,7 @@ struct Volume_creator<Ball<d> > {
     size_t nnodes = coord.size();
     pts.reserve(nnodes);
     for (size_t i=0; i<nnodes; ++i)
-      pts.push_back(point_type(coord[i]));
+    pts.push_back(point_type(coord[i]));
     return bounding_ball<d>(pts);
   }
 };
@@ -1724,9 +1780,9 @@ struct Volume_creator<BoundingBox<d> > {
     size_t nnodes = coord.size();
     pts.reserve(nnodes);
     for (size_t i=0; i<nnodes; ++i)
-      pts.push_back(point_type(coord[i]));
+    pts.push_back(point_type(coord[i]));
     return BoundingBox<d>(pts.begin(), pts.end());
-  }  
+  }
 };
 
 
@@ -1738,7 +1794,6 @@ tree_type* construct_tree_bottom_up(model_type& model) {
   // online tree type definitions
   typedef typename tree_type::value_type volume_type;
   typedef typename tree_type::cost_functor cost_functor;
-  typedef typename tree_type::link_type link_type;
   typedef typename tree_type::iterator iterator_type;
   
   // queue type definitions
@@ -1748,14 +1803,13 @@ tree_type* construct_tree_bottom_up(model_type& model) {
   // already paired container type definitions
   typedef std::set<iterator_type> paired_set;
   typedef typename paired_set::iterator paired_iterator;
-  
-  
+    
   tree_type* tp = new tree_type();
   tree_type& t = *tp;
   const cost_functor& cost = t.cost();
   std::vector<iterator_type> links;
   
-  typedef typename model_type::mesh_type mesh_type;  
+  typedef typename model_type::mesh_type mesh_type;
   
   mesh_type& mesh = model.getMesh();
   int dim = mesh.getSpatialDimension();
@@ -1780,8 +1834,8 @@ tree_type* construct_tree_bottom_up(model_type& model) {
       volume_type v = Volume_creator<volume_type>::create(coord);
       
       // do not add zero measure volumes
-      if (v.measure() == 0)
-        continue;
+      if (v.measure() == 0 && dim != 1)
+      continue;
       
       std::pair<iterator_type, bool> p = t.insert(v);
       assert(p.second);
@@ -1793,7 +1847,7 @@ tree_type* construct_tree_bottom_up(model_type& model) {
         cout<<"*** ERROR *** Could not add data. Aborting..."<<endl;
         exit(1);
       }
-        
+      
       
     } // loop over elements
   } // loop over types of element
@@ -1835,11 +1889,11 @@ tree_type* construct_tree_bottom_up(model_type& model) {
     
     paired_iterator it = s.find(node);
     if (it != s.end())
-      continue;
+    continue;
     
     it = s.find(pair);
     if (it != s.end())
-      continue;
+    continue;
     
 #if DEBUG_TREE
     cout<<t<<endl;
@@ -1917,11 +1971,186 @@ tree_type* construct_tree_bottom_up(model_type& model) {
 }
 
 
+// bottom up tree construction
+template <class tree_type, class element_container>
+tree_type* construct_tree_bottom_up(element_container& elems) {
+  
+  // element type
+  typedef typename element_container::value_type element_type;
+  
+  // online tree type definitions
+  typedef typename tree_type::value_type volume_type;
+  typedef typename tree_type::cost_functor cost_functor;
+  typedef typename tree_type::iterator iterator_type;
+  
+  // queue type definitions
+  typedef std::tuple<iterator_type, iterator_type, Real> tuple_type;
+  typedef typename std::priority_queue<tuple_type, std::vector<tuple_type>, Tuple_compare<iterator_type> > queue_type;
+  
+  // already paired container type definitions
+  typedef std::set<iterator_type> paired_set;
+  typedef typename paired_set::iterator paired_iterator;
+  
+  tree_type* tp = new tree_type();
+  tree_type& t = *tp;
+  const cost_functor& cost = t.cost();
+  std::vector<iterator_type> links;
+  
+  size_t numVolumes = 0;
+  
+  for (typename element_container::iterator it = elems.begin();
+       it != elems.end(); ++it) {
+    
+    element_type &el = *it;
+    
+    // vector of coordinates for update
+    std::vector<const Real*> coord = el.coordinates();
+    
+    // create leaf volume
+    volume_type v = Volume_creator<volume_type>::create(coord);
+    
+    // do not add zero measure volumes
+    if (v.measure() == 0)
+    continue;
+    
+    std::pair<iterator_type, bool> p = t.insert(v);
+    assert(p.second);
+    links.push_back(p.first);
+    ++numVolumes;
+    
+    // save leaf data
+    if (!t.add_data(p.first,el)) {
+      cout<<"*** ERROR *** Could not add data. Aborting..."<<endl;
+      exit(1);
+    }
+    
+  } // loop over elements in container
+  
+  if (numVolumes == 0) {
+    cout<<"*** ERROR *** No volumes were created. Aborting..."<<endl;
+    exit(1);
+  }
+  
+  queue_type q;
+  paired_set s;
+  
+  iterator_type ii,jj;
+  for (size_t i=0; i<numVolumes-1; ++i) {
+    
+    Real merged = std::numeric_limits<Real>::infinity();
+    
+    for (size_t j=i+1; j<numVolumes; ++j) {
+      
+      volume_type v = cost(*links[i], *links[j]);
+      Real measure = v.measure();
+      if (measure < merged) {
+        ii = links[i];
+        jj = links[j];
+        merged = measure;
+      }
+    }
+    q.push(std::make_tuple(ii,jj,merged));
+  }
+  
+  while (!q.empty()) {
+    
+    // best candidate
+    auto tuple = q.top();
+    iterator_type node = std::get<0>(tuple);
+    iterator_type pair = std::get<1>(tuple);
+    
+    q.pop();
+    
+    paired_iterator it = s.find(node);
+    if (it != s.end())
+    continue;
+    
+    it = s.find(pair);
+    if (it != s.end())
+    continue;
+    
+#if DEBUG_TREE
+    cout<<t<<endl;
+    cout<<"node -> "<<node.node_<<endl;
+    cout<<"node value -> "<<*node<<endl;
+    cout<<"pair -> "<<pair.node_<<endl;
+    cout<<"pair value -> "<<*pair<<endl;
+    cout<<"volume -> "<<std::get<2>(tuple)<<endl;
+    
+#endif
+    
+    // obtain best pair from online tree
+    iterator_type best = t.sibling(node);
+#if DEBUG_TREE
+    cout<<"best sibling -> "<<*best<<endl;
+#endif
+    if (pair == best) {
+      
+      iterator_type parent = t.relocate_parent(node);
+      
+      assert(parent != t.end());
+      
+#if DEBUG_TREE
+      cout<<"BEST SIBLING MATCHES! relocating..."<<endl;
+      cout<<"  parent -> "<<*parent<<endl;
+#endif
+      
+      // add paired nodes to container
+      s.insert(node);
+      s.insert(pair);
+      
+      // compute best pair for the parent
+      best = t.sibling(parent);
+      
+      if (best != t.end()) {
+        
+        tuple_type tuple = std::make_tuple(parent, best, cost(cost(*parent,*best)));
+        q.push(tuple);
+        
+        iterator_type node = std::get<0>(tuple);
+        iterator_type pair = std::get<1>(tuple);
+        
+#if DEBUG_TREE
+        cout<<"  pushing new tuple "<<endl;
+        cout<<"  node -> "<<*node<<endl;
+        cout<<"  pair -> "<<*pair<<endl;
+        cout<<"  volume -> "<<std::get<2>(tuple)<<endl;
+#endif
+      }
+    }
+    // else enqueue new pair
+    else {
+      
+      if (best != t.end()) {
+        
+        tuple_type tuple = std::make_tuple(node,best, cost(cost(*node, *best)));
+        q.push(tuple);
+        
+        iterator_type node = std::get<0>(tuple);
+        iterator_type pair = std::get<1>(tuple);
+        
+#if DEBUG_TREE
+        cout<<"BEST SIBLING DOES NOT MATCH!"<<endl;
+        cout<<"  pushing new tuple "<<endl;
+        cout<<"  node -> "<<*node<<endl;
+        cout<<"  pair -> "<<*pair<<endl;
+        cout<<"  volume -> "<<std::get<2>(tuple)<<endl;
+#endif
+      }
+      
+    }
+  }
+  
+  return tp;
+}
+
+
+
+
 template <class tree_type>
 void print_mathematica(tree_type& t) {
   
   typedef typename tree_type::value_type volume_type;
-  typedef typename tree_type::const_leaf_iterator iterator;
   
   int d = volume_type::dim();
   
@@ -1929,12 +2158,12 @@ void print_mathematica(tree_type& t) {
   cout.precision(2);
   
   if (d == 2)
-    cout<<"Graphics[{";
+  cout<<"Graphics[{";
   else
-    cout<<"Graphics3D[{";
+  cout<<"Graphics3D[{";
   
   for (typename tree_type::const_leaf_iterator it = t.leaves_begin(); it != t.leaves_end(); ++it)
-    cout<<*it<<", ";
+  cout<<*it<<", ";
   
   cout<<"}];"<<endl;
 }
@@ -1962,7 +2191,7 @@ void export_video(tree& t, Real duration, Real min_opacity, std::string pre = ""
   int d = volume_type::dim();
   cout<<std::fixed;
   cout.precision(2);
-    
+  
   std::tuple<size_t, size_t, size_t> h = t.height();
   
   typename tree::iterator it = t.begin();
@@ -1971,7 +2200,7 @@ void export_video(tree& t, Real duration, Real min_opacity, std::string pre = ""
   
   // get bounding box
   for (; it != t.end(); ++it)
-    bb += it->bounding_box();
+  bb += it->bounding_box();
   
   std::string figs;
   int H = std::get<2>(h);
@@ -1986,10 +2215,10 @@ void export_video(tree& t, Real duration, Real min_opacity, std::string pre = ""
     Real opacity = (1 - min_opacity)*static_cast<double>(l)/H + min_opacity;
     
     if (d == 2)
-      cout<<g<<" = Graphics[{Opacity["<<stringify(opacity)<<"],"<<pre;
+    cout<<g<<" = Graphics[{Opacity["<<stringify(opacity)<<"],"<<pre;
     else
-      cout<<g<<" = Graphics3D[{Opacity["<<stringify(opacity)<<"],"<<pre;
-          
+    cout<<g<<" = Graphics3D[{Opacity["<<stringify(opacity)<<"],"<<pre;
+    
     t.execute_at_level(l, [](iterator it){ cout<<*it<<", ";});
     
     figs += figs.empty() ? g : (','+g);

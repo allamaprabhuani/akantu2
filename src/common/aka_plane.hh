@@ -53,6 +53,12 @@ struct Plane {
   value_type distance() const
   { return d_; }
   
+  friend std::ostream& operator<<(std::ostream& os, const Plane& pi) {
+    
+    os<<"Plane[normal: "<<pi.normal()<<", origin distance: "<<pi.distance()<<"]"<<std::endl;
+    return os;
+  }
+  
 private:
   
   point_type n_;     //!< Plane unit normal

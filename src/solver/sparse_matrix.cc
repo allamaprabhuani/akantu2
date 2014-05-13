@@ -590,6 +590,17 @@ void SparseMatrix::copyContent(const SparseMatrix & matrix) {
   AKANTU_DEBUG_OUT();
 }
 
+///* -------------------------------------------------------------------------- */
+//void SparseMatrix::copyProfile(const SparseMatrix & matrix) {
+//  AKANTU_DEBUG_IN();
+//  irn = matrix.irn;
+//  jcn = matrix.jcn;
+//  nb_non_zero = matrix.nb_non_zero;
+//  irn_jcn_k = matrix.irn_jcn_k;
+//  a.resize(nb_non_zero);
+//  AKANTU_DEBUG_OUT();
+//}
+
 /* -------------------------------------------------------------------------- */
 void SparseMatrix::add(const SparseMatrix & matrix, Real alpha) {
   AKANTU_DEBUG_ASSERT(nb_non_zero == matrix.getNbNonZero(),

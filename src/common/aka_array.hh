@@ -308,6 +308,11 @@ public:
   /// return a const reference to the j-th entry of the i-th tuple
   inline const_reference operator()(UInt i, UInt j = 0) const;
 
+  /// return a reference to the ith component of the 1D array
+  inline reference operator[](UInt i);
+  /// return a const reference to the ith component of the 1D array
+  inline const_reference operator[](UInt i) const;
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

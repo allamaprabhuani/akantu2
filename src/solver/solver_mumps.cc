@@ -311,6 +311,8 @@ void SolverMumps::solve() {
   icntl(20) = 0;
   icntl(21) = 0;
 
+  matrix->saveMatrix("before_solve.mtx");
+  
   mumps_data.job = _smj_factorize_solve; //solve
   dmumps_c(&mumps_data);
 

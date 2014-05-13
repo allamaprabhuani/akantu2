@@ -65,15 +65,15 @@ class Optimizator : public nlopt::opt {
   point_type& x_;
   Real min_;
   int &count_;
-
+  
 public:
-    
+  
   // functor parameter constructor
   template <class functor_type>
   Optimizator(point_type& x0,
               functor_type& fn,
               Optimizator_type t = Min_t,
-              nlopt::algorithm alg = nlopt::LD_SLSQP) : 
+              nlopt::algorithm alg = nlopt::LD_SLSQP) :
   base_type(alg, x0.size()), x_(x0), count_(fn.counter()) {
     
     if (t == Min_t)
@@ -99,131 +99,38 @@ public:
 };
 
 
-
 template <ElementType>
-class Distance_minimzer;
+struct Distance_minimizator_traits;
+
 
 template <>
-class Distance_minimzer<_segment_2> {
+struct Distance_minimizator_traits<_segment_2> {
   
-  static const UInt d = 2;
-  static const UInt nb_nodes = 2;
-  
-  typedef Point<d> point_type;
-  
-  nlopt::opt opt_;         //!< Optimizator reference
-  std::vector<Real> xi_;   //!< Master coordinate closest to point
-  vector_type p_;          //!< Point to which the distance is minimized
-  matrix_type XX_;         //!< Triangle coordinates
-  UInt counter_;           //!< Optimization iteration counter
-  Real fmin_;              //!< Minimum distance value
-  
-public:
-  
-  Distance_minimzer(const Real *r, const Element *el, SolidMechanicsModel &model)
-  : opt_(nlopt::LD_SLSQP, d-1), xi_(d-1), p_(d), XX_(nb_nodes,d), counter_() {
+  static void set_bounds(nlopt::opt &opt) {
     
     // set optimization parameters
     std::vector<Real> lb(1,-1), ub(1,1);
-    opt_.set_lower_bounds(lb);
-    opt_.set_upper_bounds(ub);
-    opt_.set_min_objective(wrap, this);
-    opt_.set_ftol_abs(1e-4);
-    
-    Mesh& mesh = model.getMesh();
-    const Array<Real> &X = model.getCurrentPosition();
-    const Array<UInt> &conn = mesh.getConnectivity(el->type);
-    for (UInt i=0; i<nb_nodes; ++i) {
-      XX_(0u,i) = X(conn(el->element,0),i);
-      XX_(1u,i) = X(conn(el->element,1),i);
-      p_(i) = r[i];
-    }
-    
-    // compute start point
-    start();
-    
-    // optimize
-#ifdef DEBUG_OPTIMIZE
-    nlopt::result result = opt_.optimize(xi_, fmin_);
-    if (result > 0)
-      cout<<"Optimium found in "<<counter_<<" iterations: "<<fmin_<<endl;
-    cout<<"Point at master coordinate "<<xi_[0]<<": "<<point()<<endl;
-    cout<<result<<endl;
-#else
-    opt_.optimize(xi_, fmin_);
-#endif
+    opt.set_lower_bounds(lb);
+    opt.set_upper_bounds(ub);
   }
   
-  vector_type operator()(const std::vector<Real> &xi)
-  {
-    vector_type N(nb_nodes);
-    vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
-    ElementClass<_segment_2>::computeShapes(xi2, N);
-    return transpose(XX_)*N;
-  }
-  
-  void start() {
+  template <class object_type>
+  static void start(object_type &obj) {
     
     Real min = std::numeric_limits<Real>::infinity();
-    Real xstart[3] = { -1., 0., 1. }; // check center and extremes of element
-    int idx;
-    for (int i=0; i<3; ++i) {
-      xi_[0] = xstart[i];
+    std::vector<Real> xstart = { -1., 0., 1. }; // check center and extremes of element
+    int idx = -1;
+    for (int i=0; i<xstart.size(); ++i) {
+      obj.xi_[0] = xstart[i];
       std::vector<Real> grad; // empty vector
-      Real new_dist = (*this)(xi_, grad);
+      Real new_dist = obj(obj.xi_, grad);
       if (new_dist < min) {
         min = new_dist;
         idx = i;
       }
     }
-    xi_[0] = xstart[idx];
+    obj.xi_[0] = xstart[idx];
   }
-  
-  
-  Real operator()(const std::vector<Real> &xi, std::vector<Real> &grad)
-  {
-    // increment function evaluation counter
-    ++counter_;
-    
-    vector_type x = (*this)(xi);
-    vector_type diff = x-p_;
-    
-    if (!grad.empty()) {
-      
-      // compute shape function derivatives
-      matrix_type DN(nb_nodes, d-1);
-      vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
-      ElementClass<_segment_2>::computeDNDS(xi2, DN);
-
-      
-      // compute jacobian
-      matrix_type J = transpose(XX_)*DN;
-      
-      // compute function gradient
-      vector_type gradF = transpose(J) * diff;
-      for (UInt i=0; i<gradF.size(); ++i)
-        grad[i] = gradF[i];
-      
-    }
-    // return function value
-    return 0.5 * transpose(diff)*diff;
-  }
-  
-  point_type point() {
-    vector_type x = (*this)(xi_);
-    point_type p;
-    for (UInt i=0; i<x.size(); ++i)
-      p[i] = x[i];
-    return p;
-  }
-  
-  UInt iterations() const
-  { return counter_; }
-
-  
-  static double wrap(const std::vector<double> &x, std::vector<double> &grad, void *data) {
-    return (*reinterpret_cast<Distance_minimzer<_segment_2>*>(data))(x, grad); }
-  
 };
 
 static Real constrain_triangle_3(const std::vector<Real> &xi, std::vector<Real> &grad, void *data) {
@@ -234,29 +141,58 @@ static Real constrain_triangle_3(const std::vector<Real> &xi, std::vector<Real> 
   return (xi[0] + xi[1] - 1.);
 }
 
-// commented in order to avoid warning: defined but not used
-//static void mf(unsigned m, double *result, unsigned n, const double *xi, double *grad, void *data) {
-//  
-//  assert(data == NULL);
-//  assert(n == 2);
-//  
-//  result[0] = -xi[0];
-//  result[1] = -xi[1];
-//  result[2] = xi[0] + xi[1] - 1.;
-//  if (grad) {
-//    grad[0] = grad[3] = -1.;
-//    grad[1] = grad[2] =  0.;
-//    grad[4] = grad[5] =  1.;
-//  }
-//}
 
+struct Triangle_minimizator_traits {
+  
+  static void set_bounds(nlopt::opt &opt) {
+    
+    std::vector<Real> lb(2, Real());
+    opt.set_lower_bounds(lb);
+    opt.add_inequality_constraint(constrain_triangle_3, NULL, 1e-4);
+  }
+  
+  template <class object_type>
+  static void start(object_type &obj) {
+    
+    Real min = std::numeric_limits<Real>::infinity();
+    Real xstart[4][2] = { {0.,0.}, {1.,0.}, {0.,1.}, {1./3.,1./3.} }; // check center and corners of element
+    int idx = -1;
+    for (int i=0; i<4; ++i) {
+      obj.xi_[0] = xstart[i][0];
+      obj.xi_[1] = xstart[i][1];
+      std::vector<Real> grad; // empty vector
+      Real new_dist = obj(obj.xi_, grad);
+      if (new_dist < min) {
+        min = new_dist;
+        idx = i;
+      }
+    }
+    obj.xi_[0] = xstart[idx][0];
+    obj.xi_[1] = xstart[idx][1];
+  }
+};
 
 
 template <>
-class Distance_minimzer<_triangle_3> {
+struct Distance_minimizator_traits<_triangle_3> : public Triangle_minimizator_traits {};
+
+
+template <>
+struct Distance_minimizator_traits<_triangle_6> : public Triangle_minimizator_traits {};
+
+
+
+
+
+template <int d, ElementType element_policy>
+class Distance_minimizator : public Distance_minimizator_traits<element_policy> {
   
-  static const UInt d = 3;
-  static const UInt nb_nodes = 3;
+  friend class Triangle_minimizator_traits;
+  friend class Distance_minimizator_traits<element_policy>;
+  
+  const UInt nb_nodes = ElementClass<element_policy>::getNbNodesPerElement();
+  
+  typedef Distance_minimizator_traits<element_policy> traits_type;
   
   typedef Point<d> point_type;
   
@@ -269,126 +205,74 @@ class Distance_minimzer<_triangle_3> {
   
   void constructor_common() {
     
-    // set optimization parameters
-    std::vector<Real> lb(2); // default initialized to zero
-    opt_.set_lower_bounds(lb);
-    opt_.add_inequality_constraint(constrain_triangle_3, NULL, 1e-8);
-
-    
-//    std::vector<Real> tol(3,1e-8);
-//    opt_.add_inequality_mconstraint(mf, NULL, tol);
+    traits_type::set_bounds(opt_);
     
     opt_.set_min_objective(wrap, this);
-    opt_.set_ftol_abs(1e-8);
+    opt_.set_ftol_abs(1e-4);
+    
+    // compute start point
+    traits_type::start(*this);
+    
+    // optimize
+#ifdef DEBUG_OPTIMIZE
+    nlopt::result result = opt_.optimize(xi_, fmin_);
+    if (result > 0)
+    cout<<"Optimium found in "<<counter_<<" iterations: "<<fmin_<<endl;
+    cout<<"Point at master coordinate "<<xi_[0]<<": "<<point()<<endl;
+    cout<<result<<endl;
+#else
+    opt_.optimize(xi_, fmin_);
+#endif
   }
   
-public:
+  public:
   
   //! Parameter constructor
   /*! \param r - Point coordinates
    * pts - Container of triangle points
    */
   template <class point_type, class point_container>
-  Distance_minimzer(const point_type& p, const point_container& pts)
+  Distance_minimizator(const point_type& p, const point_container& pts)
   : opt_(nlopt::LD_SLSQP, d-1), xi_(d-1), p_(d), XX_(nb_nodes,d), counter_() {
     
     // get triangle and point coordinates
     for (UInt i=0; i<d; ++i) {
       p_[i] = p[i];
       for (UInt j=0; j<nb_nodes; ++j)
-        XX_(j,i) = pts[j][i];
+      XX_(j,i) = pts[j][i];
     }
-
-    // common constructor operation
-    constructor_common();    
-  }
-  
-  //! Parameter constructor
-  /*! \param opt - Optimizer
-   * \param r - Point coordinates
-   * \param el - Finite element to which the distance is minimized
-   * \param model - Solid mechanics model
-   */
-  Distance_minimzer(const Real *r, const Element *el, SolidMechanicsModel &model)
-  : opt_(nlopt::LD_SLSQP, d-1), xi_(d-1), p_(d), XX_(nb_nodes,d), counter_() {
     
     // common constructor operation
     constructor_common();
+  }
+  
+  //! Parameter constructor
+  /*! \param r - Point coordinates
+   * \param el - Finite element to which the distance is minimized
+   * \param model - Solid mechanics model
+   */
+  Distance_minimizator(const Real *r, const Element *el, SolidMechanicsModel &model)
+  : opt_(nlopt::LD_SLSQP, d-1), xi_(d-1), p_(d), XX_(nb_nodes,d), counter_() {
     
-    // get triangle coordinates from element and point coordinates
     Mesh& mesh = model.getMesh();
     const Array<Real> &X = model.getCurrentPosition();
     const Array<UInt> &conn = mesh.getConnectivity(el->type);
     for (UInt i=0; i<nb_nodes; ++i) {
+      p_(i) = r[i];
       for (UInt j=0; j<d; ++j)
         XX_(i,j) = X(conn(el->element,i),j);
-      p_(i) = r[i];
     }
-  }
-  
-  void optimize() {
     
-    // compute start point
-    start();
-        
-#ifdef DEBUG_OPTIMIZE
-    // optimize
-    nlopt::result result = opt_.optimize(xi_, fmin_);
-    if (result > 0)
-      cout<<"Optimium found in "<<counter_<<" iterations: "<<fmin_<<endl;
-    cout<<"Point at master coordinate "<<xi_[0]<<","<<xi_[1]<<": "<<point()<<endl;
-    cout<<result<<endl;
-#else
-    // optimize
-    opt_.optimize(xi_, fmin_);
-#endif
+    constructor_common();
   }
   
-  point_type point() {
-    vector_type x = (*this)(xi_);
-    point_type p;
-    for (UInt i=0; i<x.size(); ++i)
-      p[i] = x[i];
-    return p;
-  }
-  
-  UInt iterations() const
-  { return counter_; }
-  
-  const std::vector<Real>& master_coordinte()
-  { return xi_; }
-
-private:
-  
-  vector_type operator()(const std::vector<Real> &xi) {
+  vector_type operator()(const std::vector<Real> &xi)
+  {
     vector_type N(nb_nodes);
     vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
-    ElementClass<_triangle_3>::computeShapes(xi2, N);
+    ElementClass<element_policy>::computeShapes(xi2, N);
     return transpose(XX_)*N;
   }
-  
-  void start() {
-        
-    Real min = std::numeric_limits<Real>::infinity();
-    Real xstart[4][2] = { {0.,0.}, {1.,0.}, {0.,1.}, {1./3.,1./3.} }; // check center and corners of element
-    int idx = -1;
-
-    for (int i=0; i<4; ++i) {
-
-      xi_[0] = xstart[i][0];
-      xi_[1] = xstart[i][1];
-      
-      vector_type diff = (*this)(xi_) - p_;
-      Real norm = diff.norm();
-      if (norm < min) {
-        min = norm;
-        idx = i;
-      }
-    }
-    xi_[0] = xstart[idx][idx];
-    xi_[1] = xstart[idx][idx];
-  }
-  
   
   Real operator()(const std::vector<Real> &xi, std::vector<Real> &grad)
   {
@@ -401,9 +285,11 @@ private:
     if (!grad.empty()) {
       
       // compute shape function derivatives
-      matrix_type DN(nb_nodes, d-1);
+      matrix_type DN(d-1,nb_nodes);
       vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
-      ElementClass<_triangle_3>::computeDNDS(xi2,DN);
+      
+      ElementClass<element_policy>::computeDNDS(xi2, DN);
+      DN = transpose(DN);
       
       // compute jacobian
       matrix_type J = transpose(XX_)*DN;
@@ -411,131 +297,11 @@ private:
       // compute function gradient
       vector_type gradF = transpose(J) * diff;
       for (UInt i=0; i<gradF.size(); ++i)
-        grad[i] = gradF[i];
+      grad[i] = gradF[i];
+      
     }
     // return function value
     return 0.5 * transpose(diff)*diff;
-  }
-  
-  static double wrap(const std::vector<double> &x, std::vector<double> &grad, void *data) {
-    return (*reinterpret_cast<Distance_minimzer<_triangle_3>*>(data))(x, grad); }
-};
-
-
-
-
-template <>
-class Distance_minimzer<_triangle_6> {
-  
-  static const UInt d = 3;
-  static const UInt nb_nodes = 6;
-  
-  typedef Point<d> point_type;
-  
-  nlopt::opt opt_;         //!< Optimizator reference
-  std::vector<Real> xi_;   //!< Master coordinate closest to point
-  vector_type p_;          //!< Point to which the distance is minimized
-  matrix_type XX_;         //!< Triangle coordinates
-  UInt counter_;           //!< Optimization iteration counter
-  Real fmin_;              //!< Minimum distance value
-  
-  void constructor_common() {
-    
-//    std::vector<Real> tol(3,1e-2);
-//    opt_.add_inequality_mconstraint(mf, NULL, tol);
-
-    
-    // set optimization parameters
-    std::vector<Real> lb(2); // default initialized to zero
-    opt_.set_lower_bounds(lb);
-    // the quadratic triangle uses the same constraint as the linear triangle
-    opt_.add_inequality_constraint(constrain_triangle_3, NULL, 1e-4);
-    
-    opt_.set_min_objective(wrap, this);
-
-    opt_.set_ftol_abs(1e-2);
-    opt_.set_ftol_rel(1e-2);
-    opt_.set_stopval(Real());
-    
-    
-    //    cout<<std::setprecision(10);
-//    cout<<"\tstop val -> "<<opt_.get_stopval()<<endl;
-//    cout<<"\tftol_rel -> "<<opt_.get_ftol_rel()<<endl;
-//    cout<<"\tftol_abs -> "<<opt_.get_ftol_abs()<<endl;
-//    cout<<"\txtol_rel -> "<<opt_.get_xtol_rel()<<endl;
-//    cout<<"\tmaxeval -> "<<opt_.get_maxeval()<<endl;
-//    cout<<"\tforce_stop -> "<<opt_.get_force_stop()<<endl;
-//
-//    
-//    int w = 16;
-//    
-//    cout<<"#"<<std::setw(w-1)<<"x"<<std::setw(w)<<"y"<<std::setw(w)<<"xi"<<std::setw(w)<<"eta"<<std::setw(w)<<"x*"<<std::setw(w)<<"y*"<<std::setw(w)<<"f(xi)"<<std::setw(w)<<"iter"<<endl;
-//    cout<<std::setprecision(3)<<std::fixed;
-
-  }
-  
-public:
-  
-  //! Parameter constructor
-  /*! \param r - Point coordinates
-   * pts - Container of triangle points
-   */
-  template <class point_type, class point_container>
-  Distance_minimzer(const point_type& p, const point_container& pts)
-  : opt_(nlopt::LD_SLSQP, d-1), xi_(d-1), p_(d), XX_(nb_nodes,d), counter_() {
-
-    // get triangle and point coordinates
-    for (UInt i=0; i<d; ++i) {
-      p_[i] = p[i];
-      for (UInt j=0; j<nb_nodes; ++j)
-        XX_(j,i) = pts[j][i];
-    }
-
-    // common constructor operation
-    constructor_common();
-  }
-  
-  //! Parameter constructor
-  /*! \param opt - Optimizer
-   * \param r - Point coordinates
-   * \param el - Finite element to which the distance is minimized
-   * \param model - Solid mechanics model
-   */
-  Distance_minimzer(const Real *r, const Element *el, SolidMechanicsModel &model)
-  : opt_(nlopt::LD_SLSQP, d-1), xi_(d-1), p_(d), XX_(nb_nodes,d), counter_() {
-    
-    // common constructor operation
-    constructor_common();
-    
-    // get triangle coordinates from element and point coordinates
-    Mesh& mesh = model.getMesh();
-    const Array<Real> &X = model.getCurrentPosition();
-    const Array<UInt> &conn = mesh.getConnectivity(el->type);
-    for (UInt i=0; i<nb_nodes; ++i) {
-      for (UInt j=0; j<d; ++j)
-        XX_(i,j) = X(conn(el->element,i),j);
-      p_(i) = r[i];
-    }
-  }
-  
-  void optimize() {
-    
-    // compute start point
-    start();
-    
-#ifdef DEBUG_OPTIMIZE
-    // optimize
-    nlopt::result result = opt_.optimize(xi_, fmin_);
-    if (result > 0)
-      cout<<"Optimium found in "<<counter_<<" iterations: "<<fmin_<<endl;
-    cout<<"Point at master coordinate "<<xi_[0]<<","<<xi_[1]<<": "<<point()<<endl;
-    cout<<result<<endl;
-    if (result != 3)
-      exit(1);
-#else
-    // optimize
-    opt_.optimize(xi_, fmin_);
-#endif
   }
   
   point_type point() {
@@ -549,76 +315,13 @@ public:
   UInt iterations() const
   { return counter_; }
   
-  const std::vector<Real>& master_coordinte()
-  { return xi_; }
-
-private:
-  
-  vector_type operator()(const std::vector<Real> &xi) {
-    vector_type N(nb_nodes);
-    vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
-    ElementClass<_triangle_6>::computeShapes(xi2, N);
-    return transpose(XX_)*N;
-  }
-  
-  void start() {
-    
-    Real min = std::numeric_limits<Real>::infinity();
-    Real xstart[4][2] = { {0.,0.}, {1.,0.}, {0.,1.}, {1./3.,1./3.} }; // check center and corners of element
-    int idx = -1;
-    
-    for (int i=0; i<4; ++i) {
-      
-      xi_[0] = xstart[i][0];
-      xi_[1] = xstart[i][1];
-      
-      vector_type diff = (*this)(xi_) - p_;
-      Real norm = diff.norm();
-      if (norm < min) {
-        min = norm;
-        idx = i;
-      }
-    }
-    xi_[0] = xstart[idx][idx];
-    xi_[1] = xstart[idx][idx];
-  }
-
-    Real operator()(const std::vector<Real> &xi, std::vector<Real> &grad)
-  {
-    // increment function evaluation counter
-    ++counter_;
-        
-    vector_type x = (*this)(xi);
-    vector_type diff = x-p_;
-    
-    if (!grad.empty()) {
-      
-      // compute shape function derivatives
-      matrix_type DN(nb_nodes, d-1);
-      vector_type xi2(xi.size(), const_cast<Real*>(&xi[0]));
-      ElementClass<_triangle_6>::computeDNDS(xi2, DN);
-      
-      // compute jacobian
-      matrix_type J = transpose(XX_)*DN;
-      
-      // compute function gradient
-      vector_type gradF = transpose(J) * diff;
-      for (UInt i=0; i<gradF.size(); ++i)
-        grad[i] = gradF[i];
-    }
-    
-//    int w = 16;
-//    cout<<std::setprecision(12);
-//    cout<<std::setw(w)<<p_[0]<<std::setw(w)<<p_[1]<<std::setw(w)<<xi_[0]<<std::setw(w)<<xi_[1]<<std::setw(w)<<x[0]<<std::setw(w)<<x[1]<<std::setw(w)<<(0.5 * transpose(diff)*diff)<<std::setw(w)<<counter_<<endl;
-    
-    // return function value
-    return 0.5 * transpose(diff)*diff;
-  }
+  const std::vector<Real>& master_coordinates()
+  {  return xi_; }
   
   static double wrap(const std::vector<double> &x, std::vector<double> &grad, void *data) {
-    return (*reinterpret_cast<Distance_minimzer<_triangle_6>*>(data))(x, grad); }
+    return (*reinterpret_cast<Distance_minimizator<d,element_policy>*>(data))(x, grad); }
+  
 };
-
 
 
 __END_AKANTU__

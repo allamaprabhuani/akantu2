@@ -37,7 +37,7 @@
 
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io_abaqus.hh"
+//#include "mesh_io_abaqus.hh"
 #include "model.hh"
 #include "aka_tree.hh"
 #include "solid_mechanics_model.hh"
@@ -252,14 +252,14 @@ protected:
     
     value_type epsilon = 1e-8;
     
-    // already intersecting, call recursively on branches
+    // already intersecting
     if (c < -epsilon) {
       
 #ifdef DEBUG_MANAGER
       cout<<"  Intersecting bounding volumes"<<endl;
 #endif
       // should not get to this point
-      assert(false);
+      return time_type();
     }
     
     value_type a = v*v;
@@ -330,12 +330,10 @@ public:
   typedef std::map<tree_iterator, data_type> leaves_data;
   typedef typename leaves_data::iterator leaves_data_iterator;
   
-  
   bool add_data(tree_iterator it, data_type& data) {
     auto i = data_.insert(std::make_pair(it, data));
     return i.second;
   }
-  
   
   leaves_data_iterator leaves_data_begin()
   { return data_.begin(); }
@@ -1024,7 +1022,77 @@ private:
     
   }
   
+  // check time of collision between 2D segments
+  impact_tuple check_2D_sides(time_type t, leaves_data_iterator it1, leaves_data_iterator it2) {
+    
+    typedef Point<3> test_point;
+
+      
+    const volume_type& v1 = *it1->first;
+    const volume_type& v2 = *it2->first;
+    
+    std::vector<const Real*> c1 = it1->second.coordinates();
+    std::vector<const Real*> c2 = it2->second.coordinates();
+    
+    // create plane from second container node
+    // THIS WON'T WORK, SIDES HAVE ONLY TWO NODES, CONTINUE DEVELOPING FROM HERE
+    assert(c2.size() == 3);
+    
+    // form plane from three points
+    test_point o,p,q;
+    
+    for (size_t j=0; j<point_type::dim(); ++j) {
+      o[j] = c2[0][j];
+      p[j] = c2[1][j];
+      q[j] = c2[2][j];
+    }
+    
+//    point_type o(c2[0]);
+//    point_type p(c2[1]);
+//    point_type q(c2[2]);
+    
+    Plane pi(o,p,q);
+    
+    // loop over the nodes of the container
+    for (size_t i=0; i<c1.size(); ++i) {
+
+      test_point v;
+      point_type v2d = v1.velocity_ -  v2.velocity_;
+
+      // create 3D point, used to check for plane intersection
+      test_point x;
+      for (size_t j=0; j<point_type::dim(); ++j) {
+        x[j] = c1[i][j];
+        v[j] = v2d[j];
+      }
+      
+      cout<<"x -> "<<x<<endl;
+      
+      cout<<"v -> "<<v<<endl;
+      
+      
+      std::tuple<time_type, test_point> impact =
+      moving_point_against_plane(x, v, pi);
+
+      
+      
+    }
+
+    exit(1);
+    
+////    impact_tuple impact =
+////    moving_point_against_point(point_type(c1[ii]), point_type(c2[jj]), it1->first->velocity_, it2->first->velocity_);
+////    
+////    time_type &timpact = std::get<0>(impact);
+////    timpact += t;
+////    
+////    celems_.insert(new contact_element_type(std::make_tuple(ii, jj, &it1->second, &it2->second, impact)));
+////    
+//    return impact;
+    
+  }
   
+    
   // check time of collision between triangles
   impact_tuple check_triangles(leaves_data_iterator it1, leaves_data_iterator it2) {
     
@@ -1068,9 +1136,9 @@ private:
   }
   
   impact_tuple fine_collision_time(time_type t, leaves_data_iterator it1, leaves_data_iterator it2, Int2Type<2>) {
-    
-    assert(false);
-    return impact_tuple();
+
+    // check sides of the colliding elements
+    return check_2D_sides(t, it1, it2);
   }
   
   impact_tuple fine_collision_time(time_type t, leaves_data_iterator it1, leaves_data_iterator it2, Int2Type<3>) {

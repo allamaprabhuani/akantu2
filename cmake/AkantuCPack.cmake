@@ -30,7 +30,8 @@
 set(PACKAGE_FILE_NAME "akantu" CACHE STRING "Name of package to be generated")
 mark_as_advanced(PACKAGE_FILE_NAME)
 
-set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ;RPM")
+#set(CPACK_GENERATOR "DEB;TGZ;TBZ2;STGZ;RPM")
+set(CPACK_GENERATOR "TGZ")
 
 # General configuration
 set(CPACK_PACKAGE_VENDOR "LSMS")
@@ -80,6 +81,7 @@ foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_OFF})
   string(TOUPPER "${_pkg}" _pkg)
   list(APPEND CPACK_SOURCE_IGNORE_FILES ${CMAKE_SOURCE_DIR}/packages/${${_project}_${_pkg}_FILE})
 endforeach()
+
 list(APPEND CPACK_SOURCE_IGNORE_FILES "/.*build.*/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.hgignore;/\\\\.git/;\\\\.swp$;\\\\.#;/#;~")
 
 include(CPack)

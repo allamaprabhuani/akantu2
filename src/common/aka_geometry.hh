@@ -35,7 +35,10 @@
 
 #include "aka_point.hh"
 #include "aka_plane.hh"
+#include "aka_math.hh"
 
+using std::cout;
+using std::endl;
 
 __BEGIN_AKANTU__
 
@@ -68,73 +71,6 @@ equal(T x, T y)
 Real left_turn(const Point<2>& p, const Point<2>& q, const Point<2>& r);
 
 
-//! Tests if point P lies inside a triangle
-/*! The triangle is defined by points \c a, \c b and \c c.
- * Note that the triangle points are passed by value because
- * a copy of them is needed.
- */
-template <typename T>
-bool is_point_in_triangle(const Point<3,T>& p,
-                          Point<3,T> a,
-                          Point<3,T> b,
-                          Point<3,T> c) {
-  
-  typedef Point<3,T> point_type;
-  
-  // translate point and triangle so that point lies at origin
-  a -= p; b -= p; c -= p;
-  
-  // compute normal vectors for triangles pab and pbc
-  point_type u = cross(b, c);
-  point_type v = cross(c, a);
-  
-  // make sure they are both pointing in the same direction
-  if ((u*v) < 0.)
-    return false;
-  
-  // compute normal vector for triangle pca
-  point_type w = cross(a, b);
-  
-  // make sure it points in the same direction as the first two
-  if (u*w < 0.)
-    return false;
-  
-  // otherwise P must be in (or on) the triangle
-  return true;
-}
-
-
-//! Tests if point P lies inside a triangle
-/*! The triangle is defined by points \c a, \c b and \c c.
- * This is a cheaper version of the function \c is_point_in_triangle.
- * Note that the triangle points are passed by value because
- * a copy of them is needed.
- */
-template <typename T>
-bool is_point_in_triangle2(const Point<3,T>& p,
-                           Point<3,T> a,
-                           Point<3,T> b,
-                           Point<3,T> c) {
-  
-  // translate point and triangle so that point lies at origin
-  a -= p; b -= p; c -= p;
-  T ab = a*b;
-  T ac = a*c;
-  T bc = b*c;
-  T cc = c*c;
-  
-  // make sure plane normals for pab and pca point in the same direction
-  if (bc*ac - cc*ab < 0.)
-    return false;
-  
-  // make sure plane normals for pab and pbc point in the same direction
-  T bb = b*b;
-  if (ab*bc - ac*bb < 0.)
-    return false;
-  
-  // otherwiese p must lie in (or on) the triangle
-  return true;
-}
 
 // closest point computations
 
@@ -143,26 +79,93 @@ bool is_point_in_triangle2(const Point<3,T>& p,
 /*! Given segment \c ab and point \c c, computes closest point \c d on ab.
  * Also returns \c t for the position of the point: a + t*(b - a)
  */
-template <typename T>
-Point<3,T> closest_point_to_segment(const Point<3,T>& c,
-                                    const Point<3,T>& a,
-                                    const Point<3,T>& b) {
+template <int d, typename T>
+Point<d,T> closest_point_to_segment(const Point<d,T>& c,
+                                    const Point<d,T>& a,
+                                    const Point<d,T>& b) {
   
-  Point<3,T> ab = b - a;
+  Point<d,T> ab = b - a;
   
   
   // project c onto ab, computing parameterized position d(t) = a + t*(b – a)
   
-  T t = (c - a)*ab / (ab*ab);
+  T t = (c - a)*ab / sqrt(ab*ab);
   
   // if outside segment, clamp t (and therefore d) to the closest endpoint
   if (t < 0.)
     t = 0.;
-  if (t > 1.)
+  else if (t > 1.)
     t = 1.;
   
   // compute projected position from the clamped t
   return a + t * ab;
+}
+
+//! Predicate that checks if a point has a projection on a line segment
+/*! Given segment \c ab and point \c c, checks if the point has a projection in the segment.
+ */
+template <int d, typename T>
+bool has_projection(const Point<d,T>& c,
+                    const Point<d,T>& a,
+                    const Point<d,T>& b) {
+  
+  Point<d,T> ab = b - a;
+  // project c onto ab, computing parameterized position d(t) = a + t*(b – a)
+  
+  T t = (c - a)*ab / (ab*ab);
+  return t > 0. && t < 1.;
+}
+
+//! Tests if a point has a projection to a triangle
+/*! This function uses the concept of Voronoi regions to determine
+ * if a point has a projection within a triangle defined by points
+ * \c a, \c b, and \c c.
+ */
+template <typename T>
+bool point_has_projection_to_triangle(const Point<3,T>& p,
+                                      const Point<3,T>& a,
+                                      const Point<3,T>& b,
+                                      const Point<3,T>& c) {
+  
+  typedef Point<3,T> point_type;
+  
+  // obtain plane of the triangle
+  Plane pi(a,b,c);
+  
+  // get point in the plane closest to p
+  point_type q = closest_point_to_plane(p,pi);
+  
+  // return if point is within the triangle
+  if (is_point_in_triangle(q, a, b, c))
+    return true;
+  return false;
+}
+
+//! Tests if point P lies inside a triangle
+/*! The triangle is defined by points \c a, \c b and \c c.
+ */
+
+template <typename T>
+bool is_point_in_triangle(const Point<3,T>& p,
+                          const Point<3,T>& a,
+                          const Point<3,T>& b,
+                          const Point<3,T>& c) {
+
+  typedef Point<3,T> point_type;
+  
+  point_type v0 = b-a, v1 = c-a, v2 = p-a;
+  
+  Real d00 = v0*v0;
+  Real d01 = v0*v1;
+  Real d11 = v1*v1;
+  Real d20 = v2*v0;
+  Real d21 = v2*v1;
+  Real denom = d00*d11 - d01*d01;
+  
+  // compute parametric coordinates
+  Real v = (d11 * d20 - d01 * d21) / denom;
+  Real w = (d00 * d21 - d01 * d20) / denom;  
+  return v >= 0. && w >= 0. && v + w <= 1.;
 }
 
 
@@ -239,7 +242,7 @@ Point<3,T> closest_point_to_triangle(const Point<3,T>& p,
 
 
 template <typename T>
-Point<3,T> closest_ponint_to_plane(const Point<3,T>& q, const Plane& p) {
+Point<3,T> closest_point_to_plane(const Point<3,T>& q, const Plane& p) {
   
   typedef Point<3,T> point_type;
   
@@ -266,10 +269,10 @@ Point<3,T> naive_closest_point_to_triangle(const Point<3,T>& p,
   Plane pi(a,b,c);
   
   // get point in the plane closest to p
-  point_type q = closest_ponint_to_plane(p,pi);
+  point_type q = closest_point_to_plane(p,pi);
   
   // return if point is within the triangle
-  if (is_point_in_triangle2(q, a, b, c))
+  if (is_point_in_triangle(q, a, b, c))
     return q;
   
   // else get the closest point taking into account all edges

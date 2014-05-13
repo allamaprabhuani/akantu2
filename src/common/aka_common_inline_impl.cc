@@ -34,6 +34,8 @@
 
 #include <algorithm>
 
+#include <cctype>
+
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -137,7 +139,7 @@ inline std::string to_lower(const std::string & str) {
   std::transform(lstr.begin(),
 		 lstr.end(),
 		 lstr.begin(),
-		 (int(*)(int))std::tolower);
+		 (int(*)(int))tolower);
   return lstr;
 }
 
@@ -148,11 +150,11 @@ inline std::string trim(const std::string & to_trim) {
   trimed.erase(trimed.begin(),
 	       std::find_if(trimed.begin(),
 			    trimed.end(),
-			    std::not1(std::ptr_fun<int, int>(std::isspace))));
+			    std::not1(std::ptr_fun<int, int>(isspace))));
   // right trim
   trimed.erase(std::find_if(trimed.rbegin(),
 			    trimed.rend(),
-			    std::not1(std::ptr_fun<int, int>(std::isspace))).base(),
+			    std::not1(std::ptr_fun<int, int>(isspace))).base(),
 	       trimed.end());
   return trimed;
 }

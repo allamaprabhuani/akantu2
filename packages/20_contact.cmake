@@ -2,6 +2,7 @@
 # @file   contact.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
 #
 # @date   Mon Nov 21 18:19:15 2011
 #
@@ -40,6 +41,7 @@ set(AKANTU_CONTACT_FILES
   contact/surface.cc
   contact/zone.cc
   model/model_manager.cc
+  model/implicit_contact_manager.cc
 
   # include files
 
@@ -54,10 +56,15 @@ set(AKANTU_CONTACT_FILES
   contact/surface.hh
   contact/zone.hh
   model/model_manager.hh
+  model/contact_manager0.hh
+  model/ns_contact_manager.hh
+  model/implicit_contact_manager.hh
   )
 
 add_external_package_dependencies(contact cblas)
 add_internal_package_dependencies(contact cpparray)
+add_internal_package_dependencies(contact implicit)
+add_internal_package_dependencies(contact optimization)
 
 if(AKANTU_CONTACT)
   list(APPEND AKANTU_BOOST_COMPONENTS
@@ -66,8 +73,17 @@ if(AKANTU_CONTACT)
     )
 endif()
 
+
+add_optional_external_package(CBLAS "Use CBLAS library" OFF)
+
+mark_as_advanced(AKANTU_USE_CBLAS)
+mark_as_advanced(AKANTU_USE_CPPARRAY)
+
+set(AKANTU_CONTACT_TESTS
+  test_hertz_2D
+  test_hertz_3D
+  )
+
 set(AKANTU_CONTACT_MANUAL_FILES
   manual-contact.tex
 )
-
-#add_internal_package_dependencies(contact optimization)

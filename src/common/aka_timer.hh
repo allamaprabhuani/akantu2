@@ -139,6 +139,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 // timer classes
 
+template <typename timeval>
 void subtract(const timeval& x, timeval y, timeval& r) {
     
   // perform the carry for the later subtraction by updating y
