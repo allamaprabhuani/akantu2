@@ -53,7 +53,9 @@
 #  include "dumper_iohelper_tmpl_material_internal_field.hh"
 #endif
 
+#ifdef AKANTU_CORE_CXX11
 #include "implicit_contact_manager.hh"
+#endif
 
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
@@ -2022,6 +2024,8 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 
+#ifdef AKANTU_CORE_CXX11
+
 template <SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria, class contact_data, class PostAssemblyFunctor>
 void SolidMechanicsModel::solveContactStep(contact_data& cd, SolidMechanicsModel::SearchBase *sf, const PostAssemblyFunctor& paf) {
   
@@ -2149,6 +2153,7 @@ template void akantu::SolidMechanicsModel::solveContactStep <(akantu::SolveConve
 
 template void akantu::SolidMechanicsModel::solveContactStep <(akantu::SolveConvergenceMethod)0, (akantu::SolveConvergenceCriteria)1, akantu::ContactData <3, akantu::SolidMechanicsModel>, akantu::SolidMechanicsModel::PostAssemblyEmptyFunctor>(akantu::ContactData <3, akantu::SolidMechanicsModel>&, akantu::SolidMechanicsModel::SearchBase *, akantu::SolidMechanicsModel::PostAssemblyEmptyFunctor const&);
 
+#endif
 
 ///* -------------------------------------------------------------------------- */
 //template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria, class contact_data>
