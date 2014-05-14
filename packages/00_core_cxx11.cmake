@@ -15,7 +15,6 @@ set(AKANTU_CORE_CXX11_FILES
   common/aka_geometry.hh
   common/aka_geometry.cc
   model/solid_mechanics/solid_mechanics_model_element.hh
-  contact/tmp.cc
   )
 
 
