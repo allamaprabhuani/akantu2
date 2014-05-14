@@ -1,0 +1,58 @@
+
+Valid parameters for contact options:
+  -e      [auto] Penalty parameter for Augmented-Lagrangian formulation
+  -alpha  [1] Multiplier for values of the penalty parameter
+  -utol   [1e-4] Tolerance used for multipliers in the Uzawa method
+  -ntol   [1e-4] Tolerance used in the Newton-Raphson inner convergence loop
+  -usteps [100]  Maximum number of steps allowed in the Uzawa loop
+  -nsteps [100]  Maximum number of steps allowed in the Newton-Raphson loop
+
+Valid flags:
+  -dump          Dumping within Newton iterations
+  -v             Verbose flag
+
+Adding areas to slave nodes. 
+Adding slave-master pairs
+*** INFO *** Obtaining penalty parameters automatically. Average value: 2.83997e+09
+Summary: Uzawa [1]: Newton [1]: 1
+Summary: Uzawa [2]: Newton [3]: 2 1
+Summary: Uzawa [12]: Newton [15]: 3 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [9]: Newton [11]: 2 2 1 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [11]: 3 2 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [11]: 3 2 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
+Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
+Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
+Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
+Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
+Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [7]: Newton [8]: 2 1 1 1 1 1 1
+Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [7]: Newton [8]: 2 1 1 1 1 1 1
+Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [7]: Newton [8]: 2 1 1 1 1 1 1
+
+         Disp.         Force  Max pressure
+             0             0             0
+         0.001     2.425e+04     8.813e+07
+         0.002     8.948e+06      1.06e+10
+         0.003     2.251e+07     1.195e+10
+         0.004     3.806e+07      1.57e+10
+         0.005     6.035e+07     1.872e+10
+         0.006     8.541e+07     2.038e+10
+         0.007     1.103e+08     2.089e+10
+         0.008      1.37e+08     2.128e+10
+         0.009      1.67e+08      2.11e+10
+          0.01     1.967e+08     2.132e+10
+         0.011     2.276e+08     2.406e+10
+         0.012     2.729e+08     2.509e+10
+         0.013     3.091e+08     2.543e+10
+         0.014     3.477e+08     2.581e+10
+         0.015     3.757e+08     2.593e+10
+         0.016     4.268e+08     2.659e+10
+         0.017     4.541e+08     2.857e+10
+         0.018     5.092e+08     3.115e+10
+         0.019     5.406e+08      3.26e+10

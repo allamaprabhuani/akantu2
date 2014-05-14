@@ -1,0 +1,129 @@
+
+Valid parameters for contact options:
+  -e      [auto] Penalty parameter for Augmented-Lagrangian formulation
+  -alpha  [1] Multiplier for values of the penalty parameter
+  -utol   [1e-4] Tolerance used for multipliers in the Uzawa method
+  -ntol   [1e-4] Tolerance used in the Newton-Raphson inner convergence loop
+  -usteps [100]  Maximum number of steps allowed in the Uzawa loop
+  -nsteps [100]  Maximum number of steps allowed in the Newton-Raphson loop
+
+Valid flags:
+  -dump          Dumping within Newton iterations
+  -v             Verbose flag
+
+
+*** INFO *** ContactData info:
+Contact parameters:
+  -e      = auto
+  -alpha  = 0.4
+  -utol   = 0.0001
+  -ntol   = 0.0001
+  -usteps = 100
+  -nsteps = 100
+
+Contact flags:
+  -dump   = 0
+  -v      = 0
+*** INFO *** Obtaining penalty parameters automatically. Average value: 9.17857e+10
+Summary: Uzawa [14]: Newton [24]: 4 3 2 2 2 2 2 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [21]: 3 2 2 2 2 2 1 1 1 1 1 1 1 1
+Summary: Uzawa [15]: Newton [23]: 3 2 2 2 2 2 2 1 1 1 1 1 1 1 1
+Summary: Uzawa [15]: Newton [21]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [22]: 3 2 2 2 2 2 2 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [23]: 3 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [15]: Newton [20]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [15]: Newton [22]: 3 2 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [21]: 3 2 2 2 2 2 1 1 1 1 1 1 1 1
+Summary: Uzawa [15]: Newton [21]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [19]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [20]: 3 2 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [23]: Newton [27]: 3 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [16]: Newton [21]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [19]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [19]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [18]: Newton [22]: 3 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [19]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [14]: Newton [19]: 3 2 2 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [13]: Newton [18]: 3 2 2 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [18]: Newton [22]: 3 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+    
+Disp.     ForceMax pressure
+     0.001   7.3e+07   3.1e+09
+     0.002   1.6e+08   4.5e+09
+     0.003   2.5e+08   5.6e+09
+     0.004   3.5e+08   6.5e+09
+     0.005   4.5e+08   7.2e+09
+     0.006   5.5e+08     8e+09
+     0.007   6.5e+08   8.7e+09
+     0.008   7.7e+08   9.3e+09
+     0.009   8.8e+08   9.9e+09
+      0.01   9.9e+08     1e+10
+     0.011   1.1e+09   1.1e+10
+     0.012   1.2e+09   1.2e+10
+     0.013   1.3e+09   1.2e+10
+     0.014   1.5e+09   1.2e+10
+     0.015   1.6e+09   1.3e+10
+     0.016   1.7e+09   1.3e+10
+     0.017   1.8e+09   1.4e+10
+     0.018   1.9e+09   1.4e+10
+     0.019   2.1e+09   1.5e+10
+      0.02   2.2e+09   1.5e+10
+     0.021   2.3e+09   1.5e+10
+     0.022   2.4e+09   1.6e+10
+     0.023   2.6e+09   1.6e+10
+     0.024   2.7e+09   1.6e+10
+     0.025   2.8e+09   1.7e+10
+     0.026     3e+09   1.7e+10
+     0.027   3.1e+09   1.7e+10
+     0.028   3.2e+09   1.8e+10
+     0.029   3.4e+09   1.8e+10
+      0.03   3.5e+09   1.8e+10
+     0.031   3.6e+09   1.9e+10
+     0.032   3.8e+09   1.9e+10
+     0.033   3.9e+09   1.9e+10
+     0.034   4.1e+09     2e+10
+     0.035   4.2e+09     2e+10
+     0.036   4.3e+09     2e+10
+     0.037   4.5e+09     2e+10
+     0.038   4.6e+09   2.1e+10
+     0.039   4.7e+09   2.1e+10
+      0.04   4.9e+09   2.1e+10
+     0.041     5e+09   2.1e+10
+     0.042   5.1e+09   2.2e+10
+     0.043   5.3e+09   2.2e+10
+     0.044   5.4e+09   2.2e+10
+     0.045   5.6e+09   2.2e+10
+     0.046   5.7e+09   2.2e+10
+     0.047   5.9e+09   2.3e+10
+     0.048     6e+09   2.3e+10
+     0.049   6.2e+09   2.3e+10
+      0.05   6.3e+09   2.3e+10

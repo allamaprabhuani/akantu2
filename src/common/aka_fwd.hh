@@ -36,6 +36,11 @@ namespace cppargparse {
 }
 
 namespace akantu {
+  
+  // forward declaration
+  template <int dim, class model_type>
+  struct ContactData;
+  
   template<typename T> class Matrix;
   template<typename T> class Vector;
   template<typename T> class Tensor3;

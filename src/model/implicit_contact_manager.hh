@@ -36,6 +36,8 @@
 #include "dumper_iohelper.hh"
 #include "dumper_iohelper_tmpl.hh"
 #include "aka_optimize.hh"
+#include "integration_scheme_2nd_order.hh"
+
 
 #define DEBUG_MANAGER 1
 
@@ -136,7 +138,6 @@ struct ContactData {
 	typedef Point <dim> point_type;
 	typedef array::Array <1, Real> vector_type;
 	typedef array::Array <2, Real> matrix_type;
-	typedef typename model_type::search_base search_type;
 	typedef ModelElement <model_type> element_type;
 
 	typedef std::map <Contact_parameter_type, Real> options_map;
@@ -231,22 +232,153 @@ struct ContactData {
 			}
 		}
 	}
+  
+  
+  struct PostAssemblyEmptyFunctor {
+    void operator()() const {}
+  };
+  
+  struct SearchBase {
+    virtual int search(const Real*)
+    { std::cout<<" - Warning: calling default base searcher"<<std::endl; return -1; }
+  };
+  
+  typedef SearchBase search_type;
+  
+  template <class PostAssemblyFunctor>
+  void solveContactCommon(SearchBase *sf = new SearchBase(), const PostAssemblyFunctor& paf = PostAssemblyEmptyFunctor()) {
+    
+    ContactData &cd = *this;
+    
+    model_.implicitPred();
+    model_.updateResidual();
+    
+    AKANTU_DEBUG_ASSERT(model_.stiffness_matrix != NULL,
+                        "You should first initialize the implicit solver and assemble the stiffness matrix");
+    
+    
+    // implementation of the Uzawa method for solving contact
+    bool uzawa_converged = false;
+    static UInt step = 0;
+    UInt k = 0;
+    UInt ntotal = 0;
+    
+    std::list <int> nt;
+    
+    
+    std::ofstream ofs;
+    ofs.open("iterations.out", std::ofstream::out | std::ofstream::app);
+    
+    // initialize Lagrange multipliers
+    // NOTE: It doesn't make any difference to start from the previous
+    // converged solution of Lagrange multipliers
+    real_map lambda_new;
+    
+    cout << std::boolalpha;
+    
+    if (cd[Verbose])
+      cout << "- Start Uzawa:" << endl;
+    
+    do {
+      Real uerror = 0.;
+      
+      bool converged = false;
+      UInt j = 0;
+      
+      cd.uiter_ = k;
+      
+      do {
+        Real nerror = 0.;
+        
+        cd.niter_ = j;
+        
+        // assemble material matrix
+        model_.assembleStiffnessMatrix();
+        
+        // call post-assembly functor
+        paf();
+        
+        // compute gaps
+        uzawa_converged = cd.computeTangentAndResidual(lambda_new, sf, uerror);
+        
+        // solve
+        model_.template solve<IntegrationScheme2ndOrder::_displacement_corrector> (*model_.increment);
+        
+        model_.implicitCorr();
+        model_.updateResidual();
+        
+        converged = model_.template testConvergence <_scc_increment> (cd[Newton_tol], nerror);
+        
+        if (cd[Dump_iteration])
+          cd.dump();
+        if (cd[Verbose])
+          cout << "    Newton: " << j << ", " << nerror << " < " << cd[Newton_tol] << " = " << (nerror < cd[Newton_tol]) << endl;
+        
+        ++j;
+        AKANTU_DEBUG_INFO("[" << _scc_increment << "] Convergence iteration "
+                          << std::setw(std::log10(cd[Newton_max_steps])) << j
+                          << ": error " << nerror << (converged ? " < " : " > ") << cd[Newton_tol] << std::endl);
+      }
+      while (!converged && j < cd[Newton_max_steps]);
+      
+      
+      if (cd[Verbose])
+        cout << "  Uzawa: " << k << ", " << uerror << " < " << cd[Uzawa_tol] << " = " << (uerror < cd[Uzawa_tol]) << endl;
+      
+      if (j == cd[Newton_max_steps]) {
+        cout << "*** ERROR *** Newton-Raphson loop did not converge within max number of iterations: " << cd[Newton_max_steps] << endl;
+        exit(1);
+      }
+      
+      nt.push_back(j);
+      ntotal += j;
+      
+      // increment uzawa loop counter
+      ++k;
+      
+      AKANTU_DEBUG_INFO("[" << _scc_increment << "] Uzawa convergence iteration "
+                        << std::setw(std::log10(cd[Newton_max_steps])) << k
+                        << std::endl);
+      
+      // update lagrange multipliers
+      cd.multipliers_ = lambda_new;
+    }
+    while (!uzawa_converged && k < cd[Uzawa_max_steps]);
+    
+    if (k == cd[Uzawa_max_steps]) {
+      cout << "*** ERROR *** Uzawa loop did not converge within max number of iterations: " << cd[Uzawa_max_steps] << endl;
+      exit(1);
+    }
+    
+    
+    cout << "Summary: Uzawa [" << k << "]: Newton [" << ntotal << "]:";
+    for (int n : nt)
+      cout << " " << n;
+    cout << endl;
+    
+    ofs << std::setw(10) << ++step << std::setw(10) << k << std::setw(10) << ntotal << endl;
+    ofs.close();
+    
+  }
 
 	void solveContactStep() {
-		model_.template solveContactStep <_scm_newton_raphson_tangent, _scc_increment, ContactData, SolidMechanicsModel::PostAssemblyEmptyFunctor>(*this);
-
+    
+    solveContactCommon<PostAssemblyEmptyFunctor>();
+    
 		dump();
 	}
 
 	void solveContactStep(search_type *search) {
-		model_.template solveContactStep <_scm_newton_raphson_tangent, _scc_increment, ContactData, SolidMechanicsModel::PostAssemblyEmptyFunctor>(*this, search);
+    
+    solveContactCommon<PostAssemblyEmptyFunctor>(search);
 
 		dump();
 	}
 
 	template <class PostAssemblyFunctor>
 	void solveContactStep(search_type *search, const PostAssemblyFunctor& fn) {
-		model_.template solveContactStep <_scm_newton_raphson_tangent, _scc_increment, ContactData, PostAssemblyFunctor>(*this, search, fn);
+
+    solveContactCommon<PostAssemblyFunctor>(search, fn);
 
 		dump();
 		fn.dump();

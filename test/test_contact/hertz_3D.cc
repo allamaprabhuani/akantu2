@@ -37,7 +37,8 @@ using std::setw;
 using std::setprecision;
 
 
-struct Assignator : public SolidMechanicsModel::SearchBase {
+struct Assignator : public ContactData<3,SolidMechanicsModel>::SearchBase {
+
 	typedef Point <3> point_type;
 	typedef SolidMechanicsModel model_type;
 	typedef ModelElement <model_type> master_type;
