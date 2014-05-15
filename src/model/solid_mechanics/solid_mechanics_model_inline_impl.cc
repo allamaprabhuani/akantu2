@@ -391,13 +391,14 @@ __END_AKANTU__
 #include "solver.hh"
 __BEGIN_AKANTU__
 
-#ifdef AKANTU_USE_MUMPS
 
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solve(Array<Real> & increment,
                                 Real block_val) {
 
+#ifdef AKANTU_USE_MUMPS
+  
   delete jacobian_matrix;
   std::stringstream sstr_sti; sstr_sti << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_sti.str(), memory_id);
@@ -408,6 +409,10 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
   if(solver)
     solver->initialize(_solver_no_options);
 
+#else
+  AKANTU_DEBUG_INFO("Check that the profile of the stiffness matrix doesn't change.")
+#endif
+  
   jacobian_matrix->clear();
   
   updateResidualInternal(); //doesn't do anything for static
@@ -465,7 +470,6 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
     }
     
 }
-#endif
 
 
 /* -------------------------------------------------------------------------- */
