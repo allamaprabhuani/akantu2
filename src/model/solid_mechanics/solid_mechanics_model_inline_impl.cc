@@ -30,7 +30,10 @@
 
 __END_AKANTU__
 
+
+#ifdef AKANTU_USE_MUMPS
 #include "solver_mumps.hh"
+#endif
 
 __BEGIN_AKANTU__
 
@@ -388,6 +391,8 @@ __END_AKANTU__
 #include "solver.hh"
 __BEGIN_AKANTU__
 
+#ifdef AKANTU_USE_MUMPS
+
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solve(Array<Real> & increment,
@@ -460,102 +465,7 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
     }
     
 }
-
-
-template <typename T>
-T Macauley(T v)
-{ return v < 0 ? 0 : v; }
-
-
-
-///* -------------------------------------------------------------------------- */
-//template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria, class contact_data>
-//void SolidMechanicsModel::solveContactStep(contact_data& cd, Real tolerance,
-//                                           UInt max_iteration) {
-//  
-//  
-//  this->implicitPred();
-//  this->updateResidual();
-//  
-//  //this->dump();
-//  
-//  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-//                      "You should first initialize the implicit solver and assemble the stiffness matrix");
-//  
-//  if (method==_implicit_dynamic) {
-//    AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
-//                        "You should first initialize the implicit solver and assemble the mass matrix");
-//  }
-//  
-//  switch (cmethod) {
-//    case _scm_newton_raphson_tangent:
-//      break;
-//    case _scm_newton_raphson_tangent_modified:
-//      this->assembleStiffnessMatrix();
-//      break;
-//    default:
-//      AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
-//  }
-//  
-//  
-//  // implementation of the Uzawa method for solving contact
-//  bool uzawa_converged = false;
-//  UInt k = 0;
-//  
-//
-//  cd.resetMultipliers();
-//  
-//  cout<<"____________"<<endl;
-//  do {
-//    
-//    cout<<"__UZAWA__ "<<k<<endl;
-//    
-//    // initialize Lagrange multipliers
-//    
-//    bool converged = false;
-//    UInt j = 0;
-//    
-//    do {
-//      Real error = 0.;
-//
-//      cout<<"__NEWTON__ "<<j<<endl;
-//
-//      // assemble material matrix
-//      if (cmethod == _scm_newton_raphson_tangent)
-//        this->assembleStiffnessMatrix();
-//      
-//      // compute gaps
-//      uzawa_converged = cd.computeTangentAndResidual();
-//      
-//      // solve
-//      solve<NewmarkBeta::_displacement_corrector > (*increment);
-//      
-//      this->implicitCorr();
-//      this->updateResidual();
-//      
-//      converged = this->testConvergence<criteria > (tolerance, error);
-//      
-//      //      this->dump();
-//      
-//      ++j;
-//      AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
-//                        << std::setw(std::log10(max_iteration)) << j
-//                        << ": error " << error << (converged ? " < " : " > ") << tolerance << std::endl);
-//      
-//    } while (!converged && j < max_iteration);
-//    
-//    // increment uzawa loop counter
-//    ++k;
-//    
-//    AKANTU_DEBUG_INFO("[" << criteria << "] Uzawa convergence iteration "
-//                      << std::setw(std::log10(max_iteration)) << k
-//                      << std::endl);
-//    
-//    
-//  } while (!uzawa_converged && k < max_iteration);
-//  
-//}
-
+#endif
 
 
 /* -------------------------------------------------------------------------- */

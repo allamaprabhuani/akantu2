@@ -49,6 +49,11 @@ T Heaviside(T v) {
 	return v < 0 ? 0 : 1;
 }
 
+template <typename T>
+T Macauley(T v)
+{ return v < 0 ? 0 : v; }
+
+
 //! Enumerated type used for the ContactData overloaded operator[] that returns real values
 enum Contact_parameter_type { Epsilon, Alpha, Uzawa_tol, Newton_tol, Uzawa_max_steps, Newton_max_steps};
 
