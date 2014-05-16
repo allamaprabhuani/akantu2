@@ -368,8 +368,8 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
   UInt spatial_dimension = model->getSpatialDimension();
 
   Mesh & mesh = model->getFEM().getMesh();
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it = element_filter.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     if(finite_deformation){
       switch (spatial_dimension) {
@@ -705,8 +705,8 @@ void Material::assembleResidual(GhostType ghost_type){
   Array<Real> & residual = const_cast<Array<Real> &> (model->getResidual());
 
   Mesh & mesh = model->getFEM().getMesh();
-  Mesh::type_iterator it = mesh.firstType(dim, ghost_type);
-  Mesh::type_iterator last_type = mesh.lastType(dim, ghost_type);
+  Mesh::type_iterator it = element_filter.firstType(dim, ghost_type);
+  Mesh::type_iterator last_type = element_filter.lastType(dim, ghost_type);
   for (; it != last_type; ++it) {
     const Array<Real> & shapes_derivatives = model->getFEM().getShapesDerivatives(*it, ghost_type);
 
@@ -797,8 +797,8 @@ void Material::computeAllStressesFromTangentModuli(GhostType ghost_type) {
   UInt spatial_dimension = model->getSpatialDimension();
 
   Mesh & mesh = model->getFEM().getMesh();
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it = element_filter.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     switch(spatial_dimension) {
     case 1: { computeAllStressesFromTangentModuli<1>(*it, ghost_type); break; }
@@ -898,8 +898,8 @@ void Material::computePotentialEnergyByElements() {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = model->getFEM().getMesh();
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  Mesh::type_iterator it = element_filter.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
 
     if(!potential_energy.exists(*it, _not_ghost)) {
@@ -925,8 +925,8 @@ Real Material::getPotentialEnergy() {
 
   /// integrate the potential energy for each type of elements
   Mesh & mesh = model->getFEM().getMesh();
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
+  Mesh::type_iterator it = element_filter.firstType(spatial_dimension);
+  Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
 
     epot += model->getFEM().integrate(potential_energy(*it, _not_ghost), *it,
@@ -978,8 +978,8 @@ void Material::computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature
   Array<Real> nodes_coordinates(mesh.getNodes(), true);
   nodes_coordinates += model->getDisplacement();
 
-  Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it = element_filter.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     const Array<UInt> & elem_filter = element_filter(*it, ghost_type);
 
@@ -1012,8 +1012,8 @@ void Material::initElementalFieldInterpolation(const ByElementTypeReal & interpo
 
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, ghost_type);
 
-    Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
-    Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
+    Mesh::type_iterator it   = element_filter.firstType(spatial_dimension, ghost_type);
+    Mesh::type_iterator last = element_filter.lastType(spatial_dimension, ghost_type);
     for (; it != last; ++it) {
       ElementType type = *it;
       UInt nb_element = mesh.getNbElement(type, ghost_type);
@@ -1121,8 +1121,8 @@ void Material::interpolateStress(ByElementTypeReal & result,
 
   const Mesh & mesh = model->getFEM().getMesh();
 
-  Mesh::type_iterator it   = mesh.firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last = mesh.lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it   = element_filter.firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last = element_filter.lastType(spatial_dimension, ghost_type);
   for (; it != last; ++it) {
     ElementType type = *it;
     UInt nb_element = mesh.getNbElement(type, ghost_type);

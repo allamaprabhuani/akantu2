@@ -486,6 +486,14 @@ void finalize ();
 inline std::string to_lower(const std::string & str);
 /* -------------------------------------------------------------------------- */
 inline std::string trim(const std::string & to_trim);
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/// give a string representation of the a human readable size in bit
+template<typename T>
+std::string printMemorySize(UInt size);
+/* -------------------------------------------------------------------------- */
+
 
 __END_AKANTU__
 

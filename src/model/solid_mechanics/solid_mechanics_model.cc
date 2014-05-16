@@ -2015,6 +2015,14 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   element_index_by_material.printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
+  stream << space << " + materials [" << std::endl;
+  std::vector<Material *>::const_iterator mat_it;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it) {
+    const Material & mat = *(*mat_it);
+    mat.printself(stream, indent + 1);
+  }
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+
   stream << space << "]" << std::endl;
 }
 

@@ -74,12 +74,6 @@ inline void LocalMaterialDamage::computePotentialEnergyOnQuad(Matrix<Real> & gra
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real LocalMaterialDamage::celerity() {
-  return sqrt(E/rho);
-}
-
-/* -------------------------------------------------------------------------- */
-inline Real LocalMaterialDamage::getStableTimeStep(Real h, 
-						   __attribute__ ((unused)) const Element & element) {
-  return (h/celerity());
+inline Real LocalMaterialDamage::getCelerity(__attribute__ ((unused)) const Element & element) const {
+  return (std::sqrt(E/rho));
 }

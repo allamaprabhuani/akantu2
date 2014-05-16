@@ -12,10 +12,9 @@ FEM [
      + size           : 9
      + nb_component   : 2
      + allocated size : 2000
-     + memory size    : 31kB
+     + memory size    : 31.25KiByte
      + values         : {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}, {0.5, 0.5}}
     ]
-   ]
    + connectivities [
     ByElementTypeArray<unsigned int> [
         (not_ghost:_point_1) [
@@ -24,7 +23,7 @@ FEM [
         + size           : 4
         + nb_component   : 1
         + allocated size : 2000
-        + memory size    : 7.8kB
+        + memory size    : 7.81KiByte
         + values         : {{0}, {1}, {2}, {3}}
        ]
          ]
@@ -34,7 +33,7 @@ FEM [
         + size           : 8
         + nb_component   : 2
         + allocated size : 2000
-        + memory size    : 16kB
+        + memory size    : 15.62KiByte
         + values         : {{0, 4}, {4, 1}, {1, 5}, {5, 2}, {2, 6}, {6, 3}, {3, 7}, {7, 0}}
        ]
          ]
@@ -44,11 +43,14 @@ FEM [
         + size           : 4
         + nb_component   : 4
         + allocated size : 2000
-        + memory size    : 31kB
+        + memory size    : 31.25KiByte
         + values         : {{2, 6, 8, 5}, {5, 8, 4, 1}, {6, 3, 7, 8}, {8, 7, 0, 4}}
        ]
          ]
     ]
+   ]
+   GroupManager [
+   ]
   ]
  ]
 ]

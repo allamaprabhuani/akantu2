@@ -251,9 +251,7 @@ public:
   void resize(UInt size);
 
   /// change the number of components by interlacing data
-  /// deprecated, do not use
-  void extendComponentsInterlaced(UInt multiplicator, UInt stride)
-    __attribute__((deprecated));
+  void extendComponentsInterlaced(UInt multiplicator, UInt stride);
 
   /// search elem in the vector, return  the position of the first occurrence or -1 if not found
   Int find(const_reference elem) const;\

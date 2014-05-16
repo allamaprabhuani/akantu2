@@ -33,6 +33,7 @@
  */
 
 #include <algorithm>
+#include <iomanip>
 
 #include <cctype>
 
@@ -158,5 +159,43 @@ inline std::string trim(const std::string & to_trim) {
 	       trimed.end());
   return trimed;
 }
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+std::string printMemorySize(UInt size) {
+  Real real_size = size * sizeof(T);
+
+  UInt mult = (std::log(real_size) / std::log(2)) / 10;
+
+  std::stringstream sstr;
+
+  real_size /= Real(1 << (10 * mult));
+  sstr << std::setprecision(2) << std::fixed << real_size;
+
+  std::string size_prefix;
+  switch(mult) {
+  case 0: sstr << "";   break;
+  case 1: sstr << "Ki"; break;
+  case 2: sstr << "Mi"; break;
+  case 3: sstr << "Gi"; break; // I started on this type of machines
+                               // (32bit computers) (Nicolas)
+  case 4: sstr << "Ti"; break;
+  case 5: sstr << "Pi"; break;
+  case 6: sstr << "Ei"; break; // theoritical limit of RAM of the current
+	                       // computers in 2014 (64bit computers) (Nicolas)
+  case 7: sstr << "Zi"; break;
+  case 8: sstr << "Yi"; break;
+  default:
+    AKANTU_DEBUG_ERROR("The programmer in 2014 didn't thought so far (even wikipedia does not go further)."
+		       << " You have at least 1024 times more than a yobibit of RAM!!!"
+		       << " Just add the prefix corresponding in this switch case.");
+  }
+
+  sstr << "Byte";
+
+  return sstr.str();
+}
+
+
 
 __END_AKANTU__

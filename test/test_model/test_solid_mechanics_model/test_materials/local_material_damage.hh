@@ -77,15 +77,12 @@ public:
 					   Matrix<Real> & sigma,
 					   Real & epot);
 
-  /// compute the celerity of wave in the material
-  inline Real celerity();
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the stable time step
-  inline Real getStableTimeStep(Real h, const Element & element);
+  /// compute the celerity of wave in the material
+  inline Real getCelerity(const Element & element) const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -50,7 +50,7 @@ ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", "test")
 const ElementType TYPE = _triangle_6;
 
 int main(int argc, char *argv[]) {
-  akantu::initialize(argc, argv);
+  akantu::initialize("material_non_local.dat", argc, argv);
   debug::setDebugLevel(akantu::dblWarning);
 
   const UInt spatial_dimension = 2;
@@ -59,10 +59,7 @@ int main(int argc, char *argv[]) {
   mesh_io.read("mesh.msh", mesh);
 
   SolidMechanicsModel model(mesh);
-  model.initModel();
-  model.initArrays();
-  model.readMaterials("material_non_local.dat");
-  model.initMaterials();
+  model.initFull();
 
   //  model.getFEM().getMesh().initByElementTypeArray(quadrature_points_volumes, 1, 0);
   const MaterialNonLocal<spatial_dimension, BaseWeightFunction> & mat =
@@ -72,6 +69,8 @@ int main(int argc, char *argv[]) {
 
   UInt nb_element  = mesh.getNbElement(TYPE);
   UInt nb_tot_quad = model.getFEM().getNbQuadraturePoints(TYPE) * nb_element;
+
+  std::cout << mat << std::endl;
 
   Array<Real> quads(0, spatial_dimension);
   quads.resize(nb_tot_quad);

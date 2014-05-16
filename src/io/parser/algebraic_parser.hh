@@ -174,7 +174,7 @@ namespace akantu {
 	  ;
 
 	key
-	  =   qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9") // coming from the InputFileGrammar
+	  =   qi::no_skip[qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9")] // coming from the InputFileGrammar
 	  ;
 
 	constant.add
@@ -433,7 +433,7 @@ namespace akantu {
     struct RandomGeneratorGrammar : qi::grammar<Iterator, ParsableRandomGenerator(), Skipper> {
       RandomGeneratorGrammar(const ParserSection & section) : RandomGeneratorGrammar::base_type(start,
 											      "random_generator_grammar"),
-							     number(section) {
+							      number(section) {
         phx::function<algebraic_error_handler_> const error_handler = algebraic_error_handler_();
         phx::function<lazy_cont_add_> lazy_params_add;
 

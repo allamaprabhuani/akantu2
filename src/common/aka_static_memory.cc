@@ -136,14 +136,13 @@ void StaticMemory::printself(std::ostream & stream, int indent) const{
 	vector_it != (memory_it->second).end();
 	++vector_it) {
       (vector_it->second)->printself(stream, indent + 2);
-      mem_size += (vector_it->second)->getMemorySize() / 1024.;
+      mem_size += (vector_it->second)->getMemorySize();
     }
-    stream.precision(2);
-    stream << space << AKANTU_INDENT << " + total size  : " << mem_size << "kB" << std::endl;
+    stream << space << AKANTU_INDENT << " + total size  : " << printMemorySize<char>(mem_size) << std::endl;
     stream << space << AKANTU_INDENT << "]" << std::endl;
     tot_size += mem_size;
   }
-  stream << space << " + total size  : " << tot_size << "kB" << std::endl;
+  stream << space << " + total size  : " << printMemorySize<char>(tot_size) << std::endl;
   stream << space << "]" << std::endl;
 
   stream.precision(prec);
