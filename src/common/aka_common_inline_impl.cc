@@ -160,6 +160,12 @@ inline std::string trim(const std::string & to_trim) {
   return trimed;
 }
 
+__END_AKANTU__
+
+#include <cmath>
+
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 template<typename T>
 std::string printMemorySize(UInt size) {
