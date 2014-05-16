@@ -367,7 +367,6 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  Mesh & mesh = model->getFEM().getMesh();
   Mesh::type_iterator it = element_filter.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
@@ -796,7 +795,6 @@ void Material::computeAllStressesFromTangentModuli(GhostType ghost_type) {
 
   UInt spatial_dimension = model->getSpatialDimension();
 
-  Mesh & mesh = model->getFEM().getMesh();
   Mesh::type_iterator it = element_filter.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
@@ -897,7 +895,6 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
 void Material::computePotentialEnergyByElements() {
   AKANTU_DEBUG_IN();
 
-  Mesh & mesh = model->getFEM().getMesh();
   Mesh::type_iterator it = element_filter.firstType(spatial_dimension);
   Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
@@ -924,7 +921,6 @@ Real Material::getPotentialEnergy() {
   computePotentialEnergyByElements();
 
   /// integrate the potential energy for each type of elements
-  Mesh & mesh = model->getFEM().getMesh();
   Mesh::type_iterator it = element_filter.firstType(spatial_dimension);
   Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
