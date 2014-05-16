@@ -125,6 +125,9 @@ public:
   /// the argument does not exist or was not set (parsed or default value)
   const Argument & operator[](const std::string & name) const;
 
+  /// set the parallel context to avoid multiple help messages in multiproc/thread cases
+  void setParallelContext(int prank, int psize);
+
 public:
   class _Argument;
   template<class T> class ArgumentStorage;
@@ -155,6 +158,8 @@ private:
 
   std::string program_name;
   void (*external_exit)(int);
+
+  int prank, psize;
 };
 
 }

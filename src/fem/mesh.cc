@@ -333,33 +333,25 @@ void Mesh::getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
 
 
 /* -------------------------------------------------------------------------- */
-template void Mesh::initByElementTypeArray<Real>(ByElementTypeArray<Real> & vect,
-                                                 UInt nb_component,
-                                                 UInt dim,
-                                                 const bool & flag_nb_elem_multiply,
-                                                 ElementKind element_kind,
-                                                 bool size_to_nb_element) const;
+#define AKANTU_INSTANTIATE_INIT(type)					\
+template void Mesh::initByElementTypeArray<type>(ByElementTypeArray<type> & vect, \
+                                                 UInt nb_component,	\
+                                                 UInt dim,		\
+                                                 const bool & flag_nb_elem_multiply, \
+                                                 ElementKind element_kind, \
+                                                 bool size_to_nb_element) const; \
+template void Mesh::initByElementTypeArray<type>(ByElementTypeArray<type> & vect, \
+                                                 UInt nb_component,	\
+                                                 UInt dim,		\
+						 GhostType gt,		\
+                                                 const bool & flag_nb_elem_multiply, \
+                                                 ElementKind element_kind, \
+                                                 bool size_to_nb_element) const
 
-template void Mesh::initByElementTypeArray<Int>(ByElementTypeArray<Int> & vect,
-                                                UInt nb_component,
-                                                UInt dim,
-                                                const bool & flag_nb_elem_multiply,
-                                                ElementKind element_kind,
-                                                bool size_to_nb_element) const;
-
-template void Mesh::initByElementTypeArray<UInt>(ByElementTypeArray<UInt> & vect,
-                                                 UInt nb_component,
-                                                 UInt dim,
-                                                 const bool & flag_nb_elem_multiply,
-                                                 ElementKind element_kind,
-                                                 bool size_to_nb_element) const;
-
-template void Mesh::initByElementTypeArray<bool>(ByElementTypeArray<bool> & vect,
-                                                 UInt nb_component,
-                                                 UInt dim,
-                                                 const bool & flag_nb_elem_multiply,
-                                                 ElementKind element_kind,
-                                                 bool size_to_nb_element) const;
+AKANTU_INSTANTIATE_INIT(Real);
+AKANTU_INSTANTIATE_INIT(UInt);
+AKANTU_INSTANTIATE_INIT(Int);
+AKANTU_INSTANTIATE_INIT(bool);
 
 
 __END_AKANTU__

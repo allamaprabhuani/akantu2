@@ -57,6 +57,7 @@ void initialize(const std::string & input_file, int & argc, char ** & argv) {
   debug::debugger.setParallelContext(comm.whoAmI(), comm.getNbProc());
   debug::initSignalHandler();
 
+  static_argparser.setParallelContext(comm.whoAmI(), comm.getNbProc());
   static_argparser.setExternalExitFunction(debug::Debugger::exit);
   static_argparser.addArgument("--aka_input_file", "Akantu's input file",
 			       1, cppargparse::_string, std::string());

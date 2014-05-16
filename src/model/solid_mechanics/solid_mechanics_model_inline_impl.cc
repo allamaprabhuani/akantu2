@@ -28,18 +28,6 @@
  *
  */
 
-__END_AKANTU__
-
-
-#ifdef AKANTU_USE_MUMPS
-#include "solver_mumps.hh"
-#endif
-
-__BEGIN_AKANTU__
-
-using std::cout;
-using std::endl;
-
 /* -------------------------------------------------------------------------- */
 inline Material & SolidMechanicsModel::getMaterial(UInt mat_index) {
   AKANTU_DEBUG_IN();
@@ -63,7 +51,7 @@ inline Material & SolidMechanicsModel::getMaterial(const std::string & name) {
   AKANTU_DEBUG_IN();
   std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
-		     "The model " << id << " has no material named "<< name);
+                     "The model " << id << " has no material named "<< name);
   AKANTU_DEBUG_OUT();
   return *materials[it->second];
 }
@@ -73,7 +61,7 @@ inline UInt SolidMechanicsModel::getMaterialIndex(const std::string & name) cons
   AKANTU_DEBUG_IN();
   std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
-		      "The model " << id << " has no material named "<< name);
+                      "The model " << id << " has no material named "<< name);
   AKANTU_DEBUG_OUT();
   return it->second;
 }
@@ -83,7 +71,7 @@ inline const Material & SolidMechanicsModel::getMaterial(const std::string & nam
   AKANTU_DEBUG_IN();
   std::map<std::string, UInt>::const_iterator it = materials_names_to_id.find(name);
   AKANTU_DEBUG_ASSERT(it != materials_names_to_id.end(),
-		      "The model " << id << " has no material named "<< name);
+                      "The model " << id << " has no material named "<< name);
   AKANTU_DEBUG_OUT();
   return *materials[it->second];
 }
@@ -387,10 +375,15 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
 }
 
 __END_AKANTU__
+
 #include "sparse_matrix.hh"
 #include "solver.hh"
-__BEGIN_AKANTU__
 
+#ifdef AKANTU_USE_MUMPS
+#include "solver_mumps.hh"
+#endif
+
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
@@ -398,23 +391,21 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
                                 Real block_val) {
 
 #ifdef AKANTU_USE_MUMPS
-  
+  // @todo make it more flexible: this is an ugly patch to treat the case of non
+  // fix profile of the K matrix
   delete jacobian_matrix;
   std::stringstream sstr_sti; sstr_sti << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_sti.str(), memory_id);
-  
+
   std::stringstream sstr_solv; sstr_solv << id << ":solver";
   delete solver;
   solver = new SolverMumps(*jacobian_matrix, sstr_solv.str());
   if(solver)
     solver->initialize(_solver_no_options);
-
 #else
-  AKANTU_DEBUG_INFO("Check that the profile of the stiffness matrix doesn't change.")
+  AKANTU_DEBUG_INFO("Check that the profile of the stiffness matrix doesn't change.");
 #endif
-  
-  jacobian_matrix->clear();
-  
+
   updateResidualInternal(); //doesn't do anything for static
 
   Real c = 0.,d = 0.,e = 0.;
@@ -431,6 +422,7 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
     e = nmb_int->getDisplacementCoefficient<type>(time_step);
   }
 
+  jacobian_matrix->clear();
   // J = c M + d C + e K
   if(stiffness_matrix)
     jacobian_matrix->add(*stiffness_matrix, e);
@@ -456,7 +448,7 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
   solver->setRHS(*residual);
   // solve @f[ J \delta w = r @f]
   solver->solve(increment);
-  
+
   UInt nb_nodes = displacement-> getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
 
@@ -465,10 +457,10 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
 
   for (UInt j = 0; j < nb_degree_of_freedom;
        ++j,++increment_val, ++boundary_val) {
-    if ((*boundary_val)) 
+    if ((*boundary_val))
       *increment_val = 0.0;
     }
-    
+
 }
 
 
@@ -497,11 +489,11 @@ void SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration) {
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
 bool SolidMechanicsModel::solveStep(Real tolerance,
-				    UInt max_iteration) {
+                                    UInt max_iteration) {
   Real error = 0.;
   return this->template solveStep<cmethod,criteria>(tolerance,
-						    error,
-						    max_iteration);
+                                                    error,
+                                                    max_iteration);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -511,14 +503,12 @@ bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_itera
   this->implicitPred();
   this->updateResidual();
 
-  //this->dump();
-
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
 
   if (method==_implicit_dynamic) {
     AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
-			"You should first initialize the implicit solver and assemble the mass matrix");
+                        "You should first initialize the implicit solver and assemble the mass matrix");
   }
 
   switch (cmethod) {
@@ -557,8 +547,8 @@ bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_itera
 
     iter++;
     AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
-		      << std::setw(std::log10(max_iteration)) << iter
-		      << ": error " << error << (converged ? " < " : " > ") << tolerance);
+                      << std::setw(std::log10(max_iteration)) << iter
+                      << ": error " << error << (converged ? " < " : " > ") << tolerance);
 
   } while (!converged && iter < max_iteration);
 

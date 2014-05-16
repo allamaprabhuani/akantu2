@@ -5,7 +5,7 @@
  *
  * @date   Mon Mar 31 21:15:31 2014
  *
- * @brief  
+ * @brief
  *
  * @section LICENSE
  *
@@ -152,7 +152,6 @@ template<class T>
 struct is_vector< std::vector<T> > {
   enum { value = true };
 };
-  
 
 /* -------------------------------------------------------------------------- */
 template<class T, bool is_vector = cppargparse::is_vector<T>::value>
@@ -206,6 +205,48 @@ void ArgumentParser::addArgument(const std::string & name_or_flag,
   arg.has_default = true;
   dynamic_cast<ArgumentStorage<T> &>(arg)._const = cons;
   arg.has_const = true;
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void ArgumentParser::addArgument<const char *>(const std::string & name_or_flag,
+						      const std::string & help,
+						      int nargs,
+						      ArgumentType type,
+						      const char * def) {
+  this->addArgument<std::string>(name_or_flag, help, nargs, type, def);
+}
+
+template<>
+inline void ArgumentParser::addArgument<unsigned int>(const std::string & name_or_flag,
+						      const std::string & help,
+						      int nargs,
+						      ArgumentType type,
+						      unsigned int def) {
+  this->addArgument<int>(name_or_flag, help, nargs, type, def);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void ArgumentParser::addArgument<const char *>(const std::string & name_or_flag,
+						      const std::string & help,
+						      int nargs,
+						      ArgumentType type,
+						      const char * def,
+						      const char * cons) {
+  this->addArgument<std::string>(name_or_flag, help, nargs, type,
+				 def, cons);
+}
+
+template<>
+inline void ArgumentParser::addArgument<unsigned int>(const std::string & name_or_flag,
+						      const std::string & help,
+						      int nargs,
+						      ArgumentType type,
+						      unsigned int def,
+						      unsigned int cons) {
+  this->addArgument<int>(name_or_flag, help, nargs, type,
+			 def, cons);
 }
 
 

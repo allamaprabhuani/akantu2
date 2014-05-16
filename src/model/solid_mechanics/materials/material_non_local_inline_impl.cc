@@ -90,14 +90,10 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   for(; it != last_type; ++it)
     nb_ghost_protected(mesh.getNbElement(*it, _ghost), *it, _ghost);
 
-
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  Int prank = comm.whoAmI();
-
-  if(prank == 0) std::cout << "Creating cell list" << std::endl;
+  AKANTU_DEBUG_INFO("Creating cell list");
   createCellList(quadrature_points_coordinates);
 
-  if(prank == 0) std::cout << "Creating pairs" << std::endl;
+  AKANTU_DEBUG_INFO("Creating pairs");
   updatePairList(quadrature_points_coordinates);
 
 #if not defined(AKANTU_NDEBUG)
@@ -105,17 +101,12 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
      neighbourhoodStatistics("material_non_local.stats");
 #endif
 
+  AKANTU_DEBUG_INFO("Cleaning extra ghosts");
+  cleanupExtraGhostElement(nb_ghost_protected);
 
-  //  cleanupExtraGhostElement(nb_ghost_protected);
-
-  if(prank == 0) std::cout << "Cleaning extra ghosts" << std::endl;
-  //cleanupExtraGhostElement(nb_ghost_protected);
-
-
-  if(prank == 0) std::cout << "Computing weights" << std::endl;
+  AKANTU_DEBUG_INFO("Computing weights");
   weight_func->setRadius(weight_func->getRadius());
   weight_func->init();
-
 
   computeWeights(quadrature_points_coordinates);
 

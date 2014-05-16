@@ -60,7 +60,7 @@ static inline std::string to_upper(const std::string & str) {
 /* -------------------------------------------------------------------------- */
 /* ArgumentParser                                                             */
 /* -------------------------------------------------------------------------- */
-ArgumentParser::ArgumentParser() : external_exit(NULL) {
+  ArgumentParser::ArgumentParser() : external_exit(NULL), prank(0), psize(1) {
   this->addArgument("-h;--help", "show this help message and exit", 0, _boolean, false, true);
 }
 
@@ -70,13 +70,20 @@ ArgumentParser::~ArgumentParser() {
   }
 }
 
-  void ArgumentParser::_exit(const std::string & msg, int status) {
-  if(msg != "") {
-    std::cerr << msg << std::endl;
-    std::cerr << std::endl;
-  }
+void ArgumentParser::setParallelContext(int prank, int psize) {
+  this->prank = prank;
+  this->psize = psize;
+}
 
-  this->print_help(std::cerr);
+void ArgumentParser::_exit(const std::string & msg, int status) {
+  if(prank == 0) {
+    if(msg != "") {
+      std::cerr << msg << std::endl;
+      std::cerr << std::endl;
+    }
+
+    this->print_help(std::cerr);
+  }
 
   if(external_exit)
     (*external_exit)(status);

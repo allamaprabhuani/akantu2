@@ -144,25 +144,6 @@ namespace mesh_io_abaqus_lazy_eval {
   };
 
   /* ------------------------------------------------------------------------ */
-  struct lazy_print_ {
-    template<class P>  struct result { typedef P& type; };
-
-    template<class P>  P& operator()(P & p) const {
-      std::cout << p << std::endl;
-      return p;
-    }
-  };
-
-  struct lazy_print_msg_ {
-    template<class P, class str>  struct result { typedef P& type; };
-
-    template<class P, class str>  P& operator()(P & p, const str & msg) const {
-      std::cout << "MSG: " << msg << std::endl;
-      return p;
-    }
-  };
-
-  /* ------------------------------------------------------------------------ */
   struct lazy_element_group_create_ {
     template<class Mesh, class S> struct result { typedef ElementGroup & type; };
 
