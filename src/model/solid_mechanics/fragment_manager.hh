@@ -72,8 +72,9 @@ private:
 
 public:
 
-  /// build fragment list
-  void buildFragments();
+  /// build fragment list (cohesive elements are considered broken if
+  /// damage >= damage_limit)
+  void buildFragments(Real damage_limit = 1.);
 
   /// compute fragments' center of mass
   void computeCenterOfMass();

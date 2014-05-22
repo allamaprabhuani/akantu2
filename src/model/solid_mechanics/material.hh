@@ -164,7 +164,7 @@ public:
   virtual void beforeSolveStep() {}
   virtual void afterSolveStep() {}
 
-  /// save the stress in the precious_stress if needed
+  /// save the stress in the previous_stress if needed
   virtual void savePreviousState();
 
   /// compute the stresses for this material

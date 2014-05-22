@@ -123,7 +123,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-void FragmentManager::buildFragments() {
+void FragmentManager::buildFragments(Real damage_limit) {
   AKANTU_DEBUG_IN();
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
@@ -148,7 +148,8 @@ void FragmentManager::buildFragments() {
   /// generate fragments
   global_nb_fragment = createClusters(spatial_dimension,
 				      fragment_prefix,
-				      CohesiveElementFilter(model),
+				      CohesiveElementFilter(model,
+							    damage_limit),
 				      &synchronizer,
 				      &mesh_facets);
 
