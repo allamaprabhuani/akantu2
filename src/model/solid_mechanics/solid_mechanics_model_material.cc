@@ -132,6 +132,7 @@ void SolidMechanicsModel::initMaterials() {
   for(; it != end; ++it) {
     UInt nb_element = mesh.getNbElement(*it, _not_ghost);
     element.type = *it;
+    element.kind = mesh.getKind(element.type);
     Array<UInt> & el_id_by_mat = element_index_by_material(*it, _not_ghost);
     for (UInt el = 0; el < nb_element; ++el) {
       element.element = el;
