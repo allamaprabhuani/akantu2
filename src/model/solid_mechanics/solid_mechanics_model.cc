@@ -1589,14 +1589,15 @@ void SolidMechanicsModel::reassignMaterial() {
 
   std::vector< Array<Element> > element_to_add   (materials.size());
   std::vector< Array<Element> > element_to_remove(materials.size());
+  UInt spatial_dimension = mesh.getSpatialDimension();
 
   Element element;
   for (ghost_type_t::iterator gt = ghost_type_t::begin(); gt != ghost_type_t::end(); ++gt) {
     GhostType ghost_type = *gt;
     element.ghost_type = ghost_type;
 
-    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, ghost_type, _ek_not_defined);
-    Mesh::type_iterator end = mesh.lastType(_all_dimensions, ghost_type, _ek_not_defined);
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type, _ek_regular);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type, _ek_regular);
     for(; it != end; ++it) {
       ElementType type = *it;
       element.type = type;
