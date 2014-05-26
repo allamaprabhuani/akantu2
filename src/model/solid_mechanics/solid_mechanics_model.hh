@@ -321,7 +321,7 @@ public:
 	// void setMaterialIDsFromIntData(const std::string & data_name);
 
 	/// reassigns materials depending on the material selector
-	void reassignMaterial();
+	virtual void reassignMaterial();
 
 protected:
 	/// register a material in the dynamic database
