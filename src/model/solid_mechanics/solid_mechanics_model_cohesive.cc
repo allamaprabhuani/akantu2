@@ -45,9 +45,9 @@
 __BEGIN_AKANTU__
 
 const SolidMechanicsModelCohesiveOptions default_solid_mechanics_model_cohesive_options(_explicit_lumped_mass,
-											false,
-											false,
-											true);
+                                                                                        false,
+                                                                                        false,
+                                                                                        true);
 
 /* -------------------------------------------------------------------------- */
 
@@ -81,7 +81,7 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
 #if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("cohesive elements", id);
   this->addDumpMeshToDumper("cohesive elements",
-			    mesh, spatial_dimension, _not_ghost, _ek_cohesive);
+                            mesh, spatial_dimension, _not_ghost, _ek_cohesive);
 #endif
 
   AKANTU_DEBUG_OUT();
@@ -165,18 +165,18 @@ void SolidMechanicsModelCohesive::initMaterials() {
       Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1, *gt);
       Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1, *gt);
       for(;first != last; ++first) {
-	element.type = *first;
-	Array<UInt> & f_material = facet_material(*first, *gt);
-	UInt nb_element = mesh_facets.getNbElement(*first, *gt);
-	f_material.resize(nb_element);
-	f_material.set(cohesive_index);
-	for (UInt el = 0; el < nb_element; ++el) {
-	  element.element = el;
-	  UInt mat_index = (*material_selector)(element);
-	  f_material(el) = mat_index;
-	  MaterialCohesive & mat = dynamic_cast<MaterialCohesive &>(*materials[mat_index]);
-	  mat.addFacet(element);
-	}
+        element.type = *first;
+        Array<UInt> & f_material = facet_material(*first, *gt);
+        UInt nb_element = mesh_facets.getNbElement(*first, *gt);
+        f_material.resize(nb_element);
+        f_material.set(cohesive_index);
+        for (UInt el = 0; el < nb_element; ++el) {
+          element.element = el;
+          UInt mat_index = (*material_selector)(element);
+          f_material(el) = mat_index;
+          MaterialCohesive & mat = dynamic_cast<MaterialCohesive &>(*materials[mat_index]);
+          mat.addFacet(element);
+        }
       }
     }
   } else {
@@ -185,9 +185,9 @@ void SolidMechanicsModelCohesive::initMaterials() {
       Mesh::type_iterator last  = mesh.lastType(spatial_dimension, *gt, _ek_cohesive);
 
       for(;first != last; ++first) {
-	Array<UInt> & el_id_by_mat = element_index_by_material(*first, *gt);
-	Vector<UInt> el_mat(2); el_mat(0) = cohesive_index; el_mat(1) = 0;
-	el_id_by_mat.set(el_mat);
+        Array<UInt> & el_id_by_mat = element_index_by_material(*first, *gt);
+        Vector<UInt> el_mat(2); el_mat(0) = cohesive_index; el_mat(1) = 0;
+        el_id_by_mat.set(el_mat);
       }
     }
   }
@@ -262,14 +262,14 @@ void SolidMechanicsModelCohesive::initAutomaticInsertion() {
     const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
 
     facet_stress_synchronizer->updateFacetStressSynchronizer(*inserter,
-							     rank_to_element,
-							     *data_accessor);
+                                                             rank_to_element,
+                                                             *data_accessor);
   }
 #endif
 
   mesh_facets.initByElementTypeArray(facet_stress,
-				     2 * spatial_dimension * spatial_dimension,
-				     spatial_dimension - 1);
+                                     2 * spatial_dimension * spatial_dimension,
+                                     spatial_dimension - 1);
 
   resizeFacetStress();
 
@@ -311,8 +311,8 @@ void SolidMechanicsModelCohesive::updateAutomaticInsertion() {
       const ByElementTypeUInt & rank_to_element = synch_parallel->getPrankToElement();
 
       facet_stress_synchronizer->updateFacetStressSynchronizer(*inserter,
-							       rank_to_element,
-							       *data_accessor);
+                                                               rank_to_element,
+                                                               *data_accessor);
     }
 #endif
 
@@ -389,7 +389,7 @@ void SolidMechanicsModelCohesive::initStressInterpolation() {
   for (UInt m = 0; m < materials.size(); ++m) {
     try {
       MaterialCohesive & mat __attribute__((unused)) =
-	dynamic_cast<MaterialCohesive &>(*materials[m]);
+        dynamic_cast<MaterialCohesive &>(*materials[m]);
     } catch(std::bad_cast&) {
       /// initialize the interpolation function
       materials[m]->initElementalFieldInterpolation(elements_quad_facets);
@@ -441,8 +441,8 @@ void SolidMechanicsModelCohesive::computeNormals() {
   UInt tangent_components = spatial_dimension * (spatial_dimension - 1);
 
   mesh_facets.initByElementTypeArray(tangents,
-				     tangent_components,
-				     spatial_dimension - 1);
+                                     tangent_components,
+                                     spatial_dimension - 1);
 
   Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
   Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
@@ -466,9 +466,9 @@ void SolidMechanicsModelCohesive::computeNormals() {
 
       /// if normal is orthogonal to xy plane, arbitrarly define tangent
       if ( Math::are_float_equal(Math::norm2(normal_it), 0) )
-	tangent_it[0] = 1;
+        tangent_it[0] = 1;
       else
-	Math::normal2(normal_it, tangent_it);
+        Math::normal2(normal_it, tangent_it);
 
       normal_it += spatial_dimension;
       tangent_it += tangent_components;
@@ -480,9 +480,9 @@ void SolidMechanicsModelCohesive::computeNormals() {
       tangent_it = tang.storage();
 
       for (UInt q = 0; q < nb_quad; ++q) {
-	Math::normal3(normal_it, tangent_it, tangent_it + spatial_dimension);
-	normal_it += spatial_dimension;
-	tangent_it += tangent_components;
+        Math::normal3(normal_it, tangent_it, tangent_it + spatial_dimension);
+        normal_it += spatial_dimension;
+        tangent_it += tangent_components;
       }
     }
   }
@@ -523,13 +523,13 @@ void SolidMechanicsModelCohesive::averageStressOnFacets(UInt material_index) {
       average_stress.clear();
 
       for (UInt q = 0; q < nb_quad_per_element; ++q, ++stress_it)
-	average_stress += *stress_it;
+        average_stress += *stress_it;
 
       average_stress /= nb_quad_per_element;
 
       /// store average stress
       for (UInt q = 0; q < nb_facet_quad_per_elem; ++q, ++s_on_facet_it)
-	*s_on_facet_it = average_stress;
+        *s_on_facet_it = average_stress;
     }
   }
 
@@ -551,10 +551,10 @@ void SolidMechanicsModelCohesive::fillStressOnFacet() {
     } catch(std::bad_cast&) {
 
       if (stress_interpolation)
-	/// interpolate stress on facet quadrature points positions
-	materials[m]->interpolateStress(stress_on_facet);
+        /// interpolate stress on facet quadrature points positions
+        materials[m]->interpolateStress(stress_on_facet);
       else
-	averageStressOnFacets(m);
+        averageStressOnFacets(m);
 
       GhostType ghost_type = _not_ghost;
 
@@ -612,27 +612,77 @@ void SolidMechanicsModelCohesive::fillStressOnFacet() {
               f_check = &( inserter->getCheckFacets(facet_type, facet_gt) );
             }
 
-	    if (!(*f_check)(global_facet)) {
-	      stress_on_f_it += nb_quad_per_facet;
-	      continue;
-	    }
+            if (!(*f_check)(global_facet)) {
+              stress_on_f_it += nb_quad_per_facet;
+              continue;
+            }
 
             for (UInt q = 0; q < nb_quad_per_facet; ++q, ++stress_on_f_it) {
 
-	      element_rank = (*element_to_facet)(global_facet)[0] != current_el;
+              element_rank = (*element_to_facet)(global_facet)[0] != current_el;
 
-	      Matrix<Real> facet_stress_local(f_stress->storage()
-					      + (global_facet * nb_quad_per_facet + q) * sp4
-					      + element_rank * sp2,
-					      spatial_dimension,
-					      spatial_dimension);
+              Matrix<Real> facet_stress_local(f_stress->storage()
+                                              + (global_facet * nb_quad_per_facet + q) * sp4
+                                              + element_rank * sp2,
+                                              spatial_dimension,
+                                              spatial_dimension);
 
-	      facet_stress_local = *stress_on_f_it;
+              facet_stress_local = *stress_on_f_it;
             }
           }
         }
       }
     }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::reassignMaterial() {
+  AKANTU_DEBUG_IN();
+
+  SolidMechanicsModel::reassignMaterial();
+
+  std::vector< Array<Element> > element_to_add   (materials.size());
+  std::vector< Array<Element> > element_to_remove(materials.size());
+
+  Element element;
+  for (ghost_type_t::iterator gt = ghost_type_t::begin(); gt != ghost_type_t::end(); ++gt) {
+    GhostType ghost_type = *gt;
+    element.ghost_type = ghost_type;
+
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type, _ek_cohesive);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type, _ek_cohesive);
+    for(; it != end; ++it) {
+
+      ElementType type = *it;
+      element.type = type;
+
+      UInt nb_element = mesh.getNbElement(type, ghost_type);
+
+      Array<UInt> & el_index_by_mat = element_index_by_material(type, ghost_type);
+
+      for (UInt el = 0; el < nb_element; ++el) {
+        element.element = el;
+        element.kind = _ek_cohesive;
+
+        UInt old_material = el_index_by_mat(el, 0);
+        UInt new_material = (*material_selector)(element);
+
+        if(old_material != new_material) {
+          element_to_add   [new_material].push_back(element);
+          element_to_remove[old_material].push_back(element);
+        }
+      }
+    }
+  }
+
+  std::vector<Material *>::iterator mat_it;
+  UInt mat_index = 0;
+  for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it, ++mat_index) {
+    (*mat_it)->removeElements(element_to_remove[mat_index]);
+    (*mat_it)->addElements   (element_to_add[mat_index]);
   }
 
   AKANTU_DEBUG_OUT();
@@ -646,16 +696,16 @@ void SolidMechanicsModelCohesive::checkCohesiveStress() {
 
 #if defined(AKANTU_DEBUG_TOOLS)
   debug::element_manager.printData(debug::_dm_model_cohesive,
-				   "Interpolated stresses before",
-				   facet_stress);
+                                   "Interpolated stresses before",
+                                   facet_stress);
 #endif
 
   synch_registry->synchronize(_gst_smmc_facets_stress);
 
 #if defined(AKANTU_DEBUG_TOOLS)
   debug::element_manager.printData(debug::_dm_model_cohesive,
-				   "Interpolated stresses",
-				   facet_stress);
+                                   "Interpolated stresses",
+                                   facet_stress);
 #endif
 
   for (UInt m = 0; m < materials.size(); ++m) {
@@ -730,8 +780,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & doubled_nodes
         (*increment)(new_node, dim) = (*increment)(old_node, dim);
 
       if (previous_displacement)
-	(*previous_displacement)(new_node, dim)
-	  = (*previous_displacement)(old_node, dim);
+        (*previous_displacement)(new_node, dim)
+          = (*previous_displacement)(old_node, dim);
     }
   }
 
@@ -745,7 +795,7 @@ void SolidMechanicsModelCohesive::onEndSolveStep(const AnalysisMethod & method) 
 
   /******************************************************************************
     This is required because the Cauchy stress is the stress measure that is used
-     to check the insertion of cohesive elements 
+     to check the insertion of cohesive elements
   ******************************************************************************/
 
   std::vector<Material *>::iterator mat_it;
@@ -788,7 +838,7 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
       UInt nb_facet = mesh_facets.getNbElement(type, ghost_type);
 
       UInt nb_quadrature_points =
-	getFEM("FacetsFEM").getNbQuadraturePoints(type, ghost_type);
+        getFEM("FacetsFEM").getNbQuadraturePoints(type, ghost_type);
 
       UInt new_size = nb_facet * nb_quadrature_points;
 
@@ -801,20 +851,20 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelCohesive::addDumpFieldToDumper(const std::string & dumper_name,
-						       const std::string & field_id) {
+                                                       const std::string & field_id) {
   AKANTU_DEBUG_IN();
 
   if (dumper_name == "cohesive elements") {
     if (field_id == "damage") {
       internalAddDumpFieldToDumper
-	("cohesive elements",
-	 field_id, new DumperIOHelper::
-	 HomogenizedField<Real,
-			  DumperIOHelper::InternalMaterialField>(*this,
-								 field_id,
-								 spatial_dimension,
-								 _not_ghost,
-								 _ek_cohesive));
+        ("cohesive elements",
+         field_id, new DumperIOHelper::
+         HomogenizedField<Real,
+                          DumperIOHelper::InternalMaterialField>(*this,
+                                                                 field_id,
+                                                                 spatial_dimension,
+                                                                 _not_ghost,
+                                                                 _ek_cohesive));
     }
   } else {
     SolidMechanicsModel::addDumpFieldToDumper(dumper_name, field_id);

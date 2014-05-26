@@ -981,8 +981,8 @@ SparseMatrix & SolidMechanicsModel::initVelocityDampingMatrix() {
 template<>
 bool SolidMechanicsModel::testConvergence<_scc_increment>(Real tolerance, Real & error){
   AKANTU_DEBUG_IN();
-  
-  
+
+
   UInt nb_nodes = displacement->getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent();
 
@@ -1018,16 +1018,16 @@ bool SolidMechanicsModel::testConvergence<_scc_increment>(Real tolerance, Real &
 //    cout<<"Error 1: "<<error<<endl;
     return error < tolerance;
   }
-  
+
 
   AKANTU_DEBUG_OUT();
   if(norm[1] > Math::getTolerance())
     error = norm[0] / norm[1];
   else
     error = norm[0]; //In case the total displacement is zero!
-  
+
 //  cout<<"Error 2: "<<error<<endl;
-  
+
   return (error < tolerance);
 }
 
@@ -1037,8 +1037,8 @@ template<>
 bool SolidMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & norm) {
   AKANTU_DEBUG_IN();
 
-  
-  
+
+
   UInt nb_nodes = residual->getSize();
 
   norm = 0;
@@ -1075,7 +1075,7 @@ bool SolidMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & 
 bool SolidMechanicsModel::testConvergenceResidual(Real tolerance){
   AKANTU_DEBUG_IN();
 
-  
+
 
   Real error=0;
   bool res = this->testConvergence<_scc_residual>(tolerance, error);
@@ -1087,7 +1087,7 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance){
 bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error){
   AKANTU_DEBUG_IN();
 
-  
+
 
   bool res = this->testConvergence<_scc_residual>(tolerance, error);
 
@@ -1099,7 +1099,7 @@ bool SolidMechanicsModel::testConvergenceResidual(Real tolerance, Real & error){
 bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance){
   AKANTU_DEBUG_IN();
 
-  
+
 
   Real error=0;
   bool res = this->testConvergence<_scc_increment>(tolerance, error);
@@ -1112,7 +1112,7 @@ bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance){
 bool SolidMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error){
   AKANTU_DEBUG_IN();
 
-  
+
 
   bool res = this->testConvergence<_scc_increment>(tolerance, error);
 
@@ -1606,19 +1606,19 @@ void SolidMechanicsModel::reassignMaterial() {
       Array<UInt> & el_index_by_mat = element_index_by_material(type, ghost_type);
 
       for (UInt el = 0; el < nb_element; ++el) {
-	element.element = el;
+        element.element = el;
 
-	UInt old_material = el_index_by_mat(el, 0);
-	UInt new_material = (*material_selector)(element);
+        UInt old_material = el_index_by_mat(el, 0);
+        UInt new_material = (*material_selector)(element);
 
-	if(old_material != new_material) {
-	  element_to_add   [new_material].push_back(element);
-	  element_to_remove[old_material].push_back(element);
-	}
+        if(old_material != new_material) {
+          element_to_add   [new_material].push_back(element);
+          element_to_remove[old_material].push_back(element);
+        }
       }
     }
   }
-  
+
   std::vector<Material *>::iterator mat_it;
   UInt mat_index = 0;
   for(mat_it = materials.begin(); mat_it != materials.end(); ++mat_it, ++mat_index) {
@@ -1671,33 +1671,33 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
 
     if (is_internal) {
       internalAddDumpFieldToDumper
-	(dumper_name,
-	 field_id,
-	 new DumperIOHelper::HomogenizedField<Real,
-					      DumperIOHelper::InternalMaterialField>
-	 (*this,
-	  field_id,
-	  spatial_dimension,
-	  _not_ghost,
-	  _ek_regular));
+        (dumper_name,
+         field_id,
+         new DumperIOHelper::HomogenizedField<Real,
+                                              DumperIOHelper::InternalMaterialField>
+         (*this,
+          field_id,
+          spatial_dimension,
+          _not_ghost,
+          _ek_regular));
     } else {
       try {
-	internalAddDumpFieldToDumper
-	  (dumper_name,
-	   field_id,
-	   new DumperIOHelper::ElementalField<UInt>(mesh.getData<UInt>(field_id),
-						    spatial_dimension,
-						    _not_ghost,
-						    _ek_regular));
+        internalAddDumpFieldToDumper
+          (dumper_name,
+           field_id,
+           new DumperIOHelper::ElementalField<UInt>(mesh.getData<UInt>(field_id),
+                                                    spatial_dimension,
+                                                    _not_ghost,
+                                                    _ek_regular));
       } catch (...) {}
       try {
-	internalAddDumpFieldToDumper
-	  (dumper_name,
-	   field_id,
-	   new DumperIOHelper::ElementalField<Real>(mesh.getData<Real>(field_id),
-						    spatial_dimension,
-						    _not_ghost,
-						    _ek_regular));
+        internalAddDumpFieldToDumper
+          (dumper_name,
+           field_id,
+           new DumperIOHelper::ElementalField<Real>(mesh.getData<Real>(field_id),
+                                                    spatial_dimension,
+                                                    _not_ghost,
+                                                    _ek_regular));
       } catch (...) {}
     }
   }
@@ -1809,6 +1809,7 @@ void SolidMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_
   else if(field_id == "force"       ) { ADD_FIELD(force       , Real); }
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
+  else if(field_id == "boundary"    ) { ADD_FIELD(boundary   , bool); }
   else {
     typedef DumperIOHelper::HomogenizedField<Real,
                                              DumperIOHelper::InternalMaterialField> Field;
