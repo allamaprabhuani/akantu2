@@ -121,14 +121,23 @@ extern const UInt _all_dimensions;
 #  define AKANTU_COHESIVE_ELEMENT_TYPE
 #endif
 
+#if defined(AKANTU_IGFEM)
+#define AKANTU_IGFEM_ELEMENT_TYPE		\
+  (_igfem_segment_2)				\
+  (_igfem_triangle_3)								
+#else
+#define AKANTU_IGFEM_ELEMENT_TYPE
+#endif
+
 #define AKANTU_ALL_ELEMENT_TYPE					\
   AKANTU_REGULAR_ELEMENT_TYPE					\
   AKANTU_COHESIVE_ELEMENT_TYPE					\
-  AKANTU_STRUCTURAL_ELEMENT_TYPE
+  AKANTU_STRUCTURAL_ELEMENT_TYPE                                \
+  AKANTU_IGFEM_ELEMENT_TYPE
 
 #define AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE			\
   AKANTU_REGULAR_ELEMENT_TYPE					\
-  AKANTU_COHESIVE_ELEMENT_TYPE
+  AKANTU_COHESIVE_ELEMENT_TYPE                                  
 
 /// @enum ElementType type of elements
 enum ElementType {
@@ -152,6 +161,10 @@ enum ElementType {
   _cohesive_1d_2,     ///< first order 1D cohesive
   _cohesive_3d_6,     ///< first order 3D cohesive
   _cohesive_3d_12,     ///< second order 3D cohesive
+#endif
+#if defined(AKANTU_IGFEM_ELEMENT)
+  _igfem_segment_2,   ///< first order segment
+  _igfem_triangle_3,  ///< first order triangle
 #endif
   _max_element_type
 };
@@ -206,6 +219,7 @@ enum ElementKind {
   _ek_regular,
   _ek_cohesive,
   _ek_structural,
+  _ek_igfem,
   _ek_not_defined
 };
 

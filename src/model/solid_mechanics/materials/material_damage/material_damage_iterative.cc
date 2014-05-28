@@ -185,7 +185,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
       /// update internal field damage and increment # if damaged elements
       Array<Real> & dam_vect = this->damage(q_point.type);
 
-      if (dam_vect(q_point.global_num) <= dam_threshold)
+      if (dam_vect(q_point.global_num) < dam_threshold)
 	dam_vect(q_point.global_num) += prescribed_dam;
       else dam_vect(q_point.global_num) = 1.;
 

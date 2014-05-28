@@ -176,7 +176,7 @@ int main(int argc, char *argv[]) {
 
   model.setMaterialSelector(*mat_selector);
   model.initFull(SolidMechanicsModelOptions(_static));
-
+  MeshUtils::buildFacets(mesh);
   // model.setBaseName("test_reassign_material");
   // model.addDumpField("element_index_by_material");
   // model.addDumpField("partitions");

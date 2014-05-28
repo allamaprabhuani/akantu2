@@ -148,11 +148,12 @@ private:
 /* -------------------------------------------------------------------------- */
 /* Interpolation                                                              */
 /* -------------------------------------------------------------------------- */
-/// @enum InterpolationKind the familly of interpolation types
+/// @enum InterpolationKind the family of interpolation types
 enum InterpolationKind {
   _itk_not_defined,
   _itk_lagrangian,
-  _itk_structural
+  _itk_structural,
+  _itk_igfem
 };
 
 
@@ -356,6 +357,10 @@ private:
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 #  include "element_class_structural.hh"
 #  include "element_classes/element_class_bernoulli_beam_inline_impl.cc"
+#endif
+
+#if defined(AKANTU_IGFEM)
+#  include "element_class_igfem.hh"
 #endif
 
 __END_AKANTU__

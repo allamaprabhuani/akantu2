@@ -84,7 +84,7 @@ public:
   void precomputeShapesOnControlPoints(const Array<Real> & nodes,
 				       GhostType ghost_type);
 
-  /// pre compute all shapes on the element control points from natural coordinates
+  /// pre compute all shape derivatives on the element control points from natural coordinates
   template <ElementType type>
   void precomputeShapeDerivativesOnControlPoints(const Array<Real> & nodes,
 						 GhostType ghost_type);
