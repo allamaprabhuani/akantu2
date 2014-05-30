@@ -137,7 +137,8 @@ extern const UInt _all_dimensions;
 
 #define AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE			\
   AKANTU_REGULAR_ELEMENT_TYPE					\
-  AKANTU_COHESIVE_ELEMENT_TYPE                                  
+  AKANTU_COHESIVE_ELEMENT_TYPE                                  \
+  AKANTU_IGFEM_ELEMENT_TYPE
 
 /// @enum ElementType type of elements
 enum ElementType {
@@ -162,7 +163,7 @@ enum ElementType {
   _cohesive_3d_6,     ///< first order 3D cohesive
   _cohesive_3d_12,     ///< second order 3D cohesive
 #endif
-#if defined(AKANTU_IGFEM_ELEMENT)
+#if defined(AKANTU_IGFEM)
   _igfem_segment_2,   ///< first order segment
   _igfem_triangle_3,  ///< first order triangle
 #endif
@@ -560,6 +561,10 @@ __END_AKANTU__
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
                               AKANTU_STRUCTURAL_ELEMENT_TYPE)
 
+#define AKANTU_BOOST_IGFEM_ELEMENT_SWITCH(macro)			\
+  AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
+                              AKANTU_IGFEM_ELEMENT_TYPE)
+
 #define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
   macro(type)
 
@@ -577,6 +582,9 @@ __END_AKANTU__
 
 #define AKANTU_BOOST_COHESIVE_ELEMENT_LIST(macro)			\
   AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_COHESIVE_ELEMENT_TYPE)
+
+#define AKANTU_BOOST_IGFEM_ELEMENT_LIST(macro)			\
+  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_IGFEM_ELEMENT_TYPE)
 
 #include "aka_common_inline_impl.cc"
 

@@ -25,12 +25,6 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-__END_AKANTU__
-
-#include "fem.hh"
-
-__BEGIN_AKANTU__
-
 /* -------------------------------------------------------------------------- */
 ShapeLagrange<_ek_igfem>::ShapeLagrange(const Mesh & mesh,
 				   const ID & id,
@@ -44,7 +38,7 @@ ShapeLagrange<_ek_igfem>::ShapeLagrange(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Array<Real> & ShapeIGFEM::getShapes(const ElementType & el_type,
+inline const Array<Real> & ShapeLagrange<_ek_igfem>::getShapes(const ElementType & el_type,
 							   const GhostType & ghost_type) const {
   return shapes(FEM::getInterpolationType(el_type), ghost_type);
 }
@@ -60,7 +54,7 @@ template <ElementType type, bool is_sub>
 void ShapeLagrange<_ek_igfem>::setControlPointsByType(const Matrix<Real> & points,
 					    const GhostType & ghost_type) {
   if (!is_sub)
-    ShapeFunctions<_ek_igfem>::control_points(type, ghost_type).shallowCopy(points);
+    ShapeLagrange<_ek_igfem>::control_points(type, ghost_type).shallowCopy(points);
   else {
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
@@ -73,15 +67,6 @@ void ShapeLagrange<_ek_igfem>::setControlPointsByType(const Matrix<Real> & point
   if (ElementClass<type>::getNaturalSpaceDimension() ==			\
       mesh.getSpatialDimension() || kind != _ek_regular)		\
     precomputeShapeDerivativesOnControlPoints<type,ElementClassProperty<type>::is_subelement>(nodes, ghost_type);
-
-template <ElementKind kind>
-inline void
-ShapeLagrange<kind>::initShapeFunctions(const Array<Real> & nodes,
-					const Matrix<Real> & control_points,
-					const ElementType & type,
-					const GhostType & ghost_type) {
-  AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -106,7 +91,7 @@ computeShapeDerivativesOnCPointsByElement(const Matrix<Real> & node_coords,
   }
 
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
 }
@@ -117,7 +102,7 @@ void ShapeLagrange<_ek_igfem>::inverseMap(const Vector<Real> & real_coords,
 				     UInt elem,
 				     Vector<Real> & natural_coords,
 				     const GhostType & ghost_type) const{
-  inverseMap<type, ElementClassProperty<type>::is_subelement>(real_coords, elem, natural_coods, ghost_type);
+  inverseMap<type, ElementClassProperty<type>::is_subelement>(real_coords, elem, natural_coords, ghost_type);
 
 }
 
@@ -147,7 +132,7 @@ void ShapeLagrange<_ek_igfem>::inverseMap(const Vector<Real> & real_coords,
   }
 
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
 
@@ -157,7 +142,7 @@ bool ShapeLagrange<_ek_igfem>::contains(const Vector<Real> & real_coords,
 			     UInt elem,
 			     const GhostType & ghost_type) const{
 
-  return contains<type,ElementClassProperty<type>::is_subelement>(real_coods, elem, ghost_type);
+  return contains<type,ElementClassProperty<type>::is_subelement>(real_coords, elem, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -174,7 +159,7 @@ bool ShapeLagrange<_ek_igfem>::contains(const Vector<Real> & real_coords,
     return ElementClass<type>::contains(natural_coords);
   }
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
 
@@ -203,7 +188,7 @@ void ShapeLagrange<_ek_igfem>::computeShapes(const Vector<Real> & real_coords,
     ElementClass<type>::computeShapes(natural_coords, shapes);
   }
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
 
@@ -241,7 +226,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapesOnControlPoints(__attribute__((un
   }
 
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
   AKANTU_DEBUG_OUT();
 }
@@ -293,7 +278,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapeDerivativesOnControlPoints(const A
   }
 
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
   
   AKANTU_DEBUG_OUT();
@@ -339,7 +324,7 @@ void ShapeLagrange<_ek_igfem>::interpolateOnControlPoints(const Array<Real> &in_
 							 filter_elements);
   }
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   AKANTU_DEBUG_OUT();
@@ -386,7 +371,7 @@ void ShapeLagrange<_ek_igfem>::gradientOnControlPoints(const Array<Real> &in_u,
 
   else {
 
-    AKANTU_DEBUG_ASSERT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   AKANTU_DEBUG_OUT();
@@ -429,7 +414,7 @@ void ShapeLagrange<_ek_igfem>::fieldTimesShapes(const Array<Real> & field,
     }
   }
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
 
@@ -460,7 +445,7 @@ void ShapeLagrange<_ek_igfem>::printself(std::ostream & stream, int indent) cons
     stream << space << "]" << std::endl;
   }
   else {
-    AKANTU_DEBUG_TO_IMPLEMENT;
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 }
 

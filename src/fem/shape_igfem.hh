@@ -29,6 +29,7 @@
 #define __AKANTU_SHAPE_IGFEM_HH__
 
 #include "shape_functions.hh"
+#include "igfem_element.hh"
 
 __BEGIN_AKANTU__
 

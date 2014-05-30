@@ -67,6 +67,8 @@
 #cmakedefine AKANTU_COHESIVE_ELEMENT
 #cmakedefine AKANTU_PARALLEL_COHESIVE_ELEMENT
 
+#cmakedefine AKANTU_IGFEM
+
 // BOOST Section
 #cmakedefine AKANTU_BOOST_CHRONO
 #cmakedefine AKANTU_BOOST_SYSTEM

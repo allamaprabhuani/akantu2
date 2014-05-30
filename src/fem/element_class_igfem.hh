@@ -36,7 +36,7 @@ public:
   /// compute the shape values for a given set of points in natural coordinates
   static inline void computeShapes(const Matrix<Real> & natural_coord,
 				   Matrix<Real> & N) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
   /// compute the shape values for a given point in natural coordinates
@@ -53,7 +53,7 @@ public:
    */
   static inline void computeDNDS(const Matrix<Real> & natural_coord,
 				 Tensor3<Real> & dnds) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the variation of shape functions along with
@@ -77,7 +77,7 @@ public:
   static inline void interpolateOnNaturalCoordinates(const Vector<Real> & natural_coords,
 						     const Matrix<Real> & nodal_values,
 						     Vector<Real> & interpolated) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
 
@@ -85,7 +85,7 @@ public:
   static inline void gradientOnNaturalCoordinates(const Vector<Real> & natural_coords,
 						  const Matrix<Real> & f,
 						  Matrix<Real> & gradient) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
 public:
@@ -101,7 +101,6 @@ public:
 						   geom_type,		\
 						   interp_type,		\
 						   regular_el_type,	\
-						   parent_el_type,	\
 						   elem_kind,		\
 						   sp,			\
 						   gauss_int_type,	\
@@ -156,6 +155,33 @@ protected:
   typedef ElementClassProperty<element_type> element_property;
   typedef typename interpolation_element::interpolation_property interpolation_property;
 public:
+  /// compute the shape values for a given set of points in natural coordinates
+  static inline void computeShapes(const Matrix<Real> & natural_coord,
+				   Matrix<Real> & N) {
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeShapes(natural_coord, N);
+  }
+
+  static inline void computeDNDS(const Matrix<Real> & natural_coord,
+				 Tensor3<Real> & dnds) {
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeDNDS(natural_coord, dnds);
+  }
+
+  /// interpolate a field given (arbitrary) natural coordinates
+  static inline void interpolateOnNaturalCoordinates(const Vector<Real> & natural_coords,
+						     const Matrix<Real> & nodal_values,
+						     Vector<Real> & interpolated) {
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::interpolateonnaturalcoordinates(natural_coords, nodal_values, interpolated);
+  }
+
+
+  /// compute the gradient of a given field on the given natural coordinates
+  static inline void gradientOnNaturalCoordinates(const Vector<Real> & natural_coords,
+						  const Matrix<Real> & f,
+						  Matrix<Real> & gradient) {
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::gradientOnNaturalCoordinates(natural_coords, f, gradient);
+  }
+
+
   /**
    * compute @f$ J = \frac{\partial x_j}{\partial s_i} @f$ the variation of real
    * coordinates along with variation of natural coordinates on a given point in
@@ -164,7 +190,7 @@ public:
   static inline void computeJMat(const Matrix<Real> & dnds,
 				 const Matrix<Real> & node_coords,
 				 Matrix<Real> & J) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeJMat(dnds, node_coords, J);
   }
 
   /**
@@ -175,34 +201,38 @@ public:
   static inline void computeJMat(const Tensor3<Real> & dnds,
 				 const Matrix<Real> & node_coords,
 				 Tensor3<Real> & J) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::JMat(dnds, node_coords, J);
   }
 
   /// compute the jacobians of a serie of natural coordinates
   static inline void computeJacobian(const Matrix<Real> & natural_coords,
 				     const Matrix<Real> & node_coords,
 				     Vector<Real> & jacobians) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeJacobian(natural_coords, node_coords, jacobians);
   }
 
   /// compute jacobian (or integration variable change factor) for a set of points
   static inline void computeJacobian(const Tensor3<Real> & J,
 				     Vector<Real> & jacobians) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeJacobian(J, jacobians);
   }
 
   /// compute jacobian (or integration variable change factor) for a given point
   static inline void computeJacobian(const Matrix<Real> & J,
 				     Real & jacobians) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeJacobian(J, jacobians);
   }
+
 
   /// compute shape derivatives (input is dxds) for a set of points
   static inline void computeShapeDerivatives(const Tensor3<Real> & J,
 					     const Tensor3<Real> & dnds,
 					     Tensor3<Real> & shape_deriv) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeShapeDerivatives(J,dnds, shape_deriv);
   }
+
+
+
 
   /// compute shape derivatives (input is dxds) for a given point
   static inline void computeShapeDerivatives(const Matrix<Real> & J,
@@ -212,18 +242,20 @@ public:
   /// compute the normal of a surface defined by the function f
   static inline void computeNormalsOnNaturalCoordinates(const Matrix<Real> & coord,
 							Matrix<Real> & f,
-							Matrix<Real> & normals);
+							Matrix<Real> & normals){
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::computeNormalsOnNaturalCoordinates(coord, f, normals);
+  }
 
   /// get natural coordinates from real coordinates
   static inline void inverseMap(const Vector<Real> & real_coords,
 				const Matrix<Real> & node_coords,
 				Vector<Real> & natural_coords,
 				Real tolerance = 1e-8) {
-    ElementClass<ElementClassProperty<elem_type>::regular_el_type>::computeShapes(natural_coord, N);
+    ElementClass<ElementClassProperty<element_type>::regular_el_type>::inverseMap(real_coords, node_coords, natural_coords, tolerance);
   }
 
 public:
-  static AKANTU_GET_MACRO_NOT_CONST(Kind, element_kind, ElementKind);
+  static AKANTU_GET_MACRO_NOT_CONST(Kind, _ek_igfem, ElementKind);
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, ElementClassProperty<element_type>::spatial_dimension, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, p1_type,    const ElementType &);
   static const ElementType & getFacetType(UInt t = 0) { return facet_type[t]; }
