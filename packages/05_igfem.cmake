@@ -6,7 +6,7 @@
 #
 # @date   Fri Mai 23 18:19:15 2011
 #
-# @brief  package description for core
+# @brief  package description for interface-enriched generalized IGFEM
 #
 # @section LICENSE
 #
@@ -32,4 +32,6 @@ option(AKANTU_IGFEM "Use Interface-enriched generalized FEM" OFF)
 
 set(AKANTU_IGFEM_FILES
   fem/element_class_igfem.hh
+  fem/shape_igfem.hh
+  fem/shape_igfem_inline_impl.cc
   )
