@@ -1,11 +1,11 @@
 /**
- * @file   aka_grid.hh
+ * @file   aka_circular_array.hh
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Wed Aug 31 11:09:48 2011
+ * @date   Fri Nov 11 15:24:34 2011
  *
- * @brief  A regular grid that can contain information per cells
+ * @brief  class of circular array
  *
  * @section LICENSE
  *
@@ -28,99 +28,86 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-/* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_GRID_HH__
-#define __AKANTU_AKA_GRID_HH__
+#ifndef __AKANTU_AKA_CIRCULAR_ARRAY_HH__
+#define __AKANTU_AKA_CIRCULAR_ARRAY_HH__
+
+/* -------------------------------------------------------------------------- */
+#include <typeinfo>
+
+/* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+#include "aka_array.hh"
+
+/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 
-class Mesh;
-
-template<typename T>
-class RegularGrid {
+template<class T>
+class CircularArray : protected Array<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  typedef typename Array<T>::value_type      value_type;
+  typedef typename Array<T>::reference       reference;
+  typedef typename Array<T>::pointer_type    pointer_type;
+  typedef typename Array<T>::const_reference const_reference;
 
-  RegularGrid() {};
+  /// Allocation of a new array with a default value
+  CircularArray(UInt size, UInt nb_component = 1,
+		 const_reference value = value_type(), const ID & id = "") :
+    Array<T>(size, nb_component, value, id),
+    start_position(0),
+    end_position(size-1) {
+    AKANTU_DEBUG_IN();
 
-  RegularGrid(UInt dimension, Real * lower_bounds,
-	      Real * upper_bounds, Real * spacing);
-  virtual ~RegularGrid() {};
+    AKANTU_DEBUG_OUT();
+  };
 
-  class Cell;
+  virtual ~CircularArray() {
+    AKANTU_DEBUG_IN();
+
+    AKANTU_DEBUG_OUT();
+  };
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void saveAsMesh(Mesh & mesh) const;
-
-  // void beginInsertions() { data.countToCSR(); data.resizeCols(); data.beginInsertions(); }
-  // void endInsertions() { data.endInsertions(); }
-  void insert(const T & d, const Vector<Real> & position);
-
-  // inline void count(const Vector<Real> & position);
-  inline Cell getCell(const Vector<Real> & position) const;
-  inline UInt getCell(Real position, UInt direction) const;
+  /**
+     advance start and end position by one: 
+     the first element is now at the end of the array
+  **/
+  inline void makeStep();
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-  typedef typename Array<T>::template iterator<T> iterator;
-  typedef typename Array<T>::template const_iterator<T> const_iterator;
+private:
 
-  inline iterator beginCell(const Cell & cell);
-  inline iterator endCell(const Cell cell);
-  inline const_iterator beginCell(const Cell & cell) const;
-  inline const_iterator endCell(const Cell & cell) const;
-
-  class neighbor_cells_iterator;
-
-  inline neighbor_cells_iterator beginNeighborCells(const Cell & cell);
-  inline neighbor_cells_iterator endNeighborCells(const Cell & cell);
+  /* ------------------------------------------------------------------------ */
+  /* Operators                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+  inline reference operator()(UInt i, UInt j = 0);
+  inline const_reference operator()(UInt i, UInt j = 0) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbCells(UInt dim) const { return nb_cells[dim]; };
-
-  AKANTU_GET_MACRO(Dimension, dimension, UInt)
-
-  friend class Cell;
-
-  void getLocalLowerBounds(Real * x_min) const
-  { for (UInt i = 0; i < dimension; ++i) x_min[i] = lower_bounds[i]; }
-  void getLocalUpperBounds(Real * x_max) const
-  { for (UInt i = 0; i < dimension; ++i) x_max[i] = upper_bounds[i]; }
-
-  void getSpacing(Real * sp) const
-  { for (UInt i = 0; i < dimension; ++i) sp[i] = spacing[i]; }
-
-
+  UInt getSize() const{ return this->size; };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  /// indice of first element in this circular array
+  UInt start_position;
 
-  Array< Array<T> > data;
-  //  CSR<T> data;
-
-  UInt dimension;
-
-  Real lower_bounds[3];
-  Real upper_bounds[3];
-
-  UInt nb_cells[3];
-
-  UInt total_nb_cells;
-
-  Real spacing[3];
+  /// indice of last element in this circular array
+  UInt end_position;
 };
 
 
@@ -128,17 +115,24 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "aka_grid_tmpl.hh"
+#if defined (AKANTU_INCLUDE_INLINE_IMPL)
+#  include "aka_circular_array_inline_impl.cc"
+#endif
 
 /// standard output stream operator
-template<typename T>
-inline std::ostream & operator <<(std::ostream & stream, const RegularGrid<T> & _this)
+template <typename T>
+inline std::ostream & operator <<(std::ostream & stream, const CircularArray<T> & _this)
 {
   _this.printself(stream);
   return stream;
 }
 
 
+
 __END_AKANTU__
 
-#endif /* __AKANTU_AKA_GRID_HH__ */
+
+
+#endif /* __AKANTU_AKA_CIRCULAR_ARRAY_HH__ */
+
+

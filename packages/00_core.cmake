@@ -35,20 +35,18 @@ set(AKANTU_CORE_FILES
   common/aka_array.hh
   common/aka_array_tmpl.hh
   common/aka_blas_lapack.hh
-  common/aka_circular_vector.hh
-  common/aka_circular_vector_inline_impl.cc
+  common/aka_circular_array.hh
+  common/aka_circular_array_inline_impl.cc
   common/aka_common.cc
   common/aka_common.hh
   common/aka_common_inline_impl.cc
   common/aka_csr.hh
   common/aka_error.cc
   common/aka_error.hh
-  common/aka_event_handler.hh
+  common/aka_event_handler_manager.hh
   common/aka_extern.cc
   common/aka_fwd.hh
-  common/aka_grid.hh
   common/aka_grid_dynamic.hh
-  common/aka_grid_tmpl.hh
   common/aka_math.cc
   common/aka_math.hh
   common/aka_math_tmpl.hh

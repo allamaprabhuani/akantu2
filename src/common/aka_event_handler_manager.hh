@@ -1,5 +1,5 @@
 /**
- * @file   aka_event_handler.hh
+ * @file   aka_event_handler_manager.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
@@ -29,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_EVENT_HANDLER_HH__
-#define __AKANTU_AKA_EVENT_HANDLER_HH__
+#ifndef __AKANTU_AKA_EVENT_HANDLER_MANAGER_HH__
+#define __AKANTU_AKA_EVENT_HANDLER_MANAGER_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
@@ -86,4 +86,4 @@ private:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_AKA_EVENT_HANDLER_HH__ */
+#endif /* __AKANTU_AKA_EVENT_HANDLER_MANAGER_HH__ */

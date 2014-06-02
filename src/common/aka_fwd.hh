@@ -4,7 +4,9 @@
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
  * @date   Thu Jan 3 15:15:00 2013
  *
- * @brief  File containing forward declarations in akantu
+ * @brief  File containing forward declarations in akantu. 
+ * This file helps if circular #include would be needed because two classes 
+ * refer both to each other. This file usually does not need any modification. 
  *
  * @section LICENSE
  *

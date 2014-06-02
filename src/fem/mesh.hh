@@ -43,7 +43,7 @@
 #include "aka_array.hh"
 #include "element_class.hh"
 #include "by_element_type.hh"
-#include "aka_event_handler.hh"
+#include "aka_event_handler_manager.hh"
 #include "group_manager.hh"
 
 /* -------------------------------------------------------------------------- */

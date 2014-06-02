@@ -30,7 +30,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
-#include "aka_grid.hh"
 #include "aka_grid_dynamic.hh"
 #include "fem.hh"
 

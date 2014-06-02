@@ -1,11 +1,11 @@
 /**
- * @file   aka_circular_vector_inline_impl.cc
+ * @file   aka_circular_array_inline_impl.cc
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date   Fri Nov 11 15:24:34 2011
  *
- * @brief  implementation of circular vector
+ * @brief  implementation of circular array
  *
  * @section LICENSE
  *
@@ -35,11 +35,11 @@
 template<class T>
 inline  typename CircularArray<T>::reference CircularArray<T>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
-		      "The vector \"" << this->id << "\" is empty");
+		      "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1)
 		      && (j < this->nb_component),
 		      "The value at position [" << i << "," << j
-		      << "] is out of range in vector \"" << this->id << "\"");
+		      << "] is out of range in array \"" << this->id << "\"");
   return this->values[((i+start_position)%this->allocated_size)*this->nb_component + j];
 }
 
@@ -47,11 +47,11 @@ inline  typename CircularArray<T>::reference CircularArray<T>::operator()(UInt i
 template <typename T>
 inline typename CircularArray<T>::const_reference CircularArray<T>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(end_position != start_position,
-		      "The vector \"" << this->id << "\" is empty");
+		      "The array \"" << this->id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < (end_position - start_position + this->allocated_size) % this->allocated_size + 1)
 		      && (j < this->nb_component),
 		      "The value at position [" << i << "," << j
-		      << "] is out of range in vector \"" << this->id << "\"");
+		      << "] is out of range in array \"" << this->id << "\"");
   return this->values[((i+start_position)%this->allocated_size)*this->nb_component + j];
 }
 

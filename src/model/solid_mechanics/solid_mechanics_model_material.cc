@@ -137,7 +137,8 @@ void SolidMechanicsModel::initMaterials() {
     for (UInt el = 0; el < nb_element; ++el) {
       element.element = el;
       UInt mat_index = (*material_selector)(element);
-      AKANTU_DEBUG_ASSERT(mat_index < materials.size(), "The material selector returned an index that does not exists");
+      AKANTU_DEBUG_ASSERT(mat_index < materials.size(),
+			  "The material selector returned an index that does not exists");
       el_id_by_mat(el, 0) = mat_index;
     }
   }

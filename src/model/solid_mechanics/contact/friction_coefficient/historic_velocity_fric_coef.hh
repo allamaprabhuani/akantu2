@@ -34,7 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_circular_vector.hh"
+#include "aka_circular_array.hh"
 #include "contact_rigid.hh"
 #include "friction_coefficient.hh"
 
