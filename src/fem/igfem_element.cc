@@ -1,9 +1,9 @@
 /**
- * @file   igfem_element.hh
+ * @file   igfem_element.cc
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Fri May 30 17:56:54 2014
+ * @date   Mon Jun  2 13:01:09 2014
  *
- * @brief  IGFEM element class
+ * @brief  instantiation of the member of akantu::ElementClass specialized for _ek_igfem
  *
  * @section LICENSE
  *
@@ -27,18 +27,10 @@
 
 /* -------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-#include "element_class_igfem.hh"
+#include "igfem_element.hh"
 
-/* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_IGFEM_ELEMENT_HH__
-#define __AKANTU_IGFEM_ELEMENT_HH__
 
 __BEGIN_AKANTU__
 
-AKANTU_DEFINE_IGFEM_PARENT_ELEMENT_CLASS_PROPERTY(_igfem_triangle_3, _triangle_3);
 
 __END_AKANTU__
-
-#endif /* __AKANTU_IGFEM_ELEMENT_HH__ */

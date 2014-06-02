@@ -123,7 +123,6 @@ extern const UInt _all_dimensions;
 
 #if defined(AKANTU_IGFEM)
 #define AKANTU_IGFEM_ELEMENT_TYPE		\
-  (_igfem_segment_2)				\
   (_igfem_triangle_3)								
 #else
 #define AKANTU_IGFEM_ELEMENT_TYPE
@@ -164,8 +163,7 @@ enum ElementType {
   _cohesive_3d_12,     ///< second order 3D cohesive
 #endif
 #if defined(AKANTU_IGFEM)
-  _igfem_segment_2,   ///< first order segment
-  _igfem_triangle_3,  ///< first order triangle
+  _igfem_triangle_3,  ///< first order triangle for IGFEM
 #endif
   _max_element_type
 };

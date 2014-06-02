@@ -33,6 +33,10 @@ __END_AKANTU__
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #  include "cohesive_element.hh"
 #endif
+#if defined(AKANTU_IGFEM)
+#  include "igfem_element.hh"
+#endif
+
 #include "static_communicator.hh"
 __BEGIN_AKANTU__
 

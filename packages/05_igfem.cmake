@@ -35,6 +35,7 @@ set(AKANTU_IGFEM_FILES
   fem/shape_igfem.hh
   fem/shape_igfem_inline_impl.cc
   fem/igfem_element.hh
+  fem/igfem_element.cc
   )
 
 set(AKANTU_IGFEM_TESTS

@@ -330,7 +330,8 @@ public:
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension, ElementClassProperty<element_type>::spatial_dimension, UInt);
   static AKANTU_GET_MACRO_NOT_CONST(P1ElementType, p1_type,    const ElementType &);
   static const ElementType & getFacetType(UInt t = 0) { return facet_type[t]; }
-private:
+  static const ElementType * getFacetTypeInternal() { return facet_type; }
+protected:
   /// Type of the facet elements
   static ElementType facet_type[];
   /// type of element P1 associated
@@ -359,9 +360,9 @@ private:
 #  include "element_classes/element_class_bernoulli_beam_inline_impl.cc"
 #endif
 
-#if defined(AKANTU_IGFEM)
-#  include "element_class_igfem.hh"
-#endif
+// #if defined(AKANTU_IGFEM)
+// #  include "element_class_igfem.hh"
+// #endif
 
 __END_AKANTU__
 
