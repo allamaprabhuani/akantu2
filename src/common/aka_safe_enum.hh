@@ -34,7 +34,7 @@
 #define __AKANTU_AKA_SAFE_ENUM_HH__
 
 __BEGIN_AKANTU__
-
+/// Safe enumerated type
 template<typename def, typename inner = typename def::type>
 class safe_enum : public def {
   typedef typename def::type type;
