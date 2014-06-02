@@ -43,11 +43,12 @@ class VoigtHelper {
           Matrix<Real> & Bvoigt,
           UInt nb_nodes_per_element);
 
-    /// transfer the BNL and BL2 matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
+    /// transfer the BNL matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
     static void transferBMatrixToBNL(const Matrix<Real> & B,
           Matrix<Real> & Bvoigt,
           UInt nb_nodes_per_element);
 
+    /// transfer the BL2 matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
     static void transferBMatrixToBL2(const Matrix<Real> & B, const Matrix<Real> & grad_u,
           Matrix<Real> & Bvoigt,
           UInt nb_nodes_per_element);

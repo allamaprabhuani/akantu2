@@ -64,19 +64,23 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
+  /// does nothing
   inline void beginInsertions() {};
 
+  /// insert a new entry val in row row
   inline UInt insertInRow(UInt row, const T & val) {
     UInt pos = rows_offsets(row)++;
     rows(pos) = val;
     return pos;
   }
 
+  /// access an element of the matrix
   inline const T & operator()(UInt row, UInt col) const {
     AKANTU_DEBUG_ASSERT(rows_offsets(row + 1) - rows_offsets(row) > col, "This element is not present in this CSR");
     return rows(rows_offsets(row) + col);
   }
 
+  /// access an element of the matrix
   inline T & operator()(UInt row, UInt col) {
     AKANTU_DEBUG_ASSERT(rows_offsets(row + 1) - rows_offsets(row) > col, "This element is not present in this CSR");
     return rows(rows_offsets(row) + col);
@@ -113,10 +117,13 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// returns the number of rows
   inline UInt getNbRows() const { return rows_offsets.getSize() - 1; };
 
+  /// returns the number of non-empty columns in a given row
   inline UInt getNbCols(UInt row) const { return rows_offsets(row + 1) - rows_offsets(row); };
 
+  /// returns the offset (start of columns) for a given row
   inline UInt & rowOffset(UInt row) { return rows_offsets(row); };
 
   /// iterator on a row

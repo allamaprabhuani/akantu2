@@ -268,22 +268,22 @@ inline void ByElementTypeArray<T, SupportType>::onElementsRemoved(const ByElemen
     for (; it != end; ++it) {
       SupportType type = *it;
       if(this->exists(type, gt)){
-	const Array<UInt> & renumbering = new_numbering(type, gt);
-	Array<T> & vect = this->operator()(type, gt);
-	UInt nb_component = vect.getNbComponent();
-	Array<T> tmp(renumbering.getSize(), nb_component);
-	UInt new_size = 0;
-	for (UInt i = 0; i < vect.getSize(); ++i) {
-	  UInt new_i = renumbering(i);
-	  if(new_i != UInt(-1)) {
-	    memcpy(tmp.storage() + new_i * nb_component,
-		   vect.storage() + i *nb_component,
-		   nb_component * sizeof(T));
-	    ++new_size;
-	  }
-	}
-	tmp.resize(new_size);
-	vect.copy(tmp);
+        const Array<UInt> & renumbering = new_numbering(type, gt);
+        Array<T> & vect = this->operator()(type, gt);
+        UInt nb_component = vect.getNbComponent();
+        Array<T> tmp(renumbering.getSize(), nb_component);
+        UInt new_size = 0;
+        for (UInt i = 0; i < vect.getSize(); ++i) {
+          UInt new_i = renumbering(i);
+          if(new_i != UInt(-1)) {
+            memcpy(tmp.storage() + new_i * nb_component,
+                   vect.storage() + i *nb_component,
+                   nb_component * sizeof(T));
+            ++new_size;
+          }
+        }
+        tmp.resize(new_size);
+        vect.copy(tmp);
       }
     }
   }

@@ -49,7 +49,7 @@ public:
   bool operator >  (const safe_enum & s) const { return this->val >  s.val; }
   bool operator >= (const safe_enum & s) const { return this->val >= s.val; }
 
-  operator inner() { return val; }; 
+  operator inner() { return val; };
 
 public:
   // Works only if enumerations are contiguous.
