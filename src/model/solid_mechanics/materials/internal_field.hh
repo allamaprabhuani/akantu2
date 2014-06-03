@@ -80,7 +80,7 @@ public:
   virtual void removeQuadraturePoints(const ByElementTypeUInt & new_numbering);
 
   /// print the content
-  void printself(std::ostream & stream, UInt indent = 0) const;
+  virtual void printself(std::ostream & stream, UInt indent = 0) const;
 
 protected:
   /// initialize the arrays in the ByElementTypeArray<T>
