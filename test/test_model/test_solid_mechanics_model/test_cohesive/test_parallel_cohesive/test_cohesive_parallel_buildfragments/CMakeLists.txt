@@ -29,7 +29,7 @@
 #
 #===============================================================================
 
-add_mesh(test_cohesive_parallel_buildfragments_mesh mesh.geo 3 1)
+add_mesh(test_cohesive_parallel_buildfragments_mesh mesh.geo 3 2)
 
 register_test(test_cohesive_parallel_buildfragments
   SOURCES test_cohesive_parallel_buildfragments.cc

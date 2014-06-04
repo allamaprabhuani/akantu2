@@ -26,14 +26,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-
 #include <limits>
 #include <fstream>
 #include <iostream>
-
-
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
@@ -45,13 +40,17 @@ using namespace akantu;
 void verticalInsertionLimit(SolidMechanicsModelCohesive &);
 void displaceElements(SolidMechanicsModelCohesive &, const Real, const Real);
 bool isInertiaEqual(const Vector<Real> &, const Vector<Real> &);
+void rotateMesh(SolidMechanicsModelCohesive & model, Real angle);
+
+const UInt spatial_dimension = 3;
+const UInt total_nb_fragment = 4;
+const Real rotation_angle = M_PI / 4.;
+const Real global_tolerance = 1.e-11;
 
 int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
-  const UInt spatial_dimension = 3;
-  const UInt total_nb_fragment = 5;
-  Math::setTolerance(1.e-11);
+  Math::setTolerance(global_tolerance);
 
   Mesh mesh(spatial_dimension);
 
@@ -127,6 +126,8 @@ int main(int argc, char *argv[]) {
     displacement(n, 0) = position(n, 0) * 0.1;
     velocity(n, 0) = position(n, 0);
   }
+
+  rotateMesh(model, rotation_angle);
 
   model.updateResidual();
   model.checkCohesiveStress();
@@ -242,7 +243,10 @@ int main(int argc, char *argv[]) {
     model.dump("cohesive elements");
 
     /// displace fragments
+    rotateMesh(model, -rotation_angle);
     displaceElements(model, lim, el_size * 2);
+    rotateMesh(model, rotation_angle);
+
     model.updateResidual();
 
     lim += el_size;
@@ -318,7 +322,7 @@ void verticalInsertionLimit(SolidMechanicsModelCohesive & model) {
 	for (; nb_aligned_nodes < nb_nodes_per_facet; ++nb_aligned_nodes) {
 	  Real other_node_pos = position(connectivity(f, nb_aligned_nodes), 0);
 
-	  if (std::abs(first_node_pos - other_node_pos) > 1.e-10)
+	  if (std::abs(first_node_pos - other_node_pos) > Math::getTolerance())
 	    break;
 	}
 
@@ -356,7 +360,7 @@ void displaceElements(SolidMechanicsModelCohesive & model,
       UInt nb_element = connectivity.getSize();
       UInt nb_nodes_per_element = connectivity.getNbComponent();
 
-      Array<UInt>::const_iterator<Vector<UInt> > conn_el
+      Array<UInt>::const_vector_iterator conn_el
 	= connectivity.begin(nb_nodes_per_element);
 
       for (UInt el = 0; el < nb_element; ++el) {
@@ -381,11 +385,29 @@ void displaceElements(SolidMechanicsModelCohesive & model,
 bool isInertiaEqual(const Vector<Real> & a, const Vector<Real> & b) {
   UInt nb_terms = a.size();
   UInt equal_terms = 0;
-  Real tolerance = 1.e-2;
 
   while (equal_terms < nb_terms &&
-	 std::abs(a(equal_terms) - b(equal_terms)) / a(equal_terms) < tolerance)
+	 std::abs(a(equal_terms) - b(equal_terms)) / a(equal_terms) < Math::getTolerance())
     ++equal_terms;
 
   return equal_terms == nb_terms;
+}
+
+void rotateMesh(SolidMechanicsModelCohesive & model, Real angle) {
+  UInt spatial_dimension = model.getSpatialDimension();
+  Array<Real> & position = model.getMesh().getNodes();
+
+  Real rotation_values[9] = {std::cos(angle), std::sin(angle), 0,
+			     -std::sin(angle), std::cos(angle), 0,
+			     0, 0, 1};
+  Matrix<Real> rotation(rotation_values, spatial_dimension, spatial_dimension);
+
+  RVector displaced_node(spatial_dimension);
+  Array<Real>::vector_iterator node_it = position.begin(spatial_dimension);
+  Array<Real>::vector_iterator node_end = position.end(spatial_dimension);
+
+  for (; node_it != node_end; ++node_it) {
+    displaced_node.mul<false>(rotation, *node_it);
+    *node_it = displaced_node;
+  }
 }
