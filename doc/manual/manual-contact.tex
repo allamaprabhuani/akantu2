@@ -97,5 +97,244 @@ The second function allows the user to provide a pointer to an object that is us
 The last function in the snippet above allows the user to provide a functor that will be called after the assembly of the contact contributions to the stiffness matrix and the force vector. The last takes place within the function \code{computeTangentAndResidual()}.
 
 
+\subsubsection{Hertz example} 
 
 
+Here we outline, step by step, the use of the implicit contact solver to obtain the solution of Hertz contact. The complete implementation can be found in \code{examples/contact/hertz\_3D.cc}.
+
+The following class is used as the object that will perform the search for new contact elements when a slave node is found to lie outside its master element. The class derives from a \code{SearchBase} class, and implements the virtual function \code{search}.
+
+\begin{cpp}
+struct Assignator : public ContactData<3,SolidMechanicsModel>::SearchBase {
+  typedef Point <3> point_type;
+  typedef SolidMechanicsModel model_type;
+  typedef ModelElement <model_type> master_type;
+
+  model_type &model_;
+
+  Assignator(model_type& model) : model_(model) {}
+
+  virtual int search(const Real *ptr) {
+    point_type p(ptr);
+
+    ElementGroup &rs = model_.getMesh().getElementGroup("rigid_surface");
+
+    for (ElementGroup::type_iterator tit = rs.firstType(); tit != rs.lastType(); ++tit)
+      for (ElementGroup::const_element_iterator it = rs.element_begin(*tit);
+           it != rs.element_end(*tit); ++it) {
+        master_type m(model_, _triangle_3, *it);
+        if (point_has_projection_to_triangle(p, m.point <3>(0), m.point <3>(1), m.point <3>(2))) {
+          return m.element;
+        }
+      }
+    return -1;
+  }
+};
+\end{cpp}
+
+
+The first thing we do in the main file is to add some type definitions:
+
+\begin{cpp}
+
+int main(int argc, char *argv[]) {
+
+  // set dimension
+  static const UInt dim = 3;
+
+  // type definitions
+  typedef Point <dim> point_type;
+  typedef BoundingBox <dim> bbox_type;
+  typedef SolidMechanicsModel model_type;
+  typedef ModelElement <model_type> master_type;
+  typedef ContactData <dim, model_type> contact_type;
+
+  typedef std::chrono::high_resolution_clock clock;
+  typedef std::chrono::seconds seconds;
+\end{cpp}
+
+We initialize library, create a mesh, and setup the solid mechanics model:
+
+\begin{cpp}
+
+  initialize("steel.dat", argc, argv);
+
+  // create mesh
+  Mesh mesh(dim);
+
+  // read mesh
+  mesh.read("hertz_3D.msh");
+
+  // create model
+  model_type model(mesh);
+  SolidMechanicsModelOptions opt(_static);
+
+  // initialize material
+  model.initFull(opt);
+\end{cpp}
+
+
+Then we create the contact data, which can be used to solve the contact problem. Note that some of the parameters required by the contact object can be coded in the implementation file (these can also be passed as arguments).
+\begin{cpp}
+
+  // create data structure that holds contact data
+  contact_type cd(argc, argv, model);
+
+  // optimal value of penalty multiplier
+  cd[Alpha] = 0.05;
+  cd[Uzawa_tol] = 1.e-2;
+  cd[Newton_tol] = 1.e-2;
+\end{cpp}
+
+
+Next we find the area that corresponds to each slave node. For this we use the fact that if we apply a unit distributed load over the contact surface, the resulting force vector at each slave node has magnitude that is equal to the area.
+\begin{cpp}
+
+  // get physical names from Gmsh file
+  mesh.createGroupsFromMeshData <std::string>("physical_names");
+
+  // get areas for the nodes of the circle
+  // this is done by applying a unit pressure to the contact surface elements
+  model.applyBC(BC::Neumann::FromHigherDim(Matrix <Real>::eye(3, 1.)), "contact_surface");
+  Array <Real>& areas = model.getForce();
+
+  // loop over contact surface nodes and store node areas
+  ElementGroup &eg = mesh.getElementGroup("contact_surface");
+  cout << "- Adding areas to slave nodes. " << endl;
+  for (auto nit = eg.node_begin(); nit != eg.node_end(); ++nit) {
+    // compute area contributing to the slave node
+    Real a = 0.;
+    for (UInt i = 0; i < dim; ++i)
+      a += pow(areas(*nit, i), 2.);
+    cd.addArea(*nit, sqrt(a));
+  }
+
+  // set force value to zero
+  areas.clear();
+\end{cpp}
+
+Note that we clear the force vector after the assignment of areas.
+
+In the next step we prescribe the boundary conditions that do not change in time:
+
+\begin{cpp}
+
+  // apply boundary conditions for the rigid plane
+  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_x), "bottom_body");
+  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_y), "bottom_body");
+  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_z), "bottom_body");
+
+  // block z-disp in extreme points of top surface
+  model.getBoundary()(1, 2) = true;
+  model.getBoundary()(2, 2) = true;
+
+  // block x-disp in extreme points of top surface
+  model.getBoundary()(3, 0) = true;
+  model.getBoundary()(4, 0) = true;
+
+\end{cpp}
+
+
+Next we add the slave-master pairs for the analysis. We use a bounding box to consider only a fraction of the slave nodes in the model. Those slave nodes that are not within the bounding box are not considered in the analysis:
+\begin{cpp}
+
+  // set-up bounding box to include slave nodes that lie inside it
+  Real l1 = 1.;
+  Real l2 = 0.2;
+  Real l3 = 1.;
+  point_type c1(-l1 / 2, -l2 / 2, -l3 / 2);
+  point_type c2(l1 / 2,  l2 / 2,  l3 / 2);
+  bbox_type bb(c1, c2);
+
+  // search policy for slave-master pairs
+  Assignator a(model);
+
+
+  // loop over nodes in contact surface to create contact elements
+  cout << "- Adding slave-master pairs" << endl;
+  for (auto nit = cs.node_begin(); nit != cs.node_end(); ++nit) {
+    point_type p(&coords(*nit));
+
+    // ignore slave node if it doesn't lie within the bounding box
+    if (!(bb & p))
+      continue;
+
+    int el = a.search(&coords(*nit));
+    if (el != -1)
+      cd.addPair(*nit, master_type(model, _triangle_3, el));
+  }
+\end{cpp}
+
+
+We then start the loop over displacement increments, and at each step we call {{{solveContactStep}}} and save the displacement, resulting force, and maximum pressure, in an array that will be used to print the results at the end of the simulation:
+\begin{cpp}
+
+  const size_t steps = 30;
+  Real data[3][steps]; // store results for printing
+  Real step = 0.001;  // top displacement increment
+  size_t k = 0;
+
+  for (Real delta = 0; delta <= step * steps; delta += step) {
+    // apply displacement to the top surface of the half-sphere
+    model.applyBC(BC::Dirichlet::FixedValue(-delta, BC::_y), "top_surface");
+
+    // solve contact step, this function also dumps Paraview files
+    cd.solveContactStep(&a);
+
+    data[0][k] = delta;
+    data[1][k] = cd.getForce();
+    data[2][k] = cd.getMaxPressure();
+    ++k;
+  }
+\end{cpp}
+
+
+The last portion of the output of code above is as follows:
+\begin{verbatim}
+         Disp.         Force  Max pressure
+             0             0             0
+         0.001          1.29     6.068e+04
+         0.002     6.702e+06      6.78e+09
+         0.003     1.832e+07     9.453e+09
+         0.004     3.349e+07     1.091e+10
+         0.005       5.2e+07     1.171e+10
+         0.006     7.211e+07     1.298e+10
+         0.007     9.377e+07     1.481e+10
+         0.008     1.183e+08     1.624e+10
+         0.009      1.41e+08     1.616e+10
+          0.01       1.7e+08     1.688e+10
+         0.011     1.963e+08     1.678e+10
+         0.012     2.263e+08     1.758e+10
+         0.013     2.581e+08     1.805e+10
+         0.014     2.907e+08     1.821e+10
+         0.015     3.244e+08     1.877e+10
+         0.016     3.593e+08     1.954e+10
+         0.017     4.051e+08     2.131e+10
+         0.018     4.317e+08     2.115e+10
+         0.019     4.823e+08     2.201e+10
+          0.02     5.237e+08     2.315e+10
+         0.021     5.639e+08     2.379e+10
+         0.022     6.058e+08     2.405e+10
+         0.023     6.483e+08     2.485e+10
+         0.024     6.917e+08     2.536e+10
+         0.025     7.363e+08     2.854e+10
+         0.026     7.681e+08     3.099e+10
+         0.027     8.332e+08     3.291e+10
+         0.028     8.577e+08     3.399e+10
+         0.029     9.281e+08     3.426e+10
+\end{verbatim}
+
+The following figure shows the deformed state of the half-shpere at the end of the simulation, together with the contact pressure distribution:
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.3]{figures/hertz_3D.png}
+\caption{State of pressure and deformation at the end of the simulation of the example of Hertz in 3D.}
+\label{fig:hertz_3D}
+\end{center}
+\end{figure}
+
+
+
+ 
+ 
