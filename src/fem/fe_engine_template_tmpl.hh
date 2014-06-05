@@ -77,8 +77,8 @@ void FEEngineTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> 
 		      << ") has not the good number of component.");
 
   // AKANTU_DEBUG_ASSERT(nablauq.getSize() == nb_element * nb_points,
-  //	   	      "The vector nablauq(" << nablauq.getID()
-  //	   	      << ") has not the good size.");
+  //		      "The vector nablauq(" << nablauq.getID()
+  //		      << ") has not the good size.");
 #endif
 
   nablauq.resize(nb_element * nb_points);
@@ -194,7 +194,7 @@ Real FEEngineTemplate<I, S, kind>::integrate(const Array<Real> & f,
 #ifndef AKANTU_NDEBUG
   //   std::stringstream sstr; sstr << ghost_type;
   //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-  // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  //		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 
@@ -277,7 +277,7 @@ void FEEngineTemplate<I, S, kind>::integrateOnQuadraturePoints(const Array<Real>
 #ifndef AKANTU_NDEBUG
   //   std::stringstream sstr; sstr << ghost_type;
   //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-  // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  //		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
 
 
   AKANTU_DEBUG_ASSERT(f.getSize() == nb_element * nb_quadrature_points,
@@ -331,7 +331,7 @@ void FEEngineTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Rea
 #ifndef AKANTU_NDEBUG
   //   std::stringstream sstr; sstr << ghost_type;
   //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-  // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  //		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
 
   AKANTU_DEBUG_ASSERT(u.getSize() == mesh.getNbNodes(),
 		      "The vector u(" << u.getID()
@@ -463,6 +463,47 @@ void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Rea
 }
 
 /* -------------------------------------------------------------------------- */
+template<ElementKind kind>
+struct ComputeNormalsOnControlPoints {
+    template <template <ElementKind> class I,
+	      template <ElementKind> class S,
+	      ElementKind k>
+    static void call(const FEEngineTemplate<I, S, k> & fem,
+		     const Array<Real> & field,
+		     Array<Real> & normal,
+		     const ElementType & type,
+		     const GhostType & ghost_type) {
+      AKANTU_DEBUG_TO_IMPLEMENT();
+    }
+};
+
+#define COMPUTE_NORMALS_ON_QUAD(type)					\
+  fem.template computeNormalsOnControlPoints<type>(field, normal, ghost_type);
+
+#define AKANTU_SPECIALIZE_COMPUTE_NORMALS_ON_CONTROL_POINTS(kind)	\
+  template<>								\
+  struct ComputeNormalsOnControlPoints<kind> {				\
+    template <template <ElementKind> class I,				\
+	      template <ElementKind> class S,				\
+	      ElementKind k>						\
+    static void call(const FEEngineTemplate<I, S, k> & fem,		\
+		     const Array<Real> & field,				\
+		     Array<Real> & normal,				\
+		     const ElementType & type,				\
+		     const GhostType & ghost_type) {			\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD, kind);	\
+    }									\
+  };
+
+#define INTEREST_LIST BOOST_PP_SEQ_TO_LIST((_ek_regular) AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
+
+AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_COMPUTE_NORMALS_ON_CONTROL_POINTS, \
+			   INTEREST_LIST)
+
+#undef AKANTU_SPECIALIZE_COMPUTE_NORMALS_ON_CONTROL_POINTS
+#undef COMPUTE_NORMALS_ON_QUAD
+#undef INTEREST_LIST
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -470,17 +511,11 @@ void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Rea
 								 Array<Real> & normal,
 								 const ElementType & type,
 								 const GhostType & ghost_type) const {
-#define COMPUTE_NORMALS_ON_QUAD(type)					\
-  computeNormalsOnControlPoints<type>(field, normal, ghost_type);
-
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-
-#undef COMPUTE_NORMALS_ON_QUAD
+  ComputeNormalsOnControlPoints<kind>::call(*this,
+					    field,
+					    normal,
+					    type,
+					    ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -526,6 +561,37 @@ void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Rea
 /* Matrix lumping functions                                                   */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct AssembleLumpedTemplateHelper { };
+
+#define ASSEMBLE_LUMPED(type)                                           \
+  fem.template assembleLumpedTemplate<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type)
+
+#define AKANTU_SPECIALIZE_ASSEMBLE_HELPER(kind)				\
+  template<>								\
+  struct AssembleLumpedTemplateHelper<kind> {				\
+    template <template <ElementKind> class I,				\
+	      template <ElementKind> class S,				\
+	      ElementKind k>						\
+    static void call(const FEEngineTemplate<I, S, k> & fem,		\
+		     const Array<Real> & field_1,			\
+		     UInt nb_degree_of_freedom,				\
+		     Array<Real> & lumped,				\
+		     const Array<Int> & equation_number,		\
+		     ElementType type,					\
+		     const GhostType & ghost_type) {			\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(ASSEMBLE_LUMPED, kind);		\
+    }									\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_ASSEMBLE_HELPER)
+
+#undef AKANTU_SPECIALIZE_ASSEMBLE_HELPER
+#undef ASSEMBLE_LUMPED
+
 /* -------------------------------------------------------------------------- */
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
@@ -538,12 +604,13 @@ void FEEngineTemplate<I, S, kind>::assembleFieldLumped(const Array<Real> & field
 						       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
-#define ASSEMBLE_LUMPED(type)                                           \
-  assembleLumpedTemplate<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type)
+  AssembleLumpedTemplateHelper<kind>::call(*this, field_1,
+					   nb_degree_of_freedom,
+					   lumped,
+					   equation_number,
+					   type,
+					   ghost_type);
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(ASSEMBLE_LUMPED);;
-
-#undef ASSEMBLE_LUMPED
   AKANTU_DEBUG_OUT();
 }
 
@@ -783,10 +850,10 @@ inline void FEEngineTemplate<I, S, kind>::inverseMap(const Vector<Real> & real_c
 
   AKANTU_DEBUG_IN();
 
-#define INVERSE_MAP(type)                                               \
+#define AKANTU_INVERSE_MAP(type)                                               \
   shape_functions.template inverseMap<type>(real_coords, element, natural_coords, ghost_type);
 
-  AKANTU_BOOST_ELEMENT_SWITCH(INVERSE_MAP, AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE);
+  AKANTU_BOOST_ELEMENT_SWITCH(AKANTU_INVERSE_MAP, AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE);
 #undef INVERSE_MAP
 
   AKANTU_DEBUG_OUT();
@@ -983,7 +1050,7 @@ computeNormalsOnControlPoints<_point_1>(__attribute__((unused))const Array<Real>
   UInt nb_element = mesh.getConnectivity(type, ghost_type).getSize();
   normal.resize(nb_element * nb_points);
   Array<Real>::matrix_iterator normals_on_quad = normal.begin_reinterpret(spatial_dimension,
-                                                                          nb_points,
+									  nb_points,
 									  nb_element);
   Array< std::vector<Element> > segments = mesh.getElementToSubelement(type, ghost_type);
   Array<Real> coords = mesh.getNodes();

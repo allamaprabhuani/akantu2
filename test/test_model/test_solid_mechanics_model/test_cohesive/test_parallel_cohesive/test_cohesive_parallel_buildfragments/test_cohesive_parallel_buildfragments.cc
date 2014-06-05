@@ -40,12 +40,12 @@ using namespace akantu;
 void verticalInsertionLimit(SolidMechanicsModelCohesive &);
 void displaceElements(SolidMechanicsModelCohesive &, const Real, const Real);
 bool isInertiaEqual(const Vector<Real> &, const Vector<Real> &);
-void rotateMesh(SolidMechanicsModelCohesive & model, Real angle);
+void rotateArray(Array<Real> & array, Real angle);
 
 const UInt spatial_dimension = 3;
 const UInt total_nb_fragment = 4;
 const Real rotation_angle = M_PI / 4.;
-const Real global_tolerance = 1.e-11;
+const Real global_tolerance = 1.e-9;
 
 int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
@@ -127,7 +127,9 @@ int main(int argc, char *argv[]) {
     velocity(n, 0) = position(n, 0);
   }
 
-  rotateMesh(model, rotation_angle);
+  rotateArray(mesh.getNodes(), rotation_angle);
+  //  rotateArray(displacement, rotation_angle);
+  //  rotateArray(velocity, rotation_angle);
 
   model.updateResidual();
   model.checkCohesiveStress();
@@ -160,6 +162,10 @@ int main(int argc, char *argv[]) {
     /// check number of big fragments
     UInt nb_big_fragment
       = fragment_manager.getNbBigFragments(nb_element_per_fragment + 1);
+
+    model.dump();
+    model.dump("cohesive elements");
+
 
     if (frag < total_nb_fragment) {
       if (nb_big_fragment != 1) {
@@ -239,13 +245,13 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    model.dump();
-    model.dump("cohesive elements");
 
     /// displace fragments
-    rotateMesh(model, -rotation_angle);
+    rotateArray(mesh.getNodes(), -rotation_angle);
+    //    rotateArray(displacement, -rotation_angle);
     displaceElements(model, lim, el_size * 2);
-    rotateMesh(model, rotation_angle);
+    rotateArray(mesh.getNodes(), rotation_angle);
+    //    rotateArray(displacement, rotation_angle);
 
     model.updateResidual();
 
@@ -322,13 +328,11 @@ void verticalInsertionLimit(SolidMechanicsModelCohesive & model) {
 	for (; nb_aligned_nodes < nb_nodes_per_facet; ++nb_aligned_nodes) {
 	  Real other_node_pos = position(connectivity(f, nb_aligned_nodes), 0);
 
-	  if (std::abs(first_node_pos - other_node_pos) > Math::getTolerance())
+	  if (! Math::are_float_equal(first_node_pos, other_node_pos))
 	    break;
 	}
 
 	if (nb_aligned_nodes != nb_nodes_per_facet) {
-	  Vector<Real> barycenter(spatial_dimension);
-	  mesh_facets.getBarycenter(f, type, barycenter.storage(), ghost_type);
 	  check_facets(f) = false;
 	}
       }
@@ -393,9 +397,8 @@ bool isInertiaEqual(const Vector<Real> & a, const Vector<Real> & b) {
   return equal_terms == nb_terms;
 }
 
-void rotateMesh(SolidMechanicsModelCohesive & model, Real angle) {
-  UInt spatial_dimension = model.getSpatialDimension();
-  Array<Real> & position = model.getMesh().getNodes();
+void rotateArray(Array<Real> & array, Real angle) {
+  UInt spatial_dimension = array.getNbComponent();
 
   Real rotation_values[9] = {std::cos(angle), std::sin(angle), 0,
 			     -std::sin(angle), std::cos(angle), 0,
@@ -403,8 +406,8 @@ void rotateMesh(SolidMechanicsModelCohesive & model, Real angle) {
   Matrix<Real> rotation(rotation_values, spatial_dimension, spatial_dimension);
 
   RVector displaced_node(spatial_dimension);
-  Array<Real>::vector_iterator node_it = position.begin(spatial_dimension);
-  Array<Real>::vector_iterator node_end = position.end(spatial_dimension);
+  Array<Real>::vector_iterator node_it = array.begin(spatial_dimension);
+  Array<Real>::vector_iterator node_end = array.end(spatial_dimension);
 
   for (; node_it != node_end; ++node_it) {
     displaced_node.mul<false>(rotation, *node_it);

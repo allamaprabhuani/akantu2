@@ -44,9 +44,21 @@ __BEGIN_AKANTU__
 inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 {
 #define STRINGIFY(type)				\
-  stream << BOOST_PP_STRINGIZE(type);
+  stream << BOOST_PP_STRINGIZE(type)
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(STRINGIFY);
+#undef STRINGIFY
+  return stream;
+}
+
+/* -------------------------------------------------------------------------- */
+//! standard output stream operator for ElementType
+inline std::ostream & operator <<(std::ostream & stream, ElementKind kind )
+{
+#define STRINGIFY(kind)				\
+  stream << BOOST_PP_STRINGIZE(kind)
+
+  AKANTU_BOOST_ALL_KIND_SWITCH(STRINGIFY);
 #undef STRINGIFY
   return stream;
 }

@@ -37,6 +37,8 @@
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
+template<ElementKind k> class AssembleLumpedTemplateHelper;
+
 
 /* -------------------------------------------------------------------------- */
 template<template <ElementKind> class I,
@@ -195,6 +197,8 @@ public:
 			   const GhostType & ghost_type = _not_ghost) const;
 
 private:
+  friend class AssembleLumpedTemplateHelper<kind>;
+
 
   template <ElementType type>
   void assembleLumpedTemplate(const Array<Real> & field_1,

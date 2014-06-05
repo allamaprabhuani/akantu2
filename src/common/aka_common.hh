@@ -39,6 +39,7 @@
 /* -------------------------------------------------------------------------- */
 #include <list>
 #include <limits>
+#include <boost/preprocessor.hpp>
 
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
@@ -89,7 +90,7 @@ typedef std::list< SurfacePair > SurfacePairList;
 extern const UInt _all_dimensions;
 
 /// @boost sequence of element to loop on in global tasks
-#define AKANTU_REGULAR_ELEMENT_TYPE		\
+#define AKANTU_ek_regular_ELEMENT_TYPE		\
   (_point_1)					\
   (_segment_2)					\
   (_segment_3)					\
@@ -103,41 +104,41 @@ extern const UInt _all_dimensions;
   (_hexahedron_8)
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
-#define AKANTU_STRUCTURAL_ELEMENT_TYPE		\
-  (_bernoulli_beam_2)				\
-  (_bernoulli_beam_3)
+#define AKANTU_ek_structural_ELEMENT_TYPE	\
+   (_bernoulli_beam_2)				\
+   (_bernoulli_beam_3)
 #else
-#define AKANTU_STRUCTURAL_ELEMENT_TYPE
+#define AKANTU_ek_structural_ELEMENT_TYPE
 #endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
-#  define AKANTU_COHESIVE_ELEMENT_TYPE		\
-  (_cohesive_2d_4)				\
-  (_cohesive_2d_6)				\
-  (_cohesive_1d_2)				\
-  (_cohesive_3d_6)				\
-  (_cohesive_3d_12)
+#  define AKANTU_ek_cohesive_ELEMENT_TYPE	\
+   (_cohesive_2d_4)				\
+   (_cohesive_2d_6)				\
+   (_cohesive_1d_2)				\
+   (_cohesive_3d_6)				\
+   (_cohesive_3d_12)
 #else
-#  define AKANTU_COHESIVE_ELEMENT_TYPE
+#  define AKANTU_ek_cohesive_ELEMENT_TYPE
 #endif
 
 #if defined(AKANTU_IGFEM)
-#define AKANTU_IGFEM_ELEMENT_TYPE		\
-  (_igfem_triangle_3)								
+#define AKANTU_ek_igfem_ELEMENT_TYPE		\
+   (_igfem_triangle_3)
 #else
-#define AKANTU_IGFEM_ELEMENT_TYPE
+#define AKANTU_ek_igfem_ELEMENT_TYPE
 #endif
 
-#define AKANTU_ALL_ELEMENT_TYPE					\
-  AKANTU_REGULAR_ELEMENT_TYPE					\
-  AKANTU_COHESIVE_ELEMENT_TYPE					\
-  AKANTU_STRUCTURAL_ELEMENT_TYPE                                \
-  AKANTU_IGFEM_ELEMENT_TYPE
+#define AKANTU_ALL_ELEMENT_TYPE			\
+  AKANTU_ek_regular_ELEMENT_TYPE		\
+  AKANTU_ek_cohesive_ELEMENT_TYPE		\
+  AKANTU_ek_structural_ELEMENT_TYPE		\
+  AKANTU_ek_igfem_ELEMENT_TYPE
 
-#define AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE			\
-  AKANTU_REGULAR_ELEMENT_TYPE					\
-  AKANTU_COHESIVE_ELEMENT_TYPE                                  \
-  AKANTU_IGFEM_ELEMENT_TYPE
+#define AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE	\
+  AKANTU_ek_regular_ELEMENT_TYPE		\
+  AKANTU_ek_cohesive_ELEMENT_TYPE		\
+  AKANTU_ek_igfem_ELEMENT_TYPE
 
 /// @enum ElementType type of elements
 enum ElementType {
@@ -153,8 +154,10 @@ enum ElementType {
   _quadrangle_8,      ///< second order quadrangle
   _hexahedron_8,      ///< first order hexahedron
   _pentahedron_6,     ///< first order pentahedron
+#if defined (AKANTU_STRUCTURAL_MECHANICS)
   _bernoulli_beam_2,  ///< Bernoulli beam 2D
   _bernoulli_beam_3,  ///< Bernoulli beam 3D
+#endif
 #if defined(AKANTU_COHESIVE_ELEMENT)
   _cohesive_2d_4,     ///< first order 2D cohesive
   _cohesive_2d_6,     ///< second order 2D cohesive
@@ -200,13 +203,15 @@ enum InterpolationType {
   _itp_lagrange_triangle_6,        ///< second order lagrangian triangle
   _itp_lagrange_quadrangle_4,      ///< first order lagrangian quadrangle
   _itp_serendip_quadrangle_8,      /**< second order serendipian quadrangle
-                                      @remark used insted of the 9 node
-                                      lagrangian element */
+				      @remark used insted of the 9 node
+				      lagrangian element */
   _itp_lagrange_tetrahedron_4,     ///< first order lagrangian tetrahedron
   _itp_lagrange_tetrahedron_10,    ///< second order lagrangian tetrahedron
   _itp_lagrange_hexahedron_8,      ///< first order lagrangian hexahedron
   _itp_lagrange_pentahedron_6,      ///< first order lagrangian pentahedron
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
   _itp_bernoulli_beam,             ///< Bernoulli beam
+#endif
   _itp_not_defined
 };
 
@@ -214,11 +219,30 @@ enum InterpolationType {
 inline std::ostream & operator <<(std::ostream & stream, ElementType type);
 
 
+#ifdef AKANTU_COHESIVE_ELEMENT
+#  define AKANTU_COHESIVE_KIND   (_ek_cohesive)
+#else
+#  define AKANTU_COHESIVE_KIND
+#endif
+#ifdef AKANTU_STRUCTURAL_MECHANICS
+#  define AKANTU_STRUCTURAL_KIND (_ek_structural)
+#else
+#  define AKANTU_STRUCTURAL_KIND
+#endif
+#ifdef AKANTU_IGFEM
+#  define AKANTU_IGFEM_KIND      (_ek_igfem)
+#else
+#  define AKANTU_IGFEM_KIND
+#endif
+
+#define AKANTU_ELEMENT_KIND			\
+  (_ek_regular)					\
+  AKANTU_COHESIVE_KIND				\
+  AKANTU_STRUCTURAL_KIND			\
+  AKANTU_IGFEM_KIND
+
 enum ElementKind {
-  _ek_regular,
-  _ek_cohesive,
-  _ek_structural,
-  _ek_igfem,
+  BOOST_PP_SEQ_ENUM(AKANTU_ELEMENT_KIND),
   _ek_not_defined
 };
 
@@ -298,7 +322,7 @@ enum ContactSearchType {
 enum ContactNeighborStructureType {
   _cnst_not_defined  = 0,
   _cnst_regular_grid = 1,
-  _cnst_2d_grid = 2
+  _cnst_2d_grid      = 2
 };
 
 /* -------------------------------------------------------------------------- */
@@ -454,10 +478,10 @@ struct is_same<T, T> {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type,		\
-                                         support, con)			\
+					 support, con)			\
   inline con Array<type> &						\
   get##name (const support & el_type,					\
-             const GhostType & ghost_type = _not_ghost) con {		\
+	     const GhostType & ghost_type = _not_ghost) con {		\
     return variable(el_type, ghost_type);				\
   }
 
@@ -527,62 +551,96 @@ __END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 // BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
-#include <boost/preprocessor.hpp>
 
-#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	\
+#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	                        \
   case type : { macro(type); break; }
 
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1)			\
+#define AKANTU_BOOST_LIST_SWITCH(macro1, list1, var)			\
   do {									\
-    switch(type) {							\
+    switch(var) {							\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)	\
     default: {								\
-      AKANTU_DEBUG_ERROR("Type (" << UInt(type) << ") not handled by this function"); \
+      AKANTU_DEBUG_ERROR("Type (" << UInt(var) << ") not handled by this function"); \
     }									\
     }									\
   } while(0)
 
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1)	                \
+  AKANTU_BOOST_LIST_SWITCH(macro1, list1, type)
 
 #define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro)				\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-                              AKANTU_ALL_ELEMENT_TYPE)
+			      AKANTU_ALL_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-                              AKANTU_REGULAR_ELEMENT_TYPE)
+			      AKANTU_ek_regular_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-                              AKANTU_COHESIVE_ELEMENT_TYPE)
+			      AKANTU_ek_cohesive_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-                              AKANTU_STRUCTURAL_ELEMENT_TYPE)
+			      AKANTU_ek_structural_ELEMENT_TYPE)
 
 #define AKANTU_BOOST_IGFEM_ELEMENT_SWITCH(macro)			\
   AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
-                              AKANTU_IGFEM_ELEMENT_TYPE)
+			      AKANTU_ek_igfem_ELEMENT_TYPE)
 
-#define AKANTU_BOOST_LIST_MACRO(r,macro,type)	\
+#define AKANTU_BOOST_LIST_MACRO(r, macro, type)	                        \
   macro(type)
 
-#define AKANTU_BOOST_ELEMENT_LIST(macro, list)			\
-  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO,macro,list)
+#define AKANTU_BOOST_APPLY_ON_LIST(macro, list)			        \
+  BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_LIST_MACRO, macro, list)
 
-#define AKANTU_BOOST_ALL_ELEMENT_LIST(macro)			\
-  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_ALL_ELEMENT_TYPE)
+#define AKANTU_BOOST_ALL_ELEMENT_LIST(macro)				\
+  AKANTU_BOOST_APPLY_ON_LIST(macro,					\
+			     AKANTU_ALL_ELEMENT_TYPE)
 
-#define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)		\
-  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_REGULAR_ELEMENT_TYPE)
-
+#define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)		        \
+  AKANTU_BOOST_APPLY_ON_LIST(macro,				        \
+			     AKANTU_ek_regular_ELEMENT_TYPE)
+  
 #define AKANTU_BOOST_STRUCTURAL_ELEMENT_LIST(macro)			\
-  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_STRUCTURAL_ELEMENT_TYPE)
-
+  AKANTU_BOOST_APPLY_ON_LIST(macro,					\
+			     AKANTU_ek_structural_ELEMENT_TYPE)
+  
 #define AKANTU_BOOST_COHESIVE_ELEMENT_LIST(macro)			\
-  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_COHESIVE_ELEMENT_TYPE)
+  AKANTU_BOOST_APPLY_ON_LIST(macro,					\
+			     AKANTU_ek_cohesive_ELEMENT_TYPE)
+  
+#define AKANTU_BOOST_IGFEM_ELEMENT_LIST(macro)				\
+  AKANTU_BOOST_APPLY_ON_LIST(macro,					\
+			     AKANTU_ek_igfem_ELEMENT_TYPE)
 
-#define AKANTU_BOOST_IGFEM_ELEMENT_LIST(macro)			\
-  AKANTU_BOOST_ELEMENT_LIST(macro, AKANTU_IGFEM_ELEMENT_TYPE)
+#define AKANTU_GET_ELEMENT_LIST(kind)	                                \
+  AKANTU##kind##_ELEMENT_TYPE
+
+#define AKANTU_BOOST_KIND_ELEMENT_SWITCH(macro, kind)			\
+  AKANTU_BOOST_ELEMENT_SWITCH(macro,					\
+			      AKANTU_GET_ELEMENT_LIST(kind))
+
+#define AKANTU_ELEMENT_KIND_BOOST_LIST BOOST_PP_SEQ_TO_LIST(AKANTU_ELEMENT_KIND)
+
+#define AKANTU_BOOST_ALL_KIND_LIST(macro, list)			        \
+  BOOST_PP_LIST_FOR_EACH(AKANTU_BOOST_LIST_MACRO, macro, list)
+
+#define AKANTU_BOOST_ALL_KIND(macro)					\
+  AKANTU_BOOST_ALL_KIND_LIST(macro, AKANTU_ELEMENT_KIND_BOOST_LIST)
+
+#define AKANTU_BOOST_ALL_KIND_SWITCH(macro)			        \
+  AKANTU_BOOST_LIST_SWITCH(macro,				        \
+			   AKANTU_ELEMENT_KIND,			        \
+			   kind)
+
+/// define kept for compatibility reasons (they are most probably not needed
+/// anymore) \todo check if they can be removed
+#define AKANTU_REGULAR_ELEMENT_TYPE	AKANTU_ek_regular_ELEMENT_TYPE
+#define AKANTU_COHESIVE_ELEMENT_TYPE	AKANTU_ek_cohesive_ELEMENT_TYPE
+#define AKANTU_STRUCTURAL_ELEMENT_TYPE  AKANTU_ek_structural_ELEMENT_TYPE
+#define AKANTU_IGFEM_ELEMENT_TYPE       AKANTU_ek_igfem_ELEMENT_TYPE
+
 
 #include "aka_common_inline_impl.cc"
 
