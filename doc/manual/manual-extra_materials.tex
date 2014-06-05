@@ -3,7 +3,8 @@
 % model,   with    damping   being   proportional   only    to   the   stiffness
 % matrix. Substitute with complete Rayleigh damping model for release?
 
-\subsubsection{Neo-Hookean}
+\subsubsection{Neo-Hookean}\index{Material!Neohookean}
+
 The Neo-Hookean constitutive law is a hyperelastic material formulation, which
 results from an extension of the linear elastic relationship (Hooke's Law) for
 large deformation. Thus, the model predicts nonlinear stress-strain behavior for
@@ -18,19 +19,38 @@ bodies undergoing large deformations.
 \end{figure}
 
 As illustrated in Figure~\ref{fig:smm:cl:neo_hookean}, the behavior is initially
-linear but at a certain point it will start to converge to a plateau.  This
-constitutive relationship has been proposed by Ronald
-Rivlin\cite{ronald-neohooken} and is suitable to simulate rubber-like (\eg
-polymers) material behavior. The constitutive equation is
-\begin{equation}
-  \mat{\sigma } = -p \mat{I} + \mu \mat{B}
+linear and the mechanical behavior is very close to the corresponding linear
+elastic material. This constitutive relationship, which accounts for compressibility,
+ is a modified version of the one proposed by Ronald Rivlin \cite{Belytschko:2000}.
+
+The strain energy stored in the material is given by:
+\begin{equation}\label{eqn:smm:constitutive:neohookean_potential}
+  \Psi(\mat{C}) = \frac{1}{2}\lambda_0\left(\ln J\right)^2-\mu_0\ln J+\frac{1}{2}
+\mu_0\left(\text{trace}(\mat{C})-3\right)
 \end{equation}
-where $p$ is the pressure and $\mat{B}$ is the Finger deformation tensor
-($\mat{B}=\mat{F}^{-1}\mat{F}^{-T}$) and $\mat{F}$, as before, the deformation
-gradient tensor.  The parameters to indicate in the material file are the same
+\noindent where $\lambda_0$ and $\mu_0$ are, respectively, the Lam\'e's first parameter
+and the shear modulus at the initial configuration. $J$ is the jacobian of the deformation
+gradient ($\mat{F}=\nabla_{\!\!\vec{X}}\vec{x}$): $J=\text{det}(\mat{F})$. Finally $\mat{C}$ is the right Cauchy-Green
+deformation tensor.
+
+Since this kind of materials is used for problem involving large deformations, a finite
+deformation framework should be used. Therefore, the Cauchy stress ($\mat{\sigma}$) should
+be computed through the second Piola-Kirchhoff stress tensor $\mat{S}$:
+
+\begin{equation}
+  \mat{\sigma } = \frac{1}{J}\mat{F}\mat{S}\mat{F}^T
+\end{equation}
+
+Finally the second Piola-Kirchhoff stress tensor is given by:
+
+\begin{equation}
+  \mat{S}  = 2\frac{\partial\Psi}{\partial\mat{C}} = \lambda_0\ln J 
+\mat{C}^{-1}+\mu_0\left(\mat{I}-\mat{C}^{-1}\right)
+\end{equation}
+
+The parameters to indicate in the material file are the same
 as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's
-ratio) and \code{Plane\_Stress} (if set to zero plane strain, else plane
-stress).
+ratio).
 
 \subsubsection{Visco-elastic (IMPLEMENTATION TO VERIFY!!)}
 

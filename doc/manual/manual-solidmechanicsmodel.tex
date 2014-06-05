@@ -696,8 +696,12 @@ simulated time is \unit{0.01}{\second}.
 In order to compute an element's response to deformation, one needs to use an
 appropriate constitutive relationship for every element in the mesh. The
 constitutive law enables to compute the element's stresses from the element's
-strains. In the finite element discretization, the constitutive formulation is
-applied to every quadrature point of each element.
+strains.
+
+In the finite element discretization, the constitutive formulation is
+applied to every quadrature point of each element. When the implicit formulation
+used, the tangent matrix has to be computed. Every constitutive laws also provides
+the formulation required to compute the tangen matrix.
 
 The chosen materials for the virtual simulation have to be specified in the mesh
 file or as an alternative they can be assigned using the
