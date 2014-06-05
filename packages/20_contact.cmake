@@ -44,7 +44,6 @@ set(AKANTU_CONTACT_FILES
   model/implicit_contact_manager.cc
 
   # include files
-
   contact/contact_common.hh
   contact/contact_manager.hh
   contact/discretization.hh
@@ -61,7 +60,6 @@ set(AKANTU_CONTACT_FILES
   model/implicit_contact_manager.hh
   )
 
-add_external_package_dependencies(contact cblas)
 add_internal_package_dependencies(contact cpparray)
 add_internal_package_dependencies(contact implicit)
 add_internal_package_dependencies(contact optimization)
@@ -74,9 +72,6 @@ if(AKANTU_CONTACT)
 endif()
 
 
-add_optional_external_package(CBLAS "Use CBLAS library" OFF)
-
-mark_as_advanced(AKANTU_USE_CBLAS)
 mark_as_advanced(AKANTU_USE_CPPARRAY)
 
 set(AKANTU_CONTACT_TESTS
