@@ -105,7 +105,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion() {
 
   for (; it != last; ++it) {
     ElementType type_facet = *it;
-    ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+    ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
     const Array<bool> & facets_check = inserter.getCheckFacets(type_facet);
     Array<bool> & f_insertion = inserter.getInsertionFacets(type_facet);
     Array<UInt> & f_filter = facet_filter(type_facet);
@@ -116,7 +116,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion() {
     const Array<Real> & f_stress = model->getStressOnFacets(type_facet);
     const Array<Real> & sigma_lim = sigma_c(type_facet);
 
-    UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
+    UInt nb_quad_facet = model->getFEEngine("FacetsFEEngine").getNbQuadraturePoints(type_facet);
     UInt nb_facet = f_filter.getSize();
     if (nb_facet == 0) continue;
 
@@ -235,11 +235,11 @@ void MaterialCohesiveLinear<spatial_dimension>::computeStressNorms(const Array<R
   Array<bool> & facets_check = model->getElementInserter().getCheckFacets(type_facet);
   Array<UInt> & f_filter = facet_filter(type_facet);
 
-  UInt nb_quad_facet = model->getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
+  UInt nb_quad_facet = model->getFEEngine("FacetsFEEngine").getNbQuadraturePoints(type_facet);
 
   const Array<Real> & tangents = model->getTangents(type_facet);
   const Array<Real> & normals
-    = model->getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
+    = model->getFEEngine("FacetsFEEngine").getNormalsOnQuadPoints(type_facet);
 
   Real * stress_check_it = stress_check.storage();
 

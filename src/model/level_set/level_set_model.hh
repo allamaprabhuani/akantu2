@@ -53,7 +53,7 @@ class LevelSetModel : public Model, public DataAccessor, public MeshEventHandler
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef FEMTemplate<IntegratorGauss, ShapeLagrange> MyFEMType;
+  typedef FEEngineTemplate<IntegratorGauss, ShapeLagrange> MyFEEngineType;
 
   //LevelSetModel(UInt spatial_dimension,
   LevelSetModel(Mesh & mesh,
@@ -74,7 +74,7 @@ public:
   void initFull();
 
   /// initialize the fem object of the boundary
-  void initFEMBoundary(bool create_surface = false);
+  void initFEEngineBoundary(bool create_surface = false);
 
   /// allocate all vectors
   void initArrays();
@@ -209,7 +209,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline FEM & getFEMBoundary(std::string name = "");
+  inline FEEngine & getFEEngineBoundary(std::string name = "");
 
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
@@ -264,23 +264,23 @@ protected:
 
 
   ///\grad phi
-  ByElementTypeReal phi_gradient;
+  ElementTypeMapArray<Real> phi_gradient;
 
   ///\phi at quads points
-  ByElementTypeReal phi_on_qpoints;
-  ByElementTypeReal phi_on_qpoints_boundary;
+  ElementTypeMapArray<Real> phi_on_qpoints;
+  ElementTypeMapArray<Real> phi_on_qpoints_boundary;
 
   ///velocity at quads points
-  ByElementTypeReal v_on_qpoints;
-  ByElementTypeReal v_on_qpoints_boundary;
-  ByElementTypeReal v_r_on_qpoints;
+  ElementTypeMapArray<Real> v_on_qpoints;
+  ElementTypeMapArray<Real> v_on_qpoints_boundary;
+  ElementTypeMapArray<Real> v_r_on_qpoints;
 
   ///element by type
-  ByElementTypeUInt element_filter;
-  ByElementTypeUInt element_filter_boundary;
+  ElementTypeMapArray<UInt> element_filter;
+  ElementTypeMapArray<UInt> element_filter_boundary;
 
   ///SUPG
-  ByElementTypeReal shapes_SUPG;
+  ElementTypeMapArray<Real> shapes_SUPG;
 
   ///SUPG flag
   bool supg_flag;

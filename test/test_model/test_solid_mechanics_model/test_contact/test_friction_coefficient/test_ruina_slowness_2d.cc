@@ -99,14 +99,14 @@ int main(int argc, char *argv[])
   memset(my_model.getVelocity().storage(),     0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getAcceleration().storage(), 0,     dim*nb_nodes*sizeof(Real));
   memset(my_model.getDisplacement().storage(), 0,     dim*nb_nodes*sizeof(Real));
-  memset(my_model.getBoundary().storage(),     false, dim*nb_nodes*sizeof(bool));
+  memset(my_model.getBlockedDOFs().storage(),     false, dim*nb_nodes*sizeof(bool));
 
   my_model.initExplicit();
   my_model.initModel();
   my_model.readMaterials("material.dat");
   my_model.initMaterials();
 
-  UInt nb_element = my_model.getFEM().getMesh().getNbElement(element_type);
+  UInt nb_element = my_model.getFEEngine().getMesh().getNbElement(element_type);
 
   Real time_step = my_model.getStableTimeStep();
   my_model.setTimeStep(time_step/10.);
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
   UInt nb_surfaces = my_mesh.getNbSurfaces();
   my_mesh.setNbSurfaces(++nb_surfaces); 
   ElementType surface_element_type = my_mesh.getFacetElementType(element_type);
-  UInt nb_surface_element = my_model.getFEM().getMesh().getNbElement(surface_element_type);
+  UInt nb_surface_element = my_model.getFEEngine().getMesh().getNbElement(surface_element_type);
   UInt * surface_id_val = my_mesh.getSurfaceID(surface_element_type).storage();
   for(UInt i=0; i < nb_surface_element; ++i) {
     if (surface_id_val[i] == rigid_body_surface) {
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
   Array<UInt> * push_nodes = new Array<UInt>(0, 1);
   Real * coordinates = my_mesh.getNodes().storage();
   Real * displacement = my_model.getDisplacement().storage();
-  bool * boundary = my_model.getBoundary().storage();
+  bool * boundary = my_model.getBlockedDOFs().storage();
   UInt * surface_to_nodes_offset = my_contact->getSurfaceToNodesOffset().storage();
   UInt * surface_to_nodes        = my_contact->getSurfaceToNodes().storage();
   // normal force boundary conditions
@@ -208,8 +208,8 @@ int main(int argc, char *argv[])
   /// initialize the paraview output
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().storage(), dim, nb_nodes, "coord_ruina_slowness_2d");
-  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).storage(),
+  dumper.SetPoints(my_model.getFEEngine().getMesh().getNodes().storage(), dim, nb_nodes, "coord_ruina_slowness_2d");
+  dumper.SetConnectivity((int *)my_model.getFEEngine().getMesh().getConnectivity(element_type).storage(),
 			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().storage(),
 			  dim, "displacements");

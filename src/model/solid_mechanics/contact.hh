@@ -152,10 +152,10 @@ private:
 
   /// \todo change the too vector by a csr
   /// offset of surface elements per surface node
-  ByElementTypeUInt node_to_elements_offset;
+  ElementTypeMapArray<UInt> node_to_elements_offset;
 
   /// list of surface elements id (elements can occur multiple times)
-  ByElementTypeUInt node_to_elements;
+  ElementTypeMapArray<UInt> node_to_elements;
 
 };
 

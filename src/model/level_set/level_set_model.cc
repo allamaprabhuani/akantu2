@@ -77,8 +77,8 @@ LevelSetModel::LevelSetModel(Mesh & mesh,
   createSynchronizerRegistry(this);
 
   //std::stringstream sstr; sstr << id << ":fem";
-  registerFEMObject<MyFEMType > ("LevelSetFEM", mesh, spatial_dimension);
-  registerFEMObject<MyFEMType > ("LevelSetFEM_Boundary", mesh, spatial_dimension - 1);
+  registerFEEngineObject<MyFEEngineType > ("LevelSetFEEngine", mesh, spatial_dimension);
+  registerFEEngineObject<MyFEEngineType > ("LevelSetFEEngine_Boundary", mesh, spatial_dimension - 1);
 
   this->phi = NULL;
   this->v = NULL;
@@ -198,10 +198,10 @@ void LevelSetModel::reinitializeLevelSet(Real delta_t, Real tol, UInt max_step, 
 
 /* -------------------------------------------------------------------------- */
 void LevelSetModel::initModel() {
-  getFEM().initShapeFunctions(_not_ghost);
-  getFEM().initShapeFunctions(_ghost);
-  getFEMBoundary().initShapeFunctions(_not_ghost);
-  getFEMBoundary().initShapeFunctions(_ghost);
+  getFEEngine().initShapeFunctions(_not_ghost);
+  getFEEngine().initShapeFunctions(_ghost);
+  getFEEngineBoundary().initShapeFunctions(_not_ghost);
+  getFEEngineBoundary().initShapeFunctions(_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -256,34 +256,34 @@ void LevelSetModel::initArrays() {
   /* -------------------------------------------------------------------------- */
   // byelementtype vectors
 
-  mesh.initByElementTypeArray(phi_on_qpoints,
+  mesh.initElementTypeMapArray(phi_on_qpoints,
                               1,
                               spatial_dimension);
-  mesh.initByElementTypeArray(phi_on_qpoints_boundary,
+  mesh.initElementTypeMapArray(phi_on_qpoints_boundary,
                               1,
                               spatial_dimension - 1);
 
-  mesh.initByElementTypeArray(phi_gradient,
+  mesh.initElementTypeMapArray(phi_gradient,
                               spatial_dimension,
                               spatial_dimension);
 
-  mesh.initByElementTypeArray(v_on_qpoints,
+  mesh.initElementTypeMapArray(v_on_qpoints,
                               spatial_dimension,
                               spatial_dimension);
 
-  mesh.initByElementTypeArray(v_on_qpoints_boundary,
+  mesh.initElementTypeMapArray(v_on_qpoints_boundary,
                               spatial_dimension,
                               spatial_dimension - 1);
 
-  mesh.initByElementTypeArray(v_r_on_qpoints,
+  mesh.initElementTypeMapArray(v_r_on_qpoints,
                               spatial_dimension,
                               spatial_dimension);
 
 
   /// for each connectivity types allocate the element filer array of the material
-  mesh.initByElementTypeArray(element_filter, 1, spatial_dimension, false, _ek_regular);
+  mesh.initElementTypeMapArray(element_filter, 1, spatial_dimension, false, _ek_regular);
 
-  mesh.initByElementTypeArray(element_filter_boundary, 1, spatial_dimension - 1, false, _ek_regular);
+  mesh.initElementTypeMapArray(element_filter_boundary, 1, spatial_dimension - 1, false, _ek_regular);
 
 
   for (UInt g = _not_ghost; g <= _ghost; ++g) {
@@ -293,7 +293,7 @@ void LevelSetModel::initArrays() {
 
     for (; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      UInt nb_quad_points = getFEM().getNbQuadraturePoints(*it, gt) * nb_element;
+      UInt nb_quad_points = getFEEngine().getNbQuadraturePoints(*it, gt) * nb_element;
       //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
       phi_on_qpoints(*it, gt).resize(nb_quad_points);
@@ -321,7 +321,7 @@ void LevelSetModel::initArrays() {
 
     for (; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      UInt nb_quad_points = getFEMBoundary().getNbQuadraturePoints(*it, gt) * nb_element;
+      UInt nb_quad_points = getFEEngineBoundary().getNbQuadraturePoints(*it, gt) * nb_element;
       //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
       v_on_qpoints_boundary(*it, gt).resize(nb_quad_points);
@@ -481,11 +481,11 @@ void LevelSetModel::computeVReinit(Real Epsilon) {
     for (; it != end; ++it) {
 
       Array<UInt> & elem_filter = element_filter(*it, gt);
-      getFEM().interpolateOnQuadraturePoints(*phi, phi_on_qpoints(*it, gt), 1, *it, gt);
+      getFEEngine().interpolateOnQuadraturePoints(*phi, phi_on_qpoints(*it, gt), 1, *it, gt);
 
       //UInt nb_element = elem_filter.getSize();
       //UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-      //UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, gt);
+      //UInt nb_quadrature_points = getFEEngine().getNbQuadraturePoints(*it, gt);
 
       Array<Real> & v_r_qpoints = v_r_on_qpoints(*it, gt);
       Array<Real> & grad_phi = phi_gradient(*it, gt);
@@ -495,7 +495,7 @@ void LevelSetModel::computeVReinit(Real Epsilon) {
 
       //grad_phi.resize(nb_quadrature_points * nb_element);
 
-      getFEM().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, gt, elem_filter);
+      getFEEngine().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, gt, elem_filter);
 
 
 
@@ -557,9 +557,9 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
     UInt nb_element = elem_filter.getSize();
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
+    UInt nb_quadrature_points = getFEEngine().getNbQuadraturePoints(*it, ghost_type);
 
-    getFEM().interpolateOnQuadraturePoints(*phi, phi_on_qpoints(*it, ghost_type), 1, *it, ghost_type);
+    getFEEngine().interpolateOnQuadraturePoints(*phi, phi_on_qpoints(*it, ghost_type), 1, *it, ghost_type);
 
 
     Array<Real> * shapes_filtered = new Array<Real > (nb_element * nb_quadrature_points,
@@ -631,9 +631,9 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
                                         residual_size,
                                         "f");
 
-    getFEM().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, elem_filter);
+    getFEEngine().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, elem_filter);
 
-    getFEM().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, empty_filter, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
+    getFEEngine().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, empty_filter, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
 
 
     //if (!reinit || (reinit && filtered_flag)) {
@@ -654,7 +654,7 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
     //grad_phi.resize(nb_quadrature_points * nb_element);
 
-    getFEM().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, ghost_type, elem_filter);
+    getFEEngine().gradientOnQuadraturePoints(*phi, grad_phi, 1, *it, ghost_type, elem_filter);
 
 
     Ni_it = shapes_filtered->begin(nb_nodes_per_element);
@@ -687,9 +687,9 @@ void LevelSetModel::updateRHS(const GhostType & ghost_type, bool reinit, Real Ep
 
     f->clear();
 
-    getFEM().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, elem_filter);
+    getFEEngine().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, elem_filter);
 
-    getFEM().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, empty_filter, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
+    getFEEngine().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, empty_filter, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
     delete v_grad_phi;
     //}
 
@@ -758,7 +758,7 @@ void LevelSetModel::initFull() {
   initModel();
   //initialize the vectors
   initArrays();
-  initFEMBoundary();
+  initFEEngineBoundary();
   phi->clear();
   //v->clear();
   time_step = 0.0;
@@ -822,12 +822,12 @@ void LevelSetModel::initSolver(SolverOptions & options) {
 }
 
 /* -------------------------------------------------------------------------- */
-void LevelSetModel::initFEMBoundary(bool create_surface) {
+void LevelSetModel::initFEEngineBoundary(bool create_surface) {
 
   if (create_surface)
-    MeshUtils::buildFacets(getFEM().getMesh());
+    MeshUtils::buildFacets(getFEEngine().getMesh());
 
-  FEM & fem_boundary = getFEMBoundary();
+  FEEngine & fem_boundary = getFEEngineBoundary();
   fem_boundary.initShapeFunctions();
   fem_boundary.computeNormalsOnControlPoints();
 }
@@ -844,13 +844,13 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
     for (; it != end; ++it) {
       UInt nb_element = mesh.getNbElement(*it, gt);
-      UInt nb_quad_points = getFEM().getNbQuadraturePoints(*it, gt);
+      UInt nb_quad_points = getFEEngine().getNbQuadraturePoints(*it, gt);
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
 
       if (!reinit)
-        getFEM().interpolateOnQuadraturePoints(*v, v_on_qpoints(*it, gt), spatial_dimension, *it, gt);
+        getFEEngine().interpolateOnQuadraturePoints(*v, v_on_qpoints(*it, gt), spatial_dimension, *it, gt);
 
-      const Array<Real> & shapes = getFEM().getShapes(*it, gt);
+      const Array<Real> & shapes = getFEEngine().getShapes(*it, gt);
 
       Array<Real> & supg_qpoints = shapes_SUPG.alloc(nb_element*nb_quad_points,
                                                      nb_nodes_per_element, *it, gt);
@@ -860,7 +860,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
         v_tmp = &v_r_on_qpoints(*it, gt);
       Array<Real> & v_qpoints = *v_tmp;
 
-      const Array<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it, gt);
+      const Array<Real> & shapes_derivatives = getFEEngine().getShapesDerivatives(*it, gt);
 
       Array<Real>::const_matrix_iterator shapes_derivatives_it = shapes_derivatives.begin(nb_nodes_per_element, spatial_dimension);
       Array<Real>::const_matrix_iterator shapes_it = shapes.begin(nb_nodes_per_element, 1);
@@ -871,7 +871,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
 
       Array<Real> X(0, nb_nodes_per_element * spatial_dimension);
-      FEM::extractNodalToElementField(mesh, position, X, *it, _not_ghost);
+      FEEngine::extractNodalToElementField(mesh, position, X, *it, _not_ghost);
 
       Array<Real>::matrix_iterator X_el = X.begin(spatial_dimension, nb_nodes_per_element);
 
@@ -894,7 +894,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
 
         if (!counter_q) {
-          el_size = getFEM().getElementInradius(*X_el, *it);
+          el_size = getFEEngine().getElementInradius(*X_el, *it);
         }
 
         Real v_norm = v_element.norm<L_2>();
@@ -933,7 +933,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   SparseMatrix & K = *stiffness_matrix;
 
-  const Array<Real> & shapes = getFEMBoundary().getShapes(*it, ghost_type);
+  const Array<Real> & shapes = getFEEngineBoundary().getShapes(*it, ghost_type);
 
   //Compute \Grad{\phi}
 
@@ -941,7 +941,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   UInt nb_element = elem_filter.getSize();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-  UInt nb_quadrature_points = getFEMBoundary().getNbQuadraturePoints(*it, ghost_type);
+  UInt nb_quadrature_points = getFEEngineBoundary().getNbQuadraturePoints(*it, ghost_type);
 
   Array<Real> * shapes_filtered = new Array<Real > (nb_element * nb_quadrature_points,
   nb_nodes_per_element,
@@ -961,7 +961,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
   //Compute Term v x n
 
   if(!reinit)
-  getFEMBoundary().interpolateOnQuadraturePoints(*v, v_on_qpoints_boundary(*it, ghost_type), spatial_dimension, *it, ghost_type);
+  getFEEngineBoundary().interpolateOnQuadraturePoints(*v, v_on_qpoints_boundary(*it, ghost_type), spatial_dimension, *it, ghost_type);
 
   Array<Real> * v_tmp = &v_on_qpoints(*it, ghost_type);
   if(reinit)
@@ -970,7 +970,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   Array<Real> v_n(nb_element*nb_quadrature_points, 1, "v_n");
 
-  const Array<Real> & normals_qpoints = getFEMBoundary().getNormalsOnQuadPoints(*it, ghost_type);
+  const Array<Real> & normals_qpoints = getFEEngineBoundary().getNormalsOnQuadPoints(*it, ghost_type);
 
   Array<Real>::matrix_iterator v_qpoints_it = v_qpoints.begin(1, spatial_dimension);
   Array<Real>::const_matrix_iterator normals_qpoints_it = normals_qpoints.begin(1, spatial_dimension);
@@ -1022,11 +1022,11 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
   Ni_Nj_size * Ni_Nj_size,
   "K_e");
 
-  getFEMBoundary().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, &elem_filter);
+  getFEEngineBoundary().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, &elem_filter);
 
   //delete Ni_Nj;
 
-  getFEMBoundary().assembleMatrix(*K_e, K, 1, *it, ghost_type, &elem_filter);
+  getFEEngineBoundary().assembleMatrix(*K_e, K, 1, *it, ghost_type, &elem_filter);
 
   delete Ni_Nj;
   delete K_e;
@@ -1035,7 +1035,7 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
 
   //RHS
 
-  getFEMBoundary().interpolateOnQuadraturePoints(*phi, phi_on_qpoints_boundary(*it, ghost_type), 1, *it, ghost_type);
+  getFEEngineBoundary().interpolateOnQuadraturePoints(*phi, phi_on_qpoints_boundary(*it, ghost_type), 1, *it, ghost_type);
 
   UInt residual_size = nb_nodes_per_element;
 
@@ -1075,9 +1075,9 @@ void LevelSetModel::Shapes_SUPG(bool reinit) {
   residual_size,
   "f");
 
-  getFEMBoundary().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, &elem_filter);
+  getFEEngineBoundary().integrate(*phi_Ni, *f, residual_size, *it, ghost_type, &elem_filter);
 
-  getFEMBoundary().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, NULL, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
+  getFEEngineBoundary().assembleArray(*f, *residual, dof_synchronizer->getLocalDOFEquationNumbers(), 1, *it, ghost_type, NULL, 1); //(*Phi_x_Ni, f, 1, *it, ghost_type, &elem_filter);
 
   delete shapes_filtered;
   delete f;
@@ -1110,8 +1110,8 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
 
     SparseMatrix & K = *stiffness_matrix;
 
-    const Array<Real> & shapes_derivatives = getFEM().getShapesDerivatives(*it, ghost_type);
-    const Array<Real> & shapes = getFEM().getShapes(*it, ghost_type);
+    const Array<Real> & shapes_derivatives = getFEEngine().getShapesDerivatives(*it, ghost_type);
+    const Array<Real> & shapes = getFEEngine().getShapes(*it, ghost_type);
     Array<Real> & supg = shapes_SUPG(*it, ghost_type);
 
 
@@ -1121,7 +1121,7 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
 
     UInt nb_element = elem_filter.getSize();
     UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-    UInt nb_quadrature_points = getFEM().getNbQuadraturePoints(*it, ghost_type);
+    UInt nb_quadrature_points = getFEEngine().getNbQuadraturePoints(*it, ghost_type);
 
     Array<Real> * shapes_derivatives_filtered = new Array<Real > (nb_element * nb_quadrature_points,
                                                                   spatial_dimension * nb_nodes_per_element,
@@ -1188,11 +1188,11 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
                                           Ni_Nj_size * Ni_Nj_size,
                                           "K_e");
 
-    getFEM().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, elem_filter);
+    getFEEngine().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, elem_filter);
 
     //delete Ni_Nj;
 
-    getFEM().assembleMatrix(*K_e, K, 1, *it, ghost_type, elem_filter);
+    getFEEngine().assembleMatrix(*K_e, K, 1, *it, ghost_type, elem_filter);
 
 
 
@@ -1254,9 +1254,9 @@ void LevelSetModel::assemblePhi(const GhostType & ghost_type, bool reinit) {
 
     K_e->clear();
 
-    getFEM().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, elem_filter);
+    getFEEngine().integrate(*Ni_Nj, *K_e, Ni_Nj_size * Ni_Nj_size, *it, ghost_type, elem_filter);
 
-    getFEM().assembleMatrix(*K_e, K, 1, *it, ghost_type, elem_filter);
+    getFEEngine().assembleMatrix(*K_e, K, 1, *it, ghost_type, elem_filter);
 
     //delete tangent_stiffness_matrix;
 

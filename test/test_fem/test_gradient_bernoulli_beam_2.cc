@@ -32,7 +32,7 @@
 #include <fstream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "integrator_gauss.hh"
 #include "shape_linked.hh"
 

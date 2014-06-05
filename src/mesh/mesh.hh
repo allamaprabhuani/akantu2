@@ -42,7 +42,7 @@
 #include "aka_memory.hh"
 #include "aka_array.hh"
 #include "element_class.hh"
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 #include "aka_event_handler_manager.hh"
 #include "group_manager.hh"
 
@@ -155,12 +155,12 @@ class RemovedElementsEvent : public MeshEvent<Element> {
 public:
   virtual ~RemovedElementsEvent() {};
   inline RemovedElementsEvent(const Mesh & mesh);
-  AKANTU_GET_MACRO(NewNumbering, new_numbering, const ByElementTypeUInt &);
-  AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, ByElementTypeUInt &);
+  AKANTU_GET_MACRO(NewNumbering, new_numbering, const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(NewNumbering, new_numbering, ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NewNumbering, new_numbering, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NewNumbering, new_numbering, UInt);
 protected:
-  ByElementTypeUInt new_numbering;
+  ElementTypeMapArray<UInt> new_numbering;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -200,7 +200,7 @@ public:
   virtual void onElementsAdded  (__attribute__((unused)) const Array<Element> & elements_list,
                                  __attribute__((unused)) const NewElementsEvent & event) { }
   virtual void onElementsRemoved(__attribute__((unused)) const Array<Element> & elements_list,
-                                 __attribute__((unused)) const ByElementTypeUInt & new_numbering,
+                                 __attribute__((unused)) const ElementTypeMapArray<UInt> & new_numbering,
                                  __attribute__((unused)) const RemovedElementsEvent & event) { }
 };
 
@@ -290,14 +290,14 @@ public:
 
   /// init a by-element-type real vector with provided ids
   template<typename T>
-  void initByElementTypeArray(ByElementTypeArray<T> & v,
+  void initElementTypeMapArray(ElementTypeMapArray<T> & v,
                               UInt nb_component,
                               UInt spatial_dimension,
                               const bool & flag_nb_node_per_elem_multiply = false,
                               ElementKind element_kind = _ek_regular,
                               bool size_to_nb_element = false) const; /// @todo: think about nicer way to do it
   template<typename T>
-  void initByElementTypeArray(ByElementTypeArray<T> & v,
+  void initElementTypeMapArray(ElementTypeMapArray<T> & v,
                               UInt nb_component,
                               UInt spatial_dimension,
                               GhostType ghost_type,
@@ -352,7 +352,7 @@ public:
   void defineMeshParent(const Mesh & mesh);
 
   /// get global connectivity array
-  void getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
+  void getGlobalConnectivity(ElementTypeMapArray<UInt> & global_connectivity,
 			     UInt dimension,
 			     GhostType ghost_type);
 
@@ -418,7 +418,7 @@ public:
   /// get the connectivity Array for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Connectivity, connectivities, UInt);
-  AKANTU_GET_MACRO(Connectivities, connectivities, const ByElementTypeArray<UInt> &);
+  AKANTU_GET_MACRO(Connectivities, connectivities, const ElementTypeMapArray<UInt> &);
 
   /// get the number of element of a type in the mesh
   inline UInt getNbElement(const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
@@ -464,11 +464,11 @@ public:
 
   /// get a name field associated to the mesh
   template<typename T>
-  inline const ByElementTypeArray<T> & getData(const std::string & data_name) const;
+  inline const ElementTypeMapArray<T> & getData(const std::string & data_name) const;
 
   /// get a name field associated to the mesh
   template<typename T>
-  inline ByElementTypeArray<T> & getData(const std::string & data_name);
+  inline ElementTypeMapArray<T> & getData(const std::string & data_name);
 
   /// templated getter returning the pointer to data in MeshData (modifiable)
   template<typename T>
@@ -520,7 +520,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  typedef ByElementTypeArray<UInt, ElementType>::type_iterator type_iterator;
+  typedef ElementTypeMapArray<UInt, ElementType>::type_iterator type_iterator;
 
   inline type_iterator firstType(UInt dim = _all_dimensions,
                                  GhostType ghost_type = _not_ghost,
@@ -594,10 +594,10 @@ private:
   bool created_nodes;
 
   /// all class of elements present in this mesh (for heterogenous meshes)
-  ByElementTypeUInt connectivities;
+  ElementTypeMapArray<UInt> connectivities;
 
   /// map to normals for all class of elements present in this mesh
-  ByElementTypeReal normals;
+  ElementTypeMapArray<Real> normals;
 
   /// list of all existing types in the mesh
   ConnectivityTypeList type_set;
@@ -639,9 +639,6 @@ private:
 
 };
 
-/* -------------------------------------------------------------------------- */
-/* Inline functions                                                           */
-/* -------------------------------------------------------------------------- */
 
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
@@ -649,10 +646,6 @@ inline std::ostream & operator <<(std::ostream & stream, const Element & _this)
   _this.printself(stream);
   return stream;
 }
-
-#include "mesh_inline_impl.cc"
-
-#include "by_element_type_tmpl.hh"
 
 
 /// standard output stream operator
@@ -663,6 +656,15 @@ inline std::ostream & operator <<(std::ostream & stream, const Mesh & _this)
 }
 
 __END_AKANTU__
+
+
+/* -------------------------------------------------------------------------- */
+/* Inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+
+#include "mesh_inline_impl.cc"
+
+#include "element_type_map_tmpl.hh"
 
 
 #endif /* __AKANTU_MESH_HH__ */

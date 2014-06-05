@@ -112,7 +112,7 @@ void FacetSynchronizer::updateElementList(Array<Element> * elements,
 	current_ghost_type   = facet.ghost_type;
 
 	ElementType current_coh_element_type
-	  = FEM::getCohesiveElementType(current_element_type);
+	  = FEEngine::getCohesiveElementType(current_element_type);
 
 	/// compute old number of cohesive elements
 	old_nb_cohesive_elements = mesh_cohesive.getNbElement(current_coh_element_type,
@@ -145,15 +145,15 @@ void FacetSynchronizer::setupFacetSynchronization(DistributedSynchronizer & dist
   Array<Element> * distrib_recv_element = distributed_synchronizer.recv_element;
 
   /// build rank to facet correspondance
-  ByElementTypeUInt rank_to_facet("rank_to_facet", id);
+  ElementTypeMapArray<UInt> rank_to_facet("rank_to_facet", id);
   initRankToFacet(rank_to_facet);
   buildRankToFacet(rank_to_facet, distrib_recv_element);
 
   /// generate temp_send/recv element arrays with their connectivity
-  Array<ByElementTypeUInt *> temp_send_element(nb_proc);
-  Array<ByElementTypeUInt *> temp_recv_element(nb_proc);
-  Array<ByElementTypeUInt *> send_connectivity(nb_proc);
-  Array<ByElementTypeUInt *> recv_connectivity(nb_proc);
+  Array<ElementTypeMapArray<UInt> *> temp_send_element(nb_proc);
+  Array<ElementTypeMapArray<UInt> *> temp_recv_element(nb_proc);
+  Array<ElementTypeMapArray<UInt> *> send_connectivity(nb_proc);
+  Array<ElementTypeMapArray<UInt> *> recv_connectivity(nb_proc);
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
@@ -162,20 +162,20 @@ void FacetSynchronizer::setupFacetSynchronization(DistributedSynchronizer & dist
     std::stringstream sstr; sstr << p;
 
     temp_send_element(p) =
-      new ByElementTypeUInt("temp_send_element_proc_"+sstr.str(), id);
-    mesh.initByElementTypeArray(*temp_send_element(p), 1, spatial_dimension - 1);
+      new ElementTypeMapArray<UInt>("temp_send_element_proc_"+sstr.str(), id);
+    mesh.initElementTypeMapArray(*temp_send_element(p), 1, spatial_dimension - 1);
 
     temp_recv_element(p) =
-      new ByElementTypeUInt("temp_recv_element_proc_"+sstr.str(), id);
-    mesh.initByElementTypeArray(*temp_recv_element(p), 1, spatial_dimension - 1);
+      new ElementTypeMapArray<UInt>("temp_recv_element_proc_"+sstr.str(), id);
+    mesh.initElementTypeMapArray(*temp_recv_element(p), 1, spatial_dimension - 1);
 
     send_connectivity(p) =
-      new ByElementTypeUInt("send_connectivity_proc_"+sstr.str(), id);
-    mesh.initByElementTypeArray(*send_connectivity(p), 1, spatial_dimension - 1, true);
+      new ElementTypeMapArray<UInt>("send_connectivity_proc_"+sstr.str(), id);
+    mesh.initElementTypeMapArray(*send_connectivity(p), 1, spatial_dimension - 1, true);
 
     recv_connectivity(p) =
-      new ByElementTypeUInt("recv_connectivity_proc_"+sstr.str(), id);
-    mesh.initByElementTypeArray(*recv_connectivity(p), 1, spatial_dimension - 1, true);
+      new ElementTypeMapArray<UInt>("recv_connectivity_proc_"+sstr.str(), id);
+    mesh.initElementTypeMapArray(*recv_connectivity(p), 1, spatial_dimension - 1, true);
   }
 
   /// build global connectivity arrays
@@ -232,9 +232,9 @@ void FacetSynchronizer::setupFacetSynchronization(DistributedSynchronizer & dist
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::buildSendElementList(const Array<ByElementTypeUInt *> & send_connectivity,
-					     const Array<ByElementTypeUInt *> & recv_connectivity,
-					     const Array<ByElementTypeUInt *> & temp_send_element) {
+void FacetSynchronizer::buildSendElementList(const Array<ElementTypeMapArray<UInt> *> & send_connectivity,
+					     const Array<ElementTypeMapArray<UInt> *> & recv_connectivity,
+					     const Array<ElementTypeMapArray<UInt> *> & temp_send_element) {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
@@ -348,7 +348,7 @@ void FacetSynchronizer::buildSendElementList(const Array<ByElementTypeUInt *> & 
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::buildRecvElementList(const Array<ByElementTypeUInt *> & temp_recv_element) {
+void FacetSynchronizer::buildRecvElementList(const Array<ElementTypeMapArray<UInt> *> & temp_recv_element) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -380,12 +380,12 @@ void FacetSynchronizer::buildRecvElementList(const Array<ByElementTypeUInt *> & 
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::initRankToFacet(ByElementTypeUInt & rank_to_facet) {
+void FacetSynchronizer::initRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  mesh.initByElementTypeArray(rank_to_facet, 1, spatial_dimension - 1);
+  mesh.initElementTypeMapArray(rank_to_facet, 1, spatial_dimension - 1);
 
   GhostType ghost_type = _ghost;
 
@@ -407,7 +407,7 @@ void FacetSynchronizer::initRankToFacet(ByElementTypeUInt & rank_to_facet) {
 }
 
 /* -------------------------------------------------------------------------- */
-void FacetSynchronizer::buildRankToFacet(ByElementTypeUInt & rank_to_facet,
+void FacetSynchronizer::buildRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet,
 					 const Array<Element> * elements) {
   AKANTU_DEBUG_IN();
 

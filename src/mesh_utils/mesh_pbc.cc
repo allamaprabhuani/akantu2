@@ -105,7 +105,7 @@ private:
 //   }
 
 //   //allocate and initialize list of reversed elements
-//   mesh.initByElementTypeUIntArray(mesh.reversed_elements_pbc,1,0,mesh.id,"reversed");
+//   mesh.initElementTypeMapArray<UInt>Array(mesh.reversed_elements_pbc,1,0,mesh.id,"reversed");
 //   // now loop over the elements to change the connectivity of some elements
 //   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
 //   Mesh::ConnectivityTypeList::const_iterator it;

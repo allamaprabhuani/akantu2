@@ -46,7 +46,7 @@ public:
   typedef i_type              it_type;
   typedef d_type              data_type;
   typedef ret_type<data_type> return_type;
-  typedef ByElementTypeArray<it_type> field_type;
+  typedef ElementTypeMapArray<it_type> field_type;
   typedef typename Array<it_type>::template const_iterator< ret_type<it_type> > internal_iterator;
 public:
   element_iterator(const field_type & field,
@@ -56,7 +56,7 @@ public:
                    const internal_iterator & it,
                    ElementType element_type,
                    const GhostType ghost_type = _not_ghost,
-                   const ByElementTypeArray<UInt> * filter = NULL,
+                   const ElementTypeMapArray<UInt> * filter = NULL,
                    UInt * fit = NULL) : field(field),
                                         n(n),
                                         padding_n(0),
@@ -125,7 +125,7 @@ protected:
   internal_iterator vit;
   internal_iterator vit_end;
   const GhostType ghost_type;
-  const ByElementTypeArray<UInt> * filter;
+  const ElementTypeMapArray<UInt> * filter;
   UInt * fit;
 };
 
@@ -139,7 +139,7 @@ public:
   typedef i_type              it_type;
   typedef d_type              data_type;
   typedef ret_type<data_type> return_type;
-  typedef ByElementTypeArray<it_type> field_type;
+  typedef ElementTypeMapArray<it_type> field_type;
   typedef typename Array<it_type>::template const_iterator< ret_type<it_type> > internal_iterator;
 public:
   element_iterator(const field_type & field,
@@ -149,7 +149,7 @@ public:
                    const internal_iterator & it,
                    ElementType element_type,
                    const GhostType ghost_type = _not_ghost,
-                   const ByElementTypeArray<UInt> * filter = NULL,
+                   const ElementTypeMapArray<UInt> * filter = NULL,
                    UInt * fit = NULL) : field(field),
                                         n(n),
                                         padding_n(0),
@@ -242,7 +242,7 @@ protected:
   internal_iterator vit_begin;
   internal_iterator vit;
   const GhostType ghost_type;
-  const ByElementTypeArray<UInt> * filter;
+  const ElementTypeMapArray<UInt> * filter;
   UInt * fit, * fit_end;
 };
 
@@ -267,7 +267,7 @@ public:
                            const internal_iterator & it,
                            ElementType element_type,
                            const GhostType ghost_type = _not_ghost,
-                           const ByElementTypeArray<UInt> * filter = NULL,
+                           const ElementTypeMapArray<UInt> * filter = NULL,
                            UInt * fit = NULL) :
     parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
@@ -296,7 +296,7 @@ public:
                                        const internal_iterator & it,
                                        ElementType element_type,
                                        const GhostType ghost_type = _not_ghost,
-                                       const ByElementTypeArray<UInt> * filter = NULL,
+                                       const ElementTypeMapArray<UInt> * filter = NULL,
                                        UInt * fit = NULL) :
   parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
@@ -345,7 +345,7 @@ public:
                               const internal_iterator & it,
                               ElementType element_type,
                               const GhostType ghost_type = _not_ghost,
-                              const ByElementTypeArray<UInt> * filter = NULL,
+                              const ElementTypeMapArray<UInt> * filter = NULL,
                               UInt * fit = NULL) :
     parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
@@ -378,7 +378,7 @@ public:
                                    const internal_iterator & it,
                                    ElementType element_type,
                                    const GhostType ghost_type = _not_ghost,
-                                   const ByElementTypeArray<UInt> * filter = NULL,
+                                   const ElementTypeMapArray<UInt> * filter = NULL,
                                    UInt * fit = NULL) :
     parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) {
     prank = StaticCommunicator::getStaticCommunicator().whoAmI();
@@ -397,11 +397,11 @@ protected:
 template<typename T, class iterator_type, template<class> class ret_type, bool filtered>
 class DumperIOHelper::GenericElementalField : public Field {
 public:
-  GenericElementalField(const ByElementTypeArray<T> & field,
+  GenericElementalField(const ElementTypeMapArray<T> & field,
                         UInt spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined,
-                        const ByElementTypeArray<UInt> * filter = NULL) :
+                        const ElementTypeMapArray<UInt> * filter = NULL) :
     field(field), spatial_dimension(spatial_dimension),
     ghost_type(ghost_type), element_kind(element_kind), n(0), itn(0), filter(filter) {
     AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
@@ -410,12 +410,12 @@ public:
     out_n = nb_component;
   }
 
-  GenericElementalField(const ByElementTypeArray<T> & field,
+  GenericElementalField(const ElementTypeMapArray<T> & field,
                         UInt n,
                         UInt spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined,
-                        const ByElementTypeArray<UInt> * filter = NULL) :
+                        const ElementTypeMapArray<UInt> * filter = NULL) :
     field(field), spatial_dimension(spatial_dimension),
     ghost_type(ghost_type), element_kind(element_kind), n(n), itn(0), filter(filter) {
     AKANTU_DEBUG_ASSERT(filtered == (filter != NULL) , "Filter problem!");
@@ -426,7 +426,7 @@ public:
 
   typedef iterator_type iterator;
   typedef typename iterator::internal_iterator internal_iterator;
-  typedef typename ByElementTypeArray<T>::type_iterator type_iterator;
+  typedef typename ElementTypeMapArray<T>::type_iterator type_iterator;
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
     type_iterator tit;
@@ -518,7 +518,7 @@ public:
 protected:
   virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 
-  virtual bool checkHomogeneity(const ByElementTypeArray<T> & field_to_check,
+  virtual bool checkHomogeneity(const ElementTypeMapArray<T> & field_to_check,
                                 UInt & nb_comp, UInt & nb_elem) {
     type_iterator tit;
     type_iterator end;
@@ -549,25 +549,25 @@ protected:
   }
 
 protected:
-  const ByElementTypeArray<T> & field;
+  const ElementTypeMapArray<T> & field;
   UInt nb_total_element;
   UInt spatial_dimension;
   GhostType ghost_type;
   ElementKind element_kind;
   bool homogeneous;
   UInt n, itn, out_n;
-  const ByElementTypeArray<UInt> * filter;
+  const ElementTypeMapArray<UInt> * filter;
 };
 
 /* -------------------------------------------------------------------------- */
 template<typename T, class iterator_type, template<class> class ret_type>
 class DumperIOHelper::GenericElementalField<T, iterator_type, ret_type, true> : public Field {
 public:
-  GenericElementalField(const ByElementTypeArray<T> & field,
+  GenericElementalField(const ElementTypeMapArray<T> & field,
                         UInt spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined,
-                        const ByElementTypeArray<UInt> * filter = NULL) :
+                        const ElementTypeMapArray<UInt> * filter = NULL) :
     field(field), spatial_dimension(spatial_dimension),
     ghost_type(ghost_type), element_kind(element_kind), n(0), itn(0), filter(filter) {
     AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
@@ -576,12 +576,12 @@ public:
     if(homogeneous && n == 0) this->n = nb_component;
   }
 
-  GenericElementalField(const ByElementTypeArray<T> & field,
+  GenericElementalField(const ElementTypeMapArray<T> & field,
                         UInt n,
                         UInt spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined,
-                        const ByElementTypeArray<UInt> * filter = NULL) :
+                        const ElementTypeMapArray<UInt> * filter = NULL) :
     field(field), spatial_dimension(spatial_dimension),
     ghost_type(ghost_type), element_kind(element_kind), n(n), itn(0), filter(filter) {
     AKANTU_DEBUG_ASSERT(filter != NULL , "Filter problem!");
@@ -591,7 +591,7 @@ public:
 
   typedef iterator_type iterator;
   typedef typename iterator::internal_iterator internal_iterator;
-  typedef typename ByElementTypeArray<UInt>::type_iterator type_iterator;
+  typedef typename ElementTypeMapArray<UInt>::type_iterator type_iterator;
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
     type_iterator tit;
@@ -663,7 +663,7 @@ public:
 protected:
   virtual UInt getNbDataPerElem(__attribute__((unused)) const ElementType & type) { return 1; }
 
-  virtual bool checkHomogeneity(const ByElementTypeArray<T> & field_to_check,
+  virtual bool checkHomogeneity(const ElementTypeMapArray<T> & field_to_check,
                                 UInt & nb_comp, UInt & nb_elem) {
     type_iterator tit;
     type_iterator end;
@@ -694,14 +694,14 @@ protected:
   }
 
 protected:
-  const ByElementTypeArray<T> & field;
+  const ElementTypeMapArray<T> & field;
   UInt nb_total_element;
   UInt spatial_dimension;
   GhostType ghost_type;
   ElementKind element_kind;
   bool homogeneous;
   UInt n, itn;
-  const ByElementTypeArray<UInt> * filter;
+  const ElementTypeMapArray<UInt> * filter;
 };
 
 
@@ -712,11 +712,11 @@ class DumperIOHelper::ElementalField : public GenericElementalField<T, elemental
 public:
   typedef elemental_field_iterator<T, ret_type, filtered> iterator;
 
-  ElementalField(const ByElementTypeArray<T> & field,
+  ElementalField(const ElementTypeMapArray<T> & field,
                  UInt spatial_dimension = _all_dimensions,
                  GhostType ghost_type = _not_ghost,
                  ElementKind element_kind = _ek_not_defined,
-                 const ByElementTypeArray<UInt> * filter = NULL) :
+                 const ElementTypeMapArray<UInt> * filter = NULL) :
     GenericElementalField<T, iterator, ret_type, filtered>(field, 0, spatial_dimension,
                                                            ghost_type, element_kind, filter) { }
 };
@@ -726,12 +726,12 @@ class DumperIOHelper::ElementalField<T, Matrix, filtered> : public GenericElemen
 public:
   typedef elemental_field_iterator<T, Matrix, filtered> iterator;
 
-  ElementalField(const ByElementTypeArray<T> & field,
+  ElementalField(const ElementTypeMapArray<T> & field,
                  UInt n,
                  UInt spatial_dimension = _all_dimensions,
                  GhostType ghost_type = _not_ghost,
                  ElementKind element_kind = _ek_not_defined,
-                 const ByElementTypeArray<UInt> * filter = NULL) :
+                 const ElementTypeMapArray<UInt> * filter = NULL) :
     GenericElementalField<T, iterator, Matrix, filtered>(field, n, spatial_dimension,
                                                          ghost_type, element_kind, filter) { }
 };
@@ -744,8 +744,8 @@ public:
   typedef filtered_connectivity_field_iterator iterator;
   typedef GenericElementalField<UInt, filtered_connectivity_field_iterator, Vector, true> parent;
 
-  FilteredConnectivityField(const ByElementTypeArray<UInt> & field,
-                            const ByElementTypeArray<UInt> & elemental_filter,
+  FilteredConnectivityField(const ElementTypeMapArray<UInt> & field,
+                            const ElementTypeMapArray<UInt> & elemental_filter,
                             const Array<UInt> & nodal_filter,
                             UInt spatial_dimension = _all_dimensions,
                             GhostType ghost_type = _not_ghost,
@@ -784,7 +784,7 @@ public:
                    UInt spatial_dimension = _all_dimensions,
                    GhostType ghost_type = _not_ghost,
                    ElementKind element_kind = _ek_not_defined,
-                 const ByElementTypeArray<UInt> * filter = NULL) :
+                 const ElementTypeMapArray<UInt> * filter = NULL) :
     parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind, filter) {
     this->homogeneous = true;
   }
@@ -813,7 +813,7 @@ public:
                         UInt spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined,
-                 const ByElementTypeArray<UInt> * filter = NULL) :
+                 const ElementTypeMapArray<UInt> * filter = NULL) :
     parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, element_kind, filter) {
     this->homogeneous = true;
   }

@@ -29,7 +29,7 @@
  *
  */
 
-__END_AKANTU__
+
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #  include "cohesive_element.hh"
 #endif
@@ -37,7 +37,10 @@ __END_AKANTU__
 #  include "igfem_element.hh"
 #endif
 
-#include "static_communicator.hh"
+#ifndef __AKANTU_MESH_INLINE_IMPL_CC__
+#define __AKANTU_MESH_INLINE_IMPL_CC__
+
+
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -297,13 +300,13 @@ inline Array<T> & Mesh::getData(const std::string & data_name,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline const ByElementTypeArray<T> & Mesh::getData(const std::string & data_name) const {
+inline const ElementTypeMapArray<T> & Mesh::getData(const std::string & data_name) const {
   return mesh_data.getElementalData<T>(data_name);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline ByElementTypeArray<T> & Mesh::getData(const std::string & data_name) {
+inline ElementTypeMapArray<T> & Mesh::getData(const std::string & data_name) {
   return mesh_data.getElementalData<T>(data_name);
 }
 
@@ -548,3 +551,8 @@ inline UInt Mesh::getNodeGlobalId(UInt local_id) const {
 inline UInt Mesh::getNbGlobalNodes() const {
   return nodes_global_ids ? nb_global_nodes : nodes->getSize();
 }
+
+__END_AKANTU__
+
+
+#endif /* __AKANTU_MESH_INLINE_IMPL_CC__ */

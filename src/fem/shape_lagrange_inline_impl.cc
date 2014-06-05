@@ -30,7 +30,7 @@
 
 __END_AKANTU__
 
-#include "fem.hh"
+#include "fe_engine.hh"
 
 __BEGIN_AKANTU__
 
@@ -38,14 +38,14 @@ __BEGIN_AKANTU__
 template <ElementKind kind>
 inline const Array<Real> & ShapeLagrange<kind>::getShapes(const ElementType & el_type,
 							   const GhostType & ghost_type) const {
-  return shapes(FEM::getInterpolationType(el_type), ghost_type);
+  return shapes(FEEngine::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 inline const Array<Real> & ShapeLagrange<kind>::getShapesDerivatives(const ElementType & el_type,
 								      const GhostType & ghost_type) const {
-  return shapes_derivatives(FEM::getInterpolationType(el_type), ghost_type);
+  return shapes_derivatives(FEEngine::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -218,7 +218,7 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnControlPoints(const Array<
 								   ghost_type);
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(mesh, nodes, x_el,
+  FEEngine::extractNodalToElementField(mesh, nodes, x_el,
 				  type, ghost_type);
 
   Real * shapesd_val = shapes_derivatives_tmp.storage();
@@ -257,7 +257,7 @@ void ShapeLagrange<kind>::interpolateOnControlPoints(const Array<Real> &in_u,
   UInt nb_nodes_per_element = ElementClass<type>::getNbNodesPerInterpolationElement();
 
   Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
-  FEM::extractNodalToElementField(mesh, in_u, u_el, type, ghost_type, filter_elements);
+  FEEngine::extractNodalToElementField(mesh, in_u, u_el, type, ghost_type, filter_elements);
 
   this->interpolateElementalFieldOnControlPoints<type>(u_el, out_uq, ghost_type,
 						       shapes(itp_type, ghost_type),
@@ -284,7 +284,7 @@ void ShapeLagrange<kind>::gradientOnControlPoints(const Array<Real> &in_u,
   UInt nb_nodes_per_element  = ElementClass<type>::getNbNodesPerInterpolationElement();
 
   Array<Real> u_el(0, nb_degree_of_freedom * nb_nodes_per_element);
-  FEM::extractNodalToElementField(mesh, in_u, u_el, type, ghost_type, filter_elements);
+  FEEngine::extractNodalToElementField(mesh, in_u, u_el, type, ghost_type, filter_elements);
 
   this->gradientElementalFieldOnControlPoints<type>(u_el, out_nablauq, ghost_type,
 						    shapes_derivatives(itp_type, ghost_type),

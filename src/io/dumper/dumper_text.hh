@@ -55,7 +55,7 @@ public:
 			    const ElementKind & element_kind = _ek_not_defined);
 
   virtual void registerFilteredMesh(const Mesh & mesh,
-				    const ByElementTypeArray<UInt> & elements_filter,
+				    const ElementTypeMapArray<UInt> & elements_filter,
 				    const Array<UInt> & nodes_filter,
 				    UInt spatial_dimension = _all_dimensions,
 				    const GhostType & ghost_type = _not_ghost,

@@ -43,7 +43,7 @@ __BEGIN_AKANTU__
 MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
   Material(model, id),
   facet_filter("facet_filter", id, this->getMemoryID()),
-  fem_cohesive(&(model.getFEMClass<MyFEMCohesiveType>("CohesiveFEM"))),
+  fem_cohesive(&(model.getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine"))),
   reversible_energy("reversible_energy", *this),
   total_energy("total_energy", *this),
   opening("opening", *this),
@@ -62,13 +62,13 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 
   this->registerParam("sigma_c", sigma_c, _pat_parsable | _pat_readable, "Critical stress");
 
-  this->model->getMesh().initByElementTypeArray(this->element_filter,
+  this->model->getMesh().initElementTypeMapArray(this->element_filter,
 						1,
 						spatial_dimension,
 						false,
 						_ek_cohesive);
 
-  this->model->getMeshFacets().initByElementTypeArray(facet_filter, 1, spatial_dimension - 1);
+  this->model->getMeshFacets().initElementTypeMapArray(facet_filter, 1, spatial_dimension - 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -214,7 +214,7 @@ void MaterialCohesive::assembleResidual(GhostType ghost_type) {
     }
 
     /// assemble
-    model->getFEMBoundary().assembleArray(*int_t_N, residual,
+    model->getFEEngineBoundary().assembleArray(*int_t_N, residual,
 					  model->getDOFSynchronizer().getLocalDOFEquationNumbers(),
 					  residual.getNbComponent(),
 					  *it, ghost_type, elem_filter, 1);
@@ -368,7 +368,7 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
 
     delete at_nt_d_n_a;
 
-    model->getFEM().assembleMatrix(*K_e, K, spatial_dimension,
+    model->getFEEngine().assembleMatrix(*K_e, K, spatial_dimension,
 				   *it, ghost_type, elem_filter);
     delete K_e;
   }

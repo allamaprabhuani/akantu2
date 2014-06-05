@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   model.initMaterials();
   model.assembleMassLumped();
 
-  nb_quadrature_points = model.getFEM().getNbQuadraturePoints(type);
+  nb_quadrature_points = model.getFEEngine().getNbQuadraturePoints(type);
   stress = new akantu::Array<akantu::Real>(nb_element * nb_quadrature_points,
 					    spatial_dimension* spatial_dimension);
   strain = new akantu::Array<akantu::Real>(nb_element * nb_quadrature_points,
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   akantu::Real eps = 1e-16;
   const akantu::Array<akantu::Real> & pos = mesh.getNodes();
   akantu::Array<akantu::Real> & disp = model.getDisplacement();
-  akantu::Array<bool> & boun = model.getBoundary();
+  akantu::Array<bool> & boun = model.getBlockedDOFs();
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(pos(i, 0) >= 9.) disp(i, 0) = (pos(i, 0) - 9) / 100.;
@@ -151,10 +151,10 @@ int main(int argc, char *argv[])
       }
     }
 
-    akantu::Real * coord    = model.getFEM().getMesh().getNodes().storage();
+    akantu::Real * coord    = model.getFEEngine().getMesh().getNodes().storage();
     akantu::Real * disp_val = model.getDisplacement().storage();
-    akantu::UInt * conn     = model.getFEM().getMesh().getConnectivity(type).storage();
-    akantu::UInt nb_nodes_per_element = model.getFEM().getMesh().getNbNodesPerElement(type);
+    akantu::UInt * conn     = model.getFEEngine().getMesh().getConnectivity(type).storage();
+    akantu::UInt nb_nodes_per_element = model.getFEEngine().getMesh().getNbNodesPerElement(type);
     akantu::Real * coords = new akantu::Real[spatial_dimension];
     akantu::Real min_x = std::numeric_limits<akantu::Real>::max();
     akantu::Real max_x = std::numeric_limits<akantu::Real>::min();

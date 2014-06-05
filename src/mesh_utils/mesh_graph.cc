@@ -99,7 +99,7 @@ MeshGraph::MeshGraph(Mesh& mesh, Mesh& facets) : g_(), components_("components",
 //  // get mesh
 //  UInt d = mesh.getSpatialDimension();
 //  
-//  mesh.initByElementTypeArray(components_,1,d,false,_ek_regular,true);
+//  mesh.initElementTypeMapArray(components_,1,d,false,_ek_regular,true);
 //
 //  // create graph
 //  g_ = graph_type();
@@ -173,7 +173,7 @@ MeshGraph::MeshGraph(Mesh& mesh, Mesh& facets) : g_(), components_("components",
 //  // get mesh
 //  UInt d = mesh.getSpatialDimension();
 //  
-//  mesh.initByElementTypeArray(components_,1,d,false,_ek_regular,true);
+//  mesh.initElementTypeMapArray(components_,1,d,false,_ek_regular,true);
 //  
 //  UInt total_els = 0;
 //  for (Mesh::type_iterator it = mesh.firstType(d,_not_ghost,_ek_not_defined); it != mesh.lastType(d,_not_ghost,_ek_not_defined); ++it) {

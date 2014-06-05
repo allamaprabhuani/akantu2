@@ -99,8 +99,8 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(GhostTyp
   else
     this->weightedAvergageOnNeighbours(this->Ehat, nl_var, 1);
 
-  Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
-  Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+  Mesh::type_iterator it = this->model->getFEEngine().getMesh().firstType(spatial_dimension, ghost_type);
+  Mesh::type_iterator last_type = this->model->getFEEngine().getMesh().lastType(spatial_dimension, ghost_type);
   for(; it != last_type; ++it) {
     this->computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
   }

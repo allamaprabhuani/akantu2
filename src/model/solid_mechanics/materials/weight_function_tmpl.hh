@@ -48,20 +48,20 @@ StressBasedWeightFunction<spatial_dimension>::StressBasedWeightFunction(Material
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void StressBasedWeightFunction<spatial_dimension>::init() {
-  const Mesh & mesh = this->material.getModel().getFEM().getMesh();
+  const Mesh & mesh = this->material.getModel().getFEEngine().getMesh();
   for (UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = GhostType(g);
     Mesh::type_iterator it = mesh.firstType(spatial_dimension, gt);
     Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, gt);
     for(; it != last_type; ++it) {
       UInt nb_quadrature_points =
-	this->material.getModel().getFEM().getNbQuadraturePoints(*it, gt);
+	this->material.getModel().getFEEngine().getNbQuadraturePoints(*it, gt);
       const Array<UInt> & element_filter = this->material.getElementFilter(*it, gt);
       UInt nb_element = element_filter.getSize();
 
       Array<Real> ones(nb_element*nb_quadrature_points, 1, 1.);
       Array<Real> & lc = characteristic_size(*it, gt);
-      this->material.getModel().getFEM().integrateOnQuadraturePoints(ones,
+      this->material.getModel().getFEEngine().integrateOnQuadraturePoints(ones,
 								     lc,
 								     1,
 								     *it,
@@ -81,7 +81,7 @@ template<UInt spatial_dimension>
 void StressBasedWeightFunction<spatial_dimension>::updatePrincipalStress(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh = this->material.getModel().getFEM().getMesh();
+  const Mesh & mesh = this->material.getModel().getFEEngine().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);

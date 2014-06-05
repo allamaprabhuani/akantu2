@@ -69,7 +69,7 @@ void paraviewInit(iohelper::Dumper & dumper,
 		  const SolidMechanicsModel & model,
 		  const ElementType & type,
 		  const std::string & filename) {
-  const Mesh & mesh = model.getFEM().getMesh();
+  const Mesh & mesh = model.getFEEngine().getMesh();
   UInt spatial_dimension = mesh.getSpatialDimension(type);
   UInt nb_nodes   = mesh.getNbNodes();
   UInt nb_element = mesh.getNbElement(type);
@@ -144,7 +144,7 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //   dof_synchronizer.initScatterGatherCommunicationScheme();
 
 //   if(whoami == 0){
-//     const Mesh & mesh = model.getFEM().getMesh();
+//     const Mesh & mesh = model.getFEEngine().getMesh();
 //     UInt nb_nodes   = mesh.getNbGlobalNodes();
 
 //     checkpoint_displacements.resize(nb_nodes);
@@ -230,7 +230,7 @@ void paraviewDump(iohelper::Dumper & dumper) {
 //   Array<Real> & force         = model.getForce();
 
 //   if(whoami == 0){
-//     const Mesh & mesh = model.getFEM().getMesh();
+//     const Mesh & mesh = model.getFEEngine().getMesh();
 //     UInt nb_nodes   = mesh.getNbGlobalNodes();
 //     UInt spatial_dimension = mesh.getSpatialDimension(type);
 

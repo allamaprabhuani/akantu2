@@ -1,11 +1,11 @@
 /**
- * @file   fem_template_cohesive.cc
+ * @file   fe_engine_template_cohesive.cc
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date   Wed Oct 31 16:24:42 2012
  *
- * @brief  Specialization for cohesive element
+ * @brief  Specialization of the FEEngineTemplate for cohesive element
  *
  * @section LICENSE
  *
@@ -28,7 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "fem_template.hh"
+#include "fe_engine_template.hh"
 #include "shape_cohesive.hh"
 
 __BEGIN_AKANTU__
@@ -37,10 +37,10 @@ __BEGIN_AKANTU__
 /* compatibility functions */
 /* -------------------------------------------------------------------------- */
 template <>
-Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const Array<Real> & f,
-									  const ElementType & type,
-									  const GhostType & ghost_type,
-									  const Array<UInt> & filter_elements) const{
+Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const Array<Real> & f,
+									       const ElementType & type,
+									       const GhostType & ghost_type,
+									       const Array<UInt> & filter_elements) const{
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
@@ -59,9 +59,9 @@ Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const 
 
   Real integral = 0.;
 
-#define INTEGRATE(type)							\
-  integral = integrator. integrate<type>(f,				\
-					 ghost_type,			\
+#define INTEGRATE(type)						\
+  integral = integrator. integrate<type>(f,			\
+					 ghost_type,		\
 					 filter_elements);
 
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
@@ -73,7 +73,7 @@ Real FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::integrate(const 
 
 /* -------------------------------------------------------------------------- */
 template <>
-void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
+void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
 ::integrate(const Array<Real> & f,
 	    Array<Real> &intf,
 	    UInt nb_degree_of_freedom,
@@ -101,11 +101,11 @@ void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
 		      << ") has not the good size.");
 #endif
 
-#define INTEGRATE(type)					    \
-  integrator. integrate<type>(f,			    \
-			      intf,			    \
-			      nb_degree_of_freedom,	    \
-			      ghost_type,		    \
+#define INTEGRATE(type)					\
+  integrator. integrate<type>(f,			\
+			      intf,			\
+			      nb_degree_of_freedom,	\
+			      ghost_type,		\
 			      filter_elements);
 
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
@@ -114,7 +114,7 @@ void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>
 
 /* -------------------------------------------------------------------------- */
 template <>
-void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
+void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
 gradientOnQuadraturePoints(__attribute__((unused)) const Array<Real> &u,
 			   __attribute__((unused)) Array<Real> &nablauq,
 			   __attribute__((unused)) const UInt nb_degree_of_freedom,
@@ -128,7 +128,7 @@ gradientOnQuadraturePoints(__attribute__((unused)) const Array<Real> &u,
 /* -------------------------------------------------------------------------- */
 template<>
 template<>
-void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
+void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>::
 computeNormalsOnControlPoints<_cohesive_1d_2>(__attribute__((unused)) const Array<Real> & field,
 					      Array<Real> & normal,
 					      const GhostType & ghost_type) const {
@@ -166,8 +166,6 @@ computeNormalsOnControlPoints<_cohesive_1d_2>(__attribute__((unused)) const Arra
 
   AKANTU_DEBUG_OUT();
 }
-
-
 
 
 __END_AKANTU__

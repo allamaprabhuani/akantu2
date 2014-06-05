@@ -47,7 +47,7 @@ typedef std::map<std::pair<Element, Element>, Real> pair_list;
 
 #include "test_grid_tools.hh"
 
-static void updatePairList(const ByElementTypeReal & barycenter,
+static void updatePairList(const ElementTypeMapArray<Real> & barycenter,
                              const SpatialGrid<Element> & grid,
                              Real radius,
                              pair_list & neighbors,
@@ -60,8 +60,8 @@ static void updatePairList(const ByElementTypeReal & barycenter,
   e.ghost_type = ghost_type;
 
   // generate the pair of neighbor depending of the cell_list
-  ByElementTypeReal::type_iterator it        = barycenter.firstType(_all_dimensions, ghost_type);
-  ByElementTypeReal::type_iterator last_type = barycenter.lastType(0, ghost_type);
+  ElementTypeMapArray<Real>::type_iterator it        = barycenter.firstType(_all_dimensions, ghost_type);
+  ElementTypeMapArray<Real>::type_iterator last_type = barycenter.lastType(0, ghost_type);
   for(; it != last_type; ++it) {
     // loop over quad points
 
@@ -173,8 +173,8 @@ int main(int argc, char *argv[]) {
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, ghost_type);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, ghost_type);
 
-  ByElementTypeReal barycenters("", "");
-  mesh.initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension);
+  ElementTypeMapArray<Real> barycenters("", "");
+  mesh.initElementTypeMapArray(barycenters, spatial_dimension, spatial_dimension);
 
   Element e;
   e.ghost_type = ghost_type;

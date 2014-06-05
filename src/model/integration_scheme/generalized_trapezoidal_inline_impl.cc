@@ -32,7 +32,7 @@
 inline void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
 							  Array<Real> & u,
 							  Array<Real> & u_dot,
-							  Array<bool> & boundary) {
+							  Array<bool> & blocked_dofs) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -40,15 +40,15 @@ inline void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
 
   Real * u_val         = u.storage();
   Real * u_dot_val     = u_dot.storage();
-  bool * boundary_val  = boundary.storage();
+  bool * blocked_dofs_val  = blocked_dofs.storage();
 
   for (UInt d = 0; d < nb_degree_of_freedom; d++) {
-    if(!(*boundary_val)) {
+    if(!(*blocked_dofs_val)) {
       *u_val += delta_t * *u_dot_val;
     }
     u_val++;
     u_dot_val++;
-    boundary_val++;
+    blocked_dofs_val++;
   }
 
   AKANTU_DEBUG_OUT();
@@ -58,14 +58,14 @@ inline void GeneralizedTrapezoidal::integrationSchemePred(Real delta_t,
 inline void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
 						       Array<Real> & u,
 						       Array<Real> & u_dot,
-						       Array<bool> & boundary,
+						       Array<bool> & blocked_dofs,
 						       Array<Real> & delta) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<GeneralizedTrapezoidal::_temperature_corrector>(delta_t,
 									u,
 									u_dot,
-									boundary,
+									blocked_dofs,
 									delta);
 
   AKANTU_DEBUG_OUT();
@@ -75,14 +75,14 @@ inline void GeneralizedTrapezoidal::integrationSchemeCorrTemp(Real delta_t,
 inline void GeneralizedTrapezoidal::integrationSchemeCorrTempRate(Real delta_t,
 							   Array<Real> & u,
 							   Array<Real> & u_dot,
-							   Array<bool> & boundary,
+							   Array<bool> & blocked_dofs,
 							   Array<Real> & delta) {
   AKANTU_DEBUG_IN();
 
   integrationSchemeCorr<GeneralizedTrapezoidal::_temperature_rate_corrector>(delta_t,
 									     u,
 									     u_dot,
-									     boundary,
+									     blocked_dofs,
 									     delta);
 
   AKANTU_DEBUG_OUT();
@@ -115,7 +115,7 @@ template<GeneralizedTrapezoidal::IntegrationSchemeCorrectorType type>
 inline void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
 						   Array<Real> & u,
 						   Array<Real> & u_dot,
-						   Array<bool> & boundary,
+						   Array<bool> & blocked_dofs,
 						   Array<Real> & delta) {
   AKANTU_DEBUG_IN();
 
@@ -128,17 +128,17 @@ inline void GeneralizedTrapezoidal::integrationSchemeCorr(Real delta_t,
   Real * u_val         = u.storage();
   Real * u_dot_val     = u_dot.storage();
   Real * delta_val     = delta.storage();
-  bool * boundary_val  = boundary.storage();
+  bool * blocked_dofs_val  = blocked_dofs.storage();
 
   for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
-    if(!(*boundary_val)) {
+    if(!(*blocked_dofs_val)) {
       *u_val         += e * *delta_val;
       *u_dot_val     += d * *delta_val;
     }
     u_val++;
     u_dot_val++;
     delta_val++;
-    boundary_val++;
+    blocked_dofs_val++;
   }
 
   AKANTU_DEBUG_OUT();

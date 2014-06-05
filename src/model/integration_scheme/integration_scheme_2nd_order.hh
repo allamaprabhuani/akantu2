@@ -63,20 +63,20 @@ public:
 				     Array<Real> & u,
 				     Array<Real> & u_dot,
 				     Array<Real> & u_dot_dot,
-				     Array<bool> & boundary) const = 0;
+				     Array<bool> & blocked_dofs) const = 0;
 
   virtual void integrationSchemeCorrDispl(Real delta_t,
 					  Array<Real> & u,
 					  Array<Real> & u_dot,
 					  Array<Real> & u_dot_dot,
-					  Array<bool> & boundary,
+					  Array<bool> & blocked_dofs,
 					  Array<Real> & delta) const = 0;
 
   virtual void integrationSchemeCorrAccel(Real delta_t,
 					  Array<Real> & u,
 					  Array<Real> & u_dot,
 					  Array<Real> & u_dot_dot,
-					  Array<bool> & boundary,
+					  Array<bool> & blocked_dofs,
 					  Array<Real> & delta) const = 0;
 
   /* ------------------------------------------------------------------------ */

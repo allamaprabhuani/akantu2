@@ -129,11 +129,11 @@ int main(int argc, char *argv[])
   //initialize the vectors
   model->initArrays();
 
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
-  nb_element = model->getFEM().getMesh().getNbElement(type);
+  nb_nodes = model->getFEEngine().getMesh().getNbNodes();
+  nb_element = model->getFEEngine().getMesh().getNbElement(type);
 
  
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_nodes = model->getFEEngine().getMesh().getNbNodes();
   model->getHeatFlux().clear();
   model->getLumped().clear();
   model->getTemperatureGradient(type).clear();
@@ -155,8 +155,8 @@ int main(int argc, char *argv[])
   model->setTimeStep(time_step);
 
   /// boundary conditions
-  const akantu::Array<akantu::Real> & nodes = model->getFEM().getMesh().getNodes();
-  akantu::Array<bool> & boundary = model->getBoundary();
+  const akantu::Array<akantu::Real> & nodes = model->getFEEngine().getMesh().getNodes();
+  akantu::Array<bool> & boundary = model->getBlockedDOFs();
   akantu::Array<akantu::Real> & temperature = model->getTemperature();
   akantu::Array<akantu::Real> & heat_flux = model->getHeatFlux();
   akantu::Real eps = 1e-15;
@@ -220,9 +220,9 @@ int main(int argc, char *argv[])
 
 void paraviewInit(iohelper::Dumper & dumper) {
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().storage(),
+  dumper.SetPoints(model->getFEEngine().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "coordinates2");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(type).storage(),
+  dumper.SetConnectivity((int *)model->getFEEngine().getMesh().getConnectivity(type).storage(),
 			 paraview_type, nb_element, iohelper::C_MODE);
    dumper.AddNodeDataField(model->getTemperature().storage(),
     1, "temperature");

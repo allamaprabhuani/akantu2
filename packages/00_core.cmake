@@ -65,9 +65,6 @@ set(AKANTU_CORE_FILES
   common/aka_voigthelper.hh
   common/aka_voigthelper.cc
 
-  fem/by_element_type.hh
-  fem/by_element_type_tmpl.hh
-
   fem/element_class.cc
   fem/element_class.hh
   fem/element_class_tmpl.hh
@@ -83,35 +80,19 @@ set(AKANTU_CORE_FILES
   fem/element_classes/element_class_triangle_3_inline_impl.cc
   fem/element_classes/element_class_triangle_6_inline_impl.cc
 
-  fem/element_group.cc
-  fem/element_group.hh
-  fem/element_group_inline_impl.cc
-  fem/fem.cc
-  fem/fem.hh
-  fem/fem_inline_impl.cc
-  fem/fem_template.hh
-  fem/fem_template_tmpl.hh
+  fem/fe_engine.cc
+  fem/fe_engine.hh
+  fem/fe_engine_inline_impl.cc
+  fem/fe_engine_template.hh
+  fem/fe_engine_template_tmpl.hh
   fem/geometrical_data_tmpl.hh
   fem/geometrical_element.cc
-  fem/group_manager.cc
-  fem/group_manager.hh
-  fem/group_manager_inline_impl.cc
   fem/integration_element.cc
   fem/integrator.hh
   fem/integrator_gauss.hh
   fem/integrator_gauss_inline_impl.cc
   fem/interpolation_element.cc
   fem/interpolation_element_tmpl.hh
-  fem/mesh.cc
-  fem/mesh.hh
-  fem/mesh_filter.hh
-  fem/mesh_data.cc
-  fem/mesh_data.hh
-  fem/mesh_data_tmpl.hh
-  fem/mesh_inline_impl.cc
-  fem/node_group.cc
-  fem/node_group.hh
-  fem/node_group_inline_impl.cc
   fem/shape_functions.hh
   fem/shape_functions_inline_impl.cc
   fem/shape_lagrange.cc
@@ -146,6 +127,25 @@ set(AKANTU_CORE_FILES
   io/parser/cppargparse/cppargparse.hh
   io/parser/cppargparse/cppargparse.cc
   io/parser/cppargparse/cppargparse_tmpl.hh
+
+  mesh/element_group.cc
+  mesh/element_group.hh
+  mesh/element_group_inline_impl.cc
+  mesh/element_type_map.hh
+  mesh/element_type_map_tmpl.hh
+  mesh/group_manager.cc
+  mesh/group_manager.hh
+  mesh/group_manager_inline_impl.cc
+  mesh/mesh.cc
+  mesh/mesh.hh
+  mesh/mesh_filter.hh
+  mesh/mesh_data.cc
+  mesh/mesh_data.hh
+  mesh/mesh_data_tmpl.hh
+  mesh/mesh_inline_impl.cc
+  mesh/node_group.cc
+  mesh/node_group.hh
+  mesh/node_group_inline_impl.cc
 
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_partition.hh

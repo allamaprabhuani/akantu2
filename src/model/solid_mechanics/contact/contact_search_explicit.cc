@@ -39,7 +39,7 @@ ContactSearchExplicit::ContactSearchExplicit(Contact & contact,
 					     const ContactNeighborStructureType & neighbors_structure_type,
 					     const ContactSearchType & type,
 					     const ContactSearchID & id) :
-  ContactSearch(contact, neighbors_structure_type, type, id), spatial_dimension(contact.getModel().getSpatialDimension()), mesh(contact.getModel().getFEM().getMesh()) {
+  ContactSearch(contact, neighbors_structure_type, type, id), spatial_dimension(contact.getModel().getSpatialDimension()), mesh(contact.getModel().getFEEngine().getMesh()) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -71,7 +71,7 @@ void ContactSearchExplicit::findPenetration(const Surface & master_surface, Pene
   /// get list of impactor and master nodes from neighbor list
   UInt * impactor_nodes_val = neighbor_list.impactor_nodes.storage();
 
-  //const Mesh & mesh = contact.getModel().getFEM().getMesh();
+  //const Mesh & mesh = contact.getModel().getFEEngine().getMesh();
   const Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
   Mesh::ConnectivityTypeList::const_iterator it;
 

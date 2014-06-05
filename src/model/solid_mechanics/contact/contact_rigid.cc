@@ -81,7 +81,7 @@ ContactRigid::ContactRigid(const SolidMechanicsModel & model,
 			   const ContactType & type,
 			   const ContactID & id,
 			   const MemoryID & memory_id) :
-  Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEM().getMesh()), prakash(false), dedontney(false), ref_velocity(0.), characterstic_length(0.), t_star(0.) {
+  Contact(model, type, id, memory_id), spatial_dimension(model.getSpatialDimension()), mesh(model.getFEEngine().getMesh()), prakash(false), dedontney(false), ref_velocity(0.), characterstic_length(0.), t_star(0.) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();

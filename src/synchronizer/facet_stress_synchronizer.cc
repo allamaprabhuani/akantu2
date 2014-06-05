@@ -65,7 +65,7 @@ createFacetStressSynchronizer(FacetSynchronizer & facet_synchronizer,
 
 /* -------------------------------------------------------------------------- */
 void FacetStressSynchronizer::updateFacetStressSynchronizer(const CohesiveElementInserter & inserter,
-							    const ByElementTypeUInt & rank_to_element,
+							    const ElementTypeMapArray<UInt> & rank_to_element,
 							    DataAccessor & data_accessor) {
   AKANTU_DEBUG_IN();
 
@@ -86,7 +86,7 @@ void FacetStressSynchronizer::updateFacetStressSynchronizer(const CohesiveElemen
 /* -------------------------------------------------------------------------- */
 void FacetStressSynchronizer::updateElementList(Array<Element> * elements,
 						const CohesiveElementInserter & inserter,
-						const ByElementTypeUInt & rank_to_element) {
+						const ElementTypeMapArray<UInt> & rank_to_element) {
   AKANTU_DEBUG_IN();
 
   for (UInt p = 0; p < nb_proc; ++p) {

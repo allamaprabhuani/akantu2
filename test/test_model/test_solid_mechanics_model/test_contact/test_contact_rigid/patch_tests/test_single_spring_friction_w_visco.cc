@@ -158,8 +158,8 @@ Int main(int argc, char *argv[])
   /// declaration of model
   model = new SolidMechanicsModel(*mesh);
 
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
-  nb_elements = model->getFEM().getMesh().getNbElement(element_type);
+  nb_nodes = model->getFEEngine().getMesh().getNbNodes();
+  nb_elements = model->getFEEngine().getMesh().getNbElement(element_type);
   std::cout << "Nb nodes : " << nb_nodes << " - nb elements : " << nb_elements << std::endl;
 
   /// model initialization
@@ -189,7 +189,7 @@ Int main(int argc, char *argv[])
   displacement     = model->getDisplacement().storage();
   velocity         = model->getVelocity().storage();
   acceleration     = model->getAcceleration().storage();
-  boundary         = model->getBoundary().storage();
+  boundary         = model->getBlockedDOFs().storage();
   residual         = model->getResidual().storage();
   model->updateCurrentPosition();
   current_position = model->getCurrentPosition().storage();
@@ -358,9 +358,9 @@ void paraviewInit(iohelper::Dumper & dumper) {
   name << "paraview/" << folder_name << "/";
 
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().storage(),
+  dumper.SetPoints(model->getFEEngine().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(element_type).storage(),
+  dumper.SetConnectivity((int *)model->getFEEngine().getMesh().getConnectivity(element_type).storage(),
 			 paraview_type, nb_elements, iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().storage(),
 			  spatial_dimension, "displacements");

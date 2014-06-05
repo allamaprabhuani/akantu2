@@ -54,7 +54,7 @@ public:
   }
 
 private:
-  const ByElementTypeArray<std::string> & names;
+  const ElementTypeMapArray<std::string> & names;
 protected:
   const SolidMechanicsModel & model;
 };
@@ -77,7 +77,7 @@ public:
     }
   }
 protected:
-  const ByElementTypeArray<UInt> indexes;
+  const ElementTypeMapArray<UInt> indexes;
   const SolidMechanicsModel & model;
   UInt first_index;
 };

@@ -58,13 +58,13 @@ inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(const Array<Real> & 
 /* -------------------------------------------------------------------------- */
 inline const Array<Real> & ShapeLagrange<_ek_cohesive>::getShapes(const ElementType & el_type,
 								   const GhostType & ghost_type) const {
-  return shapes(FEM::getInterpolationType(el_type), ghost_type);
+  return shapes(FEEngine::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 inline const Array<Real> & ShapeLagrange<_ek_cohesive>::getShapesDerivatives(const ElementType & el_type,
 									      const GhostType & ghost_type) const {
-  return shapes_derivatives(FEM::getInterpolationType(el_type), ghost_type);
+  return shapes_derivatives(FEEngine::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */

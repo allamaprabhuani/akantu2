@@ -48,7 +48,7 @@ MeshPartitionMeshData::MeshPartitionMeshData(const Mesh & mesh, UInt spatial_dim
 
 /* -------------------------------------------------------------------------- */
 MeshPartitionMeshData::MeshPartitionMeshData(const Mesh & mesh,
-                                             const ByElementTypeArray<UInt> & mapping,
+                                             const ElementTypeMapArray<UInt> & mapping,
                                              UInt spatial_dimension,
                                              const ID & id,
                                              const MemoryID & memory_id) :
@@ -109,7 +109,7 @@ void MeshPartitionMeshData::reorder() {
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshPartitionMeshData::setPartitionMapping(const ByElementTypeArray<UInt> & mapping) {
+void MeshPartitionMeshData::setPartitionMapping(const ElementTypeMapArray<UInt> & mapping) {
     partition_mapping = &mapping;
 }
 

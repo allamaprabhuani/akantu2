@@ -62,14 +62,14 @@ public:
 				MemoryID memory_id = 0);
 
   void updateFacetStressSynchronizer(const CohesiveElementInserter & inserter,
-				     const ByElementTypeUInt & rank_to_element,
+				     const ElementTypeMapArray<UInt> & rank_to_element,
 				     DataAccessor & data_accessor);
 
 protected:
 
   void updateElementList(Array<Element> * elements,
 			 const CohesiveElementInserter & inserter,
-			 const ByElementTypeUInt & rank_to_element);
+			 const ElementTypeMapArray<UInt> & rank_to_element);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

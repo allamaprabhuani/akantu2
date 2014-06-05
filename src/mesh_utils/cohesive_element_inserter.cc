@@ -81,7 +81,7 @@ void CohesiveElementInserter::init() {
   MeshUtils::resetFacetToDouble(*mesh_facets);
 
   /// initialize facet insertion array
-  mesh_facets->initByElementTypeArray(insertion_facets, 1,
+  mesh_facets->initElementTypeMapArray(insertion_facets, 1,
 				      spatial_dimension - 1,
 				      false,
 				      _ek_regular,
@@ -94,7 +94,7 @@ void CohesiveElementInserter::init() {
   }
 
   if (is_extrinsic) {
-    mesh_facets->initByElementTypeArray(check_facets, 1, spatial_dimension - 1);
+    mesh_facets->initElementTypeMapArray(check_facets, 1, spatial_dimension - 1);
     initFacetsCheck();
   }
 

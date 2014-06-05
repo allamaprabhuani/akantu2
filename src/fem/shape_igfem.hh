@@ -178,16 +178,16 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// shape functions for all elements
-  ByElementTypeArray<Real, InterpolationType> shapes;
+  ElementTypeMapArray<Real, InterpolationType> shapes;
 
   /// shape functions derivatives for all elements
-  ByElementTypeArray<Real, InterpolationType> shapes_derivatives;
+  ElementTypeMapArray<Real, InterpolationType> shapes_derivatives;
 
   /// for parent interpolation types store boolean to decide wheter element is enriched or not
-  ByElementTypeArray<bool> is_split;
+  ElementTypeMapArray<bool> is_split;
 
   /// for subelement store the control points of the corresponding parent elements
-  ByElementTypeArray<Real, InterpolationType> parent_control_points;
+  ElementTypeMapArray<Real, InterpolationType> parent_control_points;
   
 };
 

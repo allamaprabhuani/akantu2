@@ -61,12 +61,12 @@ int main(int argc, char *argv[])
   model.setTimeStep(time_step);
 
   //boundary conditions
-  const akantu::Array<akantu::Real> & nodes = model.getFEM().getMesh().getNodes();
-  akantu::Array<bool> & boundary = model.getBoundary();
+  const akantu::Array<akantu::Real> & nodes = model.getFEEngine().getMesh().getNodes();
+  akantu::Array<bool> & boundary = model.getBlockedDOFs();
   akantu::Array<akantu::Real> & temperature = model.getTemperature();
   double length;
   length = 1.;
-  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     temperature(i) = 100.;
 

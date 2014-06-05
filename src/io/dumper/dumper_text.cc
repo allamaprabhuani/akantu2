@@ -65,7 +65,7 @@ void DumperText::registerMesh(const Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 void DumperText::registerFilteredMesh(const Mesh & mesh,
-				      const ByElementTypeArray<UInt> & elements_filter,
+				      const ElementTypeMapArray<UInt> & elements_filter,
 				      const Array<UInt> & nodes_filter,
 				      UInt spatial_dimension,
 				      const GhostType & ghost_type,

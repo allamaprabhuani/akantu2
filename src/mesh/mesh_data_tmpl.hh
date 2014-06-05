@@ -80,8 +80,8 @@ inline void MeshData::registerElementalData(const std::string & name, MeshDataTy
 #undef AKANTU_MESH_DATA_CASE_MACRO
 /* -------------------------------------------------------------------------- */
 template<typename T>
-ByElementTypeArray<T> * MeshData::allocElementalData(const std::string & name) {
-  ByElementTypeArray<T> * dataset = new ByElementTypeArray<T>(name, id, memory_id);
+ElementTypeMapArray<T> * MeshData::allocElementalData(const std::string & name) {
+  ElementTypeMapArray<T> * dataset = new ElementTypeMapArray<T>(name, id, memory_id);
   elemental_data[name] = dataset;
   typecode_map[name] = getTypeCode<T>();
   return dataset;
@@ -89,18 +89,18 @@ ByElementTypeArray<T> * MeshData::allocElementalData(const std::string & name) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-const ByElementTypeArray<T> & MeshData::getElementalData(const std::string & name) const {
+const ElementTypeMapArray<T> & MeshData::getElementalData(const std::string & name) const {
   ElementalDataMap::const_iterator it = elemental_data.find(name);
   if(it == elemental_data.end()) AKANTU_EXCEPTION("No dataset named " << name << " found.");
-  return dynamic_cast<const ByElementTypeArray<T> &>(*(it->second));
+  return dynamic_cast<const ElementTypeMapArray<T> &>(*(it->second));
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-ByElementTypeArray<T> & MeshData::getElementalData(const std::string & name) {
+ElementTypeMapArray<T> & MeshData::getElementalData(const std::string & name) {
   ElementalDataMap::iterator it = elemental_data.find(name);
   if(it == elemental_data.end()) AKANTU_EXCEPTION("No dataset named " << name << " found.");
-  return dynamic_cast<ByElementTypeArray<T> &>(*(it->second));
+  return dynamic_cast<ElementTypeMapArray<T> &>(*(it->second));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -112,7 +112,7 @@ const Array<T> & MeshData::getElementalDataArray(const std::string & name,
   if(it == elemental_data.end()) {
     AKANTU_EXCEPTION("Data named " << name << " not registered for type: " << elem_type << " - ghost_type:" << ghost_type << "!");
   }
-  return dynamic_cast<const ByElementTypeArray<T> &>(*(it->second))(elem_type, ghost_type);
+  return dynamic_cast<const ElementTypeMapArray<T> &>(*(it->second))(elem_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -124,7 +124,7 @@ Array<T> & MeshData::getElementalDataArray(const std::string & name,
   if(it == elemental_data.end()) {
     AKANTU_EXCEPTION("Data named " << name << " not registered for type: " << elem_type << " - ghost_type:" << ghost_type << "!");
   }
-  return dynamic_cast<ByElementTypeArray<T> &>(*(it->second))(elem_type, ghost_type);
+  return dynamic_cast<ElementTypeMapArray<T> &>(*(it->second))(elem_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,11 +134,11 @@ Array<T> & MeshData::getElementalDataArrayAlloc(const std::string & name,
                                                   const GhostType & ghost_type,
                                                   UInt nb_component) {
   ElementalDataMap::iterator it = elemental_data.find(name);
-  ByElementTypeArray<T> * dataset;
+  ElementTypeMapArray<T> * dataset;
   if(it == elemental_data.end()) {
     dataset = allocElementalData<T>(name);
   } else {
-    dataset = dynamic_cast<ByElementTypeArray<T> *>(it->second);
+    dataset = dynamic_cast<ElementTypeMapArray<T> *>(it->second);
   }
   AKANTU_DEBUG_ASSERT(getTypeCode<T>() == typecode_map.find(name)->second, "Function getElementalDataArrayAlloc called with the wrong type!");
   if(!(dataset->exists(elem_type, ghost_type))) {
@@ -179,8 +179,8 @@ inline UInt MeshData::getNbComponentTemplated(const std::string name, const Elem
 /* -------------------------------------------------------------------------- */
 #define AKANTU_MESH_DATA_CASE_MACRO(r, name, elem)	\
   case BOOST_PP_TUPLE_ELEM(2, 0, elem) : { \
-    ByElementTypeArray<BOOST_PP_TUPLE_ELEM(2, 1, elem)> * dataset; \
-    dataset = dynamic_cast< ByElementTypeArray<BOOST_PP_TUPLE_ELEM(2, 1, elem)> * >(it->second); \
+    ElementTypeMapArray<BOOST_PP_TUPLE_ELEM(2, 1, elem)> * dataset; \
+    dataset = dynamic_cast< ElementTypeMapArray<BOOST_PP_TUPLE_ELEM(2, 1, elem)> * >(it->second); \
     exists = dataset->exists(el_type, ghost_type); \
     break; \
   } \

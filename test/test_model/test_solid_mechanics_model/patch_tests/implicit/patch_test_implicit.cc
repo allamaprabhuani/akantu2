@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 
   const Array<Real> & coordinates = my_mesh.getNodes();
   Array<Real> & displacement = my_model.getDisplacement();
-  Array<bool> & boundary = my_model.getBoundary();
+  Array<bool> & boundary = my_model.getBlockedDOFs();
   MeshUtils::buildFacets(my_mesh);
 
   my_mesh.createBoundaryGroupFromGeometry();
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
   /* ------------------------------------------------------------------------ */
   /* Checks                                                                   */
   /* ------------------------------------------------------------------------ */
-  UInt nb_quadrature_points = my_model.getFEM().getNbQuadraturePoints(element_type);
+  UInt nb_quadrature_points = my_model.getFEEngine().getNbQuadraturePoints(element_type);
 
   Array<Real> & stress_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStress(element_type));
   Array<Real> & strain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStrain(element_type));

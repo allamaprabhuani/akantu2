@@ -34,7 +34,7 @@
 /* -------------------------------------------------------------------------- */
 #include "mesh_utils.hh"
 #include "aka_safe_enum.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
 #include <numeric>
 /* -------------------------------------------------------------------------- */
@@ -178,7 +178,7 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshUtils::buildNode2ElementsByElementType(const Mesh & mesh,
+void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
 						CSR<UInt> & node_to_elem,
 						const ElementType & type,
 						const GhostType & ghost_type) {
@@ -269,7 +269,7 @@ void MeshUtils::buildAllFacets(const Mesh & mesh,
   AKANTU_DEBUG_ASSERT(mesh_facets.isMeshFacets(),
 		      "The mesh_facets should be initialized with initMeshFacets");
 
-  const ByElementTypeUInt * prank_to_element = NULL;
+  const ElementTypeMapArray<UInt> * prank_to_element = NULL;
 
   if (synchronizer) {
     synchronizer->buildPrankToElement();
@@ -305,7 +305,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh,
 				     Mesh & mesh_facets,
 				     bool boundary_only,
 				     UInt dimension,
-				     const ByElementTypeUInt * prank_to_element){
+				     const ElementTypeMapArray<UInt> * prank_to_element){
   AKANTU_DEBUG_IN();
 
   // save the current parent of mesh_facets and set it temporarly to mesh since
@@ -629,7 +629,7 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
 /* -------------------------------------------------------------------------- */
 void MeshUtils::insertCohesiveElements(Mesh & mesh,
 				       Mesh & mesh_facets,
-				       const ByElementTypeArray<bool> & facet_insertion,
+				       const ElementTypeMapArray<bool> & facet_insertion,
 				       Array<UInt> & doubled_nodes,
 				       Array<Element> & new_elements) {
   AKANTU_DEBUG_IN();
@@ -803,7 +803,7 @@ void MeshUtils::doubleFacet(Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 bool MeshUtils::updateFacetToDouble(Mesh & mesh_facets,
-				    const ByElementTypeArray<bool> & facet_insertion) {
+				    const ElementTypeMapArray<bool> & facet_insertion) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh_facets.getSpatialDimension();
@@ -1168,7 +1168,7 @@ void MeshUtils::updateCohesiveData(Mesh & mesh,
       UInt nb_facet_to_double = f_to_double.getSize();
       if (nb_facet_to_double == 0) continue;
 
-      ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+      ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
 
       Array<Element> * facet_to_coh_element
 	= mesh_facets.getSubelementToElementPointer(type_cohesive, gt_facet);
@@ -1611,16 +1611,16 @@ void MeshUtils::doubleSubfacet(Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 void MeshUtils::flipFacets(Mesh & mesh_facets,
-			   const ByElementTypeUInt & global_connectivity,
+			   const ElementTypeMapArray<UInt> & global_connectivity,
 			   GhostType gt_facet) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh_facets.getSpatialDimension();
 
   /// get global connectivity for local mesh
-  ByElementTypeUInt global_connectivity_tmp;
+  ElementTypeMapArray<UInt> global_connectivity_tmp;
 
-  mesh_facets.initByElementTypeArray(global_connectivity_tmp, 1,
+  mesh_facets.initElementTypeMapArray(global_connectivity_tmp, 1,
 				     spatial_dimension - 1, gt_facet,
 				     true, _ek_regular, true);
 
@@ -1740,8 +1740,8 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
   }
 
   UInt spatial_dimension = mesh.getSpatialDimension();
-  ByElementTypeReal barycenters("barycenter_tmp", mesh.getID());
-  mesh.initByElementTypeArray(barycenters,
+  ElementTypeMapArray<Real> barycenters("barycenter_tmp", mesh.getID());
+  mesh.initElementTypeMapArray(barycenters,
                               spatial_dimension,
                               _all_dimensions);
 

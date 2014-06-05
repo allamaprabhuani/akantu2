@@ -31,7 +31,7 @@
 
 namespace akantu {
   class SolidMechanicsModel;
-  class FEM;
+  class FEEngine;
 }
 
 __BEGIN_AKANTU__
@@ -76,7 +76,7 @@ public:
     UInt i = 0;
     for (; it != end; ++it) {
       ElementType type = it.getType();
-      UInt nb_quad = cont.getFEM().getNbQuadraturePoints(type);
+      UInt nb_quad = cont.getFEEngine().getNbQuadraturePoints(type);
       nb_comp = std::max(nb_comp, (*it).size() / nb_quad);
       ++i;
     }
@@ -84,7 +84,7 @@ public:
   }
 
   sub_type<T> operator()(const sub_type<T> & vect, const ElementType & type) {
-    UInt nb_quad = cont.getFEM().getNbQuadraturePoints(type);
+    UInt nb_quad = cont.getFEEngine().getNbQuadraturePoints(type);
     if(nb_quad == 1) {
       return vect;
     } else {
@@ -117,7 +117,7 @@ public:
     UInt i = 0;
     for (; it != end; ++it) {
       ElementType type = it.getType();
-      UInt nb_quad = cont.getFEM().getNbQuadraturePoints(type);
+      UInt nb_quad = cont.getFEEngine().getNbQuadraturePoints(type);
       nb_comp = std::max(nb_comp, (*it).size() / nb_quad);
       ++i;
     }
@@ -126,7 +126,7 @@ public:
 
   Matrix<T> operator()(const Matrix<T> & vect,
 			      const ElementType & type) {
-    UInt nb_quad = cont.getFEM().getNbQuadraturePoints(type);
+    UInt nb_quad = cont.getFEEngine().getNbQuadraturePoints(type);
     if(nb_quad == 1) {
       return vect;
     } else {
@@ -181,7 +181,7 @@ public:
 		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
 		   ElementKind element_kind = _ek_not_defined,
- 		   const ByElementTypeArray<UInt> * filter = NULL) :
+ 		   const ElementTypeMapArray<UInt> * filter = NULL) :
     cont(model, field_id, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
@@ -193,30 +193,30 @@ public:
 		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
 		   ElementKind element_kind = _ek_not_defined,
-		   const ByElementTypeArray<UInt> * filter = NULL) :
+		   const ElementTypeMapArray<UInt> * filter = NULL) :
     cont(model, field_id, n, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
 
-  HomogenizedField(const FEM & fem,
-		   const ByElementTypeArray<T> & field,
+  HomogenizedField(const FEEngine & fem,
+		   const ElementTypeMapArray<T> & field,
 		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
 		   ElementKind element_kind = _ek_not_defined,
-		   const ByElementTypeArray<UInt> * filter = NULL) :
+		   const ElementTypeMapArray<UInt> * filter = NULL) :
     cont(fem, field, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();
   }
 
-  HomogenizedField(const FEM & fem,
-		   const ByElementTypeArray<T> & field,
+  HomogenizedField(const FEEngine & fem,
+		   const ElementTypeMapArray<T> & field,
 		   UInt n,
 		   UInt spatial_dimension = _all_dimensions,
 		   GhostType ghost_type = _not_ghost,
 		   ElementKind element_kind = _ek_not_defined,
-		   const ByElementTypeArray<UInt> * filter = NULL) :
+		   const ElementTypeMapArray<UInt> * filter = NULL) :
     cont(fem, field, n, spatial_dimension, ghost_type, element_kind, filter),
     funct(cont) {
     nb_component = funct.getNbComponent();

@@ -34,7 +34,7 @@
 using namespace akantu;
 
 void updateDisplacement(SolidMechanicsModelCohesive & model,
-			const ByElementTypeUInt & elements,
+			const ElementTypeMapArray<UInt> & elements,
 			Vector<Real> & increment);
 
 bool checkTractions(SolidMechanicsModelCohesive & model,
@@ -43,7 +43,7 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
 		    Matrix<Real> & rotation);
 
 void findNodesToCheck(const Mesh & mesh,
-		      const ByElementTypeUInt & elements,
+		      const ElementTypeMapArray<UInt> & elements,
 		      Array<UInt> & nodes_to_check,
 		      Int psize);
 
@@ -56,7 +56,7 @@ bool checkResidual(const Array<Real> & residual,
 		   const Matrix<Real> & rotation);
 
 void findElementsToDisplace(const Mesh & mesh,
-			    ByElementTypeUInt & elements);
+			    ElementTypeMapArray<UInt> & elements);
 
 int main(int argc, char *argv[]) {
   initialize("material_tetrahedron.dat", argc, argv);
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     total_nb_nodes = mesh.getNbNodes();
 
     /// find nodes to check in serial
-    ByElementTypeUInt elements_serial("elements_serial", "");
+    ElementTypeMapArray<UInt> elements_serial("elements_serial", "");
     findElementsToDisplace(mesh, elements_serial);
     nb_elements_check_serial = elements_serial(type).getSize();
 
@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
   dumper.dump();
 
   /// find elements to displace
-  ByElementTypeUInt elements("elements", "");
+  ElementTypeMapArray<UInt> elements("elements", "");
   findElementsToDisplace(mesh, elements);
 
   UInt nb_elements_check = elements(type).getSize();
@@ -403,11 +403,11 @@ int main(int argc, char *argv[]) {
 /* -------------------------------------------------------------------------- */
 
 void updateDisplacement(SolidMechanicsModelCohesive & model,
-			const ByElementTypeUInt & elements,
+			const ElementTypeMapArray<UInt> & elements,
 			Vector<Real> & increment) {
 
   UInt spatial_dimension = model.getSpatialDimension();
-  Mesh & mesh = model.getFEM().getMesh();
+  Mesh & mesh = model.getFEEngine().getMesh();
   UInt nb_nodes = mesh.getNbNodes();
 
   Array<Real> & displacement = model.getDisplacement();
@@ -516,7 +516,7 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
       const Array<Real> & damage = mat_cohesive.getDamage(type, ghost_type);
 
       UInt nb_quad_per_el
-	= model.getFEM("CohesiveFEM").getNbQuadraturePoints(type);
+	= model.getFEEngine("CohesiveFEEngine").getNbQuadraturePoints(type);
       UInt nb_element = model.getMesh().getNbElement(type, ghost_type);
       UInt tot_nb_quad = nb_element * nb_quad_per_el;
 
@@ -544,7 +544,7 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
 /* -------------------------------------------------------------------------- */
 
 void findNodesToCheck(const Mesh & mesh,
-		      const ByElementTypeUInt & elements,
+		      const ElementTypeMapArray<UInt> & elements,
 		      Array<UInt> & nodes_to_check,
 		      Int psize) {
 
@@ -706,10 +706,10 @@ bool checkResidual(const Array<Real> & residual,
 /* -------------------------------------------------------------------------- */
 
 void findElementsToDisplace(const Mesh & mesh,
-			    ByElementTypeUInt & elements) {
+			    ElementTypeMapArray<UInt> & elements) {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  mesh.initByElementTypeArray(elements, 1, spatial_dimension);
+  mesh.initElementTypeMapArray(elements, 1, spatial_dimension);
 
   Vector<Real> bary(spatial_dimension);
 

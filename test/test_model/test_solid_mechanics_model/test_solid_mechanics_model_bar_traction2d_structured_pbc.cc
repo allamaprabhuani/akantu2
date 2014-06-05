@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
   akantu::Real signal_end = 0.7*mesh.getXMax();
   akantu::Real delta_d = signal_end - signal_start;
   akantu::Real signal = 1.;
-  const akantu::Array<akantu::Real> & coords = model.getFEM().getMesh().getNodes();
+  const akantu::Array<akantu::Real> & coords = model.getFEEngine().getMesh().getNodes();
   akantu::Array<akantu::Real> & disp = model.getDisplacement();
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(coords(i,0) >= signal_start && coords(i,0) <= signal_end) {
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     }
 
     if(coords(i,1) <= eps || coords(i,1) >= 1 - eps ) {
-      model.getBoundary().storage()[spatial_dimension*i + 1] = true;
+      model.getBlockedDOFs().storage()[spatial_dimension*i + 1] = true;
     }
   }
 

@@ -66,7 +66,7 @@ class HeatTransferModel : public Model, public DataAccessor, public Dumpable, pu
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
+  typedef FEEngineTemplate<IntegratorGauss,ShapeLagrange> MyFEEngineType;
 
   HeatTransferModel(Mesh & mesh,
 		    UInt spatial_dimension = _all_dimensions,
@@ -85,7 +85,7 @@ public:
   void initFull(const ModelOptions & options = default_heat_transfer_model_options);
 
   /// initialize the fem object of the boundary
-  void initFEMBoundary(bool create_surface = true);
+  void initFEEngineBoundary(bool create_surface = true);
 
   /// read one material file to instantiate all the materials
   void readMaterials();
@@ -125,7 +125,7 @@ public:
 
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityLumped();
-  
+
   /// update the temperature from the temperature rate
   void explicitPred();
 
@@ -181,13 +181,13 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   inline UInt getNbDataForElements(const Array<Element> & elements,
-                                   SynchronizationTag tag) const;
+				   SynchronizationTag tag) const;
   inline void packElementData(CommunicationBuffer & buffer,
-                              const Array<Element> & elements,
-                              SynchronizationTag tag) const;
+			      const Array<Element> & elements,
+			      SynchronizationTag tag) const;
   inline void unpackElementData(CommunicationBuffer & buffer,
-                                const Array<Element> & elements,
-                                SynchronizationTag tag);
+				const Array<Element> & elements,
+				SynchronizationTag tag);
 
   inline UInt getNbDataToPack(SynchronizationTag tag) const;
   inline UInt getNbDataToUnpack(SynchronizationTag tag) const;
@@ -214,7 +214,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
 
-  inline FEM & getFEMBoundary(std::string name = "");
+  inline FEEngine & getFEEngineBoundary(std::string name = "");
 
   AKANTU_GET_MACRO(Density, density, Real);
   AKANTU_GET_MACRO(Capacity, capacity, Real);
@@ -227,13 +227,13 @@ public:
   /// get the assembled heat flux
   AKANTU_GET_MACRO(Residual, *residual, Array<Real>&);
   /// get the lumped capacity
-  AKANTU_GET_MACRO(CapacityLumped, * capacity_lumped, Array<Real>&);
+  AKANTU_GET_MACRO(CapacityLumped, *capacity_lumped, Array<Real>&);
   /// get the boundary vector
-  AKANTU_GET_MACRO(Boundary, * boundary, Array<bool>&);
+  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool>&);
   /// get stiffness matrix
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, const SparseMatrix&);
   /// get the external heat rate vector
-  AKANTU_GET_MACRO(ExternalHeatRate, * external_heat_rate, Array<Real>&);
+  AKANTU_GET_MACRO(ExternalHeatRate, *external_heat_rate, Array<Real>&);
   /// get the temperature gradient
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(TemperatureGradient, temperature_gradient, Real);
   /// get the conductivity on q points
@@ -285,7 +285,7 @@ private:
 
   /// increment array (@f$\delta \dot T@f$ or @f$\delta T@f$)
   Array<Real> * increment;
-  
+
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;
 
@@ -296,22 +296,22 @@ private:
   Real density;
 
   /// the speed of the changing temperature
-  ByElementTypeReal temperature_gradient;
+  ElementTypeMapArray<Real> temperature_gradient;
 
   /// temperature field on quadrature points
-  ByElementTypeReal temperature_on_qpoints;
+  ElementTypeMapArray<Real> temperature_on_qpoints;
 
   /// conductivity tensor on quadrature points
-  ByElementTypeReal conductivity_on_qpoints;
+  ElementTypeMapArray<Real> conductivity_on_qpoints;
 
   /// vector k \grad T on quad points
-  ByElementTypeReal k_gradt_on_qpoints;
+  ElementTypeMapArray<Real> k_gradt_on_qpoints;
 
   /// vector \int \grad N k \grad T
-  ByElementTypeReal int_bt_k_gT;
+  ElementTypeMapArray<Real> int_bt_k_gT;
 
   /// vector \grad N k \grad T
-  ByElementTypeReal bt_k_gT;
+  ElementTypeMapArray<Real> bt_k_gT;
 
   /// external flux vector
   Array<Real> * external_heat_rate;
@@ -326,7 +326,7 @@ private:
   Array<Real> * capacity_lumped;
 
   /// boundary vector
-  Array<bool> * boundary;
+  Array<bool> * blocked_dofs;
 
   //realtime
   Real time;
@@ -347,7 +347,7 @@ private:
   Real conductivitymax;
 
   /// thermal energy by element
-  ByElementTypeReal thermal_energy;
+  ElementTypeMapArray<Real> thermal_energy;
 
   /// Solver
   Solver * solver;

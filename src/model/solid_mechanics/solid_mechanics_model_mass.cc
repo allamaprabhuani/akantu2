@@ -65,7 +65,7 @@ void SolidMechanicsModel::assembleMassLumped() {
 void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  FEM & fem = getFEM();
+  FEEngine & fem = getFEEngine();
 
   Array<Real> rho_1(0,1);
 
@@ -105,7 +105,7 @@ void SolidMechanicsModel::assembleMass() {
 void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MyFEMType & fem = getFEMClass<MyFEMType>();
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
 
   Array<Real> rho_1(0,1);
   //UInt nb_element;
@@ -131,7 +131,7 @@ void SolidMechanicsModel::computeRho(Array<Real> & rho,
 
   Material ** mat_val = &(materials.at(0));
 
-  FEM & fem = getFEM();
+  FEEngine & fem = getFEEngine();
   UInt nb_element = fem.getMesh().getNbElement(type,ghost_type);
 
   Array<UInt> & elem_mat_val = element_index_by_material(type, ghost_type);

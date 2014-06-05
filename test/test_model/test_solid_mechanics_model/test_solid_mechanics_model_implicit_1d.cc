@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   std::cout << model.getMaterial(0) << std::endl;
 
   /// boundary conditions
-  model.getBoundary()(0,0) = true;
+  model.getBlockedDOFs()(0,0) = true;
   model.getForce()(1,0) = 1000;
 
   model.setBaseName("implicit_1d");

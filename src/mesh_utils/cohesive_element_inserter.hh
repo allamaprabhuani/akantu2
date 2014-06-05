@@ -125,11 +125,11 @@ public:
 
   AKANTU_GET_MACRO_NOT_CONST(InsertionFacetsByElement,
 			     insertion_facets,
-			     ByElementTypeArray<bool> &);
+			     ElementTypeMapArray<bool> &);
 
   AKANTU_GET_MACRO(InsertionFacetsByElement,
 		   insertion_facets,
-		   const ByElementTypeArray<bool> &);
+		   const ElementTypeMapArray<bool> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(InsertionFacets, insertion_facets, bool);
 
@@ -151,7 +151,7 @@ private:
   Mesh * mesh_facets;
 
   /// list of facets where to insert elements
-  ByElementTypeArray<bool> insertion_facets;
+  ElementTypeMapArray<bool> insertion_facets;
 
   /// tag to distinguish extrinsic simulations (true by default)
   bool is_extrinsic;
@@ -160,7 +160,7 @@ private:
   Array<Real> insertion_limits;
 
   /// vector containing facets in which extrinsic cohesive elements can be inserted
-  ByElementTypeArray<bool> check_facets;
+  ElementTypeMapArray<bool> check_facets;
 
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   /// facet synchronizer

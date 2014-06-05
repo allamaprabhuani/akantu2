@@ -32,10 +32,10 @@ inline UInt SparseMatrix::addToProfile(UInt i, UInt j) {
 
   KeyCOO jcn_irn = key(i, j);
 
-  typename coordinate_list_map::iterator it = irn_jcn_k.find(jcn_irn);
+  coordinate_list_map::iterator it = irn_jcn_k.find(jcn_irn);
   if (!(it == irn_jcn_k.end()))
       return it->second;
-  
+
 //  AKANTU_DEBUG_ASSERT(irn_jcn_k.find(jcn_irn) == irn_jcn_k.end(),
 //		      "Couple (i,j) = (" << i << "," << j << ") already in the profile");
 

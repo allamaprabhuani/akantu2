@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
 
   /// boundary conditions
   const  Array<Real> & position = mesh.getNodes();
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & displacment = model.getDisplacement();
 
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
   for (UInt n = 0; n < nb_nodes; ++n) {
     if(position(n,0) < Math::getTolerance()) boundary(n,0) = true;
     if(position(n,1) < Math::getTolerance()) boundary(n,1) = true;

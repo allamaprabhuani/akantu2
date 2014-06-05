@@ -1,9 +1,9 @@
 /**
- * @file   fem_template_tmpl.hh
+ * @file   fe_engine_template_tmpl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @date   Mon Nov  5 17:08:50 2012
  *
- * @brief  Template implementation of FEMTemplate
+ * @brief  Template implementation of FEEngineTemplate
  *
  * @section LICENSE
  *
@@ -25,13 +25,16 @@
  *
  */
 
+
+__BEGIN_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-FEMTemplate<I, S, kind>::FEMTemplate(Mesh & mesh, UInt spatial_dimension,
-				      ID id, MemoryID memory_id) :
-  FEM(mesh,spatial_dimension,id,memory_id),
+FEEngineTemplate<I, S, kind>::FEEngineTemplate(Mesh & mesh, UInt spatial_dimension,
+					       ID id, MemoryID memory_id) :
+  FEEngine(mesh,spatial_dimension,id,memory_id),
   integrator(mesh, id, memory_id),
   shape_functions(mesh, id, memory_id) { }
 
@@ -39,18 +42,18 @@ FEMTemplate<I, S, kind>::FEMTemplate(Mesh & mesh, UInt spatial_dimension,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-FEMTemplate<I, S, kind>::~FEMTemplate() { }
+FEEngineTemplate<I, S, kind>::~FEEngineTemplate() { }
 
 /* -------------------------------------------------------------------------- */
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> &u,
-							  Array<Real> &nablauq,
-							  const UInt nb_degree_of_freedom,
-							  const ElementType & type,
-							  const GhostType & ghost_type,
-							  const Array<UInt> & filter_elements) const {
+void FEEngineTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> &u,
+							      Array<Real> &nablauq,
+							      const UInt nb_degree_of_freedom,
+							      const ElementType & type,
+							      const GhostType & ghost_type,
+							      const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_element = mesh.getNbElement(type, ghost_type);
@@ -81,12 +84,12 @@ void FEMTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> &u,
   nablauq.resize(nb_element * nb_points);
 
 #define COMPUTE_GRADIENT(type)						\
-    if (element_dimension == ElementClass<type>::getSpatialDimension()) \
-      shape_functions.template gradientOnControlPoints<type>(u,		\
-							     nablauq,	\
-							     nb_degree_of_freedom, \
-							     ghost_type, \
-							     filter_elements);
+  if (element_dimension == ElementClass<type>::getSpatialDimension())	\
+    shape_functions.template gradientOnControlPoints<type>(u,		\
+							   nablauq,	\
+							   nb_degree_of_freedom, \
+							   ghost_type,	\
+							   filter_elements);
 
   if(kind == _ek_regular)
     AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_GRADIENT);
@@ -103,7 +106,7 @@ void FEMTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> &u,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::initShapeFunctions(const GhostType & ghost_type) {
+void FEEngineTemplate<I, S, kind>::initShapeFunctions(const GhostType & ghost_type) {
   initShapeFunctions(mesh.getNodes(), ghost_type);
 }
 
@@ -111,8 +114,8 @@ void FEMTemplate<I, S, kind>::initShapeFunctions(const GhostType & ghost_type) {
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::initShapeFunctions(const Array<Real> & nodes,
-						 const GhostType & ghost_type) {
+void FEEngineTemplate<I, S, kind>::initShapeFunctions(const Array<Real> & nodes,
+						      const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   Mesh::type_iterator it  = mesh.firstType(element_dimension, ghost_type, kind);
@@ -132,12 +135,12 @@ void FEMTemplate<I, S, kind>::initShapeFunctions(const Array<Real> & nodes,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::integrate(const Array<Real> & f,
-				       Array<Real> &intf,
-				       UInt nb_degree_of_freedom,
-				       const ElementType & type,
-				       const GhostType & ghost_type,
-				       const Array<UInt> & filter_elements) const{
+void FEEngineTemplate<I, S, kind>::integrate(const Array<Real> & f,
+					     Array<Real> &intf,
+					     UInt nb_degree_of_freedom,
+					     const ElementType & type,
+					     const GhostType & ghost_type,
+					     const Array<UInt> & filter_elements) const{
 
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
@@ -158,11 +161,11 @@ void FEMTemplate<I, S, kind>::integrate(const Array<Real> & f,
 
   intf.resize(nb_element);
 
-#define INTEGRATE(type)					    \
-  integrator.template integrate<type>(f,		    \
-				      intf,		    \
-				      nb_degree_of_freedom, \
-				      ghost_type,	    \
+#define INTEGRATE(type)						\
+  integrator.template integrate<type>(f,			\
+				      intf,			\
+				      nb_degree_of_freedom,	\
+				      ghost_type,		\
 				      filter_elements);
 
   if(kind == _ek_regular)
@@ -182,16 +185,16 @@ void FEMTemplate<I, S, kind>::integrate(const Array<Real> & f,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-Real FEMTemplate<I, S, kind>::integrate(const Array<Real> & f,
-				       const ElementType & type,
-				       const GhostType & ghost_type,
-				       const Array<UInt> & filter_elements) const{
+Real FEEngineTemplate<I, S, kind>::integrate(const Array<Real> & f,
+					     const ElementType & type,
+					     const GhostType & ghost_type,
+					     const Array<UInt> & filter_elements) const{
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
-//   std::stringstream sstr; sstr << ghost_type;
-//   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-// 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  //   std::stringstream sstr; sstr << ghost_type;
+  //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
+  // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 
@@ -230,17 +233,17 @@ Real FEMTemplate<I, S, kind>::integrate(const Array<Real> & f,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-Real FEMTemplate<I, S, kind>::integrate(const Vector<Real> & f,
-					 const ElementType & type,
-					 UInt index,
-					 const GhostType & ghost_type) const{
+Real FEEngineTemplate<I, S, kind>::integrate(const Vector<Real> & f,
+					     const ElementType & type,
+					     UInt index,
+					     const GhostType & ghost_type) const{
 
 
   Real res = 0.;
 
-#define INTEGRATE(type)							\
-  res = integrator.template integrate<type>(f,				\
-					    index,			\
+#define INTEGRATE(type)						\
+  res = integrator.template integrate<type>(f,			\
+					    index,		\
 					    ghost_type);
 
   if(kind == _ek_regular)
@@ -261,20 +264,20 @@ Real FEMTemplate<I, S, kind>::integrate(const Vector<Real> & f,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::integrateOnQuadraturePoints(const Array<Real> & f,
-							   Array<Real> &intf,
-							   UInt nb_degree_of_freedom,
-							   const ElementType & type,
-							   const GhostType & ghost_type,
-							   const Array<UInt> & filter_elements) const{
+void FEEngineTemplate<I, S, kind>::integrateOnQuadraturePoints(const Array<Real> & f,
+							       Array<Real> &intf,
+							       UInt nb_degree_of_freedom,
+							       const ElementType & type,
+							       const GhostType & ghost_type,
+							       const Array<UInt> & filter_elements) const{
 
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
   UInt nb_quadrature_points  = getNbQuadraturePoints(type);
 #ifndef AKANTU_NDEBUG
-//   std::stringstream sstr; sstr << ghost_type;
-//   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-// 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  //   std::stringstream sstr; sstr << ghost_type;
+  //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
+  // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
 
 
   AKANTU_DEBUG_ASSERT(f.getSize() == nb_element * nb_quadrature_points,
@@ -313,12 +316,12 @@ void FEMTemplate<I, S, kind>::integrateOnQuadraturePoints(const Array<Real> & f,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> &u,
-							   Array<Real> &uq,
-							   UInt nb_degree_of_freedom,
-							   const ElementType & type,
-							   const GhostType & ghost_type,
-							   const Array<UInt> & filter_elements) const{
+void FEEngineTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> &u,
+								 Array<Real> &uq,
+								 UInt nb_degree_of_freedom,
+								 const ElementType & type,
+								 const GhostType & ghost_type,
+								 const Array<UInt> & filter_elements) const{
 
   AKANTU_DEBUG_IN();
 
@@ -326,9 +329,9 @@ void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> &u
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 #ifndef AKANTU_NDEBUG
-//   std::stringstream sstr; sstr << ghost_type;
-//   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-// 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
+  //   std::stringstream sstr; sstr << ghost_type;
+  //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
+  // 		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
 
   AKANTU_DEBUG_ASSERT(u.getSize() == mesh.getNbNodes(),
 		      "The vector u(" << u.getID()
@@ -365,9 +368,9 @@ void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> &u
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> & u,
-							    ByElementTypeReal & uq,
-							    const ByElementTypeUInt * filter_elements) const {
+void FEEngineTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> & u,
+								 ElementTypeMapArray<Real> & uq,
+								 const ElementTypeMapArray<UInt> * filter_elements) const {
   AKANTU_DEBUG_IN();
 
   const Array<UInt> * filter = NULL;
@@ -376,8 +379,8 @@ void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> & 
        gt != ghost_type_t::end(); ++gt) {
 
     GhostType ghost_type = *gt;
-    ByElementTypeReal::type_iterator it   = uq.firstType(_all_dimensions, ghost_type, kind);
-    ByElementTypeReal::type_iterator last = uq.lastType(_all_dimensions, ghost_type, kind);
+    ElementTypeMapArray<Real>::type_iterator it   = uq.firstType(_all_dimensions, ghost_type, kind);
+    ElementTypeMapArray<Real>::type_iterator last = uq.lastType(_all_dimensions, ghost_type, kind);
 
     for (; it != last; ++it) {
       ElementType type = *it;
@@ -416,7 +419,7 @@ void FEMTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> & 
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const GhostType & ghost_type) {
+void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   computeNormalsOnControlPoints(mesh.getNodes(),
@@ -429,8 +432,8 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const GhostType & gh
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
-							    const GhostType & ghost_type) {
+void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
+								 const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
 
   //  Real * coord = mesh.getNodes().storage();
@@ -463,10 +466,10 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
-							    Array<Real> & normal,
-							    const ElementType & type,
-							    const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
+								 Array<Real> & normal,
+								 const ElementType & type,
+								 const GhostType & ghost_type) const {
 #define COMPUTE_NORMALS_ON_QUAD(type)					\
   computeNormalsOnControlPoints<type>(field, normal, ghost_type);
 
@@ -485,9 +488,9 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 template<ElementType type>
-void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
-							    Array<Real> & normal,
-							    const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & field,
+								 Array<Real> & normal,
+								 const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -500,7 +503,7 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
 									  nb_points,
 									  nb_element);
   Array<Real> f_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(mesh, field, f_el, type, ghost_type);
+  FEEngine::extractNodalToElementField(mesh, field, f_el, type, ghost_type);
 
   const Matrix<Real> & quads =
     integrator. template getQuadraturePoints<type>(ghost_type);
@@ -527,12 +530,12 @@ void FEMTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Real> & 
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::assembleFieldLumped(const Array<Real> & field_1,
-						  UInt nb_degree_of_freedom,
-						  Array<Real> & lumped,
-						  const Array<Int> & equation_number,
-						  ElementType type,
-						  const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::assembleFieldLumped(const Array<Real> & field_1,
+						       UInt nb_degree_of_freedom,
+						       Array<Real> & lumped,
+						       const Array<Int> & equation_number,
+						       ElementType type,
+						       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
 #define ASSEMBLE_LUMPED(type)                                           \
@@ -548,11 +551,11 @@ void FEMTemplate<I, S, kind>::assembleFieldLumped(const Array<Real> & field_1,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
-						  UInt nb_degree_of_freedom,
-						  SparseMatrix & matrix,
-						  ElementType type,
-						  const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
+						       UInt nb_degree_of_freedom,
+						       SparseMatrix & matrix,
+						       ElementType type,
+						       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
 #define ASSEMBLE_MATRIX(type)					\
@@ -572,11 +575,11 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 template <ElementType type>
-void FEMTemplate<I, S, kind>::assembleLumpedTemplate(const Array<Real> & field_1,
-						     UInt nb_degree_of_freedom,
-						     Array<Real> & lumped,
-						     const Array<Int> & equation_number,
-						     const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::assembleLumpedTemplate(const Array<Real> & field_1,
+							  UInt nb_degree_of_freedom,
+							  Array<Real> & lumped,
+							  const Array<Int> & equation_number,
+							  const GhostType & ghost_type) const {
   this->template assembleLumpedRowSum<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type);
 }
 
@@ -588,11 +591,11 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 template <ElementType type>
-void FEMTemplate<I, S, kind>::assembleLumpedRowSum(const Array<Real> & field_1,
-						   UInt nb_degree_of_freedom,
-						   Array<Real> & lumped,
-						   const Array<Int> & equation_number,
-						   const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::assembleLumpedRowSum(const Array<Real> & field_1,
+							UInt nb_degree_of_freedom,
+							Array<Real> & lumped,
+							const Array<Int> & equation_number,
+							const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt shapes_size = ElementClass<type>::getShapeSize();
@@ -633,11 +636,11 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 template <ElementType type>
-void FEMTemplate<I, S, kind>::assembleLumpedDiagonalScaling(const Array<Real> & field_1,
-							    UInt nb_degree_of_freedom,
-							    Array<Real> & lumped,
-							    const Array<Int> & equation_number,
-							    const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::assembleLumpedDiagonalScaling(const Array<Real> & field_1,
+								 UInt nb_degree_of_freedom,
+								 Array<Real> & lumped,
+								 const Array<Int> & equation_number,
+								 const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   const ElementType & type_p1  = ElementClass<type>::getP1ElementType();
@@ -714,10 +717,10 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 template <ElementType type>
-void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
-						  UInt nb_degree_of_freedom,
-						  SparseMatrix & matrix,
-						  const GhostType & ghost_type) const {
+void FEEngineTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
+						       UInt nb_degree_of_freedom,
+						       SparseMatrix & matrix,
+						       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt vect_size   = field_1.getSize();
@@ -772,11 +775,11 @@ void FEMTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field_1,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-inline void FEMTemplate<I, S, kind>::inverseMap(const Vector<Real> & real_coords,
-						UInt element,
-						const ElementType & type,
-						Vector<Real> & natural_coords,
-						const GhostType & ghost_type) const{
+inline void FEEngineTemplate<I, S, kind>::inverseMap(const Vector<Real> & real_coords,
+						     UInt element,
+						     const ElementType & type,
+						     Vector<Real> & natural_coords,
+						     const GhostType & ghost_type) const{
 
   AKANTU_DEBUG_IN();
 
@@ -793,10 +796,10 @@ inline void FEMTemplate<I, S, kind>::inverseMap(const Vector<Real> & real_coords
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-inline bool FEMTemplate<I, S, kind>::contains(const Vector<Real> & real_coords,
-					      UInt element,
-					      const ElementType & type,
-					      const GhostType & ghost_type) const{
+inline bool FEEngineTemplate<I, S, kind>::contains(const Vector<Real> & real_coords,
+						   UInt element,
+						   const ElementType & type,
+						   const GhostType & ghost_type) const{
 
   AKANTU_DEBUG_IN();
 
@@ -817,11 +820,11 @@ inline bool FEMTemplate<I, S, kind>::contains(const Vector<Real> & real_coords,
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-inline void FEMTemplate<I, S, kind>::computeShapes(const Vector<Real> & real_coords,
-						   UInt element,
-						   const ElementType & type,
-						   Vector<Real> & shapes,
-						   const GhostType & ghost_type) const{
+inline void FEEngineTemplate<I, S, kind>::computeShapes(const Vector<Real> & real_coords,
+							UInt element,
+							const ElementType & type,
+							Vector<Real> & shapes,
+							const GhostType & ghost_type) const{
 
   AKANTU_DEBUG_IN();
 
@@ -839,8 +842,8 @@ inline void FEMTemplate<I, S, kind>::computeShapes(const Vector<Real> & real_coo
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-inline UInt FEMTemplate<I, S, kind>::getNbQuadraturePoints(const ElementType & type,
-							   const GhostType & ghost_type) const {
+inline UInt FEEngineTemplate<I, S, kind>::getNbQuadraturePoints(const ElementType & type,
+								const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_quad_points = 0;
@@ -861,8 +864,8 @@ inline UInt FEMTemplate<I, S, kind>::getNbQuadraturePoints(const ElementType & t
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-inline const Array<Real> & FEMTemplate<I, S, kind>::getShapes(const ElementType & type,
-							      const GhostType & ghost_type) const {
+inline const Array<Real> & FEEngineTemplate<I, S, kind>::getShapes(const ElementType & type,
+								   const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
   const Array<Real> * ret = NULL;
 
@@ -880,9 +883,9 @@ inline const Array<Real> & FEMTemplate<I, S, kind>::getShapes(const ElementType 
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
-inline const Array<Real> & FEMTemplate<I, S, kind>::getShapesDerivatives(const ElementType & type,
-									 const GhostType & ghost_type,
-									 __attribute__((unused)) UInt id) const {
+inline const Array<Real> & FEEngineTemplate<I, S, kind>::getShapesDerivatives(const ElementType & type,
+									      const GhostType & ghost_type,
+									      __attribute__((unused)) UInt id) const {
   AKANTU_DEBUG_IN();
   const Array<Real> * ret = NULL;
 
@@ -901,8 +904,8 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 inline const Matrix<Real> &
-FEMTemplate<I, S, kind>::getQuadraturePoints(const ElementType & type,
-					     const GhostType & ghost_type) const {
+FEEngineTemplate<I, S, kind>::getQuadraturePoints(const ElementType & type,
+						  const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
   const Matrix<Real> * ret = NULL;
 
@@ -925,7 +928,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template <>
 template <>
-inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
+inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
 assembleLumpedTemplate<_triangle_6>(const Array<Real> & field_1,
 				    UInt nb_degree_of_freedom,
 				    Array<Real> & lumped,
@@ -938,7 +941,7 @@ assembleLumpedTemplate<_triangle_6>(const Array<Real> & field_1,
 /* -------------------------------------------------------------------------- */
 template <>
 template <>
-inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
+inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
 assembleLumpedTemplate<_tetrahedron_10>(const Array<Real> & field_1,
 					UInt nb_degree_of_freedom,
 					Array<Real> & lumped,
@@ -952,7 +955,7 @@ assembleLumpedTemplate<_tetrahedron_10>(const Array<Real> & field_1,
 template <>
 template <>
 inline void
-FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
+FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
 assembleLumpedTemplate<_quadrangle_8>(const Array<Real> & field_1,
 				      UInt nb_degree_of_freedom,
 				      Array<Real> & lumped,
@@ -965,9 +968,10 @@ assembleLumpedTemplate<_quadrangle_8>(const Array<Real> & field_1,
 /* -------------------------------------------------------------------------- */
 template<>
 template<>
-inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::computeNormalsOnControlPoints<_point_1>(__attribute__((unused))const Array<Real> & field,
-													      Array<Real> & normal,
-													      const GhostType & ghost_type) const {
+inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::
+computeNormalsOnControlPoints<_point_1>(__attribute__((unused))const Array<Real> & field,
+					Array<Real> & normal,
+					const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(mesh.getSpatialDimension() == 1, "Mesh dimension must be 1 to compute normals on points!");
@@ -1018,25 +1022,23 @@ inline void FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_regular>::computeNor
   AKANTU_DEBUG_OUT();
 }
 
+__END_AKANTU__
+
 
 /* -------------------------------------------------------------------------- */
 /* Shape Linked specialization                                                */
 /* -------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------- */
-
-
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
-__END_AKANTU__
 #include "shape_linked.hh"
+
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
 template <>
 inline const Array<Real> &
-FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(const ElementType & type,
-										const GhostType & ghost_type,
-										UInt id) const {
+FEEngineTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(const ElementType & type,
+										     const GhostType & ghost_type,
+										     UInt id) const {
   AKANTU_DEBUG_IN();
   const Array<Real> * ret = NULL;
 
@@ -1050,4 +1052,8 @@ FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(
   return *ret;
 }
 
+__END_AKANTU__
+
 #endif
+
+/* -------------------------------------------------------------------------- */

@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
   model.initFull(SolidMechanicsModelCohesiveOptions(_static));
 
   /// boundary conditions
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   UInt nb_nodes = mesh.getNbNodes();
   Array<Real> & position = mesh.getNodes();
   Array<Real> & displacement = model.getDisplacement();
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
 
   const MaterialCohesive & mat_coh = dynamic_cast< const MaterialCohesive &> (model.getMaterial(1));
 
-  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+  ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
 
   const Array<Real> & opening = mat_coh.getOpening(type_cohesive);
   //const Array<Real> & traction = mat_coh.getTraction(type_cohesive);

@@ -88,7 +88,7 @@ public:
 
   /// mesh event handler onRemovedElement
   virtual void onElementsRemoved(const Array<Element> & element_list,
-                                 const ByElementTypeUInt & new_numbering,
+                                 const ElementTypeMapArray<UInt> & new_numbering,
                                  const RemovedElementsEvent & event);
 
   /// filter elements of a certain kind and copy them into a new synchronizer
@@ -151,12 +151,32 @@ protected:
                                UInt nb_ghost_element,
                                ElementType type);
 
+  /// function that handels the MeshData to be split (root side)
+  static void synchronizeTagsSend(DistributedSynchronizer & communicator,
+				  UInt root,
+				  Mesh & mesh,
+				  UInt nb_tags,
+				  const ElementType & type,
+				  const Array<UInt> & partition_num,
+				  const CSR<UInt> & ghost_partition,
+				  UInt nb_local_element,
+				  UInt nb_ghost_element);
+
+  /// function that handels the MeshData to be split (other nodes)
+  static void synchronizeTagsRecv(DistributedSynchronizer & communicator,
+				  UInt root,
+				  Mesh & mesh,
+				  UInt nb_tags,
+				  const ElementType & type,
+				  UInt nb_local_element,
+				  UInt nb_ghost_element);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(PrankToElement, prank_to_element, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO(PrankToElement, prank_to_element, const ElementTypeMapArray<UInt> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -215,7 +235,7 @@ protected:
   friend class FilteredSynchronizer;
   friend class FacetSynchronizer;
 
-  ByElementTypeUInt prank_to_element;
+  ElementTypeMapArray<UInt> prank_to_element;
 
 };
 

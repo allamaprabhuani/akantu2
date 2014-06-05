@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
 
   model = new akantu::SolidMechanicsModel(mesh);
 
-  nb_nodes = model->getFEM().getMesh().getNbNodes();
-  nb_element = model->getFEM().getMesh().getNbElement(type);
+  nb_nodes = model->getFEEngine().getMesh().getNbNodes();
+  nb_element = model->getFEEngine().getMesh().getNbElement(type);
 
   lumped = new akantu::Array<akantu::Real>(nb_nodes, spatial_dimension);
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
   akantu::Real eps = 1e-16;
   const akantu::Array<akantu::Real> & pos = mesh.getNodes();
   akantu::Array<akantu::Real> & disp = model->getDisplacement();
-  akantu::Array<bool> & boun = model->getBoundary();
+  akantu::Array<bool> & boun = model->getBlockedDOFs();
 
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     if(pos(i, 0) >= 9.) disp(i, 0) = (pos(i, 0) - 9) / 100.;

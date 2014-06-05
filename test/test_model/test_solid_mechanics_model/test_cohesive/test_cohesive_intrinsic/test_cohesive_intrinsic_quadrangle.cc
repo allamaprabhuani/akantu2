@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
 
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   //  const Array<Real> & residual = model.getResidual();
 
   UInt nb_nodes = mesh.getNbNodes();
@@ -212,7 +212,7 @@ static void updateDisplacement(SolidMechanicsModelCohesive & model,
 			       ElementType type,
 			       Real increment) {
 
-  Mesh & mesh = model.getFEM().getMesh();
+  Mesh & mesh = model.getFEEngine().getMesh();
   UInt nb_element = elements.getSize();
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);

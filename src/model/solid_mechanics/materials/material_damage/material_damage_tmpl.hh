@@ -143,14 +143,14 @@ Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
   AKANTU_DEBUG_IN();
 
   Real de = 0.;
-  const Mesh & mesh = this->model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEEngine().getMesh();
 
   /// integrate the dissipated energy for each type of elements
   Mesh::type_iterator it  = mesh.firstType(spatial_dimension, _not_ghost);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
 
   for(; it != end; ++it) {
-    de += this->model->getFEM().integrate(dissipated_energy(*it, _not_ghost), *it,
+    de += this->model->getFEEngine().integrate(dissipated_energy(*it, _not_ghost), *it,
 					  _not_ghost, this->element_filter(*it, _not_ghost));
   }
 

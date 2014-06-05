@@ -33,7 +33,7 @@
 #define __AKANTU_MESH_DATA_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 #include "aka_memory.hh"
 #include <map>
 #include <string>
@@ -62,7 +62,7 @@ class MeshData : public Memory {
   /* ------------------------------------------------------------------------ */
 private:
   typedef MeshDataTypeCode TypeCode;
-  typedef std::map<std::string, ByElementTypeBase *> ElementalDataMap;
+  typedef std::map<std::string, ElementTypeMapBase *> ElementalDataMap;
   typedef std::vector<std::string> StringVector;
   typedef std::map<std::string, TypeCode> TypeCodeMap;
 
@@ -106,17 +106,17 @@ public:
   inline UInt getNbComponent(const std::string name, const ElementType & el_type, const GhostType & ghost_type = _not_ghost) const;
 
   template<typename T>
-  const ByElementTypeArray<T> & getElementalData(const std::string & name) const;
+  const ElementTypeMapArray<T> & getElementalData(const std::string & name) const;
 
   template<typename T>
-  ByElementTypeArray<T> & getElementalData(const std::string & name);
+  ElementTypeMapArray<T> & getElementalData(const std::string & name);
 
   template<typename T>
   TypeCode getTypeCode() const;
 
 private:
   template<typename T>
-  ByElementTypeArray<T> * allocElementalData(const std::string & name);
+  ElementTypeMapArray<T> * allocElementalData(const std::string & name);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

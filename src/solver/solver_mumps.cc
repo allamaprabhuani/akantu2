@@ -102,8 +102,8 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 SolverMumps::SolverMumps(SparseMatrix & matrix,
-			 const ID & id,
-			 const MemoryID & memory_id) :
+                         const ID & id,
+                         const MemoryID & memory_id) :
   Solver(matrix, id, memory_id), is_mumps_data_initialized(false), rhs_is_local(true) {
   AKANTU_DEBUG_IN();
 
@@ -312,7 +312,7 @@ void SolverMumps::solve() {
   icntl(21) = 0;
 
   matrix->saveMatrix("before_solve.mtx");
-  
+
   mumps_data.job = _smj_factorize_solve; //solve
   dmumps_c(&mumps_data);
 
@@ -322,7 +322,7 @@ void SolverMumps::solve() {
     case  -9: AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
     default:
       AKANTU_DEBUG_ERROR("Error in mumps during solve process, check mumps user guide INFO(1) ="
-			 << info(1));
+                         << info(1));
     }
   }
 

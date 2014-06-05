@@ -111,7 +111,7 @@ protected:
   const Mesh & mesh;
 
   /// shape functions for all elements
-  ByElementType< Matrix<Real> > control_points;
+  ElementTypeMap< Matrix<Real> > control_points;
 };
 
 

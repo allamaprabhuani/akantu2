@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
   Real rho = model.getMaterial(0).getRho();
 
-  FEM & fem = model.getFEM();
+  FEEngine & fem = model.getFEEngine();
   UInt nb_element = mesh.getNbElement(type);
   UInt nb_quadrature_points = fem.getNbQuadraturePoints(type) * nb_element;
   Array<Real> rho_on_quad(nb_quadrature_points, 1, rho, "rho_on_quad");

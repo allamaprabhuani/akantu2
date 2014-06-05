@@ -1,12 +1,12 @@
 /**
- * @file   fem.cc
+ * @file   fe_engine.cc
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date   Tue Jul 20 23:40:43 2010
  *
- * @brief  Implementation of the FEM class
+ * @brief  Implementation of the FEEngine class
  *
  * @section LICENSE
  *
@@ -29,7 +29,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "mesh.hh"
 #include "element_class.hh"
 #include "static_communicator.hh"
@@ -42,7 +42,7 @@
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-FEM::FEM(Mesh & mesh, UInt element_dimension, ID id, MemoryID memory_id) :
+FEEngine::FEEngine(Mesh & mesh, UInt element_dimension, ID id, MemoryID memory_id) :
   Memory(id, memory_id), mesh(mesh), normals_on_quad_points("normals_on_quad_points", id) {
   AKANTU_DEBUG_IN();
   this->element_dimension = (element_dimension != _all_dimensions) ?
@@ -54,12 +54,12 @@ FEM::FEM(Mesh & mesh, UInt element_dimension, ID id, MemoryID memory_id) :
 }
 
 /* -------------------------------------------------------------------------- */
-void FEM::init() {
+void FEEngine::init() {
 
 }
 
 /* -------------------------------------------------------------------------- */
-FEM::~FEM() {
+FEEngine::~FEEngine() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -67,14 +67,14 @@ FEM::~FEM() {
 
 
 /* -------------------------------------------------------------------------- */
-void FEM::assembleArray(const Array<Real> & elementary_vect,
-			 Array<Real> & nodal_values,
-			 const Array<Int> & equation_number,
-			 UInt nb_degree_of_freedom,
-			 const ElementType & type,
-			 const GhostType & ghost_type,
-			 const Array<UInt> & filter_elements,
-			 Real scale_factor) const {
+void FEEngine::assembleArray(const Array<Real> & elementary_vect,
+			     Array<Real> & nodal_values,
+			     const Array<Int> & equation_number,
+			     UInt nb_degree_of_freedom,
+			     const ElementType & type,
+			     const GhostType & ghost_type,
+			     const Array<UInt> & filter_elements,
+			     Real scale_factor) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_element;
@@ -86,11 +86,11 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
   if(filter_elements != empty_filter) {
     nb_element = filter_elements.getSize();
     filtered_connectivity = new Array<UInt>(0, nb_nodes_per_element);
-    FEM::filterElementalData(mesh,
-                             mesh.getConnectivity(type, ghost_type),
-                             *filtered_connectivity,
-                             type, ghost_type,
-                             filter_elements);
+    FEEngine::filterElementalData(mesh,
+				  mesh.getConnectivity(type, ghost_type),
+				  *filtered_connectivity,
+				  type, ghost_type,
+				  filter_elements);
     const Array<UInt> & cfiltered = *filtered_connectivity; // \todo temporary patch
     conn_it = cfiltered.begin(nb_nodes_per_element);
   } else {
@@ -119,7 +119,7 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
   nodal_values.resize(mesh.getNbNodes());
   Real * nodal_it  = nodal_values.storage();
   Array<Real>::const_matrix_iterator elem_it  = elementary_vect.begin(nb_degree_of_freedom,
-                                                                               nb_nodes_per_element);
+								      nb_nodes_per_element);
 
   for (UInt el = 0; el < nb_element; ++el, ++elem_it, ++conn_it) {
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
@@ -140,12 +140,12 @@ void FEM::assembleArray(const Array<Real> & elementary_vect,
 }
 
 /* -------------------------------------------------------------------------- */
-void FEM::assembleMatrix(const Array<Real> & elementary_mat,
-			 SparseMatrix & matrix,
-			 UInt nb_degree_of_freedom,
-			 const ElementType & type,
-			 const GhostType & ghost_type,
-			 const Array<UInt> & filter_elements) const {
+void FEEngine::assembleMatrix(const Array<Real> & elementary_mat,
+			      SparseMatrix & matrix,
+			      UInt nb_degree_of_freedom,
+			      const ElementType & type,
+			      const GhostType & ghost_type,
+			      const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
 
@@ -217,11 +217,11 @@ void FEM::assembleMatrix(const Array<Real> & elementary_mat,
 }
 
 /* -------------------------------------------------------------------------- */
-void FEM::printself(std::ostream & stream, int indent) const {
+void FEEngine::printself(std::ostream & stream, int indent) const {
   std::string space;
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
-  stream << space << "FEM [" << std::endl;
+  stream << space << "FEEngine [" << std::endl;
   stream << space << " + id                : " << id << std::endl;
   stream << space << " + element dimension : " << element_dimension << std::endl;
 
@@ -232,6 +232,7 @@ void FEM::printself(std::ostream & stream, int indent) const {
 
   stream << space << "]" << std::endl;
 }
+
 /* -------------------------------------------------------------------------- */
 
 

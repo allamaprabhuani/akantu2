@@ -1,5 +1,5 @@
 /**
- * @file   fem.hh
+ * @file   fe_engine.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
@@ -30,8 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_FEM_HH__
-#define __AKANTU_FEM_HH__
+#ifndef __AKANTU_FE_ENGINE_HH__
+#define __AKANTU_FE_ENGINE_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
@@ -106,19 +106,19 @@ private:
 };
 
 /**
- * The  generic  FEM class  derived  in  a  FEMTemplate class  containing  the
+ * The  generic  FEEngine class  derived  in  a  FEEngineTemplate class  containing  the
  * shape functions and the integration method
  */
-class FEM : protected Memory {
+class FEEngine : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
 
-  FEM(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+  FEEngine(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
       ID id = "fem", MemoryID memory_id = 0);
 
-  virtual ~FEM();
+  virtual ~FEEngine();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -182,7 +182,7 @@ public:
 
 
   /* ------------------------------------------------------------------------ */
-  /* compatibility with old FEM fashion */
+  /* compatibility with old FEEngine fashion */
   /* ------------------------------------------------------------------------ */
   /// get the number of quadrature points
   virtual UInt getNbQuadraturePoints(const ElementType & type,
@@ -221,8 +221,8 @@ public:
 
   virtual
   void interpolateOnQuadraturePoints(const Array<Real> & u,
-				     ByElementTypeReal & uq,
-                                     const ByElementTypeUInt * filter_elements = NULL) const = 0;
+				     ElementTypeMapArray<Real> & uq,
+                                     const ElementTypeMapArray<UInt> * filter_elements = NULL) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */
@@ -299,11 +299,13 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
+  /// get the dimension of the element handeled by this fe_engine object
   AKANTU_GET_MACRO(ElementDimension, element_dimension, UInt);
 
   /// get the mesh contained in the fem object
-  inline Mesh & getMesh() const;
+  AKANTU_GET_MACRO(Mesh, mesh, const Mesh &);
+  /// get the mesh contained in the fem object
+  AKANTU_GET_MACRO_NOT_CONST(Mesh, mesh, Mesh &);
 
   /// get the in-radius of an element
   static inline Real getElementInradius(const Matrix<Real> & coord, const ElementType & type);
@@ -314,10 +316,12 @@ public:
   /// get cohesive element type for a given facet type
   static inline ElementType getCohesiveElementType(const ElementType & type_facet);
 
+  /// get the interpolation element associated to an element type
+  static inline InterpolationType getInterpolationType(const ElementType & el_type);
+
+
   virtual const ShapeFunctions & getShapeFunctionsInterface() const = 0;
   virtual const Integrator & getIntegratorInterface() const = 0;
-
-  static inline InterpolationType getInterpolationType(const ElementType & el_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -330,7 +334,7 @@ protected:
   Mesh & mesh;
 
   /// normals at quadrature points
-  ByElementTypeReal normals_on_quad_points;
+  ElementTypeMapArray<Real> normals_on_quad_points;
 
 };
 
@@ -338,13 +342,8 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "fem_inline_impl.cc"
-#endif
-
-
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const FEM & _this)
+inline std::ostream & operator <<(std::ostream & stream, const FEEngine & _this)
 {
   _this.printself(stream);
   return stream;
@@ -360,6 +359,7 @@ inline std::ostream & operator <<(std::ostream & stream, const QuadraturePoint &
 
 __END_AKANTU__
 
-#include "fem_template.hh"
+#include "fe_engine_inline_impl.cc"
+#include "fe_engine_template.hh"
 
-#endif /* __AKANTU_FEM_HH__ */
+#endif /* __AKANTU_FE_ENGINE_HH__ */

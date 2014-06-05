@@ -31,7 +31,7 @@
 #include "grid_synchronizer.hh"
 #include "aka_grid_dynamic.hh"
 #include "mesh.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "static_communicator.hh"
 #include "mesh_io.hh"
 #include <iostream>
@@ -95,7 +95,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   std::fill_n(first_cells, 3 * nb_proc, 0);
   std::fill_n(first_cells, 3 * nb_proc, 0);
 
-  ByElementTypeUInt ** element_per_proc = new ByElementTypeUInt* [nb_proc];
+  ElementTypeMapArray<UInt> ** element_per_proc = new ElementTypeMapArray<UInt>* [nb_proc];
   for (UInt p = 0; p < nb_proc; ++p) element_per_proc[p] = NULL;
 
   // check the overlapping between my box and the one from other processors
@@ -230,8 +230,8 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
       AKANTU_DEBUG_INFO("I have prepared " << to_send->size() << " elements to send to processor " << p);
 
       std::stringstream sstr; sstr << "element_per_proc_" << p;
-      element_per_proc[p] = new ByElementTypeUInt(sstr.str(), id);
-      ByElementTypeUInt & elempproc = *(element_per_proc[p]);
+      element_per_proc[p] = new ElementTypeMapArray<UInt>(sstr.str(), id);
+      ElementTypeMapArray<UInt> & elempproc = *(element_per_proc[p]);
 
       typename std::set<Element>::iterator elem = to_send->begin();
       typename std::set<Element>::iterator last_elem = to_send->end();
@@ -239,7 +239,7 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
         ElementType type = elem->type;
         UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
-        // /!\ this part must be slow due to the access in the ByElementTypeUInt
+        // /!\ this part must be slow due to the access in the ElementTypeMapArray<UInt>
         if(!elempproc.exists(type))
           elempproc.alloc(0, nb_nodes_per_element, type, _not_ghost);
 
@@ -278,10 +278,10 @@ GridSynchronizer * GridSynchronizer::createGridSynchronizer(Mesh & mesh,
   for (UInt p = 0; p < nb_proc; ++p) {
     if(p == my_rank) continue;
     if(intersects_proc[p]) {
-      ByElementTypeUInt & elempproc = *(element_per_proc[p]);
+      ElementTypeMapArray<UInt> & elempproc = *(element_per_proc[p]);
 
-      ByElementTypeUInt::type_iterator it_type   = elempproc.firstType(_all_dimensions, _not_ghost);
-      ByElementTypeUInt::type_iterator last_type = elempproc.lastType (_all_dimensions, _not_ghost);
+      ElementTypeMapArray<UInt>::type_iterator it_type   = elempproc.firstType(_all_dimensions, _not_ghost);
+      ElementTypeMapArray<UInt>::type_iterator last_type = elempproc.lastType (_all_dimensions, _not_ghost);
 
       UInt count = 0;
       for (; it_type != last_type; ++it_type) {

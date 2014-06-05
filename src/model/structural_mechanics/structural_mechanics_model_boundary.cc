@@ -36,8 +36,8 @@ __BEGIN_AKANTU__
 template<>
 void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_2>(Array<Real> & N_matrix) {
   AKANTU_DEBUG_IN();
-  MyFEMType & fem = getFEMClass<MyFEMType>();
-  UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(_bernoulli_beam_2);
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
+  UInt nb_nodes_per_element = getFEEngine().getMesh().getNbNodesPerElement(_bernoulli_beam_2);
 
   Array<Real>::const_vector_iterator shape_N0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
   Array<Real>::const_vector_iterator shape_M0 = fem.getShapeFunctions().getShapes(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
@@ -81,8 +81,8 @@ void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_
 
   ElementType type = _bernoulli_beam_3;
 
-  MyFEMType & fem = getFEMClass<MyFEMType>();
-  UInt nb_nodes_per_element = getFEM().getMesh().getNbNodesPerElement(type);
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
+  UInt nb_nodes_per_element = getFEEngine().getMesh().getNbNodesPerElement(type);
 
   Array<Real>::const_vector_iterator shape_N0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 0).begin(nb_nodes_per_element);
   Array<Real>::const_vector_iterator shape_M0 = fem.getShapeFunctions().getShapes(type, _not_ghost, 1).begin(nb_nodes_per_element);

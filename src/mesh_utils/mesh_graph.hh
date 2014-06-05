@@ -49,7 +49,7 @@
 #include <boost/graph/connected_components.hpp>
 
 #include "mesh.hh"
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 
 #define DEBUG_GRAPH 1
 
@@ -108,7 +108,7 @@ private:
   void connectedComponents(Mesh& mesh) {
     
     // initialize container
-    mesh.initByElementTypeArray(components_,1,mesh.getSpatialDimension(),false,_ek_regular,true);
+    mesh.initElementTypeMapArray(components_,1,mesh.getSpatialDimension(),false,_ek_regular,true);
 
     // obtain a property map for the vertex_index property
     boost::property_map<graph_type, boost::vertex_index1_t>::type index = boost::get(boost::vertex_index1_t(), g_);
@@ -126,7 +126,7 @@ private:
     cout << endl;
 #endif
     
-    // fill ByElementType components array
+    // fill ElementTypeMap components array
     std::pair<vertex_iter, vertex_iter> vp;
     size_t k=0;
     std::set<size_t> comp;
@@ -144,7 +144,7 @@ private:
 
   
   graph_type g_;                       //!< Mesh graph
-  ByElementTypeUInt components_;       //!< Array that stores the components
+  ElementTypeMapArray<UInt> components_;       //!< Array that stores the components
   size_t num_;                         //!< Number of components
 };
 

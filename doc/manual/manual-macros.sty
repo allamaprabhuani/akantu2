@@ -3,7 +3,11 @@
 
 \newcommand{\examplesdir}{\texttt{examples}}
 
-\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\mybox}[2][fill=cppbg]{%
+  \tikz[baseline=-0.5ex] \node at (0,0) [#1,inner sep=2pt]{#2};}
+
+\newcommand{\code}[1]{\mybox{\texttt{#1}}}
+\newcommand{\shellcode}[1]{\mybox[fill=shellbg]{\texttt{#1}}}
 \newcommand{\note}[2][]{\textbf{Note#1: }\textit{#2}}
 \newcommand{\todo}[1]{~({\small\color{red}\textbf{TODO: }\textbf{#1}})}
 

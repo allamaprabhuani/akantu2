@@ -83,18 +83,18 @@ public:
   virtual void integrationSchemePred(Real delta_t,
 				     Array<Real> & u,
 				     Array<Real> & u_dot,
-				     Array<bool> & boundary);
+				     Array<bool> & blocked_dofs);
 
   virtual void integrationSchemeCorrTemp(Real delta_t,
 					 Array<Real> & u,
 					 Array<Real> & u_dot,
-					 Array<bool> & boundary,
+					 Array<bool> & blocked_dofs,
 					 Array<Real> & delta);
 
   virtual void integrationSchemeCorrTempRate(Real delta_t,
 					     Array<Real> & u,
 					     Array<Real> & u_dot,
-					     Array<bool> & boundary,
+					     Array<bool> & blocked_dofs,
 					     Array<Real> & delta);
 
 public:
@@ -111,7 +111,7 @@ private:
   void integrationSchemeCorr(Real delta_t,
 			     Array<Real> & u,
 			     Array<Real> & u_dot,
-			     Array<bool> & boundary,
+			     Array<bool> & blocked_dofs,
 			     Array<Real> & delta);
 
   /* ------------------------------------------------------------------------ */

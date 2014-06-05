@@ -80,7 +80,7 @@ public:
 
   /// register a filtered mesh as the default dumper
   void addDumpFilteredMesh(const Mesh & mesh,
-                           const ByElementTypeArray<UInt> & elements_filter,
+                           const ElementTypeMapArray<UInt> & elements_filter,
                            const Array<UInt> & nodes_filter,
                            UInt spatial_dimension = _all_dimensions,
                            const GhostType & ghost_type = _not_ghost,
@@ -89,7 +89,7 @@ public:
   /// register a filtered mesh and provides a name
   void addDumpFilteredMeshToDumper(const std::string & dumper_name,
                                    const Mesh & mesh,
-                                   const ByElementTypeArray<UInt> & elements_filter,
+                                   const ElementTypeMapArray<UInt> & elements_filter,
                                    const Array<UInt> & nodes_filter,
                                    UInt spatial_dimension = _all_dimensions,
                                    const GhostType & ghost_type = _not_ghost,
@@ -117,14 +117,14 @@ public:
                                     const Array<T> & field);
   template<typename T>
   void addDumpFieldExternal(const std::string & field_id,
-                            const ByElementTypeArray<T> & field,
+                            const ElementTypeMapArray<T> & field,
                             UInt spatial_dimension = _all_dimensions,
                             const GhostType & ghost_type = _not_ghost,
                             const ElementKind & element_kind = _ek_not_defined);
   template<typename T>
   void addDumpFieldExternalToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
-                                    const ByElementTypeArray<T> & field,
+                                    const ElementTypeMapArray<T> & field,
                                     UInt spatial_dimension = _all_dimensions,
                                     const GhostType & ghost_type = _not_ghost,
                                     const ElementKind & element_kind = _ek_not_defined);
@@ -246,7 +246,7 @@ public:
   }
 
   void addDumpFilteredMesh(const Mesh & mesh,
-                           const ByElementTypeArray<UInt> & elements_filter,
+                           const ElementTypeMapArray<UInt> & elements_filter,
                            const Array<UInt> & nodes_filter,
                            UInt spatial_dimension = _all_dimensions,
                            const GhostType & ghost_type = _not_ghost,
@@ -255,7 +255,7 @@ public:
 
   void addDumpFilteredMeshToDumper(const std::string & dumper_name,
                                    const Mesh & mesh,
-                                   const ByElementTypeArray<UInt> & elements_filter,
+                                   const ElementTypeMapArray<UInt> & elements_filter,
                                    const Array<UInt> & nodes_filter,
                                    UInt spatial_dimension = _all_dimensions,
                                    const GhostType & ghost_type = _not_ghost,
@@ -294,7 +294,7 @@ public:
 
   template<typename T>
   void addDumpFieldExternal(const std::string & field_id,
-                            const ByElementTypeArray<T> & field,
+                            const ElementTypeMapArray<T> & field,
                             UInt spatial_dimension = _all_dimensions,
                             const GhostType & ghost_type = _not_ghost,
                             const ElementKind & element_kind = _ek_not_defined) {
@@ -303,7 +303,7 @@ public:
   template<typename T>
   void addDumpFieldExternalToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
-                                    const ByElementTypeArray<T> & field,
+                                    const ElementTypeMapArray<T> & field,
                                     UInt spatial_dimension = _all_dimensions,
                                     const GhostType & ghost_type = _not_ghost,
                                     const ElementKind & element_kind = _ek_not_defined) {

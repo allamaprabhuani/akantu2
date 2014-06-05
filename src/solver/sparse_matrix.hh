@@ -219,7 +219,7 @@ private:
   UInt size_save;
 
   /// information to know where to assemble an element in a global sparse matrix
-  //  ByElementTypeUInt element_to_sparse_profile;
+  //  ElementTypeMapArray<UInt> element_to_sparse_profile;
 
   /* map for  (i,j) ->  k correspondence \warning std::map are slow
    *  \todo improve  with hash_map (non standard in stl) or unordered_map (boost or C++0x)

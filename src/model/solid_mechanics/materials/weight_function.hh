@@ -65,7 +65,7 @@ public:
 
   virtual void init() { R2 = R * R; };
 
-  virtual void updateInternals(__attribute__((unused)) const ByElementTypeReal & quadrature_points_coordinates) {};
+  virtual void updateInternals(__attribute__((unused)) const ElementTypeMapArray<Real> & quadrature_points_coordinates) {};
 
   /* ------------------------------------------------------------------------ */
   inline void setRadius(Real radius) { R = radius; R2 = R * R; }
@@ -223,7 +223,7 @@ public:
                                       const Array<Element> & elements,
                                       SynchronizationTag tag) const {
     if(tag == _gst_mnl_weight) {
-      ByElementTypeArray<Real> & damage = this->material.getInternal("damage");
+      ElementTypeMapArray<Real> & damage = this->material.getInternal("damage");
       this->material.packElementDataHelper(damage,
                                            buffer,
                                            elements);
@@ -252,7 +252,7 @@ public:
                                         const Array<Element> & elements,
                                         SynchronizationTag tag) {
     if(tag == _gst_mnl_weight) {
-      ByElementTypeArray<Real> & damage = this->material.getInternal("damage");
+      ElementTypeMapArray<Real> & damage = this->material.getInternal("damage");
       this->material.unpackElementDataHelper(damage,
                                              buffer,
                                              elements);
@@ -343,14 +343,14 @@ public:
 
   void init();
 
-  virtual void updateInternals(__attribute__((unused)) const ByElementTypeReal & quadrature_points_coordinates) {
+  virtual void updateInternals(__attribute__((unused)) const ElementTypeMapArray<Real> & quadrature_points_coordinates) {
     updatePrincipalStress(_not_ghost);
     updatePrincipalStress(_ghost);
   };
 
   void updatePrincipalStress(GhostType ghost_type);
 
-  inline void updateQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates);
+  inline void updateQuadraturePointsCoordinates(ElementTypeMapArray<Real> & quadrature_points_coordinates);
 
   inline void selectType(ElementType type1, GhostType ghost_type1,
                          ElementType type2, GhostType ghost_type2);

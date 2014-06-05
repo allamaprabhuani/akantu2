@@ -102,7 +102,7 @@ int main(int argc, char *argv[]){
 
   Array<Real> & forces = model.getForce();
   Array<Real> & displacement = model.getDisplacement();
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   //  const Array<Real> & N_M  = model.getStress(_bernoulli_beam_2);
 
   //  Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);

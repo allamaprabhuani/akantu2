@@ -29,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline FEM & HeatTransferModel::getFEMBoundary(std::string name) {
-  return dynamic_cast<FEM &>(getFEMClassBoundary<MyFEMType>(name));
+inline FEEngine & HeatTransferModel::getFEEngineBoundary(std::string name) {
+  return dynamic_cast<FEEngine &>(getFEEngineClassBoundary<MyFEEngineType>(name));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -38,7 +38,7 @@ inline UInt HeatTransferModel::getNbDataToPack(SynchronizationTag tag) const{
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = getFEEngine().getMesh().getNbNodes();
 
   switch(tag) {
   case _gst_htm_temperature:
@@ -60,7 +60,7 @@ inline UInt HeatTransferModel::getNbDataToUnpack(SynchronizationTag tag) const{
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = getFEEngine().getMesh().getNbNodes();
 
   switch(tag) {
   case _gst_htm_capacity:
@@ -191,7 +191,7 @@ inline void HeatTransferModel::packElementData(CommunicationBuffer & buffer,
     break;
   }
   case _gst_htm_gradient_temperature: {
-    packElementalDataHelper(temperature_gradient, buffer, elements, true, getFEM());
+    packElementalDataHelper(temperature_gradient, buffer, elements, true, getFEEngine());
     packNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
   }
@@ -227,7 +227,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
   }
 
   // Vector<Real> coords(spatial_dimension);
-  // Real * nodes = getFEM().getMesh().getNodes().storage();
+  // Real * nodes = getFEEngine().getMesh().getNodes().storage();
   // for (UInt n = 0; n < nb_nodes_per_element; ++n) {
   //   buffer >> coords;
   //   UInt offset_conn = conn[el_offset + n];
@@ -252,7 +252,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
     break;
   }
   case _gst_htm_gradient_temperature: {
-    unpackElementalDataHelper(temperature_gradient, buffer, elements, true, getFEM());
+    unpackElementalDataHelper(temperature_gradient, buffer, elements, true, getFEEngine());
     unpackNodalDataHelper(*temperature, buffer, elements, mesh);
 
     // //    Real tolerance = 1e-15;
@@ -267,7 +267,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
     //     temperatures_str << (*temperature)(offset_conn) << " ";
     //   }
     //   Array<Real>::matrix_iterator it_shaped =
-    //     const_cast<Array<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
+    //     const_cast<Array<Real> &>(getFEEngine().getShapesDerivatives(element.type, ghost_type))
     //     .begin(nb_nodes_per_element,spatial_dimension);
 
 
@@ -278,7 +278,7 @@ inline void HeatTransferModel::unpackElementData(CommunicationBuffer & buffer,
     //     	       << std::scientific << std::setprecision(20)
     //     	       << " distant temperatures " << temp_nodes
     //     	       << "temperature gradient size " << temperature_gradient(element.type, ghost_type).getSize()
-    //     	       << " number of ghost elements " << getFEM().getMesh().getNbElement(element.type,_ghost)
+    //     	       << " number of ghost elements " << getFEEngine().getMesh().getNbElement(element.type,_ghost)
     //     	       << std::scientific << std::setprecision(20)
     //     	       << " shaped " << shaped
     //     	       << std::scientific << std::setprecision(20)

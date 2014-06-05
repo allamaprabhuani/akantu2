@@ -58,14 +58,14 @@ int main(int argc, char *argv[]) {
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < mesh.getNbNodes(); ++i) {
     if(mesh.getNodes()(i) >= 9)
-      model->getDisplacement()(i) = (model->getFEM().getMesh().getNodes()(i) - 9) / 100. ;
+      model->getDisplacement()(i) = (model->getFEEngine().getMesh().getNodes()(i) - 9) / 100. ;
 
     if(mesh.getNodes()(i) <= eps)
-	model->getBoundary()(i) = true;
+	model->getBlockedDOFs()(i) = true;
 
     if(mesh.getNodes()(i, 1) <= eps ||
        mesh.getNodes()(i, 1) >= 1 - eps ) {
-      model->getBoundary()(i, 1) = true;
+      model->getBlockedDOFs()(i, 1) = true;
     }
   }
 

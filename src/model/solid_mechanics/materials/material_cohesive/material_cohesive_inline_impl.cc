@@ -48,10 +48,10 @@ inline UInt MaterialCohesive::getNbDataForElements(const Array<Element> & elemen
 
   switch (tag) {
   case _gst_smm_stress: {
-    return 2 * spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
+    return 2 * spatial_dimension * sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEEngine");
   }
   case _gst_smmc_damage: {
-    return sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEM");
+    return sizeof(Real) * this->getModel().getNbQuadraturePoints(elements, "CohesiveFEEngine");
   }
   default: {}
   }
@@ -65,12 +65,12 @@ inline void MaterialCohesive::packElementData(CommunicationBuffer & buffer,
 					      SynchronizationTag tag) const {
   switch (tag) {
   case _gst_smm_stress: {
-    packElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
-    packElementDataHelper(contact_tractions, buffer, elements, "CohesiveFEM");
+    packElementDataHelper(tractions, buffer, elements, "CohesiveFEEngine");
+    packElementDataHelper(contact_tractions, buffer, elements, "CohesiveFEEngine");
     break;
   }
   case _gst_smmc_damage:
-    packElementDataHelper(damage, buffer, elements, "CohesiveFEM"); break;
+    packElementDataHelper(damage, buffer, elements, "CohesiveFEEngine"); break;
   default: {}
   }
 }
@@ -81,12 +81,12 @@ inline void MaterialCohesive::unpackElementData(CommunicationBuffer & buffer,
 						SynchronizationTag tag) {
   switch (tag) {
   case _gst_smm_stress: {
-    unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEM");
-    unpackElementDataHelper(contact_tractions, buffer, elements, "CohesiveFEM");
+    unpackElementDataHelper(tractions, buffer, elements, "CohesiveFEEngine");
+    unpackElementDataHelper(contact_tractions, buffer, elements, "CohesiveFEEngine");
     break;
   }
   case _gst_smmc_damage:
-    unpackElementDataHelper(damage, buffer, elements, "CohesiveFEM"); break;
+    unpackElementDataHelper(damage, buffer, elements, "CohesiveFEEngine"); break;
   default: {}
   }
 }

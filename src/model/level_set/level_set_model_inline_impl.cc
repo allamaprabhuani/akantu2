@@ -28,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline FEM & LevelSetModel::getFEMBoundary(std::string name) {
-  return dynamic_cast<FEM &>(getFEMClassBoundary<MyFEMType>(name));
+inline FEEngine & LevelSetModel::getFEEngineBoundary(std::string name) {
+  return dynamic_cast<FEEngine &>(getFEEngineClassBoundary<MyFEEngineType>(name));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -37,7 +37,7 @@ inline UInt LevelSetModel::getNbDataToPack(SynchronizationTag tag) const{
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  //UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  //UInt nb_nodes = getFEEngine().getMesh().getNbNodes();
 
   switch(tag) {
   case _gst_htm_phi:
@@ -55,7 +55,7 @@ inline UInt LevelSetModel::getNbDataToUnpack(SynchronizationTag tag) const{
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = getFEEngine().getMesh().getNbNodes();
 
   switch(tag) {
   case _gst_htm_phi: {
@@ -182,13 +182,13 @@ inline void LevelSetModel::packData(CommunicationBuffer & buffer,
   GhostType ghost_type = _not_ghost;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).storage();
+  UInt * conn  = getFEEngine().getMesh().getConnectivity(element.type, ghost_type).storage();
 
 #ifndef AKANTU_NDEBUG
   Vector<Real> barycenter(spatial_dimension);
-  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter.storage(), ghost_type);
+  getFEEngine().getMesh().getBarycenter(element.element, element.type, barycenter.storage(), ghost_type);
   buffer << barycenter;
-  Real * nodes = getFEM().getMesh().getNodes().storage();
+  Real * nodes = getFEEngine().getMesh().getNodes().storage();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt offset_conn = conn[el_offset + n];
     for (UInt s = 0; s < spatial_dimension; ++s) {
@@ -217,7 +217,7 @@ inline void LevelSetModel::packData(CommunicationBuffer & buffer,
     }
 
     Array<Real>::const_matrix_iterator it_shaped =
-      getFEM().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
+      getFEEngine().getShapesDerivatives(element.type, ghost_type).begin(nb_nodes_per_element,spatial_dimension);
     buffer << it_shaped[element.element];
     break;
   }
@@ -234,11 +234,11 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
   GhostType ghost_type = _ghost;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
   UInt el_offset  = element.element * nb_nodes_per_element;
-  UInt * conn  = getFEM().getMesh().getConnectivity(element.type, ghost_type).storage();
+  UInt * conn  = getFEEngine().getMesh().getConnectivity(element.type, ghost_type).storage();
 
 #ifndef AKANTU_NDEBUG
   Vector<Real> barycenter_loc(spatial_dimension);
-  getFEM().getMesh().getBarycenter(element.element, element.type, barycenter_loc.storage(), ghost_type);
+  getFEEngine().getMesh().getBarycenter(element.element, element.type, barycenter_loc.storage(), ghost_type);
 
   Vector<Real> barycenter(spatial_dimension);
   buffer >> barycenter;
@@ -252,7 +252,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
   }
 
   Vector<Real> coords(spatial_dimension);
-  Real * nodes = getFEM().getMesh().getNodes().storage();
+  Real * nodes = getFEEngine().getMesh().getNodes().storage();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     buffer >> coords;
     UInt offset_conn = conn[el_offset + n];
@@ -274,7 +274,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
       Real tbuffer;
       buffer >> tbuffer;
 #ifndef AKANTU_NDEBUG
-      // if (!getFEM().getMesh().isPureGhostNode(offset_conn)){
+      // if (!getFEEngine().getMesh().isPureGhostNode(offset_conn)){
       // 	if (std::abs(tbuffer - (*temperature)(offset_conn)) > 1e-15){
       // 	  AKANTU_EXCEPTION(std::scientific << std::setprecision(20)
       // 			   << "local node is impacted with a different value computed from a distant proc"
@@ -311,7 +311,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
 	phi_str << (*phi)(offset_conn) << " ";
       }
       Array<Real>::matrix_iterator it_shaped =
-	const_cast<Array<Real> &>(getFEM().getShapesDerivatives(element.type, ghost_type))
+	const_cast<Array<Real> &>(getFEEngine().getShapesDerivatives(element.type, ghost_type))
 	.begin(nb_nodes_per_element,spatial_dimension);
 
 
@@ -322,7 +322,7 @@ inline void LevelSetModel::unpackData(CommunicationBuffer & buffer,
 		       << std::scientific << std::setprecision(20)
 		       << " distant phi " << phi_nodes
 		       << "phi gradient size " << phi_gradient(element.type, ghost_type).getSize()
-		       << " number of ghost elements " << getFEM().getMesh().getNbElement(element.type,_ghost)
+		       << " number of ghost elements " << getFEEngine().getMesh().getNbElement(element.type,_ghost)
 		       << std::scientific << std::setprecision(20)
 		       << " shaped " << shaped
 		       << std::scientific << std::setprecision(20)

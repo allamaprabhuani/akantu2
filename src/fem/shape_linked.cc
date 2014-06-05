@@ -53,9 +53,9 @@ ShapeLinked<_ek_structural>::~ShapeLinked() {
     GhostType ghost_type = *gt;
 
     // delete all the shapes id
-    ByElementTypeMultiReal::type_iterator s_type_it  =
+    ElementTypeMapMultiReal::type_iterator s_type_it  =
       shapes.firstType(_all_dimensions, ghost_type, _ek_structural);
-    ByElementTypeMultiReal::type_iterator s_type_end =
+    ElementTypeMapMultiReal::type_iterator s_type_end =
       shapes.lastType (_all_dimensions, ghost_type, _ek_structural);
 
     for(; s_type_it != s_type_end; ++s_type_it) {
@@ -64,9 +64,9 @@ ShapeLinked<_ek_structural>::~ShapeLinked() {
 
 
     // delete all the shapes derivatives id
-    ByElementTypeMultiReal::type_iterator sd_type_it  =
+    ElementTypeMapMultiReal::type_iterator sd_type_it  =
       shapes_derivatives.firstType(_all_dimensions, ghost_type, _ek_structural);
-    ByElementTypeMultiReal::type_iterator sd_type_end =
+    ElementTypeMapMultiReal::type_iterator sd_type_end =
       shapes_derivatives.lastType (_all_dimensions, ghost_type, _ek_structural);
 
     for(; sd_type_it != sd_type_end; ++sd_type_it) {

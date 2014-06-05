@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   UInt nb_partitions = 8;
   akantu::Mesh mesh(dim);
   mesh.read("quad.msh");
-  ByElementTypeArray<UInt> partition;
+  ElementTypeMapArray<UInt> partition;
   UInt nb_component = 1;
   GhostType gt = _not_ghost;
   Mesh::type_iterator tit = mesh.firstType(dim, gt);

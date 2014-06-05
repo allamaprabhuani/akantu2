@@ -59,12 +59,12 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
   rotation_matrix("rotation_matices", id, memory_id) {
   AKANTU_DEBUG_IN();
 
-  registerFEMObject<MyFEMType>("StructuralMechanicsFEM", mesh, spatial_dimension);
+  registerFEEngineObject<MyFEEngineType>("StructuralMechanicsFEEngine", mesh, spatial_dimension);
 
   this->displacement_rotation = NULL;
   this->force_momentum        = NULL;
   this->residual              = NULL;
-  this->boundary              = NULL;
+  this->blocked_dofs              = NULL;
   this->increment             = NULL;
 
   if(spatial_dimension == 2)
@@ -104,12 +104,12 @@ void StructuralMechanicsModel::initFull(std::string material) {
   displacement_rotation->clear();
   force_momentum       ->clear();
   residual             ->clear();
-  boundary             ->clear();
+  blocked_dofs             ->clear();
   increment            ->clear();
 
 
-  Mesh::type_iterator it = getFEM().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
-  Mesh::type_iterator end = getFEM().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator it = getFEEngine().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator end = getFEEngine().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
   for (; it != end; ++it) {
     computeRotationMatrix(*it);
   }
@@ -119,24 +119,24 @@ void StructuralMechanicsModel::initFull(std::string material) {
 void StructuralMechanicsModel::initArrays() {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes = getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = getFEEngine().getMesh().getNbNodes();
   std::stringstream sstr_disp; sstr_disp << id << ":displacement";
   std::stringstream sstr_forc; sstr_forc << id << ":force";
   std::stringstream sstr_resi; sstr_resi << id << ":residual";
-  std::stringstream sstr_boun; sstr_boun << id << ":boundary";
+  std::stringstream sstr_boun; sstr_boun << id << ":blocked_dofs";
   std::stringstream sstr_incr; sstr_incr << id << ":increment";
 
   displacement_rotation = &(alloc<Real>(sstr_disp.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
   force_momentum        = &(alloc<Real>(sstr_forc.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
   residual              = &(alloc<Real>(sstr_resi.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
-  boundary              = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degree_of_freedom, false));
+  blocked_dofs              = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degree_of_freedom, false));
   increment             = &(alloc<Real>(sstr_incr.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
 
-  Mesh::type_iterator it = getFEM().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
-  Mesh::type_iterator end = getFEM().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator it = getFEEngine().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator end = getFEEngine().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
   for (; it != end; ++it) {
-    UInt nb_element = getFEM().getMesh().getNbElement(*it);
-    UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(*it);
+    UInt nb_element = getFEEngine().getMesh().getNbElement(*it);
+    UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(*it);
 
     element_material.alloc(nb_element, 1, *it, _not_ghost);
     set_ID.alloc(nb_element, 1, *it, _not_ghost);
@@ -145,7 +145,7 @@ void StructuralMechanicsModel::initArrays() {
     stress.alloc(nb_element * nb_quadrature_points, size , *it, _not_ghost);
   }
 
-  dof_synchronizer = new DOFSynchronizer(getFEM().getMesh(), nb_degree_of_freedom);
+  dof_synchronizer = new DOFSynchronizer(getFEEngine().getMesh(), nb_degree_of_freedom);
   dof_synchronizer->initLocalDOFEquationNumbers();
   dof_synchronizer->initGlobalDOFEquationNumbers();
 
@@ -154,14 +154,14 @@ void StructuralMechanicsModel::initArrays() {
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::initModel() {
-  getFEM().initShapeFunctions(_not_ghost);
+  getFEEngine().initShapeFunctions(_not_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & options) {
   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh = getFEM().getMesh();
+  const Mesh & mesh = getFEEngine().getMesh();
 #if !defined(AKANTU_USE_MUMPS) // or other solver in the future \todo add AKANTU_HAS_SOLVER in CMake
   AKANTU_DEBUG_ERROR("You should at least activate one solver.");
 #else
@@ -209,8 +209,8 @@ void StructuralMechanicsModel::assembleStiffnessMatrix() {
 
   stiffness_matrix->clear();
 
-  Mesh::type_iterator it = getFEM().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
-  Mesh::type_iterator end = getFEM().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator it = getFEEngine().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator end = getFEEngine().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
   for (; it != end; ++it) {
     ElementType type = *it;
 
@@ -229,7 +229,7 @@ template<>
 void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_2>(Array<Real> & rotations){
 
   ElementType type = _bernoulli_beam_2;
-  Mesh & mesh = getFEM().getMesh();
+  Mesh & mesh = getFEEngine().getMesh();
   UInt nb_element = mesh.getNbElement(type);
 
   Array<UInt>::iterator< Vector<UInt> > connec_it = mesh.getConnectivity(type).begin(2);
@@ -260,7 +260,7 @@ void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_2>(Array<Re
 template<>
 void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_3>(Array<Real> & rotations){
   ElementType type = _bernoulli_beam_3;
-  Mesh & mesh = getFEM().getMesh();
+  Mesh & mesh = getFEEngine().getMesh();
   UInt nb_element = mesh.getNbElement(type);
 
   Array<Real>::vector_iterator n_it = mesh.getNormals(type).begin(spatial_dimension);
@@ -311,7 +311,7 @@ void StructuralMechanicsModel::computeRotationMatrix<_bernoulli_beam_3>(Array<Re
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::computeRotationMatrix(const ElementType & type) {
-  Mesh & mesh = getFEM().getMesh();
+  Mesh & mesh = getFEEngine().getMesh();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_element = mesh.getNbElement(type);
@@ -356,8 +356,8 @@ void StructuralMechanicsModel::computeRotationMatrix(const ElementType & type) {
 void StructuralMechanicsModel::computeStresses() {
   AKANTU_DEBUG_IN();
 
-  Mesh::type_iterator it = getFEM().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
-  Mesh::type_iterator end = getFEM().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator it = getFEEngine().getMesh().firstType(spatial_dimension, _not_ghost, _ek_structural);
+  Mesh::type_iterator end = getFEEngine().getMesh().lastType(spatial_dimension, _not_ghost, _ek_structural);
   for (; it != end; ++it) {
     ElementType type = *it;
 
@@ -395,7 +395,7 @@ void StructuralMechanicsModel::solve() {
 
   /// todo residual = force - Kxr * d_bloq
   jacobian_matrix->copyContent(*stiffness_matrix);
-  jacobian_matrix->applyBoundary(*boundary);
+  jacobian_matrix->applyBoundary(*blocked_dofs);
 
   increment->clear();
 
@@ -405,10 +405,10 @@ void StructuralMechanicsModel::solve() {
 
   Real * increment_val     = increment->storage();
   Real * displacement_val  = displacement_rotation->storage();
-  bool * boundary_val      = boundary->storage();
+  bool * blocked_dofs_val      = blocked_dofs->storage();
 
   for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
-    if(!(*boundary_val)) {
+    if(!(*blocked_dofs_val)) {
       *displacement_val += *increment_val;
     }
     else {
@@ -416,7 +416,7 @@ void StructuralMechanicsModel::solve() {
     }
 
     displacement_val++;
-    boundary_val++;
+    blocked_dofs_val++;
     increment_val++;
   }
 
@@ -436,21 +436,21 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance) {
 /* -------------------------------------------------------------------------- */
 bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & error) {
   AKANTU_DEBUG_IN();
-  Mesh & mesh= getFEM().getMesh();
+  Mesh & mesh= getFEEngine().getMesh();
   UInt nb_nodes = displacement_rotation->getSize();
   UInt nb_degree_of_freedom = displacement_rotation->getNbComponent();
 
   Real norm = 0;
   Real * increment_val     = increment->storage();
-  bool * boundary_val      = boundary->storage();
+  bool * blocked_dofs_val      = blocked_dofs->storage();
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
-      if(!(*boundary_val) && is_local_node) {
+      if(!(*blocked_dofs_val) && is_local_node) {
 	norm += *increment_val * *increment_val;
       }
-      boundary_val++;
+      blocked_dofs_val++;
       increment_val++;
     }
   }
@@ -467,8 +467,8 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & e
 /* -------------------------------------------------------------------------- */
 template<>
 void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_2>(Array<Real> & tangent_moduli) {
-  UInt nb_element                 = getFEM().getMesh().getNbElement(_bernoulli_beam_2);
-  UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_2);
+  UInt nb_element                 = getFEEngine().getMesh().getNbElement(_bernoulli_beam_2);
+  UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(_bernoulli_beam_2);
   UInt tangent_size = 2;
 
   Array<Real>::matrix_iterator D_it = tangent_moduli.begin(tangent_size, tangent_size);
@@ -489,8 +489,8 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_2>(Array<Rea
 /* -------------------------------------------------------------------------- */
 template<>
 void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(Array<Real> & tangent_moduli) {
-  UInt nb_element                 = getFEM().getMesh().getNbElement(_bernoulli_beam_3);
-  UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_3);
+  UInt nb_element                 = getFEEngine().getMesh().getNbElement(_bernoulli_beam_3);
+  UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(_bernoulli_beam_3);
   UInt tangent_size = 4;
 
   Array<Real>::matrix_iterator D_it = tangent_moduli.begin(tangent_size, tangent_size);
@@ -515,11 +515,11 @@ void StructuralMechanicsModel::computeTangentModuli<_bernoulli_beam_3>(Array<Rea
 /* -------------------------------------------------------------------------- */
 template<>
 void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_2>(Array<Real> & b, bool local) {
-  UInt nb_element                 = getFEM().getMesh().getNbElement(_bernoulli_beam_2);
+  UInt nb_element                 = getFEEngine().getMesh().getNbElement(_bernoulli_beam_2);
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(_bernoulli_beam_2);
-  UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_2);
+  UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(_bernoulli_beam_2);
 
-  MyFEMType & fem = getFEMClass<MyFEMType>();
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
   Array<Real>::const_vector_iterator shape_Np  = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 0).begin(nb_nodes_per_element);
   Array<Real>::const_vector_iterator shape_Mpp = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 1).begin(nb_nodes_per_element);
   Array<Real>::const_vector_iterator shape_Lpp = fem.getShapesDerivatives(_bernoulli_beam_2, _not_ghost, 2).begin(nb_nodes_per_element);
@@ -557,11 +557,11 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_
 /* -------------------------------------------------------------------------- */
 template<>
 void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_bernoulli_beam_3>(Array<Real> & b, bool local) {
-  MyFEMType & fem = getFEMClass<MyFEMType>();
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
 
-  UInt nb_element                 = getFEM().getMesh().getNbElement(_bernoulli_beam_3);
+  UInt nb_element                 = getFEEngine().getMesh().getNbElement(_bernoulli_beam_3);
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(_bernoulli_beam_3);
-  UInt nb_quadrature_points       = getFEM().getNbQuadraturePoints(_bernoulli_beam_3);
+  UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(_bernoulli_beam_3);
 
   Array<Real>::const_vector_iterator shape_Np  = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 0).begin(nb_nodes_per_element);
   Array<Real>::const_vector_iterator shape_Mpp = fem.getShapesDerivatives(_bernoulli_beam_3, _not_ghost, 1).begin(nb_nodes_per_element);
@@ -628,7 +628,7 @@ void StructuralMechanicsModel::addDumpFieldToDumper(const std::string & dumper_n
   else if(field_id == "momentum") { ADD_FIELD(dumper_name, "momentum", force_momentum, Real,
 						  nb_degree_of_freedom - n, n); }
   else if(field_id == "residual") { ADD_FIELD(dumper_name, "residual", residual, Real, nb_degree_of_freedom, 0); }
-  else if(field_id == "boundary") { ADD_FIELD(dumper_name, "boundary", boundary, bool, nb_degree_of_freedom, 0); }
+  else if(field_id == "blocked_dofs") { ADD_FIELD(dumper_name, "blocked_dofs", blocked_dofs, bool, nb_degree_of_freedom, 0); }
   else if(field_id == "element_index_by_material") {
     internalAddDumpFieldToDumper(dumper_name, 
 				 field_id,

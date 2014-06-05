@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_INTERNAL_FIELD_HH__
@@ -38,10 +38,10 @@
 __BEGIN_AKANTU__
 
 class Material;
-class FEM;
+class FEEngine;
 
 template<typename T>
-class InternalField : public ByElementTypeArray<T> {
+class InternalField : public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -50,8 +50,8 @@ public:
   virtual ~InternalField();
 
 protected:
-  InternalField(const ID & id, Material & material, FEM & fem,
-		const ByElementTypeArray<UInt> & element_filter);
+  InternalField(const ID & id, Material & material, FEEngine & fem,
+		const ElementTypeMapArray<UInt> & element_filter);
 
   InternalField(const ID & id, const InternalField<T> & other);
   /* ------------------------------------------------------------------------ */
@@ -77,13 +77,13 @@ public:
   virtual void saveCurrentValues();
 
   /// remove the quadrature points corresponding to suppressed elements
-  virtual void removeQuadraturePoints(const ByElementTypeUInt & new_numbering);
+  virtual void removeQuadraturePoints(const ElementTypeMapArray<UInt> & new_numbering);
 
   /// print the content
   virtual void printself(std::ostream & stream, UInt indent = 0) const;
 
 protected:
-  /// initialize the arrays in the ByElementTypeArray<T>
+  /// initialize the arrays in the ElementTypeMapArray<T>
   void internalInitialize(UInt nb_component);
 
   /// set the values for new internals
@@ -96,11 +96,11 @@ public:
 
   /// get the Array corresponding to the type en ghost_type specified
   virtual Array<T> & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost) {
-    return ByElementTypeArray<T>::operator()(type, ghost_type);
+    return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
   virtual const Array<T> & operator()(const ElementType & type, const GhostType & ghost_type = _not_ghost) const {
-    return ByElementTypeArray<T>::operator()(type, ghost_type);
+    return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
   virtual Array<T> & previous(const ElementType & type, const GhostType & ghost_type = _not_ghost) {
@@ -143,10 +143,10 @@ protected:
   Material & material;
 
   /// the fem containing the mesh and the element informations
-  FEM & fem;
+  FEEngine & fem;
 
   /// Element filter if needed
-  const ByElementTypeArray<UInt> & element_filter;
+  const ElementTypeMapArray<UInt> & element_filter;
 
   /// default value
   T default_value;

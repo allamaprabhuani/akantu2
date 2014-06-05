@@ -42,7 +42,7 @@ class TestAccessor : public DataAccessor {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline TestAccessor(const Mesh & mesh, const ByElementTypeReal & barycenters);
+  inline TestAccessor(const Mesh & mesh, const ElementTypeMapArray<Real> & barycenters);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Barycenter, barycenters, Real);
 
@@ -63,7 +63,7 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  const ByElementTypeReal & barycenters;
+  const ElementTypeMapArray<Real> & barycenters;
   const Mesh & mesh;
 };
 
@@ -72,7 +72,7 @@ protected:
 /* TestSynchronizer implementation                                            */
 /* -------------------------------------------------------------------------- */
 inline TestAccessor::TestAccessor(const Mesh & mesh,
-				  const ByElementTypeReal & barycenters)
+				  const ElementTypeMapArray<Real> & barycenters)
   : barycenters(barycenters), mesh(mesh) { }
 
 inline UInt TestAccessor::getNbDataForElements(const Array<Element> & elements,

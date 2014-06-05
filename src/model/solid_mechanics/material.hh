@@ -197,14 +197,14 @@ public:
    * interpolate stress on given positions for each element by means
    * of a geometrical interpolation on quadrature points
    */
-  void interpolateStress(ByElementTypeReal & result,
+  void interpolateStress(ElementTypeMapArray<Real> & result,
                          const GhostType ghost_type = _not_ghost);
 
   /**
    * function to initialize the elemental field interpolation
    * function by inverting the quadrature points' coordinates
    */
-  void initElementalFieldInterpolation(const ByElementTypeReal & interpolation_points_coordinates);
+  void initElementalFieldInterpolation(const ElementTypeMapArray<Real> & interpolation_points_coordinates);
 
   /* ------------------------------------------------------------------------ */
   /* Common part                                                              */
@@ -262,7 +262,7 @@ protected:
 
 public:
   /// compute the coordinates of the quadrature points
-  void computeQuadraturePointsCoordinates(ByElementTypeReal & quadrature_points_coordinates,
+  void computeQuadraturePointsCoordinates(ElementTypeMapArray<Real> & quadrature_points_coordinates,
                                           const GhostType & ghost_type) const;
 
 protected:
@@ -327,13 +327,13 @@ public:
                                         SynchronizationTag tag);
 
   template<typename T>
-  inline void packElementDataHelper(const ByElementTypeArray<T> & data_to_pack,
+  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
                                     CommunicationBuffer & buffer,
                                     const Array<Element> & elements,
                                     const ID & fem_id = ID()) const;
 
   template<typename T>
-  inline void unpackElementDataHelper(ByElementTypeArray<T> & data_to_unpack,
+  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
                                       CommunicationBuffer & buffer,
                                       const Array<Element> & elements,
                                       const ID & fem_id = ID());
@@ -347,7 +347,7 @@ public:
                                const NewElementsEvent & event);
 
   virtual void onElementsRemoved(const Array<Element> & element_list,
-                                 const ByElementTypeUInt & new_numbering,
+                                 const ElementTypeMapArray<UInt> & new_numbering,
                                  const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
@@ -385,17 +385,17 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
-  AKANTU_GET_MACRO(Strain, strain, const ByElementTypeReal &);
-  AKANTU_GET_MACRO(Stress, stress, const ByElementTypeReal &);
-  AKANTU_GET_MACRO(ElementFilter, element_filter, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO(Strain, strain, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(Stress, stress, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(ElementFilter, element_filter, const ElementTypeMapArray<UInt> &);
 
   bool isNonLocal() const { return is_non_local; }
 
   const Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
   Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
-  const ByElementTypeArray<Real> & getInternal(const ID & id) const;
-  ByElementTypeArray<Real> & getInternal(const ID & id);
+  const ElementTypeMapArray<Real> & getInternal(const ID & id) const;
+  ElementTypeMapArray<Real> & getInternal(const ID & id);
 
   inline bool isInternal(const ID & id) const;
 
@@ -443,7 +443,7 @@ protected:
   UInt spatial_dimension;
 
   /// list of element handled by the material
-  ByElementTypeArray<UInt> element_filter;
+  ElementTypeMapArray<UInt> element_filter;
 
   /// stresses arrays ordered by element types
   InternalField<Real> stress;

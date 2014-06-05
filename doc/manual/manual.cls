@@ -1,4 +1,4 @@
-%%
+%
 %% This is file `book.cls',
 %% generated with the docstrip utility.
 %%

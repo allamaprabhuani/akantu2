@@ -254,7 +254,7 @@ void Mesh::computeBoundingBox(){
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
+void Mesh::initElementTypeMapArray(ElementTypeMapArray<T> & vect,
                                   UInt nb_component,
                                   UInt dim,
                                   const bool & flag_nb_node_per_elem_multiply,
@@ -264,7 +264,7 @@ void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    this->initByElementTypeArray(vect, nb_component, dim, gt,
+    this->initElementTypeMapArray(vect, nb_component, dim, gt,
                                  flag_nb_node_per_elem_multiply,
                                  element_kind, size_to_nb_element);
   }
@@ -274,7 +274,7 @@ void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
+void Mesh::initElementTypeMapArray(ElementTypeMapArray<T> & vect,
                                   UInt nb_component,
                                   UInt dim,
                                   GhostType gt,
@@ -297,11 +297,11 @@ void Mesh::initByElementTypeArray(ByElementTypeArray<T> & vect,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::initNormals() {
-  initByElementTypeArray(normals, spatial_dimension, spatial_dimension, false, _ek_not_defined);
+  initElementTypeMapArray(normals, spatial_dimension, spatial_dimension, false, _ek_not_defined);
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
+void Mesh::getGlobalConnectivity(ElementTypeMapArray<UInt> & global_connectivity,
 				 UInt dimension,
 				 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -334,13 +334,13 @@ void Mesh::getGlobalConnectivity(ByElementTypeUInt & global_connectivity,
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_INSTANTIATE_INIT(type)					\
-template void Mesh::initByElementTypeArray<type>(ByElementTypeArray<type> & vect, \
+template void Mesh::initElementTypeMapArray<type>(ElementTypeMapArray<type> & vect, \
                                                  UInt nb_component,	\
                                                  UInt dim,		\
                                                  const bool & flag_nb_elem_multiply, \
                                                  ElementKind element_kind, \
                                                  bool size_to_nb_element) const; \
-template void Mesh::initByElementTypeArray<type>(ByElementTypeArray<type> & vect, \
+template void Mesh::initElementTypeMapArray<type>(ElementTypeMapArray<type> & vect, \
                                                  UInt nb_component,	\
                                                  UInt dim,		\
 						 GhostType gt,		\

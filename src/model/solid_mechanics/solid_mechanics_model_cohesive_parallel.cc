@@ -92,9 +92,9 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacetsConnectivity() {
   if (psize > 1) {
 
     /// get global connectivity for not ghost facets
-    global_connectivity = new ByElementTypeUInt("global_connectivity", id);
+    global_connectivity = new ElementTypeMapArray<UInt>("global_connectivity", id);
 
-    mesh_facets.initByElementTypeArray(*global_connectivity, 1,
+    mesh_facets.initElementTypeMapArray(*global_connectivity, 1,
 				       spatial_dimension - 1, true,
 				       _ek_regular, true);
 
@@ -124,7 +124,7 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers() {
                                                       mesh);
 
   if (facet_stress_synchronizer != NULL) {
-    const ByElementTypeUInt & prank_to_element
+    const ElementTypeMapArray<UInt> & prank_to_element
       = synch_parallel->getPrankToElement();
 
     facet_stress_synchronizer->updateFacetStressSynchronizer(*inserter,

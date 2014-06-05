@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
   std::stringstream meshfilename; meshfilename << "_triangle_3.msh";
   my_mesh.read(meshfilename.str());
 
-  FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange,_ek_igfem>(my_mesh, dim, "my_fem");
+  FEEngine *fem = new FEEngineTemplate<IntegratorGauss,ShapeLagrange,_ek_igfem>(my_mesh, dim, "my_fem");
 
   std::stringstream outfilename; outfilename << "out_" << type << ".txt";
   std::ofstream my_file(outfilename.str().c_str());

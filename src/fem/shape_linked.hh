@@ -44,7 +44,7 @@ class ShapeLinked : public ShapeFunctions {
   /* ------------------------------------------------------------------------ */
 public:
 
-  typedef ByElementType<Array<Real> **> ByElementTypeMultiReal;
+  typedef ElementTypeMap<Array<Real> **> ElementTypeMapMultiReal;
 
   ShapeLinked(Mesh & mesh, const ID & id = "shape_linked", const MemoryID & memory_id = 0);
   virtual ~ShapeLinked();
@@ -129,10 +129,10 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// shape functions for all elements
-  ByElementTypeMultiReal shapes;
+  ElementTypeMapMultiReal shapes;
 
   /// shape derivatives for all elements
-  ByElementTypeMultiReal shapes_derivatives;
+  ElementTypeMapMultiReal shapes_derivatives;
 };
 
 

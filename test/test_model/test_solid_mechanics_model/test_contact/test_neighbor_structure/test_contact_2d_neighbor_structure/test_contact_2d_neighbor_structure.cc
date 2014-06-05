@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
-  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  UInt nb_elements = model->getFEM().getMesh().getNbElement(_triangle_3);
+  UInt nb_nodes = model->getFEEngine().getMesh().getNbNodes();
+  UInt nb_elements = model->getFEEngine().getMesh().getNbElement(_triangle_3);
 
   /// model initialization
   model->initModel();

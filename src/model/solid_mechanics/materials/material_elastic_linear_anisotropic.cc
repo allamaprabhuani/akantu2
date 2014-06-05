@@ -240,7 +240,7 @@ computeStressWorker(ElementType el_type, GhostType ghost_type) {
   if (viscous) {
     const Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
     Array<Real> & velocity = this->model->getVelocity();
-    this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate,
+    this->model->getFEEngine().gradientOnQuadraturePoints(velocity, strain_rate,
                                                      spatial_dimension, el_type,
                                                      ghost_type,
                                                      elem_filter);

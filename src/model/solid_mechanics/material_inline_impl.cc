@@ -290,7 +290,7 @@ inline void Material::buildElementalFieldInterpolationCoodinates<_quadrangle_8>(
 /* -------------------------------------------------------------------------- */
 template<ElementType type>
 inline UInt Material::getSizeElementalFieldInterpolationCoodinates(GhostType ghost_type) {
-  return model->getFEM().getNbQuadraturePoints(type, ghost_type);
+  return model->getFEEngine().getNbQuadraturePoints(type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -352,22 +352,22 @@ inline void Material::setParam(const ID & param, T value) {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Material::packElementDataHelper(const ByElementTypeArray<T> & data_to_pack,
+inline void Material::packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
 					    CommunicationBuffer & buffer,
 					    const Array<Element> & elements,
 					    const ID & fem_id) const {
   DataAccessor::packElementalDataHelper<T>(data_to_pack, buffer, elements, true, 
-					   model->getFEM(fem_id));
+					   model->getFEEngine(fem_id));
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void Material::unpackElementDataHelper(ByElementTypeArray<T> & data_to_unpack,
+inline void Material::unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
 					      CommunicationBuffer & buffer,
 					      const Array<Element> & elements,
 					      const ID & fem_id) {
   DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements, true,
-					     model->getFEM(fem_id));
+					     model->getFEEngine(fem_id));
 }
 
 /* -------------------------------------------------------------------------- */

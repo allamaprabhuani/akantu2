@@ -52,16 +52,16 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   /// compute quadrature points' coordinates
-  mesh.initByElementTypeArray(quad_coordinates,
+  mesh.initElementTypeMapArray(quad_coordinates,
 			      spatial_dimension,
 			      spatial_dimension,
 			      _not_ghost);
 
-  model.getFEM().interpolateOnQuadraturePoints(model.getMesh().getNodes(),
+  model.getFEEngine().interpolateOnQuadraturePoints(model.getMesh().getNodes(),
 					       quad_coordinates);
 
   /// store mass density per quadrature point
-  mesh.initByElementTypeArray(mass_density,
+  mesh.initElementTypeMapArray(mass_density,
 			      1,
 			      spatial_dimension,
 			      _not_ghost);
@@ -91,7 +91,7 @@ public:
 
     UInt el_index = el_id_by_mat(el.element, 1);
     UInt nb_quad_per_element
-      = model.getFEM("CohesiveFEM").getNbQuadraturePoints(el.type, el.ghost_type);
+      = model.getFEEngine("CohesiveFEEngine").getNbQuadraturePoints(el.type, el.ghost_type);
 
     const Array<Real> & damage_array = mat.getDamage(el.type, el.ghost_type);
 
@@ -190,16 +190,16 @@ void FragmentManager::computeMass() {
 
   /// create a unit field per quadrature point, since to compute mass
   /// it's neccessary to integrate only density
-  ByElementTypeReal unit_field("unit_field", id);
-  mesh.initByElementTypeArray(unit_field,
+  ElementTypeMapArray<Real> unit_field("unit_field", id);
+  mesh.initElementTypeMapArray(unit_field,
 			      spatial_dimension,
 			      spatial_dimension,
 			      _not_ghost);
 
-  ByElementTypeReal::type_iterator it = unit_field.firstType(spatial_dimension,
+  ElementTypeMapArray<Real>::type_iterator it = unit_field.firstType(spatial_dimension,
 							     _not_ghost,
 							     _ek_regular);
-  ByElementTypeReal::type_iterator end = unit_field.lastType(spatial_dimension,
+  ElementTypeMapArray<Real>::type_iterator end = unit_field.lastType(spatial_dimension,
 							     _not_ghost,
 							     _ek_regular);
 
@@ -207,7 +207,7 @@ void FragmentManager::computeMass() {
     ElementType type = *it;
     Array<Real> & field_array = unit_field(type);
     UInt nb_element = mesh.getNbElement(type);
-    UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+    UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
 
     field_array.resize(nb_element * nb_quad_per_element);
     field_array.set(1.);
@@ -244,14 +244,14 @@ void FragmentManager::computeVelocity() {
   UInt spatial_dimension = model.getSpatialDimension();
 
   /// compute velocity per quadrature point
-  ByElementTypeReal velocity_field("velocity_field", id);
+  ElementTypeMapArray<Real> velocity_field("velocity_field", id);
 
-  mesh.initByElementTypeArray(velocity_field,
+  mesh.initElementTypeMapArray(velocity_field,
 			      spatial_dimension,
 			      spatial_dimension,
 			      _not_ghost);
 
-  model.getFEM().interpolateOnQuadraturePoints(model.getVelocity(),
+  model.getFEEngine().interpolateOnQuadraturePoints(model.getVelocity(),
 					       velocity_field);
 
   /// integrate on fragments
@@ -288,18 +288,18 @@ void FragmentManager::computeInertiaMoments() {
   computeCenterOfMass();
 
   /// compute local coordinates products with respect to the center of match
-  ByElementTypeReal moments_coords("moments_coords", id);
+  ElementTypeMapArray<Real> moments_coords("moments_coords", id);
 
-  mesh.initByElementTypeArray(moments_coords,
+  mesh.initElementTypeMapArray(moments_coords,
 			      spatial_dimension * spatial_dimension,
 			      spatial_dimension,
 			      _not_ghost);
 
   /// resize the by element type
-  ByElementTypeReal::type_iterator it = moments_coords.firstType(spatial_dimension,
+  ElementTypeMapArray<Real>::type_iterator it = moments_coords.firstType(spatial_dimension,
 							     _not_ghost,
 							     _ek_regular);
-  ByElementTypeReal::type_iterator end = moments_coords.lastType(spatial_dimension,
+  ElementTypeMapArray<Real>::type_iterator end = moments_coords.lastType(spatial_dimension,
 							     _not_ghost,
 							     _ek_regular);
 
@@ -307,7 +307,7 @@ void FragmentManager::computeInertiaMoments() {
     ElementType type = *it;
     Array<Real> & field_array = moments_coords(type);
     UInt nb_element = mesh.getNbElement(type);
-    UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+    UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
 
     field_array.resize(nb_element * nb_quad_per_element);
   }
@@ -321,19 +321,19 @@ void FragmentManager::computeInertiaMoments() {
   for(const_element_group_iterator it(element_group_begin());
       it != element_group_end(); ++it, ++mass_center_it) {
 
-    const ByElementTypeUInt & el_list = it->second->getElements();
+    const ElementTypeMapArray<UInt> & el_list = it->second->getElements();
 
-    ByElementTypeUInt::type_iterator type_it = el_list.firstType(spatial_dimension,
+    ElementTypeMapArray<UInt>::type_iterator type_it = el_list.firstType(spatial_dimension,
 								 _not_ghost,
 								 _ek_regular);
-    ByElementTypeUInt::type_iterator type_end = el_list.lastType(spatial_dimension,
+    ElementTypeMapArray<UInt>::type_iterator type_end = el_list.lastType(spatial_dimension,
 								 _not_ghost,
 								 _ek_regular);
 
     /// loop over elements of the fragment
     for (; type_it != type_end; ++type_it) {
       ElementType type = *type_it;
-      UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+      UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
 
       Array<Real> & moments_coords_array = moments_coords(type);
       const Array<Real> & quad_coordinates_array = quad_coordinates(type);
@@ -419,7 +419,7 @@ void FragmentManager::storeMassDensityPerQuadraturePoint() {
     Array<Real> & mass_density_array = mass_density(type);
 
     UInt nb_element = mesh.getNbElement(type);
-    UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+    UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
     mass_density_array.resize(nb_element * nb_quad_per_element);
 
     Array<UInt> & el_index_by_mat = model.getElementIndexByMaterial(type);
@@ -439,7 +439,7 @@ void FragmentManager::storeMassDensityPerQuadraturePoint() {
 }
 
 /* -------------------------------------------------------------------------- */
-void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
+void FragmentManager::integrateFieldOnFragments(ElementTypeMapArray<Real> & field,
 						Array<Real> & output) {
   AKANTU_DEBUG_IN();
 
@@ -457,19 +457,19 @@ void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
   for(const_element_group_iterator it(element_group_begin());
       it != element_group_end(); ++it, ++fragment_index_it) {
 
-    const ByElementTypeUInt & el_list = it->second->getElements();
+    const ElementTypeMapArray<UInt> & el_list = it->second->getElements();
 
-    ByElementTypeUInt::type_iterator type_it = el_list.firstType(spatial_dimension,
+    ElementTypeMapArray<UInt>::type_iterator type_it = el_list.firstType(spatial_dimension,
 								 _not_ghost,
 								 _ek_regular);
-    ByElementTypeUInt::type_iterator type_end = el_list.lastType(spatial_dimension,
+    ElementTypeMapArray<UInt>::type_iterator type_end = el_list.lastType(spatial_dimension,
 								 _not_ghost,
 								 _ek_regular);
 
     /// loop over elements of the fragment
     for (; type_it != type_end; ++type_it) {
       ElementType type = *type_it;
-      UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+      UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
 
       const Array<Real> & density_array = mass_density(type);
       Array<Real> & field_array = field(type);
@@ -511,7 +511,7 @@ void FragmentManager::integrateFieldOnFragments(ByElementTypeReal & field,
 
       /// integrate the field over the fragment
       Array<Real> integrated_array(elements.getSize(), nb_component);
-      model.getFEM().integrate(integration_array,
+      model.getFEEngine().integrate(integration_array,
 			       integrated_array,
 			       nb_component,
 			       type,
@@ -547,12 +547,12 @@ UInt FragmentManager::getNbBigFragments(UInt minimum_nb_elements) {
   for(const_element_group_iterator it(element_group_begin());
       it != element_group_end(); ++it, ++fragment_index_it) {
 
-    const ByElementTypeUInt & el_list = it->second->getElements();
+    const ElementTypeMapArray<UInt> & el_list = it->second->getElements();
 
-    ByElementTypeUInt::type_iterator type_it = el_list.firstType(spatial_dimension,
+    ElementTypeMapArray<UInt>::type_iterator type_it = el_list.firstType(spatial_dimension,
 								 _not_ghost,
 								 _ek_regular);
-    ByElementTypeUInt::type_iterator type_end = el_list.lastType(spatial_dimension,
+    ElementTypeMapArray<UInt>::type_iterator type_end = el_list.lastType(spatial_dimension,
 								 _not_ghost,
 								 _ek_regular);
 

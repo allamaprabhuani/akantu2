@@ -57,7 +57,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 class DefaultMaterialSelector : public MaterialSelector {
 public:
-  DefaultMaterialSelector(const ByElementTypeUInt & element_index_by_material) :
+  DefaultMaterialSelector(const ElementTypeMapArray<UInt> & element_index_by_material) :
     element_index_by_material(element_index_by_material) { }
 
   UInt operator()(const Element & element) {
@@ -78,7 +78,7 @@ public:
   }
 
 private:
-  const ByElementTypeUInt & element_index_by_material;
+  const ElementTypeMapArray<UInt> & element_index_by_material;
 };
 
 /* -------------------------------------------------------------------------- */

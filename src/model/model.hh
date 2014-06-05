@@ -38,7 +38,7 @@
 #include "aka_common.hh"
 #include "aka_memory.hh"
 #include "mesh.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "mesh_utils.hh"
 #include "synchronizer_registry.hh"
 #include "distributed_synchronizer.hh"
@@ -72,7 +72,7 @@ public:
 
   virtual ~Model();
 
-  typedef std::map<std::string, FEM *> FEMMap;
+  typedef std::map<std::string, FEEngine *> FEEngineMap;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -139,29 +139,29 @@ public:
   virtual void synchronizeBoundaries() {};
 
   /// return the fem object associated with a provided name
-  inline FEM & getFEM(const ID & name = "") const;
+  inline FEEngine & getFEEngine(const ID & name = "") const;
 
   /// return the fem boundary object associated with a provided name
-  virtual FEM & getFEMBoundary(const ID & name = "");
+  virtual FEEngine & getFEEngineBoundary(const ID & name = "");
 
   /// register a fem object associated with name
-  template <typename FEMClass> inline void registerFEMObject(const std::string & name,
+  template <typename FEEngineClass> inline void registerFEEngineObject(const std::string & name,
                                                              Mesh & mesh,
                                                              UInt spatial_dimension);
   /// unregister a fem object associated with name
-  inline void unRegisterFEMObject(const std::string & name);
+  inline void unRegisterFEEngineObject(const std::string & name);
 
   /// return the synchronizer registry
   SynchronizerRegistry & getSynchronizerRegistry();
 
 public:
   /// return the fem object associated with a provided name
-  template <typename FEMClass>
-  inline FEMClass & getFEMClass(std::string name = "") const;
+  template <typename FEEngineClass>
+  inline FEEngineClass & getFEEngineClass(std::string name = "") const;
 
   /// return the fem boundary object associated with a provided name
-  template <typename FEMClass>
-  inline FEMClass & getFEMClassBoundary(std::string name = "");
+  template <typename FEEngineClass>
+  inline FEEngineClass & getFEEngineClassBoundary(std::string name = "");
 
   /// get the pbc pairs
   std::map<UInt,UInt> & getPBCPairs(){return pbc_pair;};
@@ -188,10 +188,10 @@ protected:
   UInt spatial_dimension;
 
   /// the main fem object present in all  models
-  FEMMap fems;
+  FEEngineMap fems;
 
   /// the fem object present in all  models for boundaries
-  FEMMap fems_boundary;
+  FEEngineMap fems_boundary;
 
   /// default fem object
   std::string default_fem;

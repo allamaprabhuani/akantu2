@@ -49,7 +49,7 @@ Model::Model(Mesh& m, UInt dim, const ID & id,
 Model::~Model() {
   AKANTU_DEBUG_IN();
 
-  FEMMap::iterator it;
+  FEEngineMap::iterator it;
   for (it = fems.begin(); it != fems.end(); ++it) {
     if(it->second) delete it->second;
   }
@@ -82,7 +82,6 @@ void Model::createSynchronizerRegistry(DataAccessor * data_accessor){
 
 /* -------------------------------------------------------------------------- */
 void Model::setPBC(UInt x, UInt y, UInt z){
-  Mesh & mesh = getFEM().getMesh();
   mesh.computeBoundingBox();
   if (x) MeshUtils::computePBCMap(mesh, 0, pbc_pair);
   if (y) MeshUtils::computePBCMap(mesh, 1, pbc_pair);
@@ -92,8 +91,6 @@ void Model::setPBC(UInt x, UInt y, UInt z){
 /* -------------------------------------------------------------------------- */
 void Model::setPBC(SurfacePairList & surface_pairs,
 		   ElementType surface_e_type){
-  Mesh & mesh = getFEM().getMesh();
-
   SurfacePairList::iterator s_it;
   for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
     MeshUtils::computePBCMap(mesh, *s_it, surface_e_type, pbc_pair);
@@ -102,9 +99,7 @@ void Model::setPBC(SurfacePairList & surface_pairs,
 
 /* -------------------------------------------------------------------------- */
 void Model::initPBC() {
-  Mesh & mesh = getFEM().getMesh();
-
-  std::map<UInt,UInt>::iterator it = pbc_pair.begin();
+  std::map<UInt,UInt>::iterator it  = pbc_pair.begin();
   std::map<UInt,UInt>::iterator end = pbc_pair.end();
 
   is_pbc_slave_node.resize(mesh.getNbNodes());
@@ -146,11 +141,11 @@ DistributedSynchronizer & Model::createParallelSynch(MeshPartition * partition,
   DistributedSynchronizer * synch = NULL;
   if(prank == 0)
     synch =
-      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(),
+      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEEngine().getMesh(),
 								 partition);
   else
     synch =
-      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEM().getMesh(),
+      DistributedSynchronizer::createDistributedSynchronizerMesh(getFEEngine().getMesh(),
 								 NULL);
 
   AKANTU_DEBUG_OUT();

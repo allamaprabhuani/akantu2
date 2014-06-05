@@ -64,8 +64,8 @@ protected:
   void computeNonLocalStresses(GhostType ghost_type) {
     AKANTU_DEBUG_IN();
 
-    Mesh::type_iterator it = this->model->getFEM().getMesh().firstType(spatial_dimension, ghost_type);
-    Mesh::type_iterator last_type = this->model->getFEM().getMesh().lastType(spatial_dimension, ghost_type);
+    Mesh::type_iterator it = this->model->getFEEngine().getMesh().firstType(spatial_dimension, ghost_type);
+    Mesh::type_iterator last_type = this->model->getFEEngine().getMesh().lastType(spatial_dimension, ghost_type);
     for(; it != last_type; ++it) {
       computeNonLocalStress(*it, ghost_type);
     }

@@ -42,10 +42,10 @@ Grid2dNeighborStructure::Grid2dNeighborStructure(const ContactSearch & contact_s
 						 const ContactNeighborStructureType & type,
 						 const ContactNeighborStructureID & id) :
   ContactNeighborStructure(contact_search, master_surface, type, id),
-  mesh(contact_search.getContact().getModel().getFEM().getMesh()) {
+  mesh(contact_search.getContact().getModel().getFEEngine().getMesh()) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = contact_search.getContact().getModel().getFEM().getMesh().getSpatialDimension();
+  UInt spatial_dimension = contact_search.getContact().getModel().getFEEngine().getMesh().getSpatialDimension();
   if(spatial_dimension != 2)
     AKANTU_DEBUG_ERROR("Wrong ContactType for contact in 2d!");
 
@@ -195,7 +195,7 @@ void Grid2dNeighborStructure::createGrid(bool initial_position) {
   UInt * cell_seg_val   = cell_to_segments.storage();
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
-  UInt * conn_val = contact_search.getContact().getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
+  UInt * conn_val = contact_search.getContact().getModel().getFEEngine().getMesh().getConnectivity(el_type, _not_ghost).storage();
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   //  std::stringstream sstr_fo; sstr_fo << id << ":facets_offset:" << el_type;
   neighbor_list->facets_offset.alloc(0, 1, el_type, _not_ghost);

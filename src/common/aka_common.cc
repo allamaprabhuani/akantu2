@@ -61,7 +61,10 @@ void initialize(const std::string & input_file, int & argc, char ** & argv) {
   static_argparser.setExternalExitFunction(debug::Debugger::exit);
   static_argparser.addArgument("--aka_input_file", "Akantu's input file",
 			       1, cppargparse::_string, std::string());
-  static_argparser.addArgument("--aka_debug_level", "Akantu's overall debug level", 1,
+  static_argparser.addArgument("--aka_debug_level", std::string("Akantu's overall debug level") +
+			       std::string(" (0: error, 1: exceptions, 4: warnings, 5: info, ..., 100: dump,") +
+			       std::string(" more info on levels can be foind in aka_error.hh)"),
+			       1,
 			       cppargparse::_integer, int(dblWarning));
 
   static_argparser.parse(argc, argv, cppargparse::_remove_parsed);

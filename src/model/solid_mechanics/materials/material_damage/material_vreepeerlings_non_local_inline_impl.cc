@@ -83,7 +83,7 @@ void MaterialVreePeerlingsNonLocal<spatial_dimension, WeigthFunction, MatParent>
 //  Vector<Real> & strain_rate_vrplgs = this->strain_rate_vreepeerlings(el_type, ghost_type);
 //
 //
-//  this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
+//  this->model->getFEEngine().gradientOnQuadraturePoints(velocity, strain_rate_vrplgs,
 //						   spatial_dimension,
 //						   el_type, ghost_type, &elem_filter);
 //

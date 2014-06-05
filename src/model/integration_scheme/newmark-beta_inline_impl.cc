@@ -40,7 +40,7 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
 					       Array<Real> & u,
 					       Array<Real> & u_dot,
 					       Array<Real> & u_dot_dot,
-					       Array<bool> & boundary) const {
+					       Array<bool> & blocked_dofs) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes = u.getSize();
@@ -49,10 +49,10 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
   Real * u_val         = u.storage();
   Real * u_dot_val     = u_dot.storage();
   Real * u_dot_dot_val = u_dot_dot.storage();
-  bool * boundary_val  = boundary.storage();
+  bool * blocked_dofs_val  = blocked_dofs.storage();
 
   for (UInt d = 0; d < nb_degree_of_freedom; d++) {
-    if(!(*boundary_val)) {
+    if(!(*blocked_dofs_val)) {
       Real dt_a_n = delta_t * *u_dot_dot_val;
 
       *u_val        += (1 - k*alpha) * delta_t * *u_dot_val + (.5 - h*alpha*beta) * delta_t * dt_a_n;
@@ -62,7 +62,7 @@ inline void NewmarkBeta::integrationSchemePred(Real delta_t,
     u_val++;
     u_dot_val++;
     u_dot_dot_val++;
-    boundary_val++;
+    blocked_dofs_val++;
   }
 
   AKANTU_DEBUG_OUT();
@@ -78,7 +78,7 @@ inline void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
 						    Array<Real> & u,
 						    Array<Real> & u_dot,
 						    Array<Real> & u_dot_dot,
-						    Array<bool> & boundary,
+						    Array<bool> & blocked_dofs,
 						    Array<Real> & delta
 						    ) const {
   AKANTU_DEBUG_IN();
@@ -87,7 +87,7 @@ inline void NewmarkBeta::integrationSchemeCorrAccel(Real delta_t,
 						 u,
 						 u_dot,
 						 u_dot_dot,
-						 boundary,
+						 blocked_dofs,
 						 delta);
 
   AKANTU_DEBUG_OUT();
@@ -103,7 +103,7 @@ inline void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
 						    Array<Real> & u,
 						    Array<Real> & u_dot,
 						    Array<Real> & u_dot_dot,
-						    Array<bool> & boundary,
+						    Array<bool> & blocked_dofs,
 						    Array<Real> & delta
 						    ) const {
   AKANTU_DEBUG_IN();
@@ -112,7 +112,7 @@ inline void NewmarkBeta::integrationSchemeCorrVeloc(Real delta_t,
 					     u,
 					     u_dot,
 					     u_dot_dot,
-					     boundary,
+					     blocked_dofs,
 					     delta);
 
   AKANTU_DEBUG_OUT();
@@ -128,7 +128,7 @@ inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
 						    Array<Real> & u,
 						    Array<Real> & u_dot,
 						    Array<Real> & u_dot_dot,
-						    Array<bool> & boundary,
+						    Array<bool> & blocked_dofs,
 						    Array<Real> & delta
 						    ) const {
   AKANTU_DEBUG_IN();
@@ -137,7 +137,7 @@ inline void NewmarkBeta::integrationSchemeCorrDispl(Real delta_t,
 						 u,
 						 u_dot,
 						 u_dot_dot,
-						 boundary,
+						 blocked_dofs,
 						 delta);
 
   AKANTU_DEBUG_OUT();
@@ -194,7 +194,7 @@ void NewmarkBeta::integrationSchemeCorr(Real delta_t,
 					Array<Real> & u,
 					Array<Real> & u_dot,
 					Array<Real> & u_dot_dot,
-					Array<bool> & boundary,
+					Array<bool> & blocked_dofs,
 					Array<Real> & delta
 					) const {
   AKANTU_DEBUG_IN();
@@ -210,10 +210,10 @@ void NewmarkBeta::integrationSchemeCorr(Real delta_t,
   Real * u_dot_val     = u_dot.storage();
   Real * u_dot_dot_val = u_dot_dot.storage();
   Real * delta_val     = delta.storage();
-  bool * boundary_val  = boundary.storage();
+  bool * blocked_dofs_val  = blocked_dofs.storage();
 
   for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
-    if(!(*boundary_val)) {
+    if(!(*blocked_dofs_val)) {
       *u_val         += e * *delta_val;
       *u_dot_val     += d * *delta_val;
       *u_dot_dot_val += c * *delta_val;
@@ -222,7 +222,7 @@ void NewmarkBeta::integrationSchemeCorr(Real delta_t,
     u_dot_val++;
     u_dot_dot_val++;
     delta_val++;
-    boundary_val++;
+    blocked_dofs_val++;
   }
 
   AKANTU_DEBUG_OUT();

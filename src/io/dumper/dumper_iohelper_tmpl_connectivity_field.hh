@@ -47,7 +47,7 @@ public:
 				       const internal_iterator & it,
 				       ElementType element_type,
 				       const GhostType ghost_type = _not_ghost,
-				       const ByElementTypeArray<UInt> * filter = NULL,
+				       const ElementTypeMapArray<UInt> * filter = NULL,
 				       UInt * fit = NULL) :
     parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) {
 

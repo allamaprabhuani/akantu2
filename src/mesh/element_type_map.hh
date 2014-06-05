@@ -1,5 +1,5 @@
 /**
- * @file   by_element_type.hh
+ * @file   element_type_map.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
@@ -29,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_BY_ELEMENT_TYPE_HH__
-#define __AKANTU_BY_ELEMENT_TYPE_HH__
+#ifndef __AKANTU_ELEMENT_TYPE_MAP_HH__
+#define __AKANTU_ELEMENT_TYPE_MAP_HH__
 
 #include "aka_common.hh"
 #include "aka_array.hh"
@@ -39,30 +39,29 @@
 __BEGIN_AKANTU__
 
 
-// Forward declaration of the ByElementTypeVector class
 template<class Stored, typename SupportType = ElementType>
-class ByElementType;
+class ElementTypeMap;
 
 /* -------------------------------------------------------------------------- */
-/* ByElementTypeBase                                                          */
+/* ElementTypeMapBase                                                          */
 /* -------------------------------------------------------------------------- */
-/// Common non templated base class for the ByElementType class
-class ByElementTypeBase {
+/// Common non templated base class for the ElementTypeMap class
+class ElementTypeMapBase {
 public:
-  virtual ~ByElementTypeBase() {};
+  virtual ~ElementTypeMapBase() {};
 };
 
 /* -------------------------------------------------------------------------- */
-/* ByElementType                                                              */
+/* ElementTypeMap                                                              */
 /* -------------------------------------------------------------------------- */
 
 template<class Stored, typename SupportType>
-class ByElementType : public ByElementTypeBase {
+class ElementTypeMap : public ElementTypeMapBase {
 private:
-  void operator=(const ByElementType &) {};
+  void operator=(const ElementTypeMap &) {};
 public:
-  ByElementType();
-  ~ByElementType();
+  ElementTypeMap();
+  ~ElementTypeMap();
 
   inline static std::string printType(const SupportType & type, const GhostType & ghost_type);
 
@@ -90,7 +89,7 @@ public:
 			     const GhostType & ghost_type = _not_ghost);
 
   /*! insert data of a new type (not yet present) into the map. THIS METHOD IS
-   *  NOT ARRAY SAFE, when using ByElementTypeArray, use setArray instead
+   *  NOT ARRAY SAFE, when using ElementTypeMapArray, use setArray instead
    *  @param data to insert
    *  @param type type of data (if this type is already present in the map,
    *         an exception is thrown).
@@ -116,7 +115,7 @@ public:
     typedef const SupportType*  pointer;
     typedef const SupportType&  reference;
   protected:
-    typedef typename ByElementType<Stored>::DataMap::const_iterator DataMapIterator;
+    typedef typename ElementTypeMap<Stored>::DataMap::const_iterator DataMapIterator;
   public:
     type_iterator(DataMapIterator & list_begin,
 		  DataMapIterator & list_end,
@@ -193,14 +192,14 @@ protected:
 /* Some typedefs                                                              */
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType = ElementType>
-class ByElementTypeArray : public ByElementType<Array<T> *, SupportType>, public Memory {
+class ElementTypeMapArray : public ElementTypeMap<Array<T> *, SupportType>, public Memory {
 protected:
-  typedef ByElementType<Array<T> *, SupportType> parent;
+  typedef ElementTypeMap<Array<T> *, SupportType> parent;
   typedef typename parent::DataMap DataMap;
 private:
 private:
   /// standard assigment (copy) operator
-  void operator=(const ByElementType<T, SupportType> &) {};
+  void operator=(const ElementTypeMap<T, SupportType> &) {};
 
 public:
   typedef typename parent::type_iterator type_iterator;
@@ -211,7 +210,7 @@ public:
    *         only
    *  @param memory_id optional: choose a specific memory, defaults to memory 0
    */
-  ByElementTypeArray(const ID & id = "by_element_type_array", const ID & parent_id = "no_parent",
+  ElementTypeMapArray(const ID & id = "by_element_type_array", const ID & parent_id = "no_parent",
                      const MemoryID & memory_id = 0) :
     parent(), Memory(parent_id + ":" + id, memory_id) {};
 
@@ -263,9 +262,9 @@ public:
   inline void free();
 
   /*! deletes and reorders entries in the stored arrays
-   *  @param new_numbering a ByElementTypeArray of new indices. UInt(-1) indicates
+   *  @param new_numbering a ElementTypeMapArray of new indices. UInt(-1) indicates
    *         deleted entries. */
-  inline void onElementsRemoved(const ByElementTypeArray<UInt> & new_numbering);
+  inline void onElementsRemoved(const ElementTypeMapArray<UInt> & new_numbering);
 
   /// text output helper
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -276,20 +275,13 @@ public:
   inline void setID(const ID & id) { this->id = id; }
 
 private:
-  ByElementTypeArray operator=(__attribute__((unused)) const ByElementTypeArray & other) {};
+  ElementTypeMapArray operator=(__attribute__((unused)) const ElementTypeMapArray & other) {};
 };
-
-/// to store data Array<Real> by element type
-typedef ByElementTypeArray<Real> ByElementTypeReal;
-/// to store data Array<Int> by element type
-typedef ByElementTypeArray<Int>  ByElementTypeInt;
-/// to store data Array<UInt> by element type
-typedef ByElementTypeArray<UInt, ElementType> ByElementTypeUInt;
 
 /// Map of data of type UInt stored in a mesh
 typedef std::map<std::string, Array<UInt> *> UIntDataMap;
-typedef ByElementType<UIntDataMap, ElementType> ByElementTypeUIntDataMap;
+typedef ElementTypeMap<UIntDataMap, ElementType> ElementTypeMapUIntDataMap;
 
 __END_AKANTU__
 
-#endif /* __AKANTU_BY_ELEMENT_TYPE_HH__ */
+#endif /* __AKANTU_ELEMENT_TYPE_MAP_HH__ */

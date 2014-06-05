@@ -129,7 +129,7 @@ protected:
 
 private:
 
-  ByElementType< Matrix<Real> > quadrature_points;
+  ElementTypeMap< Matrix<Real> > quadrature_points;
 };
 
 

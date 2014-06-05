@@ -32,7 +32,7 @@
 
 __END_AKANTU__
 
-#include "fem.hh"
+#include "fe_engine.hh"
 
 __BEGIN_AKANTU__
 
@@ -56,17 +56,17 @@ public:
 				    const internal_iterator & it,
 				    ElementType element_type,
 				    const GhostType ghost_type = _not_ghost,
-				    const ByElementTypeArray<UInt> * filter = NULL,
+				    const ElementTypeMapArray<UInt> * filter = NULL,
 				    UInt * fit = NULL) :
     parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
-  void setFEM(const FEM & fem) { this->fem = &fem; }
+  void setFEEngine(const FEEngine & fem) { this->fem = &fem; }
 
 protected:
   virtual UInt getNbDataPerElem(const ElementType & type) { return fem->getNbQuadraturePoints(type); }
 
 protected:
-  const FEM * fem;
+  const FEEngine * fem;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ public:
 			    const internal_iterator & it,
 			    ElementType element_type,
 			    const GhostType ghost_type = _not_ghost,
-			    const ByElementTypeArray<UInt> * filter = NULL,
+			    const ElementTypeMapArray<UInt> * filter = NULL,
 			    UInt * fit = NULL) :
     parent(field, n, t_it, t_it_end, it, element_type, ghost_type, filter, fit) { }
 
@@ -109,45 +109,45 @@ public:
   typedef iterator_type iterator;
   typedef GenericElementalField<T, iterator, ret_type, filtered> parent;
 
-  GenericQuadraturePointsField(const FEM & fem,
-			       const ByElementTypeArray<T> & field,
+  GenericQuadraturePointsField(const FEEngine & fem,
+			       const ElementTypeMapArray<T> & field,
 			       UInt spatial_dimension = _all_dimensions,
 			       GhostType ghost_type = _not_ghost,
 			       ElementKind element_kind = _ek_not_defined,
-			       const ByElementTypeArray<UInt> * filter = NULL) :
+			       const ElementTypeMapArray<UInt> * filter = NULL) :
     parent(field, spatial_dimension,
 	   ghost_type, element_kind, filter), fem(fem) { }
 
-  GenericQuadraturePointsField(const FEM & fem,
-			       const ByElementTypeArray<T> & field,
+  GenericQuadraturePointsField(const FEEngine & fem,
+			       const ElementTypeMapArray<T> & field,
 			       UInt n,
 			       UInt spatial_dimension = _all_dimensions,
 			       GhostType ghost_type = _not_ghost,
 			       ElementKind element_kind = _ek_not_defined,
-			       const ByElementTypeArray<UInt> * filter = NULL) :
+			       const ElementTypeMapArray<UInt> * filter = NULL) :
     parent(field, n, spatial_dimension,
 	   ghost_type, element_kind, filter), fem(fem) { }
 
   /* ------------------------------------------------------------------------ */
   virtual iterator begin() {
     iterator it = parent::begin();
-    it.setFEM(fem);
+    it.setFEEngine(fem);
     return it;
   }
 
   virtual iterator end  () {
     iterator it = parent::end();
-    it.setFEM(fem);
+    it.setFEEngine(fem);
     return it;
   }
 
-  const FEM & getFEM() { return fem; }
+  const FEEngine & getFEEngine() { return fem; }
 
 protected:
   virtual UInt getNbDataPerElem(const ElementType & type) { return fem.getNbQuadraturePoints(type); }
 
 protected:
-  const FEM & fem;
+  const FEEngine & fem;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -159,22 +159,22 @@ public:
   typedef iterator_type<T, ret_type, filtered> iterator;
   typedef GenericQuadraturePointsField<T, iterator, ret_type, filtered> parent;
 
-  QuadraturePointsField(const FEM & fem,
-			const ByElementTypeArray<T> & field,
+  QuadraturePointsField(const FEEngine & fem,
+			const ElementTypeMapArray<T> & field,
 			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
-			const ByElementTypeArray<UInt> * filter = NULL) :
+			const ElementTypeMapArray<UInt> * filter = NULL) :
     parent(fem, field, spatial_dimension,
 	   ghost_type, element_kind, filter) { }
 
-  QuadraturePointsField(const FEM & fem,
-			const ByElementTypeArray<T> & field,
+  QuadraturePointsField(const FEEngine & fem,
+			const ElementTypeMapArray<T> & field,
 			UInt n,
 			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
-			const ByElementTypeArray<UInt> * filter = NULL) :
+			const ElementTypeMapArray<UInt> * filter = NULL) :
     parent(fem, field, n, spatial_dimension,
 	   ghost_type, element_kind, filter) { }
 };

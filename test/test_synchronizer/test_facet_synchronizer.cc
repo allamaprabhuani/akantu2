@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
   MeshUtils::buildAllFacets(mesh, mesh_facets, 0, dist);
 
   /// compute barycenter for each facet
-  ByElementTypeReal barycenters("barycenters", "", 0);
-  mesh_facets.initByElementTypeArray(barycenters,
+  ElementTypeMapArray<Real> barycenters("barycenters", "", 0);
+  mesh_facets.initElementTypeMapArray(barycenters,
 				     spatial_dimension,
 				     spatial_dimension - 1);
 

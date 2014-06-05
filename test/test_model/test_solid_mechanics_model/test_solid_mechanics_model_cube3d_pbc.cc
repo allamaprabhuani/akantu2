@@ -56,17 +56,17 @@ int main(int argc, char *argv[])
   std::cout << model << std::endl;
 
   /// boundary conditions
-  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
   akantu::Real eps = 1e-16;
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
-    model.getDisplacement().storage()[3*i] = model.getFEM().getMesh().getNodes().storage()[3*i] / 100.;
+    model.getDisplacement().storage()[3*i] = model.getFEEngine().getMesh().getNodes().storage()[3*i] / 100.;
 
-    if(model.getFEM().getMesh().getNodes().storage()[3*i] <= eps) {
-      model.getBoundary().storage()[3*i    ] = true;
+    if(model.getFEEngine().getMesh().getNodes().storage()[3*i] <= eps) {
+      model.getBlockedDOFs().storage()[3*i    ] = true;
     }
 
-    if(model.getFEM().getMesh().getNodes().storage()[3*i + 1] <= eps) {
-      model.getBoundary().storage()[3*i + 1] = true;
+    if(model.getFEEngine().getMesh().getNodes().storage()[3*i + 1] <= eps) {
+      model.getBlockedDOFs().storage()[3*i + 1] = true;
     }
 
   }

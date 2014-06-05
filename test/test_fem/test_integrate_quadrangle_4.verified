@@ -1,5 +1,5 @@
 Epsilon : 3e-13
-FEM [
+FEEngine [
  + id                : my_fem
  + element dimension : 2
  + mesh [
@@ -16,7 +16,7 @@ FEM [
      + values         : {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0.5, 0}, {1, 0.5}, {0.5, 1}, {0, 0.5}, {0.5, 0.5}}
     ]
    + connectivities [
-    ByElementTypeArray<unsigned int> [
+    ElementTypeMapArray<unsigned int> [
         (not_ghost:_point_1) [
        Array<unsigned int> [
         + id             : mesh:connectivities:_point_1

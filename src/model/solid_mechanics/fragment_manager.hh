@@ -58,7 +58,7 @@ private:
 
   /// integrate an elemental field multiplied by density on global
   /// fragments
-  void integrateFieldOnFragments(ByElementTypeReal & field,
+  void integrateFieldOnFragments(ElementTypeMapArray<Real> & field,
 				 Array<Real> & output);
 
   /// compute fragments' mass
@@ -146,10 +146,10 @@ private:
   Array<Real> inertia_moments;
 
   /// quadrature points' coordinates
-  ByElementTypeReal quad_coordinates;
+  ElementTypeMapArray<Real> quad_coordinates;
 
   /// mass density per quadrature point
-  ByElementTypeReal mass_density;
+  ElementTypeMapArray<Real> mass_density;
 
   /// fragment filter
   Array<bool> fragment_filter;

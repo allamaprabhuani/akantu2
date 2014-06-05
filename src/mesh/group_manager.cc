@@ -254,7 +254,7 @@ public:
   ClusterSynchronizer(GroupManager & group_manager,
 		      UInt element_dimension,
 		      std::string cluster_name_prefix,
-		      ByElementTypeUInt & element_to_fragment,
+		      ElementTypeMapArray<UInt> & element_to_fragment,
 		      DistributedSynchronizer & distributed_synchronizer,
 		      UInt nb_cluster) :
     group_manager(group_manager),
@@ -458,7 +458,7 @@ private:
   GroupManager & group_manager;
   UInt element_dimension;
   std::string cluster_name_prefix;
-  ByElementTypeUInt & element_to_fragment;
+  ElementTypeMapArray<UInt> & element_to_fragment;
   DistributedSynchronizer & distributed_synchronizer;
 
   UInt nb_cluster;
@@ -488,11 +488,11 @@ UInt GroupManager::createClusters(UInt element_dimension,
   UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
   std::string tmp_cluster_name_prefix = cluster_name_prefix;
 
-  ByElementTypeUInt * element_to_fragment = NULL;
+  ElementTypeMapArray<UInt> * element_to_fragment = NULL;
 
   if (nb_proc > 1 && distributed_synchronizer) {
-    element_to_fragment = new ByElementTypeUInt;
-    mesh.initByElementTypeArray(*element_to_fragment, 1, element_dimension,
+    element_to_fragment = new ElementTypeMapArray<UInt>;
+    mesh.initElementTypeMapArray(*element_to_fragment, 1, element_dimension,
 				false, _ek_not_defined, true);
     tmp_cluster_name_prefix = "tmp_" + tmp_cluster_name_prefix;
   }
@@ -662,8 +662,8 @@ UInt GroupManager::createClusters(UInt element_dimension,
 template<typename T>
 void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
   std::set<std::string> group_names;
-  const ByElementTypeArray<T> & datas = mesh.getData<T>(dataset_name);
-  typedef typename ByElementTypeArray<T>::type_iterator type_iterator;
+  const ElementTypeMapArray<T> & datas = mesh.getData<T>(dataset_name);
+  typedef typename ElementTypeMapArray<T>::type_iterator type_iterator;
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
     type_iterator type_it = datas.firstType(_all_dimensions, *gt);

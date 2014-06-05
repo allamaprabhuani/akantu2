@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 
   const Array<Real> & coordinates = my_mesh.getNodes();
   Array<Real> & displacement = my_model.getDisplacement();
-  Array<bool> & boundary = my_model.getBoundary();
+  Array<bool> & boundary = my_model.getBlockedDOFs();
   MeshUtils::buildFacets(my_mesh);
 
   my_mesh.createBoundaryGroupFromGeometry();

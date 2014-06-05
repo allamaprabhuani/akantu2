@@ -98,11 +98,11 @@ int main(int argc, char *argv[])
      	= (mesh.getNodes().storage()[dim*i] - 9) / 100.;
 
     if(mesh.getNodes().storage()[dim*i] <= eps)
-      model.getBoundary().storage()[dim*i] = true;
+      model.getBlockedDOFs().storage()[dim*i] = true;
 
     if(mesh.getNodes().storage()[dim*i + 1] <= eps ||
        mesh.getNodes().storage()[dim*i + 1] >= 1 - eps ) {
-      model.getBoundary().storage()[dim*i + 1] = true;
+      model.getBlockedDOFs().storage()[dim*i + 1] = true;
     }
   }
 

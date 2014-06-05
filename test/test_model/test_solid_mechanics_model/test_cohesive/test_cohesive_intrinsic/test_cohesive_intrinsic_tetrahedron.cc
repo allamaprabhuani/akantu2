@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
   /// model initialization
   model.initFull();
 
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   boundary.set(true);
 
   UInt nb_element = mesh.getNbElement(type);
@@ -246,7 +246,7 @@ void updateDisplacement(SolidMechanicsModelCohesive & model,
 			Vector<Real> & increment) {
 
   UInt spatial_dimension = model.getSpatialDimension();
-  Mesh & mesh = model.getFEM().getMesh();
+  Mesh & mesh = model.getFEEngine().getMesh();
   UInt nb_element = elements.getSize();
   UInt nb_nodes = mesh.getNbNodes();
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -290,13 +290,13 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
   Real delta_c = delta_0 * sigma_c / (sigma_c - 1.);
 
   ElementType type_facet = Mesh::getFacetType(type);
-  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+  ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
 
   const Array<Real> & traction = mat_cohesive.getTraction(type_cohesive);
   const Array<Real> & damage = mat_cohesive.getDamage(type_cohesive);
 
   UInt nb_quad_per_el
-    = model.getFEM("CohesiveFEM").getNbQuadraturePoints(type_cohesive);
+    = model.getFEEngine("CohesiveFEEngine").getNbQuadraturePoints(type_cohesive);
   UInt nb_element = model.getMesh().getNbElement(type_cohesive);
   UInt tot_nb_quad = nb_element * nb_quad_per_el;
 

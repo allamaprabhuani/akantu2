@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
   // boundary conditions
   const Array<Real> & position    = mesh.getNodes();
-  Array<bool> & boundary    = model.getBoundary();
+  Array<bool> & boundary    = model.getBlockedDOFs();
   Array<Real> & force       = model.getForce();
   Array<Real> & displacment = model.getDisplacement();
 

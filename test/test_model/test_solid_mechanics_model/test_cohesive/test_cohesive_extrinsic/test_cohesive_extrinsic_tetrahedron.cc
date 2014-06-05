@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
   ElementType type = _tetrahedron_10;
   ElementType type_facet = Mesh::getFacetType(type);
-  ElementType type_cohesive = FEM::getCohesiveElementType(type_facet);
+  ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
 
   Mesh mesh(spatial_dimension);
   mesh.read("tetrahedron.msh");
@@ -65,6 +65,9 @@ int main(int argc, char *argv[]) {
 
   const MaterialCohesiveLinear<3> & mat_cohesive
     = dynamic_cast < const MaterialCohesiveLinear<3> & > (model.getMaterial(1));
+
+  std::cout << mat_cohesive << std::endl;
+  std::cout << model.getMaterial(2) << std::endl;
 
   const Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
   const Real beta = mat_cohesive.getParam<Real>("beta");
@@ -79,12 +82,12 @@ int main(int argc, char *argv[]) {
   /// compute quadrature points positions on facets
   const Mesh & mesh_facets = model.getMeshFacets();
   UInt nb_facet = mesh_facets.getNbElement(type_facet);
-  UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
+  UInt nb_quad_per_facet = model.getFEEngine("FacetsFEEngine").getNbQuadraturePoints(type_facet);
   UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
 
   Array<Real> quad_facets(nb_tot_quad, spatial_dimension);
 
-  model.getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
+  model.getFEEngine("FacetsFEEngine").interpolateOnQuadraturePoints(position,
 							  quad_facets,
 							  spatial_dimension,
 							  type_facet);
@@ -95,14 +98,14 @@ int main(int argc, char *argv[]) {
 
 
   /// compute quadrature points position of the elements
-  UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+  UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
   UInt nb_element = mesh.getNbElement(type);
   UInt nb_tot_quad_el = nb_quad_per_element * nb_element;
 
   Array<Real> quad_elements(nb_tot_quad_el, spatial_dimension);
 
 
-  model.getFEM().interpolateOnQuadraturePoints(position,
+  model.getFEEngine().interpolateOnQuadraturePoints(position,
 					       quad_elements,
 					       spatial_dimension,
 					       type);
@@ -168,7 +171,7 @@ int main(int argc, char *argv[]) {
 
   /// check insertion stress
   const Array<Real> & normals =
-    model.getFEM("FacetsFEM").getNormalsOnQuadPoints(type_facet);
+    model.getFEEngine("FacetsFEEngine").getNormalsOnQuadPoints(type_facet);
   const Array<Real> & tangents = model.getTangents(type_facet);
   const Array<Real> & sigma_c_eff = mat_cohesive.getInsertionTraction(type_cohesive);
 

@@ -44,7 +44,7 @@ inline UInt SolidMechanicsModelCohesive::getNbQuadsForFacetCheck(const Array<Ele
       current_element_type = el.type;
       current_ghost_type   = el.ghost_type;
 
-      nb_quad_per_facet = this->getFEM("FacetsFEM").getNbQuadraturePoints(el.type,
+      nb_quad_per_facet = this->getFEEngine("FacetsFEEngine").getNbQuadraturePoints(el.type,
 									  el.ghost_type);
     }
 
@@ -163,12 +163,12 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
     case _gst_smmc_facets: {
       packElementalDataHelper(inserter->getInsertionFacetsByElement(),
-			      buffer, elements, false, getFEM());
+			      buffer, elements, false, getFEEngine());
       break;
     }
     case _gst_smmc_facets_conn: {
       packElementalDataHelper(*global_connectivity, buffer, elements,
-			      false, getFEM());
+			      false, getFEEngine());
       break;
     }
     case _gst_smmc_facets_stress: {
@@ -186,13 +186,13 @@ inline void SolidMechanicsModelCohesive::packElementData(CommunicationBuffer & b
 
     case _gst_material_id: {
       packElementalDataHelper(element_index_by_material, buffer,
-			      elements, false, getFEM("CohesiveFEM"));
+			      elements, false, getFEEngine("CohesiveFEEngine"));
       break;
     }
     case _gst_smm_boundary: {
       packNodalDataHelper(*force, buffer, elements, mesh);
       packNodalDataHelper(*velocity, buffer, elements, mesh);
-      packNodalDataHelper(*boundary, buffer, elements, mesh);
+      packNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
       break;
     }
     default: { }
@@ -226,12 +226,12 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
     switch(tag) {
     case _gst_smmc_facets: {
       unpackElementalDataHelper(inserter->getInsertionFacetsByElement(),
-				buffer, elements, false, getFEM());
+				buffer, elements, false, getFEEngine());
       break;
     }
     case _gst_smmc_facets_conn: {
       unpackElementalDataHelper(*global_connectivity, buffer, elements,
-				false, getFEM());
+				false, getFEEngine());
       break;
     }
     case _gst_smmc_facets_stress: {
@@ -248,13 +248,13 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
     switch(tag) {
     case _gst_material_id: {
       unpackElementalDataHelper(element_index_by_material, buffer,
-				elements, false, getFEM("CohesiveFEM"));
+				elements, false, getFEEngine("CohesiveFEEngine"));
       break;
     }
     case _gst_smm_boundary: {
       unpackNodalDataHelper(*force, buffer, elements, mesh);
       unpackNodalDataHelper(*velocity, buffer, elements, mesh);
-      unpackNodalDataHelper(*boundary, buffer, elements, mesh);
+      unpackNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
       break;
     }
     default: { }
@@ -277,16 +277,16 @@ inline void SolidMechanicsModelCohesive::unpackElementData(CommunicationBuffer &
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void SolidMechanicsModelCohesive::packFacetStressDataHelper(const ByElementTypeArray<T> & data_to_pack,
+inline void SolidMechanicsModelCohesive::packFacetStressDataHelper(const ElementTypeMapArray<T> & data_to_pack,
 								   CommunicationBuffer & buffer,
 								   const Array<Element> & elements) const {
-  packUnpackFacetStressDataHelper<T, true>(const_cast<ByElementTypeArray<T> &>(data_to_pack),
+  packUnpackFacetStressDataHelper<T, true>(const_cast<ElementTypeMapArray<T> &>(data_to_pack),
 					   buffer, elements);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-inline void SolidMechanicsModelCohesive::unpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_unpack,
+inline void SolidMechanicsModelCohesive::unpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_unpack,
 								     CommunicationBuffer & buffer,
 								     const Array<Element> & elements) const {
   packUnpackFacetStressDataHelper<T, false>(data_to_unpack, buffer, elements);
@@ -294,7 +294,7 @@ inline void SolidMechanicsModelCohesive::unpackFacetStressDataHelper(ByElementTy
 
 /* -------------------------------------------------------------------------- */
 template<typename T, bool pack_helper>
-inline void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_pack,
+inline void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_pack,
 									 CommunicationBuffer & buffer,
 									 const Array<Element> & element) const {
   ElementType current_element_type = _not_defined;
@@ -319,7 +319,7 @@ inline void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(ByEleme
       element_to_facet =
 	&( mesh_facets.getElementToSubelement(el.type, el.ghost_type) );
 
-      nb_quad_per_elem = this->getFEM("FacetsFEM").getNbQuadraturePoints(el.type,
+      nb_quad_per_elem = this->getFEEngine("FacetsFEEngine").getNbQuadraturePoints(el.type,
 									 el.ghost_type);
     }
 

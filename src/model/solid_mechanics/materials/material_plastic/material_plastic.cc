@@ -83,13 +83,13 @@ Real MaterialPlastic<spatial_dimension>::getPlasticEnergy() {
 
   Real penergy = 0.;
 
-  const Mesh & mesh = this->model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEEngine().getMesh();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _not_ghost);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension, _not_ghost);
 
   for(; it != end; ++it) {
-    penergy += this->model->getFEM().integrate(plastic_energy(*it, _not_ghost),
+    penergy += this->model->getFEEngine().integrate(plastic_energy(*it, _not_ghost),
                                                *it, _not_ghost,
                                                this->element_filter(*it, _not_ghost));
   }

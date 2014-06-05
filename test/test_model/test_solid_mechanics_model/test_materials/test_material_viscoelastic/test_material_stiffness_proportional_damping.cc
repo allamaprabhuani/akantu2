@@ -103,11 +103,11 @@ int main(int argc, char *argv[])
     // block lower nodes
     if(mesh.getNodes().storage()[i*dim+1] < 0.5) {
       for (UInt j=0; j<dim; ++j) 
-	model.getBoundary().storage()[dim*i + j] = true;
+	model.getBlockedDOFs().storage()[dim*i + j] = true;
     }
     // impose displacement
     else {
-      model.getBoundary().storage()[dim*i + 0] = true;
+      model.getBlockedDOFs().storage()[dim*i + 0] = true;
       model.getDisplacement().storage()[dim*i + 1] = imposed_disp;
       the_nodes.push_back(i);
     }

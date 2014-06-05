@@ -32,7 +32,7 @@
 #include "aka_common.hh"
 #include "aka_array.hh"
 #include "mesh.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "mesh_partition_scotch.hh"

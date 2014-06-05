@@ -92,8 +92,8 @@ int main(int argc, char *argv[]) {
   model.assembleMassLumped();
 
   /// boundary conditions
-  const akantu::Array<Real> & position = model.getFEM().getMesh().getNodes();
-  akantu::Array<bool> & boundary = model.getBoundary();
+  const akantu::Array<Real> & position = model.getFEEngine().getMesh().getNodes();
+  akantu::Array<bool> & boundary = model.getBlockedDOFs();
   akantu::Array<Real> & force = model.getForce();
   const akantu::Array<Real> & mass = model.getMass();
 

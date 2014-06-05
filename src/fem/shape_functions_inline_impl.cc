@@ -33,7 +33,7 @@
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU__
-#include "fem.hh"
+#include "fe_engine.hh"
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -95,7 +95,7 @@ void ShapeFunctions::interpolateElementalFieldOnControlPoints(const Array<Real> 
   if(filter_elements != empty_filter) {
     nb_element = filter_elements.getSize();
     filtered_N = new Array<Real>(0, shapes.getNbComponent());
-    FEM::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type, filter_elements);
+    FEEngine::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type, filter_elements);
     N_it = filtered_N->begin_reinterpret(nb_nodes_per_element, nb_points, nb_element);
   } else {
     nb_element = mesh.getNbElement(type,ghost_type);
@@ -141,7 +141,7 @@ void ShapeFunctions::gradientElementalFieldOnControlPoints(const Array<Real> &u_
   if(filter_elements != empty_filter) {
     nb_element = filter_elements.getSize();
     filtered_B = new Array<Real>(0, shapes_derivatives.getNbComponent());
-    FEM::filterElementalData(mesh, shapes_derivatives, *filtered_B, type, ghost_type, filter_elements);
+    FEEngine::filterElementalData(mesh, shapes_derivatives, *filtered_B, type, ghost_type, filter_elements);
     B_it = filtered_B->begin(element_dimension, nb_nodes_per_element);
   } else {
     B_it = shapes_derivatives.begin(element_dimension, nb_nodes_per_element);

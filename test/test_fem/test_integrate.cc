@@ -30,7 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
   std::stringstream meshfilename; meshfilename << type << ".msh";
   mesh_io.read(meshfilename.str(), my_mesh);
 
-  FEM *fem = new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
+  FEEngine *fem = new FEEngineTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
   std::stringstream outfilename; outfilename << "out_" << type << ".txt";
   std::ofstream my_file(outfilename.str().c_str());

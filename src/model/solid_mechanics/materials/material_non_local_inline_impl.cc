@@ -79,12 +79,12 @@ template<UInt spatial_dimension, template <UInt> class WeightFunction>
 void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
   //  Material::initMaterial();
-  Mesh & mesh = this->model->getFEM().getMesh();
+  Mesh & mesh = this->model->getFEEngine().getMesh();
 
   InternalField<Real> quadrature_points_coordinates("quadrature_points_coordinates_tmp_nl", *this);
   quadrature_points_coordinates.initialize(spatial_dimension);
 
-  ByElementType<UInt> nb_ghost_protected;
+  ElementTypeMap<UInt> nb_ghost_protected;
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension, _ghost);
   for(; it != last_type; ++it)
@@ -116,7 +116,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
     (debug::_dm_material_non_local,
      [this, &quadrature_points_coordinates](const Element & el)->std::string {
       std::stringstream out;
-      FEM & fem = this->model->getFEM();
+      FEEngine & fem = this->model->getFEEngine();
 
       Mesh mesh(spatial_dimension, getID() + "mesh_tmp");
       mesh.addConnectivityType(_segment_2);
@@ -129,7 +129,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
       Array<Real> jac(0,1);
 
       UInt nb_quad_per_elem =
-        this->model->getFEM().getNbQuadraturePoints(el.type,
+        this->model->getFEEngine().getNbQuadraturePoints(el.type,
                                                     el.ghost_type);
 
       Array<Real>::const_vector_iterator quad_it = quadrature_points_coordinates(el.type, el.ghost_type).begin(spatial_dimension);
@@ -248,7 +248,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::initMaterial() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostElement(const ByElementType<UInt> & nb_ghost_protected) {
+void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostElement(const ElementTypeMap<UInt> & nb_ghost_protected) {
   AKANTU_DEBUG_IN();
 
   // Create list of element to keep
@@ -259,7 +259,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
     ElementType type2 = first_pair_types->second;
     GhostType ghost_type2 = _ghost;
-    UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
+    UInt nb_quad2 = this->model->getFEEngine().getNbQuadraturePoints(type2);
     Array<UInt> & elem_filter = element_filter(type2, ghost_type2);
 
     const Array<UInt> & pairs =
@@ -274,7 +274,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
   }
 
   // Create list of element to remove and new numbering for element to keep
-  Mesh & mesh = this->model->getFEM().getMesh();
+  Mesh & mesh = this->model->getFEEngine().getMesh();
   std::set<Element> ghost_to_erase;
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension, _ghost);
@@ -323,11 +323,11 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::cleanupExtraGhostEleme
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByElementTypeReal & quadrature_points_coordinates) {
+void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ElementTypeMapArray<Real> & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
 
   const Real safety_factor = 1.2; // for the cell grid spacing
-  Mesh & mesh = this->model->getFEM().getMesh();
+  Mesh & mesh = this->model->getFEEngine().getMesh();
   mesh.computeBoundingBox();
 
   Real lower_bounds[spatial_dimension];
@@ -396,9 +396,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(ByEleme
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByElementTypeReal & quadrature_points_coordinates,
+void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ElementTypeMapArray<Real> & quadrature_points_coordinates,
                                                                        const GhostType & ghost_type) {
-  Mesh & mesh = this->model->getFEM().getMesh();
+  Mesh & mesh = this->model->getFEEngine().getMesh();
 
   QuadraturePoint q;
   q.ghost_type = ghost_type;
@@ -408,7 +408,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByE
   for(; it != last_type; ++it) {
     Array<UInt> & elem_filter = element_filter(*it, ghost_type);
     UInt nb_element = elem_filter.getSize();
-    UInt nb_quad    = this->model->getFEM().getNbQuadraturePoints(*it, ghost_type);
+    UInt nb_quad    = this->model->getFEEngine().getNbQuadraturePoints(*it, ghost_type);
 
     const Array<Real> & quads = quadrature_points_coordinates(*it, ghost_type);
     q.type = *it;
@@ -432,10 +432,10 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::fillCellList(const ByE
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const ByElementTypeReal & quadrature_points_coordinates) {
+void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const ElementTypeMapArray<Real> & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
 
-  Mesh & mesh = this->model->getFEM().getMesh();
+  Mesh & mesh = this->model->getFEEngine().getMesh();
 
   GhostType ghost_type = _not_ghost;
   QuadraturePoint quad_point;
@@ -450,7 +450,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
     Array<Real>::const_vector_iterator first_quad = quads.begin(spatial_dimension);
     Array<Real>::const_vector_iterator last_quad  = quads.end(spatial_dimension);
 
-    ByElementTypeUInt & pairs = pair_list(ByElementTypeUInt("pairs", getID(), memory_id),
+    ElementTypeMapArray<UInt> & pairs = pair_list(ElementTypeMapArray<UInt>("pairs", getID(), memory_id),
                                           *it,
                                           ghost_type);
 
@@ -473,7 +473,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
       SpatialGrid<QuadraturePoint>::neighbor_cells_iterator last_neigh_cell =
         spatial_grid->endNeighborCells(cell_id);
 
-      quad_point.element = my_num_quad / this->model->getFEM().getNbQuadraturePoints(*it,
+      quad_point.element = my_num_quad / this->model->getFEEngine().getNbQuadraturePoints(*it,
                                                                                      quad_point.ghost_type);
 
       // loop over neighbors cells of the one containing the current quadrature
@@ -488,7 +488,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
         for (;first_neigh_quad != last_neigh_quad; ++first_neigh_quad){
           QuadraturePoint quad = *first_neigh_quad;
           UInt nb_quad_per_elem =
-            this->model->getFEM().getNbQuadraturePoints(quad.type,
+            this->model->getFEEngine().getNbQuadraturePoints(quad.type,
                                                         quad.ghost_type);
 
           // little optimization to not search in the map at each quad points
@@ -555,7 +555,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updatePairList(const B
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const ByElementTypeReal & quadrature_points_coordinates) {
+void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const ElementTypeMapArray<Real> & quadrature_points_coordinates) {
   AKANTU_DEBUG_IN();
 
   GhostType ghost_type1;
@@ -564,7 +564,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
   InternalField<Real> quadrature_points_volumes("quadrature_points_volumes", *this);
   quadrature_points_volumes.initialize(1);
 
-  const FEM & fem = this->model->getFEM();
+  const FEEngine & fem = this->model->getFEEngine();
 
   weight_func->updateInternals(quadrature_points_volumes);
 
@@ -584,7 +584,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
       std::string ghost_id = "";
       if (ghost_type1 == _ghost) ghost_id = ":ghost";
 
-      ByElementTypeReal & weights_type_1 = pair_weight(type1, ghost_type1);
+      ElementTypeMapArray<Real> & weights_type_1 = pair_weight(type1, ghost_type1);
       std::stringstream sstr; sstr << getID() << ":pair_weight:" << type1 << ghost_id;
       weights_type_1.setID(sstr.str());
 
@@ -685,8 +685,8 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeWeights(const B
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 template<typename T>
-void MaterialNonLocal<spatial_dimension, WeightFunction>::weightedAvergageOnNeighbours(const ByElementTypeArray<T> & to_accumulate,
-                                                                                       ByElementTypeArray<T> & accumulated,
+void MaterialNonLocal<spatial_dimension, WeightFunction>::weightedAvergageOnNeighbours(const ElementTypeMapArray<T> & to_accumulate,
+                                                                                       ElementTypeMapArray<T> & accumulated,
                                                                                        UInt nb_degree_of_freedom,
                                                                                        GhostType ghost_type2) const {
   AKANTU_DEBUG_IN();
@@ -736,9 +736,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::updateResidual(GhostTy
   if(ghost_type == _not_ghost &&
      this->weight_func->getUpdateRate() &&
      (this->compute_stress_calls % this->weight_func->getUpdateRate() == 0)) {
-    ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", getID());
-    Mesh & mesh = this->model->getFEM().getMesh();
-    mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
+    ElementTypeMapArray<Real> quadrature_points_coordinates("quadrature_points_coordinates", getID());
+    Mesh & mesh = this->model->getFEEngine().getMesh();
+    mesh.initElementTypeMapArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
     computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
     computeWeights(quadrature_points_coordinates);
@@ -762,9 +762,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
        (this->compute_stress_calls % this->weight_func->getUpdateRate() == 0)) {
       this->model->getSynchronizerRegistry().asynchronousSynchronize(_gst_mnl_weight);
 
-      ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", getID());
-      Mesh & mesh = this->model->getFEM().getMesh();
-      mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
+      ElementTypeMapArray<Real> quadrature_points_coordinates("quadrature_points_coordinates", getID());
+      Mesh & mesh = this->model->getFEEngine().getMesh();
+      mesh.initElementTypeMapArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
       computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
 
@@ -825,9 +825,9 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
 
   // >>>>>> DEBUG CODE >>>>>> //
 #if defined(AKANTU_DEBUG_TOOLS) && defined(AKANTU_CORE_CXX11)
-  ByElementTypeReal quadrature_points_coordinates("quadrature_points_coordinates", id);
-  Mesh & mesh = this->model->getFEM().getMesh();
-  mesh.initByElementTypeArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
+  ElementTypeMapArray<Real> quadrature_points_coordinates("quadrature_points_coordinates", id);
+  Mesh & mesh = this->model->getFEEngine().getMesh();
+  mesh.initElementTypeMapArray(quadrature_points_coordinates, spatial_dimension, spatial_dimension);
   computeQuadraturePointsCoordinates(quadrature_points_coordinates, _not_ghost);
   computeQuadraturePointsCoordinates(quadrature_points_coordinates, _ghost);
 
@@ -838,7 +838,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::computeAllNonLocalStre
       std::stringstream out;
 
       GhostType ghost_type1 = _not_ghost;
-      FEM & fem = this->model->getFEM();
+      FEEngine & fem = this->model->getFEEngine();
       Mesh & mesh = this->model->getMesh();
 
       std::ofstream quad_out;
@@ -1031,7 +1031,7 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::neighbourhoodStatistic
   std::ofstream pout;
   pout.open(filename.c_str());
 
-  const Mesh & mesh = this->model->getFEM().getMesh();
+  const Mesh & mesh = this->model->getFEEngine().getMesh();
 
   GhostType ghost_type1;
   ghost_type1 = _not_ghost;
@@ -1184,7 +1184,7 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::unpackElementDa
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension, template <UInt> class WeightFunction>
 inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemoved(const Array<Element> & element_list,
-                                                                                   const ByElementTypeUInt & new_numbering,
+                                                                                   const ElementTypeMapArray<UInt> & new_numbering,
                                                                                    __attribute__((unused)) const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
@@ -1197,7 +1197,7 @@ inline void MaterialNonLocal<spatial_dimension, WeightFunction>::onElementsRemov
   for (; first_pair_types != last_pair_types; ++first_pair_types) {
     ElementType type2 = first_pair_types->second;
     GhostType ghost_type2 = _ghost;
-    UInt nb_quad2 = this->model->getFEM().getNbQuadraturePoints(type2);
+    UInt nb_quad2 = this->model->getFEEngine().getNbQuadraturePoints(type2);
 
     Array<UInt> & pairs =
       pair_list(first_pair_types->first, _not_ghost)(first_pair_types->second, ghost_type2);

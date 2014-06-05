@@ -41,10 +41,10 @@ __BEGIN_AKANTU__
 template <class T, bool is_scal>
 inline T & Array<T, is_scal>::operator()(UInt i, UInt j) {
   AKANTU_DEBUG_ASSERT(size > 0,
-		      "The vector \"" << id << "\" is empty");
+		      "The array \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
 		      "The value at position [" << i << "," << j
-		      << "] is out of range in vector \"" << id << "\"");
+		      << "] is out of range in array \"" << id << "\"");
   return values[i*nb_component + j];
 }
 
@@ -52,19 +52,19 @@ inline T & Array<T, is_scal>::operator()(UInt i, UInt j) {
 template <class T, bool is_scal>
 inline const T & Array<T, is_scal>::operator()(UInt i, UInt j) const {
   AKANTU_DEBUG_ASSERT(size > 0,
-		      "The vector \"" << id << "\" is empty");
+		      "The array \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size) && (j < nb_component),
 		      "The value at position [" << i << "," << j
-		      << "] is out of range in vector \"" << id << "\"");
+		      << "] is out of range in array \"" << id << "\"");
   return values[i*nb_component + j];
 }
 
 template <class T, bool is_scal>
 inline T & Array<T, is_scal>::operator[](UInt i) {
   AKANTU_DEBUG_ASSERT(size > 0,
-                      "The vector \"" << id << "\" is empty");
+                      "The array \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size*nb_component),
-                      "The value at position [" << i << "] is out of range in vector \"" << id << "\"");
+                      "The value at position [" << i << "] is out of range in array \"" << id << "\"");
   return values[i];
 }
 
@@ -72,9 +72,9 @@ inline T & Array<T, is_scal>::operator[](UInt i) {
 template <class T, bool is_scal>
 inline const T & Array<T, is_scal>::operator[](UInt i) const {
   AKANTU_DEBUG_ASSERT(size > 0,
-                      "The vector \"" << id << "\" is empty");
+                      "The array \"" << id << "\" is empty");
   AKANTU_DEBUG_ASSERT((i < size*nb_component),
-                      "The value at position [" << i << "] is out of range in vector \"" << id << "\"");
+                      "The value at position [" << i << "] is out of range in array \"" << id << "\"");
   return values[i];
 }
 
@@ -154,7 +154,7 @@ template <class T, bool is_scal>
 inline void Array<T, is_scal>::erase(UInt i){
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT((size > 0),
-		      "The vector is empty");
+		      "The array is empty");
   AKANTU_DEBUG_ASSERT((i < size),
 		      "The element at position [" << i << "] is out of range (" << i << ">=" << size << ")");
 
@@ -181,7 +181,7 @@ inline void Array<T, is_scal>::erase(UInt i){
 template <class T, bool is_scal>
 Array<T, is_scal> & Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
-		      "The too vector don't have the same sizes");
+		      "The too array don't have the same sizes");
 
   T * a = values;
   T * b = vect.storage();
@@ -205,7 +205,7 @@ Array<T, is_scal> & Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect
 template <class T, bool is_scal>
 Array<T, is_scal> & Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((size == vect.size) && (nb_component == vect.nb_component),
-		      "The too vector don't have the same sizes");
+		      "The too array don't have the same sizes");
 
   T * a = values;
   T * b = vect.storage();
@@ -520,7 +520,7 @@ void Array<T, is_scal>::extendComponentsInterlaced(UInt multiplicator,
 
 /* -------------------------------------------------------------------------- */
 /**
- * search elem in the vector, return  the position of the first occurrence or
+ * search elem in the array, return  the position of the first occurrence or
  * -1 if not found
  *  @param elem the element to look for
  *  @return index of the first occurrence of elem or -1 if elem is not present
@@ -566,19 +566,17 @@ Int Array<T, is_scal>::find(T elem[]) const {
  * unpredicted behaviour.
  */
 template <class T, bool is_scal>
-void Array<T, is_scal>::copy(const Array<T, is_scal>& vect) {
+void Array<T, is_scal>::copy(const Array<T, is_scal>& vect, bool no_sanity_check) {
   AKANTU_DEBUG_IN();
 
-  if(AKANTU_DEBUG_TEST(dblWarning))
-    if(vect.nb_component != nb_component) {
-      AKANTU_DEBUG(dblWarning, "The two vectors do not have the same number of components");
-    }
-  //  this->id = vect.id;
+  if(!no_sanity_check)
+    if(vect.nb_component != nb_component)
+      AKANTU_DEBUG_ERROR("The two arrays do not have the same number of components");
+
   resize((vect.size * vect.nb_component) / nb_component);
 
   T * tmp = values;
   std::uninitialized_copy(vect.storage(), vect.storage() + size * nb_component, tmp);
-  //  memcpy(this->values, vect.storage(), vect.size * vect.nb_component * sizeof(T));
 
   AKANTU_DEBUG_OUT();
 }
@@ -770,17 +768,10 @@ public:
     if(this != &it) { this->ret = it.ret; this->initial = it.initial; }
   }
 
-  // iterator_internal(const Array<T, is_scal>::iterator<IR> & it) {
-  //   this->ret = it.data(); this->initial = it.data();
-  // }
-
   virtual ~iterator_internal() { };
 
   inline iterator_internal & operator=(const iterator_internal & it)
   { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
-
-  // inline iterator_internal & operator=(const Array<T, is_scal>::iterator<IR> & it)
-  // { if(this != &it) { this->ret = it.data(); this->initial = it.data(); } return *this; }
 
   inline reference operator*() { return *ret; };
   inline const_reference operator*() const { return *ret; };
@@ -1141,7 +1132,7 @@ inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::begin() {
    */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::end() {
-  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a array which has nb_component != 1");
   return iterator<T>(values + size);
 }
 
@@ -1152,7 +1143,7 @@ inline Array<T, is_scal>::iterator<T> Array<T, is_scal>::end() {
  */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::const_iterator<T> Array<T, is_scal>::begin() const {
-  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a array which has nb_component != 1");
   return const_iterator<T>(values);
 }
 
@@ -1163,7 +1154,7 @@ inline Array<T, is_scal>::const_iterator<T> Array<T, is_scal>::begin() const {
  */
 template <class T, bool is_scal>
 inline Array<T, is_scal>::const_iterator<T> Array<T, is_scal>::end() const {
-  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a vector which has nb_component != 1");
+  AKANTU_DEBUG_ASSERT(nb_component == 1, "this iterator cannot be used on a array which has nb_component != 1");
   return const_iterator<T>(values + size);
 }
 

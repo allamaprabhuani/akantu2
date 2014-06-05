@@ -160,7 +160,7 @@ public:
 					   const internal_iterator & it,
 					   ElementType element_type,
 					   const GhostType ghost_type = _not_ghost,
-					   const ByElementTypeArray<UInt> * filter = NULL,
+					   const ElementTypeMapArray<UInt> * filter = NULL,
 					   UInt * fit = NULL) :
     parent(element_material, 2, t_it, t_it_end,
 	   it, element_type, ghost_type, filter, fit),
@@ -242,7 +242,7 @@ public:
 				   const internal_iterator & it,
 				   ElementType element_type,
 				   const GhostType ghost_type = _not_ghost,
-				   const ByElementTypeArray<UInt> * filter = NULL,
+				   const ElementTypeMapArray<UInt> * filter = NULL,
 				   UInt * fit = NULL) :
     parent(element_material, n, t_it, t_it_end,
 	   it, element_type, ghost_type, filter, fit) {  }
@@ -270,7 +270,7 @@ public:
 				 const internal_iterator & it,
 				 ElementType element_type,
 				 const GhostType ghost_type = _not_ghost,
-				 const ByElementTypeArray<UInt> * filter = NULL,
+				 const ElementTypeMapArray<UInt> * filter = NULL,
 				 UInt * fit = NULL) :
     parent(element_material, n, t_it, t_it_end,
 	   it, element_type, ghost_type, filter, fit) { }
@@ -298,7 +298,7 @@ public:
 				 const internal_iterator & it,
 				 ElementType element_type,
 				 const GhostType ghost_type = _not_ghost,
-				 const ByElementTypeArray<UInt> * filter = NULL,
+				 const ElementTypeMapArray<UInt> * filter = NULL,
 				 UInt * fit = NULL) :
     parent(element_material, n, t_it, t_it_end,
 	   it, element_type, ghost_type, filter, fit) { }
@@ -321,8 +321,8 @@ public:
 			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
-			const ByElementTypeArray<UInt> * filter = NULL) :
-    parent(model.getFEM((element_kind == _ek_cohesive ? "CohesiveFEM": "")), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
+			const ElementTypeMapArray<UInt> * filter = NULL) :
+    parent(model.getFEEngine((element_kind == _ek_cohesive ? "CohesiveFEEngine": "")), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     // init();
   }
@@ -333,8 +333,8 @@ public:
 			UInt spatial_dimension = _all_dimensions,
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
-			const ByElementTypeArray<UInt> * filter = NULL) :
-    parent(model.getFEM((element_kind == _ek_cohesive ? "CohesiveFEM": "")), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
+			const ElementTypeMapArray<UInt> * filter = NULL) :
+    parent(model.getFEEngine((element_kind == _ek_cohesive ? "CohesiveFEEngine": "")), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     // init();
   }
@@ -357,9 +357,9 @@ public:
 
 protected:
   void init() {
-    typename ByElementTypeArray<UInt>::type_iterator tit =
+    typename ElementTypeMapArray<UInt>::type_iterator tit =
       this->field.firstType(this->spatial_dimension, this->ghost_type, this->element_kind);
-    typename ByElementTypeArray<UInt>::type_iterator end =
+    typename ElementTypeMapArray<UInt>::type_iterator end =
       this->field.lastType (this->spatial_dimension, this->ghost_type, this->element_kind);
 
     UInt nb_materials = model.getNbMaterials();

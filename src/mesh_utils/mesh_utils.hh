@@ -77,7 +77,7 @@ public:
 
   /// build a CSR<UInt> that contains for each node the number of
   /// the connected elements of a given ElementType
-  static void buildNode2ElementsByElementType(const Mesh & mesh,
+  static void buildNode2ElementsElementTypeMap(const Mesh & mesh,
 					      CSR<UInt> & node_to_elem,
 					      const ElementType & type,
 					      const GhostType & ghost_type = _not_ghost);
@@ -106,7 +106,7 @@ public:
 				   Mesh & mesh_facets,
 				   bool boundary_only,
 				   UInt dimension,
-				   const ByElementTypeUInt * prank_to_element = NULL);
+				   const ElementTypeMapArray<UInt> * prank_to_element = NULL);
 
   /// take  the local_connectivity  array  as  the array  of  local and  ghost
   /// connectivity, renumber the nodes and set the connectivity of the mesh
@@ -135,7 +135,7 @@ public:
   /// function to insert cohesive elements on the selected facets
   static void insertCohesiveElements(Mesh & mesh,
 				     Mesh & mesh_facets,
-				     const ByElementTypeArray<bool> & facet_insertion,
+				     const ElementTypeMapArray<bool> & facet_insertion,
 				     Array<UInt> & doubled_nodes,
 				     Array<Element> & new_elements);
 
@@ -144,7 +144,7 @@ public:
 
   /// flip facets based on global connectivity
   static void flipFacets(Mesh & mesh_facets,
-			 const ByElementTypeUInt & global_connectivity,
+			 const ElementTypeMapArray<UInt> & global_connectivity,
 			 GhostType gt_facet);
 
   /// provide list of elements around a node and check if a given
@@ -216,7 +216,7 @@ private:
 
   /// fill facet_to_double array in the mesh
   static bool updateFacetToDouble(Mesh & mesh_facets,
-				  const ByElementTypeArray<bool> & facet_insertion);
+				  const ElementTypeMapArray<bool> & facet_insertion);
 
   /// find subfacets to be doubled
   template <bool subsubfacet_mode>

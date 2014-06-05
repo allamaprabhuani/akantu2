@@ -45,7 +45,7 @@ Contact2dExplicit::Contact2dExplicit(const SolidMechanicsModel & model,
   coefficient_of_restitution(0.) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getFEM().getMesh().getSpatialDimension();
+  UInt spatial_dimension = model.getFEEngine().getMesh().getSpatialDimension();
   if(spatial_dimension != 2)
     AKANTU_DEBUG_ERROR("Wrong ContactType for contact in 2d!");
 
@@ -82,7 +82,7 @@ Contact2dExplicit::~Contact2dExplicit()
 //     // if(type == _line_1) {
 //   nb_facet_elements = mesh.getNbElement(facet_type);
 //   facet_conn_val = mesh.getConnectivity(facet_type).storage();
-//       // buildNode2ElementsByElementType(mesh, facet_type, node_offset, node_to_elem);
+//       // buildNode2ElementsElementTypeMap(mesh, facet_type, node_offset, node_to_elem);
 
 //   /// Ricominciamo usando le funzioni di più alto livello in mesh
 
@@ -168,7 +168,7 @@ void Contact2dExplicit::projectNodesOnSegments(PenetrationList & pen_list, Array
 
   Real * delta = new Real[dim*pen_nodes.getSize()];
 
-  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
+  UInt * conn_val = model.getFEEngine().getMesh().getConnectivity(el_type, _not_ghost).storage();
   UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
   nodes_index.resize(3*pen_nodes.getSize());
@@ -241,7 +241,7 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
   const UInt dim = 2;
   const SolidMechanicsModel & model = getModel();
   const ElementType el_type = _segment_2;
-  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
+  //  UInt * conn_val = model.getFEEngine().getMesh().getConnectivity(el_type, _not_ghost).storage();
   //  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
   Array<Real> & projected_positions = pen_list.projected_positions(el_type, _not_ghost);
@@ -324,7 +324,7 @@ void Contact2dExplicit::computeNormalVelocities(PenetrationList & pen_list,
 
   const ElementType el_type = _segment_2;
   const SolidMechanicsModel & model = getModel();
-  //  UInt * conn_val = model.getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
+  //  UInt * conn_val = model.getFEEngine().getMesh().getConnectivity(el_type, _not_ghost).storage();
   //  const UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
   const UInt dim = 2;
 

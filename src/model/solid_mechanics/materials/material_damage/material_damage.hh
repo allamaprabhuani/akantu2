@@ -85,8 +85,8 @@ public:
     return Parent<spatial_dimension>::getEnergy(energy_id, type, index);
   };
 
-  AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ByElementTypeReal &);
-  AKANTU_GET_MACRO(Damage, damage, const ByElementTypeReal &);
+  AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(Damage, damage, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real)
 
   /* ------------------------------------------------------------------------ */

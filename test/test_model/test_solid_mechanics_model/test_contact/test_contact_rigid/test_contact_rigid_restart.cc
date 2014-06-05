@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
   my_model.getDisplacement().clear();
 
   displacement = my_model.getDisplacement().storage();
-  boundary = my_model.getBoundary().storage();
+  boundary = my_model.getBlockedDOFs().storage();
 
   my_model.initExplicit();
   my_model.initModel();
@@ -385,9 +385,9 @@ void DumpRestart(SolidMechanicsModel & my_model, std::map < std::string, ArrayBa
 #ifdef AKANTU_USE_IOHELPER
   iohelper::DumperRestart dumper;
 
-  dumper.SetPoints(my_model.getFEM().getMesh().getNodes().storage(),
+  dumper.SetPoints(my_model.getFEEngine().getMesh().getNodes().storage(),
                    dim,nb_nodes,"restart_test");
-  dumper.SetConnectivity((int *)my_model.getFEM().getMesh().getConnectivity(element_type).storage(),
+  dumper.SetConnectivity((int *)my_model.getFEEngine().getMesh().getConnectivity(element_type).storage(),
                          paraview_type, nb_elements, iohelper::C_MODE);
   dumper.AddNodeDataField(my_model.getDisplacement().storage(),
                           dim, "displacements");

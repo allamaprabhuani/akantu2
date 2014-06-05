@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
 
   /// boundary conditions
   for (akantu::UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    model.getDisplacement().storage()[spatial_dimension*i] = model.getFEM().getMesh().getNodes().storage()[i] / 100. ;
+    model.getDisplacement().storage()[spatial_dimension*i] = model.getFEEngine().getMesh().getNodes().storage()[i] / 100. ;
 
-    if(model.getFEM().getMesh().getNodes().storage()[spatial_dimension*i] <= 1e-15)
-      model.getBoundary().storage()[i] = true;
+    if(model.getFEEngine().getMesh().getNodes().storage()[spatial_dimension*i] <= 1e-15)
+      model.getBlockedDOFs().storage()[i] = true;
   }
 
   akantu::Real time_step = model.getStableTimeStep() * time_factor;

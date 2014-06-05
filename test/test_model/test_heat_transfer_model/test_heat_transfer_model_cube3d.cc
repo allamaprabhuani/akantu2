@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
   /// boundary conditions
   const Array<Real> & nodes = mesh.getNodes();
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & temperature = model.getTemperature();
   UInt nb_nodes = mesh.getNbNodes();
 

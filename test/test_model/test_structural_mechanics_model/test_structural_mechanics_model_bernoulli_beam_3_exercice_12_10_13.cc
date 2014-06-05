@@ -126,7 +126,7 @@ int main(int argc, char *argv[]){
   model.initFull();
 
   Array<Real> & displacement = model.getDisplacement();
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
 
   model.computeForcesFromFunction<_bernoulli_beam_3>(lin_load, akantu::_bft_traction);
   std::cout<<"Force Definition"<<std::endl;

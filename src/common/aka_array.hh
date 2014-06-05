@@ -270,8 +270,10 @@ public:
   template<template<typename> class C>
   inline void set(const C<T> & vm);
 
-  /// copy another Array in the current Array
-  void copy(const Array<T, is_scal> & other);
+  /// copy another Array in the current Array, the no_sanity_check allows you to
+  /// force the copy in cases where you know what you do with two non matching
+  /// Arrays in terms of n
+  void copy(const Array<T, is_scal> & other, bool no_sanity_check = false);
 
   /// give the address of the memory allocated for this vector
   T * storage() const { return values; };

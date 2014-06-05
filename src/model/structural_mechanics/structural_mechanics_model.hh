@@ -62,7 +62,7 @@ class StructuralMechanicsModel : public Model, public Dumpable {
   /* ------------------------------------------------------------------------ */
 public:
 
-  typedef FEMTemplate<IntegratorGauss, ShapeLinked, _ek_structural> MyFEMType;
+  typedef FEEngineTemplate<IntegratorGauss, ShapeLinked, _ek_structural> MyFEEngineType;
 
   StructuralMechanicsModel(Mesh & mesh,
 			   UInt spatial_dimension = _all_dimensions,
@@ -162,7 +162,7 @@ public:
  /// get the StructuralMechanicsModel::residual vector, computed by StructuralMechanicsModel::updateResidual
   AKANTU_GET_MACRO(Residual,     *residual,        const Array<Real> &);
   /// get the StructuralMechanicsModel::boundary vector
-  AKANTU_GET_MACRO(Boundary,     *boundary,              Array<bool> &);
+  AKANTU_GET_MACRO(BlockedDOFs,  *blocked_dofs,    Array<bool> &);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(RotationMatrix, rotation_matrix, Real);
 
@@ -206,21 +206,21 @@ private:
 
   /// stress arraz
 
-  ByElementTypeReal stress;
+  ElementTypeMapArray<Real> stress;
 
   /// residuals array
   Array<Real> * residual;
 
   /// boundaries array
-  Array<bool> * boundary;
+  Array<bool> * blocked_dofs;
 
   /// position of a dof in the K matrix
   Array<Int> * equation_number;
 
-  ByElementTypeUInt element_material;
+  ElementTypeMapArray<UInt> element_material;
 
   // Define sets of beams
-  ByElementTypeUInt set_ID;
+  ElementTypeMapArray<UInt> set_ID;
 
   /// local equation_number to global
   unordered_map<UInt, UInt>::type local_eq_num_to_global;
@@ -241,7 +241,7 @@ private:
   UInt nb_degree_of_freedom;
 
   // Rotation matrix
-  ByElementTypeReal rotation_matrix;
+  ElementTypeMapArray<Real> rotation_matrix;
 
 
   /* -------------------------------------------------------------------------- */

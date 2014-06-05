@@ -34,7 +34,7 @@
 #include "mesh_io_msh.hh"
 #include "solid_mechanics_model.hh"
 #include "material.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "io_helper.hh"
@@ -51,13 +51,13 @@ int main(int argc, char *argv[])
   Mesh mesh(2);
   MeshIOMSH mesh_io;
   mesh_io.read("triangle.msh", mesh);
-  mesh.getBoundary().createBoundariesFromGeometry();
+  mesh.getBlockedDOFs().createBoundariesFromGeometry();
 
   SolidMechanicsModel * model = new SolidMechanicsModel(mesh);
 
   /// model initialization
   model->initArrays();
-  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = model->getFEEngine().getMesh().getNbNodes();
   memset(model->getForce().storage(),        0, 2*nb_nodes*sizeof(Real));
   memset(model->getVelocity().storage(),     0, 2*nb_nodes*sizeof(Real));
   memset(model->getAcceleration().storage(), 0, 2*nb_nodes*sizeof(Real));
@@ -77,15 +77,15 @@ int main(int argc, char *argv[])
   /// boundary conditions
   // Real eps = 1e-16;
   // for (UInt i = 0; i < nb_nodes; ++i) {
-  //   model->getDisplacement().storage()[2*i] = model->getFEM().getMesh().getNodes().storage()[2*i] / 100.;
+  //   model->getDisplacement().storage()[2*i] = model->getFEEngine().getMesh().getNodes().storage()[2*i] / 100.;
 
-  //   if(model->getFEM().getMesh().getNodes().storage()[2*i] <= eps) {
-  //     model->getBoundary().storage()[2*i    ] = true;
-  //     if(model->getFEM().getMesh().getNodes().storage()[2*i + 1] <= eps)
-  // 	model->getBoundary().storage()[2*i + 1] = true;
+  //   if(model->getFEEngine().getMesh().getNodes().storage()[2*i] <= eps) {
+  //     model->getBlockedDOFs().storage()[2*i    ] = true;
+  //     if(model->getFEEngine().getMesh().getNodes().storage()[2*i + 1] <= eps)
+  // 	model->getBlockedDOFs().storage()[2*i + 1] = true;
   //   }
-  //   if(model->getFEM().getMesh().getNodes().storage()[2*i + 1] <= eps) {
-  //     model->getBoundary().storage()[2*i + 1] = true;
+  //   if(model->getFEEngine().getMesh().getNodes().storage()[2*i + 1] <= eps) {
+  //     model->getBlockedDOFs().storage()[2*i + 1] = true;
   //   }
 
   // }
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
   //   //    ElementType facet_type = Mesh::getFacetElementType(*it);
   //   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(*it);
-  //   UInt nb_quad              = FEM::getNbQuadraturePoints(*it);
+  //   UInt nb_quad              = FEEngine::getNbQuadraturePoints(*it);
 
 
   //   UInt nb_element;
@@ -161,9 +161,9 @@ int main(int argc, char *argv[])
   iohelper::DumperParaview dumper;
   dumper.SetMode(iohelper::TEXT);
 
-  dumper.SetPoints(model->getFEM().getMesh().getNodes().storage(), 2, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model->getFEM().getMesh().getConnectivity(_triangle_3).storage(),
-			 iohelper::TRIANGLE1, model->getFEM().getMesh().getNbElement(_triangle_3), iohelper::C_MODE);
+  dumper.SetPoints(model->getFEEngine().getMesh().getNodes().storage(), 2, nb_nodes, "coordinates");
+  dumper.SetConnectivity((int *)model->getFEEngine().getMesh().getConnectivity(_triangle_3).storage(),
+			 iohelper::TRIANGLE1, model->getFEEngine().getMesh().getNbElement(_triangle_3), iohelper::C_MODE);
   dumper.AddNodeDataField(model->getDisplacement().storage(), 2, "displacements");
   dumper.AddNodeDataField(model->getVelocity().storage(), 2, "velocity");
   dumper.AddNodeDataField(model->getForce().storage(), 2, "force");

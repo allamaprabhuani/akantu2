@@ -73,7 +73,7 @@ Contact::~Contact() {
 void Contact::initContact(bool add_surfaces_flag) {
   AKANTU_DEBUG_IN();
 
-  Mesh & mesh = model.getFEM().getMesh();
+  Mesh & mesh = model.getFEEngine().getMesh();
 
   /// Build surfaces if not done yet
   if(mesh.getNbSurfaces() == 0) { /* initialise nb_surfaces to zero in mesh_io */
@@ -108,7 +108,7 @@ void Contact::initContact(bool add_surfaces_flag) {
     this->node_to_elements.alloc(0, 1, type, _not_ghost);
 
     CSR<UInt> node_to_elem;
-    MeshUtils::buildNode2ElementsByElementType(mesh, node_to_elem, type);
+    MeshUtils::buildNode2ElementsElementTypeMap(mesh, node_to_elem, type);
 
     node_to_elem.copy(node_to_elements_offset(type, _not_ghost), node_to_elements(type, _not_ghost));
   }

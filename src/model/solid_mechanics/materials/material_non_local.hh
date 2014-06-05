@@ -31,7 +31,7 @@
 #include "aka_common.hh"
 #include "material.hh"
 #include "aka_grid_dynamic.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 
 #include "weight_function.hh"
 
@@ -57,7 +57,7 @@ public:
   virtual ~MaterialNonLocal();
 
   template<typename T>
-  class PairList : public ByElementType< ByElementTypeArray<T> > {};
+  class PairList : public ElementTypeMap< ElementTypeMapArray<T> > {};
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -73,23 +73,23 @@ public:
   void neighbourhoodStatistics(const std::string & filename) const;
 
 protected:
-  void updatePairList(const ByElementTypeReal & quadrature_points_coordinates);
+  void updatePairList(const ElementTypeMapArray<Real> & quadrature_points_coordinates);
 
-  void computeWeights(const ByElementTypeReal & quadrature_points_coordinates);
+  void computeWeights(const ElementTypeMapArray<Real> & quadrature_points_coordinates);
 
-  void createCellList(ByElementTypeReal & quadrature_points_coordinates);
+  void createCellList(ElementTypeMapArray<Real> & quadrature_points_coordinates);
 
-  void cleanupExtraGhostElement(const ByElementType<UInt> & nb_ghost_protected);
+  void cleanupExtraGhostElement(const ElementTypeMap<UInt> & nb_ghost_protected);
 
-  void fillCellList(const ByElementTypeReal & quadrature_points_coordinates,
+  void fillCellList(const ElementTypeMapArray<Real> & quadrature_points_coordinates,
 		    const GhostType & ghost_type);
 
   /// constitutive law
   virtual void computeNonLocalStresses(GhostType ghost_type = _not_ghost) = 0;
 
   template<typename T>
-  void weightedAvergageOnNeighbours(const ByElementTypeArray<T> & to_accumulate,
-				    ByElementTypeArray<T> & accumulated,
+  void weightedAvergageOnNeighbours(const ElementTypeMapArray<T> & to_accumulate,
+				    ElementTypeMapArray<T> & accumulated,
 				    UInt nb_degree_of_freedom,
 				    GhostType ghost_type2 = _not_ghost) const;
 
@@ -106,7 +106,7 @@ protected:
 
   //  virtual inline void onElementsAdded(const Array<Element> & element_list);
   virtual inline void onElementsRemoved(const Array<Element> & element_list,
-					const ByElementTypeUInt & new_numbering,
+					const ElementTypeMapArray<UInt> & new_numbering,
 					const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */

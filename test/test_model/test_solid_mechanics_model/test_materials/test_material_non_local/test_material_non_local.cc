@@ -46,7 +46,7 @@ static void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & 
 //static void paraviewDump(iohelper::Dumper & dumper);
 #endif
 
-ByElementTypeReal quadrature_points_volumes("quadrature_points_volumes", "test");
+ElementTypeMapArray<Real> quadrature_points_volumes("quadrature_points_volumes", "test");
 const ElementType TYPE = _triangle_6;
 
 int main(int argc, char *argv[]) {
@@ -61,21 +61,21 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModel model(mesh);
   model.initFull();
 
-  //  model.getFEM().getMesh().initByElementTypeArray(quadrature_points_volumes, 1, 0);
+  //  model.getFEEngine().getMesh().initElementTypeMapArray(quadrature_points_volumes, 1, 0);
   const MaterialNonLocal<spatial_dimension, BaseWeightFunction> & mat =
     dynamic_cast<const MaterialNonLocal<spatial_dimension, BaseWeightFunction> &>(model.getMaterial(0));
   //  mat.computeQuadraturePointsNeighborhoudVolumes(quadrature_points_volumes);
   Real radius = mat.getRadius();
 
   UInt nb_element  = mesh.getNbElement(TYPE);
-  UInt nb_tot_quad = model.getFEM().getNbQuadraturePoints(TYPE) * nb_element;
+  UInt nb_tot_quad = model.getFEEngine().getNbQuadraturePoints(TYPE) * nb_element;
 
   std::cout << mat << std::endl;
 
   Array<Real> quads(0, spatial_dimension);
   quads.resize(nb_tot_quad);
 
-  model.getFEM().interpolateOnQuadraturePoints(mesh.getNodes(),
+  model.getFEEngine().interpolateOnQuadraturePoints(mesh.getNodes(),
 					       quads, spatial_dimension,
 					       TYPE);
 
@@ -105,12 +105,12 @@ int main(int argc, char *argv[]) {
 
   mat.savePairs("cl_pairs");
 
-  ByElementTypeReal constant("constant_value", "test");
-  mesh.initByElementTypeArray(constant, 1, 0);
+  ElementTypeMapArray<Real> constant("constant_value", "test");
+  mesh.initElementTypeMapArray(constant, 1, 0);
   Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
-    UInt nb_quadrature_points = model.getFEM().getNbQuadraturePoints(*it);
+    UInt nb_quadrature_points = model.getFEEngine().getNbQuadraturePoints(*it);
     UInt _nb_element = mesh.getNbElement(*it);
 
     Array<Real> & constant_vect = constant(*it);
@@ -119,8 +119,8 @@ int main(int argc, char *argv[]) {
     std::fill_n(constant_vect.storage(), nb_quadrature_points * _nb_element, 1.);
   }
 
-  ByElementTypeReal constant_avg("constant_value_avg", "test");
-  mesh.initByElementTypeArray(constant_avg, 1, 0);
+  ElementTypeMapArray<Real> constant_avg("constant_value_avg", "test");
+  mesh.initElementTypeMapArray(constant_avg, 1, 0);
 
   mat.weightedAvergageOnNeighbours(constant, constant_avg, 1);
 
@@ -159,17 +159,17 @@ template <> iohelper::ElemType paraviewType<_hexahedron_8>()   { return iohelper
 /* -------------------------------------------------------------------------- */
 void paraviewInit(iohelper::Dumper & dumper, const SolidMechanicsModel & model) {
   UInt spatial_dimension = ElementClass<TYPE>::getSpatialDimension();
-  UInt nb_nodes   = model.getFEM().getMesh().getNbNodes();
-  UInt nb_element = model.getFEM().getMesh().getNbElement(TYPE);
+  UInt nb_nodes   = model.getFEEngine().getMesh().getNbNodes();
+  UInt nb_element = model.getFEEngine().getMesh().getNbElement(TYPE);
 
   std::stringstream filename; filename << "material_non_local_" << TYPE;
 
   dumper.SetMode(iohelper::TEXT);
   dumper.SetParallelContext(StaticCommunicator::getStaticCommunicator()->whoAmI(),
 			    StaticCommunicator::getStaticCommunicator()->getNbProc());
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().storage(),
+  dumper.SetPoints(model.getFEEngine().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, filename.str().c_str());
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(TYPE).storage(),
+  dumper.SetConnectivity((int *)model.getFEEngine().getMesh().getConnectivity(TYPE).storage(),
 			 paraviewType<TYPE>(), nb_element, iohelper::C_MODE);
   dumper.AddElemDataField(quadrature_points_volumes(TYPE).storage(),
    			  1, "volume");

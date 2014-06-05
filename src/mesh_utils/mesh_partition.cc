@@ -396,10 +396,10 @@ void MeshPartition::tweakConnectivity(const Array<UInt> & pairs) {
 void MeshPartition::restoreConnectivity() {
   AKANTU_DEBUG_IN();
 
-  ByElementTypeUInt::type_iterator it   = saved_connectivity.firstType(spatial_dimension,
+  ElementTypeMapArray<UInt>::type_iterator it   = saved_connectivity.firstType(spatial_dimension,
 								       _not_ghost,
 								       _ek_not_defined);
-  ByElementTypeUInt::type_iterator end = saved_connectivity.lastType(spatial_dimension,
+  ElementTypeMapArray<UInt>::type_iterator end = saved_connectivity.lastType(spatial_dimension,
 								     _not_ghost,
 								     _ek_not_defined);
   for(; it != end; ++it) {

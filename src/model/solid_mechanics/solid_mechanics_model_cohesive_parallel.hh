@@ -76,17 +76,17 @@ inline virtual void unpackElementData(CommunicationBuffer & buffer,
 				      SynchronizationTag tag);
 
 template<typename T>
-inline void packFacetStressDataHelper(const ByElementTypeArray<T> & data_to_pack,
+inline void packFacetStressDataHelper(const ElementTypeMapArray<T> & data_to_pack,
 				      CommunicationBuffer & buffer,
 				      const Array<Element> & elements) const;
 
 template<typename T>
-inline void unpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_unpack,
+inline void unpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_unpack,
 					CommunicationBuffer & buffer,
 					const Array<Element> & elements) const;
 
 template<typename T, bool pack_helper>
-inline void packUnpackFacetStressDataHelper(ByElementTypeArray<T> & data_to_pack,
+inline void packUnpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_pack,
 					    CommunicationBuffer & buffer,
 					    const Array<Element> & element) const;
 
@@ -104,4 +104,4 @@ FacetStressSynchronizer * facet_stress_synchronizer;
 DistributedSynchronizer * cohesive_distributed_synchronizer;
 
 /// global connectivity
-ByElementTypeUInt * global_connectivity;
+ElementTypeMapArray<UInt> * global_connectivity;

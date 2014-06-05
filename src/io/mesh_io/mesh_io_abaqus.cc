@@ -365,6 +365,10 @@ public:
     BOOST_SPIRIT_DEBUG_NODE(start);
 
     abaqus_element_type.add
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+      ("BE21"  , _bernoulli_beam_2)
+      ("BE31"  , _bernoulli_beam_3)
+#endif
       ("CPE3"  , _triangle_3)
       ("CPS3"  , _triangle_3)
       ("DC2D3" , _triangle_3)

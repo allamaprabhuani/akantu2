@@ -64,14 +64,14 @@ void MaterialBrittle<spatial_dimension>::initMaterial() {
   updateInternalParameters();
 
   //this->Yd.resize();
-  // const Mesh & mesh = this->model->getFEM().getMesh();
+  // const Mesh & mesh = this->model->getFEEngine().getMesh();
 
   // Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   // Mesh::type_iterator last_type = mesh.lastType(spatial_dimension);
 
   // for(; it != last_type; ++it) {
   //   UInt nb_element  = this->element_filter(*it).getSize();
-  //   UInt nb_quad = this->model->getFEM().getNbQuadraturePoints(*it);
+  //   UInt nb_quad = this->model->getFEEngine().getNbQuadraturePoints(*it);
 
   //   Array <Real> & Yd_rand_vec = Yd_rand(*it);
   //   for(UInt e = 0; e < nb_element; ++e) {
@@ -104,7 +104,7 @@ void MaterialBrittle<spatial_dimension>::computeStress(ElementType el_type,
   Array<Real> & strain_rate_brittle = this->strain_rate_brittle(el_type, ghost_type);
   Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
 
-  this->model->getFEM().gradientOnQuadraturePoints(velocity, strain_rate_brittle,
+  this->model->getFEEngine().gradientOnQuadraturePoints(velocity, strain_rate_brittle,
 						   spatial_dimension,
 						   el_type, ghost_type, elem_filter);
 

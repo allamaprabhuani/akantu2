@@ -94,7 +94,7 @@ solution  needs to  take  at the  boundary  ($\Gamma_t$) of  the problem  domain
   \caption{Problem boundary in two dimensions.\label{fig:smm:boundaries}}
 \end{figure}
 
-Different ways of imposing these boundary conditions exist. A basic way is to loop over nodes or elements at the boundary and apply local values. A more advanced method consists of using the notion of the boundary of the mesh. In the following both ways are presented. 
+Different ways of imposing these boundary conditions exist. A basic way is to loop over nodes or elements at the boundary and apply local values. A more advanced method consists of using the notion of the boundary of the mesh. In the following both ways are presented.
 
 Starting with the basic approach, as mentioned the Dirichlet boundary conditions can be applied by looping on the nodes and assigning the required values. Figure~\ref{fig:smm:dirichlet_bc} shows a beam with  a fixed support on the left
 side. On the right end of the beam  a load is applied. At the fixed support, the
@@ -160,14 +160,14 @@ three functors for the top, bottom and side surface of the mesh which were
 already defined in the Gmsh file:
 
 \begin{cpp}
- 
+
  Boundary & boundary = mesh.getBoundary();
  boundary.createBoundariesFromMeshData("physical_names");
 
   model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::_y), "Top");
-  
+
   model.applyBC(BC::Dirichlet::FlagOnly(BC::_x), "Bottom");
-  
+
   model.applyBC(BC::Dirichlet::IncrementValue(13.0, BC::_x), "Side");
 
 \end{cpp}
@@ -179,7 +179,7 @@ functor \code{FromStress} should be called which gets the stress tensor as an
 input parameter.
 
 \begin{cpp}
- 
+
 Array<Real> surface_traction(3);
 surface_traction(0)=0.0;
 surface_traction(1)=0.0;
@@ -196,7 +196,9 @@ surface_stress(2,2)=-1.0;
 
 \end{cpp}
 
-If the boundary conditions needs to be removed in the simulation, a functor is called from the Neumann boundary condition to free those boundary conditions  from the desired boundary.
+If the boundary conditions needs to be removed in the simulation, a functor is
+called from the Neumann boundary condition to free those boundary conditions
+from the desired boundary.
 
 \begin{cpp}
 
@@ -207,7 +209,7 @@ model.applyBC(BC::Neumann::FreeBoundary(), "Side");
 
 User specified functors can also be implemented.  A full example for setting
 both initial and boundary conditions can be found in
-\code{\examplesdir/boundary\_conditions.cc}.  The problem from that example is
+\shellcode{\examplesdir/boundary\_conditions.cc}.  The problem from that example is
 shown in Fig.~\ref{fig:smm:bc_and_ic}. It consists of a plate that is fixed with
 movable supports on the left and bottom side. On the right side, a traction
 which increases linearly with the number of time steps, is applied. The initial
@@ -317,14 +319,14 @@ of the residual is not zero (given a specific tolerance).
 
 At   the  end   of  the   analysis  the   final  solution   is  stored   in  the
 \textbf{displacement} vector.  A  full example of how to  solve a static problem
-is  presented  in   the  code  \code{\examplesdir/implicit/implicit\_static.cc}.   This
+is  presented  in   the  code  \code{\examplesdir/static/static.cc}.   This
 example is composed of a 2D plate of steel, blocked with rollers on the left and
 bottom sides as shown in  Figure \ref{fig:smm:static}.  The nodes from the right
 side of the sample are displaced by $0.01\%$ of the length of the plate.
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics{figures/implicit_static}
+  \includegraphics{figures/static}
   \caption{Numerical setup\label{fig:smm:static}}
 \end{figure}
 
@@ -457,7 +459,7 @@ selected.
 
 \begin{cpp}
   SolidMechanicsModel model(mesh);
-  model.initFull("material.dat", _implicit_dynamic);
+  model.initFull(SolidMechanicsModelOptions(_implicit_dynamic));
   /* Boundary conditions see section %\ref{sect:smm:boundary}% */
 \end{cpp}
 
@@ -511,14 +513,16 @@ the        equations       are       solved        \emph{in       displacement}.
   of the  number of iterations  to avoid  an infinite loop  in case of  an error
   criterion too hard to reach.}
 
-An    example    of    implicit     dynamic    analysis    is    presented    in
-\code{\examplesdir/implicit/implicit\_dynamic.cc}.  This example  consists of a 2D beam
-of $\unit{10}{\meter}\,\times\,\unit{1}{\meter}$ blocked on one side and is on a
-roller on the other side.  A constant force of \unit{5}{\kilo\newton} is applied
-in the middle of  this beam.  Figure \ref{fig:smm:implicit:dynamic} presents the
-geometry of this case. The material used is a linear fictitious elastic material
-with  a density  of  \unit{1000}{\kilogrampercubicmetre}, a  Young's Modulus  of
-\unit{120}{\mega\pascal} and Poisson's ratio  of $0.3$. These values were chosen
+An example of solid mechanics with a implicit time scheme  is presented in
+\shellcode{\examplesdir/implicit/implicit\_dynamic.cc}.  This example consists of a
+3D beam of
+$\unit{10}{\meter}\,\times\,\unit{1}{\meter}\,\times\,\unit{1}{\meter}$ blocked
+on one side and is on a roller on the other side.  A constant force of
+\unit{5}{\kilo\newton} is applied in the middle of this beam.  Figure
+\ref{fig:smm:implicit:dynamic} presents the geometry of this case. The material
+used is a linear fictitious elastic material with a density of
+\unit{1000}{\kilogrampercubicmetre}, a Young's Modulus of
+\unit{120}{\mega\pascal} and Poisson's ratio of $0.3$. These values were chosen
 to simplify the analytical solution.
 
 An approximation  of the  dynamic response of  the middle  point of the  beam is
@@ -795,8 +799,8 @@ functions have to be redefined for the new constitutive law.
 
   // for implicit simulations
   void computeTangentStiffness(const ElementType & el_type,
-                               Array<Real> & tangent_matrix,
-                               GhostType ghost_type = _not_ghost);
+			       Array<Real> & tangent_matrix,
+			       GhostType ghost_type = _not_ghost);
 
   Real getStableTimeStep(Real h, const Element & element);
 \end{cpp}
@@ -809,10 +813,10 @@ function for reading a material file. However, for reading the parameters of the
 used. These parameters must have been defined in the constructor of the class with the function \code{registerParam}\index{Material!registerParam}.
 \begin{cpp}
   void registerParam(name of the parameter (key in the material file),
-                     member variable,
-                     default value (optinal parameter),
-                     access permissions
-                     description);
+		     member variable,
+		     default value (optinal parameter),
+		     access permissions
+		     description);
 \end{cpp}
 
 Moreover, some internal values can be considered for each quadrature point.
@@ -894,11 +898,9 @@ file. In the following, each required function is described.
 \end{itemize}
 
 A full example for adding a new damage law can be found in
-\code{\examplesdir/new\_material}.
+\shellcode{\examplesdir/new\_material}.
 
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"
 %%% End:
-
-

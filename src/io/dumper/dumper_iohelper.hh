@@ -31,7 +31,7 @@
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "aka_array.hh"
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -66,7 +66,7 @@ public:
 
   /// register a filtered Mesh (provided filter lists) for the current dumper
   virtual void registerFilteredMesh(const Mesh & mesh,
-				    const ByElementTypeArray<UInt> & elements_filter,
+				    const ElementTypeMapArray<UInt> & elements_filter,
 				    const Array<UInt> & nodes_filter,
 				    UInt spatial_dimension = _all_dimensions,
 				    const GhostType & ghost_type = _not_ghost,

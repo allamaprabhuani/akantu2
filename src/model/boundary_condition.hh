@@ -35,7 +35,7 @@
 #include "aka_common.hh"
 #include "boundary_condition_functor.hh"
 #include "mesh.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */

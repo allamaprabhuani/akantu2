@@ -38,7 +38,8 @@ template<typename T> void DOFSynchronizer::gather(const Array<T> & to_gather, UI
   AKANTU_DEBUG_ASSERT(gather_scatter_scheme_initialized == true, "You should call initScatterGatherCommunicationScheme before trying to gather a Array !!");
 
   if(psize == 1) {
-    gathered->copy(to_gather);
+    gathered->copy(to_gather, true);
+
     AKANTU_DEBUG_OUT();
     return;
   }
@@ -105,7 +106,7 @@ template<typename T> void DOFSynchronizer::scatter(Array<T> & scattered, UInt ro
   AKANTU_DEBUG_ASSERT(gather_scatter_scheme_initialized == true, "You should call initScatterGatherCommunicationScheme before trying to scatter a Array !!");
 
   if(psize == 1) {
-    scattered.copy(*to_scatter);
+    scattered.copy(*to_scatter, true);
     AKANTU_DEBUG_OUT();
     return;
   }

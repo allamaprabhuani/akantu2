@@ -91,27 +91,27 @@ public:
 				    Array<Real> & u,
 				    Array<Real> & u_dot,
 				    Array<Real> & u_dot_dot,
-				    Array<bool> & boundary) const;
+				    Array<bool> & blocked_dofs) const;
 
   inline void integrationSchemeCorrAccel(Real delta_t,
 					 Array<Real> & u,
 					 Array<Real> & u_dot,
 					 Array<Real> & u_dot_dot,
-					 Array<bool> & boundary,
+					 Array<bool> & blocked_dofs,
 					 Array<Real> & delta) const;
 
   inline void integrationSchemeCorrVeloc(Real delta_t,
 					 Array<Real> & u,
 					 Array<Real> & u_dot,
 					 Array<Real> & u_dot_dot,
-					 Array<bool> & boundary,
+					 Array<bool> & blocked_dofs,
 					 Array<Real> & delta) const;
 
   inline void integrationSchemeCorrDispl(Real delta_t,
 					 Array<Real> & u,
 					 Array<Real> & u_dot,
 					 Array<Real> & u_dot_dot,
-					 Array<bool> & boundary,
+					 Array<bool> & blocked_dofs,
 					 Array<Real> & delta) const;
 
 public:
@@ -130,7 +130,7 @@ private:
 			     Array<Real> & u,
 			     Array<Real> & u_dot,
 			     Array<Real> & u_dot_dot,
-			     Array<bool> & boundary,
+			     Array<bool> & blocked_dofs,
 			     Array<Real> & delta) const;
 
   /* ------------------------------------------------------------------------ */

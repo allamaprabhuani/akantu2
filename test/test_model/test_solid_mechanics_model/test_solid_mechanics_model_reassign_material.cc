@@ -49,7 +49,7 @@ public:
     UInt spatial_dimension = mesh.getSpatialDimension();
 
     /// store barycenters of all elements
-    mesh.initByElementTypeArray(barycenters, spatial_dimension, spatial_dimension);
+    mesh.initElementTypeMapArray(barycenters, spatial_dimension, spatial_dimension);
 
     for (ghost_type_t::iterator gt = ghost_type_t::begin(); gt != ghost_type_t::end(); ++gt) {
       GhostType ghost_type = *gt;
@@ -126,7 +126,7 @@ public:
 
 protected:
   SolidMechanicsModel & model;
-  ByElementTypeReal barycenters;
+  ElementTypeMapArray<Real> barycenters;
   std::string mat_1_material;
   std::string mat_2_material;
   bool horizontal;

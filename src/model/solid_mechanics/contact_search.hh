@@ -57,15 +57,15 @@ public:
   Array<UInt> penetrating_nodes;
 
   /// list of penetrated facets
-  ByElementTypeUInt penetrated_facets_offset;
-  ByElementTypeUInt penetrated_facets;
+  ElementTypeMapArray<UInt> penetrated_facets_offset;
+  ElementTypeMapArray<UInt> penetrated_facets;
 
   /// normal of the penetrated facets
-  ByElementTypeReal facets_normals;
+  ElementTypeMapArray<Real> facets_normals;
   /// gap between the penetrated facets and the node
-  ByElementTypeReal gaps;
+  ElementTypeMapArray<Real> gaps;
   /// position of the node projected on the penetrated facets
-  ByElementTypeReal projected_positions;    
+  ElementTypeMapArray<Real> projected_positions;    
 };
 
 /* -------------------------------------------------------------------------- */

@@ -67,11 +67,11 @@ inline void DataAccessor::packUnpackNodalDataHelper(Array<T> & data,
 
 /* -------------------------------------------------------------------------- */
 template<typename T, bool pack_helper>
-inline void DataAccessor::packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to_pack,
+inline void DataAccessor::packUnpackElementalDataHelper(ElementTypeMapArray<T> & data_to_pack,
 							CommunicationBuffer & buffer,
 							const Array<Element> & element,
 							bool per_quadrature_point_data,
-							const FEM & fem) {
+							const FEEngine & fem) {
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
   UInt nb_quad_per_elem = 0;

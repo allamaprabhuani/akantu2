@@ -1,5 +1,5 @@
 /**
- * @file   fem_template.hh
+ * @file   fe_engine_template.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  *
@@ -27,11 +27,11 @@
  *
  */
 
-#ifndef __AKANTU_FEM_TEMPLATE_HH__
-#define __AKANTU_FEM_TEMPLATE_HH__
+#ifndef __AKANTU_FE_ENGINE_TEMPLATE_HH__
+#define __AKANTU_FE_ENGINE_TEMPLATE_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "integrator.hh"
 #include "shape_functions.hh"
 /* -------------------------------------------------------------------------- */
@@ -42,7 +42,7 @@ __BEGIN_AKANTU__
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind = _ek_regular>
-class FEMTemplate : public FEM {
+class FEEngineTemplate : public FEEngine {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -50,17 +50,15 @@ public:
   typedef I<kind> Integ;
   typedef S<kind> Shape;
 
+  FEEngineTemplate(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+		   ID id = "fem", MemoryID memory_id = 0);
 
-  FEMTemplate(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-	      ID id = "fem", MemoryID memory_id = 0);
-
-  virtual ~FEMTemplate();
+  virtual ~FEEngineTemplate();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// pre-compute all the shape functions, their derivatives and the jacobians
   void initShapeFunctions(const GhostType & ghost_type = _not_ghost);
   void initShapeFunctions(const Array<Real> & nodes,
@@ -137,8 +135,8 @@ public:
 
   /// interpolate a nodal field on the quadrature points given a by_element_type
   void interpolateOnQuadraturePoints(const Array<Real> & u,
-				     ByElementTypeReal & uq,
-                                     const ByElementTypeUInt * filter_elements = NULL) const;
+				     ElementTypeMapArray<Real> & uq,
+                                     const ElementTypeMapArray<UInt> * filter_elements = NULL) const;
 
   /// find natural coords from real coords provided an element
   void inverseMap(const Vector<Real> & real_coords,
@@ -248,12 +246,11 @@ private:
 };
 
 
+__END_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+#include "fe_engine_template_tmpl.hh"
 
-#include "fem_template_tmpl.hh"
-
-__END_AKANTU__
-
-#endif /* __AKANTU_FEM_TEMPLATE_HH__ */
+#endif /* __AKANTU_FE_ENGINE_TEMPLATE_HH__ */

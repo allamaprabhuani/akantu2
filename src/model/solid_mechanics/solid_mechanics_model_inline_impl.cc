@@ -84,8 +84,8 @@ inline void SolidMechanicsModel::setMaterialSelector(MaterialSelector & selector
 }
 
 /* -------------------------------------------------------------------------- */
-inline FEM & SolidMechanicsModel::getFEMBoundary(const ID & name) {
-  return dynamic_cast<FEM &>(getFEMClassBoundary<MyFEMType>(name));
+inline FEEngine & SolidMechanicsModel::getFEEngineBoundary(const ID & name) {
+  return dynamic_cast<FEEngine &>(getFEEngineClassBoundary<MyFEEngineType>(name));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -170,7 +170,7 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
 
   switch(tag) {
   case _gst_material_id: {
-    packElementalDataHelper(element_index_by_material, buffer, elements, false, getFEM());
+    packElementalDataHelper(element_index_by_material, buffer, elements, false, getFEEngine());
     break;
   }
   case _gst_smm_mass: {
@@ -184,7 +184,7 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
   case _gst_smm_boundary: {
     packNodalDataHelper(*force, buffer, elements, mesh);
     packNodalDataHelper(*velocity, buffer, elements, mesh);
-    packNodalDataHelper(*boundary, buffer, elements, mesh);
+    packNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
     break;
   }
   default: {
@@ -213,7 +213,7 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
   switch(tag) {
   case _gst_material_id: {
     unpackElementalDataHelper(element_index_by_material, buffer, elements,
-                             false, getFEM());
+                             false, getFEEngine());
     break;
   }
   case _gst_smm_mass: {
@@ -227,7 +227,7 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
   case _gst_smm_boundary: {
     unpackNodalDataHelper(*force, buffer, elements, mesh);
     unpackNodalDataHelper(*velocity, buffer, elements, mesh);
-    unpackNodalDataHelper(*boundary, buffer, elements, mesh);
+    unpackNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
     break;
   }
   default: {
@@ -438,7 +438,7 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
   if(velocity_damping_matrix)
     jacobian_matrix->add(*velocity_damping_matrix, d);
 
-  jacobian_matrix->applyBoundary(*boundary, block_val);
+  jacobian_matrix->applyBoundary(*blocked_dofs, block_val);
 
 #if !defined(AKANTU_NDEBUG)
   if(AKANTU_DEBUG_TEST(dblDump))
@@ -452,12 +452,12 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
   UInt nb_nodes = displacement-> getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
 
-  bool * boundary_val = boundary->storage();
+  bool * blocked_dofs_val = blocked_dofs->storage();
   Real * increment_val = increment.storage();
 
   for (UInt j = 0; j < nb_degree_of_freedom;
-       ++j,++increment_val, ++boundary_val) {
-    if ((*boundary_val))
+       ++j,++increment_val, ++blocked_dofs_val) {
+    if ((*blocked_dofs_val))
       *increment_val = 0.0;
     }
 

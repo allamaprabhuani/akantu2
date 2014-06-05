@@ -28,18 +28,18 @@
 /* -------------------------------------------------------------------------- */
 template<GhostType ghost_facets>
 inline void FacetSynchronizer::getFacetGlobalConnectivity(const DistributedSynchronizer & distributed_synchronizer,
-							  const ByElementTypeUInt & rank_to_facet,
+							  const ElementTypeMapArray<UInt> & rank_to_facet,
 							  const Array<Element> * elements,
-							  Array<ByElementTypeUInt *> & connectivity,
-							  Array<ByElementTypeUInt *> & facets) {
+							  Array<ElementTypeMapArray<UInt> *> & connectivity,
+							  Array<ElementTypeMapArray<UInt> *> & facets) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   /// init facet check tracking
-  ByElementTypeArray<bool> facet_checked("facet_checked", id);
+  ElementTypeMapArray<bool> facet_checked("facet_checked", id);
 
-  mesh.initByElementTypeArray(facet_checked, 1, spatial_dimension - 1);
+  mesh.initElementTypeMapArray(facet_checked, 1, spatial_dimension - 1);
 
   Mesh::type_iterator first = mesh.firstType(spatial_dimension - 1, ghost_facets);
   Mesh::type_iterator last  = mesh.lastType(spatial_dimension - 1, ghost_facets);
@@ -68,9 +68,9 @@ inline void FacetSynchronizer::getFacetGlobalConnectivity(const DistributedSynch
       f_checked.clear();
     }
 
-    ByElementTypeUInt & global_conn = (*connectivity(p));
+    ElementTypeMapArray<UInt> & global_conn = (*connectivity(p));
     const Array<Element> & elem = elements[p];
-    ByElementTypeUInt & facet_list = (*facets(p));
+    ElementTypeMapArray<UInt> & facet_list = (*facets(p));
 
     UInt nb_element = elem.getSize();
 

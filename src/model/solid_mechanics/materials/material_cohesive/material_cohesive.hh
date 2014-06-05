@@ -32,7 +32,7 @@
 
 #include "aka_common.hh"
 #include "material.hh"
-#include "fem_template.hh"
+#include "fe_engine_template.hh"
 #include "aka_common.hh"
 #include "cohesive_internal_field.hh"
 #include "cohesive_element_inserter.hh"
@@ -54,8 +54,8 @@ class MaterialCohesive : public Material {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef FEMTemplate<IntegratorGauss,
-		      ShapeLagrange, _ek_cohesive> MyFEMCohesiveType;
+  typedef FEEngineTemplate<IntegratorGauss,
+		      ShapeLagrange, _ek_cohesive> MyFEEngineCohesiveType;
 public:
 
   MaterialCohesive(SolidMechanicsModel& model, const ID & id = "");
@@ -160,8 +160,8 @@ public:
   /// get facet filter
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
-  AKANTU_GET_MACRO(FacetFilter, facet_filter, const ByElementTypeUInt &);
-  // AKANTU_GET_MACRO(ElementFilter, element_filter, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO(FacetFilter, facet_filter, const ElementTypeMapArray<UInt> &);
+  // AKANTU_GET_MACRO(ElementFilter, element_filter, const ElementTypeMapArray<UInt> &);
 
   /// compute reversible energy
   Real getReversibleEnergy();
@@ -186,10 +186,10 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// list of facets assigned to this material
-  ByElementTypeUInt facet_filter;
+  ElementTypeMapArray<UInt> facet_filter;
 
   /// Link to the cohesive fem object in the model
-  MyFEMCohesiveType * fem_cohesive;
+  MyFEEngineCohesiveType * fem_cohesive;
 
 private:
   /// reversible energy by quadrature point

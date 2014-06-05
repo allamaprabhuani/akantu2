@@ -144,7 +144,7 @@ void ContactSearch::addMasterSurface(const Surface & master_surface) {
 
   switch(neighbors_structure_type) {
   case _cnst_regular_grid : {
-    Mesh & mesh = contact.getModel().getFEM().getMesh();
+    Mesh & mesh = contact.getModel().getFEEngine().getMesh();
     if (mesh.getSpatialDimension() == 2) {
       tmp_neighbors_structure = new RegularGridNeighborStructure<2>(*this, master_surface, neighbors_structure_type, sstr.str());
     }
@@ -222,8 +222,8 @@ const ContactNeighborStructure & ContactSearch::getContactNeighborStructure(cons
 void ContactSearch::computeMaxIncrement(Real * max_increment) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = contact.getModel().getFEM().getMesh().getSpatialDimension();
-  UInt nb_surfaces = contact.getModel().getFEM().getMesh().getNbSurfaces();
+  UInt spatial_dimension = contact.getModel().getFEEngine().getMesh().getSpatialDimension();
+  UInt nb_surfaces = contact.getModel().getFEEngine().getMesh().getNbSurfaces();
   Real * current_increment = contact.getModel().getIncrement().storage();
 
   /// initialize max table with zeros

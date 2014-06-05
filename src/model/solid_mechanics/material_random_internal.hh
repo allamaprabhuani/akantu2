@@ -29,7 +29,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 #include "aka_random_generator.hh"
 
 
@@ -39,14 +39,14 @@
 __BEGIN_AKANTU__
 
 template<typename Distribution, typename Generator = Rand48Generator<Real> >
-class MaterialRandomInternal : public ByElementTypeArray<Real> {
+class MaterialRandomInternal : public ElementTypeMapArray<Real> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   MaterialRandomInternal(const ID & id, const ID & parent_id,
 			 const MemoryID & memory_id = 0) :
-    ByElementTypeArray<Real>(id, parent_id, memory_id) {};
+    ElementTypeMapArray<Real>(id, parent_id, memory_id) {};
 
   virtual ~MaterialRandomInternal();
 

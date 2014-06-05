@@ -70,17 +70,17 @@ int main(int argc, char *argv[]) {
   UInt nb_element = mesh.getNbElement(type);
 
   /// compute quadrature points positions on facets
-  typedef FEMTemplate<IntegratorGauss,ShapeLagrange> MyFEMType;
+  typedef FEEngineTemplate<IntegratorGauss,ShapeLagrange> MyFEEngineType;
 
-  model.registerFEMObject<MyFEMType>("FacetsFEM", mesh_facets, spatial_dimension-1);
-  model.getFEM("FacetsFEM").initShapeFunctions();
+  model.registerFEEngineObject<MyFEEngineType>("FacetsFEEngine", mesh_facets, spatial_dimension-1);
+  model.getFEEngine("FacetsFEEngine").initShapeFunctions();
 
-  UInt nb_quad_per_facet = model.getFEM("FacetsFEM").getNbQuadraturePoints(type_facet);
+  UInt nb_quad_per_facet = model.getFEEngine("FacetsFEEngine").getNbQuadraturePoints(type_facet);
   UInt nb_tot_quad = nb_quad_per_facet * nb_facet;
 
   Array<Real> quad_facets(nb_tot_quad, spatial_dimension);
 
-  model.getFEM("FacetsFEM").interpolateOnQuadraturePoints(position,
+  model.getFEEngine("FacetsFEEngine").interpolateOnQuadraturePoints(position,
 							  quad_facets,
 							  spatial_dimension,
 							  type_facet);
@@ -88,13 +88,13 @@ int main(int argc, char *argv[]) {
   Array<Element> & facet_to_element = mesh_facets.getSubelementToElement(type);
   UInt nb_facet_per_elem = facet_to_element.getNbComponent();
 
-  ByElementTypeReal element_quad_facet;
+  ElementTypeMapArray<Real> element_quad_facet;
   element_quad_facet.alloc(nb_element * nb_facet_per_elem * nb_quad_per_facet,
 			   spatial_dimension,
 			   type);
 
-  ByElementTypeReal interpolated_stress("interpolated_stress", "");
-  mesh.initByElementTypeArray(interpolated_stress,
+  ElementTypeMapArray<Real> interpolated_stress("interpolated_stress", "");
+  mesh.initElementTypeMapArray(interpolated_stress,
 			      spatial_dimension * spatial_dimension,
 			      spatial_dimension);
 
@@ -119,13 +119,13 @@ int main(int argc, char *argv[]) {
 
 
   /// compute quadrature points position of the elements
-  UInt nb_quad_per_element = model.getFEM().getNbQuadraturePoints(type);
+  UInt nb_quad_per_element = model.getFEEngine().getNbQuadraturePoints(type);
   UInt nb_tot_quad_el = nb_quad_per_element * nb_element;
 
   Array<Real> quad_elements(nb_tot_quad_el, spatial_dimension);
 
 
-  model.getFEM().interpolateOnQuadraturePoints(position,
+  model.getFEEngine().interpolateOnQuadraturePoints(position,
 					       quad_elements,
 					       spatial_dimension,
 					       type);

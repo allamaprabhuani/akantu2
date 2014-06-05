@@ -36,7 +36,7 @@
 
 #include <set>
 #include "aka_common.hh"
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 
 __BEGIN_AKANTU__
 

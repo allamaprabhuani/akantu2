@@ -56,7 +56,7 @@ RegularGridNeighborStructure<spatial_dimension>::RegularGridNeighborStructure(co
 									      const Surface & master_surface,
 									      const ContactNeighborStructureType & type,
 									      const ContactNeighborStructureID & id) :
-  ContactNeighborStructure(contact_search, master_surface, type, id), mesh(contact_search.getContact().getModel().getFEM().getMesh()) {
+  ContactNeighborStructure(contact_search, master_surface, type, id), mesh(contact_search.getContact().getModel().getFEEngine().getMesh()) {
 
   AKANTU_DEBUG_IN();
 

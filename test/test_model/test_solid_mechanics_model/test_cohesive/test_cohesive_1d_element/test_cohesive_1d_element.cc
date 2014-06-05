@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     velocity(n) = strain_rate * (position(n) - (posx_max + posx_min) /2.);
 
   /// boundary conditions
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & displacement = model.getDisplacement();
   Real disp_increment = strain_rate * (posx_max - posx_min) / 2. * time_step;
 

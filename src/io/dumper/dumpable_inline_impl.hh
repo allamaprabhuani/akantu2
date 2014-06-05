@@ -105,7 +105,7 @@ inline void Dumpable::addDumpMeshToDumper(const std::string & dumper_name,
 
 /* -------------------------------------------------------------------------- */
 inline void Dumpable::addDumpFilteredMesh(const Mesh & mesh,
-                                          const ByElementTypeArray<UInt> & elements_filter,
+                                          const ElementTypeMapArray<UInt> & elements_filter,
                                           const Array<UInt> & nodes_filter,
                                           UInt spatial_dimension,
                                           const GhostType & ghost_type,
@@ -122,7 +122,7 @@ inline void Dumpable::addDumpFilteredMesh(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 inline void Dumpable::addDumpFilteredMeshToDumper(const std::string & dumper_name,
                                                   const Mesh & mesh,
-                                                  const ByElementTypeArray<UInt> & elements_filter,
+                                                  const ElementTypeMapArray<UInt> & elements_filter,
                                                   const Array<UInt> & nodes_filter,
                                                   UInt spatial_dimension,
                                                   const GhostType & ghost_type,
@@ -185,7 +185,7 @@ inline void Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_na
 /* -------------------------------------------------------------------------- */
 template<typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
-                                           const ByElementTypeArray<T> & field,
+                                           const ElementTypeMapArray<T> & field,
                                            UInt spatial_dimension,
                                            const GhostType & ghost_type,
                                            const ElementKind & element_kind) {
@@ -201,7 +201,7 @@ inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
 template<typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
                                                    const std::string & field_id,
-                                                   const ByElementTypeArray<T> & field,
+                                                   const ElementTypeMapArray<T> & field,
                                                    UInt spatial_dimension,
                                                    const GhostType & ghost_type,
                                                    const ElementKind & element_kind) {

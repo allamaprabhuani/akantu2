@@ -29,7 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
 
   UInt nb_elements = my_mesh.getNbElement(type);
   ///
-  FEMTemplate<IntegratorGauss,ShapeLagrange> *fem =
-    new FEMTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
+  FEEngineTemplate<IntegratorGauss,ShapeLagrange> *fem =
+    new FEEngineTemplate<IntegratorGauss,ShapeLagrange>(my_mesh, dim, "my_fem");
 
   fem->initShapeFunctions();
 

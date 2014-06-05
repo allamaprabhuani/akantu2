@@ -1,12 +1,12 @@
 /**
- * @file   fem_inline_impl.cc
+ * @file   fe_engine_inline_impl.cc
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date   Tue Jul 20 23:40:43 2010
  *
- * @brief  Implementation of the inline functions of the FEM Class
+ * @brief  Implementation of the inline functions of the FEEngine Class
  *
  * @section LICENSE
  *
@@ -29,19 +29,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
-inline Mesh & FEM::getMesh() const {
-  return mesh;
-}
-
+__BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-inline Real FEM::getElementInradius(const Matrix<Real> & coord, const ElementType & type) {
+inline Real FEEngine::getElementInradius(const Matrix<Real> & coord, const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   Real inradius = 0;
 
-#define GET_INRADIUS(type)						\
-  inradius = ElementClass<type>::getInradius(coord);			\
+#define GET_INRADIUS(type)				\
+  inradius = ElementClass<type>::getInradius(coord);	\
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_INRADIUS);
 #undef GET_INRADIUS
@@ -51,13 +48,13 @@ inline Real FEM::getElementInradius(const Matrix<Real> & coord, const ElementTyp
 }
 
 /* -------------------------------------------------------------------------- */
-inline InterpolationType FEM::getInterpolationType(const ElementType & type) {
+inline InterpolationType FEEngine::getInterpolationType(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = _itp_not_defined;
 
-#define GET_ITP(type)							\
-  itp_type = ElementClassProperty<type>::interpolation_type;		\
+#define GET_ITP(type)						\
+  itp_type = ElementClassProperty<type>::interpolation_type;	\
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_ITP);
 #undef GET_ITP
@@ -70,7 +67,7 @@ inline InterpolationType FEM::getInterpolationType(const ElementType & type) {
 /// @todo rewrite this function in order to get the cohesive element
 /// type directly from the facet
 #if defined(AKANTU_COHESIVE_ELEMENT)
-inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
+inline ElementType FEEngine::getCohesiveElementType(const ElementType & type_facet) {
   AKANTU_DEBUG_IN();
 
   ElementType type_cohesive = _not_defined;
@@ -85,7 +82,7 @@ inline ElementType FEM::getCohesiveElementType(const ElementType & type_facet) {
   return type_cohesive;
 }
 #else
-inline ElementType FEM::getCohesiveElementType(__attribute__((unused)) const ElementType & type_facet) {
+inline ElementType FEEngine::getCohesiveElementType(__attribute__((unused)) const ElementType & type_facet) {
   return _not_defined;
 }
 #endif
@@ -94,12 +91,12 @@ inline ElementType FEM::getCohesiveElementType(__attribute__((unused)) const Ele
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void FEM::extractNodalToElementField(const Mesh & mesh,
-				     const Array<T> & nodal_f,
-				     Array<T> & elemental_f,
-				     const ElementType & type,
-				     const GhostType & ghost_type,
-				     const Array<UInt> & filter_elements) {
+void FEEngine::extractNodalToElementField(const Mesh & mesh,
+					  const Array<T> & nodal_f,
+					  Array<T> & elemental_f,
+					  const ElementType & type,
+					  const GhostType & ghost_type,
+					  const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -135,12 +132,12 @@ void FEM::extractNodalToElementField(const Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void FEM::filterElementalData(const Mesh & mesh,
-                              const Array<T> & elem_f,
-                              Array<T> & filtered_f,
-                              const ElementType & type,
-                              const GhostType & ghost_type,
-                              const Array<UInt> & filter_elements) {
+void FEEngine::filterElementalData(const Mesh & mesh,
+				   const Array<T> & elem_f,
+				   Array<T> & filtered_f,
+				   const ElementType & type,
+				   const GhostType & ghost_type,
+				   const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_element = mesh.getNbElement(type, ghost_type);
@@ -174,3 +171,6 @@ void FEM::filterElementalData(const Mesh & mesh,
 
   AKANTU_DEBUG_OUT();
 }
+
+
+__END_AKANTU__

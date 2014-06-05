@@ -30,7 +30,7 @@
 
 __END_AKANTU__
 
-#include "fem.hh"
+#include "fe_engine.hh"
 #if defined(AKANTU_DEBUG_TOOLS)
 #  include "aka_debug_tools.hh"
 #endif
@@ -213,7 +213,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
   Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
+  FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_matrix_iterator x_it = x_el.begin(spatial_dimension,
 		    nb_nodes_per_element);
@@ -279,7 +279,7 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
   Vector<Real> weights = GaussIntegrationElement<type>::getWeights();
 
   Array<Real> x_el(0, spatial_dimension * nb_nodes_per_element);
-  FEM::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
+  FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_matrix_iterator x_it = x_el.begin(spatial_dimension,
 								nb_nodes_per_element);
@@ -335,7 +335,7 @@ void IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
   if(filter_elements != empty_filter) {
     nb_element = filter_elements.getSize();
     filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
-    FEM::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
+    FEEngine::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
     const Array<Real> & cfiltered_J = *filtered_J; // \todo temporary patch
     J_it = cfiltered_J.begin_reinterpret(nb_points, 1, nb_element);
   } else {
@@ -430,7 +430,7 @@ void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f
   if(filter_elements != empty_filter) {
     nb_element = filter_elements.getSize();
     filtered_J = new Array<Real>(0, jac_loc.getNbComponent());
-    FEM::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
+    FEEngine::filterElementalData(mesh, jac_loc, *filtered_J, type, ghost_type, filter_elements);
     J_it = filtered_J->begin();
   } else {
     nb_element = mesh.getNbElement(type,ghost_type);

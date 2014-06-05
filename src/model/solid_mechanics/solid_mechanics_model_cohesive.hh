@@ -75,7 +75,7 @@ public:
     Array<UInt> old_nodes;
   };
 
-  typedef FEMTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive> MyFEMCohesiveType;
+  typedef FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive> MyFEEngineCohesiveType;
 
   SolidMechanicsModelCohesive(Mesh & mesh,
 			      UInt spatial_dimension = _all_dimensions,
@@ -188,7 +188,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetMaterial, facet_material, UInt);
 
   /// get facet material
-  AKANTU_GET_MACRO(FacetMaterial, facet_material, const ByElementTypeArray<UInt> &);
+  AKANTU_GET_MACRO(FacetMaterial, facet_material, const ElementTypeMapArray<UInt> &);
 
   /// @todo THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
@@ -205,19 +205,19 @@ private:
   Mesh & mesh_facets;
 
   /// @todo store tangents when normals are computed:
-  ByElementTypeReal tangents;
+  ElementTypeMapArray<Real> tangents;
 
   /// list of stresses on facet quadrature points for every element
-  ByElementTypeReal stress_on_facet;
+  ElementTypeMapArray<Real> stress_on_facet;
 
   /// stress on facets on the two sides by quadrature point
-  ByElementTypeReal facet_stress;
+  ElementTypeMapArray<Real> facet_stress;
 
   /// flag to know if facets have been generated
   bool facet_generated;
 
   /// material to use if a cohesive element is created on a facet
-  ByElementTypeUInt facet_material;
+  ElementTypeMapArray<UInt> facet_material;
 
   /// stress interpolation flag
   bool stress_interpolation;
@@ -270,7 +270,7 @@ public:
   }
 
 private:
-  const ByElementTypeUInt & facet_material;
+  const ElementTypeMapArray<UInt> & facet_material;
   const Mesh & mesh;
   const Mesh & mesh_facets;
 };

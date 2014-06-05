@@ -51,7 +51,7 @@ public:
                         const MemoryID & memory_id = 0);
 
   MeshPartitionMeshData(const Mesh & mesh,
-                        const ByElementTypeArray<UInt> & mapping,
+                        const ElementTypeMapArray<UInt> & mapping,
                         UInt spatial_dimension,
                         const ID & id = "MeshPartitionerMeshData",
                         const MemoryID & memory_id = 0);
@@ -67,7 +67,7 @@ public:
 
   virtual void reorder();
 
-  void setPartitionMapping(const ByElementTypeArray<UInt> & mapping);
+  void setPartitionMapping(const ElementTypeMapArray<UInt> & mapping);
 
   void setPartitionMappingFromMeshData(const std::string & data_name);
 
@@ -82,7 +82,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  const ByElementTypeArray<UInt> * partition_mapping;
+  const ElementTypeMapArray<UInt> * partition_mapping;
 };
 
 

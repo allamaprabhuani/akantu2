@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
     Mesh::type_iterator it = mesh.firstType();
     Mesh::type_iterator last_type = mesh.lastType();
 
-    ByElementTypeReal barycenters("", "", 0);
-    mesh.initByElementTypeArray(barycenters, dim, dim);
+    ElementTypeMapArray<Real> barycenters("", "", 0);
+    mesh.initElementTypeMapArray(barycenters, dim, dim);
 
     GhostType ghost_type = _not_ghost;
 
@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
   }
 
   // Checking if the barycenters of the partitioned elements match the ones in the partitioned MeshData
-  ByElementTypeReal barycenters("", "", 0);
-  mesh.initByElementTypeArray(barycenters, dim, dim);
+  ElementTypeMapArray<Real> barycenters("", "", 0);
+  mesh.initElementTypeMapArray(barycenters, dim, dim);
 
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {

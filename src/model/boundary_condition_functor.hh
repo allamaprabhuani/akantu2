@@ -33,7 +33,7 @@
 #define __AKANTU_BOUNDARY_CONDITION_FUNCTOR_HH__
 
 #include "aka_common.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 
 __BEGIN_AKANTU__
 

@@ -39,9 +39,9 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 template<typename T>
 InternalField<T>::InternalField(const ID & id, Material & material) :
-  ByElementTypeArray<T>(id, material.getID(), material.getMemoryID()),
+  ElementTypeMapArray<T>(id, material.getID(), material.getMemoryID()),
   material(material),
-  fem(material.getModel().getFEM()),
+  fem(material.getModel().getFEEngine()),
   element_filter(material.getElementFilter()),
   default_value(T()),
   spatial_dimension(material.getModel().getSpatialDimension()),
@@ -53,9 +53,9 @@ InternalField<T>::InternalField(const ID & id, Material & material) :
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-InternalField<T>::InternalField(const ID & id, Material & material, FEM & fem,
-				const ByElementTypeArray<UInt> & element_filter) :
-  ByElementTypeArray<T>(id, material.getID(), material.getMemoryID()),
+InternalField<T>::InternalField(const ID & id, Material & material, FEEngine & fem,
+				const ElementTypeMapArray<UInt> & element_filter) :
+  ElementTypeMapArray<T>(id, material.getID(), material.getMemoryID()),
   material(material),
   fem(fem),
   element_filter(element_filter),
@@ -70,7 +70,7 @@ InternalField<T>::InternalField(const ID & id, Material & material, FEM & fem,
 /* -------------------------------------------------------------------------- */
 template<typename T>
 InternalField<T>::InternalField(const ID & id, const InternalField<T> & other) :
-  ByElementTypeArray<T>(id, other.material.getID(), other.material.getMemoryID()),
+  ElementTypeMapArray<T>(id, other.material.getID(), other.material.getMemoryID()),
   material(other.material),
   fem(other.fem),
   element_filter(other.element_filter),
@@ -117,9 +117,9 @@ void InternalField<T>::resize() {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    typename ByElementTypeArray<UInt>::type_iterator it
+    typename ElementTypeMapArray<UInt>::type_iterator it
       = element_filter.firstType(spatial_dimension, gt, element_kind);
-    typename ByElementTypeArray<UInt>::type_iterator end
+    typename ElementTypeMapArray<UInt>::type_iterator end
       = element_filter.lastType(spatial_dimension, gt, element_kind);
     for(; it != end; ++it) {
       UInt nb_element = element_filter(*it, gt).getSize();
@@ -158,8 +158,8 @@ void InternalField<T>::reset() {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
 
-    typename ByElementTypeArray<T>::type_iterator it  = this->firstType(spatial_dimension, gt, element_kind);
-    typename ByElementTypeArray<T>::type_iterator end = this->lastType(spatial_dimension, gt, element_kind);
+    typename ElementTypeMapArray<T>::type_iterator it  = this->firstType(spatial_dimension, gt, element_kind);
+    typename ElementTypeMapArray<T>::type_iterator end = this->lastType(spatial_dimension, gt, element_kind);
     for(; it != end; ++it) {
       Array<T> & vect = this->operator()(*it, gt);
       vect.clear();
@@ -176,9 +176,9 @@ void InternalField<T>::internalInitialize(UInt nb_component) {
     this->nb_component = nb_component;
     for(UInt g = _not_ghost; g <= _ghost; ++g) {
       GhostType gt = (GhostType) g;
-      typename ByElementTypeArray<UInt>::type_iterator it
+      typename ElementTypeMapArray<UInt>::type_iterator it
 	= element_filter.firstType(spatial_dimension, gt, element_kind);
-      typename ByElementTypeArray<UInt>::type_iterator end
+      typename ElementTypeMapArray<UInt>::type_iterator end
 	= element_filter.lastType(spatial_dimension, gt, element_kind);
 
       for(; it != end; ++it) {
@@ -216,8 +216,8 @@ void InternalField<T>::saveCurrentValues() {
 
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    typename ByElementTypeArray<T>::type_iterator it  = this->firstType(spatial_dimension, gt, element_kind);
-    typename ByElementTypeArray<T>::type_iterator end = this->lastType(spatial_dimension, gt, element_kind);
+    typename ElementTypeMapArray<T>::type_iterator it  = this->firstType(spatial_dimension, gt, element_kind);
+    typename ElementTypeMapArray<T>::type_iterator end = this->lastType(spatial_dimension, gt, element_kind);
     for(; it != end; ++it) {
       this->previous_values->operator()(*it, gt).copy(this->operator()(*it, gt));
     }
@@ -226,11 +226,11 @@ void InternalField<T>::saveCurrentValues() {
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void InternalField<T>::removeQuadraturePoints(const ByElementTypeUInt & new_numbering) {
+void InternalField<T>::removeQuadraturePoints(const ElementTypeMapArray<UInt> & new_numbering) {
   for(UInt g = _not_ghost; g <= _ghost; ++g) {
     GhostType gt = (GhostType) g;
-    ByElementTypeArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
-    ByElementTypeArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
+    ElementTypeMapArray<UInt>::type_iterator it  = new_numbering.firstType(_all_dimensions, gt, _ek_not_defined);
+    ElementTypeMapArray<UInt>::type_iterator end = new_numbering.lastType(_all_dimensions, gt, _ek_not_defined);
     for (; it != end; ++it) {
       ElementType type = *it;
       if(this->exists(type, gt)){

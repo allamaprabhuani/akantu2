@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 
   Array<Real> & position = mesh.getNodes();
   Array<Real> & velocity = model.getVelocity();
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & displacement = model.getDisplacement();
   //  const Array<Real> & residual = model.getResidual();
 

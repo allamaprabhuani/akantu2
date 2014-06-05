@@ -71,13 +71,13 @@ void ContactSearch2dExplicit::findPenetration(const Surface & master_surface, Pe
 
   //contact.getModel().updateCurrentPosition();
   /// compute current_position = initial_position + displacement temp
-  // Real * coord = contact.getModel().getFEM().getMesh().getNodes().storage();
+  // Real * coord = contact.getModel().getFEEngine().getMesh().getNodes().storage();
   // Real * disp = contact.getModel().getDisplacement().storage();
-  // Real * pos_val = new Real[contact.getModel().getFEM().getMesh().getNodes().getSize()];
-  // for (UInt n = 0; n < contact.getModel().getFEM().getMesh().getNodes().getSize(); ++n)
+  // Real * pos_val = new Real[contact.getModel().getFEEngine().getMesh().getNodes().getSize()];
+  // for (UInt n = 0; n < contact.getModel().getFEEngine().getMesh().getNodes().getSize(); ++n)
   //   pos_val[n] = coord[n] + disp[n];
 
-  Mesh & mesh = contact.getModel().getFEM().getMesh();
+  Mesh & mesh = contact.getModel().getFEEngine().getMesh();
 
   ElementType el_type = _segment_2; /* Only linear element at the moment */
   //  const ID & id = getID();
@@ -370,7 +370,7 @@ bool ContactSearch2dExplicit::checkProjectionAdjacentFacet(PenetrationList & pen
  {
    AKANTU_DEBUG_IN();
 
-   UInt * conn_val = contact.getModel().getFEM().getMesh().getConnectivity(el_type, _not_ghost).storage();
+   UInt * conn_val = contact.getModel().getFEEngine().getMesh().getConnectivity(el_type, _not_ghost).storage();
    UInt elem_nodes = Mesh::getNbNodesPerElement(el_type);
 
    UInt node1 = conn_val[c_facet*elem_nodes];

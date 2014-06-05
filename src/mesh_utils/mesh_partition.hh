@@ -102,10 +102,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
 
-  AKANTU_GET_MACRO(Partitions, partitions, const ByElementTypeUInt &);
+  AKANTU_GET_MACRO(Partitions, partitions, const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
 
-  AKANTU_GET_MACRO(GhostPartitionCSR, ghost_partitions_csr, const ByElementType< CSR<UInt> > &);
+  AKANTU_GET_MACRO(GhostPartitionCSR, ghost_partitions_csr, const ElementTypeMap< CSR<UInt> > &);
 
   AKANTU_GET_MACRO(NbPartition, nb_partitions, UInt);
   AKANTU_SET_MACRO(NbPartition, nb_partitions, UInt);
@@ -127,15 +127,15 @@ protected:
   UInt nb_partitions;
 
   /// partition numbers
-  ByElementTypeUInt partitions;
+  ElementTypeMapArray<UInt> partitions;
 
-  ByElementType< CSR<UInt> > ghost_partitions_csr;
-  ByElementTypeUInt ghost_partitions;
-  ByElementTypeUInt ghost_partitions_offset;
+  ElementTypeMap< CSR<UInt> > ghost_partitions_csr;
+  ElementTypeMapArray<UInt> ghost_partitions;
+  ElementTypeMapArray<UInt> ghost_partitions_offset;
 
   Array<UInt> * permutation;
 
-  ByElementTypeUInt saved_connectivity;
+  ElementTypeMapArray<UInt> saved_connectivity;
 
 };
 

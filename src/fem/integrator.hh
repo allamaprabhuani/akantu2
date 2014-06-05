@@ -105,7 +105,7 @@ protected:
   const Mesh & mesh;
 
   /// jacobians for all elements
-  ByElementTypeArray<Real> jacobians;
+  ElementTypeMapArray<Real> jacobians;
 };
 
 

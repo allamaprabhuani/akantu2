@@ -35,7 +35,7 @@
 #include <set>
 #include "aka_common.hh"
 #include "aka_memory.hh"
-#include "by_element_type.hh"
+#include "element_type_map.hh"
 #include "node_group.hh"
 #include "dumpable.hh"
 
@@ -62,7 +62,7 @@ class ElementGroup : private Memory, public Dumpable {
   /* Type definitions                                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef ByElementTypeArray<UInt> ElementList;
+  typedef ElementTypeMapArray<UInt> ElementList;
   typedef Array<UInt> NodeList;
 
   /* ------------------------------------------------------------------------ */
@@ -121,7 +121,7 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Elements, elements, UInt);
-  AKANTU_GET_MACRO(Elements, elements, const ByElementTypeArray<UInt> &);
+  AKANTU_GET_MACRO(Elements, elements, const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO(Nodes, node_group.getNodes(), const Array<UInt> &);
   AKANTU_GET_MACRO(NodeGroup, node_group, const NodeGroup &);
   AKANTU_GET_MACRO_NOT_CONST(NodeGroup, node_group, NodeGroup &);

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   Real ymax = mesh.getYMax();
 
   Array<Real> & pos = mesh.getNodes();
-  Array<bool> & boundary = model.getBoundary();
+  Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & disp = model.getDisplacement();
 
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {

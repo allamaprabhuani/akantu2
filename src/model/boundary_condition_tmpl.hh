@@ -42,7 +42,7 @@ void BoundaryCondition<ModelType>::initBC(ModelType & model, Array<Real> & prima
   this->primal = &primal;
   this->dual   = &dual;
   if(this->model->getSpatialDimension() > 1)
-    this->model->initFEMBoundary();
+    this->model->initFEEngineBoundary();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,7 +66,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     ModelType         & model          = bc_instance.getModel();
     Array<Real>       & primal         = bc_instance.getPrimal();
     const Array<Real> & coords         = model.getMesh().getNodes();
-    Array<bool>       & boundary_flags = model.getBoundary();
+    Array<bool>       & boundary_flags = model.getBlockedDOFs();
     UInt dim = model.getMesh().getSpatialDimension();
 
     Array<Real>::vector_iterator primal_iter = primal.begin(primal.getNbComponent());
@@ -110,7 +110,7 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     Array<Real>       & dual         = bc_instance.getDual();
     const Mesh        & mesh         = model.getMesh();
     const Array<Real> & nodes_coords = mesh.getNodes();
-    const FEM         & fem_boundary = model.getFEMBoundary();
+    const FEEngine         & fem_boundary = model.getFEEngineBoundary();
 
     UInt dim = model.getSpatialDimension();
     UInt nb_degree_of_freedom = dual.getNbComponent();

@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
   /// get two squares closer
   // reduceGap(*model, 0.05, 1.e-6);
 
-  UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
-  UInt nb_elements = model->getFEM().getMesh().getNbElement(_triangle_3);
+  UInt nb_nodes = model->getFEEngine().getMesh().getNbNodes();
+  UInt nb_elements = model->getFEEngine().getMesh().getNbElement(_triangle_3);
 
   /// model initialization
   model->initArrays();
@@ -190,8 +190,8 @@ int main(int argc, char *argv[])
 /* -------------------------------------------------------------------------- */
 static void reduceGap(const SolidMechanicsModel & model, const Real threshold, const Real gap) {
 
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  Real * coord = model.getFEM().getMesh().getNodes().storage();
+  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  Real * coord = model.getFEEngine().getMesh().getNodes().storage();
   Real y_top = HUGE_VAL, y_bot = -HUGE_VAL;
 
   for (UInt n = 0; n < nb_nodes; ++n) {
@@ -216,8 +216,8 @@ static void reduceGap(const SolidMechanicsModel & model, const Real threshold, c
 /* -------------------------------------------------------------------------- */
 static void setBoundaryConditions(SolidMechanicsModel & model) {
 
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  Real * coord = model.getFEM().getMesh().getNodes().storage();
+  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  Real * coord = model.getFEEngine().getMesh().getNodes().storage();
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (coord[2*n+1] > y_max)
       y_max = coord[2*n+1];
@@ -225,10 +225,10 @@ static void setBoundaryConditions(SolidMechanicsModel & model) {
       y_min = coord[2*n+1];
   }
 
-  FEM & b_fem = model.getFEMBoundary();
+  FEEngine & b_fem = model.getFEEngineBoundary();
   b_fem.initShapeFunctions();
   b_fem.computeNormalsOnQuadPoints();
-  bool * id = model.getBoundary().storage();
+  bool * id = model.getBlockedDOFs().storage();
   memset(id, 0, 2*nb_nodes*sizeof(bool));
   std::cout << "Nodes ";
   for (UInt i = 0; i < nb_nodes; ++i) {
@@ -254,7 +254,7 @@ void my_force(double * coord, double *T) {
 /// artificial damping of velocities in order to reach a global static equilibrium
 static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio)
 {
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
+  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
   Real * velocities = model.getVelocity().storage();
 
   if(ratio>1.) {
@@ -272,13 +272,13 @@ static void reduceVelocities(const SolidMechanicsModel & model, const Real ratio
 static void initParaview(SolidMechanicsModel & model)
 {
   UInt spatial_dimension = model.getSpatialDimension();
-  UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  UInt nb_elements = model.getFEM().getMesh().getNbElement(_triangle_3);
+  UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  UInt nb_elements = model.getFEEngine().getMesh().getNbElement(_triangle_3);
 
   dumper.SetMode(iohelper::TEXT);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().storage(),
+  dumper.SetPoints(model.getFEEngine().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "coordinates");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(_triangle_3).storage(),
+  dumper.SetConnectivity((int *)model.getFEEngine().getMesh().getConnectivity(_triangle_3).storage(),
 			 iohelper::TRIANGLE1, nb_elements, iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().storage(),
 			  spatial_dimension, "displacements");

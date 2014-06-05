@@ -80,7 +80,7 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
   std::stringstream sstr(line);
   UInt nb_nodes;
   sstr >> nb_nodes;
-  
+
   UInt spatial_dimension = 3;
   Real coord[spatial_dimension];
   Real * temp_nodes = new Real[nb_nodes*spatial_dimension];
@@ -94,19 +94,19 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
     std::stringstream sstr_node(line);
     sstr_node >> coord[0] >> coord[1] >> coord[2];
     current_line++;
-    
+
     /// read the coordinates of structural nodes and help nodes
     for(UInt j = 0; j < spatial_dimension; ++j)
       temp_nodes[offset + j] = coord[j];
       }
-  
+
   // Get Connectivities
   std::getline(infile, line);
   current_line++;
   std::stringstream sstr_elem(line);
   UInt nb_elements;
   sstr_elem >> nb_elements;
-  
+
   mesh->addConnectivityType(_bernoulli_beam_3);
   Array<UInt> & connectivity = const_cast<Array<UInt> &>(mesh->getConnectivity(_bernoulli_beam_3));
 
@@ -121,8 +121,8 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
     sstr_element >> nonodes[0] >> nonodes[1];
     current_line++;
 
-	
-    /// read the connectivities                                                   
+
+    /// read the connectivities
     for(UInt j = 0; j < 2; ++j){
 
       if (connect_to_akantu[nonodes[j]-1]==0){
@@ -133,31 +133,31 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
     }
   }
   nb_struct_nodes-=1;
-  
+
   /// read the coordinates of structural nodes
   Array<Real> & nodes = const_cast<Array<Real> &>(mesh->getNodes());
   nodes.resize(nb_struct_nodes);
-  
+
   for(UInt k = 0; k < nb_nodes; ++k){
     if (connect_to_akantu[k]!=0){
       for(UInt j = 0; j < spatial_dimension; ++j)
 	nodes(connect_to_akantu[k]-1,j) = temp_nodes[k*spatial_dimension+j];
     }
   }
-        
+
   //MeshPartitionScotch partition(*mesh, spatial_dimension);
   //partition.reorder();
 
-  
+
   ///Apply Boundaries
-  model.registerFEMObject<StructuralMechanicsModel::MyFEMType>("StructuralMechanicsModel", *mesh, spatial_dimension);
+  model.registerFEEngineObject<StructuralMechanicsModel::MyFEEngineType>("StructuralMechanicsModel", *mesh, spatial_dimension);
 
   model.initModel();
 
   model.initArrays();
 
-  Array<bool> & boundary = model.getBoundary();
-  
+  Array<bool> & blocked_dofs = model.getBlockedDOFs();
+
   std::getline(infile, line);
   std::stringstream sstr_nb_boundaries(line);
   UInt nb_boundaries;
@@ -167,24 +167,24 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
   for (UInt i = 0; i < nb_boundaries; ++i){
     std::getline(infile, line);
     std::stringstream sstr_boundary(line);
-    UInt boundnary_node;    
-    sstr_boundary >> boundnary_node;  
-    current_line++; 
+    UInt boundnary_node;
+    sstr_boundary >> boundnary_node;
+    current_line++;
 
     for (UInt j = 0; j < spatial_dimension; ++j)
-    boundary(connect_to_akantu[boundnary_node-1]-1 ,j)=true;
+    blocked_dofs(connect_to_akantu[boundnary_node-1]-1 ,j)=true;
   }
 
   ///Define Materials
 
   std::getline(infile, line);
   std::stringstream sstr_nb_materials(line);
-  UInt nb_materials; 
+  UInt nb_materials;
   sstr_nb_materials >> nb_materials;
   current_line++;
 
   for (UInt i = 0; i < nb_materials; ++i){
-    
+
     std::getline(infile, line);
     std::stringstream sstr_material(line);
     Real material[6];
@@ -196,7 +196,7 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
     mat.GJ = material[1] * material[2];
     mat.Iy = material[3];
     mat.Iz = material[4];
-    mat.A = material[5];   
+    mat.A = material[5];
 
     model.addMaterial(mat);
   }
@@ -204,9 +204,9 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
   /// Apply normals and Material TO IMPLEMENT
 
   UInt property[2];
-  
+
   Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_3);
-  
+
   mesh->initNormals();
   Array<Real> & normals = const_cast<Array<Real> &>(mesh->getNormals(_bernoulli_beam_3));
   normals.resize(nb_elements);
@@ -218,7 +218,7 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
     sstr_properties >> property[0] >> property[1];
     current_line++;
 
-	
+
     /// Assign material
     element_material(i)=property[0]-1;
 
@@ -245,12 +245,12 @@ void ModelIOIBarras::read(const std::string & filename, Model & mod) {
 	v[j] = nodes(connectivity(i,1),j) - temp_nodes[(property[1]-1) * spatial_dimension + j];
 	Math::vectorProduct3(x, v, w);
 	Math::vectorProduct3(x, w, n);
-	
+
       }
     }
 
     Math::normalize3(n);
-    for (UInt j = 0; j < spatial_dimension; ++j){ 
+    for (UInt j = 0; j < spatial_dimension; ++j){
       normals(i,j) = n[j];
       }
   }
@@ -267,7 +267,7 @@ void ModelIOIBarras::assign_sets(const std::string & filename, StructuralMechani
 
   std::string line;
   UInt current_line = 0;
-  
+
 
   if(!infile.good()) {
     AKANTU_DEBUG_ERROR("Cannot open file " << filename);
@@ -277,34 +277,34 @@ void ModelIOIBarras::assign_sets(const std::string & filename, StructuralMechani
 
   Array<UInt> & set_ID = model.getSet_ID(_bernoulli_beam_3);
   set_ID.clear();
- 
+
   std::getline(infile, line);
   std::stringstream sstr_nb_sets(line);
   UInt nb_sets;
   sstr_nb_sets >> nb_sets;
   current_line++;
-  
+
   UInt no_element[2];
-  
-  for (UInt i = 0; i < nb_sets; ++i){ 
+
+  for (UInt i = 0; i < nb_sets; ++i){
     std::getline(infile, line);
     std::stringstream sstr_set(line);
     sstr_set >> no_element[0];
     no_element[1]=no_element[0];
-    sstr_set >> no_element[1]; 
-    
+    sstr_set >> no_element[1];
+
     while (no_element[0]!=0) {
-	
+
       for (UInt j = no_element[0]-1 ; j < no_element[1] ; ++j){
 	set_ID(j) = i+1;
       }
       std::getline(infile, line);
-      std::stringstream sstr_sets(line); 
+      std::stringstream sstr_sets(line);
       sstr_sets >> no_element[0];
-      no_element[1]=no_element[0]; 
+      no_element[1]=no_element[0];
       sstr_sets >> no_element[1];
-    } 
+    }
   }
 }
-                                                                                                                     
-__END_AKANTU__ 
+
+__END_AKANTU__

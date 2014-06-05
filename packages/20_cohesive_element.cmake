@@ -39,7 +39,7 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   fem/cohesive_element.cc
   fem/shape_cohesive.hh
   fem/cohesive_element.hh
-  fem/fem_template_cohesive.cc
+  fem/fe_engine_template_cohesive.cc
 
   fem/shape_cohesive_inline_impl.cc
 

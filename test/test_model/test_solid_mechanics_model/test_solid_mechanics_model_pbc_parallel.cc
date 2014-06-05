@@ -131,19 +131,19 @@ int main(int argc, char *argv[])
   model->assembleMassLumped();
 
   akantu::UInt nb_element = mesh.getNbElement(type);
-  akantu::UInt nb_quads = model->getFEM().getNbQuadraturePoints(type);
+  akantu::UInt nb_quads = model->getFEEngine().getNbQuadraturePoints(type);
   for(akantu::UInt i=0; i<nb_element * nb_quads; ++i) 
     proc_rank.push_back(prank);
 
   /// boundary conditions
-  akantu::UInt nb_nodes = model->getFEM().getMesh().getNbNodes();
+  akantu::UInt nb_nodes = model->getFEEngine().getMesh().getNbNodes();
   akantu::Real eps = 1e-16;
-  akantu::Array<akantu::Real> & coords = const_cast<akantu::Array<akantu::Real> & >(model->getFEM().getMesh().getNodes());
+  akantu::Array<akantu::Real> & coords = const_cast<akantu::Array<akantu::Real> & >(model->getFEEngine().getMesh().getNodes());
   for (akantu::UInt i = 0; i < nb_nodes; ++i) {
     // block top and bottom nodes
     if(std::abs(coords(i,1)-mesh.getYMax()) <= eps 
        || std::abs(coords(i,1)-mesh.getYMin()) <= eps) {
-      model->getBoundary().storage()[spatial_dimension*i + 1] = true;
+      model->getBlockedDOFs().storage()[spatial_dimension*i + 1] = true;
     }
     // correct coordinates (gmsh's unprecision)
     for (akantu::UInt d=0; d<spatial_dimension; ++d) {
@@ -215,12 +215,12 @@ void paraviewInit(iohelper::Dumper & dumper, const akantu::SolidMechanicsModel &
   akantu::Int prank = comm->whoAmI();
 
   akantu::UInt spatial_dimension = model.getSpatialDimension();
-  akantu::UInt nb_nodes = model.getFEM().getMesh().getNbNodes();
-  akantu::UInt nb_element = model.getFEM().getMesh().getNbElement(type);
+  akantu::UInt nb_nodes = model.getFEEngine().getMesh().getNbNodes();
+  akantu::UInt nb_element = model.getFEEngine().getMesh().getNbElement(type);
   dumper.SetParallelContext(prank, psize);
-  dumper.SetPoints(model.getFEM().getMesh().getNodes().storage(),
+  dumper.SetPoints(model.getFEEngine().getMesh().getNodes().storage(),
 		   spatial_dimension, nb_nodes, "pbc_parallel");
-  dumper.SetConnectivity((int *)model.getFEM().getMesh().getConnectivity(type).storage(),
+  dumper.SetConnectivity((int *)model.getFEEngine().getMesh().getConnectivity(type).storage(),
 			 paraview_type, nb_element, iohelper::C_MODE);
   dumper.AddNodeDataField(model.getDisplacement().storage(),
 			  spatial_dimension, "displacements");

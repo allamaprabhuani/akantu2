@@ -31,7 +31,7 @@
 #define __AKANTU_FACET_SYNCHRONIZER_HH__
 
 #include "distributed_synchronizer.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -80,27 +80,27 @@ protected:
   void setupFacetSynchronization(DistributedSynchronizer & distributed_synchronizer);
 
   /// build send facet arrays
-  void buildSendElementList(const Array<ByElementTypeUInt *> & send_connectivity,
-			    const Array<ByElementTypeUInt *> & recv_connectivity,
-			    const Array<ByElementTypeUInt *> & temp_send_element);
+  void buildSendElementList(const Array<ElementTypeMapArray<UInt> *> & send_connectivity,
+			    const Array<ElementTypeMapArray<UInt> *> & recv_connectivity,
+			    const Array<ElementTypeMapArray<UInt> *> & temp_send_element);
 
   /// build recv facet arrays
-  void buildRecvElementList(const Array<ByElementTypeUInt *> & temp_recv_element);
+  void buildRecvElementList(const Array<ElementTypeMapArray<UInt> *> & temp_recv_element);
 
   /// get facets' global connectivity for a list of elements
   template<GhostType ghost_facets>
   inline void getFacetGlobalConnectivity(const DistributedSynchronizer & distributed_synchronizer,
-					 const ByElementTypeUInt & rank_to_facet,
+					 const ElementTypeMapArray<UInt> & rank_to_facet,
 					 const Array<Element> * elements,
-					 Array<ByElementTypeUInt *> & connectivity,
-					 Array<ByElementTypeUInt *> & facets);
+					 Array<ElementTypeMapArray<UInt> *> & connectivity,
+					 Array<ElementTypeMapArray<UInt> *> & facets);
 
-  /// initialize ByElementType containing correspondance between
+  /// initialize ElementTypeMap containing correspondance between
   /// facets and processors
-  void initRankToFacet(ByElementTypeUInt & rank_to_facet);
+  void initRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet);
 
   /// find which processor a facet is assigned to
-  void buildRankToFacet(ByElementTypeUInt & rank_to_facet,
+  void buildRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet,
 			const Array<Element> * elements);
 
   /* ------------------------------------------------------------------------ */

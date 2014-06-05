@@ -32,13 +32,13 @@
 #include <fstream>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "integrator_gauss.hh"
 #include "shape_linked.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh.hh"
-#include "fem_template.hh"
+#include "fe_engine_template.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]){
     // Interpolation
 
 
-    FEMTemplate<IntegratorGauss,ShapeLinked> *fem = new FEMTemplate<IntegratorGauss,ShapeLinked>(beams,2);
+    FEEngineTemplate<IntegratorGauss,ShapeLinked> *fem = new FEEngineTemplate<IntegratorGauss,ShapeLinked>(beams,2);
 
     fem->initShapeFunctions();
 

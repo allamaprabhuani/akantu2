@@ -37,7 +37,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "fem.hh"
+#include "fe_engine.hh"
 #include "communication_buffer.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -152,19 +152,19 @@ public:
 					       const Mesh & mesh);
 
   template<typename T, bool pack_helper>
-  static inline void packUnpackElementalDataHelper(ByElementTypeArray<T> & data_to_pack,
+  static inline void packUnpackElementalDataHelper(ElementTypeMapArray<T> & data_to_pack,
 						   CommunicationBuffer & buffer,
 						   const Array<Element> & element,
 						   bool per_quadrature_point_data,
-						   const FEM & fem);
+						   const FEEngine & fem);
 
   template<typename T>
-  static inline void packElementalDataHelper(const ByElementTypeArray<T> & data_to_pack,
+  static inline void packElementalDataHelper(const ElementTypeMapArray<T> & data_to_pack,
 					     CommunicationBuffer & buffer,
 					     const Array<Element> & elements,
 					     bool per_quadrature_point,
-					     const FEM & fem) {
-    packUnpackElementalDataHelper<T, true>(const_cast<ByElementTypeArray<T> &>(data_to_pack),
+					     const FEEngine & fem) {
+    packUnpackElementalDataHelper<T, true>(const_cast<ElementTypeMapArray<T> &>(data_to_pack),
 					   buffer,
 					   elements,
 					   per_quadrature_point,
@@ -172,11 +172,11 @@ public:
   }
   
   template<typename T>
-  inline void unpackElementalDataHelper(ByElementTypeArray<T> & data_to_unpack,
+  inline void unpackElementalDataHelper(ElementTypeMapArray<T> & data_to_unpack,
                                         CommunicationBuffer & buffer,
                                         const Array<Element> & elements,
                                         bool per_quadrature_point,
-					const FEM & fem) {
+					const FEEngine & fem) {
     packUnpackElementalDataHelper<T, false>(data_to_unpack,
 					    buffer,
 					    elements,
