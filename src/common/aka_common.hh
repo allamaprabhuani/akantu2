@@ -219,6 +219,7 @@ enum InterpolationType {
 inline std::ostream & operator <<(std::ostream & stream, ElementType type);
 
 
+#define AKANTU_REGULAR_KIND      (_ek_regular)
 #ifdef AKANTU_COHESIVE_ELEMENT
 #  define AKANTU_COHESIVE_KIND   (_ek_cohesive)
 #else
@@ -236,7 +237,7 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type);
 #endif
 
 #define AKANTU_ELEMENT_KIND			\
-  (_ek_regular)					\
+  AKANTU_REGULAR_KIND                           \
   AKANTU_COHESIVE_KIND				\
   AKANTU_STRUCTURAL_KIND			\
   AKANTU_IGFEM_KIND
@@ -552,7 +553,7 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 // BOOST PART: TOUCH ONLY IF YOU KNOW WHAT YOU ARE DOING
 
-#define AKANTU_BOOST_CASE_MACRO(r,macro,type)	                        \
+#define AKANTU_BOOST_CASE_MACRO(r,macro,type)				\
   case type : { macro(type); break; }
 
 #define AKANTU_BOOST_LIST_SWITCH(macro1, list1, var)			\
@@ -565,7 +566,7 @@ __END_AKANTU__
     }									\
   } while(0)
 
-#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1)	                \
+#define AKANTU_BOOST_ELEMENT_SWITCH(macro1, list1)			\
   AKANTU_BOOST_LIST_SWITCH(macro1, list1, type)
 
 #define AKANTU_BOOST_ALL_ELEMENT_SWITCH(macro)				\
@@ -601,15 +602,15 @@ __END_AKANTU__
 #define AKANTU_BOOST_REGULAR_ELEMENT_LIST(macro)		        \
   AKANTU_BOOST_APPLY_ON_LIST(macro,				        \
 			     AKANTU_ek_regular_ELEMENT_TYPE)
-  
+
 #define AKANTU_BOOST_STRUCTURAL_ELEMENT_LIST(macro)			\
   AKANTU_BOOST_APPLY_ON_LIST(macro,					\
 			     AKANTU_ek_structural_ELEMENT_TYPE)
-  
+
 #define AKANTU_BOOST_COHESIVE_ELEMENT_LIST(macro)			\
   AKANTU_BOOST_APPLY_ON_LIST(macro,					\
 			     AKANTU_ek_cohesive_ELEMENT_TYPE)
-  
+
 #define AKANTU_BOOST_IGFEM_ELEMENT_LIST(macro)				\
   AKANTU_BOOST_APPLY_ON_LIST(macro,					\
 			     AKANTU_ek_igfem_ELEMENT_TYPE)

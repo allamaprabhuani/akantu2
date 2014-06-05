@@ -1583,8 +1583,8 @@ void SolidMechanicsModel::reassignMaterial() {
     GhostType ghost_type = *gt;
     element.ghost_type = ghost_type;
 
-    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, ghost_type, _ek_not_defined);
-    Mesh::type_iterator end = mesh.lastType(_all_dimensions, ghost_type, _ek_not_defined);
+    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, ghost_type, _ek_regular);
+    Mesh::type_iterator end = mesh.lastType(_all_dimensions, ghost_type, _ek_regular);
     for(; it != end; ++it) {
       ElementType type = *it;
       element.type = type;
