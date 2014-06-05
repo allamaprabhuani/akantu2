@@ -220,16 +220,16 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type);
 
 
 #define AKANTU_REGULAR_KIND      (_ek_regular)
-#ifdef AKANTU_COHESIVE_ELEMENT
+//#ifdef AKANTU_COHESIVE_ELEMENT
 #  define AKANTU_COHESIVE_KIND   (_ek_cohesive)
-#else
-#  define AKANTU_COHESIVE_KIND
-#endif
-#ifdef AKANTU_STRUCTURAL_MECHANICS
+//#else
+//#  define AKANTU_COHESIVE_KIND
+//#endif
+// #ifdef AKANTU_STRUCTURAL_MECHANICS
 #  define AKANTU_STRUCTURAL_KIND (_ek_structural)
-#else
-#  define AKANTU_STRUCTURAL_KIND
-#endif
+// #else
+// #  define AKANTU_STRUCTURAL_KIND
+// #endif
 #ifdef AKANTU_IGFEM
 #  define AKANTU_IGFEM_KIND      (_ek_igfem)
 #else

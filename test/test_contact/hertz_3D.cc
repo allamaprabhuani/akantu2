@@ -171,12 +171,12 @@ int main(int argc, char *argv[]) {
 //  model.dump();
 
 	// block z-disp in extreme points of top surface
-	model.getBoundary()(1, 2) = true;
-	model.getBoundary()(2, 2) = true;
+	model.getBlockedDOFs()(1, 2) = true;
+	model.getBlockedDOFs()(2, 2) = true;
 
 	// block x-disp in extreme points of top surface
-	model.getBoundary()(3, 0) = true;
-	model.getBoundary()(4, 0) = true;
+	model.getBlockedDOFs()(3, 0) = true;
+	model.getBlockedDOFs()(4, 0) = true;
 
 	const size_t steps = 20;
 	Real data[3][steps]; // store results for printing

@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
   // apply boundary conditions
   model.applyBC(BC::Dirichlet::FixedValue(0., BC::_x), "rigid");
   model.applyBC(BC::Dirichlet::FixedValue(0., BC::_y), "rigid");
-  model.getBoundary()(7,0) = true;
+  model.getBlockedDOFs()(7,0) = true;
   
   Real data[3][50];  // store results for printing
   Real step = 0.001; // top displacement increment

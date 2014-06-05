@@ -47,6 +47,7 @@ if(SUBVERSION_FOUND)
     endif()
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
+    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
     
 #    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
 

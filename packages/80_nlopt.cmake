@@ -102,7 +102,7 @@ if(AKANTU_NLOPT)
     set(NLOPT_INTERNAL_DIR ${NLOPT_SOURCE_DIR} CACHE PATH "Location of NLOPT source directory." FORCE)
 
   endif()
-  find_package(NLopt)
+  add_external_package(NLopt "Use NLOPT library")
 else()
   set(AKANTU_USE_NLOPT ${AKANTU_NLOPT} CACHE BOOL "Use NLOPT library" FORCE)
   add_optional_external_package(NLopt "Use NLOPT library" OFF)

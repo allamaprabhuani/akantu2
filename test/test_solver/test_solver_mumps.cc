@@ -30,6 +30,7 @@
 /* -------------------------------------------------------------------------- */
 #include "solver_mumps.hh"
 #include "static_communicator.hh"
+#include "dof_synchronizer.hh"
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
@@ -48,6 +49,9 @@ int main(int argc, char *argv[])
     sparse_matrix->addToProfile(i, i);
     sparse_matrix->addToMatrix (i, i, 1./((i+1) * 10.));
   }
+
+  //  akantu::DOFSynchronizer dof_synchronizer(mesh, 1);
+  //  sparse_matrix->buildProfile(mesh,&dof_synchronizer);
 
   // sparse_matrix->addToProfile(9, 8);
   // sparse_matrix->addToMatrix(9, 8, -1.);
