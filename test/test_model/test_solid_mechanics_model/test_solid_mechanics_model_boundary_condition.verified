@@ -1,7 +1,6 @@
 Loading the mesh.
 Material elastic [
  rwp E        [Young's modulus]                      : 2.1e+11
- rwp Plane_Stress [Is plane stress]                  : false
  rwp alpha    [Thermal expansion coefficient]        : 0
  rwp delta_T  [Uniform temperature field]            : InternalField [ solid_mechanics_model:0:elastic:delta_T {1 types - 0 ghost types} ]
  rwp finite_deformation [Is finite deformation]      : false
