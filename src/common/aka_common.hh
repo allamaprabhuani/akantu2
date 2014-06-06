@@ -623,9 +623,11 @@ __END_AKANTU__
 			      AKANTU_GET_ELEMENT_LIST(kind))
 
 // BOOST_PP_SEQ_TO_LIST does not exists in Boost < 1.49
-#define AKANTU_ELEMENT_KIND_BOOST_LIST \
-  BOOST_PP_TUPLE_TO_LIST(BOOST_PP_SEQ_SIZE(AKANTU_ELEMENT_KIND),        \
-                         BOOST_PP_SEQ_TO_TUPLE(AKANTU_ELEMENT_KIND))
+#define AKANTU_GENERATE_KIND_LIST(seq)                                  \
+  BOOST_PP_TUPLE_TO_LIST(BOOST_PP_SEQ_SIZE(seq),                        \
+                         BOOST_PP_SEQ_TO_TUPLE(seq))
+
+#define AKANTU_ELEMENT_KIND_BOOST_LIST AKANTU_GENERATE_KIND_LIST(AKANTU_ELEMENT_KIND)
 
 #define AKANTU_BOOST_ALL_KIND_LIST(macro, list)			        \
   BOOST_PP_LIST_FOR_EACH(AKANTU_BOOST_LIST_MACRO, macro, list)
