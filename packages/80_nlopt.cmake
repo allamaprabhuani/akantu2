@@ -62,7 +62,7 @@ if(AKANTU_NLOPT)
 	  message(STATUS "Downloading NLOPT library")
 	  execute_process(COMMAND 
 	    ${WGET_EXECUTABLE} http://ab-initio.mit.edu/nlopt/${NLOPT_ARCHIVE} --directory-prefix=${CMAKE_BINARY_DIR}/
-	    OUTPUT_QUIET)
+	    OUTPUT_QUIET ERROR_QUIET)
 	  
 	endif()
       endif()
@@ -84,12 +84,12 @@ if(AKANTU_NLOPT)
    
       message(STATUS "Configure NLOPT library with: ${NLOPT_CONFIGURE_COMMAND} in ${NLOPT_SOURCE_DIR}")
       string(REPLACE " " ";" NLOPT_CONFIGURE_COMMAND ${NLOPT_CONFIGURE_COMMAND})
-      execute_process(COMMAND ${NLOPT_CONFIGURE_COMMAND} WORKING_DIRECTORY ${NLOPT_SOURCE_DIR} OUTPUT_QUIET)
+      execute_process(COMMAND ${NLOPT_CONFIGURE_COMMAND} WORKING_DIRECTORY ${NLOPT_SOURCE_DIR} OUTPUT_QUIET ERROR_QUIET)
       if(NOT EXISTS ${NLOPT_SOURCE_DIR}/Makefile)
 	message(STATUS "Make NLOPT library")
 	message(FATAL_ERROR "Could not configure NLOPT")
       endif()
-      execute_process(COMMAND make WORKING_DIRECTORY ${NLOPT_SOURCE_DIR} OUTPUT_QUIET)
+      execute_process(COMMAND make WORKING_DIRECTORY ${NLOPT_SOURCE_DIR} OUTPUT_QUIET ERROR_QUIET)
 
       if(NOT EXISTS ${NLOPT_PRODUCED_LIB})
 	message("NLopt was not correctly compiled")
@@ -100,6 +100,7 @@ if(AKANTU_NLOPT)
     
 
     set(NLOPT_INTERNAL_DIR ${NLOPT_SOURCE_DIR} CACHE PATH "Location of NLOPT source directory." FORCE)
+    mark_as_advanced(NLOPT_INTERNAL_DIR)
 
   endif()
   add_external_package(NLopt "Use NLOPT library")
@@ -111,6 +112,8 @@ endif()
 
 
 mark_as_advanced(AKANTU_NLOPT)
+mark_as_advanced(NLOPT_DIR)
 mark_as_advanced(AKANTU_NLOPT_AUTO_DOWNLOAD)
 mark_as_advanced(AKANTU_USE_NLOPT)
 mark_as_advanced(NLOPT_LAST_CONFIGURE_COMMAND)
+mark_as_advanced(TAR_EXECUTABLE)

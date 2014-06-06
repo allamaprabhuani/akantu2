@@ -48,7 +48,13 @@ if(SUBVERSION_FOUND)
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
     set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
-    
+
+    mark_as_advanced(cpp-array_DEV)
+    mark_as_advanced(cpp-array_DOCUMENTATION)
+    mark_as_advanced(cpp-array_TESTS)
+    mark_as_advanced(CUDA)
+    mark_as_advanced(ARRAY_USER_LIB_PATH)
+
 #    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
 
     list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS})
