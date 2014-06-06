@@ -41,7 +41,9 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model, const ID & id
   MaterialThermal<dim>(model, id) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("Plane_Stress",plane_stress, false, _pat_parsmod, "Is plane stress"        ); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
+  if(dim==2)
+    this->registerParam("Plane_Stress",plane_stress, false, _pat_parsmod, "Is plane stress"        ); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
+
   this->registerParam("lambda"      ,lambda             , _pat_readable, "First Lamé coefficient" );
   this->registerParam("mu"          ,mu                 , _pat_readable, "Second Lamé coefficient");
   this->registerParam("kapa"        ,kpa                , _pat_readable, "Bulk coefficient"       );
@@ -66,12 +68,12 @@ template<UInt dim>
 void MaterialElastic<dim>::updateInternalParameters() {
   MaterialThermal<dim>::updateInternalParameters();
 
-  lambda   = this->nu * this->E / ((1 + this->nu) * (1 - 2*this->nu));
-  mu       = this->E / (2 * (1 + this->nu));
+  this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2*this->nu));
+  this->mu     = this->E / (2 * (1 + this->nu));
 
-  if(plane_stress) lambda = this->nu * this->E / ((1 + this->nu)*(1 - this->nu));
+  if(dim == 2 && plane_stress) this->lambda = this->nu * this->E / ((1 + this->nu)*(1 - this->nu));
 
-  kpa      = lambda + 2./3. * mu;
+  this->kpa    = this->lambda + 2./3. * this->mu;
 }
 
 /* -------------------------------------------------------------------------- */

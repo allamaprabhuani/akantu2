@@ -1,3 +1,5 @@
+parser_permissive = true
+
 material elastic [
 	 name = steel
 	 rho = 7800   # density
