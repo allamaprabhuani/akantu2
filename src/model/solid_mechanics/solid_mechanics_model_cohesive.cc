@@ -658,6 +658,7 @@ void SolidMechanicsModelCohesive::reassignMaterial() {
 
       ElementType type = *it;
       element.type = type;
+      element.kind = Mesh::getKind(type);
 
       UInt nb_element = mesh.getNbElement(type, ghost_type);
 
@@ -665,7 +666,6 @@ void SolidMechanicsModelCohesive::reassignMaterial() {
 
       for (UInt el = 0; el < nb_element; ++el) {
         element.element = el;
-        element.kind = _ek_cohesive;
 
         UInt old_material = el_index_by_mat(el, 0);
         UInt new_material = (*material_selector)(element);

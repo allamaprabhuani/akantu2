@@ -1280,6 +1280,9 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
   Array<Element>::const_iterator<Element> el_begin = elements_to_remove.begin();
   Array<Element>::const_iterator<Element> el_end   = elements_to_remove.end();
 
+  if(el_begin==el_end)
+    return;
+
   ElementTypeMapArray<UInt> material_local_new_numbering("remove mat filter elem", getID());
 
   Element element;
@@ -1302,6 +1305,7 @@ void Material::removeElements(const Array<Element> & elements_to_remove) {
       Array<UInt> & mat_renumbering = material_local_new_numbering(type, ghost_type);
 
       UInt nb_element = elem_filter.getSize();
+      element.kind=(*el_begin).kind;
       Array<UInt> elem_filter_tmp;
 
       UInt new_id = 0;

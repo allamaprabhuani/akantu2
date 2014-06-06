@@ -1583,11 +1583,12 @@ void SolidMechanicsModel::reassignMaterial() {
     GhostType ghost_type = *gt;
     element.ghost_type = ghost_type;
 
-    Mesh::type_iterator it  = mesh.firstType(_all_dimensions, ghost_type, _ek_regular);
-    Mesh::type_iterator end = mesh.lastType(_all_dimensions, ghost_type, _ek_regular);
+    Mesh::type_iterator it  = mesh.firstType(spatial_dimension, ghost_type, _ek_regular);
+    Mesh::type_iterator end = mesh.lastType(spatial_dimension, ghost_type, _ek_regular);
     for(; it != end; ++it) {
       ElementType type = *it;
       element.type = type;
+      element.kind = Mesh::getKind(type);
 
       UInt nb_element = mesh.getNbElement(type, ghost_type);
       Array<UInt> & el_index_by_mat = element_index_by_material(type, ghost_type);
