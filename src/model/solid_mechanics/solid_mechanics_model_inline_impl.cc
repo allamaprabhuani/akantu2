@@ -466,23 +466,18 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-void SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration) {
+bool SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration) {
 
   AKANTU_DEBUG_INFO("Solving Ku = f");
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-                      "You should first initialize the implicit solver and assemble the stiffness matrix");
+                      "You should first initialize the implicit solver and assemble the stiffness matrix by calling initImplicit");
 
   AnalysisMethod analysis_method=method;
 
   method=_static;
-  solveStep<cmethod, criteria>(tolerance, max_iteration);
-  Real error = 0.;
-  if(criteria == _scc_residual) {
-    bool converged = this->testConvergence<criteria> (tolerance, error);
-    if(converged) return converged;
-  }
-
+  bool converged = solveStep<cmethod, criteria>(tolerance, max_iteration);
   method=analysis_method;
+  return converged;
 
 }
 

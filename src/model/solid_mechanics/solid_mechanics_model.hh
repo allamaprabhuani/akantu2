@@ -243,7 +243,7 @@ public:
    * criteria (see akantu::SolveConvergenceCriteria)
    **/
   template <SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-  void solveStatic(Real tolerance, UInt max_iteration);
+  bool solveStatic(Real tolerance, UInt max_iteration);
 
   /// solve @f[ A\delta u = f_{ext} - f_{int} @f] in displacement
   void solveDynamic();
@@ -319,7 +319,7 @@ public:
   // void setMaterialIDsFromIntData(const std::string & data_name);
 
   /// reassigns materials depending on the material selector
-  void reassignMaterial();
+  virtual void reassignMaterial();
 
 protected:
   /// register a material in the dynamic database
