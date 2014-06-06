@@ -89,53 +89,9 @@ void MaterialNeohookean<dim>::computeStress(ElementType el_type, GhostType ghost
     AKANTU_DEBUG_IN();
 
 
-    //Array<UInt> & elem_filter = element_filter(el_type, ghost_type);
-    //UInt nb_element = elem_filter.getSize();
-
-    //Array<Real>::matrix_iterator green_it =
-    //        this->delta_strain(el_type, ghost_type).begin(dim, dim);
-
-    //Array<Real>::matrix_iterator S_it =
-    //        this->delta_stress(el_type, ghost_type).begin(dim, dim);
-
-    Array<Real>::matrix_iterator strain_it =
-            this->strain(el_type, ghost_type).begin(dim, dim);
-
-    Array<Real>::matrix_iterator strain_end =
-      this->strain(el_type, ghost_type).end(dim, dim);
-
-    //Array<Real>::matrix_iterator previous_stress_it =
-    //        this->previous_stress(el_type, ghost_type).begin(dim, dim);
-
-    Array<Real>::matrix_iterator piola_it =
-            this->piola_kirchhoff_2(el_type, ghost_type).begin(dim, dim);
-
-    //Matrix<Real> F_tensor(dim, dim);
-    //Matrix<Real> E_tensor(dim, dim);
-    //Matrix<Real> Piola_tensor(dim, dim);
-    //Matrix<Real> invF_tensor(dim, dim);
-    //Matrix<Real> invFtS(dim, dim);
-
-    for (; strain_it != strain_end; ++strain_it, ++piola_it) {
-        Matrix<Real> & grad_u = *strain_it;
-        //Matrix<Real> & grad_delta_u = *green_it;
-        //Matrix<Real> & delta_sigma = *S_it;
-        Matrix<Real> & piola_tensor = *piola_it;
-        //Matrix<Real> & cauchy_sigma = *cauchy_stress_it;
-
-        //gradUToF<dim > (grad_u, F_tensor);
-        /*switch (dim){
-            case 3:
-                Math::inv3(F_tensor.storage(), invF_tensor.storage());
-                break;
-            case 2:
-                Math::inv2(F_tensor.storage(), invF_tensor.storage());
-                break;
-
-                }*/
-
-        computeStressOnQuad(grad_u, piola_tensor);
-    }
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+    computeStressOnQuad(grad_u, sigma);
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
     AKANTU_DEBUG_OUT();
 }
