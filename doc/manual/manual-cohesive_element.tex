@@ -5,8 +5,10 @@
 
 \begin{figure}
   \centering
-  \includegraphics[width=.4\textwidth]{figures/law}
-  \caption{Linear irreversible cohesive law.}
+  \subfloat[Linear]{\includegraphics[width=0.4\textwidth]{figures/linear_cohesive_law}}
+  \qquad
+  \subfloat[Bilinear]{\includegraphics[width=0.4\textwidth]{figures/bilinear_cohesive_law}}
+  \caption{Irreversible cohesive laws for explicit simulations.}
   \label{fig:smm:coh:linear_cohesive_law}
 \end{figure}
 
@@ -23,7 +25,8 @@ $\kappa$ is introduced:
 where $G_\mathrm{c, I}$ and $G_\mathrm{c, II}$ are respectively the
 necessary works of separation per unit area to open completely a
 cohesive zone under mode I and mode II. Their model yields to the
-following equation for cohesive tractions $\vec{T}$ in case of crack opening ${\delta}$:
+following equation for cohesive tractions $\vec{T}$ in case of crack
+opening ${\delta}$:
 \begin{equation}
   \label{eq:smm:coh:tractions}
   \vec{T} = \left( \frac{\beta^2}{\kappa} \Delta_\mathrm{t} \vec{t} +
@@ -35,8 +38,9 @@ where $\sigma_\mathrm{c}$ is the material strength along the fracture,
 $\delta_\mathrm{c}$ the critical effective displacement after which
 cohesive tractions are zero (complete decohesion), $\Delta_\mathrm{t}$
 and $\Delta_\mathrm{n}$ are respectively the tangential and normal
-components of the opening displacement vector $\vec{\Delta}$. $\beta$ specifies the importance of tangential to the normal displacement. The
-effective opening displacement is: 
+components of the opening displacement vector $\vec{\Delta}$. $\beta$
+specifies the importance of tangential to the normal displacement. The
+effective opening displacement is:
 \begin{equation}
   \delta = \sqrt{\frac{\beta^2}{\kappa^2} \Delta_\mathrm{t}^2 +
     \Delta_\mathrm{n}^2}
@@ -52,7 +56,8 @@ tractions are calculated as:
   \left( 1- \frac{\delta_\mathrm{max}}{\delta_\mathrm{c}} \right)
 \end{align}
 so that they vary linearly between the origin and the maximum attained
-tractions. As shown in figure~\ref{fig:smm:coh:linear_cohesive_law}, in this law dissipated and reversible energies are:
+tractions. As shown in figure~\ref{fig:smm:coh:linear_cohesive_law},
+in this law dissipated and reversible energies are:
 \begin{align}
   E_\mathrm{diss} &= \frac{1}{2} \sigma_\mathrm{c}\, \delta_\mathrm{max}\\[1ex]
   E_\mathrm{rev} &= \frac{1}{2} T\, \delta
@@ -153,7 +158,7 @@ of the cohesive element.
 Cohesive element insertion can be either realized at the beginning of
 the simulation or it can be carried out dynamically during the
 simulation. The first approach is called \emph{intrinsic} while the
-second one is \emph{extrinsic}. When an element is present from the
+second one \emph{extrinsic}. When an element is present from the
 beginning, a bilinear or exponential cohesive law should be used
 instead of a linear one. A bilinear law works exactly like a linear
 one except for an additional parameter $\delta_0$ separating an
@@ -230,7 +235,7 @@ The material name of the linear decreasing cohesive law  is
 \code{material\_cohesive\_linear} and its parameters with their
 relative default values are:
 \begin{itemize}
-\item \code{sigma\_c}: 0 (random variable)
+\item \code{sigma\_c}: 0
 \item \code{beta}: 0
 \item \code{G\_cI}: 0
 \item \code{G\_cII}: 0
@@ -242,7 +247,7 @@ $\sigma_\mathrm{c}$ to each facet following a given distribution. To
 the base value of $\sigma_\mathrm{c}$ a random quantity can be added:
 \begin{cpp}
   sigma_c = $base$ uniform [$minimum$, $maximum$]
-  sigma_c = $base$ weibull [$m$, $lambda$]
+  sigma_c = $base$ weibull [$lambda$, $m$]
 \end{cpp}
 All parameters are real numbers. For the uniform distribution minimum
 and maximum values have to be specified. Weibull distribution is
