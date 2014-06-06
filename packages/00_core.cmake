@@ -359,3 +359,13 @@ list(APPEND AKANTU_BOOST_COMPONENTS
     graph
     )
 
+set(AKANTU_CORE_DOCUMENTATION 
+"
+This package is the core engine of Akantu. It depends on:
+\\begin{itemize}
+\\item A C++ compiler (\\href{http://gcc.gnu.org/}{GCC} >= 4, or \\href{https://software.intel.com/en-us/intel-compilers}{Intel})
+\\item The \\href{http://www.cmake.org/}{CMake}, the cross-platform, open-source build system.
+\\item The \\href{http://www.boost.org/}{Boost} C++ portable libraries.
+\\item The \\href{http://www.zlib.net/}{zlib} compression library.
+\\end{itemize}
+")

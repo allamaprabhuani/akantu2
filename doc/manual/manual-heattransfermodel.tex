@@ -9,7 +9,7 @@ can be expressed as
   \rho c_v \dot{T} + \nabla \cdot \vec{\kappa} \nabla T = b
 \end{equation}
 with $T$ the temperature scalar field,
-$c_v$ is heat capacity per unit of mass\todo{check if specific heat fits}, 
+$c_v$ is the specific heat capacity, 
 $\rho$ is the mass density, 
 $\mat{\kappa}$ is the conductivity tensor and $b$ is the heat generation per unit of volume. 
 The weak form discretized with finite elements becomes
@@ -70,9 +70,7 @@ More precisely, the heat transfer model contains 4 \code{Vectors}:
   \textbf{temperature} and  the \textbf{temperature\_rate} are  computed for all
   degrees  of  freedom   for  which  the  \textbf{boundary}  value   is  set  to
   \code{false}.  For the remaining degrees  of freedom, the imposed values (zero
-  by default after  initialization) are kept. \todo{Till to  Guillaume: You need
-    to approve  my changes to  your part  and please tell  me if you're  not ok,
-    because I made the same changes to Nico's and my part}
+  by default after  initialization) are kept.
 
 \item[residual] contains the difference between external and internal heat generation. On
   temperature imposed nodes,  \textbf{residual} contains the support heat reactions. ($\vec{R} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T}$)
@@ -129,7 +127,7 @@ The stable time step is defined as:
 \end{equation}
 where $\Delta  x$ is a  characteristic length (\eg  the inradius in the  case of
 linear triangle  element), $\rho$ is the density, $\mat{\kappa}$ is the conductivity tensor
-and $c_v$ is the heat capacity per unit of mass\todo{check if specific heat fits}. It is
+and $c_v$ is the specific heat capacity. It is
 necessary to impose a  time step that is smaller than the  stable time step, for
 instance, by  multiplying the stable time  step by a safety  factor smaller than
 one.
@@ -159,20 +157,21 @@ temperature\_rate  fields  following the previously described integration scheme
 \index{HeatTransferModel!updateResidual}
 \index{HeatTransferModel!solveExplicitLumped}
 
-An    example    of    explicit     dynamic    heat propagation is    presented    in
-\shellcode{\examplesdir/??.cc}.\todo{set the right example file}  This example  consists of a square 2D plate of \unit{1}{\squaremetre} 
+An    example    of    explicit     dynamic    heat propagation is    presented    in \\
+\shellcode{\examplesdir/heat\_transfer/explicit\_heat\_transfer.cc}.  \\
+This example  consists of a square 2D plate of \unit{1}{\squaremetre} 
 having an initial temperature of \unit{100}{\kelvin} everywhere but a none centered hot point 
 maintained at \unit{300}{\kelvin}. Figure \ref{fig:htm:explicit:dynamic} presents the
 geometry of this case. The material used is a linear fictitious elastic material
 with  a density  of  \unit{8940}{\kilogrampercubicmetre}, a  conductivity of 
-\unit{401}{\watt\per\metre\per\kelvin} and a heat capacity per unit of mass \todo{check if specific heat fits} of \unit{385}{\joule\per\kelvin\per\kilogram}. The time step used is \unit{0.12}{\second}.
+\unit{401}{\watt\per\metre\per\kelvin} and a specific heat capacity of \unit{385}{\joule\per\kelvin\per\kilogram}. The time step used is \unit{0.12}{\second}.
 
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=.4\textwidth]{figures/hot-point-1}
   \hfill
   \includegraphics[width=.4\textwidth]{figures/hot-point-2}
-  \caption{Initial temperature field (left) and after 15000 time steps = 30 minutes (rights). The lines represent iso-surfaces.}
+  \caption{Initial temperature field (left) and after 15000 time steps = 30 minutes (right). The lines represent iso-surfaces.}
   \label{fig:htm:explicit:dynamic}
 \end{figure}
 
