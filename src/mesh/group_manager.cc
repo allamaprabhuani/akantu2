@@ -40,6 +40,7 @@
 #include "node_group.hh"
 #include "data_accessor.hh"
 #include "distributed_synchronizer.hh"
+
 /* -------------------------------------------------------------------------- */
 #include <sstream>
 #include <algorithm>
@@ -53,10 +54,10 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 GroupManager::GroupManager(const Mesh & mesh,
-                           const ID & id,
-                           const MemoryID & mem_id) : id(id),
+			   const ID & id,
+			   const MemoryID & mem_id) : id(id),
 						      memory_id(mem_id),
-                                                      mesh(mesh) {
+						      mesh(mesh) {
 
   AKANTU_DEBUG_OUT();
 }
@@ -90,7 +91,7 @@ NodeGroup & GroupManager::createNodeGroup(const std::string & group_name,
   }
 
   NodeGroup * node_group = new NodeGroup(group_name, id + ":" + group_name + "_node_group",
-                                         memory_id);
+					 memory_id);
 
   node_groups[group_name] = node_group;
 
@@ -155,9 +156,9 @@ ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
   }
 
   ElementGroup * element_group = new ElementGroup(group_name, mesh, new_node_group,
-                                                  dimension,
-                                                  id + ":" + group_name + "_element_group",
-                                                  memory_id);
+						  dimension,
+						  id + ":" + group_name + "_element_group",
+						  memory_id);
 
   node_groups[group_name + "_nodes"] = &new_node_group;
   element_groups[group_name] = element_group;
@@ -191,7 +192,7 @@ void GroupManager::destroyAllElementGroups(bool destroy_node_groups) {
   ElementGroups::iterator eit = element_groups.begin();
   ElementGroups::iterator eend = element_groups.end();
   for(; eit != eend ; ++eit) {
-    this->destroyElementGroup(eit->first, 
+    this->destroyElementGroup(eit->first,
 			      destroy_node_groups);
   }
 
@@ -200,17 +201,17 @@ void GroupManager::destroyAllElementGroups(bool destroy_node_groups) {
 
 /* -------------------------------------------------------------------------- */
 ElementGroup & GroupManager::createElementGroup(const std::string & group_name,
-                                                UInt dimension,
-                                                NodeGroup & node_group) {
+						UInt dimension,
+						NodeGroup & node_group) {
   AKANTU_DEBUG_IN();
 
   if(element_groups.find(group_name) != element_groups.end())
     AKANTU_EXCEPTION("Trying to create a element group that already exists:" << group_name);
 
   ElementGroup * element_group = new ElementGroup(group_name, mesh, node_group,
-                                                  dimension,
-                                                  id + ":" + group_name + "_element_group",
-                                                  memory_id);
+						  dimension,
+						  id + ":" + group_name + "_element_group",
+						  memory_id);
 
   element_groups[group_name] = element_group;
 
@@ -654,6 +655,9 @@ UInt GroupManager::createClusters(UInt element_dimension,
   if (mesh_facets_created)
     delete mesh_facets;
 
+  if(mesh.isDistributed())
+    this->synchronizeGroupNames();
+
   AKANTU_DEBUG_OUT();
   return nb_cluster;
 }
@@ -665,6 +669,8 @@ void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
   const ElementTypeMapArray<T> & datas = mesh.getData<T>(dataset_name);
   typedef typename ElementTypeMapArray<T>::type_iterator type_iterator;
 
+  std::map<std::string, UInt> group_dim;
+
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
     type_iterator type_it = datas.firstType(_all_dimensions, *gt);
     type_iterator type_end  = datas.lastType(_all_dimensions, *gt);
@@ -672,19 +678,30 @@ void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
       const Array<T> & dataset = datas(*type_it, *gt);
       UInt nb_element = mesh.getNbElement(*type_it, *gt);
       AKANTU_DEBUG_ASSERT(dataset.getSize() == nb_element,
-			  "Not the same number of elements in the map from MeshData "<<dataset_name<<" and in the mesh!");
+			  "Not the same number of elements ("<< *type_it << ":" << *gt <<
+			  ") in the map from MeshData (" << dataset.getSize() << ") "
+			  << dataset_name <<" and in the mesh (" << nb_element << ")!");
       for(UInt e(0); e < nb_element; ++e) {
 	std::stringstream sstr; sstr << dataset(e);
-	group_names.insert(sstr.str());
+	std::string gname = sstr.str();
+	group_names.insert(gname);
+
+	std::map<std::string, UInt>::iterator it = group_dim.find(gname);
+	if(it == group_dim.end()) {
+	  group_dim[gname] = mesh.getSpatialDimension(*type_it);
+	} else {
+	  it->second = std::max(it->second, mesh.getSpatialDimension(*type_it));
+	}
       }
     }
   }
 
-  /// @todo sharing the group names in parallel to avoid trouble with groups
-  /// present only on a sub set of processors
   std::set<std::string>::iterator git  = group_names.begin();
   std::set<std::string>::iterator gend = group_names.end();
-  for (;git != gend; ++git) createElementGroup(*git, _all_dimensions);
+  for (;git != gend; ++git) createElementGroup(*git, group_dim[*git]);
+
+  if(mesh.isDistributed())
+    this->synchronizeGroupNames();
 
   Element el;
   for (ghost_type_t::iterator gt = ghost_type_t::begin();  gt != ghost_type_t::end(); ++gt) {
@@ -723,7 +740,6 @@ void GroupManager::createGroupsFromMeshData(const std::string & dataset_name) {
 
   git  = group_names.begin();
   for (;git != gend; ++git) {
-    getElementGroup(*git).getNodeGroup().removeDuplicate();
     getElementGroup(*git).optimize();
   }
 }
@@ -802,6 +818,144 @@ UInt GroupManager::getNbElementGroups(UInt dimension) const {
   UInt count = 0;
   for(;it != end; ++it) count += (it->second->getDimension() == dimension);
   return count;
+}
+
+/* -------------------------------------------------------------------------- */
+void GroupManager::checkAndAddGroups(CommunicationBuffer & buffer) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_node_group; buffer >> nb_node_group;
+  AKANTU_DEBUG_INFO("Received " << nb_node_group << " node group names");
+
+  for (UInt ng = 0; ng < nb_node_group; ++ng) {
+    std::string node_group_name;
+    buffer >> node_group_name;
+
+    if(node_groups.find(node_group_name) == node_groups.end()) {
+      this->createNodeGroup(node_group_name);
+    }
+
+    AKANTU_DEBUG_INFO("Received node goup name: " << node_group_name);
+  }
+
+
+  UInt nb_element_group; buffer >> nb_element_group;
+  AKANTU_DEBUG_INFO("Received " << nb_element_group << " element group names");
+  for (UInt eg = 0; eg < nb_element_group; ++eg) {
+    std::string element_group_name; buffer >> element_group_name;
+    std::string node_group_name;    buffer >> node_group_name;
+    UInt dim;                       buffer >> dim;
+
+    AKANTU_DEBUG_INFO("Received element group name: " << element_group_name
+		      << " corresponding to a "
+		      << Int(dim) << "D group with node group "
+		      << node_group_name);
+
+    NodeGroup & node_group = *node_groups[node_group_name];
+
+    if(element_groups.find(element_group_name) == element_groups.end()) {
+      this->createElementGroup(element_group_name, dim, node_group);
+    }
+
+  }
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void GroupManager::fillBufferWithGroupNames(DynamicCommunicationBuffer & comm_buffer) const {
+  AKANTU_DEBUG_IN();
+
+  // packing node group names;
+  UInt nb_groups = this->node_groups.size();
+  comm_buffer << nb_groups;
+  AKANTU_DEBUG_INFO("Sending " << nb_groups << " node group names");
+
+  NodeGroups::const_iterator nnames_it  = node_groups.begin();
+  NodeGroups::const_iterator nnames_end = node_groups.end();
+  for (; nnames_it != nnames_end; ++nnames_it) {
+    std::string node_group_name = nnames_it->first;
+    comm_buffer << node_group_name;
+    AKANTU_DEBUG_INFO("Sending node goupe name: " << node_group_name);
+  }
+
+  // packing element group names with there associated node group name
+  nb_groups = this->element_groups.size();
+  comm_buffer << nb_groups;
+  AKANTU_DEBUG_INFO("Sending " << nb_groups << " element group names");
+  ElementGroups::const_iterator gnames_it  = this->element_groups.begin();
+  ElementGroups::const_iterator gnames_end = this->element_groups.end();
+  for (; gnames_it != gnames_end; ++gnames_it) {
+    ElementGroup & element_group = *(gnames_it->second);
+    std::string element_group_name = gnames_it->first;
+    std::string node_group_name = element_group.getNodeGroup().getName();
+    UInt dim = element_group.getDimension();
+
+    comm_buffer << element_group_name;
+    comm_buffer << node_group_name;
+    comm_buffer << dim;
+
+    AKANTU_DEBUG_INFO("Sending element group name: " << element_group_name
+		       << " corresponding to a "
+		       << Int(dim) << "D group with the node group "
+		       << node_group_name);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void GroupManager::synchronizeGroupNames() {
+  AKANTU_DEBUG_IN();
+
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  UInt nb_proc = comm.getNbProc();
+  UInt my_rank = comm.whoAmI();
+
+  if(nb_proc == 1) return;
+
+  if(my_rank == 0) {
+    for (UInt p = 1; p < nb_proc; ++p) {
+      CommunicationStatus status;
+      comm.probe<char>(p, p, status);
+      AKANTU_DEBUG_INFO("Got " << printMemorySize<char>(status.getSize()) << " from proc " << p);
+
+      CommunicationBuffer recv_buffer(status.getSize());
+      comm.receive(recv_buffer.storage(), recv_buffer.getSize(), p, p);
+
+      this->checkAndAddGroups(recv_buffer);
+    }
+
+    DynamicCommunicationBuffer comm_buffer;
+    this->fillBufferWithGroupNames(comm_buffer);
+
+    UInt buffer_size = comm_buffer.getSize();
+
+    comm.broadcast(&buffer_size, 1, 0);
+
+    AKANTU_DEBUG_INFO("Initiating broadcast with " << printMemorySize<char>(comm_buffer.getSize()));
+    comm.broadcast(comm_buffer.storage(), buffer_size, 0);
+
+  } else {
+    DynamicCommunicationBuffer comm_buffer;
+    this->fillBufferWithGroupNames(comm_buffer);
+
+    AKANTU_DEBUG_INFO("Sending " << printMemorySize<char>(comm_buffer.getSize()) << " to proc " << 0);
+    comm.send(comm_buffer.storage(), comm_buffer.getSize(), 0, my_rank);
+
+    UInt buffer_size = 0;
+    comm.broadcast(&buffer_size, 1, 0);
+
+    AKANTU_DEBUG_INFO("Receiving broadcast with " << printMemorySize<char>(comm_buffer.getSize()));
+    CommunicationBuffer recv_buffer(buffer_size);
+    comm.broadcast(recv_buffer.storage(), recv_buffer.getSize(), 0);
+
+    this->checkAndAddGroups(recv_buffer);
+  }
+
+  AKANTU_DEBUG_OUT();
 }
 
 __END_AKANTU__

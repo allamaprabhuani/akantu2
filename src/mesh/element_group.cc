@@ -144,8 +144,13 @@ void ElementGroup::optimize() {
     for (; it != last; ++it) {
       Array<UInt> & els = elements(*it, ghost_type);
       std::sort(els.begin(), els.end());
+
+      Array<UInt>::iterator<> end = std::unique(els.begin(), els.end());
+      els.resize(end - els.begin());
     }
   }
+
+  node_group.optimize();
 }
 
 /* -------------------------------------------------------------------------- */

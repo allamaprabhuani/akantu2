@@ -204,9 +204,10 @@ MeshIOMSH::MeshIOMSH() {
   _akantu_to_msh_element_types[_hexahedron_8    ] = _msh_hexahedron_8;
   _akantu_to_msh_element_types[_pentahedron_6   ] = _msh_prism_1;
   _akantu_to_msh_element_types[_point_1         ] = _msh_point;
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
   _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
   _akantu_to_msh_element_types[_bernoulli_beam_3] = _msh_segment_2;
-
+#endif
 
   std::map<ElementType, MSHElementType>::iterator it;
   for(it = _akantu_to_msh_element_types.begin();
@@ -285,9 +286,14 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
         std::stringstream sstr_phys_name(line);
         UInt phys_name_id;
         UInt phys_dim;
-        std::string phys_name;
-        sstr_phys_name >> phys_dim >> phys_name_id >> phys_name;
-        phys_name_map[phys_name_id] = phys_name.substr(1, phys_name.size()-2);
+
+        sstr_phys_name >> phys_dim >> phys_name_id;
+
+	std::size_t b = line.find("\"");
+	std::size_t e = line.rfind("\"");
+        std::string phys_name = line.substr(b + 1, e - b -1);
+
+        phys_name_map[phys_name_id] = phys_name;
       }
     }
 

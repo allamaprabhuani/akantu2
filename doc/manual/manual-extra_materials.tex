@@ -96,5 +96,59 @@ modulus), \code{nu} (Poisson's ratio), \code{Plane\_Stress} (if set to zero
 plane strain, otherwise plane stress), \code{eta} (dashpot viscosity) and
 \code{Ev} (stiffness of the viscous element).
 
-\subsubsection{Damage Marigo}
-\subsubsection{Damage Mazars}
+\subsubsection{Damage}
+
+In the  simplified case of a  linear elastic and brittle  material, isotropic
+damage can be represented by a scalar variable $d$, which varies from $0$ to $1$
+for  no  damage  to  fully  broken  material  respectively.  The  stress-strain
+relationship then becomes:
+\begin{equation*}
+  \mat{\sigma} = (1-d)\, \mat{C}:\mat{\varepsilon}
+\end{equation*}
+
+where  $\mat{\sigma}$,  $\mat{\varepsilon}$ are  the  Cauchy  stress and  strain
+tensors, and $\mat{C}$ is the elastic stiffness tensor. This formulation relies
+on the definition of a evolution law for the damage variable. In \akantu many
+possibilities exists,
+
+\begin{itemize}
+\item \textbf{Marigo}
+This damage evolution law is energy based as defined by Marigo \cite{marigo81a,
+  lemaitre96a}. It is an isotropic damage law.
+\begin{align}
+  Y &= \frac{1}{2}\mat{\varepsilon}:\mat{C}:\mat{\varepsilon}\\
+  F &= Y - Y_d - S d\\
+  d &= \left\{
+    \begin{array}{l l}
+      \mathrm{min}\left(\frac{Y-Y_d}{S},\;1\right) & \mathrm{if}\; F > 0\\
+      \mathrm{unchanged} & \mathrm{otherwise}
+    \end{array}
+  \right.
+\end{align}
+In this formulation $Y$ is the strain  energy release rate, $Y_d$ is the rupture
+criterion and  $S$ is the damage  energy.  The non-local version  of this damage
+evolution law is constructed by averaging the energy $Y$.
+\item \textbf{Mazars}
+This law introduced by Mazars \cite{mazars84a}. It is a behavioral model to
+represent damage evolution in concrete. The governing variable in this damage
+law is the equivalent strain $\varepsilon_{\st{eq}} =
+\sqrt{<\mat{\varepsilon}>_+:<\mat{\varepsilon}>_+}$, with $<.>_+$ the positive
+part of the tensor.
+The damage the is defined as:
+\begin{align}
+  D &= \alpha_t^\beta D_t + (1-\alpha_t)^\beta D_c\\
+  D_t &= 1 - \frac{\kappa_0 (1- A_t)}{\varepsilon_{\st{eq}}} - A_t \exp^{-B_t(\varepsilon_{\st{eq}}-\kappa_0)}\\
+  D_c &= 1 - \frac{\kappa_0 (1- A_c)}{\varepsilon_{\st{eq}}} - A_c
+  \exp^{-B_c(\varepsilon_{\st{eq}}-\kappa_0)}\\
+  \alpha_t &= \frac{\sum_{i=1}^3<\varepsilon>_+\varepsilon_{\st{nd}}}{\varepsilon_{\st{eq}}^2}
+\end{align}
+With $\kappa_0$ the damage threshold, $A_t$ and $B_t$ the damage parameter in
+traction, $A_c$ and $B_c$ the damage parameter in compression, finally $\beta$
+is the shear parameter. The coefficient $A$ and $B$ are the post-pic asymptotic
+value and the decay shape parameters.
+\end{itemize}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "manual"
+%%% End: 

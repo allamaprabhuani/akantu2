@@ -36,6 +36,7 @@
 
 __BEGIN_AKANTU__
 
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
 /* -------------------------------------------------------------------------- */
 template <>
 ShapeLinked<_ek_structural>::ShapeLinked(Mesh & mesh, const ID & id, const MemoryID & memory_id) :
@@ -74,5 +75,6 @@ ShapeLinked<_ek_structural>::~ShapeLinked() {
     }
   }
 }
+#endif
 
 __END_AKANTU__

@@ -44,6 +44,7 @@ ShapeLinked<kind>::initShapeFunctions(const Array<Real> & nodes,
   precomputeShapesOnControlPoints<type>(nodes, ghost_type);		\
   precomputeShapeDerivativesOnControlPoints<type>(nodes, ghost_type);
 
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
 template <>
 inline void
 ShapeLinked<_ek_structural>::initShapeFunctions(__attribute__((unused)) const Array<Real> & nodes,
@@ -52,6 +53,7 @@ ShapeLinked<_ek_structural>::initShapeFunctions(__attribute__((unused)) const Ar
 						__attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 }
+#endif
 
 #undef INIT_SHAPE_FUNCTIONS
 
@@ -82,6 +84,7 @@ inline const Array<Real> & ShapeLinked<kind>::getShapesDerivatives(const Element
   return *(shapes_derivatives(type, ghost_type)[id]);
 }
 
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
 /* -------------------------------------------------------------------------- */
 template <>
 template <ElementType type>
@@ -136,6 +139,7 @@ void ShapeLinked<_ek_structural>::precomputeShapesOnControlPoints(const Array<Re
 
   AKANTU_DEBUG_OUT();
 }
+#endif
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>

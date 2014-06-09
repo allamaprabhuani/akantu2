@@ -162,17 +162,18 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
 void Mesh::defineMeshParent(const Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
-  mesh_parent = &mesh;
-  is_mesh_facets = true;
+  this->mesh_parent = &mesh;
+  this->is_mesh_facets = true;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void Mesh::init() {
-  mesh_facets = NULL;
-  is_mesh_facets = false;
-  mesh_parent = NULL;
+  this->mesh_facets = NULL;
+  this->is_mesh_facets = false;
+  this->mesh_parent = NULL;
+  this->is_distributed = false;
   //  computeBoundingBox();
 }
 
@@ -189,6 +190,13 @@ Mesh::~Mesh() {
 void Mesh::read (const std::string & filename, const MeshIOType & mesh_io_type) {
   MeshIO mesh_io;
   mesh_io.read(filename, *this, mesh_io_type);
+
+  type_iterator it   = this->firstType(spatial_dimension, _not_ghost, _ek_not_defined);
+  type_iterator last = this->lastType(spatial_dimension, _not_ghost, _ek_not_defined);
+  if(it == last) AKANTU_EXCEPTION("The mesh contained in the file " << filename
+				  << " does not seam to be of the good dimension."
+				  << " No element of dimension " << spatial_dimension
+				  << " where read.");
 }
 
 /* -------------------------------------------------------------------------- */

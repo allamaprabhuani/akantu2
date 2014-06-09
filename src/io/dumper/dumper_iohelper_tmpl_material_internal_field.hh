@@ -322,7 +322,12 @@ public:
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
 			const ElementTypeMapArray<UInt> * filter = NULL) :
-    parent(model.getFEEngine((element_kind == _ek_cohesive ? "CohesiveFEEngine": "")), model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
+#if defined(AKANTU_COHESIVE_ELEMENT)
+    parent(model.getFEEngine((element_kind == _ek_cohesive ? "CohesiveFEEngine": "")),
+#else
+    parent(model.getFEEngine(),
+#endif
+    model.getElementIndexByMaterial(), 0, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     // init();
   }
@@ -334,7 +339,12 @@ public:
 			GhostType ghost_type = _not_ghost,
 			ElementKind element_kind = _ek_not_defined,
 			const ElementTypeMapArray<UInt> * filter = NULL) :
-    parent(model.getFEEngine((element_kind == _ek_cohesive ? "CohesiveFEEngine": "")), model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
+#if defined(AKANTU_COHESIVE_ELEMENT)
+    parent(model.getFEEngine((element_kind == _ek_cohesive ? "CohesiveFEEngine": "")),
+#else
+    parent(model.getFEEngine(),
+#endif
+	   model.getElementIndexByMaterial(), n, spatial_dimension, ghost_type, element_kind, filter),
     model(model), field_id(field_id) {
     // init();
   }

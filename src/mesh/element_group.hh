@@ -94,7 +94,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// empty the element group
   void empty();
 
@@ -102,18 +101,20 @@ public:
   /// BE CAREFUL: it doesn't conserve the element order
   void append(const ElementGroup & other_group);
 
-  inline void add(const Element & el, bool add_nodes = false);
-  inline void addNode(UInt node_id);
+  inline void add(const Element & el, bool add_nodes = false, bool check_for_duplicate = true);
+  inline void addNode(UInt node_id, bool check_for_duplicate = true);
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
+  // sort and remove duplicated values
+  void optimize();
 private:
   inline void addElement(const ElementType & elem_type,
 			 UInt elem_id,
 			 const GhostType & ghost_type);
 
-  void optimize();
+
   friend class GroupManager;
 
   /* ------------------------------------------------------------------------ */
@@ -147,6 +148,9 @@ private:
 
   /// group dimension
   UInt dimension;
+
+  /// empty arry for the iterator to work when an element type not present
+  Array<UInt> empty_elements;
 };
 
 #include "element_group_inline_impl.cc"

@@ -67,10 +67,10 @@ public:
   inline const_node_iterator end() const;
 
   /// add a node and give the local position through an iterator
-  inline const_node_iterator add(UInt node);
+  inline const_node_iterator add(UInt node, bool check_for_duplicate = true);
 
   /// remove duplicated nodes
-  void removeDuplicate();
+  void optimize();
 
   /// append a group to current one
   void append(const NodeGroup & other_group);

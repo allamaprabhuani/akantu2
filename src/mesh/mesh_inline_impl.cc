@@ -29,7 +29,7 @@
  *
  */
 
-
+/* -------------------------------------------------------------------------- */
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #  include "cohesive_element.hh"
 #endif

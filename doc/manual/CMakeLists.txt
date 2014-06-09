@@ -29,24 +29,22 @@
 
 find_program(RUBBER_EXECUTABLE "rubber")
 if (NOT RUBBER_EXECUTABLE)
-  message(FATAL_ERROR "Manual cannot be built without rubber latex compiler")
+  message(ERROR "Manual cannot be built without rubber latex compiler")
 endif()
 
 set(_relative_manual_files)
 foreach(_f  ${_all_manual_files})
   file(RELATIVE_PATH _rel_f ${CMAKE_CURRENT_SOURCE_DIR} "${PROJECT_SOURCE_DIR}/${_f}")
   list(APPEND _relative_manual_files ${_rel_f})
-  message(${_rel_f})
-  GET_FILENAME_COMPONENT(_file_path ${_rel_f} DIRECTORY)
+  #message(${_rel_f})
+  get_filename_component(_file_path ${_rel_f} PATH)
   file(COPY ${_rel_f} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${_file_path})
 endforeach()
-
-
 
 set(MANUAL_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/manual.pdf)
 
 add_custom_command(
-  OUTPUT ${MANUAL_OUTPUT}  
+  OUTPUT ${MANUAL_OUTPUT}
   COMMAND ${RUBBER_EXECUTABLE} -f -d manual
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
@@ -54,7 +52,7 @@ add_custom_command(
 add_custom_target(manual ALL DEPENDS ${MANUAL_OUTPUT})
 
 add_custom_target(manual-forced
-  COMMAND ${RUBBER_EXECUTABLE} -f -d manual  
+  COMMAND ${RUBBER_EXECUTABLE} -f -d manual
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
 

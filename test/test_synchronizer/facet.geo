@@ -36,7 +36,6 @@ Surface Loop(25) = {14, 22, 24, 20, 18, 16};
 Volume(26) = {25};
 
 // Transfinite Volume "*";
-
 // Transfinite Line {1, 3} = 3;
 // Transfinite Line {2, 4} = 3;
 // Transfinite Surface "*";

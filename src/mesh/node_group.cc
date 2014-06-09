@@ -52,7 +52,7 @@ void NodeGroup::empty() {
 }
 
 /* -------------------------------------------------------------------------- */
-void NodeGroup::removeDuplicate() {
+void NodeGroup::optimize() {
   std::sort(node_group.begin(), node_group.end());
   Array<UInt>::iterator<> end = std::unique(node_group.begin(), node_group.end());
   node_group.resize(end - node_group.begin());
@@ -70,7 +70,7 @@ void NodeGroup::append(const NodeGroup & other_group) {
 	    other_group.node_group.end(),
 	    node_group.begin() + nb_nodes);
 
-  removeDuplicate();
+  optimize();
 
   AKANTU_DEBUG_OUT();
 }

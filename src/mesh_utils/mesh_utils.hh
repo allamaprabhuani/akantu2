@@ -132,12 +132,14 @@ public:
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
   /// function to insert cohesive elements on the selected facets
   static void insertCohesiveElements(Mesh & mesh,
 				     Mesh & mesh_facets,
 				     const ElementTypeMapArray<bool> & facet_insertion,
 				     Array<UInt> & doubled_nodes,
 				     Array<Element> & new_elements);
+#endif
 
   /// fill the subelement to element and the elements to subelements data
   static void fillElementToSubElementsData(Mesh & mesh);
@@ -227,10 +229,12 @@ private:
 			       Mesh & mesh_facets,
 			       Array<UInt> & doubled_nodes);
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
   /// update cohesive element data
   static void updateCohesiveData(Mesh & mesh,
 				 Mesh & mesh_facets,
 				 Array<Element> & new_elements);
+#endif
 
   /// update elemental connectivity after doubling a node
   inline static void updateElementalConnectivity(Mesh & mesh,

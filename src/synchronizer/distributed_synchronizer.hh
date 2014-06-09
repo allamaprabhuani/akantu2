@@ -162,7 +162,7 @@ protected:
 				  UInt nb_local_element,
 				  UInt nb_ghost_element);
 
-  /// function that handels the MeshData to be split (other nodes)
+  /// function that handles the MeshData to be split (other nodes)
   static void synchronizeTagsRecv(DistributedSynchronizer & communicator,
 				  UInt root,
 				  Mesh & mesh,
@@ -170,6 +170,45 @@ protected:
 				  const ElementType & type,
 				  UInt nb_local_element,
 				  UInt nb_ghost_element);
+
+  /// function that handles the preexisting groups in the mesh
+  static void synchronizeElementGroups(DistributedSynchronizer & communicator,
+				       UInt root,
+				       Mesh & mesh,
+				       const ElementType & type,
+				       const Array<UInt> & partition_num,
+				       const CSR<UInt> & ghost_partition,
+				       UInt nb_element);
+
+
+  /// function that handles the preexisting groups in the mesh
+  static void synchronizeElementGroups(DistributedSynchronizer & communicator,
+				       UInt root,
+				       Mesh & mesh,
+				       const ElementType & type);
+
+  template<class CommunicationBuffer>
+  static void fillElementGroupsFromBuffer(DistributedSynchronizer & communicator,
+					  Mesh & mesh,
+					  const ElementType & type,
+					  CommunicationBuffer & buffer);
+
+  /// function that handles the preexisting groups in the mesh
+  static void synchronizeNodeGroups(DistributedSynchronizer & communicator,
+				       UInt root,
+				       Mesh & mesh,
+				       UInt nb_total_node);
+
+
+  /// function that handles the preexisting groups in the mesh
+  static void synchronizeNodeGroups(DistributedSynchronizer & communicator,
+				       UInt root,
+				       Mesh & mesh);
+
+  template<class CommunicationBuffer>
+  static void fillNodeGroupsFromBuffer(DistributedSynchronizer & communicator,
+					  Mesh & mesh,
+					  CommunicationBuffer & buffer);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -191,7 +230,9 @@ private:
     TAG_NODES        = 5,
     TAG_COORDINATES  = 6,
     TAG_NODES_TYPE   = 7,
-    TAG_MESH_DATA    = 8
+    TAG_MESH_DATA    = 8,
+    TAG_ELEMENT_GROUP = 9,
+    TAG_NODE_GROUP = 10,
   };
 
 protected:
@@ -239,11 +280,12 @@ protected:
 
 };
 
+__END_AKANTU__
+
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 #include "distributed_synchronizer_tmpl.hh"
 
-__END_AKANTU__
 
 #endif /* __AKANTU_DISTRIBUTED_SYNCHRONIZER_HH__ */

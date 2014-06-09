@@ -86,7 +86,6 @@ MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(const Matrix<Real> & 
 
     /// TODO : explicit this criterion with an error message
     if ((d_dp < 1e-5) || (n>50))
-      std::cout << "pouet " << d_dp << std::endl;
       break;
   }
 

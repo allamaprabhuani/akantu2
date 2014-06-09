@@ -65,6 +65,7 @@ ShapeLagrange<kind>::initShapeFunctions(const Array<Real> & nodes,
   AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 }
 
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
@@ -74,6 +75,7 @@ ShapeLagrange<_ek_structural>::initShapeFunctions(__attribute__((unused)) const 
 						  __attribute__((unused)) const GhostType & ghost_type) {
   AKANTU_DEBUG_TO_IMPLEMENT();
 }
+#endif
 
 #undef INIT_SHAPE_FUNCTIONS
 /* -------------------------------------------------------------------------- */

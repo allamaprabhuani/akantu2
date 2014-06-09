@@ -171,7 +171,7 @@ namespace mesh_io_abaqus_lazy_eval {
 			  "There is an unknown element in the in the ELSET "
 			  << el_grp->getName() << ".");
 
-      el_grp->add(eit->second, true);
+      el_grp->add(eit->second, true, false);
     }
   };
 
@@ -204,7 +204,14 @@ namespace mesh_io_abaqus_lazy_eval {
 			  "There is an unknown node in the in the NSET "
 			  << node_grp->getName() << ".");
 
-      node_grp->add(nit->second);
+      node_grp->add(nit->second, false);
+    }
+  };
+
+  struct lazy_optimize_group_ {
+    template<class G>  struct result { typedef void type; };
+    template<class G> void operator()(G * grp) const {
+      grp->optimize();
     }
   };
 }
@@ -238,6 +245,7 @@ public:
     phx::function<mesh_io_abaqus_lazy_eval::lazy_add_element_to_group_> lazy_add_element_to_group;
     phx::function<mesh_io_abaqus_lazy_eval::lazy_node_group_create_> lazy_node_group_create;
     phx::function<mesh_io_abaqus_lazy_eval::lazy_add_node_to_group_> lazy_add_node_to_group;
+    phx::function<mesh_io_abaqus_lazy_eval::lazy_optimize_group_> lazy_optimize_group;
 
     start
       =   *(qi::char_('*')
@@ -289,35 +297,39 @@ public:
       ;
 
     elements_set
-      =   qi::char_(',')
-          >> qi::lit("ELSET") >> '='
-	  >> value [ lbs::_a = &lazy_element_group_create(phx::ref(mesh), lbs::_1) ]
-	  >> spirit::eol
-	  >> qi::skip
-               (qi::char_(',') | qi::space)
-               [ +(qi::int_ [ lazy_add_element_to_group(lbs::_a,
-							lbs::_1,
-							phx::cref(abaqus_elements_to_akantu)
-							)
+      =   (
+	   qi::char_(',')
+	   >> qi::lit("ELSET") >> '='
+	   >> value [ lbs::_a = &lazy_element_group_create(phx::ref(mesh), lbs::_1) ]
+	   >> spirit::eol
+	   >> qi::skip
+	        (qi::char_(',') | qi::space)
+                [ +(qi::int_ [ lazy_add_element_to_group(lbs::_a,
+							 lbs::_1,
+							 phx::cref(abaqus_elements_to_akantu)
+							 )
 			     ]
 		  )
 	       ]
+	  ) [ lazy_optimize_group(lbs::_a) ]
       ;
 
     nodes_set
-      =   qi::char_(',')
-          >> qi::lit("NSET") >> '='
-	  >> value [ lbs::_a = &lazy_node_group_create(phx::ref(mesh), lbs::_1) ]
-	  >> spirit::eol
-	  >> qi::skip
-               (qi::char_(',') | qi::space)
-               [ +(qi::int_ [ lazy_add_node_to_group(lbs::_a,
-						     lbs::_1,
-						     phx::cref(abaqus_nodes_to_akantu)
-						     )
+      =   (
+	   qi::char_(',')
+	   >> qi::lit("NSET") >> '='
+	   >> value [ lbs::_a = &lazy_node_group_create(phx::ref(mesh), lbs::_1) ]
+	   >> spirit::eol
+	   >> qi::skip
+                (qi::char_(',') | qi::space)
+                [ +(qi::int_ [ lazy_add_node_to_group(lbs::_a,
+						      lbs::_1,
+						      phx::cref(abaqus_nodes_to_akantu)
+						      )
 			     ]
-		  )
-	       ]
+		   )
+		]
+	   ) [ lazy_optimize_group(lbs::_a) ]
       ;
 
     material

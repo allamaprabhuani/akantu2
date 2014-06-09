@@ -356,7 +356,7 @@ void ArgumentParser::printself(std::ostream & stream) const {
       it != success_parsed.end(); ++it) {
     const Argument & argument = *(it->second);
     argument.printself(stream);
-    std::cout << std::endl;
+    stream << std::endl;
   }
 }
 

@@ -62,7 +62,9 @@ inline void MeshUtils::updateElementalConnectivity(Mesh & mesh,
   ElementType el_type = _not_defined;
   GhostType gt_type = _casper;
   Array<UInt> * conn_elem = NULL;
+#if defined(AKANTU_COHESIVE_ELEMENT)
   const Array<Element> * cohesive_facets = NULL;
+#endif
   UInt nb_nodes_per_element = 0;
   UInt * n_update = NULL;
 
@@ -75,11 +77,13 @@ inline void MeshUtils::updateElementalConnectivity(Mesh & mesh,
       gt_type = elem.ghost_type;
       conn_elem = & mesh.getConnectivity(el_type, gt_type);
       nb_nodes_per_element = conn_elem->getNbComponent();
-
+#if defined(AKANTU_COHESIVE_ELEMENT)
       if (elem.kind == _ek_cohesive)
 	cohesive_facets = & mesh.getMeshFacets().getSubelementToElement(el_type, gt_type);
+#endif
     }
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
     if (elem.kind == _ek_cohesive) {
 
       AKANTU_DEBUG_ASSERT(facet_list != NULL,
@@ -109,6 +113,7 @@ inline void MeshUtils::updateElementalConnectivity(Mesh & mesh,
       }
     }
     else {
+#endif
       n_update
 	= std::find(conn_elem->storage() + elem.element * nb_nodes_per_element,
 		    conn_elem->storage() + elem.element * nb_nodes_per_element
@@ -122,7 +127,9 @@ inline void MeshUtils::updateElementalConnectivity(Mesh & mesh,
 
       /// update connectivity
       *n_update = new_node;
+#if defined(AKANTU_COHESIVE_ELEMENT)
     }
+#endif
   }
 
   AKANTU_DEBUG_OUT();

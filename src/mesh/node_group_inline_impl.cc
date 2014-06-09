@@ -42,14 +42,18 @@ inline NodeGroup::const_node_iterator NodeGroup::end() const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::add(UInt node) {
-  const_node_iterator it = std::find(begin(), end(), node);
-  if(it == node_group.end()) {
+inline NodeGroup::const_node_iterator NodeGroup::add(UInt node, bool check_for_duplicate) {
+  if(check_for_duplicate) {
+    const_node_iterator it = std::find(begin(), end(), node);
+    if(it == node_group.end()) {
+      node_group.push_back(node);
+      return (node_group.end() - 1);
+    }
+    return it;
+  } else {
     node_group.push_back(node);
     return (node_group.end() - 1);
   }
-
-  return it;
 }
 
 /* -------------------------------------------------------------------------- */

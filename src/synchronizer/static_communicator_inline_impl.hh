@@ -99,7 +99,7 @@ inline CommunicationRequest * StaticCommunicator::asyncReceive(T * buffer, Int s
 /* -------------------------------------------------------------------------- */
 template<typename T> inline void StaticCommunicator::probe(Int sender, Int tag,
                                                            CommunicationStatus & status) {
-  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(probe<T>(sender, tag, status), 0);
+  AKANTU_BOOST_REAL_COMMUNICATOR_SELECT_CALL(template probe<T>(sender, tag, status), 0);
 }
 
 

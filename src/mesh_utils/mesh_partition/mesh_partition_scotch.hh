@@ -62,9 +62,6 @@ public:
 
   virtual void reorder();
 
-  /// function to print the contain of the class
-  //virtual void printself(std::ostream & stream, int indent = 0) const;
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -76,21 +73,6 @@ public:
 private:
 
 };
-
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-// #include "mesh_partition_scotch_inline_impl.cc"
-
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const MeshPartitionScotch & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
-
 
 __END_AKANTU__
 

@@ -46,6 +46,9 @@ class NodeGroup;
 class Mesh;
 class Element;
 class DistributedSynchronizer;
+template<bool> class CommunicationBufferTemplated;
+
+
 
 class GroupManager {
   /* ------------------------------------------------------------------------ */
@@ -175,6 +178,18 @@ public:
 				       UInt dimension = _all_dimensions);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
+
+
+  /// this function insure that the group names are present on all processors
+  /// /!\ it is a SMP call
+  void synchronizeGroupNames();
+
+protected:
+  /// fill a buffer with all the group names
+  void fillBufferWithGroupNames(CommunicationBufferTemplated<false> & comm_buffer) const;
+
+  /// take a buffer and create the missing groups localy
+  void checkAndAddGroups(CommunicationBufferTemplated<true> & buffer);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */

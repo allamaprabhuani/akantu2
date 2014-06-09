@@ -30,19 +30,20 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::add(const Element & el, bool add_nodes) {
+inline void ElementGroup::add(const Element & el, bool add_nodes, bool check_for_duplicate) {
   addElement(el.type, el.element, el.ghost_type);
+
   if(add_nodes) {
     Array<UInt>::const_vector_iterator it =
       mesh.getConnectivity(el.type, el.ghost_type).begin(mesh.getNbNodesPerElement(el.type)) + el.element;
     const Vector<UInt> & conn = *it;
-    for (UInt i = 0; i < conn.size(); ++i) addNode(conn[i]);
+    for (UInt i = 0; i < conn.size(); ++i) addNode(conn[i], check_for_duplicate);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::addNode(UInt node_id) {
-  node_group.add(node_id);
+inline void ElementGroup::addNode(UInt node_id, bool check_for_duplicate) {
+  node_group.add(node_id, check_for_duplicate);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,15 +89,20 @@ inline ElementGroup::type_iterator  ElementGroup::lastType(UInt dim,
 /* -------------------------------------------------------------------------- */
 inline ElementGroup::const_element_iterator ElementGroup::element_begin(const ElementType & type,
                                                                         const GhostType & ghost_type) const {
-  AKANTU_DEBUG_ASSERT(elements.exists(type, ghost_type), "No element of type " << type << ":" << ghost_type << " in the group " << name);
-
-  return elements(type, ghost_type).begin();
+  if(elements.exists(type, ghost_type)) {
+    return elements(type, ghost_type).begin();
+  } else {
+    return empty_elements.begin();
+  }
 }
- 
+
 /* -------------------------------------------------------------------------- */
 inline ElementGroup::const_element_iterator ElementGroup::element_end(const ElementType & type,
                                                                       const GhostType & ghost_type) const {
-  AKANTU_DEBUG_ASSERT(elements.exists(type, ghost_type), "No element of type " << type << ":" << ghost_type << " in the group " << name);
+  if(elements.exists(type, ghost_type)) {
+    return elements(type, ghost_type).end();
+  } else {
+    return empty_elements.end();
+  }
 
-  return elements(type, ghost_type).end();
 }

@@ -387,6 +387,7 @@ public:
 
   /// get the nodes type Array
   AKANTU_GET_MACRO(NodesType, nodes_type, const Array<Int> &);
+
 protected:
   AKANTU_GET_MACRO_NOT_CONST(NodesType, nodes_type, Array<Int> &);
 public:
@@ -486,7 +487,10 @@ public:
   /// Parent mesh accessor
   AKANTU_GET_MACRO(MeshParent, *mesh_parent, const Mesh &);
 
-  inline bool isMeshFacets() const {return is_mesh_facets;}
+  inline bool isMeshFacets() const { return this->is_mesh_facets; }
+
+  /// defines is the mesh is distributed or not
+  inline bool isDistributed() const { return this->is_distributed; }
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -637,6 +641,8 @@ private:
   /// defines if current mesh is mesh_facets or not
   bool is_mesh_facets;
 
+  /// defines if the mesh is centralized or distributed
+  bool is_distributed;
 };
 
 
