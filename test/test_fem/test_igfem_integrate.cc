@@ -1,6 +1,7 @@
 #include "aka_common.hh"
 #include "shape_igfem.hh"
 #include "integrator_gauss.hh"
+#include "shape_igfem.hh"
 /* -------------------------------------------------------------------------- */
 #include <cstdlib>
 #include <fstream>

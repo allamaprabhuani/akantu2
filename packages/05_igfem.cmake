@@ -34,8 +34,11 @@ set(AKANTU_IGFEM_FILES
   fem/element_class_igfem.hh
   fem/shape_igfem.hh
   fem/shape_igfem_inline_impl.cc
+  fem/element_class_igfem.cc
+  fem/element_classes/element_class_igfem_triangle_3_inline_impl.cc
   fem/igfem_element.hh
   fem/igfem_element.cc
+
   )
 
 set(AKANTU_IGFEM_TESTS

@@ -1,6 +1,7 @@
 /**
  * @file   fe_engine_template_tmpl.hh
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @date   Mon Nov  5 17:08:50 2012
  *
  * @brief  Template implementation of FEEngineTemplate
@@ -47,6 +48,57 @@ template<template <ElementKind> class I,
 FEEngineTemplate<I, S, kind>::~FEEngineTemplate() { }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct GradientOnQuadraturePointsHelper {
+  template <class S>
+  static void call(const S & shape_functions,	
+		   Mesh & mesh,
+		   const Array<Real> & u,
+		   Array<Real> & nablauq,
+		   const UInt nb_degree_of_freedom,
+		   const ElementType & type,
+		   const GhostType & ghost_type,
+		   const Array<UInt> & filter_elements) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+};
+
+#define COMPUTE_GRADIENT(type)						\
+  if (element_dimension == ElementClass<type>::getSpatialDimension())	\
+    shape_functions.template gradientOnControlPoints<type>(u,		\
+							   nablauq,	\
+							   nb_degree_of_freedom, \
+							   ghost_type,	\
+							   filter_elements);
+
+#define AKANTU_SPECIALIZE_GRADIENT_ON_QUADRATURE_POINTS_HELPER(kind)	\
+  template<>								\
+  struct GradientOnQuadraturePointsHelper<kind> {			\
+    template <class S>							\
+    static void call(const S & shape_functions,				\
+		     Mesh & mesh,					\
+		     const Array<Real> & u,				\
+		     Array<Real> & nablauq,				\
+		     const UInt nb_degree_of_freedom,			\
+		     const ElementType & type,				\
+		     const GhostType & ghost_type,			\
+		     const Array<UInt> & filter_elements) {		\
+      UInt element_dimension = mesh.getSpatialDimension(type);		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_GRADIENT, kind);		\
+    }									\
+  };
+#define INTEREST_LIST BOOST_PP_SEQ_TO_LIST(AKANTU_REGULAR_KIND AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
+
+AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_GRADIENT_ON_QUADRATURE_POINTS_HELPER, \
+			   INTEREST_LIST)
+
+#undef AKANTU_SPECIALIZE_GRADIENT_ON_QUADRATURE_POINTS_HELPER
+#undef COMPUTE_GRADIENT
+#undef INTEREST_LIST
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -79,28 +131,20 @@ void FEEngineTemplate<I, S, kind>::gradientOnQuadraturePoints(const Array<Real> 
 		      << ") has not the good number of component.");
 
   // AKANTU_DEBUG_ASSERT(nablauq.getSize() == nb_element * nb_points,
-  //		      "The vector nablauq(" << nablauq.getID()
-  //		      << ") has not the good size.");
+  //	   	      "The vector nablauq(" << nablauq.getID()
+  //	   	      << ") has not the good size.");
 #endif
 
   nablauq.resize(nb_element * nb_points);
 
-#define COMPUTE_GRADIENT(type)						\
-  if (element_dimension == ElementClass<type>::getSpatialDimension())	\
-    shape_functions.template gradientOnControlPoints<type>(u,		\
-							   nablauq,	\
-							   nb_degree_of_freedom, \
-							   ghost_type,	\
-							   filter_elements);
-
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(COMPUTE_GRADIENT);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(COMPUTE_GRADIENT);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-#undef COMPUTE_GRADIENT
-
+  GradientOnQuadraturePointsHelper<kind>::call(shape_functions,
+					       mesh,
+					       u,
+					       nablauq,
+					       nb_degree_of_freedom,
+					       type,
+					       ghost_type,
+					       filter_elements);
   AKANTU_DEBUG_OUT();
 }
 
@@ -134,6 +178,39 @@ void FEEngineTemplate<I, S, kind>::initShapeFunctions(const Array<Real> & nodes,
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct IntegrateHelper { };
+
+#define INTEGRATE(type)						\
+  integrator.template integrate<type>(f,			\
+				      intf,			\
+				      nb_degree_of_freedom,	\
+				      ghost_type,		\
+				      filter_elements);		\
+
+#define AKANTU_SPECIALIZE_INTEGRATE_HELPER(kind)		\
+  template<>							\
+  struct IntegrateHelper<kind> {				\
+    template <class I>						\
+    static void call(const I & integrator,			\
+		     const Array<Real> & f,			\
+		     Array<Real> &intf,				\
+		     UInt nb_degree_of_freedom,			\
+		     const ElementType & type,			\
+		     const GhostType & ghost_type,		\
+		     const Array<UInt> & filter_elements) {	\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INTEGRATE, kind);	\
+    }								\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_INTEGRATE_HELPER)
+
+#undef AKANTU_SPECIALIZE_INTEGRATE_HELPER
+#undef INTEGRATE
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -163,26 +240,46 @@ void FEEngineTemplate<I, S, kind>::integrate(const Array<Real> & f,
 
   intf.resize(nb_element);
 
-#define INTEGRATE(type)						\
-  integrator.template integrate<type>(f,			\
-				      intf,			\
-				      nb_degree_of_freedom,	\
-				      ghost_type,		\
-				      filter_elements);
+  IntegrateHelper<kind>::call(integrator,
+			      f,
+			      intf,
+			      nb_degree_of_freedom,
+			      type,
+			      ghost_type,
+			      filter_elements);
 
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_structural)
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INTEGRATE);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-#undef INTEGRATE
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct IntegrateScalarHelper { };
 
+#define INTEGRATE(type)							\
+  integral = integrator.template integrate<type>(f,			\
+						 ghost_type, filter_elements);
+
+#define AKANTU_SPECIALIZE_INTEGRATE_SCALAR_HELPER(kind)		\
+  template<>							\
+  struct IntegrateScalarHelper<kind> {				\
+    template <class I>						\
+    static Real call(const I & integrator,			\
+		     const Array<Real> & f,			\
+		     const ElementType & type,			\
+		     const GhostType & ghost_type,		\
+		     const Array<UInt> & filter_elements) {	\
+      Real integral = 0.;					\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INTEGRATE, kind);	\
+      return integral;						\
+    }								\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_INTEGRATE_SCALAR_HELPER)
+
+#undef AKANTU_SPECIALIZE_INTEGRATE_SCALAR_HELPER
+#undef INTEGRATE
 
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
@@ -210,28 +307,42 @@ Real FEEngineTemplate<I, S, kind>::integrate(const Array<Real> & f,
 		      << ") has not the good number of component.");
 #endif
 
-  Real integral = 0.;
-
-#define INTEGRATE(type)							\
-  integral = integrator.template integrate<type>(f,			\
-						 ghost_type,		\
-						 filter_elements);
-
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_structural)
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INTEGRATE);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-#undef INTEGRATE
-
+  Real integral = IntegrateScalarHelper<kind>::call(integrator, f, type, ghost_type, filter_elements);
   AKANTU_DEBUG_OUT();
   return integral;
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct IntegrateScalarOnOneElementHelper { };
+
+#define INTEGRATE(type)						\
+  res = integrator.template integrate<type>(f,			\
+					    index, ghost_type);
+
+#define AKANTU_SPECIALIZE_INTEGRATE_SCALAR_ON_ONE_ELEMENT_HELPER(kind)	\
+  template<>								\
+  struct IntegrateScalarOnOneElementHelper<kind> {			\
+    template <class I>							\
+    static Real call(const I & integrator,				\
+		     const Vector<Real> & f,				\
+		     const ElementType & type,				\
+		     UInt index,					\
+		     const GhostType & ghost_type) {			\
+      Real res = 0.;							\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INTEGRATE, kind);		\
+      return res;							\
+    }									\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_INTEGRATE_SCALAR_ON_ONE_ELEMENT_HELPER)
+
+#undef AKANTU_SPECIALIZE_INTEGRATE_SCALAR_ON_ONE_ELEMENT_HELPER
+#undef INTEGRATE
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -241,28 +352,42 @@ Real FEEngineTemplate<I, S, kind>::integrate(const Vector<Real> & f,
 					     const GhostType & ghost_type) const{
 
 
-  Real res = 0.;
-
-#define INTEGRATE(type)						\
-  res = integrator.template integrate<type>(f,			\
-					    index,		\
-					    ghost_type);
-
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_structural)
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INTEGRATE);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-#undef INTEGRATE
-
+  Real res = IntegrateScalarOnOneElementHelper<kind>::call(integrator, f, type, index, ghost_type);
   return res;
 }
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct IntegrateOnQuadraturePointsHelper { };
+
+#define INTEGRATE(type)							\
+  integrator.template integrateOnQuadraturePoints<type>(f, intf, nb_degree_of_freedom, \
+							ghost_type, filter_elements);
+
+#define AKANTU_SPECIALIZE_INTEGRATE_ON_QUADRATURE_POINTS_HELPER(kind)	\
+  template<>								\
+  struct IntegrateOnQuadraturePointsHelper<kind> {			\
+    template <class I>							\
+    static void call(const I & integrator,				\
+		     const Array<Real> & f,				\
+		     Array<Real> & intf,				\
+		     UInt nb_degree_of_freedom,				\
+		     const ElementType & type,				\
+		     const GhostType & ghost_type,			\
+		     const Array<UInt> & filter_elements) {		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INTEGRATE, kind);		\
+    }									\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_INTEGRATE_ON_QUADRATURE_POINTS_HELPER)
+
+#undef AKANTU_SPECIALIZE_INTEGRATE_ON_QUADRATURE_POINTS_HELPER
+#undef INTEGRATE
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -294,46 +419,74 @@ void FEEngineTemplate<I, S, kind>::integrateOnQuadraturePoints(const Array<Real>
 #endif
 
   intf.resize(nb_element*nb_quadrature_points);
-
-#define INTEGRATE(type)							\
-  integrator.template integrateOnQuadraturePoints<type>(f,		\
-							intf,		\
-							nb_degree_of_freedom, \
-							ghost_type,	\
-							filter_elements);
-
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTEGRATE);
-  else if(kind == _ek_structural)
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(INTEGRATE);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-#undef INTEGRATE
+  IntegrateOnQuadraturePointsHelper<kind>::call(integrator, f, intf, nb_degree_of_freedom, type, ghost_type, filter_elements);
 }
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct InterpolateOnQuadraturePointsHelper {
+  template <class S>
+  static void call(const S & shape_functions,
+		   const Array<Real> &u,
+		   Array<Real> &uq,
+		   const UInt nb_degree_of_freedom,
+		   const ElementType & type,
+		   const GhostType & ghost_type,
+		   const Array<UInt> & filter_elements) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+};
+
+
+#define INTERPOLATE(type)						\
+  shape_functions.template interpolateOnControlPoints<type>(u,		\
+							    uq,		\
+							    nb_degree_of_freedom, \
+							    ghost_type, \
+							    filter_elements);
+
+#define AKANTU_SPECIALIZE_INTERPOLATE_ON_QUADRATURE_POINTS_HELPER(kind)	\
+  template<>								\
+  struct InterpolateOnQuadraturePointsHelper<kind> {			\
+    template <class S>							\
+    static void call(const S & shape_functions,				\
+		     const Array<Real> & u,				\
+		     Array<Real> & uq,					\
+		     const UInt nb_degree_of_freedom,			\
+		     const ElementType & type,				\
+		     const GhostType & ghost_type,			\
+		     const Array<UInt> & filter_elements) {		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INTERPOLATE, kind);		\
+    }									\
+  };
+#define INTEREST_LIST BOOST_PP_SEQ_TO_LIST(AKANTU_REGULAR_KIND AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
+
+AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_INTERPOLATE_ON_QUADRATURE_POINTS_HELPER, \
+			   INTEREST_LIST)
+
+#undef AKANTU_SPECIALIZE_INTERPOLATE_ON_QUADRATURE_POINTS_HELPER
+#undef INTERPOLATE
+#undef INTEREST_LIST
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 void FEEngineTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Real> &u,
 								 Array<Real> &uq,
-								 UInt nb_degree_of_freedom,
+								 const UInt nb_degree_of_freedom,
 								 const ElementType & type,
 								 const GhostType & ghost_type,
-								 const Array<UInt> & filter_elements) const{
-
+								 const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_points = shape_functions.getControlPoints(type, ghost_type).cols();
   UInt nb_element = mesh.getNbElement(type, ghost_type);
   if(filter_elements != empty_filter) nb_element = filter_elements.getSize();
 #ifndef AKANTU_NDEBUG
-  //   std::stringstream sstr; sstr << ghost_type;
-  //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
-  //		      "The vector " << nablauq.getID() << " is not taged " << ghost_type);
 
   AKANTU_DEBUG_ASSERT(u.getSize() == mesh.getNbNodes(),
 		      "The vector u(" << u.getID()
@@ -348,21 +501,14 @@ void FEEngineTemplate<I, S, kind>::interpolateOnQuadraturePoints(const Array<Rea
 
   uq.resize(nb_element * nb_points);
 
-#define INTERPOLATE(type)						\
-  shape_functions.template interpolateOnControlPoints<type>(u,		\
-							    uq,		\
-							    nb_degree_of_freedom, \
-							    ghost_type, \
-							    filter_elements);
 
-  if(kind == _ek_regular)
-    AKANTU_BOOST_REGULAR_ELEMENT_SWITCH(INTERPOLATE);
-  else if(kind == _ek_cohesive)
-    AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INTERPOLATE);
-  else
-    AKANTU_DEBUG_TO_IMPLEMENT();
-#undef INTERPOLATE
-
+  InterpolateOnQuadraturePointsHelper<kind>::call(shape_functions,
+						  u,
+						  uq,
+						  nb_degree_of_freedom,
+						  type,
+						  ghost_type,
+						  filter_elements);
   AKANTU_DEBUG_OUT();
 }
 
@@ -465,18 +611,21 @@ void FEEngineTemplate<I, S, kind>::computeNormalsOnControlPoints(const Array<Rea
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
 template<ElementKind kind>
 struct ComputeNormalsOnControlPoints {
-    template <template <ElementKind> class I,
-	      template <ElementKind> class S,
-	      ElementKind k>
-    static void call(const FEEngineTemplate<I, S, k> & fem,
-		     const Array<Real> & field,
-		     Array<Real> & normal,
-		     const ElementType & type,
-		     const GhostType & ghost_type) {
-      AKANTU_DEBUG_TO_IMPLEMENT();
-    }
+  template <template <ElementKind> class I,
+	    template <ElementKind> class S,
+	    ElementKind k>
+  static void call(const FEEngineTemplate<I, S, k> & fem,
+		   const Array<Real> & field,
+		   Array<Real> & normal,
+		   const ElementType & type,
+		   const GhostType & ghost_type) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
 };
 
 #define COMPUTE_NORMALS_ON_QUAD(type)					\
@@ -495,7 +644,7 @@ struct ComputeNormalsOnControlPoints {
 		     const GhostType & ghost_type) {			\
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_QUAD, kind);	\
     }									\
-  };
+    };
 
 #define INTEREST_LIST AKANTU_GENERATE_KIND_LIST(AKANTU_REGULAR_KIND AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
 
@@ -572,22 +721,22 @@ struct AssembleLumpedTemplateHelper { };
 #define ASSEMBLE_LUMPED(type)                                           \
   fem.template assembleLumpedTemplate<type>(field_1, nb_degree_of_freedom,lumped, equation_number,ghost_type)
 
-#define AKANTU_SPECIALIZE_ASSEMBLE_HELPER(kind)				\
-  template<>								\
-  struct AssembleLumpedTemplateHelper<kind> {				\
-    template <template <ElementKind> class I,				\
-	      template <ElementKind> class S,				\
-	      ElementKind k>						\
-    static void call(const FEEngineTemplate<I, S, k> & fem,		\
-		     const Array<Real> & field_1,			\
-		     UInt nb_degree_of_freedom,				\
-		     Array<Real> & lumped,				\
-		     const Array<Int> & equation_number,		\
-		     ElementType type,					\
-		     const GhostType & ghost_type) {			\
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(ASSEMBLE_LUMPED, kind);		\
-    }									\
-  };
+#define AKANTU_SPECIALIZE_ASSEMBLE_HELPER(kind)			\
+  template<>							\
+  struct AssembleLumpedTemplateHelper<kind> {			\
+    template <template <ElementKind> class I,			\
+	      template <ElementKind> class S,			\
+	      ElementKind k>					\
+    static void call(const FEEngineTemplate<I, S, k> & fem,	\
+		     const Array<Real> & field_1,		\
+		     UInt nb_degree_of_freedom,			\
+		     Array<Real> & lumped,			\
+		     const Array<Int> & equation_number,	\
+		     ElementType type,				\
+		     const GhostType & ghost_type) {		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(ASSEMBLE_LUMPED, kind);	\
+    }								\
+    };
 
 AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_ASSEMBLE_HELPER)
 
@@ -617,6 +766,38 @@ void FEEngineTemplate<I, S, kind>::assembleFieldLumped(const Array<Real> & field
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct AssembleFieldMatrixHelper { };
+
+#define ASSEMBLE_MATRIX(type)                                           \
+  fem.template assembleFieldMatrix<type>(field_1, nb_degree_of_freedom,	\
+					 matrix,			\
+					 ghost_type)
+
+#define AKANTU_SPECIALIZE_ASSEMBLE_FIELD_MATRIX_HELPER(kind)	\
+  template<>							\
+  struct AssembleFieldMatrixHelper<kind> {			\
+    template <template <ElementKind> class I,			\
+	      template <ElementKind> class S,			\
+	      ElementKind k>					\
+    static void call(const FEEngineTemplate<I, S, k> & fem,	\
+		     const Array<Real> & field_1,		\
+		     UInt nb_degree_of_freedom,			\
+		     SparseMatrix & matrix,			\
+		     ElementType type,				\
+		     const GhostType & ghost_type) {		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(ASSEMBLE_MATRIX, kind);	\
+    }								\
+    };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_ASSEMBLE_FIELD_MATRIX_HELPER)
+
+#undef AKANTU_SPECIALIZE_ASSEMBLE_FIELD_MATRIX_HELPER
+#undef ASSEMBLE_MATRIX
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -626,15 +807,7 @@ void FEEngineTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field
 						       ElementType type,
 						       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();
-
-#define ASSEMBLE_MATRIX(type)					\
-  assembleFieldMatrix<type>(field_1, nb_degree_of_freedom,	\
-			    matrix,				\
-			    ghost_type)
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(ASSEMBLE_MATRIX);;
-
-#undef ASSEMBLE_MATRIX
+  AssembleFieldMatrixHelper<kind>::call(*this, field_1, nb_degree_of_freedom, matrix, type, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
@@ -841,6 +1014,47 @@ void FEEngineTemplate<I, S, kind>::assembleFieldMatrix(const Array<Real> & field
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct InverseMapHelper {
+  template <class S>
+  static void call(const S & shape_functions,	
+		   const Vector<Real> & real_coords,
+		   UInt element,
+		   const ElementType & type,
+		   Vector<Real> & natural_coords,
+		   const GhostType & ghost_type) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+};
+
+#define INVERSE_MAP(type)						\
+  shape_functions.template inverseMap<type>(real_coords, element, natural_coords, ghost_type); \
+
+#define AKANTU_SPECIALIZE_INVERSE_MAP_HELPER(kind)		\
+  template<>							\
+  struct InverseMapHelper<kind> {				\
+    template <class S>						\
+    static void call(const S & shape_functions,			\
+		     const Vector<Real> & real_coords,		\
+		     UInt element,				\
+		     const ElementType & type,			\
+		     Vector<Real> & natural_coords,		\
+		     const GhostType & ghost_type) {		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INVERSE_MAP, kind);	\
+    }								\
+  };
+#define INTEREST_LIST BOOST_PP_SEQ_TO_LIST(AKANTU_REGULAR_KIND AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
+
+AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_INVERSE_MAP_HELPER, \
+			   INTEREST_LIST)
+
+#undef AKANTU_SPECIALIZE_INVERSE_MAP_HELPER
+#undef INVERSE_MAP
+#undef INTEREST_LIST
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -852,16 +1066,54 @@ inline void FEEngineTemplate<I, S, kind>::inverseMap(const Vector<Real> & real_c
 
   AKANTU_DEBUG_IN();
 
-#define AKANTU_INVERSE_MAP(type)                                               \
-  shape_functions.template inverseMap<type>(real_coords, element, natural_coords, ghost_type);
-
-  AKANTU_BOOST_ELEMENT_SWITCH(AKANTU_INVERSE_MAP, AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE);
-#undef INVERSE_MAP
+  InverseMapHelper<kind>::call(shape_functions, real_coords, element, type, natural_coords, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct ContainsHelper {
+  template <class S>
+  static void call(const S & shape_functions,	
+		   const Vector<Real> & real_coords,
+		   UInt element,
+		   const ElementType & type,
+		   const GhostType & ghost_type) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+};
+
+#define CONTAINS(type)							\
+  contain = shape_functions.template contains<type>(real_coords, element, ghost_type); \
+
+#define AKANTU_SPECIALIZE_CONTAINS_HELPER(kind)		\
+  template<>						\
+  struct ContainsHelper<kind> {				\
+    template <template <ElementKind> class S,		\
+	      ElementKind k>				\
+    static bool call(const S<k> & shape_functions,	\
+		     const Vector<Real> & real_coords,	\
+		     UInt element,			\
+		     const ElementType & type,		\
+		     const GhostType & ghost_type) {	\
+      bool contain = false;				\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(CONTAINS, kind);	\
+      return contain;					\
+    }							\
+    };
+#define INTEREST_LIST BOOST_PP_SEQ_TO_LIST(AKANTU_REGULAR_KIND AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
+
+AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_CONTAINS_HELPER, \
+			   INTEREST_LIST)
+
+#undef AKANTU_SPECIALIZE_CONTAINS_HELPER
+#undef CONTAINS
+#undef INTEREST_LIST
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -869,23 +1121,38 @@ inline bool FEEngineTemplate<I, S, kind>::contains(const Vector<Real> & real_coo
 						   UInt element,
 						   const ElementType & type,
 						   const GhostType & ghost_type) const{
-
-  AKANTU_DEBUG_IN();
-
-  bool contain = false;
-
-#define CONTAINS(type)							\
-  contain = shape_functions.template contains<type>(real_coords, element, ghost_type);
-
-  AKANTU_BOOST_ELEMENT_SWITCH(CONTAINS, AKANTU_NOT_STRUCTURAL_ELEMENT_TYPE);
-
-#undef CONTAINS
-
-  AKANTU_DEBUG_OUT();
-  return contain;
+  return ContainsHelper<kind>::call(shape_functions, real_coords, element, type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct ComputeShapesHelper { };
+
+#define COMPUTE_SHAPES(type)						\
+  shape_functions.template computeShapes<type>(real_coords,element,shapes,ghost_type); \
+
+#define AKANTU_SPECIALIZE_COMPUTE_SHAPES_HELPER(kind)		\
+  template<>							\
+  struct ComputeShapesHelper<kind> {				\
+    template <class S>						\
+    static void call(const S & shape_functions,			\
+		     const Vector<Real> & real_coords,		\
+		     UInt element,				\
+		     const ElementType type,			\
+		     Vector<Real> & shapes,			\
+		     const GhostType & ghost_type) {		\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_SHAPES, kind);	\
+    }								\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_COMPUTE_SHAPES_HELPER)
+
+#undef AKANTU_SPECIALIZE_ASSEMBLE_COMPUTE_SHAPES_HELPER
+#undef COMPUTE_SHAPES
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
@@ -896,96 +1163,176 @@ inline void FEEngineTemplate<I, S, kind>::computeShapes(const Vector<Real> & rea
 							const GhostType & ghost_type) const{
 
   AKANTU_DEBUG_IN();
-
-#define COMPUTE_SHAPES(type)                                            \
-  shape_functions.template computeShapes<type>(real_coords,element,shapes,ghost_type);
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(COMPUTE_SHAPES);
-
-#undef COMPUTE_SHAPES
+  
+  ComputeShapesHelper<kind>::call(shape_functions, real_coords, element, type, shapes, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template<template <ElementKind> class I,
-	 template <ElementKind> class S,
-	 ElementKind kind>
-inline UInt FEEngineTemplate<I, S, kind>::getNbQuadraturePoints(const ElementType & type,
-								const GhostType & ghost_type) const {
-  AKANTU_DEBUG_IN();
-
-  UInt nb_quad_points = 0;
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct GetNbQuadraturePointsHelper { };
 
 #define GET_NB_QUAD(type)						\
   nb_quad_points =							\
     integrator. template getQuadraturePoints<type>(ghost_type).cols();
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_QUAD);
+#define AKANTU_SPECIALIZE_GET_NB_QUADRATURE_POINTS_HELPER(kind)	\
+  template<>							\
+  struct GetNbQuadraturePointsHelper<kind> {			\
+    template <template <ElementKind> class I,			\
+	      ElementKind k>					\
+    static UInt call(const I<k> & integrator,			\
+		     const ElementType type,			\
+		     const GhostType & ghost_type) {		\
+      UInt nb_quad_points = 0;					\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_NB_QUAD, kind);	\
+      return nb_quad_points;					\
+    }								\
+    };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_GET_NB_QUADRATURE_POINTS_HELPER)
+
+#undef AKANTU_SPECIALIZE_GET_NB_QUADRATURE_POINTS_HELPER
 #undef GET_NB_QUAD
 
-  AKANTU_DEBUG_OUT();
-  return nb_quad_points;
+template<template <ElementKind> class I,
+	 template <ElementKind> class S,
+	 ElementKind kind>
+inline UInt FEEngineTemplate<I, S, kind>::getNbQuadraturePoints(const ElementType & type,
+								const GhostType & ghost_type) const {
+  return GetNbQuadraturePointsHelper<kind>::call(integrator, type, ghost_type);
 }
 
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct GetShapesHelper { };
+
+#define GET_SHAPES(type)                                \
+  ret = &(shape_functions.getShapes(type, ghost_type));
+
+#define AKANTU_SPECIALIZE_GET_SHAPES_HELPER(kind)		\
+  template<>							\
+  struct GetShapesHelper<kind> {				\
+  template <class S>						\
+  static const Array<Real> & call(const S& shape_functions,	\
+			    const ElementType type,		\
+			    const GhostType & ghost_type) {	\
+    const Array<Real> * ret = NULL;				\
+    AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_SHAPES, kind);		\
+    return *ret;						\
+  }								\
+  };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_GET_SHAPES_HELPER)
+
+#undef AKANTU_SPECIALIZE_GET_SHAPES_HELPER
+#undef GET_SHAPES
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 inline const Array<Real> & FEEngineTemplate<I, S, kind>::getShapes(const ElementType & type,
 								   const GhostType & ghost_type) const {
-  AKANTU_DEBUG_IN();
-  const Array<Real> * ret = NULL;
-
-#define GET_SHAPES(type)                                \
-  ret = &(shape_functions.getShapes(type, ghost_type));
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES);
-#undef GET_SHAPES
-
-  AKANTU_DEBUG_OUT();
-  return *ret;
+  return GetShapesHelper<kind>::call(shape_functions, type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct GetShapesDerivativesHelper {
+  template <template <ElementKind> class S,
+	    ElementKind k>
+  static const Array<Real> & call(const S<k> & shape_functions,
+				  const ElementType & type,
+				  const GhostType & ghost_type,
+				  UInt id) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+};
+
+#define GET_SHAPES_DERIVATIVES(type)					\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type));
+
+#define AKANTU_SPECIALIZE_GET_SHAPES_DERIVATIVES_HELPER(kind)		\
+  template<>								\
+  struct GetShapesDerivativesHelper<kind> {				\
+    template <template <ElementKind> class S,				\
+	      ElementKind k>						\
+    static const Array<Real> & call(const S<k> & shape_functions,	\
+				    const ElementType type,		\
+				    const GhostType & ghost_type,	\
+				    UInt id) {				\
+      const Array<Real> * ret = NULL;					\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_SHAPES_DERIVATIVES, kind);	\
+      return *ret;							\
+    }									\
+    };
+
+#define INTEREST_LIST BOOST_PP_SEQ_TO_LIST(AKANTU_REGULAR_KIND AKANTU_COHESIVE_KIND AKANTU_IGFEM_KIND)
+
+AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_GET_SHAPES_DERIVATIVES_HELPER, \
+			   INTEREST_LIST)
+
+#undef AKANTU_SPECIALIZE_GET_SHAPE_DERIVATIVES_HELPER
+#undef GET_SHAPES_DERIVATIVES
+#undef INTEREST_LIST
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 inline const Array<Real> & FEEngineTemplate<I, S, kind>::getShapesDerivatives(const ElementType & type,
 									      const GhostType & ghost_type,
 									      __attribute__((unused)) UInt id) const {
-  AKANTU_DEBUG_IN();
-  const Array<Real> * ret = NULL;
 
-#define GET_SHAPES(type)						\
-  ret = &(shape_functions.getShapesDerivatives(type, ghost_type));
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES);
-#undef GET_SHAPES
-
-  AKANTU_DEBUG_OUT();
-  return *ret;
+  return GetShapesDerivativesHelper<kind>::call(shape_functions, type, ghost_type, id);
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * Helper class to be able to write a partial specialization on the element kind
+ */
+template<ElementKind kind>
+struct GetQuadraturePointsHelper { };
+
+#define GET_QUADS(type)                                                 \
+  ret = &(integrator. template getQuadraturePoints<type>(ghost_type));	\
+
+#define AKANTU_SPECIALIZE_GET_QUADRATURE_POINTS_HELPER(kind)		\
+  template<>								\
+  struct GetQuadraturePointsHelper<kind> {				\
+    template <template <ElementKind> class I,				\
+	      ElementKind k>						\
+    static const Matrix<Real> & call(const I<k> & integrator,		\
+				     const ElementType type,		\
+				     const GhostType & ghost_type) {	\
+      const Matrix<Real> * ret = NULL;					\
+      AKANTU_BOOST_KIND_ELEMENT_SWITCH(GET_QUADS, kind);		\
+      return *ret;							\
+    }									\
+    };
+
+AKANTU_BOOST_ALL_KIND(AKANTU_SPECIALIZE_GET_QUADRATURE_POINTS_HELPER)
+
+#undef AKANTU_SPECIALIZE_GET_QUADRATURE_POINTS_HELPER
+#undef GET_QUADS
+
 template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 inline const Matrix<Real> &
 FEEngineTemplate<I, S, kind>::getQuadraturePoints(const ElementType & type,
 						  const GhostType & ghost_type) const {
-  AKANTU_DEBUG_IN();
-  const Matrix<Real> * ret = NULL;
-
-#define GET_QUADS(type)                                                 \
-  ret = &(integrator. template getQuadraturePoints<type>(ghost_type));
-
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_QUADS);
-#undef GET_QUADS
-
-  AKANTU_DEBUG_OUT();
-  return *ret;
+  return GetQuadraturePointsHelper<kind>::call(integrator, type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1103,22 +1450,28 @@ __END_AKANTU__
 
 __BEGIN_AKANTU__
 
+#define GET_SHAPES_DERIVATIVES(type)					\
+  ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));	\
+  
+template<>
+struct GetShapesDerivativesHelper<_ek_structural> {
+  static const Array<Real> & call(const ShapeLinked<_ek_structural> & shape_functions, 
+				  const ElementType type,				
+				  const GhostType & ghost_type,			
+				  UInt id) {
+    const Array<Real> * ret = NULL;				
+    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(GET_SHAPES_DERIVATIVES);
+    return *ret;
+  }									
+};
+
+
 template <>
 inline const Array<Real> &
 FEEngineTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(const ElementType & type,
 										     const GhostType & ghost_type,
 										     UInt id) const {
-  AKANTU_DEBUG_IN();
-  const Array<Real> * ret = NULL;
-
-#define GET_SHAPES(type)						\
-  ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));
-
-  AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(GET_SHAPES);
-#undef GET_SHAPES
-
-  AKANTU_DEBUG_OUT();
-  return *ret;
+  return GetShapesDerivativesHelper<_ek_structural>::call(shape_functions, type, ghost_type, id);
 }
 
 __END_AKANTU__

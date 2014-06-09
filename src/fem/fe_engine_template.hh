@@ -38,6 +38,7 @@
 
 __BEGIN_AKANTU__
 template<ElementKind k> class AssembleLumpedTemplateHelper;
+template<ElementKind k> class AssembleFieldMatrixHelper;
 
 
 /* -------------------------------------------------------------------------- */
@@ -198,7 +199,7 @@ public:
 
 private:
   friend class AssembleLumpedTemplateHelper<kind>;
-
+  friend class AssembleFieldMatrixHelper<kind>;
 
   template <ElementType type>
   void assembleLumpedTemplate(const Array<Real> & field_1,

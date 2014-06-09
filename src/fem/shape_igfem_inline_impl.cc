@@ -40,7 +40,7 @@ ShapeLagrange<_ek_igfem>::ShapeLagrange(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 inline const Array<Real> & ShapeLagrange<_ek_igfem>::getShapes(const ElementType & el_type,
 							       const GhostType & ghost_type) const {
-  return shapes(FEM::getInterpolationType(el_type), ghost_type);
+  return shapes(FEEngine::getInterpolationType(el_type), ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -65,8 +65,18 @@ void ShapeLagrange<_ek_igfem>::setControlPointsByType(const Matrix<Real> & point
   setControlPointsByType<type,ElementClassProperty<type>::is_subelement>(control_points, ghost_type); \
   precomputeShapesOnControlPoints<type,ElementClassProperty<type>::is_subelement>(nodes, ghost_type); \
   if (ElementClass<type>::getNaturalSpaceDimension() ==			\
-      mesh.getSpatialDimension() || kind != _ek_regular)		\
+      mesh.getSpatialDimension() )		\
     precomputeShapeDerivativesOnControlPoints<type,ElementClassProperty<type>::is_subelement>(nodes, ghost_type);
+
+inline void
+ShapeLagrange<_ek_igfem>::initShapeFunctions(const Array<Real> & nodes,
+					const Matrix<Real> & control_points,
+					const ElementType & type,
+					const GhostType & ghost_type) {
+  AKANTU_BOOST_IGFEM_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
+}
+
+#undef INIT_SHAPE_FUNCTIONS
 
 /* -------------------------------------------------------------------------- */
 

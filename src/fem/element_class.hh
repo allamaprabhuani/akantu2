@@ -152,8 +152,7 @@ private:
 enum InterpolationKind {
   _itk_not_defined,
   _itk_lagrangian,
-  _itk_structural,
-  _itk_igfem
+  _itk_structural
 };
 
 
