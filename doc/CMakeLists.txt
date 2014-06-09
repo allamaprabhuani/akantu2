@@ -40,7 +40,6 @@ if(DOXYGEN_FOUND)
   add_subdirectory(doxygen)
 endif(DOXYGEN_FOUND)
 
-
 file(GLOB_RECURSE __all_files "*.*")
 set(_all_files)
 foreach(_file ${__all_files})
@@ -51,19 +50,46 @@ foreach(_file ${__all_files})
 endforeach()
 
 set(_all_manual_files)
+set(_akantu_manual_not_found_files)
 foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_ON})
   string(TOUPPER "${_pkg}" _pkg)
   foreach(_f ${AKANTU_${_pkg}_MANUAL_FILES})
-    list(APPEND _all_manual_files doc/manual/${_f})
+    #check if some file are registered but not present
+    list(FIND _all_files doc/manual/${_f} _ret)  
+    if(_ret EQUAL -1)
+      list(APPEND _akantu_manual_not_found_files "${_pkg}: doc/manual/${_f} ")
+    else()
+      list(APPEND _all_manual_files doc/manual/${_f})
+    endif()
+#    message("register this file to doc doc/manual/${_f}")
   endforeach()
 endforeach()
+
+if(_akantu_manual_not_found_files)
+  message("")
+  message("******************************************************")
+  message("There are files registered in packages but not present")
+  message("******************************************************")
+  foreach(_file ${_akantu_manual_not_found_files})
+    message(${_file})
+  endforeach()
+  message("******************************************************")
+  message(FATAL_ERROR "abort")
+endif()
+
+################################################################
+#construct the list of files to exclude because not registered
+################################################################
 
 set(_akantu_doc_exclude_files)
 foreach(_file ${_all_files})
   list(FIND _all_manual_files ${_file} _ret)
   if(_ret EQUAL -1)
     list(APPEND _akantu_doc_exclude_files /${_file})
+    message("exclude this file from doc /${_file}")
   endif()
 endforeach()
 
 set(AKANTU_DOC_EXCLUDE_FILES ${_akantu_doc_exclude_files} CACHE INTERNAL "Documentation files to excluse from Akantu Package" FORCE)
+
+add_subdirectory(manual)

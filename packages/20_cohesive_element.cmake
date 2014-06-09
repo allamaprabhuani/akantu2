@@ -87,4 +87,6 @@ set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
   figures/cohesive2d.pdf
   figures/cohesive3d.pdf
   figures/cohesive_exponential.pdf
+  figures/linear_cohesive_law.pdf
+  figures/bilinear_cohesive_law.pdf
   )

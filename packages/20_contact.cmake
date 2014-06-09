@@ -81,4 +81,6 @@ set(AKANTU_CONTACT_TESTS
 
 set(AKANTU_CONTACT_MANUAL_FILES
   manual-contact.tex
+
+  figures/hertz_3D.png
 )

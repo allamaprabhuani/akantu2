@@ -300,17 +300,16 @@ set(AKANTU_CORE_MANUAL_FILES
   figures/dynamic_analysis.png
   figures/explicit_dynamic.pdf
   figures/explicit_dynamic.svg
+  figures/static.pdf
+  figures/static.svg
   figures/hooke_law.pdf
   figures/hot-point-1.png
   figures/hot-point-2.png
   figures/implicit_dynamic.pdf
   figures/implicit_dynamic.svg
-  figures/implicit_static.pdf
-  figures/implicit_static.svg
   figures/insertion.pdf
   figures/interpolate.pdf
   figures/interpolate.svg
-  figures/law.pdf
   figures/static_analysis.png
   figures/stress_strain_el.pdf
   figures/tangent.pdf
