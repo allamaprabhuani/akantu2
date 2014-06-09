@@ -38,3 +38,14 @@ set(AKANTU_MPI_FILES
   )
 
 mark_as_advanced(MPI_EXTRA_LIBRARY MPI_LIBRARY)
+
+set(MPI_DOCUMENTATION 
+"
+This is a meta package providing access to MPI.
+
+Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
+\\begin{command}
+  > sudo apt-get install libopenmpi-dev
+\\end{command}
+
+")

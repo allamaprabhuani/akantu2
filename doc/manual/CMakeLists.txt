@@ -27,6 +27,37 @@
 #
 #===============================================================================
 
+macro(generate_doc_dependency PKG FILENAME LEVEL)
+
+  if (${LEVEL} GREATER 0)
+    string(REPLACE "_" "\\_" PKG_TEX ${PKG})
+#    file(APPEND ${FILENAME} "\\item ${PKG_TEX}: \\\\")
+    file(APPEND ${FILENAME} "\\noindent ${PKG_TEX}:")
+  endif()
+
+  if (${PKG}_DOCUMENTATION)
+    file(APPEND ${FILENAME} ${${PKG}_DOCUMENTATION})
+  endif()
+
+  list(LENGTH "${${PKG}_dependencies}" _len)
+  if (_len GREATER 0)
+    if (${LEVEL} EQUAL 0)
+#      file(APPEND ${FILENAME} "\\begin{itemize}\n")
+      file(APPEND ${FILENAME} "This package depends on the options:\\\\ \\hrule \\vspace{.5cm}\n")
+    endif()
+
+    math(EXPR _sub_level "${LEVEL}+1")
+    foreach(_pkg ${${PKG}_dependencies})
+      generate_doc_dependency(${_pkg} ${FILENAME} ${_sub_level})
+    endforeach()
+
+    if (${LEVEL} EQUAL 0)
+#      file(APPEND ${FILENAME} "\\end{itemize}\n")
+    endif()
+  endif()
+
+endmacro()
+
 find_program(RUBBER_EXECUTABLE "rubber")
 if (NOT RUBBER_EXECUTABLE)
   message(ERROR "Manual cannot be built without rubber latex compiler")
@@ -36,7 +67,6 @@ set(_relative_manual_files)
 foreach(_f  ${_all_manual_files})
   file(RELATIVE_PATH _rel_f ${CMAKE_CURRENT_SOURCE_DIR} "${PROJECT_SOURCE_DIR}/${_f}")
   list(APPEND _relative_manual_files ${_rel_f})
-  #message(${_rel_f})
   get_filename_component(_file_path ${_rel_f} PATH)
   file(COPY ${_rel_f} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${_file_path})
 endforeach()
@@ -57,3 +87,15 @@ add_custom_target(manual-forced
   )
 
 install(FILES ${MANUAL_OUTPUT} DESTINATION share/akantu/doc)
+
+
+set(DOC_DEPS_TEX_FILENAME "${CMAKE_CURRENT_BINARY_DIR}/manual-package-doc.tex")
+file(WRITE ${DOC_DEPS_TEX_FILENAME} "")
+file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\section{Package dependencies}\n")
+foreach (_pkg ${AKANTU_PACKAGE_SYSTEM_PACKAGES_NAMES_LIST_ALL})
+  string(REPLACE "_" "\\_" PKG_TEX ${_pkg})
+  file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\subsection{" ${PKG_TEX} "}\n" )
+  generate_doc_dependency(AKANTU_${_pkg} ${DOC_DEPS_TEX_FILENAME} 0)
+endforeach()
+
+

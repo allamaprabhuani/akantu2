@@ -86,7 +86,6 @@ foreach(_file ${_all_files})
   list(FIND _all_manual_files ${_file} _ret)
   if(_ret EQUAL -1)
     list(APPEND _akantu_doc_exclude_files /${_file})
-#    message("exclude this file from doc /${_file}")
   endif()
 endforeach()
 

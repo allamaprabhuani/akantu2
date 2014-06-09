@@ -90,3 +90,22 @@ set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
   figures/linear_cohesive_law.pdf
   figures/bilinear_cohesive_law.pdf
   )
+
+
+set(AKANTU_COHESIVE_ELEMENT_DOCUMENTATION 
+"
+This package activates the cohesive elements engine within Akantu.
+It depends on:
+\\begin{itemize}
+\\item A fortran compiler.
+\\item An implementation of BLAS/LAPACK.
+\\end{itemize}
+
+Under Ubuntu (14.04 LTS) the installation of the dependencies can be performed using the commands:
+\\begin{command}
+  > sudo apt-get install gfortran libatlas-base-dev
+\\end{command}
+
+")
+
+
