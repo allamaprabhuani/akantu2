@@ -206,7 +206,6 @@ MeshIOMSH::MeshIOMSH() {
   _akantu_to_msh_element_types[_point_1         ] = _msh_point;
   _akantu_to_msh_element_types[_bernoulli_beam_2] = _msh_segment_2;
   _akantu_to_msh_element_types[_bernoulli_beam_3] = _msh_segment_2;
-  _akantu_to_msh_element_types[_igfem_triangle_3] = _msh_triangle_3;
 
 
   std::map<ElementType, MSHElementType>::iterator it;
