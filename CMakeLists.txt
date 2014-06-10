@@ -133,8 +133,7 @@ add_subdirectory(src)
 #===============================================================================
 # Documentation
 #===============================================================================
-option(AKANTU_DOCUMENTATION "Build source documentation using Doxygen." OFF)
-if(AKANTU_DOCUMENTATION)
+if(AKANTU_DOXYGEN_DOCUMENTATION OR AKANTU_MANUAL_DOCUMENTATION)
   add_subdirectory(doc)
 else()
   set(AKANTU_DOC_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/doc/manual" CACHE INTERNAL "")

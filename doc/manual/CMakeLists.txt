@@ -31,11 +31,12 @@ macro(generate_doc_dependency PKG FILENAME LEVEL)
 
   if (${LEVEL} GREATER 0)
     string(REPLACE "_" "\\_" PKG_TEX ${PKG})
-#    file(APPEND ${FILENAME} "\\item ${PKG_TEX}: \\\\")
-    file(APPEND ${FILENAME} "\\noindent ${PKG_TEX}:")
+    file(APPEND ${FILENAME} "\\akantuSubpackageName{${PKG_TEX}}")
   endif()
 
   if (${PKG}_DOCUMENTATION AND ${LEVEL} EQUAL 0)
+    string(REPLACE "_" "\\_" PKG_TEX ${PKG})
+    file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\akantuPackageSection{" ${PKG_TEX} "}\n" )
     file(APPEND ${FILENAME} ${${PKG}_DOCUMENTATION})
   else()
     string(TOLOWER "${PKG}" _l_pkg)
@@ -43,10 +44,10 @@ macro(generate_doc_dependency PKG FILENAME LEVEL)
     string(REPLACE "_" "\\_" _l_pkg_tex ${_l_pkg_short})
 
     file(GLOB _file_path "${PROJECT_SOURCE_DIR}/packages/*_${_l_pkg_short}.cmake")
-    file(APPEND ${FILENAME} "{\\color{red} TODO: No Documentation in \\href{${_file_path}}{${_l_pkg_tex}.cmake}\\\\")
+    file(APPEND ${FILENAME} "TODO: No Documentation in {\\color{blue} \\href{${_file_path}}{${_l_pkg_tex}.cmake}}\\\\")
 
     file(APPEND ${FILENAME} "looking for the sequence: "
-"set(${PKG_TEX}\\_DOCUMENTATION \" documentation text \" ) }" )
+"set(${PKG_TEX}\\_DOCUMENTATION \" documentation text \" )" )
 
   endif()
 
@@ -104,8 +105,6 @@ set(DOC_DEPS_TEX_FILENAME "${CMAKE_CURRENT_BINARY_DIR}/manual-package-doc.tex")
 file(WRITE ${DOC_DEPS_TEX_FILENAME} "")
 file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\section{Package dependencies}\n")
 foreach (_pkg ${AKANTU_PACKAGE_LIST})
-  string(REPLACE "_" "\\_" PKG_TEX ${_pkg})
-  file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\subsection{" ${PKG_TEX} "}\n" )
   generate_doc_dependency(AKANTU_${_pkg} ${DOC_DEPS_TEX_FILENAME} 0)
 endforeach()
 
