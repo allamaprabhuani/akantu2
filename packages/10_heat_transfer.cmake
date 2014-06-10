@@ -50,3 +50,9 @@ set(AKANTU_HEAT_TRANSFER_TESTS
 set(AKANTU_HEAT_TRANSFER_MANUAL_FILES
   manual-heattransfermodel.tex
 )
+
+set(AKANTU_HEAT_TRANSFER_DOCUMENTATION 
+"
+This package activates the Heat Transfer model within Akantu. 
+It has no additional dependencies.
+")
