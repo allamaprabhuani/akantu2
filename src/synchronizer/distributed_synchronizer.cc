@@ -1316,7 +1316,7 @@ void DistributedSynchronizer::synchronizeTagsRecv(DistributedSynchronizer & comm
   }
 
   /* --------<<<<-TAGS------------------------------------------------- */
-  UInt mesh_data_sizes_buffer_length;
+  UInt mesh_data_sizes_buffer_length = 0;
   CommunicationBuffer mesh_data_sizes_buffer;
   MeshData & mesh_data = mesh.getMeshData();
 
