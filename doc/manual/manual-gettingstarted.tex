@@ -108,10 +108,10 @@ accessed by typing:
   type & val = example_array(index)
 \end{cpp}
 
-\code{Arrays} can also contain a sequence of values for each
-index. In that case the number of components of each sequence must be
-specified at the \code{Array} creation.  For example if we want to
-create a \code{Array} to store the coordinates (sequences of three
+\code{Arrays} can also contain tuples of values for each
+index. In that case the number of components per tuple must be
+specified at the \code{Array} creation.  For example, if we want to
+create an \code{Array} to store the coordinates (sequences of three
 values) of ten nodes, the appropriate code is the following:
 \begin{cpp}
   UInt nb_nodes = 10;
@@ -119,7 +119,7 @@ values) of ten nodes, the appropriate code is the following:
 
   Array<Real> position(nb_nodes, spatial_dimension);
 \end{cpp}
-In this case the $x$ position of node number 8 will be given by
+In this case the $x$ position of the eighth node number will be given by
 \code{position(7, 0)} (in C++, numbering starts at 0 and not
 1). If the number of components for the sequences is not specified, the
 default value of 1 is used.
@@ -135,18 +135,18 @@ For instance, a loop over the nodal coordinates can be performed like:
   Array<Real> nodes = mesh.getNodes();
 
   //creating the iterators
-  Array<Real>::iterator<RVector> it  = nodes.begin(spatial_dimension);
-  Array<Real>::iterator<RVector> end = nodes.end(spatial_dimension);
+  Array<Real>::vector_iterator it  = nodes.begin(spatial_dimension);
+  Array<Real>::vector_iterator end = nodes.end(spatial_dimension);
 
   for (; it != end; ++it){
-    RVector & coords = (*it);
+    Vector<Real> & coords = (*it);
 
     //do what you need
     ....
 
   }
 \end{cpp}
-In that example, each \code{RVector} is a geometrical array of size \code{spatial\_dimension}
+In that example, each \code{Vector<Real>} is a geometrical array of size \code{spatial\_dimension}
 and the iteration is conveniently performed by the \code{Array} iterator.
 
 The \code{Array} object is intensively used to store tensor values.  In that
@@ -157,8 +157,8 @@ over the stored tensors by:
 
 \begin{cpp}
   //creating the iterators
-  Array<Real>::iterator<RMatrix> it  = stresses.begin(spatial_dimension,spatial_dimension);
-  Array<Real>::iterator<RMatrix> end = stresses.end(spatial_dimension,spatial_dimension);
+  Array<Real>::iterator<Matrix<Real> > it  = stresses.begin(spatial_dimension,spatial_dimension);
+  Array<Real>::iterator<Matrix<Real> > end = stresses.end(spatial_dimension,spatial_dimension);
 
   for (; it != end; ++it){
     Matrix<Real> & stress = (*it);
@@ -170,19 +170,19 @@ over the stored tensors by:
 \end{cpp}
 In that last example the Matrix objects are
 \code{spatial\_dimension} $\times$ \code{spatial\_dimension} matrices.
-The light objects \code{Matrix} and \code{RVector} can be used and combined
+The light objects \code{Matrix} and \code{Vector} can be used and combined
 to do most common linear algebra.
 
 In general, a mesh consists of several kinds of elements. Consequently the
 amount of data to be stored can differ for each element type. The straightforward
 example is the connectivity array, namely the sequences of nodes belonging to
 each element. In order to easily manage this kind of data, a
-particular data structure called \code{ByElementTypeArray} is available.
+particular data structure called \code{ElementTypeMapArray} is available.
 It is just a group of \code{Arrays}, each associated to an element
-type. The following code can retrieve the \code{ByElementTypeArray}
+type. The following code can retrieve the \code{ElementTypeMapArray}
 which stores the connectivity arrays for a mesh:
 \begin{cpp}
-  ByElementTypeArray<UInt> & connectivities = mesh.getConnectivities();
+  ElementTypeMapArray<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}
 Then the specific array associated to a given element type can be
 obtained by
