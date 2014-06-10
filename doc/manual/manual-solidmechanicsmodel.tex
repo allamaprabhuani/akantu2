@@ -223,6 +223,28 @@ respectively.
   \caption{Plate on movable supports.\label{fig:smm:bc_and_ic}}
 \end{figure}
 
+\subsection{Material selector\label{sect:smm:materialselector}}
+
+If the user wants to assign different materials to the different finite elements of the choice in Akantu, a material selector has to be used. There are four different material selectors defined in Akantu.
+
+\begin{enumerate}
+\item \code{MaterialSelector}: This material selector assigns a material to a specific element using an index value. If an index is not specified, it is using 0, hence the first material as default.
+\item \code{DefaultMaterialSelector}: This selector assigns materials based on the values in the \code{element\_index\_by\_material} array.
+\item \code{MeshDataMaterialSelector}: This material selector class uses mesh data information to assing different materials. With the proper tag name and index, different materials can be assigned as demonstrated in the example below.
+\item \code{DefaultMaterialCohesiveSelector}: This is the default material selector for the cohesive elements and it inherits its properties from \code{DefaultMaterialSelector}. The material ID of the first cohesive element is extracted and assigned to all cohesive elements.
+\end{enumerate}
+
+Apart from the material selectors that are default in Akantu, users can always develop their own classes in the main code to tackle with various multi-material assignment situations.
+
+For example, an application of \code{MeshDataMaterialSelector} will look like this:
+
+\begin{cpp}
+MeshDataMaterialSelector<UInt> * mat_selector;
+mat_selector = new MeshDataMaterialSelector<UInt>("tag_1", model, 1);
+model.setMaterialSelector(*mat_selector);
+\end{cpp}
+
+where \code{tag\_1} of the mesh file is used as the classifier index and the elements that have index value equal to one will be assigned to the first material in the material file.
 
 \section{Static analysis\label{sect:smm:static}}
 
