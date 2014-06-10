@@ -93,8 +93,7 @@ set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
 
 
 set(AKANTU_COHESIVE_ELEMENT_DOCUMENTATION 
-"
-This package activates the cohesive elements engine within Akantu.
+"This package activates the cohesive elements engine within Akantu.
 It depends on:
 \\begin{itemize}
 \\item A fortran compiler.
@@ -105,7 +104,6 @@ Under Ubuntu (14.04 LTS) the installation of the dependencies can be performed u
 \\begin{command}
   > sudo apt-get install gfortran libatlas-base-dev
 \\end{command}
-
 ")
 
 

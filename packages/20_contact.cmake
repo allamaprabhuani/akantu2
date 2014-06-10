@@ -71,7 +71,6 @@ if(AKANTU_CONTACT)
     )
 endif()
 
-
 mark_as_advanced(AKANTU_USE_CPPARRAY)
 
 set(AKANTU_CONTACT_TESTS
@@ -84,3 +83,8 @@ set(AKANTU_CONTACT_MANUAL_FILES
 
   figures/hertz_3D.png
 )
+
+set(AKANTU_CONTACT_DOCUMENTATION
+"
+This package enables the contact mechanics engine for Akantu
+")

@@ -752,3 +752,5 @@
 \endinput
 %%
 %% End of file `manual.cls'.
+
+

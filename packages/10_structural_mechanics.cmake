@@ -68,3 +68,7 @@ set(AKANTU_STRUCTURAL_MECHANICS_MANUAL_FILES
   figures/elements/bernoulli_2.pdf
   figures/elements/bernoulli_2.svg
   )
+  
+set(AKANTU_STRUCTURAL_MECHANICS_DOCUMENTATION "
+This package enable the compilation for the Structural Mechanics engine of Akantu
+")

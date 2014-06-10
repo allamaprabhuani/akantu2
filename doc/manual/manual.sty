@@ -274,6 +274,9 @@
   pdfsubject={Open Source Finite Element Code - Akantu}
 }
 
+%\newcommand\akantuSubpackageName[3]{\item \hyperref[#2]{#1}:#3}
+\newcommand\akantuSubpackageName[3]{\item \hyperref[#2]{#1}}
+\newcommand\akantuPackageSection[2]{\paragraph*{\label{#2}#1}}
+\newcommand\akantuPackageDependencyHead{~\\The dependencies are \begin{itemize}}
+\newcommand\akantuPackageDependencyTail{\end{itemize}}
 
-\newcommand\akantuSubpackageName[1]{\subsubsection{#1}}
-\newcommand\akantuPackageSection[1]{\subsection{#1}}

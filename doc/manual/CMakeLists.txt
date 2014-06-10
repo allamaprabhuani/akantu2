@@ -31,31 +31,38 @@ macro(generate_doc_dependency PKG FILENAME LEVEL)
 
   if (${LEVEL} GREATER 0)
     string(REPLACE "_" "\\_" PKG_TEX ${PKG})
-    file(APPEND ${FILENAME} "\\akantuSubpackageName{${PKG_TEX}}")
+    string(REPLACE "_" "" PKG_TEX_LABEL ${PKG})
+    file(APPEND ${FILENAME} "\\akantuSubpackageName{${PKG_TEX}}{${PKG_TEX_LABEL}}{${LEVEL}}")
   endif()
 
-  if (${PKG}_DOCUMENTATION AND ${LEVEL} EQUAL 0)
+
+  if (${LEVEL} EQUAL 0)
     string(REPLACE "_" "\\_" PKG_TEX ${PKG})
-    file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\akantuPackageSection{" ${PKG_TEX} "}\n" )
-    file(APPEND ${FILENAME} ${${PKG}_DOCUMENTATION})
-  else()
-    string(TOLOWER "${PKG}" _l_pkg)
-    string(REPLACE "akantu_" "" _l_pkg_short ${_l_pkg})
-    string(REPLACE "_" "\\_" _l_pkg_tex ${_l_pkg_short})
+    string(REPLACE "_" "" PKG_TEX_LABEL ${PKG})
+    file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\akantuPackageSection{${PKG_TEX}}{${PKG_TEX_LABEL}}\n" )
 
-    file(GLOB _file_path "${PROJECT_SOURCE_DIR}/packages/*_${_l_pkg_short}.cmake")
-    file(APPEND ${FILENAME} "TODO: No Documentation in {\\color{blue} \\href{${_file_path}}{${_l_pkg_tex}.cmake}}\\\\")
-
-    file(APPEND ${FILENAME} "looking for the sequence: "
-"set(${PKG_TEX}\\_DOCUMENTATION \" documentation text \" )" )
-
+    if (${PKG}_DOCUMENTATION AND ${LEVEL} EQUAL 0)
+      file(APPEND ${FILENAME} "${${PKG}_DOCUMENTATION}")
+    else()
+      string(TOLOWER "${PKG}" _l_pkg)
+      string(REPLACE "akantu_" "" _l_pkg_short ${_l_pkg})
+      string(REPLACE "_" "\\_" _l_pkg_tex ${_l_pkg_short})
+      
+      file(GLOB _file_path "${PROJECT_SOURCE_DIR}/packages/*_${_l_pkg_short}.cmake")
+      file(APPEND ${FILENAME} "TODO: No Documentation in {\\color{blue} \\href{${_file_path}}{${_l_pkg_tex}.cmake}}\\\\")
+      file(APPEND ${FILENAME} "looking for the sequence: \\\\set(${PKG_TEX}\\_DOCUMENTATION \" documentation text \" )\\\\" )
+    endif()
   endif()
 
-  list(LENGTH "${${PKG}_dependencies}" _len)
-  if (_len GREATER 0)
+  set(_n_dependencies 0)
+
+  if (${PKG}_dependencies)
+    list(LENGTH ${PKG}_dependencies _n_dependencies)
+  endif()
+
+  if (_n_dependencies GREATER 0)
     if (${LEVEL} EQUAL 0)
-#      file(APPEND ${FILENAME} "\\begin{itemize}\n")
-      file(APPEND ${FILENAME} "This package depends on the options:\\\\ \\hrule \\vspace{.5cm}\n")
+      file(APPEND ${FILENAME} "\\akantuPackageDependencyHead")
     endif()
 
     math(EXPR _sub_level "${LEVEL}+1")
@@ -64,7 +71,7 @@ macro(generate_doc_dependency PKG FILENAME LEVEL)
     endforeach()
 
     if (${LEVEL} EQUAL 0)
-#      file(APPEND ${FILENAME} "\\end{itemize}\n")
+      file(APPEND ${FILENAME} "\\akantuPackageDependencyTail\n")
     endif()
   endif()
 
