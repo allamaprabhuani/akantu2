@@ -63,3 +63,7 @@ set(AKANTU_DAMAGE_NON_LOCAL_TESTS
   test_material_damage_non_local
   test_grid_synchronizer
   )
+  
+set(AKANTU_DAMAGE_NON_LOCAL_DOCUMENTATION "
+This package activates the non local damage feature of AKANTU
+")

@@ -150,3 +150,8 @@ set(AKANTU_MUMPS_TESTS
   test_solver_mumps
   test_sparse_matrix_product
   )
+  
+set(AKANTU_MUMPS_DOCUMENTATION "
+This package enables the \\href{http://mumps.enseeiht.fr/}{MUMPS} parallel sparse direct solver.
+This is necessary to solve implicit problems.
+")

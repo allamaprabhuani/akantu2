@@ -117,3 +117,7 @@ mark_as_advanced(AKANTU_NLOPT_AUTO_DOWNLOAD)
 mark_as_advanced(AKANTU_USE_NLOPT)
 mark_as_advanced(NLOPT_LAST_CONFIGURE_COMMAND)
 mark_as_advanced(TAR_EXECUTABLE)
+
+set(AKANTU_NLOPT_DOCUMENTATION "
+When enabled this package download, configure and compiles the \\href{http://ab-initio.mit.edu/wiki/index.php/NLopt}{NLOPT} library (if access to internet is given). 
+")

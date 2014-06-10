@@ -49,7 +49,7 @@ macro(generate_doc_dependency PKG FILENAME LEVEL)
       string(REPLACE "_" "\\_" _l_pkg_tex ${_l_pkg_short})
       
       file(GLOB _file_path "${PROJECT_SOURCE_DIR}/packages/*_${_l_pkg_short}.cmake")
-      file(APPEND ${FILENAME} "TODO: No Documentation in {\\color{blue} \\href{${_file_path}}{${_l_pkg_tex}.cmake}}\\\\")
+      file(APPEND ${FILENAME} "{\\color{red} TODO}: No Documentation in {\\color{blue} \\href{${_file_path}}{${_l_pkg_tex}.cmake}}\\\\")
       file(APPEND ${FILENAME} "looking for the sequence: \\\\set(${PKG_TEX}\\_DOCUMENTATION \" documentation text \" )\\\\" )
     endif()
   endif()
