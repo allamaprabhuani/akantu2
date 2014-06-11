@@ -122,6 +122,76 @@ Element type & Facet type & Order & \# nodes & \# quad. points  \\
 \label{tab:cohesive_elements}
 \end{table}
 
+For the static analysis of the structures containing cohesive
+elements, the stiffness of the cohesive elements should also be added
+to the total stiffness of the structure. Considering a typical
+cohesive element as explained in figure~\ref{fig:smm:coh:cohesive2d},
+the opening displacement along the mid-surface can be written as:
+
+\begin{equation}
+  \label{eq:opening}
+  \delta(\xi) = [[\mat{u}]] \mat{N}(\xi) =
+  \begin{bmatrix}
+    u_3-u_0 & u_4-u_1 & u_5-u_2\\
+    v_3-v_0 & v_4-v_1 & v_5-v_2
+  \end{bmatrix}
+  \begin{bmatrix}
+    N_0(\xi) \\ N_1(\xi) \\ N_2(\xi)
+  \end{bmatrix} =
+  \mat{N A U}
+\end{equation}
+
+The \mat{U} , \mat{A} and \mat{N} are as following:
+
+\begin{equation}
+  \mat{U} = \left [
+    \begin{array}{c c c c c c c c c c c c}
+      u_0 & v_0 & u_1 & v_1 & u_2 & v_2 & u_3 & v_3 & u_4 & v_4 & u_5 & v_5
+    \end{array}\right ]
+\end{equation}
+
+
+\begin{equation}
+  \mat{A} = \left [\begin{array}{c c c c c c c c c c c c}
+      1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0\\
+      0 &1& 0&0 &0 &0 &0 & -1& 0& 0 & 0 &0\\
+      0 &0& 1&0 &0 &0 &0 & 0& -1& 0 & 0 &0\\
+      0 &0& 0&1 &0 &0 &0 & 0& 0& -1 & 0 &0\\
+      0 &0& 0&0 &1 &0 &0 & 0& 0& 0 & -1 &0\\
+      0 &0& 0&0 &0 &1 &0 & 0& 0& 0 & 0 &-1
+    \end{array} \right ]
+\end{equation}
+
+
+\begin{equation}
+  \mat{N} = \begin{bmatrix}
+    N_0(\xi) & 0 & N_1(\xi) &0 & N_2(\xi) & 0\\
+    0 & N_0(\xi)& 0 &N_1(\xi)& 0 & N_2(\xi)
+  \end{bmatrix}
+\end{equation}
+
+The consistent stiffness matrix for the element is obtained as
+
+\begin{equation}
+  \label{eq:cohesive_stiffness}
+  \mat{K}    =    \delta    \mat{U}^T    \int_{\Gamma_c}    {\mat{P}^t
+    \frac{\partial{\mat{t}}} {\partial{\delta}} \mat{P} d
+    \Gamma \Delta \mat{U}}
+\end{equation}
+
+In which the tangent matrix is calculated based on the equation \ref
+{eq:tangent_cohesive} after performing necessary derivation:
+
+\begin{equation}
+  \label{eq:tangent_cohesive}
+  \frac{\partial{\mat{t}}} {\partial{\delta}} = \hat{\mat{t}} \otimes
+  \frac                       {\partial{(t/\delta)}}{\partial{\delta}}
+  \frac{\hat{\mat{t}}}{\delta}+ \frac{t}{\delta}  [ \beta^2 \mat{I} +
+  (1-\beta^2) (\mat{n} \otimes \mat{n})]
+\end{equation}
+
+
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"
