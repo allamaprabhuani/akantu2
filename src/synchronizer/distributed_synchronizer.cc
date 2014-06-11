@@ -1287,6 +1287,11 @@ void DistributedSynchronizer::synchronizeTagsSend(DistributedSynchronizer & comm
 				    nb_local_element,
 				    nb_ghost_element);
     }
+
+
+    comm.waitAll(requests);
+    comm.freeCommunicationRequest(requests);
+    requests.clear();
   }
 
   ++count;

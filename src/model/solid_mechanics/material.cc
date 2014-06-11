@@ -255,8 +255,8 @@ void Material::computeAllStresses(GhostType ghost_type) {
 
     /// compute @f$\nabla u@f$
     model->getFEEngine().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
-                                               spatial_dimension,
-                                               *it, ghost_type, elem_filter);
+						    spatial_dimension,
+						    *it, ghost_type, elem_filter);
 
     strain_vect -= eigenstrain(*it, ghost_type);
 

@@ -400,9 +400,9 @@ bool isInertiaEqual(const Vector<Real> & a, const Vector<Real> & b) {
 void rotateArray(Array<Real> & array, Real angle) {
   UInt spatial_dimension = array.getNbComponent();
 
-  Real rotation_values[9] = {std::cos(angle), std::sin(angle), 0,
-			     -std::sin(angle), std::cos(angle), 0,
-			     0, 0, 1};
+  Real rotation_values[] = {std::cos(angle), std::sin(angle), 0,
+			    -std::sin(angle), std::cos(angle), 0,
+			    0, 0, 1};
   Matrix<Real> rotation(rotation_values, spatial_dimension, spatial_dimension);
 
   RVector displaced_node(spatial_dimension);
