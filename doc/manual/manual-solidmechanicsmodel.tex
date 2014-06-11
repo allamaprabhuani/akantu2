@@ -272,6 +272,8 @@ where \code{tag\_1} of the mesh file is used as the classifier index and the
 elements that have index value equal to one will be assigned to the first
 material in the material file.
 
+\IfFileExists{manual-cohesive_elements_insertion.tex}{\input{manual-cohesive_elements_insertion}}{}
+
 \section{Static analysis\label{sect:smm:static}}
 
 The \code{SolidMechanicsModel} class can handle different analysis
@@ -294,9 +296,11 @@ it is to use the \code{initFull}\index{SolidMechanicsModel!initFull}
 function by giving the \code{SolidMechanicsModelOptions}. These
 options allow to decide which type of analysis should be used and if
 the materials should be initialized or not.
-\begin{cpp} SolidMechanicsModel model(mesh);
+\begin{cpp}
+SolidMechanicsModel model(mesh);
 model.initFull(SolidMechanicsModelOptions(_static));
-\end{cpp} Here the static analysis is chosen by passing the function
+\end{cpp}
+Here the static analysis is chosen by passing the function
 argument (\_static). By default the boolean for no initialization of
 the materials is set to false, so that they are initialized during the
 \code{initFull}. By calling \code{initFull} also all the needed
@@ -307,9 +311,10 @@ external forces for the free degrees of freedom $\vec{f_{\st{ext}}}$
 and displacements for the others.  At this point of the analysis the
 function \code{solveStep}\index{SolidMechanicsModel!solveStep} can be
 called:
-\begin{cpp} model.solveStep<_scm_newton_raphson_tangent_modified,
-_scc_residual>(1e-4, 1);
-\end{cpp} This function is templated by the solving method and the
+\begin{cpp}
+model.solveStep<_scm_newton_raphson_tangent_modified, _scc_residual>(1e-4, 1);
+\end{cpp}
+This function is templated by the solving method and the
 convergence criterion and takes two arguments, the tolerance and the
 maximum number of iterations, which are $1e-4$ and $1$ for this
 example. The modified Newton-Raphson method is chosen to solve the
@@ -734,7 +739,7 @@ plain analysis, otherwise plane stress conditions are applied).
 
 \IfFileExists{manual-extra_materials.tex}{\input{manual-extra_materials}}{}
 
-\IfFileExists{manual-cohesive_element.tex}{\input{manual-cohesive_element}}{}
+\IfFileExists{manual-cohesive_laws.tex}{\input{manual-cohesive_laws}}{}
 
 \section{Adding a new constitutive law}\index{Material!create a new
 material}

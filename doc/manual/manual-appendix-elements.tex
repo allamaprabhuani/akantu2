@@ -33,12 +33,10 @@ In \akantu there are two types of isoparametric elements defined in 1D. These el
  2  &  \inelemone{1}   &  $\half\left(1+\xi\right)$  &  \inelemone{\half}  \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|c}
+\begin{QuadPoints}{lc}
 Coord. \elemcooroned  &  0  \\
 \elemline
 Weight  &  2  \\
-\end{tabular}
 \end{QuadPoints}
 
 \subsection{Segment 3\index{Elements!1D!Segment 3}}
@@ -51,12 +49,10 @@ Weight  &  2  \\
  3  &  \inelemone{0}   &  $1-\xi^{2}$                    &  \inelemone{-2\xi}       \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|cc}
+\begin{QuadPoints}{lcc}
 Coord. \elemcooroned  &  $-1/\sqrt{3}$  &  $1/\sqrt{3}$  \\
 \elemline
 Weight  &  1  &  1  \\
-\end{tabular}
 \end{QuadPoints}
 
 %%%%%%%%%% 2D %%%%%%%%%
@@ -100,12 +96,10 @@ In \akantu there are four types of isoparametric elements defined in 2D. These e
  3  &  \inelemtwo{0}{1}  &  $\eta$        &  \inelemtwo{0}{1}    \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|c}
+\begin{QuadPoints}{lc}
 Coord. \elemcoortwod  &  \inquadtwo{\third}{\third}  \\
 \elemline
 Weight  &  1  \\
-\end{tabular}
 \end{QuadPoints}
 
 \subsection{Triangle 6\index{Elements!2D!Triangle 6}}
@@ -125,12 +119,10 @@ Weight  &  1  \\
 \elemline
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|ccc}
+\begin{QuadPoints}{lccc}
 Coord. \elemcoortwod  &  \inquadtwo{\sixth}{\sixth} & \inquadtwo{\twothird}{\sixth} & \inquadtwo{\sixth}{\twothird} \\
 \elemline
 Weight & \sixth & \sixth & \sixth \\
-\end{tabular}
 \end{QuadPoints}
 
 \subsection{Quadrangle 4\index{Elements!2D!Quadrangle 4}}
@@ -145,13 +137,11 @@ Weight & \sixth & \sixth & \sixth \\
  4  &  \inelemtwo{-1}{1}   &  $\quart\left(1-\xi\right)\left(1+\eta\right)$  &  \inelemtwo{-\quart\left(1-\eta\right)}{\quart\left(1-\xi\right)}  \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|cccc}
+\begin{QuadPoints}{lcccc}
 \elemcoortwod  &  \inquadtwo{-\invsqrtthree}{-\invsqrtthree}  &  \inquadtwo{\invsqrtthree}{-\invsqrtthree}  
                &  \inquadtwo{\invsqrtthree}{\invsqrtthree}    &  \inquadtwo{-\invsqrtthree}{\invsqrtthree} \\ 
 \elemline
 Weight & 1 & 1 & 1 & 1 \\
-\end{tabular}
 \end{QuadPoints}
 
 \clearpage
@@ -191,8 +181,7 @@ Weight & 1 & 1 & 1 & 1 \\
                                       {-\eta\left(1-\xi\right)}  \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|ccccc}
+\begin{QuadPoints}{lccccc}
 Coord. \elemcoortwod & \inquadtwo{0}{0} & \inquadtwo{\sqrt{\tfrac{3}{5}}}{\sqrt{\tfrac{3}{5}}} & \inquadtwo{-\sqrt{\tfrac{3}{5}}}{\sqrt{\tfrac{3}{5}}} 
                      & \inquadtwo{-\sqrt{\tfrac{3}{5}}}{-\sqrt{\tfrac{3}{5}}} & \inquadtwo{\sqrt{\tfrac{3}{5}}}{-\sqrt{\tfrac{3}{5}}} \\
 \elemline
@@ -202,7 +191,6 @@ Coord. \elemcoortwod & \inquadtwo{0}{\sqrt{\tfrac{3}{5}}} & \inquadtwo{-\sqrt{\t
                      & \inquadtwo{0}{-\sqrt{\tfrac{3}{5}}} & \inquadtwo{\sqrt{\tfrac{3}{5}}}{0} & \\
 \elemline
 Weight & 40/81 & 40/81 & 40/81 & 40/81 & \\
-\end{tabular}
 \end{QuadPoints}
 
 %%%%%%%%%% 3D %%%%%%%%%
@@ -244,12 +232,10 @@ In \akantu there are three types of isoparametric elements defined in 3D. These 
  4 & \inelemthree{0}{0}{1} & $\zeta$            & \inelemthree{0}{0}{1} \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|c}
+\begin{QuadPoints}{lc}
 Coord. \elemcoorthreed & \inquadthree{\quart}{\quart}{\quart} \\
 \elemline
 Weight & \sixth \\
-\end{tabular}
 \end{QuadPoints}
 
 \subsection{Tetrahedron 10\index{Elements!3D!Tetrahedron 10}}
@@ -286,8 +272,7 @@ Weight & \sixth \\
                                     & \inelemthree{0}{4\zeta}{4\eta} \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|cc}
+\begin{QuadPoints}{lcc}
 Coord. \elemcoorthreed & \inquadthree{\quada}{\quada}{\quada} & \inquadthree{\quadb}{\quada}{\quada} \\
 \elemline
 Weight & 1/24 & 1/24 \\
@@ -295,7 +280,6 @@ Weight & 1/24 & 1/24 \\
 Coord. \elemcoorthreed & \inquadthree{\quada}{\quadb}{\quada} & \inquadthree{\quada}{\quada}{\quadb} \\
 \elemline
 Weight & 1/24 & 1/24 \\
-\end{tabular}
 \end{QuadPoints}
 
 \clearpage
@@ -343,8 +327,7 @@ Weight & 1/24 & 1/24 \\
                                             { \eighth\left(1-\xi\right)\left(1+\eta\right)} \\
 \end{Element}
 
-\begin{QuadPoints}
-\begin{tabular}{l|cccc}
+\begin{QuadPoints}{lcccc}
 \elemcoortwod  &  \inquadthree{-\invsqrtthree}{-\invsqrtthree}{-\invsqrtthree}  &  \inquadthree{\invsqrtthree}{-\invsqrtthree}{-\invsqrtthree}  
                &  \inquadthree{\invsqrtthree}{\invsqrtthree}{-\invsqrtthree}    &  \inquadthree{-\invsqrtthree}{\invsqrtthree}{-\invsqrtthree} \\ 
 \elemline
@@ -354,7 +337,6 @@ Weight & 1 & 1 & 1 & 1 \\
                &  \inquadthree{\invsqrtthree}{\invsqrtthree}{\invsqrtthree}     &  \inquadthree{-\invsqrtthree}{\invsqrtthree}{\invsqrtthree} \\ 
 \elemline
 Weight & 1 & 1 & 1 & 1 \\
-\end{tabular}
 \end{QuadPoints}
 
 

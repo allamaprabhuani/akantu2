@@ -28,11 +28,13 @@ In \akantu there are two types of isoparametric elements defined in 1D. These el
 
 \begin{table}[!htb]
 \begin{center}
-\begin{tabular}{l||c|c|c}
+\begin{tabular}{l|ccc}
+\toprule
 Element type & Order & \# nodes & \# quad. points \\
-\hline
-\code{\_segment\_2} & linear & 2 & 1 \\
-\code{\_segment\_3} & quadratic & 3 & 2 \\
+\midrule
+\texttt{\_segment\_2} & linear & 2 & 1 \\
+\texttt{\_segment\_3} & quadratic & 3 & 2 \\
+\bottomrule
 \end{tabular}
 \end{center}
 \caption{Some basic properties of the two 1D isoparametric elements in \akantu.}
@@ -71,14 +73,16 @@ In \akantu there are four types of isoparametric elements defined in 2D. These e
 
 \begin{table}[!htb]
 \begin{center}
-\begin{tabular}{l||c|c|c}
+\begin{tabular}{l|ccc}
+\toprule
 Element type & Order & \# nodes & \# quad. points \\
+\midrule
+\texttt{\_triangle\_3} & linear & 3 & 1 \\
+\texttt{\_triangle\_6} & quadratic & 6 & 3 \\
 \hline
-\code{\_triangle\_3} & linear & 3 & 1 \\
-\code{\_triangle\_6} & quadratic & 6 & 3 \\
-\hline
-\code{\_quadrangle\_4} & quadratic & 4 & 4 \\
-\code{\_quadrangle\_8} & cubic & 8 & 9 \\
+\texttt{\_quadrangle\_4} & quadratic & 4 & 4 \\
+\texttt{\_quadrangle\_8} & cubic & 8 & 9 \\
+\bottomrule
 \end{tabular}
 \end{center}
 \caption{Some basic properties of the four 2D isoparametric elements in \akantu.}
@@ -113,19 +117,24 @@ In \akantu there are three types of isoparametric elements defined in 3D. These 
 
 \begin{table}[!htb]
 \begin{center}
-\begin{tabular}{l||c|c|c}
+\begin{tabular}{l|ccc}
+\toprule
 Element type & Order & \# nodes & \# quad. points  \\
+\midrule
+\texttt{\_tetrahedron\_4} & linear & 4 & 1  \\
+\texttt{\_tetrahedron\_10} & quadratic & 10 & 4  \\
 \hline
-\code{\_tetrahedron\_4} & linear & 4 & 1  \\
-\code{\_tetrahedron\_10} & quadratic & 10 & 4  \\
-\hline
-\code{\_hexahedron\_8} & cubic & 8 & 8  \\
+\texttt{\_hexahedron\_8} & cubic & 8 & 8  \\
+\bottomrule
 \end{tabular}
 \end{center}
 \caption{Some basic properties of the three 3D isoparametric elements in \akantu.}
 \label{tab:elements:3D}
 \end{table}
 
+
+%%%%%%%%%% COHESIVE ELEMENTS %%%%%%%%%
+\IfFileExists{manual-cohesive_elements.tex}{\input{manual-cohesive_elements}}{}
 
 %%%%%%%%%% STRUCTURAL ELEMENTS %%%%%%%%%
 \IfFileExists{manual-structuralmechanicsmodel-elements.tex}{\input{manual-structuralmechanicsmodel-elements}}{}

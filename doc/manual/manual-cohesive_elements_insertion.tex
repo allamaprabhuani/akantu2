@@ -1,0 +1,49 @@
+\subsection{Insertion of cohesive elements}
+When the intrinsic approach is chosen, cohesive elements are to be
+inserted just after reading the mesh by using the
+\code{CohesiveElementInserter} class. Here an example is given:
+\begin{cpp}
+  CohesiveElementInserter inserter(mesh);
+  inserter.setLimit('x', -1, 1);
+  inserter.insertIntrinsicElements();
+\end{cpp}
+First the element inserter is created and then the insertion is
+limited to the range $[-1,1]$ in $x$ direction. Additional ranges in
+$y$ and $z$ directions can be added as well. In this way cohesive
+elements are inserted only on those facets whose barycenter is inside
+the ranges. Then the \code{insertIntrinsicElements} can be called.
+
+Then a cohesive model should be created and initialized as
+\begin{cpp}
+  SolidMechanicsModelCohesive model(mesh);
+  model.initFull("material.dat");
+\end{cpp}
+
+When extrinsic simulations are carried out, the model should be
+initialized as follows:
+\begin{cpp}
+  SolidMechanicsModelCohesive model(mesh);
+  model.initFull("material.dat", SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+\end{cpp}
+In order to check stress for automatic element insertion it is
+necessary to call the following function in the main loop:
+\begin{cpp}
+  model.checkCohesiveStress();
+\end{cpp}
+By default the check is performed on all facet, but it can be
+restricted by providing ranges as for intrinsic element insertion. The
+cohesive model for extrinsic simulations has an element inserter that
+can be called:
+\begin{cpp}
+  CohesiveElementInserter & inserter = model.getElementInserter();
+  inserter.setLimit('y', 0.5, 3);
+  model.updateAutomaticInsertion();
+\end{cpp}
+
+Anytime during the simulation it is possible to access the following
+energies with the relative function:
+\begin{cpp}
+  Real Ed = model.getEnergy("dissipated");
+  Real Er = model.getEnergy("reversible");
+  Real Ec = model.getEnergy("contact");
+\end{cpp}

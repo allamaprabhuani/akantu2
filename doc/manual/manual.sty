@@ -42,7 +42,7 @@
 \usepackage{multirow}       % For larger cells
 
 % A special environment for element tables
-\newcommand\elemline{\hline}%{\noalign{\smallskip}\hline\noalign{\smallskip}}
+\newcommand\elemline{}%{\noalign{\smallskip}\hline\noalign{\smallskip}}
 \newcommand\elemcooroned{\ensuremath{\left(\xi\right)}}
 \newcommand\elemcoortwod{\ensuremath{\left(\xi\;,\;\eta\right)}}
 \newcommand\elemcoorthreed{\ensuremath{\left(\xi\;,\;\eta\;,\;\zeta\right)}}
@@ -62,33 +62,41 @@
 \newcommand\quada{\tfrac{\left(5-\sqrt{5}\right)}{20}}
 \newcommand\quadb{\tfrac{\left(5+3\sqrt{5}\right)}{20}}
 \newenvironment{Element}[1]
-  {\begin{table*}[!htbp]\footnotesize
+  {%\begin{table*}[!htbp]
+    \footnotesize
    \ifthenelse{\equal{#1}{1D}}{\renewcommand{\arraystretch}{1.50}}{}
    \ifthenelse{\equal{#1}{2D}}{\renewcommand{\arraystretch}{1.60}}{}
    \ifthenelse{\equal{#1}{3D}}{\renewcommand{\arraystretch}{1.70}}{}
-   \textbf{{\normalsize Element properties}}\newline\vspace*{0.5\baselineskip}
-   \begin{tabular}{c|c|c|c}
-   %\multicolumn{4}{l}{\textbf{{\normalsize Element properties}}} \\
-   Node ($i$) & Coord. 
-   \ifthenelse{\equal{#1}{1D}}{\elemcooroned}{}
-   \ifthenelse{\equal{#1}{2D}}{\elemcoortwod}{}
-   \ifthenelse{\equal{#1}{3D}}{\elemcoorthreed}{}
-   & Shape function ($N_{i}$)
-   & {Derivative
-      \ifthenelse{\equal{#1}{1D}}{\elemdshapeoned}{}
-      \ifthenelse{\equal{#1}{2D}}{\elemdshapetwod}{}
-      \ifthenelse{\equal{#1}{3D}}{\elemdshapethreed}{}
+   \textbf{{\normalsize Element properties}}\newline%\vspace*{0.5\baselineskip}
+   \begin{tabular}{cccc}\\[-2ex]
+     \toprule
+     % \multicolumn{4}{l}{\textbf{{\normalsize Element properties}}} \\
+     Node ($i$) & Coord. 
+     \ifthenelse{\equal{#1}{1D}}{\elemcooroned}{}
+     \ifthenelse{\equal{#1}{2D}}{\elemcoortwod}{}
+     \ifthenelse{\equal{#1}{3D}}{\elemcoorthreed}{}
+     & Shape function ($N_{i}$)
+     & {Derivative
+       \ifthenelse{\equal{#1}{1D}}{\elemdshapeoned}{}
+       \ifthenelse{\equal{#1}{2D}}{\elemdshapetwod}{}
+       \ifthenelse{\equal{#1}{3D}}{\elemdshapethreed}{}
      }\\
-   \elemline
-  }
-  {\end{tabular}\end{table*}}
-\newenvironment{QuadPoints}%[1]
-  {\vspace*{-\baselineskip}
-   \begin{table*}[!htbp]\footnotesize
+     \midrule
+     \elemline
+   }
+   {\bottomrule
+   \end{tabular}%\end{table*}
+ }
+\newenvironment{QuadPoints}[1]
+  {\vspace*{\baselineskip}
+   %\begin{table*}[!htbp]
+    \footnotesize
    \renewcommand{\arraystretch}{1.50}
-   \textbf{{\normalsize Gaussian quadrature points}}\newline\vspace*{0.5\baselineskip}
+   \noindent\textbf{{\normalsize Gaussian quadrature points}}\newline%\vspace*{0.5\baselineskip}
+   \begin{tabular}{#1}\\[-2ex]
+     \toprule
   }
-  {\end{table*}}
+  {\bottomrule\end{tabular}}%\end{table*}}
 
 % Nice coloring
 \usepackage[dvipsnames,usenames,table]{xcolor}
@@ -274,6 +282,8 @@
   pdfsubject={Open Source Finite Element Code - Akantu}
 }
 
+% Varioref
+\usepackage{varioref}
 
 \newcommand\akantuPackageSection[2]{\paragraph*{\label{#2}#1}}
 

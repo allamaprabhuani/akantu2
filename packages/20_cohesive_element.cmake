@@ -78,11 +78,15 @@ set(AKANTU_COHESIVE_ELEMENT_TESTS
   )
 
 set(AKANTU_COHESIVE_ELEMENT_DOC
-  manual/manual-cohesive_element.tex
+  manual/manual-cohesive_elements.tex
+  manual/manual-cohesive_elements_insertion.tex
+  manual/manual-cohesive_laws.tex
   )
 
 set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
-  manual-cohesive_element.tex
+  manual-cohesive_elements.tex
+  manual-cohesive_elements_insertion.tex
+  manual-cohesive_laws.tex
 
   figures/cohesive2d.pdf
   figures/cohesive3d.pdf
@@ -92,7 +96,7 @@ set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
   )
 
 
-set(AKANTU_COHESIVE_ELEMENT_DOCUMENTATION 
+set(AKANTU_COHESIVE_ELEMENT_DOCUMENTATION
 "This package activates the cohesive elements engine within Akantu.
 It depends on:
 \\begin{itemize}
@@ -105,5 +109,3 @@ Under Ubuntu (14.04 LTS) the installation of the dependencies can be performed u
   > sudo apt-get install gfortran libatlas-base-dev
 \\end{command}
 ")
-
-
