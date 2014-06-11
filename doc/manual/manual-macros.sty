@@ -32,3 +32,14 @@
 \newcommand{\eighth}{\ensuremath{\tfrac{1}{8}}\xspace}
 \newcommand{\invsqrtthree}{\ensuremath{\tfrac{1}{\sqrt{3}}}\xspace}
 
+
+\newcommand\akantuPackageSection[2]{\paragraph*{\label{#2}#1}}
+
+%\newcommand\akantuSubpackageName[3]{\item \index{Packages!#1}\hyperref[#2]{#1}}
+%\newcommand\akantuPackageDependencyHead{~\\The dependencies are: \begin{itemize}}
+%\newcommand\akantuPackageDependencyTail{\end{itemize}}
+\newcommand\akantuSubpackageName[3]{ \textit{\index{Packages!#1}\hyperref[#2]{#1}}}
+\newcommand\akantuPackageDependencyHead{~\\The dependencies are: }
+\newcommand\akantuPackageDependencyTail{~\\}
+
+\newcommand\akantuManualAppendix[1]{\chapter{Package dependencies}\label{app:package-dependencies}}

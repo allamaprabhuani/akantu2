@@ -30,7 +30,7 @@
 #===============================================================================
 
 add_mesh(test_synchronizer_communication_mesh
-  cube.geo 2 1)
+  cube.geo 3 2)
 
 add_mesh(test_facet_synchronizer_mesh
   facet.geo 3 2)

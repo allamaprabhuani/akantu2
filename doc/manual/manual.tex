@@ -38,8 +38,13 @@
 
 % The appendices
 \appendix
-\input{manual-appendix-elements} 
-\IfFileExists{manual-package-doc.tex}{\input{manual-package-doc}}{}
+\input{manual-appendix-elements}
+
+\IfFileExists{manual-package-doc.tex}{\input{manual-package-doc}}{%
+  \akantuManualAppendix
+
+To have the complete documentation you should compile it in your build folder by
+activating the option \code{AKANTU\_DOCUMENTATION\_MANUAL}}
 
 % The backmatter material (index/bibliography, included \end{document})
 \input{manual-backmatter}

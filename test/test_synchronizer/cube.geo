@@ -40,9 +40,8 @@ Plane Surface(36) = {36};
 Surface Loop(50) = {26, 28, 30, 32, 34, 36};
 Volume(50) = {50};
 
-//Physical Volume ("PhysVol") = {50};
-//Physical Surface ("Bottom") = {32}; // Bottom face
-Physical Surface ("Top") = {28}; // Top face
-//Physical Surface ("Sides") = {26, 30, 34, 36}; // Side faces
+Physical Volume ("PhysVol") = {50};
+Physical Surface ("Sides") = {26, 28, 30, 32,34, 36}; // Side faces
+Physical Line ("Lines") = {1,2,3,4,5,6,7,8,9,10,11,12}; // Side lines
 
 

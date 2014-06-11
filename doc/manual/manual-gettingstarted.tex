@@ -29,10 +29,10 @@ given \code{Makefile} that handles the \code{cmake} configuration
 \end{command}
 
 \noindent All the \akantu options are documented in section
-\vref{sect:package-dependencies}.
+\vref{app:package-dependencies}.
 
 
-\section{Writing a \code{main} function\label{sect:common:main}}
+\section{Writing a \texttt{main} function\label{sect:common:main}}
 
 First of all, \akantu needs to be initialized.  There is a memory
 management included in the core library which allows a correct
@@ -94,7 +94,7 @@ difference is that the \code{MeshIODiana} object should be used
 instead of the \code{MeshIOMSH} one. Additional mesh readers can be
 introduced into \akantu by coding new \code{MeshIO} classes.
 
-\section{Using \code{Arrays}}
+\section{Using \texttt{Arrays}}
 
 Data in \akantu can be stored in data containers implemented by
 the \code{Array} class. In its most basic usage the \code{Array} class
@@ -178,23 +178,22 @@ The light objects \code{Matrix} and \code{Vector} can be used and combined
 to do most common linear algebra.
 
 In general, a mesh consists of several kinds of elements. Consequently the
-amount of data to be stored can differ for each element type. The straightforward
-example is the connectivity array, namely the sequences of nodes belonging to
-each element. In order to easily manage this kind of data, a
-particular data structure called \code{ElementTypeMapArray} is available.
-It is just a group of \code{Arrays}, each associated to an element
-type. The following code can retrieve the \code{ElementTypeMapArray}
-which stores the connectivity arrays for a mesh:
+amount of data to be stored can differ for each element type. The
+straightforward example is the connectivity array, namely the sequences of nodes
+belonging to each element. In order to easily manage this kind of data, a
+particular data structure called \code{ElementTypeMapArray} is available.  It is
+just a group of \code{Arrays}, each associated to an element type. The following
+code can retrieve the \code{ElementTypeMapArray} which stores the connectivity
+arrays for a mesh:
 \begin{cpp}
   ElementTypeMapArray<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}
-Then the specific array associated to a given element type can be
-obtained by
+Then the specific array associated to a given element type can be obtained by
 \begin{cpp}
   Array<UInt> & connectivity_triangle = connectivities[_triangle_3];
 \end{cpp}
-where the first order 3-node triangular element was used in the presented
-piece of code.
+where the first order 3-node triangular element was used in the presented piece
+of code.
 
 %%% Local Variables:
 %%% mode: latex

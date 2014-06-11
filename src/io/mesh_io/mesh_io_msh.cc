@@ -447,6 +447,7 @@ void MeshIOMSH::read(const std::string & filename, Mesh & mesh) {
       }
     }
   }
+
   MeshUtils::fillElementToSubElementsData(mesh);
 }
 

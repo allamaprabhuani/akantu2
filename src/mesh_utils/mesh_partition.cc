@@ -293,7 +293,7 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
   }
 
   // All Facets
-  for(Int sp = spatial_dimension - 1; sp > 0; --sp) {
+  for(Int sp = spatial_dimension - 1; sp >= 0; --sp) {
     Mesh::type_iterator fit  = mesh.firstType(sp,
 					      _not_ghost,
 					      _ek_not_defined);
