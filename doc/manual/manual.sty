@@ -67,7 +67,7 @@
    \ifthenelse{\equal{#1}{1D}}{\renewcommand{\arraystretch}{1.50}}{}
    \ifthenelse{\equal{#1}{2D}}{\renewcommand{\arraystretch}{1.60}}{}
    \ifthenelse{\equal{#1}{3D}}{\renewcommand{\arraystretch}{1.70}}{}
-   \textbf{{\normalsize Element properties}}\newline%\vspace*{0.5\baselineskip}
+   \textbf{{\normalsize Element properties}}\\%\vspace*{0.5\baselineskip}
    \begin{tabular}{cccc}\\[-2ex]
      \toprule
      % \multicolumn{4}{l}{\textbf{{\normalsize Element properties}}} \\
@@ -267,6 +267,9 @@
 }
 { \end{oldthebibliography} }
 
+% Varioref
+\usepackage{varioref}
+
 % Hyperref
 \usepackage{url}
 \usepackage[pdftex,
@@ -281,9 +284,6 @@
   pdftitle={Akantu User's Guide},
   pdfsubject={Open Source Finite Element Code - Akantu}
 }
-
-% Varioref
-\usepackage{varioref}
 
 \newcommand\akantuPackageSection[2]{\paragraph*{\label{#2}#1}}
 
