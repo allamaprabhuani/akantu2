@@ -39,7 +39,7 @@ set(AKANTU_MPI_FILES
 
 mark_as_advanced(MPI_EXTRA_LIBRARY MPI_LIBRARY)
 
-set(MPI_DOCUMENTATION 
+set(AKANTU_MPI_DOCUMENTATION 
 "
 This is a meta package providing access to MPI.
 

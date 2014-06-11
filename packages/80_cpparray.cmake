@@ -69,3 +69,7 @@ else()
   set(AKANTU_USE_CPPARRAY ${AKANTU_CPPARRAY} CACHE BOOL "Use cpp-array library" FORCE)
   add_optional_external_package(CppArray "Use cpp-array library" OFF)
 endif()
+
+set(AKANTU_CPPARRAY_DOCUMENTATION "
+This package provides access to the \\href{https://code.google.com/p/cpp-array/}{array++} opensource project. If the internet is accessible when configuring the project (during cmake call) this package will auto-download and compile.
+")

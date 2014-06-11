@@ -28,3 +28,12 @@
 #===============================================================================
 add_optional_external_package(LAPACK "Use LAPACK for arithmetic operations" OFF LANGUAGE Fortran)
 mark_as_advanced(AKANTU_USE_LAPACK)
+
+set(AKANTU_LAPACK_DOCUMENTATION "
+This package provides access to a LAPACK implementation.
+
+Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
+\\begin{command}
+  > sudo apt-get install libatlas-base-dev
+\\end{command}
+" )

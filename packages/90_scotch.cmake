@@ -133,7 +133,7 @@ else()
 endif()
 
 set(AKANTU_SCOTCH_DOCUMENTATION "
-This package enables to use the \\href{http://}{\\todo{SCOTCH url}} library in 
+This package enables to use the \\href{http://www.labri.fr/perso/pelegrin/scotch/}{SCOTCH} library in 
 order to perform a graph partitioning leading to the domain
 decomposition used within AKANTU   
 

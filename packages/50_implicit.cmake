@@ -43,10 +43,4 @@ It depends on:
 \\item \\href{http://mumps.enseeiht.fr/}{MUMPS} a parallel sparse direct solver.
 \\item \\href{http://www.labri.fr/perso/pelegrin/scotch/}{Scotch} a graph partitioner.
 \\end{itemize}
-
-Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
-\\begin{command}
-  > sudo apt-get install libmumps-seq-dev libscotch-dev
-\\end{command}
-
 ")

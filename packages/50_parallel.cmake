@@ -42,9 +42,6 @@ set(AKANTU_PARALLEL_MANUAL_FILES
   manual-parallel.tex
   )
 
-add_external_package_dependencies(parallel mpi)
-add_external_package_dependencies(parallel scotch)
-
 set(AKANTU_PARALLEL_DOCUMENTATION "
-This option activates the parallel features of AKANTU. To be used
+This option activates the parallel features of AKANTU.
 " )

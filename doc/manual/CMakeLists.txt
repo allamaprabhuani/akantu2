@@ -111,7 +111,15 @@ install(FILES ${MANUAL_OUTPUT} DESTINATION share/akantu/doc)
 
 set(DOC_DEPS_TEX_FILENAME "${CMAKE_CURRENT_BINARY_DIR}/manual-package-doc.tex")
 file(WRITE ${DOC_DEPS_TEX_FILENAME} "")
-file(APPEND ${DOC_DEPS_TEX_FILENAME} "\\section{Package dependencies}\n")
+file(APPEND ${DOC_DEPS_TEX_FILENAME} 
+"\\section{\\label{sect:package-dependencies}Package dependencies}\n")
+file(APPEND ${DOC_DEPS_TEX_FILENAME} "
+During the configuration, cmake offers several AKANTU options
+which have dependencies with each other or with external packages and software.
+Each of these are described in details now. \\\\
+\\hrule
+")
+
 foreach (_pkg ${AKANTU_PACKAGE_LIST})
   generate_doc_dependency(AKANTU_${_pkg} ${DOC_DEPS_TEX_FILENAME} 0)
 endforeach()

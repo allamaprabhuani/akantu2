@@ -370,6 +370,6 @@ This package is the core engine of Akantu. It depends on:
 
 Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
 \\begin{command}
-  > sudo apt-get install build-essential cmake-curses-gui libboost-dev install zlib1g-dev
+  > sudo apt-get install build-essential cmake-curses-gui libboost-dev zlib1g-dev
 \\end{command}
 ")

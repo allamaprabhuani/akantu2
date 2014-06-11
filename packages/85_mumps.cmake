@@ -154,4 +154,12 @@ set(AKANTU_MUMPS_TESTS
 set(AKANTU_MUMPS_DOCUMENTATION "
 This package enables the \\href{http://mumps.enseeiht.fr/}{MUMPS} parallel sparse direct solver.
 This is necessary to solve implicit problems.
+
+Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
+
+\\begin{command}
+  > sudo apt-get install libmumps-seq-dev # for sequential 
+  > sudo apt-get install libmumps-dev     # for parallel 
+\\end{command}
+
 ")
