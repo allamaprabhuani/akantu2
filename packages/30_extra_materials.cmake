@@ -107,3 +107,16 @@ set(AKANTU_EXTRA_MATERIALS_MANUAL_FILES
   figures/stress_strain_visco.pdf
   figures/visco_elastic_law.pdf
   )
+
+set(AKANTU_EXTRA_MATERIALS_DOCUMENTATION "
+This package activates additional constitutive laws:
+\\begin{itemize}
+\\item Neo-Hookean
+\\item Visco-elastic
+\\item Damage: Marigo, Mazars, 
+\\item Linear anisotropy
+\\item Linear orthotropy
+\\item Plasticity
+\\item Visco-plastic
+\\end{itemize}
+" )

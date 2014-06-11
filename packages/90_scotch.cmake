@@ -131,3 +131,14 @@ else()
     endif()
   endif()
 endif()
+
+set(AKANTU_SCOTCH_DOCUMENTATION "
+This package enables to use the \\href{http://}{\\todo{SCOTCH url}} library in 
+order to perform a graph partitioning leading to the domain
+decomposition used within AKANTU   
+
+Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
+\\begin{command}
+  > sudo apt-get install libscotch-dev
+\\end{command}
+" )

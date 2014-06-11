@@ -8,3 +8,7 @@ set(AKANTU_OPTIMIZATION_FILES
 add_internal_package_dependencies(optimization nlopt)
 mark_as_advanced(AKANTU_OPTIMIZATION)
 
+set(AKANTU_OPTIMIZATION_DOCUMENTATION "
+This activates the optimization routines of Akantu. This is currently needed by the 
+contact detection algorithms.
+" )

@@ -57,6 +57,7 @@ macro(generate_doc_dependency PKG FILENAME LEVEL)
   set(_n_dependencies 0)
 
   if (${PKG}_dependencies)
+#    message("AAAAAAAAAA " ${PKG}_dependencies)
     list(LENGTH ${PKG}_dependencies _n_dependencies)
   endif()
 
