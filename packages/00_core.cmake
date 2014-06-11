@@ -310,6 +310,8 @@ set(AKANTU_CORE_MANUAL_FILES
   figures/insertion.pdf
   figures/interpolate.pdf
   figures/interpolate.svg
+  figures/problemDomain.pdf_tex
+  figures/problemDomain.pdf
   figures/static_analysis.png
   figures/stress_strain_el.pdf
   figures/tangent.pdf
