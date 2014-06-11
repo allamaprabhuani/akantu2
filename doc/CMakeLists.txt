@@ -29,7 +29,7 @@
 
 find_package(Doxygen REQUIRED)
 
-if(DOXYGEN_FOUND AND AKANTU_DOXYGEN_DOCUMENTATION)
+if(DOXYGEN_FOUND AND AKANTU_DOCUMENTATION_DOXYGEN)
   set(DOXYGEN_WARNINGS NO)
   set(DOXYGEN_QUIET YES)
   if(CMAKE_VERBOSE_MAKEFILE)
@@ -91,6 +91,6 @@ endforeach()
 
 set(AKANTU_DOC_EXCLUDE_FILES ${_akantu_doc_exclude_files} CACHE INTERNAL "Documentation files to excluse from Akantu Package" FORCE)
 
-if (AKANTU_MANUAL_DOCUMENTATION)
+if (AKANTU_DOCUMENTATION_MANUAL)
   add_subdirectory(manual)
 endif()

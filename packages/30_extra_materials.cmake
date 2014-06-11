@@ -106,6 +106,7 @@ set(AKANTU_EXTRA_MATERIALS_MANUAL_FILES
   figures/stress_strain_neo.pdf
   figures/stress_strain_visco.pdf
   figures/visco_elastic_law.pdf
+  figures/isotropic_hardening_plasticity.pdf
   )
 
 set(AKANTU_EXTRA_MATERIALS_DOCUMENTATION "

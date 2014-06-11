@@ -133,7 +133,7 @@ add_subdirectory(src)
 #===============================================================================
 # Documentation
 #===============================================================================
-if(AKANTU_DOXYGEN_DOCUMENTATION OR AKANTU_MANUAL_DOCUMENTATION)
+if(AKANTU_DOCUMENTATION_DOXYGEN OR AKANTU_DOCUMENTATION_MANUAL)
   add_subdirectory(doc)
 else()
   set(AKANTU_DOC_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/doc/manual" CACHE INTERNAL "")

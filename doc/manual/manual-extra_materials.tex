@@ -198,6 +198,7 @@ This damage evolution law is energy based as defined by Marigo \cite{marigo81a,
 In this formulation $Y$ is the strain  energy release rate, $Y_d$ is the rupture
 criterion and  $S$ is the damage  energy.  The non-local version  of this damage
 evolution law is constructed by averaging the energy $Y$.
+
 \item \textbf{Mazars}
 This law introduced by Mazars \cite{mazars84a}. It is a behavioral model to
 represent damage evolution in concrete. The governing variable in this damage
@@ -210,11 +211,16 @@ The damage the is defined as:
   D_t &= 1 - \frac{\kappa_0 (1- A_t)}{\varepsilon_{\st{eq}}} - A_t \exp^{-B_t(\varepsilon_{\st{eq}}-\kappa_0)}\\
   D_c &= 1 - \frac{\kappa_0 (1- A_c)}{\varepsilon_{\st{eq}}} - A_c
   \exp^{-B_c(\varepsilon_{\st{eq}}-\kappa_0)}\\
-  \alpha_t &= \frac{\sum_{i=1}^3<\varepsilon>_+\varepsilon_{\st{nd}}}{\varepsilon_{\st{eq}}^2}
+  \alpha_t &= \frac{\sum_{i=1}^3<\varepsilon_i>_+\varepsilon_{\st{nd}\;i}}{\varepsilon_{\st{eq}}^2}
 \end{align}
 With $\kappa_0$ the damage threshold, $A_t$ and $B_t$ the damage parameter in
-traction, $A_c$ and $B_c$ the damage parameter in compression, finally $\beta$
-is the shear parameter. The coefficient $A$ and $B$ are the post-pic asymptotic
+traction, $A_c$ and $B_c$ the damage parameter in compression, $\beta$ is the
+shear parameter. $\alpha_t$ is the coupling parameter between traction and
+compression, the $\varepsilon_i$ are the eigenstrain and the
+$\varepsilon_{\st{nd}\;i}$ are the eigen value of the strain if the material
+would be sound.
+
+The coefficient $A$ and $B$ are the post-pic asymptotic
 value and the decay shape parameters.
 \end{itemize}
 
