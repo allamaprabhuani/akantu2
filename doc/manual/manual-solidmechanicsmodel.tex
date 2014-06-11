@@ -1,5 +1,4 @@
-\chapter{Solid Mechanics
-Model\index{SolidMechanicsModel}\label{sect:smm}}
+\chapter{Solid MechanicsModel\index{SolidMechanicsModel}\label{sect:smm}}
 
 The solid mechanics model is a specific implementation of the
 \code{Model} interface dedicated to handle the equations of motion or
@@ -55,8 +54,7 @@ presented in the next sections.
 
 \section{Model setup}
 
-\subsection{Setting initial
-conditions \label{sect:smm:initial_condition}}
+\subsection{Setting initial conditions \label{sect:smm:initial_condition}}
 
 For a unique solution of the equations of motion initial displacements
 and velocities at time $t=0$ at all degrees of freedom must be
@@ -101,10 +99,11 @@ the gradient of the solution needs to take at the boundary
   \vec{t} = \mat{\sigma} \vec{n} = \vec{\bar t} \quad
   \forall \vec{x}\in \Gamma_{t}
 \end{equation}
-\begin{figure}[!htb] \centering
-  \includegraphics[scale=0.6]{figures/boundary}
-  \caption{Problem boundary in two
-dimensions.\label{fig:smm:boundaries}}
+\begin{figure} \centering
+\def\svgwidth{0.5\columnwidth}
+  \input{figures/problemDomain.pdf_tex}
+  \caption{Problem domain $\Omega$ with boundary in three dimensions. The Dirchelet and the Neumann regions of the boundary are denoted with $\Gamma_u$ and $\Gamma_t$, respecitvely.\label{fig:smm:boundaries}}
+  \label{fig:problemDomain}
 \end{figure}
 
 Different ways of imposing these boundary conditions exist. A basic
