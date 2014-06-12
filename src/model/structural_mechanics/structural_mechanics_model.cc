@@ -620,7 +620,7 @@ void StructuralMechanicsModel::addDumpFieldToDumper(const std::string & dumper_n
   } else n = 3;
 
   if(field_id == "displacement" ) { ADD_FIELD(dumper_name, "displacement", displacement_rotation, Real,
-						  n, nb_degree_of_freedom - n); }
+						  n, 0); }
   else if(field_id == "rotation") { ADD_FIELD(dumper_name, "rotation", displacement_rotation, Real,
 						  nb_degree_of_freedom - n, n); }
   else if(field_id == "force"   ) { ADD_FIELD(dumper_name, "force", force_momentum, Real,

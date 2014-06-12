@@ -153,7 +153,7 @@ int main(int argc, char *argv[]){
   model.getStiffnessMatrix().saveMatrix("Kb.mtx");
   UInt count = 0;
 
-  model.addDumpField("displacememt");
+  model.addDumpField("displacement");
   model.addDumpField("rotation");
   model.addDumpField("force");
   model.addDumpField("momentum");

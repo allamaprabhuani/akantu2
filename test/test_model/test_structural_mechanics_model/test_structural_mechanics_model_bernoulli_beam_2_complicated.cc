@@ -66,7 +66,6 @@ int main(int argc, char *argv[]){
 
   akantu::MeshIOMSHStruct mesh_io;
   mesh_io.read("complicated.msh", beams);
-  mesh_io.write("complicated_tata.msh", beams);
 
   /* -------------------------------------------------------------------------- */
   // Defining the material
@@ -103,9 +102,6 @@ int main(int argc, char *argv[]){
   Array<Real> & forces = model.getForce();
   Array<Real> & displacement = model.getDisplacement();
   Array<bool> & boundary = model.getBlockedDOFs();
-  //  const Array<Real> & N_M  = model.getStress(_bernoulli_beam_2);
-
-  //  Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
 
   forces.clear();
   displacement.clear();

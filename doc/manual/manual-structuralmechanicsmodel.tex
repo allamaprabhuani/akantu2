@@ -24,12 +24,14 @@ mesh.
 \vspace{1cm}
 This model contains at least the following \code{Arrays}:
 \begin{description}
-\item[boundary]  contains a  boolean  value for  each  degree of  freedom
+\item[blocked\_dofs]  contains a  boolean  value for  each  degree of  freedom
   specifying  whether  that degree  is  blocked  or  not. A  Dirichlet  boundary
-  condition can be prescribed by setting the \textbf{boundary} value of a degree
-  of freedom to  \code{true}.  A Neumann boundary condition  can  be applied
-  by setting the corresponding  \textbf{boundary} value to  \code{false}.
-  The \textbf{displacement} is computed for all degrees of freedom for which the \textbf{boundary} value is set to \code{false}. For the remaining degrees of freedom, the imposed values (zero by default after initialization) are kept.
+  condition can be prescribed by setting the \textbf{blocked\_dofs} value of a 
+degree
+  of freedom to  \code{true}. The \textbf{displacement} is computed for all 
+degrees of freedom for which the \textbf{blocked\_dofs} value is set to 
+\code{false}. For the remaining degrees of freedom, the imposed values (zero by 
+default after initialization) are kept.
   
 
   
@@ -55,20 +57,6 @@ next section.
 
 \subsection{Initialization}
 The easiest way to initialize the structural mechanics model is:
-%\begin{cpp}
-%  model.initModel();
-%  
-%  StructuralMaterial mat1;
-%  mat1.E=2.05e11;
-%  mat1.I=0.00128;
-%  mat1.A=0.01; // for example
-%
-%  model.addMaterial(mat1); ASK NICO ABOUT THIS CRAP
-%
-%  model.initArrays();
-%  model.initImplicitSolver();
-%\end{cpp}
-%The method \code{initModel} computes the shape functions, \code{addMaterial} sets the material parameters to be used, \code{initArrays} initializes all the internal arrays mentioned before and \code{initImplicitSolver} creates the stiffness matrix.
 
 \begin{cpp}
   model.initFull();
@@ -78,7 +66,7 @@ The method \code{initFull} computes the shape functions, initializes the interna
 Material  properties are  defined using  the \code{StructuralMaterial}
 structure described in Table~\ref{tab:structMechMod:strucMaterial}. Such a definition could for instance look like
 \begin{cpp}
-  StructuralMaterial mat;
+  StructuralMaterial mat1;
   mat.E=3e10;
   mat.I=0.0025;
   mat.A=0.01;
@@ -91,7 +79,8 @@ structure described in Table~\ref{tab:structMechMod:strucMaterial}. Such a defin
     \code{I} & Second cross sectional  moment of inertia (for 2D elements)
     \\\hline \code{Iy} & \code{I}  around beam $y$--axis (for 3D elements)
     \\\hline \code{Iz} & \code{I}  around beam $z$--axis (for 3D elements)
-    \\\hline \code{GJ}  & Polar  moment of inertia  of beam  cross section (for 3D elements)
+    \\\hline \code{GJ}  & Polar  moment of inertia  of beam  cross section 
+(for 3D elements)
   \end{tabular}
   \caption{Material properties  for structural elements  as defined by
 the structure \code{StructuralMaterial}.}
@@ -99,17 +88,42 @@ the structure \code{StructuralMaterial}.}
 \end{table}
 Materials can be added to the model's \code{element\_material} vector using
 \begin{cpp}
-  model.addMaterial(material);
+  model.addMaterial(mat1);
 \end{cpp}
 
-They are used just like for the \code{SolidMechanicsModel}
-see Section~\ref{sect:smm:CL}.
+They are successively numbered and then assigned to specific elements.
+\begin{cpp}
+for (UInt i = 0; i < nb_element_mat_1; ++i) {
+    model.getElementMaterial(_bernoulli_beam_2)(i,0) = 1;
+  }
+\end{cpp}
+
 \subsection{Setting boundary conditions}\label{sect:structMechMod:boundary}
 
-Both Dirichlet  and Neumann  type boundary conditions  are applied to  nodes the
-same     exact    way     as     for    \code{SolidMechanicsModel},     see
-Section~\ref{sect:smm:boundary}.   The  method  \code{computeForcesFromFunction}
-can still be used to apply Neumann boundary conditions.
+As explained before, the Dirichlet boundary conditions are applied through the 
+array \textbf{blocked\_dofs}. Two options exist to define Neumann conditions. 
+If a 
+nodal force is applied, it has to be directly set in the array 
+\textbf{force\_momentum}. For loads distributed along the beam length, the 
+method  
+\code{computeForcesFromFunction} integrates them into nodal forces. 
+The method takes as input a function describing the distribution of loads 
+along the beam and a \code{BoundaryFunctionType} specifing if the function is 
+expressed in the local coordinates (\code{\_bft\_traction\_local}) 
+or in the global system of coordinates (\code{\_bft\_traction}).
+\begin{cpp}
+ static void lin_load(double * position, double * load,
+		      Real * normal, UInt surface_id){
+  memset(load,0,sizeof(Real)*3);
+  load[1] = position[0]*position[0]-250;
+}
+int main(int argc, char *argv[]){
+...
+model.computeForcesFromFunction<_bernoulli_beam_2>(lin_load,
+                                                   _bft_traction_local);
+...}
+\end{cpp}
+
 
 \section{Static analysis\label{sect:structMechMod:static}}
 
@@ -123,13 +137,9 @@ where  $\mat{K}$ is  the  global stiffness  matrix,  $\vec{u}$ the  generalized 
 vector  and  $\vec{f_{\st{ext}}}$ the  vector of generalized external  forces   applied to  the
 system.
 
-
 To     solve    such     a    problem,     the    static     solver     of    the
 \code{StructuralMechanicsModel}\index{StructuralMechanicsModel}  object is used.   First a
-model has to be  created and initialized.  To create the model,  a mesh is required.
-Once an instance of a \code{StructuralMechanicsModel} is obtained, the easiest way to
-initialize it is  to use the \code{initFull}\index{StructuralMechanicsModel!initFull}
-function.
+model has to be  created and initialized.
 
 \begin{cpp}
   StructuralMechanicsModel model(mesh);
@@ -161,7 +171,7 @@ Section~\ref{sect:smm:static}.
 \note{To date,
 \code{StructuralMechanicsModel} handles only constitutively and
 geometrically linear problems, the algorithm is therefore guaranteed
-to converge in one iteration.}
+to converge in two iterations.}
 
 \begin{cpp}
   model.updateResidual();
@@ -174,24 +184,26 @@ to converge in one iteration.}
 \item \code{model.updateResidual} assembles the  internal forces and removes them
   from the external forces.
 \item        \code{model.solve}         solves        the        equations
-  (\ref{eqn:smm:static-newton-raphson}).   The \textbf{increment} vector  of the
+  (\ref{eqn:structMechMod:static}).   The \textbf{increment} vector  of the
   model   will   contain  the   new   increment   of   displacements,  and   the
-  \textbf{displacement} vector is also updated to the new displacements.
+  \textbf{displacement\_rotation} vector is also updated to the new 
+displacements.
 \end{itemize}
 
 At   the  end   of  the   analysis, the   final  solution   is  stored   in  the
-\textbf{displacement}  vector.  A  full example  of  how to  solve a  structural
+\textbf{displacement\_rotation}  vector.  A  full example  of  how to  solve a  
+structural
 mechanics       problem        is       presented       in        the       code
-\shellcode{\examplesdir/WHERE-DO-EXAMPLES-GO?}\todo{set the right example file}.  This  example is composed  of a 2D
-beam, clamped at  the left end and  supported by two rollers as  shown in Figure
-\ref{fig:structMechMod:exem1_1}.  The problem  is  defined by  the applied  load
-$q=\unit{6}{\kilo\newton\per\metre}$,          moment         $\bar{M}         =
-\unit{3.6}{\kilo\newton\metre}$,      moments     of     inertia      $I_1     =
-\unit{250\,000}{\power{\centi\metre}{4}}$           and          $I_2          =
-\unit{128\,000}{\power{\centi\metre}{4}}$ and  lengths $L_1 = \unit{10}{\metre}$
-and $L_2 = \unit{8}{\metre}$.  The resulting rotations at node two and three are
-$ \varphi_2 = 0.001\,167\ \mbox{and}\ \varphi_3 = -0.000\,771.$
-
+\shellcode{\examplesdir/structural\_mechanics/bernoulli\_beam\_2\_example.cc}.  
+This  example is composed  of a 2D beam, clamped at  the left end and  supported 
+by two rollers as  shown in Figure \ref{fig:structMechMod:exem1_1}.  The problem 
+ is  defined by  the applied  load $q=\unit{6}{\kilo\newton\per\metre}$,         
+ moment         $\bar{M}         = \unit{3.6}{\kilo\newton\metre}$,      moments 
+    of     inertia      $I_1     = \unit{250\,000}{\power{\centi\metre}{4}}$     
+      and          $I_2          = \unit{128\,000}{\power{\centi\metre}{4}}$ and 
+ lengths $L_1 = \unit{10}{\metre}$ and $L_2 = \unit{8}{\metre}$.  The resulting 
+rotations at node two and three are $ \varphi_2 = 0.001\,167\ \mbox{and}\ 
+\varphi_3 = -0.000\,771.$
 
  \begin{figure}[htb]
    \centering
