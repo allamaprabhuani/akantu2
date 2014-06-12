@@ -95,8 +95,7 @@ In the von Mises yield criterion, the hydrostatic stresses have no effect on the
 \end{equation}
 
 \begin{equation} \label{eqn:smm:constitutive:yielding}
- 	f < 0 \   \  Elastic \  \ deformation, \                                   \
-	f = 0 \   \  Plastic \  \ deformation
+ 	f < 0 \quad \textrm{Elastic deformation,} \qquad f = 0 \quad  \textrm{Plastic deformation}
 \end{equation}
 
 where $\sigma_y$ is the yield strength of the material which can be function of plastic strain in case of hardening type of materials and ${\mat{\sigma}}^{\st{tr}}$ is the deviatoric part of stress given by
@@ -189,6 +188,8 @@ mandatory parameters for the material file are the following:
 ratio), \code{Plane\_Stress} (if set to zero plane strain, otherwise
 plane stress), \code{eta} (dashpot viscosity) and \code{Ev} (stiffness
 of the viscous element).
+
+Note that the current standard linear solid model is applied only on the deviatoric part of the strain tensor. The spheric part of the strain tensor affects the stress tensor like an linear elastic material.
 
 \subsection{Damage}
 
