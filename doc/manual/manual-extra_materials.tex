@@ -45,7 +45,7 @@ Piola-Kirchhoff stress tensor $\mat{S}$:
 Finally the second Piola-Kirchhoff stress tensor is given by:
 
 \begin{equation}
-  \mat{S}  = 2\frac{\partial\Psi}{\partial\mat{C}} = \lambda_0\ln J 
+  \mat{S}  = 2\frac{\partial\Psi}{\partial\mat{C}} = \lambda_0\ln J
 \mat{C}^{-1}+\mu_0\left(\mat{I}-\mat{C}^{-1}\right)
 \end{equation}
 
@@ -246,7 +246,76 @@ were undamaged.
 The coefficients $A$ and $B$ are the post-peak asymptotic
 value and the decay shape parameters.
 
-%%% Local Variables: 
+
+\subsection{Summary}\index{Material!List}
+
+The list of all the materials available in Akantu is summarized in Tables \ref{tab:smm:cl:summary:list} as well as the keyword required for each material and the assosiated material properties.
+
+\begin{table}[h!]
+  \begin{center}
+\begin{tabular}[c]{ m{3.5cm} | l | c | p{3.5cm} }
+Material & Keyword & Parameter & Description \\
+\hline
+%%%%%%%%%%%%%%%%%
+Linear elastic isotropic & \code{elastic} & -  & Table \ref{tab:smm:cl:summary:base}\\
+\hline
+%%%%%%%%%%%%%%%%%%
+Linear elastic orthotropic  & \code{elastic\_orthotropic} & \code{Cij} & Tangent matrix coefficients (i,j = 1,2, ... voigt size ) \\
+\hline
+%%%%%%%%%%%%%%%%%%
+Linear elastic anisotropic  & \code{elastic\_anisotropic} & \code{n1} & Direction of main material axis \\
+ & & \code{n2} & Direction of secondary material axis \\
+ & & \code{n3} & Direction of tertiery material axis \\
+ & & \code{Cij} & Tangent matrix coefficients (i,j = 1,2, ... voigt size ) \\
+ & & \code{alpha} & Proportion of viscous stress\\
+\hline
+%%%%%%%%%%%%%%%%%%
+Neohookean (Finite-strain) \cite{Belytschko:2000} & \code{neohookean} & -  & Table \ref{tab:smm:cl:summary:base}\\
+\hline
+%%%%%%%%%%%%%%%%%%
+Standard linear solid \cite{simo92} & \multirow{2}{*}{\code{sls\_deviatoric}} & - & Table \ref{tab:smm:cl:summary:base}\\
+ & &  \code{Eta} & Viscosity\\
+ & & \code{Ev} & Stiffness of the viscous element \\
+\hline
+%%%%%%%%%%%%%%%%%%
+Elasto-plastic linear isotropic hardening & \code{plastic\_linear\_isotropic\_hardening}  & - & Table \ref{tab:smm:cl:summary:base}\\
+ & &  \code{h} & Hardening modulus\\
+ & &  \code{sigma\_y} & Yielding stress\\
+\hline
+%%%%%%%%%%%%%%%%%%
+Visco-plastic & \code{visco\_plastic}  & - & Table \ref{tab:smm:cl:summary:base}\\
+ & &  \code{rate} & Rate sensitivity component\\
+ & &  \code{edot0} & Reference strain rate\\
+ & &  \code{ts} & Time \\
+\hline
+\end{tabular}
+\end{center}
+  \caption{List of material properties with their corresponding keywords and material parameters.}
+  \label{tab:smm:cl:summary:list}
+\end{table}
+
+\vspace{0.5cm}
+
+In addition to the properties presented in Table \ref{tab:smm:cl:summary:list}, every material also has the parameter ''\code{rho}`` which corresponds to the density. The properties listed in Table  \ref{tab:smm:cl:summary:base} correspond to the parameters required to describe a linear elastic isotropic material, however those parameters are also commun to most of the materials available as previously described in Table \ref{tab:smm:cl:summary:list}.
+
+\begin{table}[h!]
+  \begin{center}
+\begin{tabular}[c]{  l | p{6.5cm} }\label{tab:smm:cl:summary:base}
+Parameter & Description \\
+\hline
+%%%%%%%%%%%%%%%%%
+\code{rho}  & Density\\
+\code{E}  & Young's modulus\\
+\code{nu}  & Poisson's ratio\\
+\code{Plane\_Stress} & Plane stress simplification (only 2D problems)\\
+\hline
+\end{tabular}
+\end{center}
+  \caption{List of material parameters shared my most materials}
+  \label{tab:smm:cl:summary:base}
+\end{table}
+
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"
-%%% End: 
+%%% End:
