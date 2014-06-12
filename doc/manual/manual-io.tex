@@ -1,17 +1,17 @@
-\chapter{Input/output}\index{I\/O}
+\chapter{Input / output}\index{I\/O}
 
-In this chapter, the problem of getting the internal data in a human readable way
-will be addressed. The models in \akantu handle data associated to your
-mesh, but this data can be split in many \code{Vectors}. For example, the
+In this chapter, the ways to get the internal data in a human readable formats
+will be addressed. The models in \akantu handle data associated to the
+mesh, but this data can be splitted into several \code{Vectors}. For example, the
 data stored per element type in a \code{ByElementTypeVector} is composed by as
 many vectors as types in the mesh.
 
-To help you get this data into a visualization software, the models contain a
+In order to get this data in a visualization software, the models contain a
 object to dump \code{VTK} files. These files can be visualized in software such
 as \code{ParaView}\cite{paraview}, \code{ViSit}\cite{visit} or \code{Mayavi}\cite{mayavi}.
 
 The internal dumper of the model can be configured to specify which data fields
-are to be output. This is done with the
+are to be written. This is done with the
 \code{addDumpField}\index{I\/O!addDumpField} method. By default all the files
 are generated in a folder called \code{paraview/}
 
@@ -25,17 +25,15 @@ are generated in a folder called \code{paraview/}
   model.dump()
 \end{cpp}
 
-The fields are dumped with the number of component they have in memory. In 2D, for
-example, vectors have 2 components and $2^{nd}$ order tensors have $2\times2$
-components.  This can be changed by using
-\code{addDumpFieldVector}\index{I\/O!addDumpFieldVector} which always dumps
-vectors with 3 components or
-\code{addDumpFieldTensor}\index{I\/O!addDumpFieldTensor} which dumps $2^{nd}$
-order tensors with $3\times3$ components.
+The fields are dumped with the number of components of the memory. For example, in 2D, the memory have 
+the vectors of 2 components, or the $2^{nd}$ order tensors with $2\times2$ components.  
+This memory can be dealt with \code{addDumpFieldVector}\index{I\/O!addDumpFieldVector} which always dumps
+vectors with 3 components or \code{addDumpFieldTensor}\index{I\/O!addDumpFieldTensor} which dumps $2^{nd}$
+order tensors with $3\times3$ components respectively.
 
 The fields which are stored by quadrature points are modified to be seen in the
 \code{VTK} file as elemental data. To do this, the default is to average the
-values of the quadrature points.
+values of all the quadrature points.
 
 The list of fields depends on the models.
 

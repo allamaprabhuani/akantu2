@@ -8,19 +8,19 @@ These elements allow to compute the displacements and rotations of structures co
 \begin{figure}[htb]
   \centering
   \includegraphics[width=0.3\textwidth]{figures/elements/bernoulli_2}
-  \caption{Schematic depiction of a Bernoulli beam element (applies to 2D and 3D) in \akantu. The node numbering as used in \akantu is indicated and also the quadrature points are highlighted (gray circles).}
+  \caption{Schematic depiction of a Bernoulli beam element (applied to 2D and 3D) in \akantu. The node numbering as used in \akantu is indicated, and also the quadrature points are highlighted (gray circles).}
   \label{fig:elements:bernoulli}
 \end{figure}
 \begin{table}[htb]
   \centering
   \begin{tabular}{c|cccc}
     \toprule
-    Element type &\#nodes &\#quad. points & \#dimensions & \#d.o.f.\\
+    Element type                  & \# Order & \# nodes &\# quad. points & \# d.o.f.\\
     \midrule
-    \texttt{\_bernoulli\_beam\_2} & 2&3 &2 &4\\
-    \texttt{\_bernoulli\_beam\_3} & 2&3 &3 &6\\
+    \texttt{\_bernoulli\_beam\_2} &         2&         2&              3&  4\\
+    \texttt{\_bernoulli\_beam\_3} &         3&         2&              3&  6\\
     \bottomrule
   \end{tabular}
-  \caption{Some basic properties of \akantu's beam elements}
+  \caption{Some basic properties of the beam elements in \akantu}
   \label{tab:elements:bernoulli}
 \end{table}
