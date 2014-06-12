@@ -3,9 +3,9 @@
 
 In this chapter, we address ways to get the internal data in human readable formats.
 The models in \akantu handle data associated to the
-mesh, but this data can be split into several \code{Vectors}. For example, the
-data stored per element type in a \code{ByElementTypeVector} is composed by as
-many vectors as types in the mesh.
+mesh, but this data can be split into several \code{Arrays}. For example, the
+data stored per element type in a \code{ElementTypeMapArray} is composed by as
+many \code{Array}s as types in the mesh.
 
 In order to get this data in a visualization software, the models contain a
 object to dump \code{VTK} files. These files can be visualized in software such
@@ -26,10 +26,10 @@ are generated in a folder called \code{paraview/}
   model.dump()
 \end{cpp}
 
-The fields are dumped with the number of components of the memory. For example, in 2D, the memory have 
-the vectors of 2 components, or the $2^{nd}$ order tensors with $2\times2$ components.  
-This memory can be dealt with \code{addDumpFieldVector}\index{I\/O!addDumpFieldVector} which always dumps
-vectors with 3 components or \code{addDumpFieldTensor}\index{I\/O!addDumpFieldTensor} which dumps $2^{nd}$
+The fields are dumped with the number of components of the memory. For example, in 2D, the memory has 
+\code{Array}s of 2 components, or the $2^{nd}$ order tensors with $2\times2$ components.  
+This memory can be dealt with \code{addDumpFieldArray}\index{I\/O!addDumpFieldArray} which always dumps
+\code{Arrays} with 3 components or \code{addDumpFieldTensor}\index{I\/O!addDumpFieldTensor} which dumps $2^{nd}$
 order tensors with $3\times3$ components respectively.
 
 Those fields which are stored by quadrature point are modified to be seen in the
@@ -45,13 +45,13 @@ The list of fields depends on the models.
   \toprule
   key          &    type      & support \\
   \midrule
-  displacement & Vector<Real> & nodes  \\
-  velocity     & Vector<Real> & nodes  \\
-  acceleration & Vector<Real> & nodes  \\
-  force	       & Vector<Real> & nodes  \\
-  residual     & Vector<Real> & nodes  \\
-  boundary     & Vector<bool> & nodes  \\
-  mass         & Vector<Real> & nodes  \\
+  displacement & Array<Real> & nodes  \\
+  velocity     & Array<Real> & nodes  \\
+  acceleration & Array<Real> & nodes  \\
+  force	       & Array<Real> & nodes  \\
+  residual     & Array<Real> & nodes  \\
+  boundary     & Array<bool> & nodes  \\
+  mass         & Array<Real> & nodes  \\
   partitions   & Real         & elements \\
   stress & Matrix<Real> & quadrature points  \\
   strain & Matrix<Real> & quadrature points  \\
@@ -65,15 +65,15 @@ The user can also register external fields which have the same mesh as the mesh 
 \begin{itemize}
 \item For nodal fields :
 \begin{cpp}
-  Vector<T> vect(nb_nodes, nb_component);
-  Field field = new DumperIOHelper::NodalField<T>(vect));
+  Array<T> arr(nb_nodes, nb_component);
+  Field field = new DumperIOHelper::NodalField<T>(arr));
   model.addDumpFieldExternal("my_field", field);
 \end{cpp}
 
 \item For elemental fields :
 \begin{cpp}
-  ByElementTypeVector<T> vect;
-  Field field = new DumperIOHelper::ElementalField<T>(vect, spatial_displacement));
+  ElementTypeMapArray<T> arr;
+  Field field = new DumperIOHelper::ElementalField<T>(arr, spatial_displacement));
   model.addDumpFieldExternal("my_field", field);
 \end{cpp}
 \end{itemize}
