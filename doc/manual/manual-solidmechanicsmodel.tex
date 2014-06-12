@@ -717,7 +717,7 @@ used to compute the element's stresses from the element's strains.
 In the finite-element discretization, the constitutive formulation is
 applied to every quadrature point of each element. When the implicit
 formulation is used, the tangent matrix has to be computed.
-
+ 
 The chosen materials for the simulation have to be specified in the
 mesh file or, as an alternative, they can be assigned using the
 \code{element\_material} vector.  For every material assigned to the
@@ -743,10 +743,38 @@ initialize("material.dat", argc, argv);
 % \begin{cpp}
 % model.initFull("material.dat");
 % \end{cpp}
+
+In order to conveniently store stresses and strains at each quadrature
+point \akantu provides a special data structure, the
+\code{InternalField}. The internal field is inheriting from the
+\code{ElementTypeMapArray}. It has a reference to the material to
+which it belongs. Furthermore, it provides several functions for
+initialization, resizing and removal of quadrature points. These
+functions are for instance used inside the materials, if elements are
+removed from one material and inserted into another one.
+
+Sometimes it is also desired to generate random distributions of
+internal values. An example might be the critical stress at which the
+material fails. To generate such a field, in the material input file,
+a random quantity needs be added to the base value:
+\begin{cpp}
+  sigma_c = $base$ uniform [$minimum$, $maximum$]
+  sigma_c = $base$ weibull [$lambda$, $m$]
+\end{cpp}
+All parameters are real numbers. For the uniform distribution, minimum
+and maximum values have to be specified. The Weibull distribution is
+characterized by the following cumulative distribution function:
+\begin{equation}
+    F(\sigma_\mathrm{c}) = 1- e^{-\left(
+      \frac{\sigma_c-\sigma_\mathrm{c, min}}{\lambda} \right)^m}
+\end{equation}
+which depends on $\sigma_\mathrm{c, min}$, which is the minimum value,
+and $m$ and $\lambda$, which are the shape parameter and the scale
+parameter.
+
 The following sections describe the constitutive models implemented in
 \akantu. In Appendix~\ref{app:material-parameters} a summary of the
 parameters for all materials of \akantu is provided.
-
 \subsection{Elasticity}\index{Material!Elastic}
 The elastic law is a commonly used constitutive relationship that can
 be used for a wide range of engineering materials (\eg metals,

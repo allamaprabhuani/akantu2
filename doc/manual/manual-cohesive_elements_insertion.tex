@@ -16,15 +16,14 @@ the ranges. Then the method \code{insertIntrinsicElements} can be called.
 Subsequently, a cohesive model should be created and initialized as
 \begin{cpp}
   SolidMechanicsModelCohesive model(mesh);
-  model.initFull("material.dat");
+  model.initFull();
 \end{cpp}
 
 When extrinsic simulations are carried out, the model should be
 initialized as follows:
 \begin{cpp}
   SolidMechanicsModelCohesive model(mesh);
-  model.initFull("material.dat",
-     SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+  model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 \end{cpp}
 In order to check stress for automatic element insertion, it is
 necessary to call the following function in the main loop:
