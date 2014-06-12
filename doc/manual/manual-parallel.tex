@@ -39,7 +39,7 @@ An example of the initializing sequence and basic usage of the
 \begin{cpp}
 int main(int argc, char *argv[])
 {
-  initialize(argc, argv);
+  initialize("material.dat", argc, argv);
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
   Int psize = comm.getNbProc();
