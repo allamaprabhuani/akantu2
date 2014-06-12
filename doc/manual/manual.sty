@@ -98,6 +98,22 @@
   }
   {\bottomrule\end{tabular}}%\end{table*}}
 
+\usepackage{xparse}
+
+\NewDocumentEnvironment{MaterialDesc}{m m}{
+  Keyword: \code{#1}\\[.8ex]
+  \noindent Description here: \ref{#2}\\[0.8ex]
+  \noindent Parameters:\\[-4ex]
+  \begin{itemize}
+    \setlength{\topsep}{0ex}%
+    \setlength{\parsep}{0cm}%
+    \setlength{\itemsep}{0cm}%
+    \setlength{\parskip}{0cm}%
+  }{\end{itemize}}
+
+\newcommand{\matparam}[3]{\item \code{#1}: (\emph{#2}) #3}
+\newcommand{\matinherit}[1]{\usebox{#1}}
+
 % Nice coloring
 \usepackage[dvipsnames,usenames,table]{xcolor}
 \definecolor{RED}{rgb}{1,0,0}

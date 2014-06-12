@@ -36,12 +36,12 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   mesh_utils/cohesive_element_inserter.hh
   mesh_utils/cohesive_element_inserter.cc
 
-  fem/cohesive_element.cc
-  fem/shape_cohesive.hh
-  fem/cohesive_element.hh
-  fem/fe_engine_template_cohesive.cc
+  fe_engine/cohesive_element.cc
+  fe_engine/shape_cohesive.hh
+  fe_engine/cohesive_element.hh
+  fe_engine/fe_engine_template_cohesive.cc
 
-  fem/shape_cohesive_inline_impl.cc
+  fe_engine/shape_cohesive_inline_impl.cc
 
   model/solid_mechanics/materials/material_cohesive/cohesive_internal_field_tmpl.hh
   model/solid_mechanics/materials/material_cohesive/cohesive_internal_field.hh
@@ -81,6 +81,7 @@ set(AKANTU_COHESIVE_ELEMENT_DOC
   manual/manual-cohesive_elements.tex
   manual/manual-cohesive_elements_insertion.tex
   manual/manual-cohesive_laws.tex
+  manual-appendix-materials-cohesive.tex
   )
 
 set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES

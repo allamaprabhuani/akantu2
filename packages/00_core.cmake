@@ -65,42 +65,42 @@ set(AKANTU_CORE_FILES
   common/aka_voigthelper.hh
   common/aka_voigthelper.cc
 
-  fem/element_class.cc
-  fem/element_class.hh
-  fem/element_class_tmpl.hh
-  fem/element_classes/element_class_hexahedron_8_inline_impl.cc
-  fem/element_classes/element_class_pentahedron_6_inline_impl.cc
-  fem/element_classes/element_class_point_1_inline_impl.cc
-  fem/element_classes/element_class_quadrangle_4_inline_impl.cc
-  fem/element_classes/element_class_quadrangle_8_inline_impl.cc
-  fem/element_classes/element_class_segment_2_inline_impl.cc
-  fem/element_classes/element_class_segment_3_inline_impl.cc
-  fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
-  fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
-  fem/element_classes/element_class_triangle_3_inline_impl.cc
-  fem/element_classes/element_class_triangle_6_inline_impl.cc
+  fe_engine/element_class.cc
+  fe_engine/element_class.hh
+  fe_engine/element_class_tmpl.hh
+  fe_engine/element_classes/element_class_hexahedron_8_inline_impl.cc
+  fe_engine/element_classes/element_class_pentahedron_6_inline_impl.cc
+  fe_engine/element_classes/element_class_point_1_inline_impl.cc
+  fe_engine/element_classes/element_class_quadrangle_4_inline_impl.cc
+  fe_engine/element_classes/element_class_quadrangle_8_inline_impl.cc
+  fe_engine/element_classes/element_class_segment_2_inline_impl.cc
+  fe_engine/element_classes/element_class_segment_3_inline_impl.cc
+  fe_engine/element_classes/element_class_tetrahedron_10_inline_impl.cc
+  fe_engine/element_classes/element_class_tetrahedron_4_inline_impl.cc
+  fe_engine/element_classes/element_class_triangle_3_inline_impl.cc
+  fe_engine/element_classes/element_class_triangle_6_inline_impl.cc
 
-  fem/fe_engine.cc
-  fem/fe_engine.hh
-  fem/fe_engine_inline_impl.cc
-  fem/fe_engine_template.hh
-  fem/fe_engine_template_tmpl.hh
-  fem/geometrical_data_tmpl.hh
-  fem/geometrical_element.cc
-  fem/integration_element.cc
-  fem/integrator.hh
-  fem/integrator_gauss.hh
-  fem/integrator_gauss_inline_impl.cc
-  fem/interpolation_element.cc
-  fem/interpolation_element_tmpl.hh
-  fem/shape_functions.hh
-  fem/shape_functions_inline_impl.cc
-  fem/shape_lagrange.cc
-  fem/shape_lagrange.hh
-  fem/shape_lagrange_inline_impl.cc
-  fem/shape_linked.cc
-  fem/shape_linked.hh
-  fem/shape_linked_inline_impl.cc
+  fe_engine/fe_engine.cc
+  fe_engine/fe_engine.hh
+  fe_engine/fe_engine_inline_impl.cc
+  fe_engine/fe_engine_template.hh
+  fe_engine/fe_engine_template_tmpl.hh
+  fe_engine/geometrical_data_tmpl.hh
+  fe_engine/geometrical_element.cc
+  fe_engine/integration_element.cc
+  fe_engine/integrator.hh
+  fe_engine/integrator_gauss.hh
+  fe_engine/integrator_gauss_inline_impl.cc
+  fe_engine/interpolation_element.cc
+  fe_engine/interpolation_element_tmpl.hh
+  fe_engine/shape_functions.hh
+  fe_engine/shape_functions_inline_impl.cc
+  fe_engine/shape_lagrange.cc
+  fe_engine/shape_lagrange.hh
+  fe_engine/shape_lagrange_inline_impl.cc
+  fe_engine/shape_linked.cc
+  fe_engine/shape_linked.hh
+  fe_engine/shape_linked_inline_impl.cc
 
   io/dumper/dumpable.hh
   io/dumper/dumpable_inline_impl.hh

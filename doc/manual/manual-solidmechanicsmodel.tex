@@ -716,120 +716,6 @@ displacement is equal to $\Delta u = \unit{0.05}{\metre}$. The
 potential, kinetic and total energies are computed.  The safety factor
 is equal to $0.1$.  The total simulated time is \unit{0.01}{\second}.
 
-\section{Constitutive Laws \label{sect:smm:CL}}\index{Material}
-In order to compute an element's response to deformation, one needs to
-use an appropriate constitutive relationship. The constitutive law is
-used to compute the element's stresses from the element's strains.
-
-In the finite-element discretization, the constitutive formulation is
-applied to every quadrature point of each element. When the implicit
-formulation is used, the tangent matrix has to be computed.
- 
-The chosen materials for the simulation have to be specified in the
-mesh file or, as an alternative, they can be assigned using the
-\code{element\_material} vector.  For every material assigned to the
-problem one has to specify the material characteristics (constitutive
-behavior and material properties) in a text file (\eg material.dat) as
-follows:
-\begin{cpp}
-  material %\emph{constitutive\_law}% [
-  name = %\emph{XXX}%
-  rho = %\emph{XXX}%
-  ...
-  ]
-\end{cpp}
-\index{Constitutive\_laws} where \emph{constitutive\_law} is the
-adopted constitutive law, followed by the material properties listed
-one by line in the bracket (\eg \code{name} and density
-\code{rho}). The file needs to be loaded in \akantu using the
-\code{initialize} method of \akantu (as shown in Section~\ref{sec:writing_main})
-\begin{cpp}
-initialize("material.dat", argc, argv);
-\end{cpp}
-% or, alternatively, the \code{initFull} method.
-% \begin{cpp}
-% model.initFull("material.dat");
-% \end{cpp}
-
-In order to conveniently store stresses and strains at each quadrature
-point \akantu provides a special data structure, the
-\code{InternalField}. The internal field is inheriting from the
-\code{ElementTypeMapArray}. It has a reference to the material to
-which it belongs. Furthermore, it provides several functions for
-initialization, resizing and removal of quadrature points. These
-functions are for instance used inside the materials, if elements are
-removed from one material and inserted into another one.
-
-Sometimes it is also desired to generate random distributions of
-internal values. An example might be the critical stress at which the
-material fails. To generate such a field, in the material input file,
-a random quantity needs be added to the base value:
-\begin{cpp}
-  sigma_c = $base$ uniform [$minimum$, $maximum$]
-  sigma_c = $base$ weibull [$lambda$, $m$]
-\end{cpp}
-All parameters are real numbers. For the uniform distribution, minimum
-and maximum values have to be specified. The Weibull distribution is
-characterized by the following cumulative distribution function:
-\begin{equation}
-    F(\sigma_\mathrm{c}) = 1- e^{-\left(
-      \frac{\sigma_c-\sigma_\mathrm{c, min}}{\lambda} \right)^m}
-\end{equation}
-which depends on $\sigma_\mathrm{c, min}$, which is the minimum value,
-and $m$ and $\lambda$, which are the shape parameter and the scale
-parameter.
-
-The following sections describe the constitutive models implemented in
-\akantu. In Appendix~\ref{app:material-parameters} a summary of the
-parameters for all materials of \akantu is provided.
-\subsection{Elasticity}\index{Material!Elastic}
-The elastic law is a commonly used constitutive relationship that can
-be used for a wide range of engineering materials (\eg metals,
-concrete, rock, wood, glass, rubber, etc.) provided that the strains
-remain small (\ie small deformation and stress lower than yield
-strength). The linear elastic behavior is described by Hooke's law,
-which states that the stress is linearly proportional to the applied
-strain (material behaves like an ideal spring), as illustrated in
-Figure~\ref{fig:smm:cl:elastic}.
-\begin{figure}[!htb]
-  \begin{center}
-
-    \subfloat[]{
-      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_el.pdf}
-      \label{fig:smm:cl:elastic:stress_strain} }
-    \hspace{0.05\textwidth} \subfloat[]{
-      \raisebox{0.125\textwidth}{\includegraphics[width=0.25\textwidth,keepaspectratio=true]{figures/hooke_law.pdf}}
-      \label{fig:smm:cl:elastic:hooke} }
-    \caption{(a) Stress-strain curve for elastic material and (b)
-      schematic representation of Hooke's law, denoted as a spring.}
-    \label{fig:smm:cl:elastic}
-  \end{center}
-\end{figure}
-The equation that relates the strains to the
-displacements is: % First the strain is computed (at every gauss
-point) from the displacements as follows:
-\begin{equation}
-\label{eqn:smm:strain_inf}
-\mat{\epsilon} =
-\frac{1}{2} \left[ \mat{F}-\mat{I}+(\mat{F}-\mat{I})^T \right]
-\end{equation}
-where $\mat{\epsilon}$ represents the infinitesimal strain tensor,
-$\mat{F} = \nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient
-tensor and $\mat{I}$ the identity matrix. The constitutive equation
-for isotropic homogeneous media can be expressed as:
-\begin{equation}
-\label{eqn:smm:material:constitutive_elastic}
-\mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu\mat{\epsilon}
-\end{equation}
-where $\mat{\sigma}$ is the Cauchy stress tensor
-($\lambda$ and $\mu$ are the the first and second Lame's
-coefficients). Besides the name and density, one has to specify the
-following properties in the material file: \code{E} (Young's modulus),
-\code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set
-to zero or not specified plane strain conditions are assumed for a
-plain analysis, otherwise plane stress conditions are applied).
-
-
 \input{manual-constitutive-laws}
 
 \section{Adding a New Constitutive Law}\index{Material!create a new
@@ -865,10 +751,17 @@ class MaterialXXX : public Material {
 
 };
 \end{cpp}  
-In the header file the user also needs to declare all the members of
-the new material. These include the parameters that a read from the
-material input file, as well as any other material parameters that will be computed during the simulation and internal variables.\\ 
-In the following the example of a new damage material will be presented. In this case the parameters in the material will consist of the Young's modulus, the Poisson coefficient, the resistance to damage and the damage threshold. The material will then from these values compute its Lam\'{e} coefficients and its bulk modulus. Furthermore, the user has to add a new internal variable \code{damage} in order to store the amount of damage at each quadrature point in each step of the simulation. For this specific material the member declaration inside the class will look like follows:
+In the header file the user also needs to declare all the members of the new
+material. These include the parameters that a read from the
+material input file, as well as any other material parameters that will be computed during the simulation and internal variables.\\
+In the following the example of a new damage material will be presented. In this
+case the parameters in the material will consist of the Young's modulus, the
+Poisson coefficient, the resistance to damage and the damage threshold. The
+material will then from these values compute its Lam\'{e} coefficients and its
+bulk modulus. Furthermore, the user has to add a new internal variable
+\code{damage} in order to store the amount of damage at each quadrature point in
+each step of the simulation. For this specific material the member declaration
+inside the class will look like follows:
 \begin{cpp}
 class LocalMaterialDamage : public Material {
 

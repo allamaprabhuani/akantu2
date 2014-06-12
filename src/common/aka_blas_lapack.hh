@@ -46,6 +46,7 @@ extern "C" {
   /* ------------------------------------------------------------------------ */
   //LEVEL 1
   double AKA_FC_GLOBAL(ddot, DDOT)(int *, double *, int *, double *, int *);
+
   //LEVEL 2
   int AKA_FC_GLOBAL(dgemv, DGEMV)(char *, int *, int *, double *, double *, int *,
                                   double *, int *, double *, double *, int *);
@@ -53,7 +54,6 @@ extern "C" {
   int AKA_FC_GLOBAL(dgemm, DGEMM)(char *, char *, int *, int *, int *, double *,
                                   double *, int *, double *, int *, double *,
                                   double *, int *);
-
   /* ------------------------------------------------------------------------ */
   /* Simple precision                                                         */
   /* ------------------------------------------------------------------------ */
@@ -66,7 +66,6 @@ extern "C" {
   int AKA_FC_GLOBAL(sgemm, SGEMM)(char *, char *, int *, int *, int *, float *,
                                   float *, int *, float *, int *, float *,
                                   float *, int *);
-
 }
 #endif
 

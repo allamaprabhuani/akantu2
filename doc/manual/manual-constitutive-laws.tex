@@ -1,5 +1,127 @@
-\subsection{Neo-Hookean}\index{Material!Neohookean}
+\section{Constitutive Laws \label{sect:smm:CL}}\index{Material}
+In order to compute an element's response to deformation, one needs to
+use an appropriate constitutive relationship. The constitutive law is
+used to compute the element's stresses from the element's strains.
 
+In the finite-element discretization, the constitutive formulation is
+applied to every quadrature point of each element. When the implicit
+formulation is used, the tangent matrix has to be computed.
+
+The chosen materials for the simulation have to be specified in the
+mesh file or, as an alternative, they can be assigned using the
+\code{element\_material} vector.  For every material assigned to the
+problem one has to specify the material characteristics (constitutive
+behavior and material properties) in a text file (\eg material.dat) as
+follows:
+\begin{cpp}
+  material %\emph{constitutive\_law}% %\emph{<optional flavor>}% [
+     name = $value$
+     rho = $value$
+     ...
+  ]
+\end{cpp}
+\index{Constitutive\_laws} where \emph{constitutive\_law} is the adopted
+constitutive law, followed by the material properties listed one by line in the
+bracket (\eg \code{name} and density \code{rho}). Some constitutive laws can
+also have an \emph{optional flavor}. For example a non-local constitutive law
+can be flavored by a weight function. The file needs to be loaded in \akantu
+using the \code{initialize} method of \akantu (as shown in
+Section~\ref{sec:writing_main})
+\begin{cpp}
+  initialize("material.dat", argc, argv);
+\end{cpp}
+% or, alternatively, the \code{initFull} method.
+% \begin{cpp}
+%   model.initFull("material.dat");
+% \end{cpp}
+
+In order to conveniently store values at each quadrature in a material
+point \akantu provides a special data structure, the
+\code{InternalField}. The internal fields are inheriting from the
+\code{ElementTypeMapArray}.  Furthermore, it provides several functions for
+initialization, auto-resizing and auto removal of quadrature points.
+
+Sometimes it is also desired to generate random distributions of
+internal parameters. An example might be the critical stress at which the
+material fails. To generate such a field, in the material input file,
+a random quantity needs be added to the base value:
+\begin{cpp}
+  sigma_c = $base$
+  sigma_c = $base$ uniform [$min$, $max$]
+  sigma_c = $base$ weibull [$\lambda$, $m$]
+\end{cpp}
+
+All parameters are real numbers. For the uniform distribution, minimum
+and maximum values have to be specified.
+Random parameters are defined as a $base$ value to which we add a random number
+that follows the chosen distribution.
+
+The
+\href{http://en.wikipedia.org/wiki/Uniform\_distribution\_(continuous)}{\emph{Uniform}}
+distribution is gives a random values between in $[min, max)$
+
+The \href{http://en.wikipedia.org/wiki/Weibull\_distribution}{\emph{Weibull}}
+distribution is characterized by the following cumulative distribution function:
+\begin{equation}
+  F(x) = 1- e^{-\left({x/\lambda}\right)^m}
+\end{equation}
+which depends on  $m$ and $\lambda$, which are the shape parameter and the scale
+parameter.
+
+The following sections describe the constitutive models implemented in
+\akantu. In Appendix~\ref{app:material-parameters} a summary of the
+parameters for all materials of \akantu is provided.
+
+
+\subsection{Elasticity\label{ssect:smm:linear-elastic}}\index{Material!Elastic}
+The elastic law is a commonly used constitutive relationship that can
+be used for a wide range of engineering materials (\eg metals,
+concrete, rock, wood, glass, rubber, etc.) provided that the strains
+remain small (\ie small deformation and stress lower than yield
+strength). The linear elastic behavior is described by Hooke's law,
+which states that the stress is linearly proportional to the applied
+strain (material behaves like an ideal spring), as illustrated in
+Figure~\ref{fig:smm:cl:elastic}.
+\begin{figure}[!htb]
+  \begin{center}
+
+    \subfloat[]{
+      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_el.pdf}
+      \label{fig:smm:cl:elastic:stress_strain} }
+    \hspace{0.05\textwidth} \subfloat[]{
+      \raisebox{0.125\textwidth}{\includegraphics[width=0.25\textwidth,keepaspectratio=true]{figures/hooke_law.pdf}}
+      \label{fig:smm:cl:elastic:hooke} }
+    \caption{(a) Stress-strain curve for elastic material and (b)
+      schematic representation of Hooke's law, denoted as a spring.}
+    \label{fig:smm:cl:elastic}
+  \end{center}
+\end{figure}
+The equation that relates the strains to the
+displacements is: % First the strain is computed (at every gauss
+point) from the displacements as follows:
+\begin{equation}
+  \label{eqn:smm:strain_inf}
+  \mat{\epsilon} =
+  \frac{1}{2} \left[ \mat{F}-\mat{I}+(\mat{F}-\mat{I})^T \right]
+\end{equation}
+where $\mat{\epsilon}$ represents the infinitesimal strain tensor,
+$\mat{F} = \nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient
+tensor and $\mat{I}$ the identity matrix. The constitutive equation
+for isotropic homogeneous media can be expressed as:
+\begin{equation}
+  \label{eqn:smm:material:constitutive_elastic}
+  \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu\mat{\epsilon}
+\end{equation}
+where $\mat{\sigma}$ is the Cauchy stress tensor
+($\lambda$ and $\mu$ are the the first and second Lame's
+coefficients). Besides the name and density, one has to specify the
+following properties in the material file: \code{E} (Young's modulus),
+\code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set
+to zero or not specified plane strain conditions are assumed for a
+plain analysis, otherwise plane stress conditions are applied).
+
+
+\subsection{Neo-Hookean\label{ssect:smm:cl:neohookean}}\index{Material!Neohookean}
 The hyperelastic Neo-Hookean constitutive law results from an
 extension of the linear elastic relationship (Hooke's Law) for large
 deformation. Thus, the model predicts nonlinear stress-strain behavior
@@ -48,9 +170,58 @@ The parameters to indicate in the material file are the same
 as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's
 ratio).
 
-\subsection{Small-Deformation Plasticity}\index{Material!Small-deformation Plasticity}
 
+\subsection{Visco-Elasticity}
 
+\label{ssect:smm:cl:sls}
+% Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes,
+% "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
+Visco-elasticity is characterized by strain rate dependent
+behavior. Moreover, when such a material undergoes a deformation it
+dissipates energy. This dissipation results in a hysteresis loop in
+the stress-strain curve at every loading cycle (see
+Figure~\ref{fig:smm:cl:visco-elastic:hyst}). In principle, it can be
+applied to many materials, since all materials exhibit a visco-elastic
+behavior if subjected to particular conditions (such as high
+temperatures).
+\begin{figure}[!htb]
+  \begin{center}
+
+    \subfloat[]{
+      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_visco.pdf}
+      \label{fig:smm:cl:visco-elastic:hyst}
+    }
+    \hspace{0.05\textwidth}
+    \subfloat[]{
+      \raisebox{0.025\textwidth}{\includegraphics[width=0.3\textwidth,keepaspectratio=true]{figures/visco_elastic_law.pdf}}
+      \label{fig:smm:cl:visco-elastic:model}
+    }
+    \caption{(a) Characteristic stress-strain behavior of a visco-elastic material with hysteresis loop and (b) schematic representation of the standard rheological linear solid visco-elastic model.}
+    \label{fig:smm:cl:visco-elastic}
+  \end{center}
+\end{figure}
+The standard rheological linear solid model (see Sections 10.2 and 10.3
+of~\cite{simo92}) has been implemented in \akantu. This model results from the
+combination of a spring mounted in parallel with a spring and a dashpot
+connected in series, as illustrated in
+Figure~\ref{fig:smm:cl:visco-elastic:model}. The advantage of this model is that
+it allows to account for creep or stress relaxation. The equation that relates
+the stress to the strain is (in 1D):
+\begin{equation}
+  \frac{d\epsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\epsilon(t) \right ]
+\end{equation}
+where $\eta$ is the viscosity. The equilibrium condition is unique and
+is attained in the limit, as $t \to \infty $. At this stage, the
+response is elastic and depends on the Young's modulus $E$.  The
+mandatory parameters for the material file are the following:
+\code{rho} (density), \code{E} (Young's modulus), \code{nu} (Poisson's
+ratio), \code{Plane\_Stress} (if set to zero plane strain, otherwise
+plane stress), \code{eta} (dashpot viscosity) and \code{Ev} (stiffness
+of the viscous element).
+
+Note that the current standard linear solid model is applied only on the deviatoric part of the strain tensor. The spheric part of the strain tensor affects the stress tensor like an linear elastic material.
+
+\subsection{Small-Deformation Plasticity\label{ssect:smm:cl:plastic}}\index{Material!Small-deformation Plasticity}
 The small-deformation plasticity is a simple plasticity material
 formulation which accounts for the additive decomposition of strain
 into elastic and plastic strain components. This formulation is
@@ -138,56 +309,6 @@ in the material file are: \code{$\sigma_y$} (Yield stress) and
 to be defined as previously mentioned: \code{E} (Young's modulus),
 \code{nu} (Poisson's ratio).
 
-
-\subsection{Visco-Elasticity}
-
-% Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes,
-% "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
-Visco-elasticity is characterized by strain rate dependent
-behavior. Moreover, when such a material undergoes a deformation it
-dissipates energy. This dissipation results in a hysteresis loop in
-the stress-strain curve at every loading cycle (see
-Figure~\ref{fig:smm:cl:visco-elastic:hyst}). In principle, it can be
-applied to many materials, since all materials exhibit a visco-elastic
-behavior if subjected to particular conditions (such as high
-temperatures).
-\begin{figure}[!htb]
-  \begin{center}
-
-    \subfloat[]{
-      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_visco.pdf}
-      \label{fig:smm:cl:visco-elastic:hyst}
-    }
-    \hspace{0.05\textwidth}
-    \subfloat[]{
-      \raisebox{0.025\textwidth}{\includegraphics[width=0.3\textwidth,keepaspectratio=true]{figures/visco_elastic_law.pdf}}
-      \label{fig:smm:cl:visco-elastic:model}
-    }
-    \caption{(a) Characteristic stress-strain behavior of a visco-elastic material with hysteresis loop and (b) schematic representation of the standard rheological linear solid visco-elastic model.}
-    \label{fig:smm:cl:visco-elastic}
-  \end{center}
-\end{figure}
-The standard rheological linear solid model (see Sections 10.2 and 10.3
-of~\cite{simo92}) has been implemented in \akantu. This model results from the
-combination of a spring mounted in parallel with a spring and a dashpot
-connected in series, as illustrated in
-Figure~\ref{fig:smm:cl:visco-elastic:model}. The advantage of this model is that
-it allows to account for creep or stress relaxation. The equation that relates
-the stress to the strain is (in 1D):
-\begin{equation}
-  \frac{d\epsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\epsilon(t) \right ]
-\end{equation}
-where $\eta$ is the viscosity. The equilibrium condition is unique and
-is attained in the limit, as $t \to \infty $. At this stage, the
-response is elastic and depends on the Young's modulus $E$.  The
-mandatory parameters for the material file are the following:
-\code{rho} (density), \code{E} (Young's modulus), \code{nu} (Poisson's
-ratio), \code{Plane\_Stress} (if set to zero plane strain, otherwise
-plane stress), \code{eta} (dashpot viscosity) and \code{Ev} (stiffness
-of the viscous element).
-
-Note that the current standard linear solid model is applied only on the deviatoric part of the strain tensor. The spheric part of the strain tensor affects the stress tensor like an linear elastic material.
-
 \subsection{Damage}
 
 In the  simplified case of a  linear elastic and brittle  material, isotropic
@@ -204,6 +325,7 @@ on the definition of an evolution law for the damage variable. In \akantu, many
 possibilities exist and they are listed below.
 
 \subsubsection{Marigo}
+\label{ssect:smm:cl:damage-marigo}
 This damage evolution law is energy based as defined by Marigo \cite{marigo81a,
   lemaitre96a}. It is an isotropic damage law.
 \begin{align}
@@ -221,6 +343,7 @@ rupture criterion and $S$ the damage energy.  The non-local version of
 this damage evolution law is constructed by averaging the energy $Y$.
 
 \subsubsection{Mazars}
+\label{ssect:smm:cl:damage-mazars}
 This law introduced by Mazars \cite{mazars84a} is a behavioral model to
 represent damage evolution in concrete. The governing variable in this damage
 law is the equivalent strain $\varepsilon_{\st{eq}} =

@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   
   // initialize material
   model.initFull(opt);
-  
+  model.updateCurrentPosition();
   // create data structure that holds contact data
   contact_type cd(argc, argv, model);
   

@@ -27,37 +27,28 @@
 #
 #===============================================================================
 
-option(AKANTU_DAMAGE_NON_LOCAL "Package for Non-local damage constitutives laws Akantu" OFF)
+option(AKANTU_DAMAGE_NON_LOCAL_EXTRA "Package for Non-local damage constitutives laws Akantu" OFF)
 
-add_external_package_dependencies(damage_non_local lapack)
+add_internal_package_dependencies(damage_non_local_extra extra_materials)
+add_external_package_dependencies(damage_non_local_extra damage_non_local)
 
-set(AKANTU_DAMAGE_NON_LOCAL_FILES
-  model/solid_mechanics/materials/material_damage/material_damage_non_local.hh
-  model/solid_mechanics/materials/material_damage/material_marigo_non_local.hh
-  model/solid_mechanics/materials/material_damage/material_marigo_non_local_inline_impl.cc
-  model/solid_mechanics/materials/material_damage/material_mazars_non_local.cc
-  model/solid_mechanics/materials/material_damage/material_mazars_non_local.hh
+set(AKANTU_DAMAGE_NON_LOCAL_EXTRA_FILES
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings_non_local.cc
 
-  model/solid_mechanics/materials/material_non_local.hh
-  model/solid_mechanics/materials/material_non_local_includes.hh
-  model/solid_mechanics/materials/material_non_local_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings_non_local.hh
+  model/solid_mechanics/materials/material_damage/material_brittle_non_local.hh
+  model/solid_mechanics/materials/material_damage/material_damage_iterative_non_local.hh
 
-  model/solid_mechanics/materials/weight_function.cc
-  model/solid_mechanics/materials/weight_function.hh
-  model/solid_mechanics/materials/weight_function_tmpl.hh
+  model/solid_mechanics/materials/material_damage/material_vreepeerlings_non_local_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_brittle_non_local_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_damage_iterative_non_local_inline_impl.cc
 
-  synchronizer/grid_synchronizer.cc
-  synchronizer/grid_synchronizer.hh
+  model/solid_mechanics/materials/material_non_local_extra_includes.hh
   )
 
-set(AKANTU_DAMAGE_NON_LOCAL_TESTS
-  test_material_damage_non_local
-  test_grid_synchronizer
+set(AKANTU_DAMAGE_NON_LOCAL_EXTRA_TESTS
   )
 
-set(AKANTU_DAMAGE_NON_LOCAL_MANUAL_FILES
-  manual-appendix-materials-non-local.tex)
-
-set(AKANTU_DAMAGE_NON_LOCAL_DOCUMENTATION "
+set(AKANTU_DAMAGE_NON_LOCAL_EXTRA_DOCUMENTATION "
 This package activates the non local damage feature of AKANTU
 ")
