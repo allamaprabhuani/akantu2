@@ -3,7 +3,7 @@
 The solid mechanics model is a specific implementation of the
 \code{Model} interface dedicated to handle the equations of motion or
 equations of equilibrium. The model is created for a given mesh.  It
-will create its own \code{FEM} object to compute the interpolation,
+will create its own \code{FEEngine} object to compute the interpolation,
 gradient, integration and assembly operations.  A
 \code{SolidMechanicsModel} object can simply be created like this:
 \begin{cpp}
@@ -67,7 +67,7 @@ specified:
 \end{eqnarray} The solid mechanics model can be initialized as
 follows:
 \begin{cpp}
-  model.initFull("material.dat")
+  model.initFull()
 \end{cpp}
 This function initializes the internal arrays and sets them to
 zero. Initial displacements and velocities that are not equal to zero
@@ -126,7 +126,7 @@ boundary condition for all time steps, the corresponding nodes need to
 be marked as boundary nodes as shown in the following code:
 
 \begin{cpp}
-Array<bool> & boun = model.getBoundary();
+Array<bool> & blocked = model.getBlockedDOFs();
 
 const Array<Real> & pos = mesh.getNodes();
 
@@ -136,8 +136,8 @@ Real epsilon = Math::getTolerance();
 
 for (UInt i = 0; i < nb_nodes; ++i) {
   if(std::abs(pos(i, 0)) < epsilon) {
-    boun(i, 0) = true; //block displacement in x-direction
-    boun(i, 1) = true; //block displacement in y-direction
+    blocked(i, 0) = true; //block displacement in x-direction
+    blocked(i, 1) = true; //block displacement in y-direction
     disp(i, 0) = 0.; //fixed displacement in x-direction
     disp(i, 1)= 0.; //fixed displacement in y-direction
   }
@@ -154,7 +154,7 @@ For the more advanced approach, one needs the notion of a boundary in
 the mesh. Therefore, the boundary should be created before boundary
 condition functors can be applied. Generally the boundary can be
 specified from the mesh file or the geometry.  For the first case, the
-function \code{createBoundariesFromMeshData} is called.  This function
+function \code{createGroupsFromMeshData} is called.  This function
 can read any types of mesh data which are provided in the mesh
 file. If the mesh file is created with Gmsh, the function takes one
 input strings which is either \code{tag\_0}, \code{tag\_1} or
@@ -163,9 +163,9 @@ each element which shows the physical group that they belong to. In
 Gmsh, it is also possible to consider strings for different groups of
 elements. These elements can be separated by giving a string
 \code{physical\_names} to the function
-\code{createBoundariesFromMeshData}.  Boundary conditions can also be
+\code{createGroupsFromMeshData}.  Boundary conditions can also be
 created from the geometry by calling
-\code{createBoundariesFromGeometry}. This function gathers all the
+\code{createBoundaryGroupFromGeometry}. This function gathers all the
 elements on the boundary of the geometry.
 
 To apply the required boundary conditions, the function \code{applyBC}
@@ -184,8 +184,7 @@ utilization of three functors for the top, bottom and side surface of
 the mesh which were already defined in the Gmsh file:
 
 \begin{cpp}
-Boundary & boundary = mesh.getBoundary();
-boundary.createBoundariesFromMeshData("physical_names");
+mesh.createGroupsFromMeshData<std::string>("physical_names");
 
 model.applyBC(BC::Dirichlet::FixedValue(13.0, BC::_y), "Top");
 
@@ -274,7 +273,7 @@ look like this:
 
 \begin{cpp}
   MeshDataMaterialSelector<std::string> * mat_selector;
-  mat_selector = new MeshDataMaterialSelector<std::string>("physical_names", model, 1);
+  mat_selector = new MeshDataMaterialSelector<std::string>("physical_names", model);
   model.setMaterialSelector(*mat_selector);
 \end{cpp}
 
@@ -285,7 +284,7 @@ Another example would be:
 
 \begin{cpp}
   MeshDataMaterialSelector<UInt> * mat_selector;
-  mat_selector = new MeshDataMaterialSelector<UInt>("tag_1", model, 1);
+  mat_selector = new MeshDataMaterialSelector<UInt>("tag_1", model);
   model.setMaterialSelector(*mat_selector);
 \end{cpp}
 
@@ -401,8 +400,7 @@ are:
 \begin{equation}
 \label{eqn:equation-motion}
 \mat{M}\vec{\ddot{u}} +
-\mat{C}\vec{\dot{u}} + \mat{K}\vec{u} = \vec{f_{\st{ext}}} -
-\vec{f_{\st{int}}} = \vec{r}~,
+\mat{C}\vec{\dot{u}} + \mat{K}\vec{u} = \vec{f_{\st{ext}}}~,
 \end{equation}
 where $\mat{M}$, $\mat{C}$ and $\mat{K}$ are the mass,
 damping and stiffness matrices, respectively.
@@ -419,7 +417,7 @@ For the Newmark-$\beta$ method, (\ref{eqn:equation-motion}) becomes a
 system of three equations (see \cite{curnier92a} \cite{hughes-83a} for
 more details):
 \begin{align}
-\mat{M} \vec{\ddot{u}}_{n+1} + \mat{C}\vec{\dot{u}}_{n+1} + \mat{K} \vec{u}_{n+1} &=\vec{r}_{n+1}
+\mat{M} \vec{\ddot{u}}_{n+1} + \mat{C}\vec{\dot{u}}_{n+1} + \mat{K} \vec{u}_{n+1} &=\vec{f_{\st{ext}}}_{n+1}
 \label{eqn:equation-motion-discret} \\
 \vec{u}_{n+1} &=\vec{u}_{n} + \left(1 - \alpha\right) \Delta t \vec{\dot{u}}_{n} +
 \alpha \Delta t \vec{\dot{u}}_{n+1} + \left(\frac{1}{2} -
@@ -476,7 +474,7 @@ written as:
 \begin{align}
   \left(c \mat{M} + d \mat{C} + e \mat{K}_{n+1}^i\right)
   \vec{w} = \vec{f_{\st{ext}}}_{n+1} - \vec{f_{\st{int}}}_{n+1}^i -
-  \mat{C} \vec{\dot{u}}_{n+1}^i - \mat{M} \vec{\ddot{u}}_{n+1}^i
+  \mat{C} \vec{\dot{u}}_{n+1}^i - \mat{M} \vec{\ddot{u}}_{n+1}^i = \vec{r}_{n+1}^i
 \end{align}
 
 \noindent\textit{Corrector:}
@@ -501,9 +499,7 @@ are parameters depending on the method used to solve the equations
   \end{tabular}
 \end{center}
 
-\note{If you want to use the implicit solver \akantu should be
-compiled at least with one sparse matrix solver such as
-Mumps\cite{mumps}.}
+%\note{If you want to use the implicit solver \akantu should be compiled at least with one sparse matrix solver such as Mumps\cite{mumps}.}
 
 
 \subsection{Implicit Time Integration}
@@ -599,14 +595,14 @@ Newmark-$\beta$ scheme with $\alpha=0$ (see equations
 The initialization of the simulation is similar to the static and
 implicit dynamic version.  The model is created from the
 \code{SolidMechanicsModel} class.  In the initialization, the explicit
-scheme is selected using the \code{\_explicit\_dynamic} constant.
+scheme is selected using the \code{\_explicit\_lumped\_mass} constant.
 
 \begin{cpp}
 SolidMechanicsModel model(mesh);
 model.initFull(SolidMechanicsModelOptions(_explicit_lumped_mass));
 \end{cpp}
 \index{SolidMechanicsModel!initFull}
-\note{Writing \code{model.initFull(SolidMechanicsModelOptions());} is
+\note{Writing \code{model.initFull()} or \code{model.initFull(SolidMechanicsModelOptions());} is
 equivalent to use the \code{\_explicit\_lumped\_mass} keyword, as this
 is the default case.}
 
@@ -616,11 +612,6 @@ matrix is assembled by distributing the mass of each element onto its
 nodes. The resulting $\mat{M}$ is therefore a diagonal matrix stored
 in the \textbf{mass} vector of the model.
 
-
-\begin{cpp}
-  model.assembleMassLumped();
-\end{cpp}
-\index{SolidMechanicsModel!assembleMassLumped}
 The explicit integration scheme is conditionally stable. The time step
 has to be smaller than the stable time step which is obtained in
 \akantu as follows:
@@ -638,15 +629,13 @@ where $\Delta x$ is a characteristic length (\eg the inradius in the
 case of linear triangle element), $\mu$ and $\lambda$ are the first
 and second Lame's coefficients and $\rho$ is the density.  The stable
 time step corresponds to the time the fastest wave (the compressive
-wave) needs to travel the characteristic length of the mesh.  However,
-note that if the time step of the computation is equal to the stable
-time step, the simulation remains unstable. Therefore, it is necessary
-to impose a time step that is smaller than the stable time step, for
+wave) needs to travel the characteristic length of the mesh.
+However, it is recommended to impose a time step that is smaller than the stable time step, for
 instance, by multiplying the stable time step by a safety factor
 smaller than one.
 
 \begin{cpp}
-const Real safety_time_factor = 0.1;
+const Real safety_time_factor = 0.8;
 Real applied_time_step = time_step * safety_time_factor;
 model.setTimeStep(applied_time_step);
 \end{cpp}
@@ -670,13 +659,13 @@ The method
 \begin{itemize}
 \item \code{model.explicitPred()} allows to compute the displacement
   field at $t+1$ and a part of the velocity field at $t+1$, denoted by
-  $\vec{\dot{u}_{n+1/2}}$, which will be used later in the method
+  $\vec{\dot{u}^{\st{p}}}_{n+1}$, which will be used later in the method
   \code{model.explicitCorr()}. The equations are:
 
   \begin{align}
     \vec{u}_{n+1} &= \vec{u}_{n} + \Delta t
     \vec{\dot{u}}_{n} + \frac{\Delta t^2}{2} \vec{\ddot{u}}_{n}\\
-    \vec{\dot{u}_{n+1/2}} &= \vec{\dot{u}}_{n} + \Delta t
+    \vec{\dot{u}^{\st{p}}}_{n+1} &= \vec{\dot{u}}_{n} + \Delta t
     \vec{\ddot{u}}_{n}
     \label{eqn:smm:explicit:onehalfvelocity}
   \end{align}
@@ -698,7 +687,7 @@ The method
   acceleration fields at $t+1$:
 
   \begin{align}
-    \vec{\dot{u}}_{n+1} &= \vec{\dot{u}}_{n+1/2} + \frac{\Delta t}{2}
+    \vec{\dot{u}}_{n+1} &= \vec{\dot{u}^{\st{p}}}_{n+1} + \frac{\Delta t}{2}
     \delta \vec{\ddot{u}} \\ \vec{\ddot{u}}_{n+1} &=
     \vec{\ddot{u}}_{n} + \delta \vec{\ddot{u}}
   \end{align}
@@ -731,9 +720,7 @@ used to compute the element's stresses from the element's strains.
 
 In the finite-element discretization, the constitutive formulation is
 applied to every quadrature point of each element. When the implicit
-formulation is used, the tangent matrix has to be computed. Every
-constitutive law also provides the formulation required to compute the
-tangent matrix.
+formulation is used, the tangent matrix has to be computed.
 
 The chosen materials for the simulation have to be specified in the
 mesh file or, as an alternative, they can be assigned using the
@@ -752,18 +739,18 @@ follows:
 adopted constitutive law, followed by the material properties listed
 one by line in the bracket (\eg \code{name} and density
 \code{rho}). The file needs to be loaded in \akantu using the
-\code{readMaterials} method
+\code{initialize} method of \akantu (as shown in Section~\ref{sec:writing_main})
 \begin{cpp}
-model.readMaterials("material.dat");
+initialize(``material.dat'', argc, argv);
 \end{cpp}
-or, alternatively, the \code{initFull} method.
-\begin{cpp}
-model.initFull("material.dat");
-\end{cpp}
+% or, alternatively, the \code{initFull} method.
+% \begin{cpp}
+% model.initFull("material.dat");
+% \end{cpp}
 The following sections describe the constitutive models
 implemented in \akantu.
 
-\subsection{Elastic}\index{Material!Elastic}
+\subsection{Elasticity}\index{Material!Elastic}
 The elastic law is a commonly used constitutive relationship that can
 be used for a wide range of engineering materials (\eg metals,
 concrete, rock, wood, glass, rubber, etc.) provided that the strains
@@ -830,7 +817,7 @@ name of the new material. Define the interface of your custom material
 in \code{material\_XXX.hh} and its implementation in
 \code{material\_XXX.cc}. The interface has to be included in you example:
 \begin{cpp}
-#include "material\_XXXX.hh"
+#include "material_XXXX.hh"
 \end{cpp}
  The new law must inherit from the
 \code{Material} class or any other existing material class. The

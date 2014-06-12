@@ -547,6 +547,8 @@ bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_itera
 
   } while (!converged && iter < max_iteration);
 
+  // this makes sure that you have correct strains and stresses after the solveStep function (e.g., for dumping)
+  if(criteria == _scc_increment) this->updateResidual();
 
   if (converged) {
     EventManager::sendEvent(SolidMechanicsModelEvent::AfterSolveStepEvent(method));
