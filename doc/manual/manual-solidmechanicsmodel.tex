@@ -258,9 +258,16 @@ used. There are four different material selectors pre-defined in
   demonstrated in the example below.
 \item \code{DefaultMaterialCohesiveSelector}: This is the default
   material selector for the cohesive elements and it inherits its
-  properties from \code{DefaultMaterialSelector}. The material ID of
-  the first cohesive element is extracted and assigned to all cohesive
-  elements.
+  properties from \code{DefaultMaterialSelector}. This material
+  selector first checks if a cohesive element is present on an element
+  facet. If there is, then the first cohesive element in the material
+  file is assigned to that element. Otherwise, this material is
+  assigned to the element facet, to which, a cohesive element might be
+  inserted later. Hence, this material selector works for the
+  extrinsic cohesive elements which are dynamically inserted
+  throughout the analysis. If the element of interest is not a
+  cohesive element, then \code{DefaultMaterialSelector} is used by
+  default.
 \end{enumerate}
 
 Apart from the \akantu's default material selectors, users can always
