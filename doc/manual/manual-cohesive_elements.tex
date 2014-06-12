@@ -24,7 +24,7 @@ Pandolfi~\cite{ortiz1999}.
 Cohesive elements consist of a couple of surface elements which are
 coincident in space when the opening displacement is zero. Two
 schematics of cohesive elements in 2D and 3D can be seen in
-figures~\ref{fig:smm:coh:cohesive2d}
+Figures~\ref{fig:smm:coh:cohesive2d}
 and~\ref{fig:smm:coh:cohesive3d}. The two surface elements, denoted by
 $S^-$ and $S^+$, must be of the same type and they correspond to the
 facet element of the standard elements. All the computations are done
@@ -77,15 +77,15 @@ of the cohesive element.
 
 Cohesive element insertion can be either realized at the beginning of
 the simulation or it can be carried out dynamically during the
-simulation. The first approach is called \emph{intrinsic} while the
-second one \emph{extrinsic}. When an element presents from the
+simulation. The first approach is called \emph{intrinsic}, the
+second one \emph{extrinsic}. When an element is present from the
 beginning, a bilinear or exponential cohesive law should be used
 instead of a linear one. A bilinear law works exactly like a linear
 one except for an additional parameter $\delta_0$ separating an
 initial linear elastic part from the linear irreversible one. The
 exponential law will be described later in the manual.
 
-In dynamic cohesive element insertions, normal and tangential stresses
+In dynamic cohesive element insertion, normal and tangential stresses
 along the edges of standard elements are used to compute the effective
 stress
 \begin{equation}
@@ -94,7 +94,7 @@ stress
 \end{equation}
 where the indices $n$ and $t$ respectively refer to normal and
 tangential directions. Obviously, if $\sigma_\mathrm{n}$ is
-compressing, its contribution is not considered. The computed
+compressive, its contribution is not considered. The computed
 effective stress $\sigma_\mathrm{eff}$ is monitored, and when it
 overcomes a threshold stress on a certain edge, a new cohesive element
 is inserted. New nodes are added and the element connectivity is

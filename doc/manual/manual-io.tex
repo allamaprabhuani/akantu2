@@ -1,9 +1,9 @@
 
 \chapter{Input/Output}\index{I\/O}
 
-In this chapter, the ways to get the internal data in a human readable formats
-will be addressed. The models in \akantu handle data associated to the
-mesh, but this data can be splitted into several \code{Vectors}. For example, the
+In this chapter, we address ways to get the internal data in human readable formats.
+The models in \akantu handle data associated to the
+mesh, but this data can be split into several \code{Vectors}. For example, the
 data stored per element type in a \code{ByElementTypeVector} is composed by as
 many vectors as types in the mesh.
 
@@ -32,7 +32,7 @@ This memory can be dealt with \code{addDumpFieldVector}\index{I\/O!addDumpFieldV
 vectors with 3 components or \code{addDumpFieldTensor}\index{I\/O!addDumpFieldTensor} which dumps $2^{nd}$
 order tensors with $3\times3$ components respectively.
 
-The fields which are stored by quadrature points are modified to be seen in the
+Those fields which are stored by quadrature point are modified to be seen in the
 \code{VTK} file as elemental data. To do this, the default is to average the
 values of all the quadrature points.
 
@@ -48,7 +48,7 @@ The list of fields depends on the models.
   displacement & Vector<Real> & nodes  \\
   velocity     & Vector<Real> & nodes  \\
   acceleration & Vector<Real> & nodes  \\
-  force	     & Vector<Real> & nodes  \\
+  force	       & Vector<Real> & nodes  \\
   residual     & Vector<Real> & nodes  \\
   boundary     & Vector<bool> & nodes  \\
   mass         & Vector<Real> & nodes  \\
@@ -60,7 +60,7 @@ The list of fields depends on the models.
 \end{tabular}
 
 
-The user can also register external fields which have the same mesh as the mesh from the model as support. To do this an object of type \code{Field} as to be created.\index{I\/O!addDumpFieldExternal}
+The user can also register external fields which have the same mesh as the mesh from the model as support. To do this, an object of type \code{Field} has to be created.\index{I\/O!addDumpFieldExternal}
 
 \begin{itemize}
 \item For nodal fields :

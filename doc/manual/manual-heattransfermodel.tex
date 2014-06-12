@@ -1,36 +1,37 @@
 \chapter{Heat Transfer Model}
 
 The heat transfer model is a specific implementation of the \code{Model} interface
-dedicated to handle the dynamic heat equation. 
+dedicated to handle the dynamic heat equation.
 \section{Theory}
-The strong form of the dynamic heat equation 
+The strong form of the dynamic heat equation
 can be expressed as
 \begin{equation}
   \rho c_v \dot{T} + \nabla \cdot \vec{\kappa} \nabla T = b
 \end{equation}
-, with $T$ the temperature scalar field,
-$c_v$ the specific heat capacity, 
-$\rho$ the mass density, 
-$\mat{\kappa}$ the conductivity tensor, and $b$ the heat generation per unit of volume. 
-The discretized weak form with the finite number of elements is
+, with $T$ the scalar temperature field,
+$c_v$ the specific heat capacity,
+$\rho$ the mass density,
+$\mat{\kappa}$ the conductivity tensor, and $b$ the heat generation per unit of volume.
+The discretized weak form with a finite number of elements is
 \begin{equation}
-  \forall i \quad 
-  \sum_j \left( \int_\Omega \rho c_v N_j N_i  d\Omega \right) \dot{T}_j 
-  - \sum_j \left( \int_\Omega \vec{\kappa} \nabla N_j \nabla N_i d\Omega \right) T_j = 
+  \forall i \quad
+  \sum_j \left( \int_\Omega \rho c_v N_j N_i  d\Omega \right) \dot{T}_j
+  - \sum_j \left( \int_\Omega \vec{\kappa} \nabla N_j \nabla N_i d\Omega \right) T_j =
   - \int_{\Gamma}  N_i \vec{q} \cdot \vec{n} d\Gamma + \int_\Omega b N_i d\Omega
 \end{equation}
-with $i$ and $j$ the node indices, $\vec{n}$ the normal field to the surface 
-$\Gamma = \partial \Omega$. 
+with $i$ and $j$ the node indices, $\vec{n}$ the normal field to the surface
+$\Gamma = \partial \Omega$.
 To simplify, we can define the capacity and the conductivity matrices as
 \begin{equation}
-  C_{ij} = \int_\Omega \rho c_v N_j N_i  d\Omega \qquad \textrm{and} \qquad   
+  C_{ij} = \int_\Omega \rho c_v N_j N_i  d\Omega \qquad \textrm{and} \qquad
   K_{ij} = - \int_\Omega \vec{\kappa} \nabla N_j \nabla N_i d\Omega
 \end{equation}
 , and the system to solve can be written
 \begin{equation}
-  \mat{C} \cdot \vec{\dot{T}} = \vec{Q}^{\text{ext}} -\mat{K} \cdot \vec{T}~, 
+  \mat{C} \cdot \vec{\dot{T}} = \vec{Q}^{\text{ext}} -\mat{K} \cdot \vec{T}~,
 \end{equation}
 with $\vec{Q}^{\text{ext}}$ the consistent heat generated.
+
 \section{Using the Heat Transfer Model}
 Currently, the \code{HeatTransferModel} object uses an explicit dynamic analysis.
 It can simply be created like this
@@ -42,23 +43,23 @@ Then the model object can be initialized with:
 \begin{cpp}
   model.initFull("material.dat")
 \end{cpp}
-, where a material file name has to be provided. This function will load the material 
+, where a material file name has to be provided. This function will load the material
 properties, and allocate / initialize the nodes and element vectors.
 More precisely, the heat transfer model contains 4 \code{Vectors}:
 \begin{description}
 \item[temperature] contains the nodal temperature $T$ (zero  by   default  after  the
-  initialization). 
-\item[temperature\_rate] contains the variations of temperature $\dot{T}$ 
+  initialization).
+\item[temperature\_rate] contains the variations of temperature $\dot{T}$
   (zero  by   default  after  the
-  initialization). 
+  initialization).
 %\item[boundary]  contains a  \code{bool} value for  each  node
 %  specifying  whether  temperature is  fixed  or  not. A  Dirichlet  boundary
-%  condition can be prescribed by setting the \textbf{boundary} value of a node 
+%  condition can be prescribed by setting the \textbf{boundary} value of a node
 %  to  \code{true}.  A Neumann boundary condition  can only be applied
 %  if the  \textbf{boundary} value of a node is  \code{false}. If a
 %  node has a  \textbf{boundary} value  that is  \code{false}, the
 %  \textbf{temperature},     \textbf{temperature\_rate} and
-%  \textbf{residual} are computed by the solve algorithm when relevant\todo{wait for till correction}, 
+%  \textbf{residual} are computed by the solve algorithm when relevant\todo{wait for till correction},
 %  otherwise these  vectors  contain   the  imposed  values.
 
 \item[boundary] contains a  Boolean value for each degree  of freedom specifying
@@ -71,12 +72,12 @@ More precisely, the heat transfer model contains 4 \code{Vectors}:
   \code{false}.  For the remaining degrees  of freedom, the imposed values (zero
   by default after  initialization) are kept.
 
-\item[residual] contains the difference between external and internal heat generations. 
+\item[residual] contains the difference between external and internal heat generations.
 The \textbf{residual} contains the supported heat reactions ($\vec{R} = \vec{Q^{ext}} -\mat{K} \cdot \vec{T}$) on
   the nodes that the temperature imposed.
 \end{description}
 
-Only a single material can be specified on the domain. 
+Only a single material can be specified on the domain.
 A material text file (\eg material.dat) provides the material properties as follows:
 \begin{cpp}
   heat %\emph{name\_material}% [
@@ -90,7 +91,7 @@ where the \code{capacity} and \code{density} are scalars, and the \code{conducti
 \subsection{Explicit Dynamic}
 
 The explicit  time integration scheme in \akantu  uses a lumped capacity
-matrix $\mat{C}$ (reducing the computational  cost, see Chapter \ref{sect:smm}). 
+matrix $\mat{C}$ (reducing the computational  cost, see Chapter \ref{sect:smm}).
 This matrix is assembled by
 distributing the capacity of each element onto its nodes. Therefore, the resulting $\mat{C}$ is a diagonal matrix stored in the \code{capacity} vector of the model.
 
@@ -99,10 +100,10 @@ distributing the capacity of each element onto its nodes. Therefore, the resulti
 \end{cpp}
 \index{HeatTransferModel!assembleCapacityLumped}
 
-\note{Currently, only the explicit time integration with lumped capacity matrix 
+\note{Currently, only the explicit time integration with lumped capacity matrix
 is implemented within \akantu.} \\
 
-The explicit integration scheme is a \index{Forward Euler} {\it Forward Euler} 
+The explicit integration scheme is \index{Forward Euler} \emph{Forward Euler}
 \cite{curnier92a}.
 
 \begin{itemize}
@@ -111,7 +112,7 @@ The explicit integration scheme is a \index{Forward Euler} {\it Forward Euler}
 \item Corrector : $\dot{\vec{T}}_{n+1} = \mat{C}^{-1} \vec{R}_{n+1}$
 \end{itemize}
 
-The explicit integration scheme is conditionally stable. The time step has to be smaller than the stable time step, 
+The explicit integration scheme is conditionally stable. The time step has to be smaller than the stable time step,
 and it can be obtained in \akantu as follows:
 
 \begin{cpp}
@@ -147,7 +148,7 @@ temperature\_rate  fields  following the previously described integration scheme
   for (UInt s = 1; (s-1)*applied_time_step < total_time; ++s) {
     model.explicitPred();
     model.updateResidual();
-    model.explicitCorr();  
+    model.explicitCorr();
   }
 \end{cpp}
 \index{HeatTransferModel!explicitPred}
@@ -157,11 +158,11 @@ temperature\_rate  fields  following the previously described integration scheme
 
 An    example    of    explicit     dynamic    heat propagation is    presented    in \\
 \shellcode{\examplesdir/heat\_transfer/explicit\_heat\_transfer.cc}.  \\
-This example  consists of a square 2D plate of \unit{1}{\squaremetre} 
-having an initial temperature of \unit{100}{\kelvin} everywhere but a none centered hot point 
+This example  consists of a square 2D plate of \unit{1}{\squaremetre}
+having an initial temperature of \unit{100}{\kelvin} everywhere but a none centered hot point
 maintained at \unit{300}{\kelvin}. Figure \ref{fig:htm:explicit:dynamic} presents the
 geometry of this case. The material used is a linear fictitious elastic material
-with  a density  of  \unit{8940}{\kilogrampercubicmetre}, a  conductivity of 
+with  a density  of  \unit{8940}{\kilogrampercubicmetre}, a  conductivity of
 \unit{401}{\watt\per\metre\per\kelvin} and a specific heat capacity of \unit{385}{\joule\per\kelvin\per\kilogram}. The time step used is \unit{0.12}{\second}.
 
 \begin{figure}[!htb]
@@ -172,4 +173,3 @@ with  a density  of  \unit{8940}{\kilogrampercubicmetre}, a  conductivity of
   \caption{Initial temperature field (left) and after 15000 time steps = 30 minutes (right). The lines represent iso-surfaces.}
   \label{fig:htm:explicit:dynamic}
 \end{figure}
-

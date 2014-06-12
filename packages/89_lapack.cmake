@@ -32,7 +32,7 @@ mark_as_advanced(AKANTU_USE_LAPACK)
 set(AKANTU_LAPACK_DOCUMENTATION "
 This package provides access to a LAPACK implementation.
 
-Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
+Under Ubuntu (14.04 LTS), the installation can be performed using the following command:
 \\begin{command}
   > sudo apt-get install libatlas-base-dev
 \\end{command}

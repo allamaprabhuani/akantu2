@@ -17,7 +17,7 @@ mesh.
 
 This model contains at least the the following six \code{Arrays}:
 \begin{description}
-\item[blocked\_dofs] contains a boolean value for each degree of
+\item[blocked\_dofs] contains a Boolean value for each degree of
   freedom specifying whether that degree is blocked or not. A
   Dirichlet boundary condition can be prescribed by setting the
   \textbf{blocked\_dofs} value of a degree of freedom to \code{true}.
@@ -323,7 +323,7 @@ SolidMechanicsModel model(mesh);
 model.initFull(SolidMechanicsModelOptions(_static));
 \end{cpp}
 Here, a static analysis is chosen by passing the argument
-\code{\_static} to the method. By default, the boolean for no
+\code{\_static} to the method. By default, the Boolean for no
 initialization of the materials is set to false, so that they are
 initialized during the \code{initFull}. The method \code{initFull}
 also initializes all appropriate vectors to zero.  Once the model is
@@ -729,7 +729,7 @@ In order to compute an element's response to deformation, one needs to
 use an appropriate constitutive relationship. The constitutive law is
 used to compute the element's stresses from the element's strains.
 
-In the finite element discretization, the constitutive formulation is
+In the finite-element discretization, the constitutive formulation is
 applied to every quadrature point of each element. When the implicit
 formulation is used, the tangent matrix has to be computed. Every
 constitutive law also provides the formulation required to compute the
@@ -862,7 +862,7 @@ Section~\ref{sect:smm:CL}, by default, the materials are initialized
 inside the method \code{initFull}. If a local material should be used,
 the initialization of the materials has to be postponed until the
 local material is registered in the model. Therefore, the model is
-initialized with the boolean for skipping the material initialization
+initialized with the Boolean for skipping the material initialization
 equal to true:
 \begin{cpp}
 /// model initialization

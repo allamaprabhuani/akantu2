@@ -70,5 +70,5 @@ set(AKANTU_STRUCTURAL_MECHANICS_MANUAL_FILES
   )
   
 set(AKANTU_STRUCTURAL_MECHANICS_DOCUMENTATION "
-This package enable the compilation for the Structural Mechanics engine of Akantu
+This package activates the compilation for the Structural Mechanics engine of Akantu
 ")
