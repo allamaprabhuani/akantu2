@@ -293,6 +293,24 @@ has a positive $X$ coordinate can be made with:
   }
 \end{cpp}
 
+\subsection{The \texttt{Mesh} as a \texttt{GroupManager}}
+
+Mesh inheritates from the class \code{GroupManager}
+which has the role to associate \code{ElementGroup} objects 
+to names. This is a useful feature, in particular for the application
+of the boundary conditions, as will be demonstrated
+in section \ref{sect:smm:boundary}.
+
+For instance the following code shows how to register 
+an element group to a mesh (which is a group manager):
+
+\begin{cpp}
+  UInt dim = some_dimension;
+  ElementGroup & my_group = mesh.createElementGroup("my_group",dim);
+
+  /* fill and use the group */
+\end{cpp}
+
 
 %%% Local Variables:
 %%% mode: latex
