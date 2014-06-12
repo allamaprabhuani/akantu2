@@ -1,0 +1,145 @@
+\chapter{Material parameters}
+\label{cha:material-parameters}
+
+\section{Linear elastic isotropic}
+
+Keyword: \code{elastic}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{E}: Young's modulus
+\item \code{nu}: Poisson's ratio
+\item \code{Plane\_Stress}: Plane stress simplification (only 2D problems)
+\end{itemize}
+
+\section{Linear elastic orthotropic}
+
+Keyword: \code{elastic\_orthotropic}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{n1}: Direction of main material axis
+\item \code{n2}: Direction of secondary material axis
+\item \code{n3}: Direction of tertiery material axis
+\item \code{alpha}: Proportion of viscous stress
+\item \code{E1}: Young's modulus $E_1$
+\item \code{E2}: Young's modulus $E_2$
+\item \code{E3}: Young's modulus $E_3$
+\item \code{nu12}: Poisson's ration $\nu_{12}$
+\item \code{nu13}: Poisson's ration $\nu_{13}$
+\item \code{nu23}: Poisson's ration $\nu_{23}$
+\item \code{G12}: Shear modulus $G_{12}$
+\item \code{G13}: Shear modulus $G_{13}$
+\item \code{G23}: Shear modulus $G_{23}$
+\end{itemize}
+
+\section{Linear elastic anisotropic}
+
+Keyword: \code{elastic\_anisotropic}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{n1}: Direction of main material axis
+\item \code{n2}: Direction of secondary material axis
+\item \code{n3}: Direction of tertiery material axis
+\item \code{alpha}: Proportion of viscous stress
+\item \code{Cij}: Stiffness matrix coefficients $C_{ij}$ ($i,j = 1,2,$ \dots voigt size)
+\end{itemize}
+
+\section{Neohookean (finite strains)}
+
+Keyword: \code{neohookean}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{E}: Young's modulus
+\item \code{nu}: Poisson's ratio
+\item \code{Plane\_Stress}: Plane stress simplification (only 2D problems)
+\end{itemize}
+
+\section{Standard linear solid}
+
+Keyword: \code{sls\_deviatoric}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{E}: Young's modulus
+\item \code{nu}: Poisson's ratio
+\item \code{Plane\_Stress}: Plane stress simplification (only 2D problems)
+\item \code{Eta}: Viscosity
+\item \code{Ev}: Stiffness of the viscous element
+\end{itemize}
+
+\section{Elasto-plastic linear isotropic hardening}
+
+Keyword: \code{plastic\_linear\_isotropic\_hardening}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{E}: Young's modulus
+\item \code{nu}: Poisson's ratio
+\item \code{Plane\_Stress}: Plane stress simplification (only 2D problems)
+\item \code{h}: Hardening modulus
+\item \code{sigma\_y}: Yielding stress
+\end{itemize}
+
+\section{Visco-plastic}
+
+Keyword: \code{visco\_plastic}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{rho}: Density
+\item \code{E}: Young's modulus
+\item \code{nu}: Poisson's ratio
+\item \code{Plane\_Stress}: Plane stress simplification (only 2D problems)
+\item \code{rate}: Rate sensitivity component
+\item \code{edot0}: Reference strain rate
+\item \code{ts}: Time
+\end{itemize}
+
+\section{Cohesive linear}
+
+Keyword: \code{cohesive\_linear}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{sigma\_c}: Critical stress
+\item \code{beta}: $\beta$ parameter
+\item \code{G\_cI}: Mode I fracture energy
+\item \code{G\_cII}: Mode II fracture energy
+\item \code{kappa}: $\kappa$ parameter
+\item \code{penalty}: penalty coefficient $\alpha$
+\end{itemize}
+
+\section{Cohesive bilinear}
+
+Keyword: \code{cohesive\_bilinear}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{sigma\_c}: Critical stress
+\item \code{beta}: $\beta$ parameter
+\item \code{G\_cI}: Mode I fracture energy
+\item \code{G\_cII}: Mode II fracture energy
+\item \code{kappa}: $\kappa$ parameter
+\item \code{penalty}: Penalty coefficient $\alpha$
+\item \code{delta\_0}: Elastic limit displacement $\delta_0$
+\end{itemize}
+
+\section{Cohesive exponential}
+
+Keyword: \code{cohesive\_exponential}\\
+
+\noindent Parameters:
+\begin{itemize}
+\item \code{sigma\_c}: Critical stress
+\item \code{beta}: $\beta$ parameter
+\item \code{delta\_c}: Critical displacement $\delta_\mathrm{c}$
+\end{itemize}

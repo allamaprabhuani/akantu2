@@ -306,9 +306,11 @@ set(AKANTU_CORE_MANUAL_FILES
   manual-gettingstarted.tex
   manual-io.tex
   manual-solidmechanicsmodel.tex
+  manual-constitutive-laws.tex
   manual-lumping.tex
   manual-elements.tex
   manual-appendix-elements.tex
+  manual-appendix-materials.tex
   manual-backmatter.tex
   manual-bibliography.bib
   manual-bibliographystyle.bst
