@@ -1,9 +1,9 @@
 
-\section{Cohesive elements}
+\section{Cohesive Elements}
 
 Cohesive elements are a numerical tool that lets a crack propagate
 along the edges of standard elements. The cohesive elements that have
-been implemented in Akantu are based on the work of Ortiz and
+been implemented in \akantu are based on the work of Ortiz and
 Pandolfi~\cite{ortiz1999}.
 
 \begin{figure}
@@ -98,7 +98,7 @@ compressing, its contribution is not considered. The computed
 effective stress $\sigma_\mathrm{eff}$ is monitored, and when it
 overcomes a threshold stress on a certain edge, a new cohesive element
 is inserted. New nodes are added and the element connectivity is
-updated (see figure~\ref{fig:smm:coh:insertion}). This topological
+updated (see Figure~\ref{fig:smm:coh:insertion}). This topological
 mesh changing technique is very convenient because it allows
 simulating crack propagation without remeshing the domain.
 
@@ -125,7 +125,7 @@ Element type & Facet type & Order & \# nodes & \# quad. points  \\
 For the static analysis of the structures containing cohesive
 elements, the stiffness of the cohesive elements should also be added
 to the total stiffness of the structure. Considering a typical
-cohesive element as explained in figure~\ref{fig:smm:coh:cohesive2d},
+cohesive element as explained in Figure~\ref{fig:smm:coh:cohesive2d},
 the opening displacement along the mid-surface can be written as:
 
 \begin{equation}

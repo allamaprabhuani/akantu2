@@ -1,13 +1,14 @@
-\chapter{Getting started}
-\section{Downloading the code}
+\chapter{Getting Started}
+\section{Downloading the Code}
 
 The \akantu source code can be requested using the form accessible at the URL
 \url{http://lsms.epfl.ch/akantu}.  There, you will be asked to accept the LGPL
 license terms.
 
-\section{Compiling Akantu}
+\section{Compiling \akantu}
 
-Akantu is a \code{cmake} project, so to configure it you can either follow the usual way:
+\akantu is a \code{cmake} project, so to configure it, you can either
+follow the usual way:
 \begin{command}
   > cd akantu
   > mkdir build
@@ -18,8 +19,8 @@ Akantu is a \code{cmake} project, so to configure it you can either follow the u
   > make install
 \end{command}
 
-\noindent Or, you can use a tool  we added to help you. You can just use the
-given \code{Makefile} that handles the \code{cmake} configuration
+\noindent Or, you can use the \code{Makefile} we added for your
+convenience to handle the \code{cmake} configuration
 
 \begin{command}
   > cd akantu
@@ -32,15 +33,16 @@ given \code{Makefile} that handles the \code{cmake} configuration
 \vref{app:package-dependencies}.
 
 
-\section{Writing a \texttt{main} function\label{sect:common:main}}
+\section{Writing a \code{main} Function\label{sect:common:main}}
 
-First of all, \akantu needs to be initialized.  There is a memory
-management included in the core library which allows a correct
-allocation and de-allocation of vectors, structures and/or
-objects. Moreover, in parallel computations the initialization
-procedure can perform the communication setup. This is achieved by
- a pair of functions (\code{initialize} and \code{finalize})
-that are used as follows:
+
+First of all, \akantu needs to be initialized.  The memory management
+included in the core library handles the correct allocation and
+de-allocation of vectors, structures and/or objects. Moreover, in
+parallel computations, the initialization procedure performs the
+communication setup. This is achieved by a pair of functions
+(\code{initialize} and \code{finalize}) that are used as follows:
+
 \begin{cpp}
 int main(int argc, char *argv[])
 {
@@ -55,14 +57,12 @@ int main(int argc, char *argv[])
 The \code{initialize} function takes the program parameters which
 can be interpreted by \akantu in due form.
 
-\section{Creating and loading a mesh\label{sect:common:mesh}}
+\section{Creating and Loading a Mesh\label{sect:common:mesh}}
 
-In the current state \akantu support three type of meshes, Gmsh~\cite{gmsh},
+In its current state, \akantu supports three types of meshes, Gmsh~\cite{gmsh},
 Abaqus~\cite{abaqus} and Diana~\cite{diana}. Once a \code{Mesh} object is
-created with the wanted spatial dimension it can filed by reading a file. To do
-the read method from the \code{Mesh} class can auto detect the type of mesh
-based on the extension of the file. If the extension is not the common on the
-reader can be specified.
+created with a given spatial dimension, it can be filled by reading a mesh input file.
+The method \code{read} of the class \code{Mesh} infers the mesh type from the file extension. If a non-standard file extension is used, the mesh type has to be specified.
 
 \begin{cpp}
    UInt spatial_dimension = 2;
@@ -72,6 +72,7 @@ reader can be specified.
    mesh.read("my_gmsh_mesh.msh");
    mesh.read("my_gmsh_mesh", _miot_gmsh);
 
+
    # Reading Abaqus files
    mesh.read("my_abaqus_mesh.inp");
    mesh.read("my_abaqus_mesh", _miot_abaqus);
@@ -79,13 +80,15 @@ reader can be specified.
    # Reading Diana files
    mesh.read("my_diana_mesh.dat");
    mesh.read("my_diana_mesh", _miot_diana);
+
 \end{cpp}
 
-The Gmsh reader add the geometrical and physical tags as mesh data. The physical
-values can are stored as a \code{UInt} data called \code{tag\_0}, if a string
+The Gmsh reader adds the geometrical and physical tags as mesh data. The physical
+values are stored as a \code{UInt} data called \code{tag\_0}, if a string
 name is provided it is stored as a \code{std::string} data named
 \code{physical\_names}. The geometrical tag is stored as a \code{UInt} data named
 \code{tag\_1}.
+
 
 The Abaqus reader stores the \code{ELSET} in ElementGroups and the \code{NSET}
 in NodeGroups. The material assignment can be retrieved from the
@@ -130,7 +133,7 @@ in NodeGroups. The material assignment can be retrieved from the
 \section{Using \texttt{Arrays}}
 
 Data in \akantu can be stored in data containers implemented by
-the \code{Array} class. In its most basic usage the \code{Array} class
+the \code{Array} class. In its most basic usage, the \code{Array} class
 implemented in \akantu is similar to the \code{vector} class of
 the Standard Template Library (STL) for C++. A simple \code{Array}
 containing a sequence of \code{nb\_element} values can be generated with:
@@ -145,11 +148,11 @@ accessed by typing:
   type & val = example_array(index)
 \end{cpp}
 
-\code{Arrays} can also contain tuples of values for each
-index. In that case the number of components per tuple must be
-specified at the \code{Array} creation.  For example, if we want to
-create an \code{Array} to store the coordinates (sequences of three
-values) of ten nodes, the appropriate code is the following:
+\code{Arrays} can also contain tuples of values for each index. In
+that case the number of components per tuple must be specified at the
+\code{Array} creation.  For example, if we want to create an
+\code{Array} to store the coordinates (sequences of three values) of
+ten nodes, the appropriate code is the following:
 \begin{cpp}
   UInt nb_nodes = 10;
   UInt spatial_dimension = 3;
@@ -183,14 +186,16 @@ For instance, a loop over the nodal coordinates can be performed like:
 
   }
 \end{cpp}
-In that example, each \code{Vector<Real>} is a geometrical array of size \code{spatial\_dimension}
-and the iteration is conveniently performed by the \code{Array} iterator.
+In that example, each \code{Vector<Real>} is a geometrical array of
+size \code{spatial\_dimension} and the iteration is conveniently
+performed by the \code{Array} iterator.
 
-The \code{Array} object is intensively used to store tensor values.  In that
-case it should be specified that the returned object type is a matrix when
-constructing the iterator. This is done when calling the \code{begin} function. For
-instance, assuming that we have a \code{Array} storing stresses, we can loop
-over the stored tensors by:
+The \code{Array} object is intensively used to store second order
+tensor values.  In that case, it should be specified that the returned
+object type is a matrix when constructing the iterator. This is done
+when calling the \code{begin} function. For instance, assuming that we
+have a \code{Array} storing stresses, we can loop over the stored
+tensors by:
 
 \begin{cpp}
   //creating the iterators
@@ -205,19 +210,18 @@ over the stored tensors by:
 
   }
 \end{cpp}
-In that last example the Matrix objects are
+In that last example, the \code{Matrix} objects are
 \code{spatial\_dimension} $\times$ \code{spatial\_dimension} matrices.
-The light objects \code{Matrix} and \code{Vector} can be used and combined
-to do most common linear algebra.
+The light objects \code{Matrix} and \code{Vector} can be used and
+combined to do most common linear algebra.
 
-In general, a mesh consists of several kinds of elements. Consequently the
-amount of data to be stored can differ for each element type. The
-straightforward example is the connectivity array, namely the sequences of nodes
-belonging to each element. In order to easily manage this kind of data, a
-particular data structure called \code{ElementTypeMapArray} is available.  It is
-just a group of \code{Arrays}, each associated to an element type. The following
-code can retrieve the \code{ElementTypeMapArray} which stores the connectivity
-arrays for a mesh:
+
+In general, a mesh consists of several kinds of elements.
+Consequently the amount of data to be stored can differ for each element type.
+The straightforward example is the connectivity array, namely the sequences of nodes belonging to each element (linear triangular elements have fewer nodes than, say, rectangular quadratic elements etc.).
+A particular data structure called \code{ElementTypeMapArray} is provided to easily manage this kind of data.
+It consists of a group of \code{Arrays}, each associated to an element type.
+The following code can retrieve the \code{ElementTypeMapArray} which stores the connectivity arrays for a mesh:
 \begin{cpp}
   ElementTypeMapArray<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}

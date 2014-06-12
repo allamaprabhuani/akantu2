@@ -1,7 +1,7 @@
 
 \subsection{Cohesive laws}
 
-\subsubsection{Snozzi-Molinari law}
+\subsubsection{Snozzi-Molinari Law}
 
 \begin{figure}
   \centering
@@ -12,9 +12,9 @@
   \label{fig:smm:coh:linear_cohesive_law}
 \end{figure}
 
-The Snozzi-Molinari~\cite{snozzi_cohesive_2013} linear irreversible
-cohesive law has been implemented in \akantu (see
-figure~\ref{fig:smm:coh:linear_cohesive_law}). It is an extension to
+\akantu includes the Snozzi-Molinari~\cite{snozzi_cohesive_2013}
+linear irreversible cohesive law (see
+Figure~\ref{fig:smm:coh:linear_cohesive_law}). It is an extension to
 the Camacho-Ortiz~\cite{camacho_computational_1996} cohesive law in
 order to make dissipated fracture energy path-dependent. The concept
 of free potential energy is dropped and a new independent parameter
@@ -56,17 +56,18 @@ tractions are calculated as:
   \left( 1- \frac{\delta_\mathrm{max}}{\delta_\mathrm{c}} \right)
 \end{align}
 so that they vary linearly between the origin and the maximum attained
-tractions. As shown in figure~\ref{fig:smm:coh:linear_cohesive_law},
-in this law dissipated and reversible energies are:
+tractions. As shown in Figure~\ref{fig:smm:coh:linear_cohesive_law},
+in this law, the dissipated and reversible energies are:
 \begin{align}
   E_\mathrm{diss} &= \frac{1}{2} \sigma_\mathrm{c}\, \delta_\mathrm{max}\\[1ex]
   E_\mathrm{rev} &= \frac{1}{2} T\, \delta
 \end{align}
-Moreover a damage parameter $D$ can be defined as:
+Moreover, a damage parameter $D$ can be defined as:
 \begin{equation}
   D = \min \left(
     \frac{\delta_\mathrm{max}}{\delta_\mathrm{c}},1 \right)
-\end{equation} which varies from 0 (undamaged condition) and 1 (fully
+\end{equation}
+which varies from 0 (undamaged condition) and 1 (fully
 damaged condition). This variable can only increase because damage is
 an irreversible process. A simple penalty contact model has been incorporated
 in the cohesive law so that normal tractions can be returned in
@@ -75,13 +76,13 @@ case of compression:
   T_\mathrm{n} = \alpha \Delta_\mathrm{n} \quad\text{if
     $\Delta_\mathrm{n} < 0$}
 \end{equation}
-where $\alpha$ is a stiffness parameter that by default is zero. The
+where $\alpha$ is a stiffness parameter that defaults to zero. The
 relative contact energy is equivalent to reversible energy but in
 compression.
 
 The material name of the linear decreasing cohesive law  is
 \code{material\_cohesive\_linear} and its parameters with their
-relative default values are:
+respective default values are:
 \begin{itemize}
 \item \code{sigma\_c}: 0
 \item \code{beta}: 0
@@ -90,15 +91,15 @@ relative default values are:
 \item \code{kappa}: 1
 \item \code{penalty}: 0
 \end{itemize}
-A random number generator can be use to assign a random
+A random number generator can be used to assign a random
 $\sigma_\mathrm{c}$ to each facet following a given distribution. To
 the base value of $\sigma_\mathrm{c}$ a random quantity can be added:
 \begin{cpp}
   sigma_c = $base$ uniform [$minimum$, $maximum$]
   sigma_c = $base$ weibull [$lambda$, $m$]
 \end{cpp}
-All parameters are real numbers. For the uniform distribution minimum
-and maximum values have to be specified. Weibull distribution is
+All parameters are real numbers. For the uniform distribution, minimum
+and maximum values have to be specified. The Weibull distribution is
 characterized by the following cumulative distribution function:
 \begin{equation}
     F(\sigma_\mathrm{c}) = 1- e^{-\left(
@@ -108,17 +109,17 @@ which depends on $\sigma_\mathrm{c, min}$, which is the minimum value,
 and $m$ and $\lambda$, which are the shape parameter and the scale
 parameter.
 
-Bilinear constitutive law works exactly in the same way of the linear
+The bilinear constitutive law works exactly the same way as the linear
 one, except for the additional parameter \code{delta\_0} that by
 default is zero. Two examples for the extrinsic and intrinsic cohesive
-elements and also an example to assign different porperties to
+elements and also an example to assign different properties to
 intergranular and transgranular cohesive elements can be found in
-\code{\examplesdir/cohesive\_element/} folder.
+the folder \code{\examplesdir/cohesive\_element/}.
 
-\subsubsection{Exponential cohesive law}
+\subsubsection{Exponential Cohesive Law}
 
 Ortiz and Pandolfi proposed this cohesive law in 1999~\cite{ortiz1999}.  The
-traction-opening equation for this law is as following:
+traction-opening equation for this law is as follows:
 
 \begin{equation}
   \label{eq:exponential_law}
@@ -126,9 +127,9 @@ traction-opening equation for this law is as following:
 \end{equation}
 
 
-This equation is plotted in figure (\ref{fig:smm:CL:ECL}). The term
+This equation is plotted in Figure~\ref{fig:smm:CL:ECL}. The term
 $\frac{\partial{(t/\delta)}}{\partial{\delta}}$ of
-equation~\eqref{eq:tangent_cohesive} for static analysis is defined as:
+\eqref{eq:tangent_cohesive} for static analyses is defined as:
 \begin{equation}
   \frac{\partial{(t/ \delta)}}{\partial{\delta}} = \left\{\begin{array} {l l}
       -e  \frac{\sigma_c}{\delta_c^2  }e^{-\delta  /  \delta_c} &  \quad  if

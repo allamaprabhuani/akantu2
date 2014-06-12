@@ -1,4 +1,4 @@
-\chapter{Heat Transfer model}
+\chapter{Heat Transfer Model}
 
 The heat transfer model is a specific implementation of the \code{Model} interface
 dedicated to handle the dynamic heat equation. 
@@ -31,7 +31,7 @@ To simplify, we can define the capacity and the conductivity matrices as
   \mat{C} \cdot \vec{\dot{T}} = \vec{Q}^{\text{ext}} -\mat{K} \cdot \vec{T}~, 
 \end{equation}
 with $\vec{Q}^{\text{ext}}$ the consistent heat generated.
-\section{Using the heat transfer model}
+\section{Using the Heat Transfer Model}
 Currently, the \code{HeatTransferModel} object uses an explicit dynamic analysis.
 It can simply be created like this
 \begin{cpp}
@@ -87,7 +87,7 @@ A material text file (\eg material.dat) provides the material properties as foll
 \end{cpp}
 where the \code{capacity} and \code{density} are scalars, and the \code{conductivity} is specified as a $3\times 3$ tensor.
 
-\subsection{Explicit dynamic}
+\subsection{Explicit Dynamic}
 
 The explicit  time integration scheme in \akantu  uses a lumped capacity
 matrix $\mat{C}$ (reducing the computational  cost, see Chapter \ref{sect:smm}). 
