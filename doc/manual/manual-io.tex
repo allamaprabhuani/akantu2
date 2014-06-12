@@ -1,6 +1,7 @@
 
 \chapter{Input/Output}\index{I\/O}
 
+\section{Generic data}
 In this chapter, we address ways to get the internal data in human readable formats.
 The models in \akantu handle data associated to the
 mesh, but this data can be split into several \code{Arrays}. For example, the
@@ -38,29 +39,31 @@ Those fields which are stored by quadrature point are modified to be seen in the
 \code{VTK} file as elemental data. To do this, the default is to average the
 values of all the quadrature points.
 
-The list of fields depends on the models.
+The list of fields depends on the models (for
+\code{SolidMechanicsModel} see table~\ref{tab:io:smm_field_list}).
 
-\paragraph{\code{SolidMechanicsModel}:\index{I\/O!SolidMechanicsModel}}\hfill
-\vspace*{0.2cm}
-
-\begin{tabular}{llll}
-  \toprule
-  key          &    type      & support \\
-  \midrule
-  displacement & Vector<Real> & nodes  \\
-  velocity     & Vector<Real> & nodes  \\
-  acceleration & Vector<Real> & nodes  \\
-  force	       & Vector<Real> & nodes  \\
-  residual     & Vector<Real> & nodes  \\
-  boundary     & Vector<bool> & nodes  \\
-  mass         & Vector<Real> & nodes  \\
-  partitions   & Real         & elements \\
-  stress & Matrix<Real> & quadrature points  \\
-  strain & Matrix<Real> & quadrature points  \\
-  \textit{material internals} & variable  & quadrature points  \\
-\bottomrule
-\end{tabular}
-
+\begin{table}
+  \centering
+  \begin{tabular}{llll}
+    \toprule
+    key          &    type      & support \\
+    \midrule
+    displacement & Vector<Real> & nodes  \\
+    velocity     & Vector<Real> & nodes  \\
+    acceleration & Vector<Real> & nodes  \\
+    force	       & Vector<Real> & nodes  \\
+    residual     & Vector<Real> & nodes  \\
+    boundary     & Vector<bool> & nodes  \\
+    mass         & Vector<Real> & nodes  \\
+    partitions   & Real         & elements \\
+    stress & Matrix<Real> & quadrature points  \\
+    strain & Matrix<Real> & quadrature points  \\
+    \textit{material internals} & variable  & quadrature points  \\
+    \bottomrule
+  \end{tabular}
+  \caption{List of dumpable fields for \code{SolidMechanicsModel}.}
+  \label{tab:io:smm_field_list}
+\end{table}
 
 The user can also register external fields which have the same mesh as the mesh from the model as support. To do this, an object of type \code{Field} has to be created.\index{I\/O!addDumpFieldExternal}
 
@@ -80,6 +83,21 @@ The user can also register external fields which have the same mesh as the mesh 
 \end{cpp}
 \end{itemize}
 
+\section{Cohesive elements' data}
+Cohesive elements and their relative data can be easily dumped thanks
+to a specific dumper contained in
+\code{SolidMechanicsModelCohesive}. In order to use it, one has just
+to add the string \code{"cohesive elements"} when calling each method
+already illustrated. Here is an example on how to dump displacement
+and damage:
+\begin{cpp}
+  model.setBaseNameToDumper("cohesive elements", "cohesive_elements_output");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
+  ...
+
+  model.dump("cohesive elements");
+\end{cpp}
 
 %%% Local Variables: 
 %%% mode: latex
