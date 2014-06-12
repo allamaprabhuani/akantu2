@@ -67,8 +67,7 @@ This is achieved by the following code
   akantu::MeshPartition * partition = NULL;
 
   if(prank == 0) {
-    akantu::MeshIOMSH mesh_io;
-    mesh_io.read("my_mesh.msh", mesh);
+    mesh.read("my_mesh.msh");
     partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
   }
