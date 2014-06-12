@@ -39,16 +39,15 @@ An example of the initializing sequence and basic usage of the
 \begin{cpp}
 int main(int argc, char *argv[])
 {
-  akantu::initialize(argc, argv);
+  initialize(argc, argv);
 
-  akantu::StaticCommunicator & comm =
-  akantu::StaticCommunicator::getStaticCommunicator();
-  akantu::Int psize = comm.getNbProc();
-  akantu::Int prank = comm.whoAmI();
+  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  Int psize = comm.getNbProc();
+  Int prank = comm.whoAmI();
 
   ...
 
-  akantu::finalize();
+  finalize();
 }
 \end{cpp}
 
@@ -65,12 +64,12 @@ the function \code{partitionate} using the
 following code
 
 \begin{cpp}
-  akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshPartition * partition = NULL;
+  Mesh mesh(spatial_dimension);
+  MeshPartition * partition = NULL;
 
   if(prank == 0) {
     mesh.read("my_mesh.msh");
-    partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);
+    partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);
   }
 \end{cpp}
@@ -88,7 +87,7 @@ parameter, the \code{initParallel} method must be called receiving the partition
 as a parameter.
 
 \begin{cpp}
-  akantu::SolidMechanicsModel model(mesh);
+  SolidMechanicsModel model(mesh);
   model.initParallel(partition);
 \end{cpp}
 

@@ -1,4 +1,4 @@
-\chapter{Solid MechanicsModel\index{SolidMechanicsModel}\label{sect:smm}}
+\chapter{Solid Mechanics Model\index{SolidMechanicsModel}\label{sect:smm}}
 
 The solid mechanics model is a specific implementation of the
 \code{Model} interface dedicated to handle the equations of motion or
@@ -60,10 +60,9 @@ presented in the next sections.
 For a unique solution of the equations of motion, initial
 displacements and velocities for all degrees of freedom must be
 specified:
-
 \begin{eqnarray}
   \vec{u(t=0)} = \vec{u}_{0}\\
-  \vec{\dot u(t=0)} =\vec{v}_{0}~.
+  \vec{\dot u(t=0)} =\vec{v}_{0}
 \end{eqnarray} The solid mechanics model can be initialized as
 follows:
 \begin{cpp}
@@ -288,9 +287,9 @@ Another example would be:
   model.setMaterialSelector(*mat_selector);
 \end{cpp}
 
-where \code{tag\_1} of the mesh file is used as the classifier index and the
-elements that have index value equal to one will be assigned to the first
-material in the material file.
+where \code{tag\_1} of the mesh file is used as the classifier index
+and the elements that have index value equal to one will be assigned
+to the second material in the material file.
 
 \IfFileExists{manual-cohesive_elements_insertion.tex}{\input{manual-cohesive_elements_insertion}}{}
 
@@ -661,7 +660,6 @@ The method
   field at $t+1$ and a part of the velocity field at $t+1$, denoted by
   $\vec{\dot{u}^{\st{p}}}_{n+1}$, which will be used later in the method
   \code{model.explicitCorr()}. The equations are:
-
   \begin{align}
     \vec{u}_{n+1} &= \vec{u}_{n} + \Delta t
     \vec{\dot{u}}_{n} + \frac{\Delta t^2}{2} \vec{\ddot{u}}_{n}\\
@@ -673,19 +671,17 @@ The method
 \item \code{model.updateResidual()} and
   \code{model.updateAcceleration()} compute the acceleration increment
   $\delta \vec{\ddot{u}}$:
-
   \begin{equation}
     \left(\mat{M} + \frac{1}{2} \Delta t \mat{C}\right)
-    \delta \vec{\ddot{u}} = \vec{f_{\st{ext}}} - \vec{f}_{\st{int}n+1}
+    \delta \vec{\ddot{u}} = \vec{f_{\st{ext}}} - \vec{f}_{\st{int}\, n+1}
     - \mat{C} \vec{\dot{u}}_{n} - \mat{M} \vec{\ddot{u}}_{n}
   \end{equation}
 
-  \note{The internal force $\vec{f}_{\st{int}n+1}$ is computed from
+  \note{The internal force $\vec{f}_{\st{int}\, n+1}$ is computed from
     the displacement $\vec{u}_{n+1}$ based on the constitutive law.}
 
 \item \code{model.explicitCorr()} computes the velocity and
   acceleration fields at $t+1$:
-
   \begin{align}
     \vec{\dot{u}}_{n+1} &= \vec{\dot{u}^{\st{p}}}_{n+1} + \frac{\Delta t}{2}
     \delta \vec{\ddot{u}} \\ \vec{\ddot{u}}_{n+1} &=
@@ -785,7 +781,6 @@ where $\mat{\epsilon}$ represents the infinitesimal strain tensor,
 $\mat{F} = \nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient
 tensor and $\mat{I}$ the identity matrix. The constitutive equation
 for isotropic homogeneous media can be expressed as:
-
 \begin{equation}
 \label{eqn:smm:material:constitutive_elastic}
 \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu\mat{\epsilon}
@@ -863,7 +858,7 @@ constructor of the class with the method
 \begin{cpp}
 void registerParam(name of the parameter (key in the material file),
                    member variable,
-                   default value (optinal parameter),
+                   default value (optional parameter),
                    access permissions,
                    description);
 \end{cpp}

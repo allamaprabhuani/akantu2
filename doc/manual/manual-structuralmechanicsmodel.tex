@@ -82,14 +82,17 @@ for instance, look like
 \end{cpp}
 
 \begin{table}[htb] \centering
-  \begin{tabular}{c|c} field  & description \\\hline\hline
-    \code{E} & Young's  modulus  \\\hline
-    \code{A}  & Cross  section  area  \\\hline
-    \code{I} & Second cross sectional  moment of inertia (for 2D elements)
-    \\\hline \code{Iy} & \code{I}  around beam $y$--axis (for 3D elements)
-    \\\hline \code{Iz} & \code{I}  around beam $z$--axis (for 3D elements)
-    \\\hline \code{GJ}  & Polar  moment of inertia  of beam  cross section 
-(for 3D elements)
+  \begin{tabular}{cl}
+    \toprule
+    Field  & Description \\
+    \midrule
+    \code{E} & Young's  modulus  \\
+    \code{A}  & Cross  section  area  \\
+    \code{I} & Second cross sectional  moment of inertia (for 2D elements)\\
+    \code{Iy} & \code{I}  around beam $y$--axis (for 3D elements)\\
+    \code{Iz} & \code{I}  around beam $z$--axis (for 3D elements)\\
+    \code{GJ}  & Polar  moment of inertia  of beam  cross section (for 3D elements)\\
+    \bottomrule
   \end{tabular}
   \caption{Material properties  for structural elements  as defined by
 the structure \code{StructuralMaterial}.}

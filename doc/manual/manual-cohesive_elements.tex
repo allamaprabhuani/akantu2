@@ -85,22 +85,21 @@ one except for an additional parameter $\delta_0$ separating an
 initial linear elastic part from the linear irreversible one. The
 exponential law will be described later in the manual.
 
-In dynamic cohesive element insertion, normal and tangential stresses
-along the edges of standard elements are used to compute the effective
-stress
+In dynamic cohesive element insertions, the normal stress
+$\sigma_\mathrm{n}$ and the tangential stress $\tau$ along the edges
+of standard elements are used to compute the effective stress
 \begin{equation}
   \sigma_\mathrm{eff} = \sqrt{\sigma_\mathrm{n}^2 +
-    \frac{\tau_\mathrm{nt}^2}{\beta^2}}
+    \frac{\tau^2}{\beta^2}}
 \end{equation}
-where the indices $n$ and $t$ respectively refer to normal and
-tangential directions. Obviously, if $\sigma_\mathrm{n}$ is
-compressive, its contribution is not considered. The computed
-effective stress $\sigma_\mathrm{eff}$ is monitored, and when it
-overcomes a threshold stress on a certain edge, a new cohesive element
-is inserted. New nodes are added and the element connectivity is
-updated (see Figure~\ref{fig:smm:coh:insertion}). This topological
-mesh changing technique is very convenient because it allows
-simulating crack propagation without remeshing the domain.
+Obviously, if $\sigma_\mathrm{n}$ is compressing, its contribution is
+not considered. The computed effective stress $\sigma_\mathrm{eff}$ is
+monitored, and when it overcomes a threshold stress on a certain edge,
+a new cohesive element is inserted. New nodes are added and the
+element connectivity is updated (see
+Figure~\ref{fig:smm:coh:insertion}). This topological mesh changing
+technique is very convenient because it allows simulating crack
+propagation without remeshing the domain.
 
 \begin{table}[!htb]
 \begin{center}
@@ -127,7 +126,6 @@ elements, the stiffness of the cohesive elements should also be added
 to the total stiffness of the structure. Considering a typical
 cohesive element as explained in Figure~\ref{fig:smm:coh:cohesive2d},
 the opening displacement along the mid-surface can be written as:
-
 \begin{equation}
   \label{eq:opening}
   \delta(\xi) = [[\mat{u}]] \mat{N}(\xi) =
@@ -142,15 +140,12 @@ the opening displacement along the mid-surface can be written as:
 \end{equation}
 
 The \mat{U} , \mat{A} and \mat{N} are as following:
-
 \begin{equation}
   \mat{U} = \left [
     \begin{array}{c c c c c c c c c c c c}
       u_0 & v_0 & u_1 & v_1 & u_2 & v_2 & u_3 & v_3 & u_4 & v_4 & u_5 & v_5
     \end{array}\right ]
 \end{equation}
-
-
 \begin{equation}
   \mat{A} = \left [\begin{array}{c c c c c c c c c c c c}
       1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0\\
@@ -161,8 +156,6 @@ The \mat{U} , \mat{A} and \mat{N} are as following:
       0 &0& 0&0 &0 &1 &0 & 0& 0& 0 & 0 &-1
     \end{array} \right ]
 \end{equation}
-
-
 \begin{equation}
   \mat{N} = \begin{bmatrix}
     N_0(\xi) & 0 & N_1(\xi) &0 & N_2(\xi) & 0\\
@@ -171,7 +164,6 @@ The \mat{U} , \mat{A} and \mat{N} are as following:
 \end{equation}
 
 The consistent stiffness matrix for the element is obtained as
-
 \begin{equation}
   \label{eq:cohesive_stiffness}
   \mat{K}    =    \delta    \mat{U}^T    \int_{\Gamma_c}    {\mat{P}^t
@@ -181,7 +173,6 @@ The consistent stiffness matrix for the element is obtained as
 
 In which the tangent matrix is calculated based on the equation \ref
 {eq:tangent_cohesive} after performing necessary derivation:
-
 \begin{equation}
   \label{eq:tangent_cohesive}
   \frac{\partial{\mat{t}}} {\partial{\delta}} = \hat{\mat{t}} \otimes

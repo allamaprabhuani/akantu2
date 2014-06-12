@@ -39,8 +39,8 @@ $\delta_\mathrm{c}$ the critical effective displacement after which
 cohesive tractions are zero (complete decohesion), $\Delta_\mathrm{t}$
 and $\Delta_\mathrm{n}$ are respectively the tangential and normal
 components of the opening displacement vector $\vec{\Delta}$. $\beta$
-specifies the importance of tangential to the normal displacement. The
-effective opening displacement is:
+is a weight that indicates how big the tangential opening contribution
+is. The effective opening displacement is:
 \begin{equation}
   \delta = \sqrt{\frac{\beta^2}{\kappa^2} \Delta_\mathrm{t}^2 +
     \Delta_\mathrm{n}^2}
@@ -120,13 +120,10 @@ the folder \code{\examplesdir/cohesive\_element/}.
 
 Ortiz and Pandolfi proposed this cohesive law in 1999~\cite{ortiz1999}.  The
 traction-opening equation for this law is as follows:
-
 \begin{equation}
   \label{eq:exponential_law}
   t = e \sigma_c \frac{\delta}{\delta_c}e^{-\delta/ \delta_c}
 \end{equation}
-
-
 This equation is plotted in Figure~\ref{fig:smm:CL:ECL}. The term
 $\frac{\partial{(t/\delta)}}{\partial{\delta}}$ of
 \eqref{eq:tangent_cohesive} for static analyses is defined as:

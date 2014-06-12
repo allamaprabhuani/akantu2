@@ -13,7 +13,7 @@ follow the usual way:
   > cd akantu
   > mkdir build
   > cd build
-  > ccmake <path to akantu sources>
+  > ccmake ..
   [ Set the options that you need ]
   > make
   > make install
@@ -29,8 +29,8 @@ convenience to handle the \code{cmake} configuration
   > make install
 \end{command}
 
-\noindent All the \akantu options are documented in section
-\vref{app:package-dependencies}.
+\noindent All the \akantu options are documented in Appendix
+\ref{app:package-dependencies}.
 
 
 \section{Writing a \code{main} Function\label{sect:common:main}}
@@ -42,20 +42,25 @@ de-allocation of vectors, structures and/or objects. Moreover, in
 parallel computations, the initialization procedure performs the
 communication setup. This is achieved by a pair of functions
 (\code{initialize} and \code{finalize}) that are used as follows:
-
 \begin{cpp}
-int main(int argc, char *argv[])
-{
-  akantu::initialize(argc, argv);
+#include "aka_common.hh"
+#include "..."
+
+using namespace akantu;
+
+int main(int argc, char *argv[]) {
+  initialize("material.dat", argc, argv);
 
   // your code
   ...
 
-  akantu::finalize();
+  finalize();
 }
 \end{cpp}
-The \code{initialize} function takes the program parameters which
-can be interpreted by \akantu in due form.
+The \code{initialize} function takes the material file and the program
+parameters which can be interpreted by \akantu in due form. Obviously
+it is necessary to include all files needed in main. In this manual
+all provided code implies the usage of \code{akantu} as namespace.
 
 \section{Creating and Loading a Mesh\label{sect:common:mesh}}
 
@@ -65,22 +70,21 @@ created with a given spatial dimension, it can be filled by reading a mesh input
 The method \code{read} of the class \code{Mesh} infers the mesh type from the file extension. If a non-standard file extension is used, the mesh type has to be specified.
 
 \begin{cpp}
-   UInt spatial_dimension = 2;
-   Mesh mesh(spatial_dimension);
-   
-   # Reading Gmsh files
-   mesh.read("my_gmsh_mesh.msh");
-   mesh.read("my_gmsh_mesh", _miot_gmsh);
+UInt spatial_dimension = 2;
+Mesh mesh(spatial_dimension);
+
+// Reading Gmsh files
+mesh.read("my_gmsh_mesh.msh");
+mesh.read("my_gmsh_mesh", _miot_gmsh);
 
 
-   # Reading Abaqus files
-   mesh.read("my_abaqus_mesh.inp");
-   mesh.read("my_abaqus_mesh", _miot_abaqus);
+// Reading Abaqus files
+mesh.read("my_abaqus_mesh.inp");
+mesh.read("my_abaqus_mesh", _miot_abaqus);
 
-   # Reading Diana files
-   mesh.read("my_diana_mesh.dat");
-   mesh.read("my_diana_mesh", _miot_diana);
-
+// Reading Diana files
+mesh.read("my_diana_mesh.dat");
+mesh.read("my_diana_mesh", _miot_diana);
 \end{cpp}
 
 The Gmsh reader adds the geometrical and physical tags as mesh data. The physical
@@ -199,8 +203,8 @@ tensors by:
 
 \begin{cpp}
   //creating the iterators
-  Array<Real>::iterator<Matrix<Real> > it  = stresses.begin(spatial_dimension,spatial_dimension);
-  Array<Real>::iterator<Matrix<Real> > end = stresses.end(spatial_dimension,spatial_dimension);
+  Array<Real>::matrix_iterator it  = stresses.begin(spatial_dimension,spatial_dimension);
+  Array<Real>::matrix_iterator end = stresses.end(spatial_dimension,spatial_dimension);
 
   for (; it != end; ++it){
     Matrix<Real> & stress = (*it);
@@ -227,7 +231,7 @@ The following code can retrieve the \code{ElementTypeMapArray} which stores the 
 \end{cpp}
 Then the specific array associated to a given element type can be obtained by
 \begin{cpp}
-  Array<UInt> & connectivity_triangle = connectivities[_triangle_3];
+  Array<UInt> & connectivity_triangle = connectivities(_triangle_3);
 \end{cpp}
 where the first order 3-node triangular element was used in the presented piece
 of code.
