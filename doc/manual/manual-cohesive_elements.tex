@@ -49,9 +49,10 @@ in which $\vec{x}_n^\pm$ for $n=1,\dots,N$ are the current coordinates
 of the nodes.
 
 The quantities that have been defined so far are sufficient to
-completely define the cohesive traction per unit deformed
-area. As the tangential direction $\vec{t}$ depends on the normal one
-$\vec{n}$, equation~\eqref{eq:smm:coh:tractions} can be rewritten as:
+completely define the cohesive traction per unit deformed area (see
+section~\ref{sec:cohesive-laws}). As the tangential direction
+$\vec{t}$ depends on the normal one $\vec{n}$,
+equation~\eqref{eq:smm:coh:tractions} can be rewritten as:
 \begin{equation}
   \vec{T} = \left[ \frac{\beta^2}{\kappa} \vec{\Delta} +
     \left( 1- \frac{\beta^2}{\kappa}\right)
@@ -128,57 +129,53 @@ cohesive element as explained in Figure~\ref{fig:smm:coh:cohesive2d},
 the opening displacement along the mid-surface can be written as:
 \begin{equation}
   \label{eq:opening}
-  \delta(\xi) = [[\mat{u}]] \mat{N}(\xi) =
+  \vec{\Delta}(s) = \llbracket \mat{u}\rrbracket \,\mat{N}(s) =
   \begin{bmatrix}
     u_3-u_0 & u_4-u_1 & u_5-u_2\\
     v_3-v_0 & v_4-v_1 & v_5-v_2
   \end{bmatrix}
   \begin{bmatrix}
-    N_0(\xi) \\ N_1(\xi) \\ N_2(\xi)
+    N_0(s) \\ N_1(s) \\ N_2(s)
   \end{bmatrix} =
-  \mat{N A U}
+  \mat{N}^\mathrm{k} \mat{A U} = \mat{PU}
 \end{equation}
 
-The \mat{U} , \mat{A} and \mat{N} are as following:
-\begin{equation}
-  \mat{U} = \left [
+The \mat{U}, \mat{A} and \mat{N} are as following:
+\begin{align}
+  \mat{U} &= \left [
     \begin{array}{c c c c c c c c c c c c}
       u_0 & v_0 & u_1 & v_1 & u_2 & v_2 & u_3 & v_3 & u_4 & v_4 & u_5 & v_5
-    \end{array}\right ]
-\end{equation}
-\begin{equation}
-  \mat{A} = \left [\begin{array}{c c c c c c c c c c c c}
+    \end{array}\right ]\\[1ex]
+  \mat{A} &= \left [\begin{array}{c c c c c c c c c c c c}
       1 & 0 & 0 & 0& 0 & 0 & -1& 0 & 0 &0 &0 &0\\
       0 &1& 0&0 &0 &0 &0 & -1& 0& 0 & 0 &0\\
       0 &0& 1&0 &0 &0 &0 & 0& -1& 0 & 0 &0\\
       0 &0& 0&1 &0 &0 &0 & 0& 0& -1 & 0 &0\\
       0 &0& 0&0 &1 &0 &0 & 0& 0& 0 & -1 &0\\
       0 &0& 0&0 &0 &1 &0 & 0& 0& 0 & 0 &-1
-    \end{array} \right ]
-\end{equation}
-\begin{equation}
-  \mat{N} = \begin{bmatrix}
-    N_0(\xi) & 0 & N_1(\xi) &0 & N_2(\xi) & 0\\
-    0 & N_0(\xi)& 0 &N_1(\xi)& 0 & N_2(\xi)
+    \end{array} \right ]\\[1ex]
+  \mat{N}^\mathrm{k} &= \begin{bmatrix}
+    N_0(s) & 0 & N_1(s) &0 & N_2(s) & 0\\
+    0 & N_0(s)& 0 &N_1(s)& 0 & N_2(s)
   \end{bmatrix}
-\end{equation}
+\end{align}
 
 The consistent stiffness matrix for the element is obtained as
 \begin{equation}
   \label{eq:cohesive_stiffness}
-  \mat{K}    =    \delta    \mat{U}^T    \int_{\Gamma_c}    {\mat{P}^t
-    \frac{\partial{\mat{t}}} {\partial{\delta}} \mat{P} d
-    \Gamma \Delta \mat{U}}
+  \mat{K}    =    \int_{S_0}    \mat{P}^\mathrm{T}\,
+    \frac{\partial{\vec{T}}} {\partial{\delta}} \mat{P} \,\mathrm{d}
+    S_0
 \end{equation}
 
-In which the tangent matrix is calculated based on the equation \ref
-{eq:tangent_cohesive} after performing necessary derivation:
+In which the tangent matrix is calculated based on the following
+equation after performing the necessary derivation:
 \begin{equation}
   \label{eq:tangent_cohesive}
-  \frac{\partial{\mat{t}}} {\partial{\delta}} = \hat{\mat{t}} \otimes
-  \frac                       {\partial{(t/\delta)}}{\partial{\delta}}
-  \frac{\hat{\mat{t}}}{\delta}+ \frac{t}{\delta}  [ \beta^2 \mat{I} +
-  (1-\beta^2) (\mat{n} \otimes \mat{n})]
+  \frac{\partial{\vec{T}}} {\partial{\delta}} = \hat{\vec{T}} \otimes
+  \frac                       {\partial{(T/\delta)}}{\partial{\delta}}
+  \frac{\hat{\vec{T}}}{\delta}+ \frac{T}{\delta}  \left[ \beta^2 \mat{I} +
+  \left(1-\beta^2\right) \left(\vec{n} \otimes \vec{n}\right)\right]
 \end{equation}
 
 
