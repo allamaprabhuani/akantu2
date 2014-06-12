@@ -216,7 +216,7 @@ protected:
   /// list of the node groups managed
   NodeGroups node_groups;
 
-  /// list of the node groups managed
+  /// list of the element groups managed
   ElementGroups element_groups;
 
   /// Mesh to which the element belongs
