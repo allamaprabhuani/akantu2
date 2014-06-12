@@ -37,9 +37,6 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_damage/material_brittle.hh
   model/solid_mechanics/materials/material_damage/material_brittle_inline_impl.cc
 
-  model/solid_mechanics/materials/material_damage/material_damage.hh
-  model/solid_mechanics/materials/material_damage/material_damage_tmpl.hh
-
   model/solid_mechanics/materials/material_damage/material_damage_iterative.cc
   model/solid_mechanics/materials/material_damage/material_damage_iterative.hh
   model/solid_mechanics/materials/material_damage/material_damage_iterative_inline_impl.cc
@@ -47,14 +44,6 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_damage/material_damage_linear.cc
   model/solid_mechanics/materials/material_damage/material_damage_linear.hh
   model/solid_mechanics/materials/material_damage/material_damage_linear_inline_impl.cc
-
-  model/solid_mechanics/materials/material_damage/material_marigo.cc
-  model/solid_mechanics/materials/material_damage/material_marigo.hh
-  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
-
-  model/solid_mechanics/materials/material_damage/material_mazars.cc
-  model/solid_mechanics/materials/material_damage/material_mazars.hh
-  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
 
   model/solid_mechanics/materials/material_damage/material_vreepeerlings.hh
   model/solid_mechanics/materials/material_damage/material_vreepeerlings_inline_impl.cc
@@ -66,34 +55,15 @@ set(AKANTU_EXTRA_MATERIALS_FILES
   model/solid_mechanics/materials/material_elastic_orthotropic.cc
   model/solid_mechanics/materials/material_elastic_orthotropic.hh
 
-  model/solid_mechanics/materials/material_finite_deformation/material_neohookean.cc
-  model/solid_mechanics/materials/material_finite_deformation/material_neohookean.hh
-  model/solid_mechanics/materials/material_finite_deformation/material_neohookean_inline_impl.cc
-
-  model/solid_mechanics/materials/material_plastic/material_plastic.cc
-  model/solid_mechanics/materials/material_plastic/material_plastic.hh
-  model/solid_mechanics/materials/material_plastic/material_plastic_inline_impl.cc
-
-  model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.cc
-  model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.hh
-  model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening_inline_impl.cc
-
   model/solid_mechanics/materials/material_plastic/material_viscoplastic.cc
   model/solid_mechanics/materials/material_plastic/material_viscoplastic.hh
   model/solid_mechanics/materials/material_plastic/material_viscoplastic_inline_impl.cc
 
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
-  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
-
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.cc
   model/solid_mechanics/materials/material_viscoelastic/material_stiffness_proportional.hh
-
   )
 
 set(AKANTU_EXTRA_MATERIALS_TESTS
-  test_material_standard_linear_solid_deviatoric_relaxation
-  test_material_standard_linear_solid_deviatoric_relaxation_tension
-  test_material_plasticity
   )
 
 set(AKANTU_EXTRA_MATERIALS_DOC
@@ -103,21 +73,14 @@ set(AKANTU_EXTRA_MATERIALS_DOC
 set(AKANTU_EXTRA_MATERIALS_MANUAL_FILES
   manual-extra_materials.tex
 
-  figures/stress_strain_neo.pdf
   figures/stress_strain_visco.pdf
-  figures/visco_elastic_law.pdf
-  figures/isotropic_hardening_plasticity.pdf
   )
 
 set(AKANTU_EXTRA_MATERIALS_DOCUMENTATION "
 This package activates additional constitutive laws:
 \\begin{itemize}
-\\item Neo-Hookean
-\\item Visco-elastic
-\\item Damage: Marigo, Mazars, 
 \\item Linear anisotropy
 \\item Linear orthotropy
-\\item Plasticity
 \\item Visco-plastic
 \\end{itemize}
 " )

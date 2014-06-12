@@ -197,6 +197,26 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/solid_mechanics_model_event_handler.hh
 
+  model/solid_mechanics/materials/material_damage/material_damage.hh
+  model/solid_mechanics/materials/material_damage/material_damage_tmpl.hh
+  model/solid_mechanics/materials/material_damage/material_marigo.cc
+  model/solid_mechanics/materials/material_damage/material_marigo.hh
+  model/solid_mechanics/materials/material_damage/material_marigo_inline_impl.cc
+  model/solid_mechanics/materials/material_damage/material_mazars.cc
+  model/solid_mechanics/materials/material_damage/material_mazars.hh
+  model/solid_mechanics/materials/material_damage/material_mazars_inline_impl.cc
+  model/solid_mechanics/materials/material_finite_deformation/material_neohookean.cc
+  model/solid_mechanics/materials/material_finite_deformation/material_neohookean.hh
+  model/solid_mechanics/materials/material_finite_deformation/material_neohookean_inline_impl.cc
+  model/solid_mechanics/materials/material_plastic/material_plastic.cc
+  model/solid_mechanics/materials/material_plastic/material_plastic.hh
+  model/solid_mechanics/materials/material_plastic/material_plastic_inline_impl.cc
+  model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.cc
+  model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening.hh
+  model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening_inline_impl.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
+  model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
+
   solver/solver.cc
   solver/solver.hh
   solver/sparse_matrix.cc
@@ -271,6 +291,9 @@ set(AKANTU_CORE_TESTS
   test_vector_iterator
   test_weight
   test_math
+  test_material_standard_linear_solid_deviatoric_relaxation
+  test_material_standard_linear_solid_deviatoric_relaxation_tension
+  test_material_plasticity
   )
 
 set(AKANTU_CORE_MANUAL_FILES
@@ -319,6 +342,9 @@ set(AKANTU_CORE_MANUAL_FILES
   figures/vectors.pdf
   figures/vectors.svg
 
+  figures/stress_strain_neo.pdf
+  figures/visco_elastic_law.pdf
+  figures/isotropic_hardening_plasticity.pdf
 
   figures/elements/hexahedron_8.pdf
   figures/elements/hexahedron_8.svg
