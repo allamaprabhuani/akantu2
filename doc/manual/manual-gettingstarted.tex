@@ -236,6 +236,64 @@ Then the specific array associated to a given element type can be obtained by
 where the first order 3-node triangular element was used in the presented piece
 of code.
 
+\section{Manipulating group of nodes and/or elements}
+
+\akantu provides the possibility to manipulate groups 
+of element and in particular subgroups of elements and nodes.
+
+\subsection{The \texttt{NodeGroup} object}
+
+A group of nodes is stored in \code{NodeGroup} objects.
+They are quite simple objects which store the indexes
+of the selected nodes in a \code{Array<UInt>}. 
+Nodes are selected by adding them when calling 
+\code{NodeGroup::add}. For instance you can select nodes 
+having a positive $X$ coordinate with the following code:
+\begin{cpp}
+  Array<Real> & nodes = mesh.getNodes();
+  NodeGroup group("Xpositive");
+
+  const Array<Real>::vector_iterator it  = nodes.begin(spatial_dimension);
+  const Array<Real>::vector_iterator end = nodes.end(spatial_dimension);
+
+  UInt index = 0;
+
+  for (; it != end ; ++it , ++index){
+    VectorReal & position = *it; 
+    if (position(0) > 0) group.add(index);
+  }  
+\end{cpp}
+
+\subsection{The \texttt{ElementGroup} object}
+
+A group of elements is stored in \code{ElementGroup} objects.
+Since a group can contain elements of various types 
+the \code{ElementGroup} object stores indexes in 
+a \code{ElementTypeMapArray<UInt>} object.
+Then elements can be added to the group by calling \code{addElement}.
+
+For instance selecting the elements for which the barycenter of the nodes
+has a positive $X$ coordinate can be made with:
+
+\begin{cpp}
+  ElementGroup group("XpositiveElement");
+
+  Mesh::type_iterator it  = mesh.firstType();
+  Mesh::type_iterator end = mesh.lastType();
+
+  VectorReal barycenter(spatial_dimension);
+
+  for(; it != end; ++it){
+    UInt nb_element  = mesh.getNbElement(*it);
+    for(UInt e = 0; e < nb_element; ++e) {
+      ElementType type = *it;
+      mesh.getBarycenter(e, type, barycenter.storage());
+      if (barycenter(0) > 0) group.addElement(type,e); 
+    }
+  }
+\end{cpp}
+
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: "manual"

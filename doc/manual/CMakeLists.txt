@@ -114,7 +114,7 @@ file(WRITE ${DOC_DEPS_TEX_FILENAME} "")
 file(APPEND ${DOC_DEPS_TEX_FILENAME} 
 "\\akantuManualAppendix\n")
 file(APPEND ${DOC_DEPS_TEX_FILENAME} "
-During the configuration, cmake offers several AKANTU options
+During the configuration, cmake offers several \\akantu options
 which have dependencies with each other or with external packages and software.
 Each of these are described in details now. \\\\
 \\hrule
