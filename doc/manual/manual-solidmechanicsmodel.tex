@@ -33,14 +33,14 @@ This model contains at least the the following six \code{Arrays}:
   ($\vec{u}$ in the following).
 \item[velocity] contains the velocities of all degrees of freedom.  As
   \textbf{displacement}, it contains computed or imposed velocities
-  depending on the nature of the degrees of freedom ($\vec{\dot{u}}$
+  depending on the nature of the degrees of freedom ($\dot{\vec{u}}$
   in the following).
 \item[acceleration] contains the accelerations of all degrees of
   freedom. As \textbf{displacement}, it contains computed or imposed
   accelerations depending on the nature of the degrees of freedom
-  ($\vec{\ddot{u}}$ in the following).
+  ($\ddot{\vec{u}}$ in the following).
 \item[force] contains the external forces applied on the nodes
-  ($\vec{f_{\st{ext}}}$ in the following).
+  ($\vec{f}_{\st{ext}}$ in the following).
 \item[residual] contains the difference between external and internal
   forces. On blocked degrees of freedom, \textbf{residual} contains
   the support reactions.  ($\vec{r}$ in the following).  It should be
@@ -60,8 +60,8 @@ For a unique solution of the equations of motion, initial
 displacements and velocities for all degrees of freedom must be
 specified:
 \begin{eqnarray}
-  \vec{u(t=0)} = \vec{u}_{0}\\
-  \vec{\dot u(t=0)} =\vec{v}_{0}
+  \vec{u}(t=0) = \vec{u}_0\\
+  \dot{\vec u}(t=0) =\vec{v}_0
 \end{eqnarray} The solid mechanics model can be initialized as
 follows:
 \begin{cpp}
@@ -76,7 +76,7 @@ respectively.
 \begin{cpp}
 Array<Real> & disp = model.getDisplacement();
 Array<Real> & velo = model.getVelocity();
-for (UInt i = 0; i < nb_nodes; ++i) {
+for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
   disp(i, 0) = 0.1;
   velo(i, 1) = 1.;
 }
@@ -88,21 +88,24 @@ conditions. A Dirichlet boundary condition specifies the values that
 the displacement needs to take for every point $x$ at the boundary
 ($\Gamma_u$) of the problem domain (Fig.~\ref{fig:smm:boundaries}):
 \begin{equation}
-  \vec{u} = \vec{\bar u} \quad \forall \vec{x}\in
+  \vec{u} = \bar{\vec u} \quad \forall \vec{x}\in
   \Gamma_{u}
 \end{equation}
 A Neumann boundary condition imposes the value of the gradient of the
-solution at the boundary ($\Gamma_t$) of the problem domain
+solution at the boundary $\Gamma_t$ of the problem domain
 (Fig.~\ref{fig:smm:boundaries}):
 \begin{equation}
-  \vec{t} = \mat{\sigma} \vec{n} = \vec{\bar t} \quad
+  \vec{t} = \mat{\sigma} \vec{n} = \bar{\vec t} \quad
   \forall \vec{x}\in \Gamma_{t}
 \end{equation}
 
 \begin{figure} \centering
 \def\svgwidth{0.5\columnwidth}
   \input{figures/problemDomain.pdf_tex}
-  \caption{Problem domain $\Omega$ with boundary in three dimensions. The Dirchelet and the Neumann regions of the boundary are denoted with $\Gamma_u$ and $\Gamma_t$, respecitvely.\label{fig:smm:boundaries}}
+  \caption{Problem domain $\Omega$ with boundary in three
+    dimensions. The Dirchelet and the Neumann regions of the boundary
+    are denoted with $\Gamma_u$ and $\Gamma_t$,
+    respecitvely.\label{fig:smm:boundaries}}
   \label{fig:problemDomain}
 \end{figure}
 
@@ -125,15 +128,12 @@ be marked as boundary nodes as shown in the following code:
 
 \begin{cpp}
 Array<bool> & blocked = model.getBlockedDOFs();
-
 const Array<Real> & pos = mesh.getNodes();
 
 UInt nb_nodes = mesh.getNbNodes();
-Real epsilon = Math::getTolerance();
-/* this tolerance is by default equal to the machine precision but can be changed by using %\code{Math::setTolerance(value)}% */
 
 for (UInt i = 0; i < nb_nodes; ++i) {
-  if(std::abs(pos(i, 0)) < epsilon) {
+  if(Math::are_float_equal(pos(i, 0), 0)) {
     blocked(i, 0) = true; //block displacement in x-direction
     blocked(i, 1) = true; //block displacement in y-direction
     disp(i, 0) = 0.; //fixed displacement in x-direction
@@ -363,13 +363,13 @@ a customly generated material selector class can be seen in \\
 
 The \code{SolidMechanicsModel} class can handle different analysis
 methods, the first one being presented is the static case.  In this
-case, the equation to solve is,
+case, the equation to solve is
 \begin{equation}
   \label{eqn:smm:static} \mat{K} \vec{u} =
-  \vec{f_{\st{ext}}}~,
+  \vec{f}_{\st{ext}}
 \end{equation}
 where $\mat{K}$ is the global stiffness matrix, $\vec{u}$ the
-displacement vector and $\vec{f_{\st{ext}}}$ the vector of external
+displacement vector and $\vec{f}_{\st{ext}}$ the vector of external
 forces applied to the system.
 
 To solve such a problem, the static solver of the
@@ -394,7 +394,7 @@ also initializes all appropriate vectors to zero.  Once the model is
 created and initialized, the boundary conditions can be set as
 explained in Section~\ref{sect:smm:boundary}.  Boundary conditions
 will prescribe the external forces for some free degrees of freedom
-$\vec{f_{\st{ext}}}$ and displacements for some others.  At this point
+$\vec{f}_{\st{ext}}$ and displacements for some others.  At this point
 of the analysis, the function
 \code{solveStep}\index{SolidMechanicsModel!solveStep} can be called:
 \begin{cpp}
@@ -402,18 +402,17 @@ model.solveStep<_scm_newton_raphson_tangent_modified, _scc_residual>(1e-4, 1);
 \end{cpp}
 This function is templated by the solving method and the convergence
 criterion and takes two arguments: the tolerance and the maximum
-number of iterations, which are $1e-4$ and $1$ for this example. The
+number of iterations, which are $\num{1e-4}$ and $1$ for this example. The
 modified Newton-Raphson method is chosen to solve the system. In this
 method, the equilibrium equation (\ref{eqn:smm:static}) is modified in
 order to apply a Newton-Raphson convergence algorithm:
-
 \begin{align}\label{eqn:smm:static-newton-raphson}
-\mat{K}^{i+1}\delta\vec{u}^{i+1} &= \vec{r} \\
-&= \vec{f_{\st{ext}}} -\vec{f_{\st{int}}}\\
-&= \vec{f_{\st{ext}}} - \mat{K}^{i} \vec{u}^{i}\\
-\vec{u}^{i+1} &= \vec{u}^{i} + \delta\vec{u}^{i+1}~,\nonumber
+  \mat{K}^{i+1}\delta\vec{u}^{i+1} &= \vec{r} \\
+  &= \vec{f}_{\st{ext}} -\vec{f}_{\st{int}}\\
+  &= \vec{f}_{\st{ext}} - \mat{K}^{i} \vec{u}^{i}\\
+  \vec{u}^{i+1} &= \vec{u}^{i} + \delta\vec{u}^{i+1}~,\nonumber
 \end{align}
-where $\delta\vec{ u}$ is the increment of displacement to be added
+where $\delta\vec{u}$ is the increment of displacement to be added
 from one iteration to the other, and $i$ is the Newton-Raphson
 iteration counter.  By invoking the \code{solveStep} method in the
 first step, the global stiffness matrix $\mat{K}$ from
@@ -464,15 +463,15 @@ solid mechanics model.  The complete equations that should be solved
 are:
 \begin{equation}
 \label{eqn:equation-motion}
-\mat{M}\vec{\ddot{u}} +
-\mat{C}\vec{\dot{u}} + \mat{K}\vec{u} = \vec{f_{\st{ext}}}~,
+\mat{M}\ddot{\vec{u}} +
+\mat{C}\dot{\vec{u}} + \mat{K}\vec{u} = \vec{f}_{\st{ext}}~,
 \end{equation}
 where $\mat{M}$, $\mat{C}$ and $\mat{K}$ are the mass,
 damping and stiffness matrices, respectively.
 
 In the previous section, it has already been discussed how to solve
-this equation in the static case, where $\vec{\ddot{u}} =
-\vec{\dot{u}} = 0$.  Here the method to solve this equation in the
+this equation in the static case, where $\ddot{\vec{u}} =
+\dot{\vec{u}} = 0$.  Here the method to solve this equation in the
 general case will be presented.  For this purpose, a time
 discretization has to be specified.  The most common discretization
 method in solid mechanics is the Newmark-$\beta$ method, which is
@@ -482,20 +481,20 @@ For the Newmark-$\beta$ method, (\ref{eqn:equation-motion}) becomes a
 system of three equations (see \cite{curnier92a} \cite{hughes-83a} for
 more details):
 \begin{align}
-\mat{M} \vec{\ddot{u}}_{n+1} + \mat{C}\vec{\dot{u}}_{n+1} + \mat{K} \vec{u}_{n+1} &=\vec{f_{\st{ext}}}_{n+1}
+\mat{M} \ddot{\vec{u}}_{n+1} + \mat{C}\dot{\vec{u}}_{n+1} + \mat{K} \vec{u}_{n+1} &={\vec{f}_{\st{ext}}}_{\, n+1}
 \label{eqn:equation-motion-discret} \\
-\vec{u}_{n+1} &=\vec{u}_{n} + \left(1 - \alpha\right) \Delta t \vec{\dot{u}}_{n} +
-\alpha \Delta t \vec{\dot{u}}_{n+1} + \left(\frac{1}{2} -
+\vec{u}_{n+1} &=\vec{u}_{n} + \left(1 - \alpha\right) \Delta t \dot{\vec{u}}_{n} +
+\alpha \Delta t \dot{\vec{u}}_{n+1} + \left(\frac{1}{2} -
 \alpha\right) \Delta t^2
-\vec{\ddot{u}}_{n} \label{eqn:finite-difference-1}\\
-\vec{\dot{u}}_{n+1} &= \vec{\dot{u}}_{n} + \left(1 - \beta\right)
-\Delta t \vec{\ddot{u}}_{n} + \beta \Delta t
-\vec{\ddot{u}}_{n+1} \label{eqn:finite-difference-2}
+\ddot{\vec{u}}_{n} \label{eqn:finite-difference-1}\\
+\dot{\vec{u}}_{n+1} &= \dot{\vec{u}}_{n} + \left(1 - \beta\right)
+\Delta t \ddot{\vec{u}}_{n} + \beta \Delta t
+\ddot{\vec{u}}_{n+1} \label{eqn:finite-difference-2}
 \end{align}
 
-In these new equations, $\vec{\ddot{u}}_{n}$, $\vec{\dot{u}}_{n}$ and
-$\vec{u}_{n}$ are the approximations of $\vec{\ddot{u}(t_n)}$,
-$\vec{\dot{u}(t_n)}$ and $\vec{u(t_n)}$.
+In these new equations, $\ddot{\vec{u}}_{n}$, $\dot{\vec{u}}_{n}$ and
+$\vec{u}_{n}$ are the approximations of $\ddot{\vec{u}}(t_n)$,
+$\dot{\vec{u}}(t_n)$ and $\vec{u}(t_n)$.
 Equation~(\ref{eqn:equation-motion-discret}) is the equation of motion
 discretized in space (finite-element discretization), and equations
 (\ref{eqn:finite-difference-1}) and (\ref{eqn:finite-difference-2})
@@ -525,29 +524,30 @@ in the case of a non-linear equations, an iterative algorithm such as
 the Newton-Raphson method is applied. The system of equations can be
 written as:
 
-
-\noindent\textit{Predictor:}
+\begin{enumerate}
+\item \textit{Predictor:}
 \begin{align}
   \vec{u}_{n+1}^{0} &= \vec{u}_{n} + \Delta t
-  \vec{\dot{u}}_{n} + \frac{\Delta t^2}{2} \vec{\ddot{u}}_{n} \\
-  \vec{\dot{u}}_{n+1}^{0} &= \vec{\dot{u}}_{n} + \Delta t
-  \vec{\ddot{u}}_{n} \\
-  \vec{\ddot{u}}_{n+1}^{0} &= \vec{\ddot{u}}_{n}
+  \dot{\vec{u}}_{n} + \frac{\Delta t^2}{2} \ddot{\vec{u}}_{n} \\
+  \dot{\vec{u}}_{n+1}^{0} &= \dot{\vec{u}}_{n} + \Delta t
+  \ddot{\vec{u}}_{n} \\
+  \ddot{\vec{u}}_{n+1}^{0} &= \ddot{\vec{u}}_{n}
 \end{align}
 
-\noindent\textit{Solve:}
+\item \textit{Solve:}
 \begin{align}
   \left(c \mat{M} + d \mat{C} + e \mat{K}_{n+1}^i\right)
-  \vec{w} = \vec{f_{\st{ext}}}_{n+1} - \vec{f_{\st{int}}}_{n+1}^i -
-  \mat{C} \vec{\dot{u}}_{n+1}^i - \mat{M} \vec{\ddot{u}}_{n+1}^i = \vec{r}_{n+1}^i
+  \vec{w} = {\vec{f}_{\st{ext}}}_{\,n+1} - {\vec{f}_{\st{int}}}_{\,n+1}^i -
+  \mat{C} \dot{\vec{u}}_{n+1}^i - \mat{M} \ddot{\vec{u}}_{n+1}^i = \vec{r}_{n+1}^i
 \end{align}
 
-\noindent\textit{Corrector:}
+\item \textit{Corrector:}
 \begin{align}
-  \vec{\ddot{u}}_{n+1}^{i+1} &= \vec{\ddot{u}}_{n+1}^{i} +c \vec{w} \\
-  \vec{\dot{u}}_{n+1}^{i+1} &= \vec{\dot{u}}_{n+1}^{i} + d\vec{w} \\
+  \ddot{\vec{u}}_{n+1}^{i+1} &= \ddot{\vec{u}}_{n+1}^{i} +c \vec{w} \\
+  \dot{\vec{u}}_{n+1}^{i+1} &= \dot{\vec{u}}_{n+1}^{i} + d\vec{w} \\
   \vec{u}_{n+1}^{i+1} &= \vec{u}_{n+1}^{i} + e \vec{w}
 \end{align}
+\end{enumerate}
 
 where $i$ is the Newton-Raphson iteration counter and $c$, $d$ and $e$
 are parameters depending on the method used to solve the equations
@@ -557,8 +557,8 @@ are parameters depending on the method used to solve the equations
     \toprule
     & $\vec{w}$ & $e$ & $d$ & $c$\\
     \midrule
-    in acceleration &$ \delta\vec{\ddot{u}}$ & $\alpha \beta\Delta t^2$ &$\beta \Delta t$ &$1$\\
-    in velocity & $ \delta\vec{\dot{u}}$& $\frac{1}{\beta} \Delta t$ & $1$ & $\alpha\Delta t$\\
+    in acceleration &$ \delta\ddot{\vec{u}}$ & $\alpha \beta\Delta t^2$ &$\beta \Delta t$ &$1$\\
+    in velocity & $ \delta\dot{\vec{u}}$& $\frac{1}{\beta} \Delta t$ & $1$ & $\alpha\Delta t$\\
     in displacement &$\delta\vec{u}$ & $ 1$ & $\frac{1}{\alpha} \Delta t$ & $\frac{1}{\alpha \beta} \Delta t^2$\\
     \bottomrule
   \end{tabular}
@@ -604,13 +604,13 @@ An example of solid mechanics with an implicit time integration scheme
 is presented in
 \shellcode{\examplesdir/implicit/implicit\_dynamic.cc}.  This example
 consists of a 3D beam of
-$\unit{10}{\meter}\,\times\,\unit{1}{\meter}\,\times\,\unit{1}{\meter}$
+$\SI{10}{\metre}\,\times\,\SI{1}{\metre}\,\times\,\SI{1}{\metre}$
 blocked on one side and is on a roller on the other side.  A constant
-force of \unit{5}{\kilo\newton} is applied in its middle.
+force of \SI{5}{\kilo\newton} is applied in its middle.
 Figure~\ref{fig:smm:implicit:dynamic} presents the geometry of this
 case. The material used is a fictitious linear elastic material with a
-density of \unit{1000}{\kilogrampercubicmetre}, a Young's Modulus of
-\unit{120}{\mega\pascal} and Poisson's ratio of $0.3$. These values
+density of \SI{1000}{\kilo\gram\per\cubic\metre}, a Young's Modulus of
+\SI{120}{\mega\pascal} and Poisson's ratio of $0.3$. These values
 were chosen to simplify the analytical solution.
 
 An approximation of the dynamic response of the middle point of the
@@ -766,14 +766,14 @@ as shown in Figure~\ref{fig:smm:explicit}.
   \caption{Numerical setup \label{fig:smm:explicit}}
 \end{figure}
 
-The length and height of the beam are \unit{10}{\metre} and
-\unit{1}{\metre}, respectively.  The material is linear elastic,
+The length and height of the beam are \SI{10}{\metre} and
+\SI{1}{\metre}, respectively.  The material is linear elastic,
 homogeneous and isotropic (density:
-\unit{7800}{\kilogrampercubicmetre}, Young's modulus:
-\unit{210}{\giga\pascal} and Poisson's ratio: $0.3$).  The imposed
-displacement is equal to $\Delta u = \unit{0.05}{\metre}$. The
+\SI{7800}{\kilo\gram\per\cubic\metre}, Young's modulus:
+\SI{210}{\giga\pascal} and Poisson's ratio: $0.3$).  The imposed
+displacement is equal to $\Delta u = \SI{0.05}{\metre}$. The
 potential, kinetic and total energies are computed.  The safety factor
-is equal to $0.1$.  The total simulated time is \unit{0.01}{\second}.
+is equal to $0.1$.  The total simulated time is \SI{0.01}{\second}.
 
 \input{manual-constitutive-laws}
 

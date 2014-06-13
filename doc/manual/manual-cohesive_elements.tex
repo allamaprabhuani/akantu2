@@ -58,8 +58,11 @@ equation~\eqref{eq:smm:coh:tractions} can be rewritten as:
     \left( 1- \frac{\beta^2}{\kappa}\right)
     \left( \vec{\Delta} \cdot \vec{n}\right) \vec{n} \right]
   \frac{\sigma_\mathrm{c}}{\delta}
-  \left( 1- \frac{\delta}{\delta_\mathrm{c}} \right) =
-  \vec{T}(\vec{\Delta}, \vec{n})
+  \left( 1- \frac{\delta}{\delta_\mathrm{c}} \right)
+  = \hat{\vec{T}}\,
+  \frac{\sigma_\mathrm{c}}{\delta}
+  \left( 1- \frac{\delta}{\delta_\mathrm{c}} \right)
+  = \vec{T}(\vec{\Delta}, \vec{n})
 \end{equation}
  By interpolation it is now possible to derive the nodal
 forces as:
@@ -124,9 +127,9 @@ Element type & Facet type & Order & \# nodes & \# quad. points  \\
 
 For the static analysis of the structures containing cohesive
 elements, the stiffness of the cohesive elements should also be added
-to the total stiffness of the structure. Considering a typical
-cohesive element as explained in Figure~\ref{fig:smm:coh:cohesive2d},
-the opening displacement along the mid-surface can be written as:
+to the total stiffness of the structure. Considering a 2D quadratic
+cohesive element as that in Figure~\ref{fig:smm:coh:cohesive2d}, the
+opening displacement along the mid-surface can be written as:
 \begin{equation}
   \label{eq:opening}
   \vec{\Delta}(s) = \llbracket \mat{u}\rrbracket \,\mat{N}(s) =
@@ -140,7 +143,7 @@ the opening displacement along the mid-surface can be written as:
   \mat{N}^\mathrm{k} \mat{A U} = \mat{PU}
 \end{equation}
 
-The \mat{U}, \mat{A} and \mat{N} are as following:
+The \mat{U}, \mat{A} and $\mat{N}^\mathrm{k}$ are as following:
 \begin{align}
   \mat{U} &= \left [
     \begin{array}{c c c c c c c c c c c c}
