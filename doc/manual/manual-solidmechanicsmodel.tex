@@ -795,9 +795,9 @@ therefore necessary to include the interface of the parent material
 in the header file of your local material and indicate the inheritance
 in the declaration of the class:
 \begin{cpp}
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 #include "material.hh"
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_XXX_HH__
 #define __AKANTU_MATERIAL_XXX_HH__
@@ -828,9 +828,9 @@ class LocalMaterialDamage : public Material {
 
 /// declare methods and accessors here
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /* -------------------------------------------------------------------- */
+  /* Class Members                                                        */
+  /* -------------------------------------------------------------------- */
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 private:
@@ -874,9 +874,9 @@ class LocalMaterialDamage : public Material {
   /// declare here the interace of your material
 
 }:
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+/* inline functions                                                       */
+/* ---------------------------------------------------------------------- */
 /// standard output stream operator
 inline std::ostream & operator <<(std::ostream & stream, const LocalMaterialDamage & _this)
 {
@@ -892,9 +892,9 @@ file. However, the declaration has to be provided in the
 \code{material\_XXX.hh} file:
 \begin{cpp}
 class LocalMaterialDamage : public Material {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+  /* -------------------------------------------------------------------- */
+  /* Constructors/Destructors                                             */
+  /* -------------------------------------------------------------------- */
 public:
 
   LocalMaterialDamage(SolidMechanicsModel & model, const ID & id = "");
@@ -903,26 +903,26 @@ public:
 The user can now define the implementation of the constructor in the
 \code{material\_XXX.cc} file:
 \begin{cpp}
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 #include "local_material_damage.hh"
 #include "solid_mechanics_model.hh"
 
 __BEGIN_AKANTU__
 
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
 					 const ID & id)  :
   Material(model, id),
   damage("damage", *this) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("E"           , E           , 0.   , _pat_parsable, "Young's modulus"        );
-  this->registerParam("nu"          , nu          , 0.5  , _pat_parsable, "Poisson's ratio"        );
-  this->registerParam("lambda"      , lambda             , _pat_readable, "First Lame coefficient" );
-  this->registerParam("mu"          , mu                 , _pat_readable, "Second Lame coefficient");
-  this->registerParam("kapa"        , kpa                , _pat_readable, "Bulk coefficient"       );
-  this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
-  this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
+  this->registerParam("E", E, 0., _pat_parsable, "Young's modulus");
+  this->registerParam("nu", nu, 0.5, _pat_parsable, "Poisson's ratio");
+  this->registerParam("lambda", lambda, _pat_readable, "First Lame coefficient");
+  this->registerParam("mu", mu, _pat_readable, "Second Lame coefficient");
+  this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
+  this->registerParam("Yd", Yd,   50., _pat_parsmod);
+  this->registerParam("Sd", Sd, 5000., _pat_parsmod);
 
   damage.initialize(1);
 

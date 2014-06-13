@@ -33,6 +33,9 @@ opening ${\delta}$:
     \Delta_\mathrm{n} \vec{n} \right)
   \frac{\sigma_\mathrm{c}}{\delta}
   \left( 1- \frac{\delta}{\delta_\mathrm{c}} \right)
+  = \hat{\vec T}\,
+  \frac{\sigma_\mathrm{c}}{\delta}
+  \left( 1- \frac{\delta}{\delta_\mathrm{c}} \right)
 \end{equation}
 
 where $\sigma_\mathrm{c}$ is the material strength along the fracture,
@@ -109,13 +112,22 @@ Ortiz and Pandolfi proposed this cohesive law in 1999~\cite{ortiz1999}.  The
 traction-opening equation for this law is as follows:
 \begin{equation}
   \label{eq:exponential_law}
-  t = e \sigma_c \frac{\delta}{\delta_c}e^{-\delta/ \delta_c}
+  T = e \sigma_c \frac{\delta}{\delta_c}e^{-\delta/ \delta_c}
 \end{equation}
 This equation is plotted in Figure~\ref{fig:smm:CL:ECL}. The term
-$\frac{\partial{(t/\delta)}}{\partial{\delta}}$ of
-\eqref{eq:tangent_cohesive} for static analyses is defined as:
+$\partial{\vec{T}}/ \partial{\delta}$ of
+equation~\eqref{eq:cohesive_stiffness} after the necessary derivation
+can expressed as
 \begin{equation}
-  \frac{\partial{(t/ \delta)}}{\partial{\delta}} = \left\{\begin{array} {l l}
+  \label{eq:tangent_cohesive}
+  \frac{\partial{\vec{T}}} {\partial{\delta}} = \hat{\vec{T}} \otimes
+  \frac                       {\partial{(T/\delta)}}{\partial{\delta}}
+  \frac{\hat{\vec{T}}}{\delta}+ \frac{T}{\delta}  \left[ \beta^2 \mat{I} +
+  \left(1-\beta^2\right) \left(\vec{n} \otimes \vec{n}\right)\right]
+\end{equation}
+where
+\begin{equation}
+  \frac{\partial{(T/ \delta)}}{\partial{\delta}} = \left\{\begin{array} {l l}
       -e  \frac{\sigma_c}{\delta_c^2  }e^{-\delta  /  \delta_c} &  \quad  if
       \delta \geq \delta_{max}\\
       0 & \quad if \delta < \delta_{max}, \delta_n > 0

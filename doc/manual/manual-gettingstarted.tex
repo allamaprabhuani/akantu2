@@ -19,8 +19,8 @@ follow the usual way:
   > make install
 \end{command}
 
-\noindent Or, you can use the \code{Makefile} we added for your
-convenience to handle the \code{cmake} configuration
+\noindent Or, use the \code{Makefile} we added for your convenience to
+handle the \code{cmake} configuration
 
 \begin{command}
   > cd akantu
@@ -64,7 +64,7 @@ all provided code implies the usage of \code{akantu} as namespace.
 
 \section{Creating and Loading a Mesh\label{sect:common:mesh}}
 
-In its current state, \akantu supports three types of meshes, Gmsh~\cite{gmsh},
+In its current state, \akantu supports three types of meshes: Gmsh~\cite{gmsh},
 Abaqus~\cite{abaqus} and Diana~\cite{diana}. Once a \code{Mesh} object is
 created with a given spatial dimension, it can be filled by reading a mesh input file.
 The method \code{read} of the class \code{Mesh} infers the mesh type from the file extension. If a non-standard file extension is used, the mesh type has to be specified.
@@ -153,7 +153,7 @@ accessed by typing:
 \end{cpp}
 
 \code{Arrays} can also contain tuples of values for each index. In
-that case the number of components per tuple must be specified at the
+that case, the number of components per tuple must be specified at the
 \code{Array} creation.  For example, if we want to create an
 \code{Array} to store the coordinates (sequences of three values) of
 ten nodes, the appropriate code is the following:
@@ -221,15 +221,20 @@ combined to do most common linear algebra.
 
 
 In general, a mesh consists of several kinds of elements.
-Consequently the amount of data to be stored can differ for each element type.
-The straightforward example is the connectivity array, namely the sequences of nodes belonging to each element (linear triangular elements have fewer nodes than, say, rectangular quadratic elements etc.).
-A particular data structure called \code{ElementTypeMapArray} is provided to easily manage this kind of data.
-It consists of a group of \code{Arrays}, each associated to an element type.
-The following code can retrieve the \code{ElementTypeMapArray} which stores the connectivity arrays for a mesh:
+Consequently, the amount of data to be stored can differ for each
+element type.  The straightforward example is the connectivity array,
+namely the sequences of nodes belonging to each element (linear
+triangular elements have fewer nodes than, say, rectangular quadratic
+elements etc.).  A particular data structure called
+\code{ElementTypeMapArray} is provided to easily manage this kind of
+data.  It consists of a group of \code{Arrays}, each associated to an
+element type.  The following code can retrieve the
+\code{ElementTypeMapArray} which stores the connectivity arrays for a
+mesh:
 \begin{cpp}
   ElementTypeMapArray<UInt> & connectivities = mesh.getConnectivities();
 \end{cpp}
-Then the specific array associated to a given element type can be obtained by
+Then, the specific array associated to a given element type can be obtained by
 \begin{cpp}
   Array<UInt> & connectivity_triangle = connectivities(_triangle_3);
 \end{cpp}
@@ -272,7 +277,7 @@ the \code{ElementGroup} object stores indexes in
 a \code{ElementTypeMapArray<UInt>} object.
 Then elements can be added to the group by calling \code{addElement}.
 
-For instance selecting the elements for which the barycenter of the nodes
+For instance, selecting the elements for which the barycenter of the nodes
 has a positive $X$ coordinate can be made with:
 
 \begin{cpp}
@@ -301,7 +306,7 @@ to names. This is a useful feature, in particular for the application
 of the boundary conditions, as will be demonstrated
 in section \ref{sect:smm:boundary}.
 
-For instance the following code shows how to register 
+For instance, the following code shows how to register 
 an element group to a mesh (which is a group manager):
 
 \begin{cpp}
