@@ -5,8 +5,8 @@ Bernoulli beam elements \cite{frey2009}.  Just as for the
 \code{SolidMechanicsModel}, this model is created for a given
 \code{Mesh}.  The model will create its own \code{FEEngine} object to
 compute the interpolation, gradient, integration and assembly
-operations.  The \code{StructuralMechanicsModel} constructor is used
-like
+operations.  The \code{StructuralMechanicsModel} constructor is called
+in the following way:
 
 \begin{cpp}
   StructuralMechanicsModel model(mesh, spatial_dimension);
@@ -37,7 +37,7 @@ This model contains at least the following \code{Arrays}:
 
 
 \item[displacement\_rotation] contains the generalized displacements
-  (displacements and rotations) of all degrees of freedom. It can be
+  (\textit{i.e.} displacements and rotations) of all degrees of freedom. It can be
   either a computed displacement for free degrees of freedom or an
   imposed displacement in case of blocked ones ($\vec{u}$ in the
   following).
@@ -46,7 +46,7 @@ This model contains at least the following \code{Arrays}:
   and moments) applied to the nodes ($\vec{f_{\st{ext}}}$ in the
   following).
 
-\item[residual] contains the difference between external and internal
+\item[residual] contains the difference between the generalized external and internal
   forces and moments. On the blocked degrees of freedom,
   \textbf{residual} contains the support reactions ($\vec{r}$ in the
   following).  It should be mentioned that, at equilibrium,
@@ -197,7 +197,7 @@ to converge in two iterations.}
 
 \item \code{model.updateResidual} assembles the internal forces and
   removes them from the external forces.
-\item \code{model.solve} solves the (\ref{eqn:structMechMod:static}).
+\item \code{model.solve} solves the Equation (\ref{eqn:structMechMod:static}).
   The \textbf{increment} vector of the model will contain the new
   increment of displacements, and the \textbf{displacement\_rotation}
   vector is also updated to the new displacements.

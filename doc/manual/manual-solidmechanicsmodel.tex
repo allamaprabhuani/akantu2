@@ -820,7 +820,7 @@ material will then from these values compute its Lam\'{e} coefficients and its
 bulk modulus. Furthermore, the user has to add a new internal variable
 \code{damage} in order to store the amount of damage at each quadrature point in
 each step of the simulation. For this specific material the member declaration
-inside the class will look like follows:
+inside the class will look as follows:
 \begin{cpp}
 class LocalMaterialDamage : public Material {
 
@@ -918,8 +918,8 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
 
   this->registerParam("E"           , E           , 0.   , _pat_parsable, "Young's modulus"        );
   this->registerParam("nu"          , nu          , 0.5  , _pat_parsable, "Poisson's ratio"        );
-  this->registerParam("lambda"      , lambda             , _pat_readable, "First Lamé coefficient" );
-  this->registerParam("mu"          , mu                 , _pat_readable, "Second Lamé coefficient");
+  this->registerParam("lambda"      , lambda             , _pat_readable, "First Lame coefficient" );
+  this->registerParam("mu"          , mu                 , _pat_readable, "Second Lame coefficient");
   this->registerParam("kapa"        , kpa                , _pat_readable, "Bulk coefficient"       );
   this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
   this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
