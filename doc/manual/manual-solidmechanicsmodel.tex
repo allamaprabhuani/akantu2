@@ -7,13 +7,12 @@ will create its own \code{FEEngine} object to compute the interpolation,
 gradient, integration and assembly operations.  A
 \code{SolidMechanicsModel} object can simply be created like this:
 \begin{cpp}
-  SolidMechanicsModel model(mesh, spatial_dimension);
+  SolidMechanicsModel model(mesh);
 \end{cpp}
 where \code{mesh} is the mesh for which the equations are to be
-solved, and \code{spatial\_dimension} is the dimensionality of the
-problem.  If the \code{spatial\_dimension} is omitted, the problem is
-assumed to have the same dimensionality as the one specified in the
-mesh.
+solved. A second parameter called \code{spatial\_dimension} can be
+added after \code{mesh} if the spatial dimension of the problem is
+different than that of the mesh.
 
 This model contains at least the the following six \code{Arrays}:
 \begin{description}
@@ -371,7 +370,7 @@ case, one needs to iterate as long as the norm of the residual exceeds
 the tolerance threshold and therefore the maximum number of iterations
 has to be higher, e.g.  $100$:
 \begin{cpp}
-model.solveStep<_scm_newton_raphson_tangent_modified,_scc_residual>(1e-4, 100);
+model.solveStep<_scm_newton_raphson_tangent_modified,_scc_residual>(1e-4, 100)
 \end{cpp}
 At the end of the analysis, the final solution is stored in the
 \textbf{displacement} vector.  A full example of how to solve a static

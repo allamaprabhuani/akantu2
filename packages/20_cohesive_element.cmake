@@ -81,13 +81,14 @@ set(AKANTU_COHESIVE_ELEMENT_DOC
   manual/manual-cohesive_elements.tex
   manual/manual-cohesive_elements_insertion.tex
   manual/manual-cohesive_laws.tex
-  manual-appendix-materials-cohesive.tex
+  manual/manual-appendix-materials-cohesive.tex
   )
 
 set(AKANTU_COHESIVE_ELEMENT_MANUAL_FILES
   manual-cohesive_elements.tex
   manual-cohesive_elements_insertion.tex
   manual-cohesive_laws.tex
+  manual-appendix-materials-cohesive.tex
 
   figures/cohesive2d.pdf
   figures/cohesive3d.pdf

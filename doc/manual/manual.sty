@@ -98,9 +98,9 @@
   }
   {\bottomrule\end{tabular}}%\end{table*}}
 
-\usepackage{xparse}
+%\usepackage{xparse}
 
-\NewDocumentEnvironment{MaterialDesc}{m m}{
+\newenvironment{MaterialDesc}[2]{
   Keyword: \code{#1}\\[.8ex]
   \noindent Description here: \ref{#2}\\[0.8ex]
   \noindent Parameters:\\[-4ex]
