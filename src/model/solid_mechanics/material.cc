@@ -51,7 +51,7 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   element_filter("element_filter", id, this->memory_id),
   stress("stress", *this),
   eigenstrain("eigenstrain", *this),
-  gradu("gradu", *this),
+  gradu("grad_u", *this),
   piola_kirchhoff_2("piola_kirchhoff_2", *this),
   //  potential_energy_vector(false),
   potential_energy("potential_energy", *this),

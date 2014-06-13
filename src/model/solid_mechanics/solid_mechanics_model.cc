@@ -1887,7 +1887,7 @@ void SolidMechanicsModel::addDumpFieldTensorToDumper(const std::string & dumper_
 			      _ek_regular);
     field->setPadding(3, 3);
     internalAddDumpFieldToDumper(dumper_name, field_id, field);
-  } else if(field_id == "strain") {
+  } else if(field_id == "grad_u") {
     typedef DumperIOHelper::HomogenizedField<Real,
 					     DumperIOHelper::InternalMaterialField,
 					     DumperIOHelper::material_strain_field_iterator,
