@@ -162,4 +162,8 @@ Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
   > sudo apt-get install libmumps-dev     # for parallel 
 \\end{command}
 
+Under Mac OS X the installation requires the following steps:
+\\begin{command}
+  > sudo port install mumps
+\\end{command}
 ")
