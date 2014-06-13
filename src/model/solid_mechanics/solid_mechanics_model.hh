@@ -685,6 +685,15 @@ protected:
   bool are_materials_instantiated;
 };
 
+
+/* -------------------------------------------------------------------------- */
+namespace BC {
+  namespace Neumann {
+    typedef FromHigherDim FromStress;
+    typedef FromSameDim FromTraction;
+  }
+}
+
 __END_AKANTU__
 
 /* -------------------------------------------------------------------------- */
