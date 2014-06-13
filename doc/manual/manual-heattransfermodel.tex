@@ -33,8 +33,9 @@ and the system to solve can be written
 with $\vec{Q}^{\text{ext}}$ the consistent heat generated.
 
 \section{Using the Heat Transfer Model}
-Currently, the \code{HeatTransferModel} object uses an explicit dynamic analysis.
-It can simply be created like this
+Currently, the \code{HeatTransferModel} object uses dynamic analysis
+with an explicit time integration scheme.  It can simply be created
+like this
 \begin{cpp}
   HeatTransferModel model(mesh, spatial_dimension);
 \end{cpp}
