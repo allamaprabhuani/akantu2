@@ -56,6 +56,7 @@ set(AKANTU_DAMAGE_NON_LOCAL_TESTS
   )
 
 set(AKANTU_DAMAGE_NON_LOCAL_MANUAL_FILES
+  manual-constitutive-laws-non_local.tex
   manual-appendix-materials-non-local.tex)
 
 set(AKANTU_DAMAGE_NON_LOCAL_DOCUMENTATION "
