@@ -781,10 +781,10 @@ private:
   /// Poisson coefficient
   Real nu;
 
-  /// First Lamé coefficient
+  /// First Lame coefficient
   Real lambda;
 
-  /// Second Lamé coefficient (shear modulus)
+  /// Second Lame coefficient (shear modulus)
   Real mu;
 
   /// resistance to damage
@@ -878,21 +878,15 @@ void registerParam(name of the parameter (key in the material file),
                    access permissions,
                    description);
 \end{cpp}
-The following table lists the all available access permissions:
-\begin{center}
-  \begin{tabular}{ll}
-    \toprule
-    access permission & description\\
-    \midrule
-    \_pat\_internal & Parameter can only be output when the material is printed.\\
-    \_pat\_writable & User can write into the parameter. The parameter is output when the material is printed.\\
-    \_pat\_readable & User can read the parameter. \newline The parameter is output when the material is printed.\\
-    \_pat\_modifiable & Parameter is writable and readable.\\
-    \_pat\_parsable & Parameter can be parsed, \textit{i.e.} read from the input file.\\
-    \_pat\_parsmod & Parameter is modifiable and parsable.\\
-    \bottomrule
-  \end{tabular}
-\end{center}
+The available access permissions are as follows:
+\begin{itemize}
+  \item \code{\_pat\_internal}: Parameter can only be output when the material is printed.
+  \item \code{\_pat\_writable}: User can write into the parameter. The parameter is output when the material is printed.
+  \item \code{\_pat\_readable}: User can read the parameter. The parameter is output when the material is printed.
+  \item \code{\_pat\_modifiable}: Parameter is writable and readable.
+  \item \code{\_pat\_parsable}: Parameter can be parsed, \textit{i.e.} read from the input file.
+  \item \code{\_pat\_parsmod}: Parameter is modifiable and parsable.
+\end{itemize}
 
 In order to implement the new constitutive law the user needs to
 specify how the additional material parameters, that are not
