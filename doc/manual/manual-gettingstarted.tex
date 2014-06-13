@@ -243,8 +243,28 @@ of code.
 
 \section{Manipulating group of nodes and/or elements}
 
-\akantu provides the possibility to manipulate groups 
-of element and in particular subgroups of elements and nodes.
+\akantu provides the possibility to manipulate 
+subgroups of elements and nodes.
+Any \code{ElementGroup} and/or \code{NodeGroup} must be managed 
+by a \code{GroupManager}. Such a manager has the role to 
+associate group objects to names. This is a useful feature, 
+in particular for the application of the boundary conditions, 
+as will be demonstrated in section \ref{sect:smm:boundary}.
+To most general group manager is the \code{Mesh} class 
+which inheritates from the \code{GroupManager} class.
+
+For instance, the following code shows how to request
+an element group to a mesh:
+
+\begin{cpp}
+  // request creation of a group of nodes
+  NodeGroup & my_node_group = mesh.createNodeGroup("my_node_group");
+  // request creation of a group of elements
+  ElementGroup & my_element_group = mesh.createElementGroup("my_element_group");
+
+  /* fill and use the groups */
+\end{cpp}
+
 
 \subsection{The \texttt{NodeGroup} object}
 
@@ -256,15 +276,15 @@ Nodes are selected by adding them when calling
 having a positive $X$ coordinate with the following code:
 \begin{cpp}
   Array<Real> & nodes = mesh.getNodes();
-  NodeGroup group("Xpositive");
+  NodeGroup & group = mesh.createNodeGroup("XpositiveNode");
 
-  const Array<Real>::vector_iterator it  = nodes.begin(spatial_dimension);
-  const Array<Real>::vector_iterator end = nodes.end(spatial_dimension);
+  Array<Real>::const_vector_iterator it  = nodes.begin(spatial_dimension);
+  Array<Real>::const_vector_iterator end = nodes.end(spatial_dimension);
 
   UInt index = 0;
 
   for (; it != end ; ++it , ++index){
-    VectorReal & position = *it; 
+    const Vector<Real> & position = *it; 
     if (position(0) > 0) group.add(index);
   }  
 \end{cpp}
@@ -281,40 +301,23 @@ For instance, selecting the elements for which the barycenter of the nodes
 has a positive $X$ coordinate can be made with:
 
 \begin{cpp}
-  ElementGroup group("XpositiveElement");
+  ElementGroup & group = mesh.createElementGroup("XpositiveElement");
 
   Mesh::type_iterator it  = mesh.firstType();
   Mesh::type_iterator end = mesh.lastType();
 
-  VectorReal barycenter(spatial_dimension);
+  Vector<Real> barycenter(spatial_dimension);
 
   for(; it != end; ++it){
     UInt nb_element  = mesh.getNbElement(*it);
     for(UInt e = 0; e < nb_element; ++e) {
       ElementType type = *it;
       mesh.getBarycenter(e, type, barycenter.storage());
-      if (barycenter(0) > 0) group.addElement(type,e); 
+      if (barycenter(0) > 0) group.add(type,e); 
     }
-  }
+  }  
 \end{cpp}
 
-\subsection{The \texttt{Mesh} as a \texttt{GroupManager}}
-
-Mesh inheritates from the class \code{GroupManager}
-which has the role to associate \code{ElementGroup} objects 
-to names. This is a useful feature, in particular for the application
-of the boundary conditions, as will be demonstrated
-in section \ref{sect:smm:boundary}.
-
-For instance, the following code shows how to register 
-an element group to a mesh (which is a group manager):
-
-\begin{cpp}
-  UInt dim = some_dimension;
-  ElementGroup & my_group = mesh.createElementGroup("my_group",dim);
-
-  /* fill and use the group */
-\end{cpp}
 
 
 %%% Local Variables:

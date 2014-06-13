@@ -136,7 +136,7 @@ public:
 
   /// create an element group and the associated node group
   ElementGroup & createElementGroup(const std::string & group_name,
-				    UInt dimension,
+				    UInt dimension = _all_dimensions,
 				    bool replace_group = false);
 
   /// create an element group from another element group but filtered

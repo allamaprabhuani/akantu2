@@ -60,7 +60,7 @@ extern const Element ElementNull;
 
 class Element {
 public:
-  Element(ElementType type = _not_defined, UInt element = 0,
+  explicit Element(ElementType type = _not_defined, UInt element = 0,
           GhostType ghost_type = _not_ghost, ElementKind kind = _ek_regular) :
     type(type), element(element),
     ghost_type(ghost_type), kind(kind) {};
