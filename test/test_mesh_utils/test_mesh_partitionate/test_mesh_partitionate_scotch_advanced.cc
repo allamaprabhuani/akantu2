@@ -33,7 +33,6 @@
 #include "aka_array.hh"
 #include "mesh.hh"
 #include "fe_engine.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "mesh_partition_scotch.hh"
 #include "element_group.hh"
@@ -124,11 +123,10 @@ int main(int argc, char *argv[])
   debug::setDebugLevel(dblWarning);
 
   int dim = 2;
-  MeshIOMSH mesh_io;
 
   /* ---------- check if node pairs are considered with mesh_L --------- */
   Mesh mesh_l(dim);
-  mesh_io.read("squares_L.msh", mesh_l);
+  mesh_l.read("squares_L.msh");
 
   // get interface node pairs
   Array<UInt> pairs_l(0,2);
@@ -207,7 +205,7 @@ int main(int argc, char *argv[])
 
   /* ---------- check if node pairs and functor are considered with mesh_H --------- */
   Mesh mesh_h(dim, "mesh_h", 1);
-  mesh_io.read("squares_H.msh", mesh_h);
+  mesh_h.read("squares_H.msh");
   Array<UInt> pairs_h(0,2);
   getInterfaceNodePairs(mesh_h,pairs_h);
 

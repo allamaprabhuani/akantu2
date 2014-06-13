@@ -89,8 +89,13 @@ protected:
 
 __END_AKANTU__
 
-#endif /* __AKANTU_MESH_IO_HH__ */
-
 #include "mesh_io_msh.hh"
 #include "mesh_io_diana.hh"
 #include "mesh_io_abaqus.hh"
+
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+#  include "mesh_io_msh_struct.hh"
+#endif
+
+#endif /* __AKANTU_MESH_IO_HH__ */
+

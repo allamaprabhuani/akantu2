@@ -51,13 +51,13 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   element_filter("element_filter", id, this->memory_id),
   stress("stress", *this),
   eigenstrain("eigenstrain", *this),
-  strain("strain", *this),
+  gradu("gradu", *this),
   piola_kirchhoff_2("piola_kirchhoff_2", *this),
   //  potential_energy_vector(false),
   potential_energy("potential_energy", *this),
   is_non_local(false),
   use_previous_stress(false),
-  use_previous_strain(false),
+  use_previous_gradu(false),
   interpolation_inverse_coordinates("interpolation inverse coordinates", *this),
   interpolation_points_matrices("interpolation points matrices", *this) {
   AKANTU_DEBUG_IN();
@@ -75,9 +75,9 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
   registerParam("finite_deformation"   , finite_deformation   , false        , _pat_parsable | _pat_modifiable, "Is finite deformation");
   registerParam("inelastic_deformation", inelastic_deformation, false        , _pat_parsable | _pat_modifiable, "Is inelastic deformation");
 
-  /// allocate strain stress for local elements
+  /// allocate gradu stress for local elements
   eigenstrain.initialize(spatial_dimension * spatial_dimension);
-  strain.initialize(spatial_dimension * spatial_dimension);
+  gradu.initialize(spatial_dimension * spatial_dimension);
   stress.initialize(spatial_dimension * spatial_dimension);
 
   model.registerEventHandler(*this);
@@ -102,7 +102,7 @@ void Material::initMaterial() {
   }
 
   if(use_previous_stress) this->stress.initializeHistory();
-  if(use_previous_strain) this->strain.initializeHistory();
+  if(use_previous_gradu) this->gradu.initializeHistory();
 
   for (std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.begin();
        it != internal_vectors_real.end();
@@ -236,7 +236,7 @@ void Material::assembleResidual(GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 /**
- * Compute  the  stress from the strain
+ * Compute  the  stress from the gradu
  *
  * @param[in] current_position nodes postition + displacements
  * @param[in] ghost_type compute the residual for _ghost or _not_ghost element
@@ -251,14 +251,14 @@ void Material::computeAllStresses(GhostType ghost_type) {
 
   for(; it != last_type; ++it) {
     Array<UInt> & elem_filter = element_filter(*it, ghost_type);
-    Array<Real> & strain_vect = strain(*it, ghost_type);
+    Array<Real> & gradu_vect = gradu(*it, ghost_type);
 
     /// compute @f$\nabla u@f$
-    model->getFEEngine().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
+    model->getFEEngine().gradientOnQuadraturePoints(model->getDisplacement(), gradu_vect,
 						    spatial_dimension,
 						    *it, ghost_type, elem_filter);
 
-    strain_vect -= eigenstrain(*it, ghost_type);
+    gradu_vect -= eigenstrain(*it, ghost_type);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(*it, ghost_type);
@@ -299,11 +299,11 @@ template<UInt dim>
 void Material::computeCauchyStress(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<Real>::matrix_iterator strain_it =
-    this->strain(el_type, ghost_type).begin(dim, dim);
+  Array<Real>::matrix_iterator gradu_it =
+    this->gradu(el_type, ghost_type).begin(dim, dim);
 
-  Array<Real>::matrix_iterator strain_end =
-    this->strain(el_type, ghost_type).end(dim, dim);
+  Array<Real>::matrix_iterator gradu_end =
+    this->gradu(el_type, ghost_type).end(dim, dim);
 
   Array<Real>::matrix_iterator piola_it =
     this->piola_kirchhoff_2(el_type, ghost_type).begin(dim, dim);
@@ -313,8 +313,8 @@ void Material::computeCauchyStress(ElementType el_type, GhostType ghost_type) {
 
   Matrix<Real> F_tensor(dim, dim);
 
-  for (; strain_it != strain_end; ++strain_it, ++piola_it, ++stress_it) {
-    Matrix<Real> & grad_u = *strain_it;
+  for (; gradu_it != gradu_end; ++gradu_it, ++piola_it, ++stress_it) {
+    Matrix<Real> & grad_u = *gradu_it;
     Matrix<Real> & piola  = *piola_it;
     Matrix<Real> & sigma  = *stress_it;
 
@@ -331,7 +331,7 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
   const Array<Real> & displacement = model->getDisplacement();
 
-  //resizeInternalArray(strain);
+  //resizeInternalArray(gradu);
 
   UInt spatial_dimension = model->getSpatialDimension();
 
@@ -340,10 +340,10 @@ void Material::setToSteadyState(GhostType ghost_type) {
 
   for(; it != last_type; ++it) {
     Array<UInt> & elem_filter = element_filter(*it, ghost_type);
-    Array<Real> & strain_vect = strain(*it, ghost_type);
+    Array<Real> & gradu_vect = gradu(*it, ghost_type);
 
     /// compute @f$\nabla u@f$
-    model->getFEEngine().gradientOnQuadraturePoints(displacement, strain_vect,
+    model->getFEEngine().gradientOnQuadraturePoints(displacement, gradu_vect,
 					       spatial_dimension,
 					       *it, ghost_type, elem_filter);
 
@@ -415,17 +415,17 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
                                                                                 ghost_type);
 
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
-  Array<Real> & strain_vect = strain(type, ghost_type);
+  Array<Real> & gradu_vect = gradu(type, ghost_type);
 
   UInt nb_element           = elem_filter.getSize();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = model->getFEEngine().getNbQuadraturePoints(type,
                                                                     ghost_type);
 
-  strain_vect.resize(nb_quadrature_points * nb_element);
+  gradu_vect.resize(nb_quadrature_points * nb_element);
 
   model->getFEEngine().gradientOnQuadraturePoints(model->getDisplacement(),
-                                             strain_vect, dim, type, ghost_type,
+                                             gradu_vect, dim, type, ghost_type,
                                              elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
@@ -511,15 +511,15 @@ void Material::assembleStiffnessMatrixNL(const ElementType & type,
   const Array<Real> & shapes_derivatives = model->getFEEngine().getShapesDerivatives(type, ghost_type);
 
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
-  //Array<Real> & strain_vect = delta_strain(type, ghost_type);
+  //Array<Real> & gradu_vect = delta_gradu(type, ghost_type);
 
   UInt nb_element = elem_filter.getSize();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = model->getFEEngine().getNbQuadraturePoints(type, ghost_type);
 
-  //strain_vect.resize(nb_quadrature_points * nb_element);
+  //gradu_vect.resize(nb_quadrature_points * nb_element);
 
-  // model->getFEEngine().gradientOnQuadraturePoints(model->getIncrement(), strain_vect,
+  // model->getFEEngine().gradientOnQuadraturePoints(model->getIncrement(), gradu_vect,
   //        dim, type, ghost_type, &elem_filter);
 
   Array<Real> * shapes_derivatives_filtered = new Array<Real > (nb_element * nb_quadrature_points,
@@ -600,15 +600,15 @@ void Material::assembleStiffnessMatrixL2(const ElementType & type,
   const Array<Real> & shapes_derivatives = model->getFEEngine().getShapesDerivatives(type, ghost_type);
 
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
-  Array<Real> & strain_vect = strain(type, ghost_type);
+  Array<Real> & gradu_vect = gradu(type, ghost_type);
 
   UInt nb_element = elem_filter.getSize();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = model->getFEEngine().getNbQuadraturePoints(type, ghost_type);
 
-  strain_vect.resize(nb_quadrature_points * nb_element);
+  gradu_vect.resize(nb_quadrature_points * nb_element);
 
-  model->getFEEngine().gradientOnQuadraturePoints(model->getDisplacement(), strain_vect,
+  model->getFEEngine().gradientOnQuadraturePoints(model->getDisplacement(), gradu_vect,
 					     dim, type, ghost_type, elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
@@ -653,7 +653,7 @@ void Material::assembleStiffnessMatrixL2(const ElementType & type,
   Array<Real>::matrix_iterator Bt_D_B_it = bt_d_b->begin(dim*nb_nodes_per_element,
 								  dim * nb_nodes_per_element);
 
-  Array<Real>::matrix_iterator grad_u_it = strain_vect.begin(dim, dim);
+  Array<Real>::matrix_iterator grad_u_it = gradu_vect.begin(dim, dim);
 
   Array<Real>::matrix_iterator D_it = tangent_stiffness_matrix->begin(tangent_size,
 									       tangent_size);
@@ -736,9 +736,9 @@ void Material::assembleResidual(GhostType ghost_type){
 					   bt_s_size,
 					   "B^t*S");
 
-    Array<Real>::matrix_iterator grad_u_it = this->strain(*it, ghost_type).begin(dim, dim);
+    Array<Real>::matrix_iterator grad_u_it = this->gradu(*it, ghost_type).begin(dim, dim);
 
-    Array<Real>::matrix_iterator grad_u_end = this->strain(*it, ghost_type).end(dim, dim);
+    Array<Real>::matrix_iterator grad_u_end = this->gradu(*it, ghost_type).end(dim, dim);
 
     Array<Real>::matrix_iterator stress_it = this->piola_kirchhoff_2(*it, ghost_type).begin(dim, dim);
 
@@ -816,18 +816,18 @@ void Material::computeAllStressesFromTangentModuli(const ElementType & type,
 
   const Array<Real> & shapes_derivatives = model->getFEEngine().getShapesDerivatives(type, ghost_type);
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
-  Array<Real> & strain_vect = strain(type, ghost_type);
+  Array<Real> & gradu_vect = gradu(type, ghost_type);
 
   UInt nb_element                 = elem_filter.getSize();
   UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points       = model->getFEEngine().getNbQuadraturePoints(type, ghost_type);
 
 
-  strain_vect.resize(nb_quadrature_points * nb_element);
+  gradu_vect.resize(nb_quadrature_points * nb_element);
 
   Array<Real> & disp = model->getDisplacement();
 
-  model->getFEEngine().gradientOnQuadraturePoints(disp, strain_vect,
+  model->getFEEngine().gradientOnQuadraturePoints(disp, gradu_vect,
 					     dim, type, ghost_type, elem_filter);
 
   UInt tangent_moduli_size = getTangentStiffnessVoigtSize(dim);

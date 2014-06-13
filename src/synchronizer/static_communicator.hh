@@ -73,7 +73,9 @@ public:
   virtual ~CommunicatorEventHandler() {}
   virtual void onCommunicatorFinalize(__attribute__((unused)) const StaticCommunicator & communicator) { }
 protected:
-  inline void sendEvent(const FinalizeCommunicatorEvent & event) { onCommunicatorFinalize(event.communicator); }
+  inline void sendEvent(const FinalizeCommunicatorEvent & event) {
+    onCommunicatorFinalize(event.communicator);
+  }
 
   template<class EventHandler>
   friend class EventHandlerManager;
@@ -90,9 +92,10 @@ protected:
 
 public:
   virtual ~StaticCommunicator() {
-    FinalizeCommunicatorEvent event(*this);
-    this->sendEvent(event);
-
+    FinalizeCommunicatorEvent *event = new FinalizeCommunicatorEvent(*this);
+    this->sendEvent(*event);
+ 
+   delete event;
     delete real_static_communicator;
   };
 

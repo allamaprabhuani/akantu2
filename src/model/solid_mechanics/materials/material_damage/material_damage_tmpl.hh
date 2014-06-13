@@ -48,7 +48,7 @@ MaterialDamage<spatial_dimension, Parent>::MaterialDamage(SolidMechanicsModel & 
 
   this->is_non_local = false;
   this->use_previous_stress = true;
-  this->use_previous_strain = true;
+  this->use_previous_gradu = true;
 
   this->damage           .initialize(1);
   this->dissipated_energy.initialize(1);
@@ -78,7 +78,7 @@ void MaterialDamage<spatial_dimension, Parent>::updateEnergies(ElementType el_ty
   this->computePotentialEnergy(el_type, ghost_type);
 
   Array<Real>::matrix_iterator epsilon_p =
-    this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+    this->gradu.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
   Array<Real>::matrix_iterator sigma_p =
     this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
@@ -89,13 +89,13 @@ void MaterialDamage<spatial_dimension, Parent>::updateEnergies(ElementType el_ty
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  Matrix<Real> delta_strain_it(*strain_it);
-  delta_strain_it -= *epsilon_p;
+  Matrix<Real> delta_gradu_it(*gradu_it);
+  delta_gradu_it -= *epsilon_p;
 
   Matrix<Real> sigma_h(sigma);
   sigma_h += *sigma_p;
 
-  Real dint = .5 * sigma_h.doubleDot(delta_strain_it);
+  Real dint = .5 * sigma_h.doubleDot(delta_gradu_it);
 
   *ints += dint;
   *ed = *ints - *epot;

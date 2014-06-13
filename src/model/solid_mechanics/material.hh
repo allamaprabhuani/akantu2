@@ -382,10 +382,10 @@ public:
 
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Strain, strain, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy, Real);
-  AKANTU_GET_MACRO(Strain, strain, const ElementTypeMapArray<Real> &);
+  AKANTU_GET_MACRO(GradU, gradu, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(Stress, stress, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(ElementFilter, element_filter, const ElementTypeMapArray<UInt> &);
 
@@ -451,8 +451,8 @@ protected:
   /// eigenstrain arrays ordered by element types
   InternalField<Real> eigenstrain;
 
-  /// strains arrays ordered by element types
-  InternalField<Real> strain;
+  /// grad_u arrays ordered by element types
+  InternalField<Real> gradu;
 
   /// Second Piola-Kirchhoff stress tensor arrays ordered by element types (Finite deformation)
   InternalField<Real> piola_kirchhoff_2;
@@ -467,7 +467,7 @@ protected:
   bool use_previous_stress;
 
   /// tell if the material need the previous strain state
-  bool use_previous_strain;
+  bool use_previous_gradu;
 
   /// elemental field interpolation coordinates
   InternalField<Real> interpolation_inverse_coordinates;
@@ -499,16 +499,16 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type) \
-  Array<Real>::matrix_iterator strain_it =				\
-    this->strain(el_type, ghost_type).begin(spatial_dimension,          \
-                                            spatial_dimension);		\
-  Array<Real>::matrix_iterator strain_end =				\
-    this->strain(el_type, ghost_type).end(spatial_dimension,            \
-                                          spatial_dimension);		\
+  Array<Real>::matrix_iterator gradu_it =				\
+   this->gradu(el_type, ghost_type).begin(spatial_dimension,            \
+					  spatial_dimension);		\
+  Array<Real>::matrix_iterator gradu_end =				\
+   this->gradu(el_type, ghost_type).end(spatial_dimension,              \
+					spatial_dimension);		\
                                                                         \
   this->stress(el_type,                                                 \
-               ghost_type).resize(this->strain(el_type,                 \
-                                               ghost_type).getSize());  \
+               ghost_type).resize(this->gradu(el_type,			\
+					      ghost_type).getSize());	\
                                                                         \
   Array<Real>::iterator< Matrix<Real> > stress_it =			\
     this->stress(el_type, ghost_type).begin(spatial_dimension,          \
@@ -516,50 +516,49 @@ __END_AKANTU__
                                                                         \
   if(this->isFiniteDeformation()){                                      \
     this->piola_kirchhoff_2(el_type,                                    \
-               ghost_type).resize(this->strain(el_type,                 \
-                                               ghost_type).getSize());  \
+			    ghost_type).resize(this->gradu(el_type,	\
+							   ghost_type).getSize()); \
     stress_it =                                                         \
       this->piola_kirchhoff_2(el_type,                                  \
-                                   ghost_type).begin(spatial_dimension, \
-                                                     spatial_dimension); \
+			      ghost_type).begin(spatial_dimension,	\
+						spatial_dimension);	\
   }                                                                     \
                                                                         \
-  for(;strain_it != strain_end; ++strain_it, ++stress_it) {		\
-    Matrix<Real> & __attribute__((unused)) grad_u = *strain_it;		\
+  for(;gradu_it != gradu_end; ++gradu_it, ++stress_it) {		\
+    Matrix<Real> & __attribute__((unused)) grad_u = *gradu_it;		\
     Matrix<Real> & __attribute__((unused)) sigma  = *stress_it
 
-#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END			\
-  }									\
+#define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END	                \
+  }							                \
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)	\
-  Array<Real>::matrix_iterator strain_it =				\
-    this->strain(el_type, ghost_type).begin(spatial_dimension,		\
-                                            spatial_dimension);		\
-  Array<Real>::matrix_iterator strain_end =				\
-    this->strain(el_type, ghost_type).end(spatial_dimension,		\
-                                          spatial_dimension);		\
+  Array<Real>::matrix_iterator gradu_it =				\
+    this->gradu(el_type, ghost_type).begin(spatial_dimension,		\
+					   spatial_dimension);		\
+  Array<Real>::matrix_iterator gradu_end =				\
+    this->gradu(el_type, ghost_type).end(spatial_dimension,		\
+					 spatial_dimension);		\
   Array<Real>::matrix_iterator sigma_it =				\
     this->stress(el_type, ghost_type).begin(spatial_dimension,          \
-                                            spatial_dimension);		\
-                                                                        \
-  tangent_mat.resize(this->strain(el_type, ghost_type).getSize());      \
-                                                                        \
+					    spatial_dimension);		\
+  									\
+  tangent_mat.resize(this->gradu(el_type, ghost_type).getSize());	\
+  									\
   UInt tangent_size =							\
     this->getTangentStiffnessVoigtSize(spatial_dimension);		\
   Array<Real>::matrix_iterator tangent_it =				\
     tangent_mat.begin(tangent_size,					\
-                      tangent_size);					\
-                                                                        \
-  for(;strain_it != strain_end; ++strain_it, ++sigma_it, ++tangent_it) { \
-    Matrix<Real> & __attribute__((unused)) grad_u  = *strain_it;	\
-    Matrix<Real> & __attribute__((unused)) sigma_tensor = *sigma_it;    \
+		      tangent_size);					\
+  									\
+  for(;gradu_it != gradu_end; ++gradu_it, ++sigma_it, ++tangent_it) {	\
+    Matrix<Real> & __attribute__((unused)) grad_u  = *gradu_it;		\
+    Matrix<Real> & __attribute__((unused)) sigma_tensor = *sigma_it;	\
     Matrix<Real> & tangent = *tangent_it
 
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END			\
   }                                                                     \
-
 
 /* -------------------------------------------------------------------------- */
 #define INSTANSIATE_MATERIAL(mat_name)			\

@@ -253,10 +253,11 @@ enum ElementKind {
 
 /// enum MeshIOType type of mesh reader/writer
 enum MeshIOType {
-  _miot_auto,
-  _miot_gmsh,
-  _miot_diana,
-  _miot_abaqus,
+  _miot_auto,        ///< Auto guess of the reader to use based on the extension
+  _miot_gmsh,        ///< Gmsh files
+  _miot_gmsh_struct, ///< Gsmh reader with reintpretation of elements has structures elements
+  _miot_diana,       ///< TNO Diana mesh format
+  _miot_abaqus       ///< Abaqus mesh format
 };
 
 /// enum AnalysisMethod type of solving method used to solve the equation of motion
@@ -350,7 +351,7 @@ enum CommunicatorType {
 enum SynchronizationTag {
   //--- SolidMechanicsModel tags ---
   _gst_smm_mass,         //< synchronization of the SolidMechanicsModel.mass
-  _gst_smm_for_strain,   //< synchronization of the SolidMechanicsModel.current_position
+  _gst_smm_for_gradu,    //< synchronization of the SolidMechanicsModel.displacement
   _gst_smm_boundary,     //< synchronization of the boundary, forces, velocities and displacement
   _gst_smm_uv,           //< synchronization of the nodal velocities and displacement
   _gst_smm_res,          //< synchronization of the nodal residual

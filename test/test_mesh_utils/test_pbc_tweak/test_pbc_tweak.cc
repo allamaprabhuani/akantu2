@@ -32,7 +32,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_utils.hh"
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
@@ -47,8 +46,7 @@ int main(int argc, char *argv[])
   debug::setDebugLevel(akantu::dblInfo);
 
   Mesh mesh(dim);
-  MeshIOMSH mesh_io;
-  mesh_io.read("cube.msh", mesh);
+  mesh.read("cube.msh");
 
   SolidMechanicsModel model(mesh);
   /* -------------------------------------------------------------------------- */

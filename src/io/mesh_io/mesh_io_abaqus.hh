@@ -26,10 +26,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "mesh_io.hh"
+
 #ifndef __AKANTU_MESH_IO_ABAQUS_HH__
 #define __AKANTU_MESH_IO_ABAQUS_HH__
-
-#include "mesh_io.hh"
 
 __BEGIN_AKANTU__
 

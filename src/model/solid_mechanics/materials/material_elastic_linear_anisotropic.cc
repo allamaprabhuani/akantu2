@@ -227,11 +227,11 @@ computeStressWorker(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
 
-  Array<Real>::iterator< Matrix<Real> > strain_it =
-    this->strain(el_type, ghost_type).begin(spatial_dimension,
+  Array<Real>::iterator< Matrix<Real> > gradu_it =
+    this->gradu(el_type, ghost_type).begin(spatial_dimension,
                                             spatial_dimension);
-  Array<Real>::iterator< Matrix<Real> > strain_end =
-    this->strain(el_type, ghost_type).end(spatial_dimension,
+  Array<Real>::iterator< Matrix<Real> > gradu_end =
+    this->gradu(el_type, ghost_type).end(spatial_dimension,
                                           spatial_dimension);
 
   Array<Real> strain_rate(0, spatial_dimension * spatial_dimension,
@@ -246,10 +246,10 @@ computeStressWorker(ElementType el_type, GhostType ghost_type) {
                                                      elem_filter);
     strain_rate_it = strain_rate.begin(spatial_dimension, spatial_dimension);
   }
-  this->stress(el_type, ghost_type).resize(this->strain(el_type,
+  this->stress(el_type, ghost_type).resize(this->gradu(el_type,
                                                         ghost_type).getSize());
 
-  UInt nb_quad_pts = strain_end - strain_it;
+  UInt nb_quad_pts = gradu_end - gradu_it;
 
   // create array for strains and stresses of all dof of all gauss points
   // for efficient computation of stress
@@ -257,8 +257,8 @@ computeStressWorker(ElementType el_type, GhostType ghost_type) {
   Matrix<Real> voigt_stresses(this->voigt_h.size, nb_quad_pts);
   Matrix<Real> * grad_u_dot;
   // copy strains
-  for (UInt q = 0; strain_it != strain_end ; ++strain_it, ++q) {
-    Matrix<Real> & grad_u = *strain_it;
+  for (UInt q = 0; gradu_it != gradu_end ; ++gradu_it, ++q) {
+    Matrix<Real> & grad_u = *gradu_it;
     if (viscous) {
       grad_u_dot = &(*strain_rate_it);
     }

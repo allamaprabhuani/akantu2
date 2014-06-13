@@ -310,7 +310,7 @@ inline void Material::packElementData(CommunicationBuffer & buffer,
   if(tag == _gst_smm_stress) {
     if(this->isFiniteDeformation()) {
       packElementDataHelper(piola_kirchhoff_2, buffer, elements);
-      packElementDataHelper(strain, buffer, elements);
+      packElementDataHelper(gradu, buffer, elements);
     }
     packElementDataHelper(stress, buffer, elements);
   }
@@ -323,7 +323,7 @@ inline void Material::unpackElementData(CommunicationBuffer & buffer,
   if(tag == _gst_smm_stress) {
     if(this->isFiniteDeformation()) {
       unpackElementDataHelper(piola_kirchhoff_2, buffer, elements);
-      unpackElementDataHelper(strain, buffer, elements);
+      unpackElementDataHelper(gradu, buffer, elements);
     }
     unpackElementDataHelper(stress, buffer, elements);
   }

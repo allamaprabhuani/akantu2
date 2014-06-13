@@ -91,7 +91,7 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type, Ghos
     ++sigma_th_it;
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   } else {
-    /// finite strains
+    /// finite gradus
     Matrix<Real> E(spatial_dimension, spatial_dimension);
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
@@ -172,11 +172,11 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergy(ElementType el_t
 template<UInt spatial_dimension>
 void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(ElementType type, UInt index,
 									 Vector<Real> & epot_on_quad_points) {
-  Array<Real>::matrix_iterator strain_it =
-    this->strain(type).begin(spatial_dimension,
+  Array<Real>::matrix_iterator gradu_it =
+    this->gradu(type).begin(spatial_dimension,
                              spatial_dimension);
-  Array<Real>::matrix_iterator strain_end =
-    this->strain(type).begin(spatial_dimension,
+  Array<Real>::matrix_iterator gradu_end =
+    this->gradu(type).begin(spatial_dimension,
                              spatial_dimension);
   Array<Real>::matrix_iterator stress_it =
     this->stress(type).begin(spatial_dimension,
@@ -188,22 +188,22 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(Element
 
   UInt nb_quadrature_points = this->model->getFEEngine().getNbQuadraturePoints(type);
 
-  strain_it  += index*nb_quadrature_points;
-  strain_end += (index+1)*nb_quadrature_points;
+  gradu_it  += index*nb_quadrature_points;
+  gradu_end += (index+1)*nb_quadrature_points;
   stress_it  += index*nb_quadrature_points;
 
   Real * epot_quad = epot_on_quad_points.storage();
 
-  Matrix<Real> strain_matrix(spatial_dimension, spatial_dimension);
+  Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
 
-  for(;strain_it != strain_end; ++strain_it, ++stress_it, ++epot_quad) {
+  for(;gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
 
     if (this->finite_deformation)
-      this->template gradUToGreenStrain<spatial_dimension>(*strain_it, strain_matrix);
+      this->template gradUToGreenStrain<spatial_dimension>(*gradu_it, grad_u);
     else
-      strain_matrix.copy(*strain_it);
+      grad_u.copy(*gradu_it);
 
-    computePotentialEnergyOnQuad(strain_matrix, *stress_it, *epot_quad);
+    computePotentialEnergyOnQuad(grad_u, *stress_it, *epot_quad);
   }
 }
 

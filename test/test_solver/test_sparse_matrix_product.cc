@@ -32,7 +32,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_partition_scotch.hh"
 #include "distributed_synchronizer.hh"
 #include "sparse_matrix.hh"
@@ -60,8 +59,7 @@ int main(int argc, char *argv[])
   MeshPartition * partition;
 
   if(prank == 0) {
-    MeshIOMSH mesh_io;
-    mesh_io.read("bar.msh", mesh);
+    mesh.read("bar.msh");
 
     std::cout << "Partitioning mesh..." << std::endl;
     partition = new akantu::MeshPartitionScotch(mesh, spatial_dimension);

@@ -108,7 +108,7 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
   switch(type)
     {
     case _gst_smm_mass                 : stream << "_gst_smm_mass"                ; break;
-    case _gst_smm_for_strain	       : stream << "_gst_smm_for_strain"	  ; break;
+    case _gst_smm_for_gradu	       : stream << "_gst_smm_for_gradu"	          ; break;
     case _gst_smm_boundary	       : stream << "_gst_smm_boundary"	      	  ; break;
     case _gst_smm_uv		       : stream << "_gst_smm_uv"		  ; break;
     case _gst_smm_res		       : stream << "_gst_smm_res"		  ; break;

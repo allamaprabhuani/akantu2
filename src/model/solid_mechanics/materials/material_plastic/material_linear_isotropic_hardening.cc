@@ -58,8 +58,8 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(ElementT
   Array<Real>::iterator<> previous_sigma_th_it =
     this->sigma_th.previous(el_type, ghost_type).begin();
 
-  Array<Real>::matrix_iterator previous_strain_it =
-    this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::matrix_iterator previous_gradu_it =
+    this->gradu.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
   Array<Real>::matrix_iterator previous_stress_it =
     this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
@@ -80,7 +80,7 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(ElementT
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   Matrix<Real> & inelastic_strain_tensor = *inelastic_strain_it;
   Matrix<Real> & previous_inelastic_strain_tensor = *previous_inelastic_strain_it;
-  Matrix<Real> & previous_grad_u = *previous_strain_it;
+  Matrix<Real> & previous_grad_u = *previous_gradu_it;
   Matrix<Real> & previous_sigma = *previous_stress_it;
 
   computeStressOnQuad(grad_u,
@@ -98,7 +98,7 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(ElementT
   ++iso_hardening_it;
   ++previous_sigma_th_it;
   ++previous_stress_it;
-  ++previous_strain_it;
+  ++previous_gradu_it;
   ++previous_inelastic_strain_it;
   ++previous_iso_hardening_it;
 
@@ -115,8 +115,8 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(_
                                                                     __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Array<Real>::const_matrix_iterator previous_strain_it =
-    this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+  Array<Real>::const_matrix_iterator previous_gradu_it =
+    this->gradu.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
   Array<Real>::const_matrix_iterator previous_stress_it =
     this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
@@ -125,9 +125,9 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(_
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 
-  computeTangentModuliOnQuad(tangent, grad_u, *previous_strain_it, sigma_tensor, *previous_stress_it, *iso_hardening);
+  computeTangentModuliOnQuad(tangent, grad_u, *previous_gradu_it, sigma_tensor, *previous_stress_it, *iso_hardening);
 
-  ++previous_strain_it;
+  ++previous_gradu_it;
   ++previous_stress_it;
   ++iso_hardening;
 

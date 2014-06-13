@@ -32,38 +32,28 @@
 
 // visco-elastic materials
 #include "material_stiffness_proportional.hh"
-#include "material_standard_linear_solid_deviatoric.hh"
 
 // elastic materials
-#include "material_neohookean.hh"
 #include "material_elastic_orthotropic.hh"
 #include "material_elastic_linear_anisotropic.hh"
 
 // damage materials
-#include "material_marigo.hh"
 #include "material_brittle.hh"
 #include "material_damage_iterative.hh"
-#include "material_mazars.hh"
 #include "material_damage_linear.hh"
 #include "material_vreepeerlings.hh"
 
 // plasticity
-#include "material_linear_isotropic_hardening.hh"
 #include "material_viscoplastic.hh"
 
 #endif
 
 #define  AKANTU_EXTRA_MATERIAL_LIST                                     \
   ((2, (damage_linear      , MaterialDamageLinear                 )))   \
-  ((2, (marigo             , MaterialMarigo                       )))   \
   ((2, (brittle            , MaterialBrittle                      )))   \
   ((2, (damage_iterative   , MaterialDamageIterative              )))   \
-  ((2, (mazars             , MaterialMazars                       )))   \
   ((2, (vreepeerlings      , MaterialVreePeerlings                )))   \
   ((2, (ve_stiffness_prop  , MaterialStiffnessProportional        )))   \
-  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))   \
-  ((2, (neohookean         , MaterialNeohookean                   )))   \
   ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
   ((2, (anisotropic        , MaterialElasticLinearAnisotropic     )))   \
-  ((2, (plastic_linear_isotropic_hardening, MaterialLinearIsotropicHardening)))   \
   ((2, (visco_plastic      , MaterialViscoPlastic                 )))

@@ -34,10 +34,6 @@
 
 #include "aka_config.hh"
 
-#ifdef AKANTU_USE_CPPARRAY
-#include <array/expr.hpp>
-#endif
-
 /* -------------------------------------------------------------------------- */
 #include "mesh.hh"
 #include "mesh_io.hh"

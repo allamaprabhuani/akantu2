@@ -51,7 +51,7 @@ MaterialDamageIterativeNonLocal<spatial_dimension, WeigthFunction>::MaterialDama
 template<UInt spatial_dimension, template <UInt> class WeigthFunction>
 void MaterialDamageIterativeNonLocal<spatial_dimension, WeigthFunction>::initMaterial() {
   AKANTU_DEBUG_IN();
-  this->registerNonLocalVariable(this->strain,grad_u_nl, spatial_dimension*spatial_dimension);
+  this->registerNonLocalVariable(this->gradu, grad_u_nl, spatial_dimension*spatial_dimension);
   MaterialDamageIterativeNonLocalParent::initMaterial();
   AKANTU_DEBUG_OUT();
 }

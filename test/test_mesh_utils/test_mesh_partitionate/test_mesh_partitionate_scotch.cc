@@ -32,7 +32,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
-#include "mesh_io_msh.hh"
 #include "mesh_partition_scotch.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
@@ -51,8 +50,7 @@ int main(int argc, char *argv[])
   int dim = 2;
 
   akantu::Mesh mesh(dim);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("triangle.msh", mesh);
+  mesh.read("triangle.msh");
 
   akantu::MeshPartition * partition = new akantu::MeshPartitionScotch(mesh, dim);
   partition->partitionate(8);
@@ -67,7 +65,7 @@ int main(int argc, char *argv[])
 #endif //AKANTU_USE_IOHELPER
 
   partition->reorder();
-  mesh_io.write("triangle_reorder.msh", mesh);
+  mesh.write("triangle_reorder.msh");
 
   delete partition;
 

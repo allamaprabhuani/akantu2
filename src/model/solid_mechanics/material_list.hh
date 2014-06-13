@@ -39,12 +39,30 @@
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_CMAKE_LIST_MATERIALS
 
+// elastic materials
 #include "material_elastic.hh"
+#include "material_neohookean.hh"
+
+// visco-elastic materials
+#include "material_standard_linear_solid_deviatoric.hh"
+
+// damage laws
+#include "material_marigo.hh"
+#include "material_mazars.hh"
+
+// small-deformation plasticity
+#include "material_linear_isotropic_hardening.hh"
 
 #endif
 
-#define AKANTU_CORE_MATERIAL_LIST				\
-  ((2, (elastic            , MaterialElastic           )))
+#define AKANTU_CORE_MATERIAL_LIST					\
+  ((2, (elastic            , MaterialElastic                      )))	\
+  ((2, (neohookean         , MaterialNeohookean                   )))	\
+  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))   \
+  ((2, (marigo             , MaterialMarigo                       )))   \
+  ((2, (mazars             , MaterialMazars                       )))	\
+  ((2, (plastic_linear_isotropic_hardening, MaterialLinearIsotropicHardening)))
+
 
 #if defined(AKANTU_EXTRA_MATERIALS)
 #  include "material_extra_includes.hh"

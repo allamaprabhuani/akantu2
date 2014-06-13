@@ -55,7 +55,7 @@ MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model,
 
   this->finite_deformation            = false;
   this->use_previous_stress           = true;
-  this->use_previous_strain           = true;
+  this->use_previous_gradu            = true;
   this->use_previous_stress_thermal   = true;
 
 

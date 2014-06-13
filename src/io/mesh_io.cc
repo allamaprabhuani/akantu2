@@ -66,9 +66,12 @@ MeshIO * MeshIO::getMeshIO(const std::string & filename, const MeshIOType & type
   }
 
   switch(t) {
-  case _miot_gmsh  : return new MeshIOMSH();
-  case _miot_diana : return new MeshIODiana();
-  case _miot_abaqus: return new MeshIOAbaqus();
+  case _miot_gmsh         : return new MeshIOMSH();
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+  case _miot_gmsh_struct  : return new MeshIOMSHStruct();
+#endif
+  case _miot_diana        : return new MeshIODiana();
+  case _miot_abaqus       : return new MeshIOAbaqus();
   default:
     return NULL;
   }

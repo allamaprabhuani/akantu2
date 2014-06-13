@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 
   UInt nb_quadrature_points = my_model.getFEEngine().getNbQuadraturePoints(TYPE);
   Array<Real> & stress_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStress(element_type));
-  Array<Real> & strain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStrain(element_type));
+  Array<Real> & strain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getGradU(element_type));
 
   Array<Real>::matrix_iterator stress_it = stress_vect.begin(dim, dim);
   Array<Real>::matrix_iterator strain_it = strain_vect.begin(dim, dim);

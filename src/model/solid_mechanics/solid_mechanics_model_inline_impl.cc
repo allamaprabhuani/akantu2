@@ -136,7 +136,7 @@ inline UInt SolidMechanicsModel::getNbDataForElements(const Array<Element> & ele
     size += nb_nodes_per_element * sizeof(Real) * spatial_dimension; // mass vector
     break;
   }
-  case _gst_smm_for_strain: {
+  case _gst_smm_for_gradu: {
     size += nb_nodes_per_element * spatial_dimension * sizeof(Real); // displacement
    break;
   }
@@ -177,7 +177,7 @@ inline void SolidMechanicsModel::packElementData(CommunicationBuffer & buffer,
     packNodalDataHelper(*mass, buffer, elements, mesh);
     break;
   }
-  case _gst_smm_for_strain: {
+  case _gst_smm_for_gradu: {
     packNodalDataHelper(*displacement, buffer, elements, mesh);
     break;
   }
@@ -220,7 +220,7 @@ inline void SolidMechanicsModel::unpackElementData(CommunicationBuffer & buffer,
     unpackNodalDataHelper(*mass, buffer, elements, mesh);
     break;
   }
-  case _gst_smm_for_strain: {
+  case _gst_smm_for_gradu: {
     unpackNodalDataHelper(*displacement, buffer, elements, mesh);
     break;
   }
