@@ -44,12 +44,6 @@ if(SUBVERSION_FOUND)
       execute_process(
 	COMMAND ${Subversion_SVN_EXECUTABLE} co http://cpp-array.googlecode.com/svn/trunk ${PROJECT_SOURCE_DIR}/third-party/cpp-array
 	OUTPUT_QUIET)
-
-      set(patch_file ${PROJECT_SOURCE_DIR}/third-party/cpp-arry-blas.patch)
-      execute_process(COMMAND ${PATCH_EXECUTABLE} -p0 < ${patch_file}
-	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/third-party/
-	OUTPUT_QUIET)
-
     endif()
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)

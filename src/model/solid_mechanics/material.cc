@@ -72,8 +72,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id) :
 
   registerParam("rho"                  , rho                  , 0.           , _pat_parsable | _pat_modifiable, "Density");
   registerParam("name"                 , name                 , std::string(), _pat_parsable | _pat_readable);
-  registerParam("finite_deformation"   , finite_deformation   , false        , _pat_parsable | _pat_modifiable, "Is finite deformation");
-  registerParam("inelastic_deformation", inelastic_deformation, false        , _pat_parsable | _pat_modifiable, "Is inelastic deformation");
+  registerParam("finite_deformation"   , finite_deformation   , false        , _pat_parsable | _pat_readable, "Is finite deformation");
+  registerParam("inelastic_deformation", inelastic_deformation, false        ,  _pat_internal, "Is inelastic deformation");
 
   /// allocate gradu stress for local elements
   eigenstrain.initialize(spatial_dimension * spatial_dimension);
@@ -898,20 +898,27 @@ void Material::computePotentialEnergyByElements() {
   Mesh::type_iterator it = element_filter.firstType(spatial_dimension);
   Mesh::type_iterator last_type = element_filter.lastType(spatial_dimension);
   for(; it != last_type; ++it) {
-
-    if(!potential_energy.exists(*it, _not_ghost)) {
-      UInt nb_element = element_filter(*it, _not_ghost).getSize();
-      UInt nb_quadrature_points = model->getFEEngine().getNbQuadraturePoints(*it, _not_ghost);
-
-      potential_energy.alloc(nb_element * nb_quadrature_points, 1,
-			     *it, _not_ghost);
-    }
-
     computePotentialEnergy(*it);
   }
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+void Material::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  if(!potential_energy.exists(el_type, ghost_type)) {
+      UInt nb_element = element_filter(el_type, ghost_type).getSize();
+      UInt nb_quadrature_points = model->getFEEngine().getNbQuadraturePoints(el_type, _not_ghost);
+
+      potential_energy.alloc(nb_element * nb_quadrature_points, 1,
+			     el_type, ghost_type);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 Real Material::getPotentialEnergy() {

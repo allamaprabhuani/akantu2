@@ -99,10 +99,7 @@ protected:
   }
 
   /// compute the potential energy
-  virtual void computePotentialEnergy(__attribute__((unused)) ElementType el_type,
-                                      __attribute__((unused)) GhostType ghost_type = _not_ghost) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  }
+  virtual void computePotentialEnergy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for an element
   virtual void computePotentialEnergyByElement(__attribute__((unused)) ElementType type,
@@ -500,19 +497,19 @@ __END_AKANTU__
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type) \
   Array<Real>::matrix_iterator gradu_it =				\
-   this->gradu(el_type, ghost_type).begin(spatial_dimension,            \
-					  spatial_dimension);		\
+    this->gradu(el_type, ghost_type).begin(this->spatial_dimension,     \
+					  this->spatial_dimension);     \
   Array<Real>::matrix_iterator gradu_end =				\
-   this->gradu(el_type, ghost_type).end(spatial_dimension,              \
-					spatial_dimension);		\
+    this->gradu(el_type, ghost_type).end(this->spatial_dimension,       \
+					this->spatial_dimension);       \
                                                                         \
   this->stress(el_type,                                                 \
                ghost_type).resize(this->gradu(el_type,			\
 					      ghost_type).getSize());	\
                                                                         \
   Array<Real>::iterator< Matrix<Real> > stress_it =			\
-    this->stress(el_type, ghost_type).begin(spatial_dimension,          \
-                                            spatial_dimension);         \
+    this->stress(el_type, ghost_type).begin(this->spatial_dimension,    \
+                                            this->spatial_dimension);   \
                                                                         \
   if(this->isFiniteDeformation()){                                      \
     this->piola_kirchhoff_2(el_type,                                    \
@@ -520,8 +517,8 @@ __END_AKANTU__
 							   ghost_type).getSize()); \
     stress_it =                                                         \
       this->piola_kirchhoff_2(el_type,                                  \
-			      ghost_type).begin(spatial_dimension,	\
-						spatial_dimension);	\
+			      ghost_type).begin(this->spatial_dimension, \
+						this->spatial_dimension); \
   }                                                                     \
                                                                         \
   for(;gradu_it != gradu_end; ++gradu_it, ++stress_it) {		\
@@ -534,19 +531,19 @@ __END_AKANTU__
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)	\
   Array<Real>::matrix_iterator gradu_it =				\
-    this->gradu(el_type, ghost_type).begin(spatial_dimension,		\
-					   spatial_dimension);		\
+    this->gradu(el_type, ghost_type).begin(this->spatial_dimension,     \
+					   this->spatial_dimension);    \
   Array<Real>::matrix_iterator gradu_end =				\
-    this->gradu(el_type, ghost_type).end(spatial_dimension,		\
-					 spatial_dimension);		\
+    this->gradu(el_type, ghost_type).end(this->spatial_dimension,       \
+					 this->spatial_dimension);      \
   Array<Real>::matrix_iterator sigma_it =				\
-    this->stress(el_type, ghost_type).begin(spatial_dimension,          \
-					    spatial_dimension);		\
+    this->stress(el_type, ghost_type).begin(this->spatial_dimension,    \
+					    this->spatial_dimension);   \
   									\
   tangent_mat.resize(this->gradu(el_type, ghost_type).getSize());	\
   									\
   UInt tangent_size =							\
-    this->getTangentStiffnessVoigtSize(spatial_dimension);		\
+    this->getTangentStiffnessVoigtSize(this->spatial_dimension);        \
   Array<Real>::matrix_iterator tangent_it =				\
     tangent_mat.begin(tangent_size,					\
 		      tangent_size);					\
