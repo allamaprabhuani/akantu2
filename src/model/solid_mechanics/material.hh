@@ -391,8 +391,8 @@ public:
   const Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
   Array<Real> & getArray(const ID & id, const ElementType & type, const GhostType & ghost_type = _not_ghost);
 
-  const ElementTypeMapArray<Real> & getInternal(const ID & id) const;
-  ElementTypeMapArray<Real> & getInternal(const ID & id);
+  const InternalField<Real> & getInternal(const ID & id) const;
+  InternalField<Real> & getInternal(const ID & id);
 
   inline bool isInternal(const ID & id) const;
 

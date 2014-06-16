@@ -48,24 +48,24 @@ extern "C" {
   double AKA_FC_GLOBAL(ddot, DDOT)(int *, double *, int *, double *, int *);
 
   //LEVEL 2
-  int AKA_FC_GLOBAL(dgemv, DGEMV)(char *, int *, int *, double *, double *, int *,
-                                  double *, int *, double *, double *, int *);
+  void AKA_FC_GLOBAL(dgemv, DGEMV)(char *, int *, int *, double *, double *, int *,
+                                   double *, int *, double *, double *, int *);
   //LEVEL 3
-  int AKA_FC_GLOBAL(dgemm, DGEMM)(char *, char *, int *, int *, int *, double *,
-                                  double *, int *, double *, int *, double *,
-                                  double *, int *);
+  void AKA_FC_GLOBAL(dgemm, DGEMM)(char *, char *, int *, int *, int *, double *,
+                                   double *, int *, double *, int *, double *,
+                                   double *, int *);
   /* ------------------------------------------------------------------------ */
   /* Simple precision                                                         */
   /* ------------------------------------------------------------------------ */
   //LEVEL 1
   float AKA_FC_GLOBAL(sdot, SDOT)(int *, float *, int *, float *, int *);
   //LEVEL 2
-  int AKA_FC_GLOBAL(sgemv, SGEMV)(char *, int *, int *, float *, float *, int *,
-                                  float *, int *, float *, float *, int *);
+  void AKA_FC_GLOBAL(sgemv, SGEMV)(char *, int *, int *, float *, float *, int *,
+                                   float *, int *, float *, float *, int *);
   //LEVEL 3
-  int AKA_FC_GLOBAL(sgemm, SGEMM)(char *, char *, int *, int *, int *, float *,
-                                  float *, int *, float *, int *, float *,
-                                  float *, int *);
+  void AKA_FC_GLOBAL(sgemm, SGEMM)(char *, char *, int *, int *, int *, float *,
+                                   float *, int *, float *, int *, float *,
+                                   float *, int *);
 }
 #endif
 
@@ -88,14 +88,14 @@ inline T aka_dot(int *n, T *x, int *incx, T *y, int *incy) {
 }
 
 template<typename T>
-inline int aka_gemv(char *trans, int *m, int *n, T *
+inline void aka_gemv(char *trans, int *m, int *n, T *
 		    alpha, T *a, int *lda, T *x, int *incx,
 		    T *beta, T *y, int *incy) {
   AKANTU_DEBUG_ERROR(debug::demangle(typeid(T).name()) << "is not a type recognized, or you didn't activated BLAS in the compilation options!");
 }
 
 template<typename T>
-inline int aka_gemm(char *transa, char *transb,
+inline void aka_gemm(char *transa, char *transb,
 		    int *m, int *n, int *k,
 		    T *alpha, T *a, int *lda,
 		    T *b, int *ldb,
@@ -110,21 +110,21 @@ inline double aka_dot<double>(int *n, double *x, int *incx, double *y, int *incy
 }
 
 template<>
-inline int aka_gemv<double>(char *trans, int *m, int *n, double *
-			    alpha, double *a, int *lda, double *x, int *incx,
-			    double *beta, double *y, int *incy) {
+inline void aka_gemv<double>(char *trans, int *m, int *n, double *
+                             alpha, double *a, int *lda, double *x, int *incx,
+                             double *beta, double *y, int *incy) {
   return AKA_FC_GLOBAL(dgemv, DGEMV)(trans, m, n, alpha, a, lda, x, incx,
                                      beta, y, incy);
 }
 
 template<>
-inline int aka_gemm<double>(char *transa, char *transb,
+inline void aka_gemm<double>(char *transa, char *transb,
 			    int *m, int *n, int *k,
 			    double *alpha, double *a, int *lda,
 			    double *b, int *ldb,
 			    double *beta, double *c, int *ldc) {
-  return AKA_FC_GLOBAL(dgemm, DGEMM)(transa, transb, m, n, k, alpha, a, lda,
-                                     b, ldb, beta, c, ldc);
+  AKA_FC_GLOBAL(dgemm, DGEMM)(transa, transb, m, n, k, alpha, a, lda,
+                              b, ldb, beta, c, ldc);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -136,21 +136,21 @@ inline float aka_dot<float>(int *n, float *x, int *incx, float *y, int *incy) {
 }
 
 template<>
-inline int aka_gemv<float>(char *trans, int *m, int *n, float *
+inline void aka_gemv<float>(char *trans, int *m, int *n, float *
 			   alpha, float *a, int *lda, float *x, int *incx,
 			   float *beta, float *y, int *incy) {
-  return AKA_FC_GLOBAL(sgemv, SGEMV)(trans, m, n, alpha, a, lda, x, incx,
-                                     beta, y, incy);
+  AKA_FC_GLOBAL(sgemv, SGEMV)(trans, m, n, alpha, a, lda, x, incx,
+                              beta, y, incy);
 }
 
 template<>
-inline int aka_gemm<float>(char *transa, char *transb,
+inline void aka_gemm<float>(char *transa, char *transb,
 			   int *m, int *n, int *k,
 			   float *alpha, float *a, int *lda,
 			   float *b, int *ldb,
 			   float *beta, float *c, int *ldc) {
-  return AKA_FC_GLOBAL(sgemm, SGEMM)(transa, transb, m, n, k, alpha, a, lda,
-                                     b, ldb, beta, c, ldc);
+  AKA_FC_GLOBAL(sgemm, SGEMM)(transa, transb, m, n, k, alpha, a, lda,
+                              b, ldb, beta, c, ldc);
 }
 
 #endif

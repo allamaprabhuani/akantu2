@@ -403,4 +403,16 @@ Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
 \\begin{command}
   > sudo apt-get install build-essential cmake-curses-gui libboost-dev zlib1g-dev
 \\end{command}
+
+Under Mac OS X the installation requires the following steps:
+\\begin{itemize}
+\\item Install Xcode
+\\item Install the command line tools.
+\\item Install the MacPorts project which allows to automatically 
+download and install opensource packages. 
+\\end{itemize}
+Then the following commands should be typed in a terminal:
+\\begin{command}
+  > sudo port install cmake gcc48 boost
+\\end{command}
 ")

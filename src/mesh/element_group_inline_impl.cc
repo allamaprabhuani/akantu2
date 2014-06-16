@@ -30,12 +30,23 @@
 
 
 /* -------------------------------------------------------------------------- */
-inline void ElementGroup::add(const Element & el, bool add_nodes, bool check_for_duplicate) {
-  addElement(el.type, el.element, el.ghost_type);
+inline void ElementGroup::add(const Element & el, bool add_nodes, 
+			      bool check_for_duplicate) {
+  this->add(el.type,el.element,el.ghost_type,add_nodes,check_for_duplicate);
+}
+
+
+/* -------------------------------------------------------------------------- */
+
+inline void ElementGroup::add(const ElementType & type, UInt element, 
+			      const GhostType & ghost_type,bool add_nodes, 
+			      bool check_for_duplicate) {
+
+  addElement(type, element, ghost_type);
 
   if(add_nodes) {
     Array<UInt>::const_vector_iterator it =
-      mesh.getConnectivity(el.type, el.ghost_type).begin(mesh.getNbNodesPerElement(el.type)) + el.element;
+      mesh.getConnectivity(type, ghost_type).begin(mesh.getNbNodesPerElement(type)) + element;
     const Vector<UInt> & conn = *it;
     for (UInt i = 0; i < conn.size(); ++i) addNode(conn[i], check_for_duplicate);
   }

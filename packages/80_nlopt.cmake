@@ -120,4 +120,16 @@ mark_as_advanced(TAR_EXECUTABLE)
 
 set(AKANTU_NLOPT_DOCUMENTATION "
 When enabled, this package downloads, configures and compiles the \\href{http://ab-initio.mit.edu/wiki/index.php/NLopt}{NLOPT} library (if access to internet is given). 
+
+In  order to auto download the NLOPT archive, the program \\texttt{wget} is necessary.
+
+Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
+\\begin{command}
+  > sudo apt-get install wget
+\\end{command}
+
+Under Mac OS X the installation requires the following steps:
+\\begin{command}
+  > sudo port install wget
+\\end{command}
 ")

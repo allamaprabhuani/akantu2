@@ -101,7 +101,14 @@ public:
   /// BE CAREFUL: it doesn't conserve the element order
   void append(const ElementGroup & other_group);
 
+  /// add an element to the group. By default the it does not add the nodes to the group
   inline void add(const Element & el, bool add_nodes = false, bool check_for_duplicate = true);
+
+  /// \todo fix the default for add_nodes : make it coherent with the other method
+  inline void add(const ElementType & type, UInt element, 
+		  const GhostType & ghost_type = _not_ghost,
+		  bool add_nodes = true, bool check_for_duplicate = true);
+
   inline void addNode(UInt node_id, bool check_for_duplicate = true);
 
   /// function to print the contain of the class
@@ -154,6 +161,12 @@ private:
 };
 
 #include "element_group_inline_impl.cc"
+
+/// standard output stream operator
+inline std::ostream & operator << (std::ostream & stream, const ElementGroup &_this) {
+  _this.printself(stream);
+  return stream;
+}
 
 __END_AKANTU__
 
