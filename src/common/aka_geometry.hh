@@ -32,7 +32,7 @@
 #define __AKANTU_GEOMETRY_HH__
 
 #include <iostream>
-
+#include <tuple>
 #include "aka_point.hh"
 #include "aka_plane.hh"
 #include "aka_math.hh"
