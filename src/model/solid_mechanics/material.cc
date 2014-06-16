@@ -1240,7 +1240,7 @@ Array<Real> & Material::getArray(const ID & vect_id, const ElementType & type, c
 }
 
 /* -------------------------------------------------------------------------- */
-const ElementTypeMapArray<Real> & Material::getInternal(const ID & int_id) const {
+const InternalField<Real> & Material::getInternal(const ID & int_id) const {
   std::map<ID, InternalField<Real> *>::const_iterator it = internal_vectors_real.find(getID() + ":" + int_id);
   if(it == internal_vectors_real.end()) {
     AKANTU_EXCEPTION("The material " << name << "(" << getID()
@@ -1251,7 +1251,7 @@ const ElementTypeMapArray<Real> & Material::getInternal(const ID & int_id) const
 }
 
 /* -------------------------------------------------------------------------- */
-ElementTypeMapArray<Real> & Material::getInternal(const ID & int_id) {
+InternalField<Real> & Material::getInternal(const ID & int_id) {
   std::map<ID, InternalField<Real> *>::iterator it = internal_vectors_real.find(getID() + ":" + int_id);
   if(it == internal_vectors_real.end()) {
     AKANTU_EXCEPTION("The material " << name << "(" << getID()
