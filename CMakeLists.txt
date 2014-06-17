@@ -164,7 +164,6 @@ else()
   set(AKANTU_TESTS_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/test" CACHE INTERNAL "")
 endif()
 
-
 #===============================================================================
 # Install and Packaging
 #===============================================================================

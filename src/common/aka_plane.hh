@@ -36,23 +36,29 @@
 __BEGIN_AKANTU__
 
 
+
+//! Plane class
 struct Plane {
   
   typedef Point<3> point_type;
   typedef point_type::value_type value_type;
   
+  //! Parameter constructor creates a plane out of 3 points
   Plane(const point_type& a, const point_type& b, const point_type& c) {
     
     n_ = cross(b - a, c - a).normalize();
     d_ = n_*a;
   }
   
+  //! Return the plane normal
   const point_type& normal() const
   { return n_; }
   
+  //! Return the disctance to the origin
   value_type distance() const
   { return d_; }
   
+  //! Standard output stream operator
   friend std::ostream& operator<<(std::ostream& os, const Plane& pi) {
     
     os<<"Plane[normal: "<<pi.normal()<<", origin distance: "<<pi.distance()<<"]"<<std::endl;

@@ -57,24 +57,31 @@ std::ostream& operator<<(std::ostream&, nlopt::result);
 enum Optimizator_type { Min_t, Max_t };
 
 
+//! Class used for optimization
+/*! This class is a convenience object that inherits from nlopt::opt and carries
+ * some routines that are common to a nonlinear optimization. The objects sets 
+ * the optimization algorithm as nlopt::LD_SLSQP, a sequential quadratic programming
+ * (SQP) algorithm for nonlinearly constrained gradient-based optimization
+ * (supporting both inequality and equality constraints), based on the 
+ * implementation by Dieter Kraft.
+ */
 class Optimizator : public nlopt::opt {
   
   typedef std::vector<Real> point_type;
   typedef nlopt::opt base_type;
   
-  point_type& x_;
-  Real min_;
-  int &count_;
+  point_type& x_;     //!< Initial guess for the optimization
+  Real val_;          //!< Function value
   
 public:
   
-  // functor parameter constructor
+  //! Parameter constructor that takes an initial guess and a functor
   template <class functor_type>
   Optimizator(point_type& x0,
               functor_type& fn,
               Optimizator_type t = Min_t,
               nlopt::algorithm alg = nlopt::LD_SLSQP) :
-  base_type(alg, x0.size()), x_(x0), count_(fn.counter()) {
+  base_type(alg, x0.size()), x_(x0) {
     
     if (t == Min_t)
       this->set_min_objective(functor_type::wrap, &fn);
@@ -84,36 +91,39 @@ public:
     this->set_xtol_rel(1e-4);
   }
   
+  //! Carry out the optimization and print result
   Real result() {
     
-    optimize(x_, min_);
+    optimize(x_, val_);
     
-    cout<<"*** INFO *** Optimum value found at location";
+    cout<<"Optimum value found at location";
     for (size_t i=0; i<x_.size(); ++i)
       cout<<" "<<x_[i];
-    cout<<" after " <<count_<<" evaluations: "<<min_<<endl;
+    cout<<"\nFunction value: "<<val_;
     
-    return min_;
+    return val_;
   }
   
 };
 
-
+//! Traits class used as a base class for the Distance_minimizator class template
 template <ElementType>
 struct Distance_minimizator_traits;
 
 
+//! Partial template specialization for a segment
 template <>
 struct Distance_minimizator_traits<_segment_2> {
   
+  //! Set lower and upper bounds for the master coordinate
   static void set_bounds(nlopt::opt &opt) {
     
-    // set optimization parameters
     std::vector<Real> lb(1,-1), ub(1,1);
     opt.set_lower_bounds(lb);
     opt.set_upper_bounds(ub);
   }
   
+  //! Select the start point between the center or the ends of the segmet
   template <class object_type>
   static void start(object_type &obj) {
     
@@ -133,6 +143,8 @@ struct Distance_minimizator_traits<_segment_2> {
   }
 };
 
+
+//! Constraint function for a triangle
 static Real constrain_triangle_3(const std::vector<Real> &xi, std::vector<Real> &grad, void *data) {
   if (!grad.empty()) {
     grad[0] = 1.;
@@ -142,8 +154,10 @@ static Real constrain_triangle_3(const std::vector<Real> &xi, std::vector<Real> 
 }
 
 
+//! Helper class used for the definition of triangle partial template specializations
 struct Triangle_minimizator_traits {
   
+  //! Set lower and upper bounds for the master coordinate
   static void set_bounds(nlopt::opt &opt) {
     
     std::vector<Real> lb(2, Real());
@@ -151,6 +165,7 @@ struct Triangle_minimizator_traits {
     opt.add_inequality_constraint(constrain_triangle_3, NULL, 1e-4);
   }
   
+  //! Select the start point between the center or the vertices of the triangle
   template <class object_type>
   static void start(object_type &obj) {
     
@@ -173,17 +188,27 @@ struct Triangle_minimizator_traits {
 };
 
 
+//! Partial template specialization for a 3-node triangle
 template <>
 struct Distance_minimizator_traits<_triangle_3> : public Triangle_minimizator_traits {};
 
 
+//! Partial template specialization for a 6-node triangle
 template <>
 struct Distance_minimizator_traits<_triangle_6> : public Triangle_minimizator_traits {};
 
 
 
-
-
+/*! The Distance_minimizator class template can be used to obtain the closest point
+ * to a a finite element using the NLopt optimization library.
+ * \tparam d - The dimension of the problem
+ * \tparam element_policy - The element type to which the closest point is sought
+ * The class inherits from Distance_minimizator_traits to take care of functionality
+ * specific to elements of certain type. The code can be used for elements of type 
+ * _segment_2, _triangle_3, and _triangle_6. The optimization stage is done during the
+ * constructor by calling the function constructor_common. The closest point is then
+ * obtained by calling the function point.
+ */
 template <int d, ElementType element_policy>
 class Distance_minimizator : public Distance_minimizator_traits<element_policy> {
   
@@ -203,6 +228,7 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
   UInt counter_;           //!< Optimization iteration counter
   Real fmin_;              //!< Minimum distance value
   
+  //! Common function called during construction to carry out the minimization
   void constructor_common() {
     
     traits_type::set_bounds(opt_);
@@ -228,8 +254,12 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
   public:
   
   //! Parameter constructor
-  /*! \param r - Point coordinates
-   * pts - Container of triangle points
+
+  /*! This parameter constructor takes the point to which the minimum distance is
+   * sought, and a container of points points that are the coordinates of the finite
+   * element
+   * \param r - Point coordinates
+   * \param pts - Container of triangle points
    */
   template <class point_type, class point_container>
   Distance_minimizator(const point_type& p, const point_container& pts)
@@ -247,7 +277,9 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
   }
   
   //! Parameter constructor
-  /*! \param r - Point coordinates
+  /*! This parameter constructor uses a pointer to the coordinates of the point, 
+   * an Element pointer, and the SolidMechanicsModel.
+   * \param r - Point coordinates
    * \param el - Finite element to which the distance is minimized
    * \param model - Solid mechanics model
    */
@@ -266,6 +298,7 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
     constructor_common();
   }
   
+  
   vector_type operator()(const std::vector<Real> &xi)
   {
     vector_type N(nb_nodes);
@@ -274,6 +307,7 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
     return transpose(XX_)*N;
   }
   
+  //! Evaluation of the function and its gradient
   Real operator()(const std::vector<Real> &xi, std::vector<Real> &grad)
   {
     // increment function evaluation counter
@@ -304,6 +338,7 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
     return 0.5 * transpose(diff)*diff;
   }
   
+  //! Return point at current master coordinate
   point_type point() {
     vector_type x = (*this)(xi_);
     point_type p;
@@ -312,12 +347,15 @@ class Distance_minimizator : public Distance_minimizator_traits<element_policy> 
     return p;
   }
   
+  //! Return the number of function evaluations
   UInt iterations() const
   { return counter_; }
   
+  //! Return the master coordinate
   const std::vector<Real>& master_coordinates()
   {  return xi_; }
   
+  //! Function that is used to have this class working with nlopt
   static double wrap(const std::vector<double> &x, std::vector<double> &grad, void *data) {
     return (*reinterpret_cast<Distance_minimizator<d,element_policy>*>(data))(x, grad); }
   

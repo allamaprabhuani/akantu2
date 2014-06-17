@@ -82,7 +82,7 @@ template <int>
 class Contact_discretization;
 
 //! Discretization type list
-typedef Make_typelist <Contact_discretization<N2N_t> >::Result Contact_discretization_list;
+typedef MakeTypelist <Contact_discretization<N2N_t> >::Result Contact_discretization_list;
 
 //! Discretization visitor.
 typedef Visitor<void, Contact_discretization_list, Mutable, Discretization_visitor_default> Contact_discretization_visitor;

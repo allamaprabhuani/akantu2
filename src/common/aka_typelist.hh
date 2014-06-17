@@ -30,6 +30,8 @@
 #ifndef __AKANTU_TYPELIST_HH__
 #define __AKANTU_TYPELIST_HH__
 
+#include "aka_common.hh"
+
 __BEGIN_AKANTU__
 
 struct Empty_type {};
@@ -50,10 +52,10 @@ typename T13 = Null_type, typename T14 = Null_type, typename T15 = Null_type,
 typename T16 = Null_type, typename T17 = Null_type, typename T18 = Null_type,
 typename T19 = Null_type, typename T20 = Null_type
 >
-struct Make_typelist
+struct MakeTypelist
 {
 private:
-    typedef typename Make_typelist
+    typedef typename MakeTypelist
     <
     T2 , T3 , T4 , 
     T5 , T6 , T7 , 
@@ -69,7 +71,7 @@ public:
 };
 
 template<>
-struct Make_typelist<> {
+struct MakeTypelist<> {
     typedef Null_type Result;
 };
 

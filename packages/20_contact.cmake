@@ -56,7 +56,6 @@ set(AKANTU_CONTACT_FILES
   contact/zone.hh
   model/model_manager.hh
   model/contact_manager0.hh
-  model/ns_contact_manager.hh
   model/implicit_contact_manager.hh
   )
 

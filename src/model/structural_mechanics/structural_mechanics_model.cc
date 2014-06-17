@@ -458,7 +458,7 @@ bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance, Real & e
   StaticCommunicator::getStaticCommunicator().allReduce(&norm, 1, _so_sum);
 
   error = sqrt(norm);
-  AKANTU_DEBUG_ASSERT(!isnan(norm), "Something goes wrong in the solve phase");
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm), "Something goes wrong in the solve phase");
 
   AKANTU_DEBUG_OUT();
   return (error < tolerance);

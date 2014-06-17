@@ -253,9 +253,9 @@ Point<3,T> closest_point_to_plane(const Point<3,T>& q, const Plane& p) {
 }
 
 //! Compute the closest point to a triangle
-/*! This function uses the concept of Voronoi regions to determine
- * the closest point \c p to a triangle defined by points \c a, \c b
- * \c c.
+/*! Obtains the plane of the triangle and checks if the point lies inside the
+ * triangle. If not, it computes the closest point to each of the triangle 
+ * edges.
  */
 template <typename T>
 Point<3,T> naive_closest_point_to_triangle(const Point<3,T>& p,

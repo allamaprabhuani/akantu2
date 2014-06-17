@@ -69,6 +69,10 @@ int main(int argc, char *argv[]) {
   // optimal value of penalty multiplier
   cd[Alpha] = 0.4;
   
+  // set Paraview output resluts
+	model.setBaseName("contact");
+	model.addDumpFieldVector("displacement");
+  
   // use bounding box to minimize slave-master pairs
   Real r0 = 0.5;
   Real r1 = 0.15;

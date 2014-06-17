@@ -50,9 +50,9 @@ T Heaviside(T v) {
 }
 
 template <typename T>
-T Macauley(T v)
-{ return v < 0 ? 0 : v; }
-
+T Macauley(T v) {
+	return v < 0 ? 0 : v;
+}
 
 //! Enumerated type used for the ContactData overloaded operator[] that returns real values
 enum Contact_parameter_type { Epsilon, Alpha, Uzawa_tol, Newton_tol, Uzawa_max_steps, Newton_max_steps};
@@ -139,6 +139,36 @@ void compute_shape_derivatives(const vector_type&, vector_type& DN) {
 }
 
 template <int dim, class model_type>
+class SearchTraits;
+
+template <class model_type>
+struct SearchTraits <3, model_type> {
+	typedef Point <3> point_type;
+	typedef ModelElement <model_type> element_type;
+
+	static bool check_projection(const point_type& p, model_type& model, UInt id) {
+		element_type m(model, _triangle_3, id);
+
+		return point_has_projection_to_triangle(p, m.template point <3>(0), m.template point <3>(1), m.template point <3>(2));
+	}
+};
+
+
+template <class model_type>
+struct SearchTraits <2, model_type> {
+	typedef Point <2> point_type;
+	typedef ModelElement <model_type> element_type;
+
+	static bool check_projection(const point_type& p, model_type& model, UInt id) {
+		element_type m(model, _segment_2, id);
+
+		return has_projection(p, m.template point <2>(0), m.template point <2>(1));
+	}
+};
+
+
+
+template <int dim, class model_type>
 struct ContactData {
 	typedef Point <dim> point_type;
 	typedef array::Array <1, Real> vector_type;
@@ -153,6 +183,48 @@ struct ContactData {
 	typedef typename real_map::iterator real_iterator;
 	typedef std::map <UInt, Real> gap_map;
 
+	struct SearchBase {
+		virtual int search(const Real *) {
+			static bool msg = false;
+			if (!msg) {
+				std::cout << " - Warning: calling default base searcher, type any key to continue." << std::endl;
+				std::cin.ignore();
+				msg = true;
+			}
+			return -1;
+		}
+
+		virtual ~SearchBase()
+		{
+		}
+	};
+
+	struct MasterAssignator : public SearchBase {
+		std::string surface_;
+		model_type &model_;
+
+		MasterAssignator(const std::string & s, model_type & model) : surface_(s), model_(model)
+		{
+		}
+
+		virtual int search(const Real *ptr) {
+			point_type p(ptr);
+
+			ElementGroup &rs = model_.getMesh().getElementGroup(surface_);
+
+			for (ElementGroup::type_iterator tit = rs.firstType(); tit != rs.lastType(); ++tit)
+				for (ElementGroup::const_element_iterator it = rs.element_begin(*tit);
+				     it != rs.element_end(*tit); ++it) {
+					if (SearchTraits <dim, model_type>::check_projection(p, model_, *it))
+						return *it;
+				}
+			return -1;
+		}
+	};
+
+	typedef SearchBase search_type;
+
+
 	slave_master_map sm_;
 	real_map multipliers_, areas_, penalty_, gaps_;
 	model_type &model_;
@@ -160,8 +232,9 @@ struct ContactData {
 	options_map options_;
 	flag_map flags_;
 	size_t uiter_, niter_;
+	SearchBase *searcher_;
 
-	ContactData(int argc, char *argv[], model_type & m) : model_(m), multiplier_dumper_(m.getMesh().getNbNodes(), 3), pressure_dumper_(m.getMesh().getNbNodes(), 3), options_(), uiter_(), niter_()
+	ContactData(int argc, char *argv[], model_type & m) : model_(m), multiplier_dumper_(m.getMesh().getNbNodes(), 3), pressure_dumper_(m.getMesh().getNbNodes(), 3), options_(), uiter_(), niter_(), searcher_(new SearchBase())
 	{
 		// register dumpers
 		model_.addDumpFieldExternal("multipliers", multiplier_dumper_);
@@ -237,157 +310,164 @@ struct ContactData {
 			}
 		}
 	}
-  
-  
-  struct PostAssemblyEmptyFunctor {
-    void operator()() const {}
-  };
-  
-  struct SearchBase {
-    virtual int search(const Real*)
-    { std::cout<<" - Warning: calling default base searcher"<<std::endl; return -1; }
-  };
-  
-  typedef SearchBase search_type;
-  
-  template <class PostAssemblyFunctor>
-  void solveContactCommon(SearchBase *sf = new SearchBase(), const PostAssemblyFunctor& paf = PostAssemblyEmptyFunctor()) {
-    
-    ContactData &cd = *this;
-    
-    model_.implicitPred();
-    model_.updateResidual();
-    
-    AKANTU_DEBUG_ASSERT(model_.stiffness_matrix != NULL,
-                        "You should first initialize the implicit solver and assemble the stiffness matrix");
-    
-    
-    // implementation of the Uzawa method for solving contact
-    bool uzawa_converged = false;
-    static UInt step = 0;
-    UInt k = 0;
-    UInt ntotal = 0;
-    
-    std::list <int> nt;
-    
-    
-    std::ofstream ofs;
-    ofs.open("iterations.out", std::ofstream::out | std::ofstream::app);
-    
-    // initialize Lagrange multipliers
-    // NOTE: It doesn't make any difference to start from the previous
-    // converged solution of Lagrange multipliers
-    real_map lambda_new;
-    
-    cout << std::boolalpha;
-    
-    if (cd[Verbose])
-      cout << "- Start Uzawa:" << endl;
-    
-    do {
-      Real uerror = 0.;
-      
-      bool converged = false;
-      UInt j = 0;
-      
-      cd.uiter_ = k;
-      
-      do {
-        Real nerror = 0.;
-        
-        cd.niter_ = j;
-        
-        // assemble material matrix
-        model_.assembleStiffnessMatrix();
-        
-        // call post-assembly functor
-        paf();
-        
-        // compute gaps
-        uzawa_converged = cd.computeTangentAndResidual(lambda_new, sf, uerror);
-        
-        // solve
-        model_.template solve<IntegrationScheme2ndOrder::_displacement_corrector> (*model_.increment);
-        
-        model_.implicitCorr();
-        model_.updateResidual();
-        
-        converged = model_.template testConvergence <_scc_increment> (cd[Newton_tol], nerror);
-        
-        if (cd[Dump_iteration])
-          cd.dump();
-        if (cd[Verbose])
-          cout << "    Newton: " << j << ", " << nerror << " < " << cd[Newton_tol] << " = " << (nerror < cd[Newton_tol]) << endl;
-        
-        ++j;
-        AKANTU_DEBUG_INFO("[" << _scc_increment << "] Convergence iteration "
-                          << std::setw(std::log10(cd[Newton_max_steps])) << j
-                          << ": error " << nerror << (converged ? " < " : " > ") << cd[Newton_tol] << std::endl);
-      }
-      while (!converged && j < cd[Newton_max_steps]);
-      
-      
-      if (cd[Verbose])
-        cout << "  Uzawa: " << k << ", " << uerror << " < " << cd[Uzawa_tol] << " = " << (uerror < cd[Uzawa_tol]) << endl;
-      
-      if (j == cd[Newton_max_steps]) {
-        cout << "*** ERROR *** Newton-Raphson loop did not converge within max number of iterations: " << cd[Newton_max_steps] << endl;
-        exit(1);
-      }
-      
-      nt.push_back(j);
-      ntotal += j;
-      
-      // increment uzawa loop counter
-      ++k;
-      
-      AKANTU_DEBUG_INFO("[" << _scc_increment << "] Uzawa convergence iteration "
-                        << std::setw(std::log10(cd[Newton_max_steps])) << k
-                        << std::endl);
-      
-      // update lagrange multipliers
-      cd.multipliers_ = lambda_new;
-    }
-    while (!uzawa_converged && k < cd[Uzawa_max_steps]);
-    
-    if (k == cd[Uzawa_max_steps]) {
-      cout << "*** ERROR *** Uzawa loop did not converge within max number of iterations: " << cd[Uzawa_max_steps] << endl;
-      exit(1);
-    }
-    
-    
-    cout << "Summary: Uzawa [" << k << "]: Newton [" << ntotal << "]:";
-    for (int n : nt)
-      cout << " " << n;
-    cout << endl;
-    
-    ofs << std::setw(10) << ++step << std::setw(10) << k << std::setw(10) << ntotal << endl;
-    ofs.close();
-    
-  }
 
-	void solveContactStep() {
-    
-    solveContactCommon<PostAssemblyEmptyFunctor>();
-    
-		dump();
+
+	struct PostAssemblyEmptyFunctor {
+		void operator()() const {
+		}
+	};
+
+	template <class PostAssemblyFunctor>
+	void solveContactCommon(SearchBase *sf = new SearchBase(), const PostAssemblyFunctor& paf = PostAssemblyEmptyFunctor()) {
+		ContactData &cd = *this;
+
+		model_.implicitPred();
+		model_.updateResidual();
+
+		AKANTU_DEBUG_ASSERT(model_.stiffness_matrix != NULL,
+		                    "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+
+		// implementation of the Uzawa method for solving contact
+		bool uzawa_converged = false;
+		static UInt step = 0;
+		UInt k = 0;
+		UInt ntotal = 0;
+
+		std::list <int> nt;
+
+
+		std::ofstream ofs;
+		ofs.open("iterations.out", std::ofstream::out | std::ofstream::app);
+
+		// initialize Lagrange multipliers
+		// NOTE: It doesn't make any difference to start from the previous
+		// converged solution of Lagrange multipliers
+		real_map lambda_new;
+
+		cout << std::boolalpha;
+
+		if (cd[Verbose])
+			cout << "- Start Uzawa:" << endl;
+
+		do {
+			Real uerror = 0.;
+
+			bool converged = false;
+			UInt j = 0;
+
+			cd.uiter_ = k;
+
+			do {
+				Real nerror = 0.;
+
+				cd.niter_ = j;
+
+				// assemble material matrix
+				model_.assembleStiffnessMatrix();
+
+				// call post-assembly functor
+				paf();
+
+				// compute gaps
+				uzawa_converged = cd.computeTangentAndResidual(lambda_new, sf, uerror);
+
+				// solve
+				model_.template solve <IntegrationScheme2ndOrder::_displacement_corrector> (*model_.increment);
+
+				model_.implicitCorr();
+				model_.updateResidual();
+
+				converged = model_.template testConvergence <_scc_increment> (cd[Newton_tol], nerror);
+
+				if (cd[Dump_iteration])
+					cd.dump();
+				if (cd[Verbose])
+					cout << "    Newton: " << j << ", " << nerror << " < " << cd[Newton_tol] << " = " << (nerror < cd[Newton_tol]) << endl;
+
+				++j;
+				AKANTU_DEBUG_INFO("[" << _scc_increment << "] Convergence iteration "
+				                      << std::setw(std::log10(cd[Newton_max_steps])) << j
+				                      << ": error " << nerror << (converged ? " < " : " > ") << cd[Newton_tol] << std::endl);
+			}
+			while (!converged && j < cd[Newton_max_steps]);
+
+
+			if (cd[Verbose])
+				cout << "  Uzawa: " << k << ", " << uerror << " < " << cd[Uzawa_tol] << " = " << (uerror < cd[Uzawa_tol]) << endl;
+
+			if (j == cd[Newton_max_steps]) {
+				cout << "*** ERROR *** Newton-Raphson loop did not converge within max number of iterations: " << cd[Newton_max_steps] << endl;
+				exit(1);
+			}
+
+			nt.push_back(j);
+			ntotal += j;
+
+			// increment uzawa loop counter
+			++k;
+
+			AKANTU_DEBUG_INFO("[" << _scc_increment << "] Uzawa convergence iteration "
+			                      << std::setw(std::log10(cd[Newton_max_steps])) << k
+			                      << std::endl);
+
+			// update lagrange multipliers
+			cd.multipliers_ = lambda_new;
+		}
+		while (!uzawa_converged && k < cd[Uzawa_max_steps]);
+
+		if (k == cd[Uzawa_max_steps]) {
+			cout << "*** ERROR *** Uzawa loop did not converge within max number of iterations: " << cd[Uzawa_max_steps] << endl;
+			exit(1);
+		}
+
+
+		cout << "Summary: Uzawa [" << k << "]: Newton [" << ntotal << "]:";
+		for (int n : nt)
+			cout << " " << n;
+		cout << endl;
+
+		ofs << std::setw(10) << ++step << std::setw(10) << k << std::setw(10) << ntotal << endl;
+		ofs.close();
 	}
 
-	void solveContactStep(search_type *search) {
-    
-    solveContactCommon<PostAssemblyEmptyFunctor>(search);
+	void searchSurface(const std::string& s) {
+		delete searcher_;
+		searcher_ = new MasterAssignator(s, model_);
+	}
+
+	void solveContactStep() {
+		solveContactCommon <PostAssemblyEmptyFunctor>(searcher_);
 
 		dump();
 	}
 
 	template <class PostAssemblyFunctor>
-	void solveContactStep(search_type *search, const PostAssemblyFunctor& fn) {
-
-    solveContactCommon<PostAssemblyFunctor>(search, fn);
+	void solveContactStep(const PostAssemblyFunctor& fn) {
+		solveContactCommon <PostAssemblyFunctor>(searcher_, fn);
 
 		dump();
 		fn.dump();
 	}
+
+//	void solveContactStep() {
+//		solveContactCommon <PostAssemblyEmptyFunctor>();
+//
+//		dump();
+//	}
+//
+//	void solveContactStep(search_type *search) {
+//		solveContactCommon <PostAssemblyEmptyFunctor>(search);
+//		dump();
+//	}
+//
+//	template <class PostAssemblyFunctor>
+//	void solveContactStep(search_type *search, const PostAssemblyFunctor& fn) {
+//		solveContactCommon <PostAssemblyFunctor>(search, fn);
+//
+//		dump();
+//		fn.dump();
+//	}
 
 	void prepareDump() {
 		multiplier_dumper_.clear();
@@ -456,6 +536,12 @@ struct ContactData {
 				p = std::max(p, v.second / it->second); // max(p, lambda/area)
 		}
 		return p;
+	}
+
+	//! Add slave
+	void addSlave(UInt s) {
+		sm_[s] = element_type();
+		multipliers_[s] = Real();
 	}
 
 	//! Add slave-master pair
