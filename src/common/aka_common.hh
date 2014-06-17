@@ -547,7 +547,7 @@ __BEGIN_AKANTU__
 cppargparse::ArgumentParser & getStaticArgumentParser();
 
 /// get access to the internal input file parser
-const Parser & getStaticParser();
+Parser & getStaticParser();
 
 /// get access to the user part of the internal input file parser
 const ParserSection & getUserParser();

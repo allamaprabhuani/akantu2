@@ -1122,7 +1122,7 @@ private:
       impact_tuple impact = moving_point_against_plane(r, v, pi);
       
       // make sure intersection point lies within the triangle
-      if (is_point_in_triangle2(std::get<1>(impact), o, p, q))
+      if (is_point_in_triangle(std::get<1>(impact), o, p, q))
         if (std::get<0>(impact) < std::get<0>(min))
           min = impact;
     }

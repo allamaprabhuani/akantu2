@@ -32,3 +32,12 @@ mark_as_advanced(AKANTU_USE_BLAS)
 if(BLAS_mkl_core_LIBRARY)
   set(AKANTU_USE_BLAS_MKL)
 endif()
+
+set(AKANTU_BLAS_DOCUMENTATION "
+This package provides access to a BLAS implementation.
+
+Under Ubuntu (14.04 LTS), the installation can be performed using the following command:
+\\begin{command}
+  > sudo apt-get install libatlas-base-dev
+\\end{command}
+" )

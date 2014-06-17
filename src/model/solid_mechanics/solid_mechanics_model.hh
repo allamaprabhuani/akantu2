@@ -295,6 +295,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Explicit/Implicit                                                        */
   /* ------------------------------------------------------------------------ */
+
 public:
   /// Update the stresses for the computation of the residual of the Stiffness
   /// matrix in the case of finite deformation
@@ -718,7 +719,7 @@ inline std::ostream & operator << (std::ostream & stream, const SolidMechanicsMo
 
 __END_AKANTU__
 
-#include "material_selector_tmpl.hh"
+	#include "material_selector_tmpl.hh"
 
 
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_HH__ */
+	#endif /* __AKANTU_SOLID_MECHANICS_MODEL_HH__ */

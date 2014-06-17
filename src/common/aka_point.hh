@@ -42,6 +42,12 @@ __BEGIN_AKANTU__
 const Real inf = std::numeric_limits<Real>::infinity();
 
 
+//! Point class template
+/*! This class represents the abstraction of a point in d-Euclidian
+ * space.
+ * \tparam d - Space dimension
+ * \tparam T - Type for storing coordinate values
+ */
 template <int d, typename T = Real>
 class Point {
   
@@ -49,26 +55,40 @@ public:
   
   typedef T value_type;
   
+  //! Return the dimension of the point
   constexpr static int dim()
   { return d; }
   
+  //! Default constructor creates a point on the origin
   Point() {
     for (UInt i=0; i<d; ++i)
       coord_[i] = value_type();
   }
   
-  
+  //! Parameter constructor using a const pointer
+  /*! This constructor can be used to create a point out of a pointer.
+   * This constructor assumes the memory that contains the coordinates
+   * is valid.
+   */
   explicit Point(value_type const* coordinates) {
     for (UInt i=0; i<d; ++i)
       coord_[i] = coordinates[i];
   }
 
+  //! Parameter constructor using a pointer
+  /*! This constructor can be used to create a point out of a pointer.
+   * This constructor assumes the memory that contains the coordinates
+   * is valid.
+   */
   explicit Point(value_type * coordinates) {
     for (UInt i=0; i<d; ++i)
       coord_[i] = coordinates[i];
   }
 
-  // parameter constructor
+  //! Parameter constructor
+  /*! This constructor takes exactly d number of parameters so that the
+   * point can be initialized to the given parameters.
+   */
   template <typename... Args>
   explicit Point(const Args&... args) {
     
@@ -83,7 +103,9 @@ public:
         coord_[i] = i < sizeof...(Args) ? coord[i] : coord[sizeof...(Args) - 1];
   }
   
-  /// less operator
+  //! Less-than operator
+  /*! This operator enables the use of Point objects in sets and maps
+   */
   bool operator<(const Point & p) const {
     for (int i=0; i<d; ++i)
       if (coord_[i] < p[i])
@@ -91,7 +113,7 @@ public:
     return false;
   }
   
-  /// bool equal operator
+  //! Equal-to operator
   bool operator==(const Point & p) const {
     for (int i=0; i<d; ++i)
       if (coord_[i] != p[i])
@@ -99,7 +121,7 @@ public:
     return true;
   }
   
-  /// standard output stream operator
+  //! Standard output stream operator
   friend std::ostream& operator <<(std::ostream &os, const Point &p) {
     os<<"{"<<p.coord_[0];
     for (int i=1; i<d; ++i)
@@ -122,18 +144,21 @@ public:
     return coord_[index];
   }
   
+  //! Addition compound assignment operator
   Point& operator+=(const Point& p) {
     for (int i=0; i<d; ++i)
       coord_[i] += p.coord_[i];
     return *this;
   }
   
+  //! Subtraction compound assignment operator
   Point& operator-=(const Point& p) {
     for (int i=0; i<d; ++i)
       coord_[i] -= p.coord_[i];
     return *this;
   }
   
+  //! Scalar multiplication compound assignment operator
   template <typename S>
   Point& operator*=(S s) {
     for (int i=0; i<d; ++i)
@@ -141,9 +166,11 @@ public:
     return *this;
   }
   
+  //! Scale point so that its magnitude is one
   Point& normalize()
   { return (*this)*=(1/std::sqrt(sq_norm())); }
-  
+
+  //! Get the square of the magnutud
   value_type sq_norm() {
     value_type r = value_type();
     for (int i=0; i<d; ++i)
@@ -153,10 +180,11 @@ public:
   
 private:
   
-  value_type coord_[d];
+  value_type coord_[d];   //! Point coordinates
 };
 
 
+//! Addition between two points
 template <int d, typename T>
 Point<d,T> operator+(const Point<d,T>& p, const Point<d,T>& q) {
   Point<d,T> r(p);
@@ -164,13 +192,14 @@ Point<d,T> operator+(const Point<d,T>& p, const Point<d,T>& q) {
 }
 
 
+//! Subtraction between two points
 template <int d, typename T>
 Point<d,T> operator-(const Point<d,T>& p, const Point<d,T>& q) {
   Point<d,T> r(p);
   return r -= q;
 }
 
-// used operator* for dot product
+//! Overload operator* for the scalar product
 template <int d, typename T>
 typename Point<d,T>::value_type operator*(const Point<d,T>& p, const Point<d,T>& q) {
   
@@ -181,13 +210,14 @@ typename Point<d,T>::value_type operator*(const Point<d,T>& p, const Point<d,T>&
 }
 
 
-
+//! Multiply a point by a scalar
 template <int d, typename T>
 Point<d,T> operator*(const Point<d,T>& p, typename Point<d,T>::value_type s) {
   Point<d,T> r(p);
   return r *= s;
 }
 
+//! Multiply a point by a scalar
 template <int d, typename T>
 Point<d,T> operator*(typename Point<d,T>::value_type s, const Point<d,T>& p) {
   Point<d,T> r(p);
@@ -195,7 +225,7 @@ Point<d,T> operator*(typename Point<d,T>::value_type s, const Point<d,T>& p) {
 }
 
 
-// cross product
+//! Cross product
 template <typename T>
 Point<3,T> cross(const Point<3,T>& o, const Point<3,T>& p) {
   
@@ -206,6 +236,11 @@ Point<3,T> cross(const Point<3,T>& o, const Point<3,T>& p) {
 }
 
 
+//! Bounding volume class template
+/*! This class is used as a building block for constructing
+ * hierarchies of boundign volumes used in the contact detection
+ * framework.
+ */
 template <int d>
 struct Bounding_volume {
 
@@ -219,6 +254,7 @@ struct Bounding_volume {
   point_type velocity_;
   point_type acceleration_;
   
+  //! Standard output stream operator
   friend std::ostream& operator<<(std::ostream& os, const Bounding_volume& gv)
   { return gv.print(os); }
 };

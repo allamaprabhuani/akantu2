@@ -13,46 +13,46 @@ Valid flags:
 
 Adding areas to slave nodes. 
 Adding slave-master pairs
-*** INFO *** Obtaining penalty parameters automatically. Average value: 2.83997e+09
+*** INFO *** Obtaining penalty parameters automatically. Average value: 2.82668e+09
 Summary: Uzawa [1]: Newton [1]: 1
 Summary: Uzawa [2]: Newton [3]: 2 1
-Summary: Uzawa [12]: Newton [15]: 3 2 1 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [19]: Newton [22]: 3 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 Summary: Uzawa [9]: Newton [11]: 2 2 1 1 1 1 1 1 1
 Summary: Uzawa [8]: Newton [11]: 3 2 1 1 1 1 1 1
-Summary: Uzawa [8]: Newton [11]: 3 2 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
+Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
+Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
 Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
 Summary: Uzawa [8]: Newton [10]: 2 2 1 1 1 1 1 1
 Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
-Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
-Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
-Summary: Uzawa [7]: Newton [9]: 2 2 1 1 1 1 1
 Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
 Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
 Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
-Summary: Uzawa [7]: Newton [8]: 2 1 1 1 1 1 1
 Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
-Summary: Uzawa [7]: Newton [8]: 2 1 1 1 1 1 1
 Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [10]: Newton [11]: 2 1 1 1 1 1 1 1 1 1
+Summary: Uzawa [9]: Newton [10]: 2 1 1 1 1 1 1 1 1
 Summary: Uzawa [7]: Newton [8]: 2 1 1 1 1 1 1
 
          Disp.         Force  Max pressure
              0             0             0
-         0.001     2.425e+04     8.813e+07
-         0.002     8.948e+06      1.06e+10
-         0.003     2.251e+07     1.195e+10
-         0.004     3.806e+07      1.57e+10
-         0.005     6.035e+07     1.872e+10
-         0.006     8.541e+07     2.038e+10
-         0.007     1.103e+08     2.089e+10
-         0.008      1.37e+08     2.128e+10
-         0.009      1.67e+08      2.11e+10
-          0.01     1.967e+08     2.132e+10
-         0.011     2.276e+08     2.406e+10
-         0.012     2.729e+08     2.509e+10
-         0.013     3.091e+08     2.543e+10
-         0.014     3.477e+08     2.581e+10
-         0.015     3.757e+08     2.593e+10
-         0.016     4.268e+08     2.659e+10
-         0.017     4.541e+08     2.857e+10
-         0.018     5.092e+08     3.115e+10
-         0.019     5.406e+08      3.26e+10
+         0.001          5687     2.067e+07
+         0.002     8.807e+06     9.245e+09
+         0.003     2.245e+07     1.188e+10
+         0.004     3.799e+07     1.562e+10
+         0.005     6.064e+07     1.871e+10
+         0.006     8.543e+07     2.019e+10
+         0.007     1.102e+08     2.036e+10
+         0.008     1.368e+08     2.069e+10
+         0.009     1.673e+08     2.088e+10
+          0.01     1.971e+08     2.137e+10
+         0.011     2.281e+08     2.395e+10
+         0.012     2.736e+08     2.465e+10
+         0.013     3.099e+08     2.494e+10
+         0.014     3.484e+08     2.529e+10
+         0.015     3.865e+08      2.56e+10
+         0.016      4.25e+08     2.649e+10
+         0.017     4.639e+08     2.914e+10
+         0.018     5.084e+08     3.128e+10
+         0.019     5.404e+08     3.273e+10

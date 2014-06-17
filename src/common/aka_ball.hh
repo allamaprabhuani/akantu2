@@ -43,7 +43,12 @@ static Real epsilon = 10*std::numeric_limits<Real>::epsilon();
 using std::cout;
 using std::endl;
 
-//! Sphere class
+
+
+//! Ball class template
+/*! This class template represents the abstraction of a d-dimensional sphere.
+ * \tparam d - Ball dimension
+ */
 template <int d>
 class Ball : public Bounding_volume<d> {
   
@@ -56,12 +61,14 @@ public:
   typedef typename point_type::value_type value_type;
   typedef BoundingBox<d> aabb_type;
   
-  
+  //! Return ball dimension
   constexpr static int dim()
   { return d; }
   
+  //! Parameter constructor takes the ball center point and its radius
   Ball(const point_type& c = point_type(), value_type r = value_type()) : base_type(), c_(c), r_(r) {}
   
+  //! Combine two ball objects
   virtual base_type* combine(const base_type& b) const {
     
     const Ball* sp = dynamic_cast<const Ball*>(&b);
@@ -72,6 +79,8 @@ public:
     return new Ball(r);
   }
   
+
+  //! Standard output stream operator
   virtual std::ostream& print(std::ostream& os) const;
   
   aabb_type bounding_box() const {
@@ -79,10 +88,11 @@ public:
     return aabb_type(c_ - o, c_ + o);
   }
   
-  
+  //! Get ball center
   point_type const& center() const
   { return c_; }
   
+  //! Get ball radius
   value_type const& radius() const
   { return r_; }
   
@@ -133,13 +143,15 @@ public:
   }
   
   
+  //! Check for collision with a point
   bool operator&(const point_type& p) const
   { return (p - c_).sq_norm() - r_*r_ < epsilon; }
 
+  //! Check for collision with another ball
   bool operator&(const Ball& s) const
   { return (c_ - s.c_).sq_norm() - pow(r_ + s.r_,2.) < epsilon; }
   
-  // compute ball from intersection of bounding boxes of two balls
+  //! Compute ball from intersection of bounding boxes of two balls
   Ball operator&&(const Ball& b) const {
     
     // get bounding boxes of spheres
@@ -166,12 +178,17 @@ private:
 };
 
 
-// type definitions
+//! Interval type definition
 typedef Ball<1> Interval;
+
+//! Circle type definition
 typedef Ball<2> Circle;
+
+//! Sphere type definition
 typedef Ball<3> Sphere;
 
 
+//! Add two balls
 template <int d>
 Ball<d> operator+(const Ball<d>& s1, const Ball<d>& s2) {
   Ball<d> r(s1);
@@ -180,10 +197,10 @@ Ball<d> operator+(const Ball<d>& s1, const Ball<d>& s2) {
 
 
 
-// Ritter algorithm
-// J. Ritter, Graphics gems, Academic Press Professional, Inc., San Diego, CA, USA, 1990, Ch. An efficient bounding sphere, pp. 301–303.
-// URL http://dl.acm.org/citation.cfm?id=90767.90836
-
+//! Extreme points algirhtm by Ritter
+/*! J. Ritter, Graphics gems, Academic Press Professional, Inc., San Diego, CA, USA, 1990, Ch. 
+ * An efficient bounding sphere, pp. 301–303. URL http://dl.acm.org/citation.cfm?id=90767.90836
+ */
 template <class point_container>
 std::pair<size_t, size_t> extreme_points(const point_container& pts) {
   
@@ -229,7 +246,7 @@ std::pair<size_t, size_t> extreme_points(const point_container& pts) {
   return std::make_pair(m,M);
 }
 
-
+//! Create a bounding ball from a container of points
 template <int d, class point_container>
 Ball<d> bounding_ball(const point_container& pts) {
   

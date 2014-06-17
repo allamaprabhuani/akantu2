@@ -107,8 +107,7 @@ public:
       os<<t.minutes_<<" m, ";
     if (t.seconds_ != 0)
       os<<t.seconds_<<" s, ";
-    os<<t.microseconds_<<" µs";  // display in miliseconds (not microseconds);
-//    os<<static_cast<double>(t.microseconds_)/1000.<<" ms";  // display in miliseconds (not microseconds);
+    os<<t.microseconds_<<" µs";
     return os;
   }
   
@@ -210,37 +209,6 @@ public:
     return os;
   }
 };
-
-
-//class timer {
-//
-//  std::clock_t t1_;
-//
-//public:
-//  timer() : t1_(std::clock()) {}
-//
-//
-//  double tac() const {
-//    return static_cast<double>(std::clock() - t1_)/CLOCKS_PER_SEC;
-//  }
-//
-//  double max() const {
-//    return static_cast<double>(std::numeric_limits<std::clock_t>::max()
-//                               - t1_) / CLOCKS_PER_SEC;
-//  }
-//
-//  double min() const
-//  { return 1./CLOCKS_PER_SEC; }
-//
-//  inline void reset() { t1_ = std::clock(); }
-//
-//  friend std::ostream& operator<<(std::ostream& os, const timer& timer) {
-//    time t(timer.tac());
-//    os<<t;
-//    return os;
-//  }
-//};
-
 
 
 __END_AKANTU__

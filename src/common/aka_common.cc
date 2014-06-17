@@ -117,7 +117,7 @@ cppargparse::ArgumentParser & getStaticArgumentParser() {
 }
 
 /* -------------------------------------------------------------------------- */
-const Parser & getStaticParser() {
+Parser & getStaticParser() {
   return static_parser;
 }
 
