@@ -50,8 +50,8 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(SolidMechani
   this->registerParam("dam_threshold",       dam_threshold,  0.8,  _pat_parsable | _pat_modifiable, "damage threshold at which damage damage will be set to 1" );
 
 
-  this->use_previous_stress           = true;
-  this->use_previous_strain           = true;
+  this->use_previous_stress          = true;
+  this->use_previous_gradu           = true;
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
 
@@ -158,7 +158,7 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(ElementType el_ty
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-  computeNormalizedEquivalentStress(this->strain(el_type, ghost_type), el_type, ghost_type);
+  computeNormalizedEquivalentStress(this->gradu(el_type, ghost_type), el_type, ghost_type);
   norm_max_equivalent_stress = 0;
   findMaxNormalizedEquivalentStress(el_type, ghost_type);
 

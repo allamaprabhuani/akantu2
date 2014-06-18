@@ -237,34 +237,34 @@ int main(int argc, char *argv[])
 
   UInt nb_quadrature_points = my_model.getFEEngine().getNbQuadraturePoints(TYPE);
   Array<Real> & stress_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStress(element_type));
-  Array<Real> & strain_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getStrain(element_type));
+  Array<Real> & gradu_vect = const_cast<Array<Real> &>(my_model.getMaterial(0).getGradU(element_type));
 
   Array<Real>::iterator< Matrix<Real> > stress_it = stress_vect.begin(dim, dim);
-  Array<Real>::iterator< Matrix<Real> > strain_it = strain_vect.begin(dim, dim);
+  Array<Real>::iterator< Matrix<Real> > gradu_it = gradu_vect.begin(dim, dim);
 
   Matrix<Real> presc_stress; presc_stress = prescribed_stress<TYPE>();
-  Matrix<Real> presc_strain; presc_strain = prescribed_grad_u<TYPE>();
+  Matrix<Real> presc_gradu; presc_gradu = prescribed_grad_u<TYPE>();
 
   UInt nb_element = my_mesh.getNbElement(TYPE);
 
-  Real strain_tolerance = 1e-9;
+  Real gradu_tolerance = 1e-9;
   Real stress_tolerance = 1e-2;
   if(s > max_steps) {
     stress_tolerance = 1e-4;
-    strain_tolerance = 1e-7;
+    gradu_tolerance = 1e-7;
   }
 
 
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quadrature_points; ++q) {
       Matrix<Real> & stress = *stress_it;
-      Matrix<Real> & strain = *strain_it;
+      Matrix<Real> & gradu = *gradu_it;
 
       for (UInt i = 0; i < dim; ++i) {
         for (UInt j = 0; j < dim; ++j) {
-          if(!(std::abs(strain(i, j) - presc_strain(i, j)) < strain_tolerance)) {
-            std::cerr << "strain[" << i << "," << j << "] = " << strain(i, j) << " but should be = " << presc_strain(i, j) << " (-" << std::abs(strain(i, j) - presc_strain(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
-            std::cerr << strain << presc_strain << std::endl;
+          if(!(std::abs(gradu(i, j) - presc_gradu(i, j)) < gradu_tolerance)) {
+            std::cerr << "gradu[" << i << "," << j << "] = " << gradu(i, j) << " but should be = " << presc_gradu(i, j) << " (-" << std::abs(gradu(i, j) - presc_gradu(i, j)) << ") [el : " << el<< " - q : " << q << "]" << std::endl;
+            std::cerr << gradu << presc_gradu << std::endl;
             return EXIT_FAILURE;
           }
 
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
       }
 
       ++stress_it;
-      ++strain_it;
+      ++gradu_it;
     }
   }
 

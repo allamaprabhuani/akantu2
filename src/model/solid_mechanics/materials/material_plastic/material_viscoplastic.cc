@@ -55,7 +55,7 @@ void MaterialViscoPlastic<spatial_dimension>::computeStress(ElementType el_type,
     Real * iso_hardening = this->iso_hardening(el_type, ghost_type).storage();
 
     Array<Real>::matrix_iterator previous_grad_u_it =
-      this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+      this->gradu.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
     Array<Real>::matrix_iterator previous_sigma_it =
       this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
@@ -94,7 +94,7 @@ void MaterialViscoPlastic<spatial_dimension>::computeTangentModuli(__attribute__
        this->stress.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
     Array<Real>::matrix_iterator previous_strain_it =
-       this->strain.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
+       this->gradu.previous(el_type, ghost_type).begin(spatial_dimension, spatial_dimension);
 
     Real * iso_hardening= this->iso_hardening(el_type, ghost_type).storage();
 
