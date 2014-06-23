@@ -196,10 +196,6 @@ namespace BC {
 			     const Vector<Real> & coord,
 			     const Vector<Real> & normals) const;
     };
-
-    typedef FromHigherDim FromStress;
-    typedef FromSameDim   FromTraction;
-
   } //end namespace Neumann
 } //end namespace BC
 

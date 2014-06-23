@@ -269,6 +269,10 @@ inline UInt SolidMechanicsModel::getNbDataToPack(SynchronizationTag tag) const {
     size += sizeof(Real) * spatial_dimension;
     break;
   }
+  case _gst_for_dump: {
+    size += sizeof(Real) * spatial_dimension * 5;
+    break;
+  }
   default: {
     AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
@@ -296,6 +300,10 @@ inline UInt SolidMechanicsModel::getNbDataToUnpack(SynchronizationTag tag) const
   }
   case _gst_smm_mass: {
     size += sizeof(Real) * spatial_dimension;
+    break;
+  }
+  case _gst_for_dump: {
+    size += sizeof(Real) * spatial_dimension * 5;
     break;
   }
   default: {
@@ -332,6 +340,19 @@ inline void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
     buffer << it_mass[index];
     break;
   }
+  case _gst_for_dump: {
+    Array<Real>::vector_iterator it_disp = displacement->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_velo = velocity->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_acce = acceleration->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_resi = residual->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_forc = force->begin(spatial_dimension);
+    buffer << it_disp[index];
+    buffer << it_velo[index];
+    buffer << it_acce[index];
+    buffer << it_resi[index];
+    buffer << it_forc[index];
+    break;
+  }
   default: {
     AKANTU_DEBUG_ERROR("Unknown ghost synchronization tag : " << tag);
   }
@@ -364,6 +385,19 @@ inline void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
     Array<Real>::vector_iterator it_mass = mass->begin(spatial_dimension);
     buffer >> it_mass[index];
     AKANTU_DEBUG_INFO("mass of node " << index << " is now " << (*mass)(index,0));
+    break;
+  }
+  case _gst_for_dump: {
+    Array<Real>::vector_iterator it_disp = displacement->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_velo = velocity->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_acce = acceleration->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_resi = residual->begin(spatial_dimension);
+    Array<Real>::vector_iterator it_forc = force->begin(spatial_dimension);
+    buffer >> it_disp[index];
+    buffer >> it_velo[index];
+    buffer >> it_acce[index];
+    buffer >> it_resi[index];
+    buffer >> it_forc[index];
     break;
   }
   default: {

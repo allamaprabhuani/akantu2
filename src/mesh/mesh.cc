@@ -66,7 +66,13 @@ Mesh::Mesh(UInt spatial_dimension,
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
-  mesh_data("mesh_data", id, memory_id) {
+  lower_bounds(spatial_dimension,0.),
+  upper_bounds(spatial_dimension,0.),
+  size(spatial_dimension, 0.),
+  local_lower_bounds(spatial_dimension,0.),
+  local_upper_bounds(spatial_dimension,0.),
+  mesh_data("mesh_data", id, memory_id),
+  mesh_facets(NULL) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(alloc<Real>(id + ":coordinates", 0, this->spatial_dimension));
@@ -74,14 +80,6 @@ Mesh::Mesh(UInt spatial_dimension,
   nb_global_nodes = 0;
 
   init();
-
-  std::fill_n(lower_bounds, 3, 0.);
-  std::fill_n(upper_bounds, 3, 0.);
-
-  std::fill_n(size, 3, 0.);
-
-  std::fill_n(local_lower_bounds, 3, 0.);
-  std::fill_n(local_upper_bounds, 3, 0.);
 
   AKANTU_DEBUG_OUT();
 }
@@ -100,7 +98,13 @@ Mesh::Mesh(UInt spatial_dimension,
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>((UInt) _max_element_type + 1, 1)),
-  mesh_data("mesh_data", id, memory_id) {
+  lower_bounds(spatial_dimension,0.),
+  upper_bounds(spatial_dimension,0.),
+  size(spatial_dimension, 0.),
+  local_lower_bounds(spatial_dimension,0.),
+  local_upper_bounds(spatial_dimension,0.),
+  mesh_data("mesh_data", id, memory_id),
+  mesh_facets(NULL) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(getArray<Real>(nodes_id));
@@ -125,7 +129,13 @@ Mesh::Mesh(UInt spatial_dimension,
   spatial_dimension(spatial_dimension),
   types_offsets(Array<UInt>(_max_element_type + 1, 1)),
   ghost_types_offsets(Array<UInt>(_max_element_type + 1, 1)),
-  mesh_data("mesh_data", id, memory_id) {
+  lower_bounds(spatial_dimension,0.),
+  upper_bounds(spatial_dimension,0.),
+  size(spatial_dimension, 0.),
+  local_lower_bounds(spatial_dimension,0.),
+  local_upper_bounds(spatial_dimension,0.),
+  mesh_data("mesh_data", id, memory_id),
+  mesh_facets(NULL) {
   AKANTU_DEBUG_IN();
 
   this->nodes = &(nodes);
@@ -166,7 +176,6 @@ void Mesh::defineMeshParent(const Mesh & mesh) {
 
 /* -------------------------------------------------------------------------- */
 void Mesh::init() {
-  this->mesh_facets = NULL;
   this->is_mesh_facets = false;
   this->mesh_parent = NULL;
   this->is_distributed = false;
@@ -223,35 +232,40 @@ void Mesh::printself(std::ostream & stream, int indent) const {
 void Mesh::computeBoundingBox(){
   AKANTU_DEBUG_IN();
   for (UInt k = 0; k < spatial_dimension; ++k) {
-    local_lower_bounds[k] =   std::numeric_limits<double>::max();
-    local_upper_bounds[k] = - std::numeric_limits<double>::max();
+    local_lower_bounds(k) =   std::numeric_limits<double>::max();
+    local_upper_bounds(k) = - std::numeric_limits<double>::max();
   }
 
   for (UInt i = 0; i < nodes->getSize(); ++i) {
     //    if(!isPureGhostNode(i))
     for (UInt k = 0; k < spatial_dimension; ++k) {
-      local_lower_bounds[k] = std::min(local_lower_bounds[k], (*nodes)(i, k));
-      local_upper_bounds[k] = std::max(local_upper_bounds[k], (*nodes)(i, k));
+      local_lower_bounds(k) = std::min(local_lower_bounds[k], (*nodes)(i, k));
+      local_upper_bounds(k) = std::max(local_upper_bounds[k], (*nodes)(i, k));
     }
   }
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  if (this->is_distributed) {
+    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
 
-  Real reduce_bounds[2 * spatial_dimension];
-  for (UInt k = 0; k < spatial_dimension; ++k) {
-    reduce_bounds[2*k    ] =   local_lower_bounds[k];
-    reduce_bounds[2*k + 1] = - local_upper_bounds[k];
+    Real reduce_bounds[2 * spatial_dimension];
+    for (UInt k = 0; k < spatial_dimension; ++k) {
+      reduce_bounds[2*k    ] =   local_lower_bounds(k);
+      reduce_bounds[2*k + 1] = - local_upper_bounds(k);
+    }
+    
+    comm.allReduce(reduce_bounds, 2 * spatial_dimension, _so_min);
+
+    for (UInt k = 0; k < spatial_dimension; ++k) {
+      lower_bounds(k) =   reduce_bounds[2*k];
+      upper_bounds(k) = - reduce_bounds[2*k + 1];
+    }
+  }
+  else {
+    this->lower_bounds = this->local_lower_bounds;
+    this->upper_bounds = this->local_upper_bounds;
   }
 
-  comm.allReduce(reduce_bounds, 2 * spatial_dimension, _so_min);
-
-  for (UInt k = 0; k < spatial_dimension; ++k) {
-    lower_bounds[k] =   reduce_bounds[2*k];
-    upper_bounds[k] = - reduce_bounds[2*k + 1];
-  }
-
-  for (UInt k = 0; k < spatial_dimension; ++k)
-    size[k] = upper_bounds[k] - lower_bounds[k];
+  size = upper_bounds - lower_bounds;
 
   AKANTU_DEBUG_OUT();
 }

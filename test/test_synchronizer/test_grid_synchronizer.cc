@@ -152,18 +152,14 @@ int main(int argc, char *argv[]) {
 
   mesh.computeBoundingBox();
 
-  Real lower_bounds[spatial_dimension];
-  Real upper_bounds[spatial_dimension];
+  const Vector<Real> & lower_bounds = mesh.getLowerBounds();
+  const Vector<Real> & upper_bounds = mesh.getUpperBounds();
 
-  mesh.getLowerBounds(lower_bounds);
-  mesh.getUpperBounds(upper_bounds);
+  Vector<Real> center = 0.5 * (upper_bounds + lower_bounds);
 
   Vector<Real> spacing(spatial_dimension);
-  Vector<Real> center(spatial_dimension);
-
   for (UInt i = 0; i < spatial_dimension; ++i) {
     spacing[i] = radius * 1.2;
-    center[i] = (upper_bounds[i] + lower_bounds[i]) / 2.;
   }
 
   SpatialGrid<Element> grid(spatial_dimension, spacing, center);

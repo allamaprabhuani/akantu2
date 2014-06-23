@@ -118,8 +118,8 @@ struct BoundaryCondition<ModelType>::TemplateFunctionWrapper<FunctorType, BC::Fu
     QuadraturePoint quad_point;
     quad_point.ghost_type = ghost_type;
 
-    Mesh::type_iterator type_it  = mesh.firstType(dim - 1, ghost_type);
-    Mesh::type_iterator type_end = mesh.lastType (dim - 1, ghost_type);
+    ElementGroup::type_iterator type_it  = group.firstType(dim - 1, ghost_type);
+    ElementGroup::type_iterator type_end = group.lastType (dim - 1, ghost_type);
 
     // Loop over the boundary element types
     for(; type_it != type_end; ++type_it) {

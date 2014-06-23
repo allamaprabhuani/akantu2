@@ -403,18 +403,10 @@ public:
   inline bool isMasterNode(UInt n) const;
   inline bool isSlaveNode(UInt n) const;
 
-  AKANTU_GET_MACRO(XMin, lower_bounds[0], Real);
-  AKANTU_GET_MACRO(YMin, lower_bounds[1], Real);
-  AKANTU_GET_MACRO(ZMin, lower_bounds[2], Real);
-  AKANTU_GET_MACRO(XMax, upper_bounds[0], Real);
-  AKANTU_GET_MACRO(YMax, upper_bounds[1], Real);
-  AKANTU_GET_MACRO(ZMax, upper_bounds[2], Real);
-
-  inline void getLowerBounds(Real * lower) const;
-  inline void getUpperBounds(Real * upper) const;
-
-  inline void getLocalLowerBounds(Real * lower) const;
-  inline void getLocalUpperBounds(Real * upper) const;
+  AKANTU_GET_MACRO(LowerBounds, lower_bounds, const Vector<Real> &);
+  AKANTU_GET_MACRO(UpperBounds, upper_bounds, const Vector<Real> &);
+  AKANTU_GET_MACRO(LocalLowerBounds, local_lower_bounds, const Vector<Real> &);
+  AKANTU_GET_MACRO(LocalUpperBounds, local_upper_bounds, const Vector<Real> &);
 
   /// get the connectivity Array for a given type
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Connectivity, connectivities, UInt);
@@ -618,16 +610,16 @@ private:
   Array<UInt> ghost_types_offsets;
 
   /// min of coordinates
-  Real lower_bounds[3];
+  Vector<Real> lower_bounds;
   /// max of coordinates
-  Real upper_bounds[3];
+  Vector<Real> upper_bounds;
   /// size covered by the mesh on each direction
-  Real size[3];
+  Vector<Real> size;
 
   /// local min of coordinates
-  Real local_lower_bounds[3];
+  Vector<Real> local_lower_bounds;
   /// local max of coordinates
-  Real local_upper_bounds[3];
+  Vector<Real> local_upper_bounds;
 
   /// Extra data loaded from the mesh file
   MeshData mesh_data;

@@ -788,7 +788,7 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
   for(;heat_rate_it != heat_rate_end; ++heat_rate_it, ++n) {
     Real heat = 0;
     bool is_local_node = mesh.isLocalOrMasterNode(n);
-    bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
+    bool is_not_pbc_slave_node = !isPBCSlaveNode(n);
     bool count_node = is_local_node && is_not_pbc_slave_node;
 
     Vector<Real> & heat_rate = *heat_rate_it;

@@ -330,17 +330,11 @@ void MaterialNonLocal<spatial_dimension, WeightFunction>::createCellList(Element
   Mesh & mesh = this->model->getFEEngine().getMesh();
   mesh.computeBoundingBox();
 
-  Real lower_bounds[spatial_dimension];
-  Real upper_bounds[spatial_dimension];
-  mesh.getLocalLowerBounds(lower_bounds);
-  mesh.getLocalUpperBounds(upper_bounds);
+  const Vector<Real> & lower_bounds = mesh.getLocalLowerBounds();
+  const Vector<Real> & upper_bounds = mesh.getLocalUpperBounds();
+  Vector<Real> center = 0.5 * (upper_bounds + lower_bounds);
 
   Vector<Real> spacing(spatial_dimension, weight_func->getRadius() * safety_factor);
-
-  Vector<Real> center(spatial_dimension);
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    center(i) = (upper_bounds[i] + lower_bounds[i]) / 2.;
-  }
 
   spatial_grid = new SpatialGrid<QuadraturePoint>(spatial_dimension, spacing, center);
 

@@ -374,6 +374,7 @@ void SolidMechanicsModel::registerPBCSynchronizer(){
   synch_registry->registerSynchronizer(*synch, _gst_smm_uv);
   synch_registry->registerSynchronizer(*synch, _gst_smm_mass);
   synch_registry->registerSynchronizer(*synch, _gst_smm_res);
+  synch_registry->registerSynchronizer(*synch, _gst_for_dump);
   changeLocalEquationNumberForPBC(pbc_pair, mesh.getSpatialDimension());
 }
 
@@ -1316,7 +1317,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
   for (UInt n = 0; n < nb_nodes; ++n) {
     Real mv2 = 0;
     bool is_local_node = mesh.isLocalOrMasterNode(n);
-    bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
+    bool is_not_pbc_slave_node = !isPBCSlaveNode(n);
     bool count_node = is_local_node && is_not_pbc_slave_node;
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if (count_node)
@@ -1380,7 +1381,7 @@ Real SolidMechanicsModel::getExternalWork() {
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
-    bool is_not_pbc_slave_node = !getIsPBCSlaveNode(n);
+    bool is_not_pbc_slave_node = !isPBCSlaveNode(n);
     bool count_node = is_local_node && is_not_pbc_slave_node;
 
     for (UInt i = 0; i < spatial_dimension; ++i) {
@@ -1924,18 +1925,21 @@ void SolidMechanicsModel::addDumpFieldTensorToDumper(const std::string & dumper_
 /* ------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  synch_registry->synchronize(_gst_for_dump);
   Dumpable::dump(dumper_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, UInt step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  synch_registry->synchronize(_gst_for_dump);
   Dumpable::dump(dumper_name, step);
 }
 
 /* ------------------------------------------------------------------------- */
 void SolidMechanicsModel::dump(const std::string & dumper_name, Real time, UInt step) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeDumpEvent());
+  synch_registry->synchronize(_gst_for_dump);
   Dumpable::dump(dumper_name, time, step);
 }
 

@@ -78,8 +78,8 @@ int main(int argc, char *argv[]) {
   model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
 
   mesh.computeBoundingBox();
-  Real L = mesh.getXMax() - mesh.getXMin();
-  Real h = mesh.getYMax() - mesh.getYMin();
+  Real L = mesh.getUpperBounds()(0) - mesh.getLowerBounds()(0);
+  Real h = mesh.getUpperBounds()(1) - mesh.getLowerBounds()(1);
   Real rho = model.getMaterial("bulk").getParam<Real>("rho");
 
   Real theoretical_mass = L * h * h * rho;

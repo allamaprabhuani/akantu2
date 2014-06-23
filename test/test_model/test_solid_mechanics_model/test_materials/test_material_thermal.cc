@@ -50,21 +50,19 @@ int main(int argc, char *argv[])
   model.initFull(SolidMechanicsModelOptions(_static));
 
   mesh.computeBoundingBox();
-  Real xmin = mesh.getXMin();
-  Real xmax = mesh.getXMax();
-  Real ymin = mesh.getYMin();
-  Real ymax = mesh.getYMax();
+  const Vector<Real> & min = mesh.getLowerBounds();
+  const Vector<Real> & max = mesh.getUpperBounds();
 
   Array<Real> & pos = mesh.getNodes();
   Array<bool> & boundary = model.getBlockedDOFs();
   Array<Real> & disp = model.getDisplacement();
 
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    if (Math::are_float_equal(pos(i, 0), xmin)) {
+    if (Math::are_float_equal(pos(i, 0), min(0))) {
       boundary(i, 0) = true;
     }
 
-    if (Math::are_float_equal(pos(i, 1), ymin)) {
+    if (Math::are_float_equal(pos(i, 1), min(1))) {
       boundary(i, 1) = true;
     }
   }
@@ -82,7 +80,7 @@ int main(int argc, char *argv[])
   model.updateResidual();
 
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    if (Math::are_float_equal(pos(i, 0), xmax) && Math::are_float_equal(pos(i, 1), ymax)) {
+    if (Math::are_float_equal(pos(i, 0), max(0)) && Math::are_float_equal(pos(i, 1), max(1))) {
       if (!Math::are_float_equal(disp(i, 0), 1.0) || !Math::are_float_equal(disp(i, 1), 1.0)) {
 	AKANTU_DEBUG_ERROR("Test not passed");
         return EXIT_FAILURE;

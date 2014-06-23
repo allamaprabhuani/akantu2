@@ -149,8 +149,8 @@ private:
 void MeshUtils::computePBCMap(const Mesh & mymesh,
 			      const UInt dir,
 			      std::map<UInt,UInt> & pbc_pair){
-  std::vector<UInt> selected_left;
-  std::vector<UInt> selected_right;
+  Array<UInt> selected_left;
+  Array<UInt> selected_right;
 
   Real * coords = mymesh.nodes->storage();
   const UInt nb_nodes = mymesh.nodes->getSize();
@@ -173,7 +173,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
     }
   }
 
-  AKANTU_DEBUG_INFO("found " << selected_left.size() << " and " << selected_right.size()
+  AKANTU_DEBUG_INFO("found " << selected_left.getSize() << " and " << selected_right.getSize()
 	       << " nodes at each boundary for direction " << dir);
 
   // match pairs
@@ -184,71 +184,18 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::computePBCMap(const Mesh & mymesh,
 			      const SurfacePair & surface_pair,
-			      const ElementType type,
 			      std::map<UInt,UInt> & pbc_pair) {
 
-  std::vector<UInt> selected_first;
-  std::vector<UInt> selected_second;
-
-  // get access to surface information
-
-//  UInt nb_surface_element = mymesh.getNbElement(type);
-//  const Array<UInt> & surface_id = mymesh.getSurfaceID(type);
-//  const Array<UInt> & connect = mymesh.getConnectivity(type);
-//  UInt nodes_per_surface_element = mymesh.getNbNodesPerElement(type);
+  Array<UInt> selected_first;
+  Array<UInt> selected_second;
 
   // find nodes on surfaces
   const ElementGroup & first_surf = mymesh.getElementGroup(surface_pair.first);
   const ElementGroup & second_surf = mymesh.getElementGroup(surface_pair.second);
 
-  ElementGroup::const_node_iterator nodes_iter(first_surf.node_begin());
-  ElementGroup::const_node_iterator nodes_iter_end(first_surf.node_end());
-
-  for(; nodes_iter != nodes_iter_end; ++nodes_iter) {
-    selected_first.push_back(*nodes_iter);
-  }
-
-  // sort and eliminate repetition of nodes
-  std::vector<UInt>::iterator it_s;
-
-  std::sort(selected_first.begin(), selected_first.end());
-  it_s = std::unique(selected_first.begin(), selected_first.end());
-  selected_first.resize(it_s - selected_first.begin());
-
-  std::sort(selected_second.begin(), selected_second.end());
-  it_s = std::unique(selected_second.begin(), selected_second.end());
-  selected_second.resize(it_s - selected_second.begin());
-
-  nodes_iter = second_surf.node_begin();
-  nodes_iter_end = second_surf.node_end();
-
-  for(; nodes_iter != nodes_iter_end; ++nodes_iter) {
-    selected_second.push_back(*nodes_iter);
-  }
-
-// XXX DELETE
-//  for(UInt i=0; i < nb_surface_element; ++i) {
-//    if (surface_id(i) == surface_pair.first) {
-//      for(UInt j=0; j<nodes_per_surface_element; ++j) {
-//	    }
-//    }
-//    else if (surface_id(i) == surface_pair.second) {
-//      for(UInt j=0; j<nodes_per_surface_element; ++j) {
-//		selected_second.push_back(connect(i,j));
-//      }
-//    }
-//  }
-//
-//  // sort and eliminate repetition of nodes
-//  std::vector<UInt>::iterator it_s;
-//
-//  std::sort(selected_first.begin(), selected_first.end());
-//  it_s = std::unique(selected_first.begin(), selected_first.end());
-//  selected_first.resize(it_s - selected_first.begin());
-//
-//  std::sort(selected_second.begin(), selected_second.end());
-//  it_s = std::unique(selected_second.begin(), selected_second.end());
-//  selected_second.resize(it_s - selected_second.begin());
+  // copy nodes from element group
+  selected_first = first_surf.getNodeGroup().getNodes();
+  selected_second = second_surf.getNodeGroup().getNodes();
 
   // coordinates
   const Array<Real> & coords = mymesh.getNodes();
@@ -265,7 +212,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   }
 
   // find min and max of surface nodes
-  for (std::vector<UInt>::iterator it = selected_first.begin();
+  for (Array<UInt>::scalar_iterator it = selected_first.begin();
        it != selected_first.end();
        ++it) {
     for (UInt i=0; i<dim; ++i) {
@@ -273,7 +220,7 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
       if (first_max[i] < coords(*it,i)) first_max[i] = coords(*it,i);
     }
   }
-  for (std::vector<UInt>::iterator it = selected_second.begin();
+  for (Array<UInt>::scalar_iterator it = selected_second.begin();
        it != selected_second.end();
        ++it) {
     for (UInt i=0; i<dim; ++i) {
@@ -314,8 +261,8 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 			      const UInt dir,
-			      std::vector<UInt> & selected_left,
-			      std::vector<UInt> & selected_right,
+			      Array<UInt> & selected_left,
+			      Array<UInt> & selected_right,
 			      std::map<UInt,UInt> & pbc_pair) {
 
   Real * coords = mymesh.nodes->storage();
@@ -348,11 +295,11 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
   std::sort(selected_left.begin(),selected_left.end(),compare_nodes);
   std::sort(selected_right.begin(),selected_right.end(),compare_nodes);
 
-  std::vector<UInt>::iterator it_left = selected_left.begin();
-  std::vector<UInt>::iterator end_left = selected_left.end();
+  Array<UInt>::scalar_iterator it_left = selected_left.begin();
+  Array<UInt>::scalar_iterator end_left = selected_left.end();
 
-  std::vector<UInt>::iterator it_right = selected_right.begin();
-  std::vector<UInt>::iterator end_right = selected_right.end();
+  Array<UInt>::scalar_iterator it_right = selected_right.begin();
+  Array<UInt>::scalar_iterator end_right = selected_right.end();
 
   while ((it_left != end_left) && (it_right != end_right) ){
     UInt i1 = *it_left;

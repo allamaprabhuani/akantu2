@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
   /// boundary conditions
   mesh.computeBoundingBox();
   akantu::Real eps = 1e-16;
-  akantu::Real signal_start = 0.6*mesh.getXMax();
-  akantu::Real signal_end = 0.7*mesh.getXMax();
+  akantu::Real signal_start = 0.6*mesh.getUpperBounds()(0);
+  akantu::Real signal_end = 0.7*mesh.getUpperBounds()(0);
   akantu::Real delta_d = signal_end - signal_start;
   akantu::Real signal = 1.;
   const akantu::Array<akantu::Real> & coords = model.getFEEngine().getMesh().getNodes();

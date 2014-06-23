@@ -380,6 +380,7 @@ enum SynchronizationTag {
   //--- General tags ---
   _gst_test,             //< Test tag
   _gst_material_id,      //< synchronization of the material ids
+  _gst_for_dump,         //< everything that needs to be synch before dump
   //--- Contact & Friction ---
   _gst_cf_nodal,         //< synchronization of disp, velo, and current position
   _gst_cf_incr           //< synchronization of increment

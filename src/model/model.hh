@@ -96,8 +96,7 @@ public:
 
   /// initialize the model for PBC
   void setPBC(UInt x, UInt y, UInt z);
-  void setPBC(SurfacePairList & surface_pairs,
-              ElementType surface_e_type);
+  void setPBC(SurfacePairList & surface_pairs);
 
   virtual void initPBC();
 
@@ -132,9 +131,12 @@ public:
   /// get the number of surfaces
   AKANTU_GET_MACRO(Mesh, mesh, Mesh&);
 
-  /// return the object hadling equation numbers
+  /// return the object handling equation numbers
   AKANTU_GET_MACRO(DOFSynchronizer, *dof_synchronizer, const DOFSynchronizer &)
 
+  /// return the object handling synchronizers
+  AKANTU_GET_MACRO(SynchronizerRegistry, *synch_registry, SynchronizerRegistry &)
+  
   /// synchronize the boundary in case of parallel run
   virtual void synchronizeBoundaries() {};
 
@@ -154,7 +156,6 @@ public:
   /// return the synchronizer registry
   SynchronizerRegistry & getSynchronizerRegistry();
 
-public:
   /// return the fem object associated with a provided name
   template <typename FEEngineClass>
   inline FEEngineClass & getFEEngineClass(std::string name = "") const;
@@ -166,16 +167,18 @@ public:
   /// get the pbc pairs
   std::map<UInt,UInt> & getPBCPairs(){return pbc_pair;};
 
+  /// returns if node is slave in pbc
+  inline bool isPBCSlaveNode(const UInt node) const;
+
+  /// returns the array of pbc slave nodes (boolean information)
+  AKANTU_GET_MACRO(IsPBCSlaveNode, is_pbc_slave_node, const Array<bool> &)
+
   /* ------------------------------------------------------------------------ */
   /* Pack and unpack helper functions                                         */
   /* ------------------------------------------------------------------------ */
 public:
   inline UInt getNbQuadraturePoints(const Array<Element> & elements,
 				    const ID & fem_id = ID()) const;
-
-protected:
-  /// returns if node is slave in pbc
-  inline bool getIsPBCSlaveNode(const UInt node);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

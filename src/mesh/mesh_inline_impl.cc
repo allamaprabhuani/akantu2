@@ -490,22 +490,6 @@ inline void Mesh::extractNodalValuesFromElement(const Array<T> & nodal_values,
 }
 
 /* -------------------------------------------------------------------------- */
-#define DECLARE_GET_BOUND(Var, var)                               \
-  inline void Mesh::get##Var##Bounds(Real * var) const {          \
-    for (UInt i = 0; i < spatial_dimension; ++i) {                \
-      var[i] = var##_bounds[i];                                   \
-    }                                                             \
-  }                                                               \
-
-DECLARE_GET_BOUND(Lower, lower)
-DECLARE_GET_BOUND(Upper, upper)
-
-DECLARE_GET_BOUND(LocalLower, local_lower)
-DECLARE_GET_BOUND(LocalUpper, local_upper)
-
-#undef DECLARE_GET_BOUND
-
-/* -------------------------------------------------------------------------- */
 inline void Mesh::addConnectivityType(const ElementType & type,
 				      const GhostType & ghost_type){
   getConnectivityPointer(type, ghost_type);

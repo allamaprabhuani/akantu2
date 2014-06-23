@@ -123,7 +123,6 @@ public:
   /// compute pbc pair for a surface pair
   static void computePBCMap(const Mesh & mymesh,
 			    const std::pair<Surface, Surface> & surface_pair,
-			    const ElementType type,
 			    std::map<UInt,UInt> & pbc_pair);
 
   /// create a multimap of nodes per surfaces
@@ -174,8 +173,8 @@ private:
   /// match pairs that are on the associated pbc's
   static void matchPBCPairs(const Mesh & mymesh,
 			    const UInt dir,
-			    std::vector<UInt> & selected_left,
-			    std::vector<UInt> & selected_right,
+			    Array<UInt> & selected_left,
+			    Array<UInt> & selected_right,
 			    std::map<UInt,UInt> & pbc_pair);
 
   /// function used by all the renumbering functions

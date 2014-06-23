@@ -89,11 +89,10 @@ void Model::setPBC(UInt x, UInt y, UInt z){
 }
 
 /* -------------------------------------------------------------------------- */
-void Model::setPBC(SurfacePairList & surface_pairs,
-		   ElementType surface_e_type){
+void Model::setPBC(SurfacePairList & surface_pairs){
   SurfacePairList::iterator s_it;
   for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
-    MeshUtils::computePBCMap(mesh, *s_it, surface_e_type, pbc_pair);
+    MeshUtils::computePBCMap(mesh, *s_it, pbc_pair);
   }
 }
 
@@ -160,7 +159,7 @@ void Model::dumpGroup(const std::string & group_name) {
 
 /* -------------------------------------------------------------------------- */
 void Model::dumpGroup(const std::string & group_name,
-			 const std::string & dumper_name) {
+		      const std::string & dumper_name) {
   ElementGroup & group =  mesh.getElementGroup(group_name);
   group.dump(dumper_name);
 }

@@ -44,17 +44,11 @@ int main(int argc, char *argv[]) {
   Mesh circle(spatial_dimension);
   circle.read("circle.msh");
 
-  Real lower[spatial_dimension];
-  Real upper[spatial_dimension];
-
   circle.computeBoundingBox();
-  circle.getLocalLowerBounds(lower);
-  circle.getLocalUpperBounds(upper);
+  const Vector<Real> & l = circle.getLocalLowerBounds();
+  const Vector<Real> & u = circle.getLocalUpperBounds();
 
   Real spacing[spatial_dimension] = {0.2, 0.2};
-
-  Vector<Real> l(lower, spatial_dimension);
-  Vector<Real> u(upper, spatial_dimension);
 
   Vector<Real> s(spacing, spatial_dimension);
 
