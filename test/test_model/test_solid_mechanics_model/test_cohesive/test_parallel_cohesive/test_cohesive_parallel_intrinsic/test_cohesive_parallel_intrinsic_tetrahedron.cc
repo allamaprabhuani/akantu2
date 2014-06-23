@@ -216,14 +216,10 @@ int main(int argc, char *argv[]) {
   model.addDumpField("partitions");
   model.dump();
 
-  DumperParaview dumper("cohesive_elements_parallel_tetrahedron");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
-
-  dumper.dump();
+  model.setBaseNameToDumper("cohesive elements",
+			    "cohesive_elements_parallel_tetrahedron");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.dump("cohesive elements");
 
   /// find elements to displace
   ElementTypeMapArray<UInt> elements("elements", "");
@@ -317,7 +313,7 @@ int main(int argc, char *argv[]) {
     position_it->mul<false>(rotation, *position_tmp_it);
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive elements");
 
   updateDisplacement(model, elements, increment);
 
@@ -371,12 +367,12 @@ int main(int argc, char *argv[]) {
       if (prank == 0)
 	std::cout << "passing step " << s << "/" << max_steps << std::endl;
       model.dump();
-      dumper.dump();
+      model.dump("cohesive elements");
     }
   }
 
   model.dump();
-  dumper.dump();
+  model.dump("cohesive elements");
 
   Real Ed = model.getEnergy("dissipated");
 

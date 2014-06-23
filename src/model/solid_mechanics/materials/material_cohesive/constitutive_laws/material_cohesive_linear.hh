@@ -91,6 +91,12 @@ protected:
 				   Vector<Real> & normal_stress,
 				   Real & effective_norm);
 
+  /**
+   * Scale insertion traction sigma_c according to the volume of the
+   * two elements surrounding a facet
+   */
+  void scaleInsertionTraction();
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -126,6 +132,12 @@ protected:
 
   /// penalty coefficient
   Real penalty;
+
+  /// reference volume used to scale sigma_c
+  Real volume_s;
+
+  /// weibull exponent used to scale sigma_c
+  Real m_s;
 
   /// critical effective stress
   CohesiveInternalField<Real> sigma_c_eff;

@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     bool converged = model.solveStep<_scm_newton_raphson_tangent, _scc_residual>(1e-5, 100);
     AKANTU_DEBUG_ASSERT(converged, "Did not converge");
 
-    model.dump();
+    //    model.dump();
 
     Real resid = 0;
     for (UInt n = 0; n < nb_nodes; ++n) {
@@ -152,6 +152,8 @@ int main(int argc, char *argv[]) {
       return EXIT_FAILURE;
     }
   }
+
+  model.dump();
 
   fout.close();
 

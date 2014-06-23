@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
     model.applyBC(BC::Dirichlet::IncrementValue( disp_increment, BC::_x), "Right_side");
 
     if(s % 1 == 0) {
-      model.dump();
+      //      model.dump();
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
 
       fragment_manager.computeAllData();
@@ -164,6 +164,8 @@ int main(int argc, char *argv[]) {
 
     }
   }
+
+  model.dump();
 
   /// check velocities
   UInt nb_fragment = fragment_manager.getNbFragment();

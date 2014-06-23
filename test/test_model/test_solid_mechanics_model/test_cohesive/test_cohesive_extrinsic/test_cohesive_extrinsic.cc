@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
     model.solveStep();
 
     if(s % 1 == 0) {
-      model.dump();
+      //      model.dump();
 
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
@@ -150,6 +150,7 @@ int main(int argc, char *argv[]) {
 
   //  mesh.write("mesh_final.msh");
 
+  model.dump();
   Real Ed = model.getEnergy("dissipated");
 
   Real Edt = 200 * std::sqrt(2);
@@ -161,13 +162,6 @@ int main(int argc, char *argv[]) {
     finalize();
     return EXIT_FAILURE;
   }
-
-  // for (UInt n = 0; n < position.getSize(); ++n) {
-  //   for (UInt s = 0; s < spatial_dimension; ++s) {
-  //     position(n, s) += displacement(n, s);
-  //   }
-  // }
-
 
   finalize();
 

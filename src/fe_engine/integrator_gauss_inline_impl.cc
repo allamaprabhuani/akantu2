@@ -55,10 +55,10 @@ inline void IntegratorGauss<kind>::initIntegrator(const Array<Real> & nodes,
 template <ElementKind kind>
 template <ElementType type>
 inline void IntegratorGauss<kind>::integrateOnElement(const Array<Real> & f,
-						Real * intf,
-						UInt nb_degree_of_freedom,
-						const UInt elem,
-						const GhostType & ghost_type) const {
+						      Real * intf,
+						      UInt nb_degree_of_freedom,
+						      const UInt elem,
+						      const GhostType & ghost_type) const {
   Array<Real> & jac_loc = jacobians(type, ghost_type);
 
   UInt nb_quadrature_points = ElementClass<type>::getNbQuadraturePoints();
@@ -149,8 +149,8 @@ computeJacobianOnQuadPointsByElement(const Matrix<Real> & node_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 IntegratorGauss<kind>::IntegratorGauss(const Mesh & mesh,
-				 const ID & id,
-				 const MemoryID & memory_id) :
+				       const ID & id,
+				       const MemoryID & memory_id) :
   Integrator(mesh, id, memory_id) {
   AKANTU_DEBUG_IN();
 
@@ -216,7 +216,7 @@ void IntegratorGauss<kind>::precomputeJacobiansOnQuadraturePoints(const Array<Re
   FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_matrix_iterator x_it = x_el.begin(spatial_dimension,
-		    nb_nodes_per_element);
+						       nb_nodes_per_element);
 
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
   for (UInt elem = 0; elem < nb_element; ++elem, ++jacobians_it, ++x_it) {
@@ -282,7 +282,7 @@ void IntegratorGauss<_ek_cohesive>::precomputeJacobiansOnQuadraturePoints(const 
   FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type);
 
   Array<Real>::const_matrix_iterator x_it = x_el.begin(spatial_dimension,
-								nb_nodes_per_element);
+						       nb_nodes_per_element);
 
   UInt nb_nodes_per_subelement = nb_nodes_per_element / 2;
   Matrix<Real> x(spatial_dimension, nb_nodes_per_subelement);
@@ -407,10 +407,10 @@ Real IntegratorGauss<kind>::integrate(const Array<Real> & in_f,
 template <ElementKind kind>
 template <ElementType type>
 void IntegratorGauss<kind>::integrateOnQuadraturePoints(const Array<Real> & in_f,
-						  Array<Real> &intf,
-						  UInt nb_degree_of_freedom,
-						  const GhostType & ghost_type,
-						  const Array<UInt> & filter_elements) const {
+							Array<Real> &intf,
+							UInt nb_degree_of_freedom,
+							const GhostType & ghost_type,
+							const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(jacobians.exists(type, ghost_type),

@@ -11,6 +11,7 @@ material cohesive_linear [
 	 G_cI = 100
 	 G_cII = 100
 	 sigma_c = 100
+	 volume_s = 1
 ]
 
 material cohesive_linear [

@@ -61,6 +61,12 @@ MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(SolidMechanics
   this->registerParam("penalty", penalty, 0. ,
 		      _pat_parsable | _pat_readable,
 		      "Penalty coefficient"    );
+  this->registerParam("volume_s", volume_s, 0. ,
+		      _pat_parsable | _pat_readable,
+		      "Reference volume for sigma_c scaling");
+  this->registerParam("m_s", m_s, 1. ,
+		      _pat_parsable | _pat_readable,
+		      "Weibull exponent for sigma_c scaling");
   this->registerParam("kappa"  , kappa  , 1. , _pat_readable, "Kappa parameter");
 
   AKANTU_DEBUG_OUT();
@@ -88,6 +94,59 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   sigma_c_eff     .initialize(                1);
   delta_c         .initialize(                1);
   insertion_stress.initialize(spatial_dimension);
+
+  scaleInsertionTraction();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveLinear<spatial_dimension>::scaleInsertionTraction() {
+  AKANTU_DEBUG_IN();
+
+  // do nothing if volume_s hasn't been specified by the user
+  if (Math::are_float_equal(volume_s, 0.)) return;
+
+  const Mesh & mesh_facets = model->getMeshFacets();
+  const FEEngine & fe_engine = model->getFEEngine();
+
+  // loop over facet type
+  Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1);
+  Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1);
+
+  for(;first != last; ++first) {
+    ElementType type_facet = *first;
+
+    const Array< std::vector<Element> > facet_to_element
+      = mesh_facets.getElementToSubelement(type_facet);
+    Array<Real> & sigma_c_array = sigma_c(type_facet);
+
+    for (UInt f = 0; f < facet_to_element.getSize(); ++f) {
+
+      const std::vector<Element> & element_list = facet_to_element(f);
+
+      // compute bounding volume
+      Real volume = 0;
+
+      std::vector<Element>::const_iterator elem = element_list.begin();
+      std::vector<Element>::const_iterator elem_end = element_list.end();
+
+      for (; elem != elem_end; ++elem) {
+	if (*elem == ElementNull) continue;
+
+	// unit vector for integration in order to obtain the volume
+	UInt nb_quadrature_points = fe_engine.getNbQuadraturePoints(elem->type);
+	Vector<Real> unit_vector(nb_quadrature_points, 1);
+
+	volume += fe_engine.integrate(unit_vector, elem->type,
+				      elem->element, elem->ghost_type);
+      }
+
+      // scale sigma_c
+      sigma_c_array(f) *= std::pow(volume_s / volume, 1. / m_s);
+    }
+  }
 
   AKANTU_DEBUG_OUT();
 }

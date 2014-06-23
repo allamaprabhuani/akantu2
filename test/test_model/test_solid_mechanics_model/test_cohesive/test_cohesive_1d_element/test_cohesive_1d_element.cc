@@ -93,11 +93,7 @@ int main(int argc, char *argv[]) {
   for (UInt s = 1; s <= max_steps; ++s) {
 
     model.checkCohesiveStress();
-
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     UInt nb_cohesive_elements = mesh.getNbElement(_cohesive_1d_2);
 

@@ -53,23 +53,23 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
 
   /// compute quadrature points' coordinates
   mesh.initElementTypeMapArray(quad_coordinates,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost);
+			       spatial_dimension,
+			       spatial_dimension,
+			       _not_ghost);
 
   model.getFEEngine().interpolateOnQuadraturePoints(model.getMesh().getNodes(),
-					       quad_coordinates);
+						    quad_coordinates);
 
   /// store mass density per quadrature point
   mesh.initElementTypeMapArray(mass_density,
-			      1,
-			      spatial_dimension,
-			      _not_ghost);
+			       1,
+			       spatial_dimension,
+			       _not_ghost);
 
   storeMassDensityPerQuadraturePoint();
 
   AKANTU_DEBUG_OUT();
-}
+  }
 
 /* -------------------------------------------------------------------------- */
 class CohesiveElementFilter : public GroupManager::ClusteringFilter {
@@ -192,16 +192,16 @@ void FragmentManager::computeMass() {
   /// it's neccessary to integrate only density
   ElementTypeMapArray<Real> unit_field("unit_field", id);
   mesh.initElementTypeMapArray(unit_field,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost);
+			       spatial_dimension,
+			       spatial_dimension,
+			       _not_ghost);
 
   ElementTypeMapArray<Real>::type_iterator it = unit_field.firstType(spatial_dimension,
-							     _not_ghost,
-							     _ek_regular);
+								     _not_ghost,
+								     _ek_regular);
   ElementTypeMapArray<Real>::type_iterator end = unit_field.lastType(spatial_dimension,
-							     _not_ghost,
-							     _ek_regular);
+								     _not_ghost,
+								     _ek_regular);
 
   for (; it != end; ++it) {
     ElementType type = *it;
@@ -247,12 +247,12 @@ void FragmentManager::computeVelocity() {
   ElementTypeMapArray<Real> velocity_field("velocity_field", id);
 
   mesh.initElementTypeMapArray(velocity_field,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost);
+			       spatial_dimension,
+			       spatial_dimension,
+			       _not_ghost);
 
   model.getFEEngine().interpolateOnQuadraturePoints(model.getVelocity(),
-					       velocity_field);
+						    velocity_field);
 
   /// integrate on fragments
   integrateFieldOnFragments(velocity_field, velocity);
@@ -291,17 +291,17 @@ void FragmentManager::computeInertiaMoments() {
   ElementTypeMapArray<Real> moments_coords("moments_coords", id);
 
   mesh.initElementTypeMapArray(moments_coords,
-			      spatial_dimension * spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost);
+			       spatial_dimension * spatial_dimension,
+			       spatial_dimension,
+			       _not_ghost);
 
   /// resize the by element type
   ElementTypeMapArray<Real>::type_iterator it = moments_coords.firstType(spatial_dimension,
-							     _not_ghost,
-							     _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
   ElementTypeMapArray<Real>::type_iterator end = moments_coords.lastType(spatial_dimension,
-							     _not_ghost,
-							     _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
 
   for (; it != end; ++it) {
     ElementType type = *it;
@@ -324,11 +324,11 @@ void FragmentManager::computeInertiaMoments() {
     const ElementTypeMapArray<UInt> & el_list = it->second->getElements();
 
     ElementTypeMapArray<UInt>::type_iterator type_it = el_list.firstType(spatial_dimension,
-								 _not_ghost,
-								 _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
     ElementTypeMapArray<UInt>::type_iterator type_end = el_list.lastType(spatial_dimension,
-								 _not_ghost,
-								 _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
 
     /// loop over elements of the fragment
     for (; type_it != type_end; ++type_it) {
@@ -460,11 +460,11 @@ void FragmentManager::integrateFieldOnFragments(ElementTypeMapArray<Real> & fiel
     const ElementTypeMapArray<UInt> & el_list = it->second->getElements();
 
     ElementTypeMapArray<UInt>::type_iterator type_it = el_list.firstType(spatial_dimension,
-								 _not_ghost,
-								 _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
     ElementTypeMapArray<UInt>::type_iterator type_end = el_list.lastType(spatial_dimension,
-								 _not_ghost,
-								 _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
 
     /// loop over elements of the fragment
     for (; type_it != type_end; ++type_it) {
@@ -512,11 +512,11 @@ void FragmentManager::integrateFieldOnFragments(ElementTypeMapArray<Real> & fiel
       /// integrate the field over the fragment
       Array<Real> integrated_array(elements.getSize(), nb_component);
       model.getFEEngine().integrate(integration_array,
-			       integrated_array,
-			       nb_component,
-			       type,
-			       _not_ghost,
-			       elements);
+				    integrated_array,
+				    nb_component,
+				    type,
+				    _not_ghost,
+				    elements);
 
       /// sum over all elements and store the result
       output_begin[*fragment_index_it]
@@ -550,11 +550,11 @@ UInt FragmentManager::getNbBigFragments(UInt minimum_nb_elements) {
     const ElementTypeMapArray<UInt> & el_list = it->second->getElements();
 
     ElementTypeMapArray<UInt>::type_iterator type_it = el_list.firstType(spatial_dimension,
-								 _not_ghost,
-								 _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
     ElementTypeMapArray<UInt>::type_iterator type_end = el_list.lastType(spatial_dimension,
-								 _not_ghost,
-								 _ek_regular);
+									 _not_ghost,
+									 _ek_regular);
 
     /// loop over elements of the fragment
     for (; type_it != type_end; ++type_it) {
