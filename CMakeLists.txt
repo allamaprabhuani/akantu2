@@ -84,6 +84,9 @@ define_project_version()
 # Debug
 option(AKANTU_DEBUG "Compiles akantu with the debug messages" ON)
 mark_as_advanced(AKANTU_DEBUG)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -DAKANTU_NDEBUG"
+  CACHE STRING "Flags used by the compiler during release builds" FORCE)
+
 
 add_flags(cxx "-Wall")
 

@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
   DistributedSynchronizer * communicator;
   if(prank == 0) {
-    mesh.read("facet.msh");
+    mesh.read("cube.msh");
 
     MeshPartition * partition = new MeshPartitionScotch(mesh, spatial_dimension);
     partition->partitionate(psize);

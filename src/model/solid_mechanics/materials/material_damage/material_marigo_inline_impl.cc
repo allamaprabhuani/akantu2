@@ -42,7 +42,7 @@ MaterialMarigo<spatial_dimension>::computeStressOnQuad(Matrix<Real> & grad_u,
   Y = 0;
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
-      Y += sigma(i,j) * grad_u(i,j);
+      Y += sigma(i,j) * (grad_u(i, j) + grad_u(j, i))/2.;
     }
   }
   Y *= 0.5;

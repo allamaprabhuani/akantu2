@@ -44,12 +44,6 @@ if(SUBVERSION_FOUND)
       execute_process(
 	COMMAND ${Subversion_SVN_EXECUTABLE} co http://cpp-array.googlecode.com/svn/trunk ${PROJECT_SOURCE_DIR}/third-party/cpp-array
 	OUTPUT_QUIET)
-
-      set(patch_file ${PROJECT_SOURCE_DIR}/third-party/cpp-arry-blas.patch)
-      execute_process(COMMAND ${PATCH_EXECUTABLE} -p0 < ${patch_file}
-	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/third-party/
-	OUTPUT_QUIET)
-
     endif()
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
@@ -67,7 +61,7 @@ if(SUBVERSION_FOUND)
 
     list(APPEND CPACK_SOURCE_IGNORE_FILES ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
 
-    set(AKANTU_CPPARRAY_INCLUDE_DIR ${CMAKE_PREFIX}/include)
+    set(AKANTU_CPPARRAY_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS})
     list(APPEND AKANTU_OPTION_LIST CPPARRAY)
 
   endif()

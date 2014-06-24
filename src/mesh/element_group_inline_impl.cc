@@ -66,6 +66,7 @@ inline void ElementGroup::addElement(const ElementType & elem_type,
   }
 
   elements(elem_type, ghost_type).push_back(elem_id);
+  this->dimension = UInt(std::max(Int(this->dimension), Int(mesh.getSpatialDimension(elem_type))));
 }
 
 /* -------------------------------------------------------------------------- */

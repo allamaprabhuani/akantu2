@@ -104,9 +104,4 @@ It depends on:
 \\item A fortran compiler.
 \\item An implementation of BLAS/LAPACK.
 \\end{itemize}
-
-Under Ubuntu (14.04 LTS), the installation of the dependencies can be performed using the following command:
-\\begin{command}
-  > sudo apt-get install gfortran libatlas-base-dev
-\\end{command}
 ")

@@ -55,7 +55,7 @@ foreach(_pkg ${${_project}_PACKAGE_SYSTEM_PACKAGES_ON})
   string(TOUPPER "${_pkg}" _pkg)
   foreach(_f ${AKANTU_${_pkg}_MANUAL_FILES})
     #check if some file are registered but not present
-    list(FIND _all_files doc/manual/${_f} _ret)  
+    list(FIND _all_files doc/manual/${_f} _ret)
     if(_ret EQUAL -1)
       list(APPEND _akantu_manual_not_found_files "${_pkg}: doc/manual/${_f} ")
     else()
@@ -88,6 +88,8 @@ foreach(_file ${_all_files})
     list(APPEND _akantu_doc_exclude_files /${_file})
   endif()
 endforeach()
+
+list(REMOVE_ITEM _akantu_doc_exclude_files /doc/manual/CMakeLists.txt)
 
 set(AKANTU_DOC_EXCLUDE_FILES ${_akantu_doc_exclude_files} CACHE INTERNAL "Documentation files to excluse from Akantu Package" FORCE)
 

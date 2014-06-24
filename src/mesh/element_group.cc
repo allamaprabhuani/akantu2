@@ -128,10 +128,11 @@ void ElementGroup::printself(std::ostream & stream, int indent) const {
   for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
 
   stream << space << "ElementGroup [" << std::endl;
-  stream << space << " + name: " << name << std::endl;
+  stream << space << " + name: "      << name << std::endl;
+  stream << space << " + dimension: " << dimension << std::endl;
   elements.printself(stream, indent + 1);
   node_group.printself(stream, indent + 1);
-  stream << space << "]" << std::endl;
+  stream << "]" << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

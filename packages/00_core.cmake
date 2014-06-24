@@ -347,6 +347,7 @@ set(AKANTU_CORE_MANUAL_FILES
   figures/stress_strain_neo.pdf
   figures/visco_elastic_law.pdf
   figures/isotropic_hardening_plasticity.pdf
+  figures/stress_strain_visco.pdf
 
   figures/elements/hexahedron_8.pdf
   figures/elements/hexahedron_8.svg

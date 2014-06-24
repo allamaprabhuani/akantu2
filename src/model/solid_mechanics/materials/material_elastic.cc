@@ -143,6 +143,8 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergy(ElementType el_t
 								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type, ghost_type);
+
   if(ghost_type != _not_ghost) return;
   Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
 

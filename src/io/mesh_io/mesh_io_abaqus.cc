@@ -129,13 +129,11 @@ namespace mesh_io_abaqus_lazy_eval {
 		    const ID & id,
 		    const V & pos,
 		    Map & nodes_mapping) const {
-      AKANTU_DEBUG_ASSERT(pos.size() <= mesh.getSpatialDimension(),
-			  "The nodes in the Abaqus file have too many coordinates"
-			  << " for the mesh you try to fill.");
-
       Vector<Real> tmp_pos(mesh.getSpatialDimension());
       UInt i = 0;
-      for(typename V::const_iterator it = pos.begin(); it != pos.end(); ++it)
+      for(typename V::const_iterator it = pos.begin();
+          it != pos.end() || i < mesh.getSpatialDimension();
+          ++it)
 	tmp_pos[i++] = *it;
 
       nodes_mapping[id] = mesh.getNbNodes();
@@ -153,7 +151,7 @@ namespace mesh_io_abaqus_lazy_eval {
       if(eg_it != mesh.element_group_end()) {
 	return *eg_it->second;
       } else {
-	return mesh.createElementGroup(name, mesh.getSpatialDimension());
+	return mesh.createElementGroup(name, _all_dimensions);
       }
     }
   };
@@ -168,7 +166,7 @@ namespace mesh_io_abaqus_lazy_eval {
 		  const Map & elements_mapping) const {
       typename Map::const_iterator eit = elements_mapping.find(element);
       AKANTU_DEBUG_ASSERT(eit != elements_mapping.end(),
-			  "There is an unknown element in the in the ELSET "
+			  "There is an unknown element ("<< element <<") in the in the ELSET "
 			  << el_grp->getName() << ".");
 
       el_grp->add(eit->second, true, false);
@@ -249,12 +247,12 @@ public:
 
     start
       =   *(qi::char_('*')
-	    >  (   (qi::lit("NODE")     > nodes)
-	       |   (qi::lit("ELEMENT")  > elements)
-	       |   (qi::lit("HEADING")  > header)
-	       |   (qi::lit("ELSET")    > elements_set)
-	       |   (qi::lit("NSET")     > nodes_set)
-	       |   (qi::lit("MATERIAL") > material)
+	    >  (   (qi::no_case[ qi::lit("node")     ] > nodes)
+	       |   (qi::no_case[ qi::lit("element")  ] > elements)
+	       |   (qi::no_case[ qi::lit("heading")  ] > header)
+	       |   (qi::no_case[ qi::lit("elset")    ] > elements_set)
+	       |   (qi::no_case[ qi::lit("nset")     ] > nodes_set)
+	       |   (qi::no_case[ qi::lit("material") ] > material)
 	       |   (keyword > any_section)
 	       )
 	   )
@@ -279,7 +277,7 @@ public:
 
     elements
       =   (
-	     (  qi::char_(',') >> qi::lit("TYPE") >> '='
+             (  qi::char_(',') >> qi::no_case[qi::lit("type")] >> '='
 		>> abaqus_element_type  [ lbs::_a = lbs::_1 ]
 	     )
 	  ^  *(qi::char_(',') >> option)
@@ -299,7 +297,7 @@ public:
     elements_set
       =   (
 	   qi::char_(',')
-	   >> qi::lit("ELSET") >> '='
+	   >> qi::no_case[ qi::lit("elset") ] >> '='
 	   >> value [ lbs::_a = &lazy_element_group_create(phx::ref(mesh), lbs::_1) ]
 	   >> spirit::eol
 	   >> qi::skip
@@ -317,7 +315,7 @@ public:
     nodes_set
       =   (
 	   qi::char_(',')
-	   >> qi::lit("NSET") >> '='
+	   >> qi::no_case[ qi::lit("nset") ] >> '='
 	   >> value [ lbs::_a = &lazy_node_group_create(phx::ref(mesh), lbs::_1) ]
 	   >> spirit::eol
 	   >> qi::skip
@@ -334,7 +332,7 @@ public:
 
     material
       =   (
-	     (  qi::char_(',') >> qi::lit("NAME") >> '='
+             (  qi::char_(',') >> qi::no_case[ qi::lit("name") ] >> '='
 		>> value  [ phx::push_back(phx::ref(material_names), lbs::_1) ]
 	     )
 	  ^  *(qi::char_(',') >> option)
@@ -381,6 +379,8 @@ public:
       ("BE21"  , _bernoulli_beam_2)
       ("BE31"  , _bernoulli_beam_3)
 #endif
+      ("T3D2"  , _segment_2) // Gmsh generates this elements
+      ("T3D3"  , _segment_3) // Gmsh generates this elements
       ("CPE3"  , _triangle_3)
       ("CPS3"  , _triangle_3)
       ("DC2D3" , _triangle_3)

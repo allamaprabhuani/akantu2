@@ -227,13 +227,13 @@ Debugger::~Debugger() {
 
 /* ------------------------------------------------------------------------ */
 void Debugger::exit(int status) {
-  if (status != EXIT_SUCCESS && status != -50) {
-#ifndef AKANTU_NDEBUG
-    int * a = NULL;
-    *a = 1;
-#endif
-    akantu::debug::printBacktrace(15);
-  }
+//   if (status != EXIT_SUCCESS && status != -50) {
+// #ifndef AKANTU_NDEBUG
+//     int * a = NULL;
+//     *a = 1;
+// #endif
+//     akantu::debug::printBacktrace(15);
+//   }
 
 #ifdef AKANTU_USE_MPI
   if (status != EXIT_SUCCESS)
