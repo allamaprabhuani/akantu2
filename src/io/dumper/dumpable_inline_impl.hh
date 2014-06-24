@@ -40,13 +40,13 @@ inline Dumpable::~Dumpable() {
   DumperMap::iterator it  = this->dumpers.begin();
   DumperMap::iterator end = this->dumpers.end();
 
-  for (; it != end; ++it) {
-    DumperSet::iterator fit  = this->external_dumpers.find(it->first);
-    DumperSet::iterator fend = this->external_dumpers.end();
+  // for (; it != end; ++it) {
+  //   DumperSet::iterator fit  = this->external_dumpers.find(it->first);
+  //   DumperSet::iterator fend = this->external_dumpers.end();
 
-    if (fit == fend)
-      delete it->second;
-  }
+  //   if (fit == fend)
+  //     delete it->second;
+  // }
 }
 
 /* -------------------------------------------------------------------------- */

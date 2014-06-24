@@ -57,8 +57,8 @@ ParsableParamTyped<T> & ParsableParam::getParsableParamTyped() {
 }
 
 /* ------------------------------------------------------------------------ */
-template<typename T>
-void ParsableParam::set(T & value) {
+template<typename T, typename V>
+void ParsableParam::set(const V & value) {
   ParsableParamTyped<T> & typed_param = getParsableParamTyped<T>();
   if(!(isWritable())) AKANTU_EXCEPTION("The parameter named " << name << " is not writable.");
   typed_param.setTyped(value);
@@ -83,7 +83,8 @@ ParsableParamTyped<T>::ParsableParamTyped(std::string name, std::string descript
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-void ParsableParamTyped<T>::setTyped(T & value) { param = value; }
+template<typename V>
+void ParsableParamTyped<T>::setTyped(const V & value) { param = value; }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -162,17 +163,23 @@ void Parsable::registerParam(std::string name, T & variable,
 }
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-void Parsable::set(std::string name, T value) {
+template<typename T, typename V>
+void Parsable::setMixed(const std::string & name, const V & value) {
   std::map<std::string, ParsableParam *>::iterator it = params.find(name);
   if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in the material.");
   ParsableParam & param = *(it->second);
-  param.set(value);
+  param.set<T>(value);
 }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-const T & Parsable::get(std::string name) const {
+void Parsable::set(const std::string & name, const T & value) {
+  this->template setMixed<T>(name, value);
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+const T & Parsable::get(const std::string & name) const {
   std::map<std::string, ParsableParam *>::const_iterator it = params.find(name);
   if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in the material.");
   const ParsableParam & param = *(it->second);

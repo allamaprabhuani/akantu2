@@ -192,9 +192,11 @@ void GroupManager::destroyAllElementGroups(bool destroy_node_groups) {
   ElementGroups::iterator eit = element_groups.begin();
   ElementGroups::iterator eend = element_groups.end();
   for(; eit != eend ; ++eit) {
-    this->destroyElementGroup(eit->first,
-			      destroy_node_groups);
+    if (destroy_node_groups)
+      destroyNodeGroup(eit->second->getNodeGroup().getName());
+    delete (eit->second);
   }
+  element_groups.clear();
 
   AKANTU_DEBUG_OUT();
 }

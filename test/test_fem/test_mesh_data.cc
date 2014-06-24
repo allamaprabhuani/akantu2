@@ -62,7 +62,8 @@ int main(int argc, char *argv[]) {
   const std::string name = ADD_QUOTES(NAME);
 
   Array<TYPE> & vec = mesh_data.getElementalDataArrayAlloc<TYPE>(name, elem_type);
-  vec = mesh_data.getElementalDataArrayAlloc<TYPE>(name, elem_type);
+  // XXX TO DELETE
+  //  vec.copy(mesh_data.getElementalDataArrayAlloc<TYPE>(name, elem_type));
 
   TYPE value[2] = {VALUE1, VALUE2 };
 

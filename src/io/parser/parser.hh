@@ -45,6 +45,8 @@ __BEGIN_AKANTU__
   (material)                                    \
   (model)					\
   (heat)					\
+  (contact)                                     \
+  (friction)					\
   (rules)					\
   (non_local)					\
   (user)					\
@@ -303,6 +305,23 @@ public:
       }
     }
     return it->second;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  bool hasParameter(const std::string & name,
+		    ParserParameterSearchCxt search_ctx = _ppsc_current_scope) const {
+
+    Parameters::const_iterator it;
+    if(search_ctx & _ppsc_current_scope) it = parameters.find(name);
+
+    if(it == parameters.end()) {
+      if((search_ctx & _ppsc_parent_scope) && parent_section)
+        return parent_section->hasParameter(name, search_ctx);
+      else {
+	return false;
+      }
+    }
+    return true;
   }
 
   /* -------------------------------------------------------------------------- */

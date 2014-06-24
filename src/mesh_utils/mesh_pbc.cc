@@ -194,8 +194,8 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   const ElementGroup & second_surf = mymesh.getElementGroup(surface_pair.second);
 
   // copy nodes from element group
-  selected_first = first_surf.getNodeGroup().getNodes();
-  selected_second = second_surf.getNodeGroup().getNodes();
+  selected_first.copy(first_surf.getNodeGroup().getNodes());
+  selected_second.copy(second_surf.getNodeGroup().getNodes());
 
   // coordinates
   const Array<Real> & coords = mymesh.getNodes();

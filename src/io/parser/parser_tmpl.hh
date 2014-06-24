@@ -77,6 +77,17 @@ inline ParserParameter::operator Vector<Real>() const {
 
 /* --------------------------------------------------------- ----------------- */
 template<>
+inline ParserParameter::operator Vector<UInt>() const {
+  Vector<Real> tmp = Parser::parseVector(value, *parent_section);
+  Vector<UInt> tmp_uint(tmp.size());
+  for (UInt i=0; i<tmp.size(); ++i) {
+    tmp_uint(i) = UInt(tmp(i));
+  }
+  return tmp_uint;
+}
+
+/* --------------------------------------------------------- ----------------- */
+template<>
 inline ParserParameter::operator Matrix<Real>() const {
   return Parser::parseMatrix(value, *parent_section);
 }

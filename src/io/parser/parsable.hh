@@ -44,7 +44,7 @@ enum ParamAccessType {
   _pat_readable   = 0x0100,
   _pat_modifiable = 0x0110, //_pat_readable | _pat_writable,
   _pat_parsable   = 0x1000,
-  _pat_parsmod    = 0x1110
+  _pat_parsmod    = 0x1110  //< _pat_parsable | _pat_modifiable
 };
 
 
@@ -74,7 +74,7 @@ public:
   bool isParsable() const;
 
   /* ------------------------------------------------------------------------ */
-  template<typename T> void set(T & value);
+  template<typename T, typename V> void set(const V & value);
   template<typename T> const T & get() const;
 
   virtual void parseParam(const ParserParameter & param);
@@ -108,7 +108,8 @@ public:
 		     ParamAccessType param_type, T & param);
 
   /* ------------------------------------------------------------------------ */
-  void setTyped(T & value);
+  template<typename V>
+  void setTyped(const V & value);
   const T & getTyped() const;
 
   void parseParam(const ParserParameter & param);
@@ -144,8 +145,9 @@ public:
 			  Parsable & sub_section);
 
   /* ------------------------------------------------------------------------ */
-  template<typename T> void set(std::string name, T value);
-  template<typename T> const T & get(std::string name) const;
+  template<typename T, typename V> void setMixed(const std::string & name, const V & value);
+  template<typename T> void set(const std::string & name, const T & value);
+  template<typename T> const T & get(const std::string & name) const;
 
   /* ------------------------------------------------------------------------ */
   virtual void parseSection(const ParserSection & section);
