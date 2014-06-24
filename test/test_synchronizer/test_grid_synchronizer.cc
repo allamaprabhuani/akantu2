@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
   file = sstrf.str();
 
   std::ofstream nout;
-  nout.open(file);
+  nout.open(file.c_str());
   neighbors_map_t<spatial_dimension>::type::iterator it_n = neighbors_map.begin();
   neighbors_map_t<spatial_dimension>::type::iterator end_n = neighbors_map.end();
   for(;it_n != end_n; ++it_n) {

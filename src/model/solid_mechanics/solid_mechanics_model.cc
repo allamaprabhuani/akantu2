@@ -220,7 +220,7 @@ void SolidMechanicsModel::initFull(const ModelOptions & options) {
   }
 
   // initialize the materials
-  if(getStaticParser().getLastParsedFile() != "") {
+  if(this->parser->getLastParsedFile() != "") {
     instantiateMaterials();
   }
 

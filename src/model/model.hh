@@ -52,6 +52,7 @@
 __BEGIN_AKANTU__
 
 struct ModelOptions {
+
   virtual ~ModelOptions() {}
 };
 
@@ -100,6 +101,8 @@ public:
 
   virtual void initPBC();
 
+  /// set the parser to use
+  void setParser(Parser & parser);
 
   /* ------------------------------------------------------------------------ */
   /* Access to the dumpable interface of the boundaries                       */
@@ -210,6 +213,9 @@ protected:
 
   /// flag per node to know is pbc slave
   Array<bool> is_pbc_slave_node;
+
+  /// parser to the pointer to use
+  Parser * parser;
 };
 
 

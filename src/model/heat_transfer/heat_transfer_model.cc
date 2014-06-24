@@ -730,7 +730,7 @@ Real HeatTransferModel::getStableTimeStep()
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::readMaterials() {
   std::pair<Parser::const_section_iterator, Parser::const_section_iterator>
-    sub_sect = getStaticParser().getSubSections(_st_heat);
+    sub_sect = this->parser->getSubSections(_st_heat);
 
   Parser::const_section_iterator it = sub_sect.first;
   const ParserSection & section = *it;

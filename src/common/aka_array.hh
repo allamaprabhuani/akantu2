@@ -146,8 +146,11 @@ public:
 
   virtual inline ~Array();
 
-private:
-  Array & operator=(Array &) {}
+  Array & operator=(const Array & a) {
+    /// this is to let STL allocate and copy arrays in the case of std::vector::resize
+    AKANTU_DEBUG_ASSERT(this->size == 0,"Cannot copy akantu::Array");
+    return const_cast<Array&>(a);
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
