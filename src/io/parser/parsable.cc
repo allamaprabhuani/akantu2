@@ -58,6 +58,11 @@ bool ParsableParam::isInternal() const { return param_type & _pat_internal; }
 bool ParsableParam::isParsable() const { return param_type & _pat_parsable; }
 
 /* -------------------------------------------------------------------------- */
+void ParsableParam::setAccessType(ParamAccessType ptype) {
+  this->param_type = ptype;
+}
+
+/* -------------------------------------------------------------------------- */
 void ParsableParam::printself(std::ostream & stream) const {
   stream << " ";
   if(isInternal()) stream << "iii";
@@ -123,6 +128,14 @@ void Parsable::printself(std::ostream & stream, int indent) const {
   for(sit = sub_sections.begin(); sit != sub_sections.end(); ++sit) {
     sit->second->printself(stream, indent + 1);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+void Parsable::setParamAccessType(const std::string & name, ParamAccessType ptype) {
+  std::map<std::string, ParsableParam *>::iterator it = params.find(name);
+  if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in parsable.");
+  ParsableParam & param = *(it->second);
+  param.setAccessType(ptype);
 }
 
 /* -------------------------------------------------------------------------- */

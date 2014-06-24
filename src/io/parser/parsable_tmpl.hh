@@ -72,6 +72,14 @@ const T & ParsableParam::get() const {
   return typed_param.getTyped();
 }
 
+/* -------------------------------------------------------------------------- */
+template<typename T>
+T & ParsableParam::get() {
+  ParsableParamTyped<T> & typed_param = getParsableParamTyped<T>();
+  if(!(isReadable())) AKANTU_EXCEPTION("The parameter named " << name << " is not readable.");
+  return typed_param.getTyped();
+}
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -89,6 +97,9 @@ void ParsableParamTyped<T>::setTyped(const V & value) { param = value; }
 /* -------------------------------------------------------------------------- */
 template<typename T>
 const T & ParsableParamTyped<T>::getTyped() const { return param; }
+/* -------------------------------------------------------------------------- */
+template<typename T>
+T & ParsableParamTyped<T>::getTyped() { return param; }
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
@@ -166,7 +177,7 @@ void Parsable::registerParam(std::string name, T & variable,
 template<typename T, typename V>
 void Parsable::setMixed(const std::string & name, const V & value) {
   std::map<std::string, ParsableParam *>::iterator it = params.find(name);
-  if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in the material.");
+  if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in parsable.");
   ParsableParam & param = *(it->second);
   param.set<T>(value);
 }
@@ -181,8 +192,17 @@ void Parsable::set(const std::string & name, const T & value) {
 template<typename T>
 const T & Parsable::get(const std::string & name) const {
   std::map<std::string, ParsableParam *>::const_iterator it = params.find(name);
-  if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in the material.");
+  if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in parsable.");
   const ParsableParam & param = *(it->second);
+  return param.get<T>();
+}
+
+/* -------------------------------------------------------------------------- */
+template<typename T>
+T & Parsable::get(const std::string & name) {
+  std::map<std::string, ParsableParam *>::iterator it = params.find(name);
+  if(it == params.end()) AKANTU_EXCEPTION("No parameter named " << name << " in parsable.");
+  ParsableParam & param = *(it->second);
   return param.get<T>();
 }
 

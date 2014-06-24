@@ -73,8 +73,11 @@ public:
   bool isReadable() const;
   bool isParsable() const;
 
+  void setAccessType(ParamAccessType ptype);
+
   /* ------------------------------------------------------------------------ */
   template<typename T, typename V> void set(const V & value);
+  template<typename T> T & get();
   template<typename T> const T & get() const;
 
   virtual void parseParam(const ParserParameter & param);
@@ -110,6 +113,7 @@ public:
   /* ------------------------------------------------------------------------ */
   template<typename V>
   void setTyped(const V & value);
+  T & getTyped();
   const T & getTyped() const;
 
   void parseParam(const ParserParameter & param);
@@ -148,8 +152,13 @@ public:
   template<typename T, typename V> void setMixed(const std::string & name, const V & value);
   template<typename T> void set(const std::string & name, const T & value);
   template<typename T> const T & get(const std::string & name) const;
+protected:
+  template<typename T> T & get(const std::string & name);
 
+protected:
+  void setParamAccessType(const std::string & name, ParamAccessType ptype);
   /* ------------------------------------------------------------------------ */
+public:
   virtual void parseSection(const ParserSection & section);
 
   virtual void parseSubSection(const ParserSection & section);
