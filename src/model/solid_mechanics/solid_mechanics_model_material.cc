@@ -102,7 +102,7 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::instantiateMaterials() {
   std::pair<Parser::const_section_iterator, Parser::const_section_iterator>
-    sub_sect = getStaticParser().getSubSections(_st_material);
+    sub_sect = this->parser->getSubSections(_st_material);
 
   Parser::const_section_iterator it = sub_sect.first;
   for (; it != sub_sect.second; ++it) {
