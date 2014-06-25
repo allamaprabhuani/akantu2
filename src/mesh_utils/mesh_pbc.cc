@@ -43,14 +43,17 @@ class CoordinatesComparison {
 public:
   CoordinatesComparison (const UInt dimension,
 			 const UInt dirx, const UInt diry,
+			 Real normalization,
+			 Real tolerance,
 			 Real * coords):
-    dim(dimension),dir_x(dirx),dir_y(diry),coordinates(coords){}
+    dim(dimension),dir_x(dirx),dir_y(diry),normalization(normalization),
+    tolerance(tolerance),coordinates(coords){}
   // answers the question whether n2 is larger or equal to n1
   bool operator() (UInt n1, UInt n2){
     Real p1_x = coordinates[dim*n1+dir_x];
     Real p2_x = coordinates[dim*n2+dir_x];
     Real diff_x = p1_x - p2_x;
-    if (dim == 2 || fabs(diff_x) > Math::getTolerance())
+    if (dim == 2 || std::abs(diff_x)/normalization > tolerance)
       return diff_x > 0.0 ? false : true;
     else if (dim > 2){
       Real p1_y = coordinates[dim*n1+dir_y];
@@ -64,6 +67,8 @@ private:
   UInt dim;
   UInt dir_x;
   UInt dir_y;
+  Real normalization;
+  Real tolerance;
   Real * coordinates;
 };
 
@@ -265,8 +270,13 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
 			      Array<UInt> & selected_right,
 			      std::map<UInt,UInt> & pbc_pair) {
 
+
+  // tolerance is that large because most meshers generate points coordinates 
+  // with single precision only (it is the case of GMSH for instance)
+  Real tolerance = 1e-7;
   Real * coords = mymesh.nodes->storage();
   const UInt dim = mymesh.getSpatialDimension();
+  Real normalization = mymesh.upper_bounds[dir]-mymesh.lower_bounds[dir];
 
   UInt dir_x = UInt(-1) ,dir_y = UInt(-1);
 
@@ -290,10 +300,11 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
     }
   }
 
-  CoordinatesComparison compare_nodes(dim,dir_x,dir_y,coords);
+  CoordinatesComparison compare_nodes(dim,dir_x,dir_y,normalization,tolerance,coords);
 
   std::sort(selected_left.begin(),selected_left.end(),compare_nodes);
   std::sort(selected_right.begin(),selected_right.end(),compare_nodes);
+
 
   Array<UInt>::scalar_iterator it_left = selected_left.begin();
   Array<UInt>::scalar_iterator end_left = selected_left.end();
@@ -320,7 +331,7 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
     if (dim >= 2) dx = coords[dim*i1 + dir_x] - coords[dim*i2 + dir_x];
     if (dim == 3) dy = coords[dim*i1 + dir_y] - coords[dim*i2 + dir_y];
 
-    if (fabs(dx*dx+dy*dy) < Math::getTolerance()) {
+    if (fabs(dx*dx+dy*dy)/normalization < tolerance) {
       //then i match these pairs
       if (pbc_pair.count(i2)){
 	i2 = pbc_pair[i2];
