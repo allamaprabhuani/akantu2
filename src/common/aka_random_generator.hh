@@ -319,7 +319,7 @@ private:
 
 private:
   /// Value with no random variations
-  Real base_value;
+  T base_value;
 
   /// Random distribution type
   RandomDistributionType type;

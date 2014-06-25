@@ -289,6 +289,13 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
+  inline RetType & operator-=(const T & x) {
+    T * a = this->values;
+    for (UInt i = 0; i < _size; ++i) *(a++) -= x;
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ------------------------------------------------------------------------ */
   inline RetType & operator*=(const T & x) {
     T * a = this->storage();
     for (UInt i = 0; i < _size; ++i) *(a++) *= x;

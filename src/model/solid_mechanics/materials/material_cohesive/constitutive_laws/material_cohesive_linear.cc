@@ -110,19 +110,28 @@ void MaterialCohesiveLinear<spatial_dimension>::scaleInsertionTraction() {
 
   const Mesh & mesh_facets = model->getMeshFacets();
   const FEEngine & fe_engine = model->getFEEngine();
-
+  const FEEngine & fe_engine_facet = model->getFEEngine("FacetsFEEngine");
+ 
   // loop over facet type
   Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1);
   Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1);
+
+  Real base_sigma_c = sigma_c;
 
   for(;first != last; ++first) {
     ElementType type_facet = *first;
 
     const Array< std::vector<Element> > facet_to_element
       = mesh_facets.getElementToSubelement(type_facet);
-    Array<Real> & sigma_c_array = sigma_c(type_facet);
 
-    for (UInt f = 0; f < facet_to_element.getSize(); ++f) {
+    UInt nb_facet = facet_to_element.getSize();
+    UInt nb_quad_per_facet = fe_engine_facet.getNbQuadraturePoints(type_facet);
+
+    // iterator to modify sigma_c for all the quadrature points of a facet
+    Array<Real>::vector_iterator sigma_c_iterator
+      = sigma_c(type_facet).begin_reinterpret(nb_quad_per_facet, nb_facet);
+
+    for (UInt f = 0; f < nb_facet; ++f, ++sigma_c_iterator) {
 
       const std::vector<Element> & element_list = facet_to_element(f);
 
@@ -144,7 +153,9 @@ void MaterialCohesiveLinear<spatial_dimension>::scaleInsertionTraction() {
       }
 
       // scale sigma_c
-      sigma_c_array(f) *= std::pow(volume_s / volume, 1. / m_s);
+      *sigma_c_iterator -= base_sigma_c;
+      *sigma_c_iterator *= std::pow(volume_s / volume, 1. / m_s);
+      *sigma_c_iterator += base_sigma_c;
     }
   }
 
