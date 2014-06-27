@@ -278,6 +278,10 @@ void MeshUtils::matchPBCPairs(const Mesh & mymesh,
   const UInt dim = mymesh.getSpatialDimension();
   Real normalization = mymesh.upper_bounds[dir]-mymesh.lower_bounds[dir];
 
+  AKANTU_DEBUG_ASSERT(std::abs(normalization) > Math::getTolerance(), 
+		      "In matchPBCPairs: The normalization is zero. "
+		      << "Did you compute the bounding box of the mesh?");
+
   UInt dir_x = UInt(-1) ,dir_y = UInt(-1);
 
   if (dim == 3){
