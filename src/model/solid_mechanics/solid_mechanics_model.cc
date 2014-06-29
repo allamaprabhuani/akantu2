@@ -1,4 +1,4 @@
- /**
+/**
  * @file   solid_mechanics_model.cc
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
@@ -73,9 +73,9 @@ const SolidMechanicsModelOptions default_solid_mechanics_model_options(_explicit
  * @param id an id to identify the model
  */
 SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh,
-					 UInt dim,
-					 const ID & id,
-					 const MemoryID & memory_id) :
+                                         UInt dim,
+                                         const ID & id,
+                                         const MemoryID & memory_id) :
   Model(mesh, dim, id, memory_id), Dumpable(),
   BoundaryCondition<SolidMechanicsModel>(),
   time_step(NAN), f_m2a(1.0),
@@ -236,7 +236,7 @@ void SolidMechanicsModel::initFull(const ModelOptions & options) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initParallel(MeshPartition * partition,
-				       DataAccessor * data_accessor) {
+                                       DataAccessor * data_accessor) {
   AKANTU_DEBUG_IN();
 
   if (data_accessor == NULL) data_accessor = this;
@@ -561,13 +561,13 @@ void SolidMechanicsModel::updateResidualInternal() {
       bool * blocked_dofs_val = blocked_dofs->storage();
 
       for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
-	if(!(*blocked_dofs_val)) {
-	  *res_val -= *accel_val * *mass_val /f_m2a;
-	}
-	blocked_dofs_val++;
-	res_val++;
-	mass_val++;
-	accel_val++;
+        if(!(*blocked_dofs_val)) {
+          *res_val -= *accel_val * *mass_val /f_m2a;
+        }
+        blocked_dofs_val++;
+        res_val++;
+        mass_val++;
+        accel_val++;
       }
     } else {
       AKANTU_DEBUG_ERROR("No function called to assemble the mass matrix.");
@@ -595,10 +595,10 @@ void SolidMechanicsModel::updateAcceleration() {
     /* residual = residual_{n+1} - M * acceleration_n therefore
        solution = increment acceleration not acceleration */
     solveLumped(*increment_acceleration,
-		*mass,
-		*residual,
-		*blocked_dofs,
-		f_m2a);
+                *mass,
+                *residual,
+                *blocked_dofs,
+                f_m2a);
   } else if (method == _explicit_consistent_mass) {
     solve<NewmarkBeta::_acceleration_corrector>(*increment_acceleration);
   }
@@ -608,10 +608,10 @@ void SolidMechanicsModel::updateAcceleration() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::solveLumped(Array<Real> & x,
-				      const Array<Real> & A,
-				      const Array<Real> & b,
-				      const Array<bool> & blocked_dofs,
-				      Real alpha) {
+                                      const Array<Real> & A,
+                                      const Array<Real> & b,
+                                      const Array<bool> & blocked_dofs,
+                                      Real alpha) {
 
   Real * A_val = A.storage();
   Real * b_val = b.storage();
@@ -641,14 +641,14 @@ void SolidMechanicsModel::explicitPred() {
   }
 
   AKANTU_DEBUG_ASSERT(integrator,"itegrator should have been allocated: "
-		      << "have called initExplicit ? "
-		      << "or initImplicit ?");
+                      << "have called initExplicit ? "
+                      << "or initImplicit ?");
 
   integrator->integrationSchemePred(time_step,
-				    *displacement,
-				    *velocity,
-				    *acceleration,
-				    *blocked_dofs);
+                                    *displacement,
+                                    *velocity,
+                                    *acceleration,
+                                    *blocked_dofs);
 
   if(increment_flag) {
     Real * inc_val = increment->storage();
@@ -670,11 +670,11 @@ void SolidMechanicsModel::explicitCorr() {
   AKANTU_DEBUG_IN();
 
   integrator->integrationSchemeCorrAccel(time_step,
-					 *displacement,
-					 *velocity,
-					 *acceleration,
-					 *blocked_dofs,
-					 *increment_acceleration);
+                                         *displacement,
+                                         *velocity,
+                                         *acceleration,
+                                         *blocked_dofs,
+                                         *increment_acceleration);
 
   if(previous_displacement) previous_displacement->copy(*displacement);
 
@@ -716,7 +716,7 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
   delete jacobian_matrix;
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
   jacobian_matrix = new SparseMatrix(nb_global_nodes * spatial_dimension, _symmetric,
-				     spatial_dimension, sstr.str(), memory_id);
+                                     spatial_dimension, sstr.str(), memory_id);
 
   jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
 
@@ -820,9 +820,9 @@ void SolidMechanicsModel::solveDynamic() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
   AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the mass matrix");
+                      "You should first initialize the implicit solver and assemble the mass matrix");
 
   //  updateResidualInternal();
 
@@ -837,7 +837,7 @@ void SolidMechanicsModel::solveStatic() {
 
   AKANTU_DEBUG_INFO("Solving Ku = f");
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
@@ -874,7 +874,7 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
 
   AKANTU_DEBUG_INFO("Solving Ku = f");
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+                      "You should first initialize the implicit solver and assemble the stiffness matrix");
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent();
@@ -910,45 +910,45 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
     bool constrain_ij = false;
     for (UInt j = 0; j < nb_degree_of_freedom; j++) {
       if (boundary_normal(n, j)) {
-	constrain_ij = true;
-	break;
+        constrain_ij = true;
+        break;
       }
     }
     if (constrain_ij) {
       if (nb_degree_of_freedom == 2) {
-	Real Theta = EulerAngles(n, 0);
-	T(0, 0) = cos(Theta);
-	T(0, 1) = -sin(Theta);
-	T(1, 1) = cos(Theta);
-	T(1, 0) = sin(Theta);
+        Real Theta = EulerAngles(n, 0);
+        T(0, 0) = cos(Theta);
+        T(0, 1) = -sin(Theta);
+        T(1, 1) = cos(Theta);
+        T(1, 0) = sin(Theta);
       } else if (nb_degree_of_freedom == 3) {
-	Real Theta_x = EulerAngles(n, 0);
-	Real Theta_y = EulerAngles(n, 1);
-	Real Theta_z = EulerAngles(n, 2);
+        Real Theta_x = EulerAngles(n, 0);
+        Real Theta_y = EulerAngles(n, 1);
+        Real Theta_z = EulerAngles(n, 2);
 
-	T(0, 0) = cos(Theta_y) * cos(Theta_z);
-	T(0, 1) = -cos(Theta_y) * sin(Theta_z);
-	T(0, 2) = sin(Theta_y);
-	T(1, 0) = cos(Theta_x) * sin(Theta_z) + cos(Theta_z) * sin(Theta_x) * sin(Theta_y);
-	T(1, 1) = cos(Theta_x) * cos(Theta_z) - sin(Theta_x) * sin(Theta_y) * sin(Theta_z);
-	T(1, 2) = -cos(Theta_y) * sin(Theta_x);
-	T(2, 0) = sin(Theta_x) * sin(Theta_z) - cos(Theta_x) * cos(Theta_z) * sin(Theta_y);
-	T(2, 1) = cos(Theta_z) * sin(Theta_x) + cos(Theta_x) * sin(Theta_y) * sin(Theta_z);
-	T(2, 2) = cos(Theta_x) * cos(Theta_y);
+        T(0, 0) = cos(Theta_y) * cos(Theta_z);
+        T(0, 1) = -cos(Theta_y) * sin(Theta_z);
+        T(0, 2) = sin(Theta_y);
+        T(1, 0) = cos(Theta_x) * sin(Theta_z) + cos(Theta_z) * sin(Theta_x) * sin(Theta_y);
+        T(1, 1) = cos(Theta_x) * cos(Theta_z) - sin(Theta_x) * sin(Theta_y) * sin(Theta_z);
+        T(1, 2) = -cos(Theta_y) * sin(Theta_x);
+        T(2, 0) = sin(Theta_x) * sin(Theta_z) - cos(Theta_x) * cos(Theta_z) * sin(Theta_y);
+        T(2, 1) = cos(Theta_z) * sin(Theta_x) + cos(Theta_x) * sin(Theta_y) * sin(Theta_z);
+        T(2, 2) = cos(Theta_x) * cos(Theta_y);
       }
       small_rhs.clear();
       T_small_rhs.clear();
       for (UInt j = 0; j < nb_degree_of_freedom; j++)
-	if(!(boundary_normal(n,j)) )
-	  small_rhs(j,j)=increment_val[j];
+        if(!(boundary_normal(n,j)) )
+          small_rhs(j,j)=increment_val[j];
 
       T_small_rhs.mul<true, false>(T,small_rhs);
 
       for (UInt j = 0; j < nb_degree_of_freedom; j++){
-	if(!(boundary_normal(n,j))){
-	  for (UInt k = 0; k < nb_degree_of_freedom; k++)
-	    displacement_val[k]+=T_small_rhs(k,j);
-	}
+        if(!(boundary_normal(n,j))){
+          for (UInt k = 0; k < nb_degree_of_freedom; k++)
+            displacement_val[k]+=T_small_rhs(k,j);
+        }
       }
 
 
@@ -958,9 +958,9 @@ void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real>
 
     } else {
       for (UInt j = 0; j < nb_degree_of_freedom; j++, ++displacement_val, ++increment_val, ++blocked_dofs_val) {
-	if (!(*blocked_dofs_val)) {
-	  *displacement_val += *increment_val;
-	}
+        if (!(*blocked_dofs_val)) {
+          *displacement_val += *increment_val;
+        }
       }
     }
 
@@ -996,8 +996,8 @@ bool SolidMechanicsModel::testConvergence<_scc_increment>(Real tolerance, Real &
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
       if(!(*blocked_dofs_val) && is_local_node) {
-	norm[0] += *increment_val * *increment_val;
-	norm[1] += *displacement_val * *displacement_val;
+        norm[0] += *increment_val * *increment_val;
+        norm[1] += *displacement_val * *displacement_val;
       }
       blocked_dofs_val++;
       increment_val++;
@@ -1049,11 +1049,11 @@ bool SolidMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & 
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     if(is_local_node) {
       for (UInt d = 0; d < spatial_dimension; ++d) {
-	if(!(*blocked_dofs_val)) {
-	  norm += *residual_val * *residual_val;
-	}
-	blocked_dofs_val++;
-	residual_val++;
+        if(!(*blocked_dofs_val)) {
+          norm += *residual_val * *residual_val;
+        }
+        blocked_dofs_val++;
+        residual_val++;
       }
     } else {
       blocked_dofs_val += spatial_dimension;
@@ -1120,10 +1120,10 @@ void SolidMechanicsModel::implicitPred() {
 
   if(method == _implicit_dynamic)
     integrator->integrationSchemePred(time_step,
-				      *displacement,
-				      *velocity,
-				      *acceleration,
-				      *blocked_dofs);
+                                      *displacement,
+                                      *velocity,
+                                      *acceleration,
+                                      *blocked_dofs);
 
   AKANTU_DEBUG_OUT();
 }
@@ -1134,11 +1134,11 @@ void SolidMechanicsModel::implicitCorr() {
 
   if(method == _implicit_dynamic) {
     integrator->integrationSchemeCorrDispl(time_step,
-					   *displacement,
-					   *velocity,
-					   *acceleration,
-					   *blocked_dofs,
-					   *increment);
+                                           *displacement,
+                                           *velocity,
+                                           *acceleration,
+                                           *blocked_dofs,
+                                           *increment);
   } else {
     UInt nb_nodes = displacement->getSize();
     UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
@@ -1161,7 +1161,7 @@ void SolidMechanicsModel::updateIncrement() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(previous_displacement,"The previous displacement has to be initialized."
-		      << " Are you working with Finite or Ineslactic deformations?");
+                      << " Are you working with Finite or Ineslactic deformations?");
 
   UInt nb_nodes = displacement->getSize();
   UInt nb_degree_of_freedom = displacement->getNbComponent() * nb_nodes;
@@ -1181,7 +1181,7 @@ void SolidMechanicsModel::updatePreviousDisplacement() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(previous_displacement,"The previous displacement has to be initialized."
-		      << " Are you working with Finite or Ineslactic deformations?");
+                      << " Are you working with Finite or Ineslactic deformations?");
 
   previous_displacement->copy(*displacement);
 
@@ -1195,7 +1195,7 @@ void SolidMechanicsModel::updatePreviousDisplacement() {
 void SolidMechanicsModel::synchronizeBoundaries() {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
-		      << " Did you call initParallel?");
+                      << " Did you call initParallel?");
   synch_registry->synchronize(_gst_smm_boundary);
   AKANTU_DEBUG_OUT();
 }
@@ -1204,7 +1204,7 @@ void SolidMechanicsModel::synchronizeBoundaries() {
 void SolidMechanicsModel::synchronizeResidual() {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(synch_registry,"Synchronizer registry was not initialized."
-		      << " Did you call initPBC?");
+                      << " Did you call initPBC?");
   synch_registry->synchronize(_gst_smm_res);
   AKANTU_DEBUG_OUT();
 }
@@ -1262,7 +1262,7 @@ Real SolidMechanicsModel::getStableTimeStep(const GhostType & ghost_type) {
 
     Array<Real> X(0, nb_nodes_per_element*spatial_dimension);
     FEEngine::extractNodalToElementField(mesh, *current_position,
-				    X, *it, _not_ghost);
+                                         X, *it, _not_ghost);
 
     Array<Real>::matrix_iterator X_el =
       X.begin(spatial_dimension, nb_nodes_per_element);
@@ -1321,7 +1321,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
     bool count_node = is_local_node && is_not_pbc_slave_node;
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if (count_node)
-	mv2 += *vel_val * *vel_val * *mass_val;
+        mv2 += *vel_val * *vel_val * *mass_val;
 
       vel_val++;
       mass_val++;
@@ -1345,9 +1345,9 @@ Real SolidMechanicsModel::getKineticEnergy(const ElementType & type, UInt index)
   Array<UInt> filter_element(1, 1, index);
 
   getFEEngine().interpolateOnQuadraturePoints(*velocity, vel_on_quad,
-					 spatial_dimension,
-					 type, _not_ghost,
-					 filter_element);
+                                              spatial_dimension,
+                                              type, _not_ghost,
+                                              filter_element);
 
   Array<Real>::vector_iterator vit   = vel_on_quad.begin(spatial_dimension);
   Array<Real>::vector_iterator vend  = vel_on_quad.end(spatial_dimension);
@@ -1386,10 +1386,10 @@ Real SolidMechanicsModel::getExternalWork() {
 
     for (UInt i = 0; i < spatial_dimension; ++i) {
       if (count_node) {
-	if(*boun)
-	  work -= *resi * *velo * time_step;
-	else
-	  work += *forc * *velo * time_step;
+        if(*boun)
+          work -= *resi * *velo * time_step;
+        else
+          work += *forc * *velo * time_step;
       }
 
       ++velo;
@@ -1429,8 +1429,8 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 }
 /* -------------------------------------------------------------------------- */
 Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
-				    const ElementType & type,
-				    UInt index){
+                                    const ElementType & type,
+                                    UInt index){
   AKANTU_DEBUG_IN();
 
   if (energy_id == "kinetic") {
@@ -1448,7 +1448,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
-				       __attribute__((unused)) const NewNodesEvent & event) {
+                                       __attribute__((unused)) const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -1489,7 +1489,7 @@ void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
-					  const NewElementsEvent & event) {
+                                          const NewElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
   getFEEngine().initShapeFunctions(_not_ghost);
@@ -1538,8 +1538,8 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Array<Element> & element_list,
-					    const ElementTypeMapArray<UInt> & new_numbering,
-					    const RemovedElementsEvent & event) {
+                                            const ElementTypeMapArray<UInt> & new_numbering,
+                                            const RemovedElementsEvent & event) {
   //  MeshUtils::purifyMesh(mesh);
 
   getFEEngine().initShapeFunctions(_not_ghost);
@@ -1553,8 +1553,8 @@ void SolidMechanicsModel::onElementsRemoved(__attribute__((unused)) const Array<
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::onNodesRemoved(__attribute__((unused)) const Array<UInt> & element_list,
-					 const Array<UInt> & new_numbering,
-					 __attribute__((unused)) const RemovedNodesEvent & event) {
+                                         const Array<UInt> & new_numbering,
+                                         __attribute__((unused)) const RemovedNodesEvent & event) {
   if(displacement) mesh.removeNodesFromArray(*displacement, new_numbering);
   if(mass        ) mesh.removeNodesFromArray(*mass        , new_numbering);
   if(velocity    ) mesh.removeNodesFromArray(*velocity    , new_numbering);
@@ -1595,15 +1595,15 @@ void SolidMechanicsModel::reassignMaterial() {
       Array<UInt> & el_index_by_mat = element_index_by_material(type, ghost_type);
 
       for (UInt el = 0; el < nb_element; ++el) {
-	element.element = el;
+        element.element = el;
 
-	UInt old_material = el_index_by_mat(el, 0);
-	UInt new_material = (*material_selector)(element);
+        UInt old_material = el_index_by_mat(el, 0);
+        UInt new_material = (*material_selector)(element);
 
-	if(old_material != new_material) {
-	  element_to_add   [new_material].push_back(element);
-	  element_to_remove[old_material].push_back(element);
-	}
+        if(old_material != new_material) {
+          element_to_add   [new_material].push_back(element);
+          element_to_remove[old_material].push_back(element);
+        }
       }
     }
   }
@@ -1620,12 +1620,12 @@ void SolidMechanicsModel::reassignMaterial() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
-					       const std::string & field_id) {
+                                               const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(field, type)						\
-  internalAddDumpFieldToDumper(dumper_name,				\
-			       BOOST_PP_STRINGIZE(field),		\
-			       new DumperIOHelper::NodalField<type>(*field))
+#define ADD_FIELD(field, type)                                          \
+  internalAddDumpFieldToDumper(dumper_name,                             \
+                               BOOST_PP_STRINGIZE(field),               \
+                               new DumperIOHelper::NodalField<type>(*field))
 
   if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
   else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
@@ -1637,19 +1637,19 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
   else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
   else if(field_id == "partitions"  ) {
     internalAddDumpFieldToDumper(dumper_name,
-				 field_id,
-				 new DumperIOHelper::ElementPartitionField<>(mesh,
-									     spatial_dimension,
-									     _not_ghost,
-									     _ek_regular));
+                                 field_id,
+                                 new DumperIOHelper::ElementPartitionField<>(mesh,
+                                                                             spatial_dimension,
+                                                                             _not_ghost,
+                                                                             _ek_regular));
   }
   else if(field_id == "element_index_by_material") {
     internalAddDumpFieldToDumper(dumper_name,
-				 field_id,
-				 new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
-									  spatial_dimension,
-									  _not_ghost,
-									  _ek_regular));
+                                 field_id,
+                                 new DumperIOHelper::ElementalField<UInt>(element_index_by_material,
+                                                                          spatial_dimension,
+                                                                          _not_ghost,
+                                                                          _ek_regular));
   } else {
     bool is_internal = false;
 
@@ -1660,33 +1660,33 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
 
     if (is_internal) {
       internalAddDumpFieldToDumper
-	(dumper_name,
-	 field_id,
-	 new DumperIOHelper::HomogenizedField<Real,
-	 DumperIOHelper::InternalMaterialField>
-	 (*this,
-	  field_id,
-	  spatial_dimension,
-	  _not_ghost,
-	  _ek_regular));
+        (dumper_name,
+         field_id,
+         new DumperIOHelper::HomogenizedField<Real,
+         DumperIOHelper::InternalMaterialField>
+         (*this,
+          field_id,
+          spatial_dimension,
+          _not_ghost,
+          _ek_regular));
     } else {
       try {
-	internalAddDumpFieldToDumper
-	  (dumper_name,
-	   field_id,
-	   new DumperIOHelper::ElementalField<UInt>(mesh.getData<UInt>(field_id),
-						    spatial_dimension,
-						    _not_ghost,
-						    _ek_regular));
+        internalAddDumpFieldToDumper
+          (dumper_name,
+           field_id,
+           new DumperIOHelper::ElementalField<UInt>(mesh.getData<UInt>(field_id),
+                                                    spatial_dimension,
+                                                    _not_ghost,
+                                                    _ek_regular));
       } catch (...) {}
       try {
-	internalAddDumpFieldToDumper
-	  (dumper_name,
-	   field_id,
-	   new DumperIOHelper::ElementalField<Real>(mesh.getData<Real>(field_id),
-						    spatial_dimension,
-						    _not_ghost,
-						    _ek_regular));
+        internalAddDumpFieldToDumper
+          (dumper_name,
+           field_id,
+           new DumperIOHelper::ElementalField<Real>(mesh.getData<Real>(field_id),
+                                                    spatial_dimension,
+                                                    _not_ghost,
+                                                    _ek_regular));
       } catch (...) {}
     }
   }
@@ -1696,18 +1696,18 @@ void SolidMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpGroupField(const std::string & field_id,
-					    const std::string & group_name) {
+                                            const std::string & group_name) {
 
   ElementGroup & group = mesh.getElementGroup(group_name);
   this->addDumpGroupFieldToDumper(group.getDefaultDumperName(),
-				  field_id,
-				  group_name);
+                                  field_id,
+                                  group_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpGroupFieldToDumper(const std::string & dumper_name,
-						    const std::string & field_id,
-						    const std::string & group_name) {
+                                                    const std::string & field_id,
+                                                    const std::string & group_name) {
 
 #ifdef AKANTU_USE_IOHELPER
   ElementGroup & group = mesh.getElementGroup(group_name);
@@ -1715,10 +1715,10 @@ void SolidMechanicsModel::addDumpGroupFieldToDumper(const std::string & dumper_n
   const Array<UInt> * nodal_filter = &(group.getNodes());
   const ElementTypeMapArray<UInt> * elemental_filter = &(group.getElements());
 
-#define ADD_FIELD(field, type)						\
+#define ADD_FIELD(field, type)                                          \
   group.addDumpFieldExternalToDumper(dumper_name,                       \
-				     BOOST_PP_STRINGIZE(field),         \
-				     new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter))
+                                     BOOST_PP_STRINGIZE(field),         \
+                                     new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter))
 
   if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
   else if(field_id == "mass"        ) { ADD_FIELD(mass        , Real); }
@@ -1730,35 +1730,35 @@ void SolidMechanicsModel::addDumpGroupFieldToDumper(const std::string & dumper_n
   else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
   else if(field_id == "partitions"  ) {
     group.addDumpFieldExternalToDumper(dumper_name,
-				       field_id,
-				       new DumperIOHelper::ElementPartitionField<true>(mesh,
-										       dim,
-										       _not_ghost,
-										       _ek_regular,
-										       elemental_filter));
+                                       field_id,
+                                       new DumperIOHelper::ElementPartitionField<true>(mesh,
+                                                                                       dim,
+                                                                                       _not_ghost,
+                                                                                       _ek_regular,
+                                                                                       elemental_filter));
   } else if(field_id == "element_index_by_material") {
     group.addDumpFieldExternalToDumper(dumper_name,
-				       field_id,
-				       new DumperIOHelper::ElementalField<UInt, Vector, true>(element_index_by_material,
-											      dim,
-											      _not_ghost,
-											      _ek_regular,
-											      elemental_filter));
+                                       field_id,
+                                       new DumperIOHelper::ElementalField<UInt, Vector, true>(element_index_by_material,
+                                                                                              dim,
+                                                                                              _not_ghost,
+                                                                                              _ek_regular,
+                                                                                              elemental_filter));
   } else {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::internal_material_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Vector,
-					     true> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::internal_material_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Vector,
+                                             true> Field;
     group.addDumpFieldExternalToDumper(dumper_name,
-				       field_id,
-				       new Field(*this,
-						 field_id,
-						 dim,
-						 _not_ghost,
-						 _ek_regular,
-						 elemental_filter));
+                                       field_id,
+                                       new Field(*this,
+                                                 field_id,
+                                                 dim,
+                                                 _not_ghost,
+                                                 _ek_regular,
+                                                 elemental_filter));
   }
 #undef ADD_FIELD
 #endif
@@ -1766,29 +1766,29 @@ void SolidMechanicsModel::addDumpGroupFieldToDumper(const std::string & dumper_n
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::removeDumpGroupField(const std::string & field_id,
-					       const std::string & group_name) {
+                                               const std::string & group_name) {
   ElementGroup & group = mesh.getElementGroup(group_name);
   this->removeDumpGroupFieldFromDumper(group.getDefaultDumperName(),
-				       field_id,
-				       group_name);
+                                       field_id,
+                                       group_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::removeDumpGroupFieldFromDumper(const std::string & dumper_name,
-							 const std::string & field_id,
-							 const std::string & group_name) {
+                                                         const std::string & field_id,
+                                                         const std::string & group_name) {
   ElementGroup & group = mesh.getElementGroup(group_name);
   group.removeDumpFieldFromDumper(dumper_name, field_id);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_name,
-						     const std::string & field_id) {
+                                                     const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(field, type)						\
-  DumperIOHelper::Field * f =						\
+#define ADD_FIELD(field, type)                                          \
+  DumperIOHelper::Field * f =                                           \
     new DumperIOHelper::NodalField<type>(*field);                       \
-  f->setPadding(3);							\
+  f->setPadding(3);                                                     \
   internalAddDumpFieldToDumper(dumper_name, BOOST_PP_STRINGIZE(field), f)
 
   if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
@@ -1800,13 +1800,13 @@ void SolidMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_
   else if(field_id == "increment"   ) { ADD_FIELD(increment   , Real); }
   else {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField> Field;
+                                             DumperIOHelper::InternalMaterialField> Field;
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3);
     internalAddDumpFieldToDumper(dumper_name, field_id, field);
   }
@@ -1816,17 +1816,17 @@ void SolidMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpGroupFieldVector(const std::string & field_id,
-						  const std::string & group_name) {
+                                                  const std::string & group_name) {
   ElementGroup & group = mesh.getElementGroup(group_name);
   this->addDumpGroupFieldVectorToDumper(group.getDefaultDumperName(),
-					field_id,
-					group_name);
+                                        field_id,
+                                        group_name);
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
-							  const std::string & field_id,
-							  const std::string & group_name) {
+                                                          const std::string & field_id,
+                                                          const std::string & group_name) {
 
 #ifdef AKANTU_USE_IOHELPER
   ElementGroup & group = mesh.getElementGroup(group_name);
@@ -1836,10 +1836,10 @@ void SolidMechanicsModel::addDumpGroupFieldVectorToDumper(const std::string & du
   const ElementTypeMapArray<UInt> * elemental_filter = &(group.getElements());
 
 
-#define ADD_FIELD(field, type)						\
-  DumperIOHelper::Field * f =						\
+#define ADD_FIELD(field, type)                                          \
+  DumperIOHelper::Field * f =                                           \
     new DumperIOHelper::NodalField<type, true>(*field, 0, 0, nodal_filter); \
-  f->setPadding(3);							\
+  f->setPadding(3);                                                     \
   group.addDumpFieldExternalToDumper(dumper_name, BOOST_PP_STRINGIZE(field), f)
 
   if(field_id == "displacement")      { ADD_FIELD(displacement, Real); }
@@ -1850,18 +1850,18 @@ void SolidMechanicsModel::addDumpGroupFieldVectorToDumper(const std::string & du
   else if(field_id == "residual"    ) { ADD_FIELD(residual    , Real); }
   else {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::internal_material_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Vector,
-					     true> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::internal_material_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Vector,
+                                             true> Field;
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      dim,
-			      _not_ghost,
-			      _ek_regular,
-			      elemental_filter);
+                              field_id,
+                              spatial_dimension,
+                              dim,
+                              _not_ghost,
+                              _ek_regular,
+                              elemental_filter);
     field->setPadding(3);
     group.addDumpFieldExternalToDumper(dumper_name, field_id, field);
   }
@@ -1871,51 +1871,51 @@ void SolidMechanicsModel::addDumpGroupFieldVectorToDumper(const std::string & du
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::addDumpFieldTensorToDumper(const std::string & dumper_name,
-						     const std::string & field_id) {
+                                                     const std::string & field_id) {
 #ifdef AKANTU_USE_IOHELPER
   if(field_id == "stress") {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::material_stress_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Matrix> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::material_stress_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Matrix> Field;
 
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3, 3);
     internalAddDumpFieldToDumper(dumper_name, field_id, field);
   } else if(field_id == "grad_u") {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::material_strain_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Matrix> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::material_strain_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Matrix> Field;
 
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3, 3);
     internalAddDumpFieldToDumper(dumper_name, field_id, field);
   } else {
     typedef DumperIOHelper::HomogenizedField<Real,
-					     DumperIOHelper::InternalMaterialField,
-					     DumperIOHelper::internal_material_field_iterator,
-					     DumperIOHelper::AvgHomogenizingFunctor,
-					     Matrix> Field;
+                                             DumperIOHelper::InternalMaterialField,
+                                             DumperIOHelper::internal_material_field_iterator,
+                                             DumperIOHelper::AvgHomogenizingFunctor,
+                                             Matrix> Field;
 
     Field * field = new Field(*this,
-			      field_id,
-			      spatial_dimension,
-			      spatial_dimension,
-			      _not_ghost,
-			      _ek_regular);
+                              field_id,
+                              spatial_dimension,
+                              spatial_dimension,
+                              _not_ghost,
+                              _ek_regular);
     field->setPadding(3, 3);
     internalAddDumpFieldToDumper(dumper_name, field_id, field);
   }
