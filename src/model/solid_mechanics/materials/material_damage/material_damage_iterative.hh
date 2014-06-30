@@ -115,8 +115,8 @@ protected:
   /// maximum equivalent stress
   Real norm_max_equivalent_stress;
 
-  /// QuadraturePoint to store the Quadrature point with the highest stress
-  QuadraturePoint q_point;
+  /// deviation from max stress at which Gauss point will still get damaged 
+  Real dam_tolerance;
 
   /// define damage threshold at which damage will be set to 1 
   Real dam_threshold; 

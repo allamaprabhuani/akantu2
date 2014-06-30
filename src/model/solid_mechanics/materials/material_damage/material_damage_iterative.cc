@@ -42,12 +42,13 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(SolidMechani
   Sc("Sc", *this),
   equivalent_stress("equivalent_stress", *this),
   norm_max_equivalent_stress(0),
-  q_point() {
+  dam_tolerance(0) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sc",                  Sc,                  _pat_parsable, "critical stress threshold");
   this->registerParam("prescribed_dam",      prescribed_dam, 0.1, _pat_parsable | _pat_modifiable, "increase of damage in every step" );
   this->registerParam("dam_threshold",       dam_threshold,  0.8,  _pat_parsable | _pat_modifiable, "damage threshold at which damage damage will be set to 1" );
+  this->registerParam("dam_tolerance",       dam_tolerance,  0.01,  _pat_parsable | _pat_modifiable, "damage tolerance to decide if quadrature point will be damageed" );
 
 
   this->use_previous_stress          = true;
@@ -96,25 +97,15 @@ void MaterialDamageIterative<spatial_dimension>::computeNormalizedEquivalentStre
 template<UInt spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  /// reset Gauss point to store the information where highest critical stress occurs
-  if(ghost_type==_not_ghost) {
+  /// reset normalized maximum equivalent stress
+  if(ghost_type==_not_ghost) 
     norm_max_equivalent_stress = 0;
-    q_point.type = _not_defined;
-    q_point.global_num = 0;
-    q_point.ghost_type = ghost_type;
-  }
+  
   MaterialDamage<spatial_dimension>::computeAllStresses(ghost_type);
 
   /// find global Gauss point with highest stress
   StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
-  Real global_norm_max_equivalent_stress = norm_max_equivalent_stress;
-  comm.allReduce(&global_norm_max_equivalent_stress, 1, _so_max);
-
-  if (!Math::are_float_equal(global_norm_max_equivalent_stress,
-  			     norm_max_equivalent_stress)) {
-    q_point.type = _not_defined;
-    q_point.global_num = 0;
-  }
+  comm.allReduce(&norm_max_equivalent_stress, 1, _so_max);
 
   AKANTU_DEBUG_OUT();
 }
@@ -131,11 +122,8 @@ void MaterialDamageIterative<spatial_dimension>::findMaxNormalizedEquivalentStre
     if (e_stress.begin() != e_stress.end() ) {
       Array<Real>::const_iterator<Real> equivalent_stress_it_max = std::max_element(e_stress.begin(),e_stress.end());
       /// check if max equivalent stress for this element type is greater than the current norm_max_eq_stress
-      if (*equivalent_stress_it_max > norm_max_equivalent_stress) {
+      if (*equivalent_stress_it_max > norm_max_equivalent_stress) 
 	norm_max_equivalent_stress = *equivalent_stress_it_max;
-	q_point.type = el_type;
-	q_point.global_num = equivalent_stress_it_max-e_stress.begin();
-      }
     }
   }
   AKANTU_DEBUG_OUT();
@@ -169,36 +157,42 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(ElementType el_ty
 template<UInt spatial_dimension>
 UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
-
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
-		      "Your prescribed damage must be greater than zero");
+			"Your prescribed damage must be greater than zero");
 
-  if (q_point.type != _not_defined) {
-    //const Array<Real> & Sc_vect = material.getInternal("Sc")(q_point.type);
+  if (norm_max_equivalent_stress >= 1.) {
 
-    const Array<Real> & e_stress_vect = equivalent_stress(q_point.type);
+    AKANTU_DEBUG_IN();
+    GhostType ghost_type = _not_ghost;;
 
+    Mesh::type_iterator it = this->model->getFEEngine().getMesh().firstType(spatial_dimension, ghost_type);
+    Mesh::type_iterator last_type = this->model->getFEEngine().getMesh().lastType(spatial_dimension, ghost_type);
 
-    /// check if damage occurs
-    if (e_stress_vect(q_point.global_num) >= 1.) { //Sc_vect(q_point.global_num)) {
+    for(; it != last_type; ++it) {
+      ElementType el_type = *it;
 
-      /// update internal field damage and increment # if damaged elements
-      Array<Real> & dam_vect = this->damage(q_point.type);
+      const Array<Real> & e_stress = equivalent_stress(el_type);
+      Array<Real>::const_iterator<Real> equivalent_stress_it = e_stress.begin();
+      Array<Real>::const_iterator<Real> equivalent_stress_end = e_stress.end();
 
-      if (dam_vect(q_point.global_num) < dam_threshold)
-	dam_vect(q_point.global_num) += prescribed_dam;
-      else dam_vect(q_point.global_num) = 1.;
+      Array<Real> & dam = this->damage(el_type);
+      Array<Real>::iterator<Real> dam_it = dam.begin();
 
-      nb_damaged_elements += 1;
-
+      for (; equivalent_stress_it != equivalent_stress_end; ++equivalent_stress_it, ++dam_it ) {
+	/// check if damage occurs
+	if (*equivalent_stress_it >= (1-dam_tolerance)*norm_max_equivalent_stress) {
+	  if (*dam_it < dam_threshold)
+	    *dam_it +=prescribed_dam;
+	  else *dam_it = 0.99999;
+	  nb_damaged_elements += 1;
+	}
+      }
     }
   }
-
   StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
   comm.allReduce(&nb_damaged_elements, 1, _so_sum);
-
+  AKANTU_DEBUG_OUT();
   return nb_damaged_elements;
-
 }
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
