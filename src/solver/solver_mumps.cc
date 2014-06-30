@@ -123,7 +123,7 @@ SolverMumps::SolverMumps(SparseMatrix & matrix,
 /* -------------------------------------------------------------------------- */
 SolverMumps::~SolverMumps() {
   AKANTU_DEBUG_IN();
-
+  this->destroyMumpsData();
   AKANTU_DEBUG_OUT();
 }
 
