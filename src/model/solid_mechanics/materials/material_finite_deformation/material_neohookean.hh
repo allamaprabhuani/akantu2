@@ -125,16 +125,6 @@ protected:
   /// Poisson coefficient
   Real nu;
 
-  /// Neohookean 2
-  /// the young modulus at infinite strain
-  Real E1;
-  /// the young modulus  decay parameter
-  Real alpha;
-  /// Second Lamé coefficient (shear modulus) at infinite strain
-  Real mu1;
-  /// First Lamé coefficient at infinite strain
-  Real lambda1;
-
   /// First Lamé coefficient
   Real lambda;
 

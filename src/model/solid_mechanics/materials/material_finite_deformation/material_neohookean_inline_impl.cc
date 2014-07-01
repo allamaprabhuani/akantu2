@@ -38,55 +38,6 @@ template<UInt dim>
 inline void MaterialNeohookean<dim>::computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
 							   Matrix<Real> & delta_S){
 
-  /*Real J = 1.0;
-    switch (dim){
-    case 2:
-    J = Math::det2(F.storage());
-    break;
-    case 3:
-    J = Math::det3(F.storage());
-    break;
-    }
-    if (std::abs(J) > Math::getTolerance()) {*/
-
-  /*
-   * Updated Lagrangian approach
-   *
-   * ^{t+\Delta t}S_{ij}:         2nd Piola Kirchhoff tensor at t+\Delta t
-   * ^{t}\sigma_{ij}:             Cauchy stress tensor at t
-   * \Delta S_{ij}:               Increment of the
-   *
-   * ^{t+\Delta t}S_{ij}=^{t}\sigma_{ij}+\Delta S_{ij}2nd Piola Kirchhoff tensor
-   *
-   */
-  //cauchy += S;
-
-  /*
-   * ^{t+\Delta t}\sigma_{ij}:    Cauchy stress tensor at t+\Delta t
-   * F:                           Deformation Gradient
-   *
-   * ^{t+\Delta t}\sigma_{ij}=1/det(F) F_ir ^{t+\Delta t}S_{rs} F_{sj}
-   *
-   */
-
-  /* Matrix<Real> Aux(3, 3);
-     Matrix<Real> Aux2(3, 3);
-
-     Aux.mul < false, false > (F, cauchy);
-     Aux2.mul < false, true > (Aux, F, 1.0 / J);
-
-     //cauchy.mul < false, false > (F, cauchy);
-
-     //cauchy.mul < false, true > (cauchy, F, 1.0/J );
-
-     for (UInt i = 0; i < dim; i++)
-     for (UInt j = 0; j < dim; j++)
-     cauchy(i, j) = Aux2(i, j);
-
-     //std::cout << cauchy << std::endl;
-
-     } else
-     cauchy.clear();*/
 
 }
 
@@ -107,30 +58,6 @@ inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)
       sigma(i, j) = (i == j) *  mu  + (lambda * log(J) - mu) * Cminus(i, j);
-
-  //Neo hookean book
-  /*Matrix<Real> F(dim, dim);
-    Matrix<Real> C(dim, dim);//Right green
-
-
-    this->template gradUToF<dim > (grad_u, F);
-    this->rightCauchy(F, C);
-    Real J = 1.0;
-    switch (dim) {
-    case 2:
-    J = Math::det2(F.storage());
-    break;
-    case 3:
-    J = Math::det3(F.storage());
-    break;
-    }
-
-    Real trace_green = 0.5 * ( C.trace() - dim);
-
-    for (UInt i = 0; i < dim; ++i)
-    for (UInt j = 0; j < dim; ++j)
-    sigma(i, j) = (i == j) * trace_green * lambda/J  + ( mu - lambda * log(J) ) / J
-    * (0.5 * ( C(i, j) - (i==j) ) + 0.5 * ( C(j, i) - (j==i) ) );*/
 
 }
 
@@ -163,23 +90,6 @@ inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(const Matrix<R
   epot=0.5*lambda*pow(log(J),2.)+ mu * (-log(J)+0.5*(C.trace()-dim));
 }
 
-/*template<UInt spatial_dimension>
-  inline void MaterialNeohookean<spatial_dimension>::updateStressOnQuad(const Matrix<Real> & sigma,
-  Matrix<Real> & cauchy_sigma) {
-
-  for (UInt i = 0; i < spatial_dimension; ++i)
-  for (UInt j = 0; j < spatial_dimension; ++j)
-  cauchy_sigma(i, j) += sigma(i, j);
-
-  }*/
-
-/* -------------------------------------------------------------------------- */
-/*template<>
-  inline void MaterialNeohookean < 1 > ::computeStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
-  Matrix<Real> & cauchy) {
-  cauchy(0, 0) = E * F(0, 0);
-  }*/
-
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
 inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u) {
@@ -202,95 +112,12 @@ inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Matrix<Real> & t
       UInt k = VoigtHelper<dim>::vec[n][0];
       UInt l = VoigtHelper<dim>::vec[n][1];
 
-      //book Bathe
-      /*            tangent(m, n) = J*( lambda * Cminus(i, j) * Cminus(k, l) +
-		    mu * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j)));*/
-
-      //Linear elastic
-      /*            tangent(m, n) = lambda * (i==j) *  (k==l) +
-		    mu * ((i==k) * (j==l) + (i==l) *(k==j));*/
-
       //book belytchko
       tangent(m, n) = lambda * Cminus(i, j) * Cminus(k, l) +
 	(mu - lambda * log(J)) * (Cminus(i, k) * Cminus(j, l) + Cminus(i, l) * Cminus(k, j));
 
     }
   }
-
-  /*
-    UInt cols = tangent.cols();
-    UInt rows = tangent.rows();
-    Matrix<Real> F(dim, dim);
-    Matrix<Real> C(dim, dim);
-    this->template gradUToF<dim > (grad_u, F);
-    this->rightCauchy(F, C);
-    Real J = 1.0;
-    switch (dim){
-    case 2:
-    J = Math::det2(F.storage());
-    break;
-    case 3:
-    J = Math::det3(F.storage());
-    break;
-    }
-
-    Real mu_NH = (mu - lambda * log(J))/J;
-    Real lambda_NH = lambda/J;
-
-    for (UInt m = 0; m < rows; m++) {
-    UInt i, j;
-    if (m < dim) {
-    i = m;
-    j = m;
-    } else {
-    if (dim == 3) {
-    if (m == 3) {
-    i = 0;
-    j = 1;
-    } else if (m == 4) {
-    i = 1;
-    j = 2;
-    } else if (m == 5) {
-    i = 2;
-    j = 0;
-    }
-    } else if (dim == 2) {
-    if (m == 2) {
-    i = 0;
-    j = 1;
-    }
-    }
-    }
-
-    for (UInt n = 0; n < cols; n++) {
-    UInt k, l;
-    if (n < dim) {
-    k = n;
-    l = n;
-    } else {
-    if (dim == 3) {
-    if (n == 3) {
-    k = 0;
-    l = 1;
-    } else if (n == 4) {
-    k = 1;
-    l = 2;
-    } else if (n == 5) {
-    k = 2;
-    l = 0;
-    }
-    } else if (dim == 2) {
-    if (n == 2) {
-    k = 0;
-    l = 1;
-    }
-    }
-    }
-
-    tangent(m, n) = lambda_NH * (i==j) * (k==l) + mu_NH * ((i==k) * (j==l) + (i==l) * (k==j));
-
-    }
-    }*/
 
 }
 

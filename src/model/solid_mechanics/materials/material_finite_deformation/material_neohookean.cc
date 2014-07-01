@@ -40,12 +40,6 @@ Material(model, id) {
     AKANTU_DEBUG_IN();
 
     this->registerParam("E", E, 0., _pat_parsable | _pat_modifiable, "Young's modulus");
-    /// Neohookean 2
-    this->registerParam("E1", E1, 0., _pat_parsable | _pat_modifiable, "Young's modulus at infinite strain");
-    this->registerParam("alpha", alpha, 0., _pat_parsable | _pat_modifiable, "Young's modulus decay parameter");
-    this->registerParam("lambda1", lambda1, _pat_readable, "First Lamé coefficient at infinite strain");
-    this->registerParam("mu1", mu1, _pat_readable, "Second Lamé coefficient at infinite strain");
-
     this->registerParam("nu", nu, 0.5, _pat_parsable | _pat_modifiable, "Poisson's ratio");
     this->registerParam("Plane_Stress", plane_stress, false, _pat_parsmod, "Is plane stress"); /// @todo Plane_Stress should not be possible to be modified after initMaterial (but before)
     this->registerParam("lambda", lambda, _pat_readable, "First Lamé coefficient");
@@ -74,10 +68,6 @@ void MaterialNeohookean<spatial_dimension>::updateInternalParameters() {
     lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
     mu = E / (2 * (1 + nu));
 
-    ///Neohookean 2
-    lambda1 = nu * E1 / ((1 + nu) * (1 - 2 * nu));
-    mu1 = E1 / (2 * (1 + nu));
-
     if (plane_stress) lambda = nu * E / ((1 + nu)*(1 - nu));
 
     kpa = lambda + 2. / 3. * mu;
@@ -100,6 +90,8 @@ template<UInt spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(ElementType el_type,
 								GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+
+  Material::computePotentialEnergy(el_type, ghost_type);
 
   if(ghost_type != _not_ghost) return;
   Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
