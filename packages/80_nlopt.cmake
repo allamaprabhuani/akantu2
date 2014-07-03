@@ -1,11 +1,11 @@
 #===============================================================================
-# @file   cpp_array.cmake
+# @file   nlopt.cmake
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 #
 # @date   Mon Nov 21 18:19:15 2011
 #
-# @brief  package description for cpp_array project
+# @brief  package for the opitmization library NLopt
 #
 # @section LICENSE
 #
@@ -26,114 +26,54 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-option(AKANTU_NLOPT "Use NLOPT library" OFF)
-option(AKANTU_NLOPT_AUTO_DOWNLOAD "Automatic download of the NLOPT library" ON)
+option(AKANTU_USE_THIRD_PARTY_NLOPT "Automatic download of the NLOPT library" ON)
+option(AKANTU_USE_NLOPT "Use NLOPT library")
+mark_as_advanced(AKANTU_USE_THIRD_PARTY_NLOPT AKANTU_USE_NLOPT)
 
-if(AKANTU_NLOPT)
+set(NLOPT_VERSION "2.4.2")
+set(NLOPT_ARCHIVE "${PROJECT_SOURCE_DIR}/third-party/nlopt-${NLOPT_VERSION}.tar.gz")
+set(NLOPT_ARCHIVE_HASH "MD5=d0b8f139a4acf29b76dbae69ade8ac54")
+if(NOT EXISTS ${NLOPT_ARCHIVE})
+  set(NLOPT_ARCHIVE "http://ab-initio.mit.edu/nlopt/nlopt-${NLOPT_VERSION}.tar.gz")
+endif()
 
-  if (AKANTU_NLOPT_AUTO_DOWNLOAD)
-    find_package(Wget)
+if (AKANTU_USE_THIRD_PARTY_NLOPT AND AKANTU_USE_NLOPT)
+  set(NLOPT_CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared --with-cxx)
+  set(NLOPT_DIR ${PROJECT_BINARY_DIR}/third-party)
 
-    set(NLOPT_VERSION "2.4.2")
-    set(NLOPT_ARCHIVE "nlopt-${NLOPT_VERSION}.tar.gz")
-    set(NLOPT_SOURCE_DIR "${CMAKE_BINARY_DIR}/nlopt-${NLOPT_VERSION}")
-    if (APPLE)
-      set(NLOPT_PRODUCED_LIB "${CMAKE_BINARY_DIR}/nlopt-${NLOPT_VERSION}/.libs/libnlopt_cxx.dylib")
-    else()
-      set(NLOPT_PRODUCED_LIB "${CMAKE_BINARY_DIR}/nlopt-${NLOPT_VERSION}/.libs/libnlopt_cxx.so")
-    endif()
-    set(NLOPT_CONFIGURE_COMMAND "./configure --enable-shared --with-cxx")
+  include(ExternalProject)
 
-    if (CMAKE_BUILD_TYPE)
-      if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	set(NLOPT_CONFIGURE_COMMAND "${NLOPT_CONFIGURE_COMMAND} --enable-debug")
-      endif()
-    endif()
+  ExternalProject_Add(NLopt
+    PREFIX ${NLOPT_DIR}
+    URL ${NLOPT_ARCHIVE}
+    URL_HASH ${NLOPT_ARCHIVE_HASH}
+    CONFIGURE_COMMAND ${NLOPT_CONFIGURE_COMMAND}
+    BUILD_COMMAND make
+    INSTALL_COMMAND make install
+    )
 
-    set(NLOPT_NEED_REBUILD 1)
-    if (NLOPT_LAST_CONFIGURE_COMMAND)
-      if (${NLOPT_LAST_CONFIGURE_COMMAND} STREQUAL ${NLOPT_CONFIGURE_COMMAND})
-	set(NLOPT_NEED_REBUILD 0)
-      endif()
-    endif()
+  set(NLOPT_LIBRARIES   ${NLOPT_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}nlopt_cxx${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE PATH "Libraries for NLopt" FORCE)
+  set(NLOPT_INCLUDE_DIR ${NLOPT_DIR}/include CACHE PATH "Include directories for NLopt" FORCE)
 
-    set(NLOPT_LAST_CONFIGURE_COMMAND ${NLOPT_CONFIGURE_COMMAND} CACHE STRING "last configuration command")
+  mark_as_advanced(NLOPT_INCLUDE_DIR NLOPT_LIBRARIES)
 
-    if(NOT EXISTS ${NLOPT_PRODUCED_LIB} OR ${NLOPT_NEED_REBUILD})    
-      message(STATUS "need to rebuild NLOPT")
-      if(WGET_FOUND)
-	if(NOT EXISTS ${CMAKE_BINARY_DIR}/${NLOPT_ARCHIVE})
-	  message(STATUS "Downloading NLOPT library")
-	  execute_process(COMMAND 
-	    ${WGET_EXECUTABLE} http://ab-initio.mit.edu/nlopt/${NLOPT_ARCHIVE} --directory-prefix=${CMAKE_BINARY_DIR}/
-	    OUTPUT_QUIET ERROR_QUIET)
-	  
-	endif()
-      endif()
-    
-      if(NOT EXISTS ${CMAKE_BINARY_DIR}/${NLOPT_ARCHIVE})
-	message(FATAL_ERROR "could not download NLOPT archive")
-      endif()
+  list(APPEND AKANTU_EXTERNAL_LIBRARIES ${NLOPT_LIBRARIES})
+  list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${NLOPT_INCLUDE_DIR})
+  set(AKANTU_NLOPT_INCLUDE_DIR ${NLOPT_INCLUDE_DIR})
+  set(AKANTU_NLOPT_LIBRARIES ${NLOPT_LIBRARIES})
+  list(APPEND AKANTU_OPTION_LIST NLOPT)
+  set(NLOPT_FOUND TRUE CACHE INTERNAL "" FORCE)
+  set(AKANTU_NLOPT ON)
 
-      find_program(TAR_EXECUTABLE tar)
-      if (NOT TAR_EXECUTABLE)
-	message(FATAL_ERROR "need tar executable in order to uncompress NLOPT archive")
-      endif()
-
-      message(STATUS "Extract NLOPT library")
-      execute_process(COMMAND ${TAR_EXECUTABLE} xfz ${NLOPT_ARCHIVE} OUTPUT_QUIET)
-      if(NOT EXISTS ${NLOPT_SOURCE_DIR}/)
-	message(FATAL_ERROR "could not untar NLOPT archive")
-      endif()
-   
-      message(STATUS "Configure NLOPT library with: ${NLOPT_CONFIGURE_COMMAND} in ${NLOPT_SOURCE_DIR}")
-      string(REPLACE " " ";" NLOPT_CONFIGURE_COMMAND ${NLOPT_CONFIGURE_COMMAND})
-      execute_process(COMMAND ${NLOPT_CONFIGURE_COMMAND} WORKING_DIRECTORY ${NLOPT_SOURCE_DIR} OUTPUT_QUIET ERROR_QUIET)
-      if(NOT EXISTS ${NLOPT_SOURCE_DIR}/Makefile)
-	message(STATUS "Make NLOPT library")
-	message(FATAL_ERROR "Could not configure NLOPT")
-      endif()
-      execute_process(COMMAND make WORKING_DIRECTORY ${NLOPT_SOURCE_DIR} OUTPUT_QUIET ERROR_QUIET)
-
-      if(NOT EXISTS ${NLOPT_PRODUCED_LIB})
-	message("NLopt was not correctly compiled")
-      endif()
-
-    endif()
-
-    
-
-    set(NLOPT_INTERNAL_DIR ${NLOPT_SOURCE_DIR} CACHE PATH "Location of NLOPT source directory." FORCE)
-    mark_as_advanced(NLOPT_INTERNAL_DIR)
-
-  endif()
-  add_external_package(NLopt "Use NLOPT library")
+  list(APPEND AKANTU_EXTRA_TARGET_DEPENDENCIES NLopt)
 else()
-  set(AKANTU_USE_NLOPT ${AKANTU_NLOPT} CACHE BOOL "Use NLOPT library" FORCE)
   add_optional_external_package(NLopt "Use NLOPT library" OFF)
 endif()
 
 
-
-mark_as_advanced(AKANTU_NLOPT)
-mark_as_advanced(NLOPT_DIR)
-mark_as_advanced(AKANTU_NLOPT_AUTO_DOWNLOAD)
-mark_as_advanced(AKANTU_USE_NLOPT)
-mark_as_advanced(NLOPT_LAST_CONFIGURE_COMMAND)
-mark_as_advanced(TAR_EXECUTABLE)
-
 set(AKANTU_NLOPT_DOCUMENTATION "
-When enabled, this package downloads, configures and compiles the \\href{http://ab-initio.mit.edu/wiki/index.php/NLopt}{NLOPT} library (if access to internet is given). 
+This package enable the use of the optimization alogorithm library \\href{http://ab-initio.mit.edu/wiki/index.php/NLopt}{NLopt}.
+Since there are no packaging for the common operating system by default \\akantu compiles it as a third-party project. This behavior can be modified with the option \\code{AKANTU\\_USE\\_THIRD\\_PARTY\\_NLOPT}.
 
-In  order to auto download the NLOPT archive, the program \\texttt{wget} is necessary.
-
-Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
-\\begin{command}
-  > sudo apt-get install wget
-\\end{command}
-
-Under Mac OS X the installation requires the following steps:
-\\begin{command}
-  > sudo port install wget
-\\end{command}
+If the automated download fails please download \\href{http://ab-initio.mit.edu/nlopt/nlopt-${NLOPT_VERSION}.tar.gz}{nlopt-${NLOPT_VERSION}.tar.gz} and place it in \\shellcode{<akantu source>/third-party} download.
 ")

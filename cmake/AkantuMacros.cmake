@@ -97,6 +97,10 @@ macro(include_boost)
   endforeach()
 endmacro()
 
+function(set_third_party_shared_libirary_name _var _lib)
+  set(${_var} ${PROJECT_BINARY_DIR}/third-party/lib/${CMAKE_SHARED_LIBRARY_PREFIX}${_lib}${CMAKE_SHARED_LIBRARY_SUFFIX} CACHE FILEPATH "" FORCE)
+endfunction()
+
 #===============================================================================
 if(__CMAKE_PARSE_ARGUMENTS_INCLUDED)
   return()
@@ -158,3 +162,4 @@ function(CMAKE_PARSE_ARGUMENTS prefix _optionNames _singleArgNames _multiArgName
   endforeach(arg_name)
   set(${prefix}_UNPARSED_ARGUMENTS ${${prefix}_UNPARSED_ARGUMENTS} PARENT_SCOPE)
 endfunction(CMAKE_PARSE_ARGUMENTS _options _singleArgs _multiArgs)
+

@@ -45,6 +45,10 @@
 #define __BEGIN_AKANTU__ namespace akantu {
 #define __END_AKANTU__ };
 
+#if defined(WIN32)
+#  define __attribute__(x)
+#endif
+
 /* -------------------------------------------------------------------------- */
 #include "aka_config.hh"
 #include "aka_error.hh"

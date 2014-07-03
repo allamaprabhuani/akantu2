@@ -105,11 +105,12 @@ mark_as_advanced(CMAKE_EXE_LINKER_FLAGS_PROFILING)
 mark_as_advanced(CMAKE_SHARED_LINKER_FLAGS_PROFILING)
 
 include(CMakeDetermineCCompiler)
-
+cmake_deactivate_debug_message(PackagesSystem)
 #===============================================================================
 # Dependencies
 #===============================================================================
 set(AKANTU_BOOST_COMPONENT)
+set(AKANTU_EXTRA_TARGET_DEPENDENCIES)
 add_all_packages(${PROJECT_SOURCE_DIR}/packages ${PROJECT_SOURCE_DIR}/src)
 
 include_boost()

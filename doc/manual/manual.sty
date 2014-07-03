@@ -54,6 +54,7 @@
 %\newcommand\inelemthree[3]{\ensuremath{\begin{pmatrix} {\; #1} & \!,\! & {#2} & \!,\! & {#3 \;} \end{pmatrix}}}
 \newcommand\inelemtwo[2]{\ensuremath{\left( {\; #1} \; , \; {#2 \;} \right)}}
 \newcommand\inelemthree[3]{\ensuremath{\left( {\; #1} \; , \; {#2} \; , \; {#3 \;} \right)}}
+\newcommand\inelemthreecolumn[3]{\ensuremath{\begin{array}{c}( {\; #1} \; ,\\{#2} \; ,\\{#3 \;} )\end{array}}}
 \newcommand\inquadone[1]{\ensuremath{#1}}
 \newcommand\inquadtwo[2]{\ensuremath{\left(\, #1 \, , \, #2 \,\right)}}
 \newcommand\inquadthree[3]{\ensuremath{\left(\, #1 \, , \, #2 \, , \, #3 \,\right)}}
@@ -101,9 +102,10 @@
 %\usepackage{xparse}
 
 \newenvironment{MaterialDesc}[2]{
-  Keyword: \code{#1}\\[.8ex]
-  \noindent Description here: \ref{#2}\\[0.8ex]
-  \noindent Parameters:\\[-4ex]
+  Keyword: \code{#1}\par
+  \noindent Description here: \ref{#2}\par
+  \noindent Parameters:\par
+  \vspace*{-.4cm}
   \begin{itemize}
     \setlength{\topsep}{0ex}%
     \setlength{\parsep}{0cm}%
@@ -298,12 +300,10 @@
   pdfsubject={Open Source Finite Element Code - Akantu}
 }
 
-\newcommand\akantuPackageSection[2]{\paragraph*{\label{#2}#1}}
+\newenvironment{AkantuPackage}[2]{%
+  \paragraph*{#1}\label{#2}
+}{}
+\newenvironment{AkantuPackageDependencies}{\emph{Dependencies}: }{}
 
-%\newcommand\akantuSubpackageName[3]{\item \index{Packages!#1}\hyperref[#2]{#1}}
-%\newcommand\akantuPackageDependencyHead{~\\The dependencies are: \begin{itemize}}
-%\newcommand\akantuPackageDependencyTail{\end{itemize}}
-\newcommand\akantuSubpackageName[3]{ \textit{\index{Packages!#1}\hyperref[#2]{#1}}}
-\newcommand\akantuPackageDependencyHead{~\\The dependencies are: }
-\newcommand\akantuPackageDependencyTail{~\\}
-
+\newcommand\AkantuPackageNameWithLabel[3]{\textit{\index{Packages!#1}\hyperref[#2]{#1}}\xspace}
+\newcommand\akantuManualAppendix[1]{}

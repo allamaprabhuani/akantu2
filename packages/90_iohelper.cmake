@@ -67,9 +67,8 @@ set(AKANTU_IOHELPER_FILES
   io/dumper/dumper_iohelper_tmpl_quadrature_points_field.hh
   io/dumper/dumper_iohelper_tmpl_variable.hh
   )
-  
-set(AKANTU_IOHELPER_DOCUMENTATION 
-"
-This package activates the IOHelper facilities withing Akantu. This is mandatory if you want to be able to output Paraview files 
+
+set(AKANTU_IOHELPER_DOCUMENTATION "
+This package activates the IOHelper facilities withing Akantu. This is mandatory if you want to be able to output Paraview files
 as well as any Dumper within Akantu.
-")  
+")

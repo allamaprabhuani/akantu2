@@ -55,8 +55,6 @@ if(SUBVERSION_FOUND)
     mark_as_advanced(CUDA)
     mark_as_advanced(ARRAY_USER_LIB_PATH)
 
-#    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
-
     list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS})
 
     list(APPEND CPACK_SOURCE_IGNORE_FILES ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
@@ -71,5 +69,5 @@ else()
 endif()
 
 set(AKANTU_CPPARRAY_DOCUMENTATION "
-This package provides access to the \\href{https://code.google.com/p/cpp-array/}{array++} opensource project. If the internet is accessible when configuring the project (during cmake call) this package will auto-download and compile.
+This package provides access to the \\href{https://code.google.com/p/cpp-array/}{cpp-array} open-source project. If internet is accessible when configuring the project (during cmake call) this package will be auto-downloaded.
 ")

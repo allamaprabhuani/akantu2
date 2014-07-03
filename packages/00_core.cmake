@@ -311,6 +311,7 @@ set(AKANTU_CORE_MANUAL_FILES
   manual-elements.tex
   manual-appendix-elements.tex
   manual-appendix-materials.tex
+  manual-appendix-packages.tex
   manual-backmatter.tex
   manual-bibliography.bib
   manual-bibliographystyle.bst
@@ -391,7 +392,7 @@ list(APPEND AKANTU_BOOST_COMPONENTS
 
 set(AKANTU_CORE_DOCUMENTATION 
 "
-This package is the core engine of Akantu. It depends on:
+This package is the core engine of \\akantu. It depends on:
 \\begin{itemize}
 \\item A C++ compiler (\\href{http://gcc.gnu.org/}{GCC} >= 4, or \\href{https://software.intel.com/en-us/intel-compilers}{Intel}).
 \\item The cross-platform, open-source \\href{http://www.cmake.org/}{CMake} build system.

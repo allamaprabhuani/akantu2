@@ -32,101 +32,124 @@ set(AKANTU_MUMPS_FILES
   )
 
 option(AKANTU_USE_THIRD_PARTY_MUMPS "Use the third-party Mumps instead of the one from the system" OFF)
+option(AKANTU_USE_MUMPS "Add Mumps support in akantu")
+
+
 mark_as_advanced(AKANTU_USE_THIRD_PARTY_MUMPS)
-if(AKANTU_USE_THIRD_PARTY_MUMPS)
-  set(AKANTU_USE_MUMPS ON CACHE BOOL "Add Mumps support in akantu" FORCE)
+if(AKANTU_USE_THIRD_PARTY_MUMPS AND AKANTU_USE_MUMPS)
   set(MUMPS_DEPENDS)
   enable_language(Fortran)
 
+  include(AkantuMacros)
   include(ExternalProject)
   if(AKANTU_USE_MPI)
-    string(REPLACE ";" " -I" MUMPS_MPI_INCLUDE_PATH "-I${MPI_C_INCLUDE_PATH}")
-    string(REPLACE ";" " " MUMPS_MPI_Fortran_LIBRARIES "${MPI_Fortran_LIBRARIES}")
+    set(SCALAPACK_VERSION "2.0.2")
+    set(SCALAPACK_ARCHIVE "http://www.netlib.org/scalapack/scalapack-${SCALAPACK_VERSION}.tgz")
+    set(SCALAPACK_ARCHIVE_HASH "MD5=2f75e600a2ba155ed9ce974a1c4b536f")
 
     ExternalProject_Add(ScaLAPACK
-      PREFIX ${PROJECT_BINARY_DIR}/third-party/build/scalapack
-      INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
-      URL http://www.netlib.org/scalapack/scalapack-2.0.2.tgz
-#      URL_HASH MD5=2f75e600a2ba155ed9ce974a1c4b536f
-      CMAKE_ARGS ../ScaLAPACK
-      CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${PROJECT_BINARY_DIR}/third-party -DCMAKE_C_FLAGS:STRING=-fPIC -DCMAKE_Fortran_FLAGS:STRING=-fPIC
+      PREFIX ${PROJECT_BINARY_DIR}/third-party
+      URL      ${SCALAPACK_ARCHIVE}
+      URL_HASH ${SCALAPACK_ARCHIVE_HASH}
+      PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/third-party/scalapack_${SCALAPACK_VERSION}.patch
+      CMAKE_ARGS <SOURCE_DIR>/ScaLAPACK
+      CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DCMAKE_C_FLAGS:STRING=-fPIC -DCMAKE_Fortran_FLAGS:STRING=-fPIC -DBUILD_SHARED_LIBS:BOOL=ON
       )
-    set(SCALAPACK_LIBRARY ${PROJECT_BINARY_DIR}/third-party/lib/libscalapack.a)
+
+    set_third_party_shared_libirary_name(SCALAPACK_LIBRARIES scalapack)
+    mark_as_advanced(SCALAPACK_LIBRARIES)
+
+    install(FILES ${SCALAPACK_LIBRARIES}
+      DESTINATION lib
+      COMPONENT lib)
+
     list(APPEND MUMPS_DEPENDS ScaLAPACK)
     set(MUMPS_TYPE par)
+    unset(MUMPS_PREFIX)
   else()
     set(MUMPS_TYPE seq)
+    set(MUMPS_PREFIX _seq)
   endif()
 
-
-  set(MUMPS_LIBRARIES_ALL)
   if(AKANTU_USE_THIRD_PARTY_SCOTCH)
-    if(NOT TARGET Scotch)
-      include(${PROJECT_SOURCE_DIR}/packages/90_scotch.cmake)
-    endif()
+    include(${PROJECT_SOURCE_DIR}/packages/90_scotch.cmake)
     list(APPEND MUMPS_DEPENDS Scotch)
-    list(APPEND MUMPS_LIBRARIES_ALL ${SCOTCH_LIBRARIES})
+  else()
+    find_package(Scotch REQUIRED)
   endif()
+  string(REPLACE ";" " " MUMPS_SCOTCH_LIBRARIES "${SCOTCH_LIBRARIES}")
 
-  if(SCALAPACK_LIBRARY)
-    list(APPEND MUMPS_LIBRARIES_ALL ${SCALAPACK_LIBRARY})
-  endif()
+  find_package(BLAS REQUIRED)
+  string(REPLACE ";" " " MUMPS_BLAS_LIBRARIES "${BLAS_LIBRARIES}")
 
   if("${MUMPS_TYPE}" STREQUAL "seq")
-    set(MUMPS_PREFIX _seq)
-    set(_libmumps_seq COMMAND cmake -E copy libseq/libmpiseq${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib)
-    set(MUMPS_LIBRARY_MPI ${PROJECT_BINARY_DIR}/third-party/lib/libmpiseq${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
+    set_third_party_shared_libirary_name(MUMPS_LIBRARY_MPI mpiseq${MUMPS_PREFIX})
     mark_as_advanced(MUMPS_LIBRARY_MPI)
   else()
     set(MUMPS_LIBRARY_MPI "")
   endif()
 
-  configure_file(${PROJECT_SOURCE_DIR}/third-party/MUMPSmake.inc.cmake
+  set(MUMPS_VERSION "4.10.0")
+  set(MUMPS_ARCHIVE "${PROJECT_SOURCE_DIR}/third-party/MUMPS_${MUMPS_VERSION}.tar.gz")
+  set(MUMPS_ARCHIVE_HASH "MD5=959e9981b606cd574f713b8422ef0d9f")
+  if(NOT EXISTS ${MUMPS_ARCHIVE})
+    set(MUMPS_VERSION "4.9.2")
+    set(MUMPS_ARCHIVE "${PROJECT_SOURCE_DIR}/third-party/MUMPS_${MUMPS_VERSION}.tar.gz")
+    set(MUMPS_ARCHIVE_HASH "MD5=d0b8f139a4acf29b76dbae69ade8ac54")
+    if(NOT EXISTS ${MUMPS_ARCHIVE})
+      MESSAGE(ERROR "To be able to compile MUMPS please download it from
+http://mumps.enseeiht.fr/ or http://graal.ens-lyon.fr/MUMPS
+and place it in the directory: ${PROJECT_SOURCE_DIR}/third-party
+
+Supported version for automated compilation in Akantu are 4.9.2 and 4.10.0")
+    endif()
+  endif()
+
+  configure_file(${PROJECT_SOURCE_DIR}/third-party/MUMPS_${MUMPS_VERSION}_make.inc.cmake
     ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc)
 
   ExternalProject_Add(MUMPS
     DEPENDS ${MUMPS_DEPENDS}
-    PREFIX ${PROJECT_BINARY_DIR}/third-party/build/mumps
-    URL ${PROJECT_SOURCE_DIR}/third-party/MUMPS_4.9.2.tar.gz
-    URL_HASH MD5=1c896cdb61878cf094b779404c6512fd
+    PREFIX ${PROJECT_BINARY_DIR}/third-party
+    URL ${MUMPS_ARCHIVE}
+    URL_HASH ${MUMPS_ARCHIVE_HASH}
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND cmake -E create_symlink ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc Makefile.inc
+    PATCH_COMMAND patch -p2 < ${PROJECT_SOURCE_DIR}/third-party/MUMPS_${MUMPS_VERSION}.patch
+    CONFIGURE_COMMAND cmake -E copy ${PROJECT_BINARY_DIR}/third-party/MUMPSmake.inc Makefile.inc
     BUILD_COMMAND make d
-    INSTALL_DIR ${PROJECT_BINARY_DIR}/third-party/lib
-    INSTALL_COMMAND cmake -E copy lib/libdmumps${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
-    COMMAND cmake -E copy lib/libmumps_common${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
-    COMMAND cmake -E copy lib/libpord${MUMPS_PREFIX}.a ${PROJECT_BINARY_DIR}/third-party/lib
-    COMMAND cmake -E copy_directory include ${PROJECT_BINARY_DIR}/third-party/include
-    ${_libmumps_seq}
+    INSTALL_COMMAND prefix=<INSTALL_DIR> make install
     )
 
-  set(MUMPS_LIBRARY_DMUMPS ${PROJECT_BINARY_DIR}/third-party/lib/libdmumps${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
-  set(MUMPS_LIBRARY_COMMON ${PROJECT_BINARY_DIR}/third-party/lib/libmumps_common${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
-  set(MUMPS_LIBRARY_PORD ${PROJECT_BINARY_DIR}/third-party/lib/libpord${MUMPS_PREFIX}.a CACHE FILEPATH "" FORCE)
+  set_third_party_shared_libirary_name(MUMPS_LIBRARY_DMUMPS dmumps${MUMPS_PREFIX})
+  set_third_party_shared_libirary_name(MUMPS_LIBRARY_COMMON mumps_common${MUMPS_PREFIX})
+  set_third_party_shared_libirary_name(MUMPS_LIBRARY_PORD pord${MUMPS_PREFIX})
   set(MUMPS_INCLUDE_DIR ${PROJECT_BINARY_DIR}/third-party/include CACHE PATH "" FORCE)
+  set(MUMPS_LIBRARIES_ALL)
 
-  mark_as_advanced(MUMPS_LIBRARY_COMMON)
-  mark_as_advanced(MUMPS_LIBRARY_DMUMPS)
-  mark_as_advanced(MUMPS_LIBRARY_PORD)
-  mark_as_advanced(MUMPS_INCLUDE_DIR)
-
-  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    list(APPEND MUMPS_LIBRARIES_ALL -lgfortran)
-  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-    list(APPEND MUMPS_LIBRARIES_ALL -lifcore)
-  endif()
+  mark_as_advanced(MUMPS_LIBRARY_COMMON MUMPS_LIBRARY_DMUMPS MUMPS_LIBRARY_PORD MUMPS_INCLUDE_DIR)
 
   list(APPEND MUMPS_LIBRARIES_ALL ${MPI_Fortran_LIBRARIES} ${MUMPS_LIBRARY_COMMON} ${MUMPS_LIBRARY_DMUMPS} ${MUMPS_LIBRARY_PORD} ${MUMPS_LIBRARY_MPI})
   set(MUMPS_LIBRARIES ${MUMPS_LIBRARIES_ALL} CACHE INTERNAL "Libraries for MUMPS" FORCE)
 
+  install(FILES ${MUMPS_LIBRARIES}
+    DESTINATION lib
+    COMPONENT lib)
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/third-party/include/ DESTINATION include/mumps
+    COMPONENT dev
+    FILES_MATCHING PATTERN "*mumps*.h")
+
   list(APPEND AKANTU_EXTERNAL_LIBRARIES ${MUMPS_LIBRARIES})
   list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${MUMPS_INCLUDE_DIR})
+
   set(AKANTU_MUMPS_INCLUDE_DIR ${MUMPS_INCLUDE_DIR})
   set(AKANTU_MUMPS_LIBRARIES ${MUMPS_LIBRARIES})
+
   list(APPEND AKANTU_OPTION_LIST MUMPS)
+
   set(MUMPS_FOUND TRUE CACHE INTERNAL "" FORCE)
   set(AKANTU_MUMPS ON)
 
+  list(APPEND AKANTU_EXTRA_TARGET_DEPENDENCIES MUMPS)
 else()
   if(AKANTU_USE_MPI)
     set(MUMPS_TYPE par)
@@ -150,20 +173,22 @@ set(AKANTU_MUMPS_TESTS
   test_solver_mumps
   test_sparse_matrix_product
   )
-  
+
 set(AKANTU_MUMPS_DOCUMENTATION "
-This package enables the \\href{http://mumps.enseeiht.fr/}{MUMPS} parallel sparse direct solver.
-This is necessary to solve implicit problems.
+This package enables the \\href{http://mumps.enseeiht.fr/}{MUMPS} parallel direct solver for sparce matrices.
+This is necessary to solve static or implicit problems.
 
 Under Ubuntu (14.04 LTS) the installation can be performed using the commands:
 
 \\begin{command}
-  > sudo apt-get install libmumps-seq-dev # for sequential 
-  > sudo apt-get install libmumps-dev     # for parallel 
+  > sudo apt-get install libmumps-seq-dev # for sequential
+  > sudo apt-get install libmumps-dev     # for parallel
 \\end{command}
 
 Under Mac OS X the installation requires the following steps:
 \\begin{command}
   > sudo port install mumps
 \\end{command}
+
+If you activate the advanced option AKANTU\\_USE\\_THIRD\\_PARTY\\_MUMPS the make system of akantu can automatically compile MUMPS. For this you will have to download MUMPS from \\url{http://mumps.enseeiht.fr/} or \\url{http://graal.ens-lyon.fr/MUMPS} and place it in \\shellcode{<akantu source>/third-party}
 ")

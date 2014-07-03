@@ -46,6 +46,5 @@ endif()
 mark_as_advanced(AKANTU_CORE_CXX11)
 
 set(AKANTU_CORE_CXX11_DOCUMENTATION "
-This option activates some features of the C++11 standard. This is usable with GCC>=4.7 or Intel>=13.
-")
+This option activates some features of the C++11 standard. This is usable with GCC>=4.7 or Intel>=13.")
 
