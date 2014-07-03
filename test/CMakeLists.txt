@@ -46,8 +46,7 @@ add_akantu_test(test_mesh_utils "Test mesh utils")
 add_akantu_test(test_model "Test model objects")
 add_akantu_test(test_solver "Test solver function" PACKAGE mumps)
 add_akantu_test(test_io "Test the IO modules")
-add_akantu_test(test_contact "Test the contact part of Akant")
-
+add_akantu_test(test_contact "Test the contact part of Akantu" PACKAGE contact) 
 
 add_akantu_test(test_surface_extraction "Test mesh utils surface extraction")
 add_akantu_test(test_synchronizer "Test synchronizers" PACKAGE parallel)
