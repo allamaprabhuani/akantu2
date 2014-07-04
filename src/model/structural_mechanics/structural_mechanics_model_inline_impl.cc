@@ -45,6 +45,14 @@ inline UInt StructuralMechanicsModel::getTangentStiffnessVoigtSize<_bernoulli_be
 }
 
 /* -------------------------------------------------------------------------- */
+
+template<>
+inline UInt StructuralMechanicsModel::getTangentStiffnessVoigtSize<_kirchhoff_shell>() {
+  return 6;
+}
+
+
+/* -------------------------------------------------------------------------- */
 template <ElementType type>
 void StructuralMechanicsModel::assembleStiffnessMatrix() {
   AKANTU_DEBUG_IN();

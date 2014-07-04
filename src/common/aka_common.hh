@@ -109,8 +109,9 @@ extern const UInt _all_dimensions;
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 #define AKANTU_ek_structural_ELEMENT_TYPE	\
-   (_bernoulli_beam_2)				\
-   (_bernoulli_beam_3)
+  (_bernoulli_beam_2)				\
+  (_bernoulli_beam_3)  				\
+  (_kirchhoff_shell)
 #else
 #define AKANTU_ek_structural_ELEMENT_TYPE
 #endif
@@ -161,7 +162,9 @@ enum ElementType {
 #if defined (AKANTU_STRUCTURAL_MECHANICS)
   _bernoulli_beam_2,  ///< Bernoulli beam 2D
   _bernoulli_beam_3,  ///< Bernoulli beam 3D
+  _kirchhoff_shell,   ///< Kirchhoff shell
 #endif
+
 #if defined(AKANTU_COHESIVE_ELEMENT)
   _cohesive_2d_4,     ///< first order 2D cohesive
   _cohesive_2d_6,     ///< second order 2D cohesive
@@ -215,7 +218,9 @@ enum InterpolationType {
   _itp_lagrange_pentahedron_6,      ///< first order lagrangian pentahedron
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
   _itp_bernoulli_beam,             ///< Bernoulli beam
+  _itp_kirchhoff_shell,            ///< Kirchhoff shell
 #endif
+
   _itp_not_defined
 };
 

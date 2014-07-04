@@ -124,9 +124,90 @@ public:
 					     const Matrix<Real> & real_nodal_coord,
 					     UInt n = 0) {
     UInt nb_points = natural_coord.cols();
-    for (UInt p = 0; p < nb_points; ++p) {
-      Matrix<Real> shape_deriv_p = shape_deriv(p);
-      interpolation_element::computeDNDS(natural_coord(p), shape_deriv_p, real_nodal_coord, n);
+    
+    if (element_type ==_kirchhoff_shell) { 
+      /// TO BE CONTINUED
+
+      UInt spatial_dimension = real_nodal_coord.cols();
+      UInt nb_nodes = real_nodal_coord.rows();
+
+      const UInt projected_dim = natural_coord.rows();
+      Matrix<Real> rotation_matrix(real_nodal_coord);
+      Matrix<Real> rotated_nodal_coord(real_nodal_coord);
+      Matrix<Real> projected_nodal_coord(natural_coord);
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+      Matrix<Real> Pe    (real_nodal_coord);
+      Matrix<Real> Pg    (real_nodal_coord);
+      Matrix<Real> inv_Pg(real_nodal_coord);
+
+      /// compute matrix Pe
+      Pe.eye();
+      
+      /// compute matrix Pg
+      Vector<Real> Pg_col_1(spatial_dimension);
+      Pg_col_1(0) =  real_nodal_coord(0,1) - real_nodal_coord(0,0);
+      Pg_col_1(1) =  real_nodal_coord(1,1) - real_nodal_coord(1,0);
+      Pg_col_1(2) =  real_nodal_coord(2,1) - real_nodal_coord(2,0);
+
+      Vector<Real> Pg_col_2(spatial_dimension);
+      Pg_col_2(0) =  real_nodal_coord(0,2) - real_nodal_coord(0,0);
+      Pg_col_2(1) =  real_nodal_coord(1,2) - real_nodal_coord(1,0);
+      Pg_col_2(2) =  real_nodal_coord(2,2) - real_nodal_coord(2,0);
+
+      Vector<Real> Pg_col_3(spatial_dimension);
+      Pg_col_3.crossProduct(Pg_col_1, Pg_col_2);
+      
+      
+      for (UInt i = 0; i < nb_points; ++i) {
+	  Pg(i,0) = Pg_col_1(i);
+	  Pg(i,1) = Pg_col_2(i);
+	  Pg(i,2) = Pg_col_3(i);
+	}
+      
+      /// compute inverse of Pg
+      inv_Pg.inverse(Pg);
+
+      /// compute rotation matrix
+      // rotation_matrix=Pe*inv_Pg;
+      rotation_matrix.eye();
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+      rotated_nodal_coord.mul<false, false>(rotation_matrix, real_nodal_coord);
+	
+      for (UInt i = 0; i < projected_dim ; ++i) {
+	for (UInt j = 0; j < nb_points; ++j) {
+	  projected_nodal_coord(i,j) = rotated_nodal_coord(i,j);
+	}
+      }
+
+      Tensor3<Real> dnds(projected_dim, nb_nodes, natural_coord.cols());
+      Tensor3<Real> J   (projected_dim, projected_dim, natural_coord.cols());
+
+      parent_element::computeDNDS(natural_coord, dnds);
+      
+      parent_element::computeJMat(dnds, projected_nodal_coord, J);
+ 
+      for (UInt p = 0; p < nb_points; ++p) {
+
+	Matrix<Real> shape_deriv_p = shape_deriv(p);
+	
+	interpolation_element::computeDNDS(natural_coord(p), shape_deriv_p, projected_nodal_coord, n);
+     
+	Matrix<Real> dNdS = shape_deriv_p;
+	Matrix<Real> inv_J(projected_dim, projected_dim);
+	inv_J.inverse(J(p));
+	shape_deriv_p.mul<false, false>(inv_J, dNdS);
+      }
+    }
+    else {
+
+      for (UInt p = 0; p < nb_points; ++p) {
+	Matrix<Real> shape_deriv_p = shape_deriv(p);
+	interpolation_element::computeDNDS(natural_coord(p), shape_deriv_p, real_nodal_coord, n);
+      }
     }
   }
 

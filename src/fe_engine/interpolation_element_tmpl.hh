@@ -50,4 +50,5 @@ AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_lagrange_pentahedron_6,  _itk_lag
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_bernoulli_beam, _itk_structural, 2, 1);
+AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(_itp_kirchhoff_shell, _itk_structural, 3, 2);
 #endif

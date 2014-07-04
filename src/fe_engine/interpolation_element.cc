@@ -38,7 +38,10 @@ __BEGIN_AKANTU__
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 template<> const UInt InterpolationElement<_itp_bernoulli_beam>::nb_shape_functions = 5;
-template<> const UInt InterpolationElement<_itp_bernoulli_beam>::nb_shape_derivatives = 3;
-#endif
+template<> const UInt InterpolationElement<_itp_kirchhoff_shell>::nb_shape_functions = 9;
 
+template<> const UInt InterpolationElement<_itp_bernoulli_beam>::nb_shape_derivatives = 3;
+template<> const UInt InterpolationElement<_itp_kirchhoff_shell>::nb_shape_derivatives = 7;
+#endif
+ 
 __END_AKANTU__

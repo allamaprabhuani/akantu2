@@ -357,6 +357,7 @@ protected:
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 #  include "element_class_structural.hh"
 #  include "element_classes/element_class_bernoulli_beam_inline_impl.cc"
+#  include "element_classes/element_class_kirchhoff_shell_inline_impl.cc"
 #endif
 
 // #if defined(AKANTU_IGFEM)

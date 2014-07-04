@@ -122,7 +122,6 @@ inline void Model::registerFEEngineObject(const std::string & name,
 /* -------------------------------------------------------------------------- */
 inline FEEngine & Model::getFEEngine(const ID & name) const{
   AKANTU_DEBUG_IN();
-
   ID tmp_name = name;
   if (name == "") tmp_name = default_fem;
 

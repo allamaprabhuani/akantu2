@@ -133,4 +133,84 @@ void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_bernoulli_beam_
 }
 /* -------------------------------------------------------------------------- */
 
+template<>
+void StructuralMechanicsModel::transferNMatrixToSymVoigtNMatrix<_kirchhoff_shell>(Array<Real> & N_matrix) {
+  AKANTU_DEBUG_IN();
+
+  ElementType type = _kirchhoff_shell;
+
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
+  UInt nb_nodes_per_element = getFEEngine().getMesh().getNbNodesPerElement(type);
+
+  Array<Real>::const_vector_iterator shape_N0  = fem.getShapeFunctions().getShapes(type, _not_ghost, 0).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Nw2 = fem.getShapeFunctions().getShapes(type, _not_ghost, 1).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Nw3 = fem.getShapeFunctions().getShapes(type, _not_ghost, 2).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Nx1 = fem.getShapeFunctions().getShapes(type, _not_ghost, 3).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Nx2 = fem.getShapeFunctions().getShapes(type, _not_ghost, 4).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Nx3 = fem.getShapeFunctions().getShapes(type, _not_ghost, 5).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Ny1 = fem.getShapeFunctions().getShapes(type, _not_ghost, 6).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Ny2 = fem.getShapeFunctions().getShapes(type, _not_ghost, 7).begin(nb_nodes_per_element);
+  Array<Real>::const_vector_iterator shape_Ny3 = fem.getShapeFunctions().getShapes(type, _not_ghost, 8).begin(nb_nodes_per_element);
+
+  N_matrix.clear();
+  Array<Real>::matrix_iterator N_it = N_matrix.begin(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+  Array<Real>::matrix_iterator N_end = N_matrix.end(nb_degree_of_freedom, nb_degree_of_freedom * nb_nodes_per_element);
+
+  for (; N_it != N_end; ++N_it, ++shape_N0, ++shape_Nw2, ++shape_Nw3, ++shape_Nx1, ++shape_Nx2, ++shape_Nx3, ++shape_Ny1, ++shape_Ny2, ++shape_Ny3) {
+    Matrix<Real> & N = *N_it;
+    const Vector<Real> & N0 = *shape_N0;
+    const Vector<Real> & Nw2 = *shape_Nw2;
+    const Vector<Real> & Nw3 = *shape_Nw3;
+    const Vector<Real> & Nx1 = *shape_Nx1;
+    const Vector<Real> & Nx2 = *shape_Nx2;
+    const Vector<Real> & Nx3 = *shape_Nx3;
+    const Vector<Real> & Ny1 = *shape_Ny1;
+    const Vector<Real> & Ny2 = *shape_Ny2;
+    const Vector<Real> & Ny3 = *shape_Ny3;
+
+      N(0,0)  =  N0(0);
+      N(0,5)  =  N0(1);  
+      N(0,10) =  N0(2);
+
+      N(1,1)  =  N0(0);
+      N(1,5)  =  N0(1); 
+      N(1,11) =  N0(2);
+
+      N(2,2)  =  N0(0);
+      N(2,3)  =  Nw2(0);
+      N(2,4)  =  Nw3(0);
+      N(2,7)  =  N0(1);
+      N(2,8)  =  Nw2(1);
+      N(2,9)  =  Nw3(1);
+      N(2,12) =  N0(2);
+      N(2,13) =  Nw2(2);
+      N(2,14) =  Nw3(2);
+
+      N(3,2)  =  Nx1(0);
+      N(3,3)  =  Nx2(0);
+      N(3,4)  =  Nx3(0);
+      N(3,7)  =  Nx1(1);
+      N(3,8)  =  Nx2(1);
+      N(3,9)  =  Nx3(1);
+      N(3,12) =  Nx1(2);
+      N(3,13) =  Nx2(2);
+      N(3,14) =  Nx3(2);
+
+      N(4,2)  =  Ny1(0);
+      N(4,3)  =  Ny2(0);
+      N(4,4)  =  Ny3(0);
+      N(4,7)  =  Ny1(1);
+      N(4,8)  =  Ny2(1);
+      N(4,9)  =  Ny3(1);
+      N(4,12) =  Ny1(2);
+      N(4,13) =  Ny2(2);
+      N(4,14) =  Ny3(2);
+
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+
+
 __END_AKANTU__

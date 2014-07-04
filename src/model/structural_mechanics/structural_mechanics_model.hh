@@ -54,6 +54,8 @@ struct StructuralMaterial {
   Real Iz;
   Real Iy;
   Real GJ;
+  Real t;
+  Real nu;
 };
 
 class StructuralMechanicsModel : public Model, public Dumpable {

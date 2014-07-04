@@ -82,6 +82,7 @@ inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
     case _itp_lagrange_pentahedron_6  : stream << "_itp_lagrange_pentahedron_6" ; break;
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
     case _itp_bernoulli_beam          : stream << "_itp_bernoulli_beam"         ; break;
+    case _itp_kirchhoff_shell         : stream << "_itp_kirchhoff_shell"        ; break;  
 #endif
     case _itp_not_defined             : stream << "_itp_not_defined"            ; break;
     }
