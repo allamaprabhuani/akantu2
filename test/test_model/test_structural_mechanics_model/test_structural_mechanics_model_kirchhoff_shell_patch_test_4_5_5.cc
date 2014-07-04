@@ -3,7 +3,7 @@
  * @author Damien Spielmann <damien.spielmann@epfl.ch>
  * @date   Wed Apr 16 22:01:18 2014
  *
- * @brief  patch test exemple 4.5.5 c.f. "modölisation des structures par éléments finis J.-L. Batoz/G Dhatt
+ * @brief  patch test exemple 4.5.5 c.f. modelisation des structures par éléments finis J.-L. Batoz/G Dhatt
  *
  * @section LICENSE
  *
@@ -225,13 +225,11 @@ int main(int argc, char *argv[]){
   model.addDumpField("momentum");
 
   do {
-    if(count != 0) std::cerr << count << " - " << error << std::endl;
     model.updateResidual();
     model.solve();
     count++;
   } while (!model.testConvergenceIncrement(1e-10, error) && count < 10);
-  std::cerr << count << " - " << error << std::endl;
- 
+   
 
   /* -------------------------------------------------------------------------- */
   // Post-Processing
