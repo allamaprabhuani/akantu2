@@ -1240,7 +1240,8 @@ template<template <ElementKind> class I,
 	 template <ElementKind> class S,
 	 ElementKind kind>
 inline const Array<Real> & FEEngineTemplate<I, S, kind>::getShapes(const ElementType & type,
-								   const GhostType & ghost_type) const {
+								   const GhostType & ghost_type,
+								   __attribute__((unused)) UInt id) const {
   return GetShapesHelper<kind>::call(shape_functions, type, ghost_type);
 }
 
@@ -1439,43 +1440,3 @@ computeNormalsOnControlPoints<_point_1>(__attribute__((unused))const Array<Real>
 }
 
 __END_AKANTU__
-
-
-/* -------------------------------------------------------------------------- */
-/* Shape Linked specialization                                                */
-/* -------------------------------------------------------------------------- */
-
-#if defined(AKANTU_STRUCTURAL_MECHANICS)
-#include "shape_linked.hh"
-
-__BEGIN_AKANTU__
-
-#define GET_SHAPES_DERIVATIVES(type)					\
-  ret = &(shape_functions.getShapesDerivatives(type, ghost_type, id));	\
-  
-template<>
-struct GetShapesDerivativesHelper<_ek_structural> {
-  static const Array<Real> & call(const ShapeLinked<_ek_structural> & shape_functions, 
-				  const ElementType type,				
-				  const GhostType & ghost_type,			
-				  UInt id) {
-    const Array<Real> * ret = NULL;				
-    AKANTU_BOOST_STRUCTURAL_ELEMENT_SWITCH(GET_SHAPES_DERIVATIVES);
-    return *ret;
-  }									
-};
-
-
-template <>
-inline const Array<Real> &
-FEEngineTemplate<IntegratorGauss, ShapeLinked, _ek_structural>::getShapesDerivatives(const ElementType & type,
-										     const GhostType & ghost_type,
-										     UInt id) const {
-  return GetShapesDerivativesHelper<_ek_structural>::call(shape_functions, type, ghost_type, id);
-}
-
-__END_AKANTU__
-
-#endif
-
-/* -------------------------------------------------------------------------- */

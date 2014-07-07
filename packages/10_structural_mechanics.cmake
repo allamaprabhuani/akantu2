@@ -34,6 +34,7 @@ add_internal_package_dependencies(STRUCTURAL_MECHANICS IMPLICIT)
 set(AKANTU_STRUCTURAL_MECHANICS_FILES
   fe_engine/element_class_structural.hh
   fe_engine/element_classes/element_class_bernoulli_beam_inline_impl.cc
+  fe_engine/fe_engine_template_tmpl_struct.hh
   fe_engine/element_classes/element_class_kirchhoff_shell_inline_impl.cc
   io/mesh_io/mesh_io_msh_struct.cc
   io/mesh_io/mesh_io_msh_struct.hh
@@ -43,6 +44,7 @@ set(AKANTU_STRUCTURAL_MECHANICS_FILES
   model/structural_mechanics/structural_mechanics_model.hh
   model/structural_mechanics/structural_mechanics_model_boundary.cc
   model/structural_mechanics/structural_mechanics_model_inline_impl.cc
+  model/structural_mechanics/structural_mechanics_model_mass.cc
   )
 
 set(AKANTU_STRUCTURAL_MECHANICS_DOC
@@ -60,6 +62,7 @@ set(AKANTU_STRUCTURAL_MECHANICS_TESTS
   test_structural_mechanics_model_bernoulli_beam_3_local_force
   test_structural_mechanics_model_bernoulli_beam_3_exercice_12_10_13 
   test_structural_mechanics_model_kirchhoff_shell_patch_test_4_5_5
+  test_structural_mechanics_model_bernoulli_beam_dynamics
   )
 
 set(AKANTU_STRUCTURAL_MECHANICS_MANUAL_FILES

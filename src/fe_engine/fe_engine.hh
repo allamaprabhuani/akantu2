@@ -189,7 +189,8 @@ public:
 				     const GhostType & ghost_type = _not_ghost) const = 0;
   /// get the precomputed shapes
   const virtual Array<Real> & getShapes(const ElementType & type,
-					const GhostType & ghost_type = _not_ghost) const = 0;
+					const GhostType & ghost_type = _not_ghost,
+					UInt id = 0) const = 0;
 
   /// get the derivatives of shapes
   const virtual Array<Real> & getShapesDerivatives(const ElementType & type,
@@ -287,6 +288,34 @@ public:
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
+
+#ifdef AKANTU_STRUCTURAL_MECHANICS
+
+ virtual  void assembleFieldMatrix(__attribute__ ((unused)) const Array<Real> & field_1,
+				   __attribute__ ((unused)) UInt nb_degree_of_freedom,
+				   __attribute__ ((unused)) SparseMatrix & M,
+				   __attribute__ ((unused)) Array<Real> * n,
+				   __attribute__ ((unused)) ElementTypeMapArray<Real> & rotation_mat,
+				   __attribute__ ((unused)) ElementType type,
+				   __attribute__ ((unused)) const GhostType & ghost_type) const {
+
+   AKANTU_DEBUG_TO_IMPLEMENT();
+ }
+
+  virtual void computeShapesMatrix(__attribute__ ((unused))const ElementType & type,
+				   __attribute__ ((unused))UInt nb_degree_of_freedom,
+				   __attribute__ ((unused))UInt nb_nodes_per_element,
+				   __attribute__ ((unused))Array<Real> * n,
+				   __attribute__ ((unused))UInt id,
+				   __attribute__ ((unused))UInt degree_to_interpolate,
+				   __attribute__ ((unused))UInt degree_interpolated,
+				   __attribute__ ((unused))const bool sign,
+				   __attribute__ ((unused))const GhostType & ghost_type) const {
+
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+
+#endif
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;

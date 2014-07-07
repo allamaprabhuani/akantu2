@@ -38,6 +38,7 @@
 #include "aka_types.hh"
 #include "dumpable.hh"
 #include "solver.hh"
+#include "integration_scheme_2nd_order.hh"
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -54,9 +55,18 @@ struct StructuralMaterial {
   Real Iz;
   Real Iy;
   Real GJ;
+  Real rho;
   Real t;
   Real nu;
 };
+
+struct StructuralMechanicsModelOptions : public ModelOptions {
+  StructuralMechanicsModelOptions(AnalysisMethod analysis_method = _static) :
+    analysis_method(analysis_method)  {}
+    AnalysisMethod analysis_method;
+};
+
+extern const StructuralMechanicsModelOptions default_structural_mechanics_model_options;
 
 class StructuralMechanicsModel : public Model, public Dumpable {
   /* ------------------------------------------------------------------------ */
@@ -79,7 +89,7 @@ public:
 public:
 
   /// initialize fully the model
-  void initFull(std::string material = "");
+  void initFull(const ModelOptions & options = default_structural_mechanics_model_options);
 
   /// initialize the internal vectors
   void initArrays();
@@ -90,19 +100,32 @@ public:
   /// initialize the solver
   void initSolver(SolverOptions & options = _solver_no_options);
 
+  /// initialize the stuff for the implicit solver
+  void initImplicit(bool dynamic = false,
+		    SolverOptions & solver_options = _solver_no_options);
+
+
   /// compute the stresses per elements
   void computeStresses();
 
   /// assemble the stiffness matrix
   void assembleStiffnessMatrix();
 
+  /// assemble the mass matrix for consistent mass resolutions
+  void assembleMass();
+
+  /// implicit time integration predictor
+  void implicitPred();
+
+  /// implicit time integration corrector
+  void implicitCorr();
+
   /// update the residual vector
   void updateResidual();
 
   /// solve the system
   void solve();
-
-
+ 
   bool testConvergenceIncrement(Real tolerance);
   bool testConvergenceIncrement(Real tolerance, Real & error);
 
@@ -117,6 +140,25 @@ protected:
   template<const ElementType type>
   void computeRotationMatrix(Array<Real> & rotations) {};
 
+  /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
+  template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+  void solve(Array<Real> & increment, Real block_val = 1.);
+
+ /* ------------------------------------------------------------------------ */
+ /* Mass (structural_mechanics_model_mass.cc)                                     */
+ /* ------------------------------------------------------------------------ */
+
+  /// assemble the mass matrix for either _ghost or _not_ghost elements
+  void assembleMass(GhostType ghost_type);
+
+  /// computes rho
+  void computeRho(Array<Real> & rho,
+		  ElementType type,
+		  GhostType ghost_type);
+
+  /// finish the computation of residual to solve in increment
+  void updateResidualInternal();
+
   /* ------------------------------------------------------------------------ */
 
 private:
@@ -125,6 +167,9 @@ private:
 
   template <ElementType type>
   void assembleStiffnessMatrix();
+
+  template <ElementType type>
+  void assembleMass();
 
   template<ElementType type>
   void computeStressOnQuad();
@@ -152,11 +197,22 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+
+  /// set the value of the time step
+  void setTimeStep(Real time_step);
+
   /// return the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
 
   /// get the StructuralMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement_rotation, Array<Real> &);
+
+  /// get the StructuralMechanicsModel::velocity vector
+  AKANTU_GET_MACRO(Velocity,        *velocity,               Array<Real> &);
+
+  /// get    the    StructuralMechanicsModel::acceleration    vector,   updated    by
+  /// StructuralMechanicsModel::updateAcceleration
+  AKANTU_GET_MACRO(Acceleration,    *acceleration,           Array<Real> &);
 
   /// get the StructuralMechanicsModel::force vector (boundary forces)
   AKANTU_GET_MACRO(Force,        *force_momentum,        Array<Real> &);
@@ -170,6 +226,8 @@ public:
 
   AKANTU_GET_MACRO(StiffnessMatrix, *stiffness_matrix, const SparseMatrix &);
 
+  AKANTU_GET_MACRO(MassMatrix, *mass_matrix, const SparseMatrix &);
+
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ElementMaterial, element_material, UInt);
@@ -177,6 +235,12 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Set_ID, set_ID, UInt);
 
   void addMaterial(StructuralMaterial & material) { materials.push_back(material); }
+
+  /**
+   * @brief set the StructuralMechanicsModel::increment_flag  to on, the activate the
+   * update of the StructuralMechanicsModel::increment vector
+   */
+  void setIncrementFlagOn();
 
   /* ------------------------------------------------------------------------ */
   /* Boundaries (structural_mechanics_model_boundary.cc)                      */
@@ -195,16 +259,52 @@ public:
   void computeForcesFromFunction(BoundaryFunction in_function,
 				 BoundaryFunctionType function_type);
 
+ /**
+   * solve a step (predictor + convergence loop + corrector) using the
+   * the given convergence method (see akantu::SolveConvergenceMethod)
+   * and the given convergence criteria (see
+   * akantu::SolveConvergenceCriteria)
+   **/
+  template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
+  bool solveStep(Real tolerance,
+		 UInt max_iteration = 100);
+
+  template<SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
+  bool solveStep(Real tolerance,
+		 Real & error,
+		 UInt max_iteration = 100);
+
+  /// test if the system is converged
+  template<SolveConvergenceCriteria criteria>
+  bool testConvergence(Real tolerance, Real & error);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  /// time step
+  Real time_step;
+
+  /// conversion coefficient form force/mass to acceleration
+  Real f_m2a;
 
   /// displacements array
   Array<Real> * displacement_rotation;
 
+  /// displacements array at the previous time step (used in finite deformation)
+  Array<Real> * previous_displacement;
+
+  /// velocities array
+  Array<Real> * velocity;
+
+  /// accelerations array
+  Array<Real> * acceleration;
+
   /// forces array
   Array<Real> * force_momentum;
+
+  /// lumped mass array
+  Array<Real> * mass;
 
   /// stress arraz
 
@@ -230,6 +330,12 @@ private:
   /// stiffness matrix
   SparseMatrix * stiffness_matrix;
 
+  /// mass matrix
+  SparseMatrix * mass_matrix;
+
+  /// velocity damping matrix
+  SparseMatrix * velocity_damping_matrix;
+
   /// jacobian matrix
   SparseMatrix * jacobian_matrix;
 
@@ -245,6 +351,14 @@ private:
   // Rotation matrix
   ElementTypeMapArray<Real> rotation_matrix;
 
+  /// analysis method check the list in akantu::AnalysisMethod
+  AnalysisMethod method;
+
+  /// flag defining if the increment must be computed or not
+  bool increment_flag;
+
+  /// integration scheme of second order used
+  IntegrationScheme2ndOrder * integrator;
 
   /* -------------------------------------------------------------------------- */
   std::vector<StructuralMaterial> materials;

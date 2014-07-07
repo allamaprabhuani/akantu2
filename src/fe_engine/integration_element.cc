@@ -56,7 +56,16 @@ template<> Real GaussIntegrationTypeData<_git_segment, 2>::quad_weights[]       
 template<> UInt GaussIntegrationTypeData<_git_segment, 3>::nb_quadrature_points = 3;
 template<> Real GaussIntegrationTypeData<_git_segment, 3>::quad_positions[]     = {-sqrt(3./5.), 0., sqrt(3./5.)};
 template<> Real GaussIntegrationTypeData<_git_segment, 3>::quad_weights[]       = {5./9., 8./9., 5./9.};
-
+/* -------------------------------------------------------------------------- */
+template<> UInt GaussIntegrationTypeData<_git_segment, 4>::nb_quadrature_points = 4;
+template<> Real GaussIntegrationTypeData<_git_segment, 4>::quad_positions[]     = {-sqrt((3. + 2.*sqrt(6./5.))/7.),
+										   -sqrt((3. - 2.*sqrt(6./5.))/7.), 
+										   sqrt((3. - 2.*sqrt(6./5.))/7.), 
+										   sqrt((3. + 2.*sqrt(6./5.))/7.)};
+template<> Real GaussIntegrationTypeData<_git_segment, 4>::quad_weights[]       = {(18. - sqrt(30.))/36., 
+										   (18. + sqrt(30.))/36., 
+										   (18. + sqrt(30.))/36., 
+										   (18. - sqrt(30.))/36.};
 /* -------------------------------------------------------------------------- */
 /* Triangles                                                                  */
 /* -------------------------------------------------------------------------- */

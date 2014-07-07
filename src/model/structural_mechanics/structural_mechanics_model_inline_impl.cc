@@ -320,7 +320,7 @@ void StructuralMechanicsModel::computeForcesByGlobalTractionArray(const Array<Re
  * passed coordinates
  */
 template<ElementType type>
-void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
+inline void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 							 BoundaryFunctionType function_type){
   /** function type is
    ** _bft_forces : linear load is given
@@ -388,3 +388,222 @@ void StructuralMechanicsModel::computeForcesFromFunction(BoundaryFunction myf,
 }
 
 /* -------------------------------------------------------------------------- */
+template<>
+inline void StructuralMechanicsModel::assembleMass<_bernoulli_beam_2>() {
+  AKANTU_DEBUG_IN();
+  
+  GhostType ghost_type = _not_ghost;
+  ElementType type = _bernoulli_beam_2;
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
+  UInt nb_element                 = getFEEngine().getMesh().getNbElement(type);
+  UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
+  UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(type);
+  UInt nb_fields_to_interpolate = getTangentStiffnessVoigtSize<_bernoulli_beam_2>();
+
+  UInt nt_n_field_size = nb_degree_of_freedom * nb_nodes_per_element;
+
+  Array<Real> * n = new Array<Real>(nb_element*nb_quadrature_points,
+				    nb_fields_to_interpolate * nt_n_field_size,
+				    "N");
+  n->clear();
+  Array<Real> * rho_field = new Array<Real>(nb_element*nb_quadrature_points,
+					  "Rho");
+  rho_field->clear();
+  computeRho(*rho_field, type, _not_ghost);
+  
+  bool sign = true;
+  
+/* -------------------------------------------------------------------------- */
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 0, 0, 0, sign, ghost_type); // Ni ui -> u
+
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 1, 1, 1, sign, ghost_type); // Mi vi -> v
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 2, 2, 1, sign, ghost_type); // Li Theta_i -> v
+/* -------------------------------------------------------------------------- */
+
+  fem.assembleFieldMatrix(*rho_field, nb_degree_of_freedom, *mass_matrix, n, rotation_matrix, type, ghost_type);
+  
+  delete n;
+  delete rho_field;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void StructuralMechanicsModel::assembleMass<_bernoulli_beam_3>() {
+  AKANTU_DEBUG_IN();
+
+  GhostType ghost_type = _not_ghost;
+  ElementType type = _bernoulli_beam_3;
+  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
+  UInt nb_element                 = getFEEngine().getMesh().getNbElement(type);
+  UInt nb_nodes_per_element       = Mesh::getNbNodesPerElement(type);
+  UInt nb_quadrature_points       = getFEEngine().getNbQuadraturePoints(type);
+  UInt nb_fields_to_interpolate = getTangentStiffnessVoigtSize<_bernoulli_beam_3>();
+
+  UInt nt_n_field_size = nb_degree_of_freedom * nb_nodes_per_element; 
+
+  Array<Real> * n = new Array<Real>(nb_element*nb_quadrature_points,
+				    nb_fields_to_interpolate * nt_n_field_size,
+				    "N");
+  n->clear();
+  Array<Real> * rho_field = new Array<Real>(nb_element * nb_quadrature_points,
+					   "Rho");
+  rho_field->clear();
+  computeRho(*rho_field, type, _not_ghost);
+  
+/* -------------------------------------------------------------------------- */
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 0, 0, 0, true, ghost_type); // Ni ui ->         u
+
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 1, 1, 1, true, ghost_type); // Mi vi ->         v
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 2, 5, 1, true, ghost_type); // Li Theta_z_i ->  v
+
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 1, 2, 2, true, ghost_type); // Mi wi ->        w
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 2, 4, 2, false,ghost_type);// -Li Theta_y_i ->  w
+
+  fem.computeShapesMatrix(type, nb_degree_of_freedom, nb_nodes_per_element, n, 0, 3, 3, true, ghost_type); // Ni Theta_x_i->Theta_x
+/* -------------------------------------------------------------------------- */
+
+  fem.assembleFieldMatrix(*rho_field, nb_degree_of_freedom, *mass_matrix, n, rotation_matrix, type, ghost_type);
+  
+  delete n;
+  delete rho_field;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void StructuralMechanicsModel::assembleMass<_kirchhoff_shell>() {
+
+  AKANTU_DEBUG_TO_IMPLEMENT();
+
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
+bool StructuralMechanicsModel::solveStep(Real tolerance,
+					 UInt max_iteration) {
+  Real error = 0.;
+  return this->template solveStep<cmethod,criteria>(tolerance,
+						    error,
+						    max_iteration);
+}
+
+/* -------------------------------------------------------------------------- */
+template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
+bool StructuralMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_iteration) {
+  
+  this->implicitPred();
+  this->updateResidual();
+
+  AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
+		      "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+  if (method==_implicit_dynamic) {
+    AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
+			"You should first initialize the implicit solver and assemble the mass matrix");
+  }
+
+  switch (cmethod) {
+  case _scm_newton_raphson_tangent:
+  case _scm_newton_raphson_tangent_not_computed:
+    break;
+  case _scm_newton_raphson_tangent_modified:
+    this->assembleStiffnessMatrix();
+    break;
+  default:
+    AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
+  }
+
+  UInt iter = 0;
+  bool converged = false;
+  error = 0.;
+  if(criteria == _scc_residual) {
+    converged = this->testConvergence<criteria> (tolerance, error);
+    if(converged) return converged;
+  }
+
+  do {
+    if (cmethod == _scm_newton_raphson_tangent)
+      this->assembleStiffnessMatrix();
+
+    solve<NewmarkBeta::_displacement_corrector> (*increment);
+
+    this->implicitCorr();
+
+    if(criteria == _scc_residual) this->updateResidual();
+
+    converged = this->testConvergence<criteria> (tolerance, error);
+
+    if(criteria == _scc_increment && !converged) this->updateResidual();
+    //this->dump();
+
+    iter++;
+    AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
+		      << std::setw(std::log10(max_iteration)) << iter
+		      << ": error " << error << (converged ? " < " : " > ") << tolerance);
+
+  } while (!converged && iter < max_iteration);
+
+
+  if (converged) {
+    
+  } else if(iter == max_iteration) {
+    AKANTU_DEBUG_WARNING("[" << criteria << "] Convergence not reached after "
+                         << std::setw(std::log10(max_iteration)) << iter <<
+                         " iteration" << (iter == 1 ? "" : "s") << "!" << std::endl);
+  }
+
+  return converged;
+}
+/* -------------------------------------------------------------------------- */
+template<NewmarkBeta::IntegrationSchemeCorrectorType type>
+void StructuralMechanicsModel::solve(Array<Real> & increment,
+                                Real block_val) {
+  jacobian_matrix->clear();
+
+  //updateResidualInternal(); //doesn't do anything for static
+
+  Real c = 0.,d = 0.,e = 0.;
+
+  if(method == _static) {
+    AKANTU_DEBUG_INFO("Solving K inc = r");
+    e = 1.;
+  } else {
+    AKANTU_DEBUG_INFO("Solving (c M + d C + e K) inc = r");
+
+    NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
+    c = nmb_int->getAccelerationCoefficient<type>(time_step);
+    d = nmb_int->getVelocityCoefficient<type>(time_step);
+    e = nmb_int->getDisplacementCoefficient<type>(time_step);
+  }
+
+  // J = c M + d C + e K
+  if(stiffness_matrix)
+    jacobian_matrix->add(*stiffness_matrix, e);
+
+//  if(type != NewmarkBeta::_acceleration_corrector)
+//    jacobian_matrix->add(*stiffness_matrix, e);
+
+  if(mass_matrix)
+    jacobian_matrix->add(*mass_matrix, c);
+
+#if !defined(AKANTU_NDEBUG)
+  if(mass_matrix && AKANTU_DEBUG_TEST(dblDump))
+    mass_matrix->saveMatrix("M.mtx");
+#endif
+
+  if(velocity_damping_matrix)
+    jacobian_matrix->add(*velocity_damping_matrix, d);
+
+  jacobian_matrix->applyBoundary(*blocked_dofs);
+
+#if !defined(AKANTU_NDEBUG)
+  if(AKANTU_DEBUG_TEST(dblDump))
+    jacobian_matrix->saveMatrix("J.mtx");
+#endif
+
+  solver->setRHS(*residual);
+  // solve @f[ J \delta w = r @f]
+  solver->solve(increment);
+}

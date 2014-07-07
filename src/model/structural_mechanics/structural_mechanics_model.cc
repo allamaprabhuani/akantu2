@@ -44,28 +44,40 @@
 
 __BEGIN_AKANTU__
 
+const StructuralMechanicsModelOptions default_structural_mechanics_model_options(_static);
+
 /* -------------------------------------------------------------------------- */
 StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 						   UInt dim,
 						   const ID & id,
 						   const MemoryID & memory_id) :
   Model(mesh, dim, id, memory_id), Dumpable(),
+  time_step(NAN), f_m2a(1.0),
   stress("stress", id, memory_id),
   element_material("element_material", id, memory_id),
   set_ID("beam sets", id, memory_id),
   stiffness_matrix(NULL),
+  mass_matrix(NULL),
+  velocity_damping_matrix(NULL),
   jacobian_matrix(NULL),
   solver(NULL),
-  rotation_matrix("rotation_matices", id, memory_id) {
+  rotation_matrix("rotation_matices", id, memory_id),
+  increment_flag(false),
+  integrator(NULL) {
   AKANTU_DEBUG_IN();
 
   registerFEEngineObject<MyFEEngineType>("StructuralMechanicsFEEngine", mesh, spatial_dimension);
 
   this->displacement_rotation = NULL;
+  this->mass                  = NULL;
+  this->velocity              = NULL;
+  this->acceleration          = NULL;
   this->force_momentum        = NULL;
   this->residual              = NULL;
   this->blocked_dofs              = NULL;
   this->increment             = NULL;
+
+  this->previous_displacement = NULL;
 
   if(spatial_dimension == 2)
     nb_degree_of_freedom = 3;
@@ -85,23 +97,41 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 StructuralMechanicsModel::~StructuralMechanicsModel() {
   AKANTU_DEBUG_IN();
 
+  delete integrator;
   delete solver;
   delete stiffness_matrix;
   delete jacobian_matrix;
+  delete mass_matrix;
+  delete velocity_damping_matrix;
 
   AKANTU_DEBUG_OUT();
+}
+
+void StructuralMechanicsModel::setTimeStep(Real time_step) {
+  this->time_step = time_step;
+
+#if defined(AKANTU_USE_IOHELPER)
+  getDumper().setTimeStep(time_step);
+#endif
 }
 
 /* -------------------------------------------------------------------------- */
 /* Initialisation                                                             */
 /* -------------------------------------------------------------------------- */
 
-void StructuralMechanicsModel::initFull(std::string material) {
+void StructuralMechanicsModel::initFull(const ModelOptions & options) {
+  
+  const StructuralMechanicsModelOptions & stmm_options =
+    dynamic_cast<const StructuralMechanicsModelOptions &>(options);
+
+  method = stmm_options.analysis_method;
+  
   initModel();
   initArrays();
-  initSolver();
 
   displacement_rotation->clear();
+  velocity             ->clear();
+  acceleration         ->clear();
   force_momentum       ->clear();
   residual             ->clear();
   blocked_dofs             ->clear();
@@ -113,6 +143,18 @@ void StructuralMechanicsModel::initFull(std::string material) {
   for (; it != end; ++it) {
     computeRotationMatrix(*it);
   }
+
+  switch(method) {
+  case _implicit_dynamic:
+    initImplicit();
+    break;
+  case _static:
+    initSolver();
+    break;
+  default:
+    AKANTU_EXCEPTION("analysis method not recognised by StructuralMechanicsModel");
+      break;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -121,12 +163,16 @@ void StructuralMechanicsModel::initArrays() {
 
   UInt nb_nodes = getFEEngine().getMesh().getNbNodes();
   std::stringstream sstr_disp; sstr_disp << id << ":displacement";
+  std::stringstream sstr_velo; sstr_velo << id << ":velocity";
+  std::stringstream sstr_acce; sstr_acce << id << ":acceleration";
   std::stringstream sstr_forc; sstr_forc << id << ":force";
   std::stringstream sstr_resi; sstr_resi << id << ":residual";
   std::stringstream sstr_boun; sstr_boun << id << ":blocked_dofs";
   std::stringstream sstr_incr; sstr_incr << id << ":increment";
 
   displacement_rotation = &(alloc<Real>(sstr_disp.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
+  velocity              = &(alloc<Real>(sstr_velo.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
+  acceleration          = &(alloc<Real>(sstr_acce.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
   force_momentum        = &(alloc<Real>(sstr_forc.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
   residual              = &(alloc<Real>(sstr_resi.str(), nb_nodes, nb_degree_of_freedom, REAL_INIT_VALUE));
   blocked_dofs              = &(alloc<bool>(sstr_boun.str(), nb_nodes, nb_degree_of_freedom, false));
@@ -190,6 +236,20 @@ void StructuralMechanicsModel::initSolver(__attribute__((unused)) SolverOptions 
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+ void StructuralMechanicsModel::initImplicit(bool dynamic, SolverOptions & solver_options) {
+   AKANTU_DEBUG_IN();
+ 
+   if (!increment) setIncrementFlagOn();
+
+   initSolver(solver_options);
+
+   if(integrator) delete integrator;
+   integrator = new TrapezoidalRule2();
+
+   AKANTU_DEBUG_OUT();
+ }
 
 /* -------------------------------------------------------------------------- */
 UInt StructuralMechanicsModel::getTangentStiffnessVoigtSize(const ElementType & type) {
@@ -435,7 +495,6 @@ void StructuralMechanicsModel::computeStresses() {
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::updateResidual() {
  AKANTU_DEBUG_IN();
@@ -445,9 +504,129 @@ void StructuralMechanicsModel::updateResidual() {
  ku *= *stiffness_matrix;
  *residual -= ku;
 
+ this->updateResidualInternal();
+
  AKANTU_DEBUG_OUT();
 
 }
+
+/* -------------------------------------------------------------------------- */
+void StructuralMechanicsModel::implicitPred() {
+  AKANTU_DEBUG_IN();
+
+  if(previous_displacement) previous_displacement->copy(*displacement_rotation);
+
+  if(method == _implicit_dynamic)
+    integrator->integrationSchemePred(time_step,
+                                    *displacement_rotation,
+                                    *velocity,
+                                    *acceleration,
+                                    *blocked_dofs);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void StructuralMechanicsModel::implicitCorr() {
+  AKANTU_DEBUG_IN();
+  
+  Real * incr_val = increment->storage();
+  bool * boun_val = blocked_dofs->storage();
+
+  UInt nb_nodes = displacement_rotation->getSize();
+  
+  for (UInt j = 0; j < nb_nodes * nb_degree_of_freedom; ++j, ++incr_val, ++boun_val){
+      *incr_val *= (1. - *boun_val);
+  }
+
+  if(method == _implicit_dynamic) {
+    integrator->integrationSchemeCorrDispl(time_step,
+                                           *displacement_rotation,
+                                           *velocity,
+                                           *acceleration,
+                                           *blocked_dofs,
+                                           *increment);
+  } else {
+
+    Real * disp_val = displacement_rotation->storage();
+    incr_val = increment->storage();
+
+    for (UInt j = 0; j < nb_nodes *nb_degree_of_freedom; ++j, ++disp_val){
+      *disp_val += *incr_val;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+void StructuralMechanicsModel::updateResidualInternal() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_INFO("Update the residual");
+  // f = f_ext - f_int - Ma - Cv = r - Ma - Cv;
+
+  if(method != _static) {
+    // f -= Ma
+    if(mass_matrix) {
+      // if full mass_matrix
+      Array<Real> * Ma = new Array<Real>(*acceleration, true, "Ma");
+      *Ma *= *mass_matrix;
+      /// \todo check unit conversion for implicit dynamics
+      //      *Ma /= f_m2a
+      *residual -= *Ma;
+      delete Ma;
+    } else if (mass) {
+
+      // else lumped mass
+      UInt nb_nodes = acceleration->getSize();
+      UInt nb_degree_of_freedom = acceleration->getNbComponent();
+
+      Real * mass_val     = mass->storage();
+      Real * accel_val    = acceleration->storage();
+      Real * res_val      = residual->storage();
+      bool * blocked_dofs_val = blocked_dofs->storage();
+
+      for (UInt n = 0; n < nb_nodes * nb_degree_of_freedom; ++n) {
+        if(!(*blocked_dofs_val)) {
+          *res_val -= *accel_val * *mass_val /f_m2a;
+        }
+        blocked_dofs_val++;
+        res_val++;
+        mass_val++;
+        accel_val++;
+      }
+    } else {
+      AKANTU_DEBUG_ERROR("No function called to assemble the mass matrix.");
+    }
+
+    // f -= Cv
+    if(velocity_damping_matrix) {
+      Array<Real> * Cv = new Array<Real>(*velocity);
+      *Cv *= *velocity_damping_matrix;
+      *residual -= *Cv;
+      delete Cv;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+
+/* -------------------------------------------------------------------------- */
+void StructuralMechanicsModel::setIncrementFlagOn() {
+  AKANTU_DEBUG_IN();
+
+  if(!increment) {
+    UInt nb_nodes = mesh.getNbNodes();
+    std::stringstream sstr_inc; sstr_inc << id << ":increment";
+    increment = &(alloc<Real>(sstr_inc.str(), nb_nodes, spatial_dimension, 0.));
+  }
+
+  increment_flag = true;
+
+  AKANTU_DEBUG_OUT();
+}
+
 
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::solve() {
@@ -488,6 +667,84 @@ void StructuralMechanicsModel::solve() {
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+template<>
+bool StructuralMechanicsModel::testConvergence<_scc_increment>(Real tolerance, Real & error){
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes = displacement_rotation->getSize();
+  UInt nb_degree_of_freedom = displacement_rotation->getNbComponent();
+
+  error = 0;
+  Real norm[2] = {0., 0.};
+  Real * increment_val    = increment->storage();
+  bool * blocked_dofs_val     = blocked_dofs->storage();
+  Real * displacement_val = displacement_rotation->storage();
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
+      if(!(*blocked_dofs_val)) {
+        norm[0] += *increment_val * *increment_val;
+        norm[1] += *displacement_val * *displacement_val;
+      }
+      blocked_dofs_val++;
+      increment_val++;
+      displacement_val++;
+    }
+  }
+
+  StaticCommunicator::getStaticCommunicator().allReduce(norm, 2, _so_sum);
+
+  norm[0] = sqrt(norm[0]);
+  norm[1] = sqrt(norm[1]);
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm[0]), "Something went wrong in the solve phase");
+
+  AKANTU_DEBUG_OUT();
+  if(norm[1] > Math::getTolerance())
+    error = norm[0] / norm[1];
+  else
+    error = norm[0]; //In case the total displacement is zero!
+  return (error < tolerance);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+bool StructuralMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & norm) {
+  AKANTU_DEBUG_IN();
+
+  UInt nb_nodes = residual->getSize();
+
+  norm = 0;
+  Real * residual_val = residual->storage();
+  bool * blocked_dofs_val = blocked_dofs->storage();
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
+    if(is_local_node) {
+      for (UInt d = 0; d < spatial_dimension; ++d) {
+        if(!(*blocked_dofs_val)) {
+          norm += *residual_val * *residual_val;
+        }
+        blocked_dofs_val++;
+        residual_val++;
+      }
+    } else {
+      blocked_dofs_val += spatial_dimension;
+      residual_val += spatial_dimension;
+    }
+  }
+
+  StaticCommunicator::getStaticCommunicator().allReduce(&norm, 1, _so_sum);
+
+  norm = sqrt(norm);
+
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm), "Something goes wrong in the solve phase");
+
+  AKANTU_DEBUG_OUT();
+  return (norm < tolerance);
+}
+
 
 /* -------------------------------------------------------------------------- */
 bool StructuralMechanicsModel::testConvergenceIncrement(Real tolerance) {

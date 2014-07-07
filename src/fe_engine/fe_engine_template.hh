@@ -105,7 +105,8 @@ public:
 
   /// get shapes precomputed
   const Array<Real> & getShapes(const ElementType & type,
-				const GhostType & ghost_type = _not_ghost) const;
+				const GhostType & ghost_type = _not_ghost,
+				UInt id=0) const;
 
   /// get the derivatives of shapes
   const Array<Real> & getShapesDerivatives(const ElementType & type,
@@ -197,6 +198,28 @@ public:
 			   ElementType type,
 			   const GhostType & ghost_type = _not_ghost) const;
 
+#ifdef AKANTU_STRUCTURAL_MECHANICS
+
+
+  void assembleFieldMatrix(const Array<Real> & field_1,
+			   UInt nb_degree_of_freedom,
+			   SparseMatrix & M,
+			   Array<Real> * n,
+			   ElementTypeMapArray<Real> & rotation_mat,
+			   const ElementType & type,
+			   const GhostType & ghost_type = _not_ghost) const;
+
+  void computeShapesMatrix(const ElementType & type,
+			   UInt nb_degree_of_freedom, 
+			   UInt nb_nodes_per_element,
+			   Array<Real> * n,
+			   UInt id,
+			   UInt degree_to_interpolate,
+			   UInt degree_interpolated,
+			   const bool sign,
+			   const GhostType & ghost_type = _not_ghost) const;
+#endif
+
 private:
   friend class AssembleLumpedTemplateHelper<kind>;
   friend class AssembleFieldMatrixHelper<kind>;
@@ -230,6 +253,17 @@ private:
 			   SparseMatrix & matrix,
 			   const GhostType & ghost_type) const;
 
+#ifdef AKANTU_STRUCTURAL_MECHANICS
+
+  template <ElementType type>
+  void assembleFieldMatrix(const Array<Real> & field_1,
+			   UInt nb_degree_of_freedom,
+			   SparseMatrix & M,
+			   Array<Real> * n,
+			   ElementTypeMapArray<Real> & rotation_mat,
+			   const GhostType & ghost_type) const;
+
+#endif
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -257,5 +291,12 @@ __END_AKANTU__
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 #include "fe_engine_template_tmpl.hh"
+
+#if defined(AKANTU_STRUCTURAL_MECHANICS)
+/* -------------------------------------------------------------------------- */
+/* Shape Linked specialization                                                */
+/* -------------------------------------------------------------------------- */
+#include "fe_engine_template_tmpl_struct.hh"
+#endif
 
 #endif /* __AKANTU_FE_ENGINE_TEMPLATE_HH__ */
