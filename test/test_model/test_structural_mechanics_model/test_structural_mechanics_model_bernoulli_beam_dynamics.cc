@@ -166,6 +166,9 @@ int main(int argc, char *argv[]){
   model.getMassMatrix().saveMatrix("M.mt");
   Real time_step = 1e-4;
   model.setTimeStep(time_step);
+
+  std::cout << "Time" << "  |   " << "Mid-Span Displacement" << std::endl;
+
   /// time loop
   for (UInt s = 1; time < 0.64; ++s) {
 
@@ -175,7 +178,8 @@ int main(int argc, char *argv[]){
     //    pos << s << "," << time << "," << displacement(node_to_print, 1) << "," << analytical_solution(s*time_step) << std::endl;
 
     time += time_step;
-    if(s % 100 ==0) 
+    if(s % 100 == 0) 
+      std::cout << time << "  |   " << displacement(node_to_print, 1) << std::endl;  
     model.dump();
   }
 

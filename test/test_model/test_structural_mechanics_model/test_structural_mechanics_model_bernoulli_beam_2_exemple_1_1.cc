@@ -134,11 +134,8 @@ int main(int argc, char *argv[]){
 
 
   forces(nb_nodes-1,2) += M;
-  forces(0,1) += -30000;
-  forces(0,2) += -50000;
-  forces(1,1) += -30000;
-  forces(1,2) += 50000;
-  //model.computeForcesFromFunction<_bernoulli_beam_2>(lin_load, akantu::_bft_traction);
+
+  model.computeForcesFromFunction<_bernoulli_beam_2>(lin_load, akantu::_bft_traction);
 
   /* -------------------------------------------------------------------------- */
   // Defining the boundary conditions
@@ -173,7 +170,7 @@ int main(int argc, char *argv[]){
   // Post-Processing
 
   model.computeStresses();
-  const Array<Real> & res = model.getResidual();
+
   model.getStiffnessMatrix().saveMatrix("Ka.mtx");
   std::cout<< " d1 = " << displacement(nb_nodes_1,2) << std::endl;
   std::cout<< " d2 = " << displacement(nb_nodes-1,2) << std::endl;
