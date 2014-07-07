@@ -2,7 +2,7 @@
 # @author Fabian Barras <fabian.barras@epfl.ch>
 # @date   Thu May 12 19:05:02 2011
 #
-# @brief
+# @brief Structural Mechanics Model Tests
 #
 # @section LICENSE
 #
