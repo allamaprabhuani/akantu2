@@ -76,6 +76,10 @@ public:
   /// initialize the solver
   virtual void initialize(SolverOptions & options = _solver_no_options) = 0;
 
+  virtual void analysis() {};
+
+  virtual void factorize() {};
+
   /// solve
   virtual void solve(Array<Real> & solution) = 0;
   virtual void solve() = 0;

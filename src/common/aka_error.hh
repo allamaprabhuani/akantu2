@@ -85,7 +85,7 @@ namespace akantu {
 
     void printBacktrace(int sig);
 
-
+    void exit(int status) __attribute__ ((noreturn));
     /* -------------------------------------------------------------------------- */
     /// exception class that can be thrown by akantu
     class Exception : public std::exception {
@@ -146,7 +146,7 @@ namespace akantu {
       Debugger();
       virtual ~Debugger();
 
-      static void exit(int status) __attribute__ ((noreturn));
+      void exit(int status) __attribute__ ((noreturn));
 
       void throwException(const std::string & info,
 			  const std::string & file,
@@ -175,11 +175,17 @@ namespace akantu {
         return (this->level >= (level));
       }
 
+      void printBacktrace(bool on_off) {
+	this->print_backtrace = on_off;
+      }
+
     private:
       std::string parallel_context;
       std::ostream * cout;
       bool file_open;
       DebugLevel level;
+
+      bool print_backtrace;
     };
 
     extern Debugger debugger;

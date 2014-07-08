@@ -40,6 +40,7 @@ __BEGIN_AKANTU__
 class SolverMumpsOptions : public SolverOptions {
 public:
   enum ParallelMethod {
+    _not_parallel,
     _fully_distributed,
     _master_slave_distributed
   };
@@ -75,8 +76,13 @@ public:
 
   void initializeSlave(SolverOptions & options = _solver_no_options);
 
+  /// analysis (symbolic facto + permutations)
+  void analysis();
 
-  /// factorize and solve the system
+  /// factorize the matrix
+  void factorize();
+
+  /// solve the system
   void solve(Array<Real> & solution);
   void solve();
 
@@ -84,29 +90,32 @@ public:
 
   virtual void setRHS(Array<Real> & rhs);
 
-  /// function to print the contain of the class
-  //  virtual void printself(std::ostream & stream, int indent = 0) const;
 
   virtual void onCommunicatorFinalize(const StaticCommunicator & communicator);
 
 private:
+  /// print the error if any happened in mumps
+  void printError();
 
+  /// clean the mumps info
   void destroyMumpsData();
 
-  inline Int & icntl(UInt i) {
-    return mumps_data.icntl[i - 1];
-  }
-
-  inline Int & info(UInt i) {
-    return mumps_data.info[i - 1];
-  }
-
-  void initMumpsData(SolverMumpsOptions::ParallelMethod parallel_method);
+  /// set internal values;
+  void initMumpsData();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-public:
+private:
+  /// access the control variable
+  inline Int & icntl(UInt i) {
+    return mumps_data.icntl[i - 1];
+  }
+
+  /// access the results info
+  inline Int & info(UInt i) {
+    return mumps_data.info[i - 1];
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -140,20 +149,6 @@ private:
     _smj_destroy = -2
   };
 };
-
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-//#include "solver_mumps_inline_impl.cc"
-std::ostream & operator <<(std::ostream & stream, const DMUMPS_STRUC_C & _this);
-/// standard output stream operator
-// inline std::ostream & operator <<(std::ostream & stream, const SolverMumps & _this)
-// {
-//   _this.printself(stream);
-//   return stream;
-// }
 
 
 __END_AKANTU__

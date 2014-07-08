@@ -73,11 +73,7 @@ int main(int argc, char *argv[])
   model.addDumpField("stress");
   model.addDumpField("delta_T");
 
-  model.assembleStiffnessMatrix();
-  model.updateResidual();
-
-  model.solveStatic();
-  model.updateResidual();
+  model.solveStatic<_scm_newton_raphson_tangent_modified, _scc_increment>(1e-10, 2);
 
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
     if (Math::are_float_equal(pos(i, 0), max(0)) && Math::are_float_equal(pos(i, 1), max(1))) {

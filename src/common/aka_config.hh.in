@@ -77,7 +77,7 @@
 #cmakedefine AKANTU_CORE_CXX11
 
 // Debug tools
-#cmakedefine AKANTU_NDEBUG
+//#cmakedefine AKANTU_NDEBUG
 #cmakedefine AKANTU_DEBUG_TOOLS
 #cmakedefine READLINK_COMMAND @READLINK_COMMAND@
 #cmakedefine ADDR2LINE_COMMAND @ADDR2LINE_COMMAND@

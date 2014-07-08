@@ -413,73 +413,69 @@ __END_AKANTU__
 #include "sparse_matrix.hh"
 #include "solver.hh"
 
-#ifdef AKANTU_USE_MUMPS
-#include "solver_mumps.hh"
-#endif
-
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<NewmarkBeta::IntegrationSchemeCorrectorType type>
 void SolidMechanicsModel::solve(Array<Real> & increment,
-                                Real block_val) {
-
-#ifdef AKANTU_USE_MUMPS
-  // @todo make it more flexible: this is an ugly patch to treat the case of non
-  // fix profile of the K matrix
-  delete jacobian_matrix;
-  std::stringstream sstr_sti; sstr_sti << id << ":jacobian_matrix";
-  jacobian_matrix = new SparseMatrix(*stiffness_matrix, sstr_sti.str(), memory_id);
-
-  std::stringstream sstr_solv; sstr_solv << id << ":solver";
-  delete solver;
-  solver = new SolverMumps(*jacobian_matrix, sstr_solv.str());
-  if(solver)
-    solver->initialize(_solver_no_options);
-#else
-  AKANTU_DEBUG_INFO("Check that the profile of the stiffness matrix doesn't change.");
+                                Real block_val,
+				bool need_factorize,
+				bool has_profile_changed) {
+#ifdef AKANTU_USE_CONTACT
+  has_profile_changed = true; // @todo this is a quick and ugly patch for the contact to work
 #endif
+
+  if(has_profile_changed) {
+    this->initJacobianMatrix();
+    need_factorize = true;
+  }
 
   updateResidualInternal(); //doesn't do anything for static
 
-  Real c = 0.,d = 0.,e = 0.;
+  if(need_factorize) {
+    Real c = 0.,d = 0.,e = 0.;
 
-  if(method == _static) {
-    AKANTU_DEBUG_INFO("Solving K inc = r");
-    e = 1.;
-  } else {
-    AKANTU_DEBUG_INFO("Solving (c M + d C + e K) inc = r");
+    if(method == _static) {
+      AKANTU_DEBUG_INFO("Solving K inc = r");
+      e = 1.;
+    } else {
+      AKANTU_DEBUG_INFO("Solving (c M + d C + e K) inc = r");
 
-    NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
-    c = nmb_int->getAccelerationCoefficient<type>(time_step);
-    d = nmb_int->getVelocityCoefficient<type>(time_step);
-    e = nmb_int->getDisplacementCoefficient<type>(time_step);
+      NewmarkBeta * nmb_int = dynamic_cast<NewmarkBeta *>(integrator);
+      c = nmb_int->getAccelerationCoefficient<type>(time_step);
+      d = nmb_int->getVelocityCoefficient<type>(time_step);
+      e = nmb_int->getDisplacementCoefficient<type>(time_step);
+    }
+
+
+    jacobian_matrix->clear();
+    // J = c M + d C + e K
+    if(stiffness_matrix)
+      jacobian_matrix->add(*stiffness_matrix, e);
+
+    if(mass_matrix)
+      jacobian_matrix->add(*mass_matrix, c);
+
+#if !defined(AKANTU_NDEBUG)
+    if(mass_matrix && AKANTU_DEBUG_TEST(dblDump))
+      mass_matrix->saveMatrix("M.mtx");
+#endif
+
+    if(velocity_damping_matrix)
+      jacobian_matrix->add(*velocity_damping_matrix, d);
+
+    jacobian_matrix->applyBoundary(*blocked_dofs, block_val);
+
+#if !defined(AKANTU_NDEBUG)
+    if(AKANTU_DEBUG_TEST(dblDump))
+      jacobian_matrix->saveMatrix("J.mtx");
+#endif
+
+    solver->factorize();
   }
 
-  jacobian_matrix->clear();
-  // J = c M + d C + e K
-  if(stiffness_matrix)
-    jacobian_matrix->add(*stiffness_matrix, e);
-
-  if(mass_matrix)
-    jacobian_matrix->add(*mass_matrix, c);
-
-#if !defined(AKANTU_NDEBUG)
-  if(mass_matrix && AKANTU_DEBUG_TEST(dblDump))
-    mass_matrix->saveMatrix("M.mtx");
-#endif
-
-  if(velocity_damping_matrix)
-    jacobian_matrix->add(*velocity_damping_matrix, d);
-
-  jacobian_matrix->applyBoundary(*blocked_dofs, block_val);
-
-#if !defined(AKANTU_NDEBUG)
-  if(AKANTU_DEBUG_TEST(dblDump))
-    jacobian_matrix->saveMatrix("J.mtx");
-#endif
-
   solver->setRHS(*residual);
+
   // solve @f[ J \delta w = r @f]
   solver->solve(increment);
 
@@ -500,16 +496,17 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-bool SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration) {
+bool SolidMechanicsModel::solveStatic(Real tolerance, UInt max_iteration,
+				      bool do_not_factorize) {
 
   AKANTU_DEBUG_INFO("Solving Ku = f");
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
                       "You should first initialize the implicit solver and assemble the stiffness matrix by calling initImplicit");
 
   AnalysisMethod analysis_method=method;
-
+  Real error = 0.;
   method=_static;
-  bool converged = solveStep<cmethod, criteria>(tolerance, max_iteration);
+  bool converged = this->template solveStep<cmethod, criteria>(tolerance, error, max_iteration, do_not_factorize);
   method=analysis_method;
   return converged;
 
@@ -527,13 +524,16 @@ bool SolidMechanicsModel::solveStep(Real tolerance,
 
 /* -------------------------------------------------------------------------- */
 template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_iteration) {
+bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_iteration,
+				    bool do_not_factorize) {
   EventManager::sendEvent(SolidMechanicsModelEvent::BeforeSolveStepEvent(method));
   this->implicitPred();
   this->updateResidual();
 
   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
                       "You should first initialize the implicit solver and assemble the stiffness matrix");
+
+  bool need_factorize = !do_not_factorize;
 
   if (method==_implicit_dynamic) {
     AKANTU_DEBUG_ASSERT(mass_matrix != NULL,
@@ -563,7 +563,7 @@ bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_itera
     if (cmethod == _scm_newton_raphson_tangent)
       this->assembleStiffnessMatrix();
 
-    solve<NewmarkBeta::_displacement_corrector> (*increment);
+    solve<NewmarkBeta::_displacement_corrector> (*increment, 1., need_factorize);
 
     this->implicitCorr();
 
@@ -578,6 +578,19 @@ bool SolidMechanicsModel::solveStep(Real tolerance, Real & error, UInt max_itera
     AKANTU_DEBUG_INFO("[" << criteria << "] Convergence iteration "
                       << std::setw(std::log10(max_iteration)) << iter
                       << ": error " << error << (converged ? " < " : " > ") << tolerance);
+
+    switch (cmethod) {
+    case _scm_newton_raphson_tangent:
+      need_factorize = true;
+      break;
+    case _scm_newton_raphson_tangent_not_computed:
+    case _scm_newton_raphson_tangent_modified:
+      need_factorize = false;
+      break;
+    default:
+      AKANTU_DEBUG_ERROR("The resolution method " << cmethod << " has not been implemented!");
+    }
+
 
   } while (!converged && iter < max_iteration);
 

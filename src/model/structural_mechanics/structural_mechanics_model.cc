@@ -646,6 +646,7 @@ void StructuralMechanicsModel::solve() {
 
   solver->setRHS(*residual);
 
+  solver->factorize();
   solver->solve(*increment);
 
   Real * increment_val     = increment->storage();

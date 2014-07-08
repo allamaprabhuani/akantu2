@@ -234,7 +234,8 @@ public:
   template <SolveConvergenceMethod method, SolveConvergenceCriteria criteria>
   bool solveStep(Real   tolerance,
 		 Real & error,
-		 UInt   max_iteration = 100);
+		 UInt   max_iteration = 100,
+		 bool   do_not_factorize = false);
 
 public:
   /**
@@ -243,16 +244,11 @@ public:
    * criteria (see akantu::SolveConvergenceCriteria)
    **/
   template <SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-  bool solveStatic(Real tolerance, UInt max_iteration);
-
-  /// solve @f[ A\delta u = f_{ext} - f_{int} @f] in displacement
-  void solveDynamic();
+  bool solveStatic(Real tolerance, UInt max_iteration,
+		   bool do_not_factorize = false);
 
   /// solve Ku = f
-  void solveStatic();
-
-  /// solve Ku = f
-  void solveStatic(Array <bool> & boundary_normal, Array <Real> & EulerAngles);
+  //void solveStatic(Array <bool> & boundary_normal, Array <Real> & EulerAngles);
 
   /// test if the system is converged
   template <SolveConvergenceCriteria criteria>
@@ -290,7 +286,12 @@ public:
   //protected: Daniel changed it just for a test
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template <NewmarkBeta::IntegrationSchemeCorrectorType type>
-  void solve(Array <Real> & increment, Real block_val = 1.);
+  void solve(Array <Real> & increment, Real block_val = 1.,
+	     bool need_factorize = true, bool has_profile_changed = false);
+
+private:
+  /// re-initialize the J matrix (to use if the profile of K changed)
+  void initJacobianMatrix();
 
   /* ------------------------------------------------------------------------ */
   /* Explicit/Implicit                                                        */

@@ -405,7 +405,7 @@ void LevelSetModel::solveStatic() {
   solver->setRHS(*residual);
 
   if (!increment) setIncrementFlagOn();
-
+  solver->factorize();
   solver->solve(*increment);
 
   Real * increment_val = increment->storage();

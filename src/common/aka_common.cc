@@ -58,7 +58,7 @@ void initialize(const std::string & input_file, int & argc, char ** & argv) {
   debug::initSignalHandler();
 
   static_argparser.setParallelContext(comm.whoAmI(), comm.getNbProc());
-  static_argparser.setExternalExitFunction(debug::Debugger::exit);
+  static_argparser.setExternalExitFunction(debug::exit);
   static_argparser.addArgument("--aka_input_file", "Akantu's input file",
 			       1, cppargparse::_string, std::string());
   static_argparser.addArgument("--aka_debug_level", std::string("Akantu's overall debug level") +
@@ -66,6 +66,11 @@ void initialize(const std::string & input_file, int & argc, char ** & argv) {
 			       std::string(" more info on levels can be foind in aka_error.hh)"),
 			       1,
 			       cppargparse::_integer, int(dblWarning));
+
+  static_argparser.addArgument("--aka_print_backtrace",
+			       "Should Akantu print a backtrace in case of error",
+			       0,
+			       cppargparse::_boolean, false, true);
 
   static_argparser.parse(argc, argv, cppargparse::_remove_parsed);
 
@@ -81,12 +86,13 @@ void initialize(const std::string & input_file, int & argc, char ** & argv) {
   long int seed;
   try {
     seed = static_parser.getParameter("seed", _ppsc_current_scope);
-  } catch (debug::Exception & e) {
+  } catch (debug::Exception &) {
     seed = time(NULL);
   }
 
   int dbl_level = static_argparser["aka_debug_level"];
   debug::setDebugLevel(DebugLevel(dbl_level));
+  debug::debugger.printBacktrace(static_argparser["aka_print_backtrace"]);
 
   seed *= (comm.whoAmI() + 1);
   Rand48Generator<Real>::seed(seed);
