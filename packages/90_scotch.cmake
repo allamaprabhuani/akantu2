@@ -92,10 +92,10 @@ if(AKANTU_USE_THIRD_PARTY_SCOTCH AND AKANTU_USE_SCOTCH)
     INSTALL_COMMAND prefix=<INSTALL_DIR> make -C src install
     )
 
-  set_third_party_shared_libirary_name(SCOTCH_LIBRARY scotch$)
+  set_third_party_shared_libirary_name(SCOTCH_LIBRARY scotch)
   set_third_party_shared_libirary_name(SCOTCH_LIBRARY_ERR     scotcherr)
   set_third_party_shared_libirary_name(SCOTCH_LIBRARY_ERREXIT scotcherrexit)
-  set_third_party_shared_libirary_name(SCOTCH_LIBRARY_ESMUMPS esmumps$)
+  set_third_party_shared_libirary_name(SCOTCH_LIBRARY_ESMUMPS esmumps)
 
   set(SCOTCH_INCLUDE_DIR     ${SCOTCH_DIR}/include CACHE PATH "" FORCE)
 
