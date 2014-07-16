@@ -37,8 +37,8 @@ inline Dumpable::Dumpable() : default_dumper("") {
 
 /* -------------------------------------------------------------------------- */
 inline Dumpable::~Dumpable() {
-  DumperMap::iterator it  = this->dumpers.begin();
-  DumperMap::iterator end = this->dumpers.end();
+  // DumperMap::iterator it  = this->dumpers.begin();
+  // DumperMap::iterator end = this->dumpers.end();
 
   // for (; it != end; ++it) {
   //   DumperSet::iterator fit  = this->external_dumpers.find(it->first);

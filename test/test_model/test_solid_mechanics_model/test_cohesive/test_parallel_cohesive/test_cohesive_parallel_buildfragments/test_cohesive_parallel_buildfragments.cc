@@ -29,6 +29,8 @@
 #include <limits>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+#include <functional>
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_cohesive.hh"
 #include "material_cohesive.hh"
@@ -148,6 +150,10 @@ int main(int argc, char *argv[]) {
   small_frag_inertia(1) = frag_theo_mass * (el_size*el_size + h*h) / 12.;
   small_frag_inertia(2) = frag_theo_mass * (el_size*el_size + h*h) / 12.;
 
+  std::sort(small_frag_inertia.storage(),
+	    small_frag_inertia.storage() + spatial_dimension,
+	    std::greater<Real>());
+
   const Array<Real> & inertia_moments = fragment_manager.getMomentsOfInertia();
   Array<Real>::const_iterator< Vector<Real> > inertia_moments_begin
     = inertia_moments.begin(spatial_dimension);
@@ -224,6 +230,10 @@ int main(int argc, char *argv[]) {
 	    = big_frag_mass * (big_frag_size*big_frag_size + h*h) / 12.;
 	  big_frag_inertia(2)
 	    = big_frag_mass * (big_frag_size*big_frag_size + h*h) / 12.;
+
+	  std::sort(big_frag_inertia.storage(),
+		    big_frag_inertia.storage() + spatial_dimension,
+		    std::greater<Real>());
 
 	  if (!isInertiaEqual(current_inertia, big_frag_inertia)) {
 	    AKANTU_DEBUG_ERROR("Inertia moments are wrong");

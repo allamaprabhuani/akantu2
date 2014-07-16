@@ -29,6 +29,8 @@
 #include "fragment_manager.hh"
 #include "material_cohesive.hh"
 #include <numeric>
+#include <algorithm>
+#include <functional>
 
 __BEGIN_AKANTU__
 
@@ -384,8 +386,14 @@ void FragmentManager::computeInertiaMoments() {
     = inertia_moments.begin(spatial_dimension);
 
   for (UInt frag = 0; frag < global_nb_fragment; ++frag,
-	 ++integrated_moments_it, ++inertia_moments_it)
+	 ++integrated_moments_it, ++inertia_moments_it) {
     integrated_moments_it->eig(*inertia_moments_it);
+
+    // sort moments
+    std::sort(inertia_moments_it->storage(),
+	      inertia_moments_it->storage() + spatial_dimension,
+	      std::greater<Real>());
+  }
 
   if (dump_data)
     createDumpDataArray(inertia_moments, "moments of inertia");
