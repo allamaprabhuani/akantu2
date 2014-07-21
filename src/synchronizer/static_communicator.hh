@@ -161,6 +161,10 @@ public:
   virtual Int whoAmI() const { return real_static_communicator->prank; };
 
   AKANTU_GET_MACRO(RealStaticCommunicator, *real_static_communicator, const RealStaticCommunicator &);
+  AKANTU_GET_MACRO_NOT_CONST(RealStaticCommunicator, *real_static_communicator, RealStaticCommunicator &);
+
+  template<class Comm>
+  Comm & getRealStaticCommunicator() { return dynamic_cast<Comm &>(*real_static_communicator); }
 
   static StaticCommunicator & getStaticCommunicator(CommunicatorType type = _communicator_mpi);
 

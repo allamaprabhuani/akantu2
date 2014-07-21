@@ -575,7 +575,7 @@ __END_AKANTU__
     switch(var) {							\
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)	\
     default: {								\
-      AKANTU_DEBUG_ERROR("Type (" << UInt(var) << ") not handled by this function"); \
+      AKANTU_DEBUG_ERROR("Type (" << var << ") not handled by this function"); \
     }									\
     }									\
   } while(0)

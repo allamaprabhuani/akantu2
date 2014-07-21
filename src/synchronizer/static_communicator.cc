@@ -90,11 +90,6 @@ StaticCommunicator & StaticCommunicator::getStaticCommunicator(CommunicatorType 
   AKANTU_DEBUG_IN();
 
   if (!static_communicator) {
-#ifdef AKANTU_USE_MPI
-    if(type == _communicator_mpi) {
-      AKANTU_DEBUG_ERROR("You must call getStaticCommunicator(argc, argv) to create a MPI communicator");
-    }
-#endif
     int nb_args = 0;
     char ** null;
     static_communicator = new StaticCommunicator(nb_args, null, type);

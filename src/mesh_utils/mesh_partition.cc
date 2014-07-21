@@ -318,38 +318,41 @@ void MeshPartition::fillPartitionInformation(const Mesh & mesh,
       for(UInt i(0); i < mesh.getNbElement(type, _not_ghost); ++i) { // Facet loop
 
 	const std::vector<Element> & adjacent_elems = elem_to_subelem(i);
-	Element min_elem;
-	UInt min_part(std::numeric_limits<UInt>::max());
-	std::set<UInt> adjacent_parts;
+        if(!adjacent_elems.empty()) {
+          Element min_elem;
+          UInt min_part(std::numeric_limits<UInt>::max());
+          std::set<UInt> adjacent_parts;
 
-	for(UInt j(0); j < adjacent_elems.size(); ++j) {
-	  UInt adjacent_elem_id = adjacent_elems[j].element;
-	  UInt adjacent_elem_part = partitions(adjacent_elems[j].type, adjacent_elems[j].ghost_type)(adjacent_elem_id);
-	  if(adjacent_elem_part < min_part) {
-	    min_part = adjacent_elem_part;
-	    min_elem = adjacent_elems[j];
-	  }
-	  adjacent_parts.insert(adjacent_elem_part);
-	}
-	partitions(type, _not_ghost)(i) = min_part;
+          for(UInt j(0); j < adjacent_elems.size(); ++j) {
+            UInt adjacent_elem_id = adjacent_elems[j].element;
+            UInt adjacent_elem_part = partitions(adjacent_elems[j].type, adjacent_elems[j].ghost_type)(adjacent_elem_id);
+            if(adjacent_elem_part < min_part) {
+              min_part = adjacent_elem_part;
+              min_elem = adjacent_elems[j];
+            }
+            adjacent_parts.insert(adjacent_elem_part);
+          }
+          partitions(type, _not_ghost)(i) = min_part;
 
-	CSR<UInt>::iterator git = ghost_partitions_csr(min_elem.type, _not_ghost).begin(min_elem.element);
-	CSR<UInt>::iterator gend = ghost_partitions_csr(min_elem.type, _not_ghost).end(min_elem.element);
-	for(; git != gend; ++git) {
-	  adjacent_parts.insert(*git);
-	}
-	adjacent_parts.erase(min_part);
-	std::set<UInt>::const_iterator pit = adjacent_parts.begin();
-	std::set<UInt>::const_iterator pend = adjacent_parts.end();
-	for(; pit != pend; ++pit) {
-	  ghost_part_csr.getRows().push_back(*pit);
-	  ghost_part_csr.rowOffset(i)++;
+          CSR<UInt>::iterator git = ghost_partitions_csr(min_elem.type, _not_ghost).begin(min_elem.element);
+          CSR<UInt>::iterator gend = ghost_partitions_csr(min_elem.type, _not_ghost).end(min_elem.element);
+          for(; git != gend; ++git) {
+            adjacent_parts.insert(*git);
+          }
+          adjacent_parts.erase(min_part);
+          std::set<UInt>::const_iterator pit = adjacent_parts.begin();
+          std::set<UInt>::const_iterator pend = adjacent_parts.end();
+          for(; pit != pend; ++pit) {
+            ghost_part_csr.getRows().push_back(*pit);
+            ghost_part_csr.rowOffset(i)++;
+            ghost_partitions(type, _ghost).push_back(*pit);
+          }
 
-	  ghost_partitions(type, _ghost).push_back(*pit);
-	}
-
-	ghost_partitions_offset(type, _ghost)(i+1) = ghost_partitions_offset(type, _ghost)(i+1)
-	  + adjacent_elems.size();
+          ghost_partitions_offset(type, _ghost)(i+1) = ghost_partitions_offset(type, _ghost)(i+1)
+            + adjacent_elems.size();
+        } else {
+          partitions(type, _not_ghost)(i) = 0;
+        }
       }
       ghost_part_csr.countToCSR();
     }

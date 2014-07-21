@@ -476,7 +476,12 @@ public:
 		  Real alpha = 1.0);
   /* ------------------------------------------------------------------------ */
   inline Real norm() const {
-    return Math::norm(this->n[0], this->values);
+    return parent::template norm<L_2>();
+  }
+
+  template<NormType nt>
+  inline Real norm() const {
+    return parent::template norm<nt>();
   }
 
   /* ------------------------------------------------------------------------ */

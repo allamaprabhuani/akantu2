@@ -46,7 +46,16 @@ inline std::ostream & operator <<(std::ostream & stream, ElementType type)
 #define STRINGIFY(type)				\
   stream << BOOST_PP_STRINGIZE(type)
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(STRINGIFY);
+  switch(type) {
+    BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, \
+                          STRINGIFY,               \
+                          AKANTU_ALL_ELEMENT_TYPE)
+    case _not_defined:       stream << "_not_defined"; break;
+    case _max_element_type:  stream << "_max_element_type"; break;
+  }
+
+
+
 #undef STRINGIFY
   return stream;
 }
@@ -82,7 +91,7 @@ inline std::ostream & operator <<(std::ostream & stream, InterpolationType type)
     case _itp_lagrange_pentahedron_6  : stream << "_itp_lagrange_pentahedron_6" ; break;
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
     case _itp_bernoulli_beam          : stream << "_itp_bernoulli_beam"         ; break;
-    case _itp_kirchhoff_shell         : stream << "_itp_kirchhoff_shell"        ; break;  
+    case _itp_kirchhoff_shell         : stream << "_itp_kirchhoff_shell"        ; break;
 #endif
     case _itp_not_defined             : stream << "_itp_not_defined"            ; break;
     }
@@ -109,25 +118,25 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
   switch(type)
     {
     case _gst_smm_mass                 : stream << "_gst_smm_mass"                ; break;
-    case _gst_smm_for_gradu	       : stream << "_gst_smm_for_gradu"	          ; break;
-    case _gst_smm_boundary	       : stream << "_gst_smm_boundary"	      	  ; break;
-    case _gst_smm_uv		       : stream << "_gst_smm_uv"		  ; break;
-    case _gst_smm_res		       : stream << "_gst_smm_res"		  ; break;
-    case _gst_smm_init_mat	       : stream << "_gst_smm_init_mat"	      	  ; break;
-    case _gst_smm_stress	       : stream << "_gst_smm_stress"	      	  ; break;
-    case _gst_smmc_facets	       : stream << "_gst_smmc_facets"     	  ; break;
-    case _gst_smmc_facets_conn	       : stream << "_gst_smmc_facets_conn"     	  ; break;
-    case _gst_smmc_facets_stress       : stream << "_gst_smmc_facets_stress"   	  ; break;
-    case _gst_smmc_damage              : stream << "_gst_smmc_damage"   	  ; break;
-    case _gst_ce_inserter              : stream << "_gst_ce_inserter"      	  ; break;
-    case _gst_gm_clusters              : stream << "_gst_gm_clusters"      	  ; break;
-    case _gst_htm_capacity	       : stream << "_gst_htm_capacity" 	      	  ; break;
-    case _gst_htm_temperature	       : stream << "_gst_htm_temperature" 	  ; break;
+    case _gst_smm_for_gradu            : stream << "_gst_smm_for_gradu"           ; break;
+    case _gst_smm_boundary             : stream << "_gst_smm_boundary"            ; break;
+    case _gst_smm_uv                   : stream << "_gst_smm_uv"                  ; break;
+    case _gst_smm_res                  : stream << "_gst_smm_res"                 ; break;
+    case _gst_smm_init_mat             : stream << "_gst_smm_init_mat"            ; break;
+    case _gst_smm_stress               : stream << "_gst_smm_stress"              ; break;
+    case _gst_smmc_facets              : stream << "_gst_smmc_facets"             ; break;
+    case _gst_smmc_facets_conn         : stream << "_gst_smmc_facets_conn"        ; break;
+    case _gst_smmc_facets_stress       : stream << "_gst_smmc_facets_stress"      ; break;
+    case _gst_smmc_damage              : stream << "_gst_smmc_damage"             ; break;
+    case _gst_ce_inserter              : stream << "_gst_ce_inserter"             ; break;
+    case _gst_gm_clusters              : stream << "_gst_gm_clusters"             ; break;
+    case _gst_htm_capacity             : stream << "_gst_htm_capacity"            ; break;
+    case _gst_htm_temperature          : stream << "_gst_htm_temperature"         ; break;
     case _gst_htm_gradient_temperature : stream << "_gst_htm_gradient_temperature"; break;
     case _gst_htm_phi                  : stream << "_gst_htm_phi"                 ; break;
     case _gst_htm_gradient_phi         : stream << "_gst_htm_gradient_phi"        ; break;
-    case _gst_mnl_for_average	       : stream << "_gst_mnl_for_average"	  ; break;
-    case _gst_mnl_weight               : stream << "_gst_mnl_weight"	   	  ; break;
+    case _gst_mnl_for_average          : stream << "_gst_mnl_for_average"         ; break;
+    case _gst_mnl_weight               : stream << "_gst_mnl_weight"              ; break;
     case _gst_test                     : stream << "_gst_test"                    ; break;
     case _gst_material_id              : stream << "_gst_material_id"             ; break;
     case _gst_for_dump                 : stream << "_gst_for_dump"                ; break;
@@ -154,9 +163,9 @@ inline std::ostream & operator <<(std::ostream & stream, SolveConvergenceCriteri
 inline std::string to_lower(const std::string & str) {
   std::string lstr = str;
   std::transform(lstr.begin(),
-		 lstr.end(),
-		 lstr.begin(),
-		 (int(*)(int))tolower);
+                 lstr.end(),
+                 lstr.begin(),
+                 (int(*)(int))tolower);
   return lstr;
 }
 
@@ -165,14 +174,14 @@ inline std::string trim(const std::string & to_trim) {
   std::string trimed = to_trim;
   //left trim
   trimed.erase(trimed.begin(),
-	       std::find_if(trimed.begin(),
-			    trimed.end(),
-			    std::not1(std::ptr_fun<int, int>(isspace))));
+               std::find_if(trimed.begin(),
+                            trimed.end(),
+                            std::not1(std::ptr_fun<int, int>(isspace))));
   // right trim
   trimed.erase(std::find_if(trimed.rbegin(),
-			    trimed.rend(),
-			    std::not1(std::ptr_fun<int, int>(isspace))).base(),
-	       trimed.end());
+                            trimed.rend(),
+                            std::not1(std::ptr_fun<int, int>(isspace))).base(),
+               trimed.end());
   return trimed;
 }
 
@@ -204,13 +213,13 @@ std::string printMemorySize(UInt size) {
   case 4: sstr << "Ti"; break;
   case 5: sstr << "Pi"; break;
   case 6: sstr << "Ei"; break; // theoritical limit of RAM of the current
-	                       // computers in 2014 (64bit computers) (Nicolas)
+                               // computers in 2014 (64bit computers) (Nicolas)
   case 7: sstr << "Zi"; break;
   case 8: sstr << "Yi"; break;
   default:
     AKANTU_DEBUG_ERROR("The programmer in 2014 didn't thought so far (even wikipedia does not go further)."
-		       << " You have at least 1024 times more than a yobibit of RAM!!!"
-		       << " Just add the prefix corresponding in this switch case.");
+                       << " You have at least 1024 times more than a yobibit of RAM!!!"
+                       << " Just add the prefix corresponding in this switch case.");
   }
 
   sstr << "Byte";
