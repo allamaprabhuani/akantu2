@@ -1037,6 +1037,49 @@ bool SolidMechanicsModel::testConvergence<_scc_residual>(Real tolerance, Real & 
 }
 
 /* -------------------------------------------------------------------------- */
+template<>
+bool SolidMechanicsModel::testConvergence<_scc_residual_mass_wgh>(Real tolerance,
+                                                                  Real & norm) {
+  AKANTU_DEBUG_IN();
+
+
+
+  UInt nb_nodes = residual->getSize();
+
+  norm = 0;
+  Real * residual_val = residual->storage();
+  Real * mass_val = this->mass->storage();
+  bool * blocked_dofs_val = blocked_dofs->storage();
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    bool is_local_node = mesh.isLocalOrMasterNode(n);
+    if(is_local_node) {
+      for (UInt d = 0; d < spatial_dimension; ++d) {
+        if(!(*blocked_dofs_val)) {
+          norm += *residual_val * *residual_val/(*mass_val * *mass_val);
+        }
+        blocked_dofs_val++;
+        residual_val++;
+        mass_val++;
+      }
+    } else {
+      blocked_dofs_val += spatial_dimension;
+      residual_val += spatial_dimension;
+      mass_val += spatial_dimension;
+    }
+  }
+
+  StaticCommunicator::getStaticCommunicator().allReduce(&norm, 1, _so_sum);
+
+  norm = sqrt(norm);
+
+  AKANTU_DEBUG_ASSERT(!Math::isnan(norm), "Something goes wrong in the solve phase");
+
+  AKANTU_DEBUG_OUT();
+  return (norm < tolerance);
+}
+
+/* -------------------------------------------------------------------------- */
 bool SolidMechanicsModel::testConvergenceResidual(Real tolerance){
   AKANTU_DEBUG_IN();
 

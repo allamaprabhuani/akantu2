@@ -150,11 +150,11 @@ inline std::ostream & operator <<(std::ostream & stream, SynchronizationTag type
 /// standard output stream operator for SolveConvergenceCriteria
 inline std::ostream & operator <<(std::ostream & stream, SolveConvergenceCriteria criteria)
 {
-  switch(criteria)
-    {
-      case _scc_residual : stream << "_scc_residual" ; break;
-      case _scc_increment: stream << "_scc_increment"; break;
-    }
+  switch(criteria) {
+  case _scc_residual : stream << "_scc_residual" ; break;
+  case _scc_increment: stream << "_scc_increment"; break;
+  case _scc_residual_mass_wgh: stream << "_scc_residual_mass_wgh"; break;
+  }
   return stream;
 }
 
