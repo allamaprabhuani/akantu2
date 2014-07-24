@@ -253,7 +253,6 @@ void SolverMumps::initialize(SolverOptions & options) {
 
   this->mumps_data.nz_alloc = 0;
   this->mumps_data.n        = size;
-
   /* ------------------------------------------------------------------------ */
   // Output setup
   if(AKANTU_DEBUG_TEST(dblTrace)) {
@@ -275,6 +274,8 @@ void SolverMumps::initialize(SolverOptions & options) {
 
   this->analysis();
 
+
+  //icntl(14) = 80;
   AKANTU_DEBUG_OUT();
 }
 
@@ -360,17 +361,19 @@ void SolverMumps::solve(Array<Real> & solution) {
 /* -------------------------------------------------------------------------- */
 void SolverMumps::printError() {
   if(info(1) != 0) {
-    switch(info(1)) {
+    communicator.allReduce(&info(1), 1, _so_min);
+    switch(info(1)) {     
     case -10: AKANTU_DEBUG_ERROR("The matrix is singular"); break;
     case  -9: {
-      // icntl(14) += 10;
-      // if(icntl(14) != 90) {
-      // 	this->analysis();
-      // 	this->factorize();
-      // 	this->solve();
-      // } else {
-	AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
-      // }
+      icntl(14) += 10;
+      if(icntl(14) != 90) {
+	//std::cout << "Dynamic memory increase of 10%" << std::endl;
+      	this->analysis();
+      	this->factorize();
+      	this->solve();
+      } else {
+	AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2) << "No further increase possible"); break;
+      }
     }
     default:
       AKANTU_DEBUG_ERROR("Error in mumps during solve process, check mumps user guide INFO(1) ="
