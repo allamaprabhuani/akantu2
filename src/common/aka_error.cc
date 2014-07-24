@@ -52,7 +52,31 @@
 #endif
 
 #ifdef AKANTU_USE_MPI
+#if defined(AKANTU_CORE_CXX11)
+#if defined(__INTEL_COMPILER)
+//#pragma warning ( disable : 383 )
+#elif defined (__clang__) // test clang to be sure that when we test for gnu it is only gnu
+#elif (defined(__GNUC__) || defined(__GNUG__))
+#  define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#  if GCC_VERSION > 40600
+#    pragma GCC diagnostic push
+#  endif
+#  pragma GCC diagnostic ignored "-Wliteral-suffix"
+#endif
+#endif
 #  include <mpi.h>
+#if defined(AKANTU_CORE_CXX11)
+#if defined(__INTEL_COMPILER)
+//#pragma warning ( disable : 383 )
+#elif defined (__clang__) // test clang to be sure that when we test for gnu it is only gnu
+#elif defined(__GNUG__)
+#  if GCC_VERSION > 40600
+#    pragma GCC diagnostic pop
+#  else
+#    pragma GCC diagnostic warning "-Wliteral-suffix"
+#  endif
+#endif
+#endif
 #endif
 
 #define __BEGIN_AKANTU_DEBUG__ namespace akantu { namespace debug {

@@ -40,9 +40,9 @@
 #include "static_communicator.hh"
 #include "sparse_matrix.hh"
 
+struct Mat;
 
 __BEGIN_AKANTU__
-
 
 
 

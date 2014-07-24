@@ -29,14 +29,13 @@
 #
 #===============================================================================
 
-option(AKANTU_USE_PETSC "Use external library PETSc" OFF)
-add_optional_external_package(PETSc "Add PETSc support in akantu" OFF DEPENDS MPI ARGS COMPONENT ARGS CXX)
+add_optional_external_package(PETSc "Add PETSc support in akantu" OFF ARGS COMPONENT ARGS CXX)
+add_internal_package_dependencies(petsc parallel)
 
-mark_as_advanced(AKANTU_USE_PETSC)
-set(AKANTU_PETSC_FILES  
-  solver/solver_petsc.hh
-  solver/solver_petsc.cc
+set(AKANTU_PETSC_FILES
   solver/petsc_matrix.hh
   solver/petsc_matrix.cc
   solver/petsc_matrix_inline_impl.cc
+  solver/solver_petsc.hh
+  solver/solver_petsc.cc
   )

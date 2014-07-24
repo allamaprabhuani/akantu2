@@ -28,7 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "petsc_matrix.hh"
 /* -------------------------------------------------------------------------- */
-
+#include <petscmat.h>
 
 __BEGIN_AKANTU__
 
@@ -46,7 +46,7 @@ PetscMatrix::PetscMatrix(UInt size,
 
   UInt nb_local_nodes = model.getMesh().getNbNodes();
 
-  MatCreate(&comm, &mat);
+  MatCreate(&comm, mat);
 
   MatSetSizes(mat, nb_degree_of_freedom*nb_local_nodes, nb_degree_of_freedom*nb_local_nodes, size, size);
 
