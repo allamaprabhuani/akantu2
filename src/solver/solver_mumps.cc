@@ -362,7 +362,16 @@ void SolverMumps::printError() {
   if(info(1) != 0) {
     switch(info(1)) {
     case -10: AKANTU_DEBUG_ERROR("The matrix is singular"); break;
-    case  -9: AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
+    case  -9: {
+      // icntl(14) += 10;
+      // if(icntl(14) != 90) {
+      // 	this->analysis();
+      // 	this->factorize();
+      // 	this->solve();
+      // } else {
+	AKANTU_DEBUG_ERROR("The MUMPS workarray is too small INFO(2)=" << info(2)); break;
+      // }
+    }
     default:
       AKANTU_DEBUG_ERROR("Error in mumps during solve process, check mumps user guide INFO(1) ="
                          << info(1));
