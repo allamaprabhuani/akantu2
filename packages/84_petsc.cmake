@@ -3,6 +3,7 @@
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+# @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
 #
 # @date   Mon Nov 21 18:19:15 2011
 #
@@ -28,10 +29,14 @@
 #
 #===============================================================================
 
+option(AKANTU_USE_PETSC "Use external library PETSc" OFF)
 add_optional_external_package(PETSc "Add PETSc support in akantu" OFF DEPENDS MPI ARGS COMPONENT ARGS CXX)
 
 mark_as_advanced(AKANTU_USE_PETSC)
 set(AKANTU_PETSC_FILES  
-solver/solver_petsc.hh
-solver/solver_petsc.cc
+  solver/solver_petsc.hh
+  solver/solver_petsc.cc
+  solver/petsc_matrix.hh
+  solver/petsc_matrix.cc
+  solver/petsc_matrix_inline_impl.cc
   )
