@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
   mesh.read("implicit.msh");
 
   CohesiveElementInserter inserter(mesh);
-  inserter.setLimit('y', 0.9, 1.1);
+  inserter.setLimit(1, 0.9, 1.1);
   inserter.insertIntrinsicElements();
 
   //  mesh.write("implicit_cohesive.msh");

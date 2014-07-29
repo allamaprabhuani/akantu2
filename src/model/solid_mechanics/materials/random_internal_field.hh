@@ -53,8 +53,12 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+private:
+  RandomInternalField operator=(__attribute__((unused)) const RandomInternalField & other) {};
 
 public:
+  AKANTU_GET_MACRO(RandomParameter, random_parameter, const RandomParameter<T>);
+
   virtual void initialize(UInt nb_component);
 
   void setDefaultValue(const T & value);

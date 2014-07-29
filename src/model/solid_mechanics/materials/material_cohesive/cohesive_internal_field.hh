@@ -41,6 +41,9 @@ public:
   CohesiveInternalField(const ID & id, Material & material);
   virtual ~CohesiveInternalField();
   void initialize(UInt nb_component);
+private:
+  CohesiveInternalField operator=(__attribute__((unused)) const CohesiveInternalField & other) {};
+
 };
 
 

@@ -253,10 +253,10 @@ Debugger::~Debugger() {
 /* ------------------------------------------------------------------------ */
 void Debugger::exit(int status) {
   if (status != EXIT_SUCCESS && status != -50) {
-    //#ifndef AKANTU_NDEBUG
-    //     int * a = NULL;
-    //     *a = 1;
-    // #endif
+#ifndef AKANTU_NDEBUG
+    int * a = NULL;
+    *a = 1;
+#endif
     if(this->print_backtrace)
       akantu::debug::printBacktrace(15);
   }

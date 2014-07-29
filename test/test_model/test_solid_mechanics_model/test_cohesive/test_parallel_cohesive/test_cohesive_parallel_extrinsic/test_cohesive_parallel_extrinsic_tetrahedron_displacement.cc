@@ -177,8 +177,10 @@ int main(int argc, char *argv[]) {
   model.dump();
 
 
+  model.setBaseNameToDumper("cohesive elements",
+			    paraview_output.str()+"_cohesive_elements");
   model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
-  model.addDumpFieldVectorToDumper("cohesive elements", "damage");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
   model.dump("cohesive elements");
 
 
@@ -203,10 +205,7 @@ int main(int argc, char *argv[]) {
 
     model.checkCohesiveStress();
 
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     if(s % 100 == 0) {
       if(prank == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;

@@ -58,33 +58,25 @@ int main(int argc, char *argv[]) {
   mesh.read("quadrangle.msh");
 
 
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh << std::endl;
-  debug::setDebugLevel(dblWarning);
-
-  CohesiveElementInserter inserter(mesh);
-  inserter.setLimit('x', -0.01, 0.01);
-  inserter.insertIntrinsicElements();
-
-  mesh.write("mesh_cohesive_quadrangle.msh");
-
-  debug::setDebugLevel(dblDump);
-  std::cout << mesh << std::endl;
-  debug::setDebugLevel(dblWarning);
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
-
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh << std::endl;
+  // debug::setDebugLevel(dblWarning);
 
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
   model.initFull();
+
+  model.limitInsertion(BC::_x, -0.01, 0.01);
+  model.insertIntrinsicElements();
+
+  // mesh.write("mesh_cohesive_quadrangle.msh");
+
+  // debug::setDebugLevel(dblDump);
+  // std::cout << mesh << std::endl;
+  // debug::setDebugLevel(dblWarning);
+
+
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;

@@ -66,29 +66,18 @@ int main(int argc, char *argv[]) {
   mesh.read("triangle.msh");
 
 
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
   std::cout << mesh << std::endl;
-
-  CohesiveElementInserter inserter(mesh);
-  inserter.setLimit('x', -0.26, -0.24);
-  inserter.insertIntrinsicElements();
-
-  mesh.write("mesh_cohesive.msh");
-
-  //  std::cout << mesh << std::endl;
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
-
-
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
   model.initFull();
+
+  model.limitInsertion(BC::_x, -0.26, -0.24);
+  model.insertIntrinsicElements();
+
+  mesh.write("mesh_cohesive.msh");
+
+
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;
@@ -120,13 +109,11 @@ int main(int argc, char *argv[]) {
   model.addDumpField("force");
   model.dump();
 
-  DumperParaview dumper("cohesive_elements_triangle");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
-  dumper.dump();
+  model.setBaseNameToDumper("cohesive elements",
+			    "cohesive_elements_triangle");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
+  model.dump("cohesive elements");
 
   /// update displacement
   Array<UInt> elements;
@@ -144,17 +131,15 @@ int main(int argc, char *argv[]) {
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     updateDisplacement(model, elements, type, increment);
 
     if(s % 1 == 0) {
       model.dump();
-      dumper.dump();
-      std::cout << "passing step " << s << "/" << max_steps << std::endl;
+      model.dump("cohesive elements");
+      std::cout << "passing step " << s << "/" << max_steps
+		<< ", Ed = " << model.getEnergy("dissipated") << std::endl;
     }
 
   }

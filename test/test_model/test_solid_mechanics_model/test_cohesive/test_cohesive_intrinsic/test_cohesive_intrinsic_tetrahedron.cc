@@ -77,27 +77,13 @@ int main(int argc, char *argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("tetrahedron.msh");
 
-
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
-  CohesiveElementInserter inserter(mesh);
-
-  Array<Real> limits(spatial_dimension, 2);
-  inserter.setLimit('x', -0.01, 0.01);
-  inserter.insertIntrinsicElements();
-
-  //  std::cout << mesh << std::endl;
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
-
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
   model.initFull();
+
+  model.limitInsertion(BC::_x, -0.01, 0.01);
+  model.insertIntrinsicElements();
 
   Array<bool> & boundary = model.getBlockedDOFs();
   boundary.set(true);
@@ -281,13 +267,14 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
   const MaterialCohesive & mat_cohesive
     = dynamic_cast < const MaterialCohesive & > (model.getMaterial(1));
 
-  const Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
+  Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
   const Real beta = mat_cohesive.getParam<Real>("beta");
-  //  const Real G_cI = mat_cohesive.getParam<Real>("G_cI");
+  const Real G_cI = mat_cohesive.getParam<Real>("G_cI");
   //  Real G_cII = mat_cohesive.getParam<Real>("G_cII");
   const Real delta_0 = mat_cohesive.getParam<Real>("delta_0");
   const Real kappa = mat_cohesive.getParam<Real>("kappa");
-  Real delta_c = delta_0 * sigma_c / (sigma_c - 1.);
+  Real delta_c = 2 * G_cI / sigma_c;
+  sigma_c *= delta_c / (delta_c - delta_0);
 
   ElementType type_facet = Mesh::getFacetType(type);
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
@@ -331,6 +318,10 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
     theoretical_traction += normal_opening;
     theoretical_traction *= sigma_c / delta * (1. - theoretical_damage);
   }
+
+  // adjust damage
+  theoretical_damage = std::max((delta - delta_0) / (delta_c - delta_0), 0.);
+  theoretical_damage = std::min(theoretical_damage, 1.);
 
   Vector<Real> theoretical_traction_rotated(spatial_dimension);
   theoretical_traction_rotated.mul<false>(rotation, theoretical_traction);

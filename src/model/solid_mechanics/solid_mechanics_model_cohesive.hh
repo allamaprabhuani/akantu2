@@ -118,10 +118,13 @@ public:
   void initFacetFilter();
 
   /// limit the cohesive element insertion to a given area
-  void enableFacetsCheckOnArea(const Array<Real> & limits);
+  void limitInsertion(BC::Axis axis, Real first_limit, Real second_limit);
 
   /// update automatic insertion after a change in the element inserter
   void updateAutomaticInsertion();
+
+  /// insert intrinsic cohesive elements
+  void insertIntrinsicElements();
 
 private:
 
@@ -176,7 +179,7 @@ public:
 public:
 
   /// get facet mesh
-  AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
+  AKANTU_GET_MACRO(MeshFacets, mesh.getMeshFacets(), const Mesh &);
 
   /// get stress on facets vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressOnFacets, facet_stress, Real);
@@ -196,13 +199,13 @@ public:
   /// get element inserter
   AKANTU_GET_MACRO_NOT_CONST(ElementInserter, *inserter, CohesiveElementInserter &);
 
+  /// get is_extrinsic boolean
+  AKANTU_GET_MACRO(IsExtrinsic, is_extrinsic, bool);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-  /// mesh containing facets and their data structures
-  Mesh & mesh_facets;
 
   /// @todo store tangents when normals are computed:
   ElementTypeMapArray<Real> tangents;
@@ -212,9 +215,6 @@ private:
 
   /// stress on facets on the two sides by quadrature point
   ElementTypeMapArray<Real> facet_stress;
-
-  /// flag to know if facets have been generated
-  bool facet_generated;
 
   /// material to use if a cohesive element is created on a facet
   ElementTypeMapArray<UInt> facet_material;
@@ -248,18 +248,21 @@ public:
   DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model) :
     DefaultMaterialSelector(model.getElementIndexByMaterial()),
     facet_material(model.getFacetMaterial()),
-    mesh(model.getMesh()),
-    mesh_facets(model.getMeshFacets()) { }
+    mesh(model.getMesh()) { }
 
   inline virtual UInt operator()(const Element & element) {
     if(Mesh::getKind(element.type) == _ek_cohesive) {
       try {
 	const Array<Element> & cohesive_el_to_facet
-	  = mesh_facets.getSubelementToElement(element.type, element.ghost_type);
+	  = mesh.getMeshFacets().getSubelementToElement(element.type, element.ghost_type);
 	bool third_dimension = (mesh.getSpatialDimension() == 3);
 	const Element & facet = cohesive_el_to_facet(element.element, third_dimension);
-	return facet_material(facet.type, facet.ghost_type)(facet.element);
-      } catch(...) {
+	if(facet_material.exists(facet.type, facet.ghost_type)) {
+	  return facet_material(facet.type, facet.ghost_type)(facet.element);
+	} else {
+	  return MaterialSelector::operator()(element);
+	}
+      } catch (...) {
 	return MaterialSelector::operator()(element);
       }
     } else if (Mesh::getSpatialDimension(element.type) == mesh.getSpatialDimension() - 1) {
@@ -272,7 +275,6 @@ public:
 private:
   const ElementTypeMapArray<UInt> & facet_material;
   const Mesh & mesh;
-  const Mesh & mesh_facets;
 };
 
 

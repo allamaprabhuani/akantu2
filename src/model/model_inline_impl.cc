@@ -126,6 +126,7 @@ inline FEEngine & Model::getFEEngine(const ID & name) const{
   if (name == "") tmp_name = default_fem;
 
   FEEngineMap::const_iterator it = fems.find(tmp_name);
+
   AKANTU_DEBUG_ASSERT(it != fems.end(),
 		      "The FEEngine " << tmp_name << " is not registered");
 

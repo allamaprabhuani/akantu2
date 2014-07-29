@@ -75,6 +75,14 @@ inline void ParsableParamTyped< RandomInternalField<Real, FacetInternalField> >:
   param.setRandomDistribution(r);
 }
 
+/* -------------------------------------------------------------------------- */
+template<>
+inline void ParsableParamTyped< RandomInternalField<Real, CohesiveInternalField> >::parseParam(const ParserParameter & in_param) {
+  ParsableParam::parseParam(in_param);
+  RandomParameter<Real> r = in_param;
+  param.setRandomDistribution(r);
+}
+
 __END_AKANTU__
 
 #endif /* __AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH__ */

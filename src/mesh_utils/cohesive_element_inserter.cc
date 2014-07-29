@@ -35,53 +35,37 @@
 __BEGIN_AKANTU__
 
 CohesiveElementInserter::CohesiveElementInserter(Mesh & mesh,
-						 Mesh & mesh_facets,
+						 bool is_extrinsic,
+						 DistributedSynchronizer * synchronizer,
 						 const ID & id) :
   id(id),
   mesh(mesh),
-  mesh_facets(&mesh_facets),
+  mesh_facets(mesh.initMeshFacets()),
   insertion_facets("insertion_facets", id),
-  is_extrinsic(true),
-  insertion_limits(mesh.getSpatialDimension(), 2),
-  check_facets("check_facets", id) {
-  init();
-}
-
-/* -------------------------------------------------------------------------- */
-CohesiveElementInserter::CohesiveElementInserter(Mesh & mesh,
-						 const ID & id) :
-  id(id),
-  mesh(mesh),
-  insertion_facets("insertion_facets", id),
-  is_extrinsic(false),
   insertion_limits(mesh.getSpatialDimension(), 2),
   check_facets("check_facets", id) {
 
-  mesh_facets = new Mesh(mesh.initMeshFacets());
-  MeshUtils::buildAllFacets(mesh, *mesh_facets);
-
-  init();
+  MeshUtils::buildAllFacets(mesh, mesh_facets, 0, synchronizer);
+  init(is_extrinsic);
 }
 
 /* -------------------------------------------------------------------------- */
 CohesiveElementInserter::~CohesiveElementInserter() {
-  if (!is_extrinsic) delete mesh_facets;
-
 #if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
   delete distributed_synchronizer;
 #endif
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveElementInserter::init() {
+void CohesiveElementInserter::init(bool is_extrinsic) {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  MeshUtils::resetFacetToDouble(*mesh_facets);
+  MeshUtils::resetFacetToDouble(mesh_facets);
 
   /// initialize facet insertion array
-  mesh_facets->initElementTypeMapArray(insertion_facets, 1,
+  mesh_facets.initElementTypeMapArray(insertion_facets, 1,
 				      spatial_dimension - 1,
 				      false,
 				      _ek_regular,
@@ -94,7 +78,7 @@ void CohesiveElementInserter::init() {
   }
 
   if (is_extrinsic) {
-    mesh_facets->initElementTypeMapArray(check_facets, 1, spatial_dimension - 1);
+    mesh_facets.initElementTypeMapArray(check_facets, 1, spatial_dimension - 1);
     initFacetsCheck();
   }
 
@@ -116,8 +100,8 @@ void CohesiveElementInserter::initFacetsCheck() {
        gt != ghost_type_t::end(); ++gt) {
 
     GhostType facet_gt = *gt;
-    Mesh::type_iterator it   = mesh_facets->firstType(spatial_dimension - 1, facet_gt);
-    Mesh::type_iterator last = mesh_facets->lastType(spatial_dimension - 1, facet_gt);
+    Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1, facet_gt);
+    Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1, facet_gt);
 
     for (; it != last; ++it) {
       ElementType facet_type = *it;
@@ -125,7 +109,7 @@ void CohesiveElementInserter::initFacetsCheck() {
       Array<bool> & f_check = check_facets(facet_type, facet_gt);
 
       const Array< std::vector<Element> > & element_to_facet
-	= mesh_facets->getElementToSubelement(facet_type, facet_gt);
+	= mesh_facets.getElementToSubelement(facet_type, facet_gt);
 
       UInt nb_facet = element_to_facet.getSize();
       f_check.resize(nb_facet);
@@ -156,17 +140,17 @@ void CohesiveElementInserter::limitCheckFacets() {
        ++gt) {
     GhostType ghost_type = *gt;
 
-    Mesh::type_iterator it  = mesh_facets->firstType(spatial_dimension - 1, ghost_type);
-    Mesh::type_iterator end = mesh_facets->lastType(spatial_dimension - 1, ghost_type);
+    Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, ghost_type);
+    Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, ghost_type);
     for(; it != end; ++it) {
       ElementType type = *it;
       Array<bool> & f_check = check_facets(type, ghost_type);
-      UInt nb_facet = mesh_facets->getNbElement(type, ghost_type);
+      UInt nb_facet = mesh_facets.getNbElement(type, ghost_type);
 
       for (UInt f = 0; f < nb_facet; ++f) {
 	if (f_check(f)) {
 
-	  mesh_facets->getBarycenter(f, type, bary_facet.storage(), ghost_type);
+	  mesh_facets.getBarycenter(f, type, bary_facet.storage(), ghost_type);
 
 	  UInt coord_in_limit = 0;
 
@@ -187,28 +171,15 @@ void CohesiveElementInserter::limitCheckFacets() {
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveElementInserter::setLimit(char direction,
+void CohesiveElementInserter::setLimit(UInt axis,
 				       Real first_limit,
 				       Real second_limit) {
-  UInt direction_index;
 
-  switch(direction) {
-  case 'x':
-    direction_index = 0; break;
-  case 'y':
-    direction_index = 1; break;
-  case 'z':
-    direction_index = 2; break;
-  default:
-    /// assign dummy value
-    direction_index = 10;
-  }
+  AKANTU_DEBUG_ASSERT(axis <= mesh.getSpatialDimension(),
+		      "You are trying to limit insertion in a direction that doesn't exist");
 
-  AKANTU_DEBUG_ASSERT(direction_index < mesh.getSpatialDimension(),
-		      "Specify the direction as 'x', 'y' or 'z' according to the mesh spatial dimension");
-
-  insertion_limits(direction_index, 0) = std::min(first_limit, second_limit);
-  insertion_limits(direction_index, 1) = std::max(first_limit, second_limit);
+  insertion_limits(axis, 0) = std::min(first_limit, second_limit);
+  insertion_limits(axis, 1) = std::max(first_limit, second_limit);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -219,59 +190,48 @@ void CohesiveElementInserter::insertIntrinsicElements() {
 
   Vector<Real> bary_facet(spatial_dimension);
 
-  Mesh::type_iterator it  = mesh_facets->firstType(spatial_dimension - 1);
-  Mesh::type_iterator end = mesh_facets->lastType(spatial_dimension - 1);
+  for (ghost_type_t::iterator gt = ghost_type_t::begin();
+       gt != ghost_type_t::end(); ++gt) {
 
-  for(; it != end; ++it) {
-    const ElementType type_facet = *it;
-    Array<bool> & f_insertion = insertion_facets(type_facet);
-    Array<std::vector<Element> > & element_to_facet
-      = mesh_facets->getElementToSubelement(type_facet);
+    GhostType ghost_type = *gt;
 
-    UInt nb_facet = mesh_facets->getNbElement(type_facet);
+    Mesh::type_iterator it  = mesh_facets.firstType(spatial_dimension - 1, ghost_type);
+    Mesh::type_iterator end = mesh_facets.lastType(spatial_dimension - 1, ghost_type);
 
-    for (UInt f = 0; f < nb_facet; ++f) {
+    for(; it != end; ++it) {
+      const ElementType type_facet = *it;
+      Array<bool> & f_insertion = insertion_facets(type_facet, ghost_type);
+      Array<std::vector<Element> > & element_to_facet
+	= mesh_facets.getElementToSubelement(type_facet, ghost_type);
 
-      if (element_to_facet(f)[1] == ElementNull) continue;
+      UInt nb_facet = mesh_facets.getNbElement(type_facet, ghost_type);
 
-      mesh_facets->getBarycenter(f, type_facet, bary_facet.storage());
+      for (UInt f = 0; f < nb_facet; ++f) {
 
-      UInt coord_in_limit = 0;
+	if (element_to_facet(f)[1] == ElementNull) continue;
 
-      while (coord_in_limit < spatial_dimension &&
-	     bary_facet(coord_in_limit) > insertion_limits(coord_in_limit, 0) &&
-	     bary_facet(coord_in_limit) < insertion_limits(coord_in_limit, 1))
-	++coord_in_limit;
+	mesh_facets.getBarycenter(f, type_facet, bary_facet.storage(), ghost_type);
 
-      if (coord_in_limit == spatial_dimension)
-	f_insertion(f) = true;
+	UInt coord_in_limit = 0;
+
+	while (coord_in_limit < spatial_dimension &&
+	       bary_facet(coord_in_limit) > insertion_limits(coord_in_limit, 0) &&
+	       bary_facet(coord_in_limit) < insertion_limits(coord_in_limit, 1))
+	  ++coord_in_limit;
+
+	if (coord_in_limit == spatial_dimension)
+	  f_insertion(f) = true;
+      }
     }
   }
 
-  NewNodesEvent node_event;
-  node_event.getList().extendComponentsInterlaced(2, 1);
-  NewElementsEvent element_event;
-
-  MeshUtils::insertCohesiveElements(mesh,
-				    *mesh_facets,
-				    insertion_facets,
-				    node_event.getList(),
-				    element_event.getList());
-
-  UInt nb_new_nodes = node_event.getList().getSize();
-
-  mesh.nb_global_nodes += nb_new_nodes;
-  mesh_facets->nb_global_nodes += nb_new_nodes;
-
-  mesh.sendEvent(node_event);
-  mesh.updateTypesOffsets(_not_ghost);
-  mesh.sendEvent(element_event);
+  insertElements();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveElementInserter::insertExtrinsicElements() {
+void CohesiveElementInserter::insertElements() {
   AKANTU_DEBUG_IN();
 
   NewNodesEvent node_event;
@@ -279,7 +239,7 @@ void CohesiveElementInserter::insertExtrinsicElements() {
   NewElementsEvent element_event;
 
   MeshUtils::insertCohesiveElements(mesh,
-				    *mesh_facets,
+				    mesh_facets,
 				    insertion_facets,
 				    node_event.getList(),
 				    element_event.getList());
@@ -292,7 +252,7 @@ void CohesiveElementInserter::insertExtrinsicElements() {
 
     /// update nodes type
     updateNodesType(mesh, node_event);
-    updateNodesType(*mesh_facets, node_event);
+    updateNodesType(mesh_facets, node_event);
 
     /// update global ids
     nb_new_nodes = updateGlobalIDs(node_event);
@@ -305,7 +265,7 @@ void CohesiveElementInserter::insertExtrinsicElements() {
 
   if (nb_new_nodes > 0) {
     mesh.nb_global_nodes += nb_new_nodes;
-    mesh_facets->nb_global_nodes += nb_new_nodes;
+    mesh_facets.nb_global_nodes += nb_new_nodes;
     mesh.sendEvent(node_event);
   }
 
@@ -313,7 +273,7 @@ void CohesiveElementInserter::insertExtrinsicElements() {
     updateInsertionFacets();
     mesh.updateTypesOffsets(_not_ghost);
     mesh.sendEvent(element_event);
-    MeshUtils::resetFacetToDouble(*mesh_facets);
+    MeshUtils::resetFacetToDouble(mesh_facets);
   }
 
   AKANTU_DEBUG_OUT();
@@ -329,26 +289,35 @@ void CohesiveElementInserter::updateInsertionFacets() {
        gt != ghost_type_t::end(); ++gt) {
 
     GhostType facet_gt = *gt;
-    Mesh::type_iterator it   = mesh_facets->firstType(spatial_dimension - 1, facet_gt);
-    Mesh::type_iterator last = mesh_facets->lastType(spatial_dimension - 1, facet_gt);
+    Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1, facet_gt);
+    Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1, facet_gt);
 
     for (; it != last; ++it) {
       ElementType facet_type = *it;
 
-      Array<bool> & f_check = check_facets(facet_type, facet_gt);
       Array<bool> & ins_facets = insertion_facets(facet_type, facet_gt);
 
-      UInt nb_facets = f_check.getSize();
+      // this is the extrinsic case
+      if (check_facets.exists(facet_type, facet_gt)) {
+	Array<bool> & f_check = check_facets(facet_type, facet_gt);
 
-      for (UInt f = 0; f < ins_facets.getSize(); ++f) {
-	if (ins_facets(f)) {
-	  ++nb_facets;
-	  ins_facets(f) = false;
-	  f_check(f) = false;
+	UInt nb_facets = f_check.getSize();
+
+	for (UInt f = 0; f < ins_facets.getSize(); ++f) {
+	  if (ins_facets(f)) {
+	    ++nb_facets;
+	    ins_facets(f) = false;
+	    f_check(f) = false;
+	  }
 	}
-      }
 
-      f_check.resize(nb_facets);
+	f_check.resize(nb_facets);
+      }
+      // and this the intrinsic one
+      else {
+	ins_facets.resize(mesh_facets.getNbElement(facet_type, facet_gt));
+	ins_facets.set(false);
+      }
     }
   }
 
@@ -367,10 +336,8 @@ void CohesiveElementInserter::printself(std::ostream & stream, int indent) const
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
   stream << space << " + mesh_facets [" << std::endl;
-  mesh_facets->printself(stream, indent + 2);
+  mesh_facets.printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
-
-  stream << space << " + is_extrinsic : " << is_extrinsic << std::endl;
 
   stream << space << "]" << std::endl;
 }

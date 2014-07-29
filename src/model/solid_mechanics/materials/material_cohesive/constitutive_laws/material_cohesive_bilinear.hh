@@ -66,8 +66,22 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveArrays();
+  /// set material parameters for new elements
+  virtual void onElementsAdded(const Array<Element> & element_list,
+                               const NewElementsEvent & event);
+
+protected:
+
+  /// constitutive law
+  void computeTraction(const Array<Real> & normal,
+		       ElementType el_type,
+		       GhostType ghost_type = _not_ghost);
+
+  /**
+   * Scale traction sigma_c according to the volume of the
+   * two elements surrounding an element
+   */
+  void scaleTraction(const Element & el, Vector<Real> & sigma_c_vec);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -81,9 +95,6 @@ protected:
 
   /// elastic limit displacement
   Real delta_0;
-
-  /// critical displacement
-  Real current_delta_c;
 
 };
 

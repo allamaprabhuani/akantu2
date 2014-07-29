@@ -140,7 +140,7 @@ protected:
   Real m_s;
 
   /// critical effective stress
-  CohesiveInternalField<Real> sigma_c_eff;
+  RandomInternalField<Real, CohesiveInternalField> sigma_c_eff;
 
   /// critical displacement
   CohesiveInternalField<Real> delta_c;

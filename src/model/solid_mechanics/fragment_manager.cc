@@ -71,7 +71,7 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
   storeMassDensityPerQuadraturePoint();
 
   AKANTU_DEBUG_OUT();
-  }
+}
 
 /* -------------------------------------------------------------------------- */
 class CohesiveElementFilter : public GroupManager::ClusteringFilter {
@@ -142,7 +142,7 @@ void FragmentManager::buildFragments(Real damage_limit) {
   DistributedSynchronizer & synchronizer
     = const_cast<DistributedSynchronizer &>(model.getSynchronizer());
 
-  Mesh & mesh_facets = const_cast<Mesh &>(model.getMeshFacets());
+  Mesh & mesh_facets = const_cast<Mesh &>(mesh.getMeshFacets());
 
   UInt spatial_dimension = model.getSpatialDimension();
   std::string fragment_prefix("fragment");

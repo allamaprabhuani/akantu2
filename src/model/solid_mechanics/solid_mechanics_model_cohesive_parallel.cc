@@ -56,21 +56,21 @@ void SolidMechanicsModelCohesive::initParallel(MeshPartition * partition,
   synch_parallel->filterElementsByKind(cohesive_distributed_synchronizer,
 				       _ek_cohesive);
 
+  inserter = new CohesiveElementInserter(mesh, extrinsic, synch_parallel,
+					 id+":cohesive_element_inserter");
+  Mesh & mesh_facets = inserter->getMeshFacets();
+
+  facet_synchronizer =
+    FacetSynchronizer::createFacetSynchronizer(*synch_parallel,
+					       mesh_facets);
+
+  synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
+  synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets_conn);
+
+  synchronizeGhostFacetsConnectivity();
+
   /// create the facet synchronizer for extrinsic simulations
   if (extrinsic) {
-
-    MeshUtils::buildAllFacets(mesh, mesh_facets, 0, synch_parallel);
-    facet_generated = true;
-
-    facet_synchronizer =
-      FacetSynchronizer::createFacetSynchronizer(*synch_parallel,
-                                                 mesh_facets);
-
-    synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets);
-    synch_registry->registerSynchronizer(*facet_synchronizer, _gst_smmc_facets_conn);
-
-    synchronizeGhostFacetsConnectivity();
-
     facet_stress_synchronizer =
       FacetStressSynchronizer::createFacetStressSynchronizer(*facet_synchronizer,
 							     mesh_facets);
@@ -93,6 +93,8 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacetsConnectivity() {
 
     /// get global connectivity for not ghost facets
     global_connectivity = new ElementTypeMapArray<UInt>("global_connectivity", id);
+
+    Mesh & mesh_facets = inserter->getMeshFacets();
 
     mesh_facets.initElementTypeMapArray(*global_connectivity, 1,
 				       spatial_dimension - 1, true,

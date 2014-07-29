@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
   const UInt max_steps = 60;
   const Real increment_constant = 0.01;
   ElementType type = _tetrahedron_10;
-  Math::setTolerance(1.e-12);
+  Math::setTolerance(1.e-10);
 
   Mesh mesh(spatial_dimension);
 
@@ -76,7 +76,6 @@ int main(int argc, char *argv[]) {
   UInt nb_nodes_to_check_serial = 0;
   UInt total_nb_nodes = 0;
   UInt nb_elements_check_serial = 0;
-  Array<UInt> nodes_to_check_serial;
 
   akantu::MeshPartition * partition = NULL;
   if(prank == 0) {
@@ -86,23 +85,21 @@ int main(int argc, char *argv[]) {
     /// count nodes with zero position
     const Array<Real> & position = mesh.getNodes();
     for (UInt n = 0; n < position.getSize(); ++n) {
-      if (Math::are_float_equal(position(n, 0), 0.))
+      if (std::abs(position(n, 0) - 0.) < 1e-6)
 	++nb_nodes_to_check_serial;
     }
 
-    /// insert cohesive elements
-    CohesiveElementInserter inserter(mesh);
-    inserter.setLimit('x', -0.01, 0.01);
-    inserter.insertIntrinsicElements();
-
-    total_nb_nodes = mesh.getNbNodes();
+    // /// insert cohesive elements
+    // CohesiveElementInserter inserter(mesh);
+    // inserter.setLimit(0, -0.01, 0.01);
+    // inserter.insertIntrinsicElements();
 
     /// find nodes to check in serial
     ElementTypeMapArray<UInt> elements_serial("elements_serial", "");
     findElementsToDisplace(mesh, elements_serial);
     nb_elements_check_serial = elements_serial(type).getSize();
 
-    findNodesToCheck(mesh, elements_serial, nodes_to_check_serial, 1);
+    total_nb_nodes = mesh.getNbNodes() + nb_nodes_to_check_serial;
 
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
@@ -118,6 +115,9 @@ int main(int argc, char *argv[]) {
 
   model.initParallel(partition);
   model.initFull();
+
+  model.limitInsertion(BC::_x, -0.01, 0.01);
+  model.insertIntrinsicElements();
 
   {
     comm.broadcast(&total_nb_nodes, 1, 0);
@@ -250,32 +250,11 @@ int main(int argc, char *argv[]) {
   						    nodes_to_check_size.storage()
   						    + psize, 0);
 
-  Array<UInt> nodes_to_check_global(nodes_to_check_global_size);
-  UInt begin_index = std::accumulate(nodes_to_check_size.storage(),
-  				     nodes_to_check_size.storage() + prank, 0);
-
-  for (UInt i = begin_index; i < begin_index + nodes_to_check_size(prank); ++i) {
-    UInt node = nodes_to_check(i - begin_index);
-    nodes_to_check_global(i) = mesh.getNodeGlobalId(node);
-  }
-
-  comm.allGatherV(nodes_to_check_global.storage(),
-  		  nodes_to_check_size.storage());
-
   if (nodes_to_check_global_size != nb_nodes_to_check_serial) {
     if (prank == 0) {
       std::cout << "Error: number of nodes to check is wrong in parallel" << std::endl;
       std::cout << "Serial: " << nb_nodes_to_check_serial
   		<< " Parallel: " << nodes_to_check_global_size << std::endl;
-
-      for (UInt n = 0; n < nodes_to_check_serial.getSize(); ++n) {
-  	if (std::find(nodes_to_check_global.begin(),
-  		      nodes_to_check_global.end(),
-  		      nodes_to_check_serial(n)) == nodes_to_check_global.end()) {
-  	  std::cout << "Node number " << nodes_to_check_serial(n)
-  		    << " not found in parallel" << std::endl;
-  	}
-      }
     }
     finalize();
     return EXIT_FAILURE;
@@ -452,13 +431,14 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
   const MaterialCohesive & mat_cohesive
     = dynamic_cast < const MaterialCohesive & > (model.getMaterial(1));
 
-  const Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
+  Real sigma_c = mat_cohesive.getParam< RandomInternalField<Real, FacetInternalField> >("sigma_c");
   const Real beta = mat_cohesive.getParam<Real>("beta");
-  //  const Real G_cI = mat_cohesive.getParam<Real>("G_cI");
+  const Real G_cI = mat_cohesive.getParam<Real>("G_cI");
   //  Real G_cII = mat_cohesive.getParam<Real>("G_cII");
   const Real delta_0 = mat_cohesive.getParam<Real>("delta_0");
   const Real kappa = mat_cohesive.getParam<Real>("kappa");
-  Real delta_c = delta_0 * sigma_c / (sigma_c - 1.);
+  Real delta_c = 2 * G_cI / sigma_c;
+  sigma_c *= delta_c / (delta_c - delta_0);
 
   Vector<Real> normal_opening(spatial_dimension);
   normal_opening.clear();
@@ -495,6 +475,10 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
   Vector<Real> theoretical_traction_rotated(spatial_dimension);
   theoretical_traction_rotated.mul<false>(rotation, theoretical_traction);
 
+  // adjust damage
+  theoretical_damage = std::max((delta - delta_0) / (delta_c - delta_0), 0.);
+  theoretical_damage = std::min(theoretical_damage, 1.);
+
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
        gt != ghost_type_t::end();
        ++gt) {
@@ -518,8 +502,8 @@ bool checkTractions(SolidMechanicsModelCohesive & model,
 
       for (UInt q = 0; q < tot_nb_quad; ++q) {
 	for (UInt dim = 0; dim < spatial_dimension; ++dim) {
-	  if (!Math::are_float_equal(theoretical_traction_rotated(dim),
-				     traction(q, dim))) {
+	  if (!Math::are_float_equal(std::abs(theoretical_traction_rotated(dim)),
+				     std::abs(traction(q, dim)))) {
 	    std::cout << "Error: tractions are incorrect" << std::endl;
 	    return 1;
 	  }
@@ -577,7 +561,7 @@ void findNodesToCheck(const Mesh & mesh,
 
       for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
 	UInt node = conn_el(n);
-	if (Math::are_float_equal(position(node, 0), 0.)
+	if (std::abs(position(node, 0) - 0.) < 1.e-6
 	    && !checked_nodes(node)) {
 	  checked_nodes(node) = true;
 	  nodes_to_check.push_back(node);

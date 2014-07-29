@@ -303,6 +303,7 @@ inline void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(Element
   UInt sp2 = spatial_dimension * spatial_dimension;
   UInt nb_component = sp2 * 2;
   bool element_rank = 0;
+  Mesh & mesh_facets = inserter->getMeshFacets();
 
   Array<T> * vect = NULL;
   Array<std::vector<Element> > * element_to_facet = NULL;

@@ -54,24 +54,15 @@ int main(int argc, char *argv[]) {
 
   /// model initialization
   model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
+
+  model.limitInsertion(BC::_y, -0.30, -0.20);
+  model.updateAutomaticInsertion();
+
   Real time_step = model.getStableTimeStep()*0.05;
   model.setTimeStep(time_step);
   std::cout << "Time step: " << time_step << std::endl;
 
   model.assembleMassLumped();
-
-
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
-  CohesiveElementInserter & inserter = model.getElementInserter();
-  inserter.setLimit('y', -0.30, -0.20);
-  model.updateAutomaticInsertion();
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
 
   Array<Real> & position = mesh.getNodes();
   Array<Real> & velocity = model.getVelocity();

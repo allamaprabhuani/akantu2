@@ -95,7 +95,7 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   delta_c         .initialize(                1);
   insertion_stress.initialize(spatial_dimension);
 
-  scaleInsertionTraction();
+  if (model->getIsExtrinsic()) scaleInsertionTraction();
 
   AKANTU_DEBUG_OUT();
 }
@@ -111,7 +111,7 @@ void MaterialCohesiveLinear<spatial_dimension>::scaleInsertionTraction() {
   const Mesh & mesh_facets = model->getMeshFacets();
   const FEEngine & fe_engine = model->getFEEngine();
   const FEEngine & fe_engine_facet = model->getFEEngine("FacetsFEEngine");
- 
+
   // loop over facet type
   Mesh::type_iterator first = mesh_facets.firstType(spatial_dimension - 1);
   Mesh::type_iterator last  = mesh_facets.lastType(spatial_dimension - 1);
@@ -121,7 +121,7 @@ void MaterialCohesiveLinear<spatial_dimension>::scaleInsertionTraction() {
   for(;first != last; ++first) {
     ElementType type_facet = *first;
 
-    const Array< std::vector<Element> > facet_to_element
+    const Array< std::vector<Element> > & facet_to_element
       = mesh_facets.getElementToSubelement(type_facet);
 
     UInt nb_facet = facet_to_element.getSize();

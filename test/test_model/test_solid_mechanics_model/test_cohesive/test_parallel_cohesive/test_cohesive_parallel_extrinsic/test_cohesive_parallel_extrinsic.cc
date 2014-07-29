@@ -65,18 +65,8 @@ int main(int argc, char *argv[]) {
 
 
   model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
-
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
-  CohesiveElementInserter & inserter = model.getElementInserter();
-  inserter.setLimit('y', -0.30, -0.20);
+  model.limitInsertion(BC::_y, -0.30, -0.20);
   model.updateAutomaticInsertion();
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
 
   // debug::setDebugLevel(dblDump);
   // std::cout << mesh_facets << std::endl;
@@ -127,20 +117,11 @@ int main(int argc, char *argv[]) {
   //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();
 
-  DumperParaview dumper("cohesive_elements");
-  dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
-  cohesive_displacement->setPadding(3);
-  dumper.registerField("displacement", cohesive_displacement);
-  // dumper.registerField("damage", new DumperIOHelper::
-  // 		       HomogenizedField<Real,
-  // 					DumperIOHelper::InternalMaterialField>(model,
-  // 									       "damage",
-  // 									       spatial_dimension,
-  // 									       _not_ghost,
-  // 									       _ek_cohesive));
-
+  model.setBaseNameToDumper("cohesive elements",
+			    "extrinsic_parallel_cohesive_elements");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
+  model.dump("cohesive elements");
 
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
@@ -152,11 +133,7 @@ int main(int argc, char *argv[]) {
     }
 
     model.checkCohesiveStress();
-
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     // model.dump();
     if(s % 10 == 0) {
@@ -181,7 +158,8 @@ int main(int argc, char *argv[]) {
 
   }
 
-  dumper.dump();
+  model.dump();
+  model.dump("cohesive elements");
 
   // edis.close();
   // erev.close();

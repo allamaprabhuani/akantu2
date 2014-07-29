@@ -52,22 +52,12 @@ int main(int argc, char *argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("tetrahedron_full.msh");
 
-
-  /* ------------------------------------------------------------------------ */
-  /* Facet part                                                               */
-  /* ------------------------------------------------------------------------ */
-
-  CohesiveElementInserter inserter(mesh);
-  inserter.insertIntrinsicElements();
-
-  /* ------------------------------------------------------------------------ */
-  /* End of facet part                                                        */
-  /* ------------------------------------------------------------------------ */
-
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
   model.initFull();
+  model.insertIntrinsicElements();
+
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
   //  std::cout << "Time step: " << time_step << std::endl;

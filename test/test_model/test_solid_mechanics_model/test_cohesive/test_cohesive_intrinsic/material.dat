@@ -7,10 +7,10 @@ material elastic [
 
 material cohesive_bilinear [
 	 name = cohesive
-	 sigma_c = 1
+	 sigma_c = 1 uniform [0, 1]
 	 beta = 1.5
 	 G_cI = 1
 	 G_cII = 1
-	 delta_0 = 0.1
+	 delta_0 = 1
 #	 penalty = 1e10
 ]

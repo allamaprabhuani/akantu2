@@ -54,6 +54,10 @@ protected:
 		const ElementTypeMapArray<UInt> & element_filter);
 
   InternalField(const ID & id, const InternalField<T> & other);
+
+private:
+  InternalField operator=(__attribute__((unused)) const InternalField & other) {};
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */

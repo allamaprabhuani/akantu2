@@ -69,12 +69,6 @@ public:
   /// initialize the material computed parameter
   virtual void initMaterial();
 
-  /// resize vectors for new cohesive elements
-  virtual void resizeCohesiveArrays();
-
-  /// init arrays for automatic element insertion
-  virtual void initInsertionArrays(const Mesh & mesh_facets);
-
   /// compute tractions (including normals and openings)
   void computeTraction(GhostType ghost_type = _not_ghost);
 

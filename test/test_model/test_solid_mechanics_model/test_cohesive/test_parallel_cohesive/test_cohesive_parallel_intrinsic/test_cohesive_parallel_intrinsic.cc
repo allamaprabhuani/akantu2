@@ -48,10 +48,10 @@ int main(int argc, char *argv[]) {
     // Read the mesh
     mesh.read("mesh.msh");
 
-    /// insert cohesive elements
-    CohesiveElementInserter inserter(mesh);
-    inserter.setLimit('x', -0.26, -0.24);
-    inserter.insertIntrinsicElements();
+    // /// insert cohesive elements
+    // CohesiveElementInserter inserter(mesh);
+    // inserter.setLimit('x', -0.26, -0.24);
+    // inserter.insertIntrinsicElements();
 
     /// partition the mesh
     partition = new MeshPartitionScotch(mesh, spatial_dimension);
@@ -64,12 +64,14 @@ int main(int argc, char *argv[]) {
 
   model.initParallel(partition);
 
+  model.initFull();
+
+  model.limitInsertion(BC::_x, -0.26, -0.24);
+  model.insertIntrinsicElements();
+
   debug::setDebugLevel(dblDump);
   std::cout << mesh << std::endl;
   debug::setDebugLevel(dblWarning);
-
-
-  model.initFull();
 
   Real time_step = model.getStableTimeStep()*0.8;
   model.setTimeStep(time_step);
@@ -102,7 +104,7 @@ int main(int argc, char *argv[]) {
   model.addDumpField("residual"    );
   model.addDumpField("stress");
   model.addDumpField("strain");
-  //model.addDumpField("partitions");
+  model.addDumpField("partitions");
   model.addDumpField("force");
   model.dump();
 
@@ -115,10 +117,7 @@ int main(int argc, char *argv[]) {
   /// Main loop
   for (UInt s = 1; s <= max_steps; ++s) {
 
-    model.explicitPred();
-    model.updateResidual();
-    model.updateAcceleration();
-    model.explicitCorr();
+    model.solveStep();
 
     if(s % 1 == 0) {
       model.dump();

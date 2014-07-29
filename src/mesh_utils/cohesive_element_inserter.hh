@@ -47,13 +47,9 @@ class CohesiveElementInserter : public DataAccessor {
   /* ------------------------------------------------------------------------ */
 public:
 
-  /// constructor for extrinsic
   CohesiveElementInserter(Mesh & mesh,
-			  Mesh & mesh_facets,
-			  const ID & id = "cohesive_element_inserter");
-
-  /// constructor for intrinsic
-  CohesiveElementInserter(Mesh & mesh,
+			  bool is_extrinsic = false,
+			  DistributedSynchronizer * synchronizer = NULL,
 			  const ID & id = "cohesive_element_inserter");
 
   virtual ~CohesiveElementInserter();
@@ -64,16 +60,16 @@ public:
 public:
 
   /// init function
-  void init();
+  void init(bool is_extrinsic);
 
   /// set range limitation for intrinsic cohesive element insertion
-  void setLimit(char direction, Real first_limit, Real second_limit);
+  void setLimit(UInt axis, Real first_limit, Real second_limit);
 
   /// insert intrinsic cohesive elements in a predefined range
   void insertIntrinsicElements();
 
   /// insert extrinsic cohesive elements
-  void insertExtrinsicElements();
+  void insertElements();
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
@@ -135,6 +131,8 @@ public:
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(CheckFacets, check_facets, bool);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(CheckFacets, check_facets, bool);
+  AKANTU_GET_MACRO(MeshFacets, mesh_facets, const Mesh &);
+  AKANTU_GET_MACRO_NOT_CONST(MeshFacets, mesh_facets, Mesh &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -148,13 +146,10 @@ private:
   Mesh & mesh;
 
   /// mesh containing facets
-  Mesh * mesh_facets;
+  Mesh & mesh_facets;
 
   /// list of facets where to insert elements
   ElementTypeMapArray<bool> insertion_facets;
-
-  /// tag to distinguish extrinsic simulations (true by default)
-  bool is_extrinsic;
 
   /// limits for element insertion
   Array<Real> insertion_limits;

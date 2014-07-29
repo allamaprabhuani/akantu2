@@ -60,7 +60,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 
   this->model = dynamic_cast<SolidMechanicsModelCohesive*>(&model);
 
-  this->registerParam("sigma_c", sigma_c, _pat_parsable | _pat_readable, "Critical stress");
+  this->registerParam("sigma_c", sigma_c,
+		      _pat_parsable | _pat_readable, "Critical stress");
 
   this->model->getMesh().initElementTypeMapArray(this->element_filter,
 						1,
@@ -68,7 +69,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id) :
 						false,
 						_ek_cohesive);
 
-  this->model->getMeshFacets().initElementTypeMapArray(facet_filter, 1, spatial_dimension - 1);
+  if (this->model->getIsExtrinsic())
+    this->model->getMeshFacets().initElementTypeMapArray(facet_filter, 1,
+							 spatial_dimension - 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -95,31 +98,8 @@ void MaterialCohesive::initMaterial() {
   this->opening          .initialize(spatial_dimension);
   this->delta_max        .initialize(1                );
   this->damage           .initialize(1                );
-  this->sigma_c          .initialize(1                );
-  AKANTU_DEBUG_OUT();
-}
 
-void MaterialCohesive::initInsertionArrays(const Mesh & mesh_facets) {
-  AKANTU_DEBUG_IN();
-
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void MaterialCohesive::resizeCohesiveArrays() {
-  AKANTU_DEBUG_IN();
-
-  this->reversible_energy.resize();
-  this->total_energy     .resize();
-  this->tractions_old    .resize();
-  this->tractions        .resize();
-  this->opening_old      .resize();
-  this->opening          .resize();
-  this->contact_tractions.resize();
-  this->contact_opening  .resize();
-  this->delta_max        .resize();
-  this->damage           .resize();
+  if (model->getIsExtrinsic()) this->sigma_c.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
