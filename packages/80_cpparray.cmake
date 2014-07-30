@@ -27,25 +27,29 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-option(AKANTU_CPPARRAY "Use cpp-array library" OFF)
-find_package(Subversion)
-mark_as_advanced(AKANTU_CPPARRAY)
+option(AKANTU_USE_CPPARRAY "Use cpp-array library" OFF)
+option(AKANTU_USE_THIRD_PARTY_CPPARRAY "Automatic download of the CPP-ARRAY library" ON)
+mark_as_advanced(AKANTU_USE_THIRD_PARTY_CPPARRAY AKANTU_USE_CPPARRAY)
 
-if(SUBVERSION_FOUND)
-  if(AKANTU_CPPARRAY)
+if(AKANTU_USE_CPPARRAY AND AKANTU_USE_THIRD_PARTY_NLOPT)
+  find_package(Git)
+
+  if(GIT_FOUND)
     if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/cpp-array)
       execute_process(
-	COMMAND ${Subversion_SVN_EXECUTABLE} up ${PROJECT_SOURCE_DIR}/third-party/cpp-array
+	COMMAND ${GIT_EXECUTABLE} pull
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/third-party/cpp-array
 	OUTPUT_VARIABLE _revision)
-      string(REGEX REPLACE ".*At revision ([0-9]*)\\..*" "\\1" _rev "${_revision}")
-      message(STATUS "Updating Cpp-Array: r${_rev}")
+      message(STATUS "Updating Cpp-Array")
     else()
-      message(STATUS "Checking out Cpp-Array")
+      message(STATUS "Cloning Cpp-Array")
       execute_process(
-	COMMAND ${Subversion_SVN_EXECUTABLE} co http://cpp-array.googlecode.com/svn/trunk ${PROJECT_SOURCE_DIR}/third-party/cpp-array
+	COMMAND ${GIT_EXECUTABLE} clone https://code.google.com/p/cpp-array/ ${PROJECT_SOURCE_DIR}/third-party/cpp-array
 	OUTPUT_QUIET)
     endif()
+  endif()
 
+  if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
     set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
 
@@ -60,13 +64,16 @@ if(SUBVERSION_FOUND)
     list(APPEND CPACK_SOURCE_IGNORE_FILES ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
 
     set(AKANTU_CPPARRAY_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS})
-    list(APPEND AKANTU_OPTION_LIST CPPARRAY)
 
+    list(APPEND AKANTU_OPTION_LIST CPPARRAY)
+    set(AKANTU_CPPARRAY ${AKANTU_CPPARRAY} CACHE INTERNAL "Use cpp-array library" FORCE)
+  else()
+    message(STATUS "Cpp-Array could not be found! Please install git and/or place cpp-array in the third-party folder of Akantu")
   endif()
-  set(AKANTU_USE_CPPARRAY ${AKANTU_CPPARRAY} CACHE BOOL "Use cpp-array library" FORCE)
 else()
   add_optional_external_package(CppArray "Use cpp-array library" OFF)
 endif()
+
 
 set(AKANTU_CPPARRAY_DOCUMENTATION "
 This package provides access to the \\href{https://code.google.com/p/cpp-array/}{cpp-array} open-source project. If internet is accessible when configuring the project (during cmake call) this package will be auto-downloaded.

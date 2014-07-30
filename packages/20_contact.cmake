@@ -59,7 +59,7 @@ set(AKANTU_CONTACT_FILES
   model/implicit_contact_manager.hh
   )
 
-add_internal_package_dependencies(contact cpparray)
+add_external_package_dependencies(contact cpparray)
 add_internal_package_dependencies(contact implicit)
 add_internal_package_dependencies(contact optimization)
 

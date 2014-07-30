@@ -80,7 +80,15 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS AND AKANTU_USE_MUMPS)
   string(REPLACE ";" " " MUMPS_SCOTCH_LIBRARIES "${SCOTCH_LIBRARIES};${SCOTCH_LIBRARY_ESMUMPS}")
 
   find_package(BLAS REQUIRED)
-  string(REPLACE ";" " " MUMPS_BLAS_LIBRARIES "${BLAS_LIBRARIES}")
+  foreach(_blas_lib ${BLAS_LIBRARIES})
+    if("${_blas_lib}" MATCHES ".*\.framework")
+      get_filename_component(_blas_framework "${_blas_lib}" NAME_WE)
+      set(MUMPS_BLAS_LIBRARIES "${MUMPS_BLAS_LIBRARIES} -framework ${_blas_framework}")
+    else()
+      set(MUMPS_BLAS_LIBRARIES "${MUMPS_BLAS_LIBRARIES} ${_blas_lib}")
+    endif()
+  endforeach()
+
 
   if("${MUMPS_TYPE}" STREQUAL "seq")
     set_third_party_shared_libirary_name(MUMPS_LIBRARY_MPI mpiseq${MUMPS_PREFIX})
