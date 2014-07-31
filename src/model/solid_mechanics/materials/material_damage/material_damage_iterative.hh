@@ -120,6 +120,9 @@ protected:
 
   /// define damage threshold at which damage will be set to 1 
   Real dam_threshold; 
+
+  /// maximum damage value
+  Real max_damage;
 };
 
 /* -------------------------------------------------------------------------- */

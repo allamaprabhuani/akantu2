@@ -41,14 +41,14 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(SolidMechani
   MaterialDamage<spatial_dimension>(model, id),
   Sc("Sc", *this),
   equivalent_stress("equivalent_stress", *this),
-  norm_max_equivalent_stress(0),
-  dam_tolerance(0) {
+  norm_max_equivalent_stress(0) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sc",                  Sc,                  _pat_parsable, "critical stress threshold");
   this->registerParam("prescribed_dam",      prescribed_dam, 0.1, _pat_parsable | _pat_modifiable, "increase of damage in every step" );
   this->registerParam("dam_threshold",       dam_threshold,  0.8,  _pat_parsable | _pat_modifiable, "damage threshold at which damage damage will be set to 1" );
   this->registerParam("dam_tolerance",       dam_tolerance,  0.01,  _pat_parsable | _pat_modifiable, "damage tolerance to decide if quadrature point will be damageed" );
+  this->registerParam("max_damage",       max_damage,  0.99999,  _pat_parsable | _pat_modifiable, "maximum damage value" );
 
 
   this->use_previous_stress          = true;
@@ -117,14 +117,29 @@ void MaterialDamageIterative<spatial_dimension>::findMaxNormalizedEquivalentStre
 
   if(ghost_type==_not_ghost) {
 
-    const Array<Real> & e_stress = equivalent_stress(el_type);
+    // const Array<Real> & e_stress = equivalent_stress(el_type);
 
-    if (e_stress.begin() != e_stress.end() ) {
-      Array<Real>::const_iterator<Real> equivalent_stress_it_max = std::max_element(e_stress.begin(),e_stress.end());
-      /// check if max equivalent stress for this element type is greater than the current norm_max_eq_stress
-      if (*equivalent_stress_it_max > norm_max_equivalent_stress) 
-	norm_max_equivalent_stress = *equivalent_stress_it_max;
+    // if (e_stress.begin() != e_stress.end() ) {
+    //   Array<Real>::const_iterator<Real> equivalent_stress_it_max = std::max_element(e_stress.begin(),e_stress.end());
+    //   /// check if max equivalent stress for this element type is greater than the current norm_max_eq_stress
+    //   if (*equivalent_stress_it_max > norm_max_equivalent_stress) 
+    // 	norm_max_equivalent_stress = *equivalent_stress_it_max;
+    // }
+    const Array<Real> & e_stress = equivalent_stress(el_type);
+    Array<Real>::const_iterator<Real> equivalent_stress_it = e_stress.begin();
+    Array<Real>::const_iterator<Real> equivalent_stress_end = e_stress.end();
+    Array<Real> & dam = this->damage(el_type);
+    Array<Real>::iterator<Real> dam_it = dam.begin();
+
+    for (; equivalent_stress_it != equivalent_stress_end; ++equivalent_stress_it, ++dam_it ) {
+      /// check if max equivalent stress for this element type is greater than the current norm_max_eq_stress and if the element is not already fully damaged
+      if (*equivalent_stress_it > norm_max_equivalent_stress && *dam_it < max_damage) {
+	norm_max_equivalent_stress = *equivalent_stress_it;
+      }
     }
+
+
+
   }
   AKANTU_DEBUG_OUT();
 }
@@ -174,7 +189,6 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
       const Array<Real> & e_stress = equivalent_stress(el_type);
       Array<Real>::const_iterator<Real> equivalent_stress_it = e_stress.begin();
       Array<Real>::const_iterator<Real> equivalent_stress_end = e_stress.end();
-
       Array<Real> & dam = this->damage(el_type);
       Array<Real>::iterator<Real> dam_it = dam.begin();
 
@@ -183,7 +197,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
 	if (*equivalent_stress_it >= (1-dam_tolerance)*norm_max_equivalent_stress) {
 	  if (*dam_it < dam_threshold)
 	    *dam_it +=prescribed_dam;
-	  else *dam_it = 0.99999;
+	  else *dam_it = max_damage;
 	  nb_damaged_elements += 1;
 	}
       }
