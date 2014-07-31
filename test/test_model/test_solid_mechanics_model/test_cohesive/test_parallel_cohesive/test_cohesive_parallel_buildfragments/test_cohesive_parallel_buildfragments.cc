@@ -43,6 +43,7 @@ void verticalInsertionLimit(SolidMechanicsModelCohesive &);
 void displaceElements(SolidMechanicsModelCohesive &, const Real, const Real);
 bool isInertiaEqual(const Vector<Real> &, const Vector<Real> &);
 void rotateArray(Array<Real> & array, Real angle);
+UInt getNbBigFragments(FragmentManager &, UInt);
 
 const UInt spatial_dimension = 3;
 const UInt total_nb_fragment = 4;
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]) {
   FragmentManager fragment_manager(model);
 
   fragment_manager.computeAllData();
-  fragment_manager.getNbBigFragments(nb_element_per_fragment + 1);
+  getNbBigFragments(fragment_manager, nb_element_per_fragment + 1);
 
   model.setBaseName("extrinsic");
   model.addDumpFieldVector("displacement");
@@ -166,8 +167,8 @@ int main(int argc, char *argv[]) {
     fragment_manager.computeAllData();
 
     /// check number of big fragments
-    UInt nb_big_fragment
-      = fragment_manager.getNbBigFragments(nb_element_per_fragment + 1);
+    UInt nb_big_fragment = getNbBigFragments(fragment_manager,
+					     nb_element_per_fragment + 1);
 
     model.dump();
     model.dump("cohesive elements");
@@ -423,4 +424,21 @@ void rotateArray(Array<Real> & array, Real angle) {
     displaced_node.mul<false>(rotation, *node_it);
     *node_it = displaced_node;
   }
+}
+
+UInt getNbBigFragments(FragmentManager & fragment_manager,
+		       UInt minimum_nb_elements) {
+  fragment_manager.computeNbElementsPerFragment();
+  const Array<UInt> & nb_elements_per_fragment
+    = fragment_manager.getNbElementsPerFragment();
+  UInt nb_fragment = fragment_manager.getNbFragment();
+  UInt nb_big_fragment = 0;
+
+  for (UInt frag = 0; frag < nb_fragment; ++frag) {
+    if (nb_elements_per_fragment(frag) >= minimum_nb_elements) {
+      ++nb_big_fragment;
+    }
+  }
+
+  return nb_big_fragment;
 }

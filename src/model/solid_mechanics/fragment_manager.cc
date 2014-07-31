@@ -47,7 +47,7 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
   inertia_moments(0, model.getSpatialDimension(), "inertia_moments"),
   quad_coordinates("quad_coordinates", id),
   mass_density("mass_density", id),
-  fragment_filter(0, 1, "fragment_filter"),
+  nb_elements_per_fragment(0, 1, "nb_elements_per_fragment"),
   dump_data(dump_data) {
   AKANTU_DEBUG_IN();
 
@@ -542,12 +542,12 @@ void FragmentManager::integrateFieldOnFragments(ElementTypeMapArray<Real> & fiel
 }
 
 /* -------------------------------------------------------------------------- */
-UInt FragmentManager::getNbBigFragments(UInt minimum_nb_elements) {
+void FragmentManager::computeNbElementsPerFragment() {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = model.getSpatialDimension();
-  Array<UInt> nb_element_per_fragment(global_nb_fragment);
-  nb_element_per_fragment.clear();
+  nb_elements_per_fragment.resize(global_nb_fragment);
+  nb_elements_per_fragment.clear();
 
   UInt * fragment_index_it = fragment_index.storage();
 
@@ -569,31 +569,18 @@ UInt FragmentManager::getNbBigFragments(UInt minimum_nb_elements) {
       ElementType type = *type_it;
       UInt nb_element = el_list(type).getSize();
 
-      nb_element_per_fragment(*fragment_index_it) += nb_element;
+      nb_elements_per_fragment(*fragment_index_it) += nb_element;
     }
   }
 
   /// sum values over all processors
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-  comm.allReduce(nb_element_per_fragment.storage(), global_nb_fragment, _so_sum);
-
-  /// count big enough fragments
-  fragment_filter.resize(global_nb_fragment);
-  fragment_filter.clear();
-  UInt nb_big_fragment = 0;
-
-  for (UInt frag = 0; frag < global_nb_fragment; ++frag) {
-    if (nb_element_per_fragment(frag) >= minimum_nb_elements) {
-      fragment_filter(frag) = true;
-      ++nb_big_fragment;
-    }
-  }
+  comm.allReduce(nb_elements_per_fragment.storage(), global_nb_fragment, _so_sum);
 
   if (dump_data)
-    createDumpDataArray(nb_element_per_fragment, "elements per fragment");
+    createDumpDataArray(nb_elements_per_fragment, "elements per fragment");
 
   AKANTU_DEBUG_OUT();
-  return nb_big_fragment;
 }
 
 /* -------------------------------------------------------------------------- */

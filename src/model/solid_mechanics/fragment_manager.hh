@@ -89,8 +89,8 @@ public:
   /// compute all fragments' data
   void computeAllData();
 
-  /// get number of elements that consist of a minimum number of elements
-  UInt getNbBigFragments(UInt minimum_nb_elements);
+  /// compute number of elements per fragment
+  void computeNbElementsPerFragment();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -112,8 +112,9 @@ public:
   /// get fragments' principal moments of inertia
   AKANTU_GET_MACRO(MomentsOfInertia, inertia_moments, const Array<Real> &);
 
-  /// get fragments' filter
-  AKANTU_GET_MACRO(Filter, fragment_filter, const Array<bool> &);
+  /// get number of elements per fragment
+  AKANTU_GET_MACRO(NbElementsPerFragment,
+		   nb_elements_per_fragment, const Array<UInt> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -152,7 +153,7 @@ private:
   ElementTypeMapArray<Real> mass_density;
 
   /// fragment filter
-  Array<bool> fragment_filter;
+  Array<UInt> nb_elements_per_fragment;
 
   /// dump data
   bool dump_data;
