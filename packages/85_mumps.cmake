@@ -81,7 +81,7 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS AND AKANTU_USE_MUMPS)
 
   find_package(BLAS REQUIRED)
   foreach(_blas_lib ${BLAS_LIBRARIES})
-    if("${_blas_lib}" MATCHES ".*\.framework")
+    if("${_blas_lib}" MATCHES ".*\\.framework")
       get_filename_component(_blas_framework "${_blas_lib}" NAME_WE)
       set(MUMPS_BLAS_LIBRARIES "${MUMPS_BLAS_LIBRARIES} -framework ${_blas_framework}")
     else()
