@@ -149,7 +149,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
       /// type is present in the mesh but not in the partitions
       const Array<UInt> * tmp_partition_num = NULL;
       try {
-	 tmp_partition_num = &partition->getPartition(type, _not_ghost);
+	tmp_partition_num = &partition->getPartition(type, _not_ghost);
       } catch(...) {
 	continue;
       }

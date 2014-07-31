@@ -31,6 +31,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_partition_mesh_data.hh"
+#if !defined(AKANTU_NDEBUG)
+#include <set>
+#endif
 
 /* -------------------------------------------------------------------------- */
 
@@ -79,6 +82,10 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
   UInt linearized_el = 0;
   UInt nb_elements = mesh.getNbElement(mesh.getSpatialDimension(), ghost_type);
   Int * partition_list = new Int[nb_elements];
+
+#if !defined(AKANTU_NDEBUG)
+  std::set<UInt> partitions;
+#endif
   for(; it != end; ++it) {
     ElementType type = *it;
     const Array<UInt> & partition_array = (*partition_mapping)(type, ghost_type);
@@ -91,8 +98,16 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
 			<< " Mesh=" << mesh.getNbElement(type, ghost_type));
     for(; p_it != p_end; ++p_it, ++linearized_el) {
       partition_list[linearized_el] = (*p_it)(0);
+#if !defined(AKANTU_NDEBUG)
+      partitions.insert((*p_it)(0));
+#endif
     }
   }
+
+#if !defined(AKANTU_NDEBUG)
+      AKANTU_DEBUG_ASSERT(partitions.size() == nb_part, "The number of real partitions does not match with the number of asked partitions");
+#endif
+
 
   fillPartitionInformation(mesh, partition_list);
 
