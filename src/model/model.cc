@@ -89,16 +89,16 @@ void Model::createSynchronizerRegistry(DataAccessor * data_accessor){
 /* -------------------------------------------------------------------------- */
 void Model::setPBC(UInt x, UInt y, UInt z){
   mesh.computeBoundingBox();
-  if (x) MeshUtils::computePBCMap(mesh, 0, pbc_pair);
-  if (y) MeshUtils::computePBCMap(mesh, 1, pbc_pair);
-  if (z) MeshUtils::computePBCMap(mesh, 2, pbc_pair);
+  if (x) MeshUtils::computePBCMap(this->mesh, 0, this->pbc_pair);
+  if (y) MeshUtils::computePBCMap(this->mesh, 1, this->pbc_pair);
+  if (z) MeshUtils::computePBCMap(this->mesh, 2, this->pbc_pair);
 }
 
 /* -------------------------------------------------------------------------- */
 void Model::setPBC(SurfacePairList & surface_pairs){
   SurfacePairList::iterator s_it;
   for(s_it = surface_pairs.begin(); s_it != surface_pairs.end(); ++s_it) {
-    MeshUtils::computePBCMap(mesh, *s_it, pbc_pair);
+    MeshUtils::computePBCMap(this->mesh, *s_it, this->pbc_pair);
   }
 }
 

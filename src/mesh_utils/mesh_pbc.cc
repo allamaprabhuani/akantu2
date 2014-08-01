@@ -198,6 +198,12 @@ void MeshUtils::computePBCMap(const Mesh & mymesh,
   const ElementGroup & first_surf = mymesh.getElementGroup(surface_pair.first);
   const ElementGroup & second_surf = mymesh.getElementGroup(surface_pair.second);
 
+  // if this surface pair is not on this proc
+  if (first_surf.getNbNodes() == 0 || second_surf.getNbNodes() == 0) {
+    AKANTU_DEBUG_WARNING("computePBCMap has at least one surface without any nodes. I will ignore it.");
+    return;
+  }
+
   // copy nodes from element group
   selected_first.copy(first_surf.getNodeGroup().getNodes());
   selected_second.copy(second_surf.getNodeGroup().getNodes());
