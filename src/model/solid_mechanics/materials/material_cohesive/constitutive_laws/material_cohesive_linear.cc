@@ -170,6 +170,8 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion() {
   const Mesh & mesh_facets = model->getMeshFacets();
   CohesiveElementInserter & inserter = model->getElementInserter();
 
+  Real tolerance = Math::getTolerance();
+
   Mesh::type_iterator it   = mesh_facets.firstType(spatial_dimension - 1);
   Mesh::type_iterator last = mesh_facets.lastType(spatial_dimension - 1);
 
@@ -214,7 +216,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion() {
       					 0.);
       mean_stress /= nb_quad_facet;
 
-      if (mean_stress > *sigma_lim_it) {
+      if (mean_stress > (*sigma_lim_it - tolerance)) {
 	f_insertion(facet) = true;
 
 	for (UInt q = 0; q < nb_quad_facet; ++q) {
