@@ -136,15 +136,15 @@ public:
 
   T * storage() const { return values; }
 
-  TensorProxy operator=(const TensorProxy & other) {
-    UInt _size = this->size();
-#ifndef AKANTU_NDEBUG
-    UInt _size_other = other.size();
-    AKANTU_DEBUG_ASSERT(_size == _size_other, "The two tensor are not compatible in size");
-#endif
-    memcpy(this->values, other.storage(), _size * sizeof(T));
-    return *this;
-  }
+//   TensorProxy operator=(const TensorProxy & other) {
+//     UInt _size = this->size();
+// #ifndef AKANTU_NDEBUG
+//     UInt _size_other = other.size();
+//     AKANTU_DEBUG_ASSERT(_size == _size_other, "The two tensor are not compatible in size");
+// #endif
+//     memcpy(this->values, other.storage(), _size * sizeof(T));
+//     return *this;
+//   }
 
 protected:
   T * values;
@@ -159,10 +159,10 @@ class VectorProxy : public TensorProxy<T, 1> {
 public:
   VectorProxy(T * data = NULL, UInt n = 0) : parent(data, n, 0, 0) { }
   VectorProxy(const VectorProxy & src) : parent(src) {  }
-  VectorProxy & operator=(const VectorProxy & other) {
-    parent::operator=(other);
-    return *this;
-  }
+  // VectorProxy & operator=(const VectorProxy & other) {
+  //   parent::operator=(other);
+  //   return *this;
+  // }
 };
 
 template<typename T>
@@ -171,10 +171,10 @@ class MatrixProxy : public TensorProxy<T, 2> {
 public:
   MatrixProxy(T * data = NULL, UInt m = 0, UInt n = 0) : parent(data, m, n, 0) { }
   MatrixProxy(const MatrixProxy & src) : parent(src) {  }
-  MatrixProxy & operator=(const MatrixProxy & other) {
-    parent::operator=(other);
-    return *this;
-  }
+  // MatrixProxy & operator=(const MatrixProxy & other) {
+  //   parent::operator=(other);
+  //   return *this;
+  // }
 
 };
 
@@ -185,10 +185,10 @@ public:
   Tensor3Proxy(T * data = NULL, UInt m = 0, UInt n = 0, UInt k = 0) :
     parent(data, m, n, k) { }
   Tensor3Proxy(const Tensor3Proxy & src) : parent(src) {  }
-  Tensor3Proxy & operator=(const Tensor3Proxy & other) {
-    parent::operator=(other);
-    return *this;
-  }
+  // Tensor3Proxy & operator=(const Tensor3Proxy & other) {
+  //   parent::operator=(other);
+  //   return *this;
+  // }
 };
 
 /* -------------------------------------------------------------------------- */
@@ -788,7 +788,11 @@ public:
     for (UInt i = 0; i < perm.size(); ++i) eigenvalues(i) = tmp_eigs(perm(i));
 
     if(tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0)
-      for (UInt i = 0; i < perm.size(); ++i) eigenvectors(i) = tmp_eig_vects(perm(i));
+      for (UInt i = 0; i < perm.size(); ++i) {
+	for (UInt j = 0; j < eigenvectors.rows(); ++j) {
+	  eigenvectors(j, i) = tmp_eig_vects(j, perm(i));
+	}
+      }
   }
 
   /* ---------------------------------------------------------------------- */

@@ -45,6 +45,8 @@ FragmentManager::FragmentManager(SolidMechanicsModelCohesive & model,
   mass(0, model.getSpatialDimension(), "mass"),
   velocity(0, model.getSpatialDimension(), "velocity"),
   inertia_moments(0, model.getSpatialDimension(), "inertia_moments"),
+  principal_directions(0, model.getSpatialDimension() * model.getSpatialDimension(),
+		       "principal_directions"),
   quad_coordinates("quad_coordinates", id),
   mass_density("mass_density", id),
   nb_elements_per_fragment(0, 1, "nb_elements_per_fragment"),
@@ -316,7 +318,7 @@ void FragmentManager::computeInertiaMoments() {
 
 
   /// compute coordinates
-  Array<Real>::const_iterator< Vector<Real> > mass_center_it
+  Array<Real>::const_vector_iterator mass_center_it
     = mass_center.begin(spatial_dimension);
 
   /// loop over fragments
@@ -341,9 +343,9 @@ void FragmentManager::computeInertiaMoments() {
       const Array<Real> & quad_coordinates_array = quad_coordinates(type);
       const Array<UInt> & el_list_array = el_list(type);
 
-      Array<Real>::iterator< Matrix<Real> > moments_begin
+      Array<Real>::matrix_iterator moments_begin
 	= moments_coords_array.begin(spatial_dimension, spatial_dimension);
-      Array<Real>::const_iterator< Vector<Real> > quad_coordinates_begin
+      Array<Real>::const_vector_iterator quad_coordinates_begin
 	= quad_coordinates_array.begin(spatial_dimension);
 
       Vector<Real> relative_coords(spatial_dimension);
@@ -379,20 +381,18 @@ void FragmentManager::computeInertiaMoments() {
 
   /// compute and store principal moments
   inertia_moments.resize(global_nb_fragment);
+  principal_directions.resize(global_nb_fragment);
 
-  Array<Real>::iterator< Matrix<Real> > integrated_moments_it
+  Array<Real>::matrix_iterator integrated_moments_it
     = integrated_moments.begin(spatial_dimension, spatial_dimension);
-  Array<Real>::iterator< Vector<Real> > inertia_moments_it
+  Array<Real>::vector_iterator inertia_moments_it
     = inertia_moments.begin(spatial_dimension);
+  Array<Real>::matrix_iterator principal_directions_it
+    = principal_directions.begin(spatial_dimension, spatial_dimension);
 
-  for (UInt frag = 0; frag < global_nb_fragment; ++frag,
-	 ++integrated_moments_it, ++inertia_moments_it) {
-    integrated_moments_it->eig(*inertia_moments_it);
-
-    // sort moments
-    std::sort(inertia_moments_it->storage(),
-	      inertia_moments_it->storage() + spatial_dimension,
-	      std::greater<Real>());
+  for (UInt frag = 0; frag < global_nb_fragment; ++frag, ++integrated_moments_it,
+	 ++inertia_moments_it, ++principal_directions_it) {
+    integrated_moments_it->eig(*inertia_moments_it, *principal_directions_it);
   }
 
   if (dump_data)
@@ -459,7 +459,7 @@ void FragmentManager::integrateFieldOnFragments(ElementTypeMapArray<Real> & fiel
   output.clear();
 
   UInt * fragment_index_it = fragment_index.storage();
-  Array<Real>::iterator< Vector<Real> > output_begin = output.begin(nb_component);
+  Array<Real>::vector_iterator output_begin = output.begin(nb_component);
 
   /// loop over fragments
   for(const_element_group_iterator it(element_group_begin());
@@ -488,17 +488,17 @@ void FragmentManager::integrateFieldOnFragments(ElementTypeMapArray<Real> & fiel
       Array<Real> integration_array(elements.getSize() * nb_quad_per_element,
 				    nb_component);
 
-      Array<Real>::iterator< Matrix<Real> > int_array_it
+      Array<Real>::matrix_iterator int_array_it
 	= integration_array.begin_reinterpret(nb_quad_per_element,
 					      nb_component, nb_element);
-      Array<Real>::iterator< Matrix<Real> > int_array_end
+      Array<Real>::matrix_iterator int_array_end
 	= integration_array.end_reinterpret(nb_quad_per_element,
 					    nb_component, nb_element);
-      Array<Real>::iterator< Matrix<Real> > field_array_begin
+      Array<Real>::matrix_iterator field_array_begin
 	= field_array.begin_reinterpret(nb_quad_per_element,
 					nb_component,
 					field_array.getSize() / nb_quad_per_element);
-      Array<Real>::const_iterator< Vector<Real> > density_array_begin
+      Array<Real>::const_vector_iterator density_array_begin
 	= density_array.begin_reinterpret(nb_quad_per_element,
 					  density_array.getSize() / nb_quad_per_element);
 

@@ -112,6 +112,9 @@ public:
   /// get fragments' principal moments of inertia
   AKANTU_GET_MACRO(MomentsOfInertia, inertia_moments, const Array<Real> &);
 
+  /// get fragments' principal directions
+  AKANTU_GET_MACRO(PrincipalDirections, principal_directions, const Array<Real> &);
+
   /// get number of elements per fragment
   AKANTU_GET_MACRO(NbElementsPerFragment,
 		   nb_elements_per_fragment, const Array<UInt> &);
@@ -145,6 +148,9 @@ private:
   /// fragments' principal moments of inertia with respect to the
   /// center of mass
   Array<Real> inertia_moments;
+
+  /// fragments' principal directions
+  Array<Real> principal_directions;
 
   /// quadrature points' coordinates
   ElementTypeMapArray<Real> quad_coordinates;
