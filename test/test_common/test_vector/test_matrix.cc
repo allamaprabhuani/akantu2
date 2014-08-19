@@ -50,6 +50,36 @@ int main(int argc, char *argv[]) {
 
   Real time;
 
+
+  Matrix<Real> eig_test(3, 3);
+  eig_test(0, 0) = 0; eig_test(0, 1) = 1; eig_test(0, 2) = 0;
+  eig_test(1, 0) = 1; eig_test(1, 1) = 0; eig_test(1, 2) = 0;
+  eig_test(2, 0) = 0; eig_test(2, 1) = 0; eig_test(2, 2) = 1;
+
+  Matrix<Real> eig_vects(3, 3);
+  Vector<Real> eigs(3);
+
+  eig_test.eig(eigs, eig_vects);
+
+  std::cout << "A: " << eig_test << std::endl;
+  std::cout << "eig(A): " << eigs << " " << Vector<Real>(eig_vects(0)) << " " << Vector<Real>(eig_vects(1)) << " " << Vector<Real>(eig_vects(2)) << std::endl;
+
+  Matrix<Real> check_eig_vects(3, 3);
+  check_eig_vects(0, 0) = 1./std::sqrt(2); check_eig_vects(0, 1) = 0; check_eig_vects(0, 2) = -1./std::sqrt(2);
+  check_eig_vects(1, 0) = 1./std::sqrt(2); check_eig_vects(1, 1) = 0; check_eig_vects(1, 2) = 1./std::sqrt(2);
+  check_eig_vects(2, 0) = 0;               check_eig_vects(2, 1) = 1; check_eig_vects(2, 2) = 0;
+
+  for (UInt i = 0; i < 3; ++i) {
+    Vector<Real> eig_v = eig_vects(i);
+    Vector<Real> check_eig_v = check_eig_vects(i);
+
+    if(! check_eig_v.equal(eig_v, 1e-14)) {
+      AKANTU_DEBUG_ERROR("The " << i << "th eigen vector is not correct: " << eig_v << " should be " << check_eig_v);
+    }
+  }
+
+
+
   Array<Real> A(nbm, n*n);
   Array<Real> B(nbm, n*n);
   Array<Real> C1(nbm, n*n);
