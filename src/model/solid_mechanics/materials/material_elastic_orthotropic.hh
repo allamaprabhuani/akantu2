@@ -80,6 +80,21 @@ public:
 
   virtual void updateInternalParameters();
 
+
+  /// compute the elastic potential energy
+  virtual void computePotentialEnergy(ElementType el_type,
+				      GhostType ghost_type = _not_ghost);
+
+  virtual void computePotentialEnergyByElement(ElementType type, UInt index,
+					       Vector<Real> & epot_on_quad_points);
+
+
+protected:
+
+  inline void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+					   const Matrix<Real> & sigma,
+					   Real & epot);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

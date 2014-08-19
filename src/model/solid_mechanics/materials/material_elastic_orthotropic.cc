@@ -138,6 +138,74 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
+
+template<UInt dim>
+inline void MaterialElasticOrthotropic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
+							       const Matrix<Real> & sigma,
+							       Real & epot) {
+  epot = .5 * sigma.doubleDot(grad_u);
+}
+
+/* -------------------------------------------------------------------------- */
+
+
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::computePotentialEnergy(ElementType el_type,
+									   GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_ASSERT(!this->finite_deformation,"finite deformation not possible in material orthotropic (TO BE IMPLEMENTED)");
+
+
+  if(ghost_type != _not_ghost) return;
+  Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  
+  computePotentialEnergyOnQuad(grad_u, sigma, *epot);
+  ++epot;
+  
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialElasticOrthotropic<spatial_dimension>::computePotentialEnergyByElement(ElementType type, UInt index,
+									 Vector<Real> & epot_on_quad_points) {
+
+  AKANTU_DEBUG_ASSERT(!this->finite_deformation,"finite deformation not possible in material orthotropic (TO BE IMPLEMENTED)");
+
+  Array<Real>::matrix_iterator gradu_it =
+    this->gradu(type).begin(spatial_dimension,
+                             spatial_dimension);
+  Array<Real>::matrix_iterator gradu_end =
+    this->gradu(type).begin(spatial_dimension,
+                             spatial_dimension);
+  Array<Real>::matrix_iterator stress_it =
+    this->stress(type).begin(spatial_dimension,
+                             spatial_dimension);
+
+  UInt nb_quadrature_points = this->model->getFEEngine().getNbQuadraturePoints(type);
+
+  gradu_it  += index*nb_quadrature_points;
+  gradu_end += (index+1)*nb_quadrature_points;
+  stress_it  += index*nb_quadrature_points;
+
+  Real * epot_quad = epot_on_quad_points.storage();
+
+  Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
+
+  for(;gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
+    grad_u.copy(*gradu_it);
+
+    computePotentialEnergyOnQuad(grad_u, *stress_it, *epot_quad);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 INSTANSIATE_MATERIAL(MaterialElasticOrthotropic);
 
 __END_AKANTU__
