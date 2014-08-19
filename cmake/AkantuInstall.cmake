@@ -99,6 +99,12 @@ set(${_pkg_name}_INCLUDE_DIR ${${_pkg_name}_INCLUDE_DIR})
   endif()
 endforeach()
 
+file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
+set(AKANTU_BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+set(AKANTU_BOOST_LIBRARIES ${Boost_LIBRARIES})
+")
+
+
 # Create the AkantuConfig.cmake and AkantuConfigVersion files
 get_filename_component(CONF_REL_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}" ABSOLUTE)
 configure_file(cmake/AkantuConfig.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfig.cmake" @ONLY)
