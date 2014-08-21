@@ -44,6 +44,7 @@ __BEGIN_AKANTU__
   (global)                                      \
   (material)                                    \
   (model)					\
+  (mesh)					\
   (heat)					\
   (contact)                                     \
   (friction)					\

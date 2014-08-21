@@ -215,7 +215,7 @@ void ParserSection::printself(std::ostream & stream, unsigned int indent) const 
     stream << std::endl;
     stream << space << ind << "]" << std::endl;
   }
-  stream << space << "]";
+  stream << space << "]" << std::endl;
 }
 
 __END_AKANTU__
