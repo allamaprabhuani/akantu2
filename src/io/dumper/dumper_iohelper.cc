@@ -163,8 +163,10 @@ void DumperIOHelper::registerFilteredMesh(const Mesh & mesh,
 void DumperIOHelper::registerField(const std::string & field_id,
 				   Field * field) {
   Fields::iterator it = fields.find(field_id);
-  if(it != fields.end())
-    AKANTU_DEBUG_ERROR("The field " << field_id << " is already registered in this Dumper");
+  if(it != fields.end()) {
+    AKANTU_DEBUG_WARNING("The field " << field_id << " is already registered in this Dumper. Field ignored.");
+    return;
+  }
 
   fields[field_id] = field;
   field->registerToDumper(field_id, *dumper);
@@ -173,8 +175,10 @@ void DumperIOHelper::registerField(const std::string & field_id,
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::unRegisterField(const std::string & field_id) {
   Fields::iterator it = fields.find(field_id);
-  if(it == fields.end())
-    AKANTU_DEBUG_ERROR("The field " << field_id << " is not registered in this Dumper");
+  if(it == fields.end()) {
+    AKANTU_DEBUG_WARNING("The field " << field_id << " is not registered in this Dumper. Nothing to do.");
+    return;
+  }
 
   delete it->second;
   fields.erase(it);
@@ -185,8 +189,10 @@ void DumperIOHelper::unRegisterField(const std::string & field_id) {
 void DumperIOHelper::registerVariable(const std::string & variable_id,
 				      VariableBase * variable) {
   Variables::iterator it = variables.find(variable_id);
-  if(it != variables.end())
-    AKANTU_DEBUG_ERROR("The Variable " << variable_id << " is already registered in this Dumper");
+  if(it != variables.end()) {
+    AKANTU_DEBUG_WARNING("The Variable " << variable_id << " is already registered in this Dumper. Variable ignored.");
+    return;
+  }
 
   variables[variable_id] = variable;
   variable->registerToDumper(variable_id, *dumper);
@@ -195,8 +201,10 @@ void DumperIOHelper::registerVariable(const std::string & variable_id,
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::unRegisterVariable(const std::string & variable_id) {
   Variables::iterator it = variables.find(variable_id);
-  if(it == variables.end())
-    AKANTU_DEBUG_ERROR("The variable " << variable_id << " is not registered in this Dumper");
+  if(it == variables.end()) {
+    AKANTU_DEBUG_WARNING("The variable " << variable_id << " is not registered in this Dumper. Nothing to do.");
+    return;
+  }
 
   delete it->second;
   variables.erase(it);
