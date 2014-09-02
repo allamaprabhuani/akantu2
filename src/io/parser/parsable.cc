@@ -103,9 +103,10 @@ void ParsableParam::parseParam(const ParserParameter & param) {
 Parsable::~Parsable()  {
   std::map<std::string, ParsableParam *>::iterator it, end;
   for(it = params.begin(); it != params.end(); ++it){
-    it->second = NULL;
     delete it->second;
+    it->second = NULL;
   }
+  this->params.clear();
 }
 
 /* -------------------------------------------------------------------------- */
