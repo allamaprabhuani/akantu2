@@ -33,7 +33,7 @@
 #define __AKANTU_DUMPER_PARAVIEW_HH__
 
 #include "dumper_iohelper.hh"
-#include "dumper_iohelper_tmpl.hh"
+/* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__
 

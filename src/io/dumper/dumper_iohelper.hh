@@ -37,10 +37,15 @@
 
 #ifndef __AKANTU_DUMPER_IOHELPER_HH__
 #define __AKANTU_DUMPER_IOHELPER_HH__
+/* -------------------------------------------------------------------------- */
+
 
 namespace iohelper { class Dumper; }
 
+
 __BEGIN_AKANTU__
+
+namespace dumper { class Field; class VariableBase;}
 
 class Mesh;
 
@@ -56,9 +61,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  class Field;
-  class VariableBase;
-
+  
   /// register a given Mesh for the current dumper
   virtual void registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
 			    const GhostType & ghost_type = _not_ghost,
@@ -73,11 +76,11 @@ public:
 				    const ElementKind & element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
-  void registerField(const std::string & field_id, Field * field);
+  void registerField(const std::string & field_id, dumper::Field * field);
   /// remove the Field identified by name from managed fields
   void unRegisterField(const std::string & field_id);
   /// register a VariableBase object identified by name and provided by pointer
-  void registerVariable(const std::string & variable_id, VariableBase * variable);
+  void registerVariable(const std::string & variable_id, dumper::VariableBase * variable);
   /// remove a VariableBase identified by name from managed fields
   void unRegisterVariable(const std::string & variable_id);
 
@@ -106,44 +109,20 @@ public:
   void setTimeStep(Real time_step);
 
 public:
-  /* ------------------------------------------------------------------------ */
-  /* Field descriptors                                                        */
-  /* ------------------------------------------------------------------------ */
-  /// Field interface
-  class Field {
-  public:
-    Field() : padding_n(0), padding_m(0) {}
-    virtual ~Field() {};
-    virtual void registerToDumper(const std::string & id, iohelper::Dumper & dupmer) = 0;
-    virtual void setPadding(UInt n, UInt m = 1) {
-      padding_n = n;
-      padding_m = m;
-    }
-  protected:
-    UInt padding_n, padding_m;
-  };
-
-  /// Variable interface
-  class VariableBase {
-  public:
-    VariableBase() {};
-    virtual ~VariableBase() {};
-    virtual void registerToDumper(const std::string & id, iohelper::Dumper & dumper) = 0;
-  };
 
   /* ------------------------------------------------------------------------ */
-  template<class T, template<class> class R>
-  class iterator_helper;
+  // template<class T, template<class> class R>
+  // class iterator_helper;
 
-  template<class T, template<class> class R>
-  class PaddingHelper;
+  // template<class T, template<class> class R>
+  // class PaddingHelper;
 
   /* ------------------------------------------------------------------------ */
   /* Nodal field wrapper */
-  template<typename T, bool filtered = false,
-	   class Container = Array<T>,
-	   class Filter = Array<UInt> >
-  class NodalField;
+  // template<typename T, bool filtered = false,
+  // 	   class Container = Array<T>,
+  // 	   class Filter = Array<UInt> >
+  // class NodalField;
 
   /* ------------------------------------------------------------------------ */
   /* Variable wrapper */
@@ -152,102 +131,105 @@ public:
 
   /* ------------------------------------------------------------------------ */
   /* Generic class used as interface for the others */
-  template<typename i_type, typename d_type,
-	   template<typename> class ret_type, class daughter, bool filtered >
-  class element_iterator;
+  // template<typename i_type, typename d_type,
+  // 	   template<typename> class ret_type, class daughter, bool filtered >
+  // class element_iterator;
 
-  template<typename i_type, typename d_type,
-	   template<typename> class ret_type, class daughter, bool filtered>
-  class generic_quadrature_point_iterator;
+  // template<typename i_type, typename d_type,
+  // 	   template<typename> class ret_type, class daughter, bool filtered>
+  // class generic_quadrature_point_iterator;
 
-  template<typename T, template<typename> class ret_type, bool filtered>
-  class quadrature_point_iterator;
+  // template<typename T, template<typename> class ret_type, bool filtered>
+  // class quadrature_point_iterator;
 
-  template<typename T, class iterator_type,
-	   template<typename> class ret_type, bool filtered>
-  class GenericElementalField;
+  // template<typename T, class iterator_type,
+  // 	   template<typename> class ret_type, bool filtered>
+  // class GenericElementalField;
 
-  template<typename T,
-	   class iterator_type,
-	   template<typename> class ret_type, bool filtered>
-  class GenericQuadraturePointsField;
+  // template<typename T,
+  // 	   class iterator_type,
+  // 	   template<typename> class ret_type, bool filtered>
+  // class GenericQuadraturePointsField;
 
-  template<typename T,
-	   template<typename> class ret_type,
-	   template<typename, template<typename> class, bool> class iterator_type = quadrature_point_iterator, bool filtered = false>
-  class QuadraturePointsField;
+  // template<typename T,
+  // 	   template<typename> class ret_type,
+  // 	   template<typename, template<typename> class, bool> class iterator_type = quadrature_point_iterator, bool filtered = false>
+  // class QuadraturePointsField;
 
   /* ------------------------------------------------------------------------ */
   /* Elemental Fields wrapper */
-  template<bool filtered>
-  class element_type_field_iterator;
-  template<bool filtered>
-  class element_partition_field_iterator;
-  class cohesive_connectivity_field_iterator;
 
-  template<typename T, template<class> class ret_type, bool filtered>
-  class elemental_field_iterator;
+  // template<bool filtered>
+  // class element_type_field_iterator;
+  // template<bool filtered>
+  // class element_partition_field_iterator;
+  // class cohesive_connectivity_field_iterator;
 
-  class filtered_connectivity_field_iterator;
+  // template<typename T, template<class> class ret_type, bool filtered>
+  // class elemental_field_iterator;
 
-  template<bool filtered = false>
-  class ElementTypeField;
+  // class filtered_connectivity_field_iterator;
 
-  template<bool filtered = false>
-  class ElementPartitionField;
+  // template<bool filtered = false>
+  // class ElementTypeField;
 
-  template<typename T, template<typename> class ret_type = Vector, bool filtered =  false>
-  class ElementalField;
+  // template<bool filtered = false>
+  // class ElementPartitionField;
 
-  class CohesiveConnectivityField;
-  class FilteredConnectivityField;
+  // template<typename T, template<typename> class ret_type = Vector, bool filtered =  false>
+  // class ElementalField;
+
+  // class CohesiveConnectivityField;
+  // class FilteredConnectivityField;
 
   /* ------------------------------------------------------------------------ */
   /* Material Field wrapper */
-  template<typename T,
-	   template<class> class ret_type,
-	   template<typename, template<class> class> class padding_helper_type,
-	   template<typename, template<class> class, bool> class int_iterator, bool filtered>
-  class generic_internal_material_field_iterator;
 
-  template<typename T, template<class> class ret_type, bool filtered>
-  class internal_material_field_iterator;
+  // template<typename T,
+  // 	   template<class> class ret_type,
+  // 	   template<typename, template<class> class> class padding_helper_type,
+  // 	   template<typename, template<class> class, bool> class int_iterator, bool filtered>
+  // class generic_internal_material_field_iterator;
 
-  template<typename T, template<class> class ret_type, bool filtered>
-  class material_stress_field_iterator;
+  // template<typename T, template<class> class ret_type, bool filtered>
+  // class internal_material_field_iterator;
 
-  template<typename T, template<class> class ret_type, bool filtered>
-  class material_strain_field_iterator;
+  // template<typename T, template<class> class ret_type, bool filtered>
+  // class material_stress_field_iterator;
 
-  template<typename T, template<class> class ret_type = Vector,
-	   template<typename, template<class> class, bool> class iterator_type = internal_material_field_iterator, bool filtered = false>
-  class InternalMaterialField;
+  // template<typename T, template<class> class ret_type, bool filtered>
+  // class material_strain_field_iterator;
 
-  template<class T, template<class> class R>
-  class MaterialPaddingHelper;
+  // template<typename T, template<class> class ret_type = Vector,
+  // 	   template<typename, template<class> class, bool> class iterator_type = internal_material_field_iterator, bool filtered = false>
+  // class InternalMaterialField;
 
-  template<class T, template<class> class R>
-  class StressPaddingHelper;
+  // template<class T, template<class> class R>
+  // class MaterialPaddingHelper;
 
-  template<class T, template<class> class R>
-  class StrainPaddingHelper;
+  // template<class T, template<class> class R>
+  // class StressPaddingHelper;
+
+  // template<class T, template<class> class R>
+  // class StrainPaddingHelper;
 
   /* ------------------------------------------------------------------------ */
   /* Field homogenizing wrapper */
-  template<typename T, class Container, template<class> class sub_type>
-  class PaddingHomogenizingFunctor;
 
-  template<typename T, class Container, template<class> class sub_type>
-  class AvgHomogenizingFunctor;
+  // template<typename T, class Container, template<class> class sub_type>
+  // class PaddingHomogenizingFunctor;
 
-  template<typename T, template< typename,
-				 template<class> class,
-				 template<typename, template<class> class, bool> class, bool > class Container,
-	   template<typename, template<class> class, bool> class sub_iterator = internal_material_field_iterator,
-	   template<typename, class, template<class> class> class Funct = AvgHomogenizingFunctor,
-	   template<typename> class ret_type = Vector,
-     bool filtered = false>
-  class HomogenizedField;
+  // template<typename T, class Container, template<class> class sub_type>
+  // class AvgHomogenizingFunctor;
+
+  // template<typename T, template< typename,
+  // 				 template<class> class,
+  // 				 template<typename, template<class> class, bool> class, bool > class Container,
+  // 	   template<typename, template<class> class, bool> class sub_iterator = internal_material_field_iterator,
+  // 	   template<typename, class, template<class> class> class Funct = AvgHomogenizingFunctor,
+  // 	   template<typename> class ret_type = Vector,
+  //    bool filtered = false>
+  // class HomogenizedField;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -256,8 +238,8 @@ protected:
   /// internal iohelper::Dumper
   iohelper::Dumper * dumper;
 
-  typedef std::map<std::string, Field *> Fields;
-  typedef std::map<std::string, VariableBase *> Variables;
+  typedef std::map<std::string, dumper::Field *> Fields;
+  typedef std::map<std::string, dumper::VariableBase *> Variables;
 
   /// list of registered fields to dump
   Fields fields;
@@ -275,8 +257,6 @@ protected:
   /// is time tracking activated in the dumper
   bool time_activated;
 };
-
-//#include "dumper_iohelper_tmpl.hh"
 
 __END_AKANTU__
 

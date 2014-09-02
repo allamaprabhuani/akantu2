@@ -536,6 +536,8 @@ inline UInt Mesh::getNbGlobalNodes() const {
   return nodes_global_ids ? nb_global_nodes : nodes->getSize();
 }
 
+/* -------------------------------------------------------------------------- */
+
 __END_AKANTU__
 
 

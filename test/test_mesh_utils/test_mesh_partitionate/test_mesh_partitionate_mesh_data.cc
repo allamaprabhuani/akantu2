@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
 
 #ifdef AKANTU_USE_IOHELPER
   DumperParaview dumper("test-mesh-data-partition");
-  DumperIOHelper::Field * field =
-    new DumperIOHelper::ElementalField<UInt>(partitioner->getPartitions(), dim);
+  dumper::Field * field =
+    new dumper::ElementalField<UInt>(partitioner->getPartitions(), dim);
   dumper.registerMesh(mesh, dim);
   dumper.registerField("partitions", field);
   dumper.dump();

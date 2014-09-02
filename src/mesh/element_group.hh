@@ -38,7 +38,6 @@
 #include "element_type_map.hh"
 #include "node_group.hh"
 #include "dumpable.hh"
-
 __BEGIN_AKANTU__
 
 class Mesh;
@@ -160,7 +159,9 @@ private:
   Array<UInt> empty_elements;
 };
 
-#include "element_group_inline_impl.cc"
+__END_AKANTU__
+#include "element.hh"
+__BEGIN_AKANTU__
 
 /// standard output stream operator
 inline std::ostream & operator << (std::ostream & stream, const ElementGroup &_this) {

@@ -62,7 +62,7 @@ set(AKANTU_COHESIVE_ELEMENT_FILES
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_linear.hh
   model/solid_mechanics/materials/material_cohesive/constitutive_laws/material_cohesive_exponential.hh
 
-  io/dumper/dumper_iohelper_tmpl_connectivity_field.hh
+#  io/dumper/dumper_iohelper_tmpl_connectivity_field.hh
   )
 
 

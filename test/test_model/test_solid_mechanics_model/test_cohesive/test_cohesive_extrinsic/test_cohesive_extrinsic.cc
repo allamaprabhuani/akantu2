@@ -95,9 +95,13 @@ int main(int argc, char *argv[]) {
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );
-  model.addDumpField("stress");
+  model.addDumpFieldTensor("stress");
   model.addDumpField("strain");
+  model.addDumpField("damage");
+  model.addDumpFieldToDumper("cohesive elements", "damage");
+  model.addDumpFieldVectorToDumper("cohesive elements", "displacement");
   model.dump();
+  model.dump("cohesive elements");
 
   // std::ofstream edis("edis.txt");
   // std::ofstream erev("erev.txt");
@@ -119,8 +123,8 @@ int main(int argc, char *argv[]) {
     model.solveStep();
 
     if(s % 1 == 0) {
-      //      model.dump();
-
+      model.dump();
+      model.dump("cohesive elements");
       std::cout << "passing step " << s << "/" << max_steps << std::endl;
     }
 

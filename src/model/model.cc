@@ -209,5 +209,152 @@ DumperIOHelper &  Model::getGroupDumper(const std::string & group_name) {
 }
 
 /* -------------------------------------------------------------------------- */
+// DUMPER stuff
+/* -------------------------------------------------------------------------- */
+void Model::addDumpGroupFieldToDumper(const std::string & field_id,
+				      dumper::Field * field,
+				      DumperIOHelper & dumper) {
+#ifdef AKANTU_USE_IOHELPER
+  dumper.registerField(field_id,field);
+#endif
+}
+
+
+
+/* -------------------------------------------------------------------------- */
+void Model::addDumpField(const std::string & field_id) {
+
+  this->addDumpFieldToDumper(mesh.getDefaultDumperName(),field_id);
+}
+/* -------------------------------------------------------------------------- */
+
+void Model::addDumpFieldVector(const std::string & field_id) {
+
+  this->addDumpFieldVectorToDumper(mesh.getDefaultDumperName(),field_id);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::addDumpFieldTensor(const std::string & field_id) {
+
+  this->addDumpFieldTensorToDumper(mesh.getDefaultDumperName(),field_id);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void Model::setBaseName(const std::string & field_id) {
+
+  mesh.setBaseName(field_id);
+}
+/* -------------------------------------------------------------------------- */
+
+void Model::setBaseNameToDumper(const std::string & dumper_name,
+					 const std::string & basename) {
+  mesh.setBaseNameToDumper(dumper_name,basename);
+}
+/* -------------------------------------------------------------------------- */
+
+void Model::addDumpFieldToDumper(const std::string & dumper_name,
+                                               const std::string & field_id) {
+
+  this->addDumpGroupFieldToDumper(dumper_name,field_id,"all",_ek_regular,false);
+
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::addDumpGroupField(const std::string & field_id,
+                                            const std::string & group_name) {
+
+  ElementGroup & group = mesh.getElementGroup(group_name);
+  this->addDumpGroupFieldToDumper(group.getDefaultDumperName(),
+                                  field_id,
+                                  group_name,_ek_regular,false);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::removeDumpGroupField(const std::string & field_id,
+                                               const std::string & group_name) {
+  ElementGroup & group = mesh.getElementGroup(group_name);
+  this->removeDumpGroupFieldFromDumper(group.getDefaultDumperName(),
+                                       field_id,
+                                       group_name);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::removeDumpGroupFieldFromDumper(const std::string & dumper_name,
+                                                         const std::string & field_id,
+                                                         const std::string & group_name) {
+  ElementGroup & group = mesh.getElementGroup(group_name);
+  group.removeDumpFieldFromDumper(dumper_name, field_id);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::addDumpFieldVectorToDumper(const std::string & dumper_name,
+                                                     const std::string & field_id) {
+  this->addDumpGroupFieldToDumper(dumper_name,field_id,"all",_ek_regular,3);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::addDumpGroupFieldVector(const std::string & field_id,
+                                                  const std::string & group_name) {
+
+  ElementGroup & group = mesh.getElementGroup(group_name);
+  this->addDumpGroupFieldVectorToDumper(group.getDefaultDumperName(),
+                                        field_id,
+                                        group_name);
+}
+
+/* -------------------------------------------------------------------------- */
+void Model::addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
+                                                          const std::string & field_id,
+                                                          const std::string & group_name) {
+  this->addDumpGroupFieldToDumper(dumper_name,field_id,group_name,_ek_regular,true);
+}
+/* -------------------------------------------------------------------------- */
+
+void Model::addDumpFieldTensorToDumper(const std::string & dumper_name,
+                                                     const std::string & field_id) {
+  this->addDumpGroupFieldToDumper(dumper_name,field_id,"all",_ek_regular,true);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
+                                                    const std::string & field_id,
+                                                    const std::string & group_name,
+						    const ElementKind & element_kind,
+						    bool padding_flag) {
+
+#ifdef AKANTU_USE_IOHELPER
+  dumper::Field * field = NULL;
+
+  if (!field) field = this->createNodalFieldReal(field_id,group_name,padding_flag);
+  if (!field) field = this->createNodalFieldUInt(field_id,group_name,padding_flag);
+  if (!field) field = this->createNodalFieldBool(field_id,group_name,padding_flag);
+  if (!field) field = this->createElementalField(field_id,group_name,padding_flag,element_kind);
+  if (!field) field = 
+		this->mesh.createFieldFromAttachedData<UInt>(field_id,group_name,
+							     element_kind);
+  if (!field) field = 
+		this->mesh.createFieldFromAttachedData<Real>(field_id,group_name,
+							     element_kind);
+
+  if (!field) AKANTU_DEBUG_WARNING("No field could be found based on name: " << field_id);
+  if (field) {
+    DumperIOHelper & dumper = mesh.getGroupDumper(dumper_name,group_name);
+    this->addDumpGroupFieldToDumper(field_id,field,dumper);
+  }
+
+#endif
+}
+
+/* -------------------------------------------------------------------------- */
+
+void Model::dump() {
+  mesh.dump();
+}
+
+/* -------------------------------------------------------------------------- */
+
+
 
 __END_AKANTU__

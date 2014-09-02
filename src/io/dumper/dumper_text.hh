@@ -27,8 +27,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper.hh"
-#include "dumper_iohelper_tmpl.hh"
-
 /* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_DUMPER_TEXT_HH__
 #define __AKANTU_DUMPER_TEXT_HH__

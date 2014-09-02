@@ -37,16 +37,19 @@
 #include <set>
 #include "aka_common.hh"
 #include "element_type_map.hh"
+#include "dumpable.hh"
 
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
+class FEM;
 class ElementGroup;
 class NodeGroup;
 class Mesh;
 class Element;
 class DistributedSynchronizer;
 template<bool> class CommunicationBufferTemplated;
+/* -------------------------------------------------------------------------- */
 
 
 
@@ -179,10 +182,46 @@ public:
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
 
-
   /// this function insure that the group names are present on all processors
   /// /!\ it is a SMP call
   void synchronizeGroupNames();
+
+  /// register an elemental field to the given group name (overloading for ElementalPartionField)
+  template <typename T, template <bool> class dump_type>
+  dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
+				       const std::string & group_name,
+				       UInt spatial_dimension,
+				       const ElementKind & kind,
+				       ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
+
+  /// register an elemental field to the given group name (overloading for ElementalField)
+  template <typename T, template <class> class ret_type, template <class,template <class> class,bool> class dump_type>
+  dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
+				       const std::string & group_name,
+				       UInt spatial_dimension,
+				       const ElementKind & kind,
+				       ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
+
+  /// register an elemental field to the given group name (overloading for MaterialInternalField)
+  template <typename T, 
+	    /// type of InternalMaterialField
+	    template<typename T, bool filtered> class dump_type>
+  dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
+				       const std::string & group_name,
+				       UInt spatial_dimension,
+				       const ElementKind & kind,
+				       ElementTypeMap<UInt> nb_data_per_elem);
+
+  template <typename type, bool flag, template<class,bool> class ftype>
+  dumper::Field * createNodalField(const ftype<type,flag> * field,
+				   const std::string & group_name,
+				   UInt padding_size = 0);
+
+  template <typename type, bool flag, template<class,bool> class ftype>
+  dumper::Field * createStridedNodalField(const ftype<type,flag> * field,
+					  const std::string & group_name,
+					  UInt size, UInt stride,
+					  UInt padding_size);
 
 protected:
   /// fill a buffer with all the group names
@@ -190,16 +229,37 @@ protected:
 
   /// take a buffer and create the missing groups localy
   void checkAndAddGroups(CommunicationBufferTemplated<true> & buffer);
+  
+
+
+  /// register an elemental field to the given group name
+  template <class dump_type,typename field_type>
+  dumper::Field * createElementalField(const field_type & field, 
+				       const std::string & group_name,
+				       UInt spatial_dimension,
+				       const ElementKind & kind,
+				       ElementTypeMap<UInt> nb_data_per_elem);
+
+
+  /// register an elemental field to the given group name
+  template <class dump_type,typename field_type>
+  dumper::Field * createElementalFilteredField(const field_type & field, 
+					       const std::string & group_name,
+					       UInt spatial_dimension,
+					       const ElementKind & kind,
+					       ElementTypeMap<UInt> nb_data_per_elem);
+
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline const ElementGroup & getElementGroup(const std::string & name) const;
-  inline const NodeGroup    & getNodeGroup(const std::string & name) const;
+  const ElementGroup & getElementGroup(const std::string & name) const;
+  const NodeGroup    & getNodeGroup(const std::string & name) const;
 
-  inline ElementGroup & getElementGroup(const std::string & name);
-  inline NodeGroup    & getNodeGroup(const std::string & name);
+  ElementGroup & getElementGroup(const std::string & name);
+  NodeGroup    & getNodeGroup(const std::string & name);
 
 
   UInt getNbElementGroups(UInt dimension = _all_dimensions) const;
@@ -231,7 +291,5 @@ inline std::ostream & operator <<(std::ostream & stream, const GroupManager & _t
 }
 
 __END_AKANTU__
-
-#include "group_manager_inline_impl.cc"
 
 #endif /* __AKANTU_GROUP_MANAGER_HH__ */

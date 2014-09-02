@@ -26,8 +26,27 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH__
+#define __AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH__
+/* -------------------------------------------------------------------------- */
+
+__BEGIN_AKANTU__
+__BEGIN_AKANTU_DUMPER__
+/* -------------------------------------------------------------------------- */
+
+/// Variable interface
+  class VariableBase {
+public:
+  VariableBase() {};
+  virtual ~VariableBase() {};
+  virtual void registerToDumper(const std::string & id, iohelper::Dumper & dumper) = 0;
+};
+
+/* -------------------------------------------------------------------------- */
+
+
 template<typename T, bool is_scal>
-class DumperIOHelper::Variable : public VariableBase {
+class Variable : public VariableBase {
 public:
   Variable(const T & t) : vari(t) {}
 
@@ -48,7 +67,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 template<typename T>
-class DumperIOHelper::Variable<Vector<T>, false> : public VariableBase {
+class Variable<Vector<T>, false> : public VariableBase {
 public:
   Variable(const Vector<T> & t) : vari(t) {}
 
@@ -71,7 +90,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 template<typename T>
-class DumperIOHelper::Variable<T, true> : public VariableBase {
+class Variable<T, true> : public VariableBase {
 public:
   Variable(const T & t) : vari(t) {}
 
@@ -89,3 +108,8 @@ public:
 protected:
   const T & vari;
 };
+
+__END_AKANTU_DUMPER__
+__END_AKANTU__
+
+#endif /* __AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH__ */

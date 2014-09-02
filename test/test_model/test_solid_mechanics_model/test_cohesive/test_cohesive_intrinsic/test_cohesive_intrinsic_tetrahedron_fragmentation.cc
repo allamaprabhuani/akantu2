@@ -72,22 +72,18 @@ int main(int argc, char *argv[]) {
   model.addDumpField("acceleration");
   model.addDumpField("residual"    );
   model.addDumpField("stress");
-  model.addDumpField("strain");
+  model.addDumpField("grad_u");
   model.dump();
 
   DumperParaview dumper("cohesive_elements_tetrahedron_fragmentation");
   dumper.registerMesh(mesh, spatial_dimension, _not_ghost, _ek_cohesive);
-  DumperIOHelper::Field * cohesive_displacement =
-    new DumperIOHelper::NodalField<Real>(model.getDisplacement());
+  dumper::NodalField<Real> * cohesive_displacement =
+    new dumper::NodalField<Real>(model.getDisplacement());
+
   cohesive_displacement->setPadding(3);
+
+
   dumper.registerField("displacement", cohesive_displacement);
-  // dumper.registerField("damage", new DumperIOHelper::
-  // 		       HomogenizedField<Real,
-  // 					DumperIOHelper::InternalMaterialField>(model,
-  // 									       "damage",
-  // 									       spatial_dimension,
-  // 									       _not_ghost,
-  // 									       _ek_cohesive));
 
   dumper.dump();
 

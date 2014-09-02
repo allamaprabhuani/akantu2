@@ -26,30 +26,35 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-
+__BEGIN_AKANTU__
+__BEGIN_AKANTU_DUMPER__
 /* -------------------------------------------------------------------------- */
-class DumperIOHelper::cohesive_connectivity_field_iterator : public element_iterator<UInt, UInt, Vector, cohesive_connectivity_field_iterator, false> {
-public:
-  typedef element_iterator<UInt, UInt,
-			   Vector, cohesive_connectivity_field_iterator, false> parent;
+template <class types>
+class cohesive_connectivity_field_iterator : 
+  public element_iterator<types, cohesive_connectivity_field_iterator> {
 
-  typedef parent::it_type     it_type;
-  typedef parent::data_type   data_type;
-  typedef parent::return_type return_type;
-  typedef parent::field_type  field_type;
-  typedef parent::internal_iterator internal_iterator;
+  /* ------------------------------------------------------------------------ */
+  /* Typedefs                                                                 */
+  /* ------------------------------------------------------------------------ */  
+  
+public:
+  typedef element_iterator<types, cohesive_connectivity_field_iterator> parent;
+  typedef typename types::return_type return_type;
+  typedef typename types::field_type field_type;
+  typedef typename types::array_iterator array_iterator;
+
+  /* ------------------------------------------------------------------------ */
+  /* Constructors/Destructors                                                 */
+  /* ------------------------------------------------------------------------ */
+
 public:
   cohesive_connectivity_field_iterator(const field_type & field,
-				       __attribute__((unused)) UInt n,
-				       const field_type::type_iterator & t_it,
-				       const field_type::type_iterator & t_it_end,
-				       const internal_iterator & it,
-				       ElementType element_type,
-				       const GhostType ghost_type = _not_ghost,
-				       const ElementTypeMapArray<UInt> * filter = NULL,
-				       UInt * fit = NULL) :
-    parent(field, 0, t_it, t_it_end, it, element_type, ghost_type, filter, fit) {
+				       const typename field_type::type_iterator & t_it,
+				       const typename field_type::type_iterator & t_it_end,
+				       const array_iterator & array_it,
+				       const array_iterator & array_it_end,
+				       const GhostType ghost_type = _not_ghost) :
+    parent(field, t_it, t_it_end, array_it, array_it_end,ghost_type) {
 
     write_order[_cohesive_3d_12].push_back(0);
     write_order[_cohesive_3d_12].push_back(1);
@@ -85,9 +90,14 @@ public:
 
   }
 
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+  
+
   return_type operator*() {
-    ElementType type = *tit;
-    const Vector<UInt> & conn = *vit;
+    const ElementType & type = *this->tit;
+    const Vector<UInt> & conn = *this->array_it;
     Vector<UInt> new_conn(conn.size());
 
     for (UInt n = 0; n < conn.size(); ++n)
@@ -95,6 +105,11 @@ public:
 
     return new_conn;
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
+  
 
 protected:
 
@@ -104,24 +119,37 @@ protected:
 
 
 /* -------------------------------------------------------------------------- */
-class DumperIOHelper::CohesiveConnectivityField : public GenericElementalField<UInt,
-									       cohesive_connectivity_field_iterator,
-									       Vector,
-									       false> {
-public:
-  typedef cohesive_connectivity_field_iterator iterator;
-private:
-  typedef GenericElementalField<UInt, iterator, Vector, false> parent;
-public:
-  /* ------------------------------------------------------------------------ */
-  CohesiveConnectivityField(const Mesh & mesh,
-			    UInt spatial_dimension = 0,
-			    GhostType ghost_type = _not_ghost) :
-    parent(mesh.getConnectivities(), 0, spatial_dimension, ghost_type, _ek_cohesive) { }
+class CohesiveConnectivityField : 
+  public GenericElementalField<SingleType<UInt,Vector,false>,
+			       cohesive_connectivity_field_iterator> {
 
-  virtual void registerToDumper(__attribute__((unused)) const std::string & id,
-			   iohelper::Dumper & dumper) {
-    dumper.addElemDataField("connectivities", *this);
-  }
+  /* ------------------------------------------------------------------------ */
+  /* Typedefs                                                                 */
+  /* ------------------------------------------------------------------------ */  
+  
+public:
+
+  typedef SingleType<UInt,Vector,false> types;
+  typedef cohesive_connectivity_field_iterator<types> iterator;
+  typedef GenericElementalField<types,cohesive_connectivity_field_iterator> parent;
+
+
+  /* ------------------------------------------------------------------------ */
+  /* Constructors/Destructors                                                 */
+  /* ------------------------------------------------------------------------ */
+
+public:
+
+  CohesiveConnectivityField(const field_type & field,
+			    UInt spatial_dimension = _all_dimensions,
+			    GhostType ghost_type = _not_ghost) :
+    parent(field, spatial_dimension, ghost_type, _ek_cohesive) { }
+
 
 };
+
+/* -------------------------------------------------------------------------- */
+
+
+__END_AKANTU_DUMPER__
+__END_AKANTU__

@@ -49,8 +49,9 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
-#  include "dumper_iohelper_tmpl.hh"
-#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
+#  include "dumper_elemental_field.hh"
+#  include "dumper_element_partition.hh"
+#  include "dumper_material_internal_field.hh"
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -63,7 +64,7 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
 				     UInt dim,
 				     const ID & id,
 				     const MemoryID & memory_id) :
-  Model(mesh, dim, id, memory_id), Dumpable(), Parsable(_st_heat, id),
+  Model(mesh, dim, id, memory_id), Parsable(_st_heat, id),
   integrator(new ForwardEuler()),
   stiffness_matrix(NULL),
   jacobian_matrix(NULL),
@@ -87,8 +88,8 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh,
   this->blocked_dofs = NULL;
 
 #ifdef AKANTU_USE_IOHELPER
-  this->registerDumper<DumperParaview>("paraview_all", id, true);
-  this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
+  this->mesh.registerDumper<DumperParaview>("paraview_all", id, true);
+  this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
 #endif
 
   this->registerParam("conductivity"          , conductivity              , _pat_parsmod);
@@ -882,76 +883,68 @@ Real HeatTransferModel::getEnergy(const std::string & energy_id, const ElementTy
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER
-#define IF_ADD_NODAL_FIELD(dumper_name, field, type, pad)		\
-  if(field_id == BOOST_PP_STRINGIZE(field)) {				\
-    DumperIOHelper::Field * f =						\
-      new DumperIOHelper::NodalField<type>(*field);			\
-    if(pad) f->setPadding(3);						\
-    internalAddDumpFieldToDumper(dumper_name,				\
-				 BOOST_PP_STRINGIZE(field), f);		\
-  } else
 
-#define IF_ADD_ELEM_FIELD(dumper_name, field, type, pad)		\
-  if(field_id == BOOST_PP_STRINGIZE(field)) {				\
-    typedef DumperIOHelper::HomogenizedField<type,			\
-					     DumperIOHelper::QuadraturePointsField, \
-					     DumperIOHelper::quadrature_point_iterator> Field; \
-    DumperIOHelper::Field * f =						\
-      new Field(getFEEngine(),						\
-		field,							\
-		spatial_dimension,					\
-		spatial_dimension,					\
-		_not_ghost,						\
-		_ek_regular);						\
-    if(pad) f->setPadding(3);						\
-    internalAddDumpFieldToDumper(dumper_name,				\
-				 BOOST_PP_STRINGIZE(field), f);		\
-  } else
-#endif
+dumper::Field * HeatTransferModel::createNodalFieldBool(const std::string & field_name,
+							const std::string & group_name,
+							bool padding_flag) {
+  
+  std::map<std::string,Array<bool>* > uint_nodal_fields;
+  uint_nodal_fields["blocked_dofs"             ] = blocked_dofs;
 
-void HeatTransferModel::addDumpFieldToDumper(const std::string & dumper_name,
-					     const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
-  IF_ADD_NODAL_FIELD(dumper_name, temperature       , Real, false)
-  IF_ADD_NODAL_FIELD(dumper_name, temperature_rate  , Real, false)
-  IF_ADD_NODAL_FIELD(dumper_name, external_heat_rate, Real, false)
-  IF_ADD_NODAL_FIELD(dumper_name, residual          , Real, false)
-  IF_ADD_NODAL_FIELD(dumper_name, capacity_lumped   , Real, false)
-  IF_ADD_NODAL_FIELD(dumper_name, blocked_dofs      , bool, false)
-  IF_ADD_ELEM_FIELD (dumper_name, temperature_gradient, Real, false)
-  if(field_id == "partitions"  ) {
-    internalAddDumpFieldToDumper(dumper_name,
-				 field_id,
-			 new DumperIOHelper::ElementPartitionField<>(mesh,
-                                                                     spatial_dimension,
-                                                                     _not_ghost,
-                                                                     _ek_regular));
-  } else {
-    AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << Model::id);
+  dumper::Field * field = NULL;
+  field = mesh.createNodalField(uint_nodal_fields[field_name],group_name);
+  return field;
+
+}
+/* -------------------------------------------------------------------------- */
+
+dumper::Field * HeatTransferModel::createNodalFieldReal(const std::string & field_name,
+							const std::string & group_name,
+							bool padding_flag) {
+  
+  std::map<std::string,Array<Real>* > real_nodal_fields;
+  real_nodal_fields["temperature"              ] = temperature;
+  real_nodal_fields["temperature_rate"         ] = temperature_rate;
+  real_nodal_fields["external_heat_rate"       ] = external_heat_rate;
+  real_nodal_fields["residual"                 ] = residual;
+  real_nodal_fields["capacity_lumped"          ] = capacity_lumped;
+
+  dumper::Field * field = 
+    mesh.createNodalField(real_nodal_fields[field_name],group_name);
+  
+  return field;
+}
+/* -------------------------------------------------------------------------- */
+
+dumper::Field * HeatTransferModel
+::createElementalField(const std::string & field_name, 
+		       const std::string & group_name,
+		       bool padding_flag,
+		       const ElementKind & element_kind){
+
+
+  dumper::Field * field = NULL;
+
+  if(field_name == "partitions") 
+    field = mesh.createElementalField<UInt, dumper::ElementPartitionField>(mesh.getConnectivities(),group_name,this->spatial_dimension,element_kind);
+  else if(field_name == "temperature_gradient"){
+    ElementTypeMap<UInt> nb_data_per_elem = this->mesh.getNbDataPerElem(temperature_gradient,element_kind);
+
+    field = 
+      mesh.createElementalField<Real, 
+				dumper::InternalMaterialField>(temperature_gradient,
+							       group_name,
+							       this->spatial_dimension,
+							       element_kind,
+							       nb_data_per_elem);
   }
-#endif
+
+  return field;
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::addDumpFieldVectorToDumper(const std::string & dumper_name, 
-						   const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
-  IF_ADD_ELEM_FIELD (dumper_name, temperature_gradient, Real, false)
-  {
-    AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << Model::id
-		       << " or is not dumpable as a vector");
-  }
-#endif
-}
+ 
+ 
 
-/* -------------------------------------------------------------------------- */
-void HeatTransferModel::addDumpFieldTensorToDumper(const std::string & dumper_name,
-						   const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
-  AKANTU_DEBUG_ERROR("Field " << field_id << " does not exists in the model " << Model::id
-		       << " or is not dumpable as a Tensor");
-#endif
-}
 
 __END_AKANTU__

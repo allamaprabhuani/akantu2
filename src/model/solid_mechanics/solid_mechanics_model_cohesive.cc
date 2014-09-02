@@ -35,9 +35,6 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
-#  include "dumper_iohelper_tmpl.hh"
-#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
-#  include "dumper_iohelper_tmpl_material_internal_field.hh"
 #endif
 
 /* -------------------------------------------------------------------------- */
@@ -77,8 +74,8 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(Mesh & mesh,
   this->registerEventHandler(*this);
 
 #if defined(AKANTU_USE_IOHELPER)
-  this->registerDumper<DumperParaview>("cohesive elements", id);
-  this->addDumpMeshToDumper("cohesive elements",
+  this->mesh.registerDumper<DumperParaview>("cohesive elements", id);
+  this->mesh.addDumpMeshToDumper("cohesive elements",
 			    mesh, spatial_dimension, _not_ghost, _ek_cohesive);
 #endif
 
@@ -106,7 +103,7 @@ void SolidMechanicsModelCohesive::setTimeStep(Real time_step) {
   SolidMechanicsModel::setTimeStep(time_step);
 
 #if defined(AKANTU_USE_IOHELPER)
-  getDumper("cohesive elements").setTimeStep(time_step);
+  this->mesh.getDumper("cohesive elements").setTimeStep(time_step);
 #endif
 }
 
@@ -872,27 +869,35 @@ void SolidMechanicsModelCohesive::resizeFacetStress() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::addDumpFieldToDumper(const std::string & dumper_name,
-						       const std::string & field_id) {
+void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(const std::string & dumper_name,
+							    const std::string & field_id,
+							    const std::string & group_name,
+							    const ElementKind & element_kind,
+							    bool padding_flag) {
   AKANTU_DEBUG_IN();
 
+  ElementKind _element_kind = element_kind;
   if (dumper_name == "cohesive elements") {
-    if (field_id == "damage") {
-      internalAddDumpFieldToDumper
-	("cohesive elements",
-	 field_id, new DumperIOHelper::
-	 HomogenizedField<Real,
-			  DumperIOHelper::InternalMaterialField>(*this,
-								 field_id,
-								 spatial_dimension,
-								 _not_ghost,
-								 _ek_cohesive));
-    }
-  } else {
-    SolidMechanicsModel::addDumpFieldToDumper(dumper_name, field_id);
+    _element_kind = _ek_cohesive;
   }
+  SolidMechanicsModel::addDumpGroupFieldToDumper(dumper_name, 
+						 field_id,
+						 group_name,
+						 _element_kind,
+						 padding_flag);
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+
+void SolidMechanicsModelCohesive::onDump(){
+  this->flattenAllRegisteredInternals(_ek_cohesive);
+  SolidMechanicsModel::onDump();
+}
+
+/* -------------------------------------------------------------------------- */
+
+
 
 __END_AKANTU__

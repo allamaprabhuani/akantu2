@@ -33,11 +33,11 @@
 #include <cstring>
 #include <queue>
 #include <unordered_set>
+using std::is_arithmetic;
 #include <array/expr.hpp>
 
 #include "aka_common.hh"
 #include "mesh.hh"
-//#include "mesh_io_abaqus.hh"
 #include "model.hh"
 #include "aka_tree.hh"
 #include "solid_mechanics_model.hh"

@@ -28,6 +28,8 @@
  *
  */
 
+__BEGIN_AKANTU__
+
 
 /* -------------------------------------------------------------------------- */
 inline void ElementGroup::add(const Element & el, bool add_nodes, 
@@ -118,3 +120,7 @@ inline ElementGroup::const_element_iterator ElementGroup::element_end(const Elem
   }
 
 }
+
+/* -------------------------------------------------------------------------- */
+
+__END_AKANTU__

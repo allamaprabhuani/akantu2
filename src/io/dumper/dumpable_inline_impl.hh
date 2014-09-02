@@ -28,6 +28,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "dumper_nodal_field.hh"
+#include "dumper_elemental_field.hh"
+/* -------------------------------------------------------------------------- */
+
 
 __BEGIN_AKANTU__
 
@@ -151,19 +155,20 @@ inline void Dumpable::addDumpFieldToDumper(const std::string & dumper_name,
 
 /* -------------------------------------------------------------------------- */
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
-                                           DumperIOHelper::Field * field) {
+                                           dumper::Field * field) {
   this->addDumpFieldExternalToDumper(this->default_dumper, field_id, field);
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
                                                    const std::string & field_id,
-                                                   DumperIOHelper::Field * field) {
+                                                   dumper::Field * field) {
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerField(field_id, field);
 }
 
 /* -------------------------------------------------------------------------- */
+
 template<typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
                                            const Array<T> & field) {
@@ -177,7 +182,7 @@ template<typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
                                                    const std::string & field_id,
                                                    const Array<T> & field) {
-  DumperIOHelper::Field * field_cont = new DumperIOHelper::NodalField<T>(field);
+  dumper::Field * field_cont = new dumper::NodalField<T>(field);
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerField(field_id, field_cont);
 }
@@ -205,10 +210,10 @@ inline void Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_na
                                                    UInt spatial_dimension,
                                                    const GhostType & ghost_type,
                                                    const ElementKind & element_kind) {
-  DumperIOHelper::Field * field_cont = new DumperIOHelper::ElementalField<T>(field,
-                                                                             spatial_dimension,
-                                                                             ghost_type,
-                                                                             element_kind);
+  dumper::Field * field_cont = new dumper::ElementalField<T>(field,
+							     spatial_dimension,
+							     ghost_type,
+							     element_kind);
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerField(field_id, field_cont);
 }
@@ -321,7 +326,7 @@ inline void Dumpable::dump(Real time, UInt step) {
 /* -------------------------------------------------------------------------- */
 inline void Dumpable::internalAddDumpFieldToDumper(const std::string & dumper_name,
                                                    const std::string & field_id,
-                                                   DumperIOHelper::Field * field) {
+                                                   dumper::Field * field) {
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerField(field_id, field);
 }

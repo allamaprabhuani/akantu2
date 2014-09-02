@@ -39,11 +39,9 @@
 #if defined(AKANTU_USE_IOHELPER)
 #  include "dumper_paraview.hh"
 #endif
-
 __BEGIN_AKANTU__
-
 /* -------------------------------------------------------------------------- */
-ElementGroup::ElementGroup(const std::string & boundary_name,
+ElementGroup::ElementGroup(const std::string & group_name,
                            const Mesh & mesh,
                            NodeGroup & node_group,
                            UInt dimension,
@@ -51,14 +49,14 @@ ElementGroup::ElementGroup(const std::string & boundary_name,
                            const MemoryID & mem_id) :
   Memory(id, mem_id),
   mesh(mesh),
-  name(boundary_name),
+  name(group_name),
   elements("elements", id, mem_id),
   node_group(node_group),
   dimension(dimension) {
   AKANTU_DEBUG_IN();
 
 #if defined(AKANTU_USE_IOHELPER)
-  this->registerDumper<DumperParaview>("paraview_"  + boundary_name, boundary_name, true);
+  this->registerDumper<DumperParaview>("paraview_"  + group_name, group_name, true);
   this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(), dimension);
 #endif
 
@@ -155,5 +153,9 @@ void ElementGroup::optimize() {
 }
 
 /* -------------------------------------------------------------------------- */
+
+
+
+
 __END_AKANTU__
 

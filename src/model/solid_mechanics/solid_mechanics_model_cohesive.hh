@@ -170,8 +170,14 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
+
+  virtual void onDump();
+
+  virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
+					 const std::string & field_id,
+					 const std::string & group_name,
+					 const ElementKind & element_kind,
+					 bool padding_flag);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

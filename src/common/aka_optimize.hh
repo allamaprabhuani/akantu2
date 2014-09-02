@@ -32,6 +32,7 @@
 
 
 #include <nlopt.hpp>
+using std::is_arithmetic;
 #include <array/expr.hpp>
 
 #include "aka_config.hh"

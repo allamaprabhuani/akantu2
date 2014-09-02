@@ -184,6 +184,77 @@ public:
 				    const ID & fem_id = ID()) const;
 
   /* ------------------------------------------------------------------------ */
+  /* Dumpable interface (kept for convenience) and dumper relative functions  */
+  /* ------------------------------------------------------------------------ */
+
+  virtual void addDumpGroupFieldToDumper(const std::string & field_id,
+					 dumper::Field * field,
+					 DumperIOHelper & dumper);
+
+  virtual void addDumpField(const std::string & field_id);
+
+  virtual void addDumpFieldVector(const std::string & field_id);
+
+  virtual void addDumpFieldToDumper(const std::string & dumper_name,
+				    const std::string & field_id);
+
+  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
+
+  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
+					  const std::string & field_id);
+
+  virtual void addDumpFieldTensor(const std::string & field_id);
+
+  virtual void setBaseName(const std::string & basename);  
+  
+  virtual void  setBaseNameToDumper(const std::string & dumper_name,
+				    const std::string & basename);
+
+
+  virtual void addDumpGroupField(const std::string & field_id,
+				 const std::string & group_name);
+
+  virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
+					 const std::string & field_id,
+					 const std::string & group_name,
+					 const ElementKind & element_kind,
+					 bool padding_flag);
+
+  virtual void removeDumpGroupField(const std::string & field_id,
+				    const std::string & group_name);
+  virtual void removeDumpGroupFieldFromDumper(const std::string & dumper_name,
+					      const std::string & field_id,
+					      const std::string & group_name);
+
+  virtual void addDumpGroupFieldVector(const std::string & field_id,
+				       const std::string & group_name);
+
+  virtual void addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
+					       const std::string & field_id,
+					       const std::string & group_name);
+
+  virtual dumper::Field * createNodalFieldReal(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag){return NULL;}
+
+  virtual dumper::Field * createNodalFieldUInt(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag){return NULL;}
+
+  virtual dumper::Field * createNodalFieldBool(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag){return NULL;}
+
+
+  virtual dumper::Field * createElementalField(const std::string & field_name, 
+					       const std::string & group_name,
+					       bool padding_flag,
+					       const ElementKind & kind){return NULL;}
+
+  virtual void dump();
+
+  /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:

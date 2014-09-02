@@ -68,7 +68,7 @@ struct StructuralMechanicsModelOptions : public ModelOptions {
 
 extern const StructuralMechanicsModelOptions default_structural_mechanics_model_options;
 
-class StructuralMechanicsModel : public Model, public Dumpable {
+class StructuralMechanicsModel : public Model {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -182,16 +182,26 @@ private:
 
   template <ElementType type>
   void transferNMatrixToSymVoigtNMatrix(Array<Real> & N_matrix);
+
+
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
-  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
-					  const std::string & field_id);
-  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
-					  const std::string & field_id);
+
+  virtual dumper::Field * createNodalFieldReal(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag);
+
+  virtual dumper::Field * createNodalFieldBool(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag);
+
+
+  virtual dumper::Field * createElementalField(const std::string & field_name, 
+					       const std::string & group_name,
+					       bool padding_flag,
+					       const ElementKind & kind);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

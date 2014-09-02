@@ -44,7 +44,10 @@
 /* -------------------------------------------------------------------------- */
 #define __BEGIN_AKANTU__ namespace akantu {
 #define __END_AKANTU__ };
-
+/* -------------------------------------------------------------------------- */
+#define __BEGIN_AKANTU_DUMPER__ namespace dumper {
+#define __END_AKANTU_DUMPER__ }
+/* -------------------------------------------------------------------------- */
 #if defined(WIN32)
 #  define __attribute__(x)
 #endif

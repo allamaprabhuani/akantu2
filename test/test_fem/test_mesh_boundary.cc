@@ -23,8 +23,9 @@ int main(int argc, char* argv[]) {
   std::cout << "Examining mesh:" << std::endl;
 
   // Inspection of the number of boundaries
-  UInt nb_boundaries= mesh.getNbElementGroups();
-  AKANTU_DEBUG_INFO(nb_boundaries << " boundaries advertised initially by Mesh.");
+  __attribute__ ((unused)) UInt nb_boundaries= mesh.getNbElementGroups();
+  AKANTU_DEBUG_INFO(nb_boundaries << " boundaries advertised initially by Mesh.");  
+
   AKANTU_DEBUG_INFO("Building boundaries");
 
   // Two methods: either building using data loaded from the mesh file in MeshData

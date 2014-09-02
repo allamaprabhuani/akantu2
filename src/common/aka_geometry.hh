@@ -37,9 +37,6 @@
 #include "aka_plane.hh"
 #include "aka_math.hh"
 
-using std::cout;
-using std::endl;
-
 __BEGIN_AKANTU__
 
 // predicates

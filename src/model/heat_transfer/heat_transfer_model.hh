@@ -61,7 +61,7 @@ struct HeatTransferModelOptions : public ModelOptions {
 
 extern const HeatTransferModelOptions default_heat_transfer_model_options;
 
-class HeatTransferModel : public Model, public DataAccessor, public Dumpable, public Parsable {
+class HeatTransferModel : public Model, public DataAccessor, public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -202,12 +202,20 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
-  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
-					  const std::string & field_id);
-  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
-					  const std::string & field_id);
+
+  virtual dumper::Field * createNodalFieldReal(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag);
+
+  virtual dumper::Field * createNodalFieldBool(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag);
+
+
+  virtual dumper::Field * createElementalField(const std::string & field_name, 
+					       const std::string & group_name,
+					       bool padding_flag,
+					       const ElementKind & kind);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

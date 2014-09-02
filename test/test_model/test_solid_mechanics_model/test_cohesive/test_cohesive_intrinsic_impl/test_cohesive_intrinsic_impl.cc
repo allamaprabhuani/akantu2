@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    bool converged = model.solveStep<_scm_newton_raphson_tangent, _scc_residual>(1e-5, 100);
+    __attribute__ ((unused)) bool converged = model.solveStep<_scm_newton_raphson_tangent, _scc_residual>(1e-5, 100);
     AKANTU_DEBUG_ASSERT(converged, "Did not converge");
 
     //    model.dump();

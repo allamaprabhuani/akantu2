@@ -960,4 +960,50 @@ void GroupManager::synchronizeGroupNames() {
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+const ElementGroup & GroupManager::getElementGroup(const std::string & name) const {
+  const_element_group_iterator it = element_group_find(name);
+  if(it == element_group_end()) {
+    AKANTU_EXCEPTION("There are no element groups named " << name
+		     << " associated to the group manager: " << id);
+  }
+
+  return *(it->second);
+}
+
+/* -------------------------------------------------------------------------- */
+ElementGroup & GroupManager::getElementGroup(const std::string & name) {
+  element_group_iterator it = element_group_find(name);
+  if(it == element_group_end()) {
+    AKANTU_EXCEPTION("There are no element groups named " << name
+		     << " associated to the group manager: " << id);
+  }
+
+  return *(it->second);
+}
+
+
+/* -------------------------------------------------------------------------- */
+const NodeGroup & GroupManager::getNodeGroup(const std::string & name) const {
+   const_node_group_iterator it = node_group_find(name);
+  if(it == node_group_end()) {
+    AKANTU_EXCEPTION("There are no node groups named " << name
+		     << " associated to the group manager: " << id);
+  }
+
+  return *(it->second);
+}
+
+/* -------------------------------------------------------------------------- */
+NodeGroup & GroupManager::getNodeGroup(const std::string & name) {
+  node_group_iterator it = node_group_find(name);
+  if(it == node_group_end()) {
+    AKANTU_EXCEPTION("There are no node groups named " << name
+		     << " associated to the group manager: " << id);
+  }
+
+  return *(it->second);
+}
+
+
 __END_AKANTU__

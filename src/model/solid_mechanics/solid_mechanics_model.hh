@@ -41,29 +41,26 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_types.hh"
-
 #include "model.hh"
 #include "data_accessor.hh"
 #include "mesh.hh"
 #include "dumpable.hh"
 #include "boundary_condition.hh"
-
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-
 #include "integration_scheme_2nd_order.hh"
 #include "solver.hh"
 #include "material_selector.hh"
-
 #include "solid_mechanics_model_event_handler.hh"
-
 /* -------------------------------------------------------------------------- */
-namespace akantu
-{
+namespace akantu {
   class Material;
   class IntegrationScheme2ndOrder;
   class SparseMatrix;
+  class DumperIOHelper;
 }
+/* -------------------------------------------------------------------------- */
+
 
 __BEGIN_AKANTU__
 
@@ -82,9 +79,9 @@ extern const SolidMechanicsModelOptions default_solid_mechanics_model_options;
 class SolidMechanicsModel : public Model,
 			    public DataAccessor,
 			    public MeshEventHandler,
-			    public Dumpable,
-			    public BoundaryCondition <SolidMechanicsModel>,
-			    public EventHandlerManager <SolidMechanicsModelEventHandler> {
+			    public BoundaryCondition<SolidMechanicsModel>,
+                            public EventHandlerManager<SolidMechanicsModelEventHandler> {
+
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -401,34 +398,41 @@ protected:
 				 const RemovedElementsEvent & event);
 
   /* ------------------------------------------------------------------------ */
-  /* Dumpable interface                                                       */
+  /* Dumpable interface (kept for convenience) and dumper relative functions  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
 
-  virtual void addDumpGroupField(const std::string & field_id,
-				 const std::string & group_name);
-  virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
-					 const std::string & field_id,
-					 const std::string & group_name);
-  virtual void removeDumpGroupField(const std::string & field_id,
-				    const std::string & group_name);
-  virtual void removeDumpGroupFieldFromDumper(const std::string & dumper_name,
-					      const std::string & field_id,
-					      const std::string & group_name);
 
-  virtual void addDumpFieldVectorToDumper(const std::string & dumper_name,
-					  const std::string & field_id);
+  virtual void onDump();
 
-  virtual void addDumpGroupFieldVector(const std::string & field_id,
-				       const std::string & group_name);
-  virtual void addDumpGroupFieldVectorToDumper(const std::string & dumper_name,
-					       const std::string & field_id,
-					       const std::string & group_name);
+  //! decide wether a field is a material internal or not
+  bool isInternal(const std::string & field_name, const ElementKind & element_kind);
+  //! give the amount of data per element
+  ElementTypeMap<UInt> getInternalDataPerElem(const std::string & field_name,
+					     const ElementKind & kind);
 
-  virtual void addDumpFieldTensorToDumper(const std::string & dumper_name,
-					  const std::string & field_id);
+  //! flatten a given material internal field 
+  ElementTypeMapArray<Real> & flattenInternal(const std::string & field_name,
+					     const ElementKind & kind);
+  //! flatten all the registered material internals
+  void flattenAllRegisteredInternals(const ElementKind & kind);
+
+
+  virtual dumper::Field * createNodalFieldReal(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag);
+
+  virtual dumper::Field * createNodalFieldBool(const std::string & field_name,
+					       const std::string & group_name,
+					       bool padding_flag);
+  
+
+  virtual dumper::Field * createElementalField(const std::string & field_name, 
+					       const std::string & group_name,
+					       bool padding_flag,
+					       const ElementKind & kind);
+
+
 
   virtual void dump(const std::string & dumper_name);
 
@@ -685,6 +689,9 @@ protected:
 
   /// tells if the material are instantiated
   bool are_materials_instantiated;
+
+  /// map a registered internals to be flattened for dump purposes
+  std::map<std::pair<std::string,ElementKind>,ElementTypeMapArray<Real> *> registered_internals;
 };
 
 

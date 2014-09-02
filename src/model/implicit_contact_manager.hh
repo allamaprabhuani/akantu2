@@ -34,7 +34,6 @@
 #include "mesh_graph.hh"
 #include "model_manager.hh"
 #include "dumper_iohelper.hh"
-#include "dumper_iohelper_tmpl.hh"
 #include "aka_optimize.hh"
 #include "integration_scheme_2nd_order.hh"
 
@@ -237,8 +236,8 @@ struct ContactData {
 	ContactData(int argc, char *argv[], model_type & m) : model_(m), multiplier_dumper_(m.getMesh().getNbNodes(), 3), pressure_dumper_(m.getMesh().getNbNodes(), 3), options_(), uiter_(), niter_(), searcher_(new SearchBase())
 	{
 		// register dumpers
-		model_.addDumpFieldExternal("multipliers", multiplier_dumper_);
-		model_.addDumpFieldExternal("pressure", pressure_dumper_);
+   	        model_.getMesh().addDumpFieldExternal("multipliers", multiplier_dumper_);
+		model_.getMesh().addDumpFieldExternal("pressure", pressure_dumper_);
 
 		set_default_options();
 

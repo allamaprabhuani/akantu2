@@ -32,6 +32,8 @@
 
 #include <iostream>
 
+using std::is_arithmetic;
+#include <stdexcept>
 #include <array/expr.hpp>
 
 #include "aka_visitor.hh"

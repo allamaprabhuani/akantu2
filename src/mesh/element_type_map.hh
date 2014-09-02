@@ -57,8 +57,7 @@ public:
 
 template<class Stored, typename SupportType>
 class ElementTypeMap : public ElementTypeMapBase {
-private:
-  void operator=(const ElementTypeMap &) {};
+
 public:
   ElementTypeMap();
   ~ElementTypeMap();
@@ -193,6 +192,10 @@ protected:
 /* -------------------------------------------------------------------------- */
 template <typename T, typename SupportType = ElementType>
 class ElementTypeMapArray : public ElementTypeMap<Array<T> *, SupportType>, public Memory {
+public:
+  typedef T type;
+  typedef Array<T> array_type;
+
 protected:
   typedef ElementTypeMap<Array<T> *, SupportType> parent;
   typedef typename parent::DataMap DataMap;
@@ -274,9 +277,33 @@ public:
    */
   inline void setID(const ID & id) { this->id = id; }
 
+  ElementTypeMap<UInt> getNbComponents(UInt dim = _all_dimensions,
+				       GhostType ghost_type = _not_ghost,
+				       ElementKind kind = _ek_not_defined) const{
+
+    ElementTypeMap<UInt> nb_components;
+    
+    type_iterator tit = this->firstType(dim,ghost_type,kind);
+    type_iterator end = this->lastType(dim,ghost_type,kind);
+
+    while (tit != end){
+      UInt nb_comp = (*this)(*tit,ghost_type).getNbComponent();
+      nb_components(*tit,ghost_type) = nb_comp;
+      ++tit;
+    }
+    return nb_components;
+  }
+
 private:
   ElementTypeMapArray operator=(__attribute__((unused)) const ElementTypeMapArray & other) {};
 };
+
+/// to store data Array<Real> by element type
+typedef ElementTypeMapArray<Real> ElementTypeMapReal;
+/// to store data Array<Int> by element type
+typedef ElementTypeMapArray<Int>  ElementTypeMapInt;
+/// to store data Array<UInt> by element type
+typedef ElementTypeMapArray<UInt, ElementType> ElementTypeMapUInt;
 
 /// Map of data of type UInt stored in a mesh
 typedef std::map<std::string, Array<UInt> *> UIntDataMap;

@@ -45,77 +45,12 @@
 #include "element_type_map.hh"
 #include "aka_event_handler_manager.hh"
 #include "group_manager.hh"
-
+#include "element.hh"
 /* -------------------------------------------------------------------------- */
 #include <set>
 /* -------------------------------------------------------------------------- */
-
-__BEGIN_AKANTU__
-
-/* -------------------------------------------------------------------------- */
-/* Element                                                                    */
-/* -------------------------------------------------------------------------- */
-class Element;
-extern const Element ElementNull;
-
-class Element {
-public:
-  explicit Element(ElementType type = _not_defined, UInt element = 0,
-          GhostType ghost_type = _not_ghost, ElementKind kind = _ek_regular) :
-    type(type), element(element),
-    ghost_type(ghost_type), kind(kind) {};
-
-  Element(const Element & element) {
-    this->type    = element.type;
-    this->element = element.element;
-    this->ghost_type = element.ghost_type;
-    this->kind = element.kind;
-  }
-
-  inline bool operator==(const Element & elem) const {
-    return ((element == elem.element)
-            && (type == elem.type)
-            && (ghost_type == elem.ghost_type)
-            && (kind == elem.kind));
-  }
-
-  inline bool operator!=(const Element & elem) const {
-    return ((element != elem.element)
-            || (type != elem.type)
-            || (ghost_type != elem.ghost_type)
-            || (kind != elem.kind));
-  }
-
-  bool operator<(const Element& rhs) const {
-    bool res = (rhs == ElementNull) || ((this->kind < rhs.kind) ||
-                                        ((this->kind == rhs.kind) &&
-                                         ((this->ghost_type < rhs.ghost_type) ||
-                                          ((this->ghost_type == rhs.ghost_type) &&
-                                           ((this->type < rhs.type) ||
-                                            ((this->type == rhs.type) &&
-                                             (this->element < rhs.element)))))));
-    return res;
-  }
-
-  virtual ~Element() {};
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
-public:
-  ElementType type;
-  UInt element;
-  GhostType ghost_type;
-  ElementKind kind;
-};
-
-struct CompElementLess {
-  bool operator() (const Element& lhs, const Element& rhs) const {
-    return lhs < rhs;
-  }
-};
-
-__END_AKANTU__
 #include "mesh_data.hh"
+
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
@@ -231,7 +166,8 @@ public:
 */
 class Mesh : protected Memory,
              public EventHandlerManager<MeshEventHandler>,
-             public GroupManager {
+             public GroupManager,
+	     public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -463,6 +399,16 @@ public:
   template<typename T>
   inline ElementTypeMapArray<T> & getData(const std::string & data_name);
 
+
+  template <typename T>
+  ElementTypeMap<UInt> getNbDataPerElem(ElementTypeMapArray<T> & array,
+					const ElementKind & element_kind);
+
+  template <typename T>
+  dumper::Field * createFieldFromAttachedData(const std::string & field_id,
+					      const std::string & group_name,
+					      const ElementKind & element_kind);
+
   /// templated getter returning the pointer to data in MeshData (modifiable)
   template<typename T>
   inline Array<T> * getDataPointer(const std::string & data_name,
@@ -483,6 +429,10 @@ public:
 
   /// defines is the mesh is distributed or not
   inline bool isDistributed() const { return this->is_distributed; }
+
+  /// return the dumper from a group and and a dumper name
+  DumperIOHelper & getGroupDumper(const std::string & dumper_name, 
+				  const std::string & group_name);
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -661,8 +611,8 @@ __END_AKANTU__
 /* -------------------------------------------------------------------------- */
 
 #include "mesh_inline_impl.cc"
-
 #include "element_type_map_tmpl.hh"
-
+#include "group_manager_inline_impl.cc"
+#include "element_group_inline_impl.cc"
 
 #endif /* __AKANTU_MESH_HH__ */

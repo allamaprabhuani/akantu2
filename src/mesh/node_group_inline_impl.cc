@@ -62,6 +62,8 @@ inline UInt NodeGroup::getSize() const {
 }
 
 /* -------------------------------------------------------------------------- */
+class FilterFunctor;
+
 template <typename T>
 void NodeGroup::applyNodeFilter(T & filter) {
   AKANTU_DEBUG_IN();

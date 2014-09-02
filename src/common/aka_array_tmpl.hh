@@ -676,24 +676,27 @@ public:
   typedef std::random_access_iterator_tag iterator_category;
 
 public:
-  iterator_internal() : _offset(0), initial(NULL), ret(NULL) {};
+  iterator_internal() : _offset(0), initial(NULL), ret(NULL), ret_ptr(NULL) {};
 
   iterator_internal(pointer_type data, UInt _offset)  :
     _offset(_offset),
     initial(data),
-    ret(NULL) {
+    ret(NULL),
+    ret_ptr(data) {
     AKANTU_DEBUG_ERROR("The constructor should never be called it is just an ugly trick...");
   }
 
   iterator_internal(pointer wrapped)  : _offset(wrapped->size()),
 					initial(wrapped->storage()),
-					ret(const_cast<internal_pointer>(wrapped)) {
+					ret(const_cast<internal_pointer>(wrapped)),
+					ret_ptr(wrapped->storage()) {
   }
 
   iterator_internal(const iterator_internal & it) {
     if(this != &it) {
       this->_offset = it._offset;
       this->initial = it.initial;
+      this->ret_ptr = it.ret_ptr;
       this->ret = new internal_value_type(*it.ret, false);
     }
   }
@@ -704,45 +707,49 @@ public:
     if(this != &it) {
       this->_offset = it._offset;
       this->initial = it.initial;
+      this->ret_ptr = it.ret_ptr;
       if(this->ret) this->ret->shallowCopy(*it.ret);
       else this->ret = new internal_value_type(*it.ret, false);
     }
     return *this;
   }
 
-  inline reference operator*() { return *ret; };
-  inline const_reference operator*() const { return *ret; };
-  inline pointer operator->() { return ret; };
-  inline iterator_internal & operator++() { ret->values += _offset; return *this; };
-  inline iterator_internal & operator--() { ret->values -= _offset; return *this; };
+  UInt getCurrentIndex(){return (this->ret_ptr - this->initial)/this->_offset;};
 
-  inline iterator_internal & operator+=(const UInt n) { ret->values += _offset * n; return *this; }
-  inline iterator_internal & operator-=(const UInt n) { ret->values -= _offset * n; return *this; }
+  inline reference operator*() { ret->values = ret_ptr; return *ret; };
+  inline const_reference operator*() const { ret->values = ret_ptr; return *ret; };
+  inline pointer operator->() { ret->values = ret_ptr; return ret; };
+  inline iterator_internal & operator++() { ret_ptr += _offset; return *this; };
+  inline iterator_internal & operator--() { ret_ptr -= _offset; return *this; };
 
-  inline reference operator[](const UInt n) { ret->values = initial + n*_offset; return *ret; }
-  inline const_reference operator[](const UInt n) const { ret->values = initial + n*_offset; return *ret; }
+  inline iterator_internal & operator+=(const UInt n) { ret_ptr += _offset * n; return *this; }
+  inline iterator_internal & operator-=(const UInt n) { ret_ptr -= _offset * n; return *this; }
 
-  inline bool operator==(const iterator_internal & other) const { return (*this).ret->storage() == other.ret->storage(); }
-  inline bool operator!=(const iterator_internal & other) const { return (*this).ret->storage() != other.ret->storage(); }
-  inline bool operator <(const iterator_internal & other) const { return (*this).ret->storage()  < other.ret->storage(); }
-  inline bool operator<=(const iterator_internal & other) const { return (*this).ret->storage() <= other.ret->storage(); }
-  inline bool operator> (const iterator_internal & other) const { return (*this).ret->storage() >  other.ret->storage(); }
-  inline bool operator>=(const iterator_internal & other) const { return (*this).ret->storage() >= other.ret->storage(); }
+  inline reference operator[](const UInt n) { ret->values = ret_ptr + n*_offset; return *ret; }
+  inline const_reference operator[](const UInt n) const { ret->values = ret_ptr + n*_offset; return *ret; }
+
+  inline bool operator==(const iterator_internal & other) const { return this->ret_ptr == other.ret_ptr; }
+  inline bool operator!=(const iterator_internal & other) const { return this->ret_ptr != other.ret_ptr; }
+  inline bool operator <(const iterator_internal & other) const { return this->ret_ptr  < other.ret_ptr; }
+  inline bool operator<=(const iterator_internal & other) const { return this->ret_ptr <= other.ret_ptr; }
+  inline bool operator> (const iterator_internal & other) const { return this->ret_ptr >  other.ret_ptr; }
+  inline bool operator>=(const iterator_internal & other) const { return this->ret_ptr >= other.ret_ptr; }
 
   inline iterator_internal operator+(difference_type n) { iterator_internal tmp(*this); tmp += n; return tmp; }
   inline iterator_internal operator-(difference_type n) { iterator_internal tmp(*this); tmp -= n; return tmp; }
 
 
-  inline difference_type operator-(const iterator_internal & b) { return (ret->values - b.ret->values) / _offset; }
+  inline difference_type operator-(const iterator_internal & b) { return (this->ret_ptr - b.ret_ptr) / _offset; }
 
 
-  inline pointer_type data() const { return ret->storage(); }
+  inline pointer_type data() const { return ret_ptr; }
   inline difference_type offset() const { return _offset; }
 
 protected:
   UInt _offset;
   pointer_type initial;
   internal_pointer ret;
+  pointer_type ret_ptr;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -773,6 +780,8 @@ public:
   inline iterator_internal & operator=(const iterator_internal & it)
   { if(this != &it) { this->ret = it.ret; this->initial = it.initial; } return *this; }
 
+  UInt getCurrentIndex(){return (this->ret - this->initial)/this->_offset;};
+
   inline reference operator*() { return *ret; };
   inline const_reference operator*() const { return *ret; };
   inline pointer operator->() { return ret; };
@@ -782,7 +791,7 @@ public:
   inline iterator_internal & operator+=(const UInt n) { ret += n; return *this; }
   inline iterator_internal & operator-=(const UInt n) { ret -= n; return *this; }
 
-  inline reference operator[](const UInt n) { ret = initial + n; return *ret; }
+  inline reference operator[](const UInt n) { return ret[n]; }
 
   inline bool operator==(const iterator_internal & other) const { return ret == other.ret; }
   inline bool operator!=(const iterator_internal & other) const { return ret != other.ret; }
@@ -1170,6 +1179,7 @@ public:
   typedef typename parent::difference_type   difference_type;
   typedef typename parent::iterator_category iterator_category;
 public:
+
   const_iterator() : parent() {};
   const_iterator(pointer_type data, UInt offset) : parent(data, offset) {}
   const_iterator(pointer warped) : parent(warped) {}

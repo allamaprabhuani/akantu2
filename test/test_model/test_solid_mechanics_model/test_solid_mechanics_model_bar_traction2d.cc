@@ -56,16 +56,11 @@ akantu::UInt nb_nodes;
 akantu::UInt nb_element;
 akantu::UInt nb_quadrature_points;
 
-akantu::Array<akantu::Real> * stress;
-akantu::Array<akantu::Real> * strain;
-
 int main(int argc, char *argv[])
 {
   akantu::initialize("material.dat", argc, argv);
   akantu::UInt max_steps = 5000;
   akantu::Real time_factor = 0.8;
-
-  //  akantu::Real epot, ekin;
 
   akantu::Mesh mesh(spatial_dimension);
   mesh.read("bar2.msh");
@@ -82,12 +77,7 @@ int main(int argc, char *argv[])
 
   model.initMaterials();
   model.assembleMassLumped();
-
-  nb_quadrature_points = model.getFEEngine().getNbQuadraturePoints(type);
-  stress = new akantu::Array<akantu::Real>(nb_element * nb_quadrature_points,
-					    spatial_dimension* spatial_dimension);
-  strain = new akantu::Array<akantu::Real>(nb_element * nb_quadrature_points,
-					    spatial_dimension * spatial_dimension);
+  mesh.createGroupsFromMeshData<std::string>("physical_names");
 
   /// boundary conditions
   akantu::Real eps = 1e-16;
@@ -108,15 +98,18 @@ int main(int argc, char *argv[])
 
   /// initialize the paraview output
   model.updateResidual();
-  model.setBaseName("bar_traction_2d");
+  mesh.setBaseName("bar_traction_2d");
   model.addDumpField("displacement");
   model.addDumpField("mass"        );
   model.addDumpField("velocity"    );
   model.addDumpField("acceleration");
   model.addDumpField("force"       );
   model.addDumpField("residual"    );
-  model.addDumpField("stress"      );
-  model.addDumpField("strain"      );
+  model.addDumpFieldTensor("stress");
+  model.addDumpField("grad_u"       );
+
+  model.addDumpGroupField("displacement","Top");
+  model.dumpGroup("Top");
   model.dump();
 
 #ifdef CHECK_STRESS
@@ -183,7 +176,10 @@ int main(int argc, char *argv[])
 
 
 #ifdef AKANTU_USE_IOHELPER
-    if(s % 100 == 0) model.dump();
+    if(s % 100 == 0) {
+      model.dump();
+      model.dumpGroup();
+    }
 #endif //AKANTU_USE_IOHELPER
     if(s % 100 == 0) std::cout << "passing step " << s << "/" << max_steps << std::endl;
   }

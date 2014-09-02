@@ -101,9 +101,74 @@ set(AKANTU_CORE_FILES
   fe_engine/shape_linked.cc
   fe_engine/shape_linked.hh
   fe_engine/shape_linked_inline_impl.cc
+  fe_engine/element.hh
+
+
+#  fem/by_element_type.hh
+
+#  fem/by_element_type_tmpl.hh
+#
+#  fem/element_class.cc
+#  fem/element_class.hh
+#  fem/element.hh
+#  fem/element_class_tmpl.hh
+#  fem/element_classes/element_class_hexahedron_8_inline_impl.cc
+#  fem/element_classes/element_class_pentahedron_6_inline_impl.cc
+#  fem/element_classes/element_class_point_1_inline_impl.cc
+#  fem/element_classes/element_class_quadrangle_4_inline_impl.cc
+#  fem/element_classes/element_class_quadrangle_8_inline_impl.cc
+#  fem/element_classes/element_class_segment_2_inline_impl.cc
+#  fem/element_classes/element_class_segment_3_inline_impl.cc
+#  fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
+#  fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
+#  fem/element_classes/element_class_triangle_3_inline_impl.cc
+#  fem/element_classes/element_class_triangle_6_inline_impl.cc
+#
+#  fem/element_group.cc
+#  fem/element_group.hh
+#  fem/element_group_inline_impl.cc
+#  fem/fem.cc
+#  fem/fem.hh
+#  fem/fem_inline_impl.cc
+#  fem/fem_template.hh
+#  fem/fem_template_tmpl.hh
+#  fem/geometrical_data_tmpl.hh
+#  fem/geometrical_element.cc
+#  fem/group_manager.cc
+#  fem/group_manager.hh
+#  fem/group_manager_inline_impl.cc
+#  fem/integration_element.cc
+#  fem/integrator.hh
+#  fem/integrator_gauss.hh
+#  fem/integrator_gauss_inline_impl.cc
+#  fem/interpolation_element.cc
+#  fem/interpolation_element_tmpl.hh
+#  fem/mesh.cc
+#  fem/mesh.hh
+#  fem/mesh_filter.hh
+#  fem/mesh_data.cc
+#  fem/mesh_data.hh
+#  fem/mesh_data_tmpl.hh
+#  fem/mesh_inline_impl.cc
+#  fem/node_group.cc
+#  fem/node_group.hh
+#  fem/node_group_inline_impl.cc
+#  fem/shape_functions.hh
+#  fem/shape_functions_inline_impl.cc
+#  fem/shape_lagrange.cc
+#  fem/shape_lagrange.hh
+#  fem/shape_lagrange_inline_impl.cc
+#  fem/shape_linked.cc
+#  fem/shape_linked.hh
+#  fem/shape_linked_inline_impl.cc
 
   io/dumper/dumpable.hh
   io/dumper/dumpable_inline_impl.hh
+  io/dumper/dumper_field.hh
+  io/dumper/dumper_material_padders.hh
+  io/dumper/dumper_filtered_connectivity.hh
+  io/dumper/dumper_element_type.hh
+  io/dumper/dumper_element_partition.hh
 
   io/mesh_io.cc
   io/mesh_io.hh
@@ -133,6 +198,7 @@ set(AKANTU_CORE_FILES
   mesh/element_group_inline_impl.cc
   mesh/element_type_map.hh
   mesh/element_type_map_tmpl.hh
+  mesh/element_type_map_filter.hh
   mesh/group_manager.cc
   mesh/group_manager.hh
   mesh/group_manager_inline_impl.cc

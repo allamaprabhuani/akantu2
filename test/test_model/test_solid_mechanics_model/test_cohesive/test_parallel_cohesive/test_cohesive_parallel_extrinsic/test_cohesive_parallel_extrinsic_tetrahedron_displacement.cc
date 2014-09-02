@@ -34,9 +34,6 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
-#  include "dumper_iohelper_tmpl.hh"
-#  include "dumper_iohelper_tmpl_homogenizing_field.hh"
-#  include "dumper_iohelper_tmpl_material_internal_field.hh"
 #endif
 
 /* -------------------------------------------------------------------------- */

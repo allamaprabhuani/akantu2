@@ -139,6 +139,12 @@ public:
   /// check if the history is used or not
   bool hasHistory() const { return (previous_values != NULL); }
 
+  /// get the kind treated by the internal
+  const ElementKind & getElementKind() const {return element_kind;};
+
+
+  /// return the number of components
+  UInt getNbComponent(){return nb_component;}
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */

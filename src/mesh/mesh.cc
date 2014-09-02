@@ -40,6 +40,18 @@
 #include "element_class.hh"
 #include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER
+#  include "dumper_field.hh"
+//#  include "dumper_paraview.hh"
+//#  include "dumper_homogenizing_field.hh"
+#  include "dumper_material_internal_field.hh"
+//#  include "dumper_elemental_field.hh"
+//#  include "dumper_material_padders.hh"
+//#  include "dumper_element_partition.hh"
+//#  include "dumper_iohelper.hh"
+#endif
+/* -------------------------------------------------------------------------- */
+
 
 __BEGIN_AKANTU__
 
@@ -348,6 +360,16 @@ void Mesh::getGlobalConnectivity(ElementTypeMapArray<UInt> & global_connectivity
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+
+DumperIOHelper & Mesh::getGroupDumper(const std::string & dumper_name, 
+				      const std::string & group_name){
+  
+  if (group_name == "all") return this->getDumper(dumper_name);
+  else return element_groups[group_name]->getDumper(dumper_name);
+
+}
+
 
 
 /* -------------------------------------------------------------------------- */
@@ -370,6 +392,86 @@ AKANTU_INSTANTIATE_INIT(Real);
 AKANTU_INSTANTIATE_INIT(UInt);
 AKANTU_INSTANTIATE_INIT(Int);
 AKANTU_INSTANTIATE_INIT(bool);
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+ElementTypeMap<UInt> Mesh::getNbDataPerElem(ElementTypeMapArray<T> & array,
+					    const ElementKind & element_kind){
+
+  ElementTypeMap<UInt> nb_data_per_elem;
+  
+  typename ElementTypeMapArray<T>::type_iterator it = 
+    array.firstType(spatial_dimension, _not_ghost,element_kind);
+  typename ElementTypeMapArray<T>::type_iterator last_type = 
+    array.lastType(spatial_dimension, _not_ghost,element_kind);
+  
+  for(; it != last_type; ++it) {
+    UInt nb_elements = this->getNbElement(*it);
+    nb_data_per_elem(*it) = 
+      array(*it).getNbComponent() * 
+      array(*it).getSize();
+
+    nb_data_per_elem(*it) /= nb_elements;
+  }
+  return nb_data_per_elem;
+}
+
+/* -------------------------------------------------------------------------- */
+
+template 
+ElementTypeMap<UInt> Mesh::getNbDataPerElem(ElementTypeMapArray<Real> & array,
+					    const ElementKind & element_kind);
+
+template 
+ElementTypeMap<UInt> Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array,
+					    const ElementKind & element_kind);
+
+
+/* -------------------------------------------------------------------------- */
+
+
+template <typename T>
+dumper::Field * Mesh::createFieldFromAttachedData(const std::string & field_id,
+						  const std::string & group_name,
+						  const ElementKind & element_kind){
+
+
+  dumper::Field * field = NULL;
+  ElementTypeMapArray<T> * internal = NULL;
+  try {
+    internal = &(this->getData<T>(field_id));
+  }
+  catch (...){
+    return NULL;
+  }
+
+  ElementTypeMap<UInt> nb_data_per_elem = 
+    this->getNbDataPerElem(*internal,element_kind);
+
+  field = 
+    this->createElementalField<T, dumper::InternalMaterialField>(*internal,
+								group_name,
+								this->spatial_dimension,
+								element_kind,
+								nb_data_per_elem);
+
+  return field;
+}
+
+template dumper::Field * 
+Mesh::createFieldFromAttachedData<Real>(const std::string & field_id,
+					const std::string & group_name,
+					const ElementKind & element_kind);
+
+template dumper::Field * 
+Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
+					const std::string & group_name,
+					const ElementKind & element_kind);
+
+
+/* -------------------------------------------------------------------------- */
+
+
 
 
 __END_AKANTU__

@@ -51,7 +51,7 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
 						   UInt dim,
 						   const ID & id,
 						   const MemoryID & memory_id) :
-  Model(mesh, dim, id, memory_id), Dumpable(),
+  Model(mesh, dim, id, memory_id), 
   time_step(NAN), f_m2a(1.0),
   stress("stress", id, memory_id),
   element_material("element_material", id, memory_id),
@@ -87,8 +87,8 @@ StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh,
     AKANTU_DEBUG_TO_IMPLEMENT();
   }
 
-  this->registerDumper<DumperParaview>("paraview_all", id, true);
-  this->addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
+  this->mesh.registerDumper<DumperParaview>("paraview_all", id, true);
+  this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_structural);
 
   AKANTU_DEBUG_OUT();
 }
@@ -111,7 +111,7 @@ void StructuralMechanicsModel::setTimeStep(Real time_step) {
   this->time_step = time_step;
 
 #if defined(AKANTU_USE_IOHELPER)
-  getDumper().setTimeStep(time_step);
+  this->mesh.getDumper().setTimeStep(time_step);
 #endif
 }
 
@@ -1059,68 +1059,81 @@ void StructuralMechanicsModel::transferBMatrixToSymVoigtBMatrix<_kirchhoff_shell
   }
 }
 
+
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::addDumpFieldToDumper(const std::string & dumper_name,
-						    const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(dumper_name, id, field, type, n, stride)		\
-  internalAddDumpFieldToDumper(dumper_name, id,				\
-		       new DumperIOHelper::NodalField<type>(*field, n, stride))
+
+dumper::Field * StructuralMechanicsModel
+::createNodalFieldBool(const std::string & field_name,
+		       const std::string & group_name,
+		       bool padding_flag) {
+  
+  std::map<std::string,Array<bool>* > uint_nodal_fields;
+  uint_nodal_fields["blocked_dofs"             ] = blocked_dofs;
+
+  dumper::Field * field = NULL;
+  field = mesh.createNodalField(uint_nodal_fields[field_name],group_name);
+  return field;
+
+}
+
+/* -------------------------------------------------------------------------- */
+
+
+dumper::Field * StructuralMechanicsModel
+::createNodalFieldReal(const std::string & field_name,
+		       const std::string & group_name,
+		       bool padding_flag) {
 
   UInt n;
   if(spatial_dimension == 2) {
     n = 2;
   } else n = 3;
 
-  if(field_id == "displacement" ) { ADD_FIELD(dumper_name, "displacement", displacement_rotation, Real,
-						  n, 0); }
-  else if(field_id == "rotation") { ADD_FIELD(dumper_name, "rotation", displacement_rotation, Real,
-						  nb_degree_of_freedom - n, n); }
-  else if(field_id == "force"   ) { ADD_FIELD(dumper_name, "force", force_momentum, Real,
-						  n, 0); }
-  else if(field_id == "momentum") { ADD_FIELD(dumper_name, "momentum", force_momentum, Real,
-						  nb_degree_of_freedom - n, n); }
-  else if(field_id == "residual") { ADD_FIELD(dumper_name, "residual", residual, Real, nb_degree_of_freedom, 0); }
-  else if(field_id == "blocked_dofs") { ADD_FIELD(dumper_name, "blocked_dofs", blocked_dofs, bool, nb_degree_of_freedom, 0); }
-  else if(field_id == "element_index_by_material") {
-    internalAddDumpFieldToDumper(dumper_name, 
-				 field_id,
-			 new DumperIOHelper::ElementalField<UInt>(element_material,
-								  spatial_dimension,
-								  _not_ghost,
-								  _ek_regular));
+  dumper::Field * field = NULL;
+
+  if (field_name == "displacement"){
+    field = mesh.createStridedNodalField(displacement_rotation,group_name,n,0,padding_flag);
   }
-#undef ADD_FIELD
-#endif
+  if (field_name == "rotation"){
+    field = mesh.createStridedNodalField(displacement_rotation,group_name,
+					 nb_degree_of_freedom-n,n,padding_flag);
+  }
+  if (field_name == "force"){
+    field = mesh.createStridedNodalField(force_momentum,group_name,n,0,padding_flag);
+  }
+  if (field_name == "momentum"){
+    field = mesh.createStridedNodalField(force_momentum,group_name,
+					 nb_degree_of_freedom-n,n,padding_flag);
+  }
+  if (field_name == "residual"){
+    field = mesh.createNodalField(residual,group_name,padding_flag);
+  }
+
+  return field;
+
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::addDumpFieldVectorToDumper(const std::string & dumper_name,
-							  const std::string & field_id) {
-#ifdef AKANTU_USE_IOHELPER
-#define ADD_FIELD(dumper_name, id, field, type, n, stride)		\
-  DumperIOHelper::Field * f =						\
-    new DumperIOHelper::NodalField<type>(*field, n, stride);	\
-  f->setPadding(3);							\
-  internalAddDumpFieldToDumper(dumper_name, id, f)
 
-  UInt n;
-  if(spatial_dimension == 2) {
-    n = 2;
-  } else n = 3;
+dumper::Field * StructuralMechanicsModel
+::createElementalField(const std::string & field_name, 
+		       const std::string & group_name,
+		       bool padding_flag,
+		       const ElementKind & kind){
 
-  if(field_id == "displacement" ) { ADD_FIELD(dumper_name, "displacement", displacement_rotation, Real,
-					      n, 0); }
-  else if(field_id == "force"   ) { ADD_FIELD(dumper_name, "force", force_momentum, Real,
-					      n, 0); }
-#undef ADD_FIELD
-#endif
+
+  dumper::Field * field = NULL;
+
+  if(field_name == "element_index_by_material") 
+    field = mesh.createElementalField<UInt, Vector, dumper::ElementalField >(field_name,group_name,this->spatial_dimension,kind);
+
+  return field;
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::addDumpFieldTensorToDumper(__attribute__((unused)) const std::string & dumper_name,
-							  __attribute__((unused)) const std::string & field_id) {
-}
+
+
+
 
 
 __END_AKANTU__

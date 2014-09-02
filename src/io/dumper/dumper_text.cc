@@ -26,8 +26,10 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
 #include "dumper_text.hh"
-#include "dumper_iohelper_tmpl.hh"
+#include "dumper_nodal_field.hh"
+#include "mesh.hh"
 
 __BEGIN_AKANTU__
 
@@ -53,13 +55,13 @@ void DumperText::registerMesh(const Mesh & mesh,
 			      const ElementKind & element_kind) {
 
   registerField("position",
-		new DumperIOHelper::NodalField<Real>(mesh.getNodes()));
+		new dumper::NodalField<Real>(mesh.getNodes()));
 
   // in parallel we need node type
   UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
   if (nb_proc > 1) {
     registerField("nodes_type",
-		  new DumperIOHelper::NodalField<Int>(mesh.getNodesType()));
+		  new dumper::NodalField<Int>(mesh.getNodesType()));
   }
 }
 
@@ -72,21 +74,21 @@ void DumperText::registerFilteredMesh(const Mesh & mesh,
 				      const ElementKind & element_kind) {
 
   registerField("position",
-		new DumperIOHelper::NodalField<Real,
-					       true>(mesh.getNodes(),
-						     0,
-						     0,
-						     &nodes_filter));
+		new dumper::NodalField<Real,
+		true>(mesh.getNodes(),
+		      0,
+		      0,
+		      &nodes_filter));
 
   // in parallel we need node type
   UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
   if (nb_proc > 1) {
     registerField("nodes_type",
-		  new DumperIOHelper::NodalField<Int,
-						 true>(mesh.getNodesType(),
-						       0,
-						       0,
-						       &nodes_filter));
+		  new dumper::NodalField<Int,
+		  true>(mesh.getNodesType(),
+			0,
+			0,
+			&nodes_filter));
   }
 }
 

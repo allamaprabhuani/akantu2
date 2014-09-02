@@ -394,7 +394,8 @@ public:
   const InternalField<Real> & getInternal(const ID & id) const;
   InternalField<Real> & getInternal(const ID & id);
 
-  inline bool isInternal(const ID & id) const;
+  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+  inline ElementTypeMap<UInt> getInternalDataPerElem(const ID & id, const ElementKind & element_kind) const;
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
@@ -404,6 +405,12 @@ public:
 
   template <typename T>
   inline const T & getParam(const ID & param) const;
+
+  void flattenInternal(const std::string & field_id,
+		       ElementTypeMapArray<Real> & internal_flat, 
+		       const GhostType ghost_type = _not_ghost,  
+		       ElementKind element_kind = _ek_not_defined);
+
 
 protected:
 

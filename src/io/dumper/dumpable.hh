@@ -103,10 +103,10 @@ public:
   
   /// add a field 
   virtual void addDumpFieldExternal(const std::string & field_id,
-                                    DumperIOHelper::Field * field);
+                                    dumper::Field * field);
   virtual void addDumpFieldExternalToDumper(const std::string & dumper_name,
                                             const std::string & field_id,
-                                            DumperIOHelper::Field * field);
+                                            dumper::Field * field);
 
   template<typename T>
   void addDumpFieldExternal(const std::string & field_id,
@@ -161,10 +161,10 @@ public:
   virtual void dump(const std::string & dumper_name, Real time, UInt step);
 
 
-protected:
+public:
   void internalAddDumpFieldToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
-                                    DumperIOHelper::Field * field);
+                                    dumper::Field * field);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -191,7 +191,7 @@ private:
 
 __END_AKANTU__
 
-#include "dumpable_inline_impl.hh"
+//#include "dumpable_inline_impl.hh"
 
 
 #else
@@ -271,12 +271,12 @@ public:
   }
 
   virtual void addDumpFieldExternal(const std::string & field_id,
-                                    DumperIOHelper::Field * field) {
+                                    dumper::Field * field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
   virtual void addDumpFieldExternalToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
-                                    DumperIOHelper::Field * field) {
+                                    dumper::Field * field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
@@ -363,7 +363,7 @@ protected:
 
   void internalAddDumpFieldToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
-                                    DumperIOHelper::Field * field) {
+                                    dumper::Field * field) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on AKANTU_USE_IOHELPER in cmake.");
   }
 
@@ -401,6 +401,9 @@ private:
 __END_AKANTU__
 
 #endif //AKANTU_USE_IOHELPER
+
+
+#include "dumpable_inline_impl.hh"
 
 
 #endif /* __AKANTU_DUMPABLE_HH__ */
