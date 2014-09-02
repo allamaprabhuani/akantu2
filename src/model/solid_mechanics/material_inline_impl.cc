@@ -419,8 +419,10 @@ inline ElementTypeMap<UInt> Material::getInternalDataPerElem(const ID & id, cons
     UInt nb_quadrature_points = 0;
     if (element_kind == _ek_regular)
       nb_quadrature_points = model->getFEEngine().getNbQuadraturePoints(*it);
+#if defined(AKANTU_COHESIVE_ELEMENT)
     else if (element_kind == _ek_cohesive)
       nb_quadrature_points = model->getFEEngine("CohesiveFEEngine").getNbQuadraturePoints(*it);
+#endif
     res(*it) = internal.getNbComponent() * nb_quadrature_points;
   }
     return res;

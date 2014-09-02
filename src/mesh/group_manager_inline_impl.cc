@@ -30,12 +30,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "element_group.hh"
+#include "dumper_field.hh"
+#include "element_type_map_filter.hh"
+#ifdef AKANTU_USE_IOHELPER
+#include "dumper_nodal_field.hh"
 /* -------------------------------------------------------------------------- */
 
 
 __BEGIN_AKANTU__
-
-/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 
@@ -190,3 +192,4 @@ dumper::Field * GroupManager::createStridedNodalField(const ftype<type,flag> * f
 
 __END_AKANTU__
 
+#endif

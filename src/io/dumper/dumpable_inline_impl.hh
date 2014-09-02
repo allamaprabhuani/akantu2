@@ -28,8 +28,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dumper_nodal_field.hh"
+#ifdef AKANTU_USE_IOHELPER
 #include "dumper_elemental_field.hh"
+#include "dumper_nodal_field.hh"
 /* -------------------------------------------------------------------------- */
 
 
@@ -41,16 +42,6 @@ inline Dumpable::Dumpable() : default_dumper("") {
 
 /* -------------------------------------------------------------------------- */
 inline Dumpable::~Dumpable() {
-  // DumperMap::iterator it  = this->dumpers.begin();
-  // DumperMap::iterator end = this->dumpers.end();
-
-  // for (; it != end; ++it) {
-  //   DumperSet::iterator fit  = this->external_dumpers.find(it->first);
-  //   DumperSet::iterator fend = this->external_dumpers.end();
-
-  //   if (fit == fend)
-  //     delete it->second;
-  // }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -371,4 +362,7 @@ inline std::string Dumpable::getDefaultDumperName() const {
 }
 
 
+
 __END_AKANTU__
+
+#endif

@@ -37,8 +37,11 @@
 
 #ifndef __AKANTU_DUMPABLE_HH__
 #define __AKANTU_DUMPABLE_HH__
+/* -------------------------------------------------------------------------- */
 
 #ifdef AKANTU_USE_IOHELPER
+
+#include "dumper_iohelper.hh"
 
 __BEGIN_AKANTU__
 
@@ -191,9 +194,6 @@ private:
 
 __END_AKANTU__
 
-//#include "dumpable_inline_impl.hh"
-
-
 #else
 
 __BEGIN_AKANTU__
@@ -202,11 +202,11 @@ __BEGIN_AKANTU__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused"
 
-class DumperIOHelper {
-public:
+namespace dumper {
   class Field;
-};
+}
 
+class DumperIOHelper;
 class Mesh;
 
 /* -------------------------------------------------------------------------- */
@@ -402,8 +402,6 @@ __END_AKANTU__
 
 #endif //AKANTU_USE_IOHELPER
 
-
 #include "dumpable_inline_impl.hh"
-
 
 #endif /* __AKANTU_DUMPABLE_HH__ */

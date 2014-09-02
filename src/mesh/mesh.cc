@@ -429,6 +429,7 @@ ElementTypeMap<UInt> Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array,
 
 /* -------------------------------------------------------------------------- */
 
+#ifdef AKANTU_USE_IOHELPER
 
 template <typename T>
 dumper::Field * Mesh::createFieldFromAttachedData(const std::string & field_id,
@@ -471,7 +472,7 @@ Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
 
 /* -------------------------------------------------------------------------- */
 
-
+#endif
 
 
 __END_AKANTU__

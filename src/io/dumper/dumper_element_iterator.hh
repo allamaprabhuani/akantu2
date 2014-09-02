@@ -2,6 +2,7 @@
 #define __AKANTU_DUMPER_ELEMENT_ITERATOR_HH__
 /* -------------------------------------------------------------------------- */
 #include "element.hh"
+#include <io_helper.hh>
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 __BEGIN_AKANTU_DUMPER__

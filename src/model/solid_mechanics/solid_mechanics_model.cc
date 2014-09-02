@@ -1697,6 +1697,8 @@ void SolidMechanicsModel::onDump(){
 }
 /* -------------------------------------------------------------------------- */
 
+#ifdef AKANTU_USE_IOHELPER
+
 dumper::Field * SolidMechanicsModel
 ::createElementalField(const std::string & field_name, 
 		       const std::string & group_name,
@@ -1785,6 +1787,35 @@ bool padding_flag) {
   return field;
 
 }
+/* -------------------------------------------------------------------------- */
+#else
+/* -------------------------------------------------------------------------- */
+
+dumper::Field * SolidMechanicsModel
+::createElementalField(const std::string & field_name, 
+		       const std::string & group_name,
+		       bool padding_flag,
+		       const ElementKind & kind){
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+
+dumper::Field * SolidMechanicsModel::createNodalFieldReal(const std::string & field_name,
+							  const std::string & group_name,
+							  bool padding_flag) {
+  return NULL;
+}
+
+/* -------------------------------------------------------------------------- */
+
+dumper::Field * SolidMechanicsModel::createNodalFieldBool(const std::string & field_name,
+							  const std::string & group_name,
+bool padding_flag) {
+  return NULL;
+}
+
+#endif
 /* -------------------------------------------------------------------------- */
 
 void SolidMechanicsModel::dump(const std::string & dumper_name) {
