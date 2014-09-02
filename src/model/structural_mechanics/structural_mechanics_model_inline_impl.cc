@@ -605,5 +605,6 @@ void StructuralMechanicsModel::solve(Array<Real> & increment,
 
   solver->setRHS(*residual);
   // solve @f[ J \delta w = r @f]
+  solver->factorize();
   solver->solve(increment);
 }
