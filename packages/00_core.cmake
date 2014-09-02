@@ -272,6 +272,7 @@ set(AKANTU_CORE_TESTS
   test_mesh_io_msh_physical_names
   test_mesh_partitionate_mesh_data
   test_parser
+  test_dumper
   test_pbc_tweak
   test_purify_mesh
   test_solid_mechanics_model_bar_traction2d

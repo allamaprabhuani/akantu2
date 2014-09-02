@@ -1,9 +1,9 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
+# @author David Kammer <david.kammer@epfl.ch>
 #
-# @date   Fri Sep 03 15:56:15 2010
+# @date   Tue Sep 02 15:56:15 2014
 #
 # @brief  configuration for tests
 #
@@ -29,5 +29,8 @@
 #
 #===============================================================================
 
-add_akantu_test(test_parser "Test the input file parser")
-add_akantu_test(test_dumper "Test the dumping of output files")
+register_test(test_dumper
+  SOURCES test_dumper.cc
+  FILES_TO_COPY input_file.dat test_dumper.msh
+  DIRECTORIES_TO_CREATE paraview
+  )
