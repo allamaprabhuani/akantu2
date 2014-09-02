@@ -45,7 +45,7 @@ public:
 /* -------------------------------------------------------------------------- */
 
 
-template<typename T, bool is_scal>
+template<typename T, bool is_scal = is_scalar<T>::value >
 class Variable : public VariableBase {
 public:
   Variable(const T & t) : vari(t) {}

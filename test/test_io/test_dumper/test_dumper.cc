@@ -30,6 +30,7 @@
 //#include "mesh_io.hh"
 #include "solid_mechanics_model.hh"
 #include "dumper_text.hh"
+#include "dumper_variable.hh"
 #include "dumper_paraview.hh"
 
 using namespace akantu;
@@ -93,10 +94,10 @@ int main(int argc, char *argv[]) {
 				   mesh.getElementGroup("Bottom").getElements(),
 				   mesh.getElementGroup("Bottom").getNodes());
     prvdumper.registerField("displacement", 
-			    new DumperIOHelper::NodalField<Real,true>(model.getDisplacement(),
-								      0,
-								      0,
-								      &(mesh.getElementGroup("Bottom").getNodes())));
+			    new dumper::NodalField<Real,true>(model.getDisplacement(),
+							      0,
+							      0,
+							      &(mesh.getElementGroup("Bottom").getNodes())));
     prvdumper.dump(0);
   }
 
@@ -109,12 +110,12 @@ int main(int argc, char *argv[]) {
    				 mesh.getElementGroup("Bottom").getElements(),
    				 mesh.getElementGroup("Bottom").getNodes());
   txtdumper.registerField("displacement",
-			  new DumperIOHelper::NodalField<Real,true>(model.getDisplacement(), 
-								    0, 
-								    0, 
-								    &(mesh.getElementGroup("Bottom").getNodes())));
+			  new dumper::NodalField<Real,true>(model.getDisplacement(), 
+							    0, 
+							    0, 
+							    &(mesh.getElementGroup("Bottom").getNodes())));
   txtdumper.registerField("blocked_dofs",
-			  new DumperIOHelper::NodalField<bool,true>(model.getBlockedDOFs(), 
+			  new dumper::NodalField<bool,true>(model.getBlockedDOFs(), 
 								    0, 
 								    0, 
 								    &(mesh.getElementGroup("Bottom").getNodes())));
@@ -122,9 +123,9 @@ int main(int argc, char *argv[]) {
   Real pot_energy = 1.2345567891;
   Vector<Real> gforces(2,1.);
   txtdumper.registerVariable("potential_energy",
-			     new DumperIOHelper::Variable<Real>(pot_energy));
+			     new dumper::Variable<Real>(pot_energy));
   txtdumper.registerVariable("global_forces",
-			     new DumperIOHelper::Variable< Vector<Real> >(gforces));
+			     new dumper::Variable< Vector<Real> >(gforces));
 
   // dump a first time before the main loop
   model.dumpGroup("Bottom");
