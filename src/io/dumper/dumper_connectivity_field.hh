@@ -25,6 +25,7 @@
  *
  */
 
+#if defined(AKANTU_COHESIVE_ELEMENT)
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 __BEGIN_AKANTU_DUMPER__
@@ -153,3 +154,5 @@ public:
 
 __END_AKANTU_DUMPER__
 __END_AKANTU__
+
+#endif
