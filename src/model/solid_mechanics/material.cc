@@ -1507,7 +1507,9 @@ void Material::flattenInternal(const std::string & field_id,
       ElementType type = *tit;
 
       try {
-	const Array<Real> & src_vect = this->getArray(field_id,type,ghost_type);
+	__attribute__((unused)) const Array<Real> & src_vect 
+	  = this->getArray(field_id,type,ghost_type);
+
       } catch(debug::Exception & e) { 
 	continue; 
       }
