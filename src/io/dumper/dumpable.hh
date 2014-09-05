@@ -31,6 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "element_type_map.hh"
 #ifdef AKANTU_USE_IOHELPER
 #include "dumper_iohelper.hh"
 #endif //AKANTU_USE_IOHELPER
@@ -42,6 +43,7 @@
 #ifdef AKANTU_USE_IOHELPER
 
 #include "dumper_iohelper.hh"
+#include <set>
 
 __BEGIN_AKANTU__
 
@@ -61,9 +63,9 @@ public:
 
   /// create a new dumper (of templated type T) and register it under dumper_name. file_name is used for construction of T. is default states if this dumper is the default dumper. 
   template<class T>
-  void registerDumper(const std::string & dumper_name,
-                      const std::string & file_name = "",
-                      const bool is_default = false);
+  inline void registerDumper(const std::string & dumper_name,
+			     const std::string & file_name = "",
+			     const bool is_default = false);
 
   /// register an externally created dumper
   void registerExternalDumper(DumperIOHelper & dumper,
@@ -224,7 +226,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   template<class T>
-  void registerDumper(const std::string & dumper_name,
+  inline void registerDumper(const std::string & dumper_name,
                       const std::string & file_name = "",
                       const bool is_default = false) { }
 
@@ -402,6 +404,6 @@ __END_AKANTU__
 
 #endif //AKANTU_USE_IOHELPER
 
-#include "dumpable_inline_impl.hh"
+//#include "dumpable_inline_impl.hh"
 
 #endif /* __AKANTU_DUMPABLE_HH__ */

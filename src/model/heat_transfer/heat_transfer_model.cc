@@ -35,6 +35,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "heat_transfer_model.hh"
+#include "group_manager_inline_impl.cc"
+#include "dumpable_inline_impl.hh"
 #include "aka_math.hh"
 #include "aka_common.hh"
 #include "fe_engine_template.hh"

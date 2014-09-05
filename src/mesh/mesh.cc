@@ -36,19 +36,15 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh.hh"
+#include "group_manager_inline_impl.cc"
 #include "mesh_io.hh"
 #include "element_class.hh"
 #include "static_communicator.hh"
+#include "element_group.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_field.hh"
-//#  include "dumper_paraview.hh"
-//#  include "dumper_homogenizing_field.hh"
 #  include "dumper_material_internal_field.hh"
-//#  include "dumper_elemental_field.hh"
-//#  include "dumper_material_padders.hh"
-//#  include "dumper_element_partition.hh"
-//#  include "dumper_iohelper.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 

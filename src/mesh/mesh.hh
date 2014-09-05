@@ -50,6 +50,7 @@
 #include <set>
 /* -------------------------------------------------------------------------- */
 #include "mesh_data.hh"
+#include "dumpable.hh"
 
 __BEGIN_AKANTU__
 
@@ -612,7 +613,7 @@ __END_AKANTU__
 
 #include "mesh_inline_impl.cc"
 #include "element_type_map_tmpl.hh"
-#include "group_manager_inline_impl.cc"
-#include "element_group_inline_impl.cc"
+//#include "group_manager_inline_impl.cc"
+//#include "element_group_inline_impl.cc"
 
 #endif /* __AKANTU_MESH_HH__ */

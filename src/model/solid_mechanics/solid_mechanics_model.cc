@@ -32,6 +32,8 @@
 #include "aka_math.hh"
 #include "aka_common.hh"
 #include "solid_mechanics_model.hh"
+#include "group_manager_inline_impl.cc"
+#include "dumpable_inline_impl.hh"
 #include "integration_scheme_2nd_order.hh"
 #include "element_group.hh"
 

@@ -252,6 +252,11 @@ public:
 					       bool padding_flag,
 					       const ElementKind & kind){return NULL;}
 
+
+  void setDirectory(const std::string & directory);
+  void setDirectoryToDumper(const std::string & dumper_name,
+			    const std::string & directory);
+
   virtual void dump();
 
   /* ------------------------------------------------------------------------ */

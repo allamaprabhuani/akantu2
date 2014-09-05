@@ -37,6 +37,7 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_cohesive.hh"
 #include "dumper_paraview.hh"
+#include "dumper_nodal_field.hh" 
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;

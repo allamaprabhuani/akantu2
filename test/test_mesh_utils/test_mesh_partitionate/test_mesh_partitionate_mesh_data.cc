@@ -36,6 +36,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
+#include "dumper_elemental_field.hh"
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;

@@ -26,12 +26,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include <iostream>
-//#include "mesh_io.hh"
 #include "solid_mechanics_model.hh"
 #include "dumper_text.hh"
 #include "dumper_variable.hh"
 #include "dumper_paraview.hh"
+#include "dumper_nodal_field.hh" 
 
 using namespace akantu;
 

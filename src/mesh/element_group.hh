@@ -159,10 +159,6 @@ private:
   Array<UInt> empty_elements;
 };
 
-__END_AKANTU__
-#include "element.hh"
-__BEGIN_AKANTU__
-
 /// standard output stream operator
 inline std::ostream & operator << (std::ostream & stream, const ElementGroup &_this) {
   _this.printself(stream);
@@ -170,5 +166,8 @@ inline std::ostream & operator << (std::ostream & stream, const ElementGroup &_t
 }
 
 __END_AKANTU__
+
+#include "element.hh"
+#include "element_group_inline_impl.cc"
 
 #endif /* __AKANTU_ELEMENT_GROUP_HH__ */

@@ -5,6 +5,7 @@
 #include "dumper_iohelper.hh"
 #include "dumper_type_traits.hh"
 #include "dumper_field.hh"
+#include "io_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 __BEGIN_AKANTU__

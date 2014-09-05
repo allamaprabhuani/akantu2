@@ -30,6 +30,7 @@
 #include "dumper_text.hh"
 #include "dumper_nodal_field.hh"
 #include "mesh.hh"
+#include "static_communicator.hh"
 
 __BEGIN_AKANTU__
 

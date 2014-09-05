@@ -163,6 +163,7 @@ set(AKANTU_CORE_FILES
 #  fem/shape_linked_inline_impl.cc
 
   io/dumper/dumpable.hh
+  io/dumper/dumpable.cc
   io/dumper/dumpable_inline_impl.hh
   io/dumper/dumper_field.hh
   io/dumper/dumper_material_padders.hh

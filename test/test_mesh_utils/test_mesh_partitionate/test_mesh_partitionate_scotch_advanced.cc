@@ -40,6 +40,7 @@
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
+#  include <io_helper.hh>
 #endif //AKANTU_USE_IOHELPER
 
 using namespace akantu;

@@ -27,6 +27,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "structural_mechanics_model.hh"
+#include "group_manager_inline_impl.cc"
+#include "dumpable_inline_impl.hh"
 #include "aka_math.hh"
 #include "integration_scheme_2nd_order.hh"
 #include "static_communicator.hh"
@@ -39,6 +41,7 @@
 
 #ifdef AKANTU_USE_IOHELPER
 #  include "dumper_paraview.hh"
+#  include "dumper_elemental_field.hh" 
 #endif
 /* -------------------------------------------------------------------------- */
 

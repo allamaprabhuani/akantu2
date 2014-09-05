@@ -355,6 +355,18 @@ void Model::dump() {
 
 /* -------------------------------------------------------------------------- */
 
+void Model::setDirectory(const std::string & directory) {
+  mesh.setDirectory(directory);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void Model::setDirectoryToDumper(const std::string & dumper_name,
+				 const std::string & directory) {
+  mesh.setDirectoryToDumper(dumper_name,directory);
+}
+
+
 
 
 __END_AKANTU__

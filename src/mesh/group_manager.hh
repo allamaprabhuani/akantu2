@@ -37,7 +37,7 @@
 #include <set>
 #include "aka_common.hh"
 #include "element_type_map.hh"
-#include "dumpable.hh"
+//#include "dumpable.hh"
 
 __BEGIN_AKANTU__
 
@@ -49,6 +49,10 @@ class Mesh;
 class Element;
 class DistributedSynchronizer;
 template<bool> class CommunicationBufferTemplated;
+
+namespace dumper {
+  class Field;
+}
 /* -------------------------------------------------------------------------- */
 
 
@@ -188,40 +192,40 @@ public:
 
   /// register an elemental field to the given group name (overloading for ElementalPartionField)
   template <typename T, template <bool> class dump_type>
-  dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
-				       const std::string & group_name,
-				       UInt spatial_dimension,
-				       const ElementKind & kind,
-				       ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
+  inline dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
+					      const std::string & group_name,
+					      UInt spatial_dimension,
+					      const ElementKind & kind,
+					      ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
 
   /// register an elemental field to the given group name (overloading for ElementalField)
   template <typename T, template <class> class ret_type, template <class,template <class> class,bool> class dump_type>
-  dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
-				       const std::string & group_name,
-				       UInt spatial_dimension,
-				       const ElementKind & kind,
-				       ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
+  inline dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
+					      const std::string & group_name,
+					      UInt spatial_dimension,
+					      const ElementKind & kind,
+					      ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
 
   /// register an elemental field to the given group name (overloading for MaterialInternalField)
   template <typename T, 
 	    /// type of InternalMaterialField
 	    template<typename T, bool filtered> class dump_type>
-  dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
-				       const std::string & group_name,
-				       UInt spatial_dimension,
-				       const ElementKind & kind,
-				       ElementTypeMap<UInt> nb_data_per_elem);
-
+  inline dumper::Field * createElementalField(const ElementTypeMapArray<T> & field, 
+					      const std::string & group_name,
+					      UInt spatial_dimension,
+					      const ElementKind & kind,
+					      ElementTypeMap<UInt> nb_data_per_elem);
+  
   template <typename type, bool flag, template<class,bool> class ftype>
-  dumper::Field * createNodalField(const ftype<type,flag> * field,
-				   const std::string & group_name,
-				   UInt padding_size = 0);
-
-  template <typename type, bool flag, template<class,bool> class ftype>
-  dumper::Field * createStridedNodalField(const ftype<type,flag> * field,
+  inline dumper::Field * createNodalField(const ftype<type,flag> * field,
 					  const std::string & group_name,
-					  UInt size, UInt stride,
-					  UInt padding_size);
+					  UInt padding_size = 0);
+  
+  template <typename type, bool flag, template<class,bool> class ftype>
+  inline dumper::Field * createStridedNodalField(const ftype<type,flag> * field,
+						 const std::string & group_name,
+						 UInt size, UInt stride,
+						 UInt padding_size);
 
 protected:
   /// fill a buffer with all the group names
@@ -234,7 +238,7 @@ protected:
 
   /// register an elemental field to the given group name
   template <class dump_type,typename field_type>
-  dumper::Field * createElementalField(const field_type & field, 
+  inline dumper::Field * createElementalField(const field_type & field, 
 				       const std::string & group_name,
 				       UInt spatial_dimension,
 				       const ElementKind & kind,
@@ -243,7 +247,7 @@ protected:
 
   /// register an elemental field to the given group name
   template <class dump_type,typename field_type>
-  dumper::Field * createElementalFilteredField(const field_type & field, 
+  inline dumper::Field * createElementalFilteredField(const field_type & field, 
 					       const std::string & group_name,
 					       UInt spatial_dimension,
 					       const ElementKind & kind,
