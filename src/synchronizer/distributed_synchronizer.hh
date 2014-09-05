@@ -194,16 +194,15 @@ protected:
 					  CommunicationBuffer & buffer);
 
   /// function that handles the preexisting groups in the mesh
-  static void synchronizeNodeGroups(DistributedSynchronizer & communicator,
-				       UInt root,
-				       Mesh & mesh,
-				       UInt nb_total_node);
+  static void synchronizeNodeGroupsMaster(DistributedSynchronizer & communicator,
+					  UInt root,
+					  Mesh & mesh);
 
 
   /// function that handles the preexisting groups in the mesh
-  static void synchronizeNodeGroups(DistributedSynchronizer & communicator,
-				       UInt root,
-				       Mesh & mesh);
+  static void synchronizeNodeGroupsSlaves(DistributedSynchronizer & communicator,
+					  UInt root,
+					  Mesh & mesh);
 
   template<class CommunicationBuffer>
   static void fillNodeGroupsFromBuffer(DistributedSynchronizer & communicator,

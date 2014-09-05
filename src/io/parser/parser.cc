@@ -79,6 +79,11 @@ std::string Parser::getLastParsedFile() const {
 /* -------------------------------------------------------------------------- */
 void Parser::parse(const std::string& filename) {
   std::ifstream input(filename.c_str());
+
+  if(!input.good()) {
+    AKANTU_EXCEPTION("Could not open file " << filename << "!");
+  }
+
   input.unsetf(std::ios::skipws);
 
   // wrap istream into iterator

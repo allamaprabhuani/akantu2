@@ -392,6 +392,10 @@ public:
 			    const ElementType & el_type,
                             const GhostType & ghost_type = _not_ghost);
 
+  /// register a new ElementalTypeMap in the MeshData
+  template<typename T>
+  inline ElementTypeMapArray<T> & registerData(const std::string & data_name);
+
   /// get a name field associated to the mesh
   template<typename T>
   inline const ElementTypeMapArray<T> & getData(const std::string & data_name) const;

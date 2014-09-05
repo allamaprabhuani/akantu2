@@ -30,13 +30,8 @@
 #ifndef __AKANTU_CONTACT_COMMON_HH__
 #define __AKANTU_CONTACT_COMMON_HH__
 
-#include <iostream>
-
-using std::is_arithmetic;
-#include <stdexcept>
-#include <array/expr.hpp>
-
 #include "aka_visitor.hh"
+#include <array/expr.hpp>
 
 //#define DEBUG_CONTACT 1
 

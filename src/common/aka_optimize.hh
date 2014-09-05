@@ -28,17 +28,15 @@
 #ifndef __AKANTU_OPTIMIZE_HH__
 #define __AKANTU_OPTIMIZE_HH__
 
-#include <iostream>
-
-
-#include <nlopt.hpp>
-using std::is_arithmetic;
-#include <array/expr.hpp>
-
 #include "aka_config.hh"
 #include "aka_common.hh"
 #include "aka_point.hh"
 #include "solid_mechanics_model.hh"
+
+#include <iostream>
+#include <nlopt.hpp>
+#include <array/expr.hpp>
+
 
 //#define DEBUG_OPTIMIZE 1
 

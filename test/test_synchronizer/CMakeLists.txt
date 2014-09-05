@@ -62,3 +62,9 @@ register_test(test_facet_synchronizer
   DEPENDENCIES test_facet_synchronizer_mesh
   PACKAGE parallel_cohesive_element
   )
+
+register_test(test_data_distribution
+  SOURCES test_data_distribution.cc
+  FILES_TO_COPY data_split.msh
+  PACKAGE parallel
+  )

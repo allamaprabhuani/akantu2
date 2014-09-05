@@ -311,6 +311,15 @@ inline ElementTypeMapArray<T> & Mesh::getData(const std::string & data_name) {
 }
 
 /* -------------------------------------------------------------------------- */
+template<typename T>
+inline ElementTypeMapArray<T> & Mesh::registerData(const std::string & data_name) {
+  this->mesh_data.registerElementalData<T>(data_name);
+  return this->getData<T>(data_name);
+}
+
+
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type,
 			       const GhostType & ghost_type) const {
   AKANTU_DEBUG_IN();

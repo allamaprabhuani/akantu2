@@ -29,14 +29,13 @@
 #ifndef __AKANTU_IMPLICIT_CONTACT_MANAGER_HH__
 #define __AKANTU_IMPLICIT_CONTACT_MANAGER_HH__
 
-#include <unordered_set>
-
 #include "mesh_graph.hh"
 #include "model_manager.hh"
 #include "dumper_iohelper.hh"
 #include "aka_optimize.hh"
 #include "integration_scheme_2nd_order.hh"
 
+#include <unordered_set>
 
 #define DEBUG_MANAGER 1
 

@@ -30,12 +30,6 @@
 #ifndef __AKANTU_MODEL_MANAGER_HH__
 #define __AKANTU_MODEL_MANAGER_HH__
 
-#include <cstring>
-#include <queue>
-#include <unordered_set>
-using std::is_arithmetic;
-#include <array/expr.hpp>
-
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "model.hh"
@@ -45,6 +39,11 @@ using std::is_arithmetic;
 #include "aka_geometry.hh"
 #include "solid_mechanics_model_element.hh"
 #include "aka_timer.hh"
+
+#include <cstring>
+#include <queue>
+#include <unordered_set>
+#include <array/expr.hpp>
 
 
 

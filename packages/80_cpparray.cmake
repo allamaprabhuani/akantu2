@@ -44,22 +44,22 @@ if(AKANTU_USE_CPPARRAY AND AKANTU_USE_THIRD_PARTY_NLOPT)
     else()
       message(STATUS "Cloning Cpp-Array")
       execute_process(
-	COMMAND ${GIT_EXECUTABLE} clone https://code.google.com/p/cpp-array/ ${PROJECT_SOURCE_DIR}/third-party/cpp-array
+	COMMAND ${GIT_EXECUTABLE} clone https://code.google.com/p/cpp-array.git ${PROJECT_SOURCE_DIR}/third-party/cpp-array
 	OUTPUT_QUIET)
     endif()
   endif()
 
   if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
-    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
+    set(CPP-ARRAY_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
 
-    mark_as_advanced(cpp-array_DEV)
-    mark_as_advanced(cpp-array_DOCUMENTATION)
-    mark_as_advanced(cpp-array_TESTS)
+    mark_as_advanced(CPP-ARRAY_DEV)
+    mark_as_advanced(CPP-ARRAY_DOCUMENTATION)
+    mark_as_advanced(CPP-ARRAY_TESTS)
     mark_as_advanced(CUDA)
     mark_as_advanced(ARRAY_USER_LIB_PATH)
 
-    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${CPP-ARRAY_INCLUDE_DIRS} ${cpp-array_INCLUDE_DIRS})
+    list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS} ${CPP-ARRAY_INCLUDE_DIRS})
 
     list(APPEND CPACK_SOURCE_IGNORE_FILES ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
 

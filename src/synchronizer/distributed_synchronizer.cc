@@ -351,7 +351,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     Real * local_nodes = NULL;
     UInt nb_nodes_per_proc[nb_proc];
     UInt * nodes_per_proc[nb_proc];
-    UInt nb_total_nodes = mesh.getNbNodes();
+
+    comm.broadcast(&(mesh.nb_global_nodes), 1, root);
 
     /* --------<<<<-NB_NODES + NODES----------------------------------------- */
     for (UInt p = 0; p < nb_proc; ++p) {
@@ -458,7 +459,7 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     }
 
     /* -------->>>>-NODE GROUPS --------------------------------------------- */
-    synchronizeNodeGroups(communicator, root, mesh, nb_total_nodes);
+    synchronizeNodeGroupsMaster(communicator, root, mesh);
 
     /* ---------------------------------------------------------------------- */
     /*  Distant (rank != root)                                                */
@@ -530,6 +531,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
     /**
      * Nodes coordinate construction and synchronization on distant processors
      */
+    comm.broadcast(&(mesh.nb_global_nodes), 1, root);
+
     /* -------->>>>-NB_NODES + NODES----------------------------------------- */
     AKANTU_DEBUG_INFO("Sending list of nodes to proc " << root);
     UInt nb_nodes = old_nodes->getSize();
@@ -554,10 +557,8 @@ createDistributedSynchronizerMesh(Mesh & mesh,
 		 root, Tag::genTag(root, 0, TAG_NODES_TYPE));
 
     /* --------<<<<-NODE GROUPS --------------------------------------------- */
-    synchronizeNodeGroups(communicator, root, mesh);
+    synchronizeNodeGroupsSlaves(communicator, root, mesh);
   }
-
-  comm.broadcast(&(mesh.nb_global_nodes), 1, root);
 
   MeshUtils::fillElementToSubElementsData(mesh);
 
@@ -1403,6 +1404,8 @@ void DistributedSynchronizer::fillElementGroupsFromBuffer(DistributedSynchronize
       std::vector<std::string> element_to_group;
       buffer >> element_to_group;
 
+      AKANTU_DEBUG_ASSERT(e < mesh.getNbElement(type, *gt), "The mesh does not have the element " << e);
+
       std::vector<std::string>::iterator it  = element_to_group.begin();
       std::vector<std::string>::iterator end = element_to_group.end();
       for (; it != end; ++it) {
@@ -1532,17 +1535,21 @@ void DistributedSynchronizer::fillNodeGroupsFromBuffer(DistributedSynchronizer &
 
   buffer >> node_to_group;
 
+  AKANTU_DEBUG_ASSERT(node_to_group.size() == mesh.getNbGlobalNodes(),
+		      "Not the good amount of nodes where transmitted");
+
   const Array<UInt> & global_nodes = mesh.getGlobalNodesIds();
 
-  Array<UInt>::const_scalar_iterator nit  = global_nodes.begin();
-  Array<UInt>::const_scalar_iterator nend = global_nodes.end();
+  Array<UInt>::const_scalar_iterator nbegin = global_nodes.begin();
+  Array<UInt>::const_scalar_iterator nit    = global_nodes.begin();
+  Array<UInt>::const_scalar_iterator nend   = global_nodes.end();
 
   for (; nit != nend; ++nit) {
-    std::vector<std::string>::iterator it  = node_to_group[*nit].begin();
-    std::vector<std::string>::iterator end = node_to_group[*nit].end();
+    std::vector<std::string>::iterator it    = node_to_group[*nit].begin();
+    std::vector<std::string>::iterator end   = node_to_group[*nit].end();
 
     for (; it != end; ++it) {
-      mesh.getNodeGroup(*it).add(nend - nit, false);
+      mesh.getNodeGroup(*it).add(nit - nbegin, false);
     }
   }
 
@@ -1557,16 +1564,17 @@ void DistributedSynchronizer::fillNodeGroupsFromBuffer(DistributedSynchronizer &
 }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::synchronizeNodeGroups(DistributedSynchronizer & communicator,
-						       UInt root,
-						       Mesh & mesh,
-						       UInt nb_total_nodes) {
+void DistributedSynchronizer::synchronizeNodeGroupsMaster(DistributedSynchronizer & communicator,
+							  UInt root,
+							  Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
 
   UInt nb_proc = comm.getNbProc();
   UInt my_rank = comm.whoAmI();
+
+  UInt nb_total_nodes = mesh.getNbGlobalNodes();
 
   DynamicCommunicationBuffer buffer;
 
@@ -1615,9 +1623,9 @@ void DistributedSynchronizer::synchronizeNodeGroups(DistributedSynchronizer & co
 }
 
 /* -------------------------------------------------------------------------- */
-void DistributedSynchronizer::synchronizeNodeGroups(DistributedSynchronizer & communicator,
-						    UInt root,
-						    Mesh & mesh) {
+void DistributedSynchronizer::synchronizeNodeGroupsSlaves(DistributedSynchronizer & communicator,
+							  UInt root,
+							  Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
