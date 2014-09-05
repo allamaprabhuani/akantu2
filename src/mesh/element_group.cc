@@ -32,6 +32,8 @@
 #include <algorithm>
 #include <iterator>
 #include "mesh.hh"
+#include "group_manager_inline_impl.cc"
+#include "dumpable_inline_impl.hh"
 #include "aka_csr.hh"
 #include "mesh_utils.hh"
 

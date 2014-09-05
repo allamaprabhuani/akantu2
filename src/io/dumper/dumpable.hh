@@ -114,20 +114,20 @@ public:
                                             dumper::Field * field);
 
   template<typename T>
-  void addDumpFieldExternal(const std::string & field_id,
+  inline void addDumpFieldExternal(const std::string & field_id,
                             const Array<T> & field);
   template<typename T>
-  void addDumpFieldExternalToDumper(const std::string & dumper_name,
+  inline void addDumpFieldExternalToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
                                     const Array<T> & field);
   template<typename T>
-  void addDumpFieldExternal(const std::string & field_id,
+  inline void addDumpFieldExternal(const std::string & field_id,
                             const ElementTypeMapArray<T> & field,
                             UInt spatial_dimension = _all_dimensions,
                             const GhostType & ghost_type = _not_ghost,
                             const ElementKind & element_kind = _ek_not_defined);
   template<typename T>
-  void addDumpFieldExternalToDumper(const std::string & dumper_name,
+  inline void addDumpFieldExternalToDumper(const std::string & dumper_name,
                                     const std::string & field_id,
                                     const ElementTypeMapArray<T> & field,
                                     UInt spatial_dimension = _all_dimensions,

@@ -28,6 +28,7 @@
  */
 
 #include "implicit_contact_manager.hh"
+#include "dumpable_inline_impl.hh"
 
 using namespace akantu;
 
@@ -70,8 +71,8 @@ int main(int argc, char *argv[]) {
   cd[Alpha] = 0.4;
   
   // set Paraview output resluts
-	model.setBaseName("contact");
-	model.addDumpFieldVector("displacement");
+  model.setBaseName("contact");
+  model.addDumpFieldVector("displacement");
   
   // use bounding box to minimize slave-master pairs
   Real r0 = 0.5;

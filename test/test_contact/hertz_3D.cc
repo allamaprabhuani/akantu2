@@ -28,6 +28,7 @@
  */
 
 #include "implicit_contact_manager.hh"
+#include "dumpable_inline_impl.hh"
 
 using namespace akantu;
 
