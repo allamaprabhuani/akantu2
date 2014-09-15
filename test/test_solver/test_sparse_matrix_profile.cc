@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
   akantu::MeshIOMSH mesh_io;
   mesh_io.read("triangle.msh", mesh);
 
-  akantu::SparseMatrix sparse_matrix_hand(10, akantu::_symmetric, 1, "hand");
+  akantu::SparseMatrix sparse_matrix_hand(10, akantu::_symmetric, "hand");
 
   for(akantu::UInt i = 0; i < 10; ++i) {
     sparse_matrix_hand.addToProfile(i, i);
@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
 
   /* ------------------------------------------------------------------------ */
   akantu::UInt nb_nodes = mesh.getNbNodes();
-  akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric, spatial_dimension, "mesh");
+  akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric, "mesh");
   akantu::DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
   dof_synchronizer.initGlobalDOFEquationNumbers();
 
-  sparse_matrix.buildProfile(mesh, dof_synchronizer);
+  sparse_matrix.buildProfile(mesh, dof_synchronizer, spatial_dimension);
   sparse_matrix.saveProfile("profile.mtx");
   /* ------------------------------------------------------------------------ */
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
   akantu::DOFSynchronizer dof_synchronizer_re(mesh, spatial_dimension);
   dof_synchronizer_re.initGlobalDOFEquationNumbers();
 
-  sparse_matrix.buildProfile(mesh, dof_synchronizer_re);
+  sparse_matrix.buildProfile(mesh, dof_synchronizer_re, spatial_dimension);
   sparse_matrix.saveProfile("profile_reorder.mtx");
   mesh_io.write("triangle_reorder.msh", mesh);
 #endif

@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   akantu::StaticCommunicator & comm = akantu::StaticCommunicator::getStaticCommunicator();
   akantu::UInt n = 10 * comm.getNbProc();
 
-  akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(n, akantu::_symmetric, 1, "hand");
+  akantu::SparseMatrix * sparse_matrix = new akantu::SparseMatrix(n, akantu::_symmetric, "hand");
   akantu::UInt i_start = comm.whoAmI() * 10;
   for(akantu::UInt i = i_start; i < i_start + 10; ++i) {
     sparse_matrix->addToProfile(i, i);

@@ -84,12 +84,12 @@ int main(int argc, char *argv[])
   // }
 
   if (prank == 0) std::cout << "Creating a SparseMatrix" << std::endl;
-  SparseMatrix sparse_matrix(nb_global_node * nb_dof, _symmetric, nb_dof, "matrix");
+  SparseMatrix sparse_matrix(nb_global_node * nb_dof, _symmetric, "matrix");
 
 
   DOFSynchronizer dof_synchronizer(mesh, nb_dof);
   dof_synchronizer.initGlobalDOFEquationNumbers();
-  sparse_matrix.buildProfile(mesh, dof_synchronizer);
+  sparse_matrix.buildProfile(mesh, dof_synchronizer, nb_dof);
 
   Array<Real> dof_vector(nb_nodes, nb_dof, "vector");
 
