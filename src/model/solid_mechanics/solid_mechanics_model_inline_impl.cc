@@ -416,15 +416,11 @@ __END_AKANTU__
 __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
-template<NewmarkBeta::IntegrationSchemeCorrectorType type>
-void SolidMechanicsModel::solve(Array<Real> & increment,
-                                Real block_val,
-				bool need_factorize,
-				bool has_profile_changed) {
-#ifdef AKANTU_USE_CONTACT
-  has_profile_changed = true; // @todo this is a quick and ugly patch for the contact to work
-#endif
-
+template <NewmarkBeta::IntegrationSchemeCorrectorType type>
+void SolidMechanicsModel::solve(Array<Real> &increment, Real block_val,
+                                bool need_factorize, bool has_profile_changed,
+                                const Array<Real> &rhs) {
+  
   if(has_profile_changed) {
     this->initJacobianMatrix();
     need_factorize = true;
@@ -470,11 +466,13 @@ void SolidMechanicsModel::solve(Array<Real> & increment,
     if(AKANTU_DEBUG_TEST(dblDump))
       jacobian_matrix->saveMatrix("J.mtx");
 #endif
-
     solver->factorize();
   }
 
-  solver->setRHS(*residual);
+  if (rhs.getSize() != 0)
+    solver->setRHS(rhs);
+  else
+    solver->setRHS(*residual);
 
   // solve @f[ J \delta w = r @f]
   solver->solve(increment);

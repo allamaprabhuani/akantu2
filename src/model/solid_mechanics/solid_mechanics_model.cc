@@ -721,10 +721,9 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
 
   delete jacobian_matrix;
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
-  jacobian_matrix = new SparseMatrix(nb_global_nodes * spatial_dimension, _symmetric,
-                                     spatial_dimension, sstr.str(), memory_id);
+  jacobian_matrix = new SparseMatrix(nb_global_nodes * spatial_dimension, _symmetric, sstr.str(), memory_id);
 
-  jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
+  jacobian_matrix->buildProfile(mesh, *dof_synchronizer, spatial_dimension);
 
   if (!isExplicit()) {
     delete stiffness_matrix;
@@ -749,6 +748,7 @@ void SolidMechanicsModel::initSolver(__attribute__((unused)) SolverOptions & opt
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::initJacobianMatrix() {
 #ifdef AKANTU_USE_MUMPS
+  
   // @todo make it more flexible: this is an ugly patch to treat the case of non
   // fix profile of the K matrix
   delete jacobian_matrix;
@@ -838,107 +838,6 @@ void SolidMechanicsModel::assembleStiffnessMatrix() {
 
   AKANTU_DEBUG_OUT();
 }
-
-// /* -------------------------------------------------------------------------- */
-// void SolidMechanicsModel::solveStatic(Array<bool> & boundary_normal, Array<Real> & EulerAngles) {
-//   AKANTU_DEBUG_IN();
-
-//   AKANTU_DEBUG_INFO("Solving Ku = f");
-//   AKANTU_DEBUG_ASSERT(stiffness_matrix != NULL,
-//                       "You should first initialize the implicit solver and assemble the stiffness matrix");
-
-//   UInt nb_nodes = displacement->getSize();
-//   UInt nb_degree_of_freedom = displacement->getNbComponent();
-
-//   //  if(method != _static)
-//   jacobian_matrix->copyContent(*stiffness_matrix);
-
-//   Array<Real> * residual_rotated = new Array<Real > (nb_nodes, nb_degree_of_freedom, "residual_rotated");
-
-//   //stiffness_matrix->saveMatrix("stiffness_original.out");
-//   jacobian_matrix->applyBoundaryNormal(boundary_normal, EulerAngles, *residual, (*stiffness_matrix).getA(), *residual_rotated);
-//   //jacobian_matrix->saveMatrix("stiffness_rotated_dir.out");
-
-//   jacobian_matrix->applyBoundary(*blocked_dofs);
-
-//   solver->setRHS(*residual_rotated);
-
-//   delete residual_rotated;
-
-//   if (!increment) setIncrementFlagOn();
-
-//   solver->solve(*increment);
-
-//   Matrix<Real> T(nb_degree_of_freedom, nb_degree_of_freedom);
-//   Matrix<Real> small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
-//   Matrix<Real> T_small_rhs(nb_degree_of_freedom, nb_degree_of_freedom);
-
-//   Real * increment_val = increment->storage();
-//   Real * displacement_val = displacement->storage();
-//   bool * blocked_dofs_val = blocked_dofs->storage();
-
-//   for (UInt n = 0; n < nb_nodes; ++n) {
-//     bool constrain_ij = false;
-//     for (UInt j = 0; j < nb_degree_of_freedom; j++) {
-//       if (boundary_normal(n, j)) {
-//         constrain_ij = true;
-//         break;
-//       }
-//     }
-//     if (constrain_ij) {
-//       if (nb_degree_of_freedom == 2) {
-//         Real Theta = EulerAngles(n, 0);
-//         T(0, 0) = cos(Theta);
-//         T(0, 1) = -sin(Theta);
-//         T(1, 1) = cos(Theta);
-//         T(1, 0) = sin(Theta);
-//       } else if (nb_degree_of_freedom == 3) {
-//         Real Theta_x = EulerAngles(n, 0);
-//         Real Theta_y = EulerAngles(n, 1);
-//         Real Theta_z = EulerAngles(n, 2);
-
-//         T(0, 0) = cos(Theta_y) * cos(Theta_z);
-//         T(0, 1) = -cos(Theta_y) * sin(Theta_z);
-//         T(0, 2) = sin(Theta_y);
-//         T(1, 0) = cos(Theta_x) * sin(Theta_z) + cos(Theta_z) * sin(Theta_x) * sin(Theta_y);
-//         T(1, 1) = cos(Theta_x) * cos(Theta_z) - sin(Theta_x) * sin(Theta_y) * sin(Theta_z);
-//         T(1, 2) = -cos(Theta_y) * sin(Theta_x);
-//         T(2, 0) = sin(Theta_x) * sin(Theta_z) - cos(Theta_x) * cos(Theta_z) * sin(Theta_y);
-//         T(2, 1) = cos(Theta_z) * sin(Theta_x) + cos(Theta_x) * sin(Theta_y) * sin(Theta_z);
-//         T(2, 2) = cos(Theta_x) * cos(Theta_y);
-//       }
-//       small_rhs.clear();
-//       T_small_rhs.clear();
-//       for (UInt j = 0; j < nb_degree_of_freedom; j++)
-//         if(!(boundary_normal(n,j)) )
-//           small_rhs(j,j)=increment_val[j];
-
-//       T_small_rhs.mul<true, false>(T,small_rhs);
-
-//       for (UInt j = 0; j < nb_degree_of_freedom; j++){
-//         if(!(boundary_normal(n,j))){
-//           for (UInt k = 0; k < nb_degree_of_freedom; k++)
-//             displacement_val[k]+=T_small_rhs(k,j);
-//         }
-//       }
-
-
-//       displacement_val += nb_degree_of_freedom;
-//       blocked_dofs_val += nb_degree_of_freedom;
-//       increment_val += nb_degree_of_freedom;
-
-//     } else {
-//       for (UInt j = 0; j < nb_degree_of_freedom; j++, ++displacement_val, ++increment_val, ++blocked_dofs_val) {
-//         if (!(*blocked_dofs_val)) {
-//           *displacement_val += *increment_val;
-//         }
-//       }
-//     }
-
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix & SolidMechanicsModel::initVelocityDampingMatrix() {

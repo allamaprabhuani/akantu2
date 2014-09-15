@@ -23,6 +23,14 @@
 # CHOOSE BETWEEN USING THE SEQUENTIAL OR THE PARALLEL VERSION.
 MUMPS_TYPE = @MUMPS_TYPE@
 
+# PLAT : use it to add a default suffix to the generated libraries
+PLAT    = @MUMPS_PREFIX@
+LIBEXT   = @CMAKE_STATIC_LIBRARY_SUFFIX@
+SHLIBEXT = @CMAKE_SHARED_LIBRARY_SUFFIX@
+OUTC    = -o 
+OUTF    = -o 
+
+
 ########################################################################
 #Begin orderings
 #
@@ -51,7 +59,7 @@ LSCOTCH    = @MUMPS_SCOTCH_LIBRARIES@
 
 LPORDDIR = $(topdir)/PORD/lib/
 IPORD    = -I$(topdir)/PORD/include/
-LPORD    = -L$(LPORDDIR) -lpord
+LPORD    = -L$(LPORDDIR) -lpord$(PLAT)
 
 #LMETISDIR = /local/metis/
 #IMETIS    = # Metis doesn't need include files (Fortran interface avail.)
@@ -78,13 +86,6 @@ IORDERINGSC = $(IMETIS) $(IPORD) $(ISCOTCH)
 #End orderings
 ########################################################################
 # DEFINE HERE SOME COMMON COMMANDS, THE COMPILER NAMES, ETC...
-
-# PLAT : use it to add a default suffix to the generated libraries
-PLAT    = @MUMPS_PREFIX@
-LIBEXT   = @CMAKE_STATIC_LIBRARY_SUFFIX@
-SHLIBEXT = @CMAKE_SHARED_LIBRARY_SUFFIX@
-OUTC    = -o 
-OUTF    = -o 
 
 # RM : remove files
 RM      = @CMAKE_COMMAND@ -E remove -f

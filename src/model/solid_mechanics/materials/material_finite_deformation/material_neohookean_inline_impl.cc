@@ -27,9 +27,14 @@
  *
  */
 
+#include <iostream>
+
 #include <cmath>
 #include "material_neohookean.hh"
 
+
+using std::cout;
+using std::endl;
 
 /* -------------------------------------------------------------------------- */
 
@@ -41,9 +46,10 @@ inline void MaterialNeohookean<dim>::computeDeltaStressOnQuad(const Matrix<Real>
 
 }
 
+//! computes the second piola kirchhoff stress, called S
 template<UInt dim>
 inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
-						      Matrix<Real> & sigma) {
+						      Matrix<Real> & S) {
   //Neo hookean book
   Matrix<Real> F(dim, dim);
   Matrix<Real> C(dim, dim);//Right green
@@ -53,12 +59,12 @@ inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
   Real J = F.det();
+//  std::cout<<"det(F) -> "<<J<<std::endl;
   Cminus.inverse(C);
 
   for (UInt i = 0; i < dim; ++i)
     for (UInt j = 0; j < dim; ++j)
-      sigma(i, j) = (i == j) *  mu  + (lambda * log(J) - mu) * Cminus(i, j);
-
+      S(i, j) = (i == j) *  mu  + (lambda * log(J) - mu) * Cminus(i, j);
 }
 
 template<UInt dim>
@@ -74,6 +80,22 @@ inline void MaterialNeohookean<dim>::computePiolaKirchhoffOnQuad(const Matrix<Re
 
 }
 
+template <UInt dim>
+inline void MaterialNeohookean<dim>::computeFirstPiolaKirchhoffOnQuad(
+    const Matrix<Real> & grad_u, const Matrix<Real> &S, Matrix<Real> &P) {
+
+  Matrix<Real> F(dim, dim);
+  Matrix<Real> C(dim, dim);//Right green
+
+  this->template gradUToF<dim > (grad_u, F);
+
+  // first Piola-Kirchhoff is computed as the product of the deformation gracient
+  // tensor and the second Piola-Kirchhoff stress tensor
+  
+  P = F*S;
+}
+
+
 
 /**************************************************************************************/
 /*  Computation of the potential energy for a this neo hookean material */
@@ -86,6 +108,7 @@ inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(const Matrix<R
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
   Real J = F.det();
+//  std::cout<<"det(F) -> "<<J<<std::endl;
 
   epot=0.5*lambda*pow(log(J),2.)+ mu * (-log(J)+0.5*(C.trace()-dim));
 }
@@ -103,6 +126,7 @@ inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(Matrix<Real> & t
   this->template gradUToF<dim > (grad_u, F);
   this->rightCauchy(F, C);
   Real J = F.det();
+//  std::cout<<"det(F) -> "<<J<<std::endl;
   Cminus.inverse(C);
 
   for (UInt m = 0; m < rows; m++) {

@@ -85,8 +85,12 @@ public:
 protected:
 
   /// constitutive law for a given quadrature point
-  inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
-                                          Matrix<Real> & S);
+  inline void computePiolaKirchhoffOnQuad(const Matrix<Real> &E,
+                                          Matrix<Real> &S);
+
+  inline void computeFirstPiolaKirchhoffOnQuad(const Matrix<Real> &grad_u,
+                                               const Matrix<Real> &S,
+                                               Matrix<Real> &P);
 
   /// constitutive law for a given quadrature point
   inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,

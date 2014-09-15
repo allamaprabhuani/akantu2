@@ -68,7 +68,6 @@ class SparseMatrix : private Memory {
 public:
   SparseMatrix(UInt size,
 	       const SparseMatrixType & sparse_matrix_type,
-	       UInt nb_degree_of_freedom,
 	       const ID & id = "sparse_matrix",
 	       const MemoryID & memory_id = 0);
 
@@ -87,7 +86,7 @@ public:
 public:
   /// remove the existing profile
   inline void clearProfile();
-
+  
   /// add a non-zero element
   UInt addToProfile(UInt i, UInt j);
 
@@ -97,14 +96,18 @@ public:
   /// assemble a local matrix in the sparse one
   inline void addToMatrix(UInt i, UInt j, Real value);
 
+  /// set the size of the matrix
+  void resize(UInt size)
+  { this->size = size; }
+  
   /// fill the profil of the matrix
-  void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer);
+  void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer, UInt nb_degree_of_freedom);
 
   /// modify the matrix to "remove" the blocked dof
   void applyBoundary(const Array<bool> & boundary, Real block_val = 1.);
 
-  /// modify the matrix to "remove" the blocked dof
-  void applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real> & EulerAngles, Array<Real> & rhs, const Array<Real> & matrix, Array<Real> & rhs_rotated);
+//  /// modify the matrix to "remove" the blocked dof
+//  void applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real> & EulerAngles, Array<Real> & rhs, const Array<Real> & matrix, Array<Real> & rhs_rotated);
 
   /// modify the matrix to "remove" the blocked dof
   void removeBoundary(const Array<bool> & boundary);
@@ -160,8 +163,6 @@ public:
 
   AKANTU_GET_MACRO(Size, size, UInt);
 
-  AKANTU_GET_MACRO(NbDegreOfFreedom, nb_degree_of_freedom, UInt);
-
   AKANTU_GET_MACRO(SparseMatrixType, sparse_matrix_type, const SparseMatrixType &);
 
   const DOFSynchronizer & getDOFSynchronizer() const {
@@ -183,9 +184,6 @@ private:
 
   /// sparce matrix type
   SparseMatrixType sparse_matrix_type;
-
-  /// number of degre of freedom
-  UInt nb_degree_of_freedom;
 
   /// Mesh corresponding to the profile
   //  const Mesh * mesh;

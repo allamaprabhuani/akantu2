@@ -802,10 +802,9 @@ void LevelSetModel::initSolver(SolverOptions & options) {
 
   std::stringstream sstr;
   sstr << id << ":jacobian_matrix";
-  jacobian_matrix = new SparseMatrix(nb_global_node, _unsymmetric,
-                                     1, sstr.str(), memory_id);
+  jacobian_matrix = new SparseMatrix(nb_global_node, _unsymmetric, sstr.str(), memory_id);
   //  dof_synchronizer->initGlobalDOFEquationNumbers();
-  jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
+  jacobian_matrix->buildProfile(mesh, *dof_synchronizer, 1);
 
 #ifdef AKANTU_USE_MUMPS
   std::stringstream sstr_solv;

@@ -87,7 +87,7 @@ index de56d23..f1defbf 100644
  	$(RANLIB) $@
  
 +libpord$(PLAT)$(SHLIBEXT): $(OBJS)
-+	$(CC) -shared $(OBJS) -Wl,-soname,libpord$(PLAT)$(SHLIBEXT) -o libpord$(PLAT)$(SHLIBEXT) -Wl,-z,defs
++	$(CC) -shared $(OBJS) -o libpord$(PLAT)$(SHLIBEXT)
 +
  clean:
  	rm -f *.o
@@ -115,7 +115,7 @@ index 73701c2..cec44d0 100644
  	$(RANLIB) $@
 +
 +libmpiseq$(PLAT)$(SHLIBEXT): mpi.o mpic.o elapse.o
-+	$(FC) -shared $^ -Wl,-soname,libmpiseq$(PLAT)$(SHLIBEXT) -o libmpiseq$(PLAT)$(SHLIBEXT) -Wl,-z,defs
++	$(FC) -shared $^ -o libmpiseq$(PLAT)$(SHLIBEXT)
 +
  .f.o:
  	$(FC) $(OPTF)              -c $*.f $(OUTF)$*.o
@@ -157,11 +157,11 @@ index d42a915..1505fdf 100644
  	$(RANLIB) $@
  
 +$(libdir)/libmumps_common$(PLAT)$(SHLIBEXT):	$(OBJS_COMMON)
-+	$(FC) -shared $^ -Wl,-soname,libmumps_common$(PLAT)$(SHLIBEXT) -L$(libdir) $(LORDERINGS) $(LIBS) $(LIBBLAS) $(LIBOTHERS) -o $(libdir)/libmumps_common$(PLAT)$(SHLIBEXT) -Wl,-z,defs
++	$(FC) -shared $^ -L$(libdir) $(LORDERINGS) $(LIBS) $(LIBBLAS) $(LIBOTHERS) -o $(libdir)/libmumps_common$(PLAT)$(SHLIBEXT)
 +
 +
 +$(libdir)/lib$(ARITH)mumps$(PLAT)$(SHLIBEXT):    $(OBJS)
-+	$(FC) -shared $^ -Wl,-soname,lib$(ARITH)mumps$(PLAT)$(SHLIBEXT) -L$(libdir) -lmumps_common$(PLAT) $(LORDERINGS) $(LIBS) $(LIBBLAS) $(LIBOTHERS) -o $(libdir)/lib$(ARITH)mumps$(PLAT)$(SHLIBEXT) -Wl,-z,defs
++	$(FC) -shared $^ -L$(libdir) -lmumps_common$(PLAT) $(LORDERINGS) $(LIBS) $(LIBBLAS) $(LIBOTHERS) -o $(libdir)/lib$(ARITH)mumps$(PLAT)$(SHLIBEXT)
 +
 +
  $(ARITH)mumps_load.o:		$(ARITH)mumps_comm_buffer.o \

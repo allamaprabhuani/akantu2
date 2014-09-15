@@ -129,7 +129,7 @@ struct Distance_minimizator_traits<_segment_2> {
     Real min = std::numeric_limits<Real>::infinity();
     std::vector<Real> xstart = { -1., 0., 1. }; // check center and extremes of element
     int idx = -1;
-    for (int i=0; i<xstart.size(); ++i) {
+    for (size_t i=0; i<xstart.size(); ++i) {
       obj.xi_[0] = xstart[i];
       std::vector<Real> grad; // empty vector
       Real new_dist = obj(obj.xi_, grad);

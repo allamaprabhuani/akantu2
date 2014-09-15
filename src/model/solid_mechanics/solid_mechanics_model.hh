@@ -244,9 +244,6 @@ public:
   bool solveStatic(Real tolerance, UInt max_iteration,
 		   bool do_not_factorize = false);
 
-  /// solve Ku = f
-  //void solveStatic(Array <bool> & boundary_normal, Array <Real> & EulerAngles);
-
   /// test if the system is converged
   template <SolveConvergenceCriteria criteria>
   bool testConvergence(Real tolerance, Real & error);
@@ -283,8 +280,9 @@ public:
   //protected: Daniel changed it just for a test
   /// compute A and solve @f[ A\delta u = f_ext - f_int @f]
   template <NewmarkBeta::IntegrationSchemeCorrectorType type>
-  void solve(Array <Real> & increment, Real block_val = 1.,
-	     bool need_factorize = true, bool has_profile_changed = false);
+  void solve(Array<Real> &increment, Real block_val = 1.,
+             bool need_factorize = true, bool has_profile_changed = false,
+             const Array<Real> &rhs = Array<Real>());
 
 private:
   /// re-initialize the J matrix (to use if the profile of K changed)
@@ -591,6 +589,9 @@ public:
   template <int dim, class model_type>
   friend struct ContactData;
 
+  template <int Dim, AnalysisMethod s, ContactResolutionMethod r>
+  friend class ContactResolution;
+            
 
 protected:
   friend class Material;

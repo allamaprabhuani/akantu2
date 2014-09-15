@@ -287,6 +287,25 @@ enum AnalysisMethod {
   _explicit_consistent_mass
 };
 
+//! enum ContactResolutionMethod types of solving for the contact
+enum ContactResolutionMethod {
+  _penalty,
+  _lagrangian,
+  _augmented_lagrangian,
+  _nitsche,
+  _mortar
+};
+
+//! enum ContactImplementationMethod types for different contact implementations
+enum ContactImplementationMethod {
+  _none,
+  _uzawa,
+  _generalized_newton
+};
+
+
+
+
 /// enum SolveConvergenceMethod different resolution algorithms
 enum SolveConvergenceMethod {
   _scm_newton_raphson_tangent,             ///< Newton-Raphson with tangent matrix

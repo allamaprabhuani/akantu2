@@ -217,10 +217,9 @@ void StructuralMechanicsModel::initSolver(__attribute__((unused)) SolverOptions 
   UInt nb_global_node = mesh.getNbGlobalNodes();
 
   std::stringstream sstr; sstr << id << ":jacobian_matrix";
-  jacobian_matrix = new SparseMatrix(nb_global_node * nb_degree_of_freedom, _symmetric,
-				     nb_degree_of_freedom, sstr.str(), memory_id);
+  jacobian_matrix = new SparseMatrix(nb_global_node * nb_degree_of_freedom, _symmetric, sstr.str(), memory_id);
 
-  jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
+  jacobian_matrix->buildProfile(mesh, *dof_synchronizer, nb_degree_of_freedom);
 
   std::stringstream sstr_sti; sstr_sti << id << ":stiffness_matrix";
   stiffness_matrix = new SparseMatrix(*jacobian_matrix, sstr_sti.str(), memory_id);

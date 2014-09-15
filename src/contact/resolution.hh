@@ -30,12 +30,7 @@
 #ifndef __AKANTU_RESOLUTION_HH__
 #define __AKANTU_RESOLUTION_HH__
 
-#include "aka_common.hh"
+#include "resolution_augmented_lagrangian.hh"
 
-
-__BEGIN_AKANTU__
-
-
-__END_AKANTU__
 
 #endif /* __AKANTU_RESOLUTION_HH__ */

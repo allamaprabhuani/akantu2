@@ -37,7 +37,7 @@ if(NOT EXISTS ${NLOPT_ARCHIVE})
   set(NLOPT_ARCHIVE "http://ab-initio.mit.edu/nlopt/nlopt-${NLOPT_VERSION}.tar.gz")
 endif()
 
-if (AKANTU_USE_THIRD_PARTY_NLOPT AND AKANTU_USE_NLOPT)
+if (AKANTU_USE_THIRD_PARTY_NLOPT AND AKANTU_NLOPT)
   set(NLOPT_CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --enable-shared --with-cxx)
   set(NLOPT_DIR ${PROJECT_BINARY_DIR}/third-party)
 

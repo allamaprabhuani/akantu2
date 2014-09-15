@@ -27,6 +27,10 @@
  *
  */
 
+#ifndef __AKANTU_DUMPABLE_INLINE_IMPL_HH__
+#define __AKANTU_DUMPABLE_INLINE_IMPL_HH__
+
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 #include "dumper_elemental_field.hh"
@@ -129,3 +133,5 @@ inline T & Dumpable::getDumper(const std::string & dumper_name) {
 __END_AKANTU__
 
 #endif
+
+#endif /* __AKANTU_DUMPABLE_INLINE_IMPL_HH__ */

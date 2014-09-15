@@ -27,7 +27,7 @@
  *
  */
 
-#include "implicit_contact_manager.hh"
+#include "contact_impl.hh"
 #include "dumpable_inline_impl.hh"
 
 using namespace akantu;
@@ -47,7 +47,9 @@ int main(int argc, char *argv[]) {
   typedef BoundingBox<dim> bbox_type;
   typedef SolidMechanicsModel model_type;
   typedef ModelElement<model_type> master_type;
-  typedef ContactData<dim,model_type> contact_type;
+  
+  typedef Contact <dim, MasterAssignator, SelectResolution <_static, _augmented_lagrangian> >
+  contact_type;
   
   initialize("steel.dat", argc, argv);
   
@@ -148,8 +150,8 @@ int main(int argc, char *argv[]) {
     model.applyBC(BC::Dirichlet::FixedValue(-delta, BC::_y), "top");
 
     // solve contact step (no need to call solve on the model object)
-    cd.solveContactStep();
-    
+    solveContactStep<_uzawa>(cd);
+
     data[0][k] = delta;
     data[1][k] = cd.getForce();
     data[2][k] = cd.getMaxPressure();

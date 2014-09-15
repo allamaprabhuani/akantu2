@@ -89,7 +89,6 @@ if(AKANTU_USE_THIRD_PARTY_MUMPS AND AKANTU_USE_MUMPS)
     endif()
   endforeach()
 
-
   if("${MUMPS_TYPE}" STREQUAL "seq")
     set_third_party_shared_libirary_name(MUMPS_LIBRARY_MPI mpiseq${MUMPS_PREFIX})
     mark_as_advanced(MUMPS_LIBRARY_MPI)

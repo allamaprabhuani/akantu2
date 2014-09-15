@@ -148,7 +148,7 @@ SolverMumps::~SolverMumps() {
 /* -------------------------------------------------------------------------- */
 void SolverMumps::destroyMumpsData() {
   AKANTU_DEBUG_IN();
-
+  
   if(this->is_mumps_data_initialized) {
     this->mumps_data.job = _smj_destroy; // destroy
     dmumps_c(&this->mumps_data);
@@ -274,18 +274,21 @@ void SolverMumps::initialize(SolverOptions & options) {
 
   this->analysis();
 
-
-  //icntl(14) = 80;
+//  icntl(14) = 80;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void SolverMumps::setRHS(Array<Real> & rhs) {
+void SolverMumps::setRHS(const Array<Real> & rhs) {
   if(prank == 0) {
-    DebugLevel dbl = debug::getDebugLevel();
-    debug::setDebugLevel(dblError);
-    this->matrix->getDOFSynchronizer().gather(rhs, 0, this->rhs);
-    debug::setDebugLevel(dbl);
+
+    std::copy(rhs.storage(), rhs.storage() + this->rhs->getSize(), this->rhs->storage());
+
+    //    DebugLevel dbl = debug::getDebugLevel();
+//    debug::setDebugLevel(dblError);
+//    matrix->getDOFSynchronizer().gather(rhs, 0, this->rhs);
+//    debug::setDebugLevel(dbl);
+
   } else {
     this->matrix->getDOFSynchronizer().gather(rhs, 0);
   }
@@ -350,7 +353,9 @@ void SolverMumps::solve(Array<Real> & solution) {
   this->solve();
 
   if(prank == 0) {
-    this->matrix->getDOFSynchronizer().scatter(solution, 0, this->rhs);
+//    matrix->getDOFSynchronizer().scatter(solution, 0, this->rhs);
+    std::copy(this->rhs->storage(), this->rhs->storage() + this->rhs->getSize(), solution.storage());
+
   } else {
     this->matrix->getDOFSynchronizer().scatter(solution, 0);
   }

@@ -244,10 +244,9 @@ void HeatTransferModel::initSolver(__attribute__((unused)) SolverOptions & optio
 
   delete jacobian_matrix;
   std::stringstream sstr; sstr << Memory::id << ":jacobian_matrix";
-  jacobian_matrix = new SparseMatrix(nb_global_nodes, _symmetric,
-                                     1, sstr.str(), memory_id);
+  jacobian_matrix = new SparseMatrix(nb_global_nodes, _symmetric, sstr.str(), memory_id);
 
-  jacobian_matrix->buildProfile(mesh, *dof_synchronizer);
+  jacobian_matrix->buildProfile(mesh, *dof_synchronizer, 1);
 
   delete stiffness_matrix;
   std::stringstream sstr_sti; sstr_sti << Memory::id << ":stiffness_matrix";

@@ -88,7 +88,7 @@ public:
 
   void solveSlave();
 
-  virtual void setRHS(Array<Real> & rhs);
+  virtual void setRHS(const Array<Real> & rhs);
 
 
   virtual void onCommunicatorFinalize(const StaticCommunicator & communicator);

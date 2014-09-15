@@ -47,7 +47,7 @@ Index: scotch/src/libscotchmetis/Makefile
  					parmetis_dgraph_order_f$(OBJ)		\
  					parmetis_dgraph_part$(OBJ)		\
  					parmetis_dgraph_part_f$(OBJ)
-+					$(CC) -shared -Wl,-soname,libptscotchparmetis$(SHLIB) $^ -L../libscotch -lptscotch -lscotch -o libptscotchparmetis$(SHLIB)
++					$(CC) -shared  $^ -L../libscotch -lptscotch -lscotch -o libptscotchparmetis$(SHLIB)
  					$(AR) $(ARFLAGS) $(@) $(^)
  					-$(RANLIB) $(@)
  
@@ -55,7 +55,7 @@ Index: scotch/src/libscotchmetis/Makefile
  					metis_graph_order_f$(OBJ)		\
  					metis_graph_part$(OBJ)			\
  					metis_graph_part_f$(OBJ)
-+					$(CC) -shared -Wl,-soname,libscotchmetis$(SHLIB) $^ -L../libscotch -lscotch -o libscotchmetis$(SHLIB)
++					$(CC) -shared $^ -L../libscotch -lscotch -o libscotchmetis$(SHLIB)
  					$(AR) $(ARFLAGS) $(@) $(^)
  					-$(RANLIB) $(@)
 Index: scotch/src/libscotch/Makefile
@@ -92,34 +92,34 @@ Index: scotch/src/libscotch/Makefile
 -libptscotch$(LIB)		:	$(LIBPTSCOTCHDEPS) $(LIBSCOTCHDEPS)
 -					$(AR) $(ARFLAGS) $(@) $(?)
 +libptscotch$(LIB)		:	$(LIBPTSCOTCHDEPS) $(LIBSCOTCHDEPS) libptscotcherr$(LIB)
-+					$(CC) -shared -Wl,-soname,libptscotch$(SHLIB) $(LIBPTSCOTCHDEPS) $(LIBSCOTCHDEPS) -L. -lptscotcherr -lz -lpthread -lm -lrt -o libptscotch$(SHLIB)
++					$(CC) -shared $(LIBPTSCOTCHDEPS) $(LIBSCOTCHDEPS) -L. -lptscotcherr -lz -lpthread -lm -o libptscotch$(SHLIB)
 +					$(AR) $(ARFLAGS) $(@) $(LIBPTSCOTCHDEPS) $(LIBSCOTCHDEPS)
  					-$(RANLIB) $(@)
  
 -libscotch$(LIB)			:	$(LIBSCOTCHDEPS)
 -					$(AR) $(ARFLAGS) $(@) $(?)
 +libscotch$(LIB)			:	$(LIBSCOTCHDEPS) libscotcherr$(LIB)
-+					$(CC) -shared -Wl,-soname,libscotch$(SHLIB) $(LIBSCOTCHDEPS) -L. -lscotcherr -lz -lpthread -lm -lrt -o libscotch$(SHLIB)
++					$(CC) -shared $(LIBSCOTCHDEPS) -L. -lscotcherr -lz -lpthread -lm -o libscotch$(SHLIB)
 +					$(AR) $(ARFLAGS) $(@) $(LIBSCOTCHDEPS)
  					-$(RANLIB) $(@)
  
  libptscotcherr$(LIB)		:	library_error$(OBJ)
-+					$(CC) -shared -Wl,-soname,libptscotcherr$(SHLIB) $^ -o libptscotcherr$(SHLIB)
++					$(CC) -shared $^ -o libptscotcherr$(SHLIB)
  					$(AR) $(ARFLAGS) $(@) $(?)
  					-$(RANLIB) $(@)
  
  libptscotcherrexit$(LIB)	:	library_error_exit$(OBJ)
-+					$(CC) -shared -Wl,-soname,libptscotcherrexit$(SHLIB) $^ -o libptscotcherrexit$(SHLIB)
++					$(CC) -shared $^ -o libptscotcherrexit$(SHLIB)
  					$(AR) $(ARFLAGS) $(@) $(?)
  					-$(RANLIB) $(@)
  
  libscotcherr$(LIB)		:	library_error$(OBJ)
-+					$(CC) -shared -Wl,-soname,libscotcherr$(SHLIB) $^ -o libscotcherr$(SHLIB)
++					$(CC) -shared $^ -o libscotcherr$(SHLIB)
  					$(AR) $(ARFLAGS) $(@) $(?)
  					-$(RANLIB) $(@)
  
  libscotcherrexit$(LIB)		:	library_error_exit$(OBJ)
-+					$(CC) -shared -Wl,-soname,libscotcherrexit$(SHLIB) $^ -o libscotcherrexit$(SHLIB)
++					$(CC) -shared $^ -o libscotcherrexit$(SHLIB)
  					$(AR) $(ARFLAGS) $(@) $(?)
  					-$(RANLIB) $(@)
 Index: scotch/src/esmumps/Makefile
@@ -174,7 +174,7 @@ Index: scotch/src/esmumps/Makefile
  					esmumps$(OBJ)				\
  					esmumps_f$(OBJ)				\
  					esmumps_strats$(OBJ)
-+					$(CC) -shared -Wl,-soname,lib$(ESMUMPSLIB)$(SHLIB) $^ -L../libscotch -lscotch -lscotcherr -o lib$(ESMUMPSLIB)$(SHLIB)
++					$(CC) -shared $^ -L../libscotch -lscotch -lscotcherr -o lib$(ESMUMPSLIB)$(SHLIB)
  					$(AR) $(ARFLAGS) lib$(ESMUMPSLIB)$(LIB) $(?)
  					-$(RANLIB) lib$(ESMUMPSLIB)$(LIB)
  

@@ -104,6 +104,9 @@ const ArgumentParser::Argument & ArgumentParser::operator[](const std::string & 
 			   + " or to give it a default value");
   }
 }
+  
+bool ArgumentParser::has(const std::string & name) const
+{ return (success_parsed.find(name) != success_parsed.end()); }
 
 /* -------------------------------------------------------------------------- */
 void ArgumentParser::addArgument(const std::string & name_or_flag,
@@ -190,7 +193,7 @@ ArgumentParser::_Argument & ArgumentParser::_addArgument(const std::string & nam
 
 
 /* -------------------------------------------------------------------------- */
-void ArgumentParser::parse(int& argc, char**& argv, int flags) {
+void ArgumentParser::parse(int& argc, char**& argv, int flags, bool parse_help) {
   bool stop_in_not_parsed = flags & _stop_on_not_parsed;
   bool remove_parsed = flags & _remove_parsed;
 
@@ -238,7 +241,7 @@ void ArgumentParser::parse(int& argc, char**& argv, int flags) {
       argument_ptr = key_it->second;
     }
 
-    if(remove_parsed && ! is_positional) {
+    if(remove_parsed && ! is_positional && argument_ptr->name != "help") {
       argvs_to_remove.push_back(current_position - 1);
     }
 
@@ -331,7 +334,7 @@ void ArgumentParser::parse(int& argc, char**& argv, int flags) {
     argc -= argvs_to_remove.size();
   }
 
-  if(this->arguments["help"]->parsed) {
+  if(this->arguments["help"]->parsed && parse_help) {
     this->_exit();
   }
 }

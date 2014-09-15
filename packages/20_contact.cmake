@@ -35,13 +35,13 @@ set(AKANTU_CONTACT_FILES
   contact/discretization.cc
   contact/element.cc
   contact/friction.cc
-  contact/resolution.cc
+  contact/resolution/resolution_augmented_lagrangian.cc
   contact/scheme.cc
   contact/search.cc
   contact/surface.cc
   contact/zone.cc
+  contact/contact_impl.cc
   model/model_manager.cc
-  model/implicit_contact_manager.cc
 
   # include files
   contact/contact_common.hh
@@ -50,13 +50,14 @@ set(AKANTU_CONTACT_FILES
   contact/element.hh
   contact/friction.hh
   contact/resolution.hh
+  contact/resolution/resolution_augmented_lagrangian.hh
   contact/scheme.hh
   contact/search.hh
   contact/surface.hh
   contact/zone.hh
+  contact/contact_impl.hh
   model/model_manager.hh
   model/contact_manager0.hh
-  model/implicit_contact_manager.hh
   )
 
 add_external_package_dependencies(contact cpparray)
@@ -75,6 +76,14 @@ mark_as_advanced(AKANTU_USE_CPPARRAY)
 set(AKANTU_CONTACT_TESTS
   test_hertz_2D
   test_hertz_3D
+  test_offset_1slave
+  test_offset_2slaves
+  test_acurnier_2D_1
+  test_acurnier_2D_2
+  test_acurnier_2D_3
+  test_acurnier_3D_1
+  test_acurnier_3D_2
+  test_acurnier_3D_3
   )
 
 set(AKANTU_CONTACT_MANUAL_FILES

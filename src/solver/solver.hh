@@ -84,7 +84,7 @@ public:
   virtual void solve(Array<Real> & solution) = 0;
   virtual void solve() = 0;
 
-  virtual void setRHS(Array<Real> & rhs) = 0;
+  virtual void setRHS(const Array<Real> & rhs) = 0;
 
   /// function to print the contain of the class
   //  virtual void printself(std::ostream & stream, int indent = 0) const;
