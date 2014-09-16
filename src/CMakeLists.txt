@@ -46,6 +46,7 @@ if(AKANTU_LAPACK OR AKANTU_BLAS)
     ${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh
     MACRO_NAMESPACE "AKA_FC_")
   mark_as_advanced(CDEFS)
+  list(APPEND AKANTU_LIBRARY_HDRS ${CMAKE_CURRENT_BINARY_DIR}/aka_fortran_mangling.hh)
 endif()
 
 configure_file(common/aka_config.hh.in "${CMAKE_CURRENT_BINARY_DIR}/aka_config.hh" @ONLY)
