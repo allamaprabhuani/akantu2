@@ -55,16 +55,16 @@ MaterialNeohookean<spatial_dimension>::MaterialNeohookean(SolidMechanicsModel & 
 template<UInt spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
-  Material::initMaterial();
+  PlaneStressToolbox<spatial_dimension>::initMaterial();
   if (spatial_dimension == 1) nu = 0.;
-  updateInternalParameters();
+  this->updateInternalParameters();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template<> void MaterialNeohookean<2>::initMaterial() {
   AKANTU_DEBUG_IN();
-  PlaneStressToolbox::initMaterial();
+  PlaneStressToolbox<2>::initMaterial();
   this->updateInternalParameters();
 
   if(this->plane_stress) this->third_axis_deformation.setDefaultValue(1.);
