@@ -263,6 +263,9 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/solid_mechanics_model_material.cc
   model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/solid_mechanics_model_event_handler.hh
+  model/solid_mechanics/materials/plane_stress_toolbox.hh
+  model/solid_mechanics/materials/plane_stress_toolbox_tmpl.hh
+
 
   model/solid_mechanics/materials/material_damage/material_damage.hh
   model/solid_mechanics/materials/material_damage/material_damage_tmpl.hh

@@ -265,6 +265,9 @@ public:
   /// implicit time integration corrector
   void implicitCorr();
 
+  /// compute the Cauchy stress on user demand.
+  void computeCauchyStresses();
+
 protected:
   /// finish the computation of residual to solve in increment
   void updateResidualInternal();
@@ -272,8 +275,6 @@ protected:
   /// compute the support reaction and store it in force
   void updateSupportReaction();
 
-  /// compute the Cauchy stress on user demand.
-  void computeCauchyStresses();
 
 public:
 

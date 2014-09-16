@@ -43,12 +43,12 @@ inline void
   Real equiv_strain_rate=0.;
   Real volume_change_rate=grad_v.trace();
   if(spatial_dimension==2){
-    if(this->plane_stress){
-      Real e_dot_33 = this->lambda*(volume_change_rate)/(2. * this->mu - this->lambda);
-      volume_change_rate+=e_dot_33;
-      equiv_strain_rate+=2./3.*pow( e_dot_33 - volume_change_rate/3. , 2. );
-    }
-    else
+//    if(this->plane_stress){
+//      Real e_dot_33 = this->lambda*(volume_change_rate)/(2. * this->mu - this->lambda);
+//      volume_change_rate+=e_dot_33;
+//      equiv_strain_rate+=2./3.*pow( e_dot_33 - volume_change_rate/3. , 2. );
+//    }
+//    else
       equiv_strain_rate+=2./3.*pow( volume_change_rate/3. , 2. );
   }
 

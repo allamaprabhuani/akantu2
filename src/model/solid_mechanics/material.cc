@@ -319,7 +319,7 @@ void Material::computeCauchyStress(ElementType el_type, GhostType ghost_type) {
     Matrix<Real> & sigma  = *stress_it;
 
     gradUToF<dim > (grad_u, F_tensor);
-    computeCauchyStressOnQuad<dim >(F_tensor, piola, sigma);
+    this->computeCauchyStressOnQuad<dim >(F_tensor, piola, sigma);
   }
 
   AKANTU_DEBUG_OUT();

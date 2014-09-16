@@ -260,7 +260,29 @@ public:
   static inline Real getTolerance() { return tolerance; };
   static inline void setTolerance(Real tol) { tolerance = tol; };
 
-  template<UInt p> static inline UInt pow(UInt x);
+  template<UInt p, typename T> static inline T pow(T x);
+
+
+  class NewtonRaphson {
+  public:
+    NewtonRaphson(Real tolerance, Real max_iteration) :
+      tolerance(tolerance),
+      max_iteration(max_iteration) {
+    }
+
+    template<class Functor>
+    Real solve(const Functor & funct, Real x_0);
+  private:
+    Real tolerance;
+    Real max_iteration;
+  };
+
+  struct NewtonRaphsonFunctor {
+    NewtonRaphsonFunctor(const std::string & name) : name(name) {}
+    virtual Real f(Real x) const = 0;
+    virtual Real f_prime(Real x) const = 0;
+    std::string name;
+  };
 
 private:
   /// tolerance for functions that need one

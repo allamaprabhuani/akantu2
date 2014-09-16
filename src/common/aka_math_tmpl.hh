@@ -47,9 +47,9 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_vector(UInt im, UInt in,
-				Real * A,
-				Real * x,
-				Real * y, Real alpha) {
+                                Real * A,
+                                Real * x,
+                                Real * y, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   /// y = alpha*op(A)*x + beta*y
   char tran_A = 'N';
@@ -75,9 +75,9 @@ inline void Math::matrix_vector(UInt im, UInt in,
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrixt_vector(UInt im, UInt in,
-				 Real * A,
-				 Real * x,
-				 Real * y, Real alpha) {
+                                 Real * A,
+                                 Real * x,
+                                 Real * y, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   /// y = alpha*op(A)*x + beta*y
   char tran_A = 'T';
@@ -101,9 +101,9 @@ inline void Math::matrixt_vector(UInt im, UInt in,
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_matrix(UInt im, UInt in, UInt ik,
-				Real * A,
-				Real * B,
-				Real * C, Real alpha) {
+                                Real * A,
+                                Real * B,
+                                Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   char trans_a = 'N';
@@ -124,8 +124,8 @@ inline void Math::matrix_matrix(UInt im, UInt in, UInt ik,
     UInt _jc = j * im;
     for (UInt i = 0; i < im; ++i) {
       for (UInt l = 0; l < ik; ++l) {
-	UInt _la = l * im;
-	C[i + _jc] += A[i + _la] * B[l + _jb];
+        UInt _la = l * im;
+        C[i + _jc] += A[i + _la] * B[l + _jb];
       }
       C[i + _jc] *= alpha;
     }
@@ -135,9 +135,9 @@ inline void Math::matrix_matrix(UInt im, UInt in, UInt ik,
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrixt_matrix(UInt im, UInt in, UInt ik,
-				 Real * A,
-				 Real * B,
-				 Real * C, Real alpha) {
+                                 Real * A,
+                                 Real * B,
+                                 Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   char trans_a = 'T';
@@ -159,7 +159,7 @@ inline void Math::matrixt_matrix(UInt im, UInt in, UInt ik,
     for (UInt i = 0; i < im; ++i) {
       UInt _ia = i*ik;
       for (UInt l = 0; l < ik; ++l) {
-	C[i + _jc] += A[l + _ia] * B[l + _jb];
+        C[i + _jc] += A[l + _ia] * B[l + _jb];
       }
       C[i + _jc] *= alpha;
     }
@@ -169,8 +169,8 @@ inline void Math::matrixt_matrix(UInt im, UInt in, UInt ik,
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrix_matrixt(UInt im, UInt in, UInt ik,
-				 Real * A,
-				 Real * B,
+                                 Real * A,
+                                 Real * B,
                                  Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
@@ -191,9 +191,9 @@ inline void Math::matrix_matrixt(UInt im, UInt in, UInt ik,
     UInt _jc = j * im;
     for (UInt i = 0; i < im; ++i) {
       for (UInt l = 0; l < ik; ++l) {
-	UInt _la = l * im;
-	UInt _lb = l * in;
- 	C[i + _jc] += A[i + _la] * B[j + _lb];
+        UInt _la = l * im;
+        UInt _lb = l * in;
+        C[i + _jc] += A[i + _la] * B[j + _lb];
       }
       C[i + _jc] *= alpha;
     }
@@ -203,9 +203,9 @@ inline void Math::matrix_matrixt(UInt im, UInt in, UInt ik,
 
 /* -------------------------------------------------------------------------- */
 inline void Math::matrixt_matrixt(UInt im, UInt in, UInt ik,
-				  Real * A,
-				  Real * B,
-				  Real * C, Real alpha) {
+                                  Real * A,
+                                  Real * B,
+                                  Real * C, Real alpha) {
 #ifdef AKANTU_USE_BLAS
   ///  C := alpha*op(A)*op(B) + beta*C
   char trans_a = 'T';
@@ -226,8 +226,8 @@ inline void Math::matrixt_matrixt(UInt im, UInt in, UInt ik,
     for (UInt i = 0; i < im; ++i) {
       UInt _ia = i*ik;
       for (UInt l = 0; l < ik; ++l) {
-	UInt _lb = l * in;
-	C[i + _jc] += A[l + _ia] * B[j + _lb];
+        UInt _lb = l * in;
+        C[i + _jc] += A[l + _ia] * B[j + _lb];
       }
       C[i + _jc] *= alpha;
     }
@@ -254,8 +254,8 @@ inline Real Math::vectorDot(Real * v1, Real * v2, UInt in) {
 /* -------------------------------------------------------------------------- */
 template <bool tr_A, bool tr_B>
 inline void Math::matMul(UInt m, UInt n, UInt k,
-			 Real alpha, Real * A, Real * B,
-			 __attribute__ ((unused)) Real beta,  Real * C) {
+                         Real alpha, Real * A, Real * B,
+                         __attribute__ ((unused)) Real beta,  Real * C) {
   if(tr_A) {
     if(tr_B) matrixt_matrixt(m, n, k, A, B, C, alpha);
     else matrixt_matrix(m, n, k, A, B, C, alpha);
@@ -268,8 +268,8 @@ inline void Math::matMul(UInt m, UInt n, UInt k,
 /* -------------------------------------------------------------------------- */
 template <bool tr_A>
 inline void Math::matVectMul(UInt m, UInt n,
-			     Real alpha, Real * A, Real * x,
-			     __attribute__ ((unused)) Real beta, Real * y) {
+                             Real alpha, Real * A, Real * x,
+                             __attribute__ ((unused)) Real beta, Real * y) {
   if(tr_A) {
     matrixt_vector(m, n, A, x, y, alpha);
   } else {
@@ -376,7 +376,7 @@ inline T Math::det(UInt n, const T * A) {
   aka_getrf(&N, &N, LU, &N, ipiv, &info);
   if(info > 0) {
     AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "
-		       << info <<" )");
+                       << info <<" )");
   }
 
   // det(A) = det(L) * det(U) = 1 * det(U) = product_i U_{ii}
@@ -484,7 +484,7 @@ inline void Math::inv(UInt n, const T * A, T * invA) {
   aka_getrf(&N, &N, invA, &N, ipiv, &info);
   if(info > 0) {
     AKANTU_DEBUG_ERROR("Singular matrix - cannot factorize it (info: "
-		       << info <<" )");
+                       << info <<" )");
   }
 
   aka_getri(&N, invA, &N, ipiv, work, &lwork, &info);
@@ -580,8 +580,8 @@ inline Real Math::distance_2d(const Real * x, const Real * y) {
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::triangle_inradius(const Real * coord1,
-				    const Real * coord2,
-				    const Real * coord3) {
+                                    const Real * coord2,
+                                    const Real * coord3) {
   /**
    * @f{eqnarray*}{
    * r &=& A / s \\
@@ -604,16 +604,16 @@ inline Real Math::triangle_inradius(const Real * coord1,
 /* -------------------------------------------------------------------------- */
 inline Real Math::distance_3d(const Real * x, const Real * y) {
   return sqrt((y[0] - x[0])*(y[0] - x[0])
-	      + (y[1] - x[1])*(y[1] - x[1])
-	      + (y[2] - x[2])*(y[2] - x[2])
-	      );
+              + (y[1] - x[1])*(y[1] - x[1])
+              + (y[2] - x[2])*(y[2] - x[2])
+              );
 }
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::tetrahedron_volume(const Real * coord1,
-				     const Real * coord2,
-				     const Real * coord3,
-				     const Real * coord4) {
+                                     const Real * coord2,
+                                     const Real * coord3,
+                                     const Real * coord4) {
   Real xx[9], vol;
 
   xx[0] = coord2[0]; xx[1] = coord2[1]; xx[2] = coord2[2];
@@ -643,9 +643,9 @@ inline Real Math::tetrahedron_volume(const Real * coord1,
 
 /* -------------------------------------------------------------------------- */
 inline Real Math::tetrahedron_inradius(const Real * coord1,
-				       const Real * coord2,
-				       const Real * coord3,
-				       const Real * coord4) {
+                                       const Real * coord2,
+                                       const Real * coord3,
+                                       const Real * coord4) {
 
   Real l12, l13, l14, l23, l24, l34;
   l12 = distance_3d(coord1, coord2);
@@ -676,8 +676,8 @@ inline Real Math::tetrahedron_inradius(const Real * coord1,
 
 /* -------------------------------------------------------------------------- */
 inline void Math::barycenter(const Real * coord,
-			     UInt nb_points, UInt spatial_dimension,
-			     Real * barycenter) {
+                             UInt nb_points, UInt spatial_dimension,
+                             Real * barycenter) {
   memset(barycenter, 0, spatial_dimension * sizeof(Real));
   for (UInt n = 0; n < nb_points; ++n) {
     UInt offset = n * spatial_dimension;
@@ -744,6 +744,28 @@ inline bool Math::is_in_range(Real a, Real x_min, Real x_max) {
 
 
 /* -------------------------------------------------------------------------- */
-template<UInt p> inline UInt Math::pow(UInt x) { return (pow<p-1>(x)*x); }
-template<> inline UInt Math::pow<0>(__attribute__((unused)) UInt x) { return (1); }
+template<UInt p, typename T> inline T Math::pow(T x) { return (pow<p-1, T>(x)*x); }
+template<> inline UInt Math::pow<0, UInt>(__attribute__((unused)) UInt x) { return (1); }
+template<> inline Real Math::pow<0, Real>(__attribute__((unused)) Real x) { return (1.); }
 
+/* -------------------------------------------------------------------------- */
+
+template<class Functor>
+Real Math::NewtonRaphson::solve(const Functor & funct, Real x_0) {
+  Real x = x_0;
+  Real f_x= funct.f(x);
+  UInt iter = 0;
+  while(std::abs(f_x) > this->tolerance && iter < this->max_iteration) {
+    x -= f_x/funct.f_prime(x);
+    f_x = funct.f(x);
+    iter++;
+  }
+
+  AKANTU_DEBUG_ASSERT(iter < this->max_iteration, "Newton Raphson (" <<
+                      funct.name <<
+                      ") solve did not converge in " << this->max_iteration <<
+                      " iterations (tolerance: " << this->tolerance << ")");
+
+
+  return x;
+}

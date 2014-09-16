@@ -35,16 +35,16 @@
 template<UInt spatial_dimension, template <UInt> class MatParent>
 inline void
 MaterialVreePeerlings<spatial_dimension, MatParent>::computeStressOnQuad(Matrix<Real> & grad_u,
-							      Matrix<Real> & sigma,
-							      Real & dam,
-							      Real & Equistrain,
-							      Real & Equistrain_rate,
-							      Real & Kapaq,
-							      Real dt,
-							      Matrix<Real> & strain_rate_vrplgs,
-							      Real & FullDam_ValStrain,
-							      Real & FullDam_ValStrain_rate,
-							      Real & Nb_damage) {
+                                                                         Matrix<Real> & sigma,
+                                                                         Real & dam,
+                                                                         Real & Equistrain,
+                                                                         Real & Equistrain_rate,
+                                                                         Real & Kapaq,
+                                                                         Real dt,
+                                                                         Matrix<Real> & strain_rate_vrplgs,
+                                                                         Real & FullDam_ValStrain,
+                                                                         Real & FullDam_ValStrain_rate,
+                                                                         Real & Nb_damage) {
 
 
   Real I1=0.;      /// trace initialization of the strain tensor
@@ -54,53 +54,53 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::computeStressOnQuad(Matrix<
 
   if (spatial_dimension == 1){
 
-     I1 = grad_u.trace();
-     J2 = .5*grad_u(0,0)*grad_u(0,0) - I1 * I1/6.;
+    I1 = grad_u.trace();
+    J2 = .5*grad_u(0,0)*grad_u(0,0) - I1 * I1/6.;
 
-     I1rate = strain_rate_vrplgs.trace();
-     J2rate = grad_u(0,0)*strain_rate_vrplgs(0,0) -I1 * I1rate/6.;
-  } 
+    I1rate = strain_rate_vrplgs.trace();
+    J2rate = grad_u(0,0)*strain_rate_vrplgs(0,0) -I1 * I1rate/6.;
+  }
   else {
-    if(this->plane_stress) {
+    // if(this->plane_stress) {
 
-      Real tmp = this->nu/(this->nu - 1);
-      tmp *= tmp;
+    //   Real tmp = this->nu/(this->nu - 1);
+    //   tmp *= tmp;
 
-      I1 = (grad_u(0,0) + grad_u(1,1))*(1 - 2*this->nu)/(1 - this->nu);
-      J2 = .5*(grad_u(0,0)*grad_u(0,0) +
-	       grad_u(1,1)*grad_u(1,1) +
-	       tmp*(grad_u(0,0) + grad_u(1,1))*(grad_u(0,0) + grad_u(1,1)) +
-	       .5*(grad_u(0,1) + grad_u(1,0))*(grad_u(0,1) + grad_u(1,0))) -
-	I1*I1/6.;
+    //   I1 = (grad_u(0,0) + grad_u(1,1))*(1 - 2*this->nu)/(1 - this->nu);
+    //   J2 = .5*(grad_u(0,0)*grad_u(0,0) +
+    //            grad_u(1,1)*grad_u(1,1) +
+    //            tmp*(grad_u(0,0) + grad_u(1,1))*(grad_u(0,0) + grad_u(1,1)) +
+    //            .5*(grad_u(0,1) + grad_u(1,0))*(grad_u(0,1) + grad_u(1,0))) -
+    //     I1*I1/6.;
 
-      I1rate = (strain_rate_vrplgs(0,0) + strain_rate_vrplgs(1,1))*(1 - 2*this->nu)/(1 - this->nu);
-      J2rate = (grad_u(0,0)*strain_rate_vrplgs(0,0) +
-		grad_u(1,1)*strain_rate_vrplgs(1,1) +
-		tmp*(grad_u(0,0) + grad_u(1,1))*(strain_rate_vrplgs(0,0) + strain_rate_vrplgs(1,1)) +
-		(grad_u(0,1)*strain_rate_vrplgs(1,0)) + (grad_u(0,1)*strain_rate_vrplgs(1,0))) -
-	I1*I1rate/3.;
-      
-    }
-    else {
+    //   I1rate = (strain_rate_vrplgs(0,0) + strain_rate_vrplgs(1,1))*(1 - 2*this->nu)/(1 - this->nu);
+    //   J2rate = (grad_u(0,0)*strain_rate_vrplgs(0,0) +
+    //             grad_u(1,1)*strain_rate_vrplgs(1,1) +
+    //             tmp*(grad_u(0,0) + grad_u(1,1))*(strain_rate_vrplgs(0,0) + strain_rate_vrplgs(1,1)) +
+    //             (grad_u(0,1)*strain_rate_vrplgs(1,0)) + (grad_u(0,1)*strain_rate_vrplgs(1,0))) -
+    //     I1*I1rate/3.;
+
+    // }
+    // else {
 
       I1 = grad_u.trace();
       for(UInt i=0; i<spatial_dimension; ++i )
-	for(UInt j=i; j<spatial_dimension; ++j )
-	  J2 += 0.5*( (i==j)*grad_u(i,i)*grad_u(i,i) +0.5*(1- (i==j))*( (grad_u(i,j) + grad_u(j,i))*(grad_u(i,j) + grad_u(j,i)) ));
+        for(UInt j=i; j<spatial_dimension; ++j )
+          J2 += 0.5*( (i==j)*grad_u(i,i)*grad_u(i,i) +0.5*(1- (i==j))*( (grad_u(i,j) + grad_u(j,i))*(grad_u(i,j) + grad_u(j,i)) ));
 
-      J2-= I1 * I1/6.; 
+      J2-= I1 * I1/6.;
 
       I1rate = strain_rate_vrplgs.trace();
       bool is3D= spatial_dimension==3;
       J2rate = (grad_u(0,0)*strain_rate_vrplgs(0,0) +
-		grad_u(1,1)*strain_rate_vrplgs(1,1) +
-		is3D * grad_u(2,2)*strain_rate_vrplgs(2,2) +
-		(grad_u(0,1)*strain_rate_vrplgs(1,0)) + (grad_u(0,1)*strain_rate_vrplgs(1,0)) +
-		is3D * (grad_u(1,2)*strain_rate_vrplgs(2,1)) + is3D * (grad_u(1,2)*strain_rate_vrplgs(2,1)) +
-		is3D * (grad_u(2,0)*strain_rate_vrplgs(0,2)) + is3D * (grad_u(2,0)*strain_rate_vrplgs(0,2))) -
-	I1 * I1rate/3.; 
+                grad_u(1,1)*strain_rate_vrplgs(1,1) +
+                is3D * grad_u(2,2)*strain_rate_vrplgs(2,2) +
+                (grad_u(0,1)*strain_rate_vrplgs(1,0)) + (grad_u(0,1)*strain_rate_vrplgs(1,0)) +
+                is3D * (grad_u(1,2)*strain_rate_vrplgs(2,1)) + is3D * (grad_u(1,2)*strain_rate_vrplgs(2,1)) +
+                is3D * (grad_u(2,0)*strain_rate_vrplgs(0,2)) + is3D * (grad_u(2,0)*strain_rate_vrplgs(0,2))) -
+        I1 * I1rate/3.;
 
-    }
+      //    }
   }
 
   Real tmp_1 = (Kct - 1)/(1 - 2*this->nu);
@@ -123,20 +123,20 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::computeStressOnQuad(Matrix<
 template<UInt spatial_dimension, template <UInt> class MatParent>
 inline void
 MaterialVreePeerlings<spatial_dimension, MatParent>::computeDamageAndStressOnQuad(Matrix<Real> & sigma,
-								       Real & dam,
-								       Real & Equistrain,
-								       Real & Equistrain_rate,
-								       Real & Kapaq,
-								       Real dt,
-								       Real & FullDam_ValStrain,
-								       Real & FullDam_ValStrain_rate,
-								       Real & Nb_damage) {
+                                                                                  Real & dam,
+                                                                                  Real & Equistrain,
+                                                                                  Real & Equistrain_rate,
+                                                                                  Real & Kapaq,
+                                                                                  Real dt,
+                                                                                  Real & FullDam_ValStrain,
+                                                                                  Real & FullDam_ValStrain_rate,
+                                                                                  Real & Nb_damage) {
 
 
-//---------------------------------------------------------------------------------------
-// rate-dependence  model
-//
-//---------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------
+  // rate-dependence  model
+  //
+  //---------------------------------------------------------------------------------------
   Real Kapao = Crate*(1.+(std::pow(std::abs(Equistrain_rate)*Arate,Brate)))*(1.-Kapao_randomness) + Kapao_randomness*Kapaq;
   Real Kapac_99 = Kapac*.99;
   Real Kapaodyn = 0;
@@ -155,37 +155,36 @@ MaterialVreePeerlings<spatial_dimension, MatParent>::computeDamageAndStressOnQua
     {
       Real dam1 = 1. - Kapaodyn/Equistrain * ((Kapac - Equistrain)/(Kapac - Kapaodyn));
       if (dam1 > dam){
-	dam = std::min(dam1,1.);
-	Nb_damage = Nb_damage + 1.;
-	
-	if (dam >= 1.){
-	  FullDam_ValStrain = Equistrain;
-	  FullDam_ValStrain_rate = Equistrain_rate;
-	}
+        dam = std::min(dam1,1.);
+        Nb_damage = Nb_damage + 1.;
+
+        if (dam >= 1.){
+          FullDam_ValStrain = Equistrain;
+          FullDam_ValStrain_rate = Equistrain_rate;
+        }
       }
     }
 
-//---------------------------------------------------------------------------------------
-// delayed damage (see Marions thesis page 68)
-//---------------------------------------------------------------------------------------
-//   Real viscosity = 10.;
-//   Real damRateInfini = 10000000.;
-//   Real gequi = 1. - Kapaq/Equistrain * ((Kapac-Equistrain)/(Kapac - Kapaq));
-//   if (gequi - dam > 0){
-//
-//     Real damRate = damRateInfini * (1. - std::exp(-1*viscosity * (gequi - dam)));
-//     if (damrate > 0){
-//
-//	if (dam < 1.){
-//	  dam = dam + damRate*dt;
-//	} else {
-//	  dam = 1.;
-//	}
-//     }
-//   }
-// 
-//---------------------------------------------------------------------------------------
-      sigma *= 1-dam;
+  //---------------------------------------------------------------------------------------
+  // delayed damage (see Marions thesis page 68)
+  //---------------------------------------------------------------------------------------
+  //   Real viscosity = 10.;
+  //   Real damRateInfini = 10000000.;
+  //   Real gequi = 1. - Kapaq/Equistrain * ((Kapac-Equistrain)/(Kapac - Kapaq));
+  //   if (gequi - dam > 0){
+  //
+  //     Real damRate = damRateInfini * (1. - std::exp(-1*viscosity * (gequi - dam)));
+  //     if (damrate > 0){
+  //
+  //	if (dam < 1.){
+  //      dam = dam + damRate*dt;
+  //	} else {
+  //      dam = 1.;
+  //	}
+  //     }
+  //   }
+  //
+  //---------------------------------------------------------------------------------------
+  sigma *= 1-dam;
 }
 /* -------------------------------------------------------------------------- */
-

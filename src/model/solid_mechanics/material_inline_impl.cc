@@ -71,9 +71,10 @@ inline void Material::gradUToF(const Matrix<Real> & grad_u,
 template<UInt dim >
 inline void Material::computeCauchyStressOnQuad(const Matrix<Real> & F,
 						const Matrix<Real> & piola,
-						Matrix<Real> & sigma) const {
+						Matrix<Real> & sigma,
+                                                const Real & C33 ) const {
 
-  Real J = F.det();
+  Real J = F.det() * sqrt(C33);
 
   Matrix<Real> F_S(dim, dim);
   F_S.mul<false, false>(F, piola);

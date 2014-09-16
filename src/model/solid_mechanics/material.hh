@@ -214,11 +214,12 @@ protected:
   /// Computation of Cauchy stress tensor in the case of finite deformation
   template<UInt dim>
   void computeCauchyStress(__attribute__((unused)) ElementType el_type,
-			   __attribute__((unused)) GhostType ghost_type = _not_ghost);
+                           __attribute__((unused)) GhostType ghost_type = _not_ghost);
 
   template<UInt dim >
   inline void computeCauchyStressOnQuad(const Matrix<Real> & F, const Matrix<Real> & S,
-					Matrix<Real> & cauchy) const;
+					Matrix<Real> & cauchy,
+                                        const Real & C33 = 1.0 ) const;
 
   template<UInt dim>
   void computeAllStressesFromTangentModuli(const ElementType & type,
@@ -432,7 +433,6 @@ protected:
 
   /// Finite deformation
   bool inelastic_deformation;
-
 
   /// material name
   std::string name;

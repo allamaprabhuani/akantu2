@@ -30,6 +30,8 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
+#include "plane_stress_toolbox.hh"
+
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_NEOHOOKEAN_HH__
@@ -47,7 +49,7 @@ __BEGIN_AKANTU__
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 template<UInt spatial_dimension>
-class MaterialNeohookean : public virtual Material {
+class MaterialNeohookean : public virtual PlaneStressToolbox<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -67,9 +69,15 @@ public:
   /// constitutive law for all element of a type
   virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
 
+  /// Computation of the cauchy stress for plane strain materials
+  virtual void computeCauchyStressPlaneStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// Non linear computation of the third direction strain in 2D plane stress case
+  virtual void computeThirdAxisDeformation(ElementType el_type, GhostType ghost_type = _not_ghost);
+
   /// compute the elastic potential energy
   virtual void computePotentialEnergy(ElementType el_type,
-				      GhostType ghost_type = _not_ghost);
+                                      GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
@@ -97,7 +105,10 @@ protected:
         Matrix<Real> & delta_S);
 
   inline void computeStressOnQuad(Matrix<Real> & grad_u,
-                                  Matrix<Real> & sigma);
+                                  Matrix<Real> & S,
+                                  const Real & C33 = 1.0 );
+
+  inline void computeThirdAxisDeformationOnQuad(Matrix<Real> & grad_u, Real & c33_value);
 
   /// constitutive law for a given quadrature point
   //inline void updateStressOnQuad(const Matrix<Real> & sigma,
@@ -108,10 +119,13 @@ protected:
                                            Real & epot);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u);
+  void computeTangentModuliOnQuad(Matrix<Real> & tangent,
+                                  Matrix<Real> & grad_u,
+                                  const Real & C33 = 1.0 );
 
   /// recompute the lame coefficient if E or nu changes
   virtual void updateInternalParameters();
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -137,9 +151,6 @@ protected:
 
   /// Bulk modulus
   Real kpa;
-
-  /// Plane stress or plane strain
-  bool plane_stress;
 
 };
 

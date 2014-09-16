@@ -31,6 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material_thermal.hh"
+#include "plane_stress_toolbox.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_ELASTIC_HH__
@@ -47,15 +48,19 @@ __BEGIN_AKANTU__
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
 template<UInt spatial_dimension>
-class MaterialElastic : public MaterialThermal<spatial_dimension> {
+class MaterialElastic : public PlaneStressToolbox< spatial_dimension,
+                                                   MaterialThermal<spatial_dimension> > {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+private:
+  typedef  PlaneStressToolbox< spatial_dimension,
+                               MaterialThermal<spatial_dimension> > Parent;
 public:
 
   MaterialElastic(SolidMechanicsModel & model, const ID & id = "");
 
-  virtual ~MaterialElastic() {};
+  virtual ~MaterialElastic() {}
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -119,9 +124,6 @@ protected:
 
   /// Bulk modulus
   Real kpa;
-
-  /// Plane stress or plane strain
-  bool plane_stress;
 
 };
 
