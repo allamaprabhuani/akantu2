@@ -1611,7 +1611,7 @@ dumper::Field * SolidMechanicsModel
   if(field_name == "partitions") 
     field = mesh.createElementalField<UInt, dumper::ElementPartitionField>(mesh.getConnectivities(),group_name,this->spatial_dimension,kind);
   else if(field_name == "element_index_by_material") 
-    field = mesh.createElementalField<UInt, Vector, dumper::ElementalField >(field_name,group_name,this->spatial_dimension,kind);
+    field = mesh.createElementalField<UInt, Vector, dumper::ElementalField >(element_index_by_material,group_name,this->spatial_dimension,kind);
   else {
 
     bool is_internal = this->isInternal(field_name,kind);
