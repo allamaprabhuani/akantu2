@@ -118,6 +118,9 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
                       "You should first initialize the implicit solver and "
                       "assemble the stiffness matrix");
 
+  //** comments that start like this will comment on the work that has to be
+  //** done for the implementation of the frictional terms in the code
+
   UInt k = 0;
   UInt ntotal = 0;
 
@@ -131,20 +134,23 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
   UInt original = model_.increment->getSize() * Dim;
   UInt size = original + sm_.size();
 
+  //** the size variable at this point is computed by adding only the number
+  //** of slave nodes because for each slave node there's a lagrangian
+  //** multiplier for the normal contact assigned to it. In the case of
+  //** frictional contact, this variable will have to account for 2 (3)
+  //** multipliers for each in slave node in 2D (3D), accounting for the
+  //** tangential components.
+
   contact_status_ = std::map<UInt, bool>();
   status_change_ = std::map<UInt, int>();
 
-  //  cout<<"==========="<<endl;
   size_t ccc = 0;
   for (auto g : gaps_) {
     if (std::abs(g.second) <= 1.e-10) {
-      //      cout<<"slave -> "<<g.first<<endl;
-      //      cout<<"gap -> "<<g.second<<endl;
       contact_status_[g.first] = true;
       ++ccc;
     }
   }
-  //  cout<<ccc<<" nodes in contact"<<endl;
 
   Array<Real> solution(size);
   Array<Real> rhs(size);
@@ -152,6 +158,9 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
 
   // extend data structures to consider Lagrange multipliers
   K.resize(size);
+
+  //** with the right value of the 'size' variable, all these data structures
+  //** will be resized accordingly
 
   cout << std::boolalpha;
 
@@ -170,8 +179,6 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
 
     cd.niter_ = j;
 
-    //    this->dump();
-
     // assemble material matrix
     model_.assembleStiffnessMatrix();
 
@@ -181,6 +188,26 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
     // compute contribution to tangent matrix and residual
     Real dummy;
     computeTangentAndResidual(solution, rhs, sp, dummy, gn);
+
+    //** The computeTangentAndResidual is where the major development for the
+    //** frictional part will take place.
+    //** All the terms coded in this function into the stiffness matrix and the
+    //** force vector take into account only the normal contact component. The
+    //** implementation of the frictional part will include terms for the
+    //** tangential multipliers. The process I followed for the implementation
+    //** was to code the stiffness matrix terms from the book by Laursen
+    //** (Computational Contact and Impact Mechanics). I then took the terms
+    //** involving the lagrangian multiplier part from the thesis by Grzegorz
+    //** Pietrzak (Continuum mechanics modelling and augmented Lagrangian
+    //** formulation of large deformation frictional contact problems) as
+    //** these terms were missing in the Laursen book. Some little changes had
+    //** to be made into these terms, as Laursen and Pietrzak use different
+    //** conventions for the sign of the gap function. In Pietrzak's thesis,
+    //** the residual terms are given following Eqn. 6.20 (page 146), and the
+    //** stiffness terms in following equation 6.25 (page 149).
+    //** I suggest to start by the implementation of the Uzawa method, as it is
+    //** not required to code the tangential lagrangian multiplier terms of
+    //** Pietrzak
 
     // solve
     model_.template solve<IntegrationScheme2ndOrder::_displacement_corrector>(
@@ -192,19 +219,10 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
 
     // copy the solution of the system to increment for the lagrange multiplier
     size_t m = 0;
-    //    cout<<"------------"<<endl;
     std::vector<Real> multiplier_check(multipliers_.size());
     vector_type v_old(multipliers_.size());
     vector_type v_new(v_old);
     for (auto &pair : multipliers_) {
-
-      //      if (pair.second > 0) {
-      //        cout<<"Slave "<<pair.first<<endl;
-      //        cout<<"  Old multiplier: "<<pair.second<<endl;
-      //        cout<<"  New multiplier: "<<solution[original + m]<<endl;
-      //        cout<<"  Difference: "<<(pair.second - solution[original +
-      // m])<<endl;
-      //      }
 
       v_old[m] = pair.second;
       v_new[m] = v_old[m] + solution[original + m];
@@ -215,15 +233,13 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
       ++m;
     }
 
-    //    cout<<"change -> "<<(v_new - v_old)().norm()<<endl;
-
     Real sum_multiplier = 0.;
     for (auto m : multiplier_check)
       sum_multiplier += m * m;
 
-    //    Real norm1 = v_old.norm();
-    //    Real norm2 = v_new.norm();
-    //    Abs(x - y) <= Max(absTol, relTol * Max(Abs(x), Abs(y)))
+    //** this check basically computes the L_2 norm of the lagrange multiplier
+    //** difference, so this test may change when implementing the frictional
+    //** part
 
     Real mnorm = sqrt(sum_multiplier);
     Real abs_tol = cd[Multiplier_tol];
@@ -231,18 +247,8 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
     if (j == 0)
       fnorm = mnorm;
 
-    //    cout<<"std::max(abs_tol, rel_tol*mnorm): "<<std::max(abs_tol,
-    // rel_tol*mnorm)<<endl;
-    //    cout<<"test 1: mnorm <= abs_tol: "<<mnorm<<" <= "<<abs_tol<<" =
-    // "<<(mnorm <= abs_tol)<<endl;
-    //    cout<<"test 2: mnorm <= rel_tol*fnorm): "<<mnorm<<" <=
-    // "<<(abs_tol*abs_tol*fnorm)<<" = "<<(mnorm <=
-    // abs_tol*abs_tol*fnorm)<<endl;
-
     converged_multiplier =
         (mnorm <= abs_tol || mnorm <= abs_tol * abs_tol * fnorm);
-
-    //    converged_multiplier = sqrt(sum_multiplier) < cd[Multiplier_tol];
 
     model_.implicitCorr();
     model_.updateResidual();
@@ -254,12 +260,13 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
 
       size_t w = 10;
       cout << std::setw(2) << j << ": Primal: " << std::setw(w)
-           << std::setprecision(4) << std::right << nerror << " <= "
-           << cd[Newton_tol] << " = " << std::left << std::setw(5)
+           << std::setprecision(4) << std::right << nerror
+           << " <= " << cd[Newton_tol] << " = " << std::left << std::setw(5)
            << (nerror < cd[Newton_tol]) << " \tDual: " << std::setw(w)
-           << std::setprecision(4) << std::right << mnorm << " <= "
-           << cd[Multiplier_tol] << " = " << (mnorm <= cd[Multiplier_tol])
-           << ", " << std::setw(w) << mnorm << " <= " << abs_tol * abs_tol * fnorm << " = "
+           << std::setprecision(4) << std::right << mnorm
+           << " <= " << cd[Multiplier_tol] << " = "
+           << (mnorm <= cd[Multiplier_tol]) << ", " << std::setw(w) << mnorm
+           << " <= " << abs_tol * abs_tol * fnorm << " = "
            << (mnorm <= abs_tol * abs_tol * fnorm) << endl;
     }
 
@@ -303,6 +310,9 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
                       "You should first initialize the implicit solver and "
                       "assemble the stiffness matrix");
 
+  //** comments that start like this will comment on the work that has to be
+  //** done for the implementation of the frictional terms in the code
+
   // implementation of the Uzawa method for solving contact
   bool uzawa_converged = false;
   static UInt step = 0;
@@ -342,6 +352,18 @@ ContactResolution<Dim, _static, _augmented_lagrangian>::solveContactStepImpl(
 
       // compute contribution to tangent matrix and residual
       uzawa_converged = computeTangentAndResidual(lambda_new, sp, uerror, uz);
+
+      //** The computeTangentAndResidual is where the major development for the
+      //** frictional part will take place.
+      //** All the terms coded in this function into the stiffness matrix and
+      //** the force vector take into account only the normal contact component.
+      //** The implementation of the frictional part will include terms for the
+      //** tangential multipliers. The process I followed for the implementation
+      //** was to code the stiffness matrix terms from the book by Laursen
+      //** (Computational Contact and Impact Mechanics).
+      //** I suggest you start by the implementing the Uzawa method first,
+      //** before jumping to the more involved implementation of the tangential
+      //** lagrangian multiplier terms of Pietrzak
 
       // solve
       model_.template solve<IntegrationScheme2ndOrder::_displacement_corrector>(
@@ -749,7 +771,7 @@ template <> struct TangentTraits<3> {
   }
 
   //! Function template specialization for inversion of a \f$ 3 \times 3 \f$
-  //matrix.
+  // matrix.
   template <class matrix_type>
   static std::pair<matrix_type, Real> invert(matrix_type &A) {
     // obtain determinant of the matrix
@@ -1079,7 +1101,7 @@ bool ContactResolution<dim, _static, _augmented_lagrangian>::
       vector_type nu = master.normal();
       point_type nup(static_cast<const Real *>(nu.data()));
 
-//.      Real old_gap = gaps_[slave];
+      //      Real old_gap = gaps_[slave];
 
       // compute and save gap
       gap = -(nup * (s - p));
@@ -1091,14 +1113,18 @@ bool ContactResolution<dim, _static, _augmented_lagrangian>::
         if (gap < -1.e-10) {
           contact_status_[slave] = false;
           ++status_change_[slave];
-//          cout<<"["<<status_change_[slave]<<"] changing to non-contact status for node "<<slave<<". Gap from "<<old_gap<<" to "<<gap<<endl;
+          //          cout<<"["<<status_change_[slave]<<"] changing to
+          // non-contact status for node "<<slave<<". Gap from "<<old_gap<<" to
+          // "<<gap<<endl;
         }
 
       } else {
         if (gap >= -1.e-10) {
           contact_status_[slave] = true;
           ++status_change_[slave];
-//          cout<<"["<<status_change_[slave]<<"] changing to contact status for node "<<slave<<". Gap from "<<old_gap<<" to "<<gap<<endl;
+          //          cout<<"["<<status_change_[slave]<<"] changing to contact
+          // status for node "<<slave<<". Gap from "<<old_gap<<" to
+          // "<<gap<<endl;
         }
       }
     }
@@ -1196,11 +1222,6 @@ bool ContactResolution<dim, _static, _augmented_lagrangian>::
     // increase iterator
     ++it;
   }
-
-  //  int mmm = 0;
-  //  for (auto i : status_change_)
-  //    mmm = std::max(mmm, i.second);
-  //  cout << "Maximum status change -> " << mmm << endl;
 
   return true;
 }

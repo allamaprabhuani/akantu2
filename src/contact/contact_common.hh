@@ -32,14 +32,9 @@
 
 #include <map>
 
-
 #include "aka_visitor.hh"
 #include <array/expr.hpp>
 
-
-//#include "aka_point.hh"
-//#include "aka_visitor.hh"
-//#include "solid_mechanics_model.hh"
 #include "cppargparse.hh"
 
 //#define DEBUG_CONTACT 1
@@ -55,7 +50,7 @@ typedef array::Array<2, Real> matrix_type;
 using array::transpose;
 
 //! Enumerated type used for the Contact overloaded operator[] that returns real
-//values
+// values
 enum Contact_parameter_type {
   Epsilon,
   Alpha,
@@ -65,9 +60,8 @@ enum Contact_parameter_type {
   Newton_max_steps
 };
 
-
 //! Enumerated type used for the Contact overloaded operator[] that returns
-//boolean values
+// boolean values
 enum Contact_flag_type {
   Verbose,
   Automatic_penalty_parameter
@@ -90,7 +84,7 @@ struct EmptyType {};
 class NullType {};
 
 //! This functor is called when the visitor is not implemented for a particular
-//object.
+// object.
 template <class R> struct Discretization_visitor_default {
   template <class T> R operator()(T &t) {
     cout << "*** WARNING *** No implementation for discretization visitor"
