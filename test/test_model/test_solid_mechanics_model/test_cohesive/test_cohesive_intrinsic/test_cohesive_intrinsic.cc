@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   /// model initialization
   model.initFull();
 
-  model.limitInsertion(BC::_x, -0.26, -0.24);
+  model.limitInsertion(_x, -0.26, -0.24);
   model.insertIntrinsicElements();
 
   mesh.write("mesh_cohesive.msh");

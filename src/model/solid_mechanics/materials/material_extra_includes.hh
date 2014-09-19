@@ -33,10 +33,6 @@
 // visco-elastic materials
 #include "material_stiffness_proportional.hh"
 
-// elastic materials
-#include "material_elastic_orthotropic.hh"
-#include "material_elastic_linear_anisotropic.hh"
-
 // damage materials
 #include "material_brittle.hh"
 #include "material_damage_iterative.hh"
@@ -54,6 +50,4 @@
   ((2, (damage_iterative   , MaterialDamageIterative              )))   \
   ((2, (vreepeerlings      , MaterialVreePeerlings                )))   \
   ((2, (ve_stiffness_prop  , MaterialStiffnessProportional        )))   \
-  ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
-  ((2, (anisotropic        , MaterialElasticLinearAnisotropic     )))   \
   ((2, (visco_plastic      , MaterialViscoPlastic                 )))

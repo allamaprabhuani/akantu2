@@ -62,9 +62,6 @@
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
-using std::cout;
-using std::endl;
-
 const SolidMechanicsModelOptions default_solid_mechanics_model_options(_explicit_lumped_mass, false);
 
 /* -------------------------------------------------------------------------- */

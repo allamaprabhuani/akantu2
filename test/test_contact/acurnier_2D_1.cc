@@ -81,17 +81,17 @@ int main(int argc, char *argv[]) {
   // add master surface to find pairs
   cd.searchSurface("Contact");
   
-  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_x), "Top");
+  model.applyBC(BC::Dirichlet::FixedValue(0., _x), "Top");
 
   // fix entire contact body
-  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_x), "Bottom");
-  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_y), "Bottom");
+  model.applyBC(BC::Dirichlet::FixedValue(0., _x), "Bottom");
+  model.applyBC(BC::Dirichlet::FixedValue(0., _y), "Bottom");
   
   Real U = 0.5;
   Real Du = 0.01;
   for (Real u = Du; u <= U; u += Du) {
     
-    model.applyBC(BC::Dirichlet::FixedValue(-u, BC::_y), "Top");
+    model.applyBC(BC::Dirichlet::FixedValue(-u, _y), "Top");
     
     // solve contact step (no need to call solve on the model object)
     solveContactStep<_generalized_newton>(cd);

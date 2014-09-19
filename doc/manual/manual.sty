@@ -72,7 +72,7 @@
    \begin{tabular}{cccc}\\[-2ex]
      \toprule
      % \multicolumn{4}{l}{\textbf{{\normalsize Element properties}}} \\
-     Node ($i$) & Coord. 
+     Node ($i$) & Coord.
      \ifthenelse{\equal{#1}{1D}}{\elemcooroned}{}
      \ifthenelse{\equal{#1}{2D}}{\elemcoortwod}{}
      \ifthenelse{\equal{#1}{3D}}{\elemcoorthreed}{}
@@ -102,6 +102,7 @@
 %\usepackage{xparse}
 
 \newenvironment{MaterialDesc}[2]{
+\label{#2-app}
   Keyword: \code{#1}\par
   \noindent Description here: \ref{#2}\par
   \noindent Parameters:\par
@@ -115,7 +116,7 @@
 
 \newcommand{\matparam}[3]{\item \code{#1}: (\emph{#2}) #3}
 \newcommand{\matinherit}[1]{\usebox{#1}}
-
+\newcommand{\matlabel}[1]{\label{#1}\xspace(\ref{#1-app})}
 % Nice coloring
 \usepackage[dvipsnames,usenames,table]{xcolor}
 \definecolor{RED}{rgb}{1,0,0}
@@ -135,13 +136,15 @@
 \usepackage[lofdepth,lotdepth]{subfig}
 \usepackage{tikz}
 \usetikzlibrary{decorations}
+\usepackage{wrapfig}
+
 \renewcommand{\floatpagefraction}{.6}   % default: .5
 \renewcommand\topfraction{0.9}          % 90% of page top can be a float (Standard 0.7)
 \renewcommand\bottomfraction{0.1}       % 10% of page bottom can be a float (Standard 0.3)
 \renewcommand\textfraction{0.1}         % only 10% of page must to be text (Standard 0.2)
 
 % Removes parenthese around subfig number
-\renewcommand*{\thesubfigure}{\alph{subfigure}} 
+\renewcommand*{\thesubfigure}{\alph{subfigure}}
 
 % Create a new list style for C++
 \lstdefinestyle{C++}{

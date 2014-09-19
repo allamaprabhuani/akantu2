@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
   model.initParallel(partition);
   model.initFull();
 
-  model.limitInsertion(BC::_x, -0.01, 0.01);
+  model.limitInsertion(_x, -0.01, 0.01);
   model.insertIntrinsicElements();
 
   {

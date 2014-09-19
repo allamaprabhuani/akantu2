@@ -86,8 +86,8 @@ int main(int argc, char *argv[]) {
     velocity(n, 0) = strain_rate * position(n, 0);
 
   /// boundary conditions
-  model.applyBC(BC::Dirichlet::FixedValue(0, BC::_x), "Left_side");
-  model.applyBC(BC::Dirichlet::FixedValue(0, BC::_x), "Right_side");
+  model.applyBC(BC::Dirichlet::FixedValue(0, _x), "Left_side");
+  model.applyBC(BC::Dirichlet::FixedValue(0, _x), "Right_side");
 
   model.updateResidual();
 
@@ -121,8 +121,8 @@ int main(int argc, char *argv[]) {
     model.explicitCorr();
 
     /// apply boundary conditions
-    model.applyBC(BC::Dirichlet::IncrementValue(-disp_increment, BC::_x), "Left_side");
-    model.applyBC(BC::Dirichlet::IncrementValue( disp_increment, BC::_x), "Right_side");
+    model.applyBC(BC::Dirichlet::IncrementValue(-disp_increment, _x), "Left_side");
+    model.applyBC(BC::Dirichlet::IncrementValue( disp_increment, _x), "Right_side");
 
     if(s % 1 == 0) {
       //      model.dump();

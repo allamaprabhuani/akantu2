@@ -134,8 +134,8 @@ int main(int argc, char *argv[]) {
   cout<<cd;
   
   // apply boundary conditions
-  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_x), "rigid");
-  model.applyBC(BC::Dirichlet::FixedValue(0., BC::_y), "rigid");
+  model.applyBC(BC::Dirichlet::FixedValue(0., _x), "rigid");
+  model.applyBC(BC::Dirichlet::FixedValue(0., _y), "rigid");
   model.getBlockedDOFs()(7,0) = true;
   
   Real data[3][50];  // store results for printing
@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
   for (Real delta = step; delta <= Delta+step; delta += step) {
 
     // apply displacement at the top
-    model.applyBC(BC::Dirichlet::FixedValue(-delta, BC::_y), "top");
+    model.applyBC(BC::Dirichlet::FixedValue(-delta, _y), "top");
 
     // solve contact step (no need to call solve on the model object)
     solveContactStep<_uzawa>(cd);

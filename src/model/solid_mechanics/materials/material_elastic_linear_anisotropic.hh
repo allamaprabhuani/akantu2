@@ -84,10 +84,6 @@ public:
 protected:
   // compute C from Cprime
   void rotateCprime();
-  //worker function computing stress
-  template<bool viscous>
-  inline void computeStressWorker(ElementType el_type,
-                                  GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -104,6 +100,7 @@ protected:
   const static VoigtHelper<Dim> voigt_h;
   /// direction matrix and vectors
   std::vector<Vector<Real>*>  dir_vecs;
+
   Matrix<Real> rot_mat;
   /// Elastic stiffness tensor in material frame and full vectorised notation
   Matrix<Real> Cprime;
@@ -112,6 +109,7 @@ protected:
   /// eigenvalues of stiffness tensor
   Vector<Real> eigC;
   bool symmetric;
+
   /// viscous proportion
   Real alpha;
 

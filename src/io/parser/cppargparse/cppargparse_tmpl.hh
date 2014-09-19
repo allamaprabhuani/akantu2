@@ -182,6 +182,11 @@ ArgumentParser::Argument::operator T() const{
   return cast_helper<T>::cast(*this);
 }
 
+template<>
+inline ArgumentParser::Argument::operator unsigned int() const{
+  return cast_helper<int>::cast(*this);
+}
+
 template<class T>
 void ArgumentParser::addArgument(const std::string & name_or_flag,
 				 const std::string & help,

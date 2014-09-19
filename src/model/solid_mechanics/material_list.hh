@@ -42,6 +42,8 @@
 // elastic materials
 #include "material_elastic.hh"
 #include "material_neohookean.hh"
+#include "material_elastic_orthotropic.hh"
+#include "material_elastic_linear_anisotropic.hh"
 
 // visco-elastic materials
 #include "material_standard_linear_solid_deviatoric.hh"
@@ -58,6 +60,8 @@
 #define AKANTU_CORE_MATERIAL_LIST					\
   ((2, (elastic            , MaterialElastic                      )))	\
   ((2, (neohookean         , MaterialNeohookean                   )))	\
+  ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
+  ((2, (elastic_anisotropic, MaterialElasticLinearAnisotropic     )))   \
   ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))   \
   ((2, (marigo             , MaterialMarigo                       )))   \
   ((2, (mazars             , MaterialMazars                       )))	\

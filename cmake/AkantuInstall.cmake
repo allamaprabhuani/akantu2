@@ -111,6 +111,18 @@ configure_file(cmake/AkantuConfig.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfig.c
 configure_file(cmake/AkantuConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
 configure_file(cmake/AkantuUse.cmake "${PROJECT_BINARY_DIR}/AkantuUse.cmake" COPYONLY)
 
+
+# include(CMakePackageConfigHelpers)
+
+# configure_package_config_file(cmake/AkantuConfig.cmake.in ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
+#   INSTALL_DESTINATION "${CONF_REL_INCLUDE_DIR}lib/akantu/cmake"
+#   PATH_VARS "${CONF_REL_INCLUDE_DIR}/include" )
+
+# write_basic_package_version_file(${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake
+#   VERSION "${AKANTU_VERSION}"
+#   COMPATIBILITY SameMajorVersion)
+
+
 # Install the export set for use with the install-tree
 install(FILES ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
   ${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake

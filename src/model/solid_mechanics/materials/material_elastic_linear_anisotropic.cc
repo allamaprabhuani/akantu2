@@ -51,7 +51,7 @@ MaterialElasticLinearAnisotropic(SolidMechanicsModel & model,
   C(this->voigt_h.size, this->voigt_h.size),
   eigC(this->voigt_h.size),
   symmetric(symmetric),
-  alpha(0){
+  alpha(0) {
   AKANTU_DEBUG_IN();
 
   this->dir_vecs.push_back(new Vector<Real>(spatial_dimension));
@@ -205,49 +205,19 @@ void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-void MaterialElasticLinearAnisotropic<spatial_dimension>::
-computeStress(ElementType el_type, GhostType ghost_type) {
-  if (this->alpha == 0.) {
-    this->computeStressWorker<false>(el_type, ghost_type);
-  } else {
-    this->computeStressWorker<true>(el_type, ghost_type);
-  }
-}
-
-
-/* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
-template<bool viscous>
-void MaterialElasticLinearAnisotropic<spatial_dimension>::
-computeStressWorker(ElementType el_type, GhostType ghost_type) {
-
+void MaterialElasticLinearAnisotropic<spatial_dimension>::computeStress(ElementType el_type,
+									GhostType ghost_type) {
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
   AKANTU_DEBUG_IN();
 
-
   Array<Real>::iterator< Matrix<Real> > gradu_it =
     this->gradu(el_type, ghost_type).begin(spatial_dimension,
-                                            spatial_dimension);
+					   spatial_dimension);
   Array<Real>::iterator< Matrix<Real> > gradu_end =
     this->gradu(el_type, ghost_type).end(spatial_dimension,
-                                          spatial_dimension);
-
-  Array<Real> strain_rate(0, spatial_dimension * spatial_dimension,
-                          "strain_rate");
-  Array<Real>::iterator< Matrix<Real> > strain_rate_it;
-  if (viscous) {
-    const Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
-    Array<Real> & velocity = this->model->getVelocity();
-    this->model->getFEEngine().gradientOnQuadraturePoints(velocity, strain_rate,
-                                                     spatial_dimension, el_type,
-                                                     ghost_type,
-                                                     elem_filter);
-    strain_rate_it = strain_rate.begin(spatial_dimension, spatial_dimension);
-  }
-  this->stress(el_type, ghost_type).resize(this->gradu(el_type,
-                                                        ghost_type).getSize());
+					 spatial_dimension);
 
   UInt nb_quad_pts = gradu_end - gradu_it;
 
@@ -255,27 +225,52 @@ computeStressWorker(ElementType el_type, GhostType ghost_type) {
   // for efficient computation of stress
   Matrix<Real> voigt_strains(this->voigt_h.size, nb_quad_pts);
   Matrix<Real> voigt_stresses(this->voigt_h.size, nb_quad_pts);
-  Matrix<Real> * grad_u_dot;
+
   // copy strains
+  Matrix<Real> strain(spatial_dimension, spatial_dimension);
+
   for (UInt q = 0; gradu_it != gradu_end ; ++gradu_it, ++q) {
     Matrix<Real> & grad_u = *gradu_it;
-    if (viscous) {
-      grad_u_dot = &(*strain_rate_it);
+
+    for(UInt I = 0; I < this->voigt_h.size; ++I) {
+      Real voigt_factor = this->voigt_h.factors[I];
+      UInt i = this->voigt_h.vec[I][0];
+      UInt j = this->voigt_h.vec[I][1];
+
+      voigt_strains(I, q) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
     }
-    for (UInt i = 0 ; i < spatial_dimension ; ++i) {
-      for (UInt j = i ; j < spatial_dimension ; ++j) {
-        UInt I = this->voigt_h.mat[i][j];
-        voigt_strains(I, q) = 0.5 * this->voigt_h.factors[I]*(grad_u(j,i)
-                                                              + grad_u(i,j));
-        if (viscous) {
-          voigt_strains(I, q) += (0.5 * this->alpha * this->voigt_h.factors[I] *
-                                  (grad_u_dot->operator()(j, i)
-                                   + grad_u_dot->operator()(i, j)));
-        }
+  }
+
+
+  // compute the strain rate proportional part if needed
+  bool viscous = this->alpha == 0.; // only works id default value
+  if(viscous) {
+    Array<Real> strain_rate(0, spatial_dimension * spatial_dimension,
+			    "strain_rate");
+
+    Array<Real> & velocity = this->model->getVelocity();
+    const Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+
+    this->model->getFEEngine().gradientOnQuadraturePoints(velocity, strain_rate,
+							  spatial_dimension, el_type,
+							  ghost_type, elem_filter);
+
+    Array<Real>::matrix_iterator gradu_dot_it  = strain_rate.begin(spatial_dimension,
+								   spatial_dimension);
+    Array<Real>::matrix_iterator gradu_dot_end = strain_rate.end(spatial_dimension,
+								 spatial_dimension);
+
+    Matrix<Real> strain_dot(spatial_dimension, spatial_dimension);
+    for (UInt q = 0; gradu_dot_it != gradu_dot_end ; ++gradu_dot_it, ++q) {
+      Matrix<Real> & grad_u_dot = *gradu_dot_it;
+
+      for(UInt I = 0; I < this->voigt_h.size; ++I) {
+	Real voigt_factor = this->voigt_h.factors[I];
+	UInt i = this->voigt_h.vec[I][0];
+	UInt j = this->voigt_h.vec[I][1];
+
+	voigt_strains(I, q) = this->alpha * voigt_factor * (grad_u_dot(i, j) + grad_u_dot(j, i)) / 2.;
       }
-    }
-    if (viscous) {
-      ++strain_rate_it;
     }
   }
 
@@ -285,19 +280,19 @@ computeStressWorker(ElementType el_type, GhostType ghost_type) {
   // copy stresses back
   Array<Real>::iterator< Matrix<Real> > stress_it =
     this->stress(el_type, ghost_type).begin(spatial_dimension,
-                                            spatial_dimension);
+					    spatial_dimension);
+
   Array<Real>::iterator< Matrix<Real> > stress_end =
     this->stress(el_type, ghost_type).end(spatial_dimension,
-                                          spatial_dimension);
+					  spatial_dimension);
+
   for (UInt q = 0 ; stress_it != stress_end; ++stress_it, ++q) {
     Matrix<Real> & stress = *stress_it;
-    for (UInt i = 0 ;  i < spatial_dimension ; ++i) {
-      stress(i,i) = voigt_stresses(this->voigt_h.mat[i][i], q);
-      for (UInt j = i+1 ;  j < spatial_dimension ; ++j) {
-        UInt I = this->voigt_h.mat[i][j];
-        stress(j, i) =
-          stress(i, j) = voigt_stresses(I, q);
-      }
+
+    for(UInt I = 0; I < this->voigt_h.size; ++I) {
+      UInt i = this->voigt_h.vec[I][0];
+      UInt j = this->voigt_h.vec[I][1];
+      stress(i, j) = stress(j, i) = voigt_stresses(I, q);
     }
   }
 

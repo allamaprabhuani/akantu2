@@ -43,17 +43,12 @@ endif()
 
 include("${AKANTU_CMAKE_DIR}/AkantuLibraryDepends.cmake")
 
-# Dependancies
+# Dependencies
 include("${AKANTU_CMAKE_DIR}/AkantuConfigInclude.cmake")
-# foreach(_extra_opt ${AKANTU_OPTION_LIST})
-#   list(APPEND AKANTU_EXTRA_LIBRARIES ${AKANTU_${_extra_opt}_LIBRARIES})
-#   list(APPEND AKANTU_EXTRA_INCLUDE_DIR ${AKANTU_${_extra_opt}_INCLUDE_DIR})
-# endforeach()
 
 set(AKANTU_BUILD_TYPE @CMAKE_BUILD_TYPE@)
 
 # find_akantu_dependencies()
-
 set(AKANTU_LIBRARY akantu)
 if(AKANTU_HAS_CORE_CXX11)
   add_definitions(-std=c++0x)
@@ -61,3 +56,8 @@ endif()
 
 list(APPEND AKANTU_LIBRARIES ${AKANTU_LIBRARY} ${AKANTU_EXTRA_LIBRARIES})
 list(APPEND AKANTU_INCLUDE_DIR ${AKANTU_EXTRA_INCLUDE_DIR})
+
+# set(AKANTU_VERSION @AKANTU_VERSION@)
+# @PACKAGE_INIT@
+# set_and_check(AKANTU_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+# check_required_components(Akantu)

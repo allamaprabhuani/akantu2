@@ -241,16 +241,116 @@ Then, the specific array associated to a given element type can be obtained by
 where the first order 3-node triangular element was used in the presented piece
 of code.
 
-\section{Manipulating group of nodes and/or elements}
+\subsection{Vector \& Matrix}
 
-\akantu provides the possibility to manipulate 
+The \code{Array} iterators as presented in the previous section can be shaped as
+\code{Vector} or \code{Matrix}. This objects represent $1^{st}$ and $2^{nd}$
+order tensors. As such they come with some functionalities that we will present
+a bit more into detail in this here.
+
+\subsubsection{\texttt{Vector<T>}}
+
+\begin{enumerate}
+\item Accessors:
+  \begin{itemize}
+  \item \code{v(i)} gives the $i^{th}$ component of the vector \code{v}
+  \item \code{v[i]} gives the $i^{th}$ component of the vector \code{v}
+  \item \code{v.size()} gives the number of component
+  \end{itemize}
+\item Level 1: (results are scalars)
+  \begin{itemize}
+  \item \code{v.norm()} returns the geometrical norm ($L_2$)
+  \item \code{v.norm<N>()} returns the $L_N$ norm defined as $\left(\sum_i
+    |\code{v(i)}|^N\right)^{1/N}$. N can take any positive
+    integer value. There are also some particular values for the most commonly
+    used norms, \code{L\_1} for the Manhattan norm, \code{L\_2} for the
+    geometrical norm and \code{L\_inf} for the norm infinity.
+  \item \code{v.dot(x)} return the dot product of \code{v} and \code{x}
+  \item \code{v.distance(x)} return the geometrical norm of $\code{v} -
+    \code{x}$
+  \end{itemize}
+\item Level 2: (results are vectors)
+  \begin{itemize}
+  \item \code{v += s}, \code{v -= s}, \code{v *= s}, \code{v /= s} those are
+    element-wise operators that sum, substract, multiply or divide all the
+    component of \code{v} by the scalar \code{s}
+  \item \code{v += x}, \code{v -= x} sums or substracts the vector \code{x}
+    to/from \code{v}
+  \item \code{v.mul(A, x, alpha)} stores the result of $\alpha \mat{A} \vec{x}$ in \code{v},
+    $\alpha$ is equal to 1 by default
+  \item \code{v.solve(A, b)} stores the result of the resolution of the system $\mat{A} \vec{x} =
+    \vec{b}$ in \code{v}
+  \item \code{v.crossProduct(v1, v2)} computes the cross product of \code{v1} and \code{v2} and
+    stores the result in \code{v}
+  \end{itemize}
+\end{enumerate}
+
+\subsubsection{\texttt{Matrix<T>}}
+\begin{enumerate}
+\item Accessors:
+  \begin{itemize}
+  \item \code{A(i, j)} gives the component $A_{ij}$ of the matrix \code{A}
+  \item \code{A(i)} gives the $i^{th}$ column of the matrix as a \code{Vector}
+  \item \code{A[k]} gives the $k^{th}$ component of the matrix, matrices are
+    stored in a column major way, which means that to access $A_{ij}$, $k = i +
+    j M$
+  \item \code{A.rows()} gives the number of rows of \code{A} ($M$)
+  \item \code{A.cols()} gives the number of columns of \code{A} ($N$)
+  \item \code{A.size()} gives the number of component in the matrix ($M \times N$)
+  \end{itemize}
+\item Level 1: (results are scalars)
+
+  \begin{itemize}
+  \item \code{A.norm<N>()} returns the $L_N$ norm defined as $\left(\sum_i
+    |\code{A(i)}|^N\right)^{1/N}$. N can take any positive
+    integer value.
+  \item \code{A.norm()} is equivalent to \code{A.norm<L\_2>()}
+  \item \code{A.trace()} return the trace of \code{A}
+  \item \code{A.det()} return the determinant of \code{A}
+  \item \code{A.doubleDot(B)} return the double dot product of \code{A} and
+    \code{B}, $\mat{A}:\mat{B}$
+  \end{itemize}
+\item Level 3: (results are matrices)
+  \begin{itemize}
+  \item \code{A.eye(s)}, \code{Matrix<T>::eye(s)} fills/creates a matrix with
+    the $s\mat{I}$ with $\mat{I}$ the identity matrix
+  \item \code{A.inverse(B)} stores $\mat{B}^{-1}$ in \code{A}
+  \item \code{A.transpose()} returns  $\mat{A}^{t}$
+  \item \code{A.outerProduct(v1, v2)} stores $\vec{v_1} \vec{v_2}^{t}$ in
+    \code{A}
+  \item \code{C.mul<t\_A, t\_B>(A, B, alpha)}: stores the result of the product of
+    \code{A} and code{B} time the scalar \code{alpha} in \code{C}. \code{t\_A}
+    and \code{t\_B} are boolean defining if \code{A} and \code{B} should be
+    transposed or not.
+
+    \begin{tabular}{ccl}
+      \toprule
+      \code{t\_A} & \code{t\_B} & result \\
+      \midrule
+      false & false & $\mat{C} = \alpha \mat{A} \mat{B}$\\
+      false & true  & $\mat{C} = \alpha \mat{A} \mat{B}^t$\\
+      true  & false & $\mat{C} = \alpha \mat{A}^t \mat{B}$\\
+      true  & true  & $\mat{C} = \alpha \mat{A}^t \mat{B}^t$\\
+      \bottomrule
+    \end{tabular}
+  \item \code{A.eigs(d, V)} this method computes the eigenvalues and
+    eigenvectors of \code{A} and store the results in \code{d} and \code{V} such
+    that $\code{d(i)} = \lambda_i$ and $\code{V(i)} = \vec{v_i}$ with
+    $\mat{A}\vec{v_i} = \lambda_i\vec{v_i}$ and $\lambda_1 > ... > \lambda_i >
+    ... > \lambda_N$
+  \end{itemize}
+\end{enumerate}
+
+
+\section{Manipulating group of nodes and/or elements}
+\akantu provides the possibility to manipulate
 subgroups of elements and nodes.
-Any \code{ElementGroup} and/or \code{NodeGroup} must be managed 
-by a \code{GroupManager}. Such a manager has the role to 
-associate group objects to names. This is a useful feature, 
-in particular for the application of the boundary conditions, 
+Any \code{ElementGroup} and/or \code{NodeGroup} must be managed
+by a \code{GroupManager}. Such a manager has the role to
+associate group objects to names. This is a useful feature,
+in particular for the application of the boundary conditions,
 as will be demonstrated in section \ref{sect:smm:boundary}.
-To most general group manager is the \code{Mesh} class 
+To most general group manager is the \code{Mesh} class
 which inheritates from the \code{GroupManager} class.
 
 For instance, the following code shows how to request
@@ -267,12 +367,11 @@ an element group to a mesh:
 
 
 \subsection{The \texttt{NodeGroup} object}
-
 A group of nodes is stored in \code{NodeGroup} objects.
 They are quite simple objects which store the indexes
-of the selected nodes in a \code{Array<UInt>}. 
-Nodes are selected by adding them when calling 
-\code{NodeGroup::add}. For instance you can select nodes 
+of the selected nodes in a \code{Array<UInt>}.
+Nodes are selected by adding them when calling
+\code{NodeGroup::add}. For instance you can select nodes
 having a positive $X$ coordinate with the following code:
 \begin{cpp}
   Array<Real> & nodes = mesh.getNodes();
@@ -284,16 +383,15 @@ having a positive $X$ coordinate with the following code:
   UInt index = 0;
 
   for (; it != end ; ++it , ++index){
-    const Vector<Real> & position = *it; 
+    const Vector<Real> & position = *it;
     if (position(0) > 0) group.add(index);
-  }  
+  }
 \end{cpp}
 
 \subsection{The \texttt{ElementGroup} object}
-
 A group of elements is stored in \code{ElementGroup} objects.
-Since a group can contain elements of various types 
-the \code{ElementGroup} object stores indexes in 
+Since a group can contain elements of various types
+the \code{ElementGroup} object stores indexes in
 a \code{ElementTypeMapArray<UInt>} object.
 Then elements can be added to the group by calling \code{addElement}.
 
@@ -313,9 +411,9 @@ has a positive $X$ coordinate can be made with:
     for(UInt e = 0; e < nb_element; ++e) {
       ElementType type = *it;
       mesh.getBarycenter(e, type, barycenter.storage());
-      if (barycenter(0) > 0) group.add(type,e); 
+      if (barycenter(0) > 0) group.add(type,e);
     }
-  }  
+  }
 \end{cpp}
 
 

@@ -39,11 +39,7 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 namespace BC {
-  enum Axis {
-    _x = 0,
-    _y = 1,
-    _z = 2,
-  };
+  typedef ::akantu::SpacialDirection Axis;
 
   struct Functor {
     enum Type {

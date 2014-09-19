@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
   std::cout << model << std::endl;
 
   /// Dirichlet boundary conditions
-  model.applyBC(BC::Dirichlet::FixedValue(0.0, BC::_x), "Fixed");
-  model.applyBC(BC::Dirichlet::FixedValue(0.0, BC::_y), "Fixed");
+  model.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "Fixed");
+  model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "Fixed");
 
   // Boundary condition (Neumann)
   Matrix<Real> stress(2,2);

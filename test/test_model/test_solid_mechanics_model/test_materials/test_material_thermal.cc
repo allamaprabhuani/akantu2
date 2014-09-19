@@ -1,11 +1,11 @@
 /**
- * @file   test_solid_mechanics_model_square.cc
+ * @file   test_material_thermal.cc
+
+ * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @date   Thu 11 21 13:48:26 2013
  *
- * @date   Wed Sep 22 13:39:02 2010
- *
- * @brief  test of the class SolidMechanicsModel
+ * @brief  test of the class akantu::MaterialThermal
  *
  * @section LICENSE
  *
@@ -36,8 +36,7 @@
 /* -------------------------------------------------------------------------- */
 using namespace akantu;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   debug::setDebugLevel(dblWarning);
   initialize("material_thermal.dat", argc, argv);
 

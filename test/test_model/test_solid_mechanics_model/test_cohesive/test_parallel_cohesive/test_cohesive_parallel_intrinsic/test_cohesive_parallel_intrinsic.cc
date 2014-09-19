@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 
   model.initFull();
 
-  model.limitInsertion(BC::_x, -0.26, -0.24);
+  model.limitInsertion(_x, -0.26, -0.24);
   model.insertIntrinsicElements();
 
   debug::setDebugLevel(dblDump);

@@ -103,65 +103,6 @@ set(AKANTU_CORE_FILES
   fe_engine/shape_linked_inline_impl.cc
   fe_engine/element.hh
 
-
-#  fem/by_element_type.hh
-
-#  fem/by_element_type_tmpl.hh
-#
-#  fem/element_class.cc
-#  fem/element_class.hh
-#  fem/element.hh
-#  fem/element_class_tmpl.hh
-#  fem/element_classes/element_class_hexahedron_8_inline_impl.cc
-#  fem/element_classes/element_class_pentahedron_6_inline_impl.cc
-#  fem/element_classes/element_class_point_1_inline_impl.cc
-#  fem/element_classes/element_class_quadrangle_4_inline_impl.cc
-#  fem/element_classes/element_class_quadrangle_8_inline_impl.cc
-#  fem/element_classes/element_class_segment_2_inline_impl.cc
-#  fem/element_classes/element_class_segment_3_inline_impl.cc
-#  fem/element_classes/element_class_tetrahedron_10_inline_impl.cc
-#  fem/element_classes/element_class_tetrahedron_4_inline_impl.cc
-#  fem/element_classes/element_class_triangle_3_inline_impl.cc
-#  fem/element_classes/element_class_triangle_6_inline_impl.cc
-#
-#  fem/element_group.cc
-#  fem/element_group.hh
-#  fem/element_group_inline_impl.cc
-#  fem/fem.cc
-#  fem/fem.hh
-#  fem/fem_inline_impl.cc
-#  fem/fem_template.hh
-#  fem/fem_template_tmpl.hh
-#  fem/geometrical_data_tmpl.hh
-#  fem/geometrical_element.cc
-#  fem/group_manager.cc
-#  fem/group_manager.hh
-#  fem/group_manager_inline_impl.cc
-#  fem/integration_element.cc
-#  fem/integrator.hh
-#  fem/integrator_gauss.hh
-#  fem/integrator_gauss_inline_impl.cc
-#  fem/interpolation_element.cc
-#  fem/interpolation_element_tmpl.hh
-#  fem/mesh.cc
-#  fem/mesh.hh
-#  fem/mesh_filter.hh
-#  fem/mesh_data.cc
-#  fem/mesh_data.hh
-#  fem/mesh_data_tmpl.hh
-#  fem/mesh_inline_impl.cc
-#  fem/node_group.cc
-#  fem/node_group.hh
-#  fem/node_group_inline_impl.cc
-#  fem/shape_functions.hh
-#  fem/shape_functions_inline_impl.cc
-#  fem/shape_lagrange.cc
-#  fem/shape_lagrange.hh
-#  fem/shape_lagrange_inline_impl.cc
-#  fem/shape_linked.cc
-#  fem/shape_linked.hh
-#  fem/shape_linked_inline_impl.cc
-
   io/dumper/dumpable.hh
   io/dumper/dumpable.cc
   io/dumper/dumpable_inline_impl.hh
@@ -249,11 +190,6 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/material_selector_tmpl.hh
   model/solid_mechanics/materials/internal_field.hh
   model/solid_mechanics/materials/internal_field_tmpl.hh
-  model/solid_mechanics/materials/material_elastic.cc
-  model/solid_mechanics/materials/material_elastic.hh
-  model/solid_mechanics/materials/material_elastic_inline_impl.cc
-  model/solid_mechanics/materials/material_thermal.cc
-  model/solid_mechanics/materials/material_thermal.hh
   model/solid_mechanics/materials/random_internal_field.hh
   model/solid_mechanics/materials/random_internal_field_tmpl.hh
   model/solid_mechanics/solid_mechanics_model.cc
@@ -267,6 +203,15 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/plane_stress_toolbox_tmpl.hh
 
 
+  model/solid_mechanics/materials/material_elastic.cc
+  model/solid_mechanics/materials/material_elastic.hh
+  model/solid_mechanics/materials/material_elastic_inline_impl.cc
+  model/solid_mechanics/materials/material_thermal.cc
+  model/solid_mechanics/materials/material_thermal.hh
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic.cc
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic.hh
+  model/solid_mechanics/materials/material_elastic_orthotropic.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic.hh
   model/solid_mechanics/materials/material_damage/material_damage.hh
   model/solid_mechanics/materials/material_damage/material_damage_tmpl.hh
   model/solid_mechanics/materials/material_damage/material_marigo.cc
@@ -286,6 +231,8 @@ set(AKANTU_CORE_FILES
   model/solid_mechanics/materials/material_plastic/material_linear_isotropic_hardening_inline_impl.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.cc
   model/solid_mechanics/materials/material_viscoelastic/material_standard_linear_solid_deviatoric.hh
+
+
 
   solver/solver.cc
   solver/solver.hh

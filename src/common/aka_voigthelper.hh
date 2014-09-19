@@ -35,42 +35,43 @@
 
 __BEGIN_AKANTU__
 
+
+/* -------------------------------------------------------------------------- */
 template <UInt dim>
 class VoigtHelper {
-  public:
-    /// transfer the B matrix to a Voigt notation B matrix
-    static void transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
-          Matrix<Real> & Bvoigt,
-          UInt nb_nodes_per_element);
+public:
+  /// transfer the B matrix to a Voigt notation B matrix
+  inline static void transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
+                                               Matrix<Real> & Bvoigt,
+                                               UInt nb_nodes_per_element);
 
-    /// transfer the BNL matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
-    static void transferBMatrixToBNL(const Matrix<Real> & B,
-          Matrix<Real> & Bvoigt,
-          UInt nb_nodes_per_element);
+  /// transfer the BNL matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
+  inline static void transferBMatrixToBNL(const Matrix<Real> & B,
+					  Matrix<Real> & Bvoigt,
+					  UInt nb_nodes_per_element);
 
-    /// transfer the BL2 matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
-    static void transferBMatrixToBL2(const Matrix<Real> & B, const Matrix<Real> & grad_u,
-          Matrix<Real> & Bvoigt,
-          UInt nb_nodes_per_element);
+  /// transfer the BL2 matrix to a Voigt notation B matrix (See Bathe et al. IJNME vol 9, 1975)
+  inline static void transferBMatrixToBL2(const Matrix<Real> & B, const Matrix<Real> & grad_u,
+					  Matrix<Real> & Bvoigt,
+					  UInt nb_nodes_per_element);
 
-  public:
-    const static UInt size;
-    // matrix of vector index I as function of tensor indices i,j
-    const static UInt mat[dim][dim];
-    // array of matrix indices ij as function of vector index I
-    const static UInt vec[dim*dim][2];
-    // factors to multiply the strain by for voigt notation
-    const static Real factors[dim*(dim-(dim-1)/2)];
-
+public:
+  const static UInt size;
+  // matrix of vector index I as function of tensor indices i,j
+  const static UInt mat[dim][dim];
+  // array of matrix indices ij as function of vector index I
+  const static UInt vec[dim*dim][2];
+  // factors to multiply the strain by for voigt notation
+  const static Real factors[dim*(dim-(dim-1)/2)];
 };
 
 template <UInt dim> const UInt VoigtHelper<dim>::size = dim*(dim-(dim-1)/2);
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
-							Matrix<Real> & Bvoigt,
-							UInt nb_nodes_per_element) {
+inline void VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
+							       Matrix<Real> & Bvoigt,
+							       UInt nb_nodes_per_element) {
   Bvoigt.clear();
 
   for (UInt i = 0; i < dim; ++i)
@@ -109,23 +110,89 @@ void VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(const Matrix<Real> & B,
 
 /* -------------------------------------------------------------------------- */
 template<UInt dim>
-void VoigtHelper<dim>::transferBMatrixToBNL(const Matrix<Real> & B,
-        Matrix<Real> & Bvoigt,
-        UInt nb_nodes_per_element) {
+inline void VoigtHelper<dim>::transferBMatrixToBNL(const Matrix<Real> & B,
+						   Matrix<Real> & Bvoigt,
+						   UInt nb_nodes_per_element) {
+  Bvoigt.clear();
 
-    Bvoigt.clear();
-
-    //see Finite element formulations for large deformation dynamic analysis, Bathe et al. IJNME vol 9, 1975, page 364 B_{NL}
-
-    for (UInt i = 0; i < dim; ++i) {
-        for (UInt m = 0; m < nb_nodes_per_element; ++m) {
-            for (UInt n = 0; n < dim; ++n) {
-                //std::cout << B(n, m) << std::endl;
-              Bvoigt(i * dim + n, m * dim + i) = B(n, m);
-            }
-        }
+  //see Finite element formulations for large deformation dynamic analysis,
+  //Bathe et al. IJNME vol 9, 1975, page 364 B_{NL}
+  for (UInt i = 0; i < dim; ++i) {
+    for (UInt m = 0; m < nb_nodes_per_element; ++m) {
+      for (UInt n = 0; n < dim; ++n) {
+        //std::cout << B(n, m) << std::endl;
+        Bvoigt(i * dim + n, m * dim + i) = B(n, m);
+      }
     }
-    //TODO: Verify the 2D and 1D case
+  }
+  //TODO: Verify the 2D and 1D case
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void VoigtHelper<1>::transferBMatrixToBL2(const Matrix<Real> & B,
+                                                 const Matrix<Real> & grad_u,
+                                                 Matrix<Real> & Bvoigt,
+                                                 UInt nb_nodes_per_element) {
+  Bvoigt.clear();
+  for (UInt j = 0; j < nb_nodes_per_element; ++j)
+    for (UInt k = 0; k < 2; ++k)
+      Bvoigt(0, j * 2 + k) = grad_u(k, 0) * B(0, j);
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void VoigtHelper<3>::transferBMatrixToBL2(const Matrix<Real> & B,
+						 const Matrix<Real> & grad_u,
+						 Matrix<Real> & Bvoigt,
+						 UInt nb_nodes_per_element) {
+  Bvoigt.clear();
+
+  for (UInt i = 0; i < 3; ++i)
+    for (UInt j = 0; j < nb_nodes_per_element; ++j)
+      for (UInt k = 0; k < 3; ++k)
+        Bvoigt(i, j * 3 + k) = grad_u(k, i) * B(i, j);
+
+  for (UInt i = 3; i < 6; ++i) {
+    for (UInt j = 0; j < nb_nodes_per_element; ++j) {
+      for (UInt k = 0; k < 3; ++k){
+        UInt aux = i-3;
+        for (UInt m = 0; m < 3; ++m) {
+          if (m != aux) {
+            UInt index1 = m;
+            UInt index2 = 3 - m - aux;
+            Bvoigt(i, j * 3 + k) += grad_u(k, index1) * B(index2, j);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template<>
+inline void VoigtHelper<2>::transferBMatrixToBL2(const Matrix<Real> & B,
+						 const Matrix<Real> & grad_u,
+						 Matrix<Real> & Bvoigt,
+						 UInt nb_nodes_per_element) {
+
+  Bvoigt.clear();
+
+  for (UInt i = 0; i < 2; ++i)
+    for (UInt j = 0; j < nb_nodes_per_element; ++j)
+      for (UInt k = 0; k < 2; ++k)
+        Bvoigt(i, j * 2 + k) = grad_u(k, i) * B(i, j);
+
+  for (UInt j = 0; j < nb_nodes_per_element; ++j) {
+    for (UInt k = 0; k < 2; ++k) {
+      for (UInt m = 0; m < 2; ++m) {
+        UInt index1 = m;
+        UInt index2 = (2 - 1) - m;
+        Bvoigt(2, j * 2 + k) += grad_u(k, index1) * B(index2, j);
+      }
+    }
+  }
 }
 
 __END_AKANTU__

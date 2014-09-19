@@ -1,4 +1,3 @@
-
 #ifndef __AKANTU_DUMPER_MATERIAL_PADDERS_HH__
 #define __AKANTU_DUMPER_MATERIAL_PADDERS_HH__
 /* -------------------------------------------------------------------------- */
@@ -17,7 +16,7 @@ class MaterialPadder : public PadderGeneric<Vector<T>, R > {
   /* ------------------------------------------------------------------------ */
 
 public:
-  MaterialPadder(const SolidMechanicsModel & model) : 
+  MaterialPadder(const SolidMechanicsModel & model) :
     model(model),
     element_index_by_material(model.getElementIndexByMaterial()) { }
 
@@ -57,7 +56,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 template <UInt spatial_dimension>
-class StressPadder : 
+class StressPadder :
   public MaterialPadder<Real,Matrix<Real> > {
 
 public:
@@ -68,9 +67,9 @@ public:
 
   inline Matrix<Real> func(const Vector<Real> & in, Element global_element_id){
 
-    UInt nrows = spatial_dimension;    
+    UInt nrows = spatial_dimension;
     UInt ncols = in.size() / nrows;
-    UInt nb_data = in.size() / ncols;
+    UInt nb_data = in.size() / (ncols*ncols);
 
     Matrix<Real> stress = this->pad(in, nrows,ncols, nb_data);
     const Material & material = this->getMaterialFromGlobalIndex(global_element_id);
@@ -96,14 +95,14 @@ public:
 template<UInt spatial_dimension>
 class StrainPadder : public MaterialPadder<Real, Matrix<Real> > {
 public:
-  StrainPadder(const SolidMechanicsModel & model) : 
+  StrainPadder(const SolidMechanicsModel & model) :
     MaterialPadder<Real, Matrix<Real> >(model) {
     this->setPadding(3,3);
   }
 
   inline Matrix<Real> func(const Vector<Real> & in, Element global_element_id){
 
-    UInt nrows = spatial_dimension;    
+    UInt nrows = spatial_dimension;
     UInt ncols = in.size() / nrows;
     UInt nb_data = in.size() / ncols;
 

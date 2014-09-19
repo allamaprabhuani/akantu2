@@ -3,11 +3,42 @@
 
 \section{Linear elastic isotropic}
 
-\begin{MaterialDesc}{elastic}{ssect:smm:linear-elastic}
+\begin{MaterialDesc}{elastic}{ssect:smm:linear-elastic-isotropic}
 \matparam{rho}{Real}{Density}
 \matparam{E}{Real}{Young's modulus}
 \matparam{nu}{Real}{Poisson's ratio}
 \matparam{Plane\_Stress}{bool}{Plane stress simplification (only 2D problems)}
+\end{MaterialDesc}
+
+\section{Linear elastic anisotropic}
+\begin{MaterialDesc}{elastic\_anisotropic}{ssect:smm:linear-elastic-anisotropic}
+\matparam{rho}{Real}{Density}
+\matparam{n1}{Vector<Real>}{Direction of the main material axis}
+\matparam{n2}{Vector<Real>}{Direction of the second material axis (if
+  applicable)}
+\matparam{n3}{Vector<Real>}{Direction of the third material axis (if
+  applicable)}
+\matparam{C..}{Real}{Coefficient ij of the material tensor C (all the 36 values
+  in Voigt notation can be entered .)}
+\end{MaterialDesc}
+
+\section{Linear elastic orthotropic}
+\begin{MaterialDesc}{elastic\_orthotropic}{ssect:smm:linear-elastic-orthotropic}
+\matparam{rho}{Real}{Density}
+\matparam{n1}{Vector<Real>}{Direction of the main material axis}
+\matparam{n2}{Vector<Real>}{Direction of the second material axis (if
+  applicable)}
+\matparam{n3}{Vector<Real>}{Direction of the third material axis (if
+  applicable)}
+\matparam{E1  }{Real}{Young's modulus (n1)}
+\matparam{E2  }{Real}{Young's modulus (n2)}
+\matparam{E3  }{Real}{Young's modulus (n3)}
+\matparam{nu12}{Real}{Poisson's ratio (12)}
+\matparam{nu13}{Real}{Poisson's ratio (13)}
+\matparam{nu23}{Real}{Poisson's ratio (23)}
+\matparam{G12 }{Real}{Shear modulus (12)}
+\matparam{G13 }{Real}{Shear modulus (13)}
+\matparam{G23 }{Real}{Shear modulus (23)}
 \end{MaterialDesc}
 
 
@@ -37,7 +68,6 @@
 \matparam{rho}{Real}{Density}
 \matparam{E}{Real}{Young's modulus}
 \matparam{nu}{Real}{Poisson's ratio}
-\matparam{Plane\_Stress}{bool}{Plane stress simplification (only 2D problems)}
 \matparam{h}{Real}{Hardening modulus}
 \matparam{sigma\_y}{Real}{Yielding stress}
 \end{MaterialDesc}

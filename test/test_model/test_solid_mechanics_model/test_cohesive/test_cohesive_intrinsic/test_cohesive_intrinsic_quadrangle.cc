@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
   /// model initialization
   model.initFull();
 
-  model.limitInsertion(BC::_x, -0.01, 0.01);
+  model.limitInsertion(_x, -0.01, 0.01);
   model.insertIntrinsicElements();
 
   // mesh.write("mesh_cohesive_quadrangle.msh");

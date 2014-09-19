@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 
 
   model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
-  model.limitInsertion(BC::_y, -0.30, -0.20);
+  model.limitInsertion(_y, -0.30, -0.20);
   model.updateAutomaticInsertion();
 
   // debug::setDebugLevel(dblDump);

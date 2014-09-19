@@ -101,17 +101,16 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   Real Gamma;
 
-  if (Dim == 3) 
+  if (Dim == 3)
     Gamma = 1/(1 - nu12 * nu21 - nu23 * nu32 - nu31 * nu13 - 2 * nu21 * nu32 * nu13);
 
-  if (Dim == 2) 
+  if (Dim == 2)
     Gamma = 1/(1 - nu12 * nu21);
 
- 
   // Lamé's first parameters
   this->Cprime(0, 0) = E1 * (1 - nu23 * nu32) * Gamma;
   this->Cprime(1, 1) = E2 * (1 - nu13 * nu31) * Gamma;
-  if (Dim == 3) 
+  if (Dim == 3)
     this->Cprime(2, 2) = E3 * (1 - nu12 * nu21) * Gamma;
 
   // normalised poisson's ratio's
@@ -131,7 +130,7 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
     this->Cprime(2, 2) = G12;
 
 
-  /* 1) rotation of C into the global frame --------------------------------- */
+  /* 1) rotation of C into the global frame */
   this->rotateCprime();
   this->C.eig(this->eigC);
 
@@ -141,17 +140,15 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
 template<UInt dim>
 inline void MaterialElasticOrthotropic<dim>::computePotentialEnergyOnQuad(const Matrix<Real> & grad_u,
-							       const Matrix<Real> & sigma,
-							       Real & epot) {
+                                                               const Matrix<Real> & sigma,
+                                                               Real & epot) {
   epot = .5 * sigma.doubleDot(grad_u);
 }
 
 /* -------------------------------------------------------------------------- */
-
-
 template<UInt spatial_dimension>
 void MaterialElasticOrthotropic<spatial_dimension>::computePotentialEnergy(ElementType el_type,
-									   GhostType ghost_type) {
+                                                                           GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(!this->finite_deformation,"finite deformation not possible in material orthotropic (TO BE IMPLEMENTED)");
@@ -161,10 +158,10 @@ void MaterialElasticOrthotropic<spatial_dimension>::computePotentialEnergy(Eleme
   Array<Real>::scalar_iterator epot = this->potential_energy(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  
+
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);
   ++epot;
-  
+
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
@@ -173,7 +170,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::computePotentialEnergy(Eleme
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
 void MaterialElasticOrthotropic<spatial_dimension>::computePotentialEnergyByElement(ElementType type, UInt index,
-									 Vector<Real> & epot_on_quad_points) {
+                                                                         Vector<Real> & epot_on_quad_points) {
 
   AKANTU_DEBUG_ASSERT(!this->finite_deformation,"finite deformation not possible in material orthotropic (TO BE IMPLEMENTED)");
 

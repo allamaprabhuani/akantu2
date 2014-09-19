@@ -73,20 +73,33 @@ The following sections describe the constitutive models implemented in
 parameters for all materials of \akantu is provided.
 
 
-\subsection{Elasticity\label{ssect:smm:linear-elastic}}\index{Material!Elastic}
-The elastic law is a commonly used constitutive relationship that can
-be used for a wide range of engineering materials (\eg metals,
-concrete, rock, wood, glass, rubber, etc.) provided that the strains
-remain small (\ie small deformation and stress lower than yield
-strength). The linear elastic behavior is described by Hooke's law,
-which states that the stress is linearly proportional to the applied
-strain (material behaves like an ideal spring), as illustrated in
-Figure~\ref{fig:smm:cl:elastic}.
+\subsection{Elasticity}\index{Material!Elastic}
+
+The elastic law is a commonly used constitutive relationship that can be used
+for a wide range of engineering materials (\eg metals, concrete, rock, wood,
+glass, rubber, etc.) provided that the strains remain small (\ie small
+deformation and stress lower than yield strength).
+
+The elastic laws are often expressed as $\mat{\sigma} =
+\mat{C}:\mat{\varepsilon}$ with where $\mat{\sigma}$ is the Cauchy stress tensor,
+$\mat{\varepsilon}$ represents the infinitesimal strain tensor and $\mat{C}$ is the
+elastic modulus tensor.
+
+\subsubsection{Linear isotropic\matlabel{ssect:smm:linear-elastic-isotropic}}
+
+The linear isotropic elastic behavior is described by Hooke's law, which states
+that the stress is linearly proportional to the applied strain (material behaves
+like an ideal spring), as illustrated in Figure~\ref{fig:smm:cl:elastic}.
 \begin{figure}[!htb]
   \begin{center}
 
     \subfloat[]{
-      \includegraphics[width=0.4\textwidth,keepaspectratio=true]{figures/stress_strain_el.pdf}
+      \begin{tikzpicture}
+	\draw[thick,latex-latex] (0,5) node[left] {$\sigma$} |- (5,0) node (x) [right, below] {$\varepsilon$};
+	\draw[thin] (1.5,1.5) -- (2.5,1.5) -- (2.5,2.5) node [midway, right] {E};
+	\draw[very thick,color=red] (0,0) -- (4,4);
+	\draw[very thick,latex-latex,color=red] (1,1) -- (3,3);
+      \end{tikzpicture}
       \label{fig:smm:cl:elastic:stress_strain} }
     \hspace{0.05\textwidth} \subfloat[]{
       \raisebox{0.125\textwidth}{\includegraphics[width=0.25\textwidth,keepaspectratio=true]{figures/hooke_law.pdf}}
@@ -101,27 +114,166 @@ displacements is: % First the strain is computed (at every gauss
 point) from the displacements as follows:
 \begin{equation}
   \label{eqn:smm:strain_inf}
-  \mat{\epsilon} =
-  \frac{1}{2} \left[ \mat{F}-\mat{I}+(\mat{F}-\mat{I})^T \right]
+  \mat{\varepsilon} =
+  \frac{1}{2} \left[ \nabla_0 \vec{u}+\nabla_0 \vec{u}^T \right]
 \end{equation}
-where $\mat{\epsilon}$ represents the infinitesimal strain tensor,
-$\mat{F} = \nabla_{\!\!\vec{X}}\vec{x}$ the deformation gradient
-tensor and $\mat{I}$ the identity matrix. The constitutive equation
+where $\mat{\varepsilon}$ represents the infinitesimal strain tensor,
+$\nabla_{0}\vec{u}$ the displacement gradient
+tensor according to the initial configuration. The constitutive equation
 for isotropic homogeneous media can be expressed as:
 \begin{equation}
   \label{eqn:smm:material:constitutive_elastic}
-  \mat{\sigma } =\lambda\mathrm{tr}(\mat{\epsilon})\mat{I}+2 \mu\mat{\epsilon}
+  \mat{\sigma } =\lambda\mathrm{tr}(\mat{\varepsilon})\mat{I}+2 \mu\mat{\varepsilon}
 \end{equation}
 where $\mat{\sigma}$ is the Cauchy stress tensor
 ($\lambda$ and $\mu$ are the the first and second Lame's
-coefficients). Besides the name and density, one has to specify the
-following properties in the material file: \code{E} (Young's modulus),
-\code{nu} (Poisson's ratio) and (for 2D) \code{Plane\_Stress} (if set
-to zero or not specified plane strain conditions are assumed for a
-plain analysis, otherwise plane stress conditions are applied).
+coefficients).
+
+In Voigt notation this correspond to
+\begin{align}
+  \left[\begin{array}{c}
+      \sigma_{11}\\
+      \sigma_{22}\\
+      \sigma_{33}\\
+      \sigma_{23}\\
+      \sigma_{13}\\
+      \sigma_{12}\\
+    \end{array}\right]
+  &= \frac{E}{(1+\nu)(1-2\nu)}\left[
+    \begin{array}{cccccc}
+      1-\nu & \nu   & \nu   & 0 & 0 & 0\\
+      \nu   & 1-\nu & \nu   & 0 & 0 & 0\\
+      \nu   & \nu   & 1-\nu & 0 & 0 & 0\\
+      0     &  0    &  0    & \frac{1-2\nu}{2} & 0 & 0 \\
+      0     &  0    &  0    & 0 & \frac{1-2\nu}{2} & 0 \\
+      0     &  0    &  0    & 0 & 0 & \frac{1-2\nu}{2} \\
+    \end{array}\right]
+  \left[\begin{array}{c}
+      \varepsilon_{11}\\
+      \varepsilon_{22}\\
+      \varepsilon_{33}\\
+      2\varepsilon_{23}\\
+      2\varepsilon_{13}\\
+      2\varepsilon_{12}\\
+    \end{array}\right]
+\end{align}
+
+\subsubsection{Linear anisotropic\matlabel{ssect:smm:linear-elastic-anisotropic}}
+This formulation is not sufficient to represent all elastic material
+behavior. Some materials have characteristic orientation that have to be taken
+into account. To represent this anisotropy a more general stress-strain law has
+to be used. For this we define the elastic modulus tensor as follow:
+
+\begin{align}
+  \left[\begin{array}{c}
+      \sigma_{11}\\
+      \sigma_{22}\\
+      \sigma_{33}\\
+      \sigma_{23}\\
+      \sigma_{13}\\
+      \sigma_{12}\\
+    \end{array}\right]
+  &= \left[
+    \begin{array}{cccccc}
+      c_{11} & c_{12} & c_{13} & c_{14} & c_{15} & c_{16}\\
+      c_{21} & c_{22} & c_{23} & c_{24} & c_{25} & c_{26}\\
+      c_{31} & c_{32} & c_{33} & c_{34} & c_{35} & c_{36}\\
+      c_{41} & c_{42} & c_{43} & c_{44} & c_{45} & c_{46}\\
+      c_{51} & c_{52} & c_{53} & c_{54} & c_{55} & c_{56}\\
+      c_{61} & c_{62} & c_{63} & c_{64} & c_{65} & c_{66}\\
+    \end{array}\right]
+  \left[\begin{array}{c}
+      \varepsilon_{11}\\
+      \varepsilon_{22}\\
+      \varepsilon_{33}\\
+      2\varepsilon_{23}\\
+      2\varepsilon_{13}\\
+      2\varepsilon_{12}\\
+    \end{array}\right]
+\end{align}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \draw[thick,latex-latex] (90:3) node[left] {$\vec{e_2}$} |- (0:3) node [right, below] {$\vec{e_1}$};
+    \draw[ultra thick,latex-latex] (150:3) node[left] {$\vec{n_2}$} -- (0,0) -- (20:3) node [right] {$\vec{n_1}$};
+  \end{tikzpicture}
+  \caption{Material basis}
+\end{figure}
+
+To simplify the writing of input files the \mat{C} tensor is expressed in the
+material basis. And this basis as to be given too. This basis $\Omega_{\st{mat}}
+= \{\vec{n_1}, \vec{n_2}, \vec{n_3}\}$ is used to define the rotation $R_{ij} =
+\vec{n_j} . \vec{e_i}$. And $\mat{C}$ can be rotated in the global basis $\Omega
+= \{\vec{e_1}, \vec{e_2}, \vec{e_3}\}$ as follow:
 
 
-\subsection{Neo-Hookean\label{ssect:smm:cl:neohookean}}\index{Material!Neohookean}
+\begin{align}
+\mat{C}_{\Omega} &= \mat{R}_1 \mat{C}_{\Omega_{\st{mat}}} \mat{R}_2\\
+\mat{R}_1  &= \left[
+  \begin{array}{cccccc}
+    R_{11} R_{11} & R_{12} R_{12} & R_{13} R_{13} & R_{12} R_{13} & R_{11} R_{13} & R_{11} R_{12}\\
+    R_{21} R_{21} & R_{22} R_{22} & R_{23} R_{23} & R_{22} R_{23} & R_{21} R_{23} & R_{21} R_{22}\\
+    R_{31} R_{31} & R_{32} R_{32} & R_{33} R_{33} & R_{32} R_{33} & R_{31} R_{33} & R_{31} R_{32}\\
+    R_{21} R_{31} & R_{22} R_{32} & R_{23} R_{33} & R_{22} R_{33} & R_{21} R_{33} & R_{21} R_{32}\\
+    R_{11} R_{31} & R_{12} R_{32} & R_{13} R_{33} & R_{12} R_{33} & R_{11} R_{33} & R_{11} R_{32}\\
+    R_{11} R_{21} & R_{12} R_{22} & R_{13} R_{23} & R_{12} R_{23} & R_{11} R_{23} & R_{11} R_{22}\\
+  \end{array}\right]\\
+\mat{R}_2  &= \left[
+  \begin{array}{cccccc}
+    R_{11} R_{11} & R_{21} R_{21} & R_{31} R_{31} & R_{21} R_{31} & R_{11} R_{31} & R_{11} R_{21}\\
+    R_{12} R_{12} & R_{22} R_{22} & R_{32} R_{32} & R_{22} R_{32} & R_{12} R_{32} & R_{12} R_{22}\\
+    R_{13} R_{13} & R_{23} R_{23} & R_{33} R_{33} & R_{23} R_{33} & R_{13} R_{33} & R_{13} R_{23}\\
+    R_{12} R_{13} & R_{22} R_{23} & R_{32} R_{33} & R_{22} R_{33} & R_{12} R_{33} & R_{12} R_{23}\\
+    R_{11} R_{13} & R_{21} R_{23} & R_{31} R_{33} & R_{21} R_{33} & R_{11} R_{33} & R_{11} R_{23}\\
+    R_{11} R_{12} & R_{21} R_{22} & R_{31} R_{32} & R_{21} R_{32} & R_{11} R_{32} & R_{11} R_{22}\\
+  \end{array}\right]\\
+\end{align}
+
+\subsubsection{Linear orthotropic\matlabel{ssect:smm:linear-elastic-orthotropic}}
+
+A particular case of anisotropy is when the material basis is orthogonal in which case the elastic modulus tensor can be simplified and rewritten in terms of 9 independents material parameters.
+
+\begin{align}
+  \left[\begin{array}{c}
+      \sigma_{11}\\
+      \sigma_{22}\\
+      \sigma_{33}\\
+      \sigma_{23}\\
+      \sigma_{13}\\
+      \sigma_{12}\\
+    \end{array}\right]
+  &= \left[
+    \begin{array}{cccccc}
+      c_{11} & c_{12} & c_{13} &   0   &   0   &   0  \\
+            & c_{22} & c_{23} &   0   &   0   &   0  \\
+            &       & c_{33} &   0   &   0   &   0  \\
+            &       &       & c_{44} &   0   &   0  \\
+            &  \multicolumn{2}{l}{\text{sym.}}       &       & c_{55} &   0  \\
+            &       &       &       &       & c_{66}\\
+    \end{array}\right]
+  \left[\begin{array}{c}
+      \varepsilon_{11}\\
+      \varepsilon_{22}\\
+      \varepsilon_{33}\\
+      2\varepsilon_{23}\\
+      2\varepsilon_{13}\\
+      2\varepsilon_{12}\\
+    \end{array}\right]
+\end{align}
+
+\begin{align}
+  c_{11} &= E_1 (1 - \nu_{23}\nu_{32})\Gamma \qquad c_{22} = E_2 (1 - \nu_{13}\nu_{31})\Gamma \qquad c_{33} = E_3 (1 - \nu_{12}\nu_{21})\Gamma\\
+  c_{12} &= E_1 (\nu_{21} - \nu_{31}\nu_{23})\Gamma = E_2 (\nu_{12} - \nu_{32}\nu_{13})\Gamma\\
+  c_{13} &= E_1 (\nu_{31} - \nu_{21}\nu_{32})\Gamma = E_2 (\nu_{13} - \nu_{21}\nu_{23})\Gamma\\
+  c_{23} &= E_2 (\nu_{32} - \nu_{12}\nu_{31})\Gamma = E_3 (\nu_{23} - \nu_{21}\nu_{13})\Gamma\\
+  c_{44} &= \mu_{23} \qquad  c_{55} = \mu_{13} \qquad  c_{66} = \mu_{12} \\
+  \Gamma &= \frac{1}{1 - \nu_{12} \nu_{21} - \nu_{13} \nu_{31} - \nu_{32} \nu_{23} - 2 \nu_{21} \nu_{32} \nu_{13}}
+\end{align}
+
+The poison ratios follow the rule $\nu_{ij} = \nu_{ji} E_i / E_j$.
+
+\subsection{Neo-Hookean\matlabel{ssect:smm:cl:neohookean}}\index{Material!Neohookean}
 The hyperelastic Neo-Hookean constitutive law results from an
 extension of the linear elastic relationship (Hooke's Law) for large
 deformation. Thus, the model predicts nonlinear stress-strain behavior
@@ -145,7 +297,7 @@ The strain energy stored in the material is given by:
   \Psi(\mat{C}) = \frac{1}{2}\lambda_0\left(\ln J\right)^2-\mu_0\ln J+\frac{1}{2}
   \mu_0\left(\mathrm{tr}(\mat{C})-3\right)
 \end{equation}
-\noindent where $\lambda_0$ and $\mu_0$ are, respectively, Lamé's first parameter
+\noindent where $\lambda_0$ and $\mu_0$ are, respectively, Lam\'e's first parameter
 and the shear modulus at the initial configuration. $J$ is the jacobian of the deformation
 gradient ($\mat{F}=\nabla_{\!\!\vec{X}}\vec{x}$): $J=\text{det}(\mat{F})$. Finally $\mat{C}$ is the right Cauchy-Green
 deformation tensor.
@@ -171,9 +323,7 @@ as those for the elastic case: \code{E} (Young's modulus), \code{nu} (Poisson's
 ratio).
 
 
-\subsection{Visco-Elasticity}
-
-\label{ssect:smm:cl:sls}
+\subsection{Visco-Elasticity\matlabel{ssect:smm:cl:sls}}
 % Standard Solid rheological model, see [] J.C. Simo, T.J.R. Hughes,
 % "Computational Inelasticity", Springer (1998), see Sections 10.2 and 10.3
 Visco-elasticity is characterized by strain rate dependent
@@ -208,7 +358,7 @@ Figure~\ref{fig:smm:cl:visco-elastic:model}. The advantage of this model is that
 it allows to account for creep or stress relaxation. The equation that relates
 the stress to the strain is (in 1D):
 \begin{equation}
-  \frac{d\epsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\epsilon(t) \right ]
+  \frac{d\varepsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\varepsilon(t) \right ]
 \end{equation}
 where $\eta$ is the viscosity. The equilibrium condition is unique and
 is attained in the limit, as $t \to \infty $. At this stage, the
@@ -221,7 +371,7 @@ of the viscous element).
 
 Note that the current standard linear solid model is applied only on the deviatoric part of the strain tensor. The spheric part of the strain tensor affects the stress tensor like an linear elastic material.
 
-\subsection{Small-Deformation Plasticity\label{ssect:smm:cl:plastic}}\index{Material!Small-deformation Plasticity}
+\subsection{Small-Deformation Plasticity\matlabel{ssect:smm:cl:plastic}}\index{Material!Small-deformation Plasticity}
 The small-deformation plasticity is a simple plasticity material
 formulation which accounts for the additive decomposition of strain
 into elastic and plastic strain components. This formulation is
@@ -324,8 +474,8 @@ tensors, and $\mat{C}$ is the elastic stiffness tensor. This formulation relies
 on the definition of an evolution law for the damage variable. In \akantu, many
 possibilities exist and they are listed below.
 
-\subsubsection{Marigo}
-\label{ssect:smm:cl:damage-marigo}
+\subsubsection{Marigo\matlabel{ssect:smm:cl:damage-marigo}}
+
 This damage evolution law is energy based as defined by Marigo \cite{marigo81a,
   lemaitre96a}. It is an isotropic damage law.
 \begin{align}
@@ -342,8 +492,7 @@ In this formulation, $Y$ is the strain energy release rate, $Y_d$ the
 rupture criterion and $S$ the damage energy.  The non-local version of
 this damage evolution law is constructed by averaging the energy $Y$.
 
-\subsubsection{Mazars}
-\label{ssect:smm:cl:damage-mazars}
+\subsubsection{Mazars\matlabel{ssect:smm:cl:damage-mazars}}
 This law introduced by Mazars \cite{mazars84a} is a behavioral model to
 represent damage evolution in concrete. The governing variable in this damage
 law is the equivalent strain $\varepsilon_{\st{eq}} =

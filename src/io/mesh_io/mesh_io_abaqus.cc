@@ -246,16 +246,21 @@ public:
     phx::function<mesh_io_abaqus_lazy_eval::lazy_optimize_group_> lazy_optimize_group;
 
     start
-      =   *(qi::char_('*')
-	    >  (   (qi::no_case[ qi::lit("node")     ] > nodes)
-	       |   (qi::no_case[ qi::lit("element")  ] > elements)
-	       |   (qi::no_case[ qi::lit("heading")  ] > header)
-	       |   (qi::no_case[ qi::lit("elset")    ] > elements_set)
-	       |   (qi::no_case[ qi::lit("nset")     ] > nodes_set)
-	       |   (qi::no_case[ qi::lit("material") ] > material)
-	       |   (keyword > any_section)
-	       )
-	   )
+      =  *(
+	     (qi::char_('*')
+		>  (   (qi::no_case[ qi::lit("node output")    ] > any_section)
+	           |   (qi::no_case[ qi::lit("element output") ] > any_section)
+	           |   (qi::no_case[ qi::lit("node")           ] > nodes)
+	           |   (qi::no_case[ qi::lit("element")        ] > elements)
+	           |   (qi::no_case[ qi::lit("heading")        ] > header)
+	           |   (qi::no_case[ qi::lit("elset")          ] > elements_set)
+	           |   (qi::no_case[ qi::lit("nset")           ] > nodes_set)
+	           |   (qi::no_case[ qi::lit("material")       ] > material)
+	           |   (keyword > any_section)
+	           )
+	     )
+	  |  spirit::eol
+	  )
       ;
 
     header
@@ -297,8 +302,7 @@ public:
     elements_set
       =   (
              (
-	        (  qi::char_(',')
-		   >> qi::no_case[ qi::lit("elset") ] >> '='
+	        (  qi::char_(',') >> qi::no_case[ qi::lit("elset") ] >> '='
 		   >> value [ lbs::_a = &lazy_element_group_create(phx::ref(mesh), lbs::_1) ]
                 )
 	     ^  *(qi::char_(',') >> option)
@@ -366,14 +370,14 @@ public:
       ;
 
     keyword
-      =   +(qi::char_ - (qi::char_('*') | spirit::eol))
+      =   qi::lexeme[ +(qi::char_ - (qi::char_('*') | spirit::eol)) ]
       ;
 
     option
-      = key >> '=' >> value;
+      = key > -( '=' >> value );
 
     key
-      =   qi::char_("a-zA-Z_") >> *qi::char_("a-zA-Z_0-9")
+      =   qi::char_("a-zA-Z_") >> *(qi::char_("a-zA-Z_0-9") | qi::char_('-'))
       ;
 
     value
@@ -411,7 +415,7 @@ public:
 
     qi::on_error<qi::fail>(start, error_handler(lbs::_4, lbs::_3, lbs::_2));
 
-    start              .name("abaqus-start-rule");            
+    start              .name("abaqus-start-rule");
     connectivity       .name("abaqus-connectivity");
     node_position      .name("abaqus-nodes-position");
     nodes	       .name("abaqus-nodes");

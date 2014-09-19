@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
   /// model initialization
   model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
-  model.limitInsertion(BC::_y, -0.05, 0.05);
+  model.limitInsertion(_y, -0.05, 0.05);
   model.updateAutomaticInsertion();
 
   Real time_step = model.getStableTimeStep()*0.05;
