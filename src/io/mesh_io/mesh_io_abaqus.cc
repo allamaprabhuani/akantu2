@@ -296,37 +296,45 @@ public:
 
     elements_set
       =   (
-	   qi::char_(',')
-	   >> qi::no_case[ qi::lit("elset") ] >> '='
-	   >> value [ lbs::_a = &lazy_element_group_create(phx::ref(mesh), lbs::_1) ]
-	   >> spirit::eol
-	   >> qi::skip
-	        (qi::char_(',') | qi::space)
-                [ +(qi::int_ [ lazy_add_element_to_group(lbs::_a,
-							 lbs::_1,
-							 phx::cref(abaqus_elements_to_akantu)
-							 )
-			     ]
-		  )
-	       ]
+             (
+	        (  qi::char_(',')
+		   >> qi::no_case[ qi::lit("elset") ] >> '='
+		   >> value [ lbs::_a = &lazy_element_group_create(phx::ref(mesh), lbs::_1) ]
+                )
+	     ^  *(qi::char_(',') >> option)
+	     )
+	     >> spirit::eol
+	     >> qi::skip
+	          (qi::char_(',') | qi::space)
+	          [ +(qi::int_ [ lazy_add_element_to_group(lbs::_a,
+							   lbs::_1,
+							   phx::cref(abaqus_elements_to_akantu)
+							  )
+			       ]
+		     )
+	         ]
 	  ) [ lazy_optimize_group(lbs::_a) ]
       ;
 
     nodes_set
       =   (
-	   qi::char_(',')
-	   >> qi::no_case[ qi::lit("nset") ] >> '='
-	   >> value [ lbs::_a = &lazy_node_group_create(phx::ref(mesh), lbs::_1) ]
-	   >> spirit::eol
-	   >> qi::skip
-                (qi::char_(',') | qi::space)
-                [ +(qi::int_ [ lazy_add_node_to_group(lbs::_a,
-						      lbs::_1,
-						      phx::cref(abaqus_nodes_to_akantu)
-						      )
-			     ]
-		   )
-		]
+             (
+	        (  qi::char_(',')
+		   >> qi::no_case[ qi::lit("nset") ] >> '='
+		   >> value [ lbs::_a = &lazy_node_group_create(phx::ref(mesh), lbs::_1) ]
+                )
+	     ^  *(qi::char_(',') >> option)
+	     )
+	     >> spirit::eol
+	     >> qi::skip
+	         (qi::char_(',') | qi::space)
+                 [ +(qi::int_ [ lazy_add_node_to_group(lbs::_a,
+						       lbs::_1,
+						       phx::cref(abaqus_nodes_to_akantu)
+						       )
+			      ]
+		    )
+		 ]
 	   ) [ lazy_optimize_group(lbs::_a) ]
       ;
 
@@ -396,11 +404,29 @@ public:
       ("C3D4"  , _tetrahedron_4)
       ("DC3D4" , _tetrahedron_4)
       ("C3D8"  , _hexahedron_8)
+      ("C3D8R" , _hexahedron_8)
       ("DC3D8" , _hexahedron_8)
       ("C3D10" , _tetrahedron_10)
       ("DC3D10", _tetrahedron_10);
 
     qi::on_error<qi::fail>(start, error_handler(lbs::_4, lbs::_3, lbs::_2));
+
+    start              .name("abaqus-start-rule");            
+    connectivity       .name("abaqus-connectivity");
+    node_position      .name("abaqus-nodes-position");
+    nodes	       .name("abaqus-nodes");
+    any_section	       .name("abaqus-any_section");
+    header	       .name("abaqus-header");
+    material	       .name("abaqus-material");
+    elements	       .name("abaqus-elements");
+    elements_set       .name("abaqus-elements-set");
+    nodes_set	       .name("abaqus-nodes-set");
+    key		       .name("abaqus-key");
+    value	       .name("abaqus-value");
+    option	       .name("abaqus-option");
+    keyword	       .name("abaqus-keyword");
+    any_line	       .name("abaqus-any-line");
+    abaqus_element_type.name("abaqus-element-type");
   }
 
 public:
