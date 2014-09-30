@@ -1,16 +1,17 @@
 /**
  * @file   material_marigo_non_local.hh
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Aug 31 18:10:34 2011
+ * @date creation: Wed Aug 31 2011
+ * @date last modification: Wed Nov 13 2013
  *
  * @brief  Marigo non-local description
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

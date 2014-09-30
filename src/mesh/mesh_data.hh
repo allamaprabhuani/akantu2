@@ -2,14 +2,16 @@
  * @file   mesh_data.hh
  *
  * @author Dana Christen <dana.christen@gmail.com>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Thu Feb 27 15:00:00 2013
+ * @date creation: Fri May 03 2013
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Stores generic data loaded from the mesh file
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

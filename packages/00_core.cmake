@@ -1,16 +1,17 @@
 #===============================================================================
-# @file   core.cmake
+# @file   00_core.cmake
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Mon Nov 21 18:19:15 2011
+# @date creation: Mon Nov 21 2011
+# @date last modification: Fri Sep 19 2014
 #
 # @brief  package description for core
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -164,8 +165,6 @@ set(AKANTU_CORE_FILES
   mesh_utils/mesh_utils.cc
   mesh_utils/mesh_utils.hh
   mesh_utils/mesh_utils_inline_impl.cc
-  mesh_utils/mesh_graph.cc
-  mesh_utils/mesh_graph.hh
 
   model/boundary_condition.hh
   model/boundary_condition_functor.hh
@@ -404,11 +403,7 @@ else()
   set(AKANTU_USE_OBSOLETE_GETTIMEOFDAY OFF)
 endif()
 
-list(APPEND AKANTU_BOOST_COMPONENTS
-    graph
-    )
-
-set(AKANTU_CORE_DOCUMENTATION 
+set(AKANTU_CORE_DOCUMENTATION
 "
 This package is the core engine of \\akantu. It depends on:
 \\begin{itemize}

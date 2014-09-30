@@ -3,13 +3,14 @@
  *
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
- * @date   Th Oct 17 11:56:37 2013
+ * @date creation: Thu Oct 17 2013
+ * @date last modification: Thu Apr 03 2014
  *
  * @brief  Specialization of the material class for the thermal material
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

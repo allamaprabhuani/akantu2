@@ -1,13 +1,16 @@
 /**
- * @file   aka_contact_common.hh
+ * @file   contact_common.hh
+ *
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @date   Wed Mar 14 11:16:00 2012
+ *
+ * @date creation: Fri Jan 04 2013
+ * @date last modification: Wed Sep 17 2014
  *
  * @brief  Forward declarations for contact classes
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

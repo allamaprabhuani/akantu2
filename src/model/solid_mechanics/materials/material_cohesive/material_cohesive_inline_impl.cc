@@ -1,15 +1,17 @@
 /**
  * @file   material_cohesive_inline_impl.cc
  *
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Thu Feb 23 17:58:45 2012
+ * @date creation: Thu Feb 23 2012
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  MaterialCohesive inline implementation
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

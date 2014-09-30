@@ -3,13 +3,14 @@
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Aug 31 11:09:48 2011
+ * @date creation: Wed Aug 31 2011
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Material class that handle the non locality of a law for example damage.
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

@@ -1,3 +1,34 @@
+/**
+ * @file   dumper_element_iterator.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Wed Sep 03 2014
+ *
+ * @brief  Iterators for elemental fields
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 #ifndef __AKANTU_DUMPER_ELEMENT_ITERATOR_HH__
 #define __AKANTU_DUMPER_ELEMENT_ITERATOR_HH__
 /* -------------------------------------------------------------------------- */
@@ -9,9 +40,9 @@ __BEGIN_AKANTU_DUMPER__
 /* -------------------------------------------------------------------------- */
 
 template<class types, template <class> class final_iterator>
-class element_iterator : 
-  public iohelper::iterator< 
-                            typename types::data_type, 
+class element_iterator :
+  public iohelper::iterator<
+                            typename types::data_type,
                             final_iterator<types>,
                             typename types::return_type>
 
@@ -19,14 +50,14 @@ class element_iterator :
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */  
-  
+  /* ------------------------------------------------------------------------ */
+
 public:
 
   typedef typename types::it_type      it_type;
-  typedef typename types::field_type field_type; 
-  typedef typename types::array_type array_type; 
-  typedef typename types::array_iterator array_iterator; 
+  typedef typename types::field_type field_type;
+  typedef typename types::array_type array_type;
+  typedef typename types::array_iterator array_iterator;
   typedef final_iterator<types> iterator;
 
 public:
@@ -36,11 +67,11 @@ public:
   /* ------------------------------------------------------------------------ */
 
   element_iterator(const field_type & field,
-		   const typename field_type::type_iterator & t_it,
+                   const typename field_type::type_iterator & t_it,
                    const typename field_type::type_iterator & t_it_end,
                    const array_iterator & array_it,
                    const array_iterator & array_it_end,
-                   const GhostType ghost_type = _not_ghost) 
+                   const GhostType ghost_type = _not_ghost)
     : field(field),
       tit(t_it),
       tit_end(t_it_end),
@@ -52,11 +83,11 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-  
+
 public:
 
   bool operator!=(const iterator & it) const {
-    return (ghost_type != it.ghost_type) 
+    return (ghost_type != it.ghost_type)
       || (tit != it.tit || (array_it != it.array_it));
   }
 
@@ -66,12 +97,12 @@ public:
       ++tit;
       if(tit != tit_end) {
 
-	const array_type & vect = field(*tit, ghost_type);
-	UInt _nb_data_per_elem = getNbDataPerElem(*tit);
-	UInt nb_component = vect.getNbComponent();
-	UInt size = (vect.getSize() * nb_component) / _nb_data_per_elem;
+        const array_type & vect = field(*tit, ghost_type);
+        UInt _nb_data_per_elem = getNbDataPerElem(*tit);
+        UInt nb_component = vect.getNbComponent();
+        UInt size = (vect.getSize() * nb_component) / _nb_data_per_elem;
 
-	array_it       = vect.begin_reinterpret(_nb_data_per_elem,size);
+        array_it       = vect.begin_reinterpret(_nb_data_per_elem,size);
         array_it_end   = vect.end_reinterpret  (_nb_data_per_elem,size);
       }
     }
@@ -84,10 +115,10 @@ public:
     return Element(*tit,array_it.getCurrentIndex());
   }
 
-  UInt getNbDataPerElem(const ElementType & type) const { 
+  UInt getNbDataPerElem(const ElementType & type) const {
     return nb_data_per_elem(type,ghost_type);
   }
-  
+
   void setNbDataPerElem(const ElementTypeMap<UInt> & nb_data){
     this->nb_data_per_elem = nb_data;
   }
@@ -95,7 +126,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-  
+
 protected:
 
   /// the field to iterate on
@@ -117,14 +148,14 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 template<typename types>
-class elemental_field_iterator 
+class elemental_field_iterator
   : public element_iterator<types, elemental_field_iterator> {
 
 public:
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */  
+  /* ------------------------------------------------------------------------ */
 
   typedef element_iterator<types,elemental_field_iterator> parent;
   typedef typename types::it_type     it_type;
@@ -139,17 +170,17 @@ public:
   /* ------------------------------------------------------------------------ */
 
   elemental_field_iterator(const field_type & field,
-			   const typename field_type::type_iterator & t_it,
+                           const typename field_type::type_iterator & t_it,
                            const typename field_type::type_iterator & t_it_end,
                            const array_iterator & array_it,
-			   const array_iterator & array_it_end,
-			   const GhostType ghost_type = _not_ghost) :
+                           const array_iterator & array_it_end,
+                           const GhostType ghost_type = _not_ghost) :
     parent(field, t_it, t_it_end, array_it, array_it_end, ghost_type) { }
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-  
+
   return_type operator*(){
     return *this->array_it;
   }

@@ -2,14 +2,16 @@
  * @file   distributed_synchronizer_tmpl.hh
  *
  * @author Dana Christen <dana.christen@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Mon May  6 17:21:07 2013
+ * @date creation: Tue May 07 2013
+ * @date last modification: Mon Jun 09 2014
  *
  * @brief  Implementation of the templated function of the DistributedSynchronizer
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

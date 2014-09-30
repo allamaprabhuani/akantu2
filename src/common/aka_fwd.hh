@@ -1,16 +1,19 @@
 /**
  * @file   aka_fwd.hh
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @date   Thu Jan 3 15:15:00 2013
  *
- * @brief  File containing forward declarations in akantu. 
- * This file helps if circular #include would be needed because two classes 
- * refer both to each other. This file usually does not need any modification. 
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Fri Jan 04 2013
+ * @date last modification: Mon Jun 02 2014
+ *
+ * @brief  File containing forward declarations in akantu.
+ * This file helps if circular #include would be needed because two classes
+ * refer both to each other. This file usually does not need any modification.
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

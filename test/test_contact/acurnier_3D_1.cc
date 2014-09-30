@@ -3,15 +3,16 @@
  *
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
  *
- * @date   Thu Sep 10 16:30:00 2014
+ * @date creation: Mon Sep 15 2014
+ * @date last modification: Fri Sep 19 2014
  *
- * @brief  This file implements the fourth simple test suggested by Alain 
- * Curnier for the verification of the implicit contact implementation of the 
+ * @brief  This file implements the fourth simple test suggested by Alain
+ * Curnier for the verification of the implicit contact implementation of the
  * Augmented lagrangian formulation
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

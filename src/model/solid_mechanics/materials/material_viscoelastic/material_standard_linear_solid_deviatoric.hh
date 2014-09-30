@@ -5,18 +5,16 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Wed Feb 08 16:53:31 2012
+ * @date creation: Wed Feb 08 2012
+ * @date last modification: Wed Nov 13 2013
  *
  * @brief  Material Visco-elastic, based on Standard Solid rheological model, see
  * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
  * see Sections 10.2 and 10.3
- * @brief  On a fully three-dimensional finite-strian viscoelastic damage model:
- * formulation and computational aspects, J.C. Simo, Computer methods in applied
- * mechanics and engineering 60 (1987) pp 153-173 
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

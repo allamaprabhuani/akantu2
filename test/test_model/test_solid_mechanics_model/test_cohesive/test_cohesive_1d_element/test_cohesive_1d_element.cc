@@ -1,13 +1,16 @@
 /**
  * @file   test_cohesive_1d_element.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon Jun 10 11:54:01 2013
+ *
+ * @date creation: Fri Jun 14 2013
+ * @date last modification: Mon Jun 23 2014
  *
  * @brief  Test for 1D cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

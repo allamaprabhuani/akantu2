@@ -1,13 +1,17 @@
 /**
- * @file   dumper_iohelper_tmpl_connectivity_field.hh
+ * @file   dumper_connectivity_field.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Mon May  6 10:40:29 2013
+ *
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Thu Sep 04 2014
  *
  * @brief  Connectivity field dumper
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

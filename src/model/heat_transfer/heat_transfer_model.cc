@@ -1,20 +1,21 @@
 /**
  * @file   heat_transfer_model.cc
  *
- * @author Rui Wang <rui.wang@epfl.ch>
- * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
+ * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Rui Wang <rui.wang@epfl.ch>
  *
- * @date   Sun May 01 19:14:43 2011
+ * @date creation: Sun May 01 2011
+ * @date last modification: Mon Sep 15 2014
  *
  * @brief  Implementation of HeatTransferModel class
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

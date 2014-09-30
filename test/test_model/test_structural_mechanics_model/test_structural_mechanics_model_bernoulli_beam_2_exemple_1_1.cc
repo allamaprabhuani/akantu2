@@ -1,13 +1,16 @@
 /**
  * @file   test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Tue May 31 19:10:26 2011
  *
- * @brief Computation of the analytical exemple 1.1 in the TGC vol 6
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Fri Sep 05 2014
+ *
+ * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

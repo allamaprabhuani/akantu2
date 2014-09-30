@@ -1,13 +1,16 @@
 /**
- * @file   mesh_io_ibarras.cc
+ * @file   model_io_ibarras.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Mon Dec  5 17:32:08 2011
+ *
+ * @date creation: Wed Jan 16 2013
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Mesh Reader specially created for Wood's Tower analysis performed by the Institute I-Barras
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

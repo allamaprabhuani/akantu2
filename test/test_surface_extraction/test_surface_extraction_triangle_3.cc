@@ -4,13 +4,14 @@
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date   Tue Oct 26 10:02:47 2010
+ * @date creation: Tue Oct 26 2010
+ * @date last modification: Thu Mar 27 2014
  *
  * @brief  test for surface extractions
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

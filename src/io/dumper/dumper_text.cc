@@ -1,13 +1,16 @@
 /**
  * @file   dumper_text.cc
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue May 14 15:27:03 2013
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date creation: Fri May 17 2013
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  implementation of text dumper
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

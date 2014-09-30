@@ -2,16 +2,17 @@
  * @file   material_marigo_inline_impl.cc
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  *
- * @date   Thu Feb 02 11:09:36 2012
+ * @date creation: Thu Feb 02 2012
+ * @date last modification: Tue Jun 24 2014
  *
  * @brief  Implementation of the inline functions of the material marigo
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

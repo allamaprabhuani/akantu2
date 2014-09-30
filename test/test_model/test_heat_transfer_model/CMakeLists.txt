@@ -3,13 +3,14 @@
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 #
-# @date   Sun May 01 19:14:43 2011
+# @date creation: Sun May 01 2011
+# @date last modification: Tue Nov 06 2012
 #
 # @brief  configuration for heat transfer model tests
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -67,7 +68,7 @@ register_test(test_heat_transfer_model_square2d
 
 register_test(test_heat_transfer_model_cube3d_istropic_conductivity
   SOURCES test_heat_transfer_model_cube3d_istropic_conductivity.cc
-  DEPENDENCIES test_heat_transfer_model_cube3d_istropic_conductivity_mesh1
+  DEPENDENCIES test_heat_cube3d_mesh1
   FILES_TO_COPY material.dat
   DIRECTORIES_TO_CREATE paraview
   )

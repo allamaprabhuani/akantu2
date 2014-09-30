@@ -3,13 +3,14 @@
 #
 # @author Marco Vocialta <marco.vocialta@epfl.ch>
 #
-# @date   Wed Nov 28 17:05:18 2012
+# @date creation: Fri Jun 14 2013
+# @date last modification: Fri Jun 14 2013
 #
 # @brief  configuration for parallel test for extrinsic cohesive elements
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -28,6 +29,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 add_mesh(test_cohesive_1d_element_mesh bar.geo 1 2)
 
 if(AKANTU_PARALLEL)

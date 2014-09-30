@@ -4,13 +4,14 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
  *
- * @date   Sun May 01 19:14:43 2011
+ * @date creation: Sun May 01 2011
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Implementation of the inline functions of the HeatTransferModel class
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

@@ -1,15 +1,16 @@
 #===============================================================================
-# @file   iohelper.cmake
+# @file   90_iohelper.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Tue Nov 29 15:16:35 2011
+# @date creation: Tue Nov 29 2011
+# @date last modification: Tue Sep 02 2014
 #
 # @brief  package description for iohelper
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -26,6 +27,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/iohelper)
   option(AKANTU_USE_IOHELPER "Add IOHelper support in akantu" ON)
   mark_as_advanced(AKANTU_USE_IOHELPER)
@@ -41,7 +43,6 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/iohelper)
 
     list(APPEND AKANTU_EXPORT_LIST iohelper)
     list(APPEND AKANTU_OPTION_LIST IOHELPER)
-
     mark_as_advanced(IOHELPER_TESTS)
     set(AKANTU_IOHELPER ON)
   else()

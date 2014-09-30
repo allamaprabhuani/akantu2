@@ -2,14 +2,16 @@
  * @file   element_group.hh
  *
  * @author Dana Christen <dana.christen@gmail.com>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Mar 06 09:30:00 2013
+ * @date creation: Fri May 03 2013
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  Stores information relevent to the notion of domain boundary and surfaces.
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

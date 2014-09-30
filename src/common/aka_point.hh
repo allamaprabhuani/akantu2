@@ -1,14 +1,17 @@
 /**
  * @file   aka_point.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @author Alejandro Aragon <alejandro.aragon@epfl.ch>
- * @date   Thu Jan 12 15:43:51 2012
  *
- * @brief  class of a geometrical point
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ *
+ * @date creation: Fri Jan 04 2013
+ * @date last modification: Tue Jun 17 2014
+ *
+ * @brief  Geometry class representing points
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

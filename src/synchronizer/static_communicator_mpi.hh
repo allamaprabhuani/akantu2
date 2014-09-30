@@ -3,13 +3,14 @@
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Sun Sep 05 16:01:51 2010
+ * @date creation: Sun Sep 05 2010
+ * @date last modification: Tue Oct 29 2013
  *
  * @brief  class handling parallel communication trough MPI
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

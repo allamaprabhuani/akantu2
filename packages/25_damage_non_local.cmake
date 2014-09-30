@@ -1,15 +1,16 @@
 #===============================================================================
-# @file   damage_non_local.cmake
+# @file   25_damage_non_local.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Fri Jun 15 13:48:37 2012
+# @date creation: Fri Jun 15 2012
+# @date last modification: Fri Jun 13 2014
 #
 # @brief  package description for non-local materials
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the

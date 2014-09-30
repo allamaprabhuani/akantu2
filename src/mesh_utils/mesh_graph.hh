@@ -1,14 +1,17 @@
 /**
  * @file   mesh_graph.hh
+ *
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Wed Aug 22 12:14:00 2012
+ *
+ * @date creation: Tue May 13 2014
+ * @date last modification: Fri Jun 06 2014
  *
  * @brief  graph for the identification of mesh fragments
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

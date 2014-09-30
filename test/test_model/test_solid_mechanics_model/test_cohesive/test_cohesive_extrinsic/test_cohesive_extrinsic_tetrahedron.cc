@@ -1,13 +1,16 @@
 /**
  * @file   test_cohesive_extrinsic_tetrahedron.cc
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Thu Sep 12 11:50:14 2013
+ *
+ * @date creation: Wed Oct 09 2013
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Test for serial extrinsic cohesive elements for tetrahedron
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

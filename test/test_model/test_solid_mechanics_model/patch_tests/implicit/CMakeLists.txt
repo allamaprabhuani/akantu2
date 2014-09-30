@@ -4,13 +4,14 @@
 # @author David Simon Kammer <david.kammer@epfl.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Thu Feb 17 16:05:48 2011
+# @date creation: Thu Feb 17 2011
+# @date last modification: Thu Feb 21 2013
 #
 # @brief  configuration for the implicit patch test
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the

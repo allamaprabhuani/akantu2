@@ -3,13 +3,14 @@
  *
  * @author Dana Christen <dana.christen@gmail.com>
  *
- * @date   Wed Mar 18 11:30:00 2013
+ * @date creation: Fri May 03 2013
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  XXX
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

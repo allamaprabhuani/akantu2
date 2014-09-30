@@ -1,16 +1,19 @@
 /**
  * @file   distributed_synchronizer.cc
  *
+ * @author Dana Christen <dana.christen@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Thu Jun 16 16:36:52 2011
+ * @date creation: Thu Jun 16 2011
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  implementation of a  communicator using a static_communicator for real
  * send/receive
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

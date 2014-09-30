@@ -32,3 +32,6 @@ Physical Line("Left")   = {104};
 Physical Line("Top")    = {103};
 Physical Line("Bottom") = {101};
 
+Extrude {0, 0, 1} {
+  Surface{101};
+}

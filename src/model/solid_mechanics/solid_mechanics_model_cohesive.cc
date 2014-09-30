@@ -2,14 +2,16 @@
  * @file   solid_mechanics_model_cohesive.cc
  *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Tue May 08 13:01:18 2012
+ * @date creation: Tue May 08 2012
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  Solid mechanics model for cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

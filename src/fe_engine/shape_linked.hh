@@ -4,13 +4,14 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Fabian Barras <fabian.barras@epfl.ch>
  *
- * @date   Fri Jul 15 19:41:58 2011
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Fri Jun 13 2014
  *
  * @brief  shape class for element with different set of shapes functions
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

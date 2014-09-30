@@ -2,16 +2,17 @@
 # @file   CMakeLists.txt
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
-# @author Nicolas Richart <nicolas.richart@epfl.ch>
 # @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Fri Sep 03 15:56:15 2010
+# @date creation: Fri Sep 03 2010
+# @date last modification: Thu Jul 03 2014
 #
 # @brief  configuration for tests
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -30,6 +31,7 @@
 # @section DESCRIPTION
 #
 #===============================================================================
+
 include_directories(
   ${AKANTU_INCLUDE_DIRS}
   ${AKANTU_EXTERNAL_LIB_INCLUDE_DIR}

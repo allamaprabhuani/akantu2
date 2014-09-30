@@ -1,15 +1,16 @@
 /**
- * @file   test_mesh_data.hh
+ * @file   test_mesh_data.cc
  *
  * @author Dana Christen <dana.christen@gmail.com>
  *
- * @date   Thu Feb 27 15:00:00 2013
+ * @date creation: Fri May 03 2013
+ * @date last modification: Tue Jun 24 2014
  *
  * @brief  Test of the MeshData class
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

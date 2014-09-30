@@ -3,13 +3,14 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Thu Dec 22 18:49:38 2011
+ * @date creation: Thu Dec 22 2011
+ * @date last modification: Mon Jun 23 2014
  *
  * @brief  test of pbc class for SolidMechanicsModel
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

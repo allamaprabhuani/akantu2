@@ -3,14 +3,16 @@
  *
  * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Feb 22 16:31:20 2012
+ * @date creation: Wed Feb 22 2012
+ * @date last modification: Tue Jul 29 2014
  *
  * @brief  Specialization of the material class for cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

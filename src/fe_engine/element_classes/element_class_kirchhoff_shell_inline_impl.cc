@@ -1,13 +1,16 @@
 /**
-% * @file   element_class_kirchhoff_shell_inline_impl.cc
+ * @file   element_class_kirchhoff_shell_inline_impl.cc
+ *
  * @author Damien Spielmann <damien.spielmann@epfl.ch>
- * @date   Mon Mar 24 14:09:33 2014
+ *
+ * @date creation: Fri Jul 04 2014
+ * @date last modification: Fri Jul 04 2014
  *
  * @brief  Element class Kirchhoff Shell
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

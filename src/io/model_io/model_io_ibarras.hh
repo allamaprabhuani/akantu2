@@ -1,13 +1,16 @@
 /**
  * @file   model_io_ibarras.hh
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Mon Dec  5 17:20:12 2011
  *
- * @brief  
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date creation: Wed Jan 16 2013
+ * @date last modification: Thu Feb 21 2013
+ *
+ * @brief  ModelIO implementation for IBarras input files
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

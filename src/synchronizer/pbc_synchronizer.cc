@@ -3,13 +3,14 @@
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  *
- * @date   Mon Jun 20 10:07:57 2011
+ * @date creation: Mon Jun 20 2011
+ * @date last modification: Tue Nov 06 2012
  *
  * @brief  implementation of the synchronizer for the pbc conditions
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

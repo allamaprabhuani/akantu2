@@ -2,14 +2,16 @@
 # @file   CMakeLists.txt
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Wed Oct 17 15:19:18 2012
+# @date creation: Mon Jun 09 2014
+# @date last modification: Thu Jul 03 2014
 #
 # @brief  Build the documentation
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -26,6 +28,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 #------------------------------------------------------------------------------#
 function(get_doc_label PKG LABEL)
   string(REPLACE "_" "-" _pkg_tex_label_dash ${PKG})

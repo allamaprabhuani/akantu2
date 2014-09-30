@@ -50,25 +50,24 @@ if(AKANTU_USE_CPPARRAY AND AKANTU_USE_THIRD_PARTY_CPPARRAY)
   endif()
 
   if(EXISTS ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
+    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
     add_subdirectory(${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
-    set(CPP-ARRAY_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
+    set(cpp-array_TESTS OFF CACHE BOOL "cpparray tests" FORCE)
 
-    mark_as_advanced(CPP-ARRAY_DEV)
-    mark_as_advanced(CPP-ARRAY_DOCUMENTATION)
-    mark_as_advanced(CPP-ARRAY_TESTS)
+    mark_as_advanced(cpp-array_DEV)
+    mark_as_advanced(cpp-array_DOCUMENTATION)
+    mark_as_advanced(cpp-array_TESTS)
     mark_as_advanced(CUDA)
     mark_as_advanced(ARRAY_USER_LIB_PATH)
 
     list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS} ${CPP-ARRAY_INCLUDE_DIRS})
-
     list(APPEND AKANTU_EXTERNAL_LIBRARIES ${CPP-ARRAY_LIBRARIES})
-
     list(APPEND AKANTU_EXTERNAL_LIB_INCLUDE_DIR ${CPP-ARRAY_INCLUDE_DIRS})
-
     list(APPEND CPACK_SOURCE_IGNORE_FILES ${PROJECT_SOURCE_DIR}/third-party/cpp-array/)
-
     set(AKANTU_CPPARRAY_INCLUDE_DIR ${cpp-array_INCLUDE_DIRS} ${CPP-ARRAY_INCLUDE_DIRS})
 
+
+    set(AKANTU_CPPARRAY ON)
     list(APPEND AKANTU_OPTION_LIST CPPARRAY)
     set(AKANTU_CPPARRAY ${AKANTU_CPPARRAY} CACHE INTERNAL "Use cpp-array library" FORCE)
   else()

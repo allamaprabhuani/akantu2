@@ -1,13 +1,16 @@
 /**
- * @file   dumper_iohelper_tmpl_variable.hh
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Fri May 24 16:38:03 2013
+ * @file   dumper_variable.hh
+ *
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ *
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Tue Sep 02 2014
  *
  * @brief  template of variable
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

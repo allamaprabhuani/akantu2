@@ -1,15 +1,16 @@
 /**
  * @file   test_material_thermal.cc
-
+ *
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
- * @date   Thu 11 21 13:48:26 2013
+ * @date creation: Thu Jan 16 2014
+ * @date last modification: Fri Sep 19 2014
  *
  * @brief  test of the class akantu::MaterialThermal
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

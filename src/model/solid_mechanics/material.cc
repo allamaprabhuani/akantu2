@@ -1,17 +1,19 @@
 /**
  * @file   material.cc
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
- * @date   Tue Jul 27 18:15:37 2010
+ * @date creation: Tue Jul 27 2010
+ * @date last modification: Tue Sep 16 2014
  *
  * @brief  Implementation of the common part of the material class
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

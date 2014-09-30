@@ -1,14 +1,19 @@
 /**
  * @file   structural_mechanics_model_inline_impl.cc
  *
+ * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
+ * @author Damien Spielmann <damien.spielmann@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May  5 19:48:07 2011
  *
- * @brief
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Tue Sep 02 2014
+ *
+ * @brief  Implementation of inline functions of StructuralMechanicsModel
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -25,7 +30,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 template<ElementType type>

@@ -1,15 +1,17 @@
 /**
- * @file   test_solid_mechanics_model_lumped_mass.cc
+ * @file   test_lumped_mass.cc
  *
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Thu Mar 27 18:07:14 2014
+ * @date creation: Thu Mar 27 2014
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  test the lumping of the mass matrix
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

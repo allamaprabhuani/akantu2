@@ -1,13 +1,16 @@
 /**
- * @file   element_class_bernoulli_beam_2.cc
+ * @file   element_class_bernoulli_beam_inline_impl.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu Mar 31 14:02:22 2011
+ *
+ * @date creation: Wed Jan 16 2013
+ * @date last modification: Mon Jul 07 2014
  *
  * @brief  Specialization of the element_class class for the type _bernoulli_beam_2
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -26,7 +29,6 @@
  * @section DESCRIPTION
  *
  * @verbatim
-
    --x-----q1----|----q2-----x---> x
     -a          0            a
  @endverbatim
@@ -40,7 +42,6 @@
  * @f]
  *
  * @subsection shapes Shape functions
-
  * @f[
  *   \begin{array}{ll}
  *     N_1(x) &= \frac{1-x}{2a}\\

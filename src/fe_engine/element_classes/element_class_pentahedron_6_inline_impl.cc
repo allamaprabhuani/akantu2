@@ -1,15 +1,17 @@
 /**
  * @file   element_class_pentahedron_6_inline_impl.cc
  *
- * @author Marion Chambart <mchambart@stucky.ch> :)
-  *
- * @date   Mon Mar 14 15:53:28 2011
+ * @author Marion Estelle Chambart <mchambart@stucky.ch>
+ * @author Thomas Menouillard <tmenouillard@stucky.ch>
+ *
+ * @date creation: Wed Jun 12 2013
+ * @date last modification: Fri Jun 13 2014
  *
  * @brief  Specialization of the element_class class for the type _pentahedron_6
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -19,7 +21,7 @@
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  thc(e GNU  Lesser General  Public License  for more
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License

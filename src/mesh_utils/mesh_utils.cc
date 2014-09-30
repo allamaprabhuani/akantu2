@@ -2,18 +2,20 @@
  * @file   mesh_utils.cc
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Dana Christen <dana.christen@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Fri Aug 20 12:19:44 2010
+ * @date creation: Fri Aug 20 2010
+ * @date last modification: Mon Jun 09 2014
  *
  * @brief  All mesh utils necessary for various tasks
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

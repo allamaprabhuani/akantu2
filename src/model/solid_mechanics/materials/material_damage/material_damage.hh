@@ -1,17 +1,18 @@
 /**
  * @file   material_damage.hh
  *
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  *
- * @date   Tue Mar 15 16:06:20 2011
+ * @date creation: Tue Mar 15 2011
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Material isotropic elastic
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

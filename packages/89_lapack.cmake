@@ -1,15 +1,16 @@
 #===============================================================================
-# @file   lapack.cmake
+# @file   89_lapack.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Fri Oct 19 15:58:42 2012
+# @date creation: Fri Oct 19 2012
+# @date last modification: Thu Jun 12 2014
 #
 # @brief  package description for lapack support
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -26,6 +27,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 add_optional_external_package(LAPACK "Use LAPACK for arithmetic operations" OFF LANGUAGE Fortran)
 mark_as_advanced(AKANTU_USE_LAPACK)
 

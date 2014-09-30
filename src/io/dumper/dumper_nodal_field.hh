@@ -1,15 +1,16 @@
 /**
- * @file   dumper_iohelper_tmpl_nodal_field.hh
+ * @file   dumper_nodal_field.hh
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Fri Oct 26 21:52:40 2012
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Tue Sep 02 2014
  *
  * @brief  Description of nodal fields
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -26,7 +27,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 #ifndef __AKANTU_DUMPER_NODAL_FIELD_HH__
 #define __AKANTU_DUMPER_NODAL_FIELD_HH__

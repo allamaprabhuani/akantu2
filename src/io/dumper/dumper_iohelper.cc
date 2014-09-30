@@ -1,16 +1,19 @@
 /**
  * @file   dumper_iohelper.cc
  *
+ * @author Dana Christen <dana.christen@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
  *
- * @date   Fri Oct 26 21:52:40 2012
+ * @date creation: Fri Oct 26 2012
+ * @date last modification: Tue Sep 02 2014
  *
  * @brief  implementation of DumperIOHelper
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

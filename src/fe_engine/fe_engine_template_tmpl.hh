@@ -1,14 +1,18 @@
 /**
  * @file   fe_engine_template_tmpl.hh
+ *
+ * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Mon Nov  5 17:08:50 2012
+ *
+ * @date creation: Mon Nov 05 2012
+ * @date last modification: Mon Jul 07 2014
  *
  * @brief  Template implementation of FEEngineTemplate
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -25,7 +29,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 #include "aka_common.hh"
 

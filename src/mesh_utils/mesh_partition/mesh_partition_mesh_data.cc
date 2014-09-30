@@ -2,14 +2,16 @@
  * @file   mesh_partition_mesh_data.cc
  *
  * @author Dana Christen <dana.christen@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Mon May 01 10:22:00 2013 (On Labor Day, such a shame!)
+ * @date creation: Fri May 03 2013
+ * @date last modification: Thu Jul 31 2014
  *
  * @brief  implementation of the MeshPartitionMeshData class
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

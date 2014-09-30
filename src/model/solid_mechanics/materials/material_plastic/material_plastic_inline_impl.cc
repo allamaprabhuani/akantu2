@@ -1,15 +1,16 @@
 /**
- * @file   material_plastic_inline_impl.hh
+ * @file   material_plastic_inline_impl.cc
  *
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
- * @date   Fri Apr  4 14:07:28 2014
+ * @date creation: Mon Apr 07 2014
+ * @date last modification: Mon Apr 07 2014
  *
- * @brief  
+ * @brief  Implementation of the inline functions of akantu::MaterialPlastic
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

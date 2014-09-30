@@ -4,13 +4,14 @@
  * @author Seyedeh Mohadeseh Taheri Mousavi <mohadeseh.taherimousavi@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date   Mon Jul 09 14:13:56 2012
+ * @date creation: Mon Jul 09 2012
+ * @date last modification: Fri Mar 21 2014
  *
  * @brief  Exponential irreversible cohesive law of mixed mode loading
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

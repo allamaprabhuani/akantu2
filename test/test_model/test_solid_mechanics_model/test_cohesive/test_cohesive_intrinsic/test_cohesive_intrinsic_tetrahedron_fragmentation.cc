@@ -1,15 +1,16 @@
 /**
- * @file   test_cohesive_intrinsic_tetrahedron.cc
+ * @file   test_cohesive_intrinsic_tetrahedron_fragmentation.cc
  *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date   Tue Aug 20 14:37:18 2013
+ * @date creation: Wed Oct 09 2013
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  Test for cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

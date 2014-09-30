@@ -1,13 +1,16 @@
 /**
  * @file   model_manager.hh
+ *
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @date   Wed Aug 22 12:14:00 2012
+ *
+ * @date creation: Mon Jan 07 2013
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  higher order object that deals with collections of models
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

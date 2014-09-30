@@ -1,13 +1,19 @@
 /**
  * @file   structural_mechanics_model.hh
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Thu May  5 15:31:11 2011
  *
- * @brief
+ * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
+ * @author Damien Spielmann <damien.spielmann@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Tue Sep 02 2014
+ *
+ * @brief  Particular implementation of the structural elements in the StructuralMechanicsModel
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

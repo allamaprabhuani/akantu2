@@ -703,23 +703,41 @@ The method
 The use of an explicit time integration scheme is illustrated by the
 example:\par
 \noindent \shellcode{\examplesdir/explicit/explicit\_dynamic.cc}\par
-\noindent This example models the propagation of a wave in a steel beam. The beam is
-blocked on one side and a displacement is applied on the other side,
-as shown in Figure~\ref{fig:smm:explicit}.
+\noindent This example models the propagation of a wave in a steel beam. The
+beam and the applied displacement in the $x$ direction are shown in
+Figure~\ref{fig:smm:explicit}.
 
 \begin{figure}[!htb] \centering
-  \includegraphics[scale=.6]{figures/explicit_dynamic}
+  \begin{tikzpicture}
+    \coordinate (c) at (0,2);
+    \draw[shift={(c)},thick, color=blue] plot [id=x, domain=-5:5, samples=50] ({\x, {(40 * sin(0.1*pi*3*\x) * exp(- (0.1*pi*3*\x)*(0.1*pi*3*\x) / 4))}});
+    \draw[shift={(c)},-latex] (-6,0) -- (6,0) node[right, below] {$x$};
+    \draw[shift={(c)},-latex] (0,-0.7) -- (0,1) node[right] {$u$};
+    \draw[shift={(c)}] (-0.1,0.6) node[left] {$A$}-- (1.5,0.6);
+
+    \coordinate (l) at (0,0.6);
+    \draw[shift={(0,-0.7)}] (-5, 0) -- (5,0) -- (5, 1) -- (-5, 1) -- cycle;
+    \draw[shift={(l)}, latex-latex] (-5,0)-- (5,0) node [midway, above] {$L$};
+    \draw[shift={(l)}] (5,0.2)-- (5,-0.2);
+    \draw[shift={(l)}] (-5,0.2)-- (-5,-0.2);
+
+    \coordinate (h) at (5.3,-0.7);
+    \draw[shift={(h)}, latex-latex] (0,0)-- (0,1) node [midway, right] {$h$};
+    \draw[shift={(h)}] (-0.2,1)-- (0.2,1);
+    \draw[shift={(h)}] (-0.2,0)-- (0.2,0);
+  \end{tikzpicture}
+
   \caption{Numerical setup \label{fig:smm:explicit}}
 \end{figure}
 
-The length and height of the beam are \SI{10}{\metre} and
-\SI{1}{\metre}, respectively.  The material is linear elastic,
+The length and height of the beam are $L=\SI{10}{\metre}$ and
+$h = \SI{1}{\metre}$, respectively.  The material is linear elastic,
 homogeneous and isotropic (density:
 \SI{7800}{\kilo\gram\per\cubic\metre}, Young's modulus:
 \SI{210}{\giga\pascal} and Poisson's ratio: $0.3$).  The imposed
-displacement is equal to $\Delta u = \SI{0.05}{\metre}$. The
+displacement follow a Gaussian function with a maximum amplitude of $A = \SI{0.01}{\meter}$. The
 potential, kinetic and total energies are computed.  The safety factor
-is equal to $0.1$.  The total simulated time is \SI{0.01}{\second}.
+is equal to $0.8$.
 
 \input{manual-constitutive-laws}
 
@@ -875,7 +893,10 @@ LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
   AKANTU_DEBUG_OUT();
 }
 \end{cpp}
-During the intializer list the reference to the model and the material id are assigned and the constructor of the internal field is called. Inside the scope of the constructor the internal values have to be initialized and the parameters, that should be printed out,  are registered with the function:
+During the intializer list the reference to the model and the material id are
+assigned and the constructor of the internal field is called. Inside the scope
+of the constructor the internal values have to be initialized and the
+parameters, that should be printed out, are registered with the function:
 \code{registerParam}\index{Material!registerParam}:
 \begin{cpp}
 void registerParam(name of the parameter (key in the material file),

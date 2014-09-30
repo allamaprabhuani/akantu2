@@ -2,14 +2,16 @@
  * @file   material_elastic_linear_anisotropic.cc
  *
  * @author Till Junge <till.junge@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Tue May 08 13:01:18 2012
+ * @date creation: Wed Sep 25 2013
+ * @date last modification: Fri Sep 19 2014
  *
  * @brief  Anisotropic elastic material
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

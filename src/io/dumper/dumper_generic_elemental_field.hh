@@ -1,3 +1,34 @@
+/**
+ * @file   dumper_generic_elemental_field.hh
+ *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Tue Sep 02 2014
+ *
+ * @brief  Generic interface for elemental fields
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 #ifndef __AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH__
 #define __AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH__
 /* -------------------------------------------------------------------------- */
@@ -11,16 +42,16 @@ __BEGIN_AKANTU__
 __BEGIN_AKANTU_DUMPER__
 /* -------------------------------------------------------------------------- */
 
-template<class _types, template <class> class iterator_type> 
-class GenericElementalField : public Field 
+template<class _types, template <class> class iterator_type>
+class GenericElementalField : public Field
 {
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */  
+  /* ------------------------------------------------------------------------ */
 
 public:
-  
+
   typedef _types types;
   typedef typename types::data_type data_type;
   typedef typename types::it_type it_type;
@@ -29,7 +60,7 @@ public:
   typedef typename types::array_iterator array_iterator;
   typedef typename field_type::type_iterator field_type_iterator;
   typedef iterator_type<types> iterator;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -55,8 +86,8 @@ public:
 
   /// get the number of components of the hosted field
   virtual ElementTypeMap<UInt> getNbComponents(UInt dim = _all_dimensions,
-					      GhostType ghost_type = _not_ghost,
-					      ElementKind kind = _ek_not_defined){
+                                              GhostType ghost_type = _not_ghost,
+                                              ElementKind kind = _ek_not_defined){
     return this->field.getNbComponents(dim,ghost_type,kind);
   };
 
@@ -66,17 +97,17 @@ public:
     return this->nb_total_element;
   }
 
-  /// return the iohelper datatype to be dumped  
+  /// return the iohelper datatype to be dumped
   iohelper::DataType getDataType() { return iohelper::getDataType<data_type>(); }
 
 protected:
 
   /// return the number of entries per element
   UInt getNbDataPerElem(const ElementType & type,
-			const GhostType & ghost_type = _not_ghost) const { 
+                        const GhostType & ghost_type = _not_ghost) const {
     if (!nb_data_per_elem.exists(type, ghost_type))
       return field(type,ghost_type).getNbComponent();
-    
+
     return nb_data_per_elem(type,this->ghost_type);
   }
 

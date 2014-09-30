@@ -3,13 +3,14 @@
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Tue Sep 28 01:41:47 2010
+# @date creation: Tue Sep 28 2010
+# @date last modification: Tue Jan 14 2014
 #
 # @brief  configuration file for doxygen
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the

@@ -1,13 +1,16 @@
 /**
  * @file   aka_optimize.hh
+ *
  * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
- * @date   Fri Apr 20 10:44:00 2012
+ *
+ * @date creation: Fri Jan 04 2013
+ * @date last modification: Mon Sep 15 2014
  *
  * @brief  Objects that can be used to carry out optimization
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

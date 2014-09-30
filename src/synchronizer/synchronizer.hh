@@ -4,13 +4,14 @@
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Sep 01 17:57:12 2010
+ * @date creation: Wed Sep 01 2010
+ * @date last modification: Tue Apr 30 2013
  *
  * @brief  interface for communicator and pbc synchronizers
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

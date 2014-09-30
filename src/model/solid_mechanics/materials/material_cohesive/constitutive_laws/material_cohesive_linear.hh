@@ -1,16 +1,17 @@
 /**
- * @file   material_cohesive_linear_extrinsic.hh
+ * @file   material_cohesive_linear.hh
  *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date   Tue May 08 13:01:18 2012
+ * @date creation: Tue May 08 2012
+ * @date last modification: Tue Jul 29 2014
  *
  * @brief  Linear irreversible cohesive law of mixed mode loading with
  * random stress definition for extrinsic type
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

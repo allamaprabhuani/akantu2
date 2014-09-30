@@ -1,15 +1,16 @@
 /**
  * @file   mesh_filter.hh
  *
- * @author David Kammer <david.kammer@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Mon Feb 10 11:47:19 2014
+ * @date creation: Mon Feb 10 2014
+ * @date last modification: Tue Sep 02 2014
  *
  * @brief  the class representing the meshes
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

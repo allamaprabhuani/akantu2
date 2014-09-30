@@ -1,3 +1,33 @@
+/**
+ * @file   dumper_material_padders.hh
+ *
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Fri Sep 19 2014
+ *
+ * @brief  Material padders for plane stress/ plane strain
+ *
+ * @section LICENSE
+ *
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 #ifndef __AKANTU_DUMPER_MATERIAL_PADDERS_HH__
 #define __AKANTU_DUMPER_MATERIAL_PADDERS_HH__
 /* -------------------------------------------------------------------------- */
@@ -73,7 +103,10 @@ public:
 
     Matrix<Real> stress = this->pad(in, nrows,ncols, nb_data);
     const Material & material = this->getMaterialFromGlobalIndex(global_element_id);
-    bool plane_strain = !material.getParam<bool>("Plane_Stress");
+    bool plane_strain = true;
+    if(spatial_dimension == 2)
+      plane_strain = !material.getParam<bool>("Plane_Stress");
+
     if(plane_strain) {
       Real nu = material.getParam<Real>("nu");
       for (UInt d = 0; d < nb_data; ++d) {

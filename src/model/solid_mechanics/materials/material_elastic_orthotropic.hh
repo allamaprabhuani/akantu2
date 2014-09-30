@@ -4,13 +4,14 @@
  * @author Till Junge <till.junge@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
- * @date   Tue May 08 13:01:18 2012
+ * @date creation: Tue May 08 2012
+ * @date last modification: Tue Aug 19 2014
  *
  * @brief  Orthotropic elastic material
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

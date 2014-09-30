@@ -1,15 +1,16 @@
 #===============================================================================
-# @file   heat_transfer.cmake
+# @file   10_heat_transfer.cmake
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
 #
-# @date   Mon Nov 21 18:19:15 2011
+# @date creation: Mon Nov 21 2011
+# @date last modification: Thu Jun 12 2014
 #
 # @brief  package description for heat transfer
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the

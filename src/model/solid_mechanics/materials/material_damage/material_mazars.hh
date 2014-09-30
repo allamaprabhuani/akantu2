@@ -2,16 +2,17 @@
  * @file   material_mazars.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
  *
- * @date   Wed Apr 06 10:09:38 2011
+ * @date creation: Wed Apr 06 2011
+ * @date last modification: Fri Dec 20 2013
  *
  * @brief  Material Following the Mazars law for damage evolution
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

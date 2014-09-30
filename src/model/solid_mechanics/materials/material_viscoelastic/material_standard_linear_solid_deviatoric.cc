@@ -5,13 +5,14 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Wed Feb 08 16:53:31 2012
+ * @date creation: Wed Feb 08 2012
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  Material Visco-elastic
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

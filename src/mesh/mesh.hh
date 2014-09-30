@@ -2,18 +2,19 @@
  * @file   mesh.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Dana Christen <dana.christen@epfl.ch>
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Dana Christen <dana.christen@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
+ * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date   Fri Jun 18 11:47:19 2010
+ * @date creation: Fri Jun 18 2010
+ * @date last modification: Fri Sep 05 2014
  *
  * @brief  the class representing the meshes
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

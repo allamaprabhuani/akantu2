@@ -1,15 +1,17 @@
 /**
- * @file   boundary_condition_inline_impl.cc
+ * @file   boundary_condition_tmpl.hh
  *
  * @author Dana Christen <dana.christen@gmail.com>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Mar 18 11:30:00 2013
+ * @date creation: Fri May 03 2013
+ * @date last modification: Mon Jun 23 2014
  *
  * @brief  XXX
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

@@ -1,16 +1,17 @@
 /**
  * @file   material_elastic_inline_impl.cc
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Aug 04 10:58:42 2010
+ * @date creation: Wed Aug 04 2010
+ * @date last modification: Mon Apr 07 2014
  *
  * @brief  Implementation of the inline functions of the material elastic
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

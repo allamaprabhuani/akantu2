@@ -1,15 +1,17 @@
 /**
- * @file   dumper_iohelper_tmpl_material_internal_field.hh
+ * @file   dumper_material_internal_field.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Fri Oct 26 21:52:40 2012
+ * @date creation: Tue Sep 02 2014
+ * @date last modification: Tue Sep 02 2014
  *
  * @brief  description of material internal field
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -37,13 +39,13 @@ __BEGIN_AKANTU_DUMPER__
 /* -------------------------------------------------------------------------- */
 
 template<typename T, bool filtered = false>
-class InternalMaterialField 
+class InternalMaterialField
   : public GenericElementalField<SingleType<T,Vector,filtered>,
-				 quadrature_point_iterator> {
-  
+                                 quadrature_point_iterator> {
+
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */  
+  /* ------------------------------------------------------------------------ */
 
 public:
 
@@ -57,9 +59,9 @@ public:
 
 
   InternalMaterialField(const field_type & field,
- 			UInt spatial_dimension = _all_dimensions,
- 			GhostType ghost_type = _not_ghost,
- 			ElementKind element_kind = _ek_not_defined) :
+                        UInt spatial_dimension = _all_dimensions,
+                        GhostType ghost_type = _not_ghost,
+                        ElementKind element_kind = _ek_not_defined) :
     parent(field, spatial_dimension, ghost_type, element_kind){}
 
 

@@ -38,4 +38,11 @@ set(AKANTU_UNFINISHED_FILES
 
   # include files
   analysis/analysis.hh
+
+  mesh_utils/mesh_graph.cc
+  mesh_utils/mesh_graph.hh
 )
+
+list(APPEND AKANTU_BOOST_COMPONENTS
+    graph
+    )

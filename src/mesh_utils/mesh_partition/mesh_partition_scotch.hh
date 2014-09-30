@@ -4,13 +4,14 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Mon Aug 16 13:17:22 2010
+ * @date creation: Mon Aug 16 2010
+ * @date last modification: Mon Jun 09 2014
  *
  * @brief  mesh partitioning based on libScotch
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

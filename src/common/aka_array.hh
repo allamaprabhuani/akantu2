@@ -1,15 +1,19 @@
 /**
  * @file   aka_array.hh
  *
+ * @author Till Junge <till.junge@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Fri Jun 18 11:48:28 2010
+ * @date creation: Fri Jun 18 2010
+ * @date last modification: Tue Jun 24 2014
  *
- * @brief  class of vectors
+ * @brief  Array container for Akantu
+ * This container differs from the std::vector from the fact it as 2 dimensions
+ * a main dimension and the size stored per entries
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

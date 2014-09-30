@@ -3,13 +3,14 @@
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  *
- * @date   Fri May 18 14:06:13 2012
+ * @date creation: Fri May 18 2012
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  test of the class SolidMechanicsModel on the 3d cube
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

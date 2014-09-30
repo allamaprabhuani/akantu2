@@ -1,16 +1,17 @@
 /**
  * @file   material_mazars_non_local.hh
  *
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Mon Oct 03 11:53:09 2011
+ * @date creation: Mon Oct 03 2011
+ * @date last modification: Thu Mar 27 2014
  *
  * @brief  Mazars non-local description
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

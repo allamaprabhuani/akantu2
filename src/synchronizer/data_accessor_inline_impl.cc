@@ -1,14 +1,17 @@
 /**
  * @file   data_accessor_inline_impl.cc
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author David Kammer <david.kammer@epfl.ch>
- * @date   Tue Sep 17 16:52:11 2013
  *
- * @brief  
+ * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ *
+ * @date creation: Wed Sep 18 2013
+ * @date last modification: Thu Jun 05 2014
+ *
+ * @brief  Implementation of the inline functions of the DataAccessor class
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

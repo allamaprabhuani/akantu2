@@ -1,12 +1,16 @@
+#===============================================================================
 # @file   CMakeLists.txt
-# @author Fabian Barras <fabian.barras@epfl.ch>
-# @date   Thu May 12 19:05:02 2011
 #
-# @brief Structural Mechanics Model Tests
+# @author Fabian Barras <fabian.barras@epfl.ch>
+#
+# @date creation: Fri Jul 15 2011
+# @date last modification: Mon Jul 07 2014
+#
+# @brief  Structural Mechanics Model Tests
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -22,7 +26,7 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-#------------------------------------------------------------------------------
+#===============================================================================
 
 register_test(test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1
   test_structural_mechanics_model_bernoulli_beam_2_exemple_1_1.cc)

@@ -3,14 +3,15 @@
  *
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Aug 14 12:16:22 2013
+ * @date creation: Wed Nov 13 2013
+ * @date last modification: Thu Jun 05 2014
  *
- * @brief Class describing a material parameter that can be set depending on a
+ * @brief  Class describing a material parameter that can be set depending on a
  * random distribution
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

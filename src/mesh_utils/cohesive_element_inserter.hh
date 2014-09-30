@@ -1,13 +1,16 @@
 /**
  * @file   cohesive_element_inserter.hh
+ *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
- * @date   Fri Nov 29 17:03:59 2013
+ *
+ * @date creation: Wed Dec 04 2013
+ * @date last modification: Tue Jul 29 2014
  *
  * @brief  Cohesive element inserter
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

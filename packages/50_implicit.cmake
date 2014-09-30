@@ -1,15 +1,16 @@
 #===============================================================================
-# @file   implicit.cmake
+# @file   50_implicit.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Tue Oct 16 14:05:02 2012
+# @date creation: Tue Oct 16 2012
+# @date last modification: Thu Jun 12 2014
 #
 # @brief  package description for the implicit solver
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -26,6 +27,7 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 add_meta_package(IMPLICIT "Add support for implicit time scheme" OFF SCOTCH MUMPS)
 
 set(AKANTU_IMPLICIT_TESTS

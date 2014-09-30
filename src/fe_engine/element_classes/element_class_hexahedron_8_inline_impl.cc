@@ -3,13 +3,14 @@
  *
  * @author Peter Spijker <peter.spijker@epfl.ch>
  *
- * @date   Mon Mar 14 15:53:28 2011
+ * @date creation: Mon Mar 14 2011
+ * @date last modification: Fri Jun 13 2014
  *
  * @brief  Specialization of the element_class class for the type _hexahedron_8
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

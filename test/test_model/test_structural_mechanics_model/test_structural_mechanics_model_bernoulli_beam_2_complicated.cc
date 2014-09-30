@@ -1,13 +1,16 @@
 /**
  * @file   test_structural_mechanics_model_bernoulli_beam_2_complicated.cc
+ *
  * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Wed Jun  1 16:06:45 2011
+ *
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Thu Jun 12 2014
  *
  * @brief  A very complicated structure
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

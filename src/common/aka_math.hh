@@ -1,21 +1,24 @@
 /**
  * @file   aka_math.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Leonardo Snozzi <leonardo.snozzi@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
- * @author Peter Spijker <peter.spijker@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Marco Vocialta <marco.vocialta@epfl.ch>
  * @author David Simon Kammer <david.kammer@epfl.ch>
+ * @author Peter Spijker <peter.spijker@epfl.ch>
+ * @author Ramin Aghababaei <ramin.aghababaei@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Marco Vocialta <marco.vocialta@epfl.ch>
+ * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
- * @date   Wed Aug 04 10:58:42 2010
+ * @date creation: Wed Aug 04 2010
+ * @date last modification: Tue Sep 16 2014
  *
  * @brief  mathematical operations
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

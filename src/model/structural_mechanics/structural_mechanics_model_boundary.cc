@@ -1,13 +1,18 @@
 /**
  * @file   structural_mechanics_model_boundary.cc
- * @author Fabian Barras <fabian.barras@epfl.ch>
- * @date   Wed May 25 15:21:50 2011
  *
- * @brief
+ * @author Damien Spielmann <damien.spielmann@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Fabian Barras <fabian.barras@epfl.ch>
+ *
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Fri Jul 04 2014
+ *
+ * @brief  Implementation of the boundary conditions for StructuralMechanicsModel
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

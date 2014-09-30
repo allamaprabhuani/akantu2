@@ -4,13 +4,14 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
  *
- * @date   Fri Jul 15 19:41:58 2011
+ * @date creation: Fri Jul 15 2011
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  column test
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

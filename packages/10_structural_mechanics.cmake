@@ -1,15 +1,16 @@
 #===============================================================================
-# @file   structural_mechanics.cmake
+# @file   10_structural_mechanics.cmake
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Mon Nov 21 18:19:15 2011
+# @date creation: Mon Nov 21 2011
+# @date last modification: Mon Jul 07 2014
 #
 # @brief  package description for structural mechanics
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the

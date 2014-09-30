@@ -1,13 +1,16 @@
 /**
  * @file   aka_polytope.hh
- * @author Alejandro Aragon <alejandro.aragon@epfl.ch>
- * @date   Tue Oct 02 15:49:00 2012
+ *
+ * @author Alejandro M. Aragón <alejandro.aragon@epfl.ch>
+ *
+ * @date creation: Fri Jan 04 2013
+ * @date last modification: Tue Jun 17 2014
  *
  * @brief  k-DOP class template
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

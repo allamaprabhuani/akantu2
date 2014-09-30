@@ -3,13 +3,14 @@
 #
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Mon Feb 07 17:33:51 2011
+# @date creation: Mon Feb 07 2011
+# @date last modification: Tue Nov 06 2012
 #
 # @brief  configuration for MeshUtils tests
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the

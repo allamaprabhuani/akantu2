@@ -1,13 +1,16 @@
 /**
  * @file   test_structural_mechanics_model_kirchhoff_shell_patch_test_4_5_5.cc
+ *
  * @author Damien Spielmann <damien.spielmann@epfl.ch>
- * @date   Wed Apr 16 22:01:18 2014
+ *
+ * @date creation: Fri Jul 04 2014
+ * @date last modification: Fri Jul 04 2014
  *
  * @brief  patch test exemple 4.5.5 c.f. modelisation des structures par éléments finis J.-L. Batoz/G Dhatt
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

@@ -1,16 +1,18 @@
 /**
  * @file   element_class_tmpl.hh
  *
+ * @author Thomas Menouillard <tmenouillard@stucky.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Wed Nov 14 16:40:51 2012
+ * @date creation: Wed Jan 16 2013
+ * @date last modification: Fri Jun 13 2014
  *
- * @brief Implementation of the inline templated function of the element class
+ * @brief  Implementation of the inline templated function of the element class
  * descriptions
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -27,7 +29,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 
 /* -------------------------------------------------------------------------- */
 /* GaussIntegrationElement                                                    */

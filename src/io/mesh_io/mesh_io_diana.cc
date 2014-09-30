@@ -3,14 +3,16 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  * @author Alodie Schneuwly <alodie.schneuwly@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date   Sat Mar 26 20:43:38 2011
+ * @date creation: Sat Mar 26 2011
+ * @date last modification: Thu Mar 27 2014
  *
  * @brief  handles diana meshes
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

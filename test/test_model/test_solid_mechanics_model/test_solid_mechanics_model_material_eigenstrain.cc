@@ -1,16 +1,17 @@
 /**
- * @file   test_solid_mechanics_model_prestrain_material.cc
+ * @file   test_solid_mechanics_model_material_eigenstrain.cc
  *
+ * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
- * @date   Mon Jan 13 16:05:48 2014
+ * @date creation: Mon Feb 10 2014
+ * @date last modification: Thu Jun 05 2014
  *
  * @brief  test the internal field prestrain
  *
  * @section LICENSE
  *
- * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the

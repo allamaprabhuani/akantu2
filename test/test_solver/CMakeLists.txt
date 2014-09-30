@@ -2,14 +2,16 @@
 # @file   CMakeLists.txt
 #
 # @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date   Mon Dec 13 10:48:06 2010
+# @date creation: Mon Dec 13 2010
+# @date last modification: Tue Nov 06 2012
 #
 # @brief  configuration for solver tests
 #
 # @section LICENSE
 #
-# Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -40,8 +42,6 @@ register_test(test_sparse_matrix_assemble
   SOURCES test_sparse_matrix_assemble.cc
   DEPENDENCIES test_solver_mesh
   )
-
-register_test(test_solver_mumps SOURCES test_solver_mumps.cc)
 
 register_test(test_sparse_matrix_product
   SOURCES test_sparse_matrix_product.cc
