@@ -216,6 +216,9 @@ protected:
   /// maximum displacement
   CohesiveInternalField<Real> delta_max;
 
+  /// tell if the previous delta_max state is needed (in iterative schemes) 
+  bool use_previous_delta_max;
+
   /// damage
   CohesiveInternalField<Real> damage;
 

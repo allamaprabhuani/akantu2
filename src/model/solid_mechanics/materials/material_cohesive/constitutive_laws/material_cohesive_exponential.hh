@@ -75,7 +75,29 @@ protected:
 			      Array<Real> & tangent_matrix,
 			      const Array<Real> & normal,
 			      GhostType ghost_type = _not_ghost);
+private:
+  
+  void computeCoupledTraction(Vector<Real> & tract, const Vector<Real> & normal,
+			      Real delta, const Vector<Real> & opening, 
+			      Real & delta_max_new, Real delta_max);
+  
+  void computeDecoupledShearTraction(Vector<Real> & tract, const Vector<Real> & normal, 
+				     Real delta_s, const Vector<Real> & opening, 
+				     Real & delta_max_new, Real delta_max);
 
+  void computeCompressiveTraction(Vector<Real> & tract, const Vector<Real> & normal,
+				  Real delta_n, const Vector<Real> & opening);
+
+  void computeCoupledTangent(Matrix<Real> & tangent, Vector<Real> tract, 
+			     const Vector<Real> & normal, Real delta, 
+			     const Vector<Real> & opening, Real delta_max_new);
+
+  void computeDecoupledShearTangent(Matrix<Real> & tangent, const Vector<Real> & normal,
+				    Real delta_s, const Vector<Real> & opening,
+				    Real & delta_max_new);
+  void computeCompressivePenalty(Matrix<Real> & tangent, const Vector<Real> & normal,
+				 Real delta_n);
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

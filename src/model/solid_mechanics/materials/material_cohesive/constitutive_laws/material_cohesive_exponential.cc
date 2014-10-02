@@ -48,6 +48,8 @@ MaterialCohesiveExponential<spatial_dimension>::MaterialCohesiveExponential(Soli
 
   // this->initInternalArray(delta_max, 1, _ek_cohesive);
 
+  use_previous_delta_max=true;
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -74,12 +76,15 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Array
   Array<Real>::iterator<Real> delta_max_it =
     delta_max(el_type, ghost_type).begin();
 
+  Array<Real>::iterator<Real> delta_max_prev_it =
+    delta_max.previous(el_type, ghost_type).begin();
+
   /// compute scalars
   Real beta2 =  beta*beta;
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
-       ++traction_it, ++opening_it, ++normal_it, ++delta_max_it) {
+       ++traction_it, ++opening_it, ++normal_it, ++delta_max_it, ++delta_max_prev_it) {
 
     /// compute normal and tangential opening vectors
     Real normal_opening_norm = opening_it->dot(*normal_it);
@@ -104,30 +109,90 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTraction(const Array
 
     delta = sqrt(delta);
 
+    if (normal_opening_norm<0) {
 
-    /// full damage case
-    if (std::abs(delta) < Math::getTolerance()) {
-      /// set traction to zero
-      traction_it->clear();
-    } else { /// element not fully damaged
-      /**
-       * Compute traction loading @f$ \mathbf{T} =
-       * e \sigma_c \frac{\delta}{\delta_c} e^{-\delta/ \delta_c}@f$
-       */
-      /**
-       * Compute traction unloading @f$ \mathbf{T} =
-       *  \frac{t_{max}}{\delta_{max}} \delta @f$
-       */
-      *traction_it  = tangential_opening;
-      *traction_it *= beta2;
-      *traction_it += normal_opening;
+      if (std::abs(tangential_opening_norm) < Math::getTolerance()) traction_it->clear();
+      else computeDecoupledShearTraction(*traction_it, *normal_it, tangential_opening_norm, 
+					 *opening_it, *delta_max_it, *delta_max_prev_it);
 
-      /// update maximum displacement
-      *delta_max_it = std::max(*delta_max_it, delta);
-      *traction_it *= exp(1)*sigma_c*exp(- *delta_max_it / delta_c)/delta_c;
+      computeCompressiveTraction(*traction_it, *normal_it, normal_opening_norm,
+				 *opening_it);
+
     }
+    else computeCoupledTraction(*traction_it, *normal_it, delta, *opening_it,
+				*delta_max_it, *delta_max_prev_it); 
+
   }
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::computeCoupledTraction(Vector<Real> & tract,
+									    const Vector<Real> & normal,
+									    Real delta,
+									    const Vector<Real> & opening, 
+									    Real & delta_max_new,
+									    Real delta_max) {
+  AKANTU_DEBUG_IN();
+  
+  /// full damage case
+  if (std::abs(delta) < Math::getTolerance()) {
+    /// set traction to zero
+    tract.clear();
+  } else { /// element not fully damaged
+    /**
+     * Compute traction loading @f$ \mathbf{T} =
+     * e \sigma_c \frac{\delta}{\delta_c} e^{-\delta/ \delta_c}@f$
+     */
+    /**
+     * Compute traction unloading @f$ \mathbf{T} =
+     *  \frac{t_{max}}{\delta_{max}} \delta @f$
+     */
+    Real beta2 =  beta*beta;
+    Vector<Real> op_n_n(opening);
+    op_n_n*=normal;
+    op_n_n*=(1-beta2);
+    op_n_n*=normal;
+    tract = beta2*opening;
+    tract += op_n_n;
+
+    delta_max_new = std::max(delta_max, delta);
+    tract *= exp(1)*sigma_c*exp(- delta_max_new / delta_c)/delta_c;
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::computeDecoupledShearTraction(Vector<Real> & tract,
+										   const Vector<Real> & normal,
+										   Real delta_s,
+										   const Vector<Real> & opening,
+										   Real & delta_max_new, 
+										   Real delta_max) {
+  Vector<Real> s(opening);
+  Vector<Real> op_n(opening);
+  op_n *= normal;
+  s -= op_n;
+  s /= delta_s;  
+  Vector<Real> temp_tract(s);
+  
+  delta_max_new = std::max(delta_max, beta*std::abs(delta_s));
+  temp_tract *= beta*beta*delta_s*exp(1)*sigma_c*exp(- delta_max_new / delta_c)/delta_c;
+  tract += temp_tract;
+
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::computeCompressiveTraction(Vector<Real> & tract,
+										const Vector<Real> & normal,
+										Real delta_n,
+										const Vector<Real> & opening) {
+  Vector<Real> temp_tract(normal);
+  temp_tract *= delta_n*exp(1)*sigma_c*exp(- delta_n / delta_c)/delta_c;
+  tract += temp_tract;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -143,7 +208,7 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
   Array<Real>::const_vector_iterator normal_it = normal.begin(spatial_dimension);
   Array<Real>::vector_iterator opening_it = opening(el_type, ghost_type).begin(spatial_dimension);
   Array<Real>::vector_iterator traction_it = tractions(el_type, ghost_type).begin(spatial_dimension);
-  Array<Real>::iterator<Real>delta_max_it = delta_max(el_type, ghost_type).begin();
+  Array<Real>::iterator<Real>delta_max_it = delta_max.previous(el_type, ghost_type).begin();
   Real beta2 = beta*beta;
 
   /**
@@ -164,7 +229,7 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
    *  \end{array}\right. @f$
    **/
 
-  for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it, ++traction_it) {
+  for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it, ++traction_it, ++ delta_max_it) {
     Real normal_opening_norm = opening_it->dot(*normal_it);
     Vector<Real> normal_opening(spatial_dimension);
     normal_opening  = (*normal_it);
@@ -182,47 +247,137 @@ void MaterialCohesiveExponential<spatial_dimension>::computeTangentTraction(cons
     delta += normal_opening_norm * normal_opening_norm;
     delta = sqrt(delta);
 
-    Vector<Real> t_hat(tangential_opening);
-    t_hat *= beta2;
-    t_hat += normal_opening;
+    if (normal_opening_norm<0) {
 
-    Matrix<Real> nn(spatial_dimension, spatial_dimension);
-    nn.outerProduct(*normal_it, *normal_it);
+      computeDecoupledShearTangent(*tangent_it, *normal_it, tangential_opening_norm, 
+				   *opening_it, *delta_max_it);
+      
+      computeCompressivePenalty(*tangent_it, *normal_it, normal_opening_norm);
 
-    Matrix<Real> I(spatial_dimension, spatial_dimension);
-    I.eye(beta2);
-    nn *= (1-beta2);
-    I += nn;
-
-    if(std::abs(delta) < Math::getTolerance()){
-      *tangent_it += I;
-      *tangent_it *= exp(1)* sigma_c/delta_c;
-    } else {
-      Real traction_norm = traction_it->norm();
-
-      I  *= traction_norm / delta;
-
-      Vector<Real> t_hat_tmp (t_hat);
-      Real temp_var = 0;
-
-      if ((delta > *delta_max_it) || (std::abs(delta - *delta_max_it) < 1e-12)) {
-        temp_var = -exp(1- delta/delta_c) * sigma_c/(delta_c * delta_c);
-      }
-
-      temp_var /=  delta;
-      t_hat_tmp *= temp_var;
-
-      Matrix<Real> t_var_t(spatial_dimension, spatial_dimension);
-      t_var_t.outerProduct(t_hat, t_hat_tmp);
-
-      *tangent_it += I;
-      *tangent_it += t_var_t;
     }
+    else computeCoupledTangent(*tangent_it, *traction_it, *normal_it, delta, 
+					 *opening_it, *delta_max_it);
+
   }
 
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::computeCoupledTangent(Matrix<Real> & tangent,
+									   Vector<Real> tract,
+									   const Vector<Real> & normal,
+									   Real delta,
+									   const Vector<Real> & opening, 
+									   Real delta_max_new) {
+  AKANTU_DEBUG_IN();
 
+  Real beta2 = beta*beta;
+  Matrix<Real> I(spatial_dimension, spatial_dimension);
+  I.eye(beta2);
+  Matrix<Real> nn(spatial_dimension, spatial_dimension);
+  nn.outerProduct(normal, normal);
+
+  nn *= (1-beta2);
+  I += nn;
+
+  if(std::abs(delta) < Math::getTolerance()){
+    I *= exp(1)*sigma_c/delta_c;
+    tangent += I;
+  } else {
+
+  Real traction_norm = tract.norm();
+
+  Vector<Real> t_hat(opening);
+  Vector<Real> beta2delta(opening);
+
+  beta2delta *= beta2;
+  t_hat *= normal;
+  t_hat *= (beta2-1);
+  t_hat *= normal;
+  t_hat += beta2delta;
+
+  Vector<Real> deriv_t_hat(t_hat);
+
+  deriv_t_hat /= delta;
+
+  Real derivatives = 0;
+
+  if ((delta > delta_max_new) || (std::abs(delta - delta_max_new) < 1e-12)) {
+    derivatives = -exp(1- delta/delta_c)*sigma_c/(delta_c*delta_c);
+  }
+
+  deriv_t_hat *= derivatives;
+
+  Matrix<Real> t_var_t(spatial_dimension, spatial_dimension);
+    t_var_t.outerProduct(t_hat, deriv_t_hat);
+
+  I  *= traction_norm / delta;
+
+  tangent += t_var_t;
+  tangent += I;
+
+  }
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::computeDecoupledShearTangent(Matrix<Real> & tangent,
+										  const Vector<Real> & normal,
+										  Real delta_s,
+										  const Vector<Real> & opening,
+										  Real & delta_max_new) {
+  if (std::abs(delta_s)<Math::getTolerance()) {
+
+    Real beta2 = beta*beta;
+    Matrix<Real> I(spatial_dimension, spatial_dimension);
+    I.eye(beta2);
+    Matrix<Real> nn(spatial_dimension, spatial_dimension);
+    nn.outerProduct(normal, normal);
+
+    nn *= (1-beta2);
+    I += nn;
+    I *= exp(1)*sigma_c/delta_c;
+    tangent += I;
+  } 
+  else {
+  Vector<Real> s(opening);
+  Vector<Real> op_n(opening);
+  op_n *= normal;
+  s -= op_n;
+  s /= delta_s;
+
+  int sgn = 1;
+
+  if (delta_s<0) sgn = -1;
+
+  Real shear_tg = beta*beta*exp(1)*sigma_c*exp(-delta_max_new/delta_c)*
+    (1-beta*delta_s*sgn/delta_c)/delta_c;
+
+  Matrix<Real> s_outher_s(spatial_dimension, spatial_dimension);
+  s_outher_s.outerProduct(s,s);
+
+  s_outher_s *= shear_tg;
+
+  tangent += s_outher_s;
+  }
+}
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::computeCompressivePenalty(Matrix<Real> & tangent,
+									       const Vector<Real> & normal,
+									       Real delta_n) {
+
+  Matrix<Real> n_outer_n(spatial_dimension,spatial_dimension);
+  n_outer_n.outerProduct(normal,normal);
+
+  Real normal_tg = exp(1)*sigma_c*exp(-delta_n/delta_c)*(1-delta_n/delta_c)/delta_c;
+
+  n_outer_n *= normal_tg;
+
+  tangent += n_outer_n;
+
+}
 
 INSTANSIATE_MATERIAL(MaterialCohesiveExponential);
 
