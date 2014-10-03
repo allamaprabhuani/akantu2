@@ -39,12 +39,15 @@ __BEGIN_AKANTU__
 
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>
-MaterialCohesiveExponential<spatial_dimension>::MaterialCohesiveExponential(SolidMechanicsModel & model, const ID & id) :
+MaterialCohesiveExponential<spatial_dimension>::MaterialCohesiveExponential(SolidMechanicsModel & model,
+									    const ID & id) :
   MaterialCohesive(model,id) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta"   , beta   , 0. , _pat_parsable, "Beta parameter"         );
   this->registerParam("delta_c", delta_c, 0. , _pat_parsable, "Critical displacement"  );
+  this->registerParam("penalty_init_slope", penalty_init_slope, false , 
+		      _pat_parsable, "Is contact penalty the initial slope"  );
 
   // this->initInternalArray(delta_max, 1, _ek_cohesive);
 
@@ -191,7 +194,15 @@ void MaterialCohesiveExponential<spatial_dimension>::computeCompressiveTraction(
 										Real delta_n,
 										const Vector<Real> & opening) {
   Vector<Real> temp_tract(normal);
-  temp_tract *= delta_n*exp(1)*sigma_c*exp(- delta_n / delta_c)/delta_c;
+
+  if(!penalty_init_slope) {
+    temp_tract *= delta_n*exp(1)*sigma_c*exp(- delta_n / delta_c)/delta_c;
+  }
+  else {
+    Real initial_tg = exp(1)*sigma_c*delta_n/delta_c;
+    temp_tract *= initial_tg;
+  }
+
   tract += temp_tract;
 }
 
@@ -367,6 +378,8 @@ template<UInt spatial_dimension>
 void MaterialCohesiveExponential<spatial_dimension>::computeCompressivePenalty(Matrix<Real> & tangent,
 									       const Vector<Real> & normal,
 									       Real delta_n) {
+
+  if (penalty_init_slope) delta_n=0;  
 
   Matrix<Real> n_outer_n(spatial_dimension,spatial_dimension);
   n_outer_n.outerProduct(normal,normal);

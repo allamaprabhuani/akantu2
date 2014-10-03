@@ -114,6 +114,8 @@ protected:
   /// critical displacement
   Real delta_c;
 
+  /// contact penalty = initial slope ?
+  bool penalty_init_slope;
 };
 
 
