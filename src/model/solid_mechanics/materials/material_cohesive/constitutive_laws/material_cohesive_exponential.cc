@@ -46,12 +46,30 @@ MaterialCohesiveExponential<spatial_dimension>::MaterialCohesiveExponential(Soli
 
   this->registerParam("beta"   , beta   , 0. , _pat_parsable, "Beta parameter"         );
   this->registerParam("delta_c", delta_c, 0. , _pat_parsable, "Critical displacement"  );
-  this->registerParam("penalty_init_slope", penalty_init_slope, false , 
-		      _pat_parsable, "Is contact penalty the initial slope"  );
+  this->registerParam("exponential_penalty", exp_penalty, true, 
+		      _pat_parsable, "Is contact penalty following the exponential law?"  );
+  
+  this->registerParam("contact_tangent", contact_tangent, 1.0, 
+		      _pat_parsable, "Ratio of contact tangent over the initial exponential tangent"  );
 
   // this->initInternalArray(delta_max, 1, _ek_cohesive);
 
   use_previous_delta_max=true;
+
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>
+void MaterialCohesiveExponential<spatial_dimension>::initMaterial() {
+  
+  AKANTU_DEBUG_IN();
+  MaterialCohesive::initMaterial();
+
+  if ((exp_penalty)&&(contact_tangent!=1)){
+
+    contact_tangent = 1;
+    AKANTU_DEBUG_WARNING("The parsed paramter <contact_tangent> is forced to 1.0 when the contact penalty follows the exponential law");
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -195,11 +213,11 @@ void MaterialCohesiveExponential<spatial_dimension>::computeCompressiveTraction(
 										const Vector<Real> & opening) {
   Vector<Real> temp_tract(normal);
 
-  if(!penalty_init_slope) {
+  if(exp_penalty) {
     temp_tract *= delta_n*exp(1)*sigma_c*exp(- delta_n / delta_c)/delta_c;
   }
   else {
-    Real initial_tg = exp(1)*sigma_c*delta_n/delta_c;
+    Real initial_tg = contact_tangent*exp(1)*sigma_c*delta_n/delta_c;
     temp_tract *= initial_tg;
   }
 
@@ -379,12 +397,12 @@ void MaterialCohesiveExponential<spatial_dimension>::computeCompressivePenalty(M
 									       const Vector<Real> & normal,
 									       Real delta_n) {
 
-  if (penalty_init_slope) delta_n=0;  
+  if (!exp_penalty) delta_n=0;  
 
   Matrix<Real> n_outer_n(spatial_dimension,spatial_dimension);
   n_outer_n.outerProduct(normal,normal);
 
-  Real normal_tg = exp(1)*sigma_c*exp(-delta_n/delta_c)*(1-delta_n/delta_c)/delta_c;
+  Real normal_tg = contact_tangent*exp(1)*sigma_c*exp(-delta_n/delta_c)*(1-delta_n/delta_c)/delta_c;
 
   n_outer_n *= normal_tg;
 

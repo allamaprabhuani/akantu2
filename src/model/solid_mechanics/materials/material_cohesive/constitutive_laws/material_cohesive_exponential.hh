@@ -64,6 +64,8 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 protected:
+  /// Initialization
+  void initMaterial();
 
   /// constitutive law
   void computeTraction(const Array<Real> & normal,
@@ -115,7 +117,10 @@ protected:
   Real delta_c;
 
   /// contact penalty = initial slope ?
-  bool penalty_init_slope;
+  bool exp_penalty;
+
+  /// Ratio of contact tangent over the initial exponential tangent
+  Real contact_tangent;
 };
 
 
