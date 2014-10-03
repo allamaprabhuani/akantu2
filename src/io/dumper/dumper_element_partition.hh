@@ -36,15 +36,12 @@ __BEGIN_AKANTU_DUMPER__
 
 template<class types>
 class element_partition_field_iterator 
-  : public element_iterator<types,element_partition_field_iterator> {
-
+  : public element_iterator<types, element_partition_field_iterator> {
 public:
-  
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */  
-  
-  typedef element_iterator<types, element_partition_field_iterator> parent;
+  typedef element_iterator<types, dumper::element_partition_field_iterator> parent;
   typedef typename types::return_type return_type;
   typedef typename types::array_iterator array_iterator;
   typedef typename types::field_type field_type;

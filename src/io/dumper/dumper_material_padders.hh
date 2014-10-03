@@ -64,7 +64,7 @@ public:
   }
 
   /// return the type of the element from global index
-  const ElementType getElementTypeFromGlobalIndex(Element global_index){
+  ElementType getElementTypeFromGlobalIndex(Element global_index){
     return global_index.getType();
   }
 

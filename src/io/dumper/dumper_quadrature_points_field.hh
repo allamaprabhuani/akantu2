@@ -45,14 +45,12 @@ __BEGIN_AKANTU_DUMPER__
 template<typename types>
 class quadrature_point_iterator 
    : public element_iterator<types,quadrature_point_iterator> {
-  
-   /* ------------------------------------------------------------------------ */
-   /* Typedefs                                                                 */
-   /* ------------------------------------------------------------------------ */  
+  /* ------------------------------------------------------------------------ */
+  /* Typedefs                                                                 */
+  /* ------------------------------------------------------------------------ */  
+public:
 
- public:
-
-   typedef element_iterator<types,quadrature_point_iterator> parent;
+  typedef element_iterator<types, dumper::quadrature_point_iterator> parent;
    typedef typename types::data_type   data_type;
    typedef typename types::return_type return_type;
    typedef typename types::field_type  field_type;

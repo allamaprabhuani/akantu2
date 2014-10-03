@@ -43,7 +43,7 @@ class cohesive_connectivity_field_iterator :
   /* ------------------------------------------------------------------------ */  
   
 public:
-  typedef element_iterator<types, cohesive_connectivity_field_iterator> parent;
+  typedef element_iterator<types, dumper::cohesive_connectivity_field_iterator> parent;
   typedef typename types::return_type return_type;
   typedef typename types::field_type field_type;
   typedef typename types::array_iterator array_iterator;

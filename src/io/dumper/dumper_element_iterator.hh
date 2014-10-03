@@ -41,17 +41,12 @@ __BEGIN_AKANTU_DUMPER__
 
 template<class types, template <class> class final_iterator>
 class element_iterator :
-  public iohelper::iterator<
-                            typename types::data_type,
+  public iohelper::iterator<typename types::data_type,
                             final_iterator<types>,
-                            typename types::return_type>
-
-{
-
+                            typename types::return_type> {
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
-
 public:
 
   typedef typename types::it_type      it_type;
@@ -150,14 +145,12 @@ protected:
 template<typename types>
 class elemental_field_iterator
   : public element_iterator<types, elemental_field_iterator> {
-
 public:
-
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
 
-  typedef element_iterator<types,elemental_field_iterator> parent;
+  typedef element_iterator<types, ::akantu::dumper::elemental_field_iterator> parent;
   typedef typename types::it_type     it_type;
   typedef typename types::return_type return_type;
   typedef typename types::field_type  field_type;

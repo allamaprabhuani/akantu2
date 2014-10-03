@@ -36,7 +36,7 @@ __BEGIN_AKANTU_DUMPER__
 
 template <class types>
 class filtered_connectivity_field_iterator 
-  : public element_iterator<types,filtered_connectivity_field_iterator> {
+  : public element_iterator<types, filtered_connectivity_field_iterator> {
 
 public:
 
@@ -45,7 +45,7 @@ public:
   /* ------------------------------------------------------------------------ */  
   
 
-  typedef element_iterator<types,filtered_connectivity_field_iterator> parent;
+  typedef element_iterator<types, dumper::filtered_connectivity_field_iterator> parent;
   typedef typename types::return_type return_type;
   typedef typename types::field_type field_type;
   typedef typename types::array_iterator array_iterator;

@@ -34,15 +34,12 @@ __BEGIN_AKANTU_DUMPER__
 
 template <class types>
 class element_type_field_iterator 
-  : public element_iterator<types,element_type_field_iterator> {
+  : public element_iterator<types, element_type_field_iterator> {
 public:
-
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */  
-  
-
-  typedef element_iterator<types,element_type_field_iterator> parent;
+  /* ------------------------------------------------------------------------ */ 
+  typedef element_iterator<types, dumper::element_type_field_iterator> parent;
 
   typedef typename types::data_type   data_type;
   typedef typename types::return_type return_type;
