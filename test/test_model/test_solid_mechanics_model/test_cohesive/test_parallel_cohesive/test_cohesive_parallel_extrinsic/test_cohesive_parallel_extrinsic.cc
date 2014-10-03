@@ -108,11 +108,11 @@ int main(int argc, char *argv[]) {
 
   model.setBaseName("extrinsic_parallel");
   model.addDumpFieldVector("displacement");
-  model.addDumpFieldVector("velocity"    );
-  model.addDumpFieldVector("acceleration");
-  model.addDumpFieldVector("residual"    );
-  model.addDumpFieldTensor("stress");
-  model.addDumpFieldTensor("grad_u");
+  model.addDumpField("velocity"    );
+  model.addDumpField("acceleration");
+  model.addDumpField("residual"    );
+  model.addDumpField("stress");
+  model.addDumpField("grad_u");
   model.addDumpField("partitions");
   //  model.getDumper().getDumper().setMode(iohelper::BASE64);
   model.dump();

@@ -174,11 +174,11 @@ void CohesiveElementInserter::limitCheckFacets() {
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveElementInserter::setLimit(UInt axis,
+void CohesiveElementInserter::setLimit(SpacialDirection axis,
 				       Real first_limit,
 				       Real second_limit) {
 
-  AKANTU_DEBUG_ASSERT(axis <= mesh.getSpatialDimension(),
+  AKANTU_DEBUG_ASSERT(axis < mesh.getSpatialDimension(),
 		      "You are trying to limit insertion in a direction that doesn't exist");
 
   insertion_limits(axis, 0) = std::min(first_limit, second_limit);

@@ -9,7 +9,7 @@ beginning of the simulation as follows:
 \begin{cpp}
   SolidMechanicsModelCohesive model(mesh);
   model.initFull();
-  model.limitInsertion(BC::_x, -1, 1);
+  model.limitInsertion(_x, -1, 1);
   model.insertIntrinsicElements();
 \end{cpp}
 where the insertion is limited to the facets whose barycenter's $x$
@@ -20,7 +20,7 @@ the following way:
 \begin{cpp}
   SolidMechanicsModelCohesive model(mesh);
   model.initFull(SolidMechanicsModelCohesiveOptions(_explicit_lumped_mass, true));
-  model.limitInsertion(BC::_x, -1, 1);
+  model.limitInsertion(_x, -1, 1);
   model.updateAutomaticInsertion();
 \end{cpp}
 in which this time the method \code{limitInsertion} prevents the
@@ -53,7 +53,7 @@ cohesive elements have to be inserted before creating the
   mesh.read("implicit_mesh.msh");
 
   CohesiveElementInserter inserter(mesh);
-  inserter.setLimit(1, 0.9, 1.1);
+  inserter.setLimit(_y, 0.9, 1.1);
   inserter.insertIntrinsicElements();
 
   SolidMechanicsModelCohesive model(mesh);
@@ -61,7 +61,7 @@ cohesive elements have to be inserted before creating the
 \end{cpp}
 Also in this case the element insertion can be limited to a given
 range thanks to the method \code{setLimit}. The first input parameter
-of this method indicates the direction (0 for $x$, 1 for $y$ and 2 for
-$z$) while the other two indicate the extremes of the range $[0.9,
-1.1]$. In order to compute the energies, the same functions
-illustrated for dynamics in the last section can be used.
+of this method indicates the direction while the other two indicate
+the extreme values of the range $[0.9, 1.1]$. In order to compute the
+energies, the same functions illustrated for dynamics in the last
+section can be used.
