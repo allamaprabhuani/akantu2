@@ -114,7 +114,7 @@ public:
       Vector<value_type> tmp(ptr,this->nb_data);
       res += tmp;
     }
-
+    res /= nb_to_average;
     return typeConverter(d,res,this->nb_data);
   };
 
