@@ -33,74 +33,100 @@
 /* -------------------------------------------------------------------------- */
 #include "sparse_matrix.hh"
 
-struct Mat;
-struct AO;
-
 /* -------------------------------------------------------------------------- */
 __BEGIN_AKANTU__
 
+class PETScWrapper;
 
-
-class PetscMatrix : SparseMatrix {
-  /* ------------------------------------------------------------------------ */
-  /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */  
-
-  class PetscMatrixValue {
-
-  public:
-
-    PetscMatrixValue(){}
-
-    inline PetscMatrixValue operator = (Real v){
-      MatSetValue(*mat,i,j,v,INSERT_VALUES);
-      return *this;
-    };
-
-
-    inline PetscMatrixValue operator += (Real v){
-      //     std::cout << "set " << std::abs(Real(i)-Real(j)) << std::endl;
-      MatSetValue(*mat,i,j,v,ADD_VALUES);
-      return *this;
-    };
-
-    inline PetscMatrixValue operator -= (Real v){
-      MatSetValue(*mat,i,j,-1.*v,ADD_VALUES);
-      return *this;
-    };
-
-    friend PetscMatrix;
-
-  private:
-
-    UInt i,j;
-    Mat * mat;
-  };
-
+class PETScMatrix : public SparseMatrix {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  PetscMatrix(UInt size,
-	       const SparseMatrixType & sparse_matrix_type,
-	       UInt nb_degree_of_freedom,
-	       const ID & id = "petsc_matrix",
-	       const MemoryID & memory_id = 0);
+  PETScMatrix(UInt size,
+	      const SparseMatrixType & sparse_matrix_type,
+	      const ID & id = "petsc_matrix",
+	      const MemoryID & memory_id = 0);
 
-  PetscMatrix(const PetscMatrix & matrix,
-	       const ID & id = "petsc_matrix",
-	       const MemoryID & memory_id = 0);
+  PETScMatrix(const SparseMatrix & matrix,
+	      const ID & id = "petsc_matrix",
+	      const MemoryID & memory_id = 0);
 
-  virtual ~PetscMatrix();
+  virtual ~PETScMatrix();
 
-  typedef std::pair<UInt, UInt> KeyCOO;
-  typedef unordered_map<KeyCOO, UInt>::type coordinate_list_map;
 
+private:
+  /// init internal PETSc matrix
+  void init();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// resize PETSc matrix
+  void resize(const DOFSynchronizer & dof_synchronizer);
+
+  // /// remove the existing profile
+  // inline void clearProfile();
+
+  // /// add a non-zero element
+  // virtual UInt addToProfile(UInt i, UInt j);
+
+  // /// set the matrix to 0
+  // inline void clear();
+
+  // /// assemble a local matrix in the sparse one
+  // inline void addToMatrix(UInt i, UInt j, Real value);
+
+  /// fill the profil of the matrix
+  virtual void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer, UInt nb_degree_of_freedom);
+
+  // /// modify the matrix to "remove" the blocked dof
+  // virtual void applyBoundary(const Array<bool> & boundary, Real block_val = 1.);
+
+  /// modify the matrix to "remove" the blocked dof
+  virtual void applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real> & EulerAngles, Array<Real> & rhs, const Array<Real> & matrix, Array<Real> & rhs_rotated) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+
+  /// modify the matrix to "remove" the blocked dof
+  virtual void removeBoundary(const Array<bool> & boundary) {
+    AKANTU_DEBUG_TO_IMPLEMENT();
+  }
+  
+  /// perform assembly so that matrix is ready for use
+  void performAssembly();
+
+  // /// restore the profile that was before removing the boundaries
+  // virtual void restoreProfile();
+
+  // /// save the profil in a file using the MatrixMarket file format
+  // virtual void saveProfile(const std::string & filename) const;
+
+  /// save the matrix in a file using the MatrixMarket file format
+  virtual void saveMatrix(const std::string & filename) const;
+
+  // /// copy assuming the profile are the same
+  // virtual void copyContent(const SparseMatrix & matrix);
+
+  // /// copy profile
+  // //  void copyProfile(const SparseMatrix & matrix);
+
+  /// add matrix assuming the profile are the same
+  virtual void add(const SparseMatrix & matrix, Real alpha);
+
+  // /// diagonal lumping
+  // virtual void lump(Array<Real> & lumped);
+
+  // /// function to print the contain of the class
+  // //virtual void printself(std::ostream & stream, int indent = 0) const;
+
+private:
+  /// create a mapping from the global akantu numbering to the PETSc numbering
+  void createGlobalAkantuToPETScMap(Int* local_master_eq_nbs_ptr);
+
+  /// create a mapping from the local akantu numbering to the PETSc numbering
+  void createLocalAkantuToPETScMap(const DOFSynchronizer & dof_synchronizer);
 
 
   /* ------------------------------------------------------------------------ */
@@ -111,14 +137,20 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-  
+
 
 private:
+  /// store the PETSc structures
+  PETScWrapper * petsc_wrapper;
 
-  Mat * mat;
-  AO  * ao;
+  /// size of the diagonal part of the matrix partition
+  Int local_size;
 
+  /// number of nonzeros in every row of the diagonal part
+  Array<Int> d_nnz;
 
+  /// number of nonzeros in every row of the off-diagonal part
+  Array<Int> o_nnz;
 };
 
 __END_AKANTU__

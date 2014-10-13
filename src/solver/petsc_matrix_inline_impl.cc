@@ -25,49 +25,49 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
-inline UInt PetscMatrix::addToProfile(UInt i, UInt j) {
+// /* -------------------------------------------------------------------------- */
+// inline UInt PetscMatrix::addToProfile(UInt i, UInt j) {
 
-  // initialize new value
-  MatSetValuesLocal(this->mat,1,i,1,j,0,INSERT_VALUES);
+//   // initialize new value
+//   MatSetValuesLocal(this->mat,1,i,1,j,0,INSERT_VALUES);
 
-  nb_non_zero++;
+//   nb_non_zero++;
 
-  return nb_non_zero - 1;
-}
+//   return nb_non_zero - 1;
+// }
 
-/* -------------------------------------------------------------------------- */
-inline void PetscMatrix::clearProfile() {
-  //retain matrix but reinitialize its content
-  MatZeroEntries(this->mat);
-  nb_non_zero = 0;
-}
+// /* -------------------------------------------------------------------------- */
+// inline void PetscMatrix::clearProfile() {
+//   //retain matrix but reinitialize its content
+//   MatZeroEntries(this->mat);
+//   nb_non_zero = 0;
+// }
 
-/* -------------------------------------------------------------------------- */
-inline void PetscMatrix::clear() {
-  memset(a.storage(), 0, nb_non_zero*sizeof(Real));
-}
+// /* -------------------------------------------------------------------------- */
+// inline void PetscMatrix::clear() {
+//   memset(a.storage(), 0, nb_non_zero*sizeof(Real));
+// }
 
-/* -------------------------------------------------------------------------- */
-inline void PetscMatrix::addToMatrix(UInt i, UInt j, Real value) {
-  MatSetValue(this->mat,1,i,1,j,value,ADD_VALUES);
-}
+// /* -------------------------------------------------------------------------- */
+// inline void PetscMatrix::addToMatrix(UInt i, UInt j, Real value) {
+//   MatSetValue(this->mat,1,i,1,j,value,ADD_VALUES);
+// }
 
-/* -------------------------------------------------------------------------- */
-inline Real PetscMatrix::operator()(UInt i, UInt j) const {
-  KeyCOO jcn_irn = key(i, j);
-  coordinate_list_map::const_iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
-  if(irn_jcn_k_it == irn_jcn_k.end()) return 0;
-  return this->mat(i,j).
-}
+// /* -------------------------------------------------------------------------- */
+// inline Real PetscMatrix::operator()(UInt i, UInt j) const {
+//   KeyCOO jcn_irn = key(i, j);
+//   coordinate_list_map::const_iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
+//   if(irn_jcn_k_it == irn_jcn_k.end()) return 0;
+//   return this->mat(i,j).
+// }
 
-/* -------------------------------------------------------------------------- */
-inline Real & PetscMatrix::operator()(UInt i, UInt j) {
-  KeyCOO jcn_irn = key(i, j);
-  coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
-  AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
-		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
+// /* -------------------------------------------------------------------------- */
+// inline Real & PetscMatrix::operator()(UInt i, UInt j) {
+//   KeyCOO jcn_irn = key(i, j);
+//   coordinate_list_map::iterator irn_jcn_k_it = irn_jcn_k.find(jcn_irn);
+//   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != irn_jcn_k.end(),
+// 		      "Couple (i,j) = (" << i << "," << j << ") does not exist in the profile");
 
-  return a.storage()[irn_jcn_k_it->second];
-}
+//   return a.storage()[irn_jcn_k_it->second];
+// }
 

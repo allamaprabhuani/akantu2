@@ -39,3 +39,7 @@ set(AKANTU_PETSC_FILES
   solver/solver_petsc.hh
   solver/solver_petsc.cc
   )
+
+set(AKANTU_PETSC_TESTS
+  test_petsc_matrix_profile
+  )

@@ -89,7 +89,7 @@ public:
   inline void clearProfile();
   
   /// add a non-zero element
-  UInt addToProfile(UInt i, UInt j);
+  virtual UInt addToProfile(UInt i, UInt j);
 
   /// set the matrix to 0
   inline void clear();
@@ -101,43 +101,42 @@ public:
   void resize(UInt size)
   { this->size = size; }
   
-  /// fill the profil of the matrix
   void buildProfile(const Mesh & mesh, const DOFSynchronizer & dof_synchronizer, UInt nb_degree_of_freedom);
 
   /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(const Array<bool> & boundary, Real block_val = 1.);
+  virtual void applyBoundary(const Array<bool> & boundary, Real block_val = 1.);
 
 //  /// modify the matrix to "remove" the blocked dof
 //  void applyBoundaryNormal(Array<bool> & boundary_normal, Array<Real> & EulerAngles, Array<Real> & rhs, const Array<Real> & matrix, Array<Real> & rhs_rotated);
 
   /// modify the matrix to "remove" the blocked dof
-  void removeBoundary(const Array<bool> & boundary);
+  virtual void removeBoundary(const Array<bool> & boundary);
 
   /// restore the profile that was before removing the boundaries
-  void restoreProfile();
+  virtual void restoreProfile();
 
   /// save the profil in a file using the MatrixMarket file format
-  void saveProfile(const std::string & filename) const;
+  virtual void saveProfile(const std::string & filename) const;
 
   /// save the matrix in a file using the MatrixMarket file format
-  void saveMatrix(const std::string & filename) const;
+  virtual void saveMatrix(const std::string & filename) const;
 
   /// copy assuming the profile are the same
-  void copyContent(const SparseMatrix & matrix);
+  virtual void copyContent(const SparseMatrix & matrix);
   
   /// copy profile
 //  void copyProfile(const SparseMatrix & matrix);
 
   /// add matrix assuming the profile are the same
-  void add(const SparseMatrix & matrix, Real alpha);
+  virtual void add(const SparseMatrix & matrix, Real alpha);
 
   /// diagonal lumping
-  void lump(Array<Real> & lumped);
+  virtual void lump(Array<Real> & lumped);
 
   /// function to print the contain of the class
   //virtual void printself(std::ostream & stream, int indent = 0) const;
 
-private:
+protected:
   inline KeyCOO key(UInt i, UInt j) const {
     if(sparse_matrix_type == _symmetric && (i > j))
       return std::make_pair(j, i);
@@ -179,7 +178,7 @@ private:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
   /// id  of the SparseMatrix
   ID id;
 
