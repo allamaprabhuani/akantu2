@@ -36,6 +36,4 @@ add_akantu_test(test_cohesive_extrinsic "test_cohesive_extrinsic" PACKAGE cohesi
 add_akantu_test(test_cohesive_buildfragments "test_cohesive_buildfragments" PACKAGE cohesive_element)
 add_akantu_test(test_cohesive_intrinsic_impl "test_cohesive_intrinsic_impl" PACKAGE cohesive_element)
 add_akantu_test(test_cohesive_1d_element "test_cohesive_1d_element" PACKAGE cohesive_element)
-
-add_akantu_test(test_parallel_cohesive "test parallel cohesive elements" PACKAGE parallel_cohesive_element)
 #===============================================================================

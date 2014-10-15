@@ -33,9 +33,6 @@
 add_mesh(test_synchronizer_communication_mesh
   cube.geo 3 2)
 
-add_mesh(test_facet_synchronizer_mesh
-  facet.geo 3 2)
-
 register_test(test_synchronizer_communication
   SOURCES test_synchronizer_communication.cc
   DEPENDENCIES test_synchronizer_communication_mesh
@@ -57,12 +54,6 @@ register_test(test_grid_synchronizer
 register_test(test_dof_synchronizer
   SOURCES test_dof_synchronizer.cc test_data_accessor.hh
   FILES_TO_COPY bar.msh)
-
-register_test(test_facet_synchronizer
-  SOURCES test_facet_synchronizer.cc test_data_accessor.hh
-  DEPENDENCIES test_facet_synchronizer_mesh
-  PACKAGE parallel_cohesive_element
-  )
 
 register_test(test_data_distribution
   SOURCES test_data_distribution.cc
