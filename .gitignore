@@ -1,13 +1,30 @@
+# Build folders
 build*
-.dir-locals.el
-TAGS
-third-party/blackdynamite/
-third-party/cpp-array/
-*~
-release
-.*.swp
+
+# Releases
 *.tar.gz
 *.tgz
 *.tbz
 *.tar.bz2
+release
+
+# Project managers / IDE / Editors
 .idea
+.*.swp
+*~
+.dir-locals.el
+TAGS
+
+# Third-party cloned codes
+third-party/blackdynamite/
+third-party/cpp-array/
+
+# LaTeX stuff
+doc/manual/*.log
+doc/manual/*.aux
+doc/manual/*.idx
+doc/manual/*.ilg
+doc/manual/*.ind
+doc/manual/*.toc
+doc/manual/*.out
+doc/manual/*.pdf
