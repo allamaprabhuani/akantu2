@@ -1,5 +1,6 @@
 {
   "repository.callsign" : "AKA",
   "phabricator.uri" : "https://c4science.ch/",
-  "load" : [ ".linters/clang-format-linter" ]
+  "load" : [ ".linters/clang-format-linter" ],
+  "history.immutable" : true
 }
