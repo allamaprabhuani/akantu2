@@ -30,12 +30,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_config.hh"
 #include "aka_error.hh"
 #include "aka_common.hh"
+#include "aka_config.hh"
 /* -------------------------------------------------------------------------- */
-#include <iostream>
 #include <csignal>
+#include <iostream>
 
 #if (defined(READLINK_COMMAND) || defined(ADDR2LINE_COMMAND)) &&               \
     (not defined(_WIN32))
@@ -43,16 +43,18 @@
 #include <sys/wait.h>
 #endif
 
+#include <cmath>
+#include <cstring>
 #include <cxxabi.h>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
-#include <cstring>
 #include <map>
 #include <sys/types.h>
 #include <unistd.h>
 
-#if defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
+#if defined(AKANTU_CORE_CXX11)
+#include <chrono>
+#elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
 #include <sys/time.h>
 #else
 #include <time.h>
@@ -302,7 +304,12 @@ void Debugger::printMessage(const std::string & prefix,
                             const DebugLevel & level,
                             const std::string & info) const {
   if (this->level >= level) {
-#if defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
+#if defined(AKANTU_CORE_CXX11)
+    double timestamp =
+        std::chrono::duration_cast<std::chrono::duration<double, std::micro> >(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
+#elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
     struct timeval time;
     gettimeofday(&time, NULL);
     double timestamp = time.tv_sec * 1e6 + time.tv_usec; /*in us*/
