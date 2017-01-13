@@ -30,12 +30,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_config.hh"
 #include "aka_error.hh"
 #include "aka_common.hh"
+#include "aka_config.hh"
 /* -------------------------------------------------------------------------- */
-#include <iostream>
 #include <csignal>
+#include <iostream>
 
 #if (defined(READLINK_COMMAND) || defined(ADDR2LINE_COMMAND)) &&               \
     (not defined(_WIN32))
@@ -43,21 +43,21 @@
 #include <sys/wait.h>
 #endif
 
+#include <cmath>
+#include <cstring>
 #include <cxxabi.h>
 #include <fstream>
 #include <iomanip>
-#include <cmath>
-#include <cstring>
 #include <map>
 #include <sys/types.h>
 #include <unistd.h>
 
 #if defined(AKANTU_CORE_CXX11)
-#  include <chrono>
+#include <chrono>
 #elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
-#  include <sys/time.h>
+#include <sys/time.h>
 #else
-#  include <time.h>
+#include <time.h>
 #endif
 
 #ifdef AKANTU_USE_MPI
@@ -115,8 +115,8 @@ std::string demangle(const char * symbol) {
 }
 
 /* ------------------------------------------------------------------------ */
-#if (defined(READLINK_COMMAND) || defined(ADDR2LINK_COMMAND)) &&        \
-  (not defined(_WIN32))
+#if (defined(READLINK_COMMAND) || defined(ADDR2LINK_COMMAND)) &&               \
+    (not defined(_WIN32))
 std::string exec(std::string cmd) {
   FILE * pipe = popen(cmd.c_str(), "r");
   if (!pipe)
@@ -305,9 +305,10 @@ void Debugger::printMessage(const std::string & prefix,
                             const std::string & info) const {
   if (this->level >= level) {
 #if defined(AKANTU_CORE_CXX11)
-    double timestamp = std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
-        std::chrono::system_clock::now().time_since_epoch()
-      ).count();
+    double timestamp =
+        std::chrono::duration_cast<std::chrono::duration<double, std::micro> >(
+            std::chrono::system_clock::now().time_since_epoch())
+            .count();
 #elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
     struct timeval time;
     gettimeofday(&time, NULL);
