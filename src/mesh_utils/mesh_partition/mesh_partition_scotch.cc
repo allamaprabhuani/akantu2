@@ -5,24 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Jan 22 2016
+ * @date last modification: Tue Feb 20 2018
  *
  * @brief  implementation of the MeshPartitionScotch class
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -31,15 +30,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "mesh_partition_scotch.hh"
+#include "aka_common.hh"
+#include "aka_random_generator.hh"
+#include "aka_static_if.hh"
+#include "mesh_utils.hh"
+/* -------------------------------------------------------------------------- */
 #include <cstdio>
 #include <fstream>
-
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "mesh_partition_scotch.hh"
-#include "mesh_utils.hh"
 
-/* -------------------------------------------------------------------------- */
 #if !defined(AKANTU_USE_PTSCOTCH)
 #ifndef AKANTU_SCOTCH_NO_EXTERN
 extern "C" {
@@ -52,7 +52,11 @@ extern "C" {
 #include <ptscotch.h>
 #endif // AKANTU_USE_PTSCOTCH
 
-__BEGIN_AKANTU__
+namespace akantu {
+
+namespace {
+  constexpr int scotch_version = int(SCOTCH_VERSION);
+}
 
 /* -------------------------------------------------------------------------- */
 MeshPartitionScotch::MeshPartitionScotch(const Mesh & mesh,
@@ -60,6 +64,16 @@ MeshPartitionScotch::MeshPartitionScotch(const Mesh & mesh,
                                          const MemoryID & memory_id)
     : MeshPartition(mesh, spatial_dimension, id, memory_id) {
   AKANTU_DEBUG_IN();
+
+  // check if the akantu types and Scotch one are consistent
+  static_assert(
+      sizeof(Int) == sizeof(SCOTCH_Num),
+      "The integer type of Akantu does not match the one from Scotch");
+
+  static_if(aka::bool_constant_v<scotch_version >= 6>)
+      .then([](auto && y) { SCOTCH_randomSeed(y); })
+      .else_([](auto && y) { srandom(y); })(
+          std::forward<UInt>(RandomGenerator<UInt>::seed()));
 
   AKANTU_DEBUG_OUT();
 }
@@ -92,12 +106,12 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
   SCOTCH_Num velmbas = vnodnbr;
   SCOTCH_Num velmnbr = total_nb_element;
 
-  SCOTCH_Num * verttab = new SCOTCH_Num[vnodnbr + velmnbr + 1];
+  auto * verttab = new SCOTCH_Num[vnodnbr + velmnbr + 1];
   SCOTCH_Num * vendtab = verttab + 1;
 
-  SCOTCH_Num * velotab = NULL;
-  SCOTCH_Num * vnlotab = NULL;
-  SCOTCH_Num * vlbltab = NULL;
+  SCOTCH_Num * velotab = nullptr;
+  SCOTCH_Num * vnlotab = nullptr;
+  SCOTCH_Num * vlbltab = nullptr;
 
   memset(verttab, 0, (vnodnbr + velmnbr + 1) * sizeof(SCOTCH_Num));
 
@@ -129,7 +143,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
 
   /// rearrange element to get the node-element list
   SCOTCH_Num edgenbr = verttab[vnodnbr] + nb_edge;
-  SCOTCH_Num * edgetab = new SCOTCH_Num[edgenbr];
+  auto * edgetab = new SCOTCH_Num[edgenbr];
 
   UInt linearized_el = 0;
 
@@ -174,7 +188,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     }
   }
 
-  SCOTCH_Mesh * meshptr = new SCOTCH_Mesh;
+  auto * meshptr = new SCOTCH_Mesh;
 
   SCOTCH_meshInit(meshptr);
 
@@ -195,8 +209,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     /// write geometry file
     std::ofstream fgeominit;
     fgeominit.open("ScotchMesh.xyz");
-    fgeominit << spatial_dimension << std::endl
-              << nb_nodes << std::endl;
+    fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
     const Array<Real> & nodes = mesh.getNodes();
     Real * nodes_val = nodes.storage();
@@ -261,18 +274,18 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
   /// description number and arrays for struct mesh for scotch
   SCOTCH_Num baseval = 0; // base numbering for element and
   // nodes (0 -> C , 1 -> fortran)
-  SCOTCH_Num vertnbr = dxadj.getSize() - 1; // number of vertexes
-  SCOTCH_Num * parttab;                     // array of partitions
-  SCOTCH_Num edgenbr = dxadj(vertnbr);      // twice  the number  of "edges"
+  SCOTCH_Num vertnbr = dxadj.size() - 1; // number of vertexes
+  SCOTCH_Num * parttab;                  // array of partitions
+  SCOTCH_Num edgenbr = dxadj(vertnbr);   // twice  the number  of "edges"
   //(an "edge" bounds two nodes)
   SCOTCH_Num * verttab = dxadj.storage(); // array of start indices in edgetab
-  SCOTCH_Num * vendtab = NULL; // array of after-last indices in edgetab
-  SCOTCH_Num * velotab = NULL; // integer  load  associated with
+  SCOTCH_Num * vendtab = nullptr; // array of after-last indices in edgetab
+  SCOTCH_Num * velotab = nullptr; // integer  load  associated with
   // every vertex ( optional )
   SCOTCH_Num * edlotab = edge_loads.storage(); // integer  load  associated with
   // every edge ( optional )
   SCOTCH_Num * edgetab = dadjncy.storage(); // adjacency array of every vertex
-  SCOTCH_Num * vlbltab = NULL;              // vertex label array (optional)
+  SCOTCH_Num * vlbltab = nullptr;           // vertex label array (optional)
 
   /// Allocate space for Scotch arrays
   parttab = new SCOTCH_Num[vertnbr];
@@ -297,8 +310,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
     /// write geometry file
     std::ofstream fgeominit;
     fgeominit.open("GeomIniFile.xyz");
-    fgeominit << spatial_dimension << std::endl
-              << vertnbr << std::endl;
+    fgeominit << spatial_dimension << std::endl << vertnbr << std::endl;
 
     const Array<Real> & nodes = mesh.getNodes();
 
@@ -306,8 +318,7 @@ void MeshPartitionScotch::partitionate(UInt nb_part,
         mesh.firstType(spatial_dimension, _not_ghost, _ek_not_defined);
     Mesh::type_iterator f_end =
         mesh.lastType(spatial_dimension, _not_ghost, _ek_not_defined);
-    Array<Real>::const_vector_iterator nodes_it =
-        nodes.begin(spatial_dimension);
+    auto nodes_it = nodes.begin(spatial_dimension);
 
     UInt out_linerized_el = 0;
     for (; f_it != f_end; ++f_it) {
@@ -391,11 +402,11 @@ void MeshPartitionScotch::reorder() {
   SCOTCH_Strat scotch_strat;
   // SCOTCH_Ordering scotch_order;
 
-  SCOTCH_Num * permtab = new SCOTCH_Num[nb_nodes];
-  SCOTCH_Num * peritab = NULL;
+  auto * permtab = new SCOTCH_Num[nb_nodes];
+  SCOTCH_Num * peritab = nullptr;
   SCOTCH_Num cblknbr = 0;
-  SCOTCH_Num * rangtab = NULL;
-  SCOTCH_Num * treetab = NULL;
+  SCOTCH_Num * rangtab = nullptr;
+  SCOTCH_Num * treetab = nullptr;
 
   /// Initialize the strategy structure
   SCOTCH_stratInit(&scotch_strat);
@@ -428,7 +439,7 @@ void MeshPartitionScotch::reorder() {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   for (UInt g = _not_ghost; g <= _ghost; ++g) {
-    GhostType gt = (GhostType)g;
+    auto gt = (GhostType)g;
 
     Mesh::type_iterator it = mesh.firstType(_all_dimensions, gt);
     Mesh::type_iterator end = mesh.lastType(_all_dimensions, gt);
@@ -449,7 +460,7 @@ void MeshPartitionScotch::reorder() {
   }
 
   /// \todo think of a in-place way to do it
-  Real * new_coordinates = new Real[spatial_dimension * nb_nodes];
+  auto * new_coordinates = new Real[spatial_dimension * nb_nodes];
   Real * old_coordinates = mesh.getNodes().storage();
   for (UInt i = 0; i < nb_nodes; ++i) {
     memcpy(new_coordinates + permtab[i] * spatial_dimension,
@@ -465,4 +476,4 @@ void MeshPartitionScotch::reorder() {
   AKANTU_DEBUG_OUT();
 }
 
-__END_AKANTU__
+} // namespace akantu

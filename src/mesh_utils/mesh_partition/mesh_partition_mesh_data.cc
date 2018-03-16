@@ -5,23 +5,23 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date creation: Fri May 03 2013
- * @date last modification: Wed Nov 11 2015
+ * @date last modification: Tue Feb 20 2018
  *
  * @brief  implementation of the MeshPartitionMeshData class
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -39,7 +39,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 MeshPartitionMeshData::MeshPartitionMeshData(const Mesh & mesh,
@@ -82,7 +82,7 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
 
   UInt linearized_el = 0;
   UInt nb_elements = mesh.getNbElement(mesh.getSpatialDimension(), ghost_type);
-  Int * partition_list = new Int[nb_elements];
+  auto * partition_list = new Int[nb_elements];
 
 #if !defined(AKANTU_NDEBUG)
   std::set<UInt> partitions;
@@ -91,8 +91,8 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
     ElementType type = *it;
     const Array<UInt> & partition_array =
         (*partition_mapping)(type, ghost_type);
-    Array<UInt>::const_iterator<Vector<UInt> > p_it = partition_array.begin(1);
-    Array<UInt>::const_iterator<Vector<UInt> > p_end = partition_array.end(1);
+    Array<UInt>::const_iterator<Vector<UInt>> p_it = partition_array.begin(1);
+    Array<UInt>::const_iterator<Vector<UInt>> p_end = partition_array.end(1);
     AKANTU_DEBUG_ASSERT(UInt(p_end - p_it) ==
                             mesh.getNbElement(type, ghost_type),
                         "The partition mapping does not have the right number "
@@ -124,7 +124,7 @@ void MeshPartitionMeshData::partitionate(UInt nb_part,
 }
 
 /* -------------------------------------------------------------------------- */
-void MeshPartitionMeshData::reorder() { AKANTU_DEBUG_TO_IMPLEMENT(); }
+void MeshPartitionMeshData::reorder() { AKANTU_TO_IMPLEMENT(); }
 
 /* -------------------------------------------------------------------------- */
 void MeshPartitionMeshData::setPartitionMapping(
@@ -138,4 +138,4 @@ void MeshPartitionMeshData::setPartitionMappingFromMeshData(
   partition_mapping = &(mesh.getData<UInt>(data_name));
 }
 
-__END_AKANTU__
+} // akantu

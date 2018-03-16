@@ -5,25 +5,24 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Oct 15 2015
+ * @date last modification: Mon Sep 11 2017
  *
  * @brief  Specialization of the material class for the non-local mazars
  * material
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -35,18 +34,19 @@
 #include "material_mazars_non_local.hh"
 #include "solid_mechanics_model.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
     SolidMechanicsModel & model, const ID & id)
-    : Material(model, id), MaterialMazars<spatial_dimension>(model, id),
-      MaterialNonLocalParent(model, id), Ehat("epsilon_equ", *this) {
+    : MaterialNonLocalParent(model, id), Ehat("epsilon_equ", *this),
+      non_local_variable("mazars_non_local", *this) {
   AKANTU_DEBUG_IN();
 
   this->is_non_local = true;
   this->Ehat.initialize(1);
+  this->non_local_variable.initialize(1);
 
   this->registerParam("average_on_damage", this->damage_in_compute_stress,
                       false, _pat_parsable | _pat_modifiable,
@@ -57,12 +57,18 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::initMaterial() {
-  AKANTU_DEBUG_IN();
-  MaterialMazars<spatial_dimension>::initMaterial();
-  MaterialNonLocalParent::initMaterial();
+void MaterialMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
+  ID local;
+  if (this->damage_in_compute_stress)
+    local = this->damage.getName();
+  else
+    local = this->Ehat.getName();
 
-  AKANTU_DEBUG_OUT();
+  this->model.getNonLocalManager().registerNonLocalVariable(
+      local, non_local_variable.getName(), 1);
+  this->model.getNonLocalManager()
+      .getNeighborhood(this->name)
+      .registerNonLocalVariable(non_local_variable.getName());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -88,36 +94,10 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStresses(
-    __attribute__((unused)) GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-  InternalField<Real> nl_var("Non local variable", *this);
-  nl_var.initialize(1);
-
-  // if(this->damage_in_compute_stress)
-  //   this->weightedAvergageOnNeighbours(this->damage, nl_var, 1);
-  // else
-  //   this->weightedAvergageOnNeighbours(this->Ehat, nl_var, 1);
-
-  // Mesh::type_iterator it =
-  // this->model->getFEEngine().getMesh().firstType(spatial_dimension,
-  // ghost_type);
-  // Mesh::type_iterator last_type =
-  // this->model->getFEEngine().getMesh().lastType(spatial_dimension,
-  // ghost_type);
-  // for(; it != last_type; ++it) {
-  //   this->computeNonLocalStress(nl_var(*it, ghost_type), *it, ghost_type);
-  // }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(
-    Array<Real> & non_loc_var, ElementType el_type, GhostType ghost_type) {
+    ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
+  auto & non_loc_var = non_local_variable(el_type, ghost_type);
   Real * damage;
   Real * epsilon_equ;
   if (this->damage_in_compute_stress) {
@@ -138,11 +118,6 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialMazarsNonLocal<
-    spatial_dimension>::nonLocalVariableToNeighborhood() {}
+INSTANTIATE_MATERIAL(mazars_non_local, MaterialMazarsNonLocal);
 
-INSTANTIATE_MATERIAL(MaterialMazarsNonLocal);
-
-__END_AKANTU__
+} // namespace akantu

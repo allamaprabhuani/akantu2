@@ -5,24 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Dec 09 2014
+ * @date last modification: Sun Dec 03 2017
  *
  * @brief  Registry of synchronizers
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -31,34 +30,33 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
+#include "aka_common.hh"
+/* -------------------------------------------------------------------------- */
+#include <map>
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SYNCHRONIZER_REGISTRY_HH__
 #define __AKANTU_SYNCHRONIZER_REGISTRY_HH__
 
-/* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "data_accessor.hh"
-#include "synchronizer.hh"
-/* -------------------------------------------------------------------------- */
+namespace akantu {
+class DataAccessorBase;
+class Synchronizer;
+}
 
-
-__BEGIN_AKANTU__
+namespace akantu {
 
 class SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  SynchronizerRegistry(DataAccessor & data_accessor);
+  SynchronizerRegistry();
   virtual ~SynchronizerRegistry();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// synchronize operation
   void synchronize(SynchronizationTag tag);
 
@@ -69,49 +67,24 @@ public:
   void waitEndSynchronize(SynchronizationTag tag);
 
   /// register a new synchronization
-  void registerSynchronizer(Synchronizer & synchronizer,SynchronizationTag tag);
-  
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void registerSynchronizer(Synchronizer & synchronizer,
+                            SynchronizationTag tag);
 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
+  /// Register a different data accessor.
+  void registerDataAccessor(DataAccessorBase & data_accessor);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
-  // /// number of tags registered
-  // UInt nb_synchronization_tags;
-
-  typedef std::multimap<SynchronizationTag, Synchronizer *> Tag2Sync;
+  using Tag2Sync = std::multimap<SynchronizationTag, Synchronizer *>;
   /// list of registered synchronization
   Tag2Sync synchronizers;
 
   /// data accessor that will permit to do the pack/unpack things
-  DataAccessor & data_accessor;
+  DataAccessorBase * data_accessor{nullptr};
 };
 
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-// #include "synchronizer_registry_inline_impl.cc"
-
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const SynchronizerRegistry & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-
-
-__END_AKANTU__
-
-
+} // akantu
 
 #endif /* __AKANTU_SYNCHRONIZER_REGISTRY_HH__ */

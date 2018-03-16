@@ -4,23 +4,23 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Jan 22 2016
+ * @date last modification: Fri Feb 23 2018
  *
  * @brief  implementation of linear slip weakening
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -30,15 +30,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class Regularisation>
 NTNFricLawLinearSlipWeakeningNoHealing<Regularisation>::
-NTNFricLawLinearSlipWeakeningNoHealing(NTNBaseContact * contact,
-				       const FrictionID & id,
-				       const MemoryID & memory_id) :
-  NTNFricLawLinearSlipWeakening<Regularisation>(contact,id,memory_id) {
+    NTNFricLawLinearSlipWeakeningNoHealing(NTNBaseContact * contact,
+                                           const FrictionID & id,
+                                           const MemoryID & memory_id)
+    : NTNFricLawLinearSlipWeakening<Regularisation>(contact, id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -46,21 +46,22 @@ NTNFricLawLinearSlipWeakeningNoHealing(NTNBaseContact * contact,
 
 /* -------------------------------------------------------------------------- */
 template <class Regularisation>
-void NTNFricLawLinearSlipWeakeningNoHealing<Regularisation>::computeFrictionCoefficient() {
+void NTNFricLawLinearSlipWeakeningNoHealing<
+    Regularisation>::computeFrictionCoefficient() {
   AKANTU_DEBUG_IN();
 
   // get arrays
-  const SynchronizedArray<Real> & slip  = this->internalGetCumulativeSlip();
+  const SynchronizedArray<Real> & slip = this->internalGetCumulativeSlip();
 
   UInt nb_contact_nodes = this->contact->getNbContactNodes();
-  for (UInt n=0; n<nb_contact_nodes; ++n) {
+  for (UInt n = 0; n < nb_contact_nodes; ++n) {
     if (slip(n) >= this->d_c(n)) {
       this->mu(n) = this->mu_k(n);
-    }
-    else {
+    } else {
       // mu = mu_k + (1 - slip / Dc) * (mu_s - mu_k)
-      this->mu(n) = this->mu_k(n)
-	          + (1 - (slip(n) / this->d_c(n))) * (this->mu_s(n) - this->mu_k(n));
+      this->mu(n) =
+          this->mu_k(n) +
+          (1 - (slip(n) / this->d_c(n))) * (this->mu_s(n) - this->mu_k(n));
     }
   }
 
@@ -69,10 +70,12 @@ void NTNFricLawLinearSlipWeakeningNoHealing<Regularisation>::computeFrictionCoef
 
 /* -------------------------------------------------------------------------- */
 template <class Regularisation>
-void NTNFricLawLinearSlipWeakeningNoHealing<Regularisation>::printself(std::ostream & stream, int indent) const {
+void NTNFricLawLinearSlipWeakeningNoHealing<Regularisation>::printself(
+    std::ostream & stream, int indent) const {
   AKANTU_DEBUG_IN();
   std::string space;
-  for(Int i = 0; i < indent; i++, space += AKANTU_INDENT);
+  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+    ;
 
   stream << space << "NTNFricLawLinearSlipWeakeningNoHealing [" << std::endl;
   NTNFricLawLinearSlipWeakening<Regularisation>::printself(stream, ++indent);
@@ -81,4 +84,4 @@ void NTNFricLawLinearSlipWeakeningNoHealing<Regularisation>::printself(std::ostr
   AKANTU_DEBUG_OUT();
 }
 
-__END_AKANTU__
+} // namespace akantu

@@ -4,23 +4,23 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Jan 22 2016
+ * @date last modification: Fri Feb 23 2018
  *
  * @brief  base class for ntn and ntrf friction
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -40,20 +40,22 @@
 #include "ntn_base_contact.hh"
 
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
+namespace akantu {
 
-template<>
-inline void ParsableParamTyped< akantu::SynchronizedArray<Real> >::parseParam(const ParserParameter & in_param) {
+template <>
+inline void ParsableParamTyped<akantu::SynchronizedArray<Real>>::parseParam(
+    const ParserParameter & in_param) {
   ParsableParam::parseParam(in_param);
   Real tmp = in_param;
   param.setAndChangeDefault(tmp);
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-template<>
-inline void ParsableParamTyped< akantu::SynchronizedArray<Real> >::setTyped<Real>(const Real & value) { 
-  param.setAndChangeDefault(value); 
+template <>
+template <>
+inline void ParsableParamTyped<akantu::SynchronizedArray<Real>>::setTyped<Real>(
+    const Real & value) {
+  param.setAndChangeDefault(value);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -62,12 +64,10 @@ class NTNBaseFriction : protected Memory, public Parsable, public Dumpable {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  NTNBaseFriction(NTNBaseContact * contact,
-		  const FrictionID & id = "friction",
-		  const MemoryID & memory_id = 0);
-  virtual ~NTNBaseFriction() {};
-  
+  NTNBaseFriction(NTNBaseContact * contact, const FrictionID & id = "friction",
+                  const MemoryID & memory_id = 0);
+  virtual ~NTNBaseFriction(){};
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -86,7 +86,7 @@ public:
 
   /// register Syncronizedarrays for sync
   virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
-  
+
   /// dump restart file
   virtual void dumpRestart(const std::string & file_name) const;
 
@@ -94,9 +94,7 @@ public:
   virtual void readRestart(const std::string & file_name);
 
   /// set to steady state
-  virtual void setToSteadyState() {
-    AKANTU_DEBUG_TO_IMPLEMENT();
-  };
+  virtual void setToSteadyState() { AKANTU_TO_IMPLEMENT(); };
 
   /// get the number of sticking nodes (in parallel)
   /// a node that is not in contact does not count as sticking
@@ -114,7 +112,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
+                                    const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -122,20 +120,24 @@ public:
 public:
   AKANTU_GET_MACRO(Contact, contact, const NTNBaseContact *)
 
-  AKANTU_GET_MACRO(IsSticking,                 is_sticking, const SynchronizedArray<bool> &)
-  AKANTU_GET_MACRO(FrictionalStrength, frictional_strength, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(FrictionTraction,     friction_traction, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(Slip,                              slip, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(CumulativeSlip,         cumulative_slip, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(SlipVelocity,             slip_velocity, const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(IsSticking, is_sticking, const SynchronizedArray<bool> &)
+  AKANTU_GET_MACRO(FrictionalStrength, frictional_strength,
+                   const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(FrictionTraction, friction_traction,
+                   const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(Slip, slip, const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(CumulativeSlip, cumulative_slip,
+                   const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(SlipVelocity, slip_velocity, const SynchronizedArray<Real> &)
 
-  /// set parameter of a given node 
+  /// set parameter of a given node
   /// (if you need to set to all: used the setMixed function of the Parsable).
   virtual void setParam(const std::string & name, UInt node, Real value);
 
   // replaced by the setMixed of the Parsable
   // virtual void setParam(const std::string & param, Real value) {
-  //   AKANTU_DEBUG_ERROR("Friction does not know the following parameter: " << param);
+  //   AKANTU_ERROR("Friction does not know the following parameter: " <<
+  //   param);
   // };
 
   /* ------------------------------------------------------------------------ */
@@ -157,7 +159,6 @@ protected:
   SynchronizedArray<Real> slip_velocity;
 };
 
-
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
@@ -165,12 +166,12 @@ protected:
 //#include "ntn_base_friction_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const NTNBaseFriction & _this)
-{
+inline std::ostream & operator<<(std::ostream & stream,
+                                 const NTNBaseFriction & _this) {
   _this.printself(stream);
   return stream;
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AST_NTN_BASE_FRICTION_HH__ */

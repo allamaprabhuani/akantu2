@@ -5,24 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Jun 14 2010
- * @date last modification: Tue Jan 19 2016
+ * @date last modification: Mon Feb 05 2018
  *
  * @brief  Initialization of global variables
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -32,18 +31,19 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_static_memory.hh"
-#include "static_communicator.hh"
-#include "static_solver.hh"
 #include "aka_random_generator.hh"
+#include "aka_static_memory.hh"
+#include "communicator.hh"
 
-#include "parser.hh"
 #include "cppargparse.hh"
+#include "parser.hh"
+
+#include "communication_tag.hh"
 /* -------------------------------------------------------------------------- */
 #include <ctime>
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void initialize(int & argc, char **& argv) {
@@ -58,10 +58,12 @@ void initialize(int & argc, char **& argv) {
 void initialize(const std::string & input_file, int & argc, char **& argv) {
   AKANTU_DEBUG_IN();
   StaticMemory::getStaticMemory();
-  StaticCommunicator & comm =
-      StaticCommunicator::getStaticCommunicator(argc, argv);
+  Communicator & comm = Communicator::getStaticCommunicator(argc, argv);
+
+  Tag::setMaxTag(comm.getMaxTag());
+
   debug::debugger.setParallelContext(comm.whoAmI(), comm.getNbProc());
-  debug::initSignalHandler();
+  debug::setDebugLevel(dblError);
 
   static_argparser.setParallelContext(comm.whoAmI(), comm.getNbProc());
   static_argparser.setExternalExitFunction(debug::exit);
@@ -71,7 +73,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
       "--aka_debug_level",
       std::string("Akantu's overall debug level") +
           std::string(" (0: error, 1: exceptions, 4: warnings, 5: info, ..., "
-                      "100: dump,") +
+                      "100: dump") +
           std::string(" more info on levels can be foind in aka_error.hh)"),
       1, cppargparse::_integer, int(dblWarning));
 
@@ -85,8 +87,7 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   std::string infile = static_argparser["aka_input_file"];
   if (infile == "")
     infile = input_file;
-
-  debug::setDebugLevel(dblError);
+  debug::debugger.printBacktrace(static_argparser["aka_print_backtrace"]);
 
   if ("" != infile) {
     readInputFile(infile);
@@ -96,22 +97,18 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   try {
     seed = static_parser.getParameter("seed", _ppsc_current_scope);
   } catch (debug::Exception &) {
-    seed = time(NULL);
+    seed = time(nullptr);
   }
+
+  seed *= (comm.whoAmI() + 1);
+  RandomGenerator<UInt>::seed(seed);
 
   int dbl_level = static_argparser["aka_debug_level"];
   debug::setDebugLevel(DebugLevel(dbl_level));
-  debug::debugger.printBacktrace(static_argparser["aka_print_backtrace"]);
 
-  seed *= (comm.whoAmI() + 1);
-#if not defined(_WIN32)
-  Rand48Generator<Real>::seed(seed);
-#endif
-  RandGenerator<Real>::seed(seed);
   AKANTU_DEBUG_INFO("Random seed set to " << seed);
 
-  /// initialize external solvers
-  StaticSolver::getStaticSolver().initialize(argc, argv);
+  std::atexit(finalize);
 
   AKANTU_DEBUG_OUT();
 }
@@ -120,10 +117,10 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
 void finalize() {
   AKANTU_DEBUG_IN();
 
-  if (StaticCommunicator::isInstantiated()) {
-    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
-    delete &comm;
-  }
+  // if (StaticCommunicator::isInstantiated()) {
+  //   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  //   delete &comm;
+  // }
 
   if (StaticMemory::isInstantiated()) {
     delete &(StaticMemory::getStaticMemory());
@@ -147,7 +144,9 @@ Parser & getStaticParser() { return static_parser; }
 
 /* -------------------------------------------------------------------------- */
 const ParserSection & getUserParser() {
-  return *(static_parser.getSubSections(_st_user).first);
+  return *(static_parser.getSubSections(ParserType::_user).first);
 }
 
-__END_AKANTU__
+std::unique_ptr<Communicator> Communicator::static_communicator;
+
+} // akantu

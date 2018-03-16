@@ -3,24 +3,24 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Jan 22 2016
+ * @date creation: Fri Jan 04 2013
+ * @date last modification: Fri Feb 23 2018
  *
  * @brief  functions for boundaries
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -33,14 +33,13 @@
 #include "aka_common.hh"
 #include "solid_mechanics_model.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 Real integrateResidual(const std::string & sub_boundary_name,
-		       const SolidMechanicsModel & model,
-		       UInt dir);
+                       const SolidMechanicsModel & model, UInt dir);
 
 /// this is a fix so that all subboundaries exist on all procs
 void boundaryFix(Mesh & mesh,
-		 const std::vector<std::string> & sub_boundary_names);
+                 const std::vector<std::string> & sub_boundary_names);
 
-__END_AKANTU__
+} // namespace akantu

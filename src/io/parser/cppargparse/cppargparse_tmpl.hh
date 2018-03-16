@@ -4,24 +4,24 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu Apr 03 2014
- * @date last modification: Tue Dec 08 2015
+ * @date last modification: Wed Nov 08 2017
  *
  * @brief  Implementation of the templated part of the commandline argument
  * parser
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -30,8 +30,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 
 #ifndef __CPPARGPARSE_TMPL_HH__
 #define __CPPARGPARSE_TMPL_HH__
@@ -43,15 +43,11 @@ namespace cppargparse {
 
 /// internal description of arguments
 struct ArgumentParser::_Argument : public Argument {
-  _Argument()
-      : Argument(), help(std::string()), nargs(1), type(_string),
-        required(false), parsed(false), has_default(false), has_const(false),
-        is_positional(false) {}
-  virtual ~_Argument() {}
+  _Argument() : Argument(), help(std::string()) {}
+  ~_Argument() override = default;
 
   void setValues(std::vector<std::string> & values) {
-    for (std::vector<std::string>::iterator it = values.begin();
-         it != values.end(); ++it) {
+    for (auto it = values.begin(); it != values.end(); ++it) {
       this->addValue(*it);
     }
   }
@@ -79,14 +75,14 @@ struct ArgumentParser::_Argument : public Argument {
   virtual std::ostream & _printConst(std::ostream & stream) const = 0;
 
   std::string help;
-  int nargs;
-  ArgumentType type;
-  bool required;
-  bool parsed;
-  bool has_default;
-  bool has_const;
+  int nargs{1};
+  ArgumentType type{_string};
+  bool required{false};
+  bool parsed{false};
+  bool has_default{false};
+  bool has_const{false};
   std::vector<std::string> keys;
-  bool is_positional;
+  bool is_positional{false};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -96,38 +92,37 @@ class ArgumentParser::ArgumentStorage : public ArgumentParser::_Argument {
 public:
   ArgumentStorage() : _default(T()), _const(T()), values(std::vector<T>()) {}
 
-  virtual void addValue(std::string & value) {
+  void addValue(std::string & value) override {
     std::stringstream sstr(value);
     T t;
     sstr >> t;
     values.push_back(t);
   }
 
-  virtual void setToDefault() {
+  void setToDefault() override {
     values.clear();
     values.push_back(_default);
   }
 
-  virtual void setToConst() {
+  void setToConst() override {
     values.clear();
     values.push_back(_const);
   }
 
-  void printself(std::ostream & stream) const {
+  void printself(std::ostream & stream) const override {
     stream << this->name << " =";
     stream << std::boolalpha; // for boolean
-    for (typename std::vector<T>::const_iterator vit = this->values.begin();
-         vit != this->values.end(); ++vit) {
+    for (auto vit = this->values.begin(); vit != this->values.end(); ++vit) {
       stream << " " << *vit;
     }
   }
 
-  virtual std::ostream & _printDefault(std::ostream & stream) const {
+  std::ostream & _printDefault(std::ostream & stream) const override {
     stream << _default;
     return stream;
   }
 
-  virtual std::ostream & _printConst(std::ostream & stream) const {
+  std::ostream & _printConst(std::ostream & stream) const override {
     stream << _const;
     return stream;
   }
@@ -148,7 +143,7 @@ template <class T> struct is_vector {
   enum { value = false };
 };
 
-template <class T> struct is_vector<std::vector<T> > {
+template <class T> struct is_vector<std::vector<T>> {
   enum { value = true };
 };
 
@@ -156,7 +151,7 @@ template <class T> struct is_vector<std::vector<T> > {
 template <class T, bool is_vector = cppargparse::is_vector<T>::value>
 struct cast_helper {
   static T cast(const ArgumentParser::Argument & arg) {
-    const ArgumentParser::ArgumentStorage<T> & _arg =
+    const auto & _arg =
         dynamic_cast<const ArgumentParser::ArgumentStorage<T> &>(arg);
     if (_arg.values.size() == 1) {
       return _arg.values[0];
@@ -170,7 +165,7 @@ struct cast_helper {
 
 template <class T> struct cast_helper<T, true> {
   static T cast(const ArgumentParser::Argument & arg) {
-    const ArgumentParser::ArgumentStorage<T> & _arg =
+    const auto & _arg =
         dynamic_cast<const ArgumentParser::ArgumentStorage<T> &>(arg);
     return _arg.values;
   }

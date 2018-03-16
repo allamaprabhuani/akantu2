@@ -5,23 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Nov 13 2013
- * @date last modification: Thu Jan 21 2016
+ * @date last modification: Tue Feb 20 2018
  *
  * @brief  Implementation of the dumpable interface
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -37,7 +37,7 @@
 
 #include <io_helper.hh>
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Dumpable::Dumpable() : default_dumper("") {}
@@ -45,8 +45,8 @@ Dumpable::Dumpable() : default_dumper("") {}
 /* -------------------------------------------------------------------------- */
 Dumpable::~Dumpable() {
 
-  DumperMap::iterator it = dumpers.begin();
-  DumperMap::iterator end = dumpers.end();
+  auto it = dumpers.begin();
+  auto end = dumpers.end();
 
   for (; it != end; ++it) {
     delete it->second;
@@ -113,7 +113,7 @@ void Dumpable::addDumpFieldToDumper(__attribute__((unused))
                                     const std::string & dumper_name,
                                     __attribute__((unused))
                                     const std::string & field_id) {
-  AKANTU_DEBUG_TO_IMPLEMENT();
+  AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -153,7 +153,7 @@ void Dumpable::addDumpFieldVectorToDumper(__attribute__((unused))
                                           const std::string & dumper_name,
                                           __attribute__((unused))
                                           const std::string & field_id) {
-  AKANTU_DEBUG_TO_IMPLEMENT();
+  AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -166,7 +166,7 @@ void Dumpable::addDumpFieldTensorToDumper(__attribute__((unused))
                                           const std::string & dumper_name,
                                           __attribute__((unused))
                                           const std::string & field_id) {
-  AKANTU_DEBUG_TO_IMPLEMENT();
+  AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -264,8 +264,8 @@ DumperIOHelper & Dumpable::getDumper() {
 /* -------------------------------------------------------------------------- */
 DumperIOHelper & Dumpable::getDumper(const std::string & dumper_name) {
 
-  DumperMap::iterator it = this->dumpers.find(dumper_name);
-  DumperMap::iterator end = this->dumpers.end();
+  auto it = this->dumpers.find(dumper_name);
+  auto end = this->dumpers.end();
 
   if (it == end)
     AKANTU_EXCEPTION("Dumper " << dumper_name
@@ -280,6 +280,6 @@ std::string Dumpable::getDefaultDumperName() const {
   return this->default_dumper;
 }
 
-__END_AKANTU__
+} // akantu
 
 #endif

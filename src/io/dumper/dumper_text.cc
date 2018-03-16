@@ -4,24 +4,23 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Tue Nov 07 2017
  *
  * @brief  implementation of text dumper
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -30,13 +29,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <io_helper.hh>
 #include "dumper_text.hh"
+#include "communicator.hh"
 #include "dumper_nodal_field.hh"
 #include "mesh.hh"
-#include "static_communicator.hh"
+#include <io_helper.hh>
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 DumperText::DumperText(const std::string & basename,
@@ -64,10 +63,10 @@ void DumperText::registerMesh(const Mesh & mesh,
   registerField("position", new dumper::NodalField<Real>(mesh.getNodes()));
 
   // in parallel we need node type
-  UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
+  UInt nb_proc = mesh.getCommunicator().getNbProc();
   if (nb_proc > 1) {
     registerField("nodes_type",
-                  new dumper::NodalField<Int>(mesh.getNodesType()));
+                  new dumper::NodalField<NodeType>(mesh.getNodesType()));
   }
 }
 
@@ -84,9 +83,9 @@ void DumperText::registerFilteredMesh(
                                 mesh.getNodes(), 0, 0, &nodes_filter));
 
   // in parallel we need node type
-  UInt nb_proc = StaticCommunicator::getStaticCommunicator().getNbProc();
+  UInt nb_proc = mesh.getCommunicator().getNbProc();
   if (nb_proc > 1) {
-    registerField("nodes_type", new dumper::NodalField<Int, true>(
+    registerField("nodes_type", new dumper::NodalField<NodeType, true>(
                                     mesh.getNodesType(), 0, 0, &nodes_filter));
   }
 }
@@ -110,4 +109,4 @@ void DumperText::setPrecision(UInt prec) {
   AKANTU_DEBUG_OUT();
 }
 
-__END_AKANTU__
+} // akantu

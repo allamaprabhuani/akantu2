@@ -6,24 +6,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Dec 10 2015
+ * @date last modification: Tue Feb 20 2018
  *
  * @brief  Common interface for synchronizers
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -32,143 +31,100 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_SYNCHRONIZER_HH__
-#define __AKANTU_SYNCHRONIZER_HH__
-
-/* -------------------------------------------------------------------------- */
 #include "aka_memory.hh"
-#include "data_accessor.hh"
-#include "real_static_communicator.hh"
-#include "static_communicator.hh"
-
 /* -------------------------------------------------------------------------- */
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+#ifndef __AKANTU_SYNCHRONIZER_HH__
+#define __AKANTU_SYNCHRONIZER_HH__
 
+namespace akantu {
+class Communicator;
+}
+
+namespace akantu {
+
+/* -------------------------------------------------------------------------- */
+/* Base class for synchronizers                                               */
+/* -------------------------------------------------------------------------- */
 class Synchronizer : protected Memory {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Synchronizer(SynchronizerID id = "synchronizer", MemoryID memory_id = 0);
+  Synchronizer(const Communicator & comm, const ID & id = "synchronizer",
+               MemoryID memory_id = 0);
 
-  virtual ~Synchronizer(){};
+  Synchronizer(const Synchronizer & other) = default;
 
-  virtual void printself(__attribute__((unused)) std::ostream & stream,
-                         __attribute__((unused)) int indent = 0) const {};
+  ~Synchronizer() override = default;
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// synchronous communications form slaves to master
+  template <class DataAccessor>
+  void slaveReductionOnce(DataAccessor & data_accessor,
+                          const SynchronizationTag & tag) const;
+
+  /// synchronize ghosts without state
+  template <class DataAccessor>
+  void synchronizeOnce(DataAccessor & data_accessor,
+                       const SynchronizationTag & tag) const;
+
   /// synchronize ghosts
-  void synchronize(DataAccessor & data_accessor, SynchronizationTag tag);
+  template <class DataAccessor>
+  void synchronize(DataAccessor & data_accessor,
+                   const SynchronizationTag & tag);
 
   /// asynchronous synchronization of ghosts
-  virtual void asynchronousSynchronize(DataAccessor & data_accessor,
-                                       SynchronizationTag tag) = 0;
+  template <class DataAccessor>
+  void asynchronousSynchronize(const DataAccessor & data_accessor,
+                               const SynchronizationTag & tag);
 
   /// wait end of asynchronous synchronization of ghosts
-  virtual void waitEndSynchronize(DataAccessor & data_accessor,
-                                  SynchronizationTag tag) = 0;
+  template <class DataAccessor>
+  void waitEndSynchronize(DataAccessor & data_accessor,
+                          const SynchronizationTag & tag);
 
   /// compute buffer size for a given tag and data accessor
-  virtual void computeBufferSize(DataAccessor & data_accessor,
-                                 SynchronizationTag tag) = 0;
+  template <class DataAccessor>
+  void computeBufferSize(const DataAccessor & data_accessor,
+                         const SynchronizationTag & tag);
 
-  /**
-   * tag = |__________20_________|___8____|_4_|
-   *       |          proc       | num mes| ct|
-   */
-  class Tag {
-  public:
-    Tag() : tag(0) {}
-    Tag(int val) : tag(val) {}
-
-    operator int() { return int(tag); } // remove the sign bit
-
-    template <typename CommTag>
-    static inline Tag genTag(int proc, UInt msg_count, CommTag tag) {
-      int max_tag = StaticCommunicator::getStaticCommunicator().getMaxTag();
-      int _tag = ((((proc & 0xFFFFF) << 12) + ((msg_count & 0xFF) << 4) +
-                   ((Int)tag & 0xF)));
-      Tag t(max_tag == 0 ? _tag : (_tag % max_tag));
-      return t;
-    }
-
-    virtual void printself(std::ostream & stream,
-                           __attribute__((unused)) int indent = 0) const {
-      stream << (tag >> 12) << ":" << (tag >> 4 & 0xFF) << ":" << (tag & 0xF);
-    }
-
-  private:
-    int tag;
-  };
-
-
-  /// generate the tag from the ID
-  template <typename CommTag> inline Tag genTagFromID(CommTag tag) {
-    int max_tag = StaticCommunicator::getStaticCommunicator().getMaxTag();
-    int _tag = std::abs((int(hash<std::string>(this->getID())) << 4) + (tag & 0xF));
-    Tag t(max_tag == 0 ? _tag : (_tag % max_tag));
-    return t;
-  }
-
-protected:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  AKANTU_GET_MACRO(Communicator, communicator, const Communicator &);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  class Communication {
-  public:
-    void resize(UInt size) {
-      send_buffer.resize(size);
-      recv_buffer.resize(size);
-      size_to_send.resize(size);
-      size_to_receive.resize(size);
-    }
-
-  public:
-    /// size of data to send to each processor
-    std::vector<UInt> size_to_send;
-    /// size of data to recv to each processor
-    std::vector<UInt> size_to_receive;
-    std::vector<CommunicationBuffer> send_buffer;
-    std::vector<CommunicationBuffer> recv_buffer;
-
-    std::vector<CommunicationRequest *> send_requests;
-    std::vector<CommunicationRequest *> recv_requests;
-  };
-
   /// id of the synchronizer
-  SynchronizerID id;
+  ID id;
+
+  /// hashed version of the id
+  int hash_id;
 
   /// message counter per tag
   std::map<SynchronizationTag, UInt> tag_counter;
 
   /// the static memory instance
-  StaticCommunicator * static_communicator;
+  const Communicator & communicator;
+
+  /// nb processors in the communicator
+  UInt nb_proc;
+
+  /// rank in the communicator
+  UInt rank;
 };
 
-/// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const Synchronizer & _this) {
-  _this.printself(stream);
-  return stream;
-}
+} // namespace akantu
 
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const Synchronizer::Tag & _this) {
-  _this.printself(stream);
-  return stream;
-}
-
-__END_AKANTU__
+#include "synchronizer_tmpl.hh"
 
 #endif /* __AKANTU_SYNCHRONIZER_HH__ */

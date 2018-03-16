@@ -5,7 +5,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Jul 04 2011
- * @date last modification: Fri Oct 23 2015
+ * @date last modification: Wed Jan 31 2018
  *
  * @brief  Generalized Trapezoidal  Method.  This implementation  is taken  from
  * Méthodes  numériques en mécanique  des solides  by Alain  Curnier \note{ISBN:
@@ -13,18 +13,17 @@
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -39,13 +38,14 @@
 
 #include "integration_scheme_1st_order.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /**
  * The two differentiate equation (thermal and kinematic) are :
  * @f{eqnarray*}{
  *  C\dot{u}_{n+1} + Ku_{n+1} = q_{n+1}\\
- *  u_{n+1} = u_{n} + (1-\alpha) \Delta t \dot{u}_{n} + \alpha \Delta t \dot{u}_{n+1}
+ *  u_{n+1} = u_{n} + (1-\alpha) \Delta t \dot{u}_{n} + \alpha \Delta t
+ *\dot{u}_{n+1}
  * @f}
  *
  * To solve it :
@@ -64,7 +64,8 @@ __BEGIN_AKANTU__
  * u^{i+1}_{n+1} &=& u^{i}_{n+1} + b w
  * @f}
  *
- * a and b depends on the resolution method : temperature (u) or temperature rate (@f$\dot{u}@f$)
+ * a and b depends on the resolution method : temperature (u) or temperature
+ *rate (@f$\dot{u}@f$)
  *
  * For temperature : @f$ w = \delta u, a = 1 / (\alpha \Delta t) , b = 1 @f$ @n
  * For temperature rate : @f$ w = \delta \dot{u}, a = 1, b = \alpha \Delta t @f$
@@ -74,47 +75,36 @@ class GeneralizedTrapezoidal : public IntegrationScheme1stOrder {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  GeneralizedTrapezoidal(Real alpha) : alpha(alpha) {};
-  virtual ~GeneralizedTrapezoidal() {};
+  GeneralizedTrapezoidal(DOFManager & dof_manager, const ID & dof_id,
+                         Real alpha = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  void predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
+                 const Array<bool> & blocked_dofs) const override;
 
-  virtual void integrationSchemePred(Real delta_t,
-				     Array<Real> & u,
-				     Array<Real> & u_dot,
-				     Array<bool> & blocked_dofs);
+  void corrector(const SolutionType & type, Real delta_t, Array<Real> & u,
+                 Array<Real> & u_dot, const Array<bool> & blocked_dofs,
+                 const Array<Real> & delta) const override;
 
-  virtual void integrationSchemeCorrTemp(Real delta_t,
-					 Array<Real> & u,
-					 Array<Real> & u_dot,
-					 Array<bool> & blocked_dofs,
-					 Array<Real> & delta);
-
-  virtual void integrationSchemeCorrTempRate(Real delta_t,
-					     Array<Real> & u,
-					     Array<Real> & u_dot,
-					     Array<bool> & blocked_dofs,
-					     Array<Real> & delta);
+  void assembleJacobian(const SolutionType & type, Real time_step) override;
 
 public:
   /// the coeffichent @f{b@f} in the description
-  template<IntegrationSchemeCorrectorType type>
-  Real getTemperatureCoefficient(Real delta_t);
+  Real getTemperatureCoefficient(const SolutionType & type,
+                                 Real delta_t) const override;
 
   /// the coeffichent @f{a@f} in the description
-  template<IntegrationSchemeCorrectorType type>
-  Real getTemperatureRateCoefficient(Real delta_t);
+  Real getTemperatureRateCoefficient(const SolutionType & type,
+                                     Real delta_t) const override;
 
 private:
-  template<IntegrationSchemeCorrectorType type>
-  void integrationSchemeCorr(Real delta_t,
-			     Array<Real> & u,
-			     Array<Real> & u_dot,
-			     Array<bool> & blocked_dofs,
-			     Array<Real> & delta);
+  template <SolutionType type>
+  void allCorrector(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
+                    const Array<bool> & blocked_dofs,
+                    const Array<Real> & delta) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -127,33 +117,36 @@ public:
   /* ------------------------------------------------------------------------ */
 private:
   /// the @f$\alpha@f$ parameter
-  const Real alpha;
+  Real alpha;
+
+  /// last release of M matrix
+  UInt m_release;
+
+  /// last release of K matrix
+  UInt k_release;
 };
 
 /* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "generalized_trapezoidal_inline_impl.cc"
-#endif
-
 
 /**
  * Forward Euler (explicit) -> condition on delta_t
  */
 class ForwardEuler : public GeneralizedTrapezoidal {
 public:
-  ForwardEuler() : GeneralizedTrapezoidal(0.) {};
-};
+  ForwardEuler(DOFManager & dof_manager, const ID & dof_id)
+      : GeneralizedTrapezoidal(dof_manager, dof_id, 0.){};
 
+  std::vector<std::string> getNeededMatrixList() override { return {"M"}; }
+};
 
 /**
  * Trapezoidal rule (implicit), midpoint rule or Crank-Nicolson
  */
 class TrapezoidalRule1 : public GeneralizedTrapezoidal {
 public:
-  TrapezoidalRule1() : GeneralizedTrapezoidal(.5) {};
+  TrapezoidalRule1(DOFManager & dof_manager, const ID & dof_id)
+      : GeneralizedTrapezoidal(dof_manager, dof_id, .5){};
 };
 
 /**
@@ -161,10 +154,12 @@ public:
  */
 class BackwardEuler : public GeneralizedTrapezoidal {
 public:
-  BackwardEuler() : GeneralizedTrapezoidal(1.) {};
+  BackwardEuler(DOFManager & dof_manager, const ID & dof_id)
+      : GeneralizedTrapezoidal(dof_manager, dof_id, 1.){};
 };
 
+/* -------------------------------------------------------------------------- */
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AKANTU_GENERALIZED_TRAPEZOIDAL_HH__ */

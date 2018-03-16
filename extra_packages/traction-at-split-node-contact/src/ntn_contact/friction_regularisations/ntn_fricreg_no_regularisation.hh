@@ -3,24 +3,24 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Jan 22 2016
+ * @date creation: Fri Jun 18 2010
+ * @date last modification: Fri Feb 23 2018
  *
  * @brief  regularisation that does nothing
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -37,7 +37,7 @@
 // simtools
 #include "ntn_base_friction.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 class NTNFricRegNoRegularisation : public NTNBaseFriction {
@@ -45,18 +45,17 @@ class NTNFricRegNoRegularisation : public NTNBaseFriction {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
   NTNFricRegNoRegularisation(NTNBaseContact * contact,
-			     const FrictionID & id = "no_regularisation",
-			     const MemoryID & memory_id = 0);
-  virtual ~NTNFricRegNoRegularisation() {};
-  
+                             const FrictionID & id = "no_regularisation",
+                             const MemoryID & memory_id = 0);
+  virtual ~NTNFricRegNoRegularisation(){};
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// set to steady state for no regularisation -> do nothing
-  virtual void setToSteadyState() {};
+  virtual void setToSteadyState(){};
 
   virtual void registerSynchronizedArray(SynchronizedArrayBase & array);
   virtual void dumpRestart(const std::string & file_name) const;
@@ -69,20 +68,19 @@ protected:
   virtual void computeFrictionalContactPressure();
 
   /// compute frictional strength according to friction law
-  virtual void computeFrictionalStrength() {};
+  virtual void computeFrictionalStrength(){};
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
-  
+                                    const std::string & field_id);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
 protected:
   /// get the is_in_contact array
   virtual const SynchronizedArray<bool> & internalGetIsInContact() {
@@ -101,11 +99,9 @@ protected:
   virtual SynchronizedArray<bool> & internalGetIsSticking() {
     return this->is_sticking;
   }
-  
+
   /// get the slip array
-  virtual SynchronizedArray<Real> & internalGetSlip() {
-    return this->slip;
-  }
+  virtual SynchronizedArray<Real> & internalGetSlip() { return this->slip; }
 
   /// get the slip array
   virtual SynchronizedArray<Real> & internalGetCumulativeSlip() {
@@ -120,7 +116,6 @@ protected:
   SynchronizedArray<Real> frictional_contact_pressure;
 };
 
-
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
@@ -128,13 +123,12 @@ protected:
 //#include "ntn_fricreg_no_regularisation_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, 
-				  const NTNFricRegNoRegularisation & _this)
-{
+inline std::ostream & operator<<(std::ostream & stream,
+                                 const NTNFricRegNoRegularisation & _this) {
   _this.printself(stream);
   return stream;
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AST_NTN_FRICREG_NO_REGULARISATION_HH__ */

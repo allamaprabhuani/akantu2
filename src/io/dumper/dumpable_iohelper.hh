@@ -6,23 +6,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Jan 06 2015
- * @date last modification: Thu Nov 19 2015
+ * @date last modification: Sun Dec 03 2017
  *
  * @brief  Interface for object who wants to dump themselves
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -31,21 +31,21 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "dumper_iohelper.hh"
+/* -------------------------------------------------------------------------- */
+#include <set>
+/* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_DUMPABLE_IOHELPER_HH__
 #define __AKANTU_DUMPABLE_IOHELPER_HH__
 /* -------------------------------------------------------------------------- */
 
-#include "dumper_iohelper.hh"
-#include <set>
-
-__BEGIN_AKANTU__
+namespace akantu {
 
 class Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
   Dumpable();
   virtual ~Dumpable();
 
@@ -53,11 +53,10 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// create a new dumper (of templated type T) and register it under
   /// dumper_name. file_name is used for construction of T. is default states if
   /// this dumper is the default dumper.
-  template<class T>
+  template <class T>
   inline void registerDumper(const std::string & dumper_name,
                              const std::string & file_name = "",
                              const bool is_default = false);
@@ -73,8 +72,8 @@ public:
                    const ElementKind & element_kind = _ek_not_defined);
 
   /// register a mesh to the default identified by its name
-  void addDumpMeshToDumper(const std::string & dumper_name,
-                           const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+  void addDumpMeshToDumper(const std::string & dumper_name, const Mesh & mesh,
+                           UInt spatial_dimension = _all_dimensions,
                            const GhostType & ghost_type = _not_ghost,
                            const ElementKind & element_kind = _ek_not_defined);
 
@@ -87,13 +86,13 @@ public:
                            const ElementKind & element_kind = _ek_not_defined);
 
   /// register a filtered mesh and provides a name
-  void addDumpFilteredMeshToDumper(const std::string & dumper_name,
-                                   const Mesh & mesh,
-                                   const ElementTypeMapArray<UInt> & elements_filter,
-                                   const Array<UInt> & nodes_filter,
-                                   UInt spatial_dimension = _all_dimensions,
-                                   const GhostType & ghost_type = _not_ghost,
-                                   const ElementKind & element_kind = _ek_not_defined);
+  void addDumpFilteredMeshToDumper(
+      const std::string & dumper_name, const Mesh & mesh,
+      const ElementTypeMapArray<UInt> & elements_filter,
+      const Array<UInt> & nodes_filter,
+      UInt spatial_dimension = _all_dimensions,
+      const GhostType & ghost_type = _not_ghost,
+      const ElementKind & element_kind = _ek_not_defined);
 
   /// to implement
   virtual void addDumpField(const std::string & field_id);
@@ -107,26 +106,27 @@ public:
                                             const std::string & field_id,
                                             dumper::Field * field);
 
-  template<typename T>
+  template <typename T>
   inline void addDumpFieldExternal(const std::string & field_id,
                                    const Array<T> & field);
-  template<typename T>
+  template <typename T>
   inline void addDumpFieldExternalToDumper(const std::string & dumper_name,
-                                    const std::string & field_id,
-                                    const Array<T> & field);
-  template<typename T>
-  inline void addDumpFieldExternal(const std::string & field_id,
-                                   const ElementTypeMapArray<T> & field,
-                                   UInt spatial_dimension = _all_dimensions,
-                                   const GhostType & ghost_type = _not_ghost,
-                                   const ElementKind & element_kind = _ek_not_defined);
-  template<typename T>
-  inline void addDumpFieldExternalToDumper(const std::string & dumper_name,
-                                    const std::string & field_id,
-                                    const ElementTypeMapArray<T> & field,
-                                    UInt spatial_dimension = _all_dimensions,
-                                    const GhostType & ghost_type = _not_ghost,
-                                    const ElementKind & element_kind = _ek_not_defined);
+                                           const std::string & field_id,
+                                           const Array<T> & field);
+  template <typename T>
+  inline void
+  addDumpFieldExternal(const std::string & field_id,
+                       const ElementTypeMapArray<T> & field,
+                       UInt spatial_dimension = _all_dimensions,
+                       const GhostType & ghost_type = _not_ghost,
+                       const ElementKind & element_kind = _ek_not_defined);
+  template <typename T>
+  inline void addDumpFieldExternalToDumper(
+      const std::string & dumper_name, const std::string & field_id,
+      const ElementTypeMapArray<T> & field,
+      UInt spatial_dimension = _all_dimensions,
+      const GhostType & ghost_type = _not_ghost,
+      const ElementKind & element_kind = _ek_not_defined);
 
   void removeDumpField(const std::string & field_id);
   void removeDumpFieldFromDumper(const std::string & dumper_name,
@@ -149,9 +149,7 @@ public:
   void setBaseNameToDumper(const std::string & dumper_name,
                            const std::string & basename);
   void setTimeStepToDumper(Real time_step);
-  void setTimeStepToDumper(const std::string & dumper_name,
-                           Real time_step);
-
+  void setTimeStepToDumper(const std::string & dumper_name, Real time_step);
 
   void setTextModeToDumper(const std::string & dumper_name);
   void setTextModeToDumper();
@@ -162,7 +160,6 @@ public:
   virtual void dump(const std::string & dumper_name);
   virtual void dump(const std::string & dumper_name, UInt step);
   virtual void dump(const std::string & dumper_name, Real time, UInt step);
-
 
 public:
   void internalAddDumpFieldToDumper(const std::string & dumper_name,
@@ -176,20 +173,20 @@ public:
   DumperIOHelper & getDumper();
   DumperIOHelper & getDumper(const std::string & dumper_name);
 
-  template<class T> T & getDumper(const std::string & dumper_name);
+  template <class T> T & getDumper(const std::string & dumper_name);
   std::string getDefaultDumperName() const;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  typedef std::map<std::string, DumperIOHelper *> DumperMap;
-  typedef std::set<std::string> DumperSet;
+  using DumperMap = std::map<std::string, DumperIOHelper *>;
+  using DumperSet = std::set<std::string>;
 
   DumperMap dumpers;
   std::string default_dumper;
 };
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_DUMPABLE_IOHELPER_HH__ */

@@ -4,23 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu Feb 21 2013
- * @date last modification: Sat Jul 18 2015
+ * @date last modification: Wed Feb 03 2016
  *
  * @brief  List of materials for core package
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -40,9 +40,9 @@
 
 // elastic materials
 #include "material_elastic.hh"
-#include "material_neohookean.hh"
-#include "material_elastic_orthotropic.hh"
 #include "material_elastic_linear_anisotropic.hh"
+#include "material_elastic_orthotropic.hh"
+#include "material_neohookean.hh"
 
 // visco-elastic materials
 #include "material_standard_linear_solid_deviatoric.hh"
@@ -56,14 +56,13 @@
 
 #endif
 
-#define AKANTU_CORE_MATERIAL_LIST					\
-  ((2, (elastic            , MaterialElastic                      )))	\
-  ((2, (neohookean         , MaterialNeohookean                   )))	\
-  ((2, (elastic_orthotropic, MaterialElasticOrthotropic           )))	\
-  ((2, (elastic_anisotropic, MaterialElasticLinearAnisotropic     )))   \
-  ((2, (sls_deviatoric     , MaterialStandardLinearSolidDeviatoric)))   \
-  ((2, (marigo             , MaterialMarigo                       )))   \
-  ((2, (mazars             , MaterialMazars                       )))	\
-  ((2, (plastic_linear_isotropic_hardening, MaterialLinearIsotropicHardening)))
+#define AKANTU_CORE_MATERIAL_LIST                                              \
+  ((2, (elastic, MaterialElastic)))((2, (neohookean, MaterialNeohookean)))(    \
+      (2, (elastic_orthotropic, MaterialElasticOrthotropic)))(                 \
+      (2, (elastic_anisotropic, MaterialElasticLinearAnisotropic)))(           \
+      (2, (sls_deviatoric, MaterialStandardLinearSolidDeviatoric)))(           \
+      (2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))(           \
+      (2, (plastic_linear_isotropic_hardening,                                 \
+           MaterialLinearIsotropicHardening)))
 
 #endif /* __AKANTU_MATERIAL_CORE_INCLUDES_HH__ */

@@ -4,23 +4,23 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Thu Jan 23 2014
- * @date last modification: Mon Dec 14 2015
+ * @date last modification: Thu Jul 06 2017
  *
  * @brief  Group manager to handle fragments
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -29,52 +29,49 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "group_manager.hh"
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_FRAGMENT_MANAGER_HH__
 #define __AKANTU_FRAGMENT_MANAGER_HH__
 
-#include "group_manager.hh"
-#include "solid_mechanics_model_cohesive.hh"
+namespace akantu {
+class SolidMechanicsModelCohesive;
+}
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-
 class FragmentManager : public GroupManager {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  FragmentManager(SolidMechanicsModelCohesive & model,
-		  bool dump_data = true,
-		  const ID & id = "fragment_manager",
-		  const MemoryID & memory_id = 0);
+  FragmentManager(SolidMechanicsModelCohesive & model, bool dump_data = true,
+                  const ID & id = "fragment_manager",
+                  const MemoryID & memory_id = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// store mass density per integration point
   void storeMassDensityPerIntegrationPoint();
 
   /// integrate an elemental field multiplied by density on global
   /// fragments
   void integrateFieldOnFragments(ElementTypeMapArray<Real> & field,
-				 Array<Real> & output);
+                                 Array<Real> & output);
 
   /// compute fragments' mass
   void computeMass();
 
   /// create dump data for a single array
   template <typename T>
-  void createDumpDataArray(Array<T> & data,
-			   std::string name,
-			   bool fragment_index_output = false);
+  void createDumpDataArray(Array<T> & data, std::string name,
+                           bool fragment_index_output = false);
 
 public:
-
   /// build fragment list (cohesive elements are considered broken if
   /// damage >= damage_limit)
   void buildFragments(Real damage_limit = 1.);
@@ -99,7 +96,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// get number of fragments
   AKANTU_GET_MACRO(NbFragment, global_nb_fragment, UInt);
 
@@ -116,17 +112,17 @@ public:
   AKANTU_GET_MACRO(MomentsOfInertia, inertia_moments, const Array<Real> &);
 
   /// get fragments' principal directions
-  AKANTU_GET_MACRO(PrincipalDirections, principal_directions, const Array<Real> &);
+  AKANTU_GET_MACRO(PrincipalDirections, principal_directions,
+                   const Array<Real> &);
 
   /// get number of elements per fragment
-  AKANTU_GET_MACRO(NbElementsPerFragment,
-		   nb_elements_per_fragment, const Array<UInt> &);
+  AKANTU_GET_MACRO(NbElementsPerFragment, nb_elements_per_fragment,
+                   const Array<UInt> &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// local_fragment index
   Array<UInt> fragment_index;
 
@@ -166,9 +162,8 @@ private:
 
   /// dump data
   bool dump_data;
-
 };
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_FRAGMENT_MANAGER_HH__ */

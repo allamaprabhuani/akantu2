@@ -2,25 +2,26 @@
  * @file   material_python.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
- * @date creation: Fri Nov 13 2015
- * @date last modification: Fri Nov 13 2015
+ * @date creation: Fri Jun 18 2010
+ * @date last modification: Tue Feb 06 2018
  *
  * @brief  Python material
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -36,7 +37,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
+#include "python_functor.hh"
+/* -------------------------------------------------------------------------- */
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -44,80 +46,53 @@
 #define __AKANTU_MATERIAL_PYTHON_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "python_functor.hh"
-/* -------------------------------------------------------------------------- */
 
-
-
-__BEGIN_AKANTU__
+namespace akantu {
 
 class MaterialPython : public Material, PythonFunctor {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  MaterialPython(SolidMechanicsModel & model, PyObject * obj,
+                 const ID & id = "");
 
-  MaterialPython(SolidMechanicsModel & model, PyObject * obj, const ID & id = "");
-
-  virtual ~MaterialPython() {};
+  ~MaterialPython() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   void registerInternals();
-  
-  virtual void initMaterial();
 
+  void initMaterial() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
-  /// constitutive law for a given quad point
-  template <typename it_type>
-  void  computeStress(Matrix<Real> & grad_u,
-		      Matrix<Real> & sigma,
-		      std::vector<it_type> & internal_iterators);
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
-  virtual void computeTangentModuli(const ElementType & el_type,
-				    Array<Real> & tangent_matrix,
-				    GhostType ghost_type = _not_ghost);
+  void computeTangentModuli(const ElementType & el_type,
+                            Array<Real> & tangent_matrix,
+                            GhostType ghost_type = _not_ghost) override;
 
   /// compute the push wave speed of the material
-  Real getPushWaveSpeed(const Element & element) const;
+  Real getPushWaveSpeed(const Element & element) const override;
 
-protected:
-  /// update the dissipated energy, must be called after the stress have been computed
-  //virtual void updateEnergies(ElementType el_type, GhostType ghost_type){};
+  /// compute an energy of the material
+  Real getEnergy(const std::string & type) override;
 
-  /// compute the tangent stiffness matrix for a given quadrature point
-  //inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam){};
-
-  /* ------------------------------------------------------------------------ */
-  /* DataAccessor inherited members                                           */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-
-  //virtual Real getEnergy(std::string type){};
-  //virtual Real getEnergy(std::string energy_id, ElementType type, UInt index){};
+  /// compute an energy of the material
+  Real getEnergyForType(const std::string & type, ElementType el_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
-  std::vector<Real> local_params;
-  std::vector<InternalField<Real> *> internals;  
+  std::map<std::string, Real> local_params;
+  std::map<std::string, std::unique_ptr<InternalField<Real>>> internals;
 };
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_MATERIAL_PYTHON_HH__ */
-

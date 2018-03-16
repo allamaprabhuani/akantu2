@@ -4,24 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Oct 23 2015
+ * @date last modification: Wed Jan 31 2018
  *
  * @brief  Interface of the time integrator of first order
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -31,62 +30,64 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "integration_scheme.hh"
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
 #define __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
-class IntegrationScheme1stOrder {
+class IntegrationScheme1stOrder : public IntegrationScheme {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  enum IntegrationSchemeCorrectorType {
-    _temperature_corrector,
-    _temperature_rate_corrector
-  };
-
-
-  virtual ~IntegrationScheme1stOrder() {};
+  IntegrationScheme1stOrder(DOFManager & dof_manager, const ID & dof_id)
+      : IntegrationScheme(dof_manager, dof_id, 1){};
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get list of needed matrices
+  std::vector<std::string> getNeededMatrixList() override;
 
+  /// generic interface of a predictor
+  void predictor(Real delta_t) override;
+  /// generic interface of a corrector
+  void corrector(const SolutionType & type, Real delta_t) override;
 
-  virtual void integrationSchemePred(Real delta_t,
-				     Array<Real> & u,
-				     Array<Real> & u_dot,
-				     Array<bool> & boundary) = 0;
+  /// assemble the residual
+  void assembleResidual(bool is_lumped) override;
 
-  virtual void integrationSchemeCorrTemp(Real delta_t,
-					 Array<Real> & u,
-					 Array<Real> & u_dot,
-					 Array<bool> & boundary,
-					 Array<Real> & delta) = 0;
+protected:
+  /// generic interface of a predictor of 1st order
+  virtual void predictor(Real delta_t, Array<Real> & u, Array<Real> & u_dot,
+                         const Array<bool> & boundary) const = 0;
 
-  virtual void integrationSchemeCorrTempRate(Real delta_t,
-					     Array<Real> & u,
-					     Array<Real> & u_dot,
-					     Array<bool> & boundary,
-					     Array<Real> & delta) = 0;
+  /// generic interface of a corrector of 1st order
+  virtual void corrector(const SolutionType & type, Real delta_t,
+                         Array<Real> & u, Array<Real> & u_dot,
+                         const Array<bool> & boundary,
+                         const Array<Real> & delta) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-public:
+protected:
+  virtual Real getTemperatureCoefficient(const SolutionType & type,
+                                         Real delta_t) const = 0;
+  virtual Real getTemperatureRateCoefficient(const SolutionType & type,
+                                             Real delta_t) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
 };
 
-__END_AKANTU__
+} // akantu
 
 #include "generalized_trapezoidal.hh"
 

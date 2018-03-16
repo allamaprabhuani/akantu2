@@ -4,24 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu Aug 23 2012
- * @date last modification: Wed Oct 21 2015
+ * @date last modification: Mon Sep 11 2017
  *
  * @brief  interface for non local damage material
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -37,68 +36,38 @@
 #ifndef __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__
 #define __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
-template<UInt spatial_dimension,
-         class MaterialDamageLocal>
-class MaterialDamageNonLocal : public MaterialDamageLocal,
-			       public MaterialNonLocal<spatial_dimension> {
+template <UInt dim, class MaterialDamageLocal>
+class MaterialDamageNonLocal
+    : public MaterialNonLocal<dim, MaterialDamageLocal> {
 public:
-  typedef MaterialNonLocal<spatial_dimension> MaterialNonLocalParent;
-  typedef MaterialDamageLocal MaterialDamageParent;
+  using MaterialParent = MaterialNonLocal<dim, MaterialDamageLocal>;
 
-  MaterialDamageNonLocal(SolidMechanicsModel & model, const ID & id)  :
-    Material(model, id),
-    MaterialDamageParent(model, id), MaterialNonLocalParent(model, id) { };
-
-  /* ------------------------------------------------------------------------ */
-  virtual void initMaterial() {
-    MaterialDamageParent::initMaterial();
-    MaterialNonLocalParent::initMaterial();
-  }
+  MaterialDamageNonLocal(SolidMechanicsModel & model, const ID & id)
+      : MaterialParent(model, id){};
 
 protected:
-  /* -------------------------------------------------------------------------- */
-  virtual void computeNonLocalStress(ElementType type, GhostType ghost_type = _not_ghost) = 0;
+  /* ------------------------------------------------------------------------ */
+  virtual void computeNonLocalStress(ElementType type,
+                                     GhostType ghost_type = _not_ghost) = 0;
 
   /* ------------------------------------------------------------------------ */
-  void computeNonLocalStresses(GhostType ghost_type) {
+  void computeNonLocalStresses(GhostType ghost_type) override {
     AKANTU_DEBUG_IN();
 
-    Mesh::type_iterator it = this->model->getFEEngine().getMesh().firstType(spatial_dimension, ghost_type);
-    Mesh::type_iterator last_type = this->model->getFEEngine().getMesh().lastType(spatial_dimension, ghost_type);
-    for(; it != last_type; ++it) {
-      Array<UInt> & elem_filter = this->element_filter(*it, ghost_type);
-      if (elem_filter.getSize() == 0) continue;
-      computeNonLocalStress(*it, ghost_type);
+    for (auto type : this->element_filter.elementTypes(dim, ghost_type)) {
+      auto & elem_filter = this->element_filter(type, ghost_type);
+      if (elem_filter.size() == 0)
+        continue;
+
+      computeNonLocalStress(type, ghost_type);
     }
 
     AKANTU_DEBUG_OUT();
   }
-
-public:
-  /* ------------------------------------------------------------------------ */
-  virtual inline UInt getNbDataForElements(const Array<Element> & elements,
-					   SynchronizationTag tag) const {
-    return MaterialNonLocalParent::getNbDataForElements(elements, tag) +
-      MaterialDamageParent::getNbDataForElements(elements, tag);
-  }
-  virtual inline void packElementData(CommunicationBuffer & buffer,
-				      const Array<Element> & elements,
-				      SynchronizationTag tag) const {
-    MaterialNonLocalParent::packElementData(buffer, elements, tag);
-    MaterialDamageParent::packElementData(buffer, elements, tag);
-  }
-
-  virtual inline void unpackElementData(CommunicationBuffer & buffer,
-				 const Array<Element> & elements,
-				 SynchronizationTag tag) {
-    MaterialNonLocalParent::unpackElementData(buffer, elements, tag);
-    MaterialDamageParent::unpackElementData(buffer, elements, tag);
-  }
-
 };
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_NON_LOCAL_HH__ */

@@ -4,24 +4,24 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Thu Feb 21 2013
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Tue Nov 07 2017
  *
  * @brief  Safe enums type (see More C++ Idioms/Type Safe Enum on Wikibooks
  * http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Type_Safe_Enum)
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -34,21 +34,26 @@
 #ifndef __AKANTU_AKA_SAFE_ENUM_HH__
 #define __AKANTU_AKA_SAFE_ENUM_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
+
 /// Safe enumerated type
-template<typename def, typename inner = typename def::type>
+template <typename def, typename inner = typename def::type>
 class safe_enum : public def {
-  typedef typename def::type type;
+  using type = typename def::type;
+
 public:
-  safe_enum(type v) : val(v) {}
+  explicit safe_enum(type v = def::_end_) : val(v) {}
+  safe_enum(safe_enum && other) = default;
+  safe_enum & operator=(safe_enum && other) = default;
+
   inner underlying() const { return val; }
 
-  bool operator == (const safe_enum & s) const { return this->val == s.val; }
-  bool operator != (const safe_enum & s) const { return this->val != s.val; }
-  bool operator <  (const safe_enum & s) const { return this->val <  s.val; }
-  bool operator <= (const safe_enum & s) const { return this->val <= s.val; }
-  bool operator >  (const safe_enum & s) const { return this->val >  s.val; }
-  bool operator >= (const safe_enum & s) const { return this->val >= s.val; }
+  bool operator==(const safe_enum & s) const { return this->val == s.val; }
+  bool operator!=(const safe_enum & s) const { return this->val != s.val; }
+  bool operator<(const safe_enum & s) const { return this->val < s.val; }
+  bool operator<=(const safe_enum & s) const { return this->val <= s.val; }
+  bool operator>(const safe_enum & s) const { return this->val > s.val; }
+  bool operator>=(const safe_enum & s) const { return this->val >= s.val; }
 
   operator inner() { return val; };
 
@@ -56,26 +61,26 @@ public:
   // Works only if enumerations are contiguous.
   class iterator {
   public:
-    iterator(type v) : it(v) { }
-    void operator++() { ++it; }
-    safe_enum operator*() { return static_cast<type>(it); }
+    explicit iterator(type v) : it(v) {}
+    iterator & operator++() {
+      ++it;
+      return *this;
+    }
+    safe_enum operator*() { return safe_enum(static_cast<type>(it)); }
     bool operator!=(iterator const & it) { return it.it != this->it; }
+
   private:
     int it;
   };
 
-  static iterator begin() {
-    return def::_begin_;
-  }
+  static iterator begin() { return iterator(def::_begin_); }
 
-  static iterator end() {
-    return def::_end_;
-  }
+  static iterator end() { return iterator(def::_end_); }
 
 protected:
   inner val;
 };
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_AKA_SAFE_ENUM_HH__ */

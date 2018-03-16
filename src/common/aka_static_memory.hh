@@ -4,24 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Sun Dec 03 2017
  *
  * @brief  Memory management
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -40,17 +39,17 @@
 #define __AKANTU_STATIC_MEMORY_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "aka_array.hh"
+#include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
 #include <map>
 
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
+namespace akantu {
 
-typedef std::map<ID, ArrayBase *> ArrayMap;
-typedef std::map<MemoryID, ArrayMap> MemoryMap;
+using ArrayMap = std::map<ID, ArrayBase *>;
+using MemoryMap = std::map<MemoryID, ArrayMap>;
 
 /**
  * @class StaticMemory
@@ -63,19 +62,16 @@ class StaticMemory {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// Default constructor
-  StaticMemory() {};
+  StaticMemory() = default;
 
 public:
-
   virtual ~StaticMemory();
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// Get the global instance of the StaticMemory
   static StaticMemory & getStaticMemory();
 
@@ -86,7 +82,7 @@ public:
 
   /// access to an Array
   inline const ArrayBase & getArray(const MemoryID & memory_id,
-				      const ID & name) const;
+                                    const ID & name) const;
 
   /// get all vectors of a memory
   inline const ArrayMap & getMemory(const MemoryID & memory_id) const;
@@ -106,16 +102,13 @@ public:
    *
    * @return pointer to an array of size nb_tupes * nb_component * sizeof(T)
    */
-  template<typename T>
-  Array<T> & smalloc(const MemoryID & memory_id, const ID & name,
-		      UInt size, UInt nb_component);
+  template <typename T>
+  Array<T> & smalloc(const MemoryID & memory_id, const ID & name, UInt size,
+                     UInt nb_component);
 
-  template<typename T>
-  Array<T> & smalloc(const MemoryID & memory_id,
-		      const ID & name,
-		      UInt size,
-		      UInt nb_component,
-		      const T & init_value);
+  template <typename T>
+  Array<T> & smalloc(const MemoryID & memory_id, const ID & name, UInt size,
+                     UInt nb_component, const T & init_value);
   /**
    * free the memory associated to the array name
    *
@@ -124,16 +117,13 @@ public:
    */
   void sfree(const MemoryID & memory_id, const ID & name);
 
-
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
-
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// is the static memory instantiated
   static bool is_instantiated;
 
@@ -147,22 +137,20 @@ private:
   static UInt nb_reference;
 };
 
+#include "aka_static_memory_inline_impl.cc"
 #include "aka_static_memory_tmpl.hh"
-#if defined (AKANTU_INCLUDE_INLINE_IMPL)
-#  include "aka_static_memory_inline_impl.cc"
-#endif
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream, const StaticMemory & _this)
-{
+inline std::ostream & operator<<(std::ostream & stream,
+                                 const StaticMemory & _this) {
   _this.printself(stream);
   return stream;
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AKANTU_STATIC_MEMORY_HH__ */

@@ -4,23 +4,23 @@
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
  * @date creation: Mon Apr 08 2013
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Wed Nov 08 2017
  *
  * @brief  Implementation of the inline functions of the material elastic
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -30,11 +30,9 @@
 
 #include <iostream>
 
-#include <cmath>
 #include "material_neohookean.hh"
-
-using std::cout;
-using std::endl;
+#include <cmath>
+#include <utility>
 
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
@@ -50,7 +48,7 @@ inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
                                                          const Real & C33) {
   // Neo hookean book
   Matrix<Real> F(dim, dim);
-  Matrix<Real> C(dim, dim); // Right green
+  Matrix<Real> C(dim, dim);      // Right green
   Matrix<Real> Cminus(dim, dim); // Right green
 
   this->template gradUToF<dim>(grad_u, F);
@@ -70,16 +68,16 @@ class C33_NR : public Math::NewtonRaphsonFunctor {
 public:
   C33_NR(std::string name, const Real & lambda, const Real & mu,
          const Matrix<Real> & C)
-      : NewtonRaphsonFunctor(name), lambda(lambda), mu(mu), C(C) {}
+      : NewtonRaphsonFunctor(std::move(name)), lambda(lambda), mu(mu), C(C) {}
 
-  inline Real f(Real x) const {
+  inline Real f(Real x) const override {
     return (this->lambda / 2. *
                 (std::log(x) + std::log(this->C(0, 0) * this->C(1, 1) -
                                         Math::pow<2>(this->C(0, 1)))) +
             this->mu * (x - 1.));
   }
 
-  inline Real f_prime(Real x) const {
+  inline Real f_prime(Real x) const override {
     AKANTU_DEBUG_ASSERT(std::abs(x) > Math::getTolerance(),
                         "x is zero (x should be the off plane right Cauchy"
                             << " measure in this function so you made a mistake"

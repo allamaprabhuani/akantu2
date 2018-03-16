@@ -4,24 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Tue Dec 08 2015
+ * @date last modification: Thu Feb 08 2018
  *
  * @brief  Material internal properties
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -37,7 +36,7 @@
 #ifndef __AKANTU_INTERNAL_FIELD_HH__
 #define __AKANTU_INTERNAL_FIELD_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 class Material;
 class FEEngine;
@@ -52,7 +51,7 @@ template <typename T> class InternalField : public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
 public:
   InternalField(const ID & id, Material & material);
-  virtual ~InternalField();
+  ~InternalField() override;
 
   /// This constructor is only here to let cohesive elements compile
   InternalField(const ID & id, Material & material, FEEngine & fem,
@@ -101,7 +100,7 @@ public:
   removeIntegrationPoints(const ElementTypeMapArray<UInt> & new_numbering);
 
   /// print the content
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void printself(std::ostream & stream, int /*indent*/ = 0) const override;
 
   /// get the default value
   inline operator T() const;
@@ -123,13 +122,14 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  typedef typename ElementTypeMapArray<T>::type_iterator type_iterator;
-  typedef typename ElementTypeMapArray<UInt>::type_iterator filter_type_iterator;
+  using type_iterator = typename ElementTypeMapArray<T>::type_iterator;
+  using filter_type_iterator =
+      typename ElementTypeMapArray<UInt>::type_iterator;
 
   /// get the type iterator on all types contained in the internal field
   type_iterator firstType(const GhostType & ghost_type = _not_ghost) const {
-    return ElementTypeMapArray<T>::firstType(this->spatial_dimension, ghost_type,
-                                             this->element_kind);
+    return ElementTypeMapArray<T>::firstType(this->spatial_dimension,
+                                             ghost_type, this->element_kind);
   }
 
   /// get the type iterator on the last type contained in the internal field
@@ -138,16 +138,18 @@ public:
                                             this->element_kind);
   }
 
-    /// get the type iterator on all types contained in the internal field
-  filter_type_iterator filterFirstType(const GhostType & ghost_type = _not_ghost) const {
+  /// get the type iterator on all types contained in the internal field
+  filter_type_iterator
+  filterFirstType(const GhostType & ghost_type = _not_ghost) const {
     return this->element_filter.firstType(this->spatial_dimension, ghost_type,
-                           this->element_kind);
+                                          this->element_kind);
   }
 
   /// get the type iterator on the last type contained in the internal field
-  filter_type_iterator filterLastType(const GhostType & ghost_type = _not_ghost) const {
+  filter_type_iterator
+  filterLastType(const GhostType & ghost_type = _not_ghost) const {
     return this->element_filter.lastType(this->spatial_dimension, ghost_type,
-                          this->element_kind);
+                                         this->element_kind);
   }
 
   /// get the array for a given type of the element_filter
@@ -170,7 +172,7 @@ public:
 
   virtual Array<T> & previous(const ElementType & type,
                               const GhostType & ghost_type = _not_ghost) {
-    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+    AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return this->previous_values->operator()(type, ghost_type);
@@ -179,28 +181,28 @@ public:
   virtual const Array<T> &
   previous(const ElementType & type,
            const GhostType & ghost_type = _not_ghost) const {
-    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+    AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return this->previous_values->operator()(type, ghost_type);
   }
 
   virtual InternalField<T> & previous() {
-    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+    AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return *(this->previous_values);
   }
 
   virtual const InternalField<T> & previous() const {
-    AKANTU_DEBUG_ASSERT(previous_values != NULL,
+    AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return *(this->previous_values);
   }
 
   /// check if the history is used or not
-  bool hasHistory() const { return (previous_values != NULL); }
+  bool hasHistory() const { return (previous_values != nullptr); }
 
   /// get the kind treated by the internal
   const ElementKind & getElementKind() const { return element_kind; }
@@ -252,6 +254,6 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_INTERNAL_FIELD_HH__ */

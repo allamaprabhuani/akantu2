@@ -4,24 +4,23 @@
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Oct 08 2015
+ * @date last modification: Wed Nov 29 2017
  *
  * @brief  Material isotropic elastic
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -39,7 +38,7 @@
 #ifndef __AKANTU_MATERIAL_NEOHOOKEAN_HH__
 #define __AKANTU_MATERIAL_NEOHOOKEAN_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /**
  * Material elastic isotropic
@@ -50,74 +49,77 @@ __BEGIN_AKANTU__
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template<UInt spatial_dimension>
-class MaterialNeohookean : public virtual PlaneStressToolbox<spatial_dimension> {
+template <UInt spatial_dimension>
+class MaterialNeohookean : public PlaneStressToolbox<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
   MaterialNeohookean(SolidMechanicsModel & model, const ID & id = "");
 
-  virtual ~MaterialNeohookean() {};
+  ~MaterialNeohookean() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// initialize the material computed parameter
-  virtual void initMaterial();
+  void initMaterial() override;
 
   /// constitutive law for all element of a type
-  virtual void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
   /// Computation of the cauchy stress for plane strain materials
-  virtual void computeCauchyStressPlaneStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void
+  computeCauchyStressPlaneStress(ElementType el_type,
+                                 GhostType ghost_type = _not_ghost) override;
 
-  /// Non linear computation of the third direction strain in 2D plane stress case
-  virtual void computeThirdAxisDeformation(ElementType el_type, GhostType ghost_type = _not_ghost);
+  /// Non linear computation of the third direction strain in 2D plane stress
+  /// case
+  void computeThirdAxisDeformation(ElementType el_type,
+                                   GhostType ghost_type = _not_ghost) override;
 
   /// compute the elastic potential energy
-  virtual void computePotentialEnergy(ElementType el_type,
-                                      GhostType ghost_type = _not_ghost);
+  void computePotentialEnergy(ElementType el_type,
+                              GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
   void computeTangentModuli(const ElementType & el_type,
                             Array<Real> & tangent_matrix,
-                            GhostType ghost_type = _not_ghost);
+                            GhostType ghost_type = _not_ghost) override;
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed(const Element & element) const;
+  Real getPushWaveSpeed(const Element & element) const override;
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed(const Element & element) const;
+  Real getShearWaveSpeed(const Element & element) const override;
 
 protected:
-
   /// constitutive law for a given quadrature point
-  inline void computePiolaKirchhoffOnQuad(const Matrix<Real> &E,
-                                          Matrix<Real> &S);
+  inline void computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
+                                          Matrix<Real> & S);
 
   /// constitutive law for a given quadrature point (first piola)
-  inline void computeFirstPiolaKirchhoffOnQuad(const Matrix<Real> &grad_u,
-                                               const Matrix<Real> &S,
-                                               Matrix<Real> &P);
+  inline void computeFirstPiolaKirchhoffOnQuad(const Matrix<Real> & grad_u,
+                                               const Matrix<Real> & S,
+                                               Matrix<Real> & P);
 
   /// constitutive law for a given quadrature point
-  inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & grad_delta_u,
-        Matrix<Real> & delta_S);
+  inline void computeDeltaStressOnQuad(const Matrix<Real> & grad_u,
+                                       const Matrix<Real> & grad_delta_u,
+                                       Matrix<Real> & delta_S);
 
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(Matrix<Real> & grad_u,
-                                  Matrix<Real> & S,
-                                  const Real & C33 = 1.0 );
+  inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & S,
+                                  const Real & C33 = 1.0);
 
   /// constitutive law for a given quadrature point
-  inline void computeThirdAxisDeformationOnQuad(Matrix<Real> & grad_u, Real & c33_value);
+  inline void computeThirdAxisDeformationOnQuad(Matrix<Real> & grad_u,
+                                                Real & c33_value);
 
   /// constitutive law for a given quadrature point
-  //inline void updateStressOnQuad(const Matrix<Real> & sigma,
+  // inline void updateStressOnQuad(const Matrix<Real> & sigma,
   //                              Matrix<Real> & cauchy_sigma);
 
   /// compute the potential energy for a quadrature point
@@ -125,24 +127,20 @@ protected:
                                            Real & epot);
 
   /// compute the tangent stiffness matrix for an element
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent,
-                                  Matrix<Real> & grad_u,
-                                  const Real & C33 = 1.0 );
+  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Matrix<Real> & grad_u,
+                                  const Real & C33 = 1.0);
 
   /// recompute the lame coefficient if E or nu changes
-  virtual void updateInternalParameters();
-
+  void updateInternalParameters() override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
   /// the young modulus
   Real E;
 
@@ -157,7 +155,6 @@ protected:
 
   /// Bulk modulus
   Real kpa;
-
 };
 
 /* -------------------------------------------------------------------------- */
@@ -166,6 +163,6 @@ protected:
 
 #include "material_neohookean_inline_impl.cc"
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_MATERIAL_NEOHOOKEAN_HH__ */

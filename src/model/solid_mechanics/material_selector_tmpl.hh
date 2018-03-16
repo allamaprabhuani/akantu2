@@ -5,23 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Nov 13 2013
- * @date last modification: Fri May 01 2015
+ * @date last modification: Tue Nov 07 2017
  *
  * @brief  Implementation of the template MaterialSelector
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -30,23 +30,18 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "material_selector.hh"
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_SELECTOR_TMPL_HH__
 #define __AKANTU_MATERIAL_SELECTOR_TMPL_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template<typename T>
-MeshDataMaterialSelector<T>::MeshDataMaterialSelector(const std::string & name,
-                                                      const SolidMechanicsModel & model,
-                                                      UInt first_index):
-  ElementDataMaterialSelector<T>(model.getMesh().getData<T>(name), model, first_index)
-{}
-
-/* -------------------------------------------------------------------------- */
-template<>
-inline UInt ElementDataMaterialSelector<std::string>::operator() (const Element & element) {
+template <>
+inline UInt ElementDataMaterialSelector<std::string>::
+operator()(const Element & element) {
   try {
     std::string material_name = this->elementData(element);
     return model.getMaterialIndex(material_name);
@@ -56,8 +51,9 @@ inline UInt ElementDataMaterialSelector<std::string>::operator() (const Element 
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
-inline UInt ElementDataMaterialSelector<UInt>::operator() (const Element & element) {
+template <>
+inline UInt ElementDataMaterialSelector<UInt>::
+operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
@@ -65,6 +61,14 @@ inline UInt ElementDataMaterialSelector<UInt>::operator() (const Element & eleme
   }
 }
 
-__END_AKANTU__
+/* -------------------------------------------------------------------------- */
+template <typename T>
+MeshDataMaterialSelector<T>::MeshDataMaterialSelector(
+    const std::string & name, const SolidMechanicsModel & model,
+    UInt first_index)
+    : ElementDataMaterialSelector<T>(model.getMesh().getData<T>(name), model,
+                                     first_index) {}
+
+} // namespace akantu
 
 #endif /* __AKANTU_MATERIAL_SELECTOR_TMPL_HH__ */

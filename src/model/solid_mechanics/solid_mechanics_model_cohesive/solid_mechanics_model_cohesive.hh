@@ -5,24 +5,23 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Tue May 08 2012
- * @date last modification: Mon Dec 14 2015
+ * @date last modification: Mon Feb 05 2018
  *
  * @brief  Solid mechanics model for cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -31,40 +30,53 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "cohesive_element_inserter.hh"
+#include "material_selector_cohesive.hh"
+#include "random_internal_field.hh" // included to have the specialization of
+#include "solid_mechanics_model.hh"
+#include "solid_mechanics_model_event_handler.hh"
+// ParameterTyped::operator Real()
+/* -------------------------------------------------------------------------- */
+
 #ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
 #define __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
 
-#include "solid_mechanics_model.hh"
-#include "solid_mechanics_model_event_handler.hh"
-#include "cohesive_element_inserter.hh"
-#include "material_selector_cohesive.hh"
-
-#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-#  include "facet_synchronizer.hh"
-#  include "facet_stress_synchronizer.hh"
-#endif
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+class FacetSynchronizer;
+class FacetStressSynchronizer;
+class ElementSynchronizer;
+} // namespace akantu
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
-  SolidMechanicsModelCohesiveOptions(AnalysisMethod analysis_method = _explicit_lumped_mass,
-				     bool extrinsic = false,
-				     bool no_init_materials = false) :
-    SolidMechanicsModelOptions(analysis_method, no_init_materials),
-    extrinsic(extrinsic) {}
-  bool extrinsic;
+struct FacetsCohesiveIntegrationOrderFunctor {
+  template <ElementType type,
+            ElementType cohesive_type =
+                CohesiveFacetProperty<type>::cohesive_type>
+  struct _helper {
+    static constexpr int get() {
+      return ElementClassProperty<cohesive_type>::polynomial_degree;
+    }
+  };
+
+  template <ElementType type> struct _helper<type, _not_defined> {
+    static constexpr int get() {
+      return ElementClassProperty<type>::polynomial_degree;
+    }
+  };
+
+  template <ElementType type> static inline constexpr int getOrder() {
+    return _helper<type>::get();
+  }
 };
-
-extern const SolidMechanicsModelCohesiveOptions default_solid_mechanics_model_cohesive_options;
 
 /* -------------------------------------------------------------------------- */
 /* Solid Mechanics Model for Cohesive elements                                */
 /* -------------------------------------------------------------------------- */
-
 class SolidMechanicsModelCohesive : public SolidMechanicsModel,
-                                    public SolidMechanicsModelEventHandler{
+                                    public SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -73,31 +85,37 @@ public:
   public:
     AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<UInt> &);
     AKANTU_GET_MACRO(OldNodesList, old_nodes, const Array<UInt> &);
+
   protected:
     Array<UInt> old_nodes;
   };
 
-  typedef FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive> MyFEEngineCohesiveType;
+  using MyFEEngineCohesiveType =
+      FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive>;
+  using MyFEEngineFacetType =
+      FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
+                       FacetsCohesiveIntegrationOrderFunctor>;
 
   SolidMechanicsModelCohesive(Mesh & mesh,
-			      UInt spatial_dimension = _all_dimensions,
-			      const ID & id = "solid_mechanics_model_cohesive",
-			      const MemoryID & memory_id = 0);
+                              UInt spatial_dimension = _all_dimensions,
+                              const ID & id = "solid_mechanics_model_cohesive",
+                              const MemoryID & memory_id = 0);
 
-  virtual ~SolidMechanicsModelCohesive();
+  ~SolidMechanicsModelCohesive() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// initialize the cohesive model
+  void initFullImpl(const ModelOptions & options) override;
+
 public:
   /// set the value of the time step
-  void setTimeStep(Real time_step);
+  void setTimeStep(Real time_step, const ID & solver_id = "") override;
 
   /// assemble the residual for the explicit scheme
-  virtual void updateResidual(bool need_initialize = true);
-
-  /// function to print the contain of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const;
+  void assembleInternalForces() override;
 
   /// function to perform a stress check on each facet and insert
   /// cohesive elements if needed (returns the number of new cohesive
@@ -107,48 +125,38 @@ public:
   /// interpolate stress on facets
   void interpolateStress();
 
-  /// initialize the cohesive model
-  void initFull(const ModelOptions & options = default_solid_mechanics_model_cohesive_options);
-
-  /// initialize the model
-  void initModel();
-
-  /// initialize cohesive material
-  void initMaterials();
-
-  /// init facet filters for cohesive materials
-  void initFacetFilter();
-
-  /// limit the cohesive element insertion to a given area
-  void limitInsertion(BC::Axis axis, Real first_limit, Real second_limit);
-
   /// update automatic insertion after a change in the element inserter
   void updateAutomaticInsertion();
 
   /// insert intrinsic cohesive elements
   void insertIntrinsicElements();
 
-  template<SolveConvergenceMethod cmethod, SolveConvergenceCriteria criteria>
-  bool solveStepCohesive(Real tolerance,
-                         Real & error,
-                         UInt max_iteration = 100,
-                         bool load_reduction = false,
-			 Real tol_increase_factor = 1.0,
-                         bool do_not_factorize = false);
+  // template <SolveConvergenceMethod cmethod, SolveConvergenceCriteria
+  // criteria> bool solveStepCohesive(Real tolerance, Real & error, UInt
+  // max_iteration = 100,
+  //                        bool load_reduction = false,
+  //                        Real tol_increase_factor = 1.0,
+  //                        bool do_not_factorize = false);
 
+protected:
   /// initialize stress interpolation
   void initStressInterpolation();
 
+  /// initialize the model
+  void initModel() override;
+
+  /// initialize cohesive material
+  void initMaterials() override;
+
+  /// init facet filters for cohesive materials
+  void initFacetFilter();
+
+  /// function to print the contain of the class
+  void printself(std::ostream & stream, int indent = 0) const override;
+
 private:
-
-  /// initialize cohesive material with intrinsic insertion (by default) 
-  void initIntrinsicCohesiveMaterials(UInt cohesive_index);
-
-  ///  initialize cohesive material with intrinsic insertion (if physical surfaces are precised) 
-  void initIntrinsicCohesiveMaterials(std::string cohesive_surfaces);
-
-  /// insert cohesive elements along a given physical surface of the mesh 
-  void insertElementsFromMeshData(std::string physical_name);
+  /// insert cohesive elements along a given physical surface of the mesh
+  void insertElementsFromMeshData(const std::string & physical_name);
 
   /// initialize completely the model for extrinsic elements
   void initAutomaticInsertion();
@@ -167,36 +175,79 @@ private:
   /* ------------------------------------------------------------------------ */
 
 protected:
-
-  virtual void onNodesAdded  (const Array<UInt> & nodes_list,
-			      const NewNodesEvent & event);
-  virtual void onElementsAdded  (const Array<Element> & nodes_list,
-				 const NewElementsEvent & event);
+  void onNodesAdded(const Array<UInt> & nodes_list,
+                    const NewNodesEvent & event) override;
+  void onElementsAdded(const Array<Element> & nodes_list,
+                       const NewElementsEvent & event) override;
 
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void onEndSolveStep(const AnalysisMethod & method);
+  void onEndSolveStep(const AnalysisMethod & method) override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
+  void onDump() override;
 
-  virtual void onDump();
+  void addDumpGroupFieldToDumper(const std::string & dumper_name,
+                                 const std::string & field_id,
+                                 const std::string & group_name,
+                                 const ElementKind & element_kind,
+                                 bool padding_flag) override;
 
-  virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
-					 const std::string & field_id,
-					 const std::string & group_name,
-					 const ElementKind & element_kind,
-					 bool padding_flag);
+public:
+  /// register the tags associated with the parallel synchronizer for
+  /// cohesive elements
+  // void initParallel(MeshPartition * partition,
+  //                DataAccessor * data_accessor = NULL,
+  //                bool extrinsic = false);
+
+protected:
+  void synchronizeGhostFacetsConnectivity();
+
+  void updateCohesiveSynchronizers();
+  void updateFacetStressSynchronizer();
+
+  friend class CohesiveElementInserter;
+
+  /* ------------------------------------------------------------------------ */
+  /* Data Accessor inherited members                                          */
+  /* ------------------------------------------------------------------------ */
+public:
+  UInt getNbData(const Array<Element> & elements,
+                 const SynchronizationTag & tag) const override;
+
+  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                  const SynchronizationTag & tag) override;
+
+protected:
+  UInt getNbQuadsForFacetCheck(const Array<Element> & elements) const;
+
+  template <typename T>
+  void packFacetStressDataHelper(const ElementTypeMapArray<T> & data_to_pack,
+                                 CommunicationBuffer & buffer,
+                                 const Array<Element> & elements) const;
+
+  template <typename T>
+  void unpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_unpack,
+                                   CommunicationBuffer & buffer,
+                                   const Array<Element> & elements) const;
+
+  template <typename T, bool pack_helper>
+  void packUnpackFacetStressDataHelper(ElementTypeMapArray<T> & data_to_pack,
+                                       CommunicationBuffer & buffer,
+                                       const Array<Element> & element) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /// get facet mesh
   AKANTU_GET_MACRO(MeshFacets, mesh.getMeshFacets(), const Mesh &);
 
@@ -210,21 +261,28 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetMaterial, facet_material, UInt);
 
   /// get facet material
-  AKANTU_GET_MACRO(FacetMaterial, facet_material, const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO(FacetMaterial, facet_material,
+                   const ElementTypeMapArray<UInt> &);
 
   /// @todo THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
 
   /// get element inserter
-  AKANTU_GET_MACRO_NOT_CONST(ElementInserter, *inserter, CohesiveElementInserter &);
+  AKANTU_GET_MACRO_NOT_CONST(ElementInserter, *inserter,
+                             CohesiveElementInserter &);
 
   /// get is_extrinsic boolean
   AKANTU_GET_MACRO(IsExtrinsic, is_extrinsic, bool);
+
+  /// get cohesive elements synchronizer
+  AKANTU_GET_MACRO(CohesiveSynchronizer, *cohesive_synchronizer,
+                   const ElementSynchronizer &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  friend class CohesiveMeshGlobalDataUpdater;
 
   /// @todo store tangents when normals are computed:
   ElementTypeMapArray<Real> tangents;
@@ -238,24 +296,16 @@ private:
   bool is_extrinsic;
 
   /// cohesive element inserter
-  CohesiveElementInserter * inserter;
+  std::unique_ptr<CohesiveElementInserter> inserter;
 
-#if defined(AKANTU_PARALLEL_COHESIVE_ELEMENT)
-#include "solid_mechanics_model_cohesive_parallel.hh"
-#endif
+  /// facet stress synchronizer
+  std::unique_ptr<ElementSynchronizer> facet_stress_synchronizer;
 
+  /// cohesive elements synchronizer
+  std::unique_ptr<ElementSynchronizer> cohesive_synchronizer;
 };
 
-/* -------------------------------------------------------------------------- */
-/// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const SolidMechanicsModelCohesive & _this)
-{
-  _this.printself(stream);
-  return stream;
-}
-
-
-__END_AKANTU__
+} // namespace akantu
 
 #include "solid_mechanics_model_cohesive_inline_impl.cc"
 

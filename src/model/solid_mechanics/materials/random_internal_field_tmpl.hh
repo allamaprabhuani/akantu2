@@ -4,23 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed Nov 13 2013
- * @date last modification: Tue Dec 08 2015
+ * @date last modification: Thu Feb 08 2018
  *
  * @brief  Random internal material parameter implementation
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -38,7 +38,7 @@
 #ifndef __AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH__
 #define __AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename> class BaseField,
@@ -50,7 +50,7 @@ RandomInternalField<T, BaseField, Generator>::RandomInternalField(
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename> class BaseField,
           template <typename> class Generator>
-RandomInternalField<T, BaseField, Generator>::~RandomInternalField() {}
+RandomInternalField<T, BaseField, Generator>::~RandomInternalField() = default;
 
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename> class BaseField,
@@ -82,7 +82,7 @@ void RandomInternalField<T, BaseField, Generator>::setRandomDistribution(
 template <typename T, template <typename> class BaseField,
           template <typename> class Generator>
 void RandomInternalField<T, BaseField, Generator>::printself(
-    std::ostream & stream, int indent) const {
+    std::ostream & stream, int indent[[gnu::unused]]) const {
   stream << "RandomInternalField [ ";
   random_parameter.printself(stream);
   stream << " ]";
@@ -111,15 +111,15 @@ inline RandomInternalField<T, BaseField, Generator>::operator Real() const {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void ParsableParamTyped<RandomInternalField<Real> >::parseParam(
+inline void ParameterTyped<RandomInternalField<Real>>::setAuto(
     const ParserParameter & in_param) {
-  ParsableParam::parseParam(in_param);
+  Parameter::setAuto(in_param);
   RandomParameter<Real> r = in_param;
   param.setRandomDistribution(r);
 }
 
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH__ */

@@ -6,26 +6,26 @@
  * @author Vladislav Yastrebov <vladislav.yastrebov@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Thu Oct 08 2015
+ * @date last modification: Sun Dec 03 2017
  *
- * @brief  Material Visco-elastic, based on Standard Solid rheological model, see
+ * @brief  Material Visco-elastic, based on Standard Solid rheological model,
+ * see
  * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
  * see Sections 10.2 and 10.3
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -41,7 +41,7 @@
 #ifndef __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__
 #define __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /**
  * Material standard linear solid deviatoric
@@ -67,38 +67,38 @@ __BEGIN_AKANTU__
  *   - Ev  : stiffness of the viscous element
  */
 
-template<UInt spatial_dimension>
-class MaterialStandardLinearSolidDeviatoric : public MaterialElastic<spatial_dimension> {
+template <UInt spatial_dimension>
+class MaterialStandardLinearSolidDeviatoric
+    : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
-  MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model, const ID & id = "");
-
-  virtual ~MaterialStandardLinearSolidDeviatoric() {};
+  MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
+                                        const ID & id = "");
+  ~MaterialStandardLinearSolidDeviatoric() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  
   /// initialize the material computed parameter
-  void initMaterial();
-  
+  void initMaterial() override;
+
   /// update the internal parameters (for modifiable parameters)
-  virtual void updateInternalParameters();
+  void updateInternalParameters() override;
 
   /// set material to steady state
-  void setToSteadyState(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void setToSteadyState(ElementType el_type,
+                        GhostType ghost_type = _not_ghost) override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
-
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
 protected:
-
-  /// update the dissipated energy, is called after the stress have been computed
+  /// update the dissipated energy, is called after the stress have been
+  /// computed
   void updateDissipatedEnergy(ElementType el_type, GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
@@ -110,13 +110,13 @@ public:
   Real getDissipatedEnergy(ElementType type, UInt index) const;
 
   /// get the energy using an energy type string for the time step
-  virtual Real getEnergy(std::string type);
-  virtual Real getEnergy(std::string energy_id, ElementType type, UInt index);
+  Real getEnergy(const std::string & type) override;
+  Real getEnergy(const std::string & energy_id, ElementType type,
+                 UInt index) override;
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// viscosity, viscous elastic modulus
   Real eta, Ev, E_inf;
 
@@ -130,8 +130,6 @@ private:
   InternalField<Real> dissipated_energy;
 };
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__ */
-
-

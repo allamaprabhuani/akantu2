@@ -35,16 +35,14 @@
 #include "locomotive_tools.hh"
 /* -------------------------------------------------------------------------- */
 
-
 using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
 void applyRotation(const Vector<Real> & center, Real angle,
                    const Array<Real> & nodes, Array<Real> & displacement,
                    const Array<UInt> & node_group) {
-  Array<Real>::const_vector_iterator nodes_it =
-      nodes.begin(nodes.getNbComponent());
-  Array<Real>::vector_iterator disp_it = displacement.begin(center.size());
+  auto nodes_it = nodes.begin(nodes.getNbComponent());
+  auto disp_it = displacement.begin(center.size());
   Array<UInt>::const_scalar_iterator node_num_it = node_group.begin();
   Array<UInt>::const_scalar_iterator node_num_end = node_group.end();
 
@@ -79,7 +77,7 @@ void fillColour(const Mesh & mesh, ElementTypeMapArray<UInt> & colour) {
   const Array<std::string> & txt_colour = phys_data(_triangle_3);
   Array<UInt> & id_colour = colour(_triangle_3);
 
-  for (UInt i = 0; i < txt_colour.getSize(); ++i) {
+  for (UInt i = 0; i < txt_colour.size(); ++i) {
     std::string phy_name = txt_colour(i);
 
     if (phy_name == "red")

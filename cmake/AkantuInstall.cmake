@@ -33,7 +33,8 @@
 #===============================================================================
 # Config gen for external packages
 #===============================================================================
-configure_file(cmake/AkantuBuildTreeSettings.cmake.in  "${PROJECT_BINARY_DIR}/AkantuBuildTreeSettings.cmake" @ONLY)
+configure_file(cmake/AkantuBuildTreeSettings.cmake.in
+  "${PROJECT_BINARY_DIR}/AkantuBuildTreeSettings.cmake" @ONLY)
 
 file(WRITE "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 #===============================================================================
@@ -99,9 +100,6 @@ set(AKANTU_${_real_pkg_name}_COMPILE_CXX_FLAGS ${_compile_flags})
 endforeach()
 
 file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
-")
-
-file(APPEND "${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake" "
 set(AKANTU_EXTRA_CXX_FLAGS \"${AKANTU_EXTRA_CXX_FLAGS}\")
 ")
 
@@ -112,43 +110,50 @@ configure_file(cmake/AkantuConfig.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfig.c
 configure_file(cmake/AkantuConfigVersion.cmake.in "${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake" @ONLY)
 configure_file(cmake/AkantuUse.cmake "${PROJECT_BINARY_DIR}/AkantuUse.cmake" COPYONLY)
 
-configure_file(cmake/akantu_environement.sh.in ${PROJECT_BINARY_DIR}/akantu_environement.sh  @ONLY)
-configure_file(cmake/akantu_environement.csh.in ${PROJECT_BINARY_DIR}/akantu_environement.csh @ONLY)
+configure_file(cmake/akantu_environement.sh.in
+  ${PROJECT_BINARY_DIR}/akantu_environement.sh  @ONLY)
+configure_file(cmake/akantu_environement.csh.in
+  ${PROJECT_BINARY_DIR}/akantu_environement.csh @ONLY)
 
 
-configure_file(cmake/akantu_install_environement.sh.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh  @ONLY)
-configure_file(cmake/akantu_install_environement.csh.in ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh @ONLY)
+package_is_activated(python_interface _is_acticated)
+if(_is_acticated)
+  find_package(PythonInterp ${AKANTU_PREFERRED_PYTHON_VERSION})
+  configure_file(cmake/akantu_install_environement.sh.in
+    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh  @ONLY)
+  configure_file(cmake/akantu_install_environement.csh.in
+    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh @ONLY)
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh
+    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh
+    DESTINATION share/akantu${AKANTU_VERSION})
+endif()
 
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.sh
-  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/akantu_environement.csh
-  DESTINATION share/akantu${AKANTU_VERSION})
+include(CMakePackageConfigHelpers)
 
-# include(CMakePackageConfigHelpers)
+configure_package_config_file(cmake/AkantuConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION share/cmake/${PROJECT_NAME}
+  )
 
-# configure_package_config_file(cmake/AkantuConfig.cmake.in ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
-#   INSTALL_DESTINATION "${CONF_REL_INCLUDE_DIR}lib/akantu/cmake"
-#   PATH_VARS "${CONF_REL_INCLUDE_DIR}/include" )
-
-# write_basic_package_version_file(${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake
-#   VERSION "${AKANTU_VERSION}"
-#   COMPATIBILITY SameMajorVersion)
-
+write_basic_package_version_file(${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake
+  VERSION ${AKANTU_VERSION}
+  COMPATIBILITY SameMajorVersion)
 
 # Install the export set for use with the install-tree
-install(FILES ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
+install(FILES
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindScaLAPACK.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindMETIS.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindParMETIS.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindPETSc.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindMumps.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindScotch.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindGMSH.cmake
+  ${PROJECT_BINARY_DIR}/AkantuConfig.cmake
   ${PROJECT_BINARY_DIR}/AkantuConfigInclude.cmake
   ${PROJECT_BINARY_DIR}/AkantuConfigVersion.cmake
   ${PROJECT_SOURCE_DIR}/cmake/AkantuUse.cmake
   ${PROJECT_SOURCE_DIR}/cmake/AkantuSimulationMacros.cmake
-  DESTINATION  lib/akantu
-  COMPONENT dev)
-
-install(FILES
-  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindIOHelper.cmake
-  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindMumps.cmake
-  ${PROJECT_SOURCE_DIR}/cmake/Modules/FindScotch.cmake
   ${PROJECT_SOURCE_DIR}/cmake/Modules/FindGMSH.cmake
-  DESTINATION  lib/akantu/cmake
+  DESTINATION share/cmake/${PROJECT_NAME}
   COMPONENT dev)
-

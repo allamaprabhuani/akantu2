@@ -4,23 +4,23 @@
  * @author Daniel Pino Muñoz <daniel.pinomunoz@epfl.ch>
  *
  * @date creation: Tue Sep 16 2014
- * @date last modification: Tue Aug 18 2015
+ * @date last modification: Wed Nov 08 2017
  *
  * @brief  2D specialization of the akantu::PlaneStressToolbox class
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -33,7 +33,7 @@
 #ifndef __AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH__
 #define __AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class ParentMaterial>
@@ -46,7 +46,7 @@ public:
   PlaneStressToolbox(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
                      FEEngine & fe_engine, const ID & id = "");
 
-  virtual ~PlaneStressToolbox() {}
+  ~PlaneStressToolbox() override = default;
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ThirdAxisDeformation,
                                          third_axis_deformation, Real);
@@ -62,7 +62,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  virtual void initMaterial() {
+  void initMaterial() override {
 
     ParentMaterial::initMaterial();
     if (this->plane_stress && this->initialize_third_axis_deformation) {
@@ -72,20 +72,17 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  virtual void computeStress(ElementType el_type, GhostType ghost_type) {
+  void computeStress(ElementType el_type, GhostType ghost_type) override {
     ParentMaterial::computeStress(el_type, ghost_type);
     if (this->plane_stress)
       computeThirdAxisDeformation(el_type, ghost_type);
   }
 
   /* ------------------------------------------------------------------------ */
-  virtual void computeThirdAxisDeformation(__attribute__((unused))
-                                           ElementType el_type,
-                                           __attribute__((unused))
-                                           GhostType ghost_type) {}
+  virtual void computeThirdAxisDeformation(ElementType, GhostType) {}
 
   /// Computation of Cauchy stress tensor in the case of finite deformation
-  virtual void computeAllCauchyStresses(GhostType ghost_type = _not_ghost) {
+  void computeAllCauchyStresses(GhostType ghost_type = _not_ghost) override {
     AKANTU_DEBUG_IN();
 
     if (this->plane_stress) {
@@ -96,10 +93,9 @@ public:
 
       // resizeInternalArray(stress);
 
-      Mesh::type_iterator it =
-          this->model->getFEEngine().getMesh().firstType(2, ghost_type);
+      Mesh::type_iterator it = this->fem.getMesh().firstType(2, ghost_type);
       Mesh::type_iterator last_type =
-          this->model->getFEEngine().getMesh().lastType(2, ghost_type);
+          this->fem.getMesh().lastType(2, ghost_type);
 
       for (; it != last_type; ++it)
         this->computeCauchyStressPlaneStress(*it, ghost_type);
@@ -135,7 +131,7 @@ protected:
 template <class ParentMaterial>
 inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
     SolidMechanicsModel & model, const ID & id)
-    : Material(model, id), ParentMaterial(model, id),
+    : ParentMaterial(model, id),
       third_axis_deformation("third_axis_deformation", *this),
       plane_stress(false), initialize_third_axis_deformation(false) {
 
@@ -148,8 +144,7 @@ template <class ParentMaterial>
 inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
     SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
     FEEngine & fe_engine, const ID & id)
-    : Material(model, dim, mesh, fe_engine, id),
-      ParentMaterial(model, dim, mesh, fe_engine, id),
+    : ParentMaterial(model, dim, mesh, fe_engine, id),
       third_axis_deformation("third_axis_deformation", *this, dim, fe_engine,
                              this->element_filter),
       plane_stress(false), initialize_third_axis_deformation(false) {
@@ -169,6 +164,6 @@ inline PlaneStressToolbox<2, Material>::PlaneStressToolbox(
                       "Is plane stress");
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH__ */

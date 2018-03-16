@@ -3,24 +3,24 @@
  *
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
- * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Jan 22 2016
+ * @date creation: Fri Jun 18 2010
+ * @date last modification: Fri Feb 23 2018
  *
  * @brief  friction for node to rigid flat interface
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -37,22 +37,20 @@
 // simtools
 #include "ntn_friclaw_coulomb.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <template<class> class FrictionLaw = NTNFricLawCoulomb, 
-	  class Regularisation = NTNFricRegNoRegularisation>
+template <template <class> class FrictionLaw = NTNFricLawCoulomb,
+          class Regularisation = NTNFricRegNoRegularisation>
 class NTRFFriction : public FrictionLaw<Regularisation> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  NTRFFriction(NTNBaseContact * contact,
-	       const FrictionID & id = "friction",
-	       const MemoryID & memory_id = 0);
-  virtual ~NTRFFriction() {};
-  
+  NTRFFriction(NTNBaseContact * contact, const FrictionID & id = "friction",
+               const MemoryID & memory_id = 0);
+  virtual ~NTRFFriction(){};
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -64,17 +62,14 @@ public:
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-
 };
 
 /* -------------------------------------------------------------------------- */
@@ -82,19 +77,16 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 /// standard output stream operato
-template <template<class> class FrictionLaw, class Regularisation>
-inline std::ostream & operator <<(std::ostream & stream, 
-				  const NTRFFriction<FrictionLaw, 
-						     Regularisation> & _this)
-{
+template <template <class> class FrictionLaw, class Regularisation>
+inline std::ostream &
+operator<<(std::ostream & stream,
+           const NTRFFriction<FrictionLaw, Regularisation> & _this) {
   _this.printself(stream);
   return stream;
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #include "ntrf_friction_tmpl.hh"
 
 #endif /* __AST_NTRF_FRICTION_HH__ */
-
-

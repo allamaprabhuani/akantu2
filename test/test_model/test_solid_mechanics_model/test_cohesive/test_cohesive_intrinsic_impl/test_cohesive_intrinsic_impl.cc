@@ -5,24 +5,23 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Mon Jul 09 2012
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Fri Jul 07 2017
  *
  * @brief  Test for cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -31,18 +30,17 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <limits>
+#include "non_linear_solver.hh"
+#include "solid_mechanics_model_cohesive.hh"
+/* -------------------------------------------------------------------------- */
 #include <fstream>
 #include <iostream>
-
-/* -------------------------------------------------------------------------- */
-#include "solid_mechanics_model_cohesive.hh"
-#include "material_cohesive.hh"
+#include <limits>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
   initialize("material.dat", argc, argv);
 
   debug::setDebugLevel(dblError);
@@ -73,21 +71,23 @@ int main(int argc, char *argv[]) {
 
   for (UInt n = 0; n < nb_nodes; ++n) {
 
-    if (std::abs(position(n,1))< Math::getTolerance()){
+    if (std::abs(position(n, 1)) < Math::getTolerance()) {
       boundary(n, 1) = true;
-      displacement(n,1) = 0.0;
+      displacement(n, 1) = 0.0;
     }
 
-    if ((std::abs(position(n,0))< Math::getTolerance())&& (position(n,1)< 1.1)){
+    if ((std::abs(position(n, 0)) < Math::getTolerance()) &&
+        (position(n, 1) < 1.1)) {
       boundary(n, 0) = true;
-      displacement(n,0) = 0.0;
+      displacement(n, 0) = 0.0;
     }
-    if ((std::abs(position(n,0)-1)< Math::getTolerance())&&(std::abs(position(n,1)-1)< Math::getTolerance())){
+    if ((std::abs(position(n, 0) - 1) < Math::getTolerance()) &&
+        (std::abs(position(n, 1) - 1) < Math::getTolerance())) {
       boundary(n, 0) = true;
-      displacement(n,0) = 0.0;
+      displacement(n, 0) = 0.0;
     }
 
-    if (std::abs(position(n,1)-2)< Math::getTolerance()){
+    if (std::abs(position(n, 1) - 2) < Math::getTolerance()) {
       boundary(n, 1) = true;
     }
   }
@@ -95,58 +95,66 @@ int main(int argc, char *argv[]) {
   model.setBaseName("intrinsic_impl");
   model.addDumpField("displacement");
   // model.addDumpField("mass"        );
-  model.addDumpField("velocity"    );
+  model.addDumpField("velocity");
   model.addDumpField("acceleration");
-  model.addDumpField("force"       );
-  model.addDumpField("residual"    );
+  model.addDumpField("force");
+  model.addDumpField("residual");
   //  model.addDumpField("damage"      );
-  model.addDumpField("stress"      );
-  model.addDumpField("strain"      );
+  model.addDumpField("stress");
+  model.addDumpField("strain");
   model.dump();
 
-  const MaterialCohesive & mat_coh = dynamic_cast< const MaterialCohesive &> (model.getMaterial(1));
+  const MaterialCohesive & mat_coh =
+      dynamic_cast<const MaterialCohesive &>(model.getMaterial(1));
 
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
 
   const Array<Real> & opening = mat_coh.getOpening(type_cohesive);
-  //const Array<Real> & traction = mat_coh.getTraction(type_cohesive);
+  // const Array<Real> & traction = mat_coh.getTraction(type_cohesive);
 
-  model.updateResidual();
-  const Array<Real> & residual = model.getResidual();
+  model.assembleInternalForces();
+  const Array<Real> & residual = model.getInternalForce();
 
   UInt max_step = 1000;
-  Real increment =  3./max_step;
+  Real increment = 3. / max_step;
   Real error_tol = 10e-6;
 
   std::ofstream fout;
   fout.open("output");
 
+  auto & solver = model.getNonLinearSolver();
+  solver.set("max_iterations", 100);
+  solver.set("threshold", 1e-5);
+  solver.set("convergence_type", _scc_residual);
+
   /// Main loop
-  for ( UInt nstep = 0; nstep < max_step; ++nstep){
+  for (UInt nstep = 0; nstep < max_step; ++nstep) {
     for (UInt n = 0; n < nb_nodes; ++n) {
-      if (std::abs(position(n,1)-2)< Math::getTolerance()){
-	displacement(n,1) += increment;
+      if (std::abs(position(n, 1) - 2) < Math::getTolerance()) {
+        displacement(n, 1) += increment;
       }
     }
 
-    __attribute__ ((unused)) bool converged = model.solveStep<_scm_newton_raphson_tangent, _scc_residual>(1e-5, 100);
-    AKANTU_DEBUG_ASSERT(converged, "Did not converge");
+    model.solveStep();
 
     //    model.dump();
 
     Real resid = 0;
     for (UInt n = 0; n < nb_nodes; ++n) {
-      if (std::abs(position(n, 1) - 2.)/2. < Math::getTolerance()){
-	resid += residual(n, 1);
+      if (std::abs(position(n, 1) - 2.) / 2. < Math::getTolerance()) {
+        resid += residual(n, 1);
       }
     }
 
-    Real analytical = exp(1) * std::abs(opening(0, 1)) * exp (-std::abs(opening(0, 1))/0.5)/0.5;
+    Real analytical = exp(1) * std::abs(opening(0, 1)) *
+                      exp(-std::abs(opening(0, 1)) / 0.5) / 0.5;
 
-    //the residual force is comparing with the theoretical value of the cohesive law
-    error_tol  = std::abs((std::abs(resid) - analytical)/analytical);
+    // the residual force is comparing with the theoretical value of the
+    // cohesive law
+    error_tol = std::abs((std::abs(resid) - analytical) / analytical);
 
-    fout << nstep << " " << -resid << " " << analytical << " " << error_tol << std::endl;
+    fout << nstep << " " << -resid << " " << analytical << " " << error_tol
+         << std::endl;
 
     if (error_tol > 1e-3) {
       std::cout << "Relative error: " << error_tol << std::endl;

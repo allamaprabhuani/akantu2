@@ -30,16 +30,16 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 package_declare(PETSc EXTERNAL
   DESCRIPTION "Add PETSc support in akantu"
   EXTRA_PACKAGE_OPTIONS ARGS COMPONENTS C
   DEPENDS parallel)
 
-
 package_declare_sources(petsc
-  solver/petsc_matrix.hh
-  solver/petsc_matrix.cc
+  model/dof_manager_petsc.hh
+  model/dof_manager_petsc.cc
+  solver/sparse_matrix_petsc.hh
+  solver/sparse_matrix_petsc.cc
   solver/solver_petsc.hh
   solver/solver_petsc.cc
   solver/petsc_wrapper.hh

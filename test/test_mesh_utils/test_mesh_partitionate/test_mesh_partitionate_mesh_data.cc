@@ -4,43 +4,42 @@
  * @author Dana Christen <dana.christen@epfl.ch>
  *
  * @date creation: Wed May 08 2013
- * @date last modification: Mon May 18 2015
+ * @date last modification: Tue Nov 07 2017
  *
  * @brief  test of manual partitioner
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-/* -------------------------------------------------------------------------- */
-#include <cmath>
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "mesh.hh"
 #include "mesh_partition_mesh_data.hh"
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-#include "dumper_paraview.hh"
 #include "dumper_elemental_field.hh"
+#include "dumper_paraview.hh"
 #endif // AKANTU_USE_IOHELPER
+/* -------------------------------------------------------------------------- */
 
 using namespace akantu;
+
 /* -------------------------------------------------------------------------- */
 /* Main                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -65,7 +64,7 @@ int main(int argc, char * argv[]) {
     Array<UInt> & type_partition_reference = partition(*tit, gt);
     for (UInt i(0); i < nb_element; ++i) {
       Vector<Real> barycenter(dim);
-      Element element(*tit, i, gt);
+      Element element{*tit, i, gt};
       mesh.getBarycenter(element, barycenter);
 
       Real real_proc = barycenter[0] * nb_partitions;
@@ -94,12 +93,12 @@ int main(int argc, char * argv[]) {
     const Array<UInt> & type_partition_reference = partition(*tit, gt);
     const Array<UInt> & type_partition = partitioner->getPartitions()(*tit, gt);
     for (UInt i(0); i < nb_element; ++i) {
-      AKANTU_DEBUG_ASSERT(type_partition(i) == type_partition_reference(i),
-                          "Incorrect partitioning");
+      if (not (type_partition(i) == type_partition_reference(i))) {
+        std::cout << "Incorrect partitioning" << std::endl;
+        return 1;
+      }
     }
   }
-
-//#define DEBUG_TEST
 
 #ifdef DEBUG_TEST
   DumperParaview dumper("test-mesh-data-partition");

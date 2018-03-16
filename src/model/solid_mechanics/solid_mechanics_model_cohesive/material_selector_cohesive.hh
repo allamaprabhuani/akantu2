@@ -6,23 +6,23 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Fri Dec 11 2015
- * @date last modification: Mon Dec 14 2015
+ * @date last modification: Mon Dec 18 2017
  *
  * @brief  Material selectors for cohesive elements
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -33,12 +33,14 @@
 /* -------------------------------------------------------------------------- */
 #include "material_selector.hh"
 /* -------------------------------------------------------------------------- */
+#include <map>
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
-  class SolidMechanicsModelCohesive;
+class SolidMechanicsModelCohesive;
 }
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 #ifndef __AKANTU_MATERIAL_SELECTOR_COHESIVE_HH__
 #define __AKANTU_MATERIAL_SELECTOR_COHESIVE_HH__
@@ -48,10 +50,10 @@ __BEGIN_AKANTU__
  * class that assigns the first cohesive material by default to the
  * cohesive elements
  */
-class DefaultMaterialCohesiveSelector : public DefaultMaterialSelector {
+class DefaultMaterialCohesiveSelector : public MaterialSelector {
 public:
   DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
-  virtual UInt operator()(const Element & element);
+  UInt operator()(const Element & element) override;
 
 private:
   const ElementTypeMapArray<UInt> & facet_material;
@@ -60,17 +62,38 @@ private:
 
 /* -------------------------------------------------------------------------- */
 /// To be used with intrinsic elements inserted along mesh physical surfaces
-class MeshDataMaterialCohesiveSelector
-    : public MeshDataMaterialSelector<std::string> {
+class MeshDataMaterialCohesiveSelector : public MaterialSelector {
 public:
   MeshDataMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
-  virtual UInt operator()(const Element & element);
+  UInt operator()(const Element & element) override;
+
 protected:
-  const Mesh &mesh_facets;
-  const ElementTypeMapArray<UInt> & material_index;
+  const SolidMechanicsModelCohesive & model;
+  const Mesh & mesh_facets;
+  const ElementTypeMapArray<std::string> & material_index;
   bool third_dimension;
+};
+
+/// bulk1, bulk2 -> cohesive
+using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
+
+/* -------------------------------------------------------------------------- */
+class MaterialCohesiveRulesSelector : public MaterialSelector {
+public:
+  MaterialCohesiveRulesSelector(const SolidMechanicsModelCohesive & model,
+                                const MaterialCohesiveRules & rules,
+                                ID mesh_data_id = "physical_names");
+  UInt operator()(const Element & element);
+
+private:
+  const SolidMechanicsModelCohesive & model;
+  ID mesh_data_id;
+  const Mesh & mesh;
+  const Mesh & mesh_facets;
+  UInt spatial_dimension;
+  MaterialCohesiveRules rules;
 };
 
 #endif /* __AKANTU_MATERIAL_SELECTOR_COHESIVE_HH__ */
 
-__END_AKANTU__
+} // akantu

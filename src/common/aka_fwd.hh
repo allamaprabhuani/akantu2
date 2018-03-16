@@ -5,7 +5,7 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Apr 13 2012
- * @date last modification: Tue Aug 18 2015
+ * @date last modification: Wed Oct 25 2017
  *
  * @brief  File containing forward declarations in akantu.
  * This file helps if circular #include would be needed because two classes
@@ -13,18 +13,17 @@
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -36,36 +35,38 @@
 #ifndef __AKANTU_FWD_HH__
 #define __AKANTU_FWD_HH__
 
-
 namespace cppargparse {
-  class ArgumentParser;
+class ArgumentParser;
 }
 
 namespace akantu {
-  // forward declaration
-  template <int dim, class model_type>
-  struct ContactData;
+// forward declaration
+template <int dim, class model_type> struct ContactData;
 
-  template<typename T> class Matrix;
-  template<typename T> class Vector;
-  template<typename T> class Tensor3;
+template <typename T> class Matrix;
+template <typename T> class Vector;
+template <typename T> class Tensor3;
 
-  template<typename T, bool is_scal = is_scalar<T>::value > class Array;
+template <typename T, bool is_scal = is_scalar<T>::value> class Array;
+template <typename T, typename SupportType = ElementType>
+class ElementTypeMapArray;
 
-  template <class T> class SpatialGrid;
+template <class T> class SpatialGrid;
 
-  // Model element
-  template <class ModelPolicy> class ModelElement;
+// Model element
+template <class ModelPolicy> class ModelElement;
 
-  extern const Array<UInt> empty_filter;
+extern const Array<UInt> empty_filter;
 
-  class Parser;
-  class ParserSection;
+class Parser;
+class ParserSection;
 
-  extern Parser static_parser;
+extern Parser static_parser;
 
-  extern cppargparse::ArgumentParser static_argparser;
-}
+extern cppargparse::ArgumentParser static_argparser;
 
+class Mesh;
+class SparseMatrix;
+} // namespace akantu
 
 #endif /* __AKANTU_FWD_HH__ */

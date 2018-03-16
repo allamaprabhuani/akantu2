@@ -10,24 +10,23 @@
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *
  * @date creation: Wed Aug 04 2010
- * @date last modification: Fri May 15 2015
+ * @date last modification: Sun Aug 13 2017
  *
  * @brief  Implementation of the math toolbox
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -41,35 +40,31 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-void Math::matrix_vector(UInt m, UInt n,
-			 const Array<Real> & A,
-			 const Array<Real> & x,
-			 Array<Real> & y,
-			 Real alpha) {
+void Math::matrix_vector(UInt m, UInt n, const Array<Real> & A,
+                         const Array<Real> & x, Array<Real> & y, Real alpha) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(A.getSize() == x.getSize(),
-		      "The vector A(" << A.getID()
-		      << ") and the vector x(" << x.getID()
-		      << ") must have the same size");
+  AKANTU_DEBUG_ASSERT(A.size() == x.size(),
+                      "The vector A(" << A.getID() << ") and the vector x("
+                                      << x.getID()
+                                      << ") must have the same size");
 
   AKANTU_DEBUG_ASSERT(A.getNbComponent() == m * n,
-		      "The vector A(" << A.getID()
-		      << ") has the good number of component.");
+                      "The vector A(" << A.getID()
+                                      << ") has the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(x.getNbComponent() == n,
-		      "The vector x(" << x.getID()
-		      << ") do not the good number of component.");
+  AKANTU_DEBUG_ASSERT(
+      x.getNbComponent() == n,
+      "The vector x(" << x.getID() << ") do not the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(y.getNbComponent() == n,
-		      "The vector y(" << y.getID()
-		      << ") do not the good number of component.");
+  AKANTU_DEBUG_ASSERT(
+      y.getNbComponent() == n,
+      "The vector y(" << y.getID() << ") do not the good number of component.");
 
-
-  UInt nb_element = A.getSize();
+  UInt nb_element = A.size();
   UInt offset_A = A.getNbComponent();
   UInt offset_x = x.getNbComponent();
 
@@ -91,31 +86,28 @@ void Math::matrix_vector(UInt m, UInt n,
 }
 
 /* -------------------------------------------------------------------------- */
-void Math::matrix_matrix(UInt m, UInt n, UInt k,
-			 const Array<Real> & A,
-			 const Array<Real> & B,
-			 Array<Real> & C,
-			 Real alpha) {
+void Math::matrix_matrix(UInt m, UInt n, UInt k, const Array<Real> & A,
+                         const Array<Real> & B, Array<Real> & C, Real alpha) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(A.getSize() == B.getSize(),
-		      "The vector A(" << A.getID()
-		      << ") and the vector B(" << B.getID()
-		      << ") must have the same size");
+  AKANTU_DEBUG_ASSERT(A.size() == B.size(),
+                      "The vector A(" << A.getID() << ") and the vector B("
+                                      << B.getID()
+                                      << ") must have the same size");
 
   AKANTU_DEBUG_ASSERT(A.getNbComponent() == m * k,
-		      "The vector A(" << A.getID()
-		      << ") has the good number of component.");
+                      "The vector A(" << A.getID()
+                                      << ") has the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(B.getNbComponent() == k * n ,
-		      "The vector B(" << B.getID()
-		      << ") do not the good number of component.");
+  AKANTU_DEBUG_ASSERT(
+      B.getNbComponent() == k * n,
+      "The vector B(" << B.getID() << ") do not the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(C.getNbComponent() == m * n,
-		      "The vector C(" << C.getID()
-		      << ") do not the good number of component.");
+  AKANTU_DEBUG_ASSERT(
+      C.getNbComponent() == m * n,
+      "The vector C(" << C.getID() << ") do not the good number of component.");
 
-  UInt nb_element = A.getSize();
+  UInt nb_element = A.size();
   UInt offset_A = A.getNbComponent();
   UInt offset_B = B.getNbComponent();
   UInt offset_C = C.getNbComponent();
@@ -137,33 +129,29 @@ void Math::matrix_matrix(UInt m, UInt n, UInt k,
   AKANTU_DEBUG_OUT();
 }
 
-
 /* -------------------------------------------------------------------------- */
-void Math::matrix_matrixt(UInt m, UInt n, UInt k,
-			  const Array<Real> & A,
-			  const Array<Real> & B,
-			  Array<Real> & C,
-			  Real alpha) {
+void Math::matrix_matrixt(UInt m, UInt n, UInt k, const Array<Real> & A,
+                          const Array<Real> & B, Array<Real> & C, Real alpha) {
   AKANTU_DEBUG_IN();
 
-  AKANTU_DEBUG_ASSERT(A.getSize() == B.getSize(),
-		      "The vector A(" << A.getID()
-		      << ") and the vector B(" << B.getID()
-		      << ") must have the same size");
+  AKANTU_DEBUG_ASSERT(A.size() == B.size(),
+                      "The vector A(" << A.getID() << ") and the vector B("
+                                      << B.getID()
+                                      << ") must have the same size");
 
   AKANTU_DEBUG_ASSERT(A.getNbComponent() == m * k,
-		      "The vector A(" << A.getID()
-		      << ") has the good number of component.");
+                      "The vector A(" << A.getID()
+                                      << ") has the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(B.getNbComponent() == k * n ,
-		      "The vector B(" << B.getID()
-		      << ") do not the good number of component.");
+  AKANTU_DEBUG_ASSERT(
+      B.getNbComponent() == k * n,
+      "The vector B(" << B.getID() << ") do not the good number of component.");
 
-  AKANTU_DEBUG_ASSERT(C.getNbComponent() == m * n,
-		      "The vector C(" << C.getID()
-		      << ") do not the good number of component.");
+  AKANTU_DEBUG_ASSERT(
+      C.getNbComponent() == m * n,
+      "The vector C(" << C.getID() << ") do not the good number of component.");
 
-  UInt nb_element = A.getSize();
+  UInt nb_element = A.size();
   UInt offset_A = A.getNbComponent();
   UInt offset_B = B.getNbComponent();
   UInt offset_C = C.getNbComponent();
@@ -186,42 +174,44 @@ void Math::matrix_matrixt(UInt m, UInt n, UInt k,
 }
 
 /* -------------------------------------------------------------------------- */
-void Math::compute_tangents(const Array<Real> & normals, Array<Real> & tangents) {
+void Math::compute_tangents(const Array<Real> & normals,
+                            Array<Real> & tangents) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension  = normals.getNbComponent();
+  UInt spatial_dimension = normals.getNbComponent();
   UInt tangent_components = spatial_dimension * (spatial_dimension - 1);
 
-  AKANTU_DEBUG_ASSERT(tangent_components == tangents.getNbComponent(),
-		      "Cannot compute the tangents, the storage array for tangents"
-		      << " does not have the good amount of components.");
+  AKANTU_DEBUG_ASSERT(
+      tangent_components == tangents.getNbComponent(),
+      "Cannot compute the tangents, the storage array for tangents"
+          << " does not have the good amount of components.");
 
-  UInt nb_normals = normals.getSize();
-  tangents.resize(nb_normals);
+  UInt nb_normals = normals.size();
+  tangents.resize(nb_normals, 0.);
 
-  Real * normal_it  = normals .storage();
+  Real * normal_it = normals.storage();
   Real * tangent_it = tangents.storage();
 
   /// compute first tangent
   for (UInt q = 0; q < nb_normals; ++q) {
     /// if normal is orthogonal to xy plane, arbitrarly define tangent
-    if ( Math::are_float_equal(Math::norm2(normal_it), 0) )
+    if (Math::are_float_equal(Math::norm2(normal_it), 0))
       tangent_it[0] = 1;
     else
       Math::normal2(normal_it, tangent_it);
 
-    normal_it  += spatial_dimension;
+    normal_it += spatial_dimension;
     tangent_it += tangent_components;
   }
 
   /// compute second tangent (3D case)
   if (spatial_dimension == 3) {
-    normal_it  = normals .storage();
+    normal_it = normals.storage();
     tangent_it = tangents.storage();
 
     for (UInt q = 0; q < nb_normals; ++q) {
       Math::normal3(normal_it, tangent_it, tangent_it + spatial_dimension);
-      normal_it  += spatial_dimension;
+      normal_it += spatial_dimension;
       tangent_it += tangent_components;
     }
   }
@@ -229,6 +219,32 @@ void Math::compute_tangents(const Array<Real> & normals, Array<Real> & tangents)
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+Real Math::reduce(Array<Real> & array) {
+  UInt nb_values = array.size();
+  if (nb_values == 0)
+    return 0.;
 
+  UInt nb_values_to_sum = nb_values >> 1;
 
-__END_AKANTU__
+  std::sort(array.begin(), array.end());
+
+  // as long as the half is not empty
+  while (nb_values_to_sum) {
+    UInt remaining = (nb_values - 2 * nb_values_to_sum);
+    if (remaining)
+      array(nb_values - 2) += array(nb_values - 1);
+
+    // sum to consecutive values and store the sum in the first half
+    for (UInt i = 0; i < nb_values_to_sum; ++i) {
+      array(i) = array(2 * i) + array(2 * i + 1);
+    }
+
+    nb_values = nb_values_to_sum;
+    nb_values_to_sum >>= 1;
+  }
+
+  return array(0);
+}
+
+} // akantu

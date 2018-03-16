@@ -5,23 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri May 03 2013
- * @date last modification: Thu Nov 05 2015
+ * @date last modification: Mon Dec 18 2017
  *
  * @brief  Stores generic data loaded from the mesh file
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -35,25 +35,24 @@
 #define __AKANTU_MESH_DATA_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "element_type_map.hh"
 #include "aka_memory.hh"
+#include "element_type_map.hh"
 #include <map>
 #include <string>
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
-#define AKANTU_MESH_DATA_TYPES     \
-          ((_tc_int,  Int))        \
-          ((_tc_uint, UInt))       \
-          ((_tc_real, Real))       \
-          ((_tc_element, Element)) \
-          ((_tc_std_string, std::string))         \
-          ((_tc_std_vector_element, std::vector<Element>)) \
+#define AKANTU_MESH_DATA_TYPES                                                 \
+  ((_tc_int, Int))((_tc_uint, UInt))((_tc_real, Real))(                        \
+      (_tc_element, Element))((_tc_std_string, std::string))(                  \
+      (_tc_std_vector_element, std::vector<Element>))
 
-#define AKANTU_MESH_DATA_TUPLE_FIRST_ELEM(s, data, elem) BOOST_PP_TUPLE_ELEM(2, 0, elem)
-enum MeshDataTypeCode {
-  BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_TRANSFORM(AKANTU_MESH_DATA_TUPLE_FIRST_ELEM, , AKANTU_MESH_DATA_TYPES)),
+#define AKANTU_MESH_DATA_TUPLE_FIRST_ELEM(s, data, elem)                       \
+  BOOST_PP_TUPLE_ELEM(2, 0, elem)
+enum MeshDataTypeCode : int {
+  BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_TRANSFORM(AKANTU_MESH_DATA_TUPLE_FIRST_ELEM, ,
+                                           AKANTU_MESH_DATA_TYPES)),
   _tc_unknown
 };
 
@@ -63,67 +62,78 @@ class MeshData : public Memory {
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
 private:
-  typedef MeshDataTypeCode TypeCode;
-  typedef std::map<std::string, ElementTypeMapBase *> ElementalDataMap;
-  typedef std::vector<std::string> StringVector;
-  typedef std::map<std::string, TypeCode> TypeCodeMap;
+  using TypeCode = MeshDataTypeCode;
+  using ElementalDataMap = std::map<std::string, ElementTypeMapBase *>;
+  using StringVector = std::vector<std::string>;
+  using TypeCodeMap = std::map<std::string, TypeCode>;
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-   MeshData(const ID & id = "mesh_data", const ID & parent_id = "", const MemoryID & memory_id = 0);
-  ~MeshData();
+  MeshData(const ID & id = "mesh_data", const ID & parent_id = "",
+           const MemoryID & memory_id = 0);
+  ~MeshData() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods and accessors                                                    */
   /* ------------------------------------------------------------------------ */
 public:
-  ///  Register new elemental data (and alloc data) with check if the name is new
-  template<typename T>
-  void registerElementalData(const std::string & name);
-  inline void registerElementalData(const std::string & name, TypeCode type);
+  ///  Register new elemental data (and alloc data) with check if the name is
+  ///  new
+  template <typename T> void registerElementalData(const ID & name);
+  inline void registerElementalData(const ID & name, TypeCode type);
+
+  /// tells if the given array exists
+  template <typename T>
+  bool hasDataArray(const ID & data_name, const ElementType & el_type,
+                    const GhostType & ghost_type = _not_ghost) const;
+
+  /// tells if the given data exists
+  bool hasData(const ID & data_name) const;
 
   /// Get an existing elemental data array
-  template<typename T>
-  const Array<T> & getElementalDataArray(const std::string & data_name,
-                                         const ElementType & el_type,
-                                         const GhostType & ghost_type = _not_ghost) const;
-  template<typename T>
-  Array<T> & getElementalDataArray(const std::string & data_name,
+  template <typename T>
+  const Array<T> &
+  getElementalDataArray(const ID & data_name, const ElementType & el_type,
+                        const GhostType & ghost_type = _not_ghost) const;
+  template <typename T>
+  Array<T> & getElementalDataArray(const ID & data_name,
                                    const ElementType & el_type,
                                    const GhostType & ghost_type = _not_ghost);
 
   /// Get an elemental data array, if it does not exist: allocate it
-  template<typename T>
-  Array<T> & getElementalDataArrayAlloc(const std::string & data_name,
-                                        const ElementType & el_type,
-                                        const GhostType & ghost_type = _not_ghost,
-                                        UInt nb_component = 1);
+  template <typename T>
+  Array<T> &
+  getElementalDataArrayAlloc(const ID & data_name, const ElementType & el_type,
+                             const GhostType & ghost_type = _not_ghost,
+                             UInt nb_component = 1);
 
   /// get the names of the data stored in elemental_data
-  inline void getTagNames(StringVector & tags, const ElementType & type, const GhostType & ghost_type = _not_ghost) const;
+  inline void getTagNames(StringVector & tags, const ElementType & type,
+                          const GhostType & ghost_type = _not_ghost) const;
 
   /// get the type of the data stored in elemental_data
-  template<typename T>
-  TypeCode getTypeCode() const;
-  inline TypeCode getTypeCode(const std::string name) const;
+  template <typename T> TypeCode getTypeCode() const;
+  inline TypeCode getTypeCode(const ID & name) const;
 
-  template<typename T>
-  inline UInt getNbComponentTemplated(const std::string, const ElementType & el_type, const GhostType & ghost_type) const;
-  inline UInt getNbComponent(const std::string name, const ElementType & el_type, const GhostType & ghost_type = _not_ghost) const;
+  template <typename T>
+  inline UInt getNbComponentTemplated(const ID & name,
+                                      const ElementType & el_type,
+                                      const GhostType & ghost_type) const;
+  inline UInt getNbComponent(const ID & name, const ElementType & el_type,
+                             const GhostType & ghost_type = _not_ghost) const;
 
   /// Get an existing elemental data
-  template<typename T>
-  const ElementTypeMapArray<T> & getElementalData(const std::string & name) const;
-  template<typename T>
-  ElementTypeMapArray<T> & getElementalData(const std::string & name);
-
+  template <typename T>
+  const ElementTypeMapArray<T> & getElementalData(const ID & name) const;
+  template <typename T>
+  ElementTypeMapArray<T> & getElementalData(const ID & name);
 
 private:
   ///  Register new elemental data (add alloc data)
-  template<typename T>
-  ElementTypeMapArray<T> * allocElementalData(const std::string & name);
+  template <typename T>
+  ElementTypeMapArray<T> * allocElementalData(const ID & name);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -135,11 +145,9 @@ private:
   TypeCodeMap typecode_map;
 };
 
+} // akantu
+
 #include "mesh_data_tmpl.hh"
 #undef AKANTU_MESH_DATA_TUPLE_FIRST_ELEM
 
-__END_AKANTU__
-
 #endif /* __AKANTU_MESH_DATA_HH__ */
-
-

@@ -4,23 +4,23 @@
  * @author Sébastien Hartmann <sebastien.hartmann@epfl.ch>
  *
  * @date creation: Mon Jul 07 2014
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Wed Feb 03 2016
  *
  * @brief  Test for _bernouilli_beam in dynamic
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -29,16 +29,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <limits>
 #include <fstream>
+#include <limits>
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "material.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_io_msh_struct.hh"
 #include "structural_mechanics_model.hh"
-#include "material.hh"
 
 #include <iostream>
 using namespace akantu;
@@ -187,7 +187,8 @@ int main(int argc, char * argv[]) {
 
     pos << s << "," << time << "," << displacement(node_to_print, 1) << ","
         << analytical_solution(s * time_step, total_length, mat1.rho, mat1.E,
-                               mat1.A, mat1.I, F) << std::endl;
+                               mat1.A, mat1.I, F)
+        << std::endl;
     //    pos << s << "," << time << "," << displacement(node_to_print, 1) <<
     //    "," << analytical_solution(s*time_step) << std::endl;
 

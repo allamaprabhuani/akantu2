@@ -5,23 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Tue Sep 02 2014
- * @date last modification: Tue Jan 19 2016
+ * @date last modification: Tue Feb 20 2018
  *
  * @brief  Common interface for fields
  *
  * @section LICENSE
  *
- * Copyright  (©)  2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de Lausanne)
+ * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -35,7 +35,7 @@
 #include "dumper_iohelper.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 __BEGIN_AKANTU_DUMPER__
 /* -------------------------------------------------------------------------- */
 class FieldComputeProxy;
@@ -50,8 +50,8 @@ class Field {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Field() : homogeneous(false) {}
-  virtual ~Field(){};
+  Field() = default;
+  virtual ~Field() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -65,18 +65,18 @@ public:
 
   /// set the number of data per item (used for elements fields at the moment)
   virtual void setNbData(__attribute__((unused)) UInt nb_data) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
+    AKANTU_TO_IMPLEMENT();
   };
 
   /// set the number of data per elem (used for elements fields at the moment)
   virtual void setNbDataPerElem(__attribute__((unused))
                                 const ElementTypeMap<UInt> & nb_data) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
+    AKANTU_TO_IMPLEMENT();
   };
 
   /// set the number of data per elem (used for elements fields at the moment)
   virtual void setNbDataPerElem(__attribute__((unused)) UInt nb_data) {
-    AKANTU_DEBUG_TO_IMPLEMENT();
+    AKANTU_TO_IMPLEMENT();
   };
 
   /// get the number of components of the hosted field
@@ -120,7 +120,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// the flag to know if it is homogeneous
-  bool homogeneous;
+  bool homogeneous{false};
 
   /// the name of the group it was associated to
   std::string group_name;
@@ -132,6 +132,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 
 __END_AKANTU_DUMPER__
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_DUMPER_FIELD_HH__ */

@@ -5,24 +5,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Fri Dec 18 2015
+ * @date last modification: Wed Nov 08 2017
  *
  * @brief  EventHandler implementation for SolidMechanicsEvents
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -35,27 +34,27 @@
 #ifndef __AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH__
 #define __AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH__
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /// akantu::SolidMechanicsModelEvent is the base event for model
 namespace SolidMechanicsModelEvent {
-struct BeforeSolveStepEvent {
-  BeforeSolveStepEvent(AnalysisMethod & method) : method(method) {}
-  AnalysisMethod method;
-};
-struct AfterSolveStepEvent {
-  AfterSolveStepEvent(AnalysisMethod & method) : method(method) {}
-  AnalysisMethod method;
-};
-struct BeforeDumpEvent {
-  BeforeDumpEvent() {}
-};
-struct BeginningOfDamageIterationEvent {
-  BeginningOfDamageIterationEvent() {}
-};
-struct AfterDamageEvent {
-  AfterDamageEvent() {}
-};
+  struct BeforeSolveStepEvent {
+    BeforeSolveStepEvent(AnalysisMethod & method) : method(method) {}
+    AnalysisMethod method;
+  };
+  struct AfterSolveStepEvent {
+    AfterSolveStepEvent(AnalysisMethod & method) : method(method) {}
+    AnalysisMethod method;
+  };
+  struct BeforeDumpEvent {
+    BeforeDumpEvent() = default;
+  };
+  struct BeginningOfDamageIterationEvent {
+    BeginningOfDamageIterationEvent() = default;
+  };
+  struct AfterDamageEvent {
+    AfterDamageEvent() = default;
+  };
 }
 
 /// akantu::SolidMechanicsModelEvent
@@ -64,7 +63,7 @@ class SolidMechanicsModelEventHandler {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual ~SolidMechanicsModelEventHandler(){};
+  virtual ~SolidMechanicsModelEventHandler() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -122,6 +121,6 @@ public:
   virtual void onDamageUpdate() {}
 };
 
-__END_AKANTU__
+} // akantu
 
 #endif /* __AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH__ */

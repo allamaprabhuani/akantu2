@@ -4,35 +4,34 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jul 16 2010
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Wed Oct 11 2017
  *
  * @brief  Specialization of the element_class class for the type _segment_3
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
+ terms  of the  GNU Lesser  General Public  License as published by  the Free
+ Software Foundation, either version 3 of the License, or (at your option) any
+ later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- * details.
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
- * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  * @section DESCRIPTION
  *
  * @verbatim
          -1         0         1
-  	 -----x---------x---------x-----> x
-	      1         3         2
+     -----x---------x---------x-----> x
+          1         3         2
  @endverbatim
  *
  * @subsection coords Nodes coordinates
@@ -61,17 +60,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_3, _gt_segment_3, _itp_lagrange_segment_3, _ek_regular, 1,
-				     _git_segment, 2);
-
-AKANTU_DEFINE_SHAPE(_gt_segment_3, _gst_square);
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_3, _gt_segment_3,
+                                     _itp_lagrange_segment_3, _ek_regular, 1,
+                                     _git_segment, 2);
 
 /* -------------------------------------------------------------------------- */
 template <>
 template <class vector_type>
-inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const vector_type & natural_coords,
-                                                             vector_type & N) {
+inline void InterpolationElement<_itp_lagrange_segment_3>::computeShapes(
+    const vector_type & natural_coords, vector_type & N) {
 
   Real c = natural_coords(0);
   N(0) = (c - 1) * c / 2;
@@ -81,26 +78,26 @@ InterpolationElement<_itp_lagrange_segment_3>::computeShapes(const vector_type &
 /* -------------------------------------------------------------------------- */
 template <>
 template <class vector_type, class matrix_type>
-inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(const vector_type & natural_coords,
-                                                           matrix_type & dnds){
+inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
+    const vector_type & natural_coords, matrix_type & dnds) {
 
   Real c = natural_coords(0);
-  dnds(0, 0)  = c - .5;
-  dnds(0, 1)  = c + .5;
-  dnds(0, 2)  = -2 * c;
+  dnds(0, 0) = c - .5;
+  dnds(0, 1) = c + .5;
+  dnds(0, 2) = -2 * c;
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 inline void
-InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(const Matrix<Real> & dxds,
-								      Real & jac) {
+InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(
+    const Matrix<Real> & dxds, Real & jac) {
   jac = Math::norm2(dxds.storage());
 }
 
 /* -------------------------------------------------------------------------- */
-template<> inline Real
+template <>
+inline Real
 GeometricalElement<_gt_segment_3>::getInradius(const Matrix<Real> & coord) {
   Real dist1 = std::abs(coord(0, 0) - coord(0, 1));
   Real dist2 = std::abs(coord(0, 1) - coord(0, 2));

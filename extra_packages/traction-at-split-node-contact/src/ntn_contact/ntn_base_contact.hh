@@ -4,23 +4,23 @@
  * @author David Simon Kammer <david.kammer@epfl.ch>
  *
  * @date creation: Tue Dec 02 2014
- * @date last modification: Fri Jan 22 2016
+ * @date last modification: Fri Feb 23 2018
  *
  * @brief  base contact for ntn and ntrf contact
  *
  * @section LICENSE
  *
- * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
- * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -34,46 +34,42 @@
 
 /* -------------------------------------------------------------------------- */
 // akantu
+#include "aka_csr.hh"
 #include "solid_mechanics_model.hh"
-#include "filtered_synchronizer.hh"
 
 // simtools
 #include "synchronized_array.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 class NTNBaseContact;
 
 /* -------------------------------------------------------------------------- */
-class NTNContactSynchElementFilter : public SynchElementFilter {
-public:
-  // constructor
-  NTNContactSynchElementFilter(NTNBaseContact * contact);
+// class NTNContactSynchElementFilter : public SynchElementFilter {
+// public:
+//   // constructor
+//   NTNContactSynchElementFilter(NTNBaseContact * contact);
 
-  // answer to: do we need this element ?
-  virtual bool operator()(const Element & e);
+//   // answer to: do we need this element ?
+//   virtual bool operator()(const Element & e);
 
-private:
-  const NTNBaseContact * contact;
-  const ElementTypeMapArray<UInt> & connectivity;
-};
-
-
+// private:
+//   const NTNBaseContact * contact;
+//   const ElementTypeMapArray<UInt> & connectivity;
+// };
 
 /* -------------------------------------------------------------------------- */
 class NTNBaseContact : protected Memory,
-		       public DataAccessor,
-		       public Dumpable {
+                       public DataAccessor<Element>,
+                       public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  NTNBaseContact(SolidMechanicsModel & model,
-		 const ContactID & id = "contact",
-		 const MemoryID & memory_id = 0);
+  NTNBaseContact(SolidMechanicsModel & model, const ID & id = "contact",
+                 const MemoryID & memory_id = 0);
   virtual ~NTNBaseContact();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -114,28 +110,32 @@ public:
   /// compute the normal gap
   virtual void computeNormalGap(Array<Real> & gap) const = 0;
 
-  /// compute relative normal field (only value that has to be multiplied with the normal)
+  /// compute relative normal field (only value that has to be multiplied with
+  /// the normal)
   /// relative to master nodes
-  virtual void computeRelativeNormalField(const Array<Real> & field,
-					  Array<Real> & rel_normal_field) const = 0;
-  
+  virtual void
+  computeRelativeNormalField(const Array<Real> & field,
+                             Array<Real> & rel_normal_field) const = 0;
+
   /// compute relative tangential field (complet array)
   /// relative to master nodes
-  virtual void computeRelativeTangentialField(const Array<Real> & field,
-					      Array<Real> & rel_tang_field) const = 0;
-  
+  virtual void
+  computeRelativeTangentialField(const Array<Real> & field,
+                                 Array<Real> & rel_tang_field) const = 0;
+
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
 protected:
   /// updateLumpedBoundary
-  virtual void internalUpdateLumpedBoundary(const Array<UInt> & nodes,
-					    const ElementTypeMapArray<UInt> & elements,
-					    SynchronizedArray<Real> & boundary);
+  virtual void
+  internalUpdateLumpedBoundary(const Array<UInt> & nodes,
+                               const ElementTypeMapArray<UInt> & elements,
+                               SynchronizedArray<Real> & boundary);
 
   // to find the slave_elements or master_elements
-  virtual void findBoundaryElements(const Array<UInt> & interface_nodes, 
-				    ElementTypeMapArray<UInt> & elements);
+  virtual void findBoundaryElements(const Array<UInt> & interface_nodes,
+                                    ElementTypeMapArray<UInt> & elements);
 
   /// synchronize arrays
   virtual void syncArrays(SyncChoice sync_choice);
@@ -144,24 +144,23 @@ protected:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  inline virtual UInt getNbDataForElements(const Array<Element> & elements,
-                                           SynchronizationTag tag) const;
-  
-  inline virtual void packElementData(CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      SynchronizationTag tag) const;
-  
-  inline virtual void unpackElementData(CommunicationBuffer & buffer,
-                                        const Array<Element> & elements,
-                                        SynchronizationTag tag);
-  
+  inline UInt getNbData(const Array<Element> & elements,
+                        const SynchronizationTag & tag) const override;
+
+  inline void packData(CommunicationBuffer & buffer,
+                       const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
+
+  inline void unpackData(CommunicationBuffer & buffer,
+                         const Array<Element> & elements,
+                         const SynchronizationTag & tag) override;
+
   /* ------------------------------------------------------------------------ */
   /* Dumpable                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   virtual void addDumpFieldToDumper(const std::string & dumper_name,
-				    const std::string & field_id);
+                                    const std::string & field_id);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -169,16 +168,20 @@ public:
 public:
   AKANTU_GET_MACRO(Model, model, SolidMechanicsModel &)
 
-  AKANTU_GET_MACRO(Slaves,                               slaves, const SynchronizedArray<UInt> &)
-  AKANTU_GET_MACRO(Normals,                             normals, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(ContactPressure,            contact_pressure, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(LumpedBoundarySlaves, lumped_boundary_slaves, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(Impedance,                         impedance, const SynchronizedArray<Real> &)
-  AKANTU_GET_MACRO(IsInContact,                   is_in_contact, const SynchronizedArray<bool> &)
+  AKANTU_GET_MACRO(Slaves, slaves, const SynchronizedArray<UInt> &)
+  AKANTU_GET_MACRO(Normals, normals, const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(ContactPressure, contact_pressure,
+                   const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(LumpedBoundarySlaves, lumped_boundary_slaves,
+                   const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(Impedance, impedance, const SynchronizedArray<Real> &)
+  AKANTU_GET_MACRO(IsInContact, is_in_contact, const SynchronizedArray<bool> &)
 
-  AKANTU_GET_MACRO(SlaveElements, slave_elements, const ElementTypeMapArray<UInt> &)
+  AKANTU_GET_MACRO(SlaveElements, slave_elements,
+                   const ElementTypeMapArray<UInt> &)
 
-  AKANTU_GET_MACRO(SynchronizerRegistry, synch_registry, SynchronizerRegistry *)
+  AKANTU_GET_MACRO(SynchronizerRegistry, *synch_registry,
+                   SynchronizerRegistry &)
 
   /// get number of nodes that are in contact (globally, on all procs together)
   /// is_in_contact = true
@@ -190,7 +193,7 @@ public:
 
   /// get number of contact nodes: nodes in the system locally (on this proc)
   /// is_in_contact = true and false, because just in the system
-  virtual UInt getNbContactNodes() const { return this->slaves.getSize(); };
+  virtual UInt getNbContactNodes() const { return this->slaves.size(); };
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -221,10 +224,9 @@ protected:
   CSR<Element> node_to_elements;
 
   /// parallelisation
-  SynchronizerRegistry * synch_registry;
-  Synchronizer * synchronizer;
+  std::unique_ptr<SynchronizerRegistry> synch_registry;
+  std::unique_ptr<ElementSynchronizer> synchronizer;
 };
-
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
@@ -233,12 +235,12 @@ protected:
 #include "ntn_base_contact_inline_impl.cc"
 
 /// standard output stream operator
-inline std::ostream & operator <<(std::ostream & stream, const NTNBaseContact & _this)
-{
+inline std::ostream & operator<<(std::ostream & stream,
+                                 const NTNBaseContact & _this) {
   _this.printself(stream);
   return stream;
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* __AST_NTN_BASE_CONTACT_HH__ */

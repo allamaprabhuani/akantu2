@@ -4,24 +4,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Mon Dec 13 2010
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Fri May 19 2017
  *
  * @brief  test the assembling method of the SparseMatrix class
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -36,27 +35,30 @@
 #include "mesh.hh"
 #include "mesh_io.hh"
 
-#include "sparse_matrix.hh"
 #include "dof_synchronizer.hh"
+#include "sparse_matrix.hh"
 
 /* -------------------------------------------------------------------------- */
+using namespace akantu;
 
-int main(int argc, char *argv[]) {
-  akantu::initialize(argc, argv);
+int main(int argc, char * argv[]) {
+  initialize(argc, argv);
 
-  akantu::UInt spatial_dimension = 2;
-  akantu::Mesh mesh(spatial_dimension);
-  akantu::MeshIOMSH mesh_io;
-  mesh_io.read("triangle.msh", mesh);
+  UInt spatial_dimension = 2;
+  Mesh mesh(spatial_dimension);
+  mesh.read("triangle.msh");
 
-  akantu::UInt nb_nodes = mesh.getNbNodes();
-  akantu::SparseMatrix sparse_matrix(nb_nodes * spatial_dimension, akantu::_symmetric);
+  UInt nb_nodes = mesh.getNbNodes();
 
-  akantu::DOFSynchronizer dof_synchronizer(mesh, spatial_dimension);
-  dof_synchronizer.initGlobalDOFEquationNumbers();
-  sparse_matrix.buildProfile(mesh, dof_synchronizer, spatial_dimension);
+  DOFManagerDefault dof_manager(mesh, "test_dof_manager");
 
-  // const akantu::Mesh::ConnectivityTypeList & type_list = mesh.getConnectivityTypeList();
+  Array<Real> test_synchronize(nb_nodes, spatial_dimension, "Test vector");
+  dof_manager.registerDOFs("test_synchronize", test_synchronize, _dst_nodal);
+
+  auto & A = dof_manager.getNewMatrix("A", _symmetric);
+
+  // const akantu::Mesh::ConnectivityTypeList & type_list =
+  // mesh.getConnectivityTypeList();
   // akantu::Mesh::ConnectivityTypeList::const_iterator it;
 
   // for(it = type_list.begin(); it != type_list.end(); ++it) {
@@ -70,13 +72,14 @@ int main(int argc, char *argv[]) {
 
   //   for(akantu::UInt e = 0; e < nb_element; ++e) {
   //     element.element = e;
-  //     sparse_matrix.addToMatrix(local_mat.storage(), element, nb_nodes_per_element);
+  //     sparse_matrix.addToMatrix(local_mat.storage(), element,
+  //     nb_nodes_per_element);
   //   }
   // }
 
-  sparse_matrix.saveMatrix("matrix.mtx");
+  A.saveMatrix("matrix.mtx");
 
-  akantu::finalize();
+  finalize();
 
   return EXIT_SUCCESS;
 }

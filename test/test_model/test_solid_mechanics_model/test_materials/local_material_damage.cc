@@ -6,24 +6,23 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
- * @date last modification: Sun Oct 19 2014
+ * @date last modification: Mon Sep 11 2017
  *
  * @brief  Specialization of the material class for the damage material
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2012, 2014,  2015 EPFL  (Ecole Polytechnique  Fédérale de
- * Lausanne)  Laboratory (LSMS  -  Laboratoire de  Simulation  en Mécanique  des
- * Solides)
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as  published by  the Free
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
  *
  * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
  * details.
  *
  * You should  have received  a copy  of the GNU  Lesser General  Public License
@@ -35,22 +34,22 @@
 #include "local_material_damage.hh"
 #include "solid_mechanics_model.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 LocalMaterialDamage::LocalMaterialDamage(SolidMechanicsModel & model,
-					 const ID & id)  :
-  Material(model, id),
-  damage("damage", *this) {
+                                         const ID & id)
+    : Material(model, id), damage("damage", *this) {
   AKANTU_DEBUG_IN();
 
-  this->registerParam("E"           , E           , 0.   , _pat_parsable, "Young's modulus"        );
-  this->registerParam("nu"          , nu          , 0.5  , _pat_parsable, "Poisson's ratio"        );
-  this->registerParam("lambda"      , lambda             , _pat_readable, "First Lamé coefficient" );
-  this->registerParam("mu"          , mu                 , _pat_readable, "Second Lamé coefficient");
-  this->registerParam("kapa"        , kpa                , _pat_readable, "Bulk coefficient"       );
-  this->registerParam("Yd"          , Yd          ,   50., _pat_parsmod);
-  this->registerParam("Sd"          , Sd          , 5000., _pat_parsmod);
+  this->registerParam("E", E, 0., _pat_parsable, "Young's modulus");
+  this->registerParam("nu", nu, 0.5, _pat_parsable, "Poisson's ratio");
+  this->registerParam("lambda", lambda, _pat_readable,
+                      "First Lamé coefficient");
+  this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");
+  this->registerParam("kapa", kpa, _pat_readable, "Bulk coefficient");
+  this->registerParam("Yd", Yd, 50., _pat_parsmod);
+  this->registerParam("Sd", Sd, 5000., _pat_parsmod);
 
   damage.initialize(1);
 
@@ -62,18 +61,19 @@ void LocalMaterialDamage::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
 
-  lambda = nu * E / ((1 + nu) * (1 - 2*nu));
-  mu     = E / (2 * (1 + nu));
-  kpa    = lambda + 2./3. * mu;
+  lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
+  mu = E / (2 * (1 + nu));
+  kpa = lambda + 2. / 3. * mu;
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_type) {
+void LocalMaterialDamage::computeStress(ElementType el_type,
+                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = damage(el_type, ghost_type).storage();
+  auto dam = damage(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -86,12 +86,14 @@ void LocalMaterialDamage::computeStress(ElementType el_type, GhostType ghost_typ
 }
 
 /* -------------------------------------------------------------------------- */
-void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType ghost_type) {
+void LocalMaterialDamage::computePotentialEnergy(ElementType el_type,
+                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Material::computePotentialEnergy(el_type, ghost_type);
 
-  if(ghost_type != _not_ghost) return;
+  if (ghost_type != _not_ghost)
+    return;
   Real * epot = potential_energy(el_type).storage();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
@@ -104,4 +106,4 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type, GhostType 
 
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU__
+} // namespace akantu
