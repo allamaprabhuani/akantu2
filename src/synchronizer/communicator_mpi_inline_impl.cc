@@ -60,6 +60,14 @@ private:
 
 namespace akantu {
 
+int MPICommunicatorData::is_internaly_initialized = 0;
+
+/* -------------------------------------------------------------------------- */
+struct MPIPrivateMember : public Communicator::private_member {
+  MPIPrivateMember(MPI_Comm comm) : mpi_comm(comm) {}
+  MPI_Comm mpi_comm;
+};
+
 class CommunicationRequestMPI : public InternalCommunicationRequest {
 public:
   CommunicationRequestMPI(UInt source, UInt dest)
@@ -143,11 +151,21 @@ namespace {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
-                           const private_member & /*unused*/)
-    : communicator_data(std::make_unique<MPICommunicatorData>()) {
+Communicator::Communicator(const private_member & comm)
+    : communicator_data(std::make_unique<MPICommunicatorData>(
+          dynamic_cast<const MPIPrivateMember &>(comm).mpi_comm)) {
   prank = MPIDATA.rank();
   psize = MPIDATA.size();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::initialize() {
+  MPICommunicatorData::initialize();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::finalize() {
+  MPICommunicatorData::finalize();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -455,5 +473,17 @@ int Communicator::getMaxTag() const { return MPIDATA.getMaxTag(); }
 int Communicator::getMinTag() const { return 0; }
 
 /* -------------------------------------------------------------------------- */
+Communicator & Communicator::getWorldCommunicator() {
+  if (not world_communicator)
+    world_communicator = std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_WORLD});
+  return *world_communicator;
+}
+
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getSelfCommunicator() {
+  if (not self_communicator)
+    self_communicator = std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_SELF});
+  return *self_communicator;
+}
 
 } // namespace akantu

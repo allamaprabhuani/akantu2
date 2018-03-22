@@ -85,13 +85,19 @@ struct CommunicatorInternalData {
 /* -------------------------------------------------------------------------- */
 
 class Communicator : public EventHandlerManager<CommunicatorEventHandler> {
-  struct private_member {};
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Communicator(int & argc, char **& argv, const private_member &);
+  struct private_member {
+    virtual ~private_member() = default;
+  };
+
+  Communicator(const private_member &);
   ~Communicator() override;
+
+  static void initialize();
+  static void finalize();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -403,8 +409,16 @@ public:
   Int getNbProc() const { return psize; };
   Int whoAmI() const { return prank; };
 
-  static Communicator & getStaticCommunicator();
-  static Communicator & getStaticCommunicator(int & argc, char **& argv);
+  static Communicator & getStaticCommunicator() __attribute__((deprecated(
+      "Use getWorldCommunicator or getSelfCommunicator instead")));
+  // static Communicator & getWorldCommunicator(int & argc, char **& argv);
+
+  // get a reference to the WorldCommunicator, with MPI this would be
+  // MPI_COMM_WORLD
+  static Communicator & getWorldCommunicator();
+  // get a reference to the SelfCommunicator, with MPI this would be
+  // MPI_COMM_SELF
+  static Communicator & getSelfCommunicator();
 
   int getMaxTag() const;
   int getMinTag() const;
@@ -415,7 +429,9 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  static std::unique_ptr<Communicator> static_communicator;
+  /// List of static communbicators
+  static std::unique_ptr<Communicator> world_communicator;
+  static std::unique_ptr<Communicator> self_communicator;
 
 protected:
   Int prank{0};

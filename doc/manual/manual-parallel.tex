@@ -40,7 +40,7 @@ An example of the initializing sequence and basic usage of the
 int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

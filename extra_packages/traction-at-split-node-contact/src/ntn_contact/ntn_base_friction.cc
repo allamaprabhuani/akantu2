@@ -317,7 +317,7 @@ UInt NTNBaseFriction::getNbStickingNodes() const {
     }
   }
 
-  StaticCommunicator::getStaticCommunicator().allReduce(&nb_stick, 1, _so_sum);
+  StaticCommunicator::getWorldCommunicator().allReduce(&nb_stick, 1, _so_sum);
 
   AKANTU_DEBUG_OUT();
   return nb_stick;

@@ -52,7 +52,7 @@ public:
   void SetUp() override {
     this->mesh = std::make_unique<Mesh>(this->spatial_dimension);
 
-    if (Communicator::getStaticCommunicator().whoAmI() == 0) {
+    if (Communicator::getWorldCommunicator().whoAmI() == 0) {
       this->mesh->read(this->mesh_file);
     }
 

@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
   const GhostType ghost_type = _not_ghost;
   UInt spatial_dimension = 1;
 
-  const auto & comm = akantu::Communicator::getStaticCommunicator();
+  const auto & comm = akantu::Communicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

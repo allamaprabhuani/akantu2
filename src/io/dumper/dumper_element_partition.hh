@@ -61,7 +61,7 @@ public:
       const array_iterator & array_it, const array_iterator & array_it_end,
       const GhostType ghost_type = _not_ghost)
       : parent(field, t_it, t_it_end, array_it, array_it_end, ghost_type) {
-    prank = Communicator::getStaticCommunicator().whoAmI();
+    prank = Communicator::getWorldCommunicator().whoAmI();
   }
 
   /* ------------------------------------------------------------------------ */

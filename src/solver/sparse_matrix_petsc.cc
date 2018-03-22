@@ -160,7 +160,7 @@ void SparseMatrixPETSc::createGlobalAkantuToPETScMap(
 
   PetscErrorCode ierr;
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   UInt rank = comm.whoAmI();
 
   // initialize vector to store the number of local and master nodes that are

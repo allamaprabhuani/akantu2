@@ -30,18 +30,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
-#if defined(AKANTU_USE_MPI)
-#include "mpi_communicator_data.hh"
-#endif
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
-#if defined(AKANTU_USE_MPI)
-int MPICommunicatorData::is_externaly_initialized = 0;
-#endif
-
 UInt InternalCommunicationRequest::counter = 0;
+
+std::unique_ptr<Communicator> Communicator::self_communicator;
+std::unique_ptr<Communicator> Communicator::world_communicator;
 
 /* -------------------------------------------------------------------------- */
 InternalCommunicationRequest::InternalCommunicationRequest(UInt source,
@@ -72,29 +68,6 @@ Communicator::~Communicator() {
   auto * event = new FinalizeCommunicatorEvent(*this);
   this->sendEvent(*event);
   delete event;
-}
-
-/* -------------------------------------------------------------------------- */
-Communicator & Communicator::getStaticCommunicator() {
-  AKANTU_DEBUG_IN();
-
-  if (!static_communicator) {
-    int nb_args = 0;
-    char ** null = nullptr;
-    static_communicator =
-        std::make_unique<Communicator>(nb_args, null, private_member{});
-  }
-
-  AKANTU_DEBUG_OUT();
-  return *static_communicator;
-}
-
-/* -------------------------------------------------------------------------- */
-Communicator & Communicator::getStaticCommunicator(int & argc, char **& argv) {
-  if (!static_communicator)
-    static_communicator =
-        std::make_unique<Communicator>(argc, argv, private_member{});
-  return getStaticCommunicator();
 }
 
 } // namespace akantu

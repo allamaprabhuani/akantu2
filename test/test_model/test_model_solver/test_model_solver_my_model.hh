@@ -259,7 +259,7 @@ public:
 
     this->getDOFManager().assembleToResidual("disp", internal_forces, -1.);
 
-    // auto & comm = Communicator::getStaticCommunicator();
+    // auto & comm = Communicator::getWorldCommunicator();
     // const auto & dof_manager_default =
     //   dynamic_cast<DOFManagerDefault &>(this->getDOFManager());
     // const auto & residual = dof_manager_default.getResidual();

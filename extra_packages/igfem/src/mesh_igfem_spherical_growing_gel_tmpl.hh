@@ -90,7 +90,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
 
       /// Send the new node event
       UInt new_points = intersection_points_current_type.getSize();
-      StaticCommunicator::getStaticCommunicator().allReduce(&new_points, 1,
+      StaticCommunicator::getWorldCommunicator().allReduce(&new_points, 1,
                                                             _so_sum);
 
       if (new_points > 0) {
@@ -126,7 +126,7 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
   UInt old_total_nodes = this->nb_nodes_fem + this->nb_enriched_nodes;
 
   UInt total_new_nodes = nb_new_enriched_nodes;
-  StaticCommunicator::getStaticCommunicator().allReduce(&total_new_nodes, 1,
+  StaticCommunicator::getWorldCommunicator().allReduce(&total_new_nodes, 1,
                                                         _so_sum);
   if (total_new_nodes == 0)
     return;
@@ -382,7 +382,7 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
     }
   }
 
-  StaticCommunicator::getStaticCommunicator().allReduce(&total_new_elements, 1,
+  StaticCommunicator::getWorldCommunicator().allReduce(&total_new_elements, 1,
                                                         _so_sum);
 
   if (total_new_elements > 0) {

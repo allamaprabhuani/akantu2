@@ -90,14 +90,14 @@ Mesh::Mesh(UInt spatial_dimension, Communicator & communicator, const ID & id,
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension, const ID & id, const MemoryID & memory_id)
-    : Mesh(spatial_dimension, Communicator::getStaticCommunicator(), id,
+    : Mesh(spatial_dimension, Communicator::getSelfCommunicator(), id,
            memory_id) {}
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
            const ID & id, const MemoryID & memory_id)
     : Mesh(spatial_dimension, id, memory_id,
-           Communicator::getStaticCommunicator()) {
+           Communicator::getSelfCommunicator()) {
   this->nodes = nodes;
 
   this->nb_global_nodes = this->nodes->size();
@@ -442,7 +442,7 @@ Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
 
 /* -------------------------------------------------------------------------- */
 void Mesh::distribute() {
-  this->distribute(Communicator::getStaticCommunicator());
+  this->distribute(Communicator::getWorldCommunicator());
 }
 
 /* -------------------------------------------------------------------------- */

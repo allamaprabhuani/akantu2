@@ -30,7 +30,7 @@ using namespace akantu;
 
 /* -------------------------------------------------------------------------- */
 void outputArray(const Mesh & mesh, const Array<Real> & array) {
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -222,7 +222,7 @@ int main(int argc, char * argv[]) {
   /// problem dimension
   const UInt spatial_dimension = 2;
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

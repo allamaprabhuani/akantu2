@@ -98,7 +98,7 @@ DOFManagerPETSc::DOFManagerPETSc(const ID & id, const MemoryID & memory_id)
 
   if (this->petsc_dof_manager_instances == 0) {
 #if defined(AKANTU_USE_MPI)
-    StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+    StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
     const StaticCommunicatorMPI & mpi_st_comm =
         dynamic_cast<const StaticCommunicatorMPI &>(
             comm.getRealStaticCommunicator());
@@ -327,7 +327,7 @@ void DOFManagerPETSc::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
 //   }
 
 //   // /// for pbc @todo correct it for parallel
-//   // if(StaticCommunicator::getStaticCommunicator().getNbProc() == 1) {
+//   // if(StaticCommunicator::getWorldCommunicator().getNbProc() == 1) {
 //   //   for (UInt i = 0; i < size; ++i) {
 //   //    KeyCOO irn_jcn = key(i, i);
 //   //    irn_jcn_k_it = irn_jcn_k.find(irn_jcn);

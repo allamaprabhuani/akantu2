@@ -157,7 +157,7 @@ int main(int argc, char * argv[]) {
 
   UInt spatial_dimension = 3;
 
-  const auto & comm = Communicator::getStaticCommunicator();
+  const auto & comm = Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   Mesh mesh(spatial_dimension);

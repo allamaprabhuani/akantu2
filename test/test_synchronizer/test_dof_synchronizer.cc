@@ -49,7 +49,7 @@ int main(int argc, char * argv[]) {
 
   initialize(argc, argv);
 
-  const auto & comm = akantu::Communicator::getStaticCommunicator();
+  const auto & comm = akantu::Communicator::getWorldCommunicator();
   Int prank = comm.whoAmI();
 
   Mesh mesh(spatial_dimension);

@@ -47,7 +47,7 @@ int main(int argc, char * argv[]) {
 
   const UInt spatial_dimension = 2;
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 
@@ -189,7 +189,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
   UInt nb_element = mesh.getNbElement(type);
   UInt nb_nodes_per_elem = Mesh::getNbNodesPerElement(type);
 
-  StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 

@@ -58,7 +58,7 @@ static void genMesh(Mesh & mesh, UInt nb_nodes);
 int main(int argc, char * argv[]) {
   initialize(argc, argv);
 
-  UInt prank = Communicator::getStaticCommunicator().whoAmI();
+  UInt prank = Communicator::getWorldCommunicator().whoAmI();
   UInt global_nb_nodes = 201;
   UInt max_steps = 200;
   Real time_step = 0.001;

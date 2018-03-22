@@ -45,7 +45,6 @@ public:
   AkaEnvironment(int & argc, char **& argv) : argc(argc), argv(argv) {}
   // Override this to define how to set up the environment.
   void SetUp() override {
-    ::akantu::initialize(argc, argv);
 
 #if defined(AKANTU_USE_PYBIND11)
 // py::initialize_interpreter();
@@ -53,7 +52,6 @@ public:
   }
   // Override this to define how to tear down the environment.
   void TearDown() override {
-    ::akantu::finalize();
 #if defined(AKANTU_USE_PYBIND11)
 // py::finalize_interpreter();
 #endif
@@ -66,16 +64,18 @@ protected:
 }
 
 int main(int argc, char ** argv) {
+  ::akantu::initialize(argc, argv);
+
 #if defined(AKANTU_TEST_USE_PYBIND11)
   py::scoped_interpreter guard{};
 #endif
 
   ::testing::InitGoogleTest(&argc, argv);
-  ::testing::AddGlobalTestEnvironment(new AkaEnvironment(argc, argv));
+  //::testing::AddGlobalTestEnvironment(new AkaEnvironment(argc, argv));
 
   ::testing::TestEventListeners & listeners =
       ::testing::UnitTest::GetInstance()->listeners();
-  if (::akantu::Communicator::getStaticCommunicator().whoAmI() != 0) {
+  if (::akantu::Communicator::getWorldCommunicator().whoAmI() != 0) {
     delete listeners.Release(listeners.default_result_printer());
   }
 

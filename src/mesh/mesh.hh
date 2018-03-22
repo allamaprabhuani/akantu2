@@ -108,11 +108,6 @@ public:
   Mesh(UInt spatial_dimension, Communicator & communicator,
        const ID & id = "mesh", const MemoryID & memory_id = 0);
 
-  /// constructor that use an existing nodes coordinates array, by knowing its
-  /// ID
-  // Mesh(UInt spatial_dimension, const ID & nodes_id, const ID & id,
-  //      const MemoryID & memory_id = 0);
-
   /**
    * constructor that use an existing nodes coordinates
    * array, by getting the vector of coordinates
@@ -479,8 +474,6 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(NodeSynchronizer, *node_synchronizer,
                              NodeSynchronizer &);
 
-// AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, StaticCommunicator
-// &);
 #ifndef SWIG
   AKANTU_GET_MACRO(Communicator, *communicator, const auto &);
   AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, auto &);

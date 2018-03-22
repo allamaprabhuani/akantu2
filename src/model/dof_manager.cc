@@ -47,7 +47,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(const ID & id, const MemoryID & memory_id)
     : Memory(id, memory_id),
-      communicator(Communicator::getStaticCommunicator()) {}
+      communicator(Communicator::getWorldCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(Mesh & mesh, const ID & id, const MemoryID & memory_id)
