@@ -69,6 +69,9 @@ public:
   /// apply homogeneous temperature field from the macroscale level to the RVEs
   virtual void applyHomogeneousTemperature(const Real & temperature);
 
+  /// remove temperature from RVE on the end of ASR advancement
+  virtual void removeTemperature();
+
   /// advance the reactions -> grow gel and apply homogenized properties
   void advanceASR(const Matrix<Real> & prestrain);
 

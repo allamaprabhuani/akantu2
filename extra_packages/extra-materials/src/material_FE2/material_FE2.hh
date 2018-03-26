@@ -67,8 +67,15 @@ public:
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
-  /// advance alkali-silica reaction
+  /// compute ASR eigenstrain based on RVE temperature and time increase
+  void computeNewGelStrain(const Real & delta_time);
+
+  /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);
+
+  /// advance alkali-silica reaction based on delta time and temperature-
+  /// dependent reaction rate
+  void advanceASR(const Real & delta_time);
 
 private:
   void initialize();
@@ -99,6 +106,18 @@ protected:
 
   /// number of gel pockets in each underlying RVE
   UInt nb_gel_pockets;
+
+  /// pre-exponential factor of Arrhenius law
+  Real k;
+
+  /// activation energy of ASR in Arrhenius law
+  Real activ_energy;
+
+  /// universal gas constant;
+  Real R;
+
+  /// current gelstrain due to ASR at each Gauss point
+  InternalField<Real> gelstrain;
 };
 
 /* -------------------------------------------------------------------------- */

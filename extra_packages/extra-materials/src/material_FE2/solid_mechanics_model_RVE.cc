@@ -211,6 +211,33 @@ void SolidMechanicsModelRVE::applyHomogeneousTemperature(
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModelRVE::removeTemperature() {
+
+  for (UInt m = 0; m < this->getNbMaterials(); ++m) {
+    Material & mat = this->getMaterial(m);
+
+    const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+
+    Mesh::type_iterator type_it = filter_map.firstType(spatial_dimension);
+    Mesh::type_iterator type_end = filter_map.lastType(spatial_dimension);
+    // Loop over all element types
+    for (; type_it != type_end; ++type_it) {
+      const Array<UInt> & filter = filter_map(*type_it);
+      if (filter.size() == 0)
+        continue;
+
+      Array<Real> & delta_T = mat.getArray<Real>("delta_T", *type_it);
+      Array<Real>::scalar_iterator delta_T_it = delta_T.begin();
+      Array<Real>::scalar_iterator delta_T_end = delta_T.end();
+
+      for (; delta_T_it != delta_T_end; ++delta_T_it) {
+        *delta_T_it = 0;
+      }
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelRVE::findCornerNodes() {
   AKANTU_DEBUG_IN();
 
@@ -449,6 +476,7 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   /// virtual test 3:
   H.clear();
   H(0, 1) = 0.01;
+  H(1, 0) = 0.01;
   this->performVirtualTesting(H, stresses, strains, 2);
 
   /// drain cracks
@@ -456,7 +484,16 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   /// compute effective stiffness
   Matrix<Real> eps_inverse(voigt_size, voigt_size);
   eps_inverse.inverse(strains);
+
+  /// Make C matrix symmetric - Emil
   C_macro.mul<false, false>(stresses, eps_inverse);
+  for (UInt i=0; i != dim; ++i) {
+    for (UInt j=0; j != dim; ++j) {
+      C_macro(i, j) = 0.5 * (C_macro(i, j) + C_macro(j, i));
+      C_macro(j, i) = C_macro(i, j);
+    }
+  }
+
   AKANTU_DEBUG_OUT();
 }
 
