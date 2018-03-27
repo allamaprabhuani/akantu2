@@ -47,7 +47,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper::DumperIOHelper() = default;
+DumperIOHelper::DumperIOHelper()
+    : communicator(&Communicator::getSelfCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
 DumperIOHelper::~DumperIOHelper() {
@@ -60,8 +61,8 @@ DumperIOHelper::~DumperIOHelper() {
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::setParallelContext(bool is_parallel) {
-  UInt whoami = Communicator::getWorldCommunicator().whoAmI();
-  UInt nb_proc = Communicator::getWorldCommunicator().getNbProc();
+  UInt whoami = communicator->whoAmI();
+  UInt nb_proc = communicator->getNbProc();
 
   if (is_parallel)
     dumper->setParallelContext(whoami, nb_proc);
@@ -116,6 +117,8 @@ void DumperIOHelper::dump(Real current_time, UInt step) {
 void DumperIOHelper::registerMesh(const Mesh & mesh, UInt spatial_dimension,
                                   const GhostType & ghost_type,
                                   const ElementKind & element_kind) {
+  communicator = &mesh.getCommunicator();
+  setParallelContext(mesh.isDistributed());
 
 #if defined(AKANTU_IGFEM)
   if (element_kind == _ek_igfem) {
@@ -138,6 +141,9 @@ void DumperIOHelper::registerFilteredMesh(
     const Mesh & mesh, const ElementTypeMapArray<UInt> & elements_filter,
     const Array<UInt> & nodes_filter, UInt spatial_dimension,
     const GhostType & ghost_type, const ElementKind & element_kind) {
+  communicator = &mesh.getCommunicator();
+  setParallelContext(mesh.isDistributed());
+
   auto * f_connectivities = new ElementTypeMapArrayFilter<UInt>(
       mesh.getConnectivities(), elements_filter);
 

@@ -48,6 +48,10 @@ class Dumper;
 }
 
 namespace akantu {
+class Communicator;
+}
+
+namespace akantu {
 
 UInt getIOHelperType(ElementType type);
 
@@ -151,6 +155,9 @@ protected:
 
   /// is time tracking activated in the dumper
   bool time_activated{false};
+
+  /// default communicator to use
+  const Communicator * communicator;
 };
 
 } // akantu
