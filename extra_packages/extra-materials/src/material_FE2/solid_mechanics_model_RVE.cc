@@ -549,7 +549,7 @@ void SolidMechanicsModelRVE::initMaterials() {
     Real eps = box_size * 1e-6;
 
     auto tmp = std::make_shared<GelMaterialSelector>(*this, box_size, "gel",
-                                                     this->nb_gel_pockets, eps);
+                                                     this->nb_gel_pockets, "paste", eps);
     tmp->setFallback(material_selector);
     material_selector = tmp;
   }

@@ -169,11 +169,18 @@ class GelMaterialSelector : public MeshDataMaterialSelector<std::string> {
 public:
   GelMaterialSelector(SolidMechanicsModel & model, const Real box_size,
                       const std::string & gel_material,
-                      const UInt nb_gel_pockets, Real /*tolerance*/ = 0.)
+                      const UInt nb_gel_pockets, std::string paste_material = "paste",
+                      Real /*tolerance*/ = 0.
+                      )
       : MeshDataMaterialSelector<std::string>("physical_names", model),
         model(model), gel_material(gel_material),
         nb_gel_pockets(nb_gel_pockets), nb_placed_gel_pockets(0),
-        box_size(box_size) {
+      box_size(box_size), paste_material(paste_material) {
+  }
+
+  void initGelPocket() {
+    paste_material_id = model.getMaterialIndex(paste_material);
+
     Mesh & mesh = this->model.getMesh();
     UInt spatial_dimension = model.getSpatialDimension();
     Element el{_triangle_3, 0, _not_ghost};
@@ -198,26 +205,30 @@ public:
         continue;
       checked_baries.insert(bary_id);
       el.element = bary_id;
-      if (MeshDataMaterialSelector<std::string>::operator()(el) == 1)
+      if (MeshDataMaterialSelector<std::string>::operator()(el) == paste_material_id)
         continue; /// element belongs to paste
       gel_pockets.push_back(el);
       placed_gel_pockets += 1;
     }
+
+    is_gel_initialized = true;
   }
 
   UInt operator()(const Element & elem) {
+    if (not is_gel_initialized) initGelPocket();
+
     UInt temp_index = MeshDataMaterialSelector<std::string>::operator()(elem);
-    if (temp_index == 1)
+    if (temp_index == paste_material_id)
       return temp_index;
-    std::vector<Element>::const_iterator iit = gel_pockets.begin();
-    std::vector<Element>::const_iterator eit = gel_pockets.end();
+    auto iit = gel_pockets.begin();
+    auto eit = gel_pockets.end();
     if (std::find(iit, eit, elem) != eit) {
       nb_placed_gel_pockets += 1;
       std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
       return model.getMaterialIndex(gel_material);
       ;
     }
-    return 0;
+    return temp_index;
   }
 
 protected:
@@ -227,6 +238,9 @@ protected:
   UInt nb_gel_pockets;
   UInt nb_placed_gel_pockets;
   Real box_size;
+  std::string paste_material{"paste"};
+  UInt paste_material_id{1};
+  bool is_gel_initialized{false};
 };
 
 } // namespace akantu
