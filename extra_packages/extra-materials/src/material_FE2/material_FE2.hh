@@ -68,7 +68,12 @@ public:
                             GhostType ghost_type = _not_ghost);
 
   /// compute ASR eigenstrain based on RVE temperature and time increase
+  /// (independent of overall time)
   void computeNewGelStrain(const Real & delta_time);
+
+  ///compute ASR eigenstrain based on RVE temperature and time increase
+  /// (linearly decreasing to 0 with time)
+  void computeNewGelStrainTimeDependent(const Real & delta_time);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);
@@ -116,8 +121,14 @@ protected:
   /// universal gas constant;
   Real R;
 
+  /// saturation constant for time dependent gel strain increase
+  Real sat_const;
+
   /// current gelstrain due to ASR at each Gauss point
   InternalField<Real> gelstrain;
+
+  /// percent of yet non-reacted gel (for time-dependent asr simulation)
+  InternalField<Real> non_reacted_gel;
 };
 
 /* -------------------------------------------------------------------------- */
