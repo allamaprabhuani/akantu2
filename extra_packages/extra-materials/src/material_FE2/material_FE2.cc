@@ -32,6 +32,7 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
   this->C.initialize(voigt_h::size * voigt_h::size);
   this->gelstrain.initialize(spatial_dimension * spatial_dimension);
   this->non_reacted_gel.initialize(1);
+  this->non_reacted_gel.setDefaultValue(1.0);
   this->initialize();
 
   AKANTU_DEBUG_OUT();
