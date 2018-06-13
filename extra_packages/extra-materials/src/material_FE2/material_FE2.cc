@@ -17,6 +17,8 @@
 #include "material_FE2.hh"
 #include "communicator.hh"
 #include "solid_mechanics_model_RVE.hh"
+#include "aka_iterators.hh"
+
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -71,26 +73,29 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
 
   /// create a Mesh and SolidMechanicsModel on each integration point of the
   /// material
-  auto C_it = this->C(this->el_type).begin(voigt_h::size, voigt_h::size);
-  const auto & comm = this->model.getMesh().getCommunicator();
-  UInt prank = comm.whoAmI();
-  UInt C_size = this->C(this->el_type).size();
+  auto & mesh = this->model.getMesh();
+  auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
+  AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
+  auto const & element_filter = this->getElementFilter()(this->el_type);
 
   for (auto && data :
-       enumerate(make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
-    auto q = std::get<0>(data);
-    auto & C = std::get<1>(data);
+           zip(arange(element_filter.size()), element_filter,
+                 make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
+    UInt mat_el_id = std::get<0>(data);
+    UInt proc_el_id = std::get<1>(data);
+    UInt gl_el_id = g_ids(proc_el_id);
+    auto & C = std::get<2>(data);
 
     meshes.emplace_back(std::make_unique<Mesh>(
-        spatial_dimension, "RVE_mesh_" + std::to_string(prank * C_size + q),
-        q + 1));
+        spatial_dimension, "RVE_mesh_" + std::to_string(gl_el_id),
+        mat_el_id + 1));
 
     auto & mesh = *meshes.back();
     mesh.read(mesh_file);
 
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
         mesh, true, this->nb_gel_pockets, _all_dimensions,
-        "SMM_RVE_" + std::to_string(prank * C_size + q), q + 1));
+        "SMM_RVE_" + std::to_string(gl_el_id), mat_el_id + 1));
 
     auto & RVE = *RVEs.back();
     RVE.initFull(_analysis_method = _static);
