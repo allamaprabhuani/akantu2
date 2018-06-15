@@ -77,6 +77,10 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
   // TODO: To Nicolas correct the PBCs
   // this->setPBC(surface_pairs_list);
 
+  /// enforce periodicity on the displacement fluctuations
+  mesh.makePeriodic(_x);
+  mesh.makePeriodic(_y);
+
   AKANTU_DEBUG_OUT();
 }
 
