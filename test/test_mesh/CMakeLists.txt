@@ -1,7 +1,7 @@
-register_gtest_sources(
-  SOURCES test_mesh_communicator.cc
-  PACKAGE core
-  PARALLEL
-  )
+add_mesh(cube_periodic cube_periodic.geo DIM 3 ORDER 1)
+add_mesh(square_periodic square_periodic.geo DIM 2 ORDER 1)
 
-register_gtest_test(test_mesh)
+register_test(test_mesh_periodic
+  SOURCES test_mesh_periodic.cc
+  DEPENDS cube_periodic square_periodic
+  PACKAGE core)
