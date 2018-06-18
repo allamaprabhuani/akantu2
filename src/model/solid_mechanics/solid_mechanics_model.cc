@@ -326,10 +326,13 @@ void SolidMechanicsModel::assembleResidual(const ID & residual_part) {
 /* -------------------------------------------------------------------------- */
 MatrixType SolidMechanicsModel::getMatrixType(const ID & matrix_id) {
   // \TODO check the materials to know what is the correct answer
-  if (matrix_id == "C")
-    return _mt_not_defined;
 
-  return _symmetric;
+  if (matrix_id == "K")
+    return _unsymmetric;
+  if (matrix_id == "M")
+    return _symmetric;
+
+  return _mt_not_defined;
 }
 
 /* -------------------------------------------------------------------------- */
