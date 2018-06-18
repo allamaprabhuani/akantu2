@@ -78,6 +78,10 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   //AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
   auto const & element_filter = this->getElementFilter()(this->el_type);
 
+  mesh.makePeriodic(_x);
+  mesh.makePeriodic(_y);
+
+
   for (auto && data :
            zip(arange(element_filter.size()), element_filter,
                  make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {

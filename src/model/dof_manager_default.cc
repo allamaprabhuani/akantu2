@@ -140,9 +140,11 @@ template <typename T>
 void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
                                                      Array<T> & array) {
   auto & dof_data = this->getDOFDataTyped<DOFDataDefault>(dof_id);
-  if (dof_data.support_type != _dst_nodal) return;
+  if (dof_data.support_type != _dst_nodal)
+    return;
 
-  if (not mesh->isPeriodic()) return;
+  if (not mesh->isPeriodic())
+    return;
 
   this->mesh->getPeriodicNodeSynchronizer()
       .reduceSynchronizeWithPBCSlaves<AddOperation>(array);
@@ -174,7 +176,8 @@ void DOFManagerDefault::assembleToGlobalArray(
       }
     }
   } else {
-    for (auto && data : zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
+    for (auto && data :
+         zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
       auto && equ_num = std::get<0>(data);
       auto && arr = std::get<1>(data);
       global_array(equ_num) += scale_factor * (arr);
@@ -405,9 +408,9 @@ void DOFManagerDefault::getLumpedMatrixPerDOFs(const ID & dof_id,
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManagerDefault::assembleToResidual(
-    const ID & dof_id, Array<Real> & array_to_assemble,
-    Real scale_factor) {
+void DOFManagerDefault::assembleToResidual(const ID & dof_id,
+                                           Array<Real> & array_to_assemble,
+                                           Real scale_factor) {
   AKANTU_DEBUG_IN();
 
   this->makeConsistentForPeriodicity(dof_id, array_to_assemble);
@@ -419,9 +422,10 @@ void DOFManagerDefault::assembleToResidual(
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFManagerDefault::assembleToLumpedMatrix(
-    const ID & dof_id, Array<Real> & array_to_assemble,
-    const ID & lumped_mtx, Real scale_factor) {
+void DOFManagerDefault::assembleToLumpedMatrix(const ID & dof_id,
+                                               Array<Real> & array_to_assemble,
+                                               const ID & lumped_mtx,
+                                               Real scale_factor) {
   AKANTU_DEBUG_IN();
 
   this->makeConsistentForPeriodicity(dof_id, array_to_assemble);
