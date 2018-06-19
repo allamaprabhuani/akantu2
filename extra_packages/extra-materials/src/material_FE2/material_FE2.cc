@@ -15,9 +15,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_FE2.hh"
+#include "aka_iterators.hh"
 #include "communicator.hh"
 #include "solid_mechanics_model_RVE.hh"
-#include "aka_iterators.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -75,16 +75,12 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   /// material
   auto & mesh = this->model.getMesh();
   auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
-  //AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
+  // AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
   auto const & element_filter = this->getElementFilter()(this->el_type);
 
-  mesh.makePeriodic(_x);
-  mesh.makePeriodic(_y);
-
-
   for (auto && data :
-           zip(arange(element_filter.size()), element_filter,
-                 make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
+       zip(arange(element_filter.size()), element_filter,
+           make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
     UInt mat_el_id = std::get<0>(data);
     UInt proc_el_id = std::get<1>(data);
     UInt gl_el_id = g_ids(proc_el_id);
@@ -96,6 +92,9 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
 
     auto & mesh = *meshes.back();
     mesh.read(mesh_file);
+
+    mesh.makePeriodic(_x);
+    mesh.makePeriodic(_y);
 
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
         mesh, true, this->nb_gel_pockets, _all_dimensions,

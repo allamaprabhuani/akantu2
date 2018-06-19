@@ -68,6 +68,9 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
   const auto & left = mesh.getElementGroup("left").getNodeGroup();
   left_nodes.insert(left.begin(), left.end());
 
+  mesh.makePeriodic(_x);
+  mesh.makePeriodic(_y);
+
   // /// enforce periodicity on the displacement fluctuations
   // auto surface_pair_1 = std::make_pair("top", "bottom");
   // auto surface_pair_2 = std::make_pair("right", "left");
@@ -339,9 +342,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
               << std::endl;
   } while (nb_damaged_elements);
 
-  if (this->nb_dumps % 10 == 0) {
+//  if (this->nb_dumps % 10 == 0) {
     this->dump();
-  }
+//  }
   this->nb_dumps += 1;
 
   AKANTU_DEBUG_OUT();
@@ -371,11 +374,11 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
                       _not_ghost, elem_filter);
 
         for (UInt k = 0; k < elem_filter.size(); ++k)
-          average += int_stress_vec(
-              k, row_index * spatial_dimension + col_index); // 3 is the value
-                                                             // for the yy (in
-                                                             // 3D, the value is
-                                                             // 4)
+          average += int_stress_vec(k, row_index * spatial_dimension +
+                                           col_index); // 3 is the value
+                                                       // for the yy (in
+                                                       // 3D, the value is
+                                                       // 4)
       }
     } else if (field_type == "strain") {
       for (UInt m = 0; m < this->materials.size(); ++m) {
@@ -489,8 +492,8 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
 
   /// Make C matrix symmetric - Emil
   C_macro.mul<false, false>(stresses, eps_inverse);
-  for (UInt i=0; i != dim; ++i) {
-    for (UInt j=0; j != dim; ++j) {
+  for (UInt i = 0; i != dim; ++i) {
+    for (UInt j = 0; j != dim; ++j) {
       C_macro(i, j) = 0.5 * (C_macro(i, j) + C_macro(j, i));
       C_macro(j, i) = C_macro(i, j);
     }
@@ -511,7 +514,19 @@ void SolidMechanicsModelRVE::performVirtualTesting(const Matrix<Real> & H,
   solver.set("max_iterations", 2);
   solver.set("threshold", 1e-6);
   solver.set("convergence_type", _scc_solution);
-  this->solveStep();
+
+//  this->solveStep();
+     try {
+      this->solveStep();
+    } catch (debug::Exception &e) {
+
+
+    // for debug
+    // auto int_force_2 = model.getInternalForce();
+     auto &J = this->getDOFManager().getMatrix("J");
+     J.saveMatrix("J.mtx");
+     throw e;
+     }
 
   /// get average stress and strain
   eff_stresses(0, test_no) = this->averageTensorField(0, 0, "stress");
@@ -550,8 +565,8 @@ void SolidMechanicsModelRVE::initMaterials() {
     Real box_size = std::abs(top - bottom);
     Real eps = box_size * 1e-6;
 
-    auto tmp = std::make_shared<GelMaterialSelector>(*this, box_size, "gel",
-                                                     this->nb_gel_pockets, "paste", eps);
+    auto tmp = std::make_shared<GelMaterialSelector>(
+        *this, box_size, "gel", this->nb_gel_pockets, "paste", eps);
     tmp->setFallback(material_selector);
     material_selector = tmp;
   }
