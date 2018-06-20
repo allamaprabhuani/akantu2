@@ -93,9 +93,6 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
     auto & mesh = *meshes.back();
     mesh.read(mesh_file);
 
-    mesh.makePeriodic(_x);
-    mesh.makePeriodic(_y);
-
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
         mesh, true, this->nb_gel_pockets, _all_dimensions,
         "SMM_RVE_" + std::to_string(gl_el_id), mat_el_id + 1));

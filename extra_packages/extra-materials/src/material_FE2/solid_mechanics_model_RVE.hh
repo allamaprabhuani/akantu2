@@ -61,6 +61,7 @@ protected:
   /// initialize the materials
   void initMaterials() override;
 
+  void assembleInternalForces() override;
 public:
   /// apply boundary contions based on macroscopic deformation gradient
   virtual void

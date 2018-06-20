@@ -68,19 +68,8 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
   const auto & left = mesh.getElementGroup("left").getNodeGroup();
   left_nodes.insert(left.begin(), left.end());
 
-  mesh.makePeriodic(_x);
-  mesh.makePeriodic(_y);
-
-  // /// enforce periodicity on the displacement fluctuations
-  // auto surface_pair_1 = std::make_pair("top", "bottom");
-  // auto surface_pair_2 = std::make_pair("right", "left");
-  // SurfacePairList surface_pairs_list;
-  // surface_pairs_list.push_back(surface_pair_1);
-  // surface_pairs_list.push_back(surface_pair_2);
-  // TODO: To Nicolas correct the PBCs
-  // this->setPBC(surface_pairs_list);
-
-  /// enforce periodicity on the displacement fluctuations
+  mesh.makePeriodic(_x, "left", "right");
+  mesh.makePeriodic(_y, "bottom", "top");
 
   AKANTU_DEBUG_OUT();
 }
@@ -135,6 +124,39 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModelRVE::assembleInternalForces() {
+  /// displacement correction
+
+  auto disp_begin = make_view(*this->displacement, spatial_dimension).begin();
+
+  auto u_top_corr = Vector<Real>(disp_begin[this->corner_nodes(2)]) -
+                    Vector<Real>(disp_begin[this->corner_nodes(1)]);
+  auto u_right_corr = Vector<Real>(disp_begin[this->corner_nodes(2)]) -
+                      Vector<Real>(disp_begin[this->corner_nodes(3)]);
+
+  auto correct_disp = [&](auto && node, auto && correction) {
+    const auto & pair = mesh.getPeriodicMasterSlaves().equal_range(node);
+    for (auto && data : range(pair.first, pair.second)) {
+      auto slave = data.second;
+
+      auto slave_disp = Vector<Real>(disp_begin[slave]);
+      slave_disp = Vector<Real>(disp_begin[node]);
+      slave_disp += correction;
+    }
+  };
+
+  for (auto node : bottom_nodes) {
+    correct_disp(node, u_top_corr);
+  }
+
+  for (auto node : left_nodes) {
+    correct_disp(node, u_right_corr);
+  }
+
+  SolidMechanicsModel::assembleInternalForces();
+}
+
+/* -------------------------------------------------------------------------- */
 void SolidMechanicsModelRVE::applyBoundaryConditions(
     const Matrix<Real> & displacement_gradient) {
   AKANTU_DEBUG_IN();
@@ -145,45 +167,17 @@ void SolidMechanicsModelRVE::applyBoundaryConditions(
   Vector<Real> x(spatial_dimension);
   Vector<Real> appl_disp(spatial_dimension);
 
-  /// fix top right node
-  UInt node = this->corner_nodes(2);
-  x(0) = pos(node, 0);
-  x(1) = pos(node, 1);
-  appl_disp.mul<false>(displacement_gradient, x);
-  (*this->blocked_dofs)(node, 0) = true;
-  (*this->displacement)(node, 0) = appl_disp(0);
-  (*this->blocked_dofs)(node, 1) = true;
-  (*this->displacement)(node, 1) = appl_disp(1);
-  // (*this->blocked_dofs)(node,0) = true; (*this->displacement)(node,0) = 0.;
-  // (*this->blocked_dofs)(node,1) = true; (*this->displacement)(node,1) = 0.;
-
-  /// apply Hx at all the other corner nodes; H: displ. gradient
-  node = this->corner_nodes(0);
-  x(0) = pos(node, 0);
-  x(1) = pos(node, 1);
-  appl_disp.mul<false>(displacement_gradient, x);
-  (*this->blocked_dofs)(node, 0) = true;
-  (*this->displacement)(node, 0) = appl_disp(0);
-  (*this->blocked_dofs)(node, 1) = true;
-  (*this->displacement)(node, 1) = appl_disp(1);
-
-  node = this->corner_nodes(1);
-  x(0) = pos(node, 0);
-  x(1) = pos(node, 1);
-  appl_disp.mul<false>(displacement_gradient, x);
-  (*this->blocked_dofs)(node, 0) = true;
-  (*this->displacement)(node, 0) = appl_disp(0);
-  (*this->blocked_dofs)(node, 1) = true;
-  (*this->displacement)(node, 1) = appl_disp(1);
-
-  node = this->corner_nodes(3);
-  x(0) = pos(node, 0);
-  x(1) = pos(node, 1);
-  appl_disp.mul<false>(displacement_gradient, x);
-  (*this->blocked_dofs)(node, 0) = true;
-  (*this->displacement)(node, 0) = appl_disp(0);
-  (*this->blocked_dofs)(node, 1) = true;
-  (*this->displacement)(node, 1) = appl_disp(1);
+  const auto & lower_bounds = mesh.getLowerBounds();
+  for (auto node : this->corner_nodes) {
+    x(0) = pos(node, 0);
+    x(1) = pos(node, 1);
+    x -= lower_bounds;
+    appl_disp.mul<false>(displacement_gradient, x);
+    (*this->blocked_dofs)(node, 0) = true;
+    (*this->displacement)(node, 0) = appl_disp(0);
+    (*this->blocked_dofs)(node, 1) = true;
+    (*this->displacement)(node, 1) = appl_disp(1);
+  }
   AKANTU_DEBUG_OUT();
 }
 
@@ -342,9 +336,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
               << std::endl;
   } while (nb_damaged_elements);
 
-//  if (this->nb_dumps % 10 == 0) {
-    this->dump();
-//  }
+  //  if (this->nb_dumps % 10 == 0) {
+  this->dump();
+  //  }
   this->nb_dumps += 1;
 
   AKANTU_DEBUG_OUT();
@@ -490,11 +484,12 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   Matrix<Real> eps_inverse(voigt_size, voigt_size);
   eps_inverse.inverse(strains);
 
-  /// Make C matrix symmetric - Emil
-  C_macro.mul<false, false>(stresses, eps_inverse);
-  for (UInt i = 0; i != dim; ++i) {
-    for (UInt j = 0; j != dim; ++j) {
-      C_macro(i, j) = 0.5 * (C_macro(i, j) + C_macro(j, i));
+  /// Make C matrix symmetric
+  Matrix<Real> C_direct(voigt_size, voigt_size);
+  C_direct.mul<false, false>(stresses, eps_inverse);
+  for (UInt i = 0; i != voigt_size; ++i) {
+    for (UInt j = 0; j != voigt_size; ++j) {
+      C_macro(i, j) = 0.5 * (C_direct(i, j) + C_direct(j, i));
       C_macro(j, i) = C_macro(i, j);
     }
   }
@@ -515,18 +510,7 @@ void SolidMechanicsModelRVE::performVirtualTesting(const Matrix<Real> & H,
   solver.set("threshold", 1e-6);
   solver.set("convergence_type", _scc_solution);
 
-//  this->solveStep();
-     try {
-      this->solveStep();
-    } catch (debug::Exception &e) {
-
-
-    // for debug
-    // auto int_force_2 = model.getInternalForce();
-     auto &J = this->getDOFManager().getMatrix("J");
-     J.saveMatrix("J.mtx");
-     throw e;
-     }
+  this->solveStep();
 
   /// get average stress and strain
   eff_stresses(0, test_no) = this->averageTensorField(0, 0, "stress");
