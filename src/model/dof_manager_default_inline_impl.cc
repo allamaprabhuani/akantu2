@@ -40,7 +40,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline bool DOFManagerDefault::isLocalOrMasterDOF(UInt dof_num) {
   auto dof_flag = this->dofs_flag(dof_num);
-  return (dof_flag & NodeFlag::_shared_mask) == NodeFlag::_normal;
+  auto shared_flag = dof_flag & NodeFlag::_shared_mask;
+  return (shared_flag == NodeFlag::_normal) or (shared_flag == NodeFlag::_master);
 }
 
 /* -------------------------------------------------------------------------- */
