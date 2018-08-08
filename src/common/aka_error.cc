@@ -51,13 +51,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#if defined(AKANTU_CORE_CXX11)
 #include <chrono>
-#elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
 
 #ifdef AKANTU_USE_MPI
 #include <mpi.h>
@@ -295,20 +289,10 @@ namespace debug {
                               const DebugLevel & level,
                               const std::string & info) const {
     if (this->level >= level) {
-#if defined(AKANTU_CORE_CXX11)
       double timestamp =
           std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
               std::chrono::system_clock::now().time_since_epoch())
               .count();
-#elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
-      struct timeval time;
-      gettimeofday(&time, NULL);
-      double timestamp = time.tv_sec * 1e6 + time.tv_usec; /*in us*/
-#else
-      struct timespec time;
-      clock_gettime(CLOCK_REALTIME_COARSE, &time);
-      double timestamp = time.tv_sec * 1e6 + time.tv_nsec * 1e-3; /*in us*/
-#endif
       *(cout) << parallel_context << "{" << (size_t)timestamp << "} " << prefix
               << " " << info << std::endl;
     }
