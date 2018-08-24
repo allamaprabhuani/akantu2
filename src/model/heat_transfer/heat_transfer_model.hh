@@ -100,7 +100,7 @@ protected:
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const;
+  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
   /* ------------------------------------------------------------------------ */
   /* Methods for explicit                                                     */
   /* ------------------------------------------------------------------------ */
@@ -262,9 +262,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// number of iterations
-  UInt n_iter;
-
   /// time step
   Real time_step;
 
@@ -301,9 +298,6 @@ private:
   /// boundary vector
   Array<bool> * blocked_dofs{nullptr};
 
-  // realtime
-  Real time;
-
   /// capacity
   Real capacity;
 
@@ -316,9 +310,6 @@ private:
 
   // reference temperature for the interpretation of temperature variation
   Real T_ref;
-
-  // the biggest parameter of conductivity matrix
-  Real conductivitymax;
 
   bool need_to_reassemble_capacity{true};
   bool need_to_reassemble_capacity_lumped{true};

@@ -494,9 +494,9 @@ package_declare_extra_files_to_package(core
     common/aka_config.hh.in
   )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
-  package_set_compile_flags(core CXX "-Wno-undefined-var-template")
-endif()
+#if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.9))
+#  package_set_compile_flags(core CXX "-Wno-undefined-var-template")
+#endif()
 
 if(DEFINED AKANTU_CXX11_FLAGS)
   package_declare(core_cxx11 NOT_OPTIONAL

@@ -3,7 +3,7 @@ MAINTAINER Nicolas Richart <nicolas.richart@epfl.ch>
 
 # Make sure the package repository is up to date.
 RUN apt-get -qq update && apt-get -qq -y install \
-    g++ gfortran  cmake \
+    g++ gfortran  cmake g++-7 \
     libmumps-seq-dev libscotch-dev \
     libboost-dev libopenblas-dev \
     python3 python3-dev \
