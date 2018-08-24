@@ -106,7 +106,7 @@ InterpolationElement<_itp_discrete_kirchhoff_triangle_18>::computeDNDS(
   Vector<Real> X2 = X(1);
   Vector<Real> X3 = X(2);
 
-  std::array<Vector<Real>, 3> A = {X2 - X1, X3 - X2, X1 - X3};
+  std::array<Vector<Real>, 3> A = {{X2 - X1, X3 - X2, X1 - X3}};
   std::array<Real, 3> L, C, S;
 
   // Setting all last coordinates to 0

@@ -27,7 +27,7 @@ register_test(test_multiple_init
   SCRIPT test_multiple_init.py
   PYTHON
   DEPENDS mesh_python
-  PACKAGE python_interface
+  PACKAGE python_interface implicit
   FILES_TO_COPY input_test.dat
   )
 

@@ -157,12 +157,8 @@ protected:
   Real kpa;
 };
 
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
+} // akantu
 
 #include "material_neohookean_inline_impl.cc"
-
-} // akantu
 
 #endif /* __AKANTU_MATERIAL_NEOHOOKEAN_HH__ */

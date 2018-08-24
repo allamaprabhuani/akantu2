@@ -37,6 +37,11 @@
 #ifndef __AKANTU_MATERIAL_ELASTIC_LINEAR_ANISOTROPIC_INLINE_IMPL_CC__
 #define __AKANTU_MATERIAL_ELASTIC_LINEAR_ANISOTROPIC_INLINE_IMPL_CC__
 
+/* -------------------------------------------------------------------------- */
+#define AKANTU_WARNING_UNDEFINED_VAR_TEMPLATE
+#include "aka_warning.hh"
+/* -------------------------------------------------------------------------- */
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
@@ -86,6 +91,10 @@ inline void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyOnQuad(
 
   epot = .5 * sigma.doubleDot(grad_u);
 }
+
+/* -------------------------------------------------------------------------- */
+#include "aka_warning_restore.hh"
+/* -------------------------------------------------------------------------- */
 
 } // akantu
 

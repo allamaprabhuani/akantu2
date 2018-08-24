@@ -39,6 +39,11 @@
 #include <algorithm>
 #include <sstream>
 
+/* -------------------------------------------------------------------------- */
+#define AKANTU_WARNING_UNDEFINED_VAR_TEMPLATE
+#include "aka_warning.hh"
+/* -------------------------------------------------------------------------- */
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
@@ -263,3 +268,7 @@ Real MaterialElasticLinearAnisotropic<dim>::getCelerity(
 INSTANTIATE_MATERIAL(elastic_anisotropic, MaterialElasticLinearAnisotropic);
 
 } // akantu
+
+/* -------------------------------------------------------------------------- */
+#include "aka_warning_restore.hh"
+/* -------------------------------------------------------------------------- */

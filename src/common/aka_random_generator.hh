@@ -37,6 +37,11 @@
 #ifndef __AKANTU_AKA_RANDOM_GENERATOR_HH__
 #define __AKANTU_AKA_RANDOM_GENERATOR_HH__
 
+/* -------------------------------------------------------------------------- */
+#define AKANTU_WARNING_UNDEFINED_VAR_TEMPLATE
+#include "aka_warning.hh"
+/* -------------------------------------------------------------------------- */
+
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
@@ -264,5 +269,9 @@ inline std::ostream & operator<<(std::ostream & stream,
 }
 
 } // akantu
+
+/* -------------------------------------------------------------------------- */
+#include "aka_warning_restore.hh"
+/* -------------------------------------------------------------------------- */
 
 #endif /* __AKANTU_AKA_RANDOM_GENERATOR_HH__ */

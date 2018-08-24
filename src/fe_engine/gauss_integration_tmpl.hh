@@ -27,11 +27,15 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_GAUSS_INTEGRATION_TMPL_HH__
 #define __AKANTU_GAUSS_INTEGRATION_TMPL_HH__
+
+/* -------------------------------------------------------------------------- */
+#define AKANTU_WARNING_UNDEFINED_VAR_TEMPLATE
+#include "aka_warning.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -269,5 +273,9 @@ UInt GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
 }
 
 } // akantu
+
+/* -------------------------------------------------------------------------- */
+#include "aka_warning_restore.hh"
+/* -------------------------------------------------------------------------- */
 
 #endif /* __AKANTU_GAUSS_INTEGRATION_TMPL_HH__ */

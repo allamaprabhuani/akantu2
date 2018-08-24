@@ -27,12 +27,19 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#include <iostream>
-
+/* -------------------------------------------------------------------------- */
 #include "material_neohookean.hh"
-#include <cmath>
-#include <utility>
+/* -------------------------------------------------------------------------- */
+
+#ifndef __AKANTU_MATERIAL_NEOHOOKEAN_INLINE_IMPL_CC__
+#define __AKANTU_MATERIAL_NEOHOOKEAN_INLINE_IMPL_CC__
+
+/* -------------------------------------------------------------------------- */
+#define AKANTU_WARNING_UNDEFINED_VAR_TEMPLATE
+#include "aka_warning.hh"
+/* -------------------------------------------------------------------------- */
+
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
@@ -188,4 +195,10 @@ inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(
   }
 }
 
+} // akantu
+
 /* -------------------------------------------------------------------------- */
+#include "aka_warning_restore.hh"
+/* -------------------------------------------------------------------------- */
+
+#endif /* __AKANTU_MATERIAL_NEOHOOKEAN_INLINE_IMPL_CC__ */

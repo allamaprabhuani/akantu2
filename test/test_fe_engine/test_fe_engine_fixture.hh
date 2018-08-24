@@ -54,8 +54,6 @@ public:
 
   /// Setup reads mesh corresponding to element type and initializes an FEEngine
   void SetUp() override {
-    const auto dim = this->dim;
-    const auto type = this->type;
     mesh = std::make_unique<Mesh>(dim);
 
     std::stringstream meshfilename;
