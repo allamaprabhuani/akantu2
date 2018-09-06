@@ -28,7 +28,7 @@ namespace akantu {
 template <UInt spatial_dimension>
 MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(
     SolidMechanicsModel & model, const ID & id)
-    : MaterialDamage<spatial_dimension>(model, id), Sc("Sc", *this),
+    : parent(model, id), Sc("Sc", *this),
       reduction_step("damage_step", *this),
       equivalent_stress("equivalent_stress", *this), max_reductions(0),
       norm_max_equivalent_stress(0) {
@@ -57,40 +57,28 @@ MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialDamageIterative<spatial_dimension>::
-    computeNormalizedEquivalentStress(const Array<Real> & grad_u,
+template <UInt dim>
+void MaterialDamageIterative<dim>::
+    computeNormalizedEquivalentStress(const Array<Real> & grad_us,
                                       ElementType el_type,
                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   /// Vector to store eigenvalues of current stress tensor
-  Vector<Real> eigenvalues(spatial_dimension);
+  Vector<Real> eigenvalues(dim);
 
-  auto Sc_it = Sc(el_type, ghost_type).begin();
-  auto equivalent_stress_it = equivalent_stress(el_type, ghost_type).begin();
+  for(auto && data: zip(make_view(this->stress(el_type, ghost_type), dim, dim),
+                        make_view(Sc(el_type, ghost_type)),
+                        make_view(equivalent_stress(el_type, ghost_type)))) {
 
-  Array<Real>::const_matrix_iterator grad_u_it =
-      grad_u.begin(spatial_dimension, spatial_dimension);
-  Array<Real>::const_matrix_iterator grad_u_end =
-      grad_u.end(spatial_dimension, spatial_dimension);
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Matrix<Real> sigma(spatial_dimension, spatial_dimension);
-  for (; grad_u_it != grad_u_end; ++grad_u_it) {
-    sigma.clear();
-    MaterialElastic<spatial_dimension>::computeStressOnQuad(*grad_u_it, sigma,
-                                                            0.);
-    computeDamageAndStressOnQuad(sigma, *dam);
-
+    const auto & sigma = std::get<0>(data);
+    const auto & sigma_crit = std::get<1>(data);
+    auto & sigma_equ = std::get<2>(data);
     /// compute eigenvalues
     sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
-    *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
-        *(Sc_it);
-    ++Sc_it;
-    ++equivalent_stress_it;
-    ++dam;
+    sigma_equ = *(std::max_element(eigenvalues.storage(),
+                           eigenvalues.storage() + dim)) /
+        sigma_crit;
   }
 
   AKANTU_DEBUG_OUT();
@@ -104,7 +92,7 @@ void MaterialDamageIterative<spatial_dimension>::computeAllStresses(
   if (ghost_type == _not_ghost)
     norm_max_equivalent_stress = 0;
 
-  MaterialDamage<spatial_dimension>::computeAllStresses(ghost_type);
+  parent::computeAllStresses(ghost_type);
 
   /// find global Gauss point with highest stress
   auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
@@ -160,7 +148,7 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  MaterialDamage<spatial_dimension>::computeStress(el_type, ghost_type);
+  parent::computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
 
@@ -245,7 +233,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
 template <UInt spatial_dimension>
 void MaterialDamageIterative<spatial_dimension>::updateEnergiesAfterDamage(
     ElementType el_type, GhostType ghost_type) {
-  MaterialDamage<spatial_dimension>::updateEnergies(el_type, ghost_type);
+  parent::updateEnergies(el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */

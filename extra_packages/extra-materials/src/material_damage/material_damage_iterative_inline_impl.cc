@@ -59,7 +59,7 @@ inline UInt MaterialDamageIterative<spatial_dimension>::getNbData(
     return sizeof(Real) * this->getModel().getNbIntegrationPoints(elements);
   }
 
-  return MaterialDamage<spatial_dimension>::getNbData(elements, tag);
+  return parent::getNbData(elements, tag);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -72,7 +72,7 @@ inline void MaterialDamageIterative<spatial_dimension>::packData(
         this->damage, buffer, elements, true, this->damage.getFEEngine());
   }
 
-  return MaterialDamage<spatial_dimension>::packData(buffer, elements, tag);
+  return parent::packData(buffer, elements, tag);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -84,7 +84,7 @@ inline void MaterialDamageIterative<spatial_dimension>::unpackData(
     DataAccessor<Element>::unpackElementalDataHelper(
         this->damage, buffer, elements, true, this->damage.getFEEngine());
   }
-  return MaterialDamage<spatial_dimension>::unpackData(buffer, elements, tag);
+  return parent::unpackData(buffer, elements, tag);
 }
 
 } // akantu

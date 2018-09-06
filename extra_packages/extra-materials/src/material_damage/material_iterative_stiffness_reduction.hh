@@ -63,13 +63,6 @@ public:
   /// init the material
   virtual void initMaterial();
 
-  /// compute the equivalent stress on each Gauss point (i.e. the max prinicpal
-  /// stress) and normalize it by the tensile stiffness
-  virtual void
-  computeNormalizedEquivalentStress(const Array<Real> & grad_u,
-                                    ElementType el_type,
-                                    GhostType ghost_type = _not_ghost);
-
   /// update internal field damage
   virtual UInt updateDamage();
 

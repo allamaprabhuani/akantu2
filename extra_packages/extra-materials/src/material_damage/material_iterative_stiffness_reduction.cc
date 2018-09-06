@@ -84,49 +84,6 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialIterativeStiffnessReduction<spatial_dimension>::
-    computeNormalizedEquivalentStress(const Array<Real> & grad_u,
-                                      ElementType el_type,
-                                      GhostType ghost_type) {
-  AKANTU_DEBUG_IN();
-  /// storage for the current stress
-  Matrix<Real> sigma(spatial_dimension, spatial_dimension);
-  /// Vector to store eigenvalues of current stress tensor
-  Vector<Real> eigenvalues(spatial_dimension);
-
-  /// iterators on the needed internal fields
-  auto Sc_it = this->Sc(el_type, ghost_type).begin();
-  auto dam_it = this->damage(el_type, ghost_type).begin();
-  auto equivalent_stress_it =
-      this->equivalent_stress(el_type, ghost_type).begin();
-  auto grad_u_it = grad_u.begin(spatial_dimension, spatial_dimension);
-  auto grad_u_end = grad_u.end(spatial_dimension, spatial_dimension);
-
-  /// loop over all the quadrature points and compute the equivalent stress
-  for (; grad_u_it != grad_u_end; ++grad_u_it) {
-    /// compute the stress
-    sigma.clear();
-    MaterialElastic<spatial_dimension>::computeStressOnQuad(*grad_u_it, sigma,
-                                                            0.);
-    MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(
-        sigma, *dam_it);
-    /// compute eigenvalues
-    sigma.eig(eigenvalues);
-
-    /// find max eigenvalue and normalize by tensile strength
-    *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
-        (*Sc_it);
-    ++Sc_it;
-    ++equivalent_stress_it;
-    ++dam_it;
-  }
-
-  AKANTU_DEBUG_OUT();
-}
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>

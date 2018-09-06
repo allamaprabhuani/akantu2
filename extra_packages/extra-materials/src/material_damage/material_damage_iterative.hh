@@ -19,6 +19,7 @@
 #include "aka_common.hh"
 #include "material.hh"
 #include "material_damage.hh"
+#include "material_viscoelastic_maxwell.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_DAMAGE_ITERATIVE_HH__
@@ -33,7 +34,9 @@ namespace akantu {
  *   - Sc
  */
 template <UInt spatial_dimension>
-class MaterialDamageIterative : public MaterialDamage<spatial_dimension> {
+
+class MaterialDamageIterative : public MaterialDamage<spatial_dimension, MaterialViscoelasticMaxwell> {
+  using parent = MaterialDamage<spatial_dimension, MaterialViscoelasticMaxwell>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -46,7 +49,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ///  virtual void updateInternalParameters();
 
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
 
