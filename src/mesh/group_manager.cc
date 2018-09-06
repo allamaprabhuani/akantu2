@@ -272,7 +272,7 @@ public:
         element_synchronizer(element_synchronizer), nb_cluster(nb_cluster) {}
 
   UInt synchronize() {
-    Communicator & comm = Communicator::getStaticCommunicator();
+    const Communicator & comm = Communicator::getWorldCommunicator();
     UInt rank = comm.whoAmI();
     UInt nb_proc = comm.getNbProc();
 

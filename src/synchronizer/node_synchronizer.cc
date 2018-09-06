@@ -55,6 +55,11 @@ NodeSynchronizer::NodeSynchronizer(Mesh & mesh, const ID & id,
 NodeSynchronizer::~NodeSynchronizer() = default;
 
 /* -------------------------------------------------------------------------- */
+Int NodeSynchronizer::getRank(const UInt & node) const {
+  return this->mesh.getNodePrank(node);
+}
+
+/* -------------------------------------------------------------------------- */
 void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
                                     const NewNodesEvent &) {
   std::map<UInt, std::vector<UInt>> nodes_per_proc;
@@ -67,12 +72,11 @@ void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
   }
 
   for (auto && local_id : arange(mesh.getNbNodes())) {
-    auto type = mesh.getNodeType(local_id);
-    if (type < 0)
+    if (not mesh.isSlaveNode(local_id))
       continue; // local, master or pure ghost
 
     auto global_id = mesh.getNodeGlobalId(local_id);
-    auto proc = UInt(type);
+    auto proc = mesh.getNodePrank(local_id);
     nodes_per_proc[proc].push_back(global_id);
 
     auto & scheme = communications.createScheme(proc, _recv);

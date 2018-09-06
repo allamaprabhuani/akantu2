@@ -60,6 +60,14 @@ private:
 
 namespace akantu {
 
+int MPICommunicatorData::is_internaly_initialized = 0;
+
+/* -------------------------------------------------------------------------- */
+struct MPIPrivateMember : public Communicator::private_member {
+  MPIPrivateMember(MPI_Comm comm) : mpi_comm(comm) {}
+  MPI_Comm mpi_comm;
+};
+
 class CommunicationRequestMPI : public InternalCommunicationRequest {
 public:
   CommunicationRequestMPI(UInt source, UInt dest)
@@ -100,11 +108,11 @@ namespace {
 
 #define COMMA ,
   SPECIALIZE_MPI_DATATYPE(char, MPI_CHAR)
+  SPECIALIZE_MPI_DATATYPE(std::uint8_t, MPI_UINT8_T)
   SPECIALIZE_MPI_DATATYPE(float, MPI_FLOAT)
   SPECIALIZE_MPI_DATATYPE(double, MPI_DOUBLE)
   SPECIALIZE_MPI_DATATYPE(long double, MPI_LONG_DOUBLE)
   SPECIALIZE_MPI_DATATYPE(signed int, MPI_INT)
-  SPECIALIZE_MPI_DATATYPE(NodeType, getMPIDatatype<Int>())
   SPECIALIZE_MPI_DATATYPE(unsigned int, MPI_UNSIGNED)
   SPECIALIZE_MPI_DATATYPE(signed long int, MPI_LONG)
   SPECIALIZE_MPI_DATATYPE(unsigned long int, MPI_UNSIGNED_LONG)
@@ -113,6 +121,8 @@ namespace {
   SPECIALIZE_MPI_DATATYPE(SCMinMaxLoc<double COMMA int>, MPI_DOUBLE_INT)
   SPECIALIZE_MPI_DATATYPE(SCMinMaxLoc<float COMMA int>, MPI_FLOAT_INT)
   SPECIALIZE_MPI_DATATYPE(bool, MPI_CXX_BOOL)
+
+  template <> MPI_Datatype inline getMPIDatatype<NodeFlag>() { return getMPIDatatype<std::underlying_type_t<NodeFlag>>(); }
 
   inline int getMPISource(int src) {
     if (src == _any_source)
@@ -143,11 +153,21 @@ namespace {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
-                           const private_member & /*unused*/)
-    : communicator_data(std::make_unique<MPICommunicatorData>()) {
+Communicator::Communicator(const private_member & comm)
+    : communicator_data(std::make_unique<MPICommunicatorData>(
+          dynamic_cast<const MPIPrivateMember &>(comm).mpi_comm)) {
   prank = MPIDATA.rank();
   psize = MPIDATA.size();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::initialize() {
+  MPICommunicatorData::initialize();
+}
+
+/* -------------------------------------------------------------------------- */
+void Communicator::finalize() {
+  MPICommunicatorData::finalize();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -455,5 +475,17 @@ int Communicator::getMaxTag() const { return MPIDATA.getMaxTag(); }
 int Communicator::getMinTag() const { return 0; }
 
 /* -------------------------------------------------------------------------- */
+Communicator & Communicator::getWorldCommunicator() {
+  if (not world_communicator)
+    world_communicator = std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_WORLD});
+  return *world_communicator;
+}
+
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getSelfCommunicator() {
+  if (not self_communicator)
+    self_communicator = std::make_unique<Communicator>(MPIPrivateMember{MPI_COMM_SELF});
+  return *self_communicator;
+}
 
 } // namespace akantu

@@ -38,8 +38,11 @@
 
 namespace akantu {
 
-Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
-                           const private_member & /*unused*/) {}
+Communicator::Communicator(const private_member & /*unused*/) {}
+
+void Communicator::initialize() { }
+
+void Communicator::finalize() { }
 
 template <typename T>
 void Communicator::sendImpl(const T *, Int, Int, Int,
@@ -113,5 +116,22 @@ inline void Communicator::broadcastImpl(T *, int, int) const {}
 
 int Communicator::getMaxTag() const { return std::numeric_limits<int>::max(); }
 int Communicator::getMinTag() const { return 0; }
+
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getWorldCommunicator() {
+  if (!world_communicator)
+    world_communicator =
+        std::make_unique<Communicator>(private_member{});
+  return *world_communicator;
+}
+
+/* -------------------------------------------------------------------------- */
+Communicator & Communicator::getSelfCommunicator() {
+  if (!self_communicator)
+    self_communicator =
+        std::make_unique<Communicator>(private_member{});
+  return *self_communicator;
+}
+
 
 } // namespace akantu

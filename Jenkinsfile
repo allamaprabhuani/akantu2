@@ -1,39 +1,78 @@
 pipeline {
-    agent {
-	dockerfile { additionalBuildArgs '--tag akantu-environment'}
+  agent {
+    dockerfile {
+      additionalBuildArgs '--tag akantu-environment'
+    }
+  }
+  stages {
+    stage('Configure') {
+      steps {
+        sh 'env'
+        sh 'mkdir -p build'
+        sh 'cd build; cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE -DAKANTU_IMPLICIT:BOOL=TRUE -DAKANTU_PARALLEL:BOOL=TRUE -DAKANTU_PYTHON_INTERFACE:BOOL=TRUE -DAKANTU_TESTS:BOOL=TRUE ..'
+      }
+    }
+    stage('Compile') {
+      steps {
+	sh 'make -C build/src || true'
+      }
     }
 
-    environment {
-	BLA_VENDOR = 'OpenBLAS'
-	OMPI_MCA_plm = 'isolated'
-	OMPI_MCA_btl = 'self'
+    stage ('Warnings gcc') {
+      steps {
+        warnings(consoleParsers: [[parserName: 'GNU Make + GNU C Compiler (gcc)']])
+      }
     }
 
-    stages {
-	stage('Configure') {
-	    steps {
-		sh 'env'
-		sh 'mkdir -p build'
-		sh 'cd build; cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE -DAKANTU_IMPLICIT:BOOL=TRUE -DAKANTU_PARALLEL:BOOL=TRUE -DAKANTU_PYTHON_INTERFACE:BOOL=TRUE -DAKANTU_TESTS:BOOL=TRUE ..'
-	    }
-	}
-
-	stage('Compile') {
-	    steps {
-		sh 'cd build/src; make || true'
-	    }
-	}
-
-	stage('Compile tests') {
-	    steps {
-		sh 'cd build/test; make || true'
-	    }
-	}
+    stage('Compile python') {
+      steps {
+        sh 'make -C build/python || true'
+      }
     }
-    
-    post {
-	always {
-	    deleteDir()
-	}
+
+    stage('Compile tests') {
+      steps {
+        sh 'make -C build/test || true'
+      }
     }
+
+    stage('Tests') {
+      steps {
+        sh 'rm -rf build/gtest_reports'
+        sh 'cd build/ && ctest -T test --no-compress-output || true'
+	sh 'cp build/Testing/`head -n 1 < build/Testing/TAG`/Test.xml CTestResults.xml'
+      }
+    }
+  }
+  environment {
+    BLA_VENDOR = 'OpenBLAS'
+    OMPI_MCA_plm = 'isolated'
+    OMPI_MCA_btl = 'tcp,self'
+  }
+  post {
+    always {
+      step([$class: 'XUnitBuilder',
+         thresholds: [
+             [$class: 'SkippedThreshold', failureThreshold: '0'],
+             [$class: 'FailedThreshold', failureThreshold: '0']],
+          tools: [[$class: 'CTestType', pattern: 'CTestResults.xml']]])
+      step([$class: 'XUnitBuilder',
+         thresholds: [
+             [$class: 'SkippedThreshold', failureThreshold: '100'],
+             [$class: 'FailedThreshold', failureThreshold: '0']],
+          tools: [[$class: 'GoogleTestType', pattern: 'build/gtest_reports/**']]])
+    }
+
+    failure {
+      emailext(
+          body: '''${SCRIPT, template="groovy-html.template"}''',
+	  mimeType: 'text/html',
+          subject: "[Jenkins] ${currentBuild.fullDisplayName} Failed",
+	  recipientProviders: [[$class: 'CulpritsRecipientProvider']],
+	  to: 'akantu-admins@akantu.ch',
+	  replyTo: 'akantu-admins@akantu.ch',
+	  attachLog: true,
+          compressLog: false)
+    }
+  }
 }

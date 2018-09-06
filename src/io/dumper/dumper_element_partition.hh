@@ -31,7 +31,7 @@
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-__BEGIN_AKANTU_DUMPER__
+namespace dumper {
 #ifdef AKANTU_IGFEM
 #include "dumper_igfem_element_partition.hh"
 #endif
@@ -61,7 +61,7 @@ public:
       const array_iterator & array_it, const array_iterator & array_it_end,
       const GhostType ghost_type = _not_ghost)
       : parent(field, t_it, t_it_end, array_it, array_it_end, ghost_type) {
-    prank = Communicator::getStaticCommunicator().whoAmI();
+    prank = Communicator::getWorldCommunicator().whoAmI();
   }
 
   /* ------------------------------------------------------------------------ */
@@ -114,5 +114,5 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU_DUMPER__
+} // dumper
 } // akantu

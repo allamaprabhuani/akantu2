@@ -36,6 +36,7 @@
 #include "element_synchronizer.hh"
 #include "mesh.hh"
 #include "model_solver.hh"
+#include "periodic_node_synchronizer.hh"
 #include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -142,6 +143,12 @@ public:
 
     this->getDOFManager().assembleElementalArrayLocalArray(
         m_all_el, M, _segment_2, ghost_type);
+
+
+    if (mesh.isPeriodic()) {
+      mesh.getPeriodicNodeSynchronizer()
+          .reduceSynchronizeWithPBCSlaves<AddOperation>(M);
+    }
   }
 
   void assembleMass() {
@@ -259,7 +266,7 @@ public:
 
     this->getDOFManager().assembleToResidual("disp", internal_forces, -1.);
 
-    // auto & comm = Communicator::getStaticCommunicator();
+    // auto & comm = Communicator::getWorldCommunicator();
     // const auto & dof_manager_default =
     //   dynamic_cast<DOFManagerDefault &>(this->getDOFManager());
     // const auto & residual = dof_manager_default.getResidual();

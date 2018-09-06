@@ -58,8 +58,10 @@ void initialize(int & argc, char **& argv) {
 void initialize(const std::string & input_file, int & argc, char **& argv) {
   AKANTU_DEBUG_IN();
   StaticMemory::getStaticMemory();
-  Communicator & comm = Communicator::getStaticCommunicator(argc, argv);
 
+  Communicator::initialize();
+
+  Communicator & comm = Communicator::getWorldCommunicator();
   Tag::setMaxTag(comm.getMaxTag());
 
   debug::debugger.setParallelContext(comm.whoAmI(), comm.getNbProc());
@@ -70,11 +72,9 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   static_argparser.addArgument("--aka_input_file", "Akantu's input file", 1,
                                cppargparse::_string, std::string());
   static_argparser.addArgument(
-      "--aka_debug_level",
-      std::string("Akantu's overall debug level") +
-          std::string(" (0: error, 1: exceptions, 4: warnings, 5: info, ..., "
-                      "100: dump") +
-          std::string(" more info on levels can be foind in aka_error.hh)"),
+      "--aka_debug_level", "Akantu's overall debug level (0: error, 1: "
+                           "exceptions, 4: warnings, 5: info, ..., 100: dump "
+                           "more info on levels can be found in aka_error.hh)",
       1, cppargparse::_integer, int(dblWarning));
 
   static_argparser.addArgument(
@@ -118,9 +118,10 @@ void finalize() {
   AKANTU_DEBUG_IN();
 
   // if (StaticCommunicator::isInstantiated()) {
-  //   StaticCommunicator & comm = StaticCommunicator::getStaticCommunicator();
+  //   StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
   //   delete &comm;
   // }
+  Communicator::finalize();
 
   if (StaticMemory::isInstantiated()) {
     delete &(StaticMemory::getStaticMemory());
@@ -146,7 +147,5 @@ Parser & getStaticParser() { return static_parser; }
 const ParserSection & getUserParser() {
   return *(static_parser.getSubSections(ParserType::_user).first);
 }
-
-std::unique_ptr<Communicator> Communicator::static_communicator;
 
 } // akantu

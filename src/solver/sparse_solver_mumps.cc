@@ -383,7 +383,7 @@ void SparseSolverMumps::solveInternal() {
   }
 
   if (AKANTU_DEBUG_TEST(dblDump)) {
-    A.saveMatrix("solver_mumps" + std::to_string(prank) + ".mtx");
+    A.saveMatrix(A.getID() + std::to_string(prank) + ".mtx");
   }
 
   if (this->last_value_release != A.getValueRelease()) {

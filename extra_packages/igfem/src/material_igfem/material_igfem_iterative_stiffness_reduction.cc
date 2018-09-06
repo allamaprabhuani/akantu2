@@ -227,7 +227,7 @@ UInt MaterialIGFEMIterativeStiffnessReduction<
     }
   }
   StaticCommunicator & comm =
-      akantu::StaticCommunicator::getStaticCommunicator();
+      akantu::StaticCommunicator::getWorldCommunicator();
   comm.allReduce(&nb_damaged_elements, 1, _so_sum);
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;

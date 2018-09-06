@@ -15,8 +15,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_FE2.hh"
+#include "aka_iterators.hh"
 #include "communicator.hh"
 #include "solid_mechanics_model_RVE.hh"
+
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -25,10 +27,14 @@ namespace akantu {
 template <UInt spatial_dimension>
 MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
                                             const ID & id)
-    : Parent(model, id), C("material_stiffness", *this) {
+    : Parent(model, id), C("material_stiffness", *this),
+      gelstrain("gelstrain", *this), non_reacted_gel("non_reacted_gel", *this) {
   AKANTU_DEBUG_IN();
 
   this->C.initialize(voigt_h::size * voigt_h::size);
+  this->gelstrain.initialize(spatial_dimension * spatial_dimension);
+  this->non_reacted_gel.initialize(1);
+  this->non_reacted_gel.setDefaultValue(1.0);
   this->initialize();
 
   AKANTU_DEBUG_OUT();
@@ -48,6 +54,15 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
   this->registerParam("nb_gel_pockets", nb_gel_pockets,
                       _pat_parsable | _pat_modifiable,
                       "the number of gel pockets in each RVE");
+  this->registerParam("k", k, _pat_parsable | _pat_modifiable,
+                      "pre-exponential factor of Arrhenius law");
+  this->registerParam("activ_energy", activ_energy,
+                      _pat_parsable | _pat_modifiable,
+                      "activation energy of ASR in Arrhenius law");
+  this->registerParam("R", R, _pat_parsable | _pat_modifiable,
+                      "universal gas constant R in Arrhenius law");
+  this->registerParam("saturation_constant", sat_const, Real(0.0),
+                      _pat_parsable | _pat_modifiable, "saturation constant");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -58,22 +73,29 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
 
   /// create a Mesh and SolidMechanicsModel on each integration point of the
   /// material
-  auto C_it = this->C(this->el_type).begin(voigt_h::size, voigt_h::size);
+  auto & mesh = this->model.getMesh();
+  auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
+  // AKANTU_DEBUG_ASSERT(g_ids.size() > 0, "Global numbering array is empty");
+  auto const & element_filter = this->getElementFilter()(this->el_type);
 
   for (auto && data :
-       enumerate(make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
-    auto q = std::get<0>(data);
-    auto & C = std::get<1>(data);
+       zip(arange(element_filter.size()), element_filter,
+           make_view(C(this->el_type), voigt_h::size, voigt_h::size))) {
+    UInt mat_el_id = std::get<0>(data);
+    UInt proc_el_id = std::get<1>(data);
+    UInt gl_el_id = g_ids(proc_el_id);
+    auto & C = std::get<2>(data);
 
     meshes.emplace_back(std::make_unique<Mesh>(
-        spatial_dimension, "RVE_mesh_" + std::to_string(q), q + 1));
+        spatial_dimension, "RVE_mesh_" + std::to_string(gl_el_id),
+        mat_el_id + 1));
 
     auto & mesh = *meshes.back();
     mesh.read(mesh_file);
 
     RVEs.emplace_back(std::make_unique<SolidMechanicsModelRVE>(
         mesh, true, this->nb_gel_pockets, _all_dimensions,
-        "SMM_RVE_" + std::to_string(q), q + 1));
+        "SMM_RVE_" + std::to_string(gl_el_id), mat_el_id + 1));
 
     auto & RVE = *RVEs.back();
     RVE.initFull(_analysis_method = _static);
@@ -184,11 +206,130 @@ void MaterialFE2<spatial_dimension>::advanceASR(
     /// advance the ASR in every RVE
     RVE.advanceASR(prestrain);
 
+    /// remove temperature field - not to mess up with the stiffness
+    /// homogenization
+    /// further
+    RVE.removeTemperature();
+
     /// compute the average eigen_grad_u
     RVE.homogenizeEigenGradU(std::get<2>(data));
 
     /// compute the new effective stiffness of the RVE
     RVE.homogenizeStiffness(std::get<3>(data));
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && data :
+       zip(RVEs, make_view(this->gradu(this->el_type), spatial_dimension,
+                           spatial_dimension),
+           make_view(this->eigengradu(this->el_type), spatial_dimension,
+                     spatial_dimension),
+           make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
+           this->delta_T(this->el_type),
+           make_view(this->gelstrain(this->el_type), spatial_dimension,
+                     spatial_dimension))) {
+    auto & RVE = *(std::get<0>(data));
+
+    /// apply boundary conditions based on the current macroscopic displ.
+    /// gradient
+    RVE.applyBoundaryConditions(std::get<1>(data));
+
+    /// apply homogeneous temperature field to each RVE to obtain thermoelastic
+    /// effect
+    RVE.applyHomogeneousTemperature(std::get<4>(data));
+
+    /// compute new gel strain for every element
+    if (this->sat_const)
+      this->computeNewGelStrainTimeDependent(delta_time);
+    else
+      this->computeNewGelStrain(delta_time);
+
+    /// advance the ASR in every RVE based on the new gel strain
+    RVE.advanceASR(std::get<5>(data));
+
+    /// remove temperature field - not to mess up with the stiffness
+    /// homogenization
+    /// further
+    RVE.removeTemperature();
+
+    /// compute the average eigen_grad_u
+    RVE.homogenizeEigenGradU(std::get<2>(data));
+
+    /// compute the new effective stiffness of the RVE
+    RVE.homogenizeStiffness(std::get<3>(data));
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::computeNewGelStrain(
+    const Real & delta_time) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && data : zip(RVEs, make_view(this->gelstrain(this->el_type),
+                                          spatial_dimension, spatial_dimension),
+                          this->delta_T(this->el_type))) {
+
+    auto & gelstrain = (std::get<1>(data));
+    const auto & T = (std::get<2>(data));
+
+    const auto & k = this->k;
+    const auto & Ea = this->activ_energy;
+    const auto & R = this->R;
+
+    /// compute increase in gel strain value for interval of time delta_time
+    /// as temperatures are stored in C, conversion to K is done
+    Real delta_strain = k * std::exp(-Ea / (R * (T + 273.15))) * delta_time;
+
+    for (UInt i = 0; i != spatial_dimension; ++i)
+      gelstrain(i, i) += delta_strain;
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------------
+ */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
+    const Real & delta_time) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && data : zip(RVEs, make_view(this->gelstrain(this->el_type),
+                                          spatial_dimension, spatial_dimension),
+                          this->delta_T(this->el_type),
+                          this->non_reacted_gel(this->el_type))) {
+
+    auto & gelstrain = (std::get<1>(data));
+    const auto & T = (std::get<2>(data));
+    auto & non_reacted_gel = (std::get<3>(data));
+
+    const auto & k = this->k;
+    const auto & Ea = this->activ_energy;
+    const auto & R = this->R;
+    const auto & sat_const = this->sat_const;
+
+    /// compute increase in gel strain value for interval of time delta_time
+    /// as temperatures are stored in C, conversion to K is done
+    Real delta_strain =
+        non_reacted_gel * k * std::exp(-Ea / (R * (T + 273.15))) * delta_time;
+
+    for (UInt i = 0; i != spatial_dimension; ++i)
+      gelstrain(i, i) += delta_strain;
+
+    non_reacted_gel -= std::exp(-Ea / (R * (T + 273.15))) *
+                       (delta_time / 60 / 60 / 24) / sat_const;
+
+    if (non_reacted_gel < 0.)
+      non_reacted_gel = 0.;
   }
 
   AKANTU_DEBUG_OUT();
