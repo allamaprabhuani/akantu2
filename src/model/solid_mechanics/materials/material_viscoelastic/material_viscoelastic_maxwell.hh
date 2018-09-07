@@ -135,7 +135,6 @@ protected:
   void computeStressOnQuad(const Matrix<Real> & grad_u,
                            const Matrix<Real> & previous_grad_u,
                            Matrix<Real> & sigma,
-                           const Matrix<Real> & previous_sigma,
                            Tensor3<Real> & sigma_v, const Real & sigma_th,
                            const Real & previous_sigma_th);
 

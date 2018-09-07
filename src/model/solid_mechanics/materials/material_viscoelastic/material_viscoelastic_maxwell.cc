@@ -188,22 +188,16 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
   auto previous_gradu_it = this->gradu.previous(el_type, ghost_type)
                                .begin(spatial_dimension, spatial_dimension);
 
-  auto previous_stress_it = this->stress.previous(el_type, ghost_type)
-                                .begin(spatial_dimension, spatial_dimension);
-
   auto sigma_v_it = this->sigma_v(el_type, ghost_type)
       .begin(spatial_dimension, spatial_dimension, this->Eta.size());
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   auto & previous_grad_u = *previous_gradu_it;
-  auto & previous_sigma = *previous_stress_it;
 
-  computeStressOnQuad(grad_u, previous_grad_u, sigma, previous_sigma,
-                      *sigma_v_it, *sigma_th_it, *previous_sigma_th_it);
+  computeStressOnQuad(grad_u, previous_grad_u, sigma, *sigma_v_it, *sigma_th_it, *previous_sigma_th_it);
   ++sigma_th_it;
   ++previous_sigma_th_it;
-  ++previous_stress_it;
   ++previous_gradu_it;
   ++sigma_v_it;
 
@@ -217,8 +211,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
-    Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-    Tensor3<Real> & sigma_v, const Real & sigma_th,
+    Matrix<Real> & sigma, Tensor3<Real> & sigma_v, const Real & sigma_th,
     const Real & previous_sigma_th) {
 
   Matrix<Real> grad_delta_u(grad_u);
@@ -246,6 +239,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
 
   voigt_stress =
       this->Einf * this->C * voigt_current_strain;
+
   Real dt = this->model.getTimeStep();
 
   for (UInt k = 0; k < Eta.size(); ++k) {
