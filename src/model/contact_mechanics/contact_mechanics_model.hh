@@ -29,11 +29,67 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "model.hh"
-/* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
 #define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
 
+/* -------------------------------------------------------------------------- */
+#include "model.hh"
+#include "data_accessor.hh"
+/* -------------------------------------------------------------------------- */
 
+namespace akantu {
+  
 
-#endif
+class ContactMechanicsModel
+  : public Model,
+    public DataAccessor<Element> {
+
+  /* ------------------------------------------------------------------------ */
+  /* Constructor/Destructors                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+  ContactMechanicsModel(SolidMechanics & Model, const ID & id = "contact_mechanics_model",
+			const MemoryID & memory_id = 0,
+			const ModelType model_type = ModelType::_contact_mechanics_model);
+
+  ~ContactMechanicsModel() override;
+
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// initialize contact parallelization
+  virtual void initParallel();
+
+  /// 
+
+  /* ------------------------------------------------------------------------ */
+  /* Constructors/Destructors                                                 */
+  /* ------------------------------------------------------------------------ */
+public:
+  inline UInt getNbData(const Array<Element> & elements,
+                        const SynchronizationTag & tag) const override;
+
+  inline void packData(CommunicationBuffer & buffer,
+                       const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
+
+  inline void unpackData(CommunicationBuffer & buffer,
+                         const Array<Element> & elements,
+                         const SynchronizationTag & tag) override;
+
+protected:
+  friend class Detection;
+  
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
+private:
+
+  SolidMechanicsModel & model;
+  
+}
+
+}
+
+#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__
