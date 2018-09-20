@@ -1,12 +1,12 @@
 /**
- * @file   contact_mechanics_model.hh
+ * @file   contact_element.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Tue Sep 10 2018
- * @date last modification: Mon Sep 10 2018
+ * @date last modification: Mon Sep 20 2018
  *
- * @brief  Model of Contact Mechanics
+ * @brief  mother class for contact facets
  *
  * @section LICENSE
  *
@@ -29,74 +29,57 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#ifndef __AKANTU_CONTACT_FACET_HH__
+#define __AKANTU_CONTACT_FACET_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "model.hh"
-#include "data_accessor.hh"
-#include "resolution.hh"
+#include "mesh.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-  
 
-class ContactMechanicsModel
-  : public Model,
-    public DataAccessor<Element> {
+class ContactFacet :
+    public Element {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactMechanicsModel(SolidMechanics & Model, const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0,
-			const ModelType model_type = ModelType::_contact_mechanics_model);
+  ContactFacet();
 
-  ~ContactMechanicsModel() override;
+  ContactFacet(SolidMechanicsModel &, ElementType, UInt, GhostType);
+
+  ~ContactFacet() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-  /// initialize contact parallelization
-  virtual void initParallel();
-  ///
-  bool createContactPairs();
-  ///
-  bool solveContact();
+protected :
   
 
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  ///
+  inline UInt numNodes() const {
+    return Mesh::getNbNodesPerElement(type);
+  }
+  ///
+  void normal();
+  ///
 
-  inline void packData(CommunicationBuffer & buffer,
-                       const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
 
-  inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<Element> & elements,
-                         const SynchronizationTag & tag) override;
-
-protected:
-  friend class Detection;
-  
   /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
+  /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 private:
 
-  ///
-  Resolution  & resolution;
-  ///
-  SolidMechanicsModel & model;
+  UInt                * connectivity;
+  SolidMechanicsModel * model;
+  
   
 };
 
-}
 
-#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+} // akantu
+
+#endif

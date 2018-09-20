@@ -1,12 +1,12 @@
 /**
- * @file   contact_mechanics_model.hh
+ * @file   resolution.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Tue Sep 10 2018
  * @date last modification: Mon Sep 10 2018
  *
- * @brief  Model of Contact Mechanics
+ * @brief  Mother class for contact resolution
  *
  * @section LICENSE
  *
@@ -29,74 +29,55 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#include "aka_common.hh"
+#include "aka_memory.hh"
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-#include "model.hh"
-#include "data_accessor.hh"
-#include "resolution.hh"
+#ifndef __AKANTU_RESOLUTION_HH__
+#define __AKANTU_RESOLUTION_HH__
+
 /* -------------------------------------------------------------------------- */
+
 
 namespace akantu {
-  
 
-class ContactMechanicsModel
-  : public Model,
-    public DataAccessor<Element> {
+class Resolution {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactMechanicsModel(SolidMechanics & Model, const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0,
-			const ModelType model_type = ModelType::_contact_mechanics_model);
+  Resolution( const ContactResolutionType & contact_resolution_type,
+	      const ID & id  = "contact_resolution");
 
-  ~ContactMechanicsModel() override;
+  ~Resolution() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// initialize contact parallelization
-  virtual void initParallel();
   ///
-  bool createContactPairs();
-  ///
-  bool solveContact();
-  
+  bool computeTangentAndResidual();
 
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
-
-  inline void packData(CommunicationBuffer & buffer,
-                       const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
-
-  inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<Element> & elements,
-                         const SynchronizationTag & tag) override;
-
-protected:
-  friend class Detection;
-  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
+protected:
 
-  ///
-  Resolution  & resolution;
-  ///
-  SolidMechanicsModel & model;
+  /// type of contact resolution
+  ContactResolutionType contact_resolution_type;
+  
+
+  /* ------------------------------------------------------------------------ */
+  /* Members                                                                  */
+  /* ------------------------------------------------------------------------ */
+
   
 };
 
-}
 
-#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+} // akantu
+
+
+#endif /* __AKANTU_RESOLUTION_HH__ */

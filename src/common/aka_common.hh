@@ -364,6 +364,14 @@ enum GhostType {
   _ghost = 1,
   _casper // not used but a real cute ghost
 };
+
+/// @enum ContactResolutionType type of contact resolution
+enum ContactResolutionType {
+  _crt_penalty,
+  _crt_lagrangian,
+  _crt_augmented_lagrangian
+};
+
 }
 
 #ifndef SWIG
