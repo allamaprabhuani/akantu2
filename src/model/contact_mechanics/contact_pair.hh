@@ -1,5 +1,5 @@
 /**
- * @file   contact_mechanics_model.hh
+ * @file   contact_pair.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
@@ -29,81 +29,67 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#ifndef __AKANTU_CONTACT_PAIR_HH__
+#define __AKANTU_CONTACT_PAIR_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "model.hh"
-#include "data_accessor.hh"
-#include "contact_resolution.hh"
-#include "detection.hh"
-#include "contact_pair.hh"
-/* -------------------------------------------------------------------------- */
-#include <map>
-/* -------------------------------------------------------------------------- */
+#include "contact_facet.hh"
+
 
 namespace akantu {
-  
 
-class ContactMechanicsModel
-  : public Model,
-    public DataAccessor<Element> {
+class ContactPair {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactMechanicsModel(SolidMechanics & Model, const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0,
-			const ModelType model_type = ModelType::_contact_mechanics_model);
+  ContactPair();
 
-  ~ContactMechanicsModel() override;
+  ~ContactPair();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// initialize contact parallelization
-  virtual void initParallel();
-  ///
-  bool createContactPairs();
-  ///
-  bool solveContact();
-  
 
   /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
+  /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  /// get the node value of slave
+  AKANTU_GET_MACRO(Slave, slave, UInt);
 
-  inline void packData(CommunicationBuffer & buffer,
-                       const Array<Element> & elements,
-                       const SynchronizationTag & tag) const override;
-
-  inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<Element> & elements,
-                         const SynchronizationTag & tag) override;
-
-protected:
-  friend class Detection;
+  /// get the master facet
+  AKANTU_GET_MACRO(Master, master, ContactFacet);
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  ///
-  std::vector<ContactPair> pair;
+  /// slave node
+  UInt slave;
   
-  ///
-  ContactResolution & resolution;
+  /// master node or element
+  ContactFacet master;
 
-  ///
-  SolidMechanicsModel & model;
+  /// gap
+  Real gap;
+
+  /// area
+  Real area;
+
+  /// penalty;
+  Real penalty;
+
+  /// multiplier
+  Real lambda;
   
 };
 
-}
+} // akantu
 
-#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+
+
+
+#endif /* __AKANTU_CONTACT_PAIR_HH__ */

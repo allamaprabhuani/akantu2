@@ -1,10 +1,10 @@
 /**
- * @file   detection.hh
+ * @file contact_detection.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Wed Sep 12 2018
- * @date last modification: Wed Sep 12 2018
+ * @date last modification: Fri Sep 21 2018
  *
  * @brief  Mother class for all detection algorithms
  *
@@ -28,29 +28,7 @@
  *
  */
 
-
-#ifndef __AKANTU_DETECTION_HH__
-#define __AKANTU_DETECTION_HH__
-
+/* -------------------------------------------------------------------------- */
+#include "contact_detection.hh"
 /* -------------------------------------------------------------------------- */
 
-namespace akantu {
-class Model;
-class ContactMechanicsModel;
-}
-
-namespace akantu {
-
-
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-
-  // The model for contact detection 
-  ContactMechanicsModel & model;
-  
-  
-} // namespace akantu
-
-
-#endif /* __AKANTU_DETECTION_HH__ */

@@ -32,33 +32,33 @@
 #include "aka_common.hh"
 #include "aka_memory.hh"
 /* -------------------------------------------------------------------------- */
+#include <set>
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_RESOLUTION_HH__
-#define __AKANTU_RESOLUTION_HH__
+#ifndef __AKANTU_CONTACT_RESOLUTION_HH__
+#define __AKANTU_CONTACT_RESOLUTION_HH__
 
 /* -------------------------------------------------------------------------- */
 
 
 namespace akantu {
 
-class Resolution {
+class ContactResolution {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  Resolution( const ContactResolutionType & contact_resolution_type,
+  ContactResolution( const ContactResolutionType & contact_resolution_type,
 	      const ID & id  = "contact_resolution");
-
-  ~Resolution() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   ///
-  bool computeTangentAndResidual();
+  virtual bool computeTangentAndResidual();
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -67,7 +67,9 @@ protected:
 
   /// type of contact resolution
   ContactResolutionType contact_resolution_type;
-  
+
+  /// list of supported contact resolution solver type
+  std::set<ContactResolutionType> supported_type;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
@@ -80,4 +82,4 @@ protected:
 } // akantu
 
 
-#endif /* __AKANTU_RESOLUTION_HH__ */
+#endif /* __AKANTU_CONTACT_RESOLUTION_HH__ */
