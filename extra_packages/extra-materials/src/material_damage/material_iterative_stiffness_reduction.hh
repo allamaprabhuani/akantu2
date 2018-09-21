@@ -44,9 +44,11 @@ namespace akantu {
  */
 /// Proposed by Rots and Invernizzi, 2004: Regularized sequentially linear
 // saw-tooth softening model (section 4.2)
-template <UInt spatial_dimension>
+template <UInt spatial_dimension,
+          template <UInt> class ElasticParent = MaterialElastic>
 class MaterialIterativeStiffnessReduction
-    : public MaterialDamageIterative<spatial_dimension> {
+  : public MaterialDamageIterative<spatial_dimension, ElasticParent> {
+  using parent = MaterialDamageIterative<spatial_dimension, ElasticParent>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -54,17 +56,15 @@ public:
   MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
                                       const ID & id = "");
 
-  virtual ~MaterialIterativeStiffnessReduction(){};
-
-  /* ------------------------------------------------------------------------ */
+    /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// init the material
-  virtual void initMaterial();
+  void initMaterial() override;
 
   /// update internal field damage
-  virtual UInt updateDamage();
+  UInt updateDamage() override;
 
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
@@ -94,5 +94,7 @@ protected:
 };
 
 } // namespace akantu
+
+#include "material_iterative_stiffness_reduction_inline_impl.cc"
 
 #endif /* __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__ */

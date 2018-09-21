@@ -62,6 +62,8 @@
       (2, (damage_iterative, MaterialDamageIterative)))(                       \
       (2,                                                                      \
        (iterative_stiffness_reduction, MaterialIterativeStiffnessReduction)))( \
+      (2,                                                                      \
+       (damage_iterative_viscoelastic, MaterialDamageIterativeViscoelastic)))( \
       (2, (vreepeerlings, MaterialVreePeerlings)))(                            \
       (2, (ve_stiffness_prop, MaterialStiffnessProportional)))(                \
       (2, (visco_plastic, MaterialViscoPlastic)))(                             \

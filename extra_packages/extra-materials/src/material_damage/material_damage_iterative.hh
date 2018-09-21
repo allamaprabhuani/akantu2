@@ -19,7 +19,6 @@
 #include "aka_common.hh"
 #include "material.hh"
 #include "material_damage.hh"
-#include "material_viscoelastic_maxwell.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_DAMAGE_ITERATIVE_HH__
@@ -27,16 +26,36 @@
 
 namespace akantu {
 
+class MaterialDamageIterativeInterface {
+public:
+  virtual ~MaterialDamageIterativeInterface() = default;
+  virtual UInt updateDamage() = 0;
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// get max normalized equivalent stress
+  AKANTU_GET_MACRO(NormMaxEquivalentStress, norm_max_equivalent_stress, Real);
+
+  /// get a non-const reference to the max normalized equivalent stress
+  AKANTU_GET_MACRO_NOT_CONST(NormMaxEquivalentStress,
+                             norm_max_equivalent_stress, Real &);
+
+protected:
+  /// maximum equivalent stress
+  Real norm_max_equivalent_stress;
+};
+
 /**
  * Material damage iterative
  *
  * parameters in the material files :
  *   - Sc
  */
-template <UInt spatial_dimension>
-
-class MaterialDamageIterative : public MaterialDamage<spatial_dimension, MaterialViscoelasticMaxwell> {
-  using parent = MaterialDamage<spatial_dimension, MaterialViscoelasticMaxwell>;
+template <UInt spatial_dimension,
+          template <UInt> class ElasticParent = MaterialElastic>
+class MaterialDamageIterative : public MaterialDamage<spatial_dimension, ElasticParent>, public MaterialDamageIterativeInterface {
+  using parent = MaterialDamage<spatial_dimension, ElasticParent>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -53,10 +72,10 @@ public:
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
 
   /// update internal field damage
-  virtual UInt updateDamage();
+  UInt updateDamage() override;
 
-  UInt updateDamage(UInt quad_index, const Real eq_stress,
-                    const ElementType & el_type, const GhostType & ghost_type);
+  UInt updateDamageOnQuad(UInt quad_index, const Real eq_stress,
+                          const ElementType & el_type, const GhostType & ghost_type);
 
   /// update energies after damage has been updated
   virtual void updateEnergiesAfterDamage(ElementType el_type,
@@ -96,17 +115,6 @@ protected:
                          const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /// get max normalized equivalent stress
-  AKANTU_GET_MACRO(NormMaxEquivalentStress, norm_max_equivalent_stress, Real);
-
-  /// get a non-const reference to the max normalized equivalent stress
-  AKANTU_GET_MACRO_NOT_CONST(NormMaxEquivalentStress,
-                             norm_max_equivalent_stress, Real &);
-
-  /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
@@ -124,9 +132,6 @@ protected:
 
   /// damage increment
   Real prescribed_dam;
-
-  /// maximum equivalent stress
-  Real norm_max_equivalent_stress;
 
   /// deviation from max stress at which Gauss point will still get damaged
   Real dam_tolerance;

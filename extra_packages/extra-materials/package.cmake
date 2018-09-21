@@ -30,6 +30,9 @@ package_declare_sources(extra_materials
 
   material_damage/material_iterative_stiffness_reduction.cc
   material_damage/material_iterative_stiffness_reduction.hh
+  material_damage/material_iterative_stiffness_reduction_inline_impl.cc
+
+  material_damage/material_damage_iterative_viscoelastic.cc
 
   material_damage/material_damage_linear.cc
   material_damage/material_damage_linear.hh

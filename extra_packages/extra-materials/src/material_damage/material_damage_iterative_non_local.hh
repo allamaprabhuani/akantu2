@@ -43,7 +43,7 @@ public:
   MaterialDamageIterativeNonLocal(SolidMechanicsModel & model,
                                   const ID & id = "");
 
-  virtual ~MaterialDamageIterativeNonLocal(){};
+  virtual ~MaterialDamageIterativeNonLocal() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

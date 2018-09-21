@@ -16,22 +16,26 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_damage_iterative.hh"
-#include "communicator.hh"
-#include "data_accessor.hh"
-#include "solid_mechanics_model_RVE.hh"
+//#include "material_damage_iterative.hh"
+#include "material_iterative_stiffness_reduction.hh"
+#include "material_viscoelastic_maxwell.hh"
+// #include "communicator.hh"
+// #include "data_accessor.hh"
+// #include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 // /* -------------------------------------------------------------------------- */
 // template <UInt spatial_dimension>
-// MaterialDamageIterative<spatial_dimension>::MaterialDamageIterative(
+// MaterialDamageIterativeViscoelastic<spatial_dimension>::MaterialDamageIterativeViscoelastic(
 //     SolidMechanicsModel & model, const ID & id)
 //     : parent(model, id), Sc("Sc", *this),
 //       reduction_step("damage_step", *this),
 //       equivalent_stress("equivalent_stress", *this), max_reductions(0),
-//       norm_max_equivalent_stress(0) {
+//       norm_max_equivalent_stress(0), eps_u("ultimate_strain", *this),
+//       D("tangent", *this), Gf(0.), crack_band_width(0.),
+//       reduction_constant(0.) {
 //   AKANTU_DEBUG_IN();
 
 //   this->registerParam("Sc", Sc, _pat_parsable, "critical stress threshold");
@@ -47,18 +51,55 @@ namespace akantu {
 //                       _pat_parsable | _pat_modifiable, "maximum damage value");
 //   this->registerParam("max_reductions", max_reductions, UInt(10),
 //                       _pat_parsable | _pat_modifiable, "max reductions");
+//   this->registerParam("Gf", Gf, _pat_parsable | _pat_modifiable,
+//                       "fracture energy");
+//   this->registerParam("crack_band_width", crack_band_width,
+//                       _pat_parsable | _pat_modifiable, "crack_band_width");
+//   this->registerParam("reduction_constant", reduction_constant, 2.,
+//                       _pat_parsable | _pat_modifiable, "reduction constant");
 
-//   this->use_previous_stress = true;
+//     this->use_previous_stress = true;
 //   this->use_previous_gradu = true;
 //   this->Sc.initialize(1);
 //   this->equivalent_stress.initialize(1);
 //   this->reduction_step.initialize(1);
+//   this->eps_u.initialize(1);
+//   this->D.initialize(1);
 
 //   AKANTU_DEBUG_OUT();
 // }
 // /* -------------------------------------------------------------------------- */
+// template <UInt spatial_dimension>
+// void MaterialDamageIterativeViscoelastic<spatial_dimension>::initMaterial() {
+//   AKANTU_DEBUG_IN();
+//   parent::initMaterial();
+
+//   for (auto ghost_type : ghost_types) {
+//     /// loop over all types in the filter
+//     for (auto & el_type :
+//          this->element_filter.elementTypes(_ghost_type = ghost_type)) {
+//       /// get the stiffness on each quad point
+//       auto Sc_it = this->Sc(el_type, ghost_type).begin();
+//       /// get the tangent of the tensile softening on each quad point
+//       auto D_it = this->D(el_type, ghost_type).begin();
+//       auto D_end = this->D(el_type, ghost_type).end();
+//       /// get the ultimate strain on each quad
+//       auto eps_u_it = this->eps_u(el_type, ghost_type).begin();
+//       // compute the tangent and the ultimate strain for each quad
+//       for (; D_it != D_end; ++Sc_it, ++D_it, ++eps_u_it) {
+//         *eps_u_it = ((2. * this->Gf) / (*Sc_it * this->crack_band_width));
+//         *D_it = *(Sc_it) / ((*eps_u_it) - ((*Sc_it) / this->E));
+//       }
+//     }
+//   }
+
+//   AKANTU_DEBUG_OUT();
+// }
+
+
+// /* -------------------------------------------------------------------------- */
 // template <UInt dim>
-// void MaterialDamageIterative<dim>::
+// void MaterialDamageIterativeViscoelastic<dim>::
 //     computeNormalizedEquivalentStress(const Array<Real> & grad_us,
 //                                       ElementType el_type,
 //                                       GhostType ghost_type) {
@@ -85,7 +126,7 @@ namespace akantu {
 // }
 // /* -------------------------------------------------------------------------- */
 // template <UInt spatial_dimension>
-// void MaterialDamageIterative<spatial_dimension>::computeAllStresses(
+// void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeAllStresses(
 //     GhostType ghost_type) {
 //   AKANTU_DEBUG_IN();
 //   /// reset normalized maximum equivalent stress
@@ -106,7 +147,7 @@ namespace akantu {
 
 // /* -------------------------------------------------------------------------- */
 // template <UInt spatial_dimension>
-// void MaterialDamageIterative<spatial_dimension>::
+// void MaterialDamageIterativeViscoelastic<spatial_dimension>::
 //     findMaxNormalizedEquivalentStress(ElementType el_type,
 //                                       GhostType ghost_type) {
 //   AKANTU_DEBUG_IN();
@@ -144,7 +185,7 @@ namespace akantu {
 // }
 // /* -------------------------------------------------------------------------- */
 // template <UInt spatial_dimension>
-// void MaterialDamageIterative<spatial_dimension>::computeStress(
+// void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
 //     ElementType el_type, GhostType ghost_type) {
 //   AKANTU_DEBUG_IN();
 
@@ -169,12 +210,10 @@ namespace akantu {
 
 // /* -------------------------------------------------------------------------- */
 // template <UInt spatial_dimension>
-// UInt MaterialDamageIterative<spatial_dimension>::updateDamage() {
+// UInt MaterialDamageIterativeViscoelastic<spatial_dimension>::updateDamage() {
 //   UInt nb_damaged_elements = 0;
-//   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
-//                       "Your prescribed damage must be greater than zero");
 
-//   if (norm_max_equivalent_stress >= 1.) {
+//   if (this->norm_max_equivalent_stress >= 1.) {
 
 //     AKANTU_DEBUG_IN();
 
@@ -189,30 +228,45 @@ namespace akantu {
 //         this->model.getFEEngine().getMesh().lastType(spatial_dimension,
 //                                                      ghost_type);
 
+//     /// loop over all the elements
 //     for (; it != last_type; ++it) {
 //       ElementType el_type = *it;
 
-//       const Array<Real> & e_stress = equivalent_stress(el_type);
-//       auto equivalent_stress_it = e_stress.begin();
-//       auto equivalent_stress_end = e_stress.end();
-//       Array<Real> & dam = this->damage(el_type);
-//       auto dam_it = dam.begin();
+//       /// get iterators on the needed internal fields
+//       auto equivalent_stress_it =
+//           this->equivalent_stress(el_type, ghost_type).begin();
+//       auto equivalent_stress_end =
+//           this->equivalent_stress(el_type, ghost_type).end();
+//       auto dam_it = this->damage(el_type, ghost_type).begin();
 //       auto reduction_it = this->reduction_step(el_type, ghost_type).begin();
+//       auto eps_u_it = this->eps_u(el_type, ghost_type).begin();
+//       auto Sc_it = this->Sc(el_type, ghost_type).begin();
+//       auto D_it = this->D(el_type, ghost_type).begin();
 
+//       /// loop over all the quads of the given element type
 //       for (; equivalent_stress_it != equivalent_stress_end;
-//            ++equivalent_stress_it, ++dam_it, ++reduction_it) {
+//            ++equivalent_stress_it, ++dam_it, ++reduction_it, ++eps_u_it,
+//            ++Sc_it, ++D_it) {
 
 //         /// check if damage occurs
 //         if (*equivalent_stress_it >=
-//             (1 - dam_tolerance) * norm_max_equivalent_stress) {
+//             (1 - this->dam_tolerance) * this->norm_max_equivalent_stress) {
+
 //           /// check if this element can still be damaged
 //           if (*reduction_it == this->max_reductions)
 //             continue;
+
+//           /// increment the counter of stiffness reduction steps
 //           *reduction_it += 1;
-//           if (*reduction_it == this->max_reductions) {
-//             *dam_it = max_damage;
-//           } else {
-//             *dam_it += prescribed_dam;
+//           if (*reduction_it == this->max_reductions)
+//             *dam_it = this->max_damage;
+//           else {
+//             /// update the damage on this quad
+//             *dam_it =
+//                 1. - (1. / std::pow(this->reduction_constant, *reduction_it));
+//             /// update the stiffness on this quad
+//             *Sc_it = (*eps_u_it) * (1. - (*dam_it)) * this->E * (*D_it) /
+//                      ((1. - (*dam_it)) * this->E + (*D_it));
 //           }
 //           nb_damaged_elements += 1;
 //         }
@@ -220,24 +274,29 @@ namespace akantu {
 //     }
 //   }
 
-//   auto * rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+//   auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
 //   if (rve_model == NULL) {
 //     const auto & comm = this->model.getMesh().getCommunicator();
 //     comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
 //   }
-
 //   AKANTU_DEBUG_OUT();
 //   return nb_damaged_elements;
 // }
 // /* -------------------------------------------------------------------------- */
 // template <UInt spatial_dimension>
-// void MaterialDamageIterative<spatial_dimension>::updateEnergiesAfterDamage(
+// void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateEnergiesAfterDamage(
 //     ElementType el_type, GhostType ghost_type) {
 //   parent::updateEnergies(el_type, ghost_type);
 // }
 
 /* -------------------------------------------------------------------------- */
+template<UInt dim>
+class MaterialDamageIterativeViscoelastic : public MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell> {
+public:
+  MaterialDamageIterativeViscoelastic(SolidMechanicsModel & model,
+                                      const ID & id = "") : MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell>(model, id) {}
+};
 
-INSTANTIATE_MATERIAL(damage_iterative, MaterialDamageIterative);
+INSTANTIATE_MATERIAL(damage_iterative_viscoelastic, MaterialDamageIterativeViscoelastic);
 
 } // namespace akantu
