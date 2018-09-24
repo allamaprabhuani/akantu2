@@ -1,5 +1,5 @@
 /**
- * @file   contact_pair.hh
+ * @file   contact_element.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
@@ -29,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_CONTACT_PAIR_HH__
-#define __AKANTU_CONTACT_PAIR_HH__
+#ifndef __AKANTU_CONTACT_ELEMENT_HH__
+#define __AKANTU_CONTACT_ELEMENT_HH__
 
 /* -------------------------------------------------------------------------- */
 #include "contact_facet.hh"
@@ -38,15 +38,15 @@
 
 namespace akantu {
 
-class ContactPair {
+class ContactElement {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactPair();
+  ContactElement();
 
-  ~ContactPair();
+  ~ContactElement();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -69,19 +69,14 @@ public:
 private:
   /// slave node
   UInt slave;
-  
   /// master node or element
-  ContactFacet master;
-
+  std::vector<ContactFacet> masters;
   /// gap
   Real gap;
-
   /// area
   Real area;
-
   /// penalty;
   Real penalty;
-
   /// multiplier
   Real lambda;
   
@@ -92,4 +87,4 @@ private:
 
 
 
-#endif /* __AKANTU_CONTACT_PAIR_HH__ */
+#endif /* __AKANTU_CONTACT_ELEMENT_HH__ */

@@ -34,10 +34,11 @@
 
 /* -------------------------------------------------------------------------- */
 #include "model.hh"
+#inlcude "fe_engine.hh"
 #include "data_accessor.hh"
 #include "contact_resolution.hh"
-#include "detection.hh"
-#include "contact_pair.hh"
+#include "contact_detection.hh"
+#include "contact_element.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
 /* -------------------------------------------------------------------------- */
@@ -47,7 +48,8 @@ namespace akantu {
 
 class ContactMechanicsModel
   : public Model,
-    public DataAccessor<Element> {
+    public DataAccessor<Element>,
+    public DataAccessor<UInt> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
@@ -62,13 +64,24 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// initialize completely the model
+  void initFullImpl(
+     const ModelOptions & options = ContactMechanicsModel()) override;
+
+  /// initialize the model
+  void initModel() override;
+
+  /// function to print the contents of the class
+  void printself(std::ostream & stream, int indent = 0) const override;
+  
 public:
-  /// initialize contact parallelization
-  virtual void initParallel();
   ///
-  bool createContactPairs();
+  void initResolution(ContactResolutionType);
   ///
-  bool solveContact();
+  bool createContactElements();
+  ///
+  bool solve();
   
 
   /* ------------------------------------------------------------------------ */
@@ -94,7 +107,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 private:
   ///
-  std::vector<ContactPair> pair;
+  std::vector<ContactElement> element;
   
   ///
   ContactResolution & resolution;

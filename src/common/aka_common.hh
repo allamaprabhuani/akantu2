@@ -365,6 +365,12 @@ enum GhostType {
   _casper // not used but a real cute ghost
 };
 
+/// @enum ContactElementType type of contact element
+enum ContactElementType {
+  _node_to_node,
+  _node_to_segment
+};
+  
 /// @enum ContactResolutionType type of contact resolution
 enum ContactResolutionType {
   _crt_penalty,
