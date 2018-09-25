@@ -41,9 +41,16 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(NormMaxEquivalentStress,
                              norm_max_equivalent_stress, Real &);
 
+  /// get average normalized equivalent stress
+  AKANTU_GET_MACRO(NormAvEquivalentStress, norm_av_equivalent_stress, Real);
+
 protected:
   /// maximum equivalent stress
   Real norm_max_equivalent_stress;
+
+  /// average equivalent stress
+  Real norm_av_equivalent_stress;
+
 };
 
 /**
@@ -88,8 +95,8 @@ public:
                                     ElementType el_type,
                                     GhostType ghost_type = _not_ghost);
 
-  /// find max normalized equivalent stress
-  void findMaxNormalizedEquivalentStress(ElementType el_type,
+  /// find max and average normalized equivalent stress
+  void findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
                                          GhostType ghost_type = _not_ghost);
 
 protected:

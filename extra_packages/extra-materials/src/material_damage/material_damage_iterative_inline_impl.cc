@@ -88,9 +88,11 @@ template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeAllStresses(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  /// reset normalized maximum equivalent stress
-  if (ghost_type == _not_ghost)
+  /// reset normalized maximum and average equivalent stresses
+  if (ghost_type == _not_ghost) {
     norm_max_equivalent_stress = 0;
+    norm_av_equivalent_stress = 0;
+  }
 
   parent::computeAllStresses(ghost_type);
 
@@ -100,6 +102,9 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeAllStress
     /// is no RVE model
     const auto & comm = this->model.getMesh().getCommunicator();
     comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
+    comm.allReduce(norm_av_equivalent_stress, SynchronizerOperation::_max); //Emil:
+                                                                            //think
+                                                                            //about it
   }
   AKANTU_DEBUG_OUT();
 }
@@ -107,27 +112,18 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeAllStress
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    findMaxNormalizedEquivalentStress(ElementType el_type,
+    findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   if (ghost_type == _not_ghost) {
 
-    // const Array<Real> & e_stress = equivalent_stress(el_type);
-
-    // if (e_stress.begin() != e_stress.end() ) {
-    //   auto equivalent_stress_it_max =
-    //   std::max_element(e_stress.begin(),e_stress.end());
-    //   /// check if max equivalent stress for this element type is greater
-    //   than the current norm_max_eq_stress
-    //   if (*equivalent_stress_it_max > norm_max_equivalent_stress)
-    //  norm_max_equivalent_stress = *equivalent_stress_it_max;
-    // }
     const Array<Real> & e_stress = equivalent_stress(el_type);
     auto equivalent_stress_it = e_stress.begin();
     auto equivalent_stress_end = e_stress.end();
     Array<Real> & dam = this->damage(el_type);
     auto dam_it = dam.begin();
+    UInt counter = 0;
 
     for (; equivalent_stress_it != equivalent_stress_end;
          ++equivalent_stress_it, ++dam_it) {
@@ -138,7 +134,10 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
           *dam_it < max_damage) {
         norm_max_equivalent_stress = *equivalent_stress_it;
       }
+      norm_av_equivalent_stress += *equivalent_stress_it;
+      counter += 1;
     }
+    norm_av_equivalent_stress /= counter;
   }
   AKANTU_DEBUG_OUT();
 }
@@ -162,7 +161,8 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeStress(
   computeNormalizedEquivalentStress(this->gradu(el_type, ghost_type), el_type,
                                     ghost_type);
   norm_max_equivalent_stress = 0;
-  findMaxNormalizedEquivalentStress(el_type, ghost_type);
+  norm_av_equivalent_stress = 0;
+  findMaxAndAvNormalizedEquivalentStress(el_type, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
