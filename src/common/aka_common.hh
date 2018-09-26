@@ -372,10 +372,10 @@ enum class ContactElementType {
 };
   
 /// @enum ContactResolutionType type of contact resolution
-enum class ContactResolutionType {
-  _crt_penalty,
-  _crt_lagrangian,
-  _crt_augmented_lagrangian
+enum class ContactResolutionMethod {
+  _penalty,
+  _lagrangian,
+  _augmented_lagrangian
 };
 
 }

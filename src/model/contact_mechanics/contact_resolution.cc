@@ -54,6 +54,16 @@ void ContactResolution::checkIfTypeIsSupported() {
 		     << this->id << "!");
   }
 }
+
+/* -------------------------------------------------------------------------- */
+void ContactResolution::resolutionStep() {
+  AKANTU_DEBUG_IN();
+
+  
+
+  AKANTU_DEBUG_OUT();
+
+}
   
 }
 

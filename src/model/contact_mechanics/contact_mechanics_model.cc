@@ -34,35 +34,93 @@
 namespace akantu {
 
 template<Model model>  
-ContactMechanicsModel<model>::ContactMechanicsModel() {
+ContactMechanicsModel<model>::ContactMechanicsModel(const ID & id,
+						    const MemoryID & memory_id) 
+  : Memory(id, memory_id), mesh(model.getMesh() ) {
+
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template<Model model>
+void ContactMechanicsModel<model>::initFullImpl(const ContactModelOptions & options) {
+  AKANTU_DEBUG_IN();
+
+  resolution_method = options.resolution_method;
+  if (!this->hasDefaultResolution()) {
+    this->initNewResolution(this->resolution_method);
+  }
+  
+  
+  AKANTU_DEBUG_OUT();
 
 }
 
 /* -------------------------------------------------------------------------- */
 template<Model model>
-ContactMechanicsModel<model>::initFull() {
+void ContactMechanicsModel<model>::createContactElements() {
 
+  // based on type of detection object
+  // pass the surfaces master and slave to create contact pairs
+  // let say detection system is node to segement and bucket sort
+
+  // only consider those slave nodes which doesnot have any othogonal
+  // projection on its contact element
+  
+  // global search
+  // bounding box to determine possible slave nodes and master nodes
+  // (bucket sort - construct the grid in intersected bounding box)
+  // create 2 array As and Am which contains ith cell j nodes 
+  // 
+
+  // local search
+  // out of these arraye check each cell for closet node in that cell
+  // and neighbouring cells find the actual orthogonally closet
+  // check the projection of slave node on master facets connected to
+  // the closet master node, if yes update teh contact element with
+  // slave node and master node and master surfaces connected to the
+  // master node
+  // these master surfaces will be needed later to update contact elements
+  
+  // once find insert it in contact_elements
+  
 }
 
 /* -------------------------------------------------------------------------- */
-template<Model model>
-ContactMechanicsModel<model>::createContactElements() {
+template<Model model>  
+void ContactMechanicsModel<model>::updateContactElements() {
+
 
 }
 
 /* -------------------------------------------------------------------------- */
 template<Model model>  
-ContactMechanicsModel<model>::initResolution(ContactResolutionType) {
+void ContactMechanicsModel<model>::initResolution(ContactResolutionType) {
 
 }
 
 /* -------------------------------------------------------------------------- */
 template<Model model>
-ContactMechanicsModel<model>::solve() {
+void ContactMechanicsModel<model>::solve() {
 
 }
 
 /* -------------------------------------------------------------------------- */  
+template<Model model>
+void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
+  std::string space;
+  for (Int i = 0; i < indent; space += AKANTU_INDENT) 
+    ;
 
+  stream << space << "Contact Mechanics Model [" << std::endl;
+  stream << space << " + id                  : " << id << std::endl;
+  stream << space << " + spatial dimension   : " << model.getSpatialDimension()
+	 << std::endl;
+  stream << space << AKANTU_INDENT << "]" << std::endl;
+
+  stream << space << "]" << std::endl;
+}
   
 } // namespace akantu

@@ -29,10 +29,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-
-/* -------------------------------------------------------------------------- */
+#include "aka_named_arguments.hh"
 #include "model.hh"
 #include "contact_resolution.hh"
 #include "contact_detection.hh"
@@ -41,10 +38,14 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 
+
+#ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+
 namespace akantu {
 
 template<Model model>
-class ContactMechanicsModel {
+class ContactMechanicsModel : public Memory {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
@@ -60,13 +61,39 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// initialize completely the model
-  void initFull(const ModelOptions & options = ContactMechanicsModel());
+  void initFullImpl(const ContactModelOptions & options);
+
+  ///
+  void initModel();
+
+  /// function to print the content of the class
+  void printself(std::ostream &, int = 0) const;
   
 public:
-  ///
-  void initResolution(ContactResolutionType);
-  ///
-  bool createContactElements();
+#ifndef SWIG
+  template <typename... pack>
+  std::enable_if_t<are_named_argument<pack...>::value>
+  initFull(pack &&... _pack) {
+    this->initFullImpl(ContactModelOptions{
+	use_named_args, std::forward<decltype(_pack)>(_pack)...});
+  }
+
+  template <typename... pack>
+  std::enable_if_t<not are_named_argument<pack...>::value>
+  initFull(pack &&... _pack) {
+    this->initFullImpl(std::forward<decltype(_pack)>(_pack)...);
+  }
+#endif
+  
+  /// initialize a new resolution if needed
+  void initNewResolution(const ContactResolutionMethod & resolution_method);
+
+  /// create contact elements
+  void createContactElements();
+
+  /// update contact elements after resolution
+  void updateContactElements();
+  
   ///
   bool solve();
   
@@ -87,19 +114,49 @@ public:
                          const SynchronizationTag & tag) override;
 
 protected:
-  friend class Detection;
-  
+    
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  ///
+
+  /// mesh inherited from class Model
+  Mesh & mesh;
+
+  /// 
   std::vector<ContactElement> element;
-  
-  ///
-  ContactResolution & resolution;
+   
+  /// resolution method check the list in akantu::ContactresolutionMethod
+  ContactResolutionMethod resolution_method;
   
 };
+
+/// standard output stream operator
+inline std::ostream & operator<<(std::ostream & stream, const ContactMechanicsModel & _this) {
+  _this.printself(stream);
+  return stream;
+}
+
+  
+namespace {
+  DECLARE_NAMED_ARGUMENT(resolution_method);
+}
+  
+struct ContactModelOptions {
+  explicit ContactModelOptions(ContactResolutionMethod resolution_method =
+			       ContactResolutionMethod::_penalty)  
+    : resolution_method(resolution_method) {}
+
+  template<typename... pack>    
+  ContactModelOptions(use_named_args_t, pack &&... _pack)
+    : ContactModelOptions(OPTIONAL_NAMED_ARGS(resolution_method,
+					      ContactResolutionMethod::_penalty)) {}
+
+  virtual ~ContactModelOptions() = default;
+
+  ContactResolutionMethod resolution_method;
+};
+  
 
 }
 

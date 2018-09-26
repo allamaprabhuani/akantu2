@@ -1,12 +1,12 @@
 /**
- * @file contact_detection.hh
+ * @file   coupler.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Wed Sep 12 2018
- * @date last modification: Fri Sep 21 2018
+ * @date creation: Wed Sep 26 2018
+ * @date last modification: Wed Sep 26 2018
  *
- * @brief  Mother class for all detection algorithms
+ * @brief  Interface of a coupler
  *
  * @section LICENSE
  *
@@ -29,47 +29,24 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "coupler.hh"
+/* -------------------------------------------------------------------------- */
 
-
-
-#ifndef __AKANTU_CONTACT_DETECTION_HH__
-#define __AKANTU_CONTACT_DETECTION_HH__
-
+#ifndef __AKANTU_STAGGERED_COUPLER_HH__
+#define __AKANTU_STAGGERED_COUPLER_HH__
 
 namespace akantu {
 
-class ContactDetection {
-
+template<typename... model>  
+class StaggeredCoupler : public Coupler {
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactDetection();
-
-  ~ContactDetection() = default;
-
-  /* ------------------------------------------------------------------------ */
-  /* Members                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
-  ///
-  virtual void search();
-
-private:
-  ///
-  void globalSearch();
-
-  ///
-  void localSearch();
   
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-
 
 };
-  
-} // namespace akantu
 
+} // akantu
 
-#endif /* __AKANTU_CONTACT_DETECTION_HH__ */
+#endif /* __AKANTU_STAGGERED_COUPLER_HH__ */
