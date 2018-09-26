@@ -366,19 +366,21 @@ enum GhostType {
 };
 
 /// @enum ContactElementType type of contact element
-enum ContactElementType {
+enum class ContactElementType {
   _node_to_node,
   _node_to_segment
 };
   
 /// @enum ContactResolutionType type of contact resolution
-enum ContactResolutionType {
+enum class ContactResolutionType {
   _crt_penalty,
   _crt_lagrangian,
   _crt_augmented_lagrangian
 };
 
 }
+
+} // namespace akantu
 
 #ifndef SWIG
 AKANTU_ENUM_HASH(GhostType)
