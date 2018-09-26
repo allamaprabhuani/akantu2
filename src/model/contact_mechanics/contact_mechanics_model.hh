@@ -34,8 +34,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "model.hh"
-#inlcude "fe_engine.hh"
-#include "data_accessor.hh"
 #include "contact_resolution.hh"
 #include "contact_detection.hh"
 #include "contact_element.hh"
@@ -44,20 +42,16 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-  
 
-class ContactMechanicsModel
-  : public Model,
-    public DataAccessor<Element>,
-    public DataAccessor<UInt> {
+template<Model model>
+class ContactMechanicsModel {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactMechanicsModel(SolidMechanics & Model, const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0,
-			const ModelType model_type = ModelType::_contact_mechanics_model);
+  ContactMechanicsModel(const ID & id = "contact_mechanics_model",
+			const MemoryID & memory_id = 0);
 
   ~ContactMechanicsModel() override;
 
@@ -66,14 +60,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// initialize completely the model
-  void initFullImpl(
-     const ModelOptions & options = ContactMechanicsModel()) override;
-
-  /// initialize the model
-  void initModel() override;
-
-  /// function to print the contents of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
+  void initFull(const ModelOptions & options = ContactMechanicsModel());
   
 public:
   ///
@@ -111,9 +98,6 @@ private:
   
   ///
   ContactResolution & resolution;
-
-  ///
-  SolidMechanicsModel & model;
   
 };
 
