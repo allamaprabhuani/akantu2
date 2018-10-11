@@ -32,3 +32,37 @@
 #include "contact_detection.hh"
 /* -------------------------------------------------------------------------- */
 
+namespace akantu {
+
+ContactDetection::ContactDetection() {
+  
+
+  
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactDetection::globalSearch() {
+  // global search
+  // bounding box to determine possible slave nodes and master nodes
+  // (bucket sort - construct the grid in intersected bounding box)
+  // create 2 array As and Am which contains ith cell j nodes 
+  
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactDetection::localSearch() {
+
+  // local search
+  // out of these arraye check each cell for closet node in that cell
+  // and neighbouring cells find the actual orthogonally closet
+  // check the projection of slave node on master facets connected to
+  // the closet master node, if yes update teh contact element with
+  // slave node and master node and master surfaces connected to the
+  // master node
+  // these master surfaces will be needed later to update contact elements
+
+}
+  
+
+
+} // akantu
