@@ -44,8 +44,14 @@ ContactDetection::ContactDetection() {
 void ContactDetection::globalSearch() {
   // global search
   // bounding box to determine possible slave nodes and master nodes
+  // create bounding boxes from slave and master surfaces
+  // BBbox 
+
   // (bucket sort - construct the grid in intersected bounding box)
   // create 2 array As and Am which contains ith cell j nodes 
+  // need to find nodes int he intersecting box
+  // based on the position of the node, a cell can be assigned
+  // given in report
   
 }
 
