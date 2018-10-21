@@ -29,7 +29,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
+#include "aka_common.hh"
+#include "aka_memory.hh"
+#include "aka_grid_dynamic.hh"
+#include "aka_bbox.hh"
+#include "mesh.hh"
+#include "mesh_io.hh"
+/* -------------------------------------------------------------------------- */
 
 
 #ifndef __AKANTU_CONTACT_DETECTION_HH__
@@ -46,6 +52,8 @@ class ContactDetection {
 public:
   ContactDetection();
 
+  ContactDetection(Mesh &);
+
   ~ContactDetection() = default;
 
   /* ------------------------------------------------------------------------ */
@@ -61,10 +69,23 @@ private:
 
   ///
   void localSearch();
+
+  ///
+  void constructGrid(SpatialGrid<Element> &);
+
+  ///
+  void constructBoundingBox(BBox &, const Array<UInt> &);
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+private:
+
+  ///
+  UInt spatial_dimension{0};
+
+  /// Mesh
+  Mesh & mesh;
 
 
 };
