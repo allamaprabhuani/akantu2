@@ -61,7 +61,7 @@ public:
   AKANTU_GET_MACRO(Slave, slave, UInt);
 
   /// get the master facet
-  AKANTU_GET_MACRO(Master, master, ContactFacet);
+  AKANTU_GET_MACRO(Master, masters, ContactFacet);
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

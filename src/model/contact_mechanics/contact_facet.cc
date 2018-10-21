@@ -34,10 +34,10 @@
 
 namespace akantu {
 
-ContactElement::ContactElement(SolidMechanicsModel & model, ElementType type,
+  /*ContactElement::ContactElement(SolidMechanicsModel & model, ElementType type,
 			       UInt id, GhostType ghost_type = _not_ghost)
   : Element(type, id, ghost_type), model(&model) {
   this->connectivity = &model.getMesh().getCponnectivity(type, ghost_type)(id);
-}
+  }*/
 
 } // akantu

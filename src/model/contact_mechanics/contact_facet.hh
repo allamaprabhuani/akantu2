@@ -48,7 +48,7 @@ class ContactFacet :
 public:
   ContactFacet();
 
-  ContactFacet(SolidMechanicsModel &, ElementType, UInt, GhostType);
+  //ContactFacet(SolidMechanicsModel &, ElementType, UInt, GhostType);
 
   ~ContactFacet() = default;
 
@@ -74,7 +74,7 @@ public:
 private:
 
   UInt                * connectivity;
-  SolidMechanicsModel * model;
+  //SolidMechanicsModel * model;
   
   
 };

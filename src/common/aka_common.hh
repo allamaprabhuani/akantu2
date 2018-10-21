@@ -214,7 +214,8 @@ enum class ModelType {
   _solid_mechanics_model_cohesive,
   _heat_transfer_model,
   _structural_mechanics_model,
-  _embedded_model
+  _embedded_model,
+  _contact_mechanics_model
 };
 #endif
 
@@ -225,7 +226,8 @@ enum AnalysisMethod {
   _implicit_dynamic = 1,
   _explicit_lumped_mass = 2,
   _explicit_lumped_capacity = 2,
-  _explicit_consistent_mass = 3
+  _explicit_consistent_mass = 3,
+  _explicit_contact_penalty = 4
 };
 
 /// enum DOFSupportType defines which kind of dof that can exists
@@ -368,13 +370,6 @@ enum class ContactElementType {
   _node_to_segment
 };
   
-/// @enum ContactResolutionType type of contact resolution
-enum class ContactResolutionMethod {
-  _penalty,
-  _lagrangian,
-  _augmented_lagrangian
-};
-
 /// Define the flag that can be set to a node
 enum class NodeFlag : std::uint8_t {
   _normal = 0x00,

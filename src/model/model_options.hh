@@ -134,6 +134,29 @@ struct EmbeddedInterfaceModelOptions : SolidMechanicsModelOptions {
 };
 #endif
 
+
+#ifdef AKANTU_CONTACT_MECHANICS
+namespace {
+  DECLARE_NAMED_ARGUMENT(is_explicit);
+}
+/* -------------------------------------------------------------------------- */
+struct ContactMechanicsModelOptions : public ModelOptions {
+  explicit ContactMechanicsModelOptions(
+      AnalysisMethod analysis_method = _explicit_contact_penalty,
+      bool explicit = true)
+    : ModelOptions(analysis_method), is_explicit(explicit) {}
+
+  template <typename... pack>
+  ContactMechanicsModelOptions(use_named_args_t, pack &&... _pack)
+      : ContactMechanicsModelOptions(
+	      OPTIONAL_NAMED_ARG(analysis_method, _explicit_contact_penalty),
+	      OPTIONAL_NAMED_ARG(is_explicit, true)) {}
+
+    bool is_explicit{true};
+};
+#endif
+
+  
 } // akantu
 
 #endif /* __AKANTU_MODEL_OPTIONS_HH__ */

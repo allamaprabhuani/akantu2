@@ -34,17 +34,35 @@
 
 namespace akantu {
 
-ContactDetection::ContactDetection() {
+ContactDetection::ContactDetection()
+  : mesh(nullptr) {
    
 }
 
   
-  ContactDetection::ContactDetection(Mesh & mesh)
-    : mesh(mesh) {
-    
-    this->spatial_dimension = mesh.getSpatialDimension();
+ContactDetection::ContactDetection(Mesh & mesh)
+  : mesh(mesh) {
+  
+  this->spatial_dimension = mesh.getSpatialDimension();
+  this->computeMaximalDetectionDistance();
+  
 }
 
+/* -------------------------------------------------------------------------- */
+void ContactDetection::computeMaximalDetectionDistance() {
+
+  auto & master_elements =
+    mesh.getElementGroup(master_id);
+
+  for (auto & element: master_elements) {
+    // something to calculate in radius or length of the element
+    // if (length > d_max) {
+    //   d_max = length;
+    //}
+  }
+  
+}
+  
   
 /* -------------------------------------------------------------------------- */
 void ContactDetection::globalSearch() {
@@ -53,10 +71,10 @@ void ContactDetection::globalSearch() {
   // create bounding boxes from slave and master surfaces
   
   auto & master_list =
-    mesh.getElementgroup(master_id).getNodeGroup().getNodes();
+    mesh.getElementGroup(master_id).getNodeGroup().getNodes();
 
   auto & slave_list =
-    mesh.getElementgroup(slave_id).getNodeGroup().getNodes();
+    mesh.getElementGroup(slave_id).getNodeGroup().getNodes();
    
   BBox bbox_master(spatial_dimension);
   this->constructBoundingBox(bbox_master, master_list);
@@ -66,27 +84,24 @@ void ContactDetection::globalSearch() {
   
   auto && bbox_intersection =
     bbox_master.intersection(bbox_slave);
-  
+ 
+  Vector<Real> center(spatial_dimension);
+  bbox_intersection.getCenter(center);
+
+  // define the spacing or size of cells
+  Vector<Real> spacing(spatial_dimension);
+  this->computeCellSpacing(spacing);
+
+  SpatialGrid<Element> grid(spatial_dimension, spacing, center);
+  this->constructGrid(grid);
+
+    
   // (bucket sort - construct the grid in intersected bounding box)
   // create 2 array As and Am which contains ith cell j nodes 
   // need to find nodes int he intersecting box
   // based on the position of the node, a cell can be assigned
   // given in report
 
-   
-  // get the upper bound for bbox
-  // get the lower bound for bbox
-  // compute the center of the box
-  const auto & lower = bbox_intersection.getLowerBounds();
-  const auto & upper = bbox_intersection.getUpperBounds();
-
-  Vector<Real> center = upper;
-  center += lower;
-  center /= 2.;
-
-  // define the spacing or size of cells
-  //  SpatialGrid<Element> grid(spatial_dimension, spacing, center);
-  // 
   
 }
 
@@ -106,6 +121,7 @@ void ContactDetection::localSearch() {
 
 /* -------------------------------------------------------------------------- */
 void ContactDetection::constructGrid(SpatialGrid<Element> & grid) {
+
   Vector<Real> bary(spatial_dimension);
   Element el;
   el.ghost_type = _not_ghost;
@@ -117,31 +133,42 @@ void ContactDetection::constructGrid(SpatialGrid<Element> & grid) {
     el.type = *it;
     for (UInt e = 0; e < nb_element; ++e) {
       el.element = e;
-      mesh.getBaryCenter(el, bary);
+      mesh.getBarycenter(el, bary);
       grid.insert(el, bary);
     }
   }
+  
 }
 
 /* -------------------------------------------------------------------------- */  
-  void ContactDetection::constructBoundingBox(BBox & bbox, const Array<UInt> & nodes_list) {
+void ContactDetection::constructBoundingBox(BBox & bbox, const Array<UInt> & nodes_list) {
 
+  const auto & positions = mesh.getNodes();
+  
   auto to_position = [&](UInt node) {
     Vector<Real> pos(spatial_dimension);
-    for (Uint s: arange(spatial_dimension)) {
+    for (UInt s: arange(spatial_dimension)) {
       pos(s) = positions(node, s);
     }
-    auto && info = NodeInfo(node, pos, direction);
+    auto && info = NodeInfo(node, pos);
     bbox += info.position;
     return info;
   };
 
-  std::vector<NodeInfo> nodes(master_list.size());
+  std::vector<Real> nodes(nodes_list.size());
 
   std::transform(nodes_list.begin(), nodes_list.end(), nodes.begin(),
-		 to_position);
+		 to_position); 
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactDetection::computeCellSpacing(Vector<Real> & spacing) {
+
+  Real w{0.};
+  w = std::sqrt(2.0) * d_max;
   
 }
+  
 
   
 } // akantu

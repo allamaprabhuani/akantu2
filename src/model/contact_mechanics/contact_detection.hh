@@ -44,6 +44,24 @@
 
 namespace akantu {
 
+struct NodeInfo {
+    NodeInfo() {}
+    NodeInfo(UInt spatial_dimension) : position(spatial_dimension) {}
+    NodeInfo(UInt node, const Vector<Real> & position)
+        : node(node), position(position) {
+    }
+
+    NodeInfo(const NodeInfo & other)
+        : node(other.node), position(other.position)
+    {}
+
+    UInt node{0};
+    Vector<Real> position;
+  };
+  
+  
+
+  
 class ContactDetection {
 
   /* ------------------------------------------------------------------------ */
@@ -75,12 +93,20 @@ private:
 
   ///
   void constructBoundingBox(BBox &, const Array<UInt> &);
+
+  ///
+  void computeCellSpacing(Vector<Real> &);
+
+  ///
+  void computeMaximalDetectionDistance();
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
+  /// maximal detection distance
+  Real d_max;
+  
   ///
   UInt spatial_dimension{0};
 

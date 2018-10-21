@@ -35,8 +35,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-ContactResolution::ContactResolution(const ContactResolutionType & contact_resolution_type,
-		       const ID & id) {
+ContactResolution::ContactResolution(const ID & id) {
 
   
 }
@@ -45,7 +44,7 @@ ContactResolution::ContactResolution(const ContactResolutionType & contact_resol
 ContactResolution::~ContactResolution() = default;
 
 /* -------------------------------------------------------------------------- */
-void ContactResolution::checkIfTypeIsSupported() {
+/*void ContactResolution::checkIfTypeIsSupported() {
   if (this->supported_type.find(this->contact_resolution_type) ==
       this->supported_type.end()) {
     AKANTU_EXCEPTION("The contact resolution method"
@@ -53,7 +52,7 @@ void ContactResolution::checkIfTypeIsSupported() {
 		     << " is not implemented in the contact resolution "
 		     << this->id << "!");
   }
-}
+}*/
 
 /* -------------------------------------------------------------------------- */
 void ContactResolution::resolutionStep() {

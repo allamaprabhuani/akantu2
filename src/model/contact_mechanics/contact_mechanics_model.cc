@@ -33,10 +33,11 @@
 
 namespace akantu {
 
-template<Model model>  
-ContactMechanicsModel<model>::ContactMechanicsModel(const ID & id,
-						    const MemoryID & memory_id) 
-  : Memory(id, memory_id), mesh(model.getMesh() ) {
+  ContactMechanicsModel::ContactMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
+					       const MemoryID & memory_id,
+					       const ModelType model_type) 
+    : Model(mesh, model_type, dim, id,  memory_id),
+      mesh(mesh) {
 
   AKANTU_DEBUG_IN();
 
@@ -44,14 +45,13 @@ ContactMechanicsModel<model>::ContactMechanicsModel(const ID & id,
 }
 
 /* -------------------------------------------------------------------------- */
-template<Model model>
-void ContactMechanicsModel<model>::initFullImpl(const ContactModelOptions & options) {
+void ContactMechanicsModel::initFullImpl(const ModelOptions & options) {
   AKANTU_DEBUG_IN();
 
-  resolution_method = options.resolution_method;
+  /*resolution_method = options.analysis_method;
   if (!this->hasDefaultResolution()) {
     this->initNewResolution(this->resolution_method);
-  }
+    }*/
   
   
   AKANTU_DEBUG_OUT();
@@ -59,8 +59,7 @@ void ContactMechanicsModel<model>::initFullImpl(const ContactModelOptions & opti
 }
 
 /* -------------------------------------------------------------------------- */
-template<Model model>
-void ContactMechanicsModel<model>::createContactElements() {
+void ContactMechanicsModel::createContactElements() {
 
   // based on type of detection object
   // pass the surfaces master and slave to create contact pairs
@@ -89,28 +88,24 @@ void ContactMechanicsModel<model>::createContactElements() {
 }
 
 /* -------------------------------------------------------------------------- */
-template<Model model>  
-void ContactMechanicsModel<model>::updateContactElements() {
+void ContactMechanicsModel::updateContactElements() {
 
 
 }
 
 /* -------------------------------------------------------------------------- */
-template<Model model>  
-void ContactMechanicsModel<model>::initResolution(ContactResolutionType) {
+//void ContactMechanicsModel::initResolution() {
 
-}
+//}
 
 /* -------------------------------------------------------------------------- */
-template<Model model>
-void ContactMechanicsModel<model>::solve() {
+//void ContactMechanicsModel::solve() {
 
-}
+//}
 
 /* -------------------------------------------------------------------------- */  
-template<Model model>
 void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
-  std::string space;
+  /*std::string space;
   for (Int i = 0; i < indent; space += AKANTU_INDENT) 
     ;
 
@@ -120,7 +115,7 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 	 << std::endl;
   stream << space << AKANTU_INDENT << "]" << std::endl;
 
-  stream << space << "]" << std::endl;
+  stream << space << "]" << std::endl;*/
 }
   
 } // namespace akantu

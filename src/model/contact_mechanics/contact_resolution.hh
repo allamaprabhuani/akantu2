@@ -50,8 +50,7 @@ class ContactResolution {
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactResolution( const ContactResolutionType & contact_resolution_type,
-	      const ID & id  = "contact_resolution");
+  ContactResolution(const ID & id  = "contact_resolution");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -69,10 +68,10 @@ public:
 protected:
 
   /// type of contact resolution
-  ContactResolutionType contact_resolution_type;
+  //ContactResolutionType contact_resolution_type;
 
   /// list of supported contact resolution solver type
-  std::set<ContactResolutionType> supported_type;
+  //std::set<ContactResolutionType> supported_type;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */

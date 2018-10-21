@@ -29,8 +29,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_named_arguments.hh"
+//#include "aka_named_arguments.hh"
 #include "model.hh"
+#include "data_accessor.hh"
 #include "contact_resolution.hh"
 #include "contact_detection.hh"
 #include "contact_element.hh"
@@ -44,15 +45,17 @@
 
 namespace akantu {
 
-template<Model model>
-class ContactMechanicsModel : public Memory {
-
+class ContactMechanicsModel :
+    public Model {
+  
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactMechanicsModel(const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0);
+  ContactMechanicsModel(
+	Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+	const ID & id = "contact_mechanics_model", const MemoryID & memory_id = 0,
+	const ModelType model_type = ModelType::_contact_mechanics_model);
 
   ~ContactMechanicsModel() override;
 
@@ -61,16 +64,17 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// initialize completely the model
-  void initFullImpl(const ContactModelOptions & options);
+  void initFullImpl(
+     const ModelOptions & options = ContactMechanicsModelOptions()) override;
 
   ///
-  void initModel();
+  void initModel() override;
 
   /// function to print the content of the class
-  void printself(std::ostream &, int = 0) const;
+  void printself(std::ostream &, int indent = 0) const override;
   
 public:
-#ifndef SWIG
+  /*#ifndef SWIG
   template <typename... pack>
   std::enable_if_t<are_named_argument<pack...>::value>
   initFull(pack &&... _pack) {
@@ -83,10 +87,10 @@ public:
   initFull(pack &&... _pack) {
     this->initFullImpl(std::forward<decltype(_pack)>(_pack)...);
   }
-#endif
+#endif*/
   
   /// initialize a new resolution if needed
-  void initNewResolution(const ContactResolutionMethod & resolution_method);
+  void initNewResolution();
 
   /// create contact elements
   void createContactElements();
@@ -102,7 +106,7 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
+  /*inline UInt getNbData(const Array<Element> & elements,
                         const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
@@ -111,7 +115,7 @@ public:
 
   inline void unpackData(CommunicationBuffer & buffer,
                          const Array<Element> & elements,
-                         const SynchronizationTag & tag) override;
+                         const SynchronizationTag & tag) override;*/
 
 protected:
     
@@ -127,37 +131,17 @@ private:
   std::vector<ContactElement> element;
    
   /// resolution method check the list in akantu::ContactresolutionMethod
-  ContactResolutionMethod resolution_method;
+  ContactResolution resolution_method;
   
 };
 
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream, const ContactMechanicsModel & _this) {
+/*inline std::ostream & operator<<(std::ostream & stream, const ContactMechanicsModel & _this) {
   _this.printself(stream);
   return stream;
-}
-
-  
-namespace {
-  DECLARE_NAMED_ARGUMENT(resolution_method);
-}
-  
-struct ContactModelOptions {
-  explicit ContactModelOptions(ContactResolutionMethod resolution_method =
-			       ContactResolutionMethod::_penalty)  
-    : resolution_method(resolution_method) {}
-
-  template<typename... pack>    
-  ContactModelOptions(use_named_args_t, pack &&... _pack)
-    : ContactModelOptions(OPTIONAL_NAMED_ARGS(resolution_method,
-					      ContactResolutionMethod::_penalty)) {}
-
-  virtual ~ContactModelOptions() = default;
-
-  ContactResolutionMethod resolution_method;
-};
-  
+  }*/
+ 
 
 }
 
-#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__
+#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__ */

@@ -103,6 +103,12 @@ public:
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
 #endif
+#ifdef AKANTU_CONTACT_MECHANICS
+    case ModelType::_contact_mechanics_model:
+      this->initFullImpl(ContactMechanicsModelOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif      
     default:
       this->initFullImpl(ModelOptions{use_named_args,
                                       std::forward<decltype(_pack)>(_pack)...});
