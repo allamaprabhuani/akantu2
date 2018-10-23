@@ -4,7 +4,7 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Wed Sep 12 2018
- * @date last modification: Fri Sep 21 2018
+ * @date last modification: Tue Oct 23 2018
  *
  * @brief  Mother class for all detection algorithms
  *
@@ -35,42 +35,29 @@
 #include "aka_bbox.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
+#include "fe_engine.hh"
+#include "parsable.hh"
+#include "element_group.hh"
 /* -------------------------------------------------------------------------- */
-
 
 #ifndef __AKANTU_CONTACT_DETECTION_HH__
 #define __AKANTU_CONTACT_DETECTION_HH__
 
 
-namespace akantu {
-
-struct NodeInfo {
-    NodeInfo() {}
-    NodeInfo(UInt spatial_dimension) : position(spatial_dimension) {}
-    NodeInfo(UInt node, const Vector<Real> & position)
-        : node(node), position(position) {
-    }
-
-    NodeInfo(const NodeInfo & other)
-        : node(other.node), position(other.position)
-    {}
-
-    UInt node{0};
-    Vector<Real> position;
-  };
+namespace akantu { 
   
-  
+/* -------------------------------------------------------------------------- */ 
 
-  
-class ContactDetection {
+class ContactDetection :
+    private Memory, public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactDetection();
-
-  ContactDetection(Mesh &);
+  
+  ContactDetection(Mesh &, std::string , std::string , const ID & id = "contact_detection",
+		   UInt memory_id = 0);
 
   ~ContactDetection() = default;
 
@@ -79,40 +66,44 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   ///
-  virtual void search();
+  void search();
 
-private:
-  ///
+  /// performs global spatial search
   void globalSearch();
 
-  ///
+  ///  performs local search to create contact element
   void localSearch();
 
-  ///
-  void constructGrid(SpatialGrid<Element> &);
+  /// constructs a grid containing nodes lying within bounding box
+  void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
 
-  ///
+  /// constructs the bounding box based on nodes list
   void constructBoundingBox(BBox &, const Array<UInt> &);
 
-  ///
+  /// computes the optimal cell size for grid 
   void computeCellSpacing(Vector<Real> &);
 
-  ///
-  void computeMaximalDetectionDistance();
+  /// computes the maximum in radius for a given mesh 
+  void getMaximalDetectionDistance();
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
   /// maximal detection distance
-  Real d_max;
+  Real max_dd;
   
-  ///
+  /// dimension of the model
   UInt spatial_dimension{0};
 
   /// Mesh
   Mesh & mesh;
 
+  /// id for master surface/curve
+  std::string master_id;
+
+  /// id for slave surface/curve
+  std::string slave_id;
 
 };
   

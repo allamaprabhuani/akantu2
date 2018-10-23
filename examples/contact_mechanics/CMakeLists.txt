@@ -1,12 +1,11 @@
 #===============================================================================
-# @file   contact_mechanics.cmake
+# @file   CMakeLists.txt
 #
-# @author Mohit Pundir <mohit.pundir@epfl.ch>
+# @author Mohit Pundir <mohit.anciaux@epfl.ch>
 #
-# @date creation: Sun Oct 21 2018
-# @date last modification: Sun Oct 21 2018
+# @date creation: Mon Jan 18 2016
 #
-# @brief  package description for contact mechanics
+# @brief  configuration for heat transfer example
 #
 # @section LICENSE
 #
@@ -27,18 +26,21 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
+# @section DESCRIPTION
+#
 #===============================================================================
 
-package_declare(contact_mechanics
-  DESCRIPTION "Use Contact Mechanics package of Akantu")
+add_mesh(hertz_2d hertz_2d.geo 2 1)
+add_mesh(hertz_3d hertz_3d.geo 3 1)
 
-package_declare_sources(contact_mechanics
-  model/contact_mechanics/contact_detection.hh
-  model/contact_mechanics/contact_detection.cc)
-
-package_declare_documentation_files(contact_mechanics
-  #manual-contactmechanicsmodel.tex
+register_example(contact_detection_2d
+  SOURCES contact_detection_2d.cc
+  DEPENDS hertz_2d
+  FILES_TO_COPY material.dat
   )
 
-package_declare_documentation(contact_mechanics
-  "This package activates the conatct ")
+register_example(contact_detection_3d
+  SOURCES contact_detection_3d.cc
+  DEPENDS hertz_3d
+  FILES_TO_COPY material.dat
+  )

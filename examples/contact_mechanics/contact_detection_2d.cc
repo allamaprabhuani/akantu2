@@ -1,12 +1,12 @@
 /**
- * @file   contact_element.hh
+ * @file   test_contact_detection.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Tue Sep 10 2018
- * @date last modification: Mon Sep 20 2018
+ * @date creation: Mon Oct 22 2018
+ * @date last modification: Mon Oct 22 2018
  *
- * @brief  mother class for contact elements
+ * @brief  Test for contact detection
  *
  * @section LICENSE
  *
@@ -29,15 +29,30 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "contact_facet.hh"
+
+#include <fstream>
+#include <iostream>
+
+/* -------------------------------------------------------------------------- */
+#include "contact_detection.hh"
 /* -------------------------------------------------------------------------- */
 
-namespace akantu {
+using namespace akantu;
 
-  /*ContactElement::ContactElement(SolidMechanicsModel & model, ElementType type,
-			       UInt id, GhostType ghost_type = _not_ghost)
-  : Element(type, id, ghost_type), model(&model) {
-  this->connectivity = &model.getMesh().getCponnectivity(type, ghost_type)(id);
-  }*/
+int main(int argc, char* argv[]) {
 
-} // akantu
+  initialize("material.dat", argc, argv);
+  const UInt spatial_diemnsion = 2;
+
+  Mesh mesh(spatial_diemnsion);
+  mesh.read("hertz_2d.msh");
+
+  ContactDetection detect(mesh, "rigid", "contact_surface");
+
+  //detect.set("master_surface", "rigid");
+  //detect.set("master_surface", "elastic");
+
+  detect.search();
+  
+  finalize();
+}

@@ -200,7 +200,8 @@ enum EventHandlerPriority {
   (solid_mechanics_model_cohesive)                                      \
   (heat_transfer_model)                                                 \
   (structural_mechanics_model)						\
-  (embedded_model)
+  (embedded_model)							\
+  (contact_mechanics_model)
 // clang-format on
 
 /// enum ModelType defines which type of physics is solved

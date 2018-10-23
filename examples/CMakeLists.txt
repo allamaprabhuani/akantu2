@@ -44,6 +44,7 @@ add_example(structural_mechanics "Structural mechanics model examples"          
 add_example(heat_transfer        "Example on how to run heat transfer simulation"      PACKAGE heat_transfer)
 add_example(python               "Example on how to use the python interface"          PACKAGE python_interface)
 add_example(embedded             "Example on how to run embedded model simulation"     PACKAGE embedded)
+add_example(contact_mechanics    "Example on how to run contact mechanics model simulation"     PACKAGE contact_mechanics)
 
 package_add_files_to_package(
   examples/README.rst

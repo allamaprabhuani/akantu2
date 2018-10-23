@@ -34,42 +34,73 @@
 
 namespace akantu {
 
-ContactDetection::ContactDetection()
-  : mesh(nullptr) {
-   
-}
 
-  
-ContactDetection::ContactDetection(Mesh & mesh)
-  : mesh(mesh) {
+/* -------------------------------------------------------------------------- */
+  ContactDetection::ContactDetection(Mesh & mesh,std::string master, std::string slave, const ID & id,
+				   UInt memory_id)
+  : Memory(id, memory_id),
+    Parsable(ParserType::_contact_detection, id),
+    mesh(mesh) {
   
   this->spatial_dimension = mesh.getSpatialDimension();
-  this->computeMaximalDetectionDistance();
+
+  this->registerParam("master_surface", master_id, _pat_parsmod,
+		      "Master surface id");
+  this->registerParam("slave_surface", slave_id, _pat_parsmod,
+		      "Slave surface id");
+
+  this->master_id = master;
+  this->slave_id = slave;
+  
+  this->getMaximalDetectionDistance();
   
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetection::computeMaximalDetectionDistance() {
+void ContactDetection::getMaximalDetectionDistance() {
 
-  auto & master_elements =
+  AKANTU_DEBUG_IN();
+
+  Real el_size;
+  Real max_el_size = std::numeric_limits<Real>::min();
+
+  auto & master_group =
     mesh.getElementGroup(master_id);
 
-  for (auto & element: master_elements) {
-    // something to calculate in radius or length of the element
-    // if (length > d_max) {
-    //   d_max = length;
-    //}
+  for (auto & type: master_group.elementTypes(spatial_dimension - 1, _not_ghost)) {
+
+    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+
+    Array<Real> coord(0, nb_nodes_per_element * spatial_dimension);
+    FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
+					 _not_ghost);
+    auto el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
+    UInt nb_element = mesh.getNbElement(type);
+
+    for (UInt el =0; el < nb_element; ++el, ++el_coord) {
+      el_size = FEEngine::getElementInradius(*el_coord, type);
+      max_el_size = std::max(max_el_size, el_size);
+    }
+
+    AKANTU_DEBUG_INFO("The maximum element size : "
+		      << max_el_size );    
   }
+
+  this->max_dd = max_el_size;
   
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactDetection::search() {
+  this->globalSearch();
+  this->localSearch();
 }
   
-  
+ 
 /* -------------------------------------------------------------------------- */
 void ContactDetection::globalSearch() {
-  // global search
-  // bounding box to determine possible slave nodes and master nodes
-  // create bounding boxes from slave and master surfaces
-  
+   
   auto & master_list =
     mesh.getElementGroup(master_id).getNodeGroup().getNodes();
 
@@ -88,56 +119,87 @@ void ContactDetection::globalSearch() {
   Vector<Real> center(spatial_dimension);
   bbox_intersection.getCenter(center);
 
-  // define the spacing or size of cells
   Vector<Real> spacing(spatial_dimension);
   this->computeCellSpacing(spacing);
 
-  SpatialGrid<Element> grid(spatial_dimension, spacing, center);
-  this->constructGrid(grid);
+  SpatialGrid<UInt> master_grid(spatial_dimension, spacing, center);
+  this->constructGrid(master_grid, bbox_intersection, master_list);
 
-    
+  SpatialGrid<UInt> slave_grid(spatial_dimension, spacing, center);
+  this->constructGrid(slave_grid, bbox_intersection, slave_list);
+  
+  if (AKANTU_DEBUG_TEST(dblDump)) {
+    Mesh mesh(spatial_dimension, "save");
+    master_grid.saveAsMesh(mesh);
+    mesh.write("grid.msh");
+  }
+
+  AKANTU_DEBUG_INFO( "Grid Details "
+		     << master_grid );
+  
   // (bucket sort - construct the grid in intersected bounding box)
   // create 2 array As and Am which contains ith cell j nodes 
   // need to find nodes int he intersecting box
   // based on the position of the node, a cell can be assigned
   // given in report
+  // the arrays are replaced by spatial grids 
 
-  
+  // TODO : increase the lower and upper bound for both bbox 
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactDetection::localSearch() {
 
   // local search
-  // out of these arraye check each cell for closet node in that cell
+  // out of these array check each cell for closet node in that cell
   // and neighbouring cells find the actual orthogonally closet
   // check the projection of slave node on master facets connected to
-  // the closet master node, if yes update teh contact element with
+  // the closet master node, if yes update the contact element with
   // slave node and master node and master surfaces connected to the
   // master node
   // these master surfaces will be needed later to update contact elements
 
+  // PART I
+  // for each cell in slave grid
+  // for each node in each cell
+  // check the corresponding and neighboring cell in master grid
+  // find the closet master mode
+
+  // PART II
+  // Once closet master node if found ,
+  // find the attached elements to it surface/line
+  // mesh.getAssociatedElements( function seems to be the key)
+
+  // PART III
+  // compute the orthogonal distance from each associated element
+
+  // PART IV
+  // create contact element,
+  // contact element should have one slave node and master facets
+
+  
+  
+  
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetection::constructGrid(SpatialGrid<Element> & grid) {
+void ContactDetection::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
+				     const Array<UInt> & nodes_list) {
 
-  Vector<Real> bary(spatial_dimension);
-  Element el;
-  el.ghost_type = _not_ghost;
+  const auto & positions = mesh.getNodes();
 
-  auto it = mesh.firstType(spatial_dimension);
-  auto last_type = mesh.lastType(spatial_dimension);
-  for (; it != last_type; ++it) {
-    UInt nb_element = mesh.getNbElement(*it);
-    el.type = *it;
-    for (UInt e = 0; e < nb_element; ++e) {
-      el.element = e;
-      mesh.getBarycenter(el, bary);
-      grid.insert(el, bary);
+  auto to_grid = [&](UInt node) {
+    Vector<Real> pos(spatial_dimension);
+    for (UInt s: arange(spatial_dimension)) {
+      pos(s) = positions(node, s);
     }
-  }
-  
+
+    if (bbox.contains(pos)) {
+      grid.insert(node, pos);
+    }
+  };
+
+  std::for_each(nodes_list.begin(), nodes_list.end(), to_grid);
 }
 
 /* -------------------------------------------------------------------------- */  
@@ -145,28 +207,24 @@ void ContactDetection::constructBoundingBox(BBox & bbox, const Array<UInt> & nod
 
   const auto & positions = mesh.getNodes();
   
-  auto to_position = [&](UInt node) {
+  auto to_bbox = [&](UInt node) {
     Vector<Real> pos(spatial_dimension);
     for (UInt s: arange(spatial_dimension)) {
       pos(s) = positions(node, s);
     }
-    auto && info = NodeInfo(node, pos);
-    bbox += info.position;
-    return info;
+    
+    bbox += pos;
   };
 
-  std::vector<Real> nodes(nodes_list.size());
-
-  std::transform(nodes_list.begin(), nodes_list.end(), nodes.begin(),
-		 to_position); 
+  std::for_each(nodes_list.begin(), nodes_list.end(), to_bbox); 
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactDetection::computeCellSpacing(Vector<Real> & spacing) {
 
-  Real w{0.};
-  w = std::sqrt(2.0) * d_max;
-  
+  for (UInt s: arange(spatial_dimension)) 
+    spacing(s) = std::sqrt(2.0) * max_dd;
+    
 }
   
 
