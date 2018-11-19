@@ -26,14 +26,37 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_iterative_stiffness_reduction.hh"
+#include "material_damage_iterative_viscoelastic.hh"
 #include "communicator.hh"
 #include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
-INSTANTIATE_MATERIAL(iterative_stiffness_reduction,
-                     MaterialIterativeStiffnessReduction);
+
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeTangentModuliOnQuad(
+    Matrix<Real> & tangent, Real & dam) {
+
+  Real dt = this->model.getTimeStep();
+  Real E_ef = this->Einf * (1 - dam);
+
+  for (UInt k = 0; k < this->Eta.size(); ++k) {
+    Real lambda = this->Eta(k) / this->Ev(k);
+    Real exp_dt_lambda = std::exp(-dt / lambda);
+    if (exp_dt_lambda == 1) {
+      E_ef += (1 - dam) * this->Ev(k);
+    } else {
+      E_ef += (1 - exp_dt_lambda) * (1 - dam) * this->Ev(k) * lambda / dt;
+    }
+  }
+
+  tangent.copy(this->C);
+  tangent *= E_ef;
+
+}
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

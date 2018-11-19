@@ -16,287 +16,38 @@
  */
 
 /* -------------------------------------------------------------------------- */
-//#include "material_damage_iterative.hh"
-#include "material_iterative_stiffness_reduction.hh"
-#include "material_viscoelastic_maxwell.hh"
-// #include "communicator.hh"
-// #include "data_accessor.hh"
-// #include "solid_mechanics_model_RVE.hh"
+#include "material_damage_iterative_viscoelastic.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// MaterialDamageIterativeViscoelastic<spatial_dimension>::MaterialDamageIterativeViscoelastic(
-//     SolidMechanicsModel & model, const ID & id)
-//     : parent(model, id), Sc("Sc", *this),
-//       reduction_step("damage_step", *this),
-//       equivalent_stress("equivalent_stress", *this), max_reductions(0),
-//       norm_max_equivalent_stress(0), eps_u("ultimate_strain", *this),
-//       D("tangent", *this), Gf(0.), crack_band_width(0.),
-//       reduction_constant(0.) {
-//   AKANTU_DEBUG_IN();
-
-//   this->registerParam("Sc", Sc, _pat_parsable, "critical stress threshold");
-//   this->registerParam("prescribed_dam", prescribed_dam, 0.1,
-//                       _pat_parsable | _pat_modifiable, "prescribed damage");
-//   this->registerParam(
-//       "dam_threshold", dam_threshold, 0.8, _pat_parsable | _pat_modifiable,
-//       "damage threshold at which damage damage will be set to 1");
-//   this->registerParam(
-//       "dam_tolerance", dam_tolerance, 0.01, _pat_parsable | _pat_modifiable,
-//       "damage tolerance to decide if quadrature point will be damageed");
-//   this->registerParam("max_damage", max_damage, 0.99999,
-//                       _pat_parsable | _pat_modifiable, "maximum damage value");
-//   this->registerParam("max_reductions", max_reductions, UInt(10),
-//                       _pat_parsable | _pat_modifiable, "max reductions");
-//   this->registerParam("Gf", Gf, _pat_parsable | _pat_modifiable,
-//                       "fracture energy");
-//   this->registerParam("crack_band_width", crack_band_width,
-//                       _pat_parsable | _pat_modifiable, "crack_band_width");
-//   this->registerParam("reduction_constant", reduction_constant, 2.,
-//                       _pat_parsable | _pat_modifiable, "reduction constant");
-
-//     this->use_previous_stress = true;
-//   this->use_previous_gradu = true;
-//   this->Sc.initialize(1);
-//   this->equivalent_stress.initialize(1);
-//   this->reduction_step.initialize(1);
-//   this->eps_u.initialize(1);
-//   this->D.initialize(1);
-
-//   AKANTU_DEBUG_OUT();
-// }
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialDamageIterativeViscoelastic<spatial_dimension>::initMaterial() {
-//   AKANTU_DEBUG_IN();
-//   parent::initMaterial();
-
-//   for (auto ghost_type : ghost_types) {
-//     /// loop over all types in the filter
-//     for (auto & el_type :
-//          this->element_filter.elementTypes(_ghost_type = ghost_type)) {
-//       /// get the stiffness on each quad point
-//       auto Sc_it = this->Sc(el_type, ghost_type).begin();
-//       /// get the tangent of the tensile softening on each quad point
-//       auto D_it = this->D(el_type, ghost_type).begin();
-//       auto D_end = this->D(el_type, ghost_type).end();
-//       /// get the ultimate strain on each quad
-//       auto eps_u_it = this->eps_u(el_type, ghost_type).begin();
-//       // compute the tangent and the ultimate strain for each quad
-//       for (; D_it != D_end; ++Sc_it, ++D_it, ++eps_u_it) {
-//         *eps_u_it = ((2. * this->Gf) / (*Sc_it * this->crack_band_width));
-//         *D_it = *(Sc_it) / ((*eps_u_it) - ((*Sc_it) / this->E));
-//       }
-//     }
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeTangentModuli(
+    const ElementType & el_type, Array<Real> & tangent_matrix,
+    GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
 
 
-// /* -------------------------------------------------------------------------- */
-// template <UInt dim>
-// void MaterialDamageIterativeViscoelastic<dim>::
-//     computeNormalizedEquivalentStress(const Array<Real> & grad_us,
-//                                       ElementType el_type,
-//                                       GhostType ghost_type) {
-//   AKANTU_DEBUG_IN();
-//   /// Vector to store eigenvalues of current stress tensor
-//   Vector<Real> eigenvalues(dim);
+  Array<Real> & dam = this->damage(el_type);
+  auto dam_it = dam.begin();
 
-//   for(auto && data: zip(make_view(this->stress(el_type, ghost_type), dim, dim),
-//                         make_view(Sc(el_type, ghost_type)),
-//                         make_view(equivalent_stress(el_type, ghost_type)))) {
+  Real dt = this->model.getTimeStep();
+  this->previous_dt = dt;
 
-//     const auto & sigma = std::get<0>(data);
-//     const auto & sigma_crit = std::get<1>(data);
-//     auto & sigma_equ = std::get<2>(data);
-//     /// compute eigenvalues
-//     sigma.eig(eigenvalues);
-//     /// find max eigenvalue and normalize by tensile strength
-//     sigma_equ = *(std::max_element(eigenvalues.storage(),
-//                            eigenvalues.storage() + dim)) /
-//         sigma_crit;
-//   }
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+  this->computeTangentModuliOnQuad(tangent, *dam_it);
+       ++dam_it;
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
-//   AKANTU_DEBUG_OUT();
-// }
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeAllStresses(
-//     GhostType ghost_type) {
-//   AKANTU_DEBUG_IN();
-//   /// reset normalized maximum equivalent stress
-//   if (ghost_type == _not_ghost)
-//     norm_max_equivalent_stress = 0;
+//  this->was_stiffness_assembled = true;
 
-//   parent::computeAllStresses(ghost_type);
-
-//   /// find global Gauss point with highest stress
-//   auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-//   if (rve_model == NULL) {
-//     /// is no RVE model
-//     const auto & comm = this->model.getMesh().getCommunicator();
-//     comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
-//   }
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialDamageIterativeViscoelastic<spatial_dimension>::
-//     findMaxNormalizedEquivalentStress(ElementType el_type,
-//                                       GhostType ghost_type) {
-//   AKANTU_DEBUG_IN();
-
-//   if (ghost_type == _not_ghost) {
-
-//     // const Array<Real> & e_stress = equivalent_stress(el_type);
-
-//     // if (e_stress.begin() != e_stress.end() ) {
-//     //   auto equivalent_stress_it_max =
-//     //   std::max_element(e_stress.begin(),e_stress.end());
-//     //   /// check if max equivalent stress for this element type is greater
-//     //   than the current norm_max_eq_stress
-//     //   if (*equivalent_stress_it_max > norm_max_equivalent_stress)
-//     // 	norm_max_equivalent_stress = *equivalent_stress_it_max;
-//     // }
-//     const Array<Real> & e_stress = equivalent_stress(el_type);
-//     auto equivalent_stress_it = e_stress.begin();
-//     auto equivalent_stress_end = e_stress.end();
-//     Array<Real> & dam = this->damage(el_type);
-//     auto dam_it = dam.begin();
-
-//     for (; equivalent_stress_it != equivalent_stress_end;
-//          ++equivalent_stress_it, ++dam_it) {
-//       /// check if max equivalent stress for this element type is greater than
-//       /// the current norm_max_eq_stress and if the element is not already fully
-//       /// damaged
-//       if (*equivalent_stress_it > norm_max_equivalent_stress &&
-//           *dam_it < max_damage) {
-//         norm_max_equivalent_stress = *equivalent_stress_it;
-//       }
-//     }
-//   }
-//   AKANTU_DEBUG_OUT();
-// }
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
-//     ElementType el_type, GhostType ghost_type) {
-//   AKANTU_DEBUG_IN();
-
-//   parent::computeStress(el_type, ghost_type);
-
-//   Real * dam = this->damage(el_type, ghost_type).storage();
-
-//   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-//   computeDamageAndStressOnQuad(sigma, *dam);
-//   ++dam;
-
-//   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-//   computeNormalizedEquivalentStress(this->gradu(el_type, ghost_type), el_type,
-//                                     ghost_type);
-//   norm_max_equivalent_stress = 0;
-//   findMaxNormalizedEquivalentStress(el_type, ghost_type);
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// UInt MaterialDamageIterativeViscoelastic<spatial_dimension>::updateDamage() {
-//   UInt nb_damaged_elements = 0;
-
-//   if (this->norm_max_equivalent_stress >= 1.) {
-
-//     AKANTU_DEBUG_IN();
-
-//     /// update the damage only on non-ghosts elements! Doesn't make sense to
-//     /// update on ghost.
-//     GhostType ghost_type = _not_ghost;
-//     ;
-
-//     Mesh::type_iterator it = this->model.getFEEngine().getMesh().firstType(
-//         spatial_dimension, ghost_type);
-//     Mesh::type_iterator last_type =
-//         this->model.getFEEngine().getMesh().lastType(spatial_dimension,
-//                                                      ghost_type);
-
-//     /// loop over all the elements
-//     for (; it != last_type; ++it) {
-//       ElementType el_type = *it;
-
-//       /// get iterators on the needed internal fields
-//       auto equivalent_stress_it =
-//           this->equivalent_stress(el_type, ghost_type).begin();
-//       auto equivalent_stress_end =
-//           this->equivalent_stress(el_type, ghost_type).end();
-//       auto dam_it = this->damage(el_type, ghost_type).begin();
-//       auto reduction_it = this->reduction_step(el_type, ghost_type).begin();
-//       auto eps_u_it = this->eps_u(el_type, ghost_type).begin();
-//       auto Sc_it = this->Sc(el_type, ghost_type).begin();
-//       auto D_it = this->D(el_type, ghost_type).begin();
-
-//       /// loop over all the quads of the given element type
-//       for (; equivalent_stress_it != equivalent_stress_end;
-//            ++equivalent_stress_it, ++dam_it, ++reduction_it, ++eps_u_it,
-//            ++Sc_it, ++D_it) {
-
-//         /// check if damage occurs
-//         if (*equivalent_stress_it >=
-//             (1 - this->dam_tolerance) * this->norm_max_equivalent_stress) {
-
-//           /// check if this element can still be damaged
-//           if (*reduction_it == this->max_reductions)
-//             continue;
-
-//           /// increment the counter of stiffness reduction steps
-//           *reduction_it += 1;
-//           if (*reduction_it == this->max_reductions)
-//             *dam_it = this->max_damage;
-//           else {
-//             /// update the damage on this quad
-//             *dam_it =
-//                 1. - (1. / std::pow(this->reduction_constant, *reduction_it));
-//             /// update the stiffness on this quad
-//             *Sc_it = (*eps_u_it) * (1. - (*dam_it)) * this->E * (*D_it) /
-//                      ((1. - (*dam_it)) * this->E + (*D_it));
-//           }
-//           nb_damaged_elements += 1;
-//         }
-//       }
-//     }
-//   }
-
-//   auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-//   if (rve_model == NULL) {
-//     const auto & comm = this->model.getMesh().getCommunicator();
-//     comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
-//   }
-//   AKANTU_DEBUG_OUT();
-//   return nb_damaged_elements;
-// }
-// /* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateEnergiesAfterDamage(
-//     ElementType el_type, GhostType ghost_type) {
-//   parent::updateEnergies(el_type, ghost_type);
-// }
+  AKANTU_DEBUG_OUT();
+}
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-class MaterialDamageIterativeViscoelastic : public MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell> {
-public:
-  MaterialDamageIterativeViscoelastic(SolidMechanicsModel & model,
-                                      const ID & id = "") : MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell>(model, id) {}
-};
 
-INSTANTIATE_MATERIAL(damage_iterative_viscoelastic, MaterialDamageIterativeViscoelastic);
+INSTANTIATE_MATERIAL(damage_iterative_viscoelastic,
+                     MaterialDamageIterativeViscoelastic);
 
 } // namespace akantu
