@@ -49,8 +49,8 @@ template <bool is_static = true> class CommunicationBufferTemplated {
   /* ------------------------------------------------------------------------ */
 public:
   explicit CommunicationBufferTemplated(UInt size) : buffer(size, 1, char()) {
-    ptr_pack = buffer.storage();
-    ptr_unpack = buffer.storage();
+    ptr_pack = buffer.data();
+    ptr_unpack = buffer.data();
   };
 
   CommunicationBufferTemplated() : CommunicationBufferTemplated(0) {}
@@ -88,8 +88,14 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  inline char * storage() { return buffer.storage(); };
-  inline const char * storage() const { return buffer.storage(); };
+  [[deprecated("use data instead to be stl compatible")]]
+  inline char * storage() { return buffer.data(); };
+  [[deprecated("use data instead to be stl compatible")]]
+  inline const char * storage() const { return buffer.data(); };
+
+  inline char * data() { return buffer.data(); };
+  inline const char * data() const { return buffer.data(); };
+
   /* ------------------------------------------------------------------------ */
   /* Operators                                                                */
   /* ------------------------------------------------------------------------ */
@@ -143,10 +149,10 @@ public:
   static inline UInt sizeInBuffer(const std::string & data);
 
   /// return the size in bytes of the stored values
-  inline UInt getPackedSize() const { return ptr_pack - buffer.storage(); };
+  inline UInt getPackedSize() const { return ptr_pack - buffer.data(); };
   /// return the size in bytes of data left to be unpacked
   inline UInt getLeftToUnpack() const {
-    return buffer.size() - (ptr_unpack - buffer.storage());
+    return buffer.size() - (ptr_unpack - buffer.data());
   };
   /// return the global size allocated
   inline UInt size() const { return buffer.size(); };

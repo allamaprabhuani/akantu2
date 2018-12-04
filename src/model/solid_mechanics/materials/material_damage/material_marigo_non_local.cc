@@ -66,9 +66,9 @@ void MaterialMarigoNonLocal<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * Yt = this->Y(el_type, ghost_type).storage();
-  Real * Ydq = this->Yd(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * Yt = this->Y(el_type, ghost_type).data();
+  Real * Ydq = this->Yd(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
   MaterialMarigo<spatial_dimension>::computeStressOnQuad(grad_u, sigma, *dam,
@@ -87,9 +87,9 @@ void MaterialMarigoNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(type, ghost_type).storage();
-  Real * Ydq = this->Yd(type, ghost_type).storage();
-  Real * Ynlt = this->Ynl(type, ghost_type).storage();
+  Real * dam = this->damage(type, ghost_type).data();
+  Real * Ydq = this->Yd(type, ghost_type).data();
+  Real * Ynlt = this->Ynl(type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(type, ghost_type);
   this->computeDamageAndStressOnQuad(sigma, *dam, *Ynlt, *Ydq);

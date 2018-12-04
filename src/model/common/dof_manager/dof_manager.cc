@@ -87,7 +87,7 @@ void DOFManager::assembleElementalArrayLocalArray(
   UInt * filter_it = nullptr;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
-    filter_it = filter_elements.storage();
+    filter_it = filter_elements.data();
   } else {
     nb_element = this->mesh->getNbElement(type, ghost_type);
   }
@@ -114,7 +114,7 @@ void DOFManager::assembleElementalArrayLocalArray(
     const Matrix<Real> & elemental_val = *elem_it;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_node = connectivity(element, n) * nb_degree_of_freedom;
-      Vector<Real> assemble(array_assembeled.storage() + offset_node,
+      Vector<Real> assemble(array_assembeled.data() + offset_node,
                             nb_degree_of_freedom);
       Vector<Real> elem_val = elemental_val(n);
       assemble.aXplusY(elem_val, scale_factor);

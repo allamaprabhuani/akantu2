@@ -123,7 +123,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
 
     /// count number of occurrence of each node
     for (UInt el = 0; el < nb_element; ++el) {
-      UInt * conn_val = connectivity.storage() + el * nb_nodes_per_element;
+      UInt * conn_val = connectivity.data() + el * nb_nodes_per_element;
       for (UInt n = 0; n < nb_nodes_per_element; ++n) {
         verttab[*(conn_val++)]++;
       }
@@ -203,7 +203,7 @@ static SCOTCH_Mesh * createMesh(const Mesh & mesh) {
     fgeominit << spatial_dimension << std::endl << nb_nodes << std::endl;
 
     const Array<Real> & nodes = mesh.getNodes();
-    Real * nodes_val = nodes.storage();
+    Real * nodes_val = nodes.data();
     for (UInt i = 0; i < nb_nodes; ++i) {
       fgeominit << i << " ";
       for (UInt s = 0; s < spatial_dimension; ++s) {
@@ -285,14 +285,14 @@ void MeshPartitionScotch::partitionate(
   SCOTCH_Num * parttab;                  // array of partitions
   SCOTCH_Num edgenbr = dxadj(vertnbr);   // twice  the number  of "edges"
   //(an "edge" bounds two nodes)
-  SCOTCH_Num * verttab = dxadj.storage(); // array of start indices in edgetab
+  SCOTCH_Num * verttab = dxadj.data(); // array of start indices in edgetab
   SCOTCH_Num * vendtab = nullptr; // array of after-last indices in edgetab
   SCOTCH_Num * velotab =
       vertex_loads.storage(); // integer  load  associated with
   // every vertex ( optional )
-  SCOTCH_Num * edlotab = edge_loads.storage(); // integer  load  associated with
+  SCOTCH_Num * edlotab = edge_loads.data(); // integer  load  associated with
   // every edge ( optional )
-  SCOTCH_Num * edgetab = dadjncy.storage(); // adjacency array of every vertex
+  SCOTCH_Num * edgetab = dadjncy.data(); // adjacency array of every vertex
   SCOTCH_Num * vlbltab = nullptr;           // vertex label array (optional)
 
   /// Allocate space for Scotch arrays
@@ -455,7 +455,7 @@ void MeshPartitionScotch::reorder() {
 
   /// \todo think of a in-place way to do it
   auto * new_coordinates = new Real[spatial_dimension * nb_nodes];
-  Real * old_coordinates = mesh.getNodes().storage();
+  Real * old_coordinates = mesh.getNodes().data();
   for (UInt i = 0; i < nb_nodes; ++i) {
     memcpy(new_coordinates + permtab[i] * spatial_dimension,
            old_coordinates + i * spatial_dimension,

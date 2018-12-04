@@ -226,7 +226,7 @@ void SparseMatrixAIJ::copyContent(const SparseMatrix & matrix) {
   const auto & mat = aka::as_type<SparseMatrixAIJ>(matrix);
   AKANTU_DEBUG_ASSERT(nb_non_zero == mat.getNbNonZero(),
                       "The to matrix don't have the same profiles");
-  memcpy(a.storage(), mat.getA().storage(), nb_non_zero * sizeof(Real));
+  memcpy(a.data(), mat.getA().data(), nb_non_zero * sizeof(Real));
 
   this->value_release++;
 

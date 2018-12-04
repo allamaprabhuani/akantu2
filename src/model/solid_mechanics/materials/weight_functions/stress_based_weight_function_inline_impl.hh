@@ -62,7 +62,7 @@ inline Real StressBasedWeightFunction::
   //   if (spatial_dimension == 1)
   //     return eigs[0];
   //   else if (spatial_dimension == 2) {
-  //     Vector<Real> u1(eigenvects.storage(), 2);
+  //     Vector<Real> u1(eigenvects.data(), 2);
   //     Real cos_t = x_s.dot(u1) / (x_s.norm() * u1.norm());
 
   //     Real cos_t_2;
@@ -93,9 +93,9 @@ inline Real StressBasedWeightFunction::
 
   //     return 1./ (rhop1 + rhop2);
   //   } else if (spatial_dimension == 3) {
-  //     Vector<Real> u1(eigenvects.storage() + 0*3, 3);
-  //     //Vector<Real> u2(eigenvects.storage() + 1*3, 3);
-  //     Vector<Real> u3(eigenvects.storage() + 2*3, 3);
+  //     Vector<Real> u1(eigenvects.data() + 0*3, 3);
+  //     //Vector<Real> u2(eigenvects.data() + 1*3, 3);
+  //     Vector<Real> u3(eigenvects.data() + 2*3, 3);
 
   //     Real zero = std::numeric_limits<Real>::epsilon();
 

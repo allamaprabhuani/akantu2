@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -60,9 +60,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
 
   /// natural coordinate
   Real c = natural_coords(0);
@@ -73,10 +72,8 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
 /* -------------------------------------------------------------------------- */
 
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
-    __attribute__((unused)) const vector_type & natural_coords,
-    matrix_type & dnds) {
+    const Ref<const VectorXr> & /*natural_coords*/, Ref<MatrixXr> dnds) {
 
   /// dN1/de
   dnds(0, 0) = -.5;
@@ -84,9 +81,8 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
   dnds(0, 1) = .5;
 }
 
-
 /* -------------------------------------------------------------------------- */
-template<>
+template <>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
     const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
@@ -97,27 +93,29 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
 template <>
 inline void
 InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
-    const Matrix<Real> & dxds, Real & jac) {
-  jac = dxds.norm<L_2>();
+    const Ref<const MatrixXr> & dxds, Real & jac) {
+  jac = dxds.norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> a(coord(0));
-  Vector<Real> b(coord(1));
-  return a.distance(b);
+inline Real GeometricalElement<_gt_segment_2>::getInradius(
+    const Ref<const MatrixXr> & coord) {
+  auto a{coord(0)};
+  auto b{coord(1)};
+
+  return (b - a).norm();
 }
 
-// /* --------------------------------------------------------------------------
-// */
-// template<> inline bool ElementClass<_segment_2>::contains(const Vector<Real>
-// & natural_coords) {
-//   if (natural_coords(0) < -1.) return false;
-//   if (natural_coords(0) > 1.) return false;
-//   return true;
-// }
+template <>
+inline void
+GeometricalElement<_gt_segment_2>::getNormal(const Ref<const MatrixXr> & coord,
+                                             Ref<VectorXr> normal) {
+  AKANTU_DEBUG_ASSERT(normal.size() == 2,
+                      "The normal is only uniquely defined in 2D");
+  Vector<Real> tmp = coord.col(0) - coord.col(1);
+  Math::normal2(tmp.data(), normal.data());
+}
 
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

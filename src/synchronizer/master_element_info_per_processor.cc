@@ -276,7 +276,7 @@ void MasterElementInfoPerProc::synchronizeTags() {
       << mesh_data_sizes_buffer.size() << ").");
   AKANTU_DEBUG_INFO(
       "Broadcasting the information about the mesh data tags, addr "
-      << (void *)mesh_data_sizes_buffer.storage());
+      << (void *)mesh_data_sizes_buffer.data());
 
   comm.broadcast(mesh_data_sizes_buffer, root);
 
@@ -341,9 +341,9 @@ void MasterElementInfoPerProc::fillTagBufferTemplated(
   // typename Array<T>::template const_iterator< Vector<T> > data_end =
   // data.end(data.getNbComponent());
 
-  const T * data_it = data.storage();
-  const T * data_end = data.storage() + data.size() * data.getNbComponent();
-  const UInt * part = partition_num.storage();
+  const T * data_it = data.data();
+  const T * data_end = data.data() + data.size() * data.getNbComponent();
+  const UInt * part = partition_num.data();
 
   /// copying the data, element by element
   for (; data_it != data_end; ++part) {
@@ -352,7 +352,7 @@ void MasterElementInfoPerProc::fillTagBufferTemplated(
     }
   }
 
-  data_it = data.storage();
+  data_it = data.data();
   /// copying the data for the ghost element
   for (UInt el(0); data_it != data_end;
        data_it += data.getNbComponent(), ++el) {

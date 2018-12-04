@@ -216,7 +216,7 @@ public:
     auto nb_proc = communicator.getNbProc();
     Array<Real> bboxes_data(nb_proc, dim * 2 + 1);
 
-    auto * base = bboxes_data.storage() + prank * (2 * dim + 1);
+    auto * base = bboxes_data.data() + prank * (2 * dim + 1);
     Vector<Real>(base + dim * 0, dim) = lower_bounds;
     Vector<Real>(base + dim * 1, dim) = upper_bounds;
     base[dim * 2] = empty ? 1. : 0.; // ugly trick
@@ -230,7 +230,7 @@ public:
       bboxes.emplace_back(dim);
       auto & bbox = bboxes.back();
 
-      auto * base = bboxes_data.storage() + p * (2 * dim + 1);
+      auto * base = bboxes_data.data() + p * (2 * dim + 1);
       bbox.lower_bounds = Vector<Real>(base + dim * 0, dim);
       bbox.upper_bounds = Vector<Real>(base + dim * 1, dim);
       bbox.empty = (base[dim * 2] == 1.);

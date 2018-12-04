@@ -7,9 +7,9 @@
  * @date creation: Fri Jun 18 2010
  * @date last modification: Sun Nov 22 2020
  *
- * @brief  Array container for Akantu This container differs from the std::vector
- * from the fact it as 2 dimensions a main dimension and the size stored per
- * entries
+ * @brief  Array container for Akantu This container differs from the
+ * std::vector from the fact it as 2 dimensions a main dimension and the size
+ * stored per entries
  *
  *
  * @section LICENSE
@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -35,6 +35,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_types.hh"
+#include "aka_view_iterators.hh"
 /* -------------------------------------------------------------------------- */
 #include <typeinfo>
 #include <vector>
@@ -43,7 +44,6 @@
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_ARRAY_HH_
 #define AKANTU_ARRAY_HH_
-
 
 namespace akantu {
 
@@ -54,7 +54,7 @@ class ArrayBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit ArrayBase(const ID &id = "") : id(id) {}
+  explicit ArrayBase(const ID & id = "") : id(id) {}
   ArrayBase(const ArrayBase & other, const ID & id = "") {
     this->id = (id.empty()) ? other.id : id;
   }
@@ -108,21 +108,6 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-namespace {
-  template <std::size_t dim, typename T> struct IteratorHelper {};
-
-  template <typename T> struct IteratorHelper<0, T> { using type = T; };
-  template <typename T> struct IteratorHelper<1, T> { using type = Vector<T>; };
-  template <typename T> struct IteratorHelper<2, T> { using type = Matrix<T>; };
-  template <typename T> struct IteratorHelper<3, T> {
-    using type = Tensor3<T>;
-  };
-
-  template <std::size_t dim, typename T>
-  using IteratorHelper_t = typename IteratorHelper<dim, T>::type;
-} // namespace
-
-/* -------------------------------------------------------------------------- */
 /* Memory handling layer                                                      */
 /* -------------------------------------------------------------------------- */
 enum class ArrayAllocationType {
@@ -150,7 +135,7 @@ public:
   using const_reference = const value_type &;
 
 public:
-   ~ArrayDataLayer() override = default;
+  ~ArrayDataLayer() override = default;
 
   /// Allocation of a new vector
   explicit ArrayDataLayer(UInt size = 0, UInt nb_component = 1,
@@ -214,7 +199,11 @@ public:
   inline UInt getAllocatedSize() const;
 
   /// give the address of the memory allocated for this vector
-  T * storage() const { return values; };
+  [[deprecated("use data instead to be stl compatible")]] T * storage() const {
+    return values;
+  };
+
+  T * data() const { return values; };
 
 protected:
   /// allocation type agnostic  data access
@@ -264,51 +253,36 @@ public:
   Array(Array && other) noexcept = default;
 
   // move assign
-  Array & operator=(Array && other)  noexcept = default;
+  Array & operator=(Array && other) noexcept = default;
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
   /* ------------------------------------------------------------------------ */
-  /// \todo protected: does not compile with intel  check why
-public:
-  template <class R, class it, class IR = R,
-            bool is_tensor_ = aka::is_tensor<std::decay_t<R>>::value>
-  class iterator_internal;
-
-public:
-  /* ------------------------------------------------------------------------ */
-
-  /* ------------------------------------------------------------------------ */
-  template <typename R = T> class const_iterator;
-  template <typename R = T> class iterator;
-
-  /* ------------------------------------------------------------------------ */
-
   /// iterator for Array of nb_component = 1
-  using scalar_iterator = iterator<T>;
+  using scalar_iterator = view_iterator<T>;
   /// const_iterator for Array of nb_component = 1
-  using const_scalar_iterator = const_iterator<T>;
+  using const_scalar_iterator = const_view_iterator<T>;
 
   /// iterator returning Vectors of size n  on entries of Array with
   /// nb_component = n
-  using vector_iterator = iterator<Vector<T>>;
+  using vector_iterator = view_iterator<Vector<T>>;
   /// const_iterator returning Vectors of n size on entries of Array with
   /// nb_component = n
-  using const_vector_iterator = const_iterator<Vector<T>>;
+  using const_vector_iterator = const_view_iterator<Vector<T>>;
 
   /// iterator returning Matrices of size (m, n) on entries of Array with
   /// nb_component = m*n
-  using matrix_iterator = iterator<Matrix<T>>;
+  using matrix_iterator = view_iterator<Matrix<T>>;
   /// const iterator returning Matrices of size (m, n) on entries of Array with
   /// nb_component = m*n
-  using const_matrix_iterator = const_iterator<Matrix<T>>;
+  using const_matrix_iterator = const_view_iterator<Matrix<T>>;
 
   /// iterator returning Tensor3 of size (m, n, k) on entries of Array with
   /// nb_component = m*n*k
-  using tensor3_iterator = iterator<Tensor3<T>>;
+  using tensor3_iterator = view_iterator<Tensor3<T>>;
   /// const iterator returning Tensor3 of size (m, n, k) on entries of Array
   /// with nb_component = m*n*k
-  using const_tensor3_iterator = const_iterator<Tensor3<T>>;
+  using const_tensor3_iterator = const_view_iterator<Tensor3<T>>;
 
   /* ------------------------------------------------------------------------ */
   template <typename... Ns> inline decltype(auto) begin(Ns &&... n);
@@ -348,14 +322,14 @@ public:
   }
 
   /// append the content of the iterator at the end of the Array
-  template <typename Ret> inline void push_back(const iterator<Ret> & it) {
+  template <typename Ret> inline void push_back(const view_iterator<Ret> & it) {
     push_back(*it);
   }
 
   /// erase the value at position i
   inline void erase(UInt i);
   /// ask Nico, clarify
-  template <typename R> inline iterator<R> erase(const iterator<R> & it);
+  template <typename R> inline auto erase(const view_iterator<R> & it);
 
   /// @see Array::find(const_reference elem) const
   template <template <typename> class C,

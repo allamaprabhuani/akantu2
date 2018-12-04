@@ -19,12 +19,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -71,10 +71,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_3, _gt_segment_3,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_segment_3>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
-
+    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
   Real c = natural_coords(0);
   N(0) = (c - 1) * c / 2;
   N(1) = (c + 1) * c / 2;
@@ -82,9 +80,8 @@ inline void InterpolationElement<_itp_lagrange_segment_3>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
-    const vector_type & natural_coords, matrix_type & dnds) {
+    const Ref<const VectorXr> & natural_coords, Ref<MatrixXr> dnds) {
 
   Real c = natural_coords(0);
   dnds(0, 0) = c - .5;
@@ -96,16 +93,26 @@ inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
 template <>
 inline void
 InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(
-    const Matrix<Real> & dxds, Real & jac) {
-  jac = Math::norm2(dxds.storage());
+    const Ref<const MatrixXr> & dxds, Real & jac) {
+  jac = Math::norm2(dxds.data());
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_segment_3>::getInradius(const Matrix<Real> & coord) {
-  Real dist1 = std::abs(coord(0, 0) - coord(0, 1));
-  Real dist2 = std::abs(coord(0, 1) - coord(0, 2));
+inline Real GeometricalElement<_gt_segment_3>::getInradius(
+    const Ref<const MatrixXr> & coord) {
+  auto dist1 = (coord(1) - coord(0)).norm();
+  auto dist2 = (coord(2) - coord(1)).norm();
   return std::min(dist1, dist2);
 }
-} // namespace akantu
+
+/* -------------------------------------------------------------------------- */
+template <>
+inline void
+GeometricalElement<_gt_segment_3>::getNormal(const Ref<const MatrixXr> & coord,
+                                             Ref<VectorXr> normal) {
+  Matrix<Real> natural_coords{{.5}};
+  ElementClass<_segment_3>::computeNormalsOnNaturalCoordinates(
+      natural_coords, coord,
+      MatrixProxy<Real>(normal.data(), normal.size(), 1));
+}

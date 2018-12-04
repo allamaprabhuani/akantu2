@@ -128,7 +128,7 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_degree_of_freedom = nodal_f.getNbComponent();
   UInt nb_element = mesh.getNbElement(type, ghost_type);
-  UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * conn_val = mesh.getConnectivity(type, ghost_type).data();
 
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
@@ -136,8 +136,8 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
 
   elemental_f.resize(nb_element);
 
-  T * nodal_f_val = nodal_f.storage();
-  T * f_val = elemental_f.storage();
+  T * nodal_f_val = nodal_f.data();
+  T * f_val = elemental_f.data();
 
   UInt * el_conn;
   for (UInt el = 0; el < nb_element; ++el) {
@@ -181,8 +181,8 @@ void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
 
   filtered_f.resize(nb_element * nb_data_per_element);
 
-  T * elem_f_val = elem_f.storage();
-  T * f_val = filtered_f.storage();
+  T * elem_f_val = elem_f.data();
+  T * f_val = filtered_f.data();
 
   UInt el_offset;
   for (UInt el = 0; el < nb_element; ++el) {

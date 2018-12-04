@@ -852,7 +852,7 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  //  Real * coord = mesh.getNodes().storage();
+  //  Real * coord = mesh.getNodes().data();
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   // allocate the normal arrays
@@ -1131,8 +1131,8 @@ namespace fe_engine {
     };
 
 #define COMPUTE_SHAPE_DERIVATIVES(type)                                        \
-  Matrix<Real> coords_mat(real_coords.storage(), shape_derivatives.rows(), 1); \
-  Tensor3<Real> shapesd_tensor(shape_derivatives.storage(),                    \
+  Matrix<Real> coords_mat(real_coords.data(), shape_derivatives.rows(), 1); \
+  Tensor3<Real> shapesd_tensor(shape_derivatives.data(),                    \
                                shape_derivatives.rows(),                       \
                                shape_derivatives.cols(), 1);                   \
   shape_functions.template computeShapeDerivatives<type>(                      \

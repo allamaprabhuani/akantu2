@@ -160,7 +160,7 @@ void MaterialElasticOrthotropic<spatial_dimension>::
   gradu_end += (index + 1) * nb_quadrature_points;
   stress_it += index * nb_quadrature_points;
 
-  Real * epot_quad = epot_on_quad_points.storage();
+  Real * epot_quad = epot_on_quad_points.data();
 
   Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
 

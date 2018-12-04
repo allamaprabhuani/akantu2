@@ -89,12 +89,11 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_pentahedron_15, _gt_pentahedron_15,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeShapes(
-    const vector_type & c, vector_type & N) {
-  auto & x = c(0);
-  auto & y = c(1);
-  auto & z = c(2);
+    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
+  auto && x = c(0);
+  auto && y = c(1);
+  auto && z = c(2);
 
   // Shape Functions, Natural coordinates
   N(0) = 0.5 * y * (1 - x) * (2 * y - 2 - x);
@@ -116,12 +115,11 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
-  auto & x = c(0);
-  auto & y = c(1);
-  auto & z = c(2);
+    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
+  auto && x = c(0);
+  auto && y = c(1);
+  auto && z = c(2);
 
   // ddx
   dnds(0, 0) = 0.5 * y * (2 * x - 2 * y + 1);
@@ -178,7 +176,7 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 inline Real GeometricalElement<_gt_pentahedron_15>::getInradius(
-    const Matrix<Real> & coord) {
-  return GeometricalElement<_gt_pentahedron_6>::getInradius(coord) * 0.5;
+    const Ref<const MatrixXr> & coord) {
+  return GeometricalElement<_gt_pentahedron_6>::getInradius(coord)*0.5;
 }
 } // namespace akantu

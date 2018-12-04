@@ -122,9 +122,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_hexahedron_8, _gt_hexahedron_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
   /// Natural coordinates
   N(0) = .125 * (1 - c(0)) * (1 - c(1)) * (1 - c(2)); /// N1(q_0)
   N(1) = .125 * (1 + c(0)) * (1 - c(1)) * (1 - c(2)); /// N2(q_0)
@@ -137,9 +136,8 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -222,31 +220,31 @@ inline void InterpolationElement<_itp_lagrange_hexahedron_8>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_hexahedron_8>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Vector<Real> u4 = coord(4);
-  Vector<Real> u5 = coord(5);
-  Vector<Real> u6 = coord(6);
-  Vector<Real> u7 = coord(7);
+inline Real GeometricalElement<_gt_hexahedron_8>::getInradius(
+    const Ref<const MatrixXr> & coord) {
+  auto u0 = coord.col(0);
+  auto u1 = coord.col(1);
+  auto u2 = coord.col(2);
+  auto u3 = coord.col(3);
+  auto u4 = coord.col(4);
+  auto u5 = coord.col(5);
+  auto u6 = coord.col(6);
+  auto u7 = coord.col(7);
 
-  Real a = u0.distance(u1);
-  Real b = u1.distance(u2);
-  Real c = u2.distance(u3);
-  Real d = u3.distance(u0);
-  Real e = u0.distance(u4);
-  Real f = u1.distance(u5);
-  Real g = u2.distance(u6);
-  Real h = u3.distance(u7);
-  Real i = u4.distance(u5);
-  Real j = u5.distance(u6);
-  Real k = u6.distance(u7);
-  Real l = u7.distance(u4);
+  auto a = (u0 - u1).norm();
+  auto b = (u1 - u2).norm();
+  auto c = (u2 - u3).norm();
+  auto d = (u3 - u0).norm();
+  auto e = (u0 - u4).norm();
+  auto f = (u1 - u5).norm();
+  auto g = (u2 - u6).norm();
+  auto h = (u3 - u7).norm();
+  auto i = (u4 - u5).norm();
+  auto j = (u5 - u6).norm();
+  auto k = (u6 - u7).norm();
+  auto l = (u7 - u4).norm();
 
-  Real p = std::min({a, b, c, d, e, f, g, h, i, j, k, l});
+  auto p = std::min({a, b, c, d, e, f, g, h, i, j, k, l});
 
   return p;
 }

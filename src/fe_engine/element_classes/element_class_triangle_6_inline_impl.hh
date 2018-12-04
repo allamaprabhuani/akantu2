@@ -105,9 +105,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_6, _gt_triangle_6,
 /* -------------------------------------------------------------------------- */
 
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
   /// Natural coordinates
   Real c0 =
       1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
@@ -123,9 +122,8 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
-    const vector_type & natural_coords, matrix_type & dnds) {
+    const Ref<const VectorXr> & natural_coords, Ref<MatrixXr> dnds) {
 
   /**
    * @f[
@@ -174,17 +172,16 @@ inline void InterpolationElement<_itp_lagrange_triangle_6>::computeDNDS(
 template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
+    const Ref<const MatrixXr> & J, Real & jac) {
+  Eigen::Map<const Eigen::Matrix<Real, 2, 3>> Jstatic(
+      J.data());
+  jac = Jstatic.row(0).cross(Jstatic.row(1)).norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
 inline Real
-GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
+GeometricalElement<_gt_triangle_6>::getInradius(const Ref<const MatrixXr> & coord) {
   UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
 
   Real inradius = std::numeric_limits<Real>::max();
@@ -198,9 +195,4 @@ GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
   return 2. * inradius;
 }
 
-/* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_triangle_6>::contains(const Vector<Real>
-// & natural_coords) {
-//   return ElementClass<_triangle_3>::contains(natural_coords);
-// }
 } // namespace akantu

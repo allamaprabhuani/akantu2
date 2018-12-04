@@ -51,7 +51,7 @@ inline void MaterialMazars<spatial_dimension>::computeStressOnQuad(
   }
 
   Vector<Real> Fdiag(3);
-  Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
+  Math::matrixEig(3, epsilon.data(), Fdiag.data());
 
   Ehat = 0.;
   for (UInt i = 0; i < 3; ++i) {
@@ -88,7 +88,7 @@ inline void MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(
       }
     }
 
-    Math::matrixEig(3, epsilon.storage(), Fdiag.storage());
+    Math::matrixEig(3, epsilon.data(), Fdiag.data());
 
     computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
   }

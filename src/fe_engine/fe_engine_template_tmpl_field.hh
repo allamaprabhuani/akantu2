@@ -486,7 +486,7 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
       Nt(d) *= rho(d);
     }
 
-    mat.template mul<false, false>(Nt, N);
+    mat = Nt * N;
   }
 
   // integrate the elemental values

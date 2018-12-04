@@ -149,9 +149,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_10, _gt_tetrahedron_10,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
   /// Natural coordinates
   Real xi = natural_coords(0);
   Real eta = natural_coords(1);
@@ -178,9 +177,8 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
-    const vector_type & natural_coords, matrix_type & dnds) {
+    const Ref<const VectorXr> & natural_coords, Ref<MatrixXr> dnds) {
   /**
    * \f[
    * dnds = \left(
@@ -266,7 +264,7 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
-    const Matrix<Real> & coord) {
+    const Ref<const MatrixXr> & coord) {
   // Only take the four corner tetrahedra
   UInt tetrahedra[4][4] = {
       {0, 4, 6, 7}, {4, 1, 5, 8}, {6, 5, 2, 9}, {7, 8, 9, 3}};
@@ -274,8 +272,8 @@ inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
   Real inradius = std::numeric_limits<Real>::max();
   for (UInt t = 0; t < 4; t++) {
     Real ir = Math::tetrahedron_inradius(
-        coord(tetrahedra[t][0]).storage(), coord(tetrahedra[t][1]).storage(),
-        coord(tetrahedra[t][2]).storage(), coord(tetrahedra[t][3]).storage());
+        coord.col(tetrahedra[t][0]).data(), coord.col(tetrahedra[t][1]).data(),
+        coord.col(tetrahedra[t][2]).data(), coord.col(tetrahedra[t][3]).data());
     inradius = std::min(ir, inradius);
   }
 

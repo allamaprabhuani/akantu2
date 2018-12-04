@@ -223,7 +223,7 @@ public:
   ArrayDataLayer(const ArrayDataLayer & vect, const ID & id = "")
       : ArrayBase(vect, id) {
     allocate(vect.size(), vect.getNbComponent());
-    std::copy_n(vect.storage(), this->size_ * this->nb_component, values);
+    std::copy_n(vect.data(), this->size_ * this->nb_component, values);
   }
 
   /// Copy constructor (deep copy)
@@ -236,7 +236,7 @@ public:
   inline ArrayDataLayer & operator=(const ArrayDataLayer & other) {
     if (this != &other) {
       allocate(other.size(), other.getNbComponent());
-      std::copy_n(other.storage(), this->size_ * this->nb_component, values);
+      std::copy_n(other.data(), this->size_ * this->nb_component, values);
     }
     return *this;
   }
@@ -293,7 +293,7 @@ public:
             << ") as not a size compatible with the Array (nb_component="
             << nb_component << ").");
     this->resize(this->size_ + 1);
-    std::copy_n(new_elem.storage(), new_elem.size(),
+    std::copy_n(new_elem.data(), new_elem.size(),
                 values + this->nb_component * (this->size_ - 1));
   }
 
@@ -367,8 +367,9 @@ public:
   inline UInt getAllocatedSize() const { return this->allocated_size; }
 
   /// give the address of the memory allocated for this vector
+  [[deprecated("use data instead to be stl compatible")]]
   T * storage() const { return values; };
-
+  T * data() const { return values; };
 protected:
   /// allocation type agnostic  data access
   T * values{nullptr};
@@ -471,7 +472,7 @@ Array<T, is_scal>::operator-=(const Array<T, is_scal> & other) {
                       "The too array don't have the same sizes");
 
   T * a = this->values;
-  T * b = other.storage();
+  T * b = vect.data();
   for (UInt i = 0; i < this->size_ * this->nb_component; ++i) {
     *a -= *b;
     ++a;
@@ -500,7 +501,7 @@ Array<T, is_scal>::operator+=(const Array<T, is_scal> & other) {
                       "The too array don't have the same sizes");
 
   T * a = this->values;
-  T * b = other.storage();
+  T * b = vect.data();
   for (UInt i = 0; i < this->size_ * this->nb_component; ++i) {
     *a++ += *b++;
   }
@@ -540,26 +541,22 @@ bool Array<T, is_scal>::operator==(const Array<T, is_scal> & other) const {
                this->size_ == other.size_ && this->id == other.id;
   if (not equal) {
     return false;
-  }
-  if (this->values == other.storage()) {
+
+  if (this->values == array.data()) {
     return true;
   }
-
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
   return std::equal(this->values,
                     this->values + this->size_ * this->nb_component,
-                    other.storage());
+                    array.data());
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 bool Array<T, is_scal>::operator!=(const Array<T, is_scal> & other) const {
   return !operator==(other);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 /**
  * set all tuples of the array to a given vector or matrix
  * @param vm Matrix or Vector to fill the array with
@@ -573,7 +570,7 @@ inline void Array<T, is_scal>::set(const C<T> & vm) {
   for (T * it = this->values;
        it < this->values + this->nb_component * this->size_;
        it += this->nb_component) {
-    std::copy_n(vm.storage(), this->nb_component, it);
+    std::copy_n(vm.data(), this->nb_component, it);
   }
 }
 /* --------------------------------------------------------------------------
@@ -587,7 +584,7 @@ void Array<T, is_scal>::append(const Array<T> & other) {
   this->resize(this->size_ + other.size());
 
   T * tmp = this->values + this->nb_component * old_size;
-  std::copy_n(other.storage(), other.size() * this->nb_component, tmp);
+  std::copy_n(other.data(), other.size() * this->nb_component, tmp);
 }
 
 /* --------------------------------------------------------------------------
@@ -696,7 +693,7 @@ inline UInt Array<T, is_scal>::find(const C<T> & elem) {
   AKANTU_DEBUG_ASSERT(elem.size() == this->nb_component,
                       "Cannot find an element with a wrong size ("
                           << elem.size() << ") != " << this->nb_component);
-  return this->find(*elem.storage());
+  return this->find(elem.data());
 }
 
 /* --------------------------------------------------------------------------
@@ -723,7 +720,7 @@ void Array<T, is_scal>::copy(const Array<T, is_scal> & other,
 
   this->resize((other.size_ * other.nb_component) / this->nb_component);
 
-  std::copy_n(other.storage(), this->size_ * this->nb_component, this->values);
+  std::copy_n(vect.data(), this->size_ * this->nb_component, this->values);
 
   AKANTU_DEBUG_OUT();
 }
@@ -810,335 +807,9 @@ void Array<T, is_scal>::printself(std::ostream & stream, int indent) const {
 // inline bool ArrayBase::empty() { return (this->size_ ==
 // 0); }
 
-/* --------------------------------------------------------------------------
- */
-/* Iterators */
-/* --------------------------------------------------------------------------
- */
-template <class T, bool is_scal>
-template <class R, class daughter, class IR, bool is_tensor>
-class Array<T, is_scal>::iterator_internal {
-public:
-  using value_type = R;
-  using pointer = R *;
-  using reference = R &;
-  using const_reference = const R &;
-  using internal_value_type = IR;
-  using internal_pointer = IR *;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::random_access_iterator_tag;
-  static_assert(not is_tensor, "Cannot handle tensors");
-
-public:
-  iterator_internal(pointer data = nullptr) : ret(data), initial(data){};
-  iterator_internal(const iterator_internal & it) = default;
-  iterator_internal(iterator_internal && it) noexcept = default;
-
-  virtual ~iterator_internal() = default;
-
-  inline iterator_internal & operator=(const iterator_internal & it) = default;
-  inline iterator_internal &
-  operator=(iterator_internal && it) noexcept = default;
-
-  UInt getCurrentIndex() { return (this->ret - this->initial); };
-
-  inline reference operator*() { return *ret; };
-  inline const_reference operator*() const { return *ret; };
-  inline pointer operator->() { return ret; };
-  inline daughter & operator++() {
-    ++ret;
-    return static_cast<daughter &>(*this);
-  };
-  inline daughter & operator--() {
-    --ret;
-    return static_cast<daughter &>(*this);
-  };
-
-  inline daughter & operator+=(const UInt n) {
-    ret += n;
-    return static_cast<daughter &>(*this);
-  }
-  inline daughter & operator-=(const UInt n) {
-    ret -= n;
-    return static_cast<daughter &>(*this);
-  }
-
-  inline reference operator[](const UInt n) { return ret[n]; }
-
-  inline bool operator==(const iterator_internal & other) const {
-    return ret == other.ret;
-  }
-  inline bool operator!=(const iterator_internal & other) const {
-    return ret != other.ret;
-  }
-  inline bool operator<(const iterator_internal & other) const {
-    return ret < other.ret;
-  }
-  inline bool operator<=(const iterator_internal & other) const {
-    return ret <= other.ret;
-  }
-  inline bool operator>(const iterator_internal & other) const {
-    return ret > other.ret;
-  }
-  inline bool operator>=(const iterator_internal & other) const {
-    return ret >= other.ret;
-  }
-
-  inline daughter operator-(difference_type n) { return daughter(ret - n); }
-  inline daughter operator+(difference_type n) { return daughter(ret + n); }
-
-  inline difference_type operator-(const iterator_internal & b) {
-    return ret - b.ret;
-  }
-
-  inline pointer data() const { return ret; }
-
-protected:
-  pointer ret{nullptr};
-  pointer initial{nullptr};
-};
-
-/* --------------------------------------------------------------------------
- */
-/**
- * Specialization for scalar types
- */
-template <class T, bool is_scal>
-template <class R, class daughter, class IR>
-class Array<T, is_scal>::iterator_internal<R, daughter, IR, true> {
-public:
-  using value_type = R;
-  using pointer = R *;
-  using pointer_type = typename Array<T, is_scal>::pointer_type;
-  using reference = R &;
-  using proxy = typename R::proxy;
-  using const_proxy = const typename R::proxy;
-  using const_reference = const R &;
-  using internal_value_type = IR;
-  using internal_pointer = IR *;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::random_access_iterator_tag;
-
-public:
-  iterator_internal() = default;
-
-  iterator_internal(pointer_type data, UInt _offset)
-      : _offset(_offset), initial(data), ret(nullptr), ret_ptr(data) {
-    AKANTU_ERROR("The constructor should never be called "
-                 "it is just an ugly trick...");
-  }
-
-  iterator_internal(std::unique_ptr<internal_value_type> && wrapped)
-      : _offset(wrapped->size()), initial(wrapped->storage()),
-        ret(std::move(wrapped)), ret_ptr(ret->storage()) {}
-
-  iterator_internal(const iterator_internal & it) {
-    if (this != &it) {
-      this->_offset = it._offset;
-      this->initial = it.initial;
-      this->ret_ptr = it.ret_ptr;
-      this->ret = std::make_unique<internal_value_type>(*it.ret, false);
-    }
-  }
-
-  iterator_internal(iterator_internal && it) noexcept = default;
-
-  virtual ~iterator_internal() = default;
-
-  inline iterator_internal & operator=(const iterator_internal & it) {
-    if (this != &it) {
-      this->_offset = it._offset;
-      this->initial = it.initial;
-      this->ret_ptr = it.ret_ptr;
-      if (this->ret) {
-        this->ret->shallowCopy(*it.ret);
-      } else {
-        this->ret = std::make_unique<internal_value_type>(*it.ret, false);
-      }
-    }
-    return *this;
-  }
-
-  inline iterator_internal &
-  operator=(iterator_internal && it) noexcept = default;
-
-  UInt getCurrentIndex() {
-    return (this->ret_ptr - this->initial) / this->_offset;
-  };
-
-  inline reference operator*() {
-    ret->values = ret_ptr;
-    return *ret;
-  };
-  inline const_reference operator*() const {
-    ret->values = ret_ptr;
-    return *ret;
-  };
-  inline pointer operator->() {
-    ret->values = ret_ptr;
-    return ret.get();
-  };
-  inline daughter & operator++() {
-    ret_ptr += _offset;
-    return static_cast<daughter &>(*this);
-  };
-  inline daughter & operator--() {
-    ret_ptr -= _offset;
-    return static_cast<daughter &>(*this);
-  };
-
-  inline daughter & operator+=(const UInt n) {
-    ret_ptr += _offset * n;
-    return static_cast<daughter &>(*this);
-  }
-  inline daughter & operator-=(const UInt n) {
-    ret_ptr -= _offset * n;
-    return static_cast<daughter &>(*this);
-  }
-
-  inline proxy operator[](const UInt n) {
-    ret->values = ret_ptr + n * _offset;
-    return proxy(*ret);
-  }
-  inline const_proxy operator[](const UInt n) const { // NOLINT
-    ret->values = ret_ptr + n * _offset;
-    return const_proxy(*ret);
-  }
-
-  inline bool operator==(const iterator_internal & other) const {
-    return this->ret_ptr == other.ret_ptr;
-  }
-  inline bool operator!=(const iterator_internal & other) const {
-    return this->ret_ptr != other.ret_ptr;
-  }
-  inline bool operator<(const iterator_internal & other) const {
-    return this->ret_ptr < other.ret_ptr;
-  }
-  inline bool operator<=(const iterator_internal & other) const {
-    return this->ret_ptr <= other.ret_ptr;
-  }
-  inline bool operator>(const iterator_internal & other) const {
-    return this->ret_ptr > other.ret_ptr;
-  }
-  inline bool operator>=(const iterator_internal & other) const {
-    return this->ret_ptr >= other.ret_ptr;
-  }
-
-  inline daughter operator+(difference_type n) {
-    daughter tmp(static_cast<daughter &>(*this));
-    tmp += n;
-    return tmp;
-  }
-  inline daughter operator-(difference_type n) {
-    daughter tmp(static_cast<daughter &>(*this));
-    tmp -= n;
-    return tmp;
-  }
-
-  inline difference_type operator-(const iterator_internal & b) {
-    return (this->ret_ptr - b.ret_ptr) / _offset;
-  }
-
-  inline pointer_type data() const { return ret_ptr; }
-  inline difference_type offset() const { return _offset; }
-
-protected:
-  UInt _offset{0};
-  pointer_type initial{nullptr};
-  std::unique_ptr<internal_value_type> ret{nullptr};
-  pointer_type ret_ptr{nullptr};
-};
-
+#ifndef SWIG
 /* -------------------------------------------------------------------------- */
-/* Iterators */
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-template <typename R>
-class Array<T, is_scal>::const_iterator
-    : public iterator_internal<const R, Array<T, is_scal>::const_iterator<R>,
-                               R> {
-public:
-  using parent = iterator_internal<const R, const_iterator, R>;
-  using value_type = typename parent::value_type;
-  using pointer = typename parent::pointer;
-  using reference = typename parent::reference;
-  using difference_type = typename parent::difference_type;
-  using iterator_category = typename parent::iterator_category;
-
-public:
-  ~const_iterator() override = default;
-
-  const_iterator() = default;
-  const_iterator(const const_iterator & it) = default;
-  const_iterator(const_iterator && it) noexcept = default;
-
-  const_iterator & operator=(const const_iterator & it) = default;
-  const_iterator & operator=(const_iterator && it) noexcept = default;
-
-  template <typename P,
-            typename = std::enable_if_t<not aka::is_tensor<P>::value>>
-  const_iterator(P * data) : parent(data) {}
-
-  template <typename UP_P, typename = std::enable_if_t<aka::is_tensor<
-                               typename UP_P::element_type>::value>>
-  const_iterator(UP_P && tensor) : parent(std::forward<UP_P>(tensor)) {}
-};
-
-/* -------------------------------------------------------------------------- */
-template <class T, class R, bool is_tensor_ = aka::is_tensor<R>::value>
-struct ConstConverterIteratorHelper {
-  using const_iterator = typename Array<T>::template const_iterator<R>;
-  using iterator = typename Array<T>::template iterator<R>;
-
-  static inline const_iterator convert(const iterator & it) {
-    return const_iterator(std::unique_ptr<R>(new R(*it, false)));
-  }
-};
-
-template <class T, class R> struct ConstConverterIteratorHelper<T, R, false> {
-  using const_iterator = typename Array<T>::template const_iterator<R>;
-  using iterator = typename Array<T>::template iterator<R>;
-  static inline const_iterator convert(const iterator & it) {
-    return const_iterator(it.data());
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <class T, bool is_scal>
-template <typename R>
-class Array<T, is_scal>::iterator
-    : public iterator_internal<R, Array<T, is_scal>::iterator<R>> {
-public:
-  using parent = iterator_internal<R, iterator>;
-  using value_type = typename parent::value_type;
-  using pointer = typename parent::pointer;
-  using reference = typename parent::reference;
-  using difference_type = typename parent::difference_type;
-  using iterator_category = typename parent::iterator_category;
-
-public:
-  ~iterator() override = default;
-  iterator() = default;
-  iterator(const iterator & it) = default;
-  iterator(iterator && it) noexcept = default;
-  iterator & operator=(const iterator & it) = default;
-  iterator & operator=(iterator && it) noexcept = default;
-
-  template <typename P,
-            typename = std::enable_if_t<not aka::is_tensor<P>::value>>
-  iterator(P * data) : parent(data) {}
-
-  template <typename UP_P, typename = std::enable_if_t<aka::is_tensor<
-                               typename UP_P::element_type>::value>>
-  iterator(UP_P && tensor) : parent(std::forward<UP_P>(tensor)) {}
-
-  operator const_iterator<R>() {
-    return ConstConverterIteratorHelper<T, R>::convert(*this);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-/* Begin/End functions implementation */
+/* Begin/End functions implementation                                         */
 /* -------------------------------------------------------------------------- */
 namespace detail {
   template <class Tuple, size_t... Is>
@@ -1150,12 +821,6 @@ namespace detail {
   template <size_t N, class Tuple> constexpr auto take_front(Tuple && t) {
     return take_front_impl(std::forward<Tuple>(t),
                            std::make_index_sequence<N>{});
-  }
-
-  template <typename... V> constexpr auto product_all(V &&... v) {
-    std::common_type_t<int, V...> result = 1;
-    (void)std::initializer_list<int>{(result *= v, 0)...};
-    return result;
   }
 
   template <typename... T> std::string to_string_all(T &&... t) {
@@ -1187,12 +852,11 @@ namespace detail {
 
   template <typename Arr, typename T, typename... Ns>
   decltype(auto) get_iterator(Arr && array, T * data, Ns &&... ns) {
-    using type = IteratorHelper_t<sizeof...(Ns) - 1, T>;
-    using array_type = std::decay_t<Arr>;
+    using type = ViewIteratorHelper_t<sizeof...(Ns) - 1, T>;
     using iterator =
         std::conditional_t<std::is_const<std::remove_reference_t<Arr>>::value,
-                           typename array_type::template const_iterator<type>,
-                           typename array_type::template iterator<type>>;
+                           const_view_iterator<type>,
+                           view_iterator<type>>;
     static_assert(sizeof...(Ns), "You should provide a least one size");
 
     if (array.getNbComponent() * array.size() !=
@@ -1346,16 +1010,15 @@ decltype(auto) make_view(Array && array, const Ns... ns) {
       std::forward<Array>(array), std::move(ns)..., size);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 template <typename R>
-inline typename Array<T, is_scal>::template iterator<R>
-Array<T, is_scal>::erase(const iterator<R> & it) {
+inline auto
+Array<T, is_scal>::erase(const view_iterator<R> & it) {
   T * curr = it.data();
   UInt pos = (curr - this->values) / this->nb_component;
   erase(pos);
-  iterator<R> rit = it;
+  view_iterator<R> rit = it;
   return --rit;
 }
 

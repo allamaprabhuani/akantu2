@@ -68,9 +68,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_3, _gt_triangle_3,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(
-    const vector_type & natural_coords, vector_type & N) {
+    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
 
   /// Natural coordinates
   Real c0 =
@@ -84,10 +83,8 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
-    __attribute__((unused)) const vector_type & natural_coords,
-    matrix_type & dnds) {
+    const Ref<const VectorXr> & /*natural_coords*/, Ref<MatrixXr> dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -120,29 +117,19 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
 template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
+    const Ref<const MatrixXr> & J, Real & jac) {
+  Eigen::Map<const Eigen::Matrix<Real, 2, 3>> Jstatic(
+      J.data());
+  jac = Jstatic.row(0).cross(Jstatic.row(1)).norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-  return 2. * Math::triangle_inradius(coord(0), coord(1), coord(2)); 
+inline Real GeometricalElement<_gt_triangle_3>::getInradius(
+    const Ref<const MatrixXr> & coord) {
+  return 2. * Math::triangle_inradius(coord.col(0), coord.col(1),
+                                      coord.col(2));
 }
 
-/* -------------------------------------------------------------------------- */
-// template<> inline bool ElementClass<_triangle_3>::contains(const Vector<Real>
-// & natural_coords) {
-//   if (natural_coords[0] < 0.) return false;
-//   if (natural_coords[0] > 1.) return false;
-//   if (natural_coords[1] < 0.) return false;
-//   if (natural_coords[1] > 1.) return false;
-//   if (natural_coords[0]+natural_coords[1] > 1.) return false;
-//   return true;
-// }
 /* -------------------------------------------------------------------------- */
 } // namespace akantu

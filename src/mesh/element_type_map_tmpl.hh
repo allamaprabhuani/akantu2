@@ -355,8 +355,8 @@ inline void ElementTypeMapArray<T, SupportType>::onElementsRemoved(
         for (UInt i = 0; i < vect.size(); ++i) {
           UInt new_i = renumbering(i);
           if (new_i != UInt(-1)) {
-            std::copy_n(vect.storage() + i * nb_component, nb_component,
-                        tmp.storage() + new_i * nb_component);
+            std::copy_n(vect.data() + i * nb_component, nb_component,
+                        tmp.data() + new_i * nb_component);
             ++new_size;
           }
         }

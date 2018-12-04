@@ -54,14 +54,14 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
         el.ghost_type != current_ghost_type) {
       current_element_type = el.type;
       current_ghost_type = el.ghost_type;
-      conn = mesh.getConnectivity(el.type, el.ghost_type).storage();
+      conn = mesh.getConnectivity(el.type, el.ghost_type).data();
       nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
     }
 
     UInt el_offset = el.element * nb_nodes_per_element;
     for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       UInt offset_conn = conn[el_offset + n];
-      Vector<T> data_vect(data.storage() + offset_conn * nb_component,
+      Vector<T> data_vect(data.data() + offset_conn * nb_component,
                           nb_component);
 
       if (pack_helper) {
@@ -116,7 +116,7 @@ template <typename T, bool pack_helper>
 void DataAccessor<UInt>::packUnpackDOFDataHelper(Array<T> & data,
                                                  CommunicationBuffer & buffer,
                                                  const Array<UInt> & dofs) {
-  T * data_ptr = data.storage();
+  T * data_ptr = data.data();
   for (const auto & dof : dofs) {
     if (pack_helper) {
       buffer << data_ptr[dof];

@@ -134,8 +134,8 @@ void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
           auto existing_node = nodes.begin(dim);
 
           for (; n < nodes.size(); ++n) { // loop on the nodes from nb_old_nodes
-            if (Math::are_vector_equal(dim, new_node.storage(),
-                                       existing_node[n].storage())) {
+            if (Math::are_vector_equal(dim, new_node.data(),
+                                       existing_node[n].data())) {
               is_new = false;
               break;
             }
@@ -145,7 +145,7 @@ void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
             auto intersection_points_end = this->intersection_points->end(dim);
             for (; intersection_points_it != intersection_points_end;
                  ++intersection_points_it, ++n) {
-              if (Math::are_vector_equal(dim, new_node.storage(),
+              if (Math::are_vector_equal(dim, new_node.data(),
                                          intersection_points_it->storage())) {
                 is_new = false;
                 break;
@@ -170,10 +170,10 @@ void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
           }
 
           // Check if we are close from a node of the primitive (segment)
-          if (Math::are_vector_equal(dim, source.storage(),
-                                     new_node.storage()) ||
-              Math::are_vector_equal(dim, target.storage(),
-                                     new_node.storage())) {
+          if (Math::are_vector_equal(dim, source.data(),
+                                     new_node.data()) ||
+              Math::are_vector_equal(dim, target.data(),
+                                     new_node.data())) {
             is_on_mesh = true;
             is_new = false;
           }

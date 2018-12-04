@@ -57,9 +57,9 @@ void GeneralizedTrapezoidal::predictor(Real delta_t, Array<Real> & u,
   UInt nb_nodes = u.size();
   UInt nb_degree_of_freedom = u.getNbComponent() * nb_nodes;
 
-  Real * u_val = u.storage();
-  Real * u_dot_val = u_dot.storage();
-  bool * blocked_dofs_val = blocked_dofs.storage();
+  Real * u_val = u.data();
+  Real * u_dot_val = u_dot.data();
+  bool * blocked_dofs_val = blocked_dofs.data();
 
   for (UInt d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
@@ -140,10 +140,10 @@ void GeneralizedTrapezoidal::allCorrector(Real delta_t, Array<Real> & u,
   Real e = getTemperatureCoefficient(type, delta_t);
   Real d = getTemperatureRateCoefficient(type, delta_t);
 
-  Real * u_val = u.storage();
-  Real * u_dot_val = u_dot.storage();
-  Real * delta_val = delta.storage();
-  bool * blocked_dofs_val = blocked_dofs.storage();
+  Real * u_val = u.data();
+  Real * u_dot_val = u_dot.data();
+  Real * delta_val = delta.data();
+  bool * blocked_dofs_val = blocked_dofs.data();
 
   for (UInt dof = 0; dof < nb_degree_of_freedom; dof++) {
     if (!(*blocked_dofs_val)) {

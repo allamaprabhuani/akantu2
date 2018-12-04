@@ -350,7 +350,7 @@ void MasterNodeInfoPerProc::synchronizeNodes() {
 
     /// get the coordinates for the selected nodes
     for (const auto & node : nodespp) {
-      Vector<Real> coord(nodes.storage() + spatial_dimension * node,
+      Vector<Real> coord(nodes.data() + spatial_dimension * node,
                          spatial_dimension);
       nodes_to_send->push_back(coord);
     }

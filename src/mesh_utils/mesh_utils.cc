@@ -110,7 +110,7 @@ void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_elements = mesh.getConnectivity(type, ghost_type).size();
 
-  UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * conn_val = mesh.getConnectivity(type, ghost_type).data();
 
   /// array for the node-element list
   node_to_elem.resizeRows(nb_nodes);
@@ -472,16 +472,16 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   local_conn.resize(nb_local_element);
 
   if (nb_local_element > 0) {
-    memcpy(local_conn.storage(), local_connectivities.storage(),
-           nb_local_element * nb_nodes_per_element * sizeof(UInt));
+    std::memcpy(local_conn.data(), local_connectivities.data(),
+                nb_local_element * nb_nodes_per_element * sizeof(UInt));
   }
 
   auto & ghost_conn = mesh_accessor.getConnectivity(type, _ghost);
   ghost_conn.resize(nb_ghost_element);
 
   if (nb_ghost_element > 0) {
-    std::memcpy(ghost_conn.storage(),
-                local_connectivities.storage() +
+    std::memcpy(ghost_conn.data(),
+                local_connectivities.data() +
                     nb_local_element * nb_nodes_per_element,
                 nb_ghost_element * nb_nodes_per_element * sizeof(UInt));
   }
@@ -498,7 +498,7 @@ void MeshUtils::renumberNodesInConnectivity(
     std::map<UInt, UInt> & renumbering_map) {
   AKANTU_DEBUG_IN();
 
-  UInt * connectivity = list_nodes.storage();
+  UInt * connectivity = list_nodes.data();
   UInt new_node_num = renumbering_map.size();
   for (UInt n = 0; n < nb_nodes; ++n, ++connectivity) {
     UInt & node = *connectivity;

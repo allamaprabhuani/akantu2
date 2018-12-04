@@ -278,7 +278,7 @@ public:
 
     /// generate pairs global array
     UInt local_pair_index =
-        std::accumulate(nb_pairs.storage(), nb_pairs.storage() + rank, 0);
+        std::accumulate(nb_pairs.data(), nb_pairs.data() + rank, 0);
 
     Array<UInt> total_pairs(total_nb_pairs, 2);
 
@@ -317,13 +317,13 @@ public:
       while (!fragment_check_list.empty()) {
         UInt current_fragment = fragment_check_list.front();
 
-        UInt * total_pairs_end = total_pairs.storage() + total_pairs.size() * 2;
+        UInt * total_pairs_end = total_pairs.data() + total_pairs.size() * 2;
 
         UInt * fragment_found =
-            std::find(total_pairs.storage(), total_pairs_end, current_fragment);
+            std::find(total_pairs.data(), total_pairs_end, current_fragment);
 
         if (fragment_found != total_pairs_end) {
-          UInt position = fragment_found - total_pairs.storage();
+          UInt position = fragment_found - total_pairs.data();
           UInt pair = position / 2;
           UInt other_index = (position + 1) % 2;
           fragment_check_list.push(total_pairs(pair, other_index));

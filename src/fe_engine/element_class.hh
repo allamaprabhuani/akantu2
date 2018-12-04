@@ -83,9 +83,8 @@ template <GeometricalType geometrical_type> struct GeometricalShape {
 
 /// Templated GeometricalShape with function contains
 template <GeometricalShapeType shape> struct GeometricalShapeContains {
-  /// Check if the point (vector in 2 and 3D) at natural coordinate coor
-  template <class vector_type>
-  static inline bool contains(const vector_type & coord);
+  /// Check if the point (vector in 2 and 3D) at natural coordinate coord
+  static inline bool contains(const Ref<const VectorXr> & coord);
 };
 
 #if !defined(DOXYGEN)
@@ -127,13 +126,18 @@ class GeometricalElement {
 
 public:
   /// compute the in-radius: \todo should be renamed for characteristic length
-  static inline Real getInradius(const Matrix<Real> & /*coord*/) {
+  static inline Real getInradius(const Ref<const MatrixXr> & /*coord*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /// compute the normal to the element
+  static inline void getNormal(const Ref<const MatrixXr> & /*nodes_coords*/,
+                               Ref<VectorXr> /*normal*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// true if the natural coordinates are in the element
-  template <class vector_type>
-  static inline bool contains(const vector_type & coord);
+  static inline bool contains(const Ref<const VectorXr> & coord);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension,
@@ -145,9 +149,10 @@ public:
   static inline constexpr auto getNbFacetTypes() {
     return geometrical_property::nb_facet_types;
   };
-  static inline UInt getNbFacetsPerElement(UInt t);
-  static inline UInt getNbFacetsPerElement();
-  static inline constexpr auto getFacetLocalConnectivityPerElement(UInt t = 0);
+  static inline constexpr UInt getNbFacetsPerElement(UInt t);
+  static inline constexpr UInt getNbFacetsPerElement();
+  static inline constexpr decltype(auto)
+  getFacetLocalConnectivityPerElement(UInt t = 0);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -186,9 +191,7 @@ public:
                                    Matrix<Real> & N);
 
   /// compute the shape values for a given point in natural coordinates
-  template <class vector_type>
-  static inline void computeShapes(const vector_type & /*unused*/,
-                                   vector_type & /*unused*/) {
+  static inline void computeShapes(const Ref<const VectorXr> &, Ref<VectorXr>) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -205,9 +208,7 @@ public:
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  template <class vector_type, class matrix_type>
-  static inline void computeDNDS(const vector_type & /*unused*/,
-                                 matrix_type & /*unused*/) {
+  static inline void computeDNDS(const Ref<const VectorXr> &, Ref<MatrixXr>) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -233,21 +234,21 @@ public:
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
-  static inline void computeSpecialJacobian(const Matrix<Real> & /*unused*/,
-                                            Real & /*unused*/) {
+  static inline void computeSpecialJacobian(const Ref<const MatrixXr> &,
+                                            Real &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// interpolate a field given (arbitrary) natural coordinates
   static inline void
-  interpolateOnNaturalCoordinates(const Vector<Real> & natural_coords,
-                                  const Matrix<Real> & nodal_values,
-                                  Vector<Real> & interpolated);
+  interpolateOnNaturalCoordinates(const Ref<const VectorXr> & natural_coords,
+                                  const Ref<const MatrixXr> & nodal_values,
+                                  Ref<VectorXr> interpolated);
 
   /// interpolate a field given the shape functions on the interpolation point
-  static inline void interpolate(const Matrix<Real> & nodal_values,
-                                 const Vector<Real> & shapes,
-                                 Vector<Real> & interpolated);
+  static inline void interpolate(const Ref<const MatrixXr> & nodal_values,
+                                 const Ref<const VectorXr> & shapes,
+                                 Ref<VectorXr> interpolated);
 
   /// interpolate a field given the shape functions on the interpolations points
   static inline void interpolate(const Matrix<Real> & nodal_values,
@@ -256,8 +257,9 @@ public:
 
   /// compute the gradient of a given field on the given natural coordinates
   static inline void
-  gradientOnNaturalCoordinates(const Vector<Real> & natural_coords,
-                               const Matrix<Real> & f, Matrix<Real> & gradient);
+  gradientOnNaturalCoordinates(const Ref<const VectorXr> & natural_coords,
+                               const Ref<const MatrixXr> & f,
+                               Ref<MatrixXr> gradient);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(
@@ -291,9 +293,9 @@ template <ElementType type,
           UInt n = ElementClassProperty<type>::polynomial_degree>
 class GaussIntegrationElement {
 public:
-  static UInt getNbQuadraturePoints();
-  static Matrix<Real> getQuadraturePoints();
-  static Vector<Real> getWeights();
+  static constexpr UInt getNbQuadraturePoints();
+  static constexpr decltype(auto) getQuadraturePoints();
+  static constexpr decltype(auto) getWeights();
 };
 
 /* -------------------------------------------------------------------------- */
@@ -323,9 +325,9 @@ public:
    * coordinates along with variation of natural coordinates on a given point in
    * natural coordinates
    */
-  static inline void computeJMat(const Matrix<Real> & dnds,
-                                 const Matrix<Real> & node_coords,
-                                 Matrix<Real> & J);
+  static inline void computeJMat(const Ref<const MatrixXr> & dnds,
+                                 const Ref<const MatrixXr> & node_coords,
+                                 Ref<MatrixXr> J);
 
   /**
    * compute the Jacobian matrix by computing the variation of real coordinates
@@ -347,7 +349,8 @@ public:
                                      Vector<Real> & jacobians);
 
   /// compute jacobian (or integration variable change factor) for a given point
-  static inline void computeJacobian(const Matrix<Real> & J, Real & jacobians);
+  static inline void computeJacobian(const Ref<const MatrixXr> & J,
+                                     Real & jacobians);
 
   /// compute shape derivatives (input is dxds) for a set of points
   static inline void computeShapeDerivatives(const Tensor3<Real> & J,
@@ -355,20 +358,20 @@ public:
                                              Tensor3<Real> & shape_deriv);
 
   /// compute shape derivatives (input is dxds) for a given point
-  static inline void computeShapeDerivatives(const Matrix<Real> & J,
-                                             const Matrix<Real> & dnds,
-                                             Matrix<Real> & shape_deriv);
+  static inline void computeShapeDerivatives(const Ref<const MatrixXr> & J,
+                                             const Ref<const MatrixXr> & dnds,
+                                             Ref<MatrixXr> shape_deriv);
 
   /// compute the normal of a surface defined by the function f
   static inline void
-  computeNormalsOnNaturalCoordinates(const Matrix<Real> & coord,
-                                     Matrix<Real> & f, Matrix<Real> & normals);
+  computeNormalsOnNaturalCoordinates(const Ref<const MatrixXr> & coord,
+                                     const Ref<const MatrixXr> & f,
+                                     Ref<MatrixXr> normals);
 
   /// get natural coordinates from real coordinates
-  static inline void inverseMap(const Vector<Real> & real_coords,
-                                const Matrix<Real> & node_coords,
-                                Vector<Real> & natural_coords,
-                                UInt max_iterations = 100,
+  static inline void inverseMap(const Ref<const VectorXr> & real_coords,
+                                const Ref<const MatrixXr> & node_coords,
+                                Ref<VectorXr> natural_coords,
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
@@ -387,13 +390,13 @@ public:
   using element_class_extra_geom_property =
       ElementClassExtraGeometryProperties<element_type>;
 
-  static constexpr auto getP1ElementType() {
+  static constexpr decltype(auto) getP1ElementType() {
     return element_class_extra_geom_property::p1_type;
   }
-  static constexpr auto getFacetType(UInt t = 0) {
+  static constexpr decltype(auto) getFacetType(UInt t = 0) {
     return element_class_extra_geom_property::facet_type[t];
   }
-  static constexpr auto getFacetTypes();
+  static constexpr decltype(auto) getFacetTypes();
 };
 
 /* -------------------------------------------------------------------------- */
@@ -405,20 +408,20 @@ public:
 /* -------------------------------------------------------------------------- */
 #include "element_class_tmpl.hh"
 /* -------------------------------------------------------------------------- */
-#include "element_class_hexahedron_8_inline_impl.hh"
-#include "element_class_pentahedron_6_inline_impl.hh"
+#include "element_class_hexahedron_8_inline_impl.cc"
+#include "element_class_pentahedron_6_inline_impl.cc"
 /* keep order */
-#include "element_class_hexahedron_20_inline_impl.hh"
-#include "element_class_pentahedron_15_inline_impl.hh"
-#include "element_class_point_1_inline_impl.hh"
-#include "element_class_quadrangle_4_inline_impl.hh"
-#include "element_class_quadrangle_8_inline_impl.hh"
-#include "element_class_segment_2_inline_impl.hh"
-#include "element_class_segment_3_inline_impl.hh"
-#include "element_class_tetrahedron_10_inline_impl.hh"
-#include "element_class_tetrahedron_4_inline_impl.hh"
-#include "element_class_triangle_3_inline_impl.hh"
-#include "element_class_triangle_6_inline_impl.hh"
+#include "element_class_hexahedron_20_inline_impl.cc"
+#include "element_class_pentahedron_15_inline_impl.cc"
+#include "element_class_point_1_inline_impl.cc"
+#include "element_class_quadrangle_4_inline_impl.cc"
+#include "element_class_quadrangle_8_inline_impl.cc"
+#include "element_class_segment_2_inline_impl.cc"
+#include "element_class_segment_3_inline_impl.cc"
+#include "element_class_tetrahedron_10_inline_impl.cc"
+#include "element_class_tetrahedron_4_inline_impl.cc"
+#include "element_class_triangle_3_inline_impl.cc"
+#include "element_class_triangle_6_inline_impl.cc"
 
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)

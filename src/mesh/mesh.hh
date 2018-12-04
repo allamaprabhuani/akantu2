@@ -250,9 +250,6 @@ public:
   inline void removeNodesFromArray(Array<T> & vect,
                                    const Array<UInt> & new_numbering);
 
-  /// initialize normals
-  void initNormals();
-
   /// init facets' mesh
   Mesh & initMeshFacets(const ID & id = "mesh_facets");
 
@@ -295,8 +292,14 @@ public:
   AKANTU_GET_MACRO(Nodes, *nodes, const Array<Real> &);
   AKANTU_GET_MACRO_NOT_CONST(Nodes, *nodes, Array<Real> &);
 
-  /// get the normals for the elements
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(Normals, normals, Real);
+  /// get the normals to the element if they exists (not at the integration
+  /// points)
+  const Array<Real> & getNormals(ElementType element_type,
+                                 GhostType ghost_type = _not_ghost) const;
+
+  /// same as getNormals const but compute them if needed
+  const Array<Real> & getNormals(ElementType element_type,
+                                 GhostType ghost_type = _not_ghost);
 
   /// get the number of nodes
   AKANTU_GET_MACRO(NbNodes, nodes->size(), UInt);
@@ -497,10 +500,11 @@ public:
   static inline UInt getNbFacetsPerElement(ElementType type, UInt t);
 
   /// get local connectivity of a facet for a given facet type
-  static inline auto getFacetLocalConnectivity(ElementType type, UInt t = 0);
+  static inline decltype(auto) getFacetLocalConnectivity(ElementType type,
+                                               UInt t = 0);
 
   /// get connectivity of facets for a given element
-  inline auto getFacetConnectivity(const Element & element, UInt t = 0) const;
+  inline decltype(auto) getFacetConnectivity(const Element & element, UInt t = 0) const;
 
   /// get the number of type of the surface element associated to a given
   /// element type
@@ -510,7 +514,7 @@ public:
   static inline constexpr auto getFacetType(ElementType type, UInt t = 0);
 
   /// get all the type of the surface element associated to a given element
-  static inline constexpr auto getAllFacetTypes(ElementType type);
+  static inline decltype(auto) getAllFacetTypes(ElementType type);
 
   /// get the number of nodes in the given element list
   static inline UInt getNbNodesPerElementList(const Array<Element> & elements);
@@ -626,9 +630,6 @@ private:
 
   /// count the references on ghost elements
   ElementTypeMapArray<UInt> ghosts_counters;
-
-  /// map to normals for all class of elements present in this mesh
-  ElementTypeMapArray<Real> normals;
 
   /// the spatial dimension of this mesh
   UInt spatial_dimension{0};

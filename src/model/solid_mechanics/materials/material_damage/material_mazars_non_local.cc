@@ -80,8 +80,8 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * damage = this->damage(el_type, ghost_type).storage();
-  Real * epsilon_equ = this->Ehat(el_type, ghost_type).storage();
+  Real * damage = this->damage(el_type, ghost_type).data();
+  Real * epsilon_equ = this->Ehat(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -104,11 +104,11 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(
   Real * damage;
   Real * epsilon_equ;
   if (this->damage_in_compute_stress) {
-    damage = non_loc_var.storage();
-    epsilon_equ = this->Ehat(el_type, ghost_type).storage();
+    damage = non_loc_var.data();
+    epsilon_equ = this->Ehat(el_type, ghost_type).data();
   } else {
-    damage = this->damage(el_type, ghost_type).storage();
-    epsilon_equ = non_loc_var.storage();
+    damage = this->damage(el_type, ghost_type).data();
+    epsilon_equ = non_loc_var.data();
   }
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);

@@ -96,9 +96,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
 
   /// Natural coordinates
   const Real xi = c(0);
@@ -116,9 +115,8 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
 
   const Real xi = c(0);
   const Real eta = c(1);
@@ -147,30 +145,32 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 inline Real
-GeometricalElement<_gt_quadrangle_8>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Vector<Real> u4 = coord(4);
-  Vector<Real> u5 = coord(5);
-  Vector<Real> u6 = coord(6);
-  Vector<Real> u7 = coord(7);
+GeometricalElement<_gt_quadrangle_8>::getInradius(const Ref<const MatrixXr> & coord) {
+  Real a, b, h;
 
-  auto a = u0.distance(u4);
-  auto b = u4.distance(u1);
-  auto h = std::min(a, b);
+  auto && u0 = coord.col(0);
+  auto && u1 = coord.col(1);
+  auto && u2 = coord.col(2);
+  auto && u3 = coord.col(3);
+  auto && u4 = coord.col(4);
+  auto && u5 = coord.col(5);
+  auto && u6 = coord.col(6);
+  auto && u7 = coord.col(7);
 
-  a = u1.distance(u5);
-  b = u5.distance(u2);
+  a = (u0 - u4).norm();
+  b = (u4 - u1).norm();
+  h = std::min(a, b);
+
+  a = (u1 - u5).norm();
+  b = (u5 - u2).norm();
   h = std::min(h, std::min(a, b));
 
-  a = u2.distance(u6);
-  b = u6.distance(u3);
+  a = (u2 - u6).norm();
+  b = (u6 - u3).norm();
   h = std::min(h, std::min(a, b));
 
-  a = u3.distance(u7);
-  b = u7.distance(u0);
+  a = (u3 - u7).norm();
+  b = (u7 - u0).norm();
   h = std::min(h, std::min(a, b));
 
   return h;
@@ -180,10 +180,8 @@ GeometricalElement<_gt_quadrangle_8>::getInradius(const Matrix<Real> & coord) {
 template <>
 inline void
 InterpolationElement<_itp_serendip_quadrangle_8>::computeSpecialJacobian(
-    const Matrix<Real> & J, Real & jac) {
-  Vector<Real> vprod(J.cols());
-  Matrix<Real> Jt(J.transpose(), true);
-  vprod.crossProduct(Jt(0), Jt(1));
-  jac = vprod.norm();
+    const Ref<const MatrixXr> & J, Real & jac) {
+  auto Jstatic = Eigen::Map<const Eigen::Matrix<Real, 2, 3>>(J.data());
+  jac = Jstatic.row(0).cross(Jstatic.row(1)).norm();
 }
 } // namespace akantu

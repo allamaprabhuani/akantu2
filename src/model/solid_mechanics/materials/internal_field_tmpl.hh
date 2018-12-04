@@ -162,7 +162,7 @@ void InternalFieldTmpl<Material, T>::reset() {
       Array<T> & vect = (*this)(type, ghost_type);
       //vect.zero();
       this->setArrayValues(
-          vect.storage(), vect.storage() + vect.size() * vect.getNbComponent());
+          vect.data(), vect.data() + vect.size() * vect.getNbComponent());
     }
   }
 }
@@ -282,8 +282,8 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
       for (UInt i = 0; i < renumbering.size(); ++i) {
         UInt new_i = renumbering(i);
         if (new_i != UInt(-1)) {
-          memcpy(tmp.storage() + new_i * nb_component * nb_quad_per_elem,
-                 vect.storage() + i * nb_component * nb_quad_per_elem,
+          memcpy(tmp.data() + new_i * nb_component * nb_quad_per_elem,
+                 vect.data() + i * nb_component * nb_quad_per_elem,
                  nb_component * nb_quad_per_elem * sizeof(T));
           ++new_size;
         }

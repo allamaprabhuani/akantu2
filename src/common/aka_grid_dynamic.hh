@@ -80,13 +80,13 @@ public:
 
     bool operator<(const CellID & id) const {
       return std::lexicographical_compare(
-          ids.storage(), ids.storage() + ids.size(), id.ids.storage(),
-          id.ids.storage() + id.ids.size());
+          ids.data(), ids.data() + ids.size(), id.ids.data(),
+          id.ids.data() + id.ids.size());
     }
 
     bool operator==(const CellID & id) const {
-      return std::equal(ids.storage(), ids.storage() + ids.size(),
-                        id.ids.storage());
+      return std::equal(ids.data(), ids.data() + ids.size(),
+                        id.ids.data());
     }
 
     bool operator!=(const CellID & id) const { return !(operator==(id)); }

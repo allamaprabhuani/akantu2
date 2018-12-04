@@ -253,10 +253,10 @@ inline void StructuralMechanicsModel::computeForcesFromFunction(
             getFEEngine().getMesh().getNodes(), quad_coords, spatial_dimension,
             _not_ghost, empty_filter, true, 0, 2, 2);
   lin_load.resize(nb_element * nb_quad);
-  Real * imposed_val = lin_load.storage();
+  Real * imposed_val = lin_load.data();
 
   /// sigma/load on each quadrature points
-  Real * qcoord = quad_coords.storage();
+  Real * qcoord = quad_coords.data();
   for (UInt el = 0; el < nb_element; ++el) {
     for (UInt q = 0; q < nb_quad; ++q) {
       myf(qcoord, imposed_val, NULL, 0);

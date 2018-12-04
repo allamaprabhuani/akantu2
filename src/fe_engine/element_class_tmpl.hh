@@ -46,18 +46,18 @@
 namespace akantu {
 
 template <ElementType element_type, ElementKind element_kind>
-inline constexpr auto
+inline constexpr decltype(auto)
 ElementClass<element_type, element_kind>::getFacetTypes() {
-  return VectorProxy<const ElementType>(
-      element_class_extra_geom_property::facet_type.data(),
-      geometrical_element::getNbFacetTypes());
+  return Eigen::Map<const Eigen::Matrix<
+      ElementType, geometrical_element::getNbFacetTypes(), 1>>(
+      element_class_extra_geom_property::facet_type.data());
 }
 
 /* -------------------------------------------------------------------------- */
 /* GeometricalElement                                                         */
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
-inline constexpr auto
+inline constexpr decltype(auto)
 GeometricalElement<geometrical_type,
                    shape>::getFacetLocalConnectivityPerElement(UInt t) {
   int pos = 0;
@@ -66,7 +66,7 @@ GeometricalElement<geometrical_type,
            geometrical_property::nb_nodes_per_facet[i];
   }
 
-  return MatrixProxy<const UInt>(
+  return Eigen::Map<const Eigen::Matrix<UInt, Eigen::Dynamic, Eigen::Dynamic>>(
       geometrical_property::facet_connectivity_vect.data() + pos,
       geometrical_property::nb_facets[t],
       geometrical_property::nb_nodes_per_facet[t]);
@@ -74,7 +74,7 @@ GeometricalElement<geometrical_type,
 
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
-inline UInt
+inline constexpr UInt
 GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement() {
   UInt total_nb_facets = 0;
   for (UInt n = 0; n < geometrical_property::nb_facet_types; ++n) {
@@ -86,32 +86,29 @@ GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement() {
 
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
-inline UInt
+inline constexpr UInt
 GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(UInt t) {
   return geometrical_property::nb_facets[t];
 }
 
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
-template <class vector_type>
 inline bool GeometricalElement<geometrical_type, shape>::contains(
-    const vector_type & coords) {
+    const Ref<const VectorXr> & coords) {
   return GeometricalShapeContains<shape>::contains(coords);
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
-inline bool
-GeometricalShapeContains<_gst_point>::contains(const vector_type & coords) {
+inline bool GeometricalShapeContains<_gst_point>::contains(
+    const Ref<const VectorXr> & coords) {
   return (coords(0) < std::numeric_limits<Real>::epsilon());
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
-inline bool
-GeometricalShapeContains<_gst_square>::contains(const vector_type & coords) {
+inline bool GeometricalShapeContains<_gst_square>::contains(
+    const Ref<const VectorXr> & coords) {
   bool in = true;
   for (UInt i = 0; i < coords.size() && in; ++i) {
     in &= ((coords(i) >= -(1. + std::numeric_limits<Real>::epsilon())) &&
@@ -122,9 +119,8 @@ GeometricalShapeContains<_gst_square>::contains(const vector_type & coords) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
-inline bool
-GeometricalShapeContains<_gst_triangle>::contains(const vector_type & coords) {
+inline bool GeometricalShapeContains<_gst_triangle>::contains(
+    const Ref<const VectorXr> & coords) {
   bool in = true;
   Real sum = 0;
   for (UInt i = 0; (i < coords.size()) && in; ++i) {
@@ -140,9 +136,8 @@ GeometricalShapeContains<_gst_triangle>::contains(const vector_type & coords) {
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
-inline bool
-GeometricalShapeContains<_gst_prism>::contains(const vector_type & coords) {
+inline bool GeometricalShapeContains<_gst_prism>::contains(
+    const Ref<const VectorXr> & coords) {
   bool in = ((coords(0) >= -1.) && (coords(0) <= 1.)); // x in segment [-1, 1]
 
   // y and z in triangle
@@ -158,12 +153,11 @@ GeometricalShapeContains<_gst_prism>::contains(const vector_type & coords) {
 /* -------------------------------------------------------------------------- */
 template <InterpolationType interpolation_type, InterpolationKind kind>
 inline void InterpolationElement<interpolation_type, kind>::computeShapes(
-    const Matrix<Real> & natural_coord, Matrix<Real> & N) {
+    const Matrix<Real> & natural_coord,
+    Matrix<Real> & N) {
   UInt nb_points = natural_coord.cols();
   for (UInt p = 0; p < nb_points; ++p) {
-    Vector<Real> Np(N(p));
-    Vector<Real> ncoord_p(natural_coord(p));
-    computeShapes(ncoord_p, Np);
+    computeShapes(natural_coord(p), N(p));
   }
 }
 
@@ -173,9 +167,7 @@ inline void InterpolationElement<interpolation_type, kind>::computeDNDS(
     const Matrix<Real> & natural_coord, Tensor3<Real> & dnds) {
   UInt nb_points = natural_coord.cols();
   for (UInt p = 0; p < nb_points; ++p) {
-    Matrix<Real> dnds_p(dnds(p));
-    Vector<Real> ncoord_p(natural_coord(p));
-    computeDNDS(ncoord_p, dnds_p);
+    computeDNDS(natural_coord(p), dnds(p));
   }
 }
 
@@ -193,13 +185,9 @@ inline void InterpolationElement<interpolation_type, kind>::computeDNDS(
  */
 template <InterpolationType interpolation_type, InterpolationKind kind>
 inline void InterpolationElement<interpolation_type, kind>::interpolate(
-    const Matrix<Real> & nodal_values, const Vector<Real> & shapes,
-    Vector<Real> & interpolated) {
-  Matrix<Real> interpm(interpolated.storage(), nodal_values.rows(), 1);
-  Matrix<Real> shapesm(
-      shapes.storage(),
-      InterpolationProperty<interpolation_type>::nb_nodes_per_element, 1);
-  interpm.mul<false, false>(nodal_values, shapesm);
+    const Ref<const MatrixXr> & nodal_values, const Ref<const VectorXr> & shapes,
+    Ref<VectorXr>  interpolated) {
+  interpolated = nodal_values * shapes;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -216,13 +204,11 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
  */
 template <InterpolationType interpolation_type, InterpolationKind kind>
 inline void InterpolationElement<interpolation_type, kind>::interpolate(
-    const Matrix<Real> & nodal_values, const Matrix<Real> & shapes,
+    const Matrix<Real> & nodal_values, const Matrix<Real> & Ns,
     Matrix<Real> & interpolated) {
-  UInt nb_points = shapes.cols();
+  UInt nb_points = Ns.cols();
   for (UInt p = 0; p < nb_points; ++p) {
-    Vector<Real> Np(shapes(p));
-    Vector<Real> interpolated_p(interpolated(p));
-    interpolate(nodal_values, Np, interpolated_p);
+    interpolate(nodal_values, Ns(p), interpolated(p));
   }
 }
 
@@ -241,10 +227,10 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
 template <InterpolationType interpolation_type, InterpolationKind kind>
 inline void
 InterpolationElement<interpolation_type, kind>::interpolateOnNaturalCoordinates(
-    const Vector<Real> & natural_coords, const Matrix<Real> & nodal_values,
-    Vector<Real> & interpolated) {
-  Vector<Real> shapes(
-      InterpolationProperty<interpolation_type>::nb_nodes_per_element);
+    const Ref<const VectorXr> & natural_coords, const Ref<const MatrixXr> & nodal_values,
+    Ref<VectorXr> interpolated) {
+  using interpolation = InterpolationProperty<interpolation_type>;
+  Eigen::Matrix<Real, interpolation::nb_nodes_per_element, 1> shapes;
   computeShapes(natural_coords, shapes);
 
   interpolate(nodal_values, shapes, interpolated);
@@ -256,13 +242,14 @@ InterpolationElement<interpolation_type, kind>::interpolateOnNaturalCoordinates(
 template <InterpolationType interpolation_type, InterpolationKind kind>
 inline void
 InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
-    const Vector<Real> & natural_coords, const Matrix<Real> & f,
-    Matrix<Real> & gradient) {
-  Matrix<Real> dnds(
-      InterpolationProperty<interpolation_type>::natural_space_dimension,
-      InterpolationProperty<interpolation_type>::nb_nodes_per_element);
+    const Ref<const VectorXr> & natural_coords, const Ref<const MatrixXr> & f,
+    Ref<MatrixXr> gradient) {
+  Eigen::Matrix<
+      Real, InterpolationProperty<interpolation_type>::natural_space_dimension,
+      InterpolationProperty<interpolation_type>::nb_nodes_per_element>
+      dnds;
   computeDNDS(natural_coords, dnds);
-  gradient.mul<false, true>(f, dnds);
+  gradient = f * dnds.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -277,36 +264,32 @@ ElementClass<type, kind>::computeJMat(const Tensor3<Real> & dnds,
                                       Tensor3<Real> & J) {
   UInt nb_points = dnds.size(2);
   for (UInt p = 0; p < nb_points; ++p) {
-    Matrix<Real> J_p(J(p));
-    Matrix<Real> dnds_p(dnds(p));
-    computeJMat(dnds_p, node_coords, J_p);
+    computeJMat(dnds(p), node_coords, J(p));
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
 inline void
-ElementClass<type, kind>::computeJMat(const Matrix<Real> & dnds,
-                                      const Matrix<Real> & node_coords,
-                                      Matrix<Real> & J) {
+ElementClass<type, kind>::computeJMat(const Ref<const MatrixXr> & dnds,
+                                      const Ref<const MatrixXr> & node_coords,
+                                      Ref<MatrixXr> J) {
   /// @f$ J = dxds = dnds * x @f$
-  J.mul<false, true>(dnds, node_coords);
+  J = dnds * node_coords.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
-inline void
-ElementClass<type, kind>::computeJacobian(const Matrix<Real> & natural_coords,
-                                          const Matrix<Real> & node_coords,
-                                          Vector<Real> & jacobians) {
+inline void ElementClass<type, kind>::computeJacobian(
+    const Matrix<Real> & natural_coords,
+    const Matrix<Real> & node_coords, Vector<Real> & jacobians) {
   UInt nb_points = natural_coords.cols();
   Matrix<Real> dnds(interpolation_property::natural_space_dimension,
                     interpolation_property::nb_nodes_per_element);
   Matrix<Real> J(natural_coords.rows(), node_coords.rows());
 
   for (UInt p = 0; p < nb_points; ++p) {
-    Vector<Real> ncoord_p(natural_coords(p));
-    interpolation_element::computeDNDS(ncoord_p, dnds);
+    interpolation_element::computeDNDS(natural_coords(p), dnds);
     computeJMat(dnds, node_coords, J);
     computeJacobian(J, jacobians(p));
   }
@@ -325,10 +308,11 @@ ElementClass<type, kind>::computeJacobian(const Tensor3<Real> & J,
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
-inline void ElementClass<type, kind>::computeJacobian(const Matrix<Real> & J,
-                                                      Real & jacobians) {
+inline void
+ElementClass<type, kind>::computeJacobian(const Ref<const MatrixXr> & J,
+                                          Real & jacobians) {
   if (J.rows() == J.cols()) {
-    jacobians = Math::det<element_property::spatial_dimension>(J.storage());
+    jacobians = Math::det<element_property::spatial_dimension>(J.data());
   } else {
     interpolation_element::computeSpecialJacobian(J, jacobians);
   }
@@ -342,27 +326,23 @@ ElementClass<type, kind>::computeShapeDerivatives(const Tensor3<Real> & J,
                                                   Tensor3<Real> & shape_deriv) {
   UInt nb_points = J.size(2);
   for (UInt p = 0; p < nb_points; ++p) {
-    Matrix<Real> shape_deriv_p(shape_deriv(p));
-    computeShapeDerivatives(J(p), dnds(p), shape_deriv_p);
+    computeShapeDerivatives(J(p), dnds(p), shape_deriv(p));
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
-inline void
-ElementClass<type, kind>::computeShapeDerivatives(const Matrix<Real> & J,
-                                                  const Matrix<Real> & dnds,
-                                                  Matrix<Real> & shape_deriv) {
-  Matrix<Real> inv_J(J.rows(), J.cols());
-  Math::inv<element_property::spatial_dimension>(J.storage(), inv_J.storage());
-
-  shape_deriv.mul<false, false>(inv_J, dnds);
+inline void ElementClass<type, kind>::computeShapeDerivatives(
+    const Ref<const MatrixXr> & J, const Ref<const MatrixXr> & dnds,
+    Ref<MatrixXr> shape_deriv) {
+  shape_deriv = J.inverse() * dnds;
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
-    const Matrix<Real> & coord, Matrix<Real> & f, Matrix<Real> & normals) {
+    const Ref<const MatrixXr> & coord, const Ref<const MatrixXr> & f,
+    Ref<MatrixXr> normals) {
   UInt dimension = normals.rows();
   UInt nb_points = coord.cols();
 
@@ -374,12 +354,12 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
 
   Matrix<Real> J(dimension, interpolation_property::natural_space_dimension);
   for (UInt p = 0; p < nb_points; ++p) {
-    interpolation_element::gradientOnNaturalCoordinates(coord(p), f, J);
+    interpolation_element::gradientOnNaturalCoordinates(coord.col(p), f, J);
     if (dimension == 2) {
-      Math::normal2(J.storage(), normals(p).storage());
+      Math::normal2(J.data(), normals.col(p).data());
     }
     if (dimension == 3) {
-      Math::normal3(J(0).storage(), J(1).storage(), normals(p).storage());
+      Math::normal3(J.col(0).data(), J.col(1).data(), normals.col(p).data());
     }
   }
 }
@@ -430,13 +410,13 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
  **/
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::inverseMap(
-    const Vector<Real> & real_coords, const Matrix<Real> & node_coords,
-    Vector<Real> & natural_coords, UInt max_iterations, Real tolerance) {
+    const Ref<const VectorXr> & real_coords, const Ref<const MatrixXr> & node_coords,
+    Ref<VectorXr> natural_coords, UInt max_iterations, Real tolerance) {
   UInt spatial_dimension = real_coords.size();
   UInt dimension = natural_coords.size();
 
   // matrix copy of the real_coords
-  Matrix<Real> mreal_coords(real_coords.storage(), spatial_dimension, 1);
+  Matrix<Real> mreal_coords(real_coords.data(), spatial_dimension, 1);
 
   // initial guess
   natural_coords.zero();
@@ -473,7 +453,7 @@ inline void ElementClass<type, kind>::inverseMap(
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
                    &mreal_coords, spatial_dimension]() {
-    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension);
+    Vector<Real> physical_guess_v(physical_guess.data(), spatial_dimension);
     interpolation_element::interpolateOnNaturalCoordinates(
         natural_coords, node_coords, physical_guess_v);
 
@@ -482,7 +462,7 @@ inline void ElementClass<type, kind>::inverseMap(
     f -= physical_guess;
 
     // compute initial error
-    auto error = f.norm<L_2>();
+    auto error = f.norm();
     return error;
   };
 
@@ -498,21 +478,16 @@ inline void ElementClass<type, kind>::inverseMap(
     J = Jt.transpose();
 
     // compute G
-    G.mul<false, true>(J, J);
-
-    // inverse G
-    Ginv.inverse(G);
+    auto && G = J.transpose() * J;
 
     // compute F
-    F.mul<true, false>(J, Ginv);
+    auto && F = G.inverse() * J.transpose();
 
     // compute increment
-    dxit.mul<true, false>(f, F);
-
-    dxi = dxit.transpose();
+    auto && dxi = F * f;
 
     // update our guess
-    natural_coords += Vector<Real>(dxi(0));
+    natural_coords += dxi;
 
     inverse_map_error = update_f();
     iterations++;

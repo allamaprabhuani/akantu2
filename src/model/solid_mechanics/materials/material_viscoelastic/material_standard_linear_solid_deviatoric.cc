@@ -196,7 +196,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
 
   Real tau = 0.;
   tau = eta / Ev;
-  Real * dis_energy = dissipated_energy(el_type, ghost_type).storage();
+  Real * dis_energy = dissipated_energy(el_type, ghost_type).data();
 
   Array<Real> & stress_dev_vect = stress_dev(el_type, ghost_type);
   Array<Real> & history_int_vect = history_integral(el_type, ghost_type);

@@ -37,7 +37,7 @@ package_declare(core NOT_OPTIONAL
                   cxx_deleted_functions cxx_auto_type cxx_decltype_auto
   FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
                    cxx_delegating_constructors
-  DEPENDS INTERFACE akantu_iterators Boost
+  DEPENDS INTERFACE akantu_iterators Boost Eigen3
   )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -76,6 +76,7 @@ package_declare_sources(core
   common/aka_random_generator.hh
   common/aka_safe_enum.hh
   common/aka_types.hh
+  common/aka_view_iterators.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper_tmpl.hh
   common/aka_voigthelper.cc

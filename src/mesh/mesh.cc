@@ -174,6 +174,20 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
+const Array<Real> & Mesh::getNormals(ElementType element_type,
+                                     GhostType ghost_type) {
+  if (hasData("normals", element_type, ghost_type)) {
+    return getData("normals", element_type, ghost_type);
+  }
+
+  auto & normals = getDataPointer<Real>("normals", element_type, ghost_type,
+                                        spatial_dimension, true);
+  for(auto && data : enumerate(make_view(normals, spatial_dimension))) {
+
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 Mesh & Mesh::initMeshFacets(const ID & id) {
   AKANTU_DEBUG_IN();
 

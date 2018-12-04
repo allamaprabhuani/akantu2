@@ -77,9 +77,8 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_pentahedron_6, _gt_pentahedron_6,
 
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type>
 inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeShapes(
-    const vector_type & c, vector_type & N) {
+    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
   /// Natural coordinates
   N(0) = 0.5 * c(1) * (1 - c(0));              // N1(q)
   N(1) = 0.5 * c(2) * (1 - c(0));              // N2(q)
@@ -90,9 +89,8 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
-template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_pentahedron_6>::computeDNDS(
-    const vector_type & c, matrix_type & dnds) {
+    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
   dnds(0, 0) = -0.5 * c(1);
   dnds(0, 1) = -0.5 * c(2);
   dnds(0, 2) = -0.5 * (1 - c(1) - c(2));
@@ -143,25 +141,24 @@ inline Real triangle_inradius(const Real * coord1, const Real * coord2,
 /* -------------------------------------------------------------------------- */
 template <>
 inline Real
-GeometricalElement<_gt_pentahedron_6>::getInradius(const Matrix<Real> & coord) {
-  Vector<Real> u0 = coord(0);
-  Vector<Real> u1 = coord(1);
-  Vector<Real> u2 = coord(2);
-  Vector<Real> u3 = coord(3);
-  Vector<Real> u4 = coord(4);
-  Vector<Real> u5 = coord(5);
+GeometricalElement<_gt_pentahedron_6>::getInradius(const Ref<const MatrixXr> & coord) {
+  auto && u0 = coord.col(0);
+  auto && u1 = coord.col(1);
+  auto && u2 = coord.col(2);
+  auto && u3 = coord.col(3);
+  auto && u4 = coord.col(4);
+  auto && u5 = coord.col(5);
 
   auto inradius_triangle_1 =
-      triangle_inradius(u0.storage(), u1.storage(), u2.storage());
+      triangle_inradius(u0.data(), u1.data(), u2.data());
 
   auto inradius_triangle_2 =
-      triangle_inradius(u3.storage(), u4.storage(), u5.storage());
+      triangle_inradius(u3.data(), u4.data(), u5.data());
 
-  auto d1 = u3.distance(u0) * 0.5;
-  auto d2 = u5.distance(u2) * 0.5;
-  auto d3 = u4.distance(u1) * 0.5;
-  auto p =
-      2. * std::min({inradius_triangle_1, inradius_triangle_2, d1, d2, d3});
+  auto d1 = (u3 - u0).norm() * 0.5;
+  auto d2 = (u5 - u2).norm() * 0.5;
+  auto d3 = (u4 - u1).norm() * 0.5;
+  auto p = 2.*std::min({inradius_triangle_1, inradius_triangle_2, d1, d2, d3});
 
   return p;
 }

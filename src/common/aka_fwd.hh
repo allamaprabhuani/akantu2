@@ -44,11 +44,7 @@ namespace akantu {
 // forward declaration
 template <int dim, class model_type> struct ContactData;
 
-template <typename T> class Matrix;
-template <typename T> class Vector;
-template <typename T> class Tensor3;
-
-template <typename T, bool is_scal = aka::is_scalar<T>::value> class Array;
+template <typename T, bool is_scal = is_scalar<T>::value> class Array;
 template <typename T, typename SupportType = ElementType>
 class ElementTypeMapArray;
 

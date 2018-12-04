@@ -554,7 +554,7 @@ void HeatTransferModel::computeRho(Array<Real> & rho, ElementType type,
   rho.resize(nb_element * nb_quadrature_points);
   rho.set(this->capacity);
 
-  // Real * rho_1_val = rho.storage();
+  // Real * rho_1_val = rho.data();
   // /// compute @f$ rho @f$ for each nodes of each element
   // for (UInt el = 0; el < nb_element; ++el) {
   //   for (UInt n = 0; n < nb_quadrature_points; ++n) {
@@ -616,7 +616,7 @@ Real HeatTransferModel::getThermalEnergy(ElementType type, UInt index) {
 
   auto T_end = T_it + nb_quadrature_points;
 
-  getThermalEnergy(Eth_on_quarature_points.storage(), T_it, T_end);
+  getThermalEnergy(Eth_on_quarature_points.data(), T_it, T_end);
 
   return getFEEngine().integrate(Eth_on_quarature_points, type, index);
 }

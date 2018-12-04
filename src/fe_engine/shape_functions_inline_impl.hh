@@ -309,15 +309,14 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
      * multiply it by the field values over quadrature points to get
      * the interpolation coefficients
      */
-    coefficients.mul<false, true>(inv_quad_coord_matrix, *field_it);
+    coefficients = inv_quad_coord_matrix * *field_it->transpose();
 
     /// matrix containing the points' coordinates
     const auto & coord = *interpolation_points_coordinates_it;
 
     /// multiply the coordinates matrix by the coefficients matrix and store the
     /// result
-    Matrix<Real> res(result_begin[element_filter(el)]);
-    res.mul<true, true>(coefficients, coord);
+    result_begin[element_filter(el)] = coefficients.transpose() * coord.transpose();
   }
 
   AKANTU_DEBUG_OUT();

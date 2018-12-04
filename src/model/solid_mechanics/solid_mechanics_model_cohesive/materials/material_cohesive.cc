@@ -250,10 +250,10 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
                                              size_of_shapes, "filtered shapes");
 
     Real * shapes_filtered_val = shapes_filtered->storage();
-    UInt * elem_filter_val = elem_filter.storage();
+    UInt * elem_filter_val = elem_filter.data();
 
     for (UInt el = 0; el < nb_element; ++el) {
-      auto * shapes_val = shapes.storage() + elem_filter_val[el] *
+      auto * shapes_val = shapes.data() + elem_filter_val[el] *
                                                  size_of_shapes *
                                                  nb_quadrature_points;
       memcpy(shapes_filtered_val, shapes_val,

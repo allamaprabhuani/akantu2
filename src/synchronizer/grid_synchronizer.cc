@@ -454,7 +454,7 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
                         << " (communication tag : "
                         << Tag::genTag(p, 0, SEND_NODES_TAG) << ")");
 
-      Vector<Real> nodes_to_recv(nodes.storage() + nb_nodes * spatial_dimension,
+      Vector<Real> nodes_to_recv(nodes.data() + nb_nodes * spatial_dimension,
                                  nb_nodes_to_recv(p) * spatial_dimension);
       comm.receive(nodes_to_recv, p, Tag::genTag(p, 0, SEND_NODES_TAG));
       nb_nodes += nb_nodes_to_recv(p);

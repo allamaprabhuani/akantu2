@@ -121,7 +121,7 @@ void SlaveElementInfoPerProc::synchronizeTags() {
   }
 
   AKANTU_DEBUG_INFO("Receiving the information about the mesh data tags, addr "
-                    << (void *)mesh_data_sizes_buffer.storage());
+                    << (void *)mesh_data_sizes_buffer.data());
 
   std::vector<std::string> tag_names;
   std::vector<MeshDataTypeCode> tag_type_codes;

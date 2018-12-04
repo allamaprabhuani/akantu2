@@ -74,9 +74,9 @@ namespace Math {
 
     y.resize(nb_element);
 
-    Real * A_val = A.storage();
-    Real * x_val = x.storage();
-    Real * y_val = y.storage();
+    Real * A_val = A.data();
+    Real * x_val = x.data();
+    Real * y_val = y.data();
 
     for (UInt el = 0; el < nb_element; ++el) {
       matrix_vector(m, n, A_val, x_val, y_val, alpha);
@@ -121,9 +121,9 @@ namespace Math {
 
     C.resize(nb_element);
 
-    Real * A_val = A.storage();
-    Real * B_val = B.storage();
-    Real * C_val = C.storage();
+    Real * A_val = A.data();
+    Real * B_val = B.data();
+    Real * C_val = C.data();
 
     for (UInt el = 0; el < nb_element; ++el) {
       matrix_matrix(m, n, k, A_val, B_val, C_val, alpha);
@@ -168,9 +168,9 @@ namespace Math {
 
     C.resize(nb_element);
 
-    Real * A_val = A.storage();
-    Real * B_val = B.storage();
-    Real * C_val = C.storage();
+    Real * A_val = A.data();
+    Real * B_val = B.data();
+    Real * C_val = C.data();
 
     for (UInt el = 0; el < nb_element; ++el) {
       matrix_matrixt(m, n, k, A_val, B_val, C_val, alpha);
@@ -214,10 +214,10 @@ namespace Math {
       const auto & normal = std::get<0>(data);
       auto & tangent = std::get<1>(data);
 
-      if (are_float_equal(norm2(normal.storage()), 0.)) {
+      if (are_float_equal(norm2(normal.data()), 0.)) {
         tangent(0) = 1.;
       } else {
-        normal2(normal.storage(), tangent.storage());
+        normal2(normal.data(), tangent.data());
       }
     }
 
@@ -228,8 +228,8 @@ namespace Math {
         const auto & normal = std::get<0>(data);
         auto & tangent = std::get<1>(data);
 
-        normal3(normal.storage(), tangent.storage(),
-                tangent.storage() + spatial_dimension);
+        normal3(normal.data(), tangent.data(),
+                tangent.data() + spatial_dimension);
       }
     }
 

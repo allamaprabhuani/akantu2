@@ -97,10 +97,10 @@ void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
   UInt nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
                                      elem_val + elem * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
@@ -184,10 +184,10 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
     inverseMap<type>(real_point, elem, natural_point, ghost_type);
   }
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).storage();
+  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
                                      elem_val + elem * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
@@ -230,7 +230,7 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
   FEEngine::extractNodalToElementField(mesh, nodes, x_el, type, ghost_type,
                                        filter_elements);
 
-  Real * shapesd_val = shape_derivatives.storage();
+  Real * shapesd_val = shape_derivatives.data();
   Array<Real>::matrix_iterator x_it =
       x_el.begin(spatial_dimension, nb_nodes_per_element);
 
@@ -240,7 +240,7 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 
   for (UInt elem = 0; elem < nb_element; ++elem, ++x_it) {
     if (filter_elements != empty_filter) {
-      shapesd_val = shape_derivatives.storage() +
+      shapesd_val = shape_derivatives.data() +
                     filter_elements(elem) * size_of_shapesd * nb_points;
     }
 
@@ -472,8 +472,7 @@ void ShapeLagrange<kind>::computeBtDB(
 
       VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(Bfull, B,
                                                          nb_nodes_per_element);
-      Bt_D.template mul<true, false>(B, D);
-      Bt_D_B.template mul<false, false>(Bt_D, B);
+      Bt_D_B = B.transpose() * D * B;
     }
   } else if (order_d == 2) {
     Matrix<Real> Bt_D(nb_nodes_per_element, dim);
@@ -483,8 +482,7 @@ void ShapeLagrange<kind>::computeBtDB(
       const auto & B = std::get<0>(values);
       const auto & D = std::get<1>(values);
       auto & Bt_D_B = std::get<2>(values);
-      Bt_D.template mul<true, false>(B, D);
-      Bt_D_B.template mul<false, false>(Bt_D, B);
+      Bt_D_B = B.transpose() * D * B;
     }
   }
 }
@@ -571,7 +569,7 @@ void ShapeLagrange<kind>::computeNtb(
     const auto & N = std::get<1>(values);
     auto & Ntb = std::get<2>(values);
 
-    Ntb.template mul<false, false>(b, N);
+    Ntb = b * N;
   }
 
   AKANTU_DEBUG_OUT();

@@ -81,7 +81,7 @@ void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
                           << "number of component");
 
   shape_derivatives.resize(nb_element * nb_points);
-  Real * shapesd_val = shape_derivatives.storage();
+  Real * shapesd_val = shape_derivatives.data();
 
   auto compute = [&](const auto & el) {
     auto ptr = shapesd_val + el * nb_points * size_of_shapesd;
@@ -275,12 +275,12 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnIntegrationPoints(
         u, tangents_u, spatial_dimension, ghost_type, filter_elements);
   }
 
-  Real * tangent = tangents_u.storage();
+  Real * tangent = tangents_u.data();
 
   if (spatial_dimension == 3) {
     for (auto & normal : make_view(normals_u, spatial_dimension)) {
       Math::vectorProduct3(tangent, tangent + spatial_dimension,
-                           normal.storage());
+                           normal.data());
 
       normal /= normal.norm();
       tangent += spatial_dimension * 2;

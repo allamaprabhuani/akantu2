@@ -117,7 +117,7 @@ public:
                         "This quadrature point is out of range");
 
     const Real * element_damage =
-        damage_array.storage() + nb_quad_per_element * el_index;
+        damage_array.data() + nb_quad_per_element * el_index;
 
     UInt unbroken_quads = std::count_if(
         element_damage, element_damage + nb_quad_per_element, is_unbroken);
@@ -203,8 +203,8 @@ void FragmentManager::computeCenterOfMass() {
   integrateFieldOnFragments(quad_coordinates, mass_center);
 
   /// divide it by the fragments' mass
-  Real * mass_storage = mass.storage();
-  Real * mass_center_storage = mass_center.storage();
+  Real * mass_storage = mass.data();
+  Real * mass_center_storage = mass_center.data();
 
   UInt total_components = mass_center.size() * mass_center.getNbComponent();
 
@@ -234,8 +234,8 @@ void FragmentManager::computeVelocity() {
   integrateFieldOnFragments(velocity_field, velocity);
 
   /// divide it by the fragments' mass
-  Real * mass_storage = mass.storage();
-  Real * velocity_storage = velocity.storage();
+  Real * mass_storage = mass.data();
+  Real * velocity_storage = velocity.data();
 
   UInt total_components = velocity.size() * velocity.getNbComponent();
 
@@ -376,7 +376,7 @@ void FragmentManager::storeMassDensityPerIntegrationPoint() {
 
     const Array<UInt> & mat_indexes = model.getMaterialByElement(type);
 
-    Real * mass_density_it = mass_density_array.storage();
+    Real * mass_density_it = mass_density_array.data();
 
     /// store mass_density for each element and quadrature point
     for (UInt el = 0; el < nb_element; ++el) {

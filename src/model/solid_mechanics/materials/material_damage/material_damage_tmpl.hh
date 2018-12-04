@@ -122,7 +122,7 @@ void MaterialDamage<spatial_dimension, Parent>::computeTangentModuli(
   Parent<spatial_dimension>::computeTangentModuli(el_type, tangent_matrix,
                                                   ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
   computeTangentModuliOnQuad(tangent, *dam);

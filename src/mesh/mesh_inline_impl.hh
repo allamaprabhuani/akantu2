@@ -138,9 +138,9 @@ inline void Mesh::removeNodesFromArray(Array<T> & vect,
   for (UInt i = 0; i < new_numbering.size(); ++i) {
     UInt new_i = new_numbering(i);
     if (new_i != UInt(-1)) {
-      T * to_copy = vect.storage() + i * nb_component;
+      T * to_copy = vect.data() + i * nb_component;
       std::uninitialized_copy(to_copy, to_copy + nb_component,
-                              tmp.storage() + new_i * nb_component);
+                              tmp.data() + new_i * nb_component);
       ++new_nb_nodes;
     }
   }
@@ -374,8 +374,8 @@ inline void Mesh::getBarycenter(const Element & element,
         Vector<Real>(node_begin[std::get<1>(node)]);
   }
 
-  Math::barycenter(local_coord.storage(), conn.size(), spatial_dimension,
-                   barycenter.storage());
+  Math::barycenter(local_coord.data(), conn.size(), spatial_dimension,
+                   barycenter.data());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -451,13 +451,22 @@ inline constexpr auto Mesh::getFacetType(ElementType type, UInt t) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getAllFacetTypes(ElementType type) {
-#define GET_FACET_TYPE(type) return ElementClass<type>::getFacetTypes();
+inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
+#define GET_FACET_TYPE(type)                                                   \
+  {                                                                            \
+    auto && map = ElementClass<type>::getFacetTypes();                         \
+    return Eigen::Map<                                                         \
+        const Eigen::Matrix<ElementType, Eigen::Dynamic, Eigen::Dynamic>>(     \
+        map.data(), map.rows(), map.cols());                                   \
+  }
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH_NO_DEFAULT(GET_FACET_TYPE);
 #undef GET_FACET_TYPE
 
-  return ElementClass<_not_defined>::getFacetTypes();
+  auto && map = ElementClass<_not_defined>::getFacetTypes();
+  return Eigen::Map<
+      const Eigen::Matrix<ElementType, Eigen::Dynamic, Eigen::Dynamic>>(
+      map.data(), map.rows(), map.cols());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -490,7 +499,8 @@ inline UInt Mesh::getNbFacetsPerElement(ElementType type, UInt t) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getFacetLocalConnectivity(ElementType type, UInt t) {
+inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type,
+                                                      UInt t) {
   AKANTU_DEBUG_IN();
 
 #define GET_FACET_CON(type)                                                    \
@@ -507,10 +517,11 @@ inline auto Mesh::getFacetLocalConnectivity(ElementType type, UInt t) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getFacetConnectivity(const Element & element, UInt t) const {
+inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
+                                                 UInt t) const {
   AKANTU_DEBUG_IN();
 
-  Matrix<const UInt> local_facets(getFacetLocalConnectivity(element.type, t));
+  auto local_facets = getFacetLocalConnectivity(element.type, t);
   Matrix<UInt> facets(local_facets.rows(), local_facets.cols());
 
   const Array<UInt> & conn = connectivities(element.type, element.ghost_type);
@@ -542,7 +553,7 @@ inline void Mesh::extractNodalValuesFromElement(
     UInt n_nodes, UInt nb_degree_of_freedom) const {
   for (UInt n = 0; n < n_nodes; ++n) {
     memcpy(local_coord + n * nb_degree_of_freedom,
-           nodal_values.storage() + connectivity[n] * nb_degree_of_freedom,
+           nodal_values.data() + connectivity[n] * nb_degree_of_freedom,
            nb_degree_of_freedom * sizeof(T));
   }
 }

@@ -61,7 +61,7 @@ inline Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
     tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
   } else if (dim == 3) {
     for (UInt s = 0; s < dim - 1; ++s) {
-      const Vector<Real> tangent_v(tangent.storage() + s * dim, dim);
+      const Vector<Real> tangent_v(tangent.data() + s * dim, dim);
       Real tangent_contrib_tmp = normal_traction.dot(tangent_v);
       tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
     }

@@ -260,10 +260,10 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
         const Matrix<Real> & facet_stress_it = facet_stress_begin[current_quad];
 
         // compute average stress on the current quadrature point
-        Matrix<Real> stress_1(facet_stress_it.storage(), spatial_dimension,
+        Matrix<Real> stress_1(facet_stress_it.data(), spatial_dimension,
                               spatial_dimension);
 
-        Matrix<Real> stress_2(facet_stress_it.storage() + sp2,
+        Matrix<Real> stress_2(facet_stress_it.data() + sp2,
                               spatial_dimension, spatial_dimension);
 
         stress_tmp.copy(stress_1);
@@ -281,7 +281,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
       Real final_stress = stress_check.mean();
       if (max_quad_stress_insertion) {
         final_stress = *std::max_element(
-            stress_check.storage(), stress_check.storage() + nb_quad_facet);
+            stress_check.data(), stress_check.data() + nb_quad_facet);
       }
 
       if (final_stress > *sigma_lim_it) {

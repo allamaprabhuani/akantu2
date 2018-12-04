@@ -957,7 +957,7 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     Int offset = i * nodes.getNbComponent();
     outfile << i + 1;
     for (UInt j = 0; j < nodes.getNbComponent(); ++j) {
-      outfile << " " << nodes.storage()[offset + j];
+      outfile << " " << nodes.data()[offset + j];
     }
 
     for (UInt p = nodes.getNbComponent(); p < 3; ++p) {
@@ -992,12 +992,12 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
     UInt * tag[2] = {nullptr, nullptr};
     if (mesh.hasData<UInt>("tag_0", type, _not_ghost)) {
       const auto & data_tag_0 = mesh.getData<UInt>("tag_0", type, _not_ghost);
-      tag[0] = data_tag_0.storage();
+      tag[0] = data_tag_0.data();
     }
 
     if (mesh.hasData<UInt>("tag_1", type, _not_ghost)) {
       const auto & data_tag_1 = mesh.getData<UInt>("tag_1", type, _not_ghost);
-      tag[1] = data_tag_1.storage();
+      tag[1] = data_tag_1.data();
     }
 
     for (auto && data :

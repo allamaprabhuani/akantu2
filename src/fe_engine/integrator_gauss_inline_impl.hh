@@ -51,8 +51,8 @@ inline void IntegratorGauss<kind, IntegrationOrderFunctor>::integrateOnElement(
   AKANTU_DEBUG_ASSERT(f.getNbComponent() == nb_degree_of_freedom,
                       "The vector f do not have the good number of component.");
 
-  Real * f_val = f.storage() + elem * f.getNbComponent();
-  Real * jac_val = jac_loc.storage() + elem * nb_quadrature_points;
+  Real * f_val = f.data() + elem * f.getNbComponent();
+  Real * jac_val = jac_loc.data() + elem * nb_quadrature_points;
 
   integrate(f_val, jac_val, intf, nb_degree_of_freedom, nb_quadrature_points);
 }
@@ -69,10 +69,10 @@ inline Real IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
   AKANTU_DEBUG_ASSERT(in_f.size() == nb_quadrature_points,
                       "The vector f do not have nb_quadrature_points entries.");
 
-  Real * jac_val = jac_loc.storage() + index * nb_quadrature_points;
+  Real * jac_val = jac_loc.data() + index * nb_quadrature_points;
   Real intf;
 
-  integrate(in_f.storage(), jac_val, &intf, 1, nb_quadrature_points);
+  integrate(in_f.data(), jac_val, &intf, 1, nb_quadrature_points);
 
   return intf;
 }
@@ -186,7 +186,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::checkJacobians(
 
   UInt nb_element = mesh.getConnectivity(type, ghost_type).size();
 
-  Real * jacobians_val = jacobians(type, ghost_type).storage();
+  Real * jacobians_val = jacobians(type, ghost_type).data();
 
   for (UInt i = 0; i < nb_element * nb_quadrature_points;
        ++i, ++jacobians_val) {
@@ -453,7 +453,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
     const Matrix<Real> & J = *J_it;
     Matrix<Real> & inte_f = *inte_it;
 
-    inte_f.mul<false, false>(f, J);
+    inte_f = f * J;
   }
 
   AKANTU_DEBUG_OUT();

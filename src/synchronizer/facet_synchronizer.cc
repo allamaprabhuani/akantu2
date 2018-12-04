@@ -100,7 +100,7 @@ FacetSynchronizer::FacetSynchronizer(
     auto & conn = facet_global_connectivities(type, _not_ghost);
     auto conn_view = make_view(conn, conn.getNbComponent());
     std::for_each(conn_view.begin(), conn_view.end(), [&](auto & conn) {
-      std::sort(conn.storage(), conn.storage() + conn.size());
+      std::sort(conn.data(), conn.data() + conn.size());
     });
   }
 
@@ -171,7 +171,7 @@ FacetSynchronizer::FacetSynchronizer(
             facet_global_connectivities(facet.type, facet.ghost_type);
         Vector<UInt> conn =
             global_conn.begin(global_conn.getNbComponent())[facet.element];
-        std::sort(conn.storage(), conn.storage() + conn.size());
+        std::sort(conn.data(), conn.data() + conn.size());
 
         connectivities_for_proc(facet.type, facet.ghost_type).push_back(conn);
       }
