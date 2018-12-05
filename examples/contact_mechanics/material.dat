@@ -1,0 +1,4 @@
+contact_detector [
+  master_surface = rigid
+  slave_surface = contact_surface
+]

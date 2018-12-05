@@ -34,7 +34,7 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
-#include "contact_detection.hh"
+#include "contact_detector.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -47,12 +47,11 @@ int main(int argc, char* argv[]) {
   Mesh mesh(spatial_diemnsion);
   mesh.read("hertz_2d.msh");
 
-  ContactDetection detect(mesh, "rigid", "contact_surface");
-
-  //detect.set("master_surface", "rigid");
-  //detect.set("master_surface", "elastic");
-
-  detect.search();
+  ContactDetector detector(mesh, "bot_body", "top_body");
+  //detector.setMasterSurface("rigid");
+  //detector.setSlaveSurface("contact_surface");
+  
+  detector.search();
   
   finalize();
 }

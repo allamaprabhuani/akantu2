@@ -1,12 +1,12 @@
 /**
- * @file   test_contact_detection.cc
+ * @file   coontact_mechanics_model.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Mon Oct 22 2018
- * @date last modification: Mon Oct 22 2018
+ * @date creation: Tue May 08 2012
+ * @date last modification: Wed Feb 21 2018
  *
- * @brief  Test for contact detection
+ * @brief  Contact mechanics model
  *
  * @section LICENSE
  *
@@ -29,29 +29,40 @@
  */
 
 /* -------------------------------------------------------------------------- */
-
-#include <fstream>
-#include <iostream>
-
+#include "fe_engine.hh"
+#include "contact_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
-#include "contact_detector.hh"
+#include <algorithm>
 /* -------------------------------------------------------------------------- */
 
-using namespace akantu;
 
-int main(int argc, char* argv[]) {
+namespace akantu {
 
-  initialize("material.dat", argc, argv);
-  const UInt spatial_diemnsion = 3;
+ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, UInt dim, const ID & id,
+					      const MemoryID & memory_id,
+					      const ModelType model_type)
+  : Model(mesh, model_type, dim, id, memory_id) {
 
-  Mesh mesh(spatial_diemnsion);
-  mesh.read("hertz_3d.msh");
+  AKANTU_DEBUG_IN();
 
-  ContactDetector detector(mesh, "rigid", "elastic");
-  detector.setMasterSurface("rigid_surface");
-  detector.setSlaveSurface("contact_surface");
+
+  //this->detector = std::make_unique<ContactDetector>(
+  //	  this->mesh, id + ":contact_detector");
+
+  AKANTU_DEBUG_OUT();
   
-  detector.search();
+}
+
+
+ContactMechanicsModel::~ContactMechanicsModel() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+}
+
+void ContactMechanicsModel::initModel() {
   
-  finalize();
+}
+  
+
 }

@@ -38,17 +38,23 @@
 #include "fe_engine.hh"
 #include "parsable.hh"
 #include "element_group.hh"
+//#include "contact_element.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_CONTACT_DETECTION_HH__
-#define __AKANTU_CONTACT_DETECTION_HH__
+#ifndef __AKANTU_CONTACT_DETECTOR_HH__
+#define __AKANTU_CONTACT_DETECTOR_HH__
 
 
-namespace akantu { 
+namespace akantu {
+
+enum class Surface {
+  _master,
+  _slave
+};
   
 /* -------------------------------------------------------------------------- */ 
 
-class ContactDetection :
+class ContactDetector :
     private Memory, public Parsable {
 
   /* ------------------------------------------------------------------------ */
@@ -56,25 +62,41 @@ class ContactDetection :
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactDetection(Mesh &, std::string , std::string , const ID & id = "contact_detection",
-		   UInt memory_id = 0);
+  ContactDetector(Mesh &, std::string , std::string ,
+		  const ID & id = "contact_detector",
+		  UInt memory_id = 0);
 
-  ~ContactDetection() = default;
+  ContactDetector(Mesh &, Array<Real> & positions,  std::string,
+		  std::string , const ID & id = "contact_detector", UInt memory_id = 0);
+    
+    
+  ~ContactDetector() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ///
+  /// sets the master surface id
+  // TODO : needs to be changes , more efficient way
+  void setMasterSurface(std::string);
+  
+  /// sets the slave surface id
+  // TODO : needs to be changes , more efficient way
+  void setSlaveSurface(std::string);
+  
+  /// 
   void search();
-
+  
+private:
   /// performs global spatial search
   void globalSearch();
 
   ///  performs local search to create contact element
-  void localSearch();
+  /// TODO: templated function typename
+  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
 
   /// constructs a grid containing nodes lying within bounding box
+  /// TODO : templated fucntion to created tempalte Spatial Grid
   void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
 
   /// constructs the bounding box based on nodes list
@@ -85,6 +107,7 @@ public:
 
   /// computes the maximum in radius for a given mesh 
   void getMaximalDetectionDistance();
+
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -105,9 +128,22 @@ private:
   /// id for slave surface/curve
   std::string slave_id;
 
+  ///
+  std::string slave_surface;
+
+  ///
+  std::string master_surface;
+
+  /// contains the updated positions of the nodes
+  Array<Real> & positions;
+
+  using Elements = std::vector<std::shared_ptr<ContactElement>>;
+  ///
+  Elements  elements;
+  
 };
   
 } // namespace akantu
 
 
-#endif /* __AKANTU_CONTACT_DETECTION_HH__ */
+#endif /* __AKANTU_CONTACT_DETECTOR_HH__ */

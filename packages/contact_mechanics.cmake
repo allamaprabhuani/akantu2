@@ -33,12 +33,15 @@ package_declare(contact_mechanics
   DESCRIPTION "Use Contact Mechanics package of Akantu")
 
 package_declare_sources(contact_mechanics
-  model/contact_mechanics/contact_detection.hh
-  model/contact_mechanics/contact_detection.cc)
+  model/contact_mechanics/contact_mechanics_model.hh
+  model/contact_mechanics/contact_mechanics_model.cc
+  model/contact_mechanics/contact_detector.hh
+  model/contact_mechanics/contact_detector.cc
+  model/contact_mechanics/contact_element.hh)
 
 package_declare_documentation_files(contact_mechanics
-  #manual-contactmechanicsmodel.tex
+  manual-contact_detector.tex
   )
 
 package_declare_documentation(contact_mechanics
-  "This package activates the conatct ")
+  "This package activates the contact ")
