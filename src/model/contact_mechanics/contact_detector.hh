@@ -38,7 +38,7 @@
 #include "fe_engine.hh"
 #include "parsable.hh"
 #include "element_group.hh"
-//#include "contact_element.hh"
+#include "contact_element.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_DETECTOR_HH__
@@ -68,8 +68,7 @@ public:
 
   ContactDetector(Mesh &, Array<Real> & positions,  std::string,
 		  std::string , const ID & id = "contact_detector", UInt memory_id = 0);
-    
-    
+        
   ~ContactDetector() = default;
 
   /* ------------------------------------------------------------------------ */
@@ -86,7 +85,13 @@ public:
   
   /// 
   void search();
-  
+
+  /// computes orthogonal projection on master elements
+  void computeOrthogonalProjection(const UInt &           /* slave node */,
+				   const Array<Element> & /* master elements */,
+				   Array<Real> &          /* normals */,
+				   Array<Real> &          /* projections */);
+
 private:
   /// performs global spatial search
   void globalSearch();
@@ -96,7 +101,7 @@ private:
   void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
 
   /// constructs a grid containing nodes lying within bounding box
-  /// TODO : templated fucntion to created tempalte Spatial Grid
+  /// TODO : templated fucntion to created template Spatial Grid
   void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
 
   /// constructs the bounding box based on nodes list
@@ -108,6 +113,28 @@ private:
   /// computes the maximum in radius for a given mesh 
   void getMaximalDetectionDistance();
 
+  /// extracts the coordinates of an element
+  void coordinatesOfElement(const Element & /* element id  */,
+			    Matrix<Real> &  /* coordinates */);
+
+  /// extracts vectors which forms the plane of element
+  void vectorsAlongElement(const Element & /* element id     */,
+			   Matrix<Real> &  /* vectors matrix */);
+  
+  /// computes normal on an element
+  void computeNormalOnElement(const Element & /* element id    */,
+			      Vector<Real> &  /* normal vector */);
+
+  /// computes projection of a query point on an element
+  void computeProjectionOnElement(const Element &      /* element */,
+				  const Vector<Real> & /* normal */,
+				  const Vector<Real> & /* query */,
+				  Vector<Real> &       /* projection
+							  */);
+  /// checks for the validity of a projection
+  bool isValidProjection(const Element & /* element     */,
+			 Vector<Real> &  /* projection  */);
+  
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -137,9 +164,10 @@ private:
   /// contains the updated positions of the nodes
   Array<Real> & positions;
 
-  using Elements = std::vector<std::shared_ptr<ContactElement>>;
-  ///
-  Elements  elements;
+  //using Elements = std::vector<std::shared_ptr<ContactElement>>;
+  //Elements  elements;
+
+  ContactDetectorType detection_type;
   
 };
   

@@ -70,7 +70,7 @@ namespace akantu {
   this->master_id = master;
   this->slave_id = slave;
 
-  this->mesh.fillNodesToElements();  
+  this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
 
   AKANTU_DEBUG_OUT();
 }
@@ -202,7 +202,7 @@ void ContactDetector::globalSearch() {
 }
 
 /* -------------------------------------------------------------------------- */
-  void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UInt> & master_grid) {
+void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UInt> & master_grid) {
 
   // local search
   // out of these array check each cell for closet node in that cell
@@ -214,100 +214,75 @@ void ContactDetector::globalSearch() {
   // these master surfaces will be needed later to update contact
   // elements
 
-    Array<UInt> slave_nodes;
-    Array<UInt> master_nodes;
+  Array<UInt> slave_nodes;
+  Array<UInt> master_nodes;
 
-   // find the closet master node for each slave node
-   for (auto && cell_id : slave_grid) {
-     AKANTU_DEBUG_INFO("Looping on next cell");
-
-          
-     for (auto && q1: slave_grid.getCell(cell_id)) {
-       
-       Vector<Real> pos(spatial_dimension);
-       for (UInt s: arange(spatial_dimension)) {
-	 pos(s) = this->positions(q1, s);
-       }
-
-       Real closet_distance = std::numeric_limits<Real>::max();
-       UInt closet_master_node;
-
-       // loop over all the neighboring cells of the current cells
-       for (auto && neighbor_cell : cell_id.neighbors()) {
-	 //AKANTU_DEBUG_INFO("Looping on neighbor cell");
-	 // loop over the data of neighboring cells from master grid
-	 
-	 for (auto && q2 : master_grid.getCell(neighbor_cell)) {
-	   
-	   AKANTU_DEBUG_INFO("Looping on neighbor cell in master");
-	   Vector<Real> pos2(spatial_dimension);
-	   for (UInt s: arange(spatial_dimension)) {
-	     pos2(s) = this->positions(q2, s);
-	   }
-
-	   Real distance = pos.distance(pos2);
-	   std::cout << distance << " " << closet_distance << std::endl;
-   
-	   if (distance <= closet_distance) {
-	     closet_master_node = q2;
-	     closet_distance = distance;
-	   }
-	 }
-       }
-             
-     slave_nodes.push_back(q1);
-     master_nodes.push_back(closet_master_node);
-     }
-
-   }  
-
-   
-   for (auto & master: master_nodes) {
-     Array<Element> elements;
-     mesh.getAssociatedElements(master, elements);
-     
-     //Array<Real> normals(elements.size(), spatial_dimension);
-     //this->computeNormalOnElements(elements, normals);
-
-     //Array<Real> projections(elements.size(), 0);
-     //this->computeOrthogonalProjections(normals, projections);
-
-     // create a contact element
-     // elements array
-     // minimum orthogonal projection
-     // and the corresponding normal
-     // UInt slave node
-     // Element master element
-     // contact_element = std::make_shared<ContactElement>(UInt, Element);
-     // contact_element->setGap(projection)
-     // contact_element->setNormal(normal(p));
-     // contact_element->setPatch(elements);
-     // elements.push_back(contact_element);
-     
-   }
-
-  // PART III
-  // compute the orthogonal distance from each associated element
-  // this->computeOrthogonalDistance(*sit, elements);
-  // give orthogonal distance
-   //   /// compute normals on facets
-   // this->computeNormals(); belongs to model class
-   // put this function in contact model class
-   // and create the mesh_facets in conatct detection class
-   // this->getFEEngine("FacetsFEEngine")
-   //.computeNormalsOnIntegrationPoints(_not_ghost);
-   // const auto & tangents = model->getTangents(type_facet);
-  //  const auto & normals = model->getFEEngine("FacetsFEEngine")
-  //                             .getNormalsOnIntegrationPoints(type_facet);
-
-   
-  // PART IV
-  // create contact element,
-  // contact element should have one slave node and master facets
-  // ContactElement<UInt, Array<Element> > e(slave, elements);
-  // set the orthogonal and orthogonal distance
-  // 
+  // find the closet master node for each slave node
+  for (auto && cell_id : slave_grid) {
+    AKANTU_DEBUG_INFO("Looping on next cell");
     
+    for (auto && q1: slave_grid.getCell(cell_id)) {
+       
+      Vector<Real> pos(spatial_dimension);
+      for (UInt s: arange(spatial_dimension)) {
+	pos(s) = this->positions(q1, s);
+      }
+
+      Real closet_distance = std::numeric_limits<Real>::max();
+      UInt closet_master_node;
+
+      // loop over all the neighboring cells of the current cells
+      for (auto && neighbor_cell : cell_id.neighbors()) {
+	//AKANTU_DEBUG_INFO("Looping on neighbor cell");
+	// loop over the data of neighboring cells from master grid
+	
+	for (auto && q2 : master_grid.getCell(neighbor_cell)) {
+	  
+	  AKANTU_DEBUG_INFO("Looping on neighbor cell in master");
+	  Vector<Real> pos2(spatial_dimension);
+	  for (UInt s: arange(spatial_dimension)) {
+	    pos2(s) = this->positions(q2, s);
+	  }
+
+	  Real distance = pos.distance(pos2);
+	  std::cout << distance << " " << closet_distance << std::endl;
+   
+	  if (distance <= closet_distance) {
+	    closet_master_node = q2;
+	    closet_distance = distance;
+	  }
+	}
+      }
+	
+      slave_nodes.push_back(q1);
+      master_nodes.push_back(closet_master_node);
+    }
+  }  
+  
+  for (auto && values : zip(slave_nodes, master_nodes)) {
+    const auto & slave_node  = std::get<0>(values);
+    const auto & master_node = std::get<1>(values);
+
+    Array<Element> elements;
+    mesh.getAssociatedElements(master_node, elements);
+   
+    auto normals     = std::make_unique<Array<Real>>(elements.size(),
+						     spatial_dimension, "normals");
+    auto projections = std::make_unique<Array<Real>>(elements.size(),
+						     1, "projections");
+
+    this->computeOrthogonalProjection(slave_node, elements, *normals, *projections);
+        
+    auto minimum = std::min_element(projections->begin(), projections->end());
+    auto index   = std::distance(projections->begin(), minimum);
+
+    /*auto contact_element = std::make_shared<ContactElement>(slave_node, 
+							    elements[index]);
+    contact_element->setGap(    (*projection)[index]);
+    contact_element->setNormal( (*normal)[index]);
+    contact_element->setPatch(  elements);
+    elements.push_back(contact_element);*/
+  }
 }
 
   
@@ -365,63 +340,144 @@ void ContactDetector::computeCellSpacing(Vector<Real> & spacing) {
 }
   
 /* -------------------------------------------------------------------------- */
-void ContactDetector::computeNormalOnElements(Array<Element> & elements, Array<Real> & normals) {
+void ContactDetector::computeOrthogonalProjection(const UInt & node,
+						  const Array<Element> & elements,
+						  Array<Real> & normals, Array<Real> & projections) {
 
-  // get from connectivity the nodes for each element in Array elements;
+  Vector<Real> query(spatial_dimension);
+  for (UInt s: arange(spatial_dimension)) {
+    query(s) = this->positions(node, s);
+  }
 
-  const Matrix<Real> & coords;
-  this->coordinatesOfElement(e, coords);
+  for (auto && values :
+	 zip( elements,
+	      make_view(normals    , spatial_dimension),
+	      make_view(projections, spatial_dimension ))) {
+    const auto & element = std::get<0>(values);
+    auto & normal        = std::get<1>(values);
+    auto & projection    = std::get<2>(values);
+
+    this->computeNormalOnElement(element, normal);
+    this->computeProjectionOnElement(element, normal, query, projection);
+  }
   
-  Matrix J(this->spatial_dimension, this->spatial_dimension);
-  this->vectorsAlongElement(coords, J);  
+}
 
+
+/* -------------------------------------------------------------------------- */
+void ContactDetector::computeNormalOnElement(const Element & element, Vector<Real> & normal) {
+  
+  Matrix<Real> vectors(spatial_dimension - 1, spatial_dimension);
+  this->vectorsAlongElement(element, vectors);
+ 
   switch (this->spatial_dimension) {
   case 2: {
-    // extract the vectors
-    Math::normal2(J.storage(), normal.storage());
+    Math::normal2(vectors.storage(), normal.storage());
     break;
   }
   case 3: {
-    Math::normal3(J(0).storage(), J(1).storage, normal(p).storage());
+    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
     break;
   }  
+  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  }
+
+  switch (this->detection_type) {
+  case ContactDetectorType::extrinsic: {
+    normal *= -1.0;
+    break;
+  }
   default:
     break;
   }
+        
+}
+
+ 
+/* -------------------------------------------------------------------------- */
+void ContactDetector::computeProjectionOnElement(const Element & element,
+						 const Vector<Real> & normal,
+						 const Vector<Real> & query,
+						 Vector<Real> & projection) {
+  
+  Vector<Real> barycenter(spatial_dimension);
+  mesh.getBarycenter(element, barycenter);
+  
+  Real alpha = (query - barycenter).dot(normal);
+  projection = query - alpha * normal;
+
+  bool validity = this->isValidProjection(element, projection);
+  if (!validity) {
+    projection *= std::numeric_limits<Real>::max();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & projection) {
+
+  Vector<Real> barycenter(spatial_dimension);
+  mesh.getBarycenter(element, barycenter);
+
+  Real distance = 0;
+  switch (this->spatial_dimension) {
+  case 2: {
+    distance = Math::distance_2d(projection.storage(), barycenter.storage());
+    break;
+  }
+  case 3: {
+    distance = Math::distance_3d(projection.storage(), barycenter.storage());    
+    break;
+  }  
+  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  }
+
+  if (distance <= max_dd) {
+    return true;
+  }
+
+  return false;
 }
 
   
+/* -------------------------------------------------------------------------- */
+void ContactDetector::coordinatesOfElement(const Element & el, Matrix<Real> & coords) {
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+  Vector<UInt> connect = mesh.getConnectivity(el.type, _not_ghost)
+                             .begin(nb_nodes_per_element)[el.element]; 
+
+  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
+    UInt node = connect[n];
+    for (UInt s: arange(spatial_dimension)) {
+      coords(n, s) = this->positions(node, s);
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
-/* To be put in conatct mechancis model class
+void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vectors) {
 
-void ContactDetector::computeNormals() {
-  AKANTU_DEBUG_IN();
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
 
-  Mesh & mesh_facets = this->inserter->getMeshFacets();
-  this->getFEEngine("FacetsFEEngine")
-      .computeNormalsOnIntegrationPoints(_not_ghost);
+  Matrix<Real> coords(nb_nodes_per_element, spatial_dimension);
+  this->coordinatesOfElement(el, coords);
 
-  UInt tangent_components =
-      Model::spatial_dimension * (Model::spatial_dimension - 1);
-
-  tangents.initialize(mesh_facets, _nb_component = tangent_components,
-                      _spatial_dimension = Model::spatial_dimension - 1);
- 
-  for (auto facet_type :
-       mesh_facets.elementTypes(Model::spatial_dimension - 1)) {
-    const Array<Real> & normals =
-        this->getFEEngine("FacetsFEEngine")
-            .getNormalsOnIntegrationPoints(facet_type);
-
-    Array<Real> & tangents = this->tangents(facet_type);
-
-    Math::compute_tangents(normals, tangents);
+  switch (spatial_dimension) {
+  case 2: {
+    Vector<Real>(vectors(0)) += Vector<Real>(coords(1));
+    Vector<Real>(vectors(0)) -= Vector<Real>(coords(0));
+    break;
   }
-
-  AKANTU_DEBUG_OUT();
-}*/
-
+  case 3: {
+    Vector<Real>(vectors(0)) += Vector<Real>(coords(1));
+    Vector<Real>(vectors(0)) -= Vector<Real>(coords(0));
+    Vector<Real>(vectors(1)) += Vector<Real>(coords(2));
+    Vector<Real>(vectors(1)) -= Vector<Real>(coords(0));
+    break;
+  } 
+  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  }
   
+}
+   
   
 } // akantu

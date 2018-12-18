@@ -484,6 +484,14 @@ void Mesh::getAssociatedElements(const Array<UInt> & node_list,
 }
 
 /* -------------------------------------------------------------------------- */
+void Mesh::getAssociatedElements(const UInt & node,
+                                 Array<Element> & elements) {
+  for (const auto & element : *nodes_to_elements[node])
+    elements.push_back(element);
+}
+
+  
+/* -------------------------------------------------------------------------- */
 void Mesh::fillNodesToElements() {
   Element e;
 
@@ -516,6 +524,40 @@ void Mesh::fillNodesToElements() {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+void Mesh::fillNodesToElements(UInt dimension) {
+  Element e;
+
+  UInt nb_nodes = nodes->size();
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    if (this->nodes_to_elements[n])
+      this->nodes_to_elements[n]->clear();
+    else
+      this->nodes_to_elements[n] = std::make_unique<std::set<Element>>();
+  }
+
+  for (auto ghost_type : ghost_types) {
+    e.ghost_type = ghost_type;
+    for (const auto & type :
+         elementTypes(dimension, ghost_type, _ek_not_defined)) {
+      e.type = type;
+
+      UInt nb_element = this->getNbElement(type, ghost_type);
+      Array<UInt>::const_iterator<Vector<UInt>> conn_it =
+          connectivities(type, ghost_type)
+              .begin(Mesh::getNbNodesPerElement(type));
+
+      for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
+        e.element = el;
+        const Vector<UInt> & conn = *conn_it;
+        for (UInt n = 0; n < conn.size(); ++n)
+          nodes_to_elements[conn(n)]->insert(e);
+      }
+    }
+  }
+}
+
+  
 /* -------------------------------------------------------------------------- */
 std::tuple<UInt, UInt>
 Mesh::updateGlobalData(NewNodesEvent & nodes_event,

@@ -370,6 +370,13 @@ enum class ContactElementType {
   _node_to_node,
   _node_to_segment
 };
+
+/// @enum ContactDetectorType type of contact detection
+enum class ContactDetectorType {
+  extrinsic,
+  intrinsic
+};
+  
   
 /// Define the flag that can be set to a node
 enum class NodeFlag : std::uint8_t {

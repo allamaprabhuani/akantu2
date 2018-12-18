@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
   mesh.read("hertz_2d.msh");
 
   ContactDetector detector(mesh, "bot_body", "top_body");
-  //detector.setMasterSurface("rigid");
-  //detector.setSlaveSurface("contact_surface");
+  detector.setMasterSurface("rigid");
+  detector.setSlaveSurface("contact_surface");
   
   detector.search();
   

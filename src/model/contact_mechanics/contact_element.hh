@@ -50,7 +50,7 @@ class ContactElement {
 public:
 
   ContactElement(S slave, M master)
-    : slave(slave), master(master) {
+    : node(slave), master(master) {
 
   }
   
@@ -61,16 +61,16 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   // sets the value of normal vector
-  AKANTU_SET_MACRO(Normal, Vector<Real>, normal);
+  AKANTU_SET_MACRO(Normal, normal, Vector<Real>);
 
   // sets the value of tangent vector
-  AKANTU_SET_MACRO(Tangent, Vector<Real>, tangent);
+  AKANTU_SET_MACRO(Tangent, tangent, Vector<Real>);
 
   // sets the value of gap
-  AKANTU_SET_MACRO(Gap, Real, gap);
+  AKANTU_SET_MACRO(Gap, gap, Real);
 
   // sets the value of normal vector
-  AKANTU_SET_MACRO(Patch, Array<M>, patch);
+  AKANTU_SET_MACRO(Patch, patch, Array<M>);
     
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
