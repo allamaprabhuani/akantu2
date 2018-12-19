@@ -41,7 +41,9 @@
 
 namespace akantu {
 
-template <typename S, typename M>
+using SlaveType = UInt;
+using MasterType = Element;
+  
 class ContactElement {
 
   /* ------------------------------------------------------------------------ */
@@ -49,7 +51,7 @@ class ContactElement {
   /* ------------------------------------------------------------------------ */
 public:
 
-  ContactElement(S slave, M master)
+  ContactElement(SlaveType slave, MasterType master)
     : node(slave), master(master) {
 
   }
@@ -60,17 +62,27 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  // sets the value of normal vector
+  /// sets the value of normal vector
   AKANTU_SET_MACRO(Normal, normal, Vector<Real>);
 
-  // sets the value of tangent vector
+  /// sets the value of tangent vector
   AKANTU_SET_MACRO(Tangent, tangent, Vector<Real>);
 
-  // sets the value of gap
+  /// sets the value of gap
   AKANTU_SET_MACRO(Gap, gap, Real);
 
+  /// gets the value of gap
+  AKANTU_GET_MACRO(Gap, gap, Real);
+
+  /// gets the normal to the master element
+  AKANTU_GET_MACRO(Normal, normal, Vector<Real>);
+
+  // gets the node of slave
+  AKANTU_GET_MACRO(Slave, node,  SlaveType);
+
+  
   // sets the value of normal vector
-  AKANTU_SET_MACRO(Patch, patch, Array<M>);
+  AKANTU_SET_MACRO(Patch, patch, Array<MasterType>);
     
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -78,10 +90,10 @@ public:
 public:  
 
   /// slave node
-  S node;
+  SlaveType node;
   
   /// master element/node
-  M master;
+  MasterType master;
 
   /// normalized normal direction
   Vector<Real> normal;
@@ -93,10 +105,8 @@ public:
   Real gap;
 
   /// an array of master nodes/elements around slave node
-  Array<M> patch;
+  Array<MasterType> patch;
 };
-
-
 
 } // akantu
 

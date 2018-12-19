@@ -47,11 +47,9 @@ int main(int argc, char* argv[]) {
   Mesh mesh(spatial_diemnsion);
   mesh.read("hertz_3d.msh");
 
-  ContactDetector detector(mesh, "rigid", "elastic");
-  detector.setMasterSurface("rigid_surface");
-  detector.setSlaveSurface("contact_surface");
+  ContactDetector detector(mesh);
   
-  detector.search();
+  //detector.search();
   
   finalize();
 }

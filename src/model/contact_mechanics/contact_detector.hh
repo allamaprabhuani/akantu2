@@ -48,8 +48,8 @@
 namespace akantu {
 
 enum class Surface {
-  _master,
-  _slave
+  master,
+  slave
 };
   
 /* -------------------------------------------------------------------------- */ 
@@ -62,12 +62,12 @@ class ContactDetector :
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactDetector(Mesh &, std::string , std::string ,
-		  const ID & id = "contact_detector",
+  ContactDetector(Mesh &, const ID & id = "contact_detector",
 		  UInt memory_id = 0);
 
-  ContactDetector(Mesh &, Array<Real> & positions,  std::string,
-		  std::string , const ID & id = "contact_detector", UInt memory_id = 0);
+  ContactDetector(Mesh &, Array<Real> & positions,
+		  const ID & id = "contact_detector",
+		  UInt memory_id = 0);
         
   ~ContactDetector() = default;
 
@@ -75,16 +75,8 @@ public:
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// sets the master surface id
-  // TODO : needs to be changes , more efficient way
-  void setMasterSurface(std::string);
-  
-  /// sets the slave surface id
-  // TODO : needs to be changes , more efficient way
-  void setSlaveSurface(std::string);
-  
-  /// 
-  void search();
+  ///
+  void search(std::vector<ContactElement> &);
 
   /// computes orthogonal projection on master elements
   void computeOrthogonalProjection(const UInt &           /* slave node */,
@@ -93,12 +85,16 @@ public:
 				   Array<Real> &          /* projections */);
 
 private:
+  /// reads the input file to get contact detection options
+  void parseSection();
+     
   /// performs global spatial search
-  void globalSearch();
+  void globalSearch(std::vector<ContactElement> &);
 
   ///  performs local search to create contact element
   /// TODO: templated function typename
-  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &,
+		   std::vector<ContactElement> &);
 
   /// constructs a grid containing nodes lying within bounding box
   /// TODO : templated fucntion to created template Spatial Grid
@@ -140,33 +136,25 @@ private:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// maximal detection distance
+  /// maximal detection distance for grid spacing
   Real max_dd;
-  
-  /// dimension of the model
-  UInt spatial_dimension{0};
 
+  /// maximal bounding box extension
+  Real max_bb;
+  
   /// Mesh
   Mesh & mesh;
 
-  /// id for master surface/curve
-  std::string master_id;
-
-  /// id for slave surface/curve
-  std::string slave_id;
-
-  ///
-  std::string slave_surface;
-
-  ///
-  std::string master_surface;
-
+  /// dimension of the model
+  UInt spatial_dimension{0};
+  
+  /// map to contain ids for surfaces
+  std::map<Surface, std::string> surfaces; 
+  
   /// contains the updated positions of the nodes
   Array<Real> & positions;
 
-  //using Elements = std::vector<std::shared_ptr<ContactElement>>;
-  //Elements  elements;
-
+  /// type of detection extrinisic/intrinsic 
   ContactDetectorType detection_type;
   
 };

@@ -1,12 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Mohit Pundir <mohit.pundir@epfl.ch>
 #
-# @date creation: Fri Sep 03 2010
-# @date last modification: Tue Jan 30 2018
+# @date creation: Tue Dec 18 2018
+# @date last modification: Tue Dec 18 2018
 #
-# @brief  configuration for model tests
+# @brief  configuration for ContactMechanicsModel tests
 #
 # @section LICENSE
 #
@@ -22,10 +22,4 @@
 #
 #===============================================================================
 
-add_subdirectory(patch_tests)
-add_akantu_test(test_model_solver "Test for the solvers")
-add_akantu_test(test_solid_mechanics_model "Test for the solid mechanics model")
-add_akantu_test(test_structural_mechanics_model "Test for the structural mechanics model")
-add_akantu_test(test_non_local_toolbox "Test of the functionalities in the non-local toolbox")
-add_akantu_test(test_heat_transfer_model "Test heat transfer model")
-add_akantu_test(test_contact_mechanics_model "Test contact mechanics model")
+add_akantu_test(test_detector "detection_test")

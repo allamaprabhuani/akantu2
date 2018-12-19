@@ -35,13 +35,13 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
- ContactDetector::ContactDetector(Mesh & mesh, std::string master, std::string slave, const ID & id,  UInt memory_id)
-   : ContactDetector(mesh, mesh.getNodes(), master, slave, id, memory_id) {
+ ContactDetector::ContactDetector(Mesh & mesh, const ID & id,  UInt memory_id)
+   : ContactDetector(mesh, mesh.getNodes(), id, memory_id) {
   
  }
   
 /* -------------------------------------------------------------------------- */
-  ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, std::string master, std::string slave, const ID & id, UInt memory_id)
+  ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, const ID & id, UInt memory_id)
   : Memory(id, memory_id),
     Parsable(ParserType::_contact_detector, id),
     mesh(mesh),
@@ -50,32 +50,39 @@ namespace akantu {
   AKANTU_DEBUG_IN();  
 
   this->spatial_dimension = mesh.getSpatialDimension();
-
-  this->registerParam("master_surface", master_surface, _pat_parsmod,
-		      "Master surface id");
-  this->registerParam("slave_surface", slave_surface, _pat_parsmod,
-  		      "Slave surface id");
-
-  //auto & ms = this->get("master_surface");
-
-  //const Parser & parser = getStaticParser();
-  //const ParserSection & section_detector =
-  //    *(parser.getSubSections(ParserType::_contact_detector).first);
-  //this->parseSection(section_detector);
-  
-  //auto sub_sections = getStaticParser();
-  //this->master_surface = section_detector.getParameter("master_surface",  _ppsc_current_scope);
-  //this->master_surface = section_detector.getParameter("slave_surface",  _ppsc_current_scope);
-
-  this->master_id = master;
-  this->slave_id = slave;
-
+    
   this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
 
+  this->parseSection();
+  this->getMaximalDetectionDistance();
+  
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void ContactDetector::parseSection() {
+
+  const Parser & parser = getStaticParser();
+  const ParserSection & section =
+    *(parser.getSubSections(ParserType::_contact_detector).first);
+
+  auto type = section.getParameterValue<std::string>("type");
+  if (type == "intrinsic") {
+    this->detection_type = ContactDetectorType::intrinsic;
+  }
+  else if (type == "extrinsic"){
+    this->detection_type = ContactDetectorType::extrinsic;
+  }
+  else {
+    AKANTU_ERROR("Unknown detection type : " << type);
+  }
   
+  surfaces[Surface::master] = section.getParameterValue<std::string>("master_surface");
+  surfaces[Surface::slave ] = section.getParameterValue<std::string>("slave_surface");
+
+  //this->max_bb = section.getParameterValue<Real>("max_bb");
+}
+    
 /* -------------------------------------------------------------------------- */
 void ContactDetector::getMaximalDetectionDistance() {
 
@@ -85,7 +92,7 @@ void ContactDetector::getMaximalDetectionDistance() {
   Real max_el_size = std::numeric_limits<Real>::min();
 
   auto & master_group =
-    mesh.getElementGroup(master_surface);
+    mesh.getElementGroup(surfaces[Surface::master]);
 
   for (auto & type: master_group.elementTypes(spatial_dimension - 1, _not_ghost)) {
 
@@ -107,38 +114,25 @@ void ContactDetector::getMaximalDetectionDistance() {
   }
 
   this->max_dd = max_el_size;
+  this->max_bb = max_el_size;
   
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-void ContactDetector::setMasterSurface(std::string master_surface) {
-  this->master_surface = master_surface;  
-  this->getMaximalDetectionDistance();
-}
-
-
-
-/* -------------------------------------------------------------------------- */
-void ContactDetector::setSlaveSurface(std::string slave_surface) {
-  this->slave_surface = slave_surface;
-}
-
   
 /* -------------------------------------------------------------------------- */
-void ContactDetector::search() {
-  this->globalSearch();
+void ContactDetector::search(std::vector<ContactElement> & elements) {
+  this->globalSearch(elements);
 }
   
  
 /* -------------------------------------------------------------------------- */
-void ContactDetector::globalSearch() {
+void ContactDetector::globalSearch(std::vector<ContactElement> & elements) {
   
   auto & master_list =
-    mesh.getElementGroup(master_id).getNodeGroup().getNodes();
+    mesh.getElementGroup(surfaces[Surface::master]).getNodeGroup().getNodes();
 
   auto & slave_list =
-    mesh.getElementGroup(slave_id).getNodeGroup().getNodes();
+    mesh.getElementGroup(surfaces[Surface::slave]).getNodeGroup().getNodes();
    
   BBox bbox_master(spatial_dimension);
   this->constructBoundingBox(bbox_master, master_list);
@@ -159,10 +153,10 @@ void ContactDetector::globalSearch() {
   this->computeCellSpacing(spacing);
     
   auto & master_surface_list =
-    mesh.getElementGroup(master_surface).getNodeGroup().getNodes();
+    mesh.getElementGroup(surfaces[Surface::master]).getNodeGroup().getNodes();
 
   auto & slave_surface_list =
-    mesh.getElementGroup(slave_surface).getNodeGroup().getNodes();
+    mesh.getElementGroup(surfaces[Surface::slave]).getNodeGroup().getNodes();
  
   SpatialGrid<UInt> master_grid(spatial_dimension, spacing, center);
   this->constructGrid(master_grid, bbox_intersection, master_surface_list);
@@ -198,11 +192,13 @@ void ContactDetector::globalSearch() {
   // master facets with the current master facets within a given
   // radius , this is subjected to computational cost as searching
   // neighbbor cells can be more effective.
-  this->localSearch(slave_grid, master_grid);
+  this->localSearch(slave_grid, master_grid, elements);
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UInt> & master_grid) {
+void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
+				  SpatialGrid<UInt> & master_grid,
+				  std::vector<ContactElement> & contact_elements) {
 
   // local search
   // out of these array check each cell for closet node in that cell
@@ -217,6 +213,18 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UI
   Array<UInt> slave_nodes;
   Array<UInt> master_nodes;
 
+  BBox bbox_master_grid(spatial_dimension); 
+  BBox bbox_slave_grid(spatial_dimension);
+
+  bbox_master_grid += master_grid.getUpperBounds();
+  bbox_master_grid += master_grid.getLowerBounds();
+
+  bbox_slave_grid += slave_grid.getUpperBounds();
+  bbox_slave_grid += slave_grid.getLowerBounds();
+
+  auto && bbox_intersection =
+    bbox_master_grid.intersection(bbox_slave_grid);
+  
   // find the closet master node for each slave node
   for (auto && cell_id : slave_grid) {
     AKANTU_DEBUG_INFO("Looping on next cell");
@@ -228,14 +236,17 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UI
 	pos(s) = this->positions(q1, s);
       }
 
+      if (!bbox_intersection.contains(pos)) {
+	continue;
+      }
+
       Real closet_distance = std::numeric_limits<Real>::max();
       UInt closet_master_node;
-
+     
       // loop over all the neighboring cells of the current cells
       for (auto && neighbor_cell : cell_id.neighbors()) {
-	//AKANTU_DEBUG_INFO("Looping on neighbor cell");
-	// loop over the data of neighboring cells from master grid
-	
+
+	// loop over the data of neighboring cells from master grid	
 	for (auto && q2 : master_grid.getCell(neighbor_cell)) {
 	  
 	  AKANTU_DEBUG_INFO("Looping on neighbor cell in master");
@@ -245,8 +256,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UI
 	  }
 
 	  Real distance = pos.distance(pos2);
-	  std::cout << distance << " " << closet_distance << std::endl;
-   
+  
 	  if (distance <= closet_distance) {
 	    closet_master_node = q2;
 	    closet_distance = distance;
@@ -264,24 +274,25 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid, SpatialGrid<UI
     const auto & master_node = std::get<1>(values);
 
     Array<Element> elements;
-    mesh.getAssociatedElements(master_node, elements);
-   
-    auto normals     = std::make_unique<Array<Real>>(elements.size(),
-						     spatial_dimension, "normals");
-    auto projections = std::make_unique<Array<Real>>(elements.size(),
-						     1, "projections");
-
-    this->computeOrthogonalProjection(slave_node, elements, *normals, *projections);
-        
-    auto minimum = std::min_element(projections->begin(), projections->end());
-    auto index   = std::distance(projections->begin(), minimum);
-
-    /*auto contact_element = std::make_shared<ContactElement>(slave_node, 
-							    elements[index]);
-    contact_element->setGap(    (*projection)[index]);
-    contact_element->setNormal( (*normal)[index]);
-    contact_element->setPatch(  elements);
-    elements.push_back(contact_element);*/
+    this->mesh.getAssociatedElements(master_node, elements);
+    
+    auto normals  = std::make_unique<Array<Real>>(elements.size(),
+						  spatial_dimension, "normals");
+    auto gaps     = std::make_unique<Array<Real>>(elements.size(),
+						  1,                 "gaps"); 
+    
+    this->computeOrthogonalProjection(slave_node, elements,
+				      *normals, *gaps);
+      
+    auto minimum = std::min_element( gaps->begin(), gaps->end());
+    auto index   = std::distance(    gaps->begin(), minimum);
+    auto normal  = Vector<Real>(normals->begin(spatial_dimension)[index]); 
+    
+    auto contact_element = ContactElement(slave_node, elements[index]);
+    contact_element.setGap(    (*gaps)[index]);
+    contact_element.setNormal( normal);
+    
+    contact_elements.push_back(contact_element);
   }
 }
 
@@ -323,8 +334,8 @@ void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt> & node
   auto & upper_bound = bbox.getUpperBounds();
 
   for (UInt s: arange(spatial_dimension)) {
-      lower_bound(s) -= this->max_dd;
-      upper_bound(s) += this->max_dd;
+      lower_bound(s) -= this->max_bb;
+      upper_bound(s) += this->max_bb;
   }
   
   
@@ -342,7 +353,7 @@ void ContactDetector::computeCellSpacing(Vector<Real> & spacing) {
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeOrthogonalProjection(const UInt & node,
 						  const Array<Element> & elements,
-						  Array<Real> & normals, Array<Real> & projections) {
+						  Array<Real> & normals, Array<Real> & gaps) {
 
   Vector<Real> query(spatial_dimension);
   for (UInt s: arange(spatial_dimension)) {
@@ -351,14 +362,18 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
 
   for (auto && values :
 	 zip( elements,
-	      make_view(normals    , spatial_dimension),
-	      make_view(projections, spatial_dimension ))) {
+	      gaps,
+	      make_view(normals , spatial_dimension))) {
     const auto & element = std::get<0>(values);
-    auto & normal        = std::get<1>(values);
-    auto & projection    = std::get<2>(values);
+    auto & gap           = std::get<1>(values);
+    auto & normal        = std::get<2>(values);
 
+    Vector<Real> projection(spatial_dimension);
     this->computeNormalOnElement(element, normal);
     this->computeProjectionOnElement(element, normal, query, projection);
+
+    projection -= query;
+    gap = Math::norm(spatial_dimension, projection.storage());
   }
   
 }
@@ -367,7 +382,7 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeNormalOnElement(const Element & element, Vector<Real> & normal) {
   
-  Matrix<Real> vectors(spatial_dimension - 1, spatial_dimension);
+  Matrix<Real> vectors(spatial_dimension, spatial_dimension - 1);
   this->vectorsAlongElement(element, vectors);
  
   switch (this->spatial_dimension) {
@@ -448,7 +463,7 @@ void ContactDetector::coordinatesOfElement(const Element & el, Matrix<Real> & co
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt node = connect[n];
     for (UInt s: arange(spatial_dimension)) {
-      coords(n, s) = this->positions(node, s);
+      coords(s, n) = this->positions(node, s);
     }
   }
 }
@@ -458,20 +473,17 @@ void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vec
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
 
-  Matrix<Real> coords(nb_nodes_per_element, spatial_dimension);
+  Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(el, coords);
 
   switch (spatial_dimension) {
   case 2: {
-    Vector<Real>(vectors(0)) += Vector<Real>(coords(1));
-    Vector<Real>(vectors(0)) -= Vector<Real>(coords(0));
+    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
     break;
   }
   case 3: {
-    Vector<Real>(vectors(0)) += Vector<Real>(coords(1));
-    Vector<Real>(vectors(0)) -= Vector<Real>(coords(0));
-    Vector<Real>(vectors(1)) += Vector<Real>(coords(2));
-    Vector<Real>(vectors(1)) -= Vector<Real>(coords(0));
+    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
+    vectors(1) = Vector<Real>(coords(2)) - Vector<Real>(coords(0));
     break;
   } 
   default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }

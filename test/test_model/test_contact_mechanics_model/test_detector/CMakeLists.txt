@@ -1,12 +1,12 @@
 #===============================================================================
 # @file   CMakeLists.txt
 #
-# @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+# @author Mohit Pundir <mohit.pundir@epfl.ch>
 #
-# @date creation: Fri Sep 03 2010
-# @date last modification: Tue Jan 30 2018
+# @date creation: Wed Dec 18 2018
+# @date last modification: Wed Dec 18 2018
 #
-# @brief  configuration for model tests
+# @brief  configuration for contact detection tests
 #
 # @section LICENSE
 #
@@ -22,10 +22,20 @@
 #
 #===============================================================================
 
-add_subdirectory(patch_tests)
-add_akantu_test(test_model_solver "Test for the solvers")
-add_akantu_test(test_solid_mechanics_model "Test for the solid mechanics model")
-add_akantu_test(test_structural_mechanics_model "Test for the structural mechanics model")
-add_akantu_test(test_non_local_toolbox "Test of the functionalities in the non-local toolbox")
-add_akantu_test(test_heat_transfer_model "Test heat transfer model")
-add_akantu_test(test_contact_mechanics_model "Test contact mechanics model")
+add_mesh (extrinsic_2d extrinsic_2d.geo 2 1)
+
+add_mesh (extrinsic_3d extrinsic_3d.geo 3 1)
+
+register_test(test_extrinsic_2d
+  SOURCES test_detection_extrinsic_2d.cc
+  DEPENDS extrinsic_2d
+  FILES_TO_COPY options.dat
+  PACKAGE contact_mechanics
+  )
+
+register_test(test_extrinsic_3d
+  SOURCES test_detection_extrinsic_3d.cc
+  PACKAGE contact_mechanics
+  DEPENDS extrinsic_3d
+  FILES_TO_COPY options.dat
+  )
