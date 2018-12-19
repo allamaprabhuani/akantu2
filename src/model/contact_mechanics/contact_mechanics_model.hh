@@ -43,8 +43,7 @@ namespace akantu {
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ContactMechanicsModel
-  : public Model {
+class ContactMechanicsModel : public Model {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -52,10 +51,10 @@ class ContactMechanicsModel
   
   
 public:
-  ContactMechanicsModel(
-      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-      const ID & id = "contact_mechanics_model", const MemoryID & memory_id = 0,
-      const ModelType model_type = ModelType::_contact_mechanics_model);
+  ContactMechanicsModel(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+			const ID & id = "contact_mechanics_model",
+			const MemoryID & memory_id = 0,
+			const ModelType model_type = ModelType::_contact_mechanics_model);
 
   ~ContactMechanicsModel() override;
 
@@ -67,12 +66,44 @@ protected:
   /// initialize the modelType
   void initModel() override;
 
+  /// computes the force residual
+  void assembleResidual() override;
 
+  /// callback to assemble a Matrix
+  void assembleMatrix(const ID &) override;
+  
+  
+  /* ------------------------------------------------------------------------ */
+  /* Dumpable interface                                                       */
+  /* ------------------------------------------------------------------------ */
+public:
+  dumper::Field * createNodalFieldReal(const std::string & field_name,
+				       const std::string & group_name,
+				       bool padding_flag) override;
+
+  dumper::Field * createElementalField(const std::string & field_name,
+				       const std::string & group_name,
+				       bool padding_flag,
+				       const UInt & spatial_dimension,
+				       const ElementKind & kind) override;
+  
+
+  virtual void dump(const std::string & dumper_name);
+
+  virtual void dump(const std::string & dumper_name, UInt step);
+
+  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+
+  void dump() override;
+
+  virtual void dump(UInt step);
+
+  virtual void dump(Real time, UInt step);
+
+  
   friend class ContactDetector;
   
 private:
-
-  void computeNormals();
 
   
 
