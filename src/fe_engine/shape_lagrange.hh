@@ -60,19 +60,19 @@ public:
 public:
   /// initialization function for structural elements not yet implemented
   inline void initShapeFunctions(const Array<Real> & nodes,
-                                 const Matrix<Real> & integration_points,
+                                 const Ref<const MatrixXr> & integration_points,
                                  ElementType type,
                                  GhostType ghost_type);
 
   /// computes the shape functions derivatives for given interpolation points
   template <ElementType type>
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
       Array<Real> & shape_derivatives, GhostType ghost_type,
       const Array<UInt> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
-      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
       Array<Real> & shape_derivatives, ElementType type,
       GhostType ghost_type,
       const Array<UInt> & filter_elements) const override;
@@ -105,9 +105,9 @@ public:
 
   /// interpolate on physical point
   template <ElementType type>
-  void interpolate(const Vector<Real> & real_coords, UInt elem,
-                   const Matrix<Real> & nodal_values,
-                   Vector<Real> & interpolated,
+  void interpolate(const Ref<const VectorXr> & real_coords, UInt elem,
+                   const Ref<const MatrixXr> & nodal_values,
+                   Ref<VectorXr> interpolated,
                    GhostType ghost_type) const;
 
   /// compute the gradient of u on the integration points
@@ -140,24 +140,24 @@ public:
 
   /// find natural coords from real coords provided an element
   template <ElementType type>
-  void inverseMap(const Vector<Real> & real_coords, UInt element,
-                  Vector<Real> & natural_coords,
+  void inverseMap(const Ref<const VectorXr> & real_coords, UInt element,
+                  Ref<VectorXr> natural_coords,
                   GhostType ghost_type = _not_ghost) const;
 
   /// return true if the coordinates provided are inside the element, false
   /// otherwise
   template <ElementType type>
-  bool contains(const Vector<Real> & real_coords, UInt elem,
+  bool contains(const Ref<const VectorXr> & real_coords, UInt elem,
                 GhostType ghost_type) const;
 
   /// compute the shape on a provided point
   template <ElementType type>
-  void computeShapes(const Vector<Real> & real_coords, UInt elem,
-                     Vector<Real> & shapes, GhostType ghost_type) const;
+  void computeShapes(const Ref<const VectorXr> & real_coords, UInt elem,
+                     Ref<VectorXr> shapes, GhostType ghost_type) const;
 
   /// compute the shape derivatives on a provided point
   template <ElementType type>
-  void computeShapeDerivatives(const Matrix<Real> & real_coords, UInt elem,
+  void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords, UInt elem,
                                Tensor3<Real> & shapes,
                                GhostType ghost_type) const;
 
@@ -165,8 +165,8 @@ protected:
   /// compute the shape derivatives on integration points for a given element
   template <ElementType type>
   inline void
-  computeShapeDerivativesOnCPointsByElement(const Matrix<Real> & node_coords,
-                                            const Matrix<Real> & natural_coords,
+  computeShapeDerivativesOnCPointsByElement(const Ref<const MatrixXr> & node_coords,
+                                            const Ref<const MatrixXr> & natural_coords,
                                             Tensor3<Real> & shapesd) const;
 };
 

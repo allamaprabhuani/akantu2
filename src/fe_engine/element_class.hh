@@ -187,8 +187,11 @@ public:
   using interpolation_property = InterpolationProperty<interpolation_type>;
 
   /// compute the shape values for a given set of points in natural coordinates
-  static inline void computeShapes(const Matrix<Real> & natural_coord,
-                                   Matrix<Real> & N);
+  template <typename Derived1, typename Derived2,
+            aka::enable_if_matrices_t<Derived1, Derived2> * = nullptr>
+  static inline void
+  computeShapes(const Eigen::MatrixBase<Derived1> & natural_coord,
+                const Eigen::MatrixBase<Derived2> & shapes);
 
   /// compute the shape values for a given point in natural coordinates
   static inline void computeShapes(const Ref<const VectorXr> &, Ref<VectorXr>) {
@@ -200,7 +203,7 @@ public:
    * shape functions along with variation of natural coordinates on a given set
    * of points in natural coordinates
    */
-  static inline void computeDNDS(const Matrix<Real> & natural_coord,
+  static inline void computeDNDS(const Ref<const MatrixXr> & natural_coord,
                                  Tensor3<Real> & dnds);
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the variation of
@@ -251,9 +254,12 @@ public:
                                  Ref<VectorXr> interpolated);
 
   /// interpolate a field given the shape functions on the interpolations points
-  static inline void interpolate(const Matrix<Real> & nodal_values,
-                                 const Matrix<Real> & shapes,
-                                 Matrix<Real> & interpolated);
+  template <typename Derived1, typename Derived2, typename Derived3,
+            aka::enable_if_matrices_t<Derived1, Derived2, Derived3> * = nullptr>
+  static inline void
+  interpolate(const Eigen::MatrixBase<Derived1> & nodal_values,
+              const Eigen::MatrixBase<Derived2> & Ns,
+              const Eigen::MatrixBase<Derived3> & interpolated_);
 
   /// compute the gradient of a given field on the given natural coordinates
   static inline void
@@ -335,18 +341,18 @@ public:
    * natural coordinates
    */
   static inline void computeJMat(const Tensor3<Real> & dnds,
-                                 const Matrix<Real> & node_coords,
+                                 const Ref<const MatrixXr> & node_coords,
                                  Tensor3<Real> & J);
 
   /// compute the jacobians of a serie of natural coordinates
-  static inline void computeJacobian(const Matrix<Real> & natural_coords,
-                                     const Matrix<Real> & node_coords,
-                                     Vector<Real> & jacobians);
+  static inline void computeJacobian(const Ref<const MatrixXr> & natural_coords,
+                                     const Ref<const MatrixXr> & node_coords,
+                                     Ref<VectorXr> jacobians);
 
   /// compute jacobian (or integration variable change factor) for a set of
   /// points
   static inline void computeJacobian(const Tensor3<Real> & J,
-                                     Vector<Real> & jacobians);
+                                     Ref<VectorXr> jacobians);
 
   /// compute jacobian (or integration variable change factor) for a given point
   static inline void computeJacobian(const Ref<const MatrixXr> & J,
@@ -375,11 +381,14 @@ public:
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
-  static inline void inverseMap(const Matrix<Real> & real_coords,
-                                const Matrix<Real> & node_coords,
-                                Matrix<Real> & natural_coords,
-                                UInt max_iterations = 100,
-                                Real tolerance = 1e-10);
+  template <typename Derived1, typename Derived2, typename Derived3,
+            aka::enable_if_matrices_t<Derived1, Derived2, Derived3> * = nullptr>
+  static inline void
+  inverseMap(const Eigen::MatrixBase<Derived1> & real_coords,
+             const Eigen::MatrixBase<Derived2> & node_coords,
+             const Eigen::MatrixBase<Derived3> & natural_coords_,
+             UInt max_iterations = 100,
+             Real tolerance = 1e-10);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(Kind, element_kind, ElementKind);

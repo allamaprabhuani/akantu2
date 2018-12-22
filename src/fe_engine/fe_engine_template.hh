@@ -104,7 +104,7 @@ public:
             const Array<UInt> & filter_elements = empty_filter) const override;
 
   /// integrate one element scalar value on all elements of type "type"
-  Real integrate(const Vector<Real> & f, ElementType type, UInt index,
+  Real integrate(const Ref<const VectorXr> & f, ElementType type, UInt index,
                  GhostType ghost_type = _not_ghost) const override;
 
   /// integrate partially around an integration point (@f$ intf_q = f_q * J_q *
@@ -115,9 +115,9 @@ public:
       const Array<UInt> & filter_elements = empty_filter) const override;
 
   /// interpolate on a phyiscal point inside an element
-  void interpolate(const Vector<Real> & real_coords,
-                   const Matrix<Real> & nodal_values,
-                   Vector<Real> & interpolated,
+  void interpolate(const Ref<const VectorXr> & real_coords,
+                   const Ref<const MatrixXr> & nodal_values,
+                   Ref<VectorXr> interpolated,
                    const Element & element) const override;
 
   /// get the number of integration points
@@ -240,15 +240,16 @@ public:
                        GhostType ghost_type = _not_ghost) const;
 
   /// compute the shape on a provided point
-  inline void computeShapes(const Vector<Real> & real_coords, UInt element,
-                            ElementType type, Vector<Real> & shapes,
-                            GhostType ghost_type = _not_ghost) const override;
+  inline void
+  computeShapes(const Ref<const VectorXr> & real_coords, UInt element,
+                ElementType type, Ref<VectorXr> shapes,
+                GhostType ghost_type = _not_ghost) const override;
 
   /// compute the shape derivatives on a provided point
-  inline void
-  computeShapeDerivatives(const Vector<Real> & real_coords, UInt element,
-                          ElementType type, Matrix<Real> & shape_derivatives,
-                          GhostType ghost_type = _not_ghost) const override;
+  inline void computeShapeDerivatives(
+      const Ref<const VectorXr> & real__coords, UInt element, ElementType type,
+      Ref<MatrixXr> shape_derivatives,
+      GhostType ghost_type = _not_ghost) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Other methods                                                            */

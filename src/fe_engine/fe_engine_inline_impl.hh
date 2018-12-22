@@ -44,7 +44,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline Real FEEngine::getElementInradius(const Matrix<Real> & coord,
+inline Real FEEngine::getElementInradius(const Ref<const MatrixXr> & coord,
                                          ElementType type) {
   Real inradius = 0;
 

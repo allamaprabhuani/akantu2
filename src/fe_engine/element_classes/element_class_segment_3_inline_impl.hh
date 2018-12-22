@@ -111,8 +111,8 @@ template <>
 inline void
 GeometricalElement<_gt_segment_3>::getNormal(const Ref<const MatrixXr> & coord,
                                              Ref<VectorXr> normal) {
-  Matrix<Real> natural_coords{{.5}};
-  ElementClass<_segment_3>::computeNormalsOnNaturalCoordinates(
-      natural_coords, coord,
-      MatrixProxy<Real>(normal.data(), normal.size(), 1));
+  Eigen::Matrix<Real, 1, 1> natural_coords;
+  natural_coords << .5;
+  ElementClass<_segment_3>::computeNormalsOnNaturalCoordinates(natural_coords,
+                                                               coord, normal);
 }

@@ -301,19 +301,19 @@ void FragmentManager::computeInertiaMoments() {
         /// loop over quadrature points
         for (UInt q = 0; q < nb_quad_per_element; ++q) {
           UInt global_q = global_el * nb_quad_per_element + q;
-          Matrix<Real> moments_matrix = moments_begin[global_q];
-          const Vector<Real> & quad_coord_vector =
-              quad_coordinates_begin[global_q];
+          auto && moments_matrix = moments_begin[global_q];
+          const auto & quad_coord_vector = quad_coordinates_begin[global_q];
 
           /// to understand this read the documentation written just
           /// before this function
           relative_coords = quad_coord_vector;
           relative_coords -= mass_center;
 
-          moments_matrix.outerProduct(relative_coords, relative_coords);
+          moments_matrix = relative_coords * relative_coords.transpose();
           Real trace = moments_matrix.trace();
           moments_matrix *= -1.;
-          moments_matrix += Matrix<Real>::eye(spatial_dimension, trace);
+          moments_matrix += trace * Matrix<Real>::Identity(spatial_dimension,
+                                                           spatial_dimension);
         }
       }
     }

@@ -117,7 +117,7 @@ public:
       const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
-  virtual Real integrate(const Vector<Real> & f, ElementType type,
+  virtual Real integrate(const Ref<const VectorXr> & f, ElementType type,
                          UInt index,
                          GhostType ghost_type = _not_ghost) const = 0;
 
@@ -141,9 +141,9 @@ public:
                        UInt id = 0) const = 0;
 
   /// get integration points
-  const virtual Matrix<Real> &
-  getIntegrationPoints(ElementType type,
-                       GhostType ghost_type = _not_ghost) const = 0;
+  const virtual MatrixXr &
+  getIntegrationPoints(const ElementType & type,
+                       const GhostType & ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
@@ -240,22 +240,22 @@ public:
       const ElementTypeMapArray<UInt> * element_filter) const = 0;
 
   /// interpolate on a phyiscal point inside an element
-  virtual void interpolate(const Vector<Real> & real_coords,
-                           const Matrix<Real> & nodal_values,
-                           Vector<Real> & interpolated,
+  virtual void interpolate(const Ref<const VectorXr> & real_coords,
+                           const Ref<const MatrixXr> & nodal_values,
+                           Ref<VectorXr> interpolated,
                            const Element & element) const = 0;
 
   /// compute the shape on a provided point
   virtual void
-  computeShapes(const Vector<Real> & real_coords, UInt elem,
-                ElementType type, Vector<Real> & shapes,
+  computeShapes(const Ref<const VectorXr> & real_coords, UInt elem,
+                ElementType type,  Ref<VectorXr> shapes,
                 GhostType ghost_type = _not_ghost) const = 0;
 
   /// compute the shape derivatives on a provided point
   virtual void
-  computeShapeDerivatives(const Vector<Real> & real_coords, UInt element,
+  computeShapeDerivatives(const Ref<const VectorXr> & real_coords, UInt element,
                           ElementType type,
-                          Matrix<Real> & shape_derivatives,
+                          Ref<MatrixXr> & shape_derivatives,
                           GhostType ghost_type = _not_ghost) const = 0;
 
   /// assembles the lumped version of @f[ \int N^t rho N @f]
@@ -320,7 +320,7 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(Mesh, mesh, Mesh &);
 
   /// get the in-radius of an element
-  static inline Real getElementInradius(const Matrix<Real> & coord,
+  static inline Real getElementInradius(const Ref<const MatrixXr> & coord,
                                         ElementType type);
 
   inline Real getElementInradius(const Element & element) const;

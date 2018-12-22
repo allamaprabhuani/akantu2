@@ -265,24 +265,24 @@ public:
 
   /// iterator returning Vectors of size n  on entries of Array with
   /// nb_component = n
-  using vector_iterator = view_iterator<Vector<T>>;
+  using vector_iterator = view_iterator<VectorProxy<T>>;
   /// const_iterator returning Vectors of n size on entries of Array with
   /// nb_component = n
-  using const_vector_iterator = const_view_iterator<Vector<T>>;
+  using const_vector_iterator = const_view_iterator<VectorProxy<T>>;
 
   /// iterator returning Matrices of size (m, n) on entries of Array with
   /// nb_component = m*n
-  using matrix_iterator = view_iterator<Matrix<T>>;
+  using matrix_iterator = view_iterator<MatrixProxy<T>>;
   /// const iterator returning Matrices of size (m, n) on entries of Array with
   /// nb_component = m*n
-  using const_matrix_iterator = const_view_iterator<Matrix<T>>;
+  using const_matrix_iterator = const_view_iterator<MatrixProxy<T>>;
 
   /// iterator returning Tensor3 of size (m, n, k) on entries of Array with
   /// nb_component = m*n*k
-  using tensor3_iterator = view_iterator<Tensor3<T>>;
+  using tensor3_iterator = view_iterator<Tensor3Proxy<T>>;
   /// const iterator returning Tensor3 of size (m, n, k) on entries of Array
   /// with nb_component = m*n*k
-  using const_tensor3_iterator = const_view_iterator<Tensor3<T>>;
+  using const_tensor3_iterator = const_view_iterator<Tensor3Proxy<T>>;
 
   /* ------------------------------------------------------------------------ */
   template <typename... Ns> inline decltype(auto) begin(Ns &&... n);
@@ -314,10 +314,8 @@ public:
   inline void push_back(const_reference value) { parent::push_back(value); }
 
   /// append a Vector or a Matrix
-  template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
-                                        aka::is_tensor_proxy<C<T>>::value>>
-  inline void push_back(const C<T> & new_elem) {
+  template <typename Derived>
+  inline void push_back(const Eigen::MatrixBase<Derived> & new_elem) {
     parent::push_back(new_elem);
   }
 

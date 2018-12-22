@@ -61,8 +61,8 @@ inline NodeGroup::const_node_iterator NodeGroup::add(UInt node,
 
 /* -------------------------------------------------------------------------- */
 inline void NodeGroup::remove(UInt node) {
-  Array<UInt>::iterator<> it = this->node_group.begin();
-  Array<UInt>::iterator<> end = this->node_group.end();
+  auto it = this->node_group.begin();
+  auto end = this->node_group.end();
   AKANTU_DEBUG_ASSERT(it != end, "The node group is empty!!");
   for (; it != node_group.end(); ++it) {
     if (*it == node) {
@@ -76,7 +76,7 @@ inline void NodeGroup::remove(UInt node) {
 inline bool NodeGroup::empty() const { return node_group.empty(); }
 
 /* -------------------------------------------------------------------------- */
-inline UInt NodeGroup::size() const { return node_group.size(); }
+inline Int NodeGroup::size() const { return node_group.size(); }
 
 /* -------------------------------------------------------------------------- */
 struct FilterFunctor;
@@ -87,7 +87,7 @@ template <typename T> void NodeGroup::applyNodeFilter(T & filter) {
   AKANTU_DEBUG_ASSERT(T::type == FilterFunctor::_node_filter_functor,
                       "NodeFilter can only apply node filter functor");
 
-  Array<UInt>::iterator<> it = this->node_group.begin();
+  auto it = this->node_group.begin();
 
   for (; it != node_group.end(); ++it) {
     /// filter == true -> keep node

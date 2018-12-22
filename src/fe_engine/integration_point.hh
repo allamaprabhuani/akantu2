@@ -63,27 +63,27 @@ public:
   IntegrationPoint(const Element & element, UInt num_point = 0,
                    UInt nb_quad_per_element = 0)
       : Element(element), num_point(num_point),
-        global_num(element.element * nb_quad_per_element + num_point),
-        position(nullptr, 0){};
+        global_num(element.element * nb_quad_per_element + num_point){}//,
+  //position(nullptr, 0){};
 
-  IntegrationPoint(ElementType type = _not_defined, UInt element = 0,
-                   UInt num_point = 0, GhostType ghost_type = _not_ghost)
-      : Element{type, element, ghost_type}, num_point(num_point),
-        position(nullptr, 0){};
+  // IntegrationPoint(ElementType type = _not_defined, UInt element = 0,
+  //                  UInt num_point = 0, GhostType ghost_type = _not_ghost)
+  //     : Element{type, element, ghost_type}, num_point(num_point);
+        //position(nullptr, 0){};
 
-  IntegrationPoint(UInt element, UInt num_point, UInt global_num,
-                   const position_type & position, ElementType type,
-                   GhostType ghost_type = _not_ghost)
-      : Element{type, element, ghost_type}, num_point(num_point),
-        global_num(global_num), position(nullptr, 0) {
-    this->position.shallowCopy(position);
-  };
+  // IntegrationPoint(UInt element, UInt num_point, UInt global_num,
+  //                  const position_type & position, ElementType type,
+  //                  GhostType ghost_type = _not_ghost)
+  //     : Element{type, element, ghost_type}, num_point(num_point),
+  //       global_num(global_num), position(nullptr, 0) {
+  //   this->position.shallowCopy(position);
+  // };
 
-  IntegrationPoint(const IntegrationPoint & quad)
-      : Element(quad), num_point(quad.num_point), global_num(quad.global_num),
-        position(nullptr, 0) {
-    position.shallowCopy(quad.position);
-  };
+  // IntegrationPoint(const IntegrationPoint & quad)
+  //     : Element(quad), num_point(quad.num_point), global_num(quad.global_num),
+  //       position(nullptr, 0) {
+  //   position.shallowCopy(quad.position);
+  // };
 
   virtual ~IntegrationPoint() = default;
   /* ------------------------------------------------------------------------ */
@@ -112,24 +112,24 @@ public:
       ghost_type = q.ghost_type;
       num_point = q.num_point;
       global_num = q.global_num;
-      position.shallowCopy(q.position);
+      //position.shallowCopy(q.position);
     }
 
     return *this;
   }
 
   /// get the position of the integration point
-  AKANTU_GET_MACRO(Position, position, const position_type &);
+  //AKANTU_GET_MACRO(Position, position, const position_type &);
 
   /// set the position of the integration point
-  void setPosition(const position_type & position) {
-    this->position.shallowCopy(position);
-  }
+  // void setPosition(const position_type & position) {
+  //   this->position.shallowCopy(position);
+  // }
 
-  /// deep copy of the position of the integration point
-  void copyPosition(const position_type & position) {
-    this->position.deepCopy(position);
-  }
+  // /// deep copy of the position of the integration point
+  // void copyPosition(const position_type & position) {
+  //   this->position.deepCopy(position);
+  // }
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -149,15 +149,14 @@ public:
 
 public:
   /// number of quadrature point in the element
-  UInt num_point;
+  UInt num_point{0};
   /// global number of the quadrature point
   UInt global_num{0};
   // TODO might be temporary: however this class should be tought maybe...
-  std::string material_id;
-
+  //std::string material_id{""};
 private:
   /// position of the quadrature point
-  position_type position;
+//  position_type position;
 };
 
 /// standard output stream operator

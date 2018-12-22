@@ -118,7 +118,7 @@ namespace BC {
                Vector<Real> & dual,
                __attribute__((unused)) const Vector<Real> & coord,
                __attribute__((unused)) const Vector<Real> & normals) const {
-      for (UInt i(0); i < dual.size(); ++i) {
+      for (Idx i(0); i < dual.size(); ++i) {
         dual(i) = 0.0;
       }
     }
@@ -130,15 +130,14 @@ namespace BC {
                                           __attribute__((unused))
                                           const Vector<Real> & coord,
                                           const Vector<Real> & normals) const {
-      dual.mul<false>(this->bc_data, normals);
+      dual = this->bc_data * normals;
     }
 
     /* ---------------------------------------------------------------------- */
-    inline void FromSameDim::
-    operator()(__attribute__((unused)) const IntegrationPoint & quad_point,
+    inline void FromSameDim::operator()(const IntegrationPoint &,
                Vector<Real> & dual,
-               __attribute__((unused)) const Vector<Real> & coord,
-               __attribute__((unused)) const Vector<Real> & normals) const {
+               const Vector<Real> &,
+               const Vector<Real> &) const {
       dual = this->bc_data;
     }
   } // namespace Neumann

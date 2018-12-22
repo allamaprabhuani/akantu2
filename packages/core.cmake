@@ -76,6 +76,9 @@ package_declare_sources(core
   common/aka_random_generator.hh
   common/aka_safe_enum.hh
   common/aka_types.hh
+  common/aka_types_eigen_matrix_plugin.hh
+  common/aka_types_eigen_matrix_base_plugin.hh
+  common/aka_types_eigen_plain_object_base_plugin.hh
   common/aka_view_iterators.hh
   common/aka_voigthelper.hh
   common/aka_voigthelper_tmpl.hh

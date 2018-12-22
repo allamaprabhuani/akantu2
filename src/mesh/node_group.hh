@@ -54,7 +54,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  using const_node_iterator = Array<UInt>::const_iterator<UInt>;
+  using const_node_iterator = Array<UInt>::const_scalar_iterator;
 
   /// empty the node group
   void clear();
@@ -97,7 +97,7 @@ public:
   AKANTU_GET_MACRO(Name, name, const std::string &);
 
   /// give the number of nodes in the current group
-  inline UInt size() const;
+  inline Idx size() const;
 
   // UInt * storage() { return node_group.storage(); };
 

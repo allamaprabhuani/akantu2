@@ -440,18 +440,12 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 
   UInt nb_points = jacobians.size() / nb_element;
 
-  Array<Real>::const_matrix_iterator J_it;
-  Array<Real>::matrix_iterator inte_it;
-  Array<Real>::const_matrix_iterator f_it;
-
-  f_it = in_f.begin_reinterpret(nb_degree_of_freedom, nb_points, nb_element);
-  inte_it = intf.begin_reinterpret(nb_degree_of_freedom, 1, nb_element);
-  J_it = jacobians.begin_reinterpret(nb_points, 1, nb_element);
-
-  for (UInt el = 0; el < nb_element; ++el, ++J_it, ++f_it, ++inte_it) {
-    const Matrix<Real> & f = *f_it;
-    const Matrix<Real> & J = *J_it;
-    Matrix<Real> & inte_f = *inte_it;
+  for (auto && data : zip(make_view(in_f, nb_degree_of_freedom, nb_points),
+                          make_view(intf, nb_degree_of_freedom),
+                          make_view(jacobians, nb_points))) {
+    auto && inte_f = std::get<0>(data);
+    auto && f = std::get<1>(data);
+    auto && J = std::get<2>(data);
 
     inte_f = f * J;
   }

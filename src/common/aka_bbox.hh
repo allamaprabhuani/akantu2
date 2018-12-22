@@ -49,8 +49,11 @@ public:
 
   BBox(UInt spatial_dimension)
       : dim(spatial_dimension),
-        lower_bounds(spatial_dimension, std::numeric_limits<Real>::max()),
-        upper_bounds(spatial_dimension, std::numeric_limits<Real>::lowest()) {}
+        lower_bounds(spatial_dimension),
+        upper_bounds(spatial_dimension) {
+    lower_bounds.fill(std::numeric_limits<Real>::max());
+    upper_bounds.fill(std::numeric_limits<Real>::lowest());
+  }
 
   BBox(const BBox & other)
       : dim(other.dim), empty{false}, lower_bounds(other.lower_bounds),
@@ -217,8 +220,8 @@ public:
     Array<Real> bboxes_data(nb_proc, dim * 2 + 1);
 
     auto * base = bboxes_data.data() + prank * (2 * dim + 1);
-    Vector<Real>(base + dim * 0, dim) = lower_bounds;
-    Vector<Real>(base + dim * 1, dim) = upper_bounds;
+    VectorProxy<Real>(base + dim * 0, dim) = lower_bounds;
+    VectorProxy<Real>(base + dim * 1, dim) = upper_bounds;
     base[dim * 2] = empty ? 1. : 0.; // ugly trick
 
     communicator.allGather(bboxes_data);
@@ -262,7 +265,7 @@ public:
   }
 
 protected:
-  UInt dim{0};
+  Int dim{0};
   bool empty{true};
   Vector<Real> lower_bounds;
   Vector<Real> upper_bounds;

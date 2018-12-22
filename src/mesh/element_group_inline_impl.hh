@@ -57,12 +57,12 @@ inline void ElementGroup::add(ElementType type, UInt element,
   addElement(type, element, ghost_type);
 
   if (add_nodes) {
-    Array<UInt>::const_vector_iterator it =
+    auto it =
         mesh.getConnectivity(type, ghost_type)
             .begin(mesh.getNbNodesPerElement(type)) +
         element;
-    const Vector<UInt> & conn = *it;
-    for (UInt i = 0; i < conn.size(); ++i) {
+    const auto & conn = *it;
+    for (Idx i = 0; i < conn.size(); ++i)
       addNode(conn[i], check_for_duplicate);
     }
   }

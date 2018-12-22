@@ -196,7 +196,7 @@ ParameterTyped<Vector<Real>>::setAuto(const ParserParameter & in_param) {
   if (param.size() == 0) {
     param = tmp;
   } else {
-    for (UInt i = 0; i < param.size(); ++i) {
+    for (Int i = 0; i < param.size(); ++i) {
       param(i) = tmp(i);
     }
   }
@@ -211,8 +211,8 @@ ParameterTyped<Matrix<Real>>::setAuto(const ParserParameter & in_param) {
   if (param.size() == 0) {
     param = tmp;
   } else {
-    for (UInt i = 0; i < param.rows(); ++i) {
-      for (UInt j = 0; j < param.cols(); ++j) {
+    for (Int i = 0; i < param.rows(); ++i) {
+      for (Int j = 0; j < param.cols(); ++j) {
         param(i, j) = tmp(i, j);
       }
     }

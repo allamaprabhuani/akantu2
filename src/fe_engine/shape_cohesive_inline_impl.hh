@@ -53,7 +53,7 @@ inline ShapeLagrange<_ek_cohesive>::ShapeLagrange(const Mesh & mesh,
 
 /* -------------------------------------------------------------------------- */
 inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(
-    const Array<Real> & nodes, const Matrix<Real> & integration_points,
+    const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
     ElementType type, GhostType ghost_type) {
   AKANTU_BOOST_COHESIVE_ELEMENT_SWITCH(INIT_SHAPE_FUNCTIONS);
 }
@@ -63,7 +63,7 @@ inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & /*unused*/, const Matrix<Real> & integration_points,
+    const Array<Real> &, const Ref<const MatrixXr> & integration_points,
     Array<Real> & shape_derivatives, GhostType ghost_type,
     const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
@@ -97,7 +97,7 @@ void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 inline void
 ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
-    const Array<Real> & nodes, const Matrix<Real> & integration_points,
+    const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
     Array<Real> & shape_derivatives, ElementType type,
     GhostType ghost_type, const Array<UInt> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \

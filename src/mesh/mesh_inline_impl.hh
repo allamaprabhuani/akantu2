@@ -369,9 +369,8 @@ inline void Mesh::getBarycenter(const Element & element,
   Matrix<Real> local_coord(spatial_dimension, conn.size());
   auto node_begin = make_view(*nodes, spatial_dimension).begin();
 
-  for (auto && node : enumerate(conn)) {
-    local_coord(std::get<0>(node)) =
-        Vector<Real>(node_begin[std::get<1>(node)]);
+  for (auto && data : enumerate(conn)) {
+    local_coord(std::get<0>(data)) = node_begin[std::get<1>(data)];
   }
 
   Math::barycenter(local_coord.data(), conn.size(), spatial_dimension,
@@ -526,8 +525,8 @@ inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
 
   const Array<UInt> & conn = connectivities(element.type, element.ghost_type);
 
-  for (UInt f = 0; f < facets.rows(); ++f) {
-    for (UInt n = 0; n < facets.cols(); ++n) {
+  for (Int f = 0; f < facets.rows(); ++f) {
+    for (Int n = 0; n < facets.cols(); ++n) {
       facets(f, n) = conn(element.element, local_facets(f, n));
     }
   }
@@ -756,7 +755,7 @@ inline decltype(auto) Mesh::getPeriodicSlaves(UInt master) const {
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt>
 Mesh::getConnectivityWithPeriodicity(const Element & element) const {
-  Vector<UInt> conn = getConnectivity(element);
+  auto && conn = getConnectivity(element);
   if (not isPeriodic()) {
     return conn;
   }

@@ -92,9 +92,8 @@ inline UInt ShapeFunctions::getShapeDerivativesSize(ElementType type) {
 template <ElementType type>
 void ShapeFunctions::setIntegrationPointsByType(const Matrix<Real> & points,
                                                 GhostType ghost_type) {
-  if (not this->integration_points.exists(type, ghost_type)) {
-    this->integration_points(type, ghost_type).shallowCopy(points);
-  }
+  if (not this->integration_points.exists(type, ghost_type))
+    this->integration_points(type, ghost_type) = points;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,17 +103,17 @@ ShapeFunctions::buildInterpolationMatrix(const Matrix<Real> & coordinates,
                                          UInt integration_order) {
   switch (integration_order) {
   case 1: {
-    for (UInt i = 0; i < coordinates.cols(); ++i) {
+    for (Int i = 0; i < coordinates.cols(); ++i)
       coordMatrix(i, 0) = 1;
     }
     break;
   }
   case 2: {
-    UInt nb_quadrature_points = coordMatrix.cols();
+    auto nb_quadrature_points = coordMatrix.cols();
 
-    for (UInt i = 0; i < coordinates.cols(); ++i) {
+    for (Int i = 0; i < coordinates.cols(); ++i) {
       coordMatrix(i, 0) = 1;
-      for (UInt j = 1; j < nb_quadrature_points; ++j) {
+      for (Int j = 1; j < nb_quadrature_points; ++j)
         coordMatrix(i, j) = coordinates(j - 1, i);
       }
     }
@@ -209,9 +208,9 @@ ShapeFunctions::buildElementalFieldInterpolationMatrix<_quadrangle_4>(
       ElementClassProperty<_quadrangle_4>::polynomial_degree) {
     AKANTU_TO_IMPLEMENT();
   } else {
-    for (UInt i = 0; i < coordinates.cols(); ++i) {
-      Real x = coordinates(0, i);
-      Real y = coordinates(1, i);
+    for (Int i = 0; i < coordinates.cols(); ++i) {
+      auto x = coordinates(0, i);
+      auto y = coordinates(1, i);
 
       coordMatrix(i, 0) = 1;
       coordMatrix(i, 1) = x;
@@ -233,10 +232,10 @@ ShapeFunctions::buildElementalFieldInterpolationMatrix<_quadrangle_8>(
       ElementClassProperty<_quadrangle_8>::polynomial_degree) {
     AKANTU_TO_IMPLEMENT();
   } else {
-    for (UInt i = 0; i < coordinates.cols(); ++i) {
+    for (Int i = 0; i < coordinates.cols(); ++i) {
       // UInt j = 0;
-      Real x = coordinates(0, i);
-      Real y = coordinates(1, i);
+      auto x = coordinates(0, i);
+      auto y = coordinates(1, i);
 
       coordMatrix(i, 0) = 1;
       coordMatrix(i, 1) = x;

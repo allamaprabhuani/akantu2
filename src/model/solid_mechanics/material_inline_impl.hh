@@ -73,7 +73,8 @@ inline void Material::gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F) {
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim * dim,
                       "The dimension of the tensor F should be greater or "
                       "equal to the dimension of the tensor grad_u.");
-  F.eye();
+
+  F.Identity();
 
   for (UInt i = 0; i < dim; ++i) {
     for (UInt j = 0; j < dim; ++j) {
@@ -94,22 +95,22 @@ inline decltype(auto) Material::gradUToF(const Matrix<Real> & grad_u) {
 template <UInt dim>
 inline void Material::StoCauchy(const Matrix<Real> & F, const Matrix<Real> & S,
                                 Matrix<Real> & sigma, const Real & C33) const {
-  Real J = F.det() * sqrt(C33);
+  Real J = F.determinant() * std::sqrt(C33);
 
-  Matrix<Real> F_S(dim, dim);
-  F_S = F * S;
+  Matrix<Real, dim, dim> F_S;
+  F_S = F * piola;
   Real constant = J ? 1. / J : 0;
-  sigma.mul<false, true>(F_S, F, constant);
+  sigma = constant * F_S * F.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Material::rightCauchy(const Matrix<Real> & F, Matrix<Real> & C) {
-  C.mul<true, false>(F, F);
+  C = F.transpose() * F;
 }
 
 /* -------------------------------------------------------------------------- */
 inline void Material::leftCauchy(const Matrix<Real> & F, Matrix<Real> & B) {
-  B.mul<false, true>(F, F);
+  B = F * F.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -134,13 +135,8 @@ inline decltype(auto) Material::gradUToEpsilon(const Matrix<Real> & grad_u) {
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
 inline void Material::gradUToE(const Matrix<Real> & grad_u, Matrix<Real> & E) {
-  E.mul<true, false>(grad_u, grad_u, .5);
-
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      E(i, j) += 0.5 * (grad_u(i, j) + grad_u(j, i));
-    }
-  }
+    E = grad_u.transpose() * grad_u / 2.;
+    E += (grad_u.transpose() + grad_u)/ 2.;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -156,13 +152,9 @@ inline Real Material::stressToVonMises(const Matrix<Real> & stress) {
   // compute deviatoric stress
   UInt dim = stress.cols();
   Matrix<Real> deviatoric_stress =
-      Matrix<Real>::eye(dim, -1. * stress.trace() / 3.);
+      Matrix<Real>::Identity(dim, dim) * -1. * stress.trace() / 3.;
 
-  for (UInt i = 0; i < dim; ++i) {
-    for (UInt j = 0; j < dim; ++j) {
-      deviatoric_stress(i, j) += stress(i, j);
-    }
-  }
+  deviatoric_stress += stress;
 
   // return Von Mises stress
   return std::sqrt(3. * deviatoric_stress.doubleDot(deviatoric_stress) / 2.);

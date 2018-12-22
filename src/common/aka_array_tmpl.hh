@@ -870,14 +870,13 @@ namespace detail {
               << debug::demangle(typeid(type).name()) << to_string_all(ns...));
     }
 
-    auto && wrapped = aka::apply(
+    auto && it = aka::apply(
         [&](auto... n) {
-          return InstantiationHelper<sizeof...(n)>::template instantiate<type>(
-              data, n...);
+          return iterator(data, n...);
         },
         take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
 
-    return iterator(std::move(wrapped));
+    return it;
   }
 } // namespace detail
 

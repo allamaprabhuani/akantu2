@@ -269,13 +269,11 @@ public:
                         values.size() * values.getNbComponent(), op);
   }
 
-  template <typename Tensor>
+  template <typename Derived>
   inline void
-  allReduce(Tensor & values,
-            SynchronizerOperation op = SynchronizerOperation::_sum,
-            std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-                nullptr) const {
-    this->allReduceImpl(values.data(), values.size(), op);
+  allReduce(Eigen::MatrixBase<Derived> & values,
+            SynchronizerOperation op = SynchronizerOperation::_sum) const {
+    this->allReduceImpl(values.derived().data(), values.size(), op);
   }
 
   template <typename T>
