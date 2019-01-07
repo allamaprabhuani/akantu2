@@ -81,14 +81,14 @@ public:
 
     if (mesh.isDistributed()) {
       MeshAccessor mesh_accessor(mesh);
-      auto & nodes_type = mesh_accessor.getNodesType();
-      UInt nb_old_nodes = nodes_type.size();
-      nodes_type.resize(nb_old_nodes + local_nb_new_nodes);
+      auto & nodes_flags = mesh_accessor.getNodesFlags();
+      auto nb_old_nodes = nodes_flags.size();
+      nodes_flags.resize(nb_old_nodes + local_nb_new_nodes);
 
       for (auto && data : zip(old_nodes, new_nodes)) {
         UInt old_node, new_node;
         std::tie(old_node, new_node) = data;
-        nodes_type(new_node) = nodes_type(old_node);
+        nodes_flags(new_node) = nodes_flags(old_node);
       }
 
       model.updateCohesiveSynchronizers();
@@ -104,12 +104,12 @@ public:
       MeshUtils::resetFacetToDouble(mesh.getMeshFacets());
     }
 
-    if (nb_new_nodes > 0) {
+    if (nb_new_stuff(0) > 0) {
       mesh.sendEvent(nodes_event);
       // mesh.sendEvent(global_ids_updater.getChangedNodeEvent());
     }
 
-    return std::make_tuple(nb_new_nodes, nb_new_stuff(1));
+    return std::make_tuple(nb_new_stuff(0), nb_new_stuff(1));
   }
 
 private:
@@ -188,8 +188,6 @@ void SolidMechanicsModelCohesive::initFullImpl(const ModelOptions & options) {
       dynamic_cast<const SolidMechanicsModelCohesiveOptions &>(options);
 
   this->is_extrinsic = smmc_options.is_extrinsic;
-
-  std::cout << "Extrinsic " << is_extrinsic << std::endl;
 
   inserter->setIsExtrinsic(is_extrinsic);
 
@@ -618,8 +616,7 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::onEndSolveStep(const AnalysisMethod &) {
-
+void SolidMechanicsModelCohesive::afterSolveStep() {
   AKANTU_DEBUG_IN();
 
   /*
@@ -630,6 +627,8 @@ void SolidMechanicsModelCohesive::onEndSolveStep(const AnalysisMethod &) {
     if (mat->isFiniteDeformation())
       mat->computeAllCauchyStresses(_not_ghost);
   }
+
+  SolidMechanicsModel::afterSolveStep();
 
   AKANTU_DEBUG_OUT();
 }

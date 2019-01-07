@@ -578,6 +578,7 @@ namespace types {
 
       // input iterator dereference *it
       reference operator*() { return *ptr; }
+      pointer operator->() { return ptr; }
 
     private:
       pointer ptr;
@@ -803,6 +804,13 @@ public:
       stream << this->values[i];
     }
     stream << "]";
+  }
+
+  /* ---------------------------------------------------------------------- */
+  static inline Vector<T> zeros(UInt n) {
+    Vector<T> tmp(n);
+    tmp.set(T());
+    return tmp;
   }
 };
 

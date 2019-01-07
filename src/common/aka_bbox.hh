@@ -31,6 +31,8 @@
 #include "aka_types.hh"
 #include "communicator.hh"
 /* -------------------------------------------------------------------------- */
+#include <map>
+/* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_AKA_BBOX_HH__
 #define __AKANTU_AKA_BBOX_HH__
@@ -39,10 +41,12 @@ namespace akantu {
 
 class BBox {
 public:
+  BBox() = default;
+
   BBox(UInt spatial_dimension)
       : dim(spatial_dimension),
         lower_bounds(spatial_dimension, std::numeric_limits<Real>::max()),
-        upper_bounds(spatial_dimension, -std::numeric_limits<Real>::max()) {}
+        upper_bounds(spatial_dimension, std::numeric_limits<Real>::lowest()) {}
 
   BBox(const BBox & other)
       : dim(other.dim), empty{false}, lower_bounds(other.lower_bounds),
@@ -153,7 +157,7 @@ public:
   /* ------------------------------------------------------------------------ */
   inline void reset() {
     lower_bounds.set(std::numeric_limits<Real>::max());
-    upper_bounds.set(-std::numeric_limits<Real>::max());
+    upper_bounds.set(std::numeric_limits<Real>::lowest());
   }
 
   /* ------------------------------------------------------------------------ */
@@ -222,13 +226,18 @@ public:
     return bboxes;
   }
 
-  std::vector<BBox> intersection(const BBox & other,
-                                 const Communicator & communicator) {
+  std::map<UInt, BBox> intersection(const BBox & other,
+                                    const Communicator & communicator) {
+    // todo: change for a custom reduction algorithm
     auto other_bboxes = other.allGather(communicator);
-    for (auto & bbox : other_bboxes) {
-      bbox = this->intersection(bbox);
+    std::map<UInt, BBox> intersections;
+    for (const auto & bbox : enumerate(other_bboxes)) {
+      auto && tmp = this->intersection(std::get<1>(bbox));
+      if (tmp) {
+        intersections[std::get<0>(bbox)] = tmp;
+      }
     }
-    return other_bboxes;
+    return intersections;
   }
 
   void printself(std::ostream & stream) const {
@@ -240,7 +249,7 @@ public:
   }
 
 protected:
-  UInt dim;
+  UInt dim{0};
   bool empty{true};
   Vector<Real> lower_bounds;
   Vector<Real> upper_bounds;

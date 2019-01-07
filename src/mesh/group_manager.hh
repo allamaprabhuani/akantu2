@@ -40,6 +40,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_iterators.hh"
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
 #include <set>
@@ -123,10 +124,19 @@ public:
   AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION(node_group, find,
                                                 const std::string & name, name);
 #endif
-
+public:
+#ifndef SWIG
+  decltype(auto) iterateNodeGroups() {
+    return make_dereference_adaptor(make_values_adaptor(node_groups));
+  }
+  decltype(auto) iterateNodeGroups() const {
+    return make_dereference_adaptor(make_values_adaptor(node_groups));
+  }
+#endif
   /* ------------------------------------------------------------------------ */
   /* Clustering filter                                                        */
-  /* ------------------------------------------------------------------------ */
+  /* -------------------------------------------------------------------9+
+----- */
 public:
   class ClusteringFilter {
   public:
@@ -252,7 +262,7 @@ protected:
       CommunicationBufferTemplated<false> & comm_buffer) const;
 
   /// take a buffer and create the missing groups localy
-  void checkAndAddGroups(CommunicationBufferTemplated<true> & buffer);
+  void checkAndAddGroups(CommunicationBufferTemplated<false> & buffer);
 
   /// register an elemental field to the given group name
   template <class dump_type, typename field_type>

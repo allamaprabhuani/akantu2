@@ -279,7 +279,7 @@ inline Array<T> &
 Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
                      const GhostType & ghost_type, UInt nb_component,
                      bool size_to_nb_element, bool resize_with_parent) {
-  Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(
+  Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
       data_name, el_type, ghost_type, nb_component);
 
   if (size_to_nb_element) {
@@ -301,7 +301,7 @@ Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
                      const GhostType & ghost_type, UInt nb_component,
                      bool size_to_nb_element, bool resize_with_parent,
                      const T & defaul_) {
-  Array<T> & tmp = mesh_data.getElementalDataArrayAlloc<T>(
+  Array<T> & tmp = this->getElementalDataArrayAlloc<T>(
       data_name, el_type, ghost_type, nb_component);
 
   if (size_to_nb_element) {
@@ -318,17 +318,10 @@ Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline bool Mesh::hasData(const ID & data_name, const ElementType & el_type,
-                          const GhostType & ghost_type) const {
-  return mesh_data.hasDataArray<T>(data_name, el_type, ghost_type);
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
 inline const Array<T> & Mesh::getData(const ID & data_name,
                                       const ElementType & el_type,
                                       const GhostType & ghost_type) const {
-  return mesh_data.getElementalDataArray<T>(data_name, el_type, ghost_type);
+  return this->getElementalDataArray<T>(data_name, el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -336,33 +329,22 @@ template <typename T>
 inline Array<T> & Mesh::getData(const ID & data_name,
                                 const ElementType & el_type,
                                 const GhostType & ghost_type) {
-  return mesh_data.getElementalDataArray<T>(data_name, el_type, ghost_type);
-}
-
-/* -------------------------------------------------------------------------- */
-inline bool Mesh::hasData(const ID & data_name) const {
-  return mesh_data.hasData(data_name);
+  return this->getElementalDataArray<T>(data_name, el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline const ElementTypeMapArray<T> &
 Mesh::getData(const ID & data_name) const {
-  return mesh_data.getElementalData<T>(data_name);
+  return this->getElementalData<T>(data_name);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline ElementTypeMapArray<T> & Mesh::getData(const ID & data_name) {
-  return mesh_data.getElementalData<T>(data_name);
+  return this->getElementalData<T>(data_name);
 }
 
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline ElementTypeMapArray<T> & Mesh::registerData(const ID & data_name) {
-  this->mesh_data.registerElementalData<T>(data_name);
-  return this->getData<T>(data_name);
-}
 
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type,
@@ -631,8 +613,8 @@ inline UInt Mesh::getNodeGlobalId(UInt local_id) const {
 
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNodeLocalId(UInt global_id) const {
-  AKANTU_DEBUG_ASSERT(nodes_global_ids != nullptr,
-                      "The global ids are note set.");
+  if (nodes_global_ids == nullptr)
+    return global_id;
   return nodes_global_ids->find(global_id);
 }
 
@@ -702,10 +684,10 @@ void Mesh::addPeriodicSlave(UInt slave, UInt master) {
                       << getNodeGlobalId(slave) << " [lid: " << slave << "]"
                       << ", master gid:" << getNodeGlobalId(master)
                       << " [lid: " << master << "]");
-    std::cout << "adding periodic slave, slave gid:" << getNodeGlobalId(slave)
-              << " [lid: " << slave << "]"
-              << ", master gid:" << getNodeGlobalId(master)
-              << " [lid: " << master << "]" << std::endl;
+    // std::cout << "adding periodic slave, slave gid:" << getNodeGlobalId(slave)
+    //           << " [lid: " << slave << "]"
+    //           << ", master gid:" << getNodeGlobalId(master)
+    //           << " [lid: " << master << "]" << std::endl;
   }
 
   periodic_slave_master[slave] = master;
@@ -722,6 +704,45 @@ void Mesh::addPeriodicSlave(UInt slave, UInt master) {
 /* -------------------------------------------------------------------------- */
 UInt Mesh::getPeriodicMaster(UInt slave) const {
   return periodic_slave_master.at(slave);
+}
+
+/* -------------------------------------------------------------------------- */
+class Mesh::PeriodicSlaves {
+  using internal_iterator = std::unordered_multimap<UInt, UInt>::const_iterator;
+  std::pair<internal_iterator, internal_iterator> pair;
+
+public:
+  PeriodicSlaves(const Mesh & mesh, UInt master)
+      : pair(mesh.getPeriodicMasterSlaves().equal_range(master)) {}
+
+  PeriodicSlaves(const PeriodicSlaves & other) = default;
+  PeriodicSlaves(PeriodicSlaves && other) = default;
+  PeriodicSlaves & operator=(const PeriodicSlaves & other) = default;
+
+  class const_iterator {
+    internal_iterator it;
+
+  public:
+    const_iterator(internal_iterator it) : it(std::move(it)) {}
+
+    const_iterator operator++() {
+      ++it;
+      return *this;
+    }
+    bool
+    operator!=(const const_iterator & other) {
+      return other.it != it;
+    }
+    auto operator*() { return it->second; }
+  };
+
+  auto begin() { return const_iterator(pair.first); }
+  auto end() { return const_iterator(pair.second); }
+};
+
+/* -------------------------------------------------------------------------- */
+inline decltype(auto) Mesh::getPeriodicSlaves(UInt master) const {
+  return PeriodicSlaves(*this, master);
 }
 
 /* -------------------------------------------------------------------------- */

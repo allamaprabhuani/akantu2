@@ -55,6 +55,7 @@ void NodeInfoPerProc::synchronize() {
   synchronizeTypes();
   synchronizeGroups();
   synchronizePeriodicity();
+  synchronizeTags();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -71,23 +72,14 @@ void NodeInfoPerProc::fillNodeGroupsFromBuffer(CommunicationBuffer & buffer) {
 
   const auto & global_nodes = mesh.getGlobalNodesIds();
 
-  auto nbegin = global_nodes.begin();
-  auto nit = global_nodes.begin();
-  auto nend = global_nodes.end();
-  for (; nit != nend; ++nit) {
-    auto it = node_to_group[*nit].begin();
-    auto end = node_to_group[*nit].end();
-
-    for (; it != end; ++it) {
-      mesh.getNodeGroup(*it).add(nit - nbegin, false);
+  for (auto && data : enumerate(global_nodes)) {
+    for (const auto & node : node_to_group[std::get<1>(data)]) {
+      mesh.getNodeGroup(node).add(std::get<0>(data), false);
     }
   }
 
-  GroupManager::const_node_group_iterator ngi = mesh.node_group_begin();
-  GroupManager::const_node_group_iterator nge = mesh.node_group_end();
-  for (; ngi != nge; ++ngi) {
-    NodeGroup & ng = *(ngi->second);
-    ng.optimize();
+  for (auto && ng_data : mesh.iterateNodeGroups()) {
+    ng_data.optimize();
   }
 
   AKANTU_DEBUG_OUT();
@@ -247,7 +239,7 @@ void NodeInfoPerProc::receiveMissingPeriodic(
   std::size_t nb_nodes;
   buffer >> nb_nodes;
 
-  for (auto _ [[gnu::unused]] : arange(nb_nodes)) {
+  for (auto _[[gnu::unused]] : arange(nb_nodes)) {
     Vector<Real> pos(spatial_dimension);
     Int prank;
     buffer >> pos;
@@ -281,6 +273,33 @@ void NodeInfoPerProc::receiveMissingPeriodic(
 }
 
 /* -------------------------------------------------------------------------- */
+void NodeInfoPerProc::fillNodalData(DynamicCommunicationBuffer & buffer,
+                                    std::string tag_name) {
+
+#define AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA(r, _, elem)                    \
+  case BOOST_PP_TUPLE_ELEM(2, 0, elem): {                                      \
+    auto & nodal_data =                                                        \
+        mesh.getNodalData<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(tag_name);          \
+    nodal_data.resize(mesh.getNbNodes());                                      \
+    for (auto && data : make_view(nodal_data)) {                               \
+      buffer >> data;                                                          \
+    }                                                                          \
+    break;                                                                     \
+  }
+
+  MeshDataTypeCode data_type_code =
+      mesh.getTypeCode(tag_name, MeshDataType::_nodal);
+  switch (data_type_code) {
+    BOOST_PP_SEQ_FOR_EACH(AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA, ,
+                          AKANTU_MESH_DATA_TYPES)
+  default:
+    AKANTU_ERROR("Could not obtain the type of tag" << tag_name << "!");
+    break;
+  }
+#undef AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA
+}
+
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -301,7 +320,7 @@ void MasterNodeInfoPerProc::synchronizeNodes() {
   Array<Real> & nodes = this->getNodes();
 
   all_nodes.copy(nodes);
-  nodes_pranks.resize(nodes.size(), root);
+  nodes_pranks.resize(nodes.size(), UInt(-1));
 
   for (UInt p = 0; p < nb_proc; ++p) {
     UInt nb_nodes = 0;
@@ -369,8 +388,17 @@ void MasterNodeInfoPerProc::synchronizeTypes() {
 
   this->fillNodesType();
 
-  for (UInt p = 0; p < nb_proc; ++p) {
+  auto is_master = [](auto && flag) {
+    return (flag & NodeFlag::_shared_mask) == NodeFlag::_master;
+  };
+
+  auto is_local = [](auto && flag) {
+    return (flag & NodeFlag::_shared_mask) == NodeFlag::_normal;
+  };
+
+  for (auto p : arange(nb_proc)) {
     auto & nodes_flags = nodes_flags_per_proc[p];
+
     if (p != root) {
       AKANTU_DEBUG_INFO(
           "Receiving first nodes types from proc "
@@ -382,21 +410,20 @@ void MasterNodeInfoPerProc::synchronizeTypes() {
     }
 
     // stack all processors claiming to be master for a node
-    for (UInt local_node = 0; local_node < nb_nodes_per_proc(p); ++local_node) {
-      if ((nodes_flags(local_node) & NodeFlag::_shared_mask) ==
-          NodeFlag::_master) {
-        UInt global_node = nodes_per_proc[p](local_node);
+    for (auto local_node : arange(nb_nodes_per_proc(p))) {
+      auto global_node = nodes_per_proc[p](local_node);
+
+      if (is_master(nodes_flags(local_node))) {
         nodes_to_proc.insert(
             std::make_pair(global_node, std::make_pair(p, local_node)));
-      } else if ((nodes_flags(local_node) & NodeFlag::_shared_mask) ==
-                 NodeFlag::_normal) {
-        nodes_prank_per_proc[p](local_node) = p;
-        nodes_pranks[mesh.getNodeGlobalId(local_node)] = p;
+
+      } else if (is_local(nodes_flags(local_node))) {
+        nodes_pranks[global_node] = p;
       }
     }
   }
 
-  for (UInt i = 0; i < mesh.getNbGlobalNodes(); ++i) {
+  for (auto i : arange(mesh.getNbGlobalNodes())) {
     auto it_range = nodes_to_proc.equal_range(i);
     if (it_range.first == nodes_to_proc.end() || it_range.first->first != i)
       continue;
@@ -405,15 +432,28 @@ void MasterNodeInfoPerProc::synchronizeTypes() {
     UInt master_proc = (it_range.first)->second.first;
     nodes_pranks[i] = master_proc;
 
-    for (auto it_node = it_range.first; it_node != it_range.second; ++it_node) {
-      UInt proc = it_node->second.first;
-      UInt node = it_node->second.second;
-      nodes_prank_per_proc[proc](node) = master_proc;
+    for (auto && data : range(it_range.first, it_range.second)) {
+      auto proc = data.second.first;
+      auto node = data.second.second;
+
       if (proc != master_proc) {
         // store the info on all the slaves for a given master
         nodes_flags_per_proc[proc](node) = NodeFlag::_slave;
         nodes_to_send_per_proc[master_proc].push_back(proc);
         nodes_to_send_per_proc[master_proc].push_back(i);
+      }
+    }
+  }
+
+  /// Fills the nodes prank per proc
+  for (auto && data : zip(arange(nb_proc), nodes_per_proc, nodes_prank_per_proc,
+                          nodes_flags_per_proc)) {
+    for (auto && node_data :
+         zip(std::get<1>(data), std::get<2>(data), std::get<3>(data))) {
+      if (std::get<2>(node_data) == NodeFlag::_normal) {
+        std::get<1>(node_data) = std::get<0>(data);
+      } else {
+        std::get<1>(node_data) = nodes_pranks(std::get<0>(node_data));
       }
     }
   }
@@ -444,7 +484,7 @@ void MasterNodeInfoPerProc::synchronizeTypes() {
       this->getNodesFlags().copy(nodes_flags_per_proc[p]);
       for (auto && data : enumerate(nodes_prank_per_proc[p])) {
         auto node = std::get<0>(data);
-        if (not (mesh.isMasterNode(node) or mesh.isLocalNode(node))) {
+        if (not(mesh.isMasterNode(node) or mesh.isLocalNode(node))) {
           this->setNodePrank(node, std::get<1>(data));
         }
       }
@@ -594,6 +634,79 @@ void MasterNodeInfoPerProc::synchronizePeriodicity() {
 }
 
 /* -------------------------------------------------------------------------- */
+void MasterNodeInfoPerProc::fillTagBuffers(
+    std::vector<DynamicCommunicationBuffer> & buffers,
+    const std::string & tag_name) {
+#define AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA(r, _, elem)                    \
+  case BOOST_PP_TUPLE_ELEM(2, 0, elem): {                                      \
+    auto & nodal_data =                                                        \
+        mesh.getNodalData<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(tag_name);          \
+    for (auto && data : enumerate(nodes_per_proc)) {                           \
+      auto proc = std::get<0>(data);                                           \
+      auto & nodes = std::get<1>(data);                                        \
+      auto & buffer = buffers[proc];                                           \
+      for (auto & node : nodes) {                                              \
+        for (auto i : arange(nodal_data.getNbComponent())) {                   \
+          buffer << nodal_data(node, i);                                       \
+        }                                                                      \
+      }                                                                        \
+    }                                                                          \
+    break;                                                                     \
+  }
+
+  MeshDataTypeCode data_type_code =
+      mesh.getTypeCode(tag_name, MeshDataType::_nodal);
+  switch (data_type_code) {
+    BOOST_PP_SEQ_FOR_EACH(AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA, ,
+                          AKANTU_MESH_DATA_TYPES)
+  default:
+    AKANTU_ERROR("Could not obtain the type of tag" << tag_name << "!");
+    break;
+  }
+#undef AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA
+} // namespace akantu
+
+/* -------------------------------------------------------------------------- */
+void MasterNodeInfoPerProc::synchronizeTags() {
+  /// tag info
+  auto tag_names = mesh.getTagNames();
+
+  DynamicCommunicationBuffer tags_buffer;
+  for (auto && tag_name : tag_names) {
+    tags_buffer << tag_name;
+    tags_buffer << mesh.getTypeCode(tag_name, MeshDataType::_nodal);
+    tags_buffer << mesh.getNbComponent(tag_name);
+  }
+
+  AKANTU_DEBUG_INFO(
+      "Broadcasting the information about the nodes mesh data tags: ("
+      << tags_buffer.size() << ").");
+  comm.broadcast(tags_buffer, root);
+
+  for (auto && tag_data : enumerate(tag_names)) {
+    auto tag_count = std::get<0>(tag_data);
+    auto & tag_name = std::get<1>(tag_data);
+    std::vector<DynamicCommunicationBuffer> buffers;
+    std::vector<CommunicationRequest> requests;
+    buffers.resize(nb_proc);
+    fillTagBuffers(buffers, tag_name);
+    for (auto && data : enumerate(buffers)) {
+      auto && proc = std::get<0>(data);
+      auto & buffer = std::get<1>(data);
+      if (proc == root) {
+        fillNodalData(buffer, tag_name);
+      } else {
+        auto && tag = Tag::genTag(this->rank, tag_count, Tag::_MESH_DATA);
+        requests.push_back(comm.asyncSend(buffer, proc, tag));
+      }
+    }
+
+    comm.waitAll(requests);
+    comm.freeCommunicationRequest(requests);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -643,7 +756,7 @@ void SlaveNodeInfoPerProc::synchronizeTypes() {
   comm.receive(nodes_prank, root, Tag::genTag(root, 2, Tag::_NODES_TYPE));
   for (auto && data : enumerate(nodes_prank)) {
     auto node = std::get<0>(data);
-    if (not (mesh.isMasterNode(node) or mesh.isLocalNode(node))) {
+    if (not(mesh.isMasterNode(node) or mesh.isLocalNode(node))) {
       this->setNodePrank(node, std::get<1>(data));
     }
   }
@@ -669,11 +782,7 @@ void SlaveNodeInfoPerProc::synchronizeGroups() {
                     << root << " "
                     << Tag::genTag(root, this->rank, Tag::_NODE_GROUP));
 
-  CommunicationStatus status;
-  comm.probe<char>(root, Tag::genTag(root, this->rank, Tag::_NODE_GROUP),
-                   status);
-
-  CommunicationBuffer buffer(status.size());
+  DynamicCommunicationBuffer buffer;
   comm.receive(buffer, root, Tag::genTag(root, this->rank, Tag::_NODE_GROUP));
 
   this->fillNodeGroupsFromBuffer(buffer);
@@ -710,4 +819,33 @@ void SlaveNodeInfoPerProc::synchronizePeriodicity() {
   receiveMissingPeriodic(buffer);
 }
 
-} // akantu
+/* -------------------------------------------------------------------------- */
+void SlaveNodeInfoPerProc::synchronizeTags() {
+  DynamicCommunicationBuffer tags_buffer;
+  comm.broadcast(tags_buffer, root);
+
+  std::vector<std::string> tag_names;
+  while (tags_buffer.getLeftToUnpack() > 0) {
+    std::string name;
+    MeshDataTypeCode code;
+    UInt nb_components;
+    tags_buffer >> name;
+    tags_buffer >> code;
+    tags_buffer >> nb_components;
+
+    mesh.registerNodalData(name, nb_components, code);
+    tag_names.push_back(name);
+  }
+
+  for (auto && tag_data : enumerate(tag_names)) {
+    auto tag_count = std::get<0>(tag_data);
+    auto & tag_name = std::get<1>(tag_data);
+    DynamicCommunicationBuffer buffer;
+    auto && tag = Tag::genTag(this->root, tag_count, Tag::_MESH_DATA);
+    comm.receive(buffer, this->root, tag);
+
+    fillNodalData(buffer, tag_name);
+  }
+}
+
+} // namespace akantu

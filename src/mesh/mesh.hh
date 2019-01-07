@@ -93,6 +93,7 @@ namespace akantu {
 class Mesh : protected Memory,
              public EventHandlerManager<MeshEventHandler>,
              public GroupManager,
+             public MeshData,
              public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -181,8 +182,15 @@ public:
     return ((this->is_periodic & (1 << direction)) != 0);
   }
 
+  class PeriodicSlaves;
+
   /// get the master node for a given slave nodes, except if node not a slave
   inline UInt getPeriodicMaster(UInt slave) const;
+
+#ifndef SWIG
+  /// get an iterable list of slaves for a given master node
+  inline decltype(auto) getPeriodicSlaves(UInt master) const;
+#endif
 
   /* ------------------------------------------------------------------------ */
   /* General Methods                                                          */
@@ -273,7 +281,7 @@ public:
 
   /// get the Array of global ids of the nodes (only used in parallel)
   AKANTU_GET_MACRO(GlobalNodesIds, *nodes_global_ids, const Array<UInt> &);
-  AKANTU_GET_MACRO_NOT_CONST(GlobalNodesIds, *nodes_global_ids, Array<UInt> &);
+  //AKANTU_GET_MACRO_NOT_CONST(GlobalNodesIds, *nodes_global_ids, Array<UInt> &);
 
   /// get the global id of a node
   inline UInt getNodeGlobalId(UInt local_id) const;
@@ -383,14 +391,6 @@ protected:
 #endif
 
 public:
-  /// register a new ElementalTypeMap in the MeshData
-  template <typename T>
-  inline ElementTypeMapArray<T> & registerData(const std::string & data_name);
-
-  template <typename T>
-  inline bool hasData(const ID & data_name, const ElementType & el_type,
-                      const GhostType & ghost_type = _not_ghost) const;
-
   /// get a name field associated to the mesh
   template <typename T>
   inline const Array<T> &
@@ -401,9 +401,6 @@ public:
   template <typename T>
   inline Array<T> & getData(const ID & data_name, const ElementType & el_type,
                             const GhostType & ghost_type = _not_ghost);
-
-  /// tells if the data data_name is contained in the mesh or not
-  inline bool hasData(const ID & data_name) const;
 
   /// get a name field associated to the mesh
   template <typename T>
@@ -505,24 +502,27 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-  using type_iterator = ElementTypeMapArray<UInt, ElementType>::type_iterator;
+#ifndef SWIG
+  using type_iterator[[deprecated]] =
+      ElementTypeMapArray<UInt, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<UInt, ElementType>::ElementTypesIteratorHelper;
 
   template <typename... pack>
   ElementTypesIteratorHelper elementTypes(pack &&... _pack) const;
 
-  inline type_iterator firstType(UInt dim = _all_dimensions,
-                                 GhostType ghost_type = _not_ghost,
-                                 ElementKind kind = _ek_regular) const {
-    return connectivities.firstType(dim, ghost_type, kind);
+  [[deprecated("Use elementTypes instead")]] inline decltype(auto)
+  firstType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+            ElementKind kind = _ek_regular) const {
+    return connectivities.elementTypes(dim, ghost_type, kind).begin();
   }
 
-  inline type_iterator lastType(UInt dim = _all_dimensions,
-                                GhostType ghost_type = _not_ghost,
-                                ElementKind kind = _ek_regular) const {
-    return connectivities.lastType(dim, ghost_type, kind);
+  [[deprecated("Use elementTypes instead")]] inline decltype(auto)
+  lastType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+           ElementKind kind = _ek_regular) const {
+    return connectivities.elementTypes(dim, ghost_type, kind).end();
   }
+#endif
 
   AKANTU_GET_MACRO(ElementSynchronizer, *element_synchronizer,
                    const ElementSynchronizer &);
@@ -534,7 +534,8 @@ public:
                              NodeSynchronizer &);
   AKANTU_GET_MACRO(PeriodicNodeSynchronizer, *periodic_node_synchronizer,
                    const PeriodicNodeSynchronizer &);
-  AKANTU_GET_MACRO_NOT_CONST(PeriodicNodeSynchronizer, *periodic_node_synchronizer,
+  AKANTU_GET_MACRO_NOT_CONST(PeriodicNodeSynchronizer,
+                             *periodic_node_synchronizer,
                              PeriodicNodeSynchronizer &);
 
 #ifndef SWIG
@@ -586,8 +587,6 @@ private:
   getSubelementToElementPointer(const ElementType & type,
                                 const GhostType & ghost_type = _not_ghost);
 
-  AKANTU_GET_MACRO_NOT_CONST(MeshData, mesh_data, MeshData &);
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -628,7 +627,7 @@ private:
   BBox bbox_local;
 
   /// Extra data loaded from the mesh file
-  MeshData mesh_data;
+  // MeshData mesh_data;
 
   /// facets' mesh
   std::unique_ptr<Mesh> mesh_facets;

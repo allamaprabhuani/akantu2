@@ -74,8 +74,7 @@ MasterElementInfoPerProc::MasterElementInfoPerProc(
     }
 
     /// tag info
-    std::vector<std::string> tag_names;
-    this->getMeshData().getTagNames(tag_names, type);
+    auto && tag_names = this->mesh.getTagNames(type);
     this->nb_tags = tag_names.size();
 
     size(4) = nb_tags;
@@ -252,12 +251,9 @@ void MasterElementInfoPerProc::synchronizeTags() {
     return;
   }
 
-  UInt mesh_data_sizes_buffer_length;
-  auto & mesh_data = this->getMeshData();
-
   /// tag info
-  std::vector<std::string> tag_names;
-  mesh_data.getTagNames(tag_names, type);
+  auto tag_names = mesh.getTagNames(type);
+
   // Make sure the tags are sorted (or at least not in random order),
   // because they come from a map !!
   std::sort(tag_names.begin(), tag_names.end());
@@ -268,57 +264,53 @@ void MasterElementInfoPerProc::synchronizeTags() {
   DynamicCommunicationBuffer mesh_data_sizes_buffer;
   for (auto && tag_name : tag_names) {
     mesh_data_sizes_buffer << tag_name;
-    mesh_data_sizes_buffer << mesh_data.getTypeCode(tag_name);
-    mesh_data_sizes_buffer << mesh_data.getNbComponent(tag_name, type);
+    mesh_data_sizes_buffer << mesh.getTypeCode(tag_name);
+    mesh_data_sizes_buffer << mesh.getNbComponent(tag_name, type);
   }
 
-  mesh_data_sizes_buffer_length = mesh_data_sizes_buffer.size();
   AKANTU_DEBUG_INFO(
       "Broadcasting the size of the information about the mesh data tags: ("
-      << mesh_data_sizes_buffer_length << ").");
-  comm.broadcast(mesh_data_sizes_buffer_length, root);
+      << mesh_data_sizes_buffer.size() << ").");
   AKANTU_DEBUG_INFO(
       "Broadcasting the information about the mesh data tags, addr "
       << (void *)mesh_data_sizes_buffer.storage());
 
-  if (mesh_data_sizes_buffer_length != 0)
-    comm.broadcast(mesh_data_sizes_buffer, root);
+  comm.broadcast(mesh_data_sizes_buffer, root);
 
-  if (mesh_data_sizes_buffer_length != 0) {
-    // Sending the actual data to each processor
-    std::vector<DynamicCommunicationBuffer> buffers(nb_proc);
-    // Loop over each tag for the current type
-    for (auto && tag_name : tag_names) {
-      // Type code of the current tag (i.e. the tag named *names_it)
-      this->fillTagBuffer(buffers, tag_name);
-    }
+  if (mesh_data_sizes_buffer.size() == 0)
+    return;
 
-    std::vector<CommunicationRequest> requests;
-    for (UInt p = 0; p < nb_proc; ++p) {
-      if (p == root)
-        continue;
-
-      auto && tag =
-          Tag::genTag(this->rank, this->message_count, Tag::_MESH_DATA);
-      AKANTU_DEBUG_INFO("Sending " << buffers[p].size()
-                                   << " bytes of mesh data to proc " << p
-                                   << " TAG(" << tag << ")");
-
-      requests.push_back(comm.asyncSend(buffers[p], p, tag));
-    }
-
-    // Loop over each tag for the current type
-    for (auto && tag_name : tag_names) {
-      // Reinitializing the mesh data on the master
-      this->fillMeshData(buffers[root], tag_name,
-                         mesh_data.getTypeCode(tag_name),
-                         mesh_data.getNbComponent(tag_name, type));
-    }
-
-    comm.waitAll(requests);
-    comm.freeCommunicationRequest(requests);
-    requests.clear();
+  // Sending the actual data to each processor
+  std::vector<DynamicCommunicationBuffer> buffers(nb_proc);
+  // Loop over each tag for the current type
+  for (auto && tag_name : tag_names) {
+    // Type code of the current tag (i.e. the tag named *names_it)
+    this->fillTagBuffer(buffers, tag_name);
   }
+
+  std::vector<CommunicationRequest> requests;
+  for (UInt p = 0; p < nb_proc; ++p) {
+    if (p == root)
+      continue;
+
+    auto && tag = Tag::genTag(this->rank, this->message_count, Tag::_MESH_DATA);
+    AKANTU_DEBUG_INFO("Sending " << buffers[p].size()
+                                 << " bytes of mesh data to proc " << p
+                                 << " TAG(" << tag << ")");
+
+    requests.push_back(comm.asyncSend(buffers[p], p, tag));
+  }
+
+  // Loop over each tag for the current type
+  for (auto && tag_name : tag_names) {
+    // Reinitializing the mesh data on the master
+    this->fillMeshData(buffers[root], tag_name, mesh.getTypeCode(tag_name),
+                       mesh.getNbComponent(tag_name, type));
+  }
+
+  comm.waitAll(requests);
+  comm.freeCommunicationRequest(requests);
+  requests.clear();
 
   AKANTU_DEBUG_OUT();
 }
@@ -328,9 +320,7 @@ template <typename T>
 void MasterElementInfoPerProc::fillTagBufferTemplated(
     std::vector<DynamicCommunicationBuffer> & buffers,
     const std::string & tag_name) {
-  MeshData & mesh_data = this->getMeshData();
-
-  const auto & data = mesh_data.getElementalDataArray<T>(tag_name, type);
+  const auto & data = mesh.getElementalDataArray<T>(tag_name, type);
   const auto & partition_num =
       this->partition.getPartition(this->type, _not_ghost);
   const auto & ghost_partition =
@@ -376,8 +366,6 @@ void MasterElementInfoPerProc::fillTagBufferTemplated(
 void MasterElementInfoPerProc::fillTagBuffer(
     std::vector<DynamicCommunicationBuffer> & buffers,
     const std::string & tag_name) {
-  MeshData & mesh_data = this->getMeshData();
-
 #define AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA(r, extra_param, elem)          \
   case BOOST_PP_TUPLE_ELEM(2, 0, elem): {                                      \
     this->fillTagBufferTemplated<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(buffers,     \
@@ -385,7 +373,7 @@ void MasterElementInfoPerProc::fillTagBuffer(
     break;                                                                     \
   }
 
-  MeshDataTypeCode data_type_code = mesh_data.getTypeCode(tag_name);
+  MeshDataTypeCode data_type_code = mesh.getTypeCode(tag_name);
   switch (data_type_code) {
     BOOST_PP_SEQ_FOR_EACH(AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA, ,
                           AKANTU_MESH_DATA_TYPES)
