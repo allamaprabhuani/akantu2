@@ -169,10 +169,11 @@ void ElementTypeMapArray<T, SupportType>::copy(
     const ElementTypeMapArray & other) {
   for (auto ghost_type : ghost_types) {
     for (auto type :
-         this->elementTypes(_all_dimensions, ghost_types, _ek_not_defined)) {
+         other.elementTypes(_all_dimensions, ghost_type, _ek_not_defined)) {
       const auto & array_to_copy = other(type, ghost_type);
       auto & array =
-          this->alloc(0, array_to_copy.getNbComponent(), type, ghost_type);
+          this->alloc(array_to_copy.size(), array_to_copy.getNbComponent(),
+                      type, ghost_type);
       array.copy(array_to_copy);
     }
   }
