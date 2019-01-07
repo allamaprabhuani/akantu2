@@ -50,7 +50,7 @@ namespace akantu {
  *
  * @verbatim
 
-              E_0
+              E_{inf}
       ------|\/\/\|-------
       |                  |
    ---|                  |---
@@ -142,10 +142,11 @@ protected:
   void updateDissipatedEnergy(ElementType el_type, GhostType ghost_type);
 
 
-  void updateDissipatedEnergyOnQuad(const Matrix<Real> & grad_u,
-                                    const Matrix<Real> & previous_grad_u,
-                                    const Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-                                    Real & dis_energy, Real & mech_work, const Real & pot_energy);
+  void updateDissipatedEnergyOnQuad(const Matrix<Real> grad_u,
+                                    const Matrix<Real> previous_grad_u,
+                                    const Matrix<Real> sigma, const Matrix<Real> previous_sigma,
+                                    Real & dis_energy, Real & integral,
+                                    Real & mech_work, const Real & pot_energy);
 
   /// compute stresses on a quadrature point
   void computeStressOnQuad(const Matrix<Real> & grad_u,
@@ -203,7 +204,7 @@ protected:
   /// Stiffness matrix template
   Matrix<Real> C;
   /// Compliance matrix template
-  Matrix<Real> D;
+  Matrix<Real> S;
 
   /// Internal variable: viscous_stress
   InternalField<Real> sigma_v;
@@ -213,6 +214,9 @@ protected:
 
   /// Dissipated energy
   InternalField<Real> dissipated_energy;
+
+  /// Cumulative integral of stress with respect to strain
+  InternalField<Real> integral;
 
   /// Mechanical work
   InternalField<Real> mechanical_work;

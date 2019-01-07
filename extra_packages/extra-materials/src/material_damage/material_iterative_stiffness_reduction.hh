@@ -83,6 +83,9 @@ protected:
   /// the tangent of the tensile stress-strain softening
   InternalField<Real> D;
 
+  /// boolean whether IP was recently damaged
+  InternalField<bool> just_damaged;
+
   /// fracture energy
   Real Gf;
 

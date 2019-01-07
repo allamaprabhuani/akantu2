@@ -40,7 +40,7 @@ MaterialIterativeStiffnessReduction<spatial_dimension, ElasticParent>::
                                         const ID & id)
     : parent(model, id),
       eps_u("ultimate_strain", *this), D("tangent", *this), Gf(0.),
-      crack_band_width(0.), reduction_constant(0.) {
+      crack_band_width(0.), reduction_constant(0.), just_damaged("just_damaged_boolean", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Gf", Gf, _pat_parsable | _pat_modifiable,
@@ -52,6 +52,9 @@ MaterialIterativeStiffnessReduction<spatial_dimension, ElasticParent>::
 
   this->eps_u.initialize(1);
   this->D.initialize(1);
+  this->just_damaged.initialize(1);
+  this->just_damaged.setDefaultValue(false);
+
 
   AKANTU_DEBUG_OUT();
 }
@@ -113,11 +116,15 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension, ElasticParent>::upda
       auto eps_u_it = this->eps_u(el_type, ghost_type).begin();
       auto Sc_it = this->Sc(el_type, ghost_type).begin();
       auto D_it = this->D(el_type, ghost_type).begin();
+      auto damaged_it = this->just_damaged(el_type, ghost_type).begin();
 
       /// loop over all the quads of the given element type
       for (; equivalent_stress_it != equivalent_stress_end;
            ++equivalent_stress_it, ++dam_it, ++reduction_it, ++eps_u_it,
-           ++Sc_it, ++D_it) {
+               ++Sc_it, ++D_it, ++damaged_it) {
+
+        /// default value for the just damaged flag
+        *damaged_it = false;
 
         /// check if damage occurs
         if (*equivalent_stress_it >=
@@ -129,6 +136,8 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension, ElasticParent>::upda
 
           /// increment the counter of stiffness reduction steps
           *reduction_it += 1;
+          *damaged_it = true;
+
           if (*reduction_it == this->max_reductions)
             *dam_it = this->max_damage;
           else {

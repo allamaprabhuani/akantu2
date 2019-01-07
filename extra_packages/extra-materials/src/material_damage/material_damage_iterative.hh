@@ -96,7 +96,8 @@ public:
                                     GhostType ghost_type = _not_ghost);
 
   /// find max and average normalized equivalent stress
-  void findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
+  virtual void
+  findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
                                          GhostType ghost_type = _not_ghost);
 
 protected:
