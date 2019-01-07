@@ -62,7 +62,7 @@ void GeneralizedTrapezoidal::predictor(Real delta_t, Array<Real> & u,
 
   for (UInt d = 0; d < nb_degree_of_freedom; d++) {
     if (!(*blocked_dofs_val)) {
-      *u_val += (1. - alpha) * delta_t * *u_dot_val;
+      *u_val +=  delta_t * *u_dot_val;
     }
     u_val++;
     u_dot_val++;
@@ -178,11 +178,11 @@ void GeneralizedTrapezoidal::assembleJacobian(const SolutionType & type,
 
   J.clear();
 
-  Real c = this->getTemperatureRateCoefficient(type, delta_t);
   Real e = this->getTemperatureCoefficient(type, delta_t);
+  Real d = this->getTemperatureRateCoefficient(type, delta_t);
 
-  J.add(M, e);
-  J.add(K, c);
+  J.add(M, d);
+  J.add(K, e);
 
   m_release = M.getRelease();
   k_release = K.getRelease();
