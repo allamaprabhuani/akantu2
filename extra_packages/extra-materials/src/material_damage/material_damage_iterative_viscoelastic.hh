@@ -1,9 +1,9 @@
 /**
- * @file
- * @author
- * @date
+ * @file  material_damage_iterative_viscoelastic.hh
+ * @author  Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * @date   Tue Nov 20 2018
  *
- * @brief
+ * @brief  Header of the material iterative stiffness reduction viscoelastic
  *
  * @section LICENSE
  *

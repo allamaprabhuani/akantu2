@@ -1,9 +1,9 @@
 /**
- * @file   material_iterative_stiffness_reduction.cc
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Thu Feb 18 16:03:56 2016
+ * @file   material_damage_iterative_viscoelastic.cc
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * @date   Tue Nov 20 2016
  *
- * @brief  Implementation of material iterative stiffness reduction
+ * @brief  Inline implementation of material iterative stiffness reduction viscoelastic
  *
  * @section LICENSE
  *

@@ -4,9 +4,10 @@
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  *
- * @brief  Specialization of the class combining material damage with the
- * viscoelastic material. Damag is taking place at only one gauss
- * point at a time. Max principal stress criterion is used as a failure criterion.
+ * @brief  Specialization of the class material damage to damage only one gauss
+ * point at a time and propagate damage in a linear way. Max principal stress
+ * criterion is used as a failure criterion. Material is combined with the
+ * viscoelastic maxwell material.
  *
  * @section LICENSE
  *
