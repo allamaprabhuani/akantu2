@@ -31,7 +31,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 
-
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_ELEMENT_HH__
@@ -54,6 +53,8 @@ public:
   ContactElement(SlaveType slave, MasterType master)
     : node(slave), master(master) {
 
+    
+    
   }
   
   ~ContactElement() = default;
@@ -61,6 +62,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+  
 public:
   /// sets the value of normal vector
   AKANTU_SET_MACRO(Normal, normal, Vector<Real>);
@@ -80,7 +82,6 @@ public:
   // gets the node of slave
   AKANTU_GET_MACRO(Slave, node,  SlaveType);
 
-  
   // sets the value of normal vector
   AKANTU_SET_MACRO(Patch, patch, Array<MasterType>);
     
@@ -101,6 +102,9 @@ public:
   /// normalized tangent direction
   Vector<Real> tangent;
 
+  ///
+  Vector<UInt> connectivity;
+  
   /// penetration gap between slave and master 
   Real gap;
 

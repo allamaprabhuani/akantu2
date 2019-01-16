@@ -1,0 +1,4 @@
+contact_resolution_penalty [
+  name = dummy
+  epsilon = 10.0
+]

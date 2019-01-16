@@ -37,11 +37,18 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/contact_mechanics_model.cc
   model/contact_mechanics/contact_detector.hh
   model/contact_mechanics/contact_detector.cc
-  model/contact_mechanics/contact_element.hh)
+  model/contact_mechanics/contact_element.hh
+
+  model/contact_mechanics/resolution.hh
+  model/contact_mechanics/resolution.cc
+  model/contact_mechanics/resolutions/resolution_penalty.hh
+  model/contact_mechanics/resolutions/resolution_penalty.cc)
 
 package_declare_documentation_files(contact_mechanics
-  manual-contact_detector.tex
+  manual-contactmechanicsmodel.tex
+  manual-contact-detector.tex
+  manual-contact-resolutions.tex
   )
 
 package_declare_documentation(contact_mechanics
-  "This package activates the contact ")
+  "This package activates the contact mechanics model")

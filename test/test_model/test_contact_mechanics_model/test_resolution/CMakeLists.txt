@@ -3,10 +3,10 @@
 #
 # @author Mohit Pundir <mohit.pundir@epfl.ch>
 #
-# @date creation: Tue Dec 18 2018
-# @date last modification: Tue Dec 18 2018
+# @date creation: Mon Jan 7 2019
+# @date last modification: Mon Jan 7 2019
 #
-# @brief  configuration for ContactMechanicsModel tests
+# @brief  configuration for contact resolution tests
 #
 # @section LICENSE
 #
@@ -22,5 +22,11 @@
 #
 #===============================================================================
 
-add_akantu_test(test_detector "detection_test")
-add_akantu_test(test_resolution "resolution_test")
+add_mesh(explicit_2d explicit_2d.geo 2 1)
+
+register_test(test_explicit_resolution
+  SOURCES test_explicit_resolution.cc
+  DEPENDS explicit_2d
+  FILES_TO_COPY options.dat
+  PACKAGE contact_mechanics
+  )

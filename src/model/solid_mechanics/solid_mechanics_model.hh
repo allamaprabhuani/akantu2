@@ -179,7 +179,7 @@ public:
   /// reassigns materials depending on the material selector
   virtual void reassignMaterial();
 
-  /// apply a constant eigen_grad_u on all quadrature points of a given material
+  /// applya constant eigen_grad_u on all quadrature points of a given material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                const ID & material_name,
                                const GhostType ghost_type = _not_ghost);

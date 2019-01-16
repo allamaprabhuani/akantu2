@@ -76,7 +76,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   ///
-  void search(std::vector<ContactElement> &);
+  void search(std::map<UInt, ContactElement> &);
 
   /// computes orthogonal projection on master elements
   void computeOrthogonalProjection(const UInt &           /* slave node */,
@@ -89,12 +89,12 @@ private:
   void parseSection();
      
   /// performs global spatial search
-  void globalSearch(std::vector<ContactElement> &);
+  void globalSearch(std::map<UInt, ContactElement> &);
 
   ///  performs local search to create contact element
   /// TODO: templated function typename
   void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &,
-		   std::vector<ContactElement> &);
+		   std::map<UInt, ContactElement> &);
 
   /// constructs a grid containing nodes lying within bounding box
   /// TODO : templated fucntion to created template Spatial Grid

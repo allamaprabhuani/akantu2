@@ -64,6 +64,7 @@ namespace akantu {
   (user)                                                                \
   (weight_function)                                                     \
   (contact_detector)							\
+  (contact_resolution)							\
   (not_defined)
 // clang-format on
 

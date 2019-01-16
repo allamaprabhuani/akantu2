@@ -120,13 +120,13 @@ void ContactDetector::getMaximalDetectionDistance() {
 }
   
 /* -------------------------------------------------------------------------- */
-void ContactDetector::search(std::vector<ContactElement> & elements) {
-  this->globalSearch(elements);
+  void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
+  this->globalSearch(contact_map);
 }
   
  
 /* -------------------------------------------------------------------------- */
-void ContactDetector::globalSearch(std::vector<ContactElement> & elements) {
+void ContactDetector::globalSearch(std::map<UInt, ContactElement> & contact_map) {
   
   auto & master_list =
     mesh.getElementGroup(surfaces[Surface::master]).getNodeGroup().getNodes();
@@ -192,13 +192,13 @@ void ContactDetector::globalSearch(std::vector<ContactElement> & elements) {
   // master facets with the current master facets within a given
   // radius , this is subjected to computational cost as searching
   // neighbbor cells can be more effective.
-  this->localSearch(slave_grid, master_grid, elements);
+  this->localSearch(slave_grid, master_grid, contact_map);
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 				  SpatialGrid<UInt> & master_grid,
-				  std::vector<ContactElement> & contact_elements) {
+				  std::map<UInt, ContactElement> & contact_map) {
 
   // local search
   // out of these array check each cell for closet node in that cell
@@ -288,11 +288,17 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
     auto index   = std::distance(    gaps->begin(), minimum);
     auto normal  = Vector<Real>(normals->begin(spatial_dimension)[index]); 
     
-    auto contact_element = ContactElement(slave_node, elements[index]);
-    contact_element.setGap(    (*gaps)[index]);
-    contact_element.setNormal( normal);
+    //auto contact_element = ContactElement(slave_node, elements[index]);
+    //contact_element.setGap(    (*gaps)[index]);
+    //contact_element.setNormal( normal);
+
+    //const Array<UInt> & connectivity = this->mesh.getConnectivity(elements[index].type, ghost_type);
+    //contact_map[slave].setConnectivity(connectivity(elements[index].element));
+
+    contact_map[slave_node] = ContactElement(slave_node, elements[index]);
+    contact_map[slave_node].gap    = (*gaps)[index];
+    contact_map[slave_node].normal = normal;
     
-    contact_elements.push_back(contact_element);
   }
 }
 
@@ -421,6 +427,11 @@ void ContactDetector::computeProjectionOnElement(const Element & element,
   Real alpha = (query - barycenter).dot(normal);
   projection = query - alpha * normal;
 
+  // use contains function to check whether projection lies inside
+  // the element, if yes it is a valid projection otherwise no
+  // still have to think about what to do if normal exists but
+  // projection doesnot lie inside the element 
+  
   bool validity = this->isValidProjection(element, projection);
   if (!validity) {
     projection *= std::numeric_limits<Real>::max();
