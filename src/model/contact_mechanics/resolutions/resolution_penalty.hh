@@ -55,7 +55,7 @@ protected:
 			      Real & gap);
   
   /// local computation of stiffness matrix due to frictional stress 
-  void computeFricitonalStiffness(Array<Real> & n,
+  void computeFrictionalStiffness(Array<Real> & n,
 				  Array<Real>  & n_alpha, Array<Real> & d_alpha,
 				  Real & gap);
   
@@ -68,6 +68,7 @@ public:
 			    Array<Real> & /* N_alpha */,
 			    Array<Real> & /* T_alpha */,
 			    Array<Real> & /* D_alpha */,
+			    Matrix<Real> & /* A matrix */,
 			    Real & /* gap */
 			    ) override;
   

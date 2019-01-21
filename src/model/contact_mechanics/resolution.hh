@@ -77,31 +77,63 @@ public:
 protected:
   void initialize();
 
+  /// computes coordinates of a given element
+  void computeCoordinates(const Element & , Array<Real> &);
+
+  /// 
+  void computeTalpha(Array<Real> & , Vector<Real> & , Array<Real> & );
+
+  /// computes tangents
+  void computeTangents(Matrix<Real> & /* shapes_derivatives */,
+		       Array<Real> &  /* global_coords */,
+		       Array<Real> &  /* tangents */);
+
+  /// computes surface metric matrix
+  void computeSurfaceMatrix(Array<Real>  & /* tangents */,
+			    Matrix<Real> & /* surface_matrix */);
+
+  /// computes N array
+  void computeN(Array<Real>  & /* n */,
+		Vector<Real> & /* shapes */,
+		Vector<Real> & /* normal */);
+
+  /// computes N_{\alpha} where \alpha is number of surface dimensions
+  void computeNalpha(Array<Real>  & /* n_alpha */,
+		     Matrix<Real> & /* shapes_derivatives */,
+		     Vector<Real> & /* normal */);
+
+  /// computes D_{\alpha} where \alpha is number of surface dimensions
+  void computeDalpha(Array<Real> & /* d_alpha */,
+		     Array<Real> & /* n_alpha */,
+		     Array<Real> & /* t_alpha */,
+		     Matrix<Real> & /* surface_matrix */,
+		     Real & /* gap */); 
+
   /* ------------------------------------------------------------------------ */
   /* Functions that resolutions can/should reimplement                        */
   /* ------------------------------------------------------------------------ */
 protected:
   /// computes the normal force
-  virtual void computeNormalForce(__attribute__((unused)) Vector<Real> & force,
-				  __attribute__((unused)) Array<Real>  & n,
-				  __attribute__((unused)) Real & gap) {
+  virtual void computeNormalForce(__attribute__((unused)) Vector<Real> & /* force */,
+				  __attribute__((unused)) Array<Real>  & /* n */,
+				  __attribute__((unused)) Real & /* gap */) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the friction force
-  virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & force,
-				    __attribute__((unused)) Array<Real>  & d_alpha,
-				    __attribute__((unused)) Real & gap) {
+  virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & /* force */,
+				    __attribute__((unused)) Array<Real>  & /* d_alpha  */,
+				    __attribute__((unused)) Real & /* gap */) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent moduli
-  virtual void computeTangentModuli(__attribute__((unused)) Array<Real> & n,
-				    __attribute__((unused)) Array<Real> & n_alpha,
-				    __attribute__((unused)) Array<Real> & t_alpha,
-				    __attribute__((unused)) Array<Real> & d_alpha,
-				    __attribute__((unused)) Real & gap
-				    ) {
+  virtual void computeTangentModuli(__attribute__((unused)) Array<Real> & /* n */,
+				    __attribute__((unused)) Array<Real> & /* n_alpha */,
+				    __attribute__((unused)) Array<Real> & /* t_alpha */,
+				    __attribute__((unused)) Array<Real> & /* d_alpha */,
+				    __attribute__((unused)) Matrix<Real> & /* A */,
+				    __attribute__((unused)) Real & /* gap */) {
     AKANTU_TO_IMPLEMENT();
   }
 

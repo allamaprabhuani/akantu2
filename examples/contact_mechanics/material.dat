@@ -1,5 +1,10 @@
 contact_detector [
-  type = intrinsic		 			
+  type = explicit		 			
   master_surface = rigid
   slave_surface = contact_surface
+]
+
+contact_resolution penalty [
+  name = contact_surface
+  epsilon = 10.0
 ]

@@ -50,12 +50,10 @@ class ContactElement {
   /* ------------------------------------------------------------------------ */
 public:
 
-  ContactElement(SlaveType slave, MasterType master)
-    : node(slave), master(master) {
+  ContactElement() = default;
 
-    
-    
-  }
+  ContactElement(MasterType master)
+    : master(master) {}
   
   ~ContactElement() = default;
 
@@ -79,22 +77,18 @@ public:
   /// gets the normal to the master element
   AKANTU_GET_MACRO(Normal, normal, Vector<Real>);
 
-  // gets the node of slave
-  AKANTU_GET_MACRO(Slave, node,  SlaveType);
-
   // sets the value of normal vector
   AKANTU_SET_MACRO(Patch, patch, Array<MasterType>);
     
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */ 
-public:  
-
-  /// slave node
-  SlaveType node;
-  
+public:   
   /// master element/node
   MasterType master;
+
+  /// projected slave coordinate on master element
+  Vector<Real> projection;
 
   /// normalized normal direction
   Vector<Real> normal;

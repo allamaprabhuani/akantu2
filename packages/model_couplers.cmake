@@ -1,11 +1,12 @@
 #===============================================================================
-# @file   CMakeLists.txt
+# @file   model_couplers.cmake
 #
-# @author Mohit Pundir <mohit.anciaux@epfl.ch>
+# @author Mohit Pundir <mohit.pundir@epfl.ch>
 #
-# @date creation: Mon Jan 18 2016
+# @date creation: Sun Sep 30 2018
+# @date last modification: Sun Sep 28 2018
 #
-# @brief  configuration for heat transfer example
+# @brief  package description for model couplers
 #
 # @section LICENSE
 #
@@ -26,28 +27,21 @@
 # You should  have received  a copy  of the GNU  Lesser General  Public License
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
-# @section DESCRIPTION
-#
 #===============================================================================
 
-add_mesh(hertz_2d hertz_2d.geo 2 1)
-add_mesh(hertz_3d hertz_3d.geo 3 1)
+package_declare(model_couplers
+  DESCRIPTION "Use Model Couplers package of Akantu")
 
-register_example(contact_penalty_2d
-  SOURCES contact_mechanics_penalty.cc
-  DEPENDS hertz_2d
-  FILES_TO_COPY material.dat
+package_declare_sources(model_couplers
+  model/model_couplers/coupler_solid_contact.hh
+  model/model_couplers/coupler_solid_contact.cc
   )
 
-
-register_example(contact_detection_2d
-  SOURCES contact_detection_2d.cc
-  DEPENDS hertz_2d
-  FILES_TO_COPY material.dat
+package_declare_documentation_files(model_couplers
+  #
   )
 
-register_example(contact_detection_3d
-  SOURCES contact_detection_3d.cc
-  DEPENDS hertz_3d
-  FILES_TO_COPY material.dat
+package_declare_documentation(model_couplers
+  "This package activates the modle couplers within Akantu. "
+  "It has no additional dependencies."
   )

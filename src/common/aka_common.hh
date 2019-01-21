@@ -373,9 +373,9 @@ enum class ContactElementType {
 };
 
 /// @enum ContactDetectorType type of contact detection
-enum class ContactDetectorType {
-  extrinsic,
-  intrinsic
+enum ContactDetectorType {
+  _explicit,
+  _implicit
 };
   
   

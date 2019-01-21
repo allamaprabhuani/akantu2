@@ -67,11 +67,11 @@ void ContactDetector::parseSection() {
     *(parser.getSubSections(ParserType::_contact_detector).first);
 
   auto type = section.getParameterValue<std::string>("type");
-  if (type == "intrinsic") {
-    this->detection_type = ContactDetectorType::intrinsic;
+  if (type == "implict") {
+    this->detection_type = _implicit;
   }
-  else if (type == "extrinsic"){
-    this->detection_type = ContactDetectorType::extrinsic;
+  else if (type == "explicit"){
+    this->detection_type = _explicit;
   }
   else {
     AKANTU_ERROR("Unknown detection type : " << type);
@@ -280,24 +280,31 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 						  spatial_dimension, "normals");
     auto gaps     = std::make_unique<Array<Real>>(elements.size(),
 						  1,                 "gaps"); 
+    auto natural_projections = std::make_unique<Array<Real>>(elements.size(),
+							     spatial_dimension - 1, "projections");
     
     this->computeOrthogonalProjection(slave_node, elements,
-				      *normals, *gaps);
+				      *normals, *gaps, *natural_projections);
       
     auto minimum = std::min_element( gaps->begin(), gaps->end());
     auto index   = std::distance(    gaps->begin(), minimum);
-    auto normal  = Vector<Real>(normals->begin(spatial_dimension)[index]); 
-    
-    //auto contact_element = ContactElement(slave_node, elements[index]);
-    //contact_element.setGap(    (*gaps)[index]);
-    //contact_element.setNormal( normal);
-
-    //const Array<UInt> & connectivity = this->mesh.getConnectivity(elements[index].type, ghost_type);
-    //contact_map[slave].setConnectivity(connectivity(elements[index].element));
-
-    contact_map[slave_node] = ContactElement(slave_node, elements[index]);
-    contact_map[slave_node].gap    = (*gaps)[index];
-    contact_map[slave_node].normal = normal;
+       
+    const Array<UInt> & master_connectivity =
+      this->mesh.getConnectivity(elements[index].type, elements[index].ghost_type);
+    Vector<UInt> connectivity(master_connectivity.size() + 1);
+    connectivity[0] = slave_node;
+    for (UInt i = 1; i <= connectivity.size(); ++i) {
+      connectivity[i] = master_connectivity[i-1];
+    }    
+   
+    contact_map[slave_node] = ContactElement(elements[index]);
+    contact_map[slave_node].gap = (*gaps)[index];
+    contact_map[slave_node].normal =
+      Vector<Real>(normals->begin(spatial_dimension)[index]);
+    contact_map[slave_node].projection =
+      Vector<Real>(natural_projections->begin(spatial_dimension)[index]);
+    contact_map[slave_node].connectivity = connectivity;
+      
     
   }
 }
@@ -359,7 +366,8 @@ void ContactDetector::computeCellSpacing(Vector<Real> & spacing) {
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeOrthogonalProjection(const UInt & node,
 						  const Array<Element> & elements,
-						  Array<Real> & normals, Array<Real> & gaps) {
+						  Array<Real> & normals, Array<Real> & gaps,
+						  Array<Real> & natural_projections) {
 
   Vector<Real> query(spatial_dimension);
   for (UInt s: arange(spatial_dimension)) {
@@ -369,17 +377,20 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
   for (auto && values :
 	 zip( elements,
 	      gaps,
+	      make_view(natural_projections, spatial_dimension - 1),
 	      make_view(normals , spatial_dimension))) {
     const auto & element = std::get<0>(values);
     auto & gap           = std::get<1>(values);
-    auto & normal        = std::get<2>(values);
-
-    Vector<Real> projection(spatial_dimension);
+    auto projection      = Vector<Real>(std::get<2>(values));
+    auto & normal        = std::get<3>(values);
+    
     this->computeNormalOnElement(element, normal);
-    this->computeProjectionOnElement(element, normal, query, projection);
+    Vector<Real> real_projection(spatial_dimension);
+    this->computeProjectionOnElement(element, normal, query, projection, real_projection);
 
-    projection -= query;
-    gap = Math::norm(spatial_dimension, projection.storage());
+    Vector<Real> distance(spatial_dimension);
+    distance = real_projection - query;
+    gap = Math::norm(spatial_dimension, distance.storage());
   }
   
 }
@@ -404,7 +415,7 @@ void ContactDetector::computeNormalOnElement(const Element & element, Vector<Rea
   }
 
   switch (this->detection_type) {
-  case ContactDetectorType::extrinsic: {
+  case _explicit: {
     normal *= -1.0;
     break;
   }
@@ -419,39 +430,55 @@ void ContactDetector::computeNormalOnElement(const Element & element, Vector<Rea
 void ContactDetector::computeProjectionOnElement(const Element & element,
 						 const Vector<Real> & normal,
 						 const Vector<Real> & query,
-						 Vector<Real> & projection) {
+						 Vector<Real> & natural_projection,
+						 Vector<Real> & real_projection) {
   
   Vector<Real> barycenter(spatial_dimension);
   mesh.getBarycenter(element, barycenter);
-  
+
   Real alpha = (query - barycenter).dot(normal);
-  projection = query - alpha * normal;
+  real_projection = query - alpha * normal;
 
   // use contains function to check whether projection lies inside
   // the element, if yes it is a valid projection otherwise no
   // still have to think about what to do if normal exists but
   // projection doesnot lie inside the element 
-  
-  bool validity = this->isValidProjection(element, projection);
+
+  bool validity = this->isValidProjection(element, real_projection, natural_projection);
   if (!validity) {
-    projection *= std::numeric_limits<Real>::max();
+    //natural_projection *= std::numeric_limits<Real>::max();
   }
 }
 
 /* -------------------------------------------------------------------------- */
-bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & projection) {
+bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & real_projection, Vector<Real> & natural_projection) {
 
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  UInt * elem_val = mesh.getConnectivity(type,
+					 _not_ghost).storage();
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
+
+  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.storage(),
+				     elem_val + element.element * nb_nodes_per_element,
+				     nb_nodes_per_element, spatial_dimension);
+  
+#define GET_NATURAL_COORDINATE(type)					\
+  ElementClass<type>::inverseMap(real_projection, nodes_coord, natural_projection) 
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
+#undef GET_NATURAL_COORDIANTE
+  
   Vector<Real> barycenter(spatial_dimension);
   mesh.getBarycenter(element, barycenter);
 
   Real distance = 0;
   switch (this->spatial_dimension) {
   case 2: {
-    distance = Math::distance_2d(projection.storage(), barycenter.storage());
+    distance = Math::distance_2d(real_projection.storage(), barycenter.storage());
     break;
   }
   case 3: {
-    distance = Math::distance_3d(projection.storage(), barycenter.storage());    
+    distance = Math::distance_3d(real_projection.storage(), barycenter.storage());    
     break;
   }  
   default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }

@@ -45,6 +45,7 @@ Resolution::Resolution(ContactMechanicsModel & model, const ID & id)
   AKANTU_DEBUG_IN();
   
   this->initialize();
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -74,59 +75,66 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleInternalForces(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-
-  const Array<Int> & equation_array =
-    model.getDOFManager().getEquationsNumbers();
- 
+  
   auto & internal_force =
     const_cast<Array<Real> &>(model.getInternalForce());
 
   auto & contact_map = model.getContactMap();
   
-  const auto slave_nodes = model.getMesh().getNodeGroup(name);
+  const auto slave_nodes = model.getMesh().getElementGroup(name).getNodes();
   
   for (auto & slave: slave_nodes) {
+
+    if (contact_map.find(slave) == contact_map.end()) {
+      continue;
+    }
 
     auto & master     = contact_map[slave].master;
     auto & gap        = contact_map[slave].gap;
     auto & projection = contact_map[slave].projection;
+    auto & normal     = contact_map[slave].normal;
 
-    UInt nb_nodes_master = Mesh::getNbNodesPerElement(master.type)
+    UInt nb_nodes_master = Mesh::getNbNodesPerElement(master.type);
     
     Vector<Real> shapes(nb_nodes_master);
-    fem.computeShapes(projection, master, master.type, shapes, ghost_type);
+    fem.computeShapes(projection, master.element, master.type,
+		      shapes, master.ghost_type);
     
     Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
-    fem.computeShapeDerivatives(projection, master, master.type, shapes_derivatives, ghost_type);
+    fem.computeShapeDerivatives(projection, master.element, master.type,
+				shapes_derivatives, ghost_type);
 
     const auto & connectivity = contact_map[slave].connectivity;
     Vector<Real> elementary_force(connectivity.size() * spatial_dimension);
 
-    Array<Real> * tangents =
-      new Array<Real>(spatial_dimension - 1, spatial_dimension, "surface_tangents");
+    Array<Real> tangents(spatial_dimension - 1, spatial_dimension, "surface_tangents");
 
-    Array<Real> * global_coords =
-      new Array<Real>(nb_nodes_master, spatial_dimension);
+    Array<Real> global_coords(nb_nodes_master, spatial_dimension, "master_coordinates");
 
-    computeCoordinates(master.type, *global_coords);
-    computeTangents(shapes_derivatives, *global_coords, *tangents);
+    computeCoordinates(master, global_coords);
+    computeTangents(shapes_derivatives, global_coords, tangents);
 
     Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
-    computeSurfaceMatrix(*tangents, surface_matrix);
+    computeSurfaceMatrix(tangents, surface_matrix);
 
-    computeN(*n, shapes, normal);
-    computeNormalForce(elementary_force, *n, gap);
+    Array<Real> n(connectivity.size() * spatial_dimension, 1, "n_array");
+    
+    computeN(n, shapes, normal);
+    computeNormalForce(elementary_force, n, gap);
 
-    computeTalpha(*t_alpha,  shapes,            *tangents);
-    computeNalpha(*n_alpha, *shapes_derivatives, normal);
-    computeDalpha(*d_alpha, *n_alpha, *t_alpha, surface_matrix);
-    computeFrictionForce(elementary_force, *d_alpha, gap);
+    Array<Real> t_alpha(connectivity.size() * spatial_dimension, "t_alpha_array");
+    Array<Real> n_alpha(connectivity.size() * spatial_dimension, "n_alpha_array");
+    Array<Real> d_alpha(connectivity.size() * spatial_dimension, "d_alpha_array");
+    
+    computeTalpha(t_alpha, shapes,             tangents);
+    computeNalpha(n_alpha, shapes_derivatives, normal);
+    computeDalpha(d_alpha, n_alpha, t_alpha, surface_matrix, gap);
+    computeFrictionForce(elementary_force, d_alpha, gap);
          
     for (UInt i = 0; i < connectivity.size(); ++i) {
       for (UInt j = 0; j < spatial_dimension; ++j) {	
 	UInt offset_node = connectivity(i) * spatial_dimension + j;
-	auto & equation_num = equation_array(offset_node);
-	internal_force(equation_num) += elementary_force(i + j);
+	internal_force(offset_node) += elementary_force(i*spatial_dimension + j);
       }
     }    
   }
@@ -138,43 +146,53 @@ void Resolution::assembleInternalForces(GhostType ghost_type) {
 void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  const auto slave_nodes = model.getMesh().getNodeGroup(name);
+  const auto slave_nodes = model.getMesh().getElementGroup(name).getNodes();
   auto & contact_map = model.getContactMap();
   
   for (auto & slave: slave_nodes) {
 
+    if (contact_map.find(slave) == contact_map.end()) {
+      continue;
+    }
+
     auto & master     = contact_map[slave].master;
     auto & gap        = contact_map[slave].gap;
     auto & projection = contact_map[slave].projection;
-    
-    Vector<Real> shapes(master.nb_nodes);
-    fem.computeShapes(projection, master, master.type, shapes, ghost_type);
+    auto & normal     = contact_map[slave].normal;
 
-    Vector<Real> shapes_derivatives(master.nb_nodes * spatial_dimension);
-    fem.computeShapeDerivatives(projection, master, master.type, shapes_derivatives, ghost_type);
+    UInt nb_nodes_master = Mesh::getNbNodesPerElement(master.type);
+
+    Vector<Real> shapes(nb_nodes_master);
+    fem.computeShapes(projection, master.element, master.type, shapes, ghost_type);
+
+    Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
+    fem.computeShapeDerivatives(projection, master.element, master.type,
+				shapes_derivatives, ghost_type);
 
     const auto & connectivity = contact_map[slave].connectivity;
     Matrix<Real> elementary_stiffness(connectivity.size() * spatial_dimension,
 				      connectivity.size() * spatial_dimension);
 
-    Array<Real> * tangents =
-      new Array<Real>(spatial_dimension - 1, spatial_dimension, "surface_tangents");
+    Array<Real> tangents(spatial_dimension - 1, spatial_dimension, "surface_tangents");
+    Array<Real> global_coords(nb_nodes_master, spatial_dimension, "master_coordinates");
 
-    Array<Real> * global_coords =
-      new Array<Real>(nb_nodes_master, spatial_dimension);
-
-    computeCoordinates(master.type, *global_coords);
-    computeTangents(shapes_derivatives, *global_coords, *tangents);
+    computeCoordinates(master, global_coords);
+    computeTangents(shapes_derivatives, global_coords, tangents);
 
     Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
-    computeSurfaceMatrix(*tangents, surface_matrix);
+    computeSurfaceMatrix(tangents, surface_matrix);
+    
+    Array<Real> n(connectivity.size() * spatial_dimension, 1, "n_array");
+    Array<Real> t_alpha(connectivity.size() * spatial_dimension, spatial_dimension -1, "t_alpha_array");
+    Array<Real> n_alpha(connectivity.size() * spatial_dimension, spatial_dimension -1, "n_alpha_array");
+    Array<Real> d_alpha(connectivity.size() * spatial_dimension, spatial_dimension -1, "d_alpha_array");
+    
+    computeN(      n,        shapes,             normal);
+    computeTalpha( t_alpha,  shapes,             tangents);
+    computeNalpha( n_alpha,  shapes_derivatives, normal);
+    computeDalpha( d_alpha,  n_alpha,  t_alpha,  surface_matrix, gap);
 
-    computeN(     *n,        shapes,             normal);
-    computeTalpha(*t_alpha,  shapes,            *tangents);
-    computeNalpha(*n_alpha, *shapes_derivatives, normal);
-    computeDalpha(*d_alpha, *n_alpha, *t_alpha,  surface_matrix);
-
-    computeTangentModuli(*n, *n_alpha, *t_alpha, *d_alpha, gap);
+    //computeTangentModuli(n, n_alpha, t_alpha, d_alpha, gap);
   }
   
   AKANTU_DEBUG_OUT();
@@ -187,8 +205,8 @@ void Resolution::computeTangents(Matrix<Real> & shapes_derivatives, Array<Real> 
   UInt i = 0;
   for (auto && values : zip(make_view(tangents, spatial_dimension))) {
     auto & tangent = std::get<0>(values);
-    for (UInt n : arange(global_coords.nb_components)) {
-      tangent += shapes_derivaties(n, i) * global_coords(n);
+    for (UInt n : arange(global_coords.getNbComponent())) {
+      tangent += shapes_derivatives(n, i) * global_coords(n);
     }
     ++i;
   }
@@ -198,13 +216,14 @@ void Resolution::computeTangents(Matrix<Real> & shapes_derivatives, Array<Real> 
 /* -------------------------------------------------------------------------- */
 void Resolution::computeSurfaceMatrix(Array<Real> & tangents, Matrix<Real> & surface_matrix) {
 
+  Matrix<Real> A(surface_matrix);
   for (UInt i : arange(spatial_dimension - 1)) {
     for (UInt j : arange(spatial_dimension -1 )) {
-      surface_matrix(i, j) = tangents(i) * tangents(j);
+      A(i, j) = tangents(i) * tangents(j);
     }
   }
 
-  inverse(surface_matrix);
+  A.inverse(surface_matrix);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -212,7 +231,7 @@ void Resolution::computeN(Array<Real> & n, Vector<Real> & shapes, Vector<Real> &
 
   UInt dim = normal.size();
   for (UInt i = 0; i < dim; ++i) {
-    n[i] = normal[i] * tn;
+    n[i] = normal[i];
     for (UInt j = 0; j < shapes.size(); ++j) {
       n[(1 + j) * dim + i] = -normal[i] * shapes[j];
     } 
@@ -239,19 +258,17 @@ void Resolution::computeTalpha(Array<Real> & t_alpha, Vector<Real> & shapes,
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::computeNalpha(Array<Real> & n_alpha, Array<Real> & shapes_derivatives,
+void Resolution::computeNalpha(Array<Real> & n_alpha, Matrix<Real> & shapes_derivatives,
 			       Vector<Real> & normal) {
 
   for (auto && values:
-	 zip(make_view(shapes_derivatives, shapes_derivatives.size(),
-		       n_alpha, n_alpha.size()))) {
+	 zip(make_view(n_alpha, n_alpha.size()))) {
     
-    auto & shape_derivative = std::get<0>(values);
-    auto & n                = std::get<1>(values);
+    auto & n                = std::get<0>(values);
     for (UInt i : arange(spatial_dimension)) {
       n[i] = 0;
-      for (UInt j : arange(shapes.size())) {
-	n[(1 + j)*spatial_dimension + i] = -shape_derivative[j]*normal[i];
+      for (UInt j : arange(shapes_derivatives.size())) {
+	n[(1 + j)*spatial_dimension + i] = -shapes_derivatives[j]*normal[i];
       }
     }
   }
@@ -259,23 +276,25 @@ void Resolution::computeNalpha(Array<Real> & n_alpha, Array<Real> & shapes_deriv
 
 /* -------------------------------------------------------------------------- */
 void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
-			       Array<Real> & t_alpha, Matrix<Real> & surface_matrix, Real gap) {
+			       Array<Real> & t_alpha, Matrix<Real> & surface_matrix, Real & gap) {
 
 
 }
 
   
 /* -------------------------------------------------------------------------- */
-void Resolution::computeCoordiantes(const Element & el, Array<Real> & coords) {
+void Resolution::computeCoordinates(const Element & el, Array<Real> & coords) {
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
   Vector<UInt> connect = model.getMesh().getConnectivity(el.type, _not_ghost)
                                            .begin(nb_nodes_per_element)[el.element]; 
 
+  auto & positions = model.getMesh().getNodes();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt node = connect[n];
     for (UInt s: arange(spatial_dimension)) {
-      coords(s, n) = this->positions(node, s);
+      coords(s, n) = positions(node, s);
     }
   }
 }
 
+} // akantu

@@ -65,8 +65,8 @@ void ResolutionPenalty::computeNormalForce(Vector<Real> & force, Array<Real> & n
 void ResolutionPenalty::computeFrictionForce(Vector<Real> & force, Array<Real> & d_alpha,
 					     Real & gap) {
   ///needs to calculate tt
-  
-  UInt alpha = d_alpha.getNbCompoment();
+
+  Real tt = 0;
   for (auto && values:
 	 zip(make_view(d_alpha, d_alpha.size()))) {
     auto & d =  std::get<0>(values);

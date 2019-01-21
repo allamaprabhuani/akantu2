@@ -39,6 +39,7 @@
 #include "parsable.hh"
 #include "element_group.hh"
 #include "contact_element.hh"
+#include "element_class.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_DETECTOR_HH__
@@ -82,6 +83,7 @@ public:
   void computeOrthogonalProjection(const UInt &           /* slave node */,
 				   const Array<Element> & /* master elements */,
 				   Array<Real> &          /* normals */,
+				   Array<Real> &          /* gaps */,
 				   Array<Real> &          /* projections */);
 
 private:
@@ -126,10 +128,12 @@ private:
 				  const Vector<Real> & /* normal */,
 				  const Vector<Real> & /* query */,
 				  Vector<Real> &       /* projection
-							  */);
+							  */,
+				  Vector<Real> & /* real_projection */);
   /// checks for the validity of a projection
   bool isValidProjection(const Element & /* element     */,
-			 Vector<Real> &  /* projection  */);
+			 Vector<Real> &  /* real projection  */,
+			 Vector<Real> &  /* natural projection */);
   
   
   /* ------------------------------------------------------------------------ */

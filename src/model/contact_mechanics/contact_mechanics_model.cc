@@ -32,6 +32,12 @@
 #include "contact_mechanics_model.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
+
+#include "dumpable_inline_impl.hh"
+#ifdef AKANTU_USE_IOHELPER
+#include "dumper_iohelper_paraview.hh"
+#endif
+
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
@@ -48,8 +54,17 @@ ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, UInt dim, const ID & 
 
   this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
 					       Model::spatial_dimension);
+#if defined(AKANTU_USE_IOHELPER)
+  this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
+  this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
+				 Model::spatial_dimension, _not_ghost,
+				 _ek_regular);
+#endif
+  
   this->initDOFManager();
 
+  this->registerDataAccessor(*this);
+  
   this->detector = std::make_unique<ContactDetector>(this->mesh, id + ":contact_detector");
 
   AKANTU_DEBUG_OUT();
@@ -98,6 +113,7 @@ void ContactMechanicsModel::instantiateResolutions() {
   if (resolutions.empty())
     AKANTU_EXCEPTION("No contact resolutions where instantiated for the model"
                      << getID());
+  are_resolutions_instantiated = true;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -173,15 +189,62 @@ FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
       getFEEngineClassBoundary<MyFEEngineType>(name));
 }
 
+
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
+                                   NonLinearSolverType) {
+  DOFManager & dof_manager = this->getDOFManager();
+
+  this->allocNodalField(this->contact_force, spatial_dimension,
+			"contact_force");
+
+  if (!dof_manager.hasDOFs("displacement")) {
+    dof_manager.registerDOFs("displacement", *this->contact_force, _dst_nodal);
+  }
+}
+  
   
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
-  /* @todo contact mechanics model doesnt really needs a solver have
-     to find a way to fix this absurd part 
-   */
-  return std::make_tuple("contact", _tsst_static);
+  switch (method) {
+  case _explicit_contact: {
+    return std::make_tuple("explicit_contact", _tsst_dynamic);
+  }
+  case _implicit_contact: {
+    return std::make_tuple("implicit_contact", _tsst_static);
+  }  
+  default:
+    return std::make_tuple("unkown", _tsst_not_defined);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+ModelSolverOptions ContactMechanicsModel::getDefaultSolverOptions(
+   const TimeStepSolverType & type ) const {
+  ModelSolverOptions options;
+
+  switch (type) {
+  case _tsst_dynamic: {
+    options.non_linear_solver_type = _nls_newton_raphson;
+    options.integration_scheme_type["displacement"] = _ist_pseudo_time;
+    options.solution_type["displacement"] = IntegrationScheme::_not_defined;
+    break;
+  }
+  case _tsst_static: {
+    options.non_linear_solver_type = _nls_newton_raphson;
+    options.integration_scheme_type["displacement"] = _ist_pseudo_time;
+    options.solution_type["displacement"] = IntegrationScheme::_not_defined;
+    break;
+  }  
+  default:
+    AKANTU_EXCEPTION(type << " is not a valid time step solver type");
+    break;
+  }
+
+  return options;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -206,19 +269,26 @@ void ContactMechanicsModel::assembleInternalForces() {
   AKANTU_DEBUG_INFO("Assemble the contact forces");
 
   // assemble the forces due to local stresses
+  auto assemble = [&] (auto && ghost_type) {
+    for (auto & resolution : resolutions) {
+      resolution->assembleInternalForces(ghost_type);
+    }
+  };
+
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
-  for (auto & resolution : resolutions) {
-    resolution->assembleInternalForces(_not_ghost);
-  }
+  assemble(_not_ghost);
   
   // assemble the stresses due to ghost elements
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
-  for (auto & resolution : resolutions) {
-    resolution->assembleInternalForces(_ghost);
-  }
-
+  assemble(_ghost);
+  
   AKANTU_DEBUG_OUT();
 
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::search() {
+  this->detector->search(this->contact_map);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -248,18 +318,167 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
   // \TODO correct it for contact mechanics model, only one type of matrix
-  if (matrix_id == "C")
-    return _mt_not_defined;
+  if (matrix_id == "K")
+    return _symmetric;
 
-  return _symmetric;
+  return _mt_not_defined;
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::assembleMatrix(const ID & matrix_id) {
-  AKANTU_TO_IMPLEMENT();
+  if (matrix_id == "K") {
+    this->assembleStiffnessMatrix();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::assembleStiffnessMatrix() {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
+
+  if (!this->getDOFManager().hasMatrix("K")) {
+    this->getDOFManager().getNewMatrix("K", getMatrixType("K"));
+  }
+
+  this->getDOFManager().clearMatrix("K");
+
+  for (auto & resolution : resolutions) {
+    resolution->assembleStiffnessMatrix(_not_ghost);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::assembleLumpedMatrix(const ID & matrix_id) {
   AKANTU_TO_IMPLEMENT();
 }
+
+/* -------------------------------------------------------------------------- */
+#ifdef AKANTU_USE_IOHELPER  
+dumper::Field *
+ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
+					    const std::string & group_name,
+					    bool padding_flag) {
+
+  std::map<std::string, Array<Real> *> real_nodal_fields;
+  real_nodal_fields["contact_force"] = this->contact_force;
+  
+  dumper::Field * field = nullptr;
+  if (padding_flag)
+    field = this->mesh.createNodalField(real_nodal_fields[field_name],
+                                        group_name, 3);
+  else
+    field =
+        this->mesh.createNodalField(real_nodal_fields[field_name], group_name);
+
+  return field;
+}
+  
+#else
+/* -------------------------------------------------------------------------- */
+dumper::Field * ContactMechanicsModel::createNodalFieldReal(
+    __attribute__((unused)) const std::string & field_name,
+    __attribute__((unused)) const std::string & group_name,
+    __attribute__((unused)) bool padding_flag) {
+  return nullptr;
+}
+
+#endif  
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::dump(const std::string & dumper_name) {
+  mesh.dump(dumper_name);
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::dump(const std::string & dumper_name, UInt step) {
+  mesh.dump(dumper_name, step);
+}
+
+/* ------------------------------------------------------------------------- */
+void ContactMechanicsModel::dump(const std::string & dumper_name, Real time,
+                             UInt step) {
+  mesh.dump(dumper_name, time, step);
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::dump() { mesh.dump(); }
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::dump(UInt step) { mesh.dump(step); }
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::dump(Real time, UInt step) { mesh.dump(time, step); }
+
+
+/* -------------------------------------------------------------------------- */
+UInt ContactMechanicsModel::getNbData(const Array<Element> & elements,
+                                    const SynchronizationTag & tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  UInt nb_nodes_per_element = 0;
+
+  for (const Element & el : elements) {
+    nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
+  }
+
+
+  AKANTU_DEBUG_OUT();
+  return size;
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::packData(CommunicationBuffer & buffer,
+                                   const Array<Element> & elements,
+                                   const SynchronizationTag & tag) const {
+  AKANTU_DEBUG_IN();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::unpackData(CommunicationBuffer & buffer,
+                                     const Array<Element> & elements,
+                                     const SynchronizationTag & tag) {
+  AKANTU_DEBUG_IN();
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+UInt ContactMechanicsModel::getNbData(const Array<UInt> & dofs,
+                                    const SynchronizationTag & tag) const {
+  AKANTU_DEBUG_IN();
+
+  UInt size = 0;
+  //  UInt nb_nodes = mesh.getNbNodes();
+
+  AKANTU_DEBUG_OUT();
+  return size * dofs.size();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::packData(CommunicationBuffer & buffer,
+                                   const Array<UInt> & dofs,
+                                   const SynchronizationTag & tag) const {
+  AKANTU_DEBUG_IN();
+
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::unpackData(CommunicationBuffer & buffer,
+                                     const Array<UInt> & dofs,
+                                     const SynchronizationTag & tag) {
+  AKANTU_DEBUG_IN();
+
+
+  AKANTU_DEBUG_OUT();
+}
+  
+  
+}  // namespace akantu
+

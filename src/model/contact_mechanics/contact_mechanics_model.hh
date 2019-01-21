@@ -29,6 +29,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "data_accessor.hh"
 #include "model.hh"
 #include "fe_engine.hh"
 #include "contact_detector.hh"
@@ -48,7 +49,10 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ContactMechanicsModel : public Model {
+class ContactMechanicsModel :
+    public Model,
+    public DataAccessor<Element>,
+    public DataAccessor<UInt> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -71,13 +75,16 @@ protected:
   /// initialize completely the model
   void initFullImpl(const ModelOptions & options) override;
 
+   /// allocate all vectors
+  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
+
   /// initialize all internal arrays for resolutions
   void initResolutions();
  
   /// initialize the modelType
   void initModel() override;
 
-  /// computes the force residual
+  /// call back for the solver, computes the force residual
   void assembleResidual() override;
 
   /// get the type of matrix needed
@@ -92,6 +99,9 @@ protected:
   /// get some default values for derived classes
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
+
+  ModelSolverOptions
+  getDefaultSolverOptions(const TimeStepSolverType & type) const;
   
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
@@ -122,7 +132,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// assembles the contact stiffness matrix
-  //virtual void assembleStiffnessMatrix();
+  virtual void assembleStiffnessMatrix();
 
   /// assembles the contant internal forces
   virtual void assembleInternalForces();
@@ -138,16 +148,9 @@ protected:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  /*dumper::Field * createNodalFieldReal(const std::string & field_name,
+  dumper::Field * createNodalFieldReal(const std::string & field_name,
 				       const std::string & group_name,
-				       bool padding_flag) override;
-
-  dumper::Field * createElementalField(const std::string & field_name,
-				       const std::string & group_name,
-				       bool padding_flag,
-				       const UInt & spatial_dimension,
-				       const ElementKind & kind) override;
-  
+				       bool padding_flag) override; 
 
   virtual void dump(const std::string & dumper_name);
 
@@ -159,7 +162,31 @@ public:
 
   virtual void dump(UInt step);
 
-  virtual void dump(Real time, UInt step);*/
+  virtual void dump(Real time, UInt step);
+
+  
+  /* ------------------------------------------------------------------------ */
+  /* Data Accessor inherited members                                          */
+  /* ------------------------------------------------------------------------ */
+public:
+  UInt getNbData(const Array<Element> & elements,
+                 const SynchronizationTag & tag) const override;
+
+  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                  const SynchronizationTag & tag) override;
+
+  UInt getNbData(const Array<UInt> & dofs,
+                 const SynchronizationTag & tag) const override;
+
+  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+                  const SynchronizationTag & tag) override;
+
 
 protected:  
   /// contact detection class
@@ -168,16 +195,12 @@ protected:
   /// contact resolution class
   friend class Resolution;
 
-  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// get the ConatctMechanics::contact_force vector (internal forces)
   AKANTU_GET_MACRO(InternalForce, *contact_force, Array<Real> &);
-
-  /// get the contact element for a given slave node
-  inline ContactElement & getContactElement(const UInt slave) { return contact_map[slave]; }
 
   /// get the contat map
   inline std::map<UInt, ContactElement> & getContactMap() { return contact_map; }
@@ -186,7 +209,6 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-
   /// tells if the resolutions are instantiated
   bool are_resolutions_instantiated;
 
