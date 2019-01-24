@@ -71,6 +71,33 @@ ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, UInt dim, const ID & 
   
 }
 
+/* -------------------------------------------------------------------------- */  
+  ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, Array<Real> & positions, UInt dim,
+						const ID & id, const MemoryID & memory_id,
+						const ModelType model_type)
+  : Model(mesh, model_type, dim, id, memory_id) {
+
+  AKANTU_DEBUG_IN();
+
+  this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
+					       Model::spatial_dimension);
+#if defined(AKANTU_USE_IOHELPER)
+  this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
+  this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
+				 Model::spatial_dimension, _not_ghost,
+				 _ek_regular);
+#endif
+  
+  this->initDOFManager();
+
+  this->registerDataAccessor(*this);
+  
+  this->detector = std::make_unique<ContactDetector>(this->mesh, positions, id + ":contact_detector");
+
+  AKANTU_DEBUG_OUT();
+  
+}
+  
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::~ContactMechanicsModel() {
   AKANTU_DEBUG_IN();
@@ -198,9 +225,14 @@ void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
 
   this->allocNodalField(this->contact_force, spatial_dimension,
 			"contact_force");
+  this->allocNodalField(this->gaps, 1,
+			"gaps");
+  this->allocNodalField(this->blocked_dofs, 1,
+			"blocked_dofs");
 
   if (!dof_manager.hasDOFs("displacement")) {
     dof_manager.registerDOFs("displacement", *this->contact_force, _dst_nodal);
+    //dof_manager.registerDOFs("displacement", *this->blocked_dofs);
   }
 }
   
@@ -255,10 +287,7 @@ void ContactMechanicsModel::assembleResidual() {
   // computes the internal forces
   this->assembleInternalForces();
 
-  /* ------------------------------------------------------------------------ */
-  this->getDOFManager().assembleToResidual("displacement",
-                                           *this->contact_force, 1);
-
+ 
   AKANTU_DEBUG_OUT();
 }
 
@@ -281,6 +310,10 @@ void ContactMechanicsModel::assembleInternalForces() {
   // assemble the stresses due to ghost elements
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   assemble(_ghost);
+
+  /* ------------------------------------------------------------------------ */
+  this->getDOFManager().assembleToResidual("displacement",
+                                           *this->contact_force, 1);
   
   AKANTU_DEBUG_OUT();
 
@@ -289,8 +322,23 @@ void ContactMechanicsModel::assembleInternalForces() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
   this->detector->search(this->contact_map);
-}
+  
+  auto & blocked_dof =
+    const_cast<Array<Real> &>(this->getBlockedDOFs());
 
+  auto & gap =
+    const_cast<Array<Real> &>(this->getGaps());
+  
+  for(auto & entry : contact_map) {
+    const auto & element = entry.second;
+    const auto & connectivity = element.connectivity;
+    for (UInt i = 0; i < connectivity.size(); ++i) {
+      UInt n = connectivity(i);
+      blocked_dof[n] = 1.0;
+      gap[n] = element.gap;
+    }
+  }
+}
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space;
@@ -354,7 +402,22 @@ void ContactMechanicsModel::assembleLumpedMatrix(const ID & matrix_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-#ifdef AKANTU_USE_IOHELPER  
+#ifdef AKANTU_USE_IOHELPER
+
+ 
+dumper::Field * ContactMechanicsModel::createNodalFieldBool(const std::string & field_name,
+							    const std::string & group_name,
+							    __attribute__((unused)) bool padding_flag) {
+
+  //std::map<std::string, Array<bool> *> uint_nodal_fields;
+  //uint_nodal_fields["blocked_dofs"] = blocked_dofs;
+
+  dumper::Field * field = nullptr;
+  //field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
+  return field;
+}
+
+/* -------------------------------------------------------------------------- */  
 dumper::Field *
 ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 					    const std::string & group_name,
@@ -362,6 +425,9 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["contact_force"] = this->contact_force;
+  real_nodal_fields["blocked_dofs"] = this->blocked_dofs;
+  real_nodal_fields["gaps"] = this->gaps;
+
   
   dumper::Field * field = nullptr;
   if (padding_flag)

@@ -392,10 +392,12 @@ public:
   inline Vector<UInt>
   getConnectivityWithPeriodicity(const Element & element) const;
 
+  inline VectorProxy<UInt> getConnectivity(const Element & element);
+  
 protected:
   inline auto & getElementToSubelement(const Element & element);
   inline VectorProxy<Element> getSubelementToElement(const Element & element);
-  inline VectorProxy<UInt> getConnectivity(const Element & element);
+  
 #endif
 
 public:

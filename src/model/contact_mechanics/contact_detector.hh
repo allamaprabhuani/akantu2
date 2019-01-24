@@ -134,6 +134,11 @@ private:
   bool isValidProjection(const Element & /* element     */,
 			 Vector<Real> &  /* real projection  */,
 			 Vector<Real> &  /* natural projection */);
+
+  /// compute normal projection of slav coord on a given element
+  void normalProjection(const Element & el, const Vector<Real> & slave_coord,
+			Vector<Real> & natural_coord, Real & tolerance);
+
   
   
   /* ------------------------------------------------------------------------ */

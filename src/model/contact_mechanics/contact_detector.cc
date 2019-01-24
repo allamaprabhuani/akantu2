@@ -79,8 +79,6 @@ void ContactDetector::parseSection() {
   
   surfaces[Surface::master] = section.getParameterValue<std::string>("master_surface");
   surfaces[Surface::slave ] = section.getParameterValue<std::string>("slave_surface");
-
-  //this->max_bb = section.getParameterValue<Real>("max_bb");
 }
     
 /* -------------------------------------------------------------------------- */
@@ -289,12 +287,12 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
     auto minimum = std::min_element( gaps->begin(), gaps->end());
     auto index   = std::distance(    gaps->begin(), minimum);
        
-    const Array<UInt> & master_connectivity =
-      this->mesh.getConnectivity(elements[index].type, elements[index].ghost_type);
-    Vector<UInt> connectivity(master_connectivity.size() + 1);
-    connectivity[0] = slave_node;
-    for (UInt i = 1; i <= connectivity.size(); ++i) {
-      connectivity[i] = master_connectivity[i-1];
+    Vector<UInt> master_conn = this->mesh.getConnectivity(elements[index]);
+
+    Vector<UInt> elem_conn(master_conn.size() + 1);
+    elem_conn[0] = slave_node;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i-1];
     }    
    
     contact_map[slave_node] = ContactElement(elements[index]);
@@ -302,10 +300,8 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
     contact_map[slave_node].normal =
       Vector<Real>(normals->begin(spatial_dimension)[index]);
     contact_map[slave_node].projection =
-      Vector<Real>(natural_projections->begin(spatial_dimension)[index]);
-    contact_map[slave_node].connectivity = connectivity;
-      
-    
+      Vector<Real>(natural_projections->begin(spatial_dimension - 1)[index]);
+    contact_map[slave_node].connectivity = elem_conn;    
   }
 }
 
@@ -377,20 +373,30 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
   for (auto && values :
 	 zip( elements,
 	      gaps,
-	      make_view(natural_projections, spatial_dimension - 1),
-	      make_view(normals , spatial_dimension))) {
+	      make_view(normals , spatial_dimension),
+	      make_view(natural_projections, spatial_dimension - 1))) {
     const auto & element = std::get<0>(values);
     auto & gap           = std::get<1>(values);
-    auto projection      = Vector<Real>(std::get<2>(values));
-    auto & normal        = std::get<3>(values);
+    auto & normal        = std::get<2>(values);
+    auto & natural_projection = std::get<3>(values);
     
     this->computeNormalOnElement(element, normal);
     Vector<Real> real_projection(spatial_dimension);
-    this->computeProjectionOnElement(element, normal, query, projection, real_projection);
+    this->computeProjectionOnElement(element, normal, query,
+				     natural_projection, real_projection);
 
     Vector<Real> distance(spatial_dimension);
-    distance = real_projection - query;
+    distance = query - real_projection;
     gap = Math::norm(spatial_dimension, distance.storage());
+
+    Vector<Real> direction = distance.normalize(); 
+    Real cos_angle = direction.dot(normal);
+
+    Real tolerance = 1e-8;
+    
+    if (std::abs(cos_angle - 1) <= tolerance && detection_type == _explicit) {
+      gap *= -1;
+    }
   }
   
 }
@@ -413,15 +419,6 @@ void ContactDetector::computeNormalOnElement(const Element & element, Vector<Rea
   }  
   default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
   }
-
-  switch (this->detection_type) {
-  case _explicit: {
-    normal *= -1.0;
-    break;
-  }
-  default:
-    break;
-  }
         
 }
 
@@ -433,10 +430,14 @@ void ContactDetector::computeProjectionOnElement(const Element & element,
 						 Vector<Real> & natural_projection,
 						 Vector<Real> & real_projection) {
   
-  Vector<Real> barycenter(spatial_dimension);
-  mesh.getBarycenter(element, barycenter);
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  
+  Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
+  this->coordinatesOfElement(element, coords);
 
-  Real alpha = (query - barycenter).dot(normal);
+  Vector<Real> point(coords(0));
+  
+  Real alpha = (query - point).dot(normal);
   real_projection = query - alpha * normal;
 
   // use contains function to check whether projection lies inside
@@ -445,13 +446,12 @@ void ContactDetector::computeProjectionOnElement(const Element & element,
   // projection doesnot lie inside the element 
 
   bool validity = this->isValidProjection(element, real_projection, natural_projection);
-  if (!validity) {
-    //natural_projection *= std::numeric_limits<Real>::max();
-  }
+
 }
 
 /* -------------------------------------------------------------------------- */
-bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & real_projection, Vector<Real> & natural_projection) {
+bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & real_projection,
+					Vector<Real> & natural_projection) {
 
   const ElementType & type = element.type;
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -459,16 +459,16 @@ bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & 
 					 _not_ghost).storage();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(this->positions /*mesh.getNodes()*/, nodes_coord.storage(),
 				     elem_val + element.element * nb_nodes_per_element,
 				     nb_nodes_per_element, spatial_dimension);
   
 #define GET_NATURAL_COORDINATE(type)					\
   ElementClass<type>::inverseMap(real_projection, nodes_coord, natural_projection) 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
-#undef GET_NATURAL_COORDIANTE
-  
-  Vector<Real> barycenter(spatial_dimension);
+#undef GET_NATURAL_COORDINATE
+
+  /*Vector<Real> barycenter(spatial_dimension);
   mesh.getBarycenter(element, barycenter);
 
   Real distance = 0;
@@ -486,7 +486,7 @@ bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & 
 
   if (distance <= max_dd) {
     return true;
-  }
+    }*/
 
   return false;
 }
@@ -528,6 +528,36 @@ void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vec
   }
   
 }
+
+/* -------------------------------------------------------------------------- */
+void ContactDetector::normalProjection(const Element & el, const Vector<Real> & slave_coord,
+					 Vector<Real> & natural_coord, Real & tolerance) {
+
+  /*Real fmin;
+
+  
+  auto update_fmin = [&fmin, &slave_coord, &node_coords, &natural_coord]() {
+    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension);
+    // interpolate on natual coordinate and get physical guess
+    // compute gradient or jacobian on natural cooordiante
+    // f = slave_coord - physical_guess;
+    
+    return fmin;
+  };
+
+  auto closet_point_error = update_fmin();
+
+  while (tolerance < closet_point_error) {
+
+    // compute gradiend on natural coordinate
+    // compute second variation of shape function at natural coord
+    
+    
+    closet_point_error = update_fmin();
+    }*/
+  
+}
+  
    
   
 } // akantu

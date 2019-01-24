@@ -1,8 +1,8 @@
 cl1 = 0.005;
 cl2 = 0.1;
-cl3 = 0.4;
-cl4 = 0.1;
-Dy = 0.099;
+cl3 = 0.1;
+cl4 = 0.01;
+Dy = 0.0099;
 Dz = 1;
 Point(1) = {0, 0.1-Dy, 0, cl1};
 Point(2) = {0.5, 0.6-Dy, 0, cl2};
@@ -49,7 +49,7 @@ Extrude {0, -cl3, 0} {
 }
 
 Physical Surface("top_surface") = {5};
-Physical Surface("rigid_surface") = {6};
+Physical Surface("contact_surface") = {6};
 Physical Volume("elastic") = {1};
-Physical Volume("rigid") = {2};
-Physical Surface("contact_surface") = {1, 2, 4, 3};
+Physical Volume("top") = {2};
+Physical Surface("rigid") = {1, 2, 4, 3};

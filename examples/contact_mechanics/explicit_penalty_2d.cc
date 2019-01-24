@@ -38,8 +38,8 @@
 
 using namespace akantu;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+  
   initialize("material.dat", argc, argv);
   const UInt spatial_dimension = 2;
 
@@ -49,17 +49,21 @@ int main(int argc, char *argv[])
   ContactMechanicsModel model(mesh);
   model.initFull(_analysis_method = _explicit_contact);
 
-  model.setBaseName("penalty");
+  model.setBaseName("explicit-penalty-2d");
   model.addDumpField("contact_force");
+  model.addDumpField("blocked_dofs");
+  model.addDumpField("gaps");
 
   model.dump();
 
   model.search();
-  model.solveStep();
+  model.dump();
 
+  model.assembleInternalForces();
+  
   model.dump();
   
-  finalize;
+  finalize();
   return EXIT_SUCCESS;
 }
 

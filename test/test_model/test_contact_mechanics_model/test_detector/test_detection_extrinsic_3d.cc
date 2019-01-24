@@ -45,7 +45,7 @@ using Elements = std::vector<ContactElement>;
 
 int main(int argc, char *argv[]) {
 
-  initialize("options.dat", argc, argv);
+  /*initialize("options.dat", argc, argv);
 
   Mesh mesh(spatial_dimension);
   mesh.read("extrinsic_3d.msh");
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     //if (abs(analytical_gap - gap) <= epsilon) {
     //  return EXIT_FAILURE;
     //} 
-  }
+    }*/
 
   
   return EXIT_SUCCESS;

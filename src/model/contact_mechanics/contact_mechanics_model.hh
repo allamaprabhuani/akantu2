@@ -66,6 +66,12 @@ public:
 			const MemoryID & memory_id = 0,
 			const ModelType model_type = ModelType::_contact_mechanics_model);
 
+  ContactMechanicsModel(Mesh & mesh, Array<Real> & positions, UInt spatial_dimension = _all_dimensions,
+			const ID & id = "contact_mechanics_model",
+			const MemoryID & memory_id = 0,
+			const ModelType model_type = ModelType::_contact_mechanics_model);
+
+  
   ~ContactMechanicsModel() override;
 
   /* ------------------------------------------------------------------------ */
@@ -152,6 +158,10 @@ public:
 				       const std::string & group_name,
 				       bool padding_flag) override; 
 
+  dumper::Field * createNodalFieldBool(const std::string & field_name,
+                                       const std::string & group_name,
+                                       bool padding_flag) override;
+  
   virtual void dump(const std::string & dumper_name);
 
   virtual void dump(const std::string & dumper_name, UInt step);
@@ -199,8 +209,12 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// get the ConatctMechanics::contact_force vector (internal forces)
+  /// get the ContactMechanics::contact_force vector (internal forces)
   AKANTU_GET_MACRO(InternalForce, *contact_force, Array<Real> &);
+
+  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<Real> &);
+ 
+  AKANTU_GET_MACRO(Gaps, *gaps, Array<Real> &);
 
   /// get the contat map
   inline std::map<UInt, ContactElement> & getContactMap() { return contact_map; }
@@ -214,7 +228,13 @@ private:
 
   /// contact forces array
   Array<Real> * contact_force{nullptr};
-  
+
+  /// boundary vector
+  Array<Real> * blocked_dofs{nullptr};
+
+  /// gaps vector
+  Array<Real> * gaps{nullptr};
+ 
   /// contact detection
   std::unique_ptr<ContactDetector> detector;
   

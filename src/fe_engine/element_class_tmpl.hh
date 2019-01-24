@@ -439,37 +439,46 @@ inline void ElementClass<type, kind>::inverseMap(
   natural_coords.clear();
 
   // real space coordinates provided by initial guess
-  Matrix<Real> physical_guess(dimension, 1);
+  Matrix<Real> physical_guess(spatial_dimension /*changed from
+						  dimension */, 1);
 
   // objective function f = real_coords - physical_guess
-  Matrix<Real> f(dimension, 1);
+  Matrix<Real> f(spatial_dimension /*changed from dimension */, 1);
 
   // dnds computed on the natural_guess
   //  Matrix<Real> dnds(interpolation_element::nb_nodes_per_element,
   //  spatial_dimension);
 
   // J Jacobian matrix computed on the natural_guess
-  Matrix<Real> J(spatial_dimension, dimension);
+  Matrix<Real> J(dimension, spatial_dimension);
 
+  // J^t
+  Matrix<Real> Jt(spatial_dimension, dimension);
+
+  
   // G = J^t * J
-  Matrix<Real> G(spatial_dimension, spatial_dimension);
+  Matrix<Real> G(dimension, dimension);
 
   // Ginv = G^{-1}
-  Matrix<Real> Ginv(spatial_dimension, spatial_dimension);
+  Matrix<Real> Ginv(dimension, dimension);
 
   // J = Ginv * J^t
   Matrix<Real> F(spatial_dimension, dimension);
 
   // dxi = \xi_{k+1} - \xi in the iterative process
-  Matrix<Real> dxi(spatial_dimension, 1);
+  Matrix<Real> dxi(dimension, 1);
+
+  Matrix<Real> dxit(1, dimension);
+ 
 
   /* --------------------------- */
   /* init before iteration loop  */
   /* --------------------------- */
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
-                   &mreal_coords, dimension]() {
-    Vector<Real> physical_guess_v(physical_guess.storage(), dimension);
+                   &mreal_coords, dimension, spatial_dimension]() {
+    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension /* changes
+										 from dimension */);
     interpolation_element::interpolateOnNaturalCoordinates(
         natural_coords, node_coords, physical_guess_v);
 
@@ -490,20 +499,23 @@ inline void ElementClass<type, kind>::inverseMap(
   while (tolerance < inverse_map_error) {
     // compute J^t
     interpolation_element::gradientOnNaturalCoordinates(natural_coords,
-                                                        node_coords, J);
-
+                                                        node_coords, Jt);
+    J = Jt.transpose();
+    
     // compute G
-    G.mul<true, false>(J, J);
+    G.mul<false, true>(J, J);
 
     // inverse G
     Ginv.inverse(G);
 
     // compute F
-    F.mul<false, true>(Ginv, J);
+    F.mul<true, false>(J, Ginv);
 
     // compute increment
-    dxi.mul<false, false>(F, f);
+    dxit.mul<true, false>(f, F);
 
+    dxi = dxit.transpose();
+    
     // update our guess
     natural_coords += Vector<Real>(dxi(0));
 

@@ -33,21 +33,20 @@
 add_mesh(hertz_2d hertz_2d.geo 2 1)
 add_mesh(hertz_3d hertz_3d.geo 3 1)
 
-register_example(contact_penalty_2d
-  SOURCES contact_mechanics_penalty.cc
+register_example(explicit_penalty_2d
+  SOURCES explicit_penalty_2d.cc
   DEPENDS hertz_2d
   FILES_TO_COPY material.dat
   )
 
-
-register_example(contact_detection_2d
-  SOURCES contact_detection_2d.cc
-  DEPENDS hertz_2d
-  FILES_TO_COPY material.dat
-  )
-
-register_example(contact_detection_3d
-  SOURCES contact_detection_3d.cc
+register_example(explicit_penalty_3d
+  SOURCES explicit_penalty_3d.cc
   DEPENDS hertz_3d
+  FILES_TO_COPY material.dat
+  )
+
+register_example(solid_contact_explicit
+  SOURCES solid_contact_explicit.cc
+  DEPENDS hertz_2d
   FILES_TO_COPY material.dat
   )

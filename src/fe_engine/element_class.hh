@@ -196,6 +196,26 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  /**
+   * compute @f$ @f$
+   
+   **/
+  static inline void computeDN2DS2(const Matrix<Real> & natural_coord,
+				   Tensor3<Real> & dn2ds2);
+
+  /**
+   * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the
+   * second variation of
+   * shape functions along with
+   * variation of natural coordinates on a given point in natural
+   * coordinates
+   */
+  template <class vector_type, class matrix_type>
+  static inline void computeDN2DS2(const vector_type &, matrix_type &) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
   static inline void computeSpecialJacobian(const Matrix<Real> &, Real &) {
