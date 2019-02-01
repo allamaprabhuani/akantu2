@@ -188,55 +188,49 @@ void SolidMechanicsModelRVE::applyHomogeneousTemperature(
   for (UInt m = 0; m < this->getNbMaterials(); ++m) {
     Material & mat = this->getMaterial(m);
 
-    const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+    auto && element_types =
+        mat.getElementFilter().elementTypes(spatial_dimension);
+    for (auto el_type : element_types) {
 
-    Mesh::type_iterator type_it = filter_map.firstType(spatial_dimension);
-    Mesh::type_iterator type_end = filter_map.lastType(spatial_dimension);
-    // Loop over all element types
-    for (; type_it != type_end; ++type_it) {
-      const Array<UInt> & filter = filter_map(*type_it);
+      const auto & filter = mat.getElementFilter()(el_type);
       if (filter.size() == 0)
         continue;
 
-      Array<Real> & delta_T = mat.getArray<Real>("delta_T", *type_it);
-      Array<Real>::scalar_iterator delta_T_it = delta_T.begin();
-      Array<Real>::scalar_iterator delta_T_end = delta_T.end();
+      auto & deltas_T = mat.getArray<Real>("delta_T", el_type);
 
-      for (; delta_T_it != delta_T_end; ++delta_T_it) {
-        *delta_T_it = temperature;
+      for (auto && delta_T : deltas_T) {
+        delta_T = temperature;
       }
     }
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::removeTemperature() {
 
   for (UInt m = 0; m < this->getNbMaterials(); ++m) {
     Material & mat = this->getMaterial(m);
 
-    const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+    auto && element_types =
+        mat.getElementFilter().elementTypes(spatial_dimension);
+    for (auto el_type : element_types) {
 
-    Mesh::type_iterator type_it = filter_map.firstType(spatial_dimension);
-    Mesh::type_iterator type_end = filter_map.lastType(spatial_dimension);
-    // Loop over all element types
-    for (; type_it != type_end; ++type_it) {
-      const Array<UInt> & filter = filter_map(*type_it);
+      const auto & filter = mat.getElementFilter()(el_type);
       if (filter.size() == 0)
         continue;
 
-      Array<Real> & delta_T = mat.getArray<Real>("delta_T", *type_it);
-      Array<Real>::scalar_iterator delta_T_it = delta_T.begin();
-      Array<Real>::scalar_iterator delta_T_end = delta_T.end();
+      auto & deltas_T = mat.getArray<Real>("delta_T", el_type);
 
-      for (; delta_T_it != delta_T_end; ++delta_T_it) {
-        *delta_T_it = 0;
+      for (auto && delta_T : deltas_T) {
+        delta_T = 0.;
       }
     }
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::findCornerNodes() {
   AKANTU_DEBUG_IN();
 
@@ -282,7 +276,8 @@ void SolidMechanicsModelRVE::findCornerNodes() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   AKANTU_DEBUG_IN();
   AKANTU_DEBUG_ASSERT(spatial_dimension == 2, "This is 2D only!");
@@ -344,7 +339,8 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
                                                 const ID & field_type) {
   AKANTU_DEBUG_IN();
@@ -388,8 +384,8 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
                       _not_ghost, elem_filter);
 
         for (UInt k = 0; k < elem_filter.size(); ++k)
-          /// averaging is done only for normal components, so stress and strain
-          /// are equal
+          /// averaging is done only for normal components, so stress and
+          /// strain are equal
           average +=
               0.5 *
               (int_gradu_vec(k, row_index * spatial_dimension + col_index) +
@@ -410,8 +406,8 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
                       _not_ghost, elem_filter);
 
         for (UInt k = 0; k < elem_filter.size(); ++k)
-          /// averaging is done only for normal components, so stress and strain
-          /// are equal
+          /// averaging is done only for normal components, so stress and
+          /// strain are equal
           average +=
               int_eigen_gradu_vec(k, row_index * spatial_dimension + col_index);
       }
@@ -425,7 +421,8 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   AKANTU_DEBUG_IN();
   const UInt dim = 2;
@@ -459,9 +456,8 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
 
   /// save the damage state before filling up cracks
   // ElementTypeMapReal saved_damage("saved_damage");
-  // saved_damage.initialize(getFEEngine(), _nb_component = 1, _default_value =
-  // 0);
-  // this->fillCracks(saved_damage);
+  // saved_damage.initialize(getFEEngine(), _nb_component = 1, _default_value
+  // = 0); this->fillCracks(saved_damage);
 
   /// virtual test 1:
   H(0, 0) = 0.01;
@@ -497,7 +493,8 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::performVirtualTesting(const Matrix<Real> & H,
                                                    Matrix<Real> & eff_stresses,
                                                    Matrix<Real> & eff_strains,
@@ -522,7 +519,8 @@ void SolidMechanicsModelRVE::performVirtualTesting(const Matrix<Real> & H,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::homogenizeEigenGradU(
     Matrix<Real> & eigen_gradu_macro) {
   AKANTU_DEBUG_IN();
@@ -533,7 +531,8 @@ void SolidMechanicsModelRVE::homogenizeEigenGradU(
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::initMaterials() {
   AKANTU_DEBUG_IN();
 
@@ -577,7 +576,8 @@ void SolidMechanicsModelRVE::initMaterials() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::fillCracks(ElementTypeMapReal & saved_damage) {
   const auto & mat_gel = this->getMaterial("gel");
   Real E_gel = mat_gel.get("E");
@@ -590,7 +590,8 @@ void SolidMechanicsModelRVE::fillCracks(ElementTypeMapReal & saved_damage) {
     Real E = mat->get("E");
     auto & damage = mat->getInternal<Real>("damage");
 
-    for (auto && type : damage.elementTypes()) {
+    GhostType gt = _not_ghost;
+    for (auto && type : damage.elementTypes(gt)) {
       const auto & elem_filter = mat->getElementFilter(type);
       auto nb_integration_point = getFEEngine().getNbIntegrationPoints(type);
 
@@ -613,7 +614,8 @@ void SolidMechanicsModelRVE::fillCracks(ElementTypeMapReal & saved_damage) {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void SolidMechanicsModelRVE::drainCracks(
     const ElementTypeMapReal & saved_damage) {
   for (auto && mat : materials) {
@@ -621,7 +623,8 @@ void SolidMechanicsModelRVE::drainCracks(
       continue;
     auto & damage = mat->getInternal<Real>("damage");
 
-    for (auto && type : damage.elementTypes()) {
+    GhostType gt = _not_ghost;
+    for (auto && type : damage.elementTypes(gt)) {
       const auto & elem_filter = mat->getElementFilter(type);
       auto nb_integration_point = getFEEngine().getNbIntegrationPoints(type);
 
@@ -639,4 +642,43 @@ void SolidMechanicsModelRVE::drainCracks(
   }
 }
 
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelRVE::computeDamageRatio(Real & damage_ratio /*, Real & dam_paste,
+                                                               Real & dam_agg*/) {
+  damage_ratio = 0.;
+  //  dam_paste = 0.;
+  //  dam_agg = 0.;
+
+  for (auto && mat : materials) {
+    if (mat->getName() == "gel" || mat->getName() == "FE2_mat")
+      continue;
+    GhostType gt = _not_ghost;
+    const ElementTypeMapArray<UInt> & filter_map = mat->getElementFilter();
+
+    // Loop over the boundary element types
+    for (auto & element_type : filter_map.elementTypes(spatial_dimension, gt)) {
+      const Array<UInt> & filter = filter_map(element_type);
+      if (!filter_map.exists(element_type, gt))
+        continue;
+      if (filter.size() == 0)
+        continue;
+
+      const FEEngine & fe_engine = this->getFEEngine();
+      auto & damage_array = mat->getInternal<Real>("damage")(element_type);
+
+      damage_ratio +=
+          fe_engine.integrate(damage_array, element_type, gt, filter);
+      /*
+            if (mat->getName() == "paste")
+              dam_paste += fe_engine.integrate(damage, element_type, gt,
+         filter); if (mat->getName() == "aggregate") dam_agg +=
+         fe_engine.integrate(damage, element_type, gt, filter); */
+    }
+  }
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+  damage_ratio /= this->volume;
+  // comm.allReduce(dam_paste, SynchronizerOperation::_sum);
+  // comm.allReduce(dam_agg, SynchronizerOperation::_sum);
+}
 } // namespace akantu

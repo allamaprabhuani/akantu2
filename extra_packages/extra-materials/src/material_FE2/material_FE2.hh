@@ -71,9 +71,11 @@ public:
   /// (independent of overall time)
   void computeNewGelStrain(const Real & delta_time);
 
-  ///compute ASR eigenstrain based on RVE temperature and time increase
+  /// compute ASR eigenstrain based on RVE temperature and time increase
   /// (linearly decreasing to 0 with time)
-  void computeNewGelStrainTimeDependent(const Real & delta_time);
+  void computeNewGelStrainTimeDependent(const Real & delta_time, const Real & T,
+                                        Matrix<Real> & gelstrain,
+                                        Real & non_reacted_gel);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);
@@ -81,6 +83,9 @@ public:
   /// advance alkali-silica reaction based on delta time and temperature-
   /// dependent reaction rate
   void advanceASR(const Real & delta_time);
+
+  /// compute amount of gel strain averaged across all RVEs
+  Real computeAverageGelStrain();
 
 private:
   void initialize();
@@ -129,6 +134,10 @@ protected:
 
   /// percent of yet non-reacted gel (for time-dependent asr simulation)
   InternalField<Real> non_reacted_gel;
+
+  InternalField<Real> damage_ratio;
+  InternalField<Real> damage_ratio_paste;
+  InternalField<Real> damage_ratio_agg;
 };
 
 /* -------------------------------------------------------------------------- */
