@@ -111,7 +111,7 @@ void ContactDetector::getMaximalDetectionDistance() {
 		      << max_el_size );    
   }
 
-  this->max_dd = max_el_size;
+  this->max_dd = 2.0 * max_el_size;
   this->max_bb = max_el_size;
   
   AKANTU_DEBUG_OUT();
@@ -260,6 +260,8 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 	    closet_distance = distance;
 	  }
 	}
+
+	
       }
 	
       slave_nodes.push_back(q1);
@@ -298,9 +300,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
     contact_map[slave_node] = ContactElement(elements[index]);
     contact_map[slave_node].gap = (*gaps)[index];
     contact_map[slave_node].normal =
-      Vector<Real>(normals->begin(spatial_dimension)[index]);
+      Vector<Real>(normals->begin(spatial_dimension)[index], true);
     contact_map[slave_node].projection =
-      Vector<Real>(natural_projections->begin(spatial_dimension - 1)[index]);
+      Vector<Real>(natural_projections->begin(spatial_dimension - 1)[index], true);
     contact_map[slave_node].connectivity = elem_conn;    
   }
 }

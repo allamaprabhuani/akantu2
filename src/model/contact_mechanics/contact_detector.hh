@@ -85,7 +85,14 @@ public:
 				   Array<Real> &          /* normals */,
 				   Array<Real> &          /* gaps */,
 				   Array<Real> &          /* projections */);
-
+  ///
+  inline std::string getSurfaceId(const std::string name) {
+    if (name == "slave") {
+      return surfaces[Surface::slave];
+    }
+    
+  };
+  
 private:
   /// reads the input file to get contact detection options
   void parseSection();

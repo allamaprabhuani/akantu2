@@ -78,18 +78,18 @@ protected:
   void initialize();
 
   /// computes coordinates of a given element
-  void computeCoordinates(const Element & , Array<Real> &);
+  void computeCoordinates(const Element & , Matrix<Real> &);
 
   /// 
   void computeTalpha(Array<Real> & , Vector<Real> & , Array<Real> & );
 
   /// computes tangents
   void computeTangents(Matrix<Real> & /* shapes_derivatives */,
-		       Array<Real> &  /* global_coords */,
-		       Array<Real> &  /* tangents */);
+		       Matrix<Real> &  /* global_coords */,
+		       Matrix<Real> &  /* tangents */);
 
   /// computes surface metric matrix
-  void computeSurfaceMatrix(Array<Real>  & /* tangents */,
+  void computeSurfaceMatrix(Matrix<Real>  & /* tangents */,
 			    Matrix<Real> & /* surface_matrix */);
 
   /// computes N array

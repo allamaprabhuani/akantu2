@@ -33,36 +33,81 @@
 #include <iostream>
 
 /* -------------------------------------------------------------------------- */
+#include "non_linear_solver.hh"
 #include "contact_mechanics_model.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+  
   initialize("material.dat", argc, argv);
   const UInt spatial_dimension = 3;
 
   Mesh mesh(spatial_dimension);
   mesh.read("hertz_3d.msh");
-
-  ContactMechanicsModel model(mesh);
-  model.initFull(_analysis_method = _explicit_contact);
-
-  model.setBaseName("explicit-penalty-3d");
-  model.addDumpField("contact_force");
-  model.addDumpField("blocked_dofs");
-  model.addDumpField("gaps");
   
-  model.dump();
+  SolidMechanicsModel solid(mesh);
+  solid.initFull(_analysis_method = _static);
 
-  model.search();
+  solid.setBaseName("static-3d");
+  solid.addDumpFieldVector("displacement");
+  solid.addDumpField("blocked_dofs");
+  solid.addDumpField("external_force");
+  solid.addDumpField("internal_force");
+  solid.addDumpField("stress");
+  solid.addDumpField("grad_u");
   
-  model.dump();
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top_body");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _z), "top_body");
 
-  model.assembleInternalForces();
+  solid.applyBC(BC::Dirichlet::IncrementValue(-0.01, _y), "top_body");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom_surface");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom_surface");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _z), "bottom_surface");
+
+  auto & solver = solid.getNonLinearSolver();
+  solver.set("max_iterations", 2);
+  solver.set("threshold", 2e-4);
+  solver.set("convergence_type", _scc_solution);
   
-  model.dump();
+  solid.solveStep();
+
+  auto current_position = solid.getCurrentPosition();
+
+  ContactMechanicsModel contact(mesh, current_position);
+  contact.initFull(_analysis_method = _explicit_contact);
+  
+  contact.setBaseNameToDumper("contact_mechanics", "contact-3d");
+  contact.addDumpFieldVectorToDumper("contact_mechanics", "contact_force");
+  contact.addDumpFieldToDumper("contact_mechanics", "gaps");
+
+  contact.search();   
+  contact.assembleInternalForces();
+
+  contact.dump("paraview_all");
+  contact.dump("contact_mechanics");
+  
+  Array<Real> & contact_force = contact.getInternalForce();
+  Array<Real> & external_force = solid.getExternalForce();
+  Array<bool> & blocked_dofs = solid.getBlockedDOFs();
+  
+  for (auto && values: zip(make_view(external_force),
+			   make_view(contact_force),
+  			   make_view(blocked_dofs)) ) {
+    auto & ext_f = std::get<0>(values);
+    auto & cont_f = std::get<1>(values);
+    auto & blocked = std::get<2>(values);
+
+    if (cont_f <= 0) {
+      ext_f = cont_f;
+    }
+    
+  }
+
+  solid.solveStep();
+  contact.dump("paraview_all");
   
   finalize();
   return EXIT_SUCCESS;

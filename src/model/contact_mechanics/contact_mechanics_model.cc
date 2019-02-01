@@ -32,7 +32,7 @@
 #include "contact_mechanics_model.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-
+#include "boundary_condition_functor.hh"
 #include "dumpable_inline_impl.hh"
 #ifdef AKANTU_USE_IOHELPER
 #include "dumper_iohelper_paraview.hh"
@@ -48,7 +48,7 @@ namespace akantu {
 ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, UInt dim, const ID & id,
 					      const MemoryID & memory_id,
 					      const ModelType model_type)
-  : Model(mesh, model_type, dim, id, memory_id) {
+  : Model(mesh, model_type, dim, id, memory_id), current_positions(mesh.getNodes()) {
 
   AKANTU_DEBUG_IN();
 
@@ -75,7 +75,7 @@ ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, UInt dim, const ID & 
   ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, Array<Real> & positions, UInt dim,
 						const ID & id, const MemoryID & memory_id,
 						const ModelType model_type)
-  : Model(mesh, model_type, dim, id, memory_id) {
+    : Model(mesh, model_type, dim, id, memory_id), current_positions(positions) {
 
   AKANTU_DEBUG_IN();
 
@@ -116,7 +116,8 @@ void ContactMechanicsModel::initFullImpl(const ModelOptions & options) {
   }
 
   this->initResolutions();
-  
+
+  this->initBC(*this, *displacement, *displacement_increment, *external_force);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -223,12 +224,16 @@ void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
                                    NonLinearSolverType) {
   DOFManager & dof_manager = this->getDOFManager();
 
+  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
+  this->allocNodalField(this->displacement_increment, spatial_dimension,
+                        "displacement_increment");
   this->allocNodalField(this->contact_force, spatial_dimension,
 			"contact_force");
-  this->allocNodalField(this->gaps, 1,
-			"gaps");
-  this->allocNodalField(this->blocked_dofs, 1,
-			"blocked_dofs");
+  this->allocNodalField(this->external_force, spatial_dimension,
+                        "external_force");
+  this->allocNodalField(this->gaps, 1, "gaps");
+  this->allocNodalField(this->areas, 1, "areas");
+  this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
 
   if (!dof_manager.hasDOFs("displacement")) {
     dof_manager.registerDOFs("displacement", *this->contact_force, _dst_nodal);
@@ -321,8 +326,9 @@ void ContactMechanicsModel::assembleInternalForces() {
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
+   
   this->detector->search(this->contact_map);
-  
+
   auto & blocked_dof =
     const_cast<Array<Real> &>(this->getBlockedDOFs());
 
@@ -338,7 +344,39 @@ void ContactMechanicsModel::search() {
       gap[n] = element.gap;
     }
   }
+
+    this->areas->clear();
+  this->external_force->clear();
+
+  this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
+		this->detector->getSurfaceId("slave"));
+
+  auto ext_force_it = external_force->begin(Model::spatial_dimension);
+  auto areas_it = areas->begin();
+  UInt nb_nodes = this->mesh.getNbNodes();
+
+  for (UInt n = 0; n < nb_nodes; ++n, ++ext_force_it, ++areas_it) {
+    const auto & ext_force = *ext_force_it;
+    auto & area = *areas_it;
+
+    for (UInt i = 0; i < Model::spatial_dimension; ++i) {
+      area += pow(ext_force(i), 2);
+    }
+    
+    area = sqrt(area);
+  }
 }
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::beforeSolveStep() {
+
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::afterSolveStep() {
+  
+}
+  
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space;
@@ -425,9 +463,10 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["contact_force"] = this->contact_force;
+  real_nodal_fields["external_force"] = this->external_force;
   real_nodal_fields["blocked_dofs"] = this->blocked_dofs;
   real_nodal_fields["gaps"] = this->gaps;
-
+  real_nodal_fields["areas"] = this->areas;
   
   dumper::Field * field = nullptr;
   if (padding_flag)

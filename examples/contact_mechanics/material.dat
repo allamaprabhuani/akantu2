@@ -1,15 +1,15 @@
 material elastic [
          name = bot_body
          rho = 7800   # density
-         E   = 2.1e11 # young's modulu
-         nu  = 0.0    # poisson's ratio
+         E   = 210 # young's modulu
+         nu  = 0.3    # poisson's ratio
 ]
 
 material elastic [
          name = top_body
          rho = 7800   # density
          E   = 2.1e11 # young's modulu
-         nu  = 0.0    # poisson's ratio
+         nu  = 0.3    # poisson's ratio
 ]
 
 contact_detector [

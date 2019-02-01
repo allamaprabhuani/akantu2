@@ -51,23 +51,21 @@ int main(int argc, char *argv[]) {
   SolidMechanicsModel solid(mesh);
   solid.initFull(_analysis_method = _static);
 
-  /*solid.setBaseName("static");
+  solid.setBaseName("static");
   solid.addDumpFieldVector("displacement");
   solid.addDumpField("blocked_dofs");
   solid.addDumpField("external_force");
-  solid.addDumpField("internal_force");*/
+  solid.addDumpField("internal_force");
     
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-  solid.applyBC(BC::Dirichlet::IncrementValue(-0.01, _y), "top");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top_body");
+  solid.applyBC(BC::Dirichlet::IncrementValue(-0.001, _y), "top_body");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
 
-  /*
   auto & solver = solid.getNonLinearSolver();
-  solver.set("max_iterations", 100);
-  solver.set("threshold", 1e-12);
+  solver.set("max_iterations", 1000);
+  solver.set("threshold", 1e-8);
   solver.set("convergence_type", _scc_residual);
-  */
   
   solid.solveStep();
   //solid.dump();
@@ -76,41 +74,40 @@ int main(int argc, char *argv[]) {
 
   ContactMechanicsModel contact(mesh, current_position);
   contact.initFull(_analysis_method = _explicit_contact);
+  
+  contact.setBaseNameToDumper("contact_mechanics", "contact");
+  contact.addDumpFieldVectorToDumper("contact_mechanics", "contact_force");
+  contact.addDumpFieldVectorToDumper("contact_mechanics", "external_force");
+  contact.addDumpFieldToDumper("contact_mechanics", "gaps");
+  contact.addDumpFieldToDumper("contact_mechanics", "areas");
 
-  contact.setBaseName("contact-penalty");
-  contact.addDumpField("contact_force");
-  contact.addDumpField("blocked_dofs");
-  contact.addDumpField("gaps");
-   
+  
   contact.search();   
   contact.assembleInternalForces();
-  
-  //contact.dump();
 
-  contact.setBaseNameToDumper("contact_mechanics", "solid");
-  contact.addDumpFieldVectorToDumper("contact_mechanics", "displacement");
-  contact.addDumpFieldToDumper("contact_mechanics", "external_force");
+  contact.dump("paraview_all");
+  contact.dump("contact_mechanics");
   
   Array<Real> & contact_force = contact.getInternalForce();
   Array<Real> & external_force = solid.getExternalForce();
+  Array<bool> & blocked_dofs = solid.getBlockedDOFs();
 
+  
   for (auto && values: zip(make_view(external_force),
-			   make_view(contact_force)) ) {
+			   make_view(contact_force),
+			   make_view(blocked_dofs)) ) {
     auto & ext_f = std::get<0>(values);
     auto & cont_f = std::get<1>(values);
+    auto & blocked = std::get<2>(values);
 
-    ext_f = cont_f;
+    if (!blocked) {
+      ext_f = cont_f;
+    }
+    
   }
 
-  for (auto && values: zip(make_view(external_force),
-			   make_view(contact_force)) ) {
-    auto ext_f = std::get<0>(values);
-    auto cont_f = std::get<1>(values);
-    std::cerr << ext_f << "  " << cont_f << std::endl;
-  }
-
-  //solid.solveStep();
-  contact.dump();
+  solid.solveStep();
+  contact.dump("paraview_all");
   
   finalize();
   return EXIT_SUCCESS;

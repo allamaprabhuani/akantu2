@@ -29,6 +29,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "boundary_condition.hh"
 #include "data_accessor.hh"
 #include "model.hh"
 #include "fe_engine.hh"
@@ -52,7 +53,8 @@ namespace akantu {
 class ContactMechanicsModel :
     public Model,
     public DataAccessor<Element>,
-    public DataAccessor<UInt> {
+    public DataAccessor<UInt>,
+    public BoundaryCondition<ContactMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -108,7 +110,13 @@ protected:
 
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const;
-  
+
+  /// callback for the solver, this is called at beginning of solve
+  void beforeSolveStep() override;
+
+  /// callback for the solver, this is called at end of solve
+  void afterSolveStep() override;
+ 
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
@@ -117,6 +125,9 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   void search();
+
+  template<typename FunctorType>
+  void computeNodalAreas(const FunctorType &, const std::string &, GhostType);
   
   /* ------------------------------------------------------------------------ */
   /* Contact Resolution                                                       */
@@ -146,7 +157,7 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
-protected:
+public:
   
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
@@ -209,12 +220,40 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+   /// return the dimension of the system space
+  AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
+
+  /// get the SolidMechanicsModel::displacement vector
+  AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
+  
+  /// get  the SolidMechanicsModel::increment  vector \warn  only  consistent if
+  /// SolidMechanicsModel::setIncrementFlagOn has been called before
+  AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
+
   /// get the ContactMechanics::contact_force vector (internal forces)
   AKANTU_GET_MACRO(InternalForce, *contact_force, Array<Real> &);
 
-  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<Real> &);
+  /// get the SolidMechanicsModel::external_force vector (external forces)
+  AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
+
+  /// get the SolidMechanicsModel::force vector (external forces)
+  Array<Real> & getForce() {
+    AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "
+                         "use getExternalForce instead");
+    return *external_force;
+  }
  
+  /// get the ContactMechanics::blocked_dofs vector
+  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<Real> &);
+
+  /// get the ContactMechanics::gaps vector (contact gaps)
   AKANTU_GET_MACRO(Gaps, *gaps, Array<Real> &);
+ 
+  /// get the ContactMechanics::areas vector (contact areas)
+  AKANTU_GET_MACRO(ContactArea, *areas, Array<Real> &);
+  
+  /// get the ContactMechanics::contact_force vector (internal forces)
+  AKANTU_GET_MACRO(CurrentPositions, current_positions, Array<Real> &);
 
   /// get the contat map
   inline std::map<UInt, ContactElement> & getContactMap() { return contact_map; }
@@ -226,15 +265,30 @@ private:
   /// tells if the resolutions are instantiated
   bool are_resolutions_instantiated;
 
+  /// displacements array
+  Array<Real> * displacement;
+  
+  /// increment of displacement
+  Array<Real> * displacement_increment{nullptr};
+
   /// contact forces array
   Array<Real> * contact_force{nullptr};
 
+  /// external forces array
+  Array<Real> * external_force{nullptr};
+  
   /// boundary vector
   Array<Real> * blocked_dofs{nullptr};
 
   /// gaps vector
   Array<Real> * gaps{nullptr};
- 
+
+  /// nodal areas vector
+  Array<Real> * areas{nullptr};
+  
+  /// array of current position used during update residual
+  Array<Real> & current_positions;
+
   /// contact detection
   std::unique_ptr<ContactDetector> detector;
   

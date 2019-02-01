@@ -96,7 +96,7 @@ public:
   /// normalized tangent direction
   Vector<Real> tangent;
 
-  ///
+  /// connectivity of the contact element
   Vector<UInt> connectivity;
   
   /// penetration gap between slave and master 
