@@ -94,7 +94,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::updateEnergies(
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  Matrix<Real> delta_gradu_it(*gradu_it);
+  Matrix<Real> delta_gradu_it(grad_u);
   delta_gradu_it -= *epsilon_p;
 
   Matrix<Real> sigma_h(sigma);
