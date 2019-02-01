@@ -46,4 +46,5 @@
       (2, (cohesive_linear_friction, MaterialCohesiveLinearFriction)))(        \
       (2, (cohesive_linear_uncoupled, MaterialCohesiveLinearUncoupled)))(      \
       (2, (cohesive_bilinear, MaterialCohesiveBilinear)))(                     \
-      (2, (cohesive_exponential, MaterialCohesiveExponential)))
+      (2, (cohesive_exponential, MaterialCohesiveExponential)))(               \
+      (2, (cohesive_bilinear_friction, MaterialCohesiveBilinearFriction)))
