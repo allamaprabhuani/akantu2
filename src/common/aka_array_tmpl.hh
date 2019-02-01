@@ -313,11 +313,16 @@ public:
 
   /// change the size of the Array
   virtual void resize(UInt size) {
-    if (size == 0) {
+    if (size * this->nb_component == 0) {
       free(values);
       values = nullptr;
       this->allocated_size = 0;
     } else {
+      if (this->values == nullptr) {
+        this->allocate(size, this->nb_component);
+        return;
+      }
+
       Int diff = size - allocated_size;
       UInt size_to_allocate = (std::abs(diff) > AKANTU_MIN_ALLOCATION)
                                   ? size
@@ -1216,7 +1221,13 @@ namespace detail {
     ArrayView(ArrayView && array_view) = default;
 
     ArrayView & operator=(const ArrayView & array_view) = default;
-    ArrayView & operator=(ArrayView && array_view) = default;
+    ArrayView & operator=(ArrayView && array_view) {
+      if(&array_view != this) {
+        std::swap(array, array_view.array);
+        std::swap(sizes, array_view.sizes);
+      }
+      return *this;
+    }
 
     decltype(auto) begin() {
       return aka::apply(
