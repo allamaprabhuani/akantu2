@@ -39,10 +39,13 @@ namespace akantu {
  */
 
 /* -------------------------------------------------------------------------- */
-template<UInt dim>
-class MaterialDamageIterativeViscoelastic : public MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell> {
-  using parent = MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell>;
-    /* ------------------------------------------------------------------------ */
+template <UInt dim>
+class MaterialDamageIterativeViscoelastic
+    : public MaterialIterativeStiffnessReduction<dim,
+                                                 MaterialViscoelasticMaxwell> {
+  using parent =
+      MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell>;
+  /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
@@ -89,27 +92,24 @@ protected:
   void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
 
   /// update internal variables accounting for damage level
-  void updateIntVarOnQuad(Matrix<Real> grad_u, Matrix<Real>
-                          previous_grad_u, Tensor3<Real> & sigma_v,
-                          Tensor3<Real> & epsilon_v, Real dam);
+  void updateIntVarOnQuad(Matrix<Real> grad_u, Matrix<Real> previous_grad_u,
+                          Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v,
+                          Real dam);
 
   /// updates energy dissipated due to damage on quad
-  void updateDissipatedEnergyDamageOnQuad( Matrix<Real> grad_u, Matrix<Real> epsilon_p,
-                                           Tensor3<Real> sigma_v, Tensor3<Real> epsilon_v,
-                                           Tensor3<Real> sigma_v_pr, Tensor3<Real> epsilon_v_pr,
-                                           bool damaged, Real dam, Real dam_pr,
-                                           Real & epot, Real & ints,
-                                           Real & edd);
+  void updateDissipatedEnergyDamageOnQuad(
+      Matrix<Real> grad_u, Matrix<Real> epsilon_p, Tensor3<Real> sigma_v,
+      Tensor3<Real> epsilon_v, Tensor3<Real> sigma_v_pr,
+      Tensor3<Real> epsilon_v_pr, Real dam, Real dam_pr,
+      Real & epot, Real & ints, Real & edd);
 
   /// updates potential energy accounting for damage
   void computePotentialEnergyOnQuad(Matrix<Real> grad_u, Real & epot,
                                     Tensor3<Real> sigma_v,
                                     Tensor3<Real> epsilon_v, Real dam);
 
-
   /// compute stresses on a quadrature point
-  void computeStressOnQuad(Matrix<Real> grad_u,
-                           Matrix<Real> previous_grad_u,
+  void computeStressOnQuad(Matrix<Real> grad_u, Matrix<Real> previous_grad_u,
                            Matrix<Real> & sigma, Tensor3<Real> sigma_v,
                            Real sigma_th, Real damage);
 
@@ -120,7 +120,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-    /// give the dissipated due to damage energy
+  /// give the dissipated due to damage energy
   Real getDissipatedEnergyDamage() const;
   Real getDissipatedEnergyDamage(ElementType type, UInt index) const;
 
@@ -135,17 +135,16 @@ public:
 protected:
   using voigt_h = VoigtHelper<dim>;
 
-/// Dissipated energy
-  InternalField<Real> dissipated_energy_damage;
-
   /// Values of viscous stress and stain at last converged step
   InternalField<Real> sigma_v_conv;
   InternalField<Real> epsilon_v_conv;
 
   /// values of converged grad U
   InternalField<Real> gradu_last;
-};
 
+  /// Dissipated energy
+  InternalField<Real> dissipated_energy_damage;
+};
 
 } // namespace akantu
 

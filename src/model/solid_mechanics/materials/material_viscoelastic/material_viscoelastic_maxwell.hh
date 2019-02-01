@@ -131,28 +131,28 @@ public:
   /// compute the elastic potential energy
   void computePotentialEnergy(ElementType el_type,
                               GhostType ghost_type = _not_ghost) override;
+
 protected:
-
   void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u, Real & epot,
-                                    Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v);
-
+                                    Tensor3<Real> & sigma_v,
+                                    Tensor3<Real> & epsilon_v);
 
   /// update the dissipated energy, is called after the stress have been
   /// computed
   void updateDissipatedEnergy(ElementType el_type, GhostType ghost_type);
 
-
   void updateDissipatedEnergyOnQuad(const Matrix<Real> grad_u,
                                     const Matrix<Real> previous_grad_u,
-                                    const Matrix<Real> sigma, const Matrix<Real> previous_sigma,
+                                    const Matrix<Real> sigma,
+                                    const Matrix<Real> previous_sigma,
                                     Real & dis_energy, Real & integral,
                                     Real & mech_work, const Real & pot_energy);
 
   /// compute stresses on a quadrature point
   void computeStressOnQuad(const Matrix<Real> & grad_u,
                            const Matrix<Real> & previous_grad_u,
-                           Matrix<Real> & sigma,
-                           Tensor3<Real> & sigma_v, const Real & sigma_th);
+                           Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
+                           const Real & sigma_th);
 
   /// compute tangent moduli on a quadrature point
   void computeTangentModuliOnQuad(Matrix<Real> & tangent);
@@ -193,7 +193,8 @@ public:
 protected:
   using voigt_h = VoigtHelper<spatial_dimension>;
 
-  /// Vectors of viscosity, viscous elastic modulus, one spring element elastic modulus
+  /// Vectors of viscosity, viscous elastic modulus, one spring element elastic
+  /// modulus
   Vector<Real> Eta;
   Vector<Real> Ev;
   Real Einf;

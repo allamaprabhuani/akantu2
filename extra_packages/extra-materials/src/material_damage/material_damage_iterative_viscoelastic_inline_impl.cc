@@ -3,7 +3,8 @@
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @date   Tue Nov 20 2016
  *
- * @brief  Inline implementation of material iterative stiffness reduction viscoelastic
+ * @brief  Inline implementation of material iterative stiffness reduction
+ * viscoelastic
  *
  * @section LICENSE
  *
@@ -26,8 +27,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_damage_iterative_viscoelastic.hh"
 #include "communicator.hh"
+#include "material_damage_iterative_viscoelastic.hh"
 #include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -35,8 +36,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeTangentModuliOnQuad(
-    Matrix<Real> & tangent, Real & dam) {
+void MaterialDamageIterativeViscoelastic<
+    spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> & tangent,
+                                                   Real & dam) {
 
   Real dt = this->model.getTimeStep();
   Real E_ef = this->Einf * (1 - dam);
@@ -45,22 +47,24 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeTangentModul
     Real lambda = (1 - dam) * this->Eta(k) / this->Ev(k) / (1 - dam);
     Real exp_dt_lambda = std::exp(-dt / lambda);
 
-    if (exp_dt_lambda == 1) {
+    if (Math::are_float_equal(exp_dt_lambda, 1)) {
       E_ef += (1 - dam) * this->Ev(k);
     } else {
-      E_ef += std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(k) * lambda / dt, (1 - dam) * this->Ev(k)); ;
+      E_ef +=
+          std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(k) * lambda / dt,
+                   (1 - dam) * this->Ev(k));
+      ;
     }
   }
 
   tangent.copy(this->C);
   tangent *= E_ef;
-
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateIntVarOnQuad(
-    Matrix<Real> grad_u, Matrix<Real> previous_grad_u,
-    Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v, Real dam) {
+    Matrix<Real> grad_u, Matrix<Real> previous_grad_u, Tensor3<Real> & sigma_v,
+    Tensor3<Real> & epsilon_v, Real dam) {
 
   Matrix<Real> grad_delta_u(grad_u);
   grad_delta_u -= previous_grad_u;
@@ -68,24 +72,25 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateIntVarOnQuad(
   Real dt = this->model.getTimeStep();
   Vector<Real> voigt_delta_strain(voigt_h::size);
   for (UInt I = 0; I < voigt_h::size; ++I) {
-      Real voigt_factor = voigt_h::factors[I];
-      UInt i = voigt_h::vec[I][0];
-      UInt j = voigt_h::vec[I][1];
+    Real voigt_factor = voigt_h::factors[I];
+    UInt i = voigt_h::vec[I][0];
+    UInt j = voigt_h::vec[I][1];
 
-      voigt_delta_strain(I) =
-          voigt_factor * (grad_delta_u(i, j) + grad_delta_u(j, i)) / 2.;
+    voigt_delta_strain(I) =
+        voigt_factor * (grad_delta_u(i, j) + grad_delta_u(j, i)) / 2.;
   }
-
 
   for (UInt k = 0; k < this->Eta.size(); ++k) {
     Real lambda = (1 - dam) * this->Eta(k) / this->Ev(k) / (1 - dam);
     Real exp_dt_lambda = exp(-dt / lambda);
     Real E_ef_v;
 
-    if (exp_dt_lambda == 1) {
+    if (Math::are_float_equal(exp_dt_lambda, 1)) {
       E_ef_v = (1 - dam) * this->Ev(k);
     } else {
-      E_ef_v = std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(k) * lambda / dt, (1 - dam) * this->Ev(k));
+      E_ef_v =
+          std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(k) * lambda / dt,
+                   (1 - dam) * this->Ev(k));
     }
 
     Vector<Real> voigt_sigma_v(voigt_h::size);
@@ -98,10 +103,9 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateIntVarOnQuad(
       voigt_sigma_v(I) = sigma_v(i, j, k);
     }
 
-    voigt_sigma_v = exp_dt_lambda * voigt_sigma_v + E_ef_v * this->C *
-        voigt_delta_strain;
-    voigt_epsilon_v = 1 / this->Ev(k) / (1 - dam) *
-        this->S * voigt_sigma_v;
+    voigt_sigma_v =
+        exp_dt_lambda * voigt_sigma_v + E_ef_v * this->C * voigt_delta_strain;
+    voigt_epsilon_v = 1 / this->Ev(k) / (1 - dam) * this->S * voigt_sigma_v;
 
     for (UInt I = 0; I < voigt_h::size; ++I) {
       Real voigt_factor = voigt_h::factors[I];
@@ -117,7 +121,12 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateIntVarOnQuad(
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateDissipatedEnergyDamageOnQuad( Matrix<Real> grad_u, Matrix<Real> epsilon_p, Tensor3<Real> sigma_v, Tensor3<Real> epsilon_v, Tensor3<Real> sigma_v_pr, Tensor3<Real> epsilon_v_pr, bool damaged, Real dam, Real dam_pr, Real & epot, Real & ints, Real & edd) {
+void MaterialDamageIterativeViscoelastic<spatial_dimension>::
+    updateDissipatedEnergyDamageOnQuad(
+        Matrix<Real> grad_u, Matrix<Real> epsilon_p, Tensor3<Real> sigma_v,
+        Tensor3<Real> epsilon_v, Tensor3<Real> sigma_v_pr,
+        Tensor3<Real> epsilon_v_pr, Real dam, Real dam_pr, Real & epot,
+        Real & ints, Real & edd) {
 
   Matrix<Real> delta_grad_u(grad_u);
   delta_grad_u -= epsilon_p;
@@ -133,11 +142,10 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateDissipatedEne
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
       sigma_h(i, j) = (1 - dam) * ((i == j) * this->lambda * trace_h +
-                                   this->mu * (grad_u(i, j) +
-                                               grad_u(j, i)));
-      sigma_p(i, j) = (1 - dam_pr) * ((i == j) * this->lambda * trace_p +
-                                      this->mu * (epsilon_p(i, j) +
-                                                  epsilon_p(j, i)));
+                                   this->mu * (grad_u(i, j) + grad_u(j, i)));
+      sigma_p(i, j) =
+          (1 - dam_pr) * ((i == j) * this->lambda * trace_p +
+                          this->mu * (epsilon_p(i, j) + epsilon_p(j, i)));
     }
   }
 
@@ -160,19 +168,21 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::updateDissipatedEne
   ints += dint;
 
   /// update dissipated energy only from freshly damaged elements
-  if (damaged) {
-    edd = ints - epot;
-    if (std::abs(edd) < std::numeric_limits<Real>::epsilon())
-      edd = 0;
-  }
+  //  if (damaged) {
+  edd = ints - epot;
+  if (std::abs(edd) < std::numeric_limits<Real>::epsilon())
+    edd = 0;
+  //  }
 }
-
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStressOnQuad(
-    Matrix<Real> grad_u, Matrix<Real> previous_grad_u,
-    Matrix<Real> & sigma, Tensor3<Real> sigma_v, Real sigma_th, Real damage) {
+void MaterialDamageIterativeViscoelastic<
+    spatial_dimension>::computeStressOnQuad(Matrix<Real> grad_u,
+                                            Matrix<Real> previous_grad_u,
+                                            Matrix<Real> & sigma,
+                                            Tensor3<Real> sigma_v,
+                                            Real sigma_th, Real damage) {
 
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
@@ -187,8 +197,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStressOnQuad
     UInt i = voigt_h::vec[I][0];
     UInt j = voigt_h::vec[I][1];
 
-    voigt_current_strain(I) =
-        voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
+    voigt_current_strain(I) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
     voigt_previous_strain(I) =
         voigt_factor * (previous_grad_u(i, j) + previous_grad_u(j, i)) / 2.;
   }
@@ -198,14 +207,16 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStressOnQuad
   Real dt = this->model.getTimeStep();
 
   for (UInt k = 0; k < this->Eta.size(); ++k) {
-    Real lambda = (1 - damage) * this->Eta(k) / this->Ev(k)/ (1 - damage);
+    Real lambda = (1 - damage) * this->Eta(k) / this->Ev(k) / (1 - damage);
     Real exp_dt_lambda = exp(-dt / lambda);
     Real E_additional;
 
-    if (exp_dt_lambda == 1) {
+    if (Math::are_float_equal(exp_dt_lambda, 1)) {
       E_additional = (1 - damage) * this->Ev(k);
     } else {
-      E_additional = std::min((1 - exp_dt_lambda) * (1 - damage) * this->Ev(k) * lambda / dt, (1 - damage) * this->Ev(k));
+      E_additional = std::min((1 - exp_dt_lambda) * (1 - damage) * this->Ev(k) *
+                                  lambda / dt,
+                              (1 - damage) * this->Ev(k));
     }
 
     for (UInt I = 0; I < voigt_h::size; ++I) {
@@ -215,24 +226,27 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStressOnQuad
       voigt_sigma_v(I) = sigma_v(i, j, k);
     }
 
-    voigt_stress += E_additional * this->C * (voigt_current_strain - voigt_previous_strain) +
-        exp_dt_lambda * voigt_sigma_v;
+    voigt_stress += E_additional * this->C *
+                        (voigt_current_strain - voigt_previous_strain) +
+                    exp_dt_lambda * voigt_sigma_v;
   }
 
   for (UInt I = 0; I < voigt_h::size; ++I) {
     UInt i = voigt_h::vec[I][0];
     UInt j = voigt_h::vec[I][1];
 
-    sigma(i, j) = sigma(j, i) =
-        voigt_stress(I) + (i == j) * sigma_th;
+    sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialDamageIterativeViscoelastic<spatial_dimension>::computePotentialEnergyOnQuad(
-    Matrix<Real> grad_u, Real & epot,
-    Tensor3<Real> sigma_v, Tensor3<Real> epsilon_v, Real dam) {
+void MaterialDamageIterativeViscoelastic<
+    spatial_dimension>::computePotentialEnergyOnQuad(Matrix<Real> grad_u,
+                                                     Real & epot,
+                                                     Tensor3<Real> sigma_v,
+                                                     Tensor3<Real> epsilon_v,
+                                                     Real dam) {
 
   Real trace = grad_u.trace(); // trace = (\nabla u)_{kk}
 
@@ -242,8 +256,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computePotentialEne
   for (UInt i = 0; i < spatial_dimension; ++i) {
     for (UInt j = 0; j < spatial_dimension; ++j) {
       sigma(i, j) = (1 - dam) * ((i == j) * this->lambda * trace +
-                                 this->mu * (grad_u(i, j) +
-                                             grad_u(j, i)));
+                                 this->mu * (grad_u(i, j) + grad_u(j, i)));
     }
   }
 

@@ -13,9 +13,9 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#include "material_damage_iterative.hh"
 #include "communicator.hh"
 #include "data_accessor.hh"
+#include "material_damage_iterative.hh"
 #include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -26,10 +26,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-MaterialDamageIterative<spatial_dimension, ElasticParent>::MaterialDamageIterative(
-    SolidMechanicsModel & model, const ID & id)
-    : parent(model, id), Sc("Sc", *this),
-      reduction_step("damage_step", *this),
+MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    MaterialDamageIterative(SolidMechanicsModel & model, const ID & id)
+    : parent(model, id), Sc("Sc", *this), reduction_step("damage_step", *this),
       equivalent_stress("equivalent_stress", *this), max_reductions(0) {
   AKANTU_DEBUG_IN();
 
@@ -59,16 +58,17 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::MaterialDamageIterati
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
-computeNormalizedEquivalentStress(const Array<Real> & /*grad_us*/,
+    computeNormalizedEquivalentStress(const Array<Real> & /*grad_us*/,
                                       ElementType el_type,
                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   /// Vector to store eigenvalues of current stress tensor
   Vector<Real> eigenvalues(spatial_dimension);
 
-  for(auto && data: zip(make_view(this->stress(el_type, ghost_type), spatial_dimension, spatial_dimension),
-                        make_view(Sc(el_type, ghost_type)),
-                        make_view(equivalent_stress(el_type, ghost_type)))) {
+  for (auto && data : zip(make_view(this->stress(el_type, ghost_type),
+                                    spatial_dimension, spatial_dimension),
+                          make_view(Sc(el_type, ghost_type)),
+                          make_view(equivalent_stress(el_type, ghost_type)))) {
 
     const auto & sigma = std::get<0>(data);
     const auto & sigma_crit = std::get<1>(data);
@@ -77,16 +77,16 @@ computeNormalizedEquivalentStress(const Array<Real> & /*grad_us*/,
     sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     sigma_equ = *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
-        sigma_crit;
+                                   eigenvalues.storage() + spatial_dimension)) /
+                sigma_crit;
   }
 
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeAllStresses(
-    GhostType ghost_type) {
+void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeAllStresses(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   /// reset normalized maximum and average equivalent stresses
   if (ghost_type == _not_ghost) {
@@ -102,9 +102,10 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeAllStress
     /// is no RVE model
     const auto & comm = this->model.getMesh().getCommunicator();
     comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
-    comm.allReduce(norm_av_equivalent_stress, SynchronizerOperation::_max); //Emil:
-                                                                            //think
-                                                                            //about it
+    comm.allReduce(norm_av_equivalent_stress,
+                   SynchronizerOperation::_max); // Emil:
+                                                 // think
+                                                 // about it
   }
   AKANTU_DEBUG_OUT();
 }
@@ -113,7 +114,7 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeAllStress
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
     findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
-                                      GhostType ghost_type) {
+                                           GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   if (ghost_type == _not_ghost) {
@@ -180,39 +181,29 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
 
     /// update the damage only on non-ghosts elements! Doesn't make sense to
     /// update on ghost.
-    GhostType ghost_type = _not_ghost;
-    ;
+    auto && element_types =
+        this->model.getFEEngine().getMesh().elementTypes(spatial_dimension);
+    for (auto el_type : element_types) {
+      const auto & equivalent_stresses = equivalent_stress(el_type);
+      auto & reduction_steps = this->reduction_step(el_type);
+      auto & damages = this->damage(el_type);
 
-    Mesh::type_iterator it = this->model.getFEEngine().getMesh().firstType(
-        spatial_dimension, ghost_type);
-    Mesh::type_iterator last_type =
-        this->model.getFEEngine().getMesh().lastType(spatial_dimension,
-                                                     ghost_type);
-
-    for (; it != last_type; ++it) {
-      ElementType el_type = *it;
-
-      const Array<Real> & e_stress = equivalent_stress(el_type);
-      auto equivalent_stress_it = e_stress.begin();
-      auto equivalent_stress_end = e_stress.end();
-      Array<Real> & dam = this->damage(el_type);
-      auto dam_it = dam.begin();
-      auto reduction_it = this->reduction_step(el_type, ghost_type).begin();
-
-      for (; equivalent_stress_it != equivalent_stress_end;
-           ++equivalent_stress_it, ++dam_it, ++reduction_it) {
+      for (auto && data : zip(equivalent_stresses, damages, reduction_steps)) {
+        const auto & equivalent_stress = std::get<0>(data);
+        auto & dam = std::get<1>(data);
+        auto & reduction = std::get<2>(data);
 
         /// check if damage occurs
-        if (*equivalent_stress_it >=
+        if (equivalent_stress >=
             (1 - dam_tolerance) * norm_max_equivalent_stress) {
           /// check if this element can still be damaged
-          if (*reduction_it == this->max_reductions)
+          if (reduction == this->max_reductions)
             continue;
-          *reduction_it += 1;
-          if (*reduction_it == this->max_reductions) {
-            *dam_it = max_damage;
+          reduction += 1;
+          if (reduction == this->max_reductions) {
+            dam = max_damage;
           } else {
-            *dam_it += prescribed_dam;
+            dam += prescribed_dam;
           }
           nb_damaged_elements += 1;
         }
@@ -231,24 +222,24 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-void MaterialDamageIterative<spatial_dimension, ElasticParent>::updateEnergiesAfterDamage(
-    ElementType el_type, GhostType ghost_type) {
+void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    updateEnergiesAfterDamage(ElementType el_type, GhostType ghost_type) {
   parent::updateEnergies(el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline void
-MaterialDamageIterative<spatial_dimension, ElasticParent>::computeDamageAndStressOnQuad(
-    Matrix<Real> & sigma, Real & dam) {
+inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam) {
   sigma *= 1 - dam;
 }
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamageOnQuad(
-    UInt quad_index, const Real /*eq_stress*/, const ElementType & el_type,
-    const GhostType & ghost_type) {
+UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    updateDamageOnQuad(UInt quad_index, const Real /*eq_stress*/,
+                       const ElementType & el_type,
+                       const GhostType & ghost_type) {
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
                       "Your prescribed damage must be greater than zero");
 
@@ -270,7 +261,8 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamageOnQu
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::getNbData(
+inline UInt
+MaterialDamageIterative<spatial_dimension, ElasticParent>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
 
   if (tag == _gst_user_2) {
@@ -295,7 +287,8 @@ inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::packData(
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::unpackData(
+inline void
+MaterialDamageIterative<spatial_dimension, ElasticParent>::unpackData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) {
   if (tag == _gst_user_2) {
@@ -305,7 +298,7 @@ inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::unpackDat
   return parent::unpackData(buffer, elements, tag);
 }
 
-} // akantu
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 
