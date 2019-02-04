@@ -345,7 +345,7 @@ void ContactMechanicsModel::search() {
     }
   }
 
-    this->areas->clear();
+  this->areas->clear();
   this->external_force->clear();
 
   this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
@@ -441,7 +441,6 @@ void ContactMechanicsModel::assembleLumpedMatrix(const ID & matrix_id) {
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
-
  
 dumper::Field * ContactMechanicsModel::createNodalFieldBool(const std::string & field_name,
 							    const std::string & group_name,

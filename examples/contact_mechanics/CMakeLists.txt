@@ -31,7 +31,15 @@
 #===============================================================================
 
 add_mesh(hertz_2d hertz_2d.geo 2 1)
+add_mesh(hertz_implicit_2d hertz_implicit_2d.geo 2 1)
 add_mesh(hertz_3d hertz_3d.geo 3 1)
+
+register_example(implicit_penalty_2d
+  SOURCES implicit_penalty_2d.cc
+  DEPENDS hertz_implicit_2d
+  FILES_TO_COPY material_implicit.dat
+  )
+
 
 register_example(explicit_penalty_2d
   SOURCES explicit_penalty_2d.cc

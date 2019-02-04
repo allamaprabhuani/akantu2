@@ -67,7 +67,7 @@ void ContactDetector::parseSection() {
     *(parser.getSubSections(ParserType::_contact_detector).first);
 
   auto type = section.getParameterValue<std::string>("type");
-  if (type == "implict") {
+  if (type == "implicit") {
     this->detection_type = _implicit;
   }
   else if (type == "explicit"){
@@ -111,7 +111,7 @@ void ContactDetector::getMaximalDetectionDistance() {
 		      << max_el_size );    
   }
 
-  this->max_dd = 2.0 * max_el_size;
+  this->max_dd = max_el_size;
   this->max_bb = max_el_size;
   
   AKANTU_DEBUG_OUT();
@@ -259,9 +259,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 	    closet_master_node = q2;
 	    closet_distance = distance;
 	  }
-	}
-
-	
+	}	
       }
 	
       slave_nodes.push_back(q1);
@@ -289,7 +287,8 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
     auto minimum = std::min_element( gaps->begin(), gaps->end());
     auto index   = std::distance(    gaps->begin(), minimum);
        
-    Vector<UInt> master_conn = this->mesh.getConnectivity(elements[index]);
+    Vector<UInt> master_conn =
+      this->mesh.getConnectivity(elements[index]);
 
     Vector<UInt> elem_conn(master_conn.size() + 1);
     elem_conn[0] = slave_node;
@@ -345,10 +344,9 @@ void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt> & node
   auto & upper_bound = bbox.getUpperBounds();
 
   for (UInt s: arange(spatial_dimension)) {
-      lower_bound(s) -= this->max_bb;
-      upper_bound(s) += this->max_bb;
+    lower_bound(s) -= this->max_bb;
+    upper_bound(s) += this->max_bb;
   }
-  
   
   AKANTU_DEBUG_INFO("BBox" << bbox);
 }
@@ -383,6 +381,7 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
     auto & natural_projection = std::get<3>(values);
     
     this->computeNormalOnElement(element, normal);
+
     Vector<Real> real_projection(spatial_dimension);
     this->computeProjectionOnElement(element, normal, query,
 				     natural_projection, real_projection);

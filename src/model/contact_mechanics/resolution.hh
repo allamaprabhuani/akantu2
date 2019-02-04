@@ -80,9 +80,6 @@ protected:
   /// computes coordinates of a given element
   void computeCoordinates(const Element & , Matrix<Real> &);
 
-  /// 
-  void computeTalpha(Array<Real> & , Vector<Real> & , Array<Real> & );
-
   /// computes tangents
   void computeTangents(Matrix<Real> & /* shapes_derivatives */,
 		       Matrix<Real> &  /* global_coords */,
@@ -93,7 +90,7 @@ protected:
 			    Matrix<Real> & /* surface_matrix */);
 
   /// computes N array
-  void computeN(Array<Real>  & /* n */,
+  void computeN(Vector<Real>  & /* n */,
 		Vector<Real> & /* shapes */,
 		Vector<Real> & /* normal */);
 
@@ -101,6 +98,11 @@ protected:
   void computeNalpha(Array<Real>  & /* n_alpha */,
 		     Matrix<Real> & /* shapes_derivatives */,
 		     Vector<Real> & /* normal */);
+
+  /// computes T_{\alpha} where \alpha is surface dimenion
+  void computeTalpha(Array<Real> & ,
+		     Vector<Real> & ,
+		     Matrix<Real> & );
 
   /// computes D_{\alpha} where \alpha is number of surface dimensions
   void computeDalpha(Array<Real> & /* d_alpha */,
@@ -115,20 +117,20 @@ protected:
 protected:
   /// computes the normal force
   virtual void computeNormalForce(__attribute__((unused)) Vector<Real> & /* force */,
-				  __attribute__((unused)) Array<Real>  & /* n */,
+				  __attribute__((unused)) Vector<Real>  & /* n */,
 				  __attribute__((unused)) Real & /* gap */) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the friction force
   virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & /* force */,
-				    __attribute__((unused)) Array<Real>  & /* d_alpha  */,
+				    __attribute__((unused)) Array<Real> & /* d_alpha  */,
 				    __attribute__((unused)) Real & /* gap */) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent moduli
-  virtual void computeTangentModuli(__attribute__((unused)) Array<Real> & /* n */,
+  virtual void computeTangentModuli(__attribute__((unused)) Vector<Real> & /* n */,
 				    __attribute__((unused)) Array<Real> & /* n_alpha */,
 				    __attribute__((unused)) Array<Real> & /* t_alpha */,
 				    __attribute__((unused)) Array<Real> & /* d_alpha */,

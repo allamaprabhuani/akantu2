@@ -50,21 +50,27 @@ protected:
   void initialize();
   
   /// local computation of stifnness matrix due to normal stress
-  void computeNormalStiffness(Array<Real> & n,
-			      Array<Real>  & n_alpha, Array<Real> & d_alpha,
+  void computeNormalStiffness(Vector<Real>  & n,
+			      Array<Real>  & n_alpha,
+			      Array<Real>  & d_alpha,
+			      Matrix<Real>  & surface_matrix,
 			      Real & gap);
   
   /// local computation of stiffness matrix due to frictional stress 
-  void computeFrictionalStiffness(Array<Real> & n,
-				  Array<Real>  & n_alpha, Array<Real> & d_alpha,
+  void computeFrictionalStiffness(Vector<Real> & n,
+				  Array<Real>  & n_alpha,
+				  Array<Real> & d_alpha,
 				  Real & gap);
+
+  /// computation of frictional tractions
+  void computeFrictionalTraction(Vector<Real> & tractions);
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli
-  void computeTangentModuli(Array<Real> & /* N */,
+  void computeTangentModuli(Vector<Real> & /* N */,
 			    Array<Real> & /* N_alpha */,
 			    Array<Real> & /* T_alpha */,
 			    Array<Real> & /* D_alpha */,
@@ -74,7 +80,7 @@ public:
   
   /// local computation of normal force
   void computeNormalForce(Vector<Real> &  /* force vector  */,
-			  Array<Real> &   /* n   */,
+			  Vector<Real> &   /* n   */,
 			  Real & /* gap */) override;
   
   /// local computation of friction force
