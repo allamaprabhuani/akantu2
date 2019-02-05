@@ -88,7 +88,7 @@ public:
   void homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro);
 
   /// compute damage volume in different phases
-  void computeDamageRatio(Real & damage/*, Real & dam_paste, Real & dam_agg*/);
+  void computeDamageRatio(Real & damage /*, Real & dam_paste, Real & dam_agg*/);
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -188,7 +188,18 @@ public:
 
     Mesh & mesh = this->model.getMesh();
     UInt spatial_dimension = model.getSpatialDimension();
-    Element el{_triangle_3, 0, _not_ghost};
+//    Element el{_triangle_3, 0, _not_ghost};
+    Element el;
+    switch (spatial_dimension) {
+    case 2: {
+      el = {_triangle_3, 0, _not_ghost};
+      break;
+    }
+    case 3: {
+      el = {_hexahedron_8, 0, _not_ghost};
+      break;
+    }
+    }
     UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
     Array<Real> barycenter(nb_element, spatial_dimension);
 

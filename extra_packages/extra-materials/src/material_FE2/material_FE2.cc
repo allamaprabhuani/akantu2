@@ -18,7 +18,6 @@
 #include "aka_iterators.hh"
 #include "communicator.hh"
 #include "solid_mechanics_model_RVE.hh"
-
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -29,7 +28,8 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), C("material_stiffness", *this),
       gelstrain("gelstrain", *this), non_reacted_gel("non_reacted_gel", *this),
-      damage_ratio("damage_ratio", *this), damage_ratio_paste("damage_ratio_paste", *this),
+      damage_ratio("damage_ratio", *this),
+      damage_ratio_paste("damage_ratio_paste", *this),
       damage_ratio_agg("damage_ratio_agg", *this) {
   AKANTU_DEBUG_IN();
 
@@ -205,17 +205,8 @@ void MaterialFE2<spatial_dimension>::advanceASR(
     /// gradient
     RVE.applyBoundaryConditions(std::get<1>(data));
 
-    /// apply homogeneous temperature field to each RVE to obtain thermoelastic
-    /// effect
-    RVE.applyHomogeneousTemperature(std::get<4>(data));
-
     /// advance the ASR in every RVE
     RVE.advanceASR(prestrain);
-
-    /// remove temperature field - not to mess up with the stiffness
-    /// homogenization
-    /// further
-    RVE.removeTemperature();
 
     /// compute the average eigen_grad_u
     RVE.homogenizeEigenGradU(std::get<2>(data));
@@ -269,8 +260,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
                                                 std::get<9>(data)*/);
 
     /// remove temperature field - not to mess up with the stiffness
-    /// homogenization
-    /// further
+    /// homogenization further
     RVE.removeTemperature();
 
     /// compute the average eigen_grad_u
@@ -350,12 +340,28 @@ Real MaterialFE2<spatial_dimension>::computeAverageGelStrain() {
   Real av_gelstrain = 0;
   UInt nb_RVEs = 0;
 
-  for (auto && data : enumerate(make_view(this->gelstrain(this->el_type),
-                                          spatial_dimension, spatial_dimension))) {
+  for (auto && data :
+       enumerate(make_view(this->gelstrain(this->el_type), spatial_dimension,
+                           spatial_dimension))) {
     av_gelstrain += std::get<1>(data)(0, 0);
     nb_RVEs = std::get<0>(data) + 1;
   }
   return av_gelstrain /= nb_RVEs;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------------
+ */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::setDirectoryToRveDumper(
+    const std::string & directory) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && data : RVEs) {
+    /// set default directory to all RVEs
+    data->setDirectory(directory);
+  }
 
   AKANTU_DEBUG_OUT();
 }

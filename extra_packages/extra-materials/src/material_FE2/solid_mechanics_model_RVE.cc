@@ -188,9 +188,8 @@ void SolidMechanicsModelRVE::applyHomogeneousTemperature(
   for (UInt m = 0; m < this->getNbMaterials(); ++m) {
     Material & mat = this->getMaterial(m);
 
-    auto && element_types =
-        mat.getElementFilter().elementTypes(spatial_dimension);
-    for (auto el_type : element_types) {
+    for (auto el_type :
+         mat.getElementFilter().elementTypes(spatial_dimension)) {
 
       const auto & filter = mat.getElementFilter()(el_type);
       if (filter.size() == 0)
@@ -212,9 +211,8 @@ void SolidMechanicsModelRVE::removeTemperature() {
   for (UInt m = 0; m < this->getNbMaterials(); ++m) {
     Material & mat = this->getMaterial(m);
 
-    auto && element_types =
-        mat.getElementFilter().elementTypes(spatial_dimension);
-    for (auto el_type : element_types) {
+    for (auto el_type :
+         mat.getElementFilter().elementTypes(spatial_dimension)) {
 
       const auto & filter = mat.getElementFilter()(el_type);
       if (filter.size() == 0)

@@ -87,6 +87,9 @@ public:
   /// compute amount of gel strain averaged across all RVEs
   Real computeAverageGelStrain();
 
+  /// set default dumper directory to all rves
+  void setDirectoryToRveDumper(const std::string & directory);
+
 private:
   void initialize();
 
