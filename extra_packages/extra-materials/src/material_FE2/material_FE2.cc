@@ -295,8 +295,7 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrain(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* --------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
     const Real & delta_time, const Real & T, Matrix<Real> & gelstrain,
@@ -325,8 +324,7 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ----------------------------------------------------------- */
 template <UInt spatial_dimension>
 Real MaterialFE2<spatial_dimension>::computeAverageGelStrain() {
   AKANTU_DEBUG_IN();
@@ -340,6 +338,10 @@ Real MaterialFE2<spatial_dimension>::computeAverageGelStrain() {
     av_gelstrain += std::get<1>(data)(0, 0);
     nb_RVEs = std::get<0>(data) + 1;
   }
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(av_gelstrain, SynchronizerOperation::_sum);
+  comm.allReduce(nb_RVEs, SynchronizerOperation::_sum);
+
   return av_gelstrain /= nb_RVEs;
 
   AKANTU_DEBUG_OUT();
