@@ -28,9 +28,7 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), C("material_stiffness", *this),
       gelstrain("gelstrain", *this), non_reacted_gel("non_reacted_gel", *this),
-      damage_ratio("damage_ratio", *this),
-      damage_ratio_paste("damage_ratio_paste", *this),
-      damage_ratio_agg("damage_ratio_agg", *this) {
+      damage_ratio("damage_ratio", *this) {
   AKANTU_DEBUG_IN();
 
   this->C.initialize(voigt_h::size * voigt_h::size);
@@ -38,8 +36,6 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
   this->non_reacted_gel.initialize(1);
   this->non_reacted_gel.setDefaultValue(1.0);
   this->damage_ratio.initialize(1);
-  this->damage_ratio_paste.initialize(1);
-  this->damage_ratio_agg.initialize(1);
   this->initialize();
 
   AKANTU_DEBUG_OUT();
@@ -233,8 +229,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
            this->delta_T(this->el_type),
            make_view(this->gelstrain(this->el_type), spatial_dimension,
                      spatial_dimension),
-           this->non_reacted_gel(this->el_type), this->damage_ratio(this->el_type)/*,
-                                                                           this->dam_paste(this->el_type), this->dam_agg(this->el_type)*/)) {
+           this->non_reacted_gel(this->el_type), this->damage_ratio(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
 
     /// apply boundary conditions based on the current macroscopic displ.
@@ -256,8 +251,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
     RVE.advanceASR(std::get<5>(data));
 
     /// compute damage volume in each rve
-    RVE.computeDamageRatio(std::get<7>(data)/*, std::get<8>(data),
-                                                std::get<9>(data)*/);
+    RVE.computeDamageRatio(std::get<7>(data));
 
     /// remove temperature field - not to mess up with the stiffness
     /// homogenization further

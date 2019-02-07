@@ -88,7 +88,7 @@ public:
   void homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro);
 
   /// compute damage volume in different phases
-  void computeDamageRatio(Real & damage /*, Real & dam_paste, Real & dam_agg*/);
+  void computeDamageRatio(Real & damage);
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */

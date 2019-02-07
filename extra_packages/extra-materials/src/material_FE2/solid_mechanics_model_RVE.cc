@@ -641,11 +641,8 @@ void SolidMechanicsModelRVE::drainCracks(
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelRVE::computeDamageRatio(Real & damage_ratio /*, Real & dam_paste,
-                                                               Real & dam_agg*/) {
+void SolidMechanicsModelRVE::computeDamageRatio(Real & damage_ratio) {
   damage_ratio = 0.;
-  //  dam_paste = 0.;
-  //  dam_agg = 0.;
 
   for (auto && mat : materials) {
     if (mat->getName() == "gel" || mat->getName() == "FE2_mat")
@@ -666,17 +663,10 @@ void SolidMechanicsModelRVE::computeDamageRatio(Real & damage_ratio /*, Real & d
 
       damage_ratio +=
           fe_engine.integrate(damage_array, element_type, gt, filter);
-      /*
-            if (mat->getName() == "paste")
-              dam_paste += fe_engine.integrate(damage, element_type, gt,
-         filter); if (mat->getName() == "aggregate") dam_agg +=
-         fe_engine.integrate(damage, element_type, gt, filter); */
     }
   }
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+//  auto && comm = akantu::Communicator::getWorldCommunicator();
+//  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
   damage_ratio /= this->volume;
-  // comm.allReduce(dam_paste, SynchronizerOperation::_sum);
-  // comm.allReduce(dam_agg, SynchronizerOperation::_sum);
 }
 } // namespace akantu

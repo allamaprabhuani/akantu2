@@ -139,8 +139,6 @@ protected:
   InternalField<Real> non_reacted_gel;
 
   InternalField<Real> damage_ratio;
-  InternalField<Real> damage_ratio_paste;
-  InternalField<Real> damage_ratio_agg;
 };
 
 /* -------------------------------------------------------------------------- */
