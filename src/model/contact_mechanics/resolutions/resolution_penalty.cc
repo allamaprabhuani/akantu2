@@ -82,16 +82,17 @@ void ResolutionPenalty::computeFrictionalTraction(Vector<Real> & tractions) {
 }
   
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeTangentModuli(Vector<Real> & n, Array<Real> & n_alpha,
-					     Array<Real> & t_alpha, Array<Real> & d_alpha,
-					     Matrix<Real> & surface_matrix, Real & gap)  {
-  computeNormalStiffness(n, n_alpha, d_alpha, surface_matrix, gap);
+void ResolutionPenalty::computeTangentModuli(Matrix<Real> & kc, Vector<Real> & n,
+					     Array<Real> & n_alpha, Array<Real> & d_alpha,
+					     Matrix<Real> & surface_matrix,
+					     Real & gap)  {
+  computeNormalStiffness(kc, n, n_alpha, d_alpha, surface_matrix, gap);
   computeFrictionalStiffness(n, n_alpha, d_alpha, gap);
 }
 
   
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeNormalStiffness(Vector<Real> & n,
+void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & kc, Vector<Real> & n,
 					       Array<Real> & n_alpha, Array<Real> & d_alpha,
 					       Matrix<Real> & surface_matrix, Real & gap) {
 

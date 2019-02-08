@@ -50,10 +50,11 @@ protected:
   void initialize();
   
   /// local computation of stifnness matrix due to normal stress
-  void computeNormalStiffness(Vector<Real>  & n,
+  void computeNormalStiffness(Matrix<Real> & kc,
+			      Vector<Real> & n,
 			      Array<Real>  & n_alpha,
 			      Array<Real>  & d_alpha,
-			      Matrix<Real>  & surface_matrix,
+			      Matrix<Real> & surface_matrix,
 			      Real & gap);
   
   /// local computation of stiffness matrix due to frictional stress 
@@ -70,10 +71,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli
-  void computeTangentModuli(Vector<Real> & /* N */,
-			    Array<Real> & /* N_alpha */,
-			    Array<Real> & /* T_alpha */,
-			    Array<Real> & /* D_alpha */,
+  void computeTangentModuli(Matrix<Real> &,
+			    Vector<Real> & /* N */,
+			    Array<Real>  & /* N_alpha */,
+			    Array<Real>  & /* D_alpha */,
 			    Matrix<Real> & /* A matrix */,
 			    Real & /* gap */
 			    ) override;

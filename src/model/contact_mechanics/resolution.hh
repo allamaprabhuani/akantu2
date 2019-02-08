@@ -130,9 +130,9 @@ protected:
   }
 
   /// compute the tangent moduli
-  virtual void computeTangentModuli(__attribute__((unused)) Vector<Real> & /* n */,
+  virtual void computeTangentModuli(__attribute__((unused)) Matrix<Real> &,
+				    __attribute__((unused)) Vector<Real> & /* n */,
 				    __attribute__((unused)) Array<Real> & /* n_alpha */,
-				    __attribute__((unused)) Array<Real> & /* t_alpha */,
 				    __attribute__((unused)) Array<Real> & /* d_alpha */,
 				    __attribute__((unused)) Matrix<Real> & /* A */,
 				    __attribute__((unused)) Real & /* gap */) {

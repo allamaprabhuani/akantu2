@@ -31,6 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "resolution.hh"
 #include "contact_mechanics_model.hh"
+#include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -158,7 +159,7 @@ void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & contact_stiffness =
-    model.getDOFManager().getMatrix("K");
+    const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
 
   const auto slave_nodes =
     model.getMesh().getElementGroup(name).getNodes();
@@ -215,23 +216,25 @@ void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
     computeNalpha( n_alpha,  shapes_derivatives, normal);
     computeDalpha( d_alpha,  n_alpha,  t_alpha,  surface_matrix, gap);
 
-    //computeTangentModuli(n, n_alpha, t_alpha, d_alpha, gap);
+    Matrix<Real> kc(connectivity.size() * spatial_dimension,
+		    connectivity.size() * spatial_dimension);
+    computeTangentModuli(kc, n, n_alpha, d_alpha, surface_matrix, gap);
 
-    /*std::vector<UInt> equations;
-    UInt nb_degree_of_freedom = Model::spatial_dimension;
+    std::vector<UInt> equations;
+    UInt nb_degree_of_freedom = model.getSpatialDimension();
     for (UInt i : arange(connectivity.size())) {
       UInt n = connectivity[i];
       for (UInt j : arange(nb_degree_of_freedom))
-	equations.push_back(n * degree_of_freedom + j);
+	equations.push_back(n * nb_degree_of_freedom + j);
     }
     
     for (UInt i : arange(kc.rows())) {
       UInt row = equations[i];
       for (UInt j : arange(kc.cols())) {
 	UInt col = equations[j];
-	contact_stiffness(row, col) += kc(i, j);
+	contact_stiffness.add(row, col, kc(i, j));
       }	
-      }*/
+    }
   }
   
   AKANTU_DEBUG_OUT();
@@ -284,7 +287,7 @@ void Resolution::computeN(Vector<Real> & n, Vector<Real> & shapes, Vector<Real> 
 void Resolution::computeTalpha(Array<Real> & t_alpha, Vector<Real> & shapes,
 			       Matrix<Real> & tangents) {
  
-  /*for (auto && values:
+  for (auto && values:
 	  zip(tangents.transpose(),
 	      make_view(t_alpha, t_alpha.size()))) {
 
@@ -296,14 +299,14 @@ void Resolution::computeTalpha(Array<Real> & t_alpha, Vector<Real> & shapes,
 	 t_s[(1 + j)*spatial_dimension + i] = -shapes[j] * tangent(i);
        }
      }
-  }*/
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 void Resolution::computeNalpha(Array<Real> & n_alpha, Matrix<Real> & shapes_derivatives,
 			       Vector<Real> & normal) {
 
-  /*for (auto && values:
+  for (auto && values:
 	 zip(shapes_derivatives.transpose(),
 	     make_view(n_alpha, n_alpha.size()))) {
     auto & dnds  = std::get<0>(values);       
@@ -314,7 +317,7 @@ void Resolution::computeNalpha(Array<Real> & n_alpha, Matrix<Real> & shapes_deri
 	n_s[(1 + j)*spatial_dimension + i] = -shapes_derivatives[j]*normal[i];
       }
     }
-    }*/
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -322,13 +325,14 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
 			       Array<Real> & t_alpha, Matrix<Real> & surface_matrix,
 			       Real & gap) {
 
-  /*for (auto && entry : zip(surface_matrix.transpose(),
+  for (auto && entry : zip(surface_matrix.transpose(),
 			   make_view(d_alpha, d_alpha.size()))) {
     auto & a_s = std::get<0>(entry);
     auto & d_s = std::get<1>(entry);
     for (auto && values :
-	   enumerate(make_view(t_alpha, t_alpha.size()),
-		     make_view(n_alpha, n_alpha.size()))) {
+	   zip(arange(t_alpha.size()),
+	       make_view(t_alpha, t_alpha.size()),
+	       make_view(n_alpha, n_alpha.size()))) {
       auto & index = std::get<0>(values);
       auto & t_s   = std::get<1>(values);
       auto & n_s   = std::get<2>(values);
@@ -336,7 +340,7 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
       d_s += (t_s + gap  * n_s);
       d_s *= a_s(index);
     }
-    }*/
+  }
 }
 
   

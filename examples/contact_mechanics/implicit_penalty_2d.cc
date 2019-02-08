@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
   model.dump();
 
   model.assembleInternalForces();
+  model.assembleStiffnessMatrix();
   
   model.dump();
   

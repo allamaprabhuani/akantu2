@@ -36,17 +36,18 @@
 #include "non_linear_solver.hh"
 #include "contact_mechanics_model.hh"
 #include "solid_mechanics_model.hh"
+#include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 
 int main(int argc, char *argv[]) {
   
-  initialize("material.dat", argc, argv);
+  initialize("material_implicit.dat", argc, argv);
   const UInt spatial_dimension = 2;
 
   Mesh mesh(spatial_dimension);
-  mesh.read("hertz_2d.msh");
+  mesh.read("hertz_implicit_2d.msh");
 
   SolidMechanicsModel solid(mesh);
   solid.initFull(_analysis_method = _static);
@@ -66,14 +67,20 @@ int main(int argc, char *argv[]) {
   solver.set("max_iterations", 1000);
   solver.set("threshold", 1e-8);
   solver.set("convergence_type", _scc_residual);
+
   
-  solid.solveStep();
+  auto & solid_stiffness =
+    const_cast<SparseMatrix &>(solid.getDOFManager().getNewMatrix("K", _symmetric));
+  
+  solid.assembleInternalForces();
+  solid.assembleStiffnessMatrix();
+  //solid.solveStep();
   //solid.dump();
 
   auto current_position = solid.getCurrentPosition();
 
   ContactMechanicsModel contact(mesh, current_position);
-  contact.initFull(_analysis_method = _explicit_contact);
+  contact.initFull(_analysis_method = _implicit_contact);
   
   contact.setBaseNameToDumper("contact_mechanics", "contact");
   contact.addDumpFieldVectorToDumper("contact_mechanics", "contact_force");
@@ -84,7 +91,8 @@ int main(int argc, char *argv[]) {
   
   contact.search();   
   contact.assembleInternalForces();
-
+  contact.assembleStiffnessMatrix();
+  
   contact.dump("paraview_all");
   contact.dump("contact_mechanics");
   
@@ -106,6 +114,14 @@ int main(int argc, char *argv[]) {
     
   }
 
+  auto & contact_stiffness =
+    const_cast<SparseMatrix &>(contact.getDOFManager().getMatrix("K"));
+  
+  //auto & solid_stiffness =
+  //  const_cast<SparseMatrix &>(solid.getDOFManager().getNewMatrix("K", _symmetric));
+
+  solid_stiffness.add(contact_stiffness);
+    
   solid.solveStep();
   contact.dump("paraview_all");
   

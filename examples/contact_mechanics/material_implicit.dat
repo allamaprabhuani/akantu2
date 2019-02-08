@@ -20,5 +20,5 @@ contact_detector [
 
 contact_resolution penalty [
   name = contact_surface
-  epsilon = 10.0
+  epsilon = 100
 ]
