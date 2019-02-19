@@ -128,9 +128,8 @@ protected:
   }
 
 #ifndef SWIG
-  template <class Other,
-            typename = std::enable_if_t<
-                tensors::is_copyable<TensorProxy, Other>::value>>
+  template <class Other, typename = std::enable_if_t<
+                             tensors::is_copyable<TensorProxy, Other>::value>>
   explicit TensorProxy(const Other & other) {
     this->values = other.storage();
     for (UInt i = 0; i < ndim; ++i)
@@ -141,9 +140,9 @@ public:
   using RetType = _RetType;
 
   UInt size(UInt i) const {
-    AKANTU_DEBUG_ASSERT(i < ndim,
-                        "This tensor has only " << ndim << " dimensions, not "
-                                                << (i + 1));
+    AKANTU_DEBUG_ASSERT(i < ndim, "This tensor has only " << ndim
+                                                          << " dimensions, not "
+                                                          << (i + 1));
     return n[i];
   }
 
@@ -157,9 +156,8 @@ public:
   T * storage() const { return values; }
 
 #ifndef SWIG
-  template <class Other,
-            typename = std::enable_if_t<
-                tensors::is_copyable<TensorProxy, Other>::value>>
+  template <class Other, typename = std::enable_if_t<
+                             tensors::is_copyable<TensorProxy, Other>::value>>
   inline TensorProxy & operator=(const Other & other) {
     AKANTU_DEBUG_ASSERT(
         other.size() == this->size(),
@@ -442,9 +440,9 @@ public:
   T * storage() const { return values; }
   UInt size() const { return _size; }
   UInt size(UInt i) const {
-    AKANTU_DEBUG_ASSERT(i < ndim,
-                        "This tensor has only " << ndim << " dimensions, not "
-                                                << (i + 1));
+    AKANTU_DEBUG_ASSERT(i < ndim, "This tensor has only " << ndim
+                                                          << " dimensions, not "
+                                                          << (i + 1));
     return n[i];
   };
   /* ------------------------------------------------------------------------ */
@@ -657,7 +655,8 @@ public:
   inline Vector<T> & operator/=(Real x) { return parent::operator/=(x); }
   /* ------------------------------------------------------------------------ */
   inline Vector<T> & operator*=(const Vector<T> & vect) {
-    AKANTU_DEBUG_ASSERT(this->_size == vect._size, "The vectors have non matching sizes");
+    AKANTU_DEBUG_ASSERT(this->_size == vect._size,
+                        "The vectors have non matching sizes");
     T * a = this->storage();
     T * b = vect.storage();
     for (UInt i = 0; i < this->_size; ++i)
@@ -1023,7 +1022,8 @@ private:
 
 public:
   /* ---------------------------------------------------------------------- */
-  inline void eig(Vector<T> & eigenvalues, Matrix<T> & eigenvectors) const {
+  inline void eig(Vector<T> & eigenvalues, Matrix<T> & eigenvectors,
+                  bool reorder = true) const {
     AKANTU_DEBUG_ASSERT(this->cols() == this->rows(),
                         "eig is not a valid operation on a rectangular matrix");
     AKANTU_DEBUG_ASSERT(eigenvalues.size() == this->cols(),
@@ -1047,28 +1047,34 @@ public:
       Math::matrixEig(tmp.cols(), tmp.storage(), tmp_eigs.storage(),
                       tmp_eig_vects.storage());
 
-    Vector<UInt> perm(eigenvalues.size());
-    for (UInt i = 0; i < perm.size(); ++i)
-      perm(i) = i;
+    if (reorder) {
+      Vector<UInt> perm(eigenvalues.size());
+      for (UInt i = 0; i < perm.size(); ++i)
+        perm(i) = i;
 
-    std::sort(perm.storage(), perm.storage() + perm.size(),
-              EigenSorter(tmp_eigs));
+      std::sort(perm.storage(), perm.storage() + perm.size(),
+                EigenSorter(tmp_eigs));
 
-    for (UInt i = 0; i < perm.size(); ++i)
-      eigenvalues(i) = tmp_eigs(perm(i));
+      for (UInt i = 0; i < perm.size(); ++i)
+        eigenvalues(i) = tmp_eigs(perm(i));
 
-    if (tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0)
-      for (UInt i = 0; i < perm.size(); ++i) {
-        for (UInt j = 0; j < eigenvectors.rows(); ++j) {
-          eigenvectors(j, i) = tmp_eig_vects(j, perm(i));
+      if (tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0)
+        for (UInt i = 0; i < perm.size(); ++i) {
+          for (UInt j = 0; j < eigenvectors.rows(); ++j) {
+            eigenvectors(j, i) = tmp_eig_vects(j, perm(i));
+          }
         }
-      }
+    } else {
+      eigenvalues = tmp_eigs;
+      if (tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0)
+        eigenvectors = tmp_eig_vects;
+    }
   }
 
   /* ---------------------------------------------------------------------- */
-  inline void eig(Vector<T> & eigenvalues) const {
+  inline void eig(Vector<T> & eigenvalues, bool reorder = true) const {
     Matrix<T> empty;
-    eig(eigenvalues, empty);
+    eig(eigenvalues, empty, reorder);
   }
 
   /* ---------------------------------------------------------------------- */
@@ -1211,7 +1217,8 @@ inline void Vector<T>::mul(const Matrix<T> & A, const Vector<T> & x,
                          0., this->storage());
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <typename T>
 inline std::ostream & operator<<(std::ostream & stream,
                                  const Matrix<T> & _this) {
@@ -1219,7 +1226,8 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <typename T>
 inline std::ostream & operator<<(std::ostream & stream,
                                  const Vector<T> & _this) {
@@ -1250,7 +1258,8 @@ public:
   Tensor3(const proxy & src) : parent(src) {}
 
 public:
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   inline Tensor3 & operator=(const Tensor3 & src) {
     parent::operator=(src);
     return *this;
@@ -1308,9 +1317,11 @@ public:
   }
 };
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 // support operations for the creation of other vectors
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <typename T>
 Vector<T> operator*(const T & scalar, const Vector<T> & a) {
   Vector<T> r(a);
@@ -1360,7 +1371,8 @@ Vector<T> operator*(const Matrix<T> & A, const Vector<T> & b) {
   return r;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <typename T>
 Matrix<T> operator*(const T & scalar, const Matrix<T> & a) {
   Matrix<T> r(a);
