@@ -665,8 +665,6 @@ void SolidMechanicsModelRVE::computeDamageRatio(Real & damage_ratio) {
           fe_engine.integrate(damage_array, element_type, gt, filter);
     }
   }
-//  auto && comm = akantu::Communicator::getWorldCommunicator();
-//  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
   damage_ratio /= this->volume;
 }
 } // namespace akantu

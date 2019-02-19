@@ -187,47 +187,44 @@ public:
     paste_material_id = model.getMaterialIndex(paste_material);
 
     Mesh & mesh = this->model.getMesh();
-    UInt spatial_dimension = model.getSpatialDimension();
-//    Element el{_triangle_3, 0, _not_ghost};
-    Element el;
-    switch (spatial_dimension) {
-    case 2: {
-      el = {_triangle_3, 0, _not_ghost};
-      break;
-    }
-    case 3: {
-      el = {_hexahedron_8, 0, _not_ghost};
-      break;
-    }
-    }
-    UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
-    Array<Real> barycenter(nb_element, spatial_dimension);
+    UInt dim = model.getSpatialDimension();
+    //    Element el{_triangle_3, 0, _not_ghost};
+    for (auto el_type :
+         model.getMaterial("aggregate").getElementFilter().elementTypes(dim)) {
 
-    for (auto && data : enumerate(make_view(barycenter, spatial_dimension))) {
-      el.element = std::get<0>(data);
-      auto & bary = std::get<1>(data);
-      mesh.getBarycenter(el, bary);
-    }
+      const auto & filter = model.getMaterial("aggregate").getElementFilter()(el_type);
+      if (!filter.size() == 0)
+        AKANTU_EXCEPTION("Check the element type for aggregate material");
 
-    /// generate the gel pockets
-    srand(0.);
-    Vector<Real> center(spatial_dimension);
-    UInt placed_gel_pockets = 0;
-    std::set<int> checked_baries;
-    while (placed_gel_pockets != nb_gel_pockets) {
-      /// get a random bary center
-      UInt bary_id = rand() % nb_element;
-      if (checked_baries.find(bary_id) != checked_baries.end())
-        continue;
-      checked_baries.insert(bary_id);
-      el.element = bary_id;
-      if (MeshDataMaterialSelector<std::string>::operator()(el) ==
-          paste_material_id)
-        continue; /// element belongs to paste
-      gel_pockets.push_back(el);
-      placed_gel_pockets += 1;
-    }
+      Element el{el_type, 0, _not_ghost};
+      UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
+      Array<Real> barycenter(nb_element, dim);
 
+      for (auto && data : enumerate(make_view(barycenter, dim))) {
+        el.element = std::get<0>(data);
+        auto & bary = std::get<1>(data);
+        mesh.getBarycenter(el, bary);
+      }
+
+      /// generate the gel pockets
+      srand(0.);
+      Vector<Real> center(dim);
+      UInt placed_gel_pockets = 0;
+      std::set<int> checked_baries;
+      while (placed_gel_pockets != nb_gel_pockets) {
+        /// get a random bary center
+        UInt bary_id = rand() % nb_element;
+        if (checked_baries.find(bary_id) != checked_baries.end())
+          continue;
+        checked_baries.insert(bary_id);
+        el.element = bary_id;
+        if (MeshDataMaterialSelector<std::string>::operator()(el) ==
+            paste_material_id)
+          continue; /// element belongs to paste
+        gel_pockets.push_back(el);
+        placed_gel_pockets += 1;
+      }
+    }
     is_gel_initialized = true;
   }
 
@@ -259,7 +256,7 @@ protected:
   std::string paste_material{"paste"};
   UInt paste_material_id{1};
   bool is_gel_initialized{false};
-};
+}; // namespace akantu
 
 } // namespace akantu
 

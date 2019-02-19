@@ -1,0 +1,48 @@
+/**
+ * @file   material_damage_viscoelastic.cc
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
+ * Tue Feb 12 2019
+ *
+ * Specialization of the class material damage viscoelastic.
+ *
+ * @section LICENSE
+ *
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+#include "material_damage_explicit.hh"
+#include "material_viscoelastic_maxwell.hh"
+/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_MATERIAL_DAMAGE_VISCOELASTIC_HH__
+#define __AKANTU_MATERIAL_DAMAGE_VISCOELASTIC_HH__
+
+namespace akantu {
+
+template <UInt dim>
+class MaterialDamageViscoelastic
+    : public MaterialDamageExplicit<dim, MaterialViscoelasticMaxwell> {
+
+public:
+  MaterialDamageViscoelastic(SolidMechanicsModel & model, const ID & id = "")
+      : MaterialDamageExplicit<dim, MaterialViscoelasticMaxwell>(model, id) {}
+};
+
+} // namespace akantu
+
+#endif /* __AKANTU_MATERIAL_DAMAGE_VISCOELASTIC_HH__ */

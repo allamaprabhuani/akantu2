@@ -229,7 +229,8 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
            this->delta_T(this->el_type),
            make_view(this->gelstrain(this->el_type), spatial_dimension,
                      spatial_dimension),
-           this->non_reacted_gel(this->el_type), this->damage_ratio(this->el_type))) {
+           this->non_reacted_gel(this->el_type),
+           this->damage_ratio(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
 
     /// apply boundary conditions based on the current macroscopic displ.
@@ -359,6 +360,18 @@ void MaterialFE2<spatial_dimension>::setDirectoryToRveDumper(
     data->setDirectory(directory);
   }
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+UInt MaterialFE2<spatial_dimension>::getNbRVEs() {
+  AKANTU_DEBUG_IN();
+  UInt nb_RVEs;
+  for (auto && data : enumerate(RVEs)) {
+    nb_RVEs = std::get<0>(data);
+  }
+  return nb_RVEs;
   AKANTU_DEBUG_OUT();
 }
 

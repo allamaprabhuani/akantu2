@@ -53,8 +53,8 @@ MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
 
   this->registerParam("Einf", Einf, Real(1.), _pat_parsable | _pat_modifiable,
                       "Stiffness of the elastic element");
-  this->registerParam("previous_dt", previous_dt, Real(0.), _pat_readable,
-                      "Time step of previous solveStep");
+  this->registerParam("user_dt", user_dt, Real(0.),
+                      _pat_parsable | _pat_modifiable, "User-defined timestep");
   this->registerParam("Eta", Eta, _pat_parsable | _pat_modifiable,
                       "Viscosity of a Maxwell element");
   this->registerParam("Ev", Ev, _pat_parsable | _pat_modifiable,
@@ -238,7 +238,11 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
 
   voigt_stress = this->Einf * this->C * voigt_current_strain;
 
-  Real dt = this->model.getTimeStep();
+  Real dt;
+  if (!this->user_dt)
+    dt = this->model.getTimeStep();
+  else
+    dt = this->user_dt;
 
   for (UInt k = 0; k < Eta.size(); ++k) {
     Real lambda = this->Eta(k) / this->Ev(k);
@@ -447,8 +451,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuli(
                        this->Ev(k));
     }
   }
-
-  this->previous_dt = dt;
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
   this->computeTangentModuliOnQuad(tangent);

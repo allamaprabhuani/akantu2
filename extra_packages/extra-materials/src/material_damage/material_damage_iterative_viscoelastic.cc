@@ -71,9 +71,6 @@ void MaterialDamageIterativeViscoelastic<
   Array<Real> & dam = this->damage(el_type);
   auto dam_it = dam.begin();
 
-  Real dt = this->model.getTimeStep();
-  this->previous_dt = dt;
-
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
   this->computeTangentModuliOnQuad(tangent, *dam_it);
   ++dam_it;

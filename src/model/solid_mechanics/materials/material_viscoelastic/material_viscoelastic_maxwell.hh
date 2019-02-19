@@ -157,15 +157,6 @@ protected:
   /// compute tangent moduli on a quadrature point
   void computeTangentModuliOnQuad(Matrix<Real> & tangent);
 
-  bool hasStiffnessMatrixChanged() override {
-
-    Real dt = this->model.getTimeStep();
-
-    return ((this->previous_dt == dt)
-                ? (!(this->previous_dt == dt)) * (this->was_stiffness_assembled)
-                : (!(this->previous_dt == dt)));
-    //  return (!(this->previous_dt == dt));
-  }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -199,8 +190,8 @@ protected:
   Vector<Real> Ev;
   Real Einf;
 
-  /// time step from previous solveStep
-  Real previous_dt;
+  /// User-defined time step
+  Real user_dt;
 
   /// Stiffness matrix template
   Matrix<Real> C;

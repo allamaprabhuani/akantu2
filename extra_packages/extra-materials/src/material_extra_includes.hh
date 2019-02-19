@@ -24,6 +24,8 @@
 
 // damage materials
 #include "material_brittle.hh"
+#include "material_damage_explicit.hh"
+#include "material_damage_viscoelastic.hh"
 #include "material_damage_iterative.hh"
 #include "material_damage_linear.hh"
 #include "material_iterative_stiffness_reduction.hh"
@@ -64,6 +66,8 @@
        (iterative_stiffness_reduction, MaterialIterativeStiffnessReduction)))( \
       (2,                                                                      \
        (damage_iterative_viscoelastic, MaterialDamageIterativeViscoelastic)))( \
+      (2, (damage_explicit, MaterialDamageExplicit)))(                         \
+      (2, (damage_viscoelastic, MaterialDamageViscoelastic)))(                 \
       (2, (vreepeerlings, MaterialVreePeerlings)))(                            \
       (2, (ve_stiffness_prop, MaterialStiffnessProportional)))(                \
       (2, (visco_plastic, MaterialViscoPlastic)))(                             \

@@ -90,6 +90,8 @@ public:
   /// set default dumper directory to all rves
   void setDirectoryToRveDumper(const std::string & directory);
 
+  /// compute number of RVEs
+  UInt getNbRVEs();
 private:
   void initialize();
 

@@ -54,7 +54,7 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
 
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
+
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
