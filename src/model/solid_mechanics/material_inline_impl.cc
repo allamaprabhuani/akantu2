@@ -356,11 +356,11 @@ template <>
 inline bool Material::isInternal<Real>(const ID & id,
                                        const ElementKind & element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
-
+  bool ret = true;
   if (internal_array == internal_vectors_real.end() ||
       internal_array->second->getElementKind() != element_kind)
-    return false;
-  return true;
+    ret=false;
+  return ret;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -419,10 +419,8 @@ void Material::flattenInternal(const std::string & field_id,
     // number of data per quadrature point
     UInt nb_data_per_quad = internal_field.getNbComponent();
 
-    if (!internal_flat.exists(type, ghost_type)) {
-      internal_flat.alloc(nb_element_dst * nb_quad_per_elem, nb_data_per_quad,
-                          type, ghost_type);
-    }
+    internal_flat.alloc(nb_element_dst * nb_quad_per_elem, nb_data_per_quad,
+                        type, ghost_type, T());
 
     if (nb_element_src == 0)
       continue;
@@ -431,7 +429,6 @@ void Material::flattenInternal(const std::string & field_id,
     UInt nb_data = nb_quad_per_elem * nb_data_per_quad;
 
     Array<Real> & dst_vect = internal_flat(type, ghost_type);
-    dst_vect.resize(nb_element_dst * nb_quad_per_elem);
 
     auto it_dst = make_view(dst_vect, nb_data).begin();
 

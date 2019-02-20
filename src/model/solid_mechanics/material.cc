@@ -59,7 +59,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
   /// for each connectivity types allocate the element filer array of the
   /// material
   element_filter.initialize(model.getMesh(),
-                            _spatial_dimension = spatial_dimension);
+                            _spatial_dimension = spatial_dimension,
+                            _element_kind = _ek_regular);
   // model.getMesh().initElementTypeMapArray(element_filter, 1,
   // spatial_dimension,
   //                                         false, _ek_regular);
@@ -1003,16 +1004,15 @@ Array<UInt> & Material::getArray(const ID & vect_id, const ElementType & type,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-const InternalField<T> & Material::getInternal([[gnu::unused]]
-                                               const ID & int_id) const {
+const InternalField<T> &
+Material::getInternal([[gnu::unused]] const ID & int_id) const {
   AKANTU_TO_IMPLEMENT();
   return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-InternalField<T> & Material::getInternal([[gnu::unused]]
-                                         const ID & int_id) {
+InternalField<T> & Material::getInternal([[gnu::unused]] const ID & int_id) {
   AKANTU_TO_IMPLEMENT();
   return NULL;
 }
@@ -1300,8 +1300,7 @@ void Material::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 /// extrapolate internal values
 void Material::extrapolateInternal(const ID & id, const Element & element,
-                                   [[gnu::unused]]
-                                   const Matrix<Real> & point,
+                                   [[gnu::unused]] const Matrix<Real> & point,
                                    Matrix<Real> & extrapolated) {
   if (this->isInternal<Real>(id, element.kind())) {
     UInt nb_element =
