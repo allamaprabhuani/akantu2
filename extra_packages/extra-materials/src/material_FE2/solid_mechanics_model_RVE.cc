@@ -33,6 +33,7 @@
 #include "non_linear_solver.hh"
 #include "parser.hh"
 #include "sparse_matrix.hh"
+#include "non_local_manager.hh"
 #include <string>
 /* -------------------------------------------------------------------------- */
 
