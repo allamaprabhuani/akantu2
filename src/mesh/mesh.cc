@@ -140,8 +140,9 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
   mesh_facets->nodes_global_ids = this->nodes_global_ids;
 
   MeshUtils::buildAllFacets(*this, *mesh_facets, 0);
+  mesh_facets->communicator = communicator;
 
-  if (mesh.isDistributed()) {
+  if (isDistributed()) {
     mesh_facets->is_distributed = true;
     mesh_facets->element_synchronizer = std::make_unique<FacetSynchronizer>(
         *mesh_facets, mesh.getElementSynchronizer());

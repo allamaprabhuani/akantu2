@@ -236,7 +236,7 @@ void MeshPartition::buildDualGraph(
     auto el = unlinearized(i);
     vertex_loads(i) = vertex_load_func(el);
 
-        UInt nb_adj = dxadj(i + 1) - dxadj(i);
+    UInt nb_adj = dxadj(i + 1) - dxadj(i);
     for (UInt j = 0; j < nb_adj; ++j, ++adj) {
       auto el_adj_id = dadjncy(dxadj(i) + j);
       auto el_adj = unlinearized(el_adj_id);
