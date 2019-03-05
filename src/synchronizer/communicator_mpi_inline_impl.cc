@@ -299,11 +299,16 @@ bool Communicator::test(CommunicationRequest & request) const {
 
 /* -------------------------------------------------------------------------- */
 bool Communicator::testAll(std::vector<CommunicationRequest> & requests) const {
-  int are_finished;
-  auto && mpi_requests = convertRequests(requests);
-  MPI_Testall(mpi_requests.size(), mpi_requests.data(), &are_finished,
-              MPI_STATUSES_IGNORE);
-  return are_finished != 0 ? true : false;
+  for (auto & r : requests) {
+    if (not test(r)) return false;
+  }
+
+  return true;
+  // int are_finished;
+  // auto && mpi_requests = convertRequests(requests);
+  // MPI_Testall(mpi_requests.size(), mpi_requests.data(), &are_finished,
+  //             MPI_STATUSES_IGNORE);
+  // return are_finished != 0 ? true : false;
 }
 
 /* -------------------------------------------------------------------------- */

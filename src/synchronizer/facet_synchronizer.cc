@@ -164,11 +164,13 @@ FacetSynchronizer::FacetSynchronizer(
 
   std::vector<CommunicationRequest> send_requests;
   /// do every communication by element type
+  int tag_cnt = 1336;
   for (auto && type : mesh.elementTypes(spatial_dimension - 1)) {
+    ++tag_cnt;
     for (auto && pair : recv_connectivities) {
       auto proc = std::get<0>(pair);
+      auto && tag = Tag::genTag(proc, type, tag_cnt);
       const auto & connectivities_for_proc = std::get<1>(pair);
-      auto && tag = Tag::genTag(proc, type, 1337);
       send_requests.push_back(
           communicator.asyncSend(connectivities_for_proc(type, _ghost), proc,
                                  tag, CommunicationMode::_synchronous));
@@ -199,7 +201,10 @@ FacetSynchronizer::FacetSynchronizer(
             }
           }
         },
-        Tag::genTag(rank, type, 1337));
+        Tag::genTag(rank, type, tag_cnt));
+
+    communicator.waitAll(send_requests);
+    send_requests.clear();
   }
 }
 

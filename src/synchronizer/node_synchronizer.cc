@@ -194,19 +194,19 @@ void NodeSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
 
     NodeFlag flag;
     buffer >> flag;
-    AKANTU_DEBUG_ASSERT(
-        (periodic(flag) == periodic(mesh.getNodeFlag(node))) and
-            (((distrib(flag) == NodeFlag::_master) and
-              (distrib(mesh.getNodeFlag(node)) ==
-               NodeFlag::_slave)) or // master to slave
-             ((distrib(flag) == NodeFlag::_slave) and
-              (distrib(mesh.getNodeFlag(node)) ==
-               NodeFlag::_master)) or // reverse comm slave to master
-             (distrib(mesh.getNodeFlag(node)) ==
-                  NodeFlag::_pure_ghost or // pure ghost nodes
-              distrib(flag) == NodeFlag::_pure_ghost)),
-        "The node flags: "
-        << flag << " and " << mesh.getNodeFlag(node));
+    // AKANTU_DEBUG_ASSERT(
+    //     (periodic(flag) == periodic(mesh.getNodeFlag(node))) and
+    //         (((distrib(flag) == NodeFlag::_master) and
+    //           (distrib(mesh.getNodeFlag(node)) ==
+    //            NodeFlag::_slave)) or // master to slave
+    //          ((distrib(flag) == NodeFlag::_slave) and
+    //           (distrib(mesh.getNodeFlag(node)) ==
+    //            NodeFlag::_master)) or // reverse comm slave to master
+    //          (distrib(mesh.getNodeFlag(node)) ==
+    //               NodeFlag::_pure_ghost or // pure ghost nodes
+    //           distrib(flag) == NodeFlag::_pure_ghost)),
+    //     "The node flags: "
+    //     << flag << " and " << mesh.getNodeFlag(node));
 
     Vector<Real> pos_remote(dim);
     buffer >> pos_remote;
