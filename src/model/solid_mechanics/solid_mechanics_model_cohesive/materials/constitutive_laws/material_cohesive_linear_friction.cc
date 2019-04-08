@@ -89,7 +89,7 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTraction(
       this->contact_tractions(el_type, ghost_type).begin(spatial_dimension);
   auto contact_opening_it =
       this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
-  auto normal_it = this->normal.begin(spatial_dimension);
+  auto normal_it = this->normals(el_type, ghost_type).begin(spatial_dimension);
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_max_it = this->delta_max(el_type, ghost_type).begin();
   auto delta_max_prev_it =
@@ -181,7 +181,7 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTangentTraction(
   auto tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
   auto tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
 
-  auto normal_it = this->normal.begin(spatial_dimension);
+  auto normal_it = this->normals(el_type, ghost_type).begin(spatial_dimension);
 
   auto opening_it = this->opening(el_type, ghost_type).begin(spatial_dimension);
   auto previous_opening_it =

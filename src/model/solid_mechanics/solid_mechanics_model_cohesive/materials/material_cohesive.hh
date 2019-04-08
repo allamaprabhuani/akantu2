@@ -137,6 +137,12 @@ public:
   /// get the opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Opening, opening, Real);
 
+  /// get the eigen opening
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(EigenOpening, eigen_opening, Real);
+
+  /// get the normals
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Normals, normals, Real);
+
   /// get the traction
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Traction, tractions, Real);
 
@@ -190,6 +196,9 @@ protected:
   /// opening in all elements and quadrature points
   CohesiveInternalField<Real> opening;
 
+  /// eigen opening (fix value removed from the computed opening)
+  CohesiveInternalField<Real> eigen_opening;
+
   /// traction in all elements and quadrature points
   CohesiveInternalField<Real> tractions;
 
@@ -221,7 +230,7 @@ protected:
   Real delta_c;
 
   /// array to temporarily store the normals
-  Array<Real> normal;
+  CohesiveInternalField<Real> normals;
 };
 
 /* -------------------------------------------------------------------------- */

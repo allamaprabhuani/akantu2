@@ -730,8 +730,12 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
 
   this->assignMaterialToElements(&filter);
 
-  for (auto & material : materials)
-    material->onElementsAdded(element_list, event);
+  std::vector<Array<Element>> element_list_by_material(materials.size());
+  splitElementByMaterial(element_list, element_list_by_material);
+
+  for (auto && material : enumerate(materials))
+    std::get<1>(material)->onElementsAdded(
+        element_list_by_material[std::get<0>(material)], event);
 
   AKANTU_DEBUG_OUT();
 }

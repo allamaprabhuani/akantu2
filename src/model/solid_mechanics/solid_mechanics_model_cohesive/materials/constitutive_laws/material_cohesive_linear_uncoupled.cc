@@ -98,7 +98,7 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTraction(
   auto contact_opening_it =
       this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
 
-  auto normal_it = this->normal.begin(spatial_dimension);
+  auto normal_it = this->normals(el_type, ghost_type).begin(spatial_dimension);
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_n_max_it = delta_n_max(el_type, ghost_type).begin();
   auto delta_t_max_it = delta_t_max(el_type, ghost_type).begin();
@@ -227,7 +227,7 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTangentTraction(
   /// define iterators
   auto tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
   auto tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
-  auto normal_it = this->normal.begin(spatial_dimension);
+  auto normal_it = this->normals(el_type, ghost_type).begin(spatial_dimension);
   auto opening_it = this->opening(el_type, ghost_type).begin(spatial_dimension);
 
   /// NB: delta_max_it points on delta_max_previous, i.e. the
