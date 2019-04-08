@@ -101,8 +101,8 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
     auto & RVE = *RVEs.back();
     RVE.initFull(_analysis_method = _static);
 
-    /// compute intial stiffness of the RVE
-    RVE.homogenizeStiffness(C);
+    /// compute intial stiffness of the RVE and set the lower limit for stresses
+    RVE.homogenizeStiffness(C, true);
   }
   AKANTU_DEBUG_OUT();
 }

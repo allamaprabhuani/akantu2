@@ -31,9 +31,9 @@
 #include "material_damage_iterative.hh"
 #include "node_group.hh"
 #include "non_linear_solver.hh"
+#include "non_local_manager.hh"
 #include "parser.hh"
 #include "sparse_matrix.hh"
-#include "non_local_manager.hh"
 #include <string>
 /* -------------------------------------------------------------------------- */
 
@@ -47,7 +47,8 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
                                                const MemoryID & memory_id)
     : SolidMechanicsModel(mesh, dim, id, memory_id), volume(0.),
       use_RVE_mat_selector(use_RVE_mat_selector),
-      nb_gel_pockets(nb_gel_pockets), nb_dumps(0) {
+      nb_gel_pockets(nb_gel_pockets), nb_dumps(0),
+      stress_limit(voigt_h::size, voigt_h::size) {
   AKANTU_DEBUG_IN();
   /// find the four corner nodes of the RVE
   findCornerNodes();
@@ -422,7 +423,8 @@ Real SolidMechanicsModelRVE::averageTensorField(UInt row_index, UInt col_index,
 
 /* --------------------------------------------------------------------------
  */
-void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
+void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro,
+                                                 bool first_time) {
   AKANTU_DEBUG_IN();
   const UInt dim = 2;
   AKANTU_DEBUG_ASSERT(this->spatial_dimension == dim,
@@ -473,8 +475,21 @@ void SolidMechanicsModelRVE::homogenizeStiffness(Matrix<Real> & C_macro) {
   H(1, 0) = 0.01;
   this->performVirtualTesting(H, stresses, strains, 2);
 
+  /// set up the stress limit at 10% of stresses in undamaged state
+  if (first_time)
+    stress_limit = stresses * 0.1;
+  /// compare stresses with the lower limit and update if needed
+  for (UInt i = 0; i != voigt_size; ++i) {
+    Vector<Real> stress = stresses(i);
+    Vector<Real> stress_lim = stress_limit(i);
+    Real stress_norm = stress.norm();
+    Real stress_limit_norm = stress_lim.norm();
+    if (stress_norm < stress_limit_norm)
+      stresses(i) = stress_limit(i);
+  }
   /// drain cracks
   // this->drainCracks(saved_damage);
+
   /// compute effective stiffness
   Matrix<Real> eps_inverse(voigt_size, voigt_size);
   eps_inverse.inverse(strains);

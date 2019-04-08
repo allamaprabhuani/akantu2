@@ -82,7 +82,7 @@ public:
                           const ID & field_type);
 
   /// compute effective stiffness of the RVE
-  void homogenizeStiffness(Matrix<Real> & C_macro);
+  void homogenizeStiffness(Matrix<Real> & C_macro, bool first_time = false);
 
   /// compute average eigenstrain
   void homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro);
@@ -120,6 +120,8 @@ private:
   /* ------------------------------------------------------------------------ */
   /* Members */
   /* ------------------------------------------------------------------------ */
+  /// 2D hardcoded - no 3D support currently
+  using voigt_h = VoigtHelper<2>;
 
   /// volume of the RVE
   Real volume;
@@ -141,6 +143,9 @@ private:
 
   /// dump counter
   UInt nb_dumps;
+
+  /// lower limit for stresses
+  Matrix<Real> stress_limit;
 };
 
 inline void SolidMechanicsModelRVE::unpackData(CommunicationBuffer & buffer,
