@@ -120,8 +120,8 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   this->addDumpField("internal_force");
   this->addDumpField("delta_T");
 
-  this->dump();
-  this->nb_dumps += 1;
+  // this->dump();
+  // this->nb_dumps += 1;
   AKANTU_DEBUG_OUT();
 }
 
@@ -683,4 +683,13 @@ void SolidMechanicsModelRVE::computeDamageRatio(Real & damage_ratio) {
   }
   damage_ratio /= this->volume;
 }
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModelRVE::dumpRve() {
+  //  if (this->nb_dumps % 10 == 0) {
+  this->dump();
+  //  }
+  this->nb_dumps += 1;
+}
+
 } // namespace akantu

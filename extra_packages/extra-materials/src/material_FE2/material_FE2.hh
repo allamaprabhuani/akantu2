@@ -92,6 +92,10 @@ public:
 
   /// compute number of RVEs
   UInt getNbRVEs();
+
+  /// dump all the rves
+  void dump();
+
 private:
   void initialize();
 

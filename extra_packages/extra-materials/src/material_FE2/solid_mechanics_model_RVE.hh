@@ -90,6 +90,9 @@ public:
   /// compute damage volume in different phases
   void computeDamageRatio(Real & damage);
 
+  /// dump the RVE
+  void dumpRve();
+
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */

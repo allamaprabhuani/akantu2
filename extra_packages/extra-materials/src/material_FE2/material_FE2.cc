@@ -375,6 +375,18 @@ UInt MaterialFE2<spatial_dimension>::getNbRVEs() {
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
+  AKANTU_DEBUG_IN();
+
+  for (auto && RVE : RVEs) {
+    /// dump all the RVEs
+    RVE->dumpRve();
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 INSTANTIATE_MATERIAL(material_FE2, MaterialFE2);
 
 } // namespace akantu
