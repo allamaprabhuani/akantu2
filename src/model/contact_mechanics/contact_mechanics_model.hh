@@ -125,6 +125,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   void search();
+  
+  void search(Array<Real> &);
 
   template<typename FunctorType>
   void computeNodalAreas(const FunctorType &, const std::string &, GhostType);

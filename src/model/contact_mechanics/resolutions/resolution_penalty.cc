@@ -53,6 +53,8 @@ void ResolutionPenalty::initialize() {
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalForce(Vector<Real> & force, Vector<Real> & n,
 					   Real & gap) {
+
+  force.clear();
   Real tn = gap * epsilon;
   tn = macaulay(tn);
   for (UInt i : arange(force.size())) {
@@ -92,20 +94,22 @@ void ResolutionPenalty::computeTangentModuli(Matrix<Real> & kc, Vector<Real> & n
 
   
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & kc, Vector<Real> & n,
+void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> & n,
 					       Array<Real> & n_alpha, Array<Real> & d_alpha,
 					       Matrix<Real> & surface_matrix, Real & gap) {
 
   Real tn = gap * epsilon;
   tn = macaulay(tn);
 
-  Matrix<Real> ke(n_alpha.size(), n_alpha.size());
+  //Matrix<Real> ke(n_alpha.size(), n_alpha.size());
   Matrix<Real> n_mat(n.storage(), n.size(), 1);
   
   ke.mul<false, true>(n_mat, n_mat);
   ke *= epsilon * heaviside(gap);
+
+  std::cerr << " ke = " << ke << std::endl;
   
-  for (auto && entry1 :
+  /*for (auto && entry1 :
 	 enumerate(make_view(n_alpha, n_alpha.size()))) {
     
     auto & i = std::get<0>(entry1);
@@ -121,11 +125,11 @@ void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & kc, Vector<Real> &
 
       Matrix<Real> tmp(nj.size(), nj.size());
       tmp.mul<false, true>(ni_mat, nj_mat);
-      tmp *= surface_matrix[i, j];
+      tmp *= surface_matrix[i, j] * tn;
      
       ke += tmp;
     }    
-  }
+    }*/
 
   for (auto && values:
 	 zip(make_view(n_alpha, n_alpha.size()),
@@ -142,9 +146,10 @@ void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & kc, Vector<Real> &
     Matrix<Real> tmp2(n_s.size(), n_s.size());
     tmp1.mul<false, true>(ds_mat, ns_mat);
 
-    ke -= tmp1 + tmp2;
+    ke -= (tmp1 + tmp2) * tn;
   }
- 
+
+  std::cerr << " ke = " << ke << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

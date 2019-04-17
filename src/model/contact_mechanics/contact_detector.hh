@@ -84,7 +84,10 @@ public:
 				   const Array<Element> & /* master elements */,
 				   Array<Real> &          /* normals */,
 				   Array<Real> &          /* gaps */,
-				   Array<Real> &          /* projections */);
+				   Array<Real> &          /* projections */,
+				   Array<bool> &          /* status
+							     */ );
+
   ///
   inline std::string getSurfaceId(const std::string name) {
     if (name == "slave") {
@@ -137,15 +140,19 @@ private:
 				  Vector<Real> &       /* projection
 							  */,
 				  Vector<Real> & /* real_projection */);
-  /// checks for the validity of a projection
-  bool isValidProjection(const Element & /* element     */,
-			 Vector<Real> &  /* real projection  */,
-			 Vector<Real> &  /* natural projection */);
+
+  /// computes natural projection of a real projection
+  void computeNaturalProjection(const Element & /* element     */,
+				Vector<Real> &  /* real projection  */,
+				Vector<Real> &  /* natural projection */);
 
   /// compute normal projection of slav coord on a given element
   void normalProjection(const Element & el, const Vector<Real> & slave_coord,
 			Vector<Real> & natural_coord, Real & tolerance);
 
+  /// compute the active zones for implicit detection type, uses
+  /// displacement increment to compute the actual gap value for slave
+  /// nodes which will penetrate the master surface
   
   
   /* ------------------------------------------------------------------------ */

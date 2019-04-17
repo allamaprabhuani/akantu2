@@ -578,6 +578,7 @@ inline Real Math::triangle_inradius(const Real * coord1, const Real * coord2,
    */
 
   Real a, b, c;
+  
   a = distance_2d(coord1, coord2);
   b = distance_2d(coord2, coord3);
   c = distance_2d(coord1, coord3);

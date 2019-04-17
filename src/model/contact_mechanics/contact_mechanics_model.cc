@@ -323,7 +323,6 @@ void ContactMechanicsModel::assembleInternalForces() {
   AKANTU_DEBUG_OUT();
 
 }
-
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
    
@@ -334,6 +333,78 @@ void ContactMechanicsModel::search() {
 
   auto & gap =
     const_cast<Array<Real> &>(this->getGaps());
+  
+  for(auto & entry : contact_map) {
+    const auto & element = entry.second;
+    const auto & connectivity = element.connectivity;
+    for (UInt i = 0; i < connectivity.size(); ++i) {
+      UInt n = connectivity(i);
+      blocked_dof[n] = 1.0;
+      gap[n] = element.gap;
+    }
+  }
+
+  this->areas->clear();
+  this->external_force->clear();
+
+  this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
+		this->detector->getSurfaceId("slave"));
+
+  auto ext_force_it = external_force->begin(Model::spatial_dimension);
+  auto areas_it = areas->begin();
+  UInt nb_nodes = this->mesh.getNbNodes();
+
+  for (UInt n = 0; n < nb_nodes; ++n, ++ext_force_it, ++areas_it) {
+    const auto & ext_force = *ext_force_it;
+    auto & area = *areas_it;
+
+    for (UInt i = 0; i < Model::spatial_dimension; ++i) {
+      area += pow(ext_force(i), 2);
+    }
+    
+    area = sqrt(area);
+  }
+}
+
+
+  
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::search(Array<Real> & increment) {
+   
+  this->detector->search(this->contact_map);
+
+  auto & blocked_dof =
+    const_cast<Array<Real> &>(this->getBlockedDOFs());
+
+  auto & gap =
+    const_cast<Array<Real> &>(this->getGaps());
+
+  for (auto & entry: contact_map) {
+    auto & element = entry.second;
+    const auto & connectivity = element.connectivity;
+
+    auto master_node = connectivity[1];
+    Vector<Real> u(spatial_dimension);
+    for (UInt s : arange(spatial_dimension)) {
+      u(s) = increment(master_node, s);
+    }
+
+    u *= -1.0;
+    std::cerr << u << std::endl;
+        
+    const auto & normal = element.normal;
+    std::cerr << normal << std::endl;
+    std::cerr << element.gap << std::endl;
+    Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
+
+    if (uv + element.gap <= 0) {
+      element.gap = abs(uv + element.gap);
+    }
+    else {
+      element.gap = 0.0;
+    }
+  }
+  
   
   for(auto & entry : contact_map) {
     const auto & element = entry.second;

@@ -40,7 +40,6 @@ register_example(implicit_penalty_2d
   FILES_TO_COPY material_implicit.dat
   )
 
-
 register_example(explicit_penalty_2d
   SOURCES explicit_penalty_2d.cc
   DEPENDS hertz_2d
@@ -58,3 +57,4 @@ register_example(solid_contact_explicit
   DEPENDS hertz_2d
   FILES_TO_COPY material.dat
   )
+

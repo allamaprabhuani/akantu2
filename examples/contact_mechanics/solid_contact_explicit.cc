@@ -37,9 +37,80 @@
 #include "contact_mechanics_model.hh"
 #include "solid_mechanics_model.hh"
 #include "sparse_matrix.hh"
+#include "solver_callback.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
+
+
+class ContactSolverCallback
+  : public SolverCallback {
+
+public:
+
+  ContactSolverCallback(SolidMechanicsModel &, ContactMechanicsModel &);
+  
+public:
+
+  void assembleMatrix(const ID &) override;
+
+  void assembleResidual() override;
+
+  void assembleLumpedMatrix(const ID &) override;
+
+  MatrixType getMatrixType(const ID &) override;
+  
+private:
+
+  SolidMechanicsModel & solid;
+
+  ContactMechanicsModel & contact;
+  
+};
+
+/* -------------------------------------------------------------------------- */
+ContactSolverCallback::ContactSolverCallback(SolidMechanicsModel & solid, 
+					     ContactMechanicsModel & contact)
+  : SolverCallback(), solid(solid), contact(contact) {
+  
+
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactSolverCallback::assembleMatrix(const ID & matrix_id) {
+  if (matrix_id == "K") {
+    
+  } 
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactSolverCallback::assembleLumpedMatrix(const ID & matrix_id) {
+
+
+}
+
+
+/* -------------------------------------------------------------------------- */
+void ContactSolverCallback::assembleResidual() {
+  /* ------------------------------------------------------------------------ */
+  // computes the internal forces
+  solid.assembleInternalForces();
+  solid.getDOFManager().assembleToResidual("displacement",
+                                           solid.getExternalForce(), 1);
+  solid.getDOFManager().assembleToResidual("displacement",
+                                           solid.getInternalForce(), 1);
+
+}
+
+
+/* -------------------------------------------------------------------------- */
+MatrixType ContactSolverCallback::getMatrixType(const ID & matrix_id) {
+
+  return _symmetric;
+}
+
+
+/* -------------------------------------------------------------------------- */
 
 int main(int argc, char *argv[]) {
   
@@ -67,16 +138,13 @@ int main(int argc, char *argv[]) {
   solver.set("max_iterations", 1000);
   solver.set("threshold", 1e-8);
   solver.set("convergence_type", _scc_residual);
-
   
   auto & solid_stiffness =
     const_cast<SparseMatrix &>(solid.getDOFManager().getNewMatrix("K", _symmetric));
   
-  solid.assembleInternalForces();
+  //solid.assembleInternalForces();
   solid.assembleStiffnessMatrix();
-  //solid.solveStep();
-  //solid.dump();
-
+  
   auto current_position = solid.getCurrentPosition();
 
   ContactMechanicsModel contact(mesh, current_position);
@@ -111,8 +179,9 @@ int main(int argc, char *argv[]) {
     if (!blocked) {
       ext_f = cont_f;
     }
-    
   }
+
+  ContactSolverCallback callback(solid, contact);
 
   auto & contact_stiffness =
     const_cast<SparseMatrix &>(contact.getDOFManager().getMatrix("K"));
@@ -122,7 +191,7 @@ int main(int argc, char *argv[]) {
 
   solid_stiffness.add(contact_stiffness);
     
-  solid.solveStep();
+  solid.solveStep(callback);
   contact.dump("paraview_all");
   
   finalize();

@@ -41,7 +41,7 @@ namespace akantu {
  }
   
 /* -------------------------------------------------------------------------- */
-  ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, const ID & id, UInt memory_id)
+ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, const ID & id, UInt memory_id)
   : Memory(id, memory_id),
     Parsable(ParserType::_contact_detector, id),
     mesh(mesh),
@@ -86,33 +86,43 @@ void ContactDetector::getMaximalDetectionDistance() {
 
   AKANTU_DEBUG_IN();
 
-  Real el_size;
-  Real max_el_size = std::numeric_limits<Real>::min();
+  Real elem_size;
+  Real max_elem_size = std::numeric_limits<Real>::min();
 
+  std::cerr << max_elem_size << std::endl;
   auto & master_group =
     mesh.getElementGroup(surfaces[Surface::master]);
 
-  for (auto & type: master_group.elementTypes(spatial_dimension - 1, _not_ghost)) {
-
+  for (auto type:
+	 master_group.elementTypes(spatial_dimension - 1, _not_ghost, _ek_regular)) {
+    
+    const auto & element_ids = master_group.getElements(type);    
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    UInt nb_elements = element_ids.size();
 
-    Array<Real> coord(0, nb_nodes_per_element * spatial_dimension);
-    FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
-					 _not_ghost);
-    auto el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
-    UInt nb_element = mesh.getNbElement(type);
+    Element elem;
+    elem.type = type;
+    for (auto el : element_ids) {
+      elem.element = el;
+      Matrix<Real> elem_coords(spatial_dimension, nb_nodes_per_element);
+      this->coordinatesOfElement(elem, elem_coords);
 
-    for (UInt el =0; el < nb_element; ++el, ++el_coord) {
-      el_size = FEEngine::getElementInradius(*el_coord, type);
-      max_el_size = std::max(max_el_size, el_size);
+      elem_size = FEEngine::getElementInradius(elem_coords, type);
+
+      std::cerr << elem_coords << std::endl;
+      std::cerr << elem_size << std::endl;
+      
+      max_elem_size = std::max(max_elem_size, elem_size);
     }
 
     AKANTU_DEBUG_INFO("The maximum element size : "
-		      << max_el_size );    
+		      << max_elem_size );
+
+    std::cerr << max_elem_size << std::endl;
   }
 
-  this->max_dd = max_el_size;
-  this->max_bb = max_el_size;
+  this->max_dd = max_elem_size;
+  this->max_bb = max_elem_size;
   
   AKANTU_DEBUG_OUT();
 }
@@ -140,6 +150,11 @@ void ContactDetector::globalSearch(std::map<UInt, ContactElement> & contact_map)
   
   auto && bbox_intersection =
     bbox_master.intersection(bbox_slave);
+
+  std::cerr << bbox_master << std::endl;
+  std::cerr << bbox_slave << std::endl;
+
+  std::cerr << bbox_intersection << std::endl;
   
   AKANTU_DEBUG_INFO( "Intersection BBox "
 		     << bbox_intersection );
@@ -214,21 +229,37 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   BBox bbox_master_grid(spatial_dimension); 
   BBox bbox_slave_grid(spatial_dimension);
 
-  bbox_master_grid += master_grid.getUpperBounds();
-  bbox_master_grid += master_grid.getLowerBounds();
+  auto create_bbox = [&](auto & grid, auto & bbox) {
+    auto upper_bound = grid.getUpperBounds();
+    auto lower_bound = grid.getLowerBounds();
+    for (UInt s: arange(spatial_dimension)) {
+      lower_bound(s) -= this->max_bb;
+      upper_bound(s) += this->max_bb;
+    }
 
-  bbox_slave_grid += slave_grid.getUpperBounds();
-  bbox_slave_grid += slave_grid.getLowerBounds();
+    bbox += lower_bound;
+    bbox += upper_bound;
+  };
 
+  create_bbox(master_grid, bbox_master_grid);
+  create_bbox(slave_grid, bbox_slave_grid);
+  
   auto && bbox_intersection =
     bbox_master_grid.intersection(bbox_slave_grid);
+
+  std::cerr << bbox_master_grid << std::endl;
+  std::cerr << bbox_slave_grid << std::endl;
+
+  std::cerr << bbox_intersection << std::endl;
   
   // find the closet master node for each slave node
   for (auto && cell_id : slave_grid) {
     AKANTU_DEBUG_INFO("Looping on next cell");
     
     for (auto && q1: slave_grid.getCell(cell_id)) {
-       
+
+      bool pair_exists = false;
+      
       Vector<Real> pos(spatial_dimension);
       for (UInt s: arange(spatial_dimension)) {
 	pos(s) = this->positions(q1, s);
@@ -238,7 +269,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 	continue;
       }
 
-      Real closet_distance = std::numeric_limits<Real>::max();
+      Real closet_distance = this->max_dd * 0.5;
       UInt closet_master_node;
      
       // loop over all the neighboring cells of the current cells
@@ -258,14 +289,20 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 	  if (distance <= closet_distance) {
 	    closet_master_node = q2;
 	    closet_distance = distance;
+	    pair_exists = true;
 	  }
 	}	
       }
-	
-      slave_nodes.push_back(q1);
-      master_nodes.push_back(closet_master_node);
+
+      if (pair_exists) {
+	slave_nodes.push_back(q1);
+	master_nodes.push_back(closet_master_node);
+	std::cerr << q1 << "  ---- " << closet_master_node << "---" << closet_distance << std::endl;
+      }
     }
   }  
+
+  std::cerr << "Number of Slave nodes = " << slave_nodes.size() << std::endl;
   
   for (auto && values : zip(slave_nodes, master_nodes)) {
     const auto & slave_node  = std::get<0>(values);
@@ -280,13 +317,30 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 						  1,                 "gaps"); 
     auto natural_projections = std::make_unique<Array<Real>>(elements.size(),
 							     spatial_dimension - 1, "projections");
-    
+    auto status = std::make_unique<Array<bool>>(elements.size(),
+						1, "status");
     this->computeOrthogonalProjection(slave_node, elements,
-				      *normals, *gaps, *natural_projections);
-      
-    auto minimum = std::min_element( gaps->begin(), gaps->end());
-    auto index   = std::distance(    gaps->begin(), minimum);
-       
+				      *normals, *gaps, *natural_projections, *status);
+
+    
+    UInt index;
+    Real minimum_gap = std::numeric_limits<Real>::max();
+    bool to_consider = false;
+    for (UInt i : arange(gaps->size())) {
+      if (!(*status)[i])
+	continue;
+
+      if ((*gaps)[i] <= minimum_gap) {
+	minimum_gap = (*gaps)[i];
+	index = i;
+	to_consider = true;
+      }
+    }
+
+    if (!to_consider) {
+      continue;
+    }
+    
     Vector<UInt> master_conn =
       this->mesh.getConnectivity(elements[index]);
 
@@ -295,7 +349,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
     for (UInt i = 1; i < elem_conn.size(); ++i) {
       elem_conn[i] = master_conn[i-1];
     }    
-   
+    
     contact_map[slave_node] = ContactElement(elements[index]);
     contact_map[slave_node].gap = (*gaps)[index];
     contact_map[slave_node].normal =
@@ -308,7 +362,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 
   
 /* -------------------------------------------------------------------------- */
-void ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
+  void ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
 				     const Array<UInt> & nodes_list) {
   auto to_grid = [&](UInt node) {
     Vector<Real> pos(spatial_dimension);
@@ -339,6 +393,8 @@ void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt> & node
   std::for_each(nodes_list.begin(), nodes_list.end(), to_bbox);
 
   AKANTU_DEBUG_INFO("BBox" << bbox);
+
+  std::cerr << bbox << std::endl;
   
   auto & lower_bound = bbox.getLowerBounds();
   auto & upper_bound = bbox.getUpperBounds();
@@ -363,46 +419,72 @@ void ContactDetector::computeCellSpacing(Vector<Real> & spacing) {
 void ContactDetector::computeOrthogonalProjection(const UInt & node,
 						  const Array<Element> & elements,
 						  Array<Real> & normals, Array<Real> & gaps,
-						  Array<Real> & natural_projections) {
+						  Array<Real> & natural_projections,
+						  Array<bool> & status) {
 
   Vector<Real> query(spatial_dimension);
   for (UInt s: arange(spatial_dimension)) {
     query(s) = this->positions(node, s);
   }
 
+  std::cerr << "node = " << node << std::endl;
   for (auto && values :
 	 zip( elements,
 	      gaps,
 	      make_view(normals , spatial_dimension),
-	      make_view(natural_projections, spatial_dimension - 1))) {
+	      make_view(natural_projections, spatial_dimension - 1),
+	      status)) {
     const auto & element = std::get<0>(values);
     auto & gap           = std::get<1>(values);
     auto & normal        = std::get<2>(values);
     auto & natural_projection = std::get<3>(values);
+    auto & to_consider   = std::get<4>(values);
     
     this->computeNormalOnElement(element, normal);
 
     Vector<Real> real_projection(spatial_dimension);
     this->computeProjectionOnElement(element, normal, query,
-				     natural_projection, real_projection);
-
+				     natural_projection, real_projection);     
+    
     Vector<Real> distance(spatial_dimension);
     distance = query - real_projection;
     gap = Math::norm(spatial_dimension, distance.storage());
-
+    
     Vector<Real> direction = distance.normalize(); 
     Real cos_angle = direction.dot(normal);
 
-    Real tolerance = 1e-8;
-    
+    Real tolerance = 1e-8;    
     if (std::abs(cos_angle - 1) <= tolerance && detection_type == _explicit) {
       gap *= -1;
     }
+
+    UInt nb_xi_inside = 0;
+    Real epsilon = 0.05;
+    for (auto xi : natural_projection) {
+      if (xi >= -1.0 -epsilon and xi <= 1.0 + epsilon) {
+	nb_xi_inside++;
+      }
+    }  
+
+    if (nb_xi_inside == natural_projection.size()) {
+      to_consider = true;
+    }
+    else {
+      to_consider = false;
+    }
+
+    if (!to_consider) {
+      
+      std::cerr << normal << std::endl;
+      std::cerr << real_projection << std::endl;
+      std::cerr << natural_projection << std::endl;
+      std::cerr << gap << std::endl;
+    }
   }
-  
+
 }
 
-
+ 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeNormalOnElement(const Element & element, Vector<Real> & normal) {
   
@@ -423,7 +505,6 @@ void ContactDetector::computeNormalOnElement(const Element & element, Vector<Rea
         
 }
 
- 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeProjectionOnElement(const Element & element,
 						 const Vector<Real> & normal,
@@ -435,24 +516,16 @@ void ContactDetector::computeProjectionOnElement(const Element & element,
   
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(element, coords);
-
-  Vector<Real> point(coords(0));
-  
+  Vector<Real> point(coords(0));  
   Real alpha = (query - point).dot(normal);
   real_projection = query - alpha * normal;
 
-  // use contains function to check whether projection lies inside
-  // the element, if yes it is a valid projection otherwise no
-  // still have to think about what to do if normal exists but
-  // projection doesnot lie inside the element 
-
-  bool validity = this->isValidProjection(element, real_projection, natural_projection);
-
+  this->computeNaturalProjection(element, real_projection, natural_projection);  
 }
 
 /* -------------------------------------------------------------------------- */
-bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & real_projection,
-					Vector<Real> & natural_projection) {
+void ContactDetector::computeNaturalProjection(const Element & element, Vector<Real> & real_projection,
+					       Vector<Real> & natural_projection) {
 
   const ElementType & type = element.type;
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -468,28 +541,6 @@ bool ContactDetector::isValidProjection(const Element & element, Vector<Real> & 
   ElementClass<type>::inverseMap(real_projection, nodes_coord, natural_projection) 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
 #undef GET_NATURAL_COORDINATE
-
-  /*Vector<Real> barycenter(spatial_dimension);
-  mesh.getBarycenter(element, barycenter);
-
-  Real distance = 0;
-  switch (this->spatial_dimension) {
-  case 2: {
-    distance = Math::distance_2d(real_projection.storage(), barycenter.storage());
-    break;
-  }
-  case 3: {
-    distance = Math::distance_3d(real_projection.storage(), barycenter.storage());    
-    break;
-  }  
-  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
-  }
-
-  if (distance <= max_dd) {
-    return true;
-    }*/
-
-  return false;
 }
 
   
@@ -531,8 +582,8 @@ void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vec
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::normalProjection(const Element & el, const Vector<Real> & slave_coord,
-					 Vector<Real> & natural_coord, Real & tolerance) {
+void ContactDetector::normalProjection(const Element & /*el*/, const Vector<Real> & /*slave_coord*/,
+				       Vector<Real> & /*natural_coord*/, Real & /*tolerance*/) {
 
   /*Real fmin;
 
