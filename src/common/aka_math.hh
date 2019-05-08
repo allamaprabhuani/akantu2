@@ -200,10 +200,15 @@ public:
   /// distance in 3D between x and y
   static inline Real distance_3d(const Real * x, const Real * y);
 
-  /// radius of the in-circle of a triangle
-  static inline Real triangle_inradius(const Real * coord1, const Real * coord2,
+  /// radius of the in-circle of a triangle in 2d space
+  static inline Real triangle_inradius_2d(const Real * coord1, const Real * coord2,
                                        const Real * coord3);
 
+  /// radius of the in-circle of a triangle in 3d space
+  static inline Real triangle_inradius_3d(const Real * coord1, const Real * coord2,
+                                       const Real * coord3);
+
+  
   /// radius of the in-circle of a tetrahedron
   static inline Real tetrahedron_inradius(const Real * coord1,
                                           const Real * coord2,

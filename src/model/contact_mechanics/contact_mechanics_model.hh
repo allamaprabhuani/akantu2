@@ -39,6 +39,7 @@
 #ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
 #define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
 
+
 namespace akantu {
 class Resolution;
 template <ElementKind kind, class IntegrationOrderFunctor>
@@ -128,8 +129,10 @@ public:
   
   void search(Array<Real> &);
 
-  template<typename FunctorType>
-  void computeNodalAreas(const FunctorType &, const std::string &, GhostType);
+  template<Surface id>
+  void computeNodalAreas();
+
+  void assembleFieldsFromContactMap();
   
   /* ------------------------------------------------------------------------ */
   /* Contact Resolution                                                       */
@@ -174,19 +177,18 @@ public:
   dumper::Field * createNodalFieldBool(const std::string & field_name,
                                        const std::string & group_name,
                                        bool padding_flag) override;
-  
-  virtual void dump(const std::string & dumper_name);
-
-  virtual void dump(const std::string & dumper_name, UInt step);
-
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
-
   void dump() override;
 
   virtual void dump(UInt step);
 
   virtual void dump(Real time, UInt step);
 
+  virtual void dump(const std::string & dumper_name);
+
+  virtual void dump(const std::string & dumper_name, UInt step);
+
+  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+  
   
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -222,23 +224,23 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-   /// return the dimension of the system space
+  /// return the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, Model::spatial_dimension, UInt);
 
-  /// get the SolidMechanicsModel::displacement vector
+  /// get the ContactMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
   
-  /// get  the SolidMechanicsModel::increment  vector \warn  only  consistent if
-  /// SolidMechanicsModel::setIncrementFlagOn has been called before
+  /// get  the ContactMechanicsModel::increment  vector \warn  only  consistent if
+  /// ContactMechanicsModel::setIncrementFlagOn has been called before
   AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
 
   /// get the ContactMechanics::contact_force vector (internal forces)
   AKANTU_GET_MACRO(InternalForce, *contact_force, Array<Real> &);
 
-  /// get the SolidMechanicsModel::external_force vector (external forces)
+  /// get the ContactMechanicsModel::external_force vector (external forces)
   AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
 
-  /// get the SolidMechanicsModel::force vector (external forces)
+  /// get the ContactMechanicsModel::force vector (external forces)
   Array<Real> & getForce() {
     AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "
                          "use getExternalForce instead");
@@ -248,11 +250,14 @@ public:
   /// get the ContactMechanics::blocked_dofs vector
   AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<Real> &);
 
-  /// get the ContactMechanics::gaps vector (contact gaps)
+  /// get the ContactMechanics::gaps (contact gaps)
   AKANTU_GET_MACRO(Gaps, *gaps, Array<Real> &);
- 
-  /// get the ContactMechanics::areas vector (contact areas)
-  AKANTU_GET_MACRO(ContactArea, *areas, Array<Real> &);
+  
+  /// get the ContactMechanics::normals (normals on slave nodes)
+  AKANTU_GET_MACRO(Normals, *normals, Array<Real> &);
+  
+  /// get the ContactMechanics::areas (nodal areas)
+  AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
   
   /// get the ContactMechanics::contact_force vector (internal forces)
   AKANTU_GET_MACRO(CurrentPositions, current_positions, Array<Real> &);
@@ -282,11 +287,17 @@ private:
   /// boundary vector
   Array<Real> * blocked_dofs{nullptr};
 
-  /// gaps vector
+  /// gaps 
   Array<Real> * gaps{nullptr};
+  
+  /// normals
+  Array<Real> * normals{nullptr};
 
-  /// nodal areas vector
-  Array<Real> * areas{nullptr};
+  /// tangents
+  Array<Real> * tangents{nullptr};
+  
+  /// nodal areas
+  Array<Real> * nodal_area{nullptr};
   
   /// array of current position used during update residual
   Array<Real> & current_positions;

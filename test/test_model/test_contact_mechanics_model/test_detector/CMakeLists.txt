@@ -4,7 +4,7 @@
 # @author Mohit Pundir <mohit.pundir@epfl.ch>
 #
 # @date creation: Wed Dec 18 2018
-# @date last modification: Wed Dec 18 2018
+# @date last modification: Wed Apr 29 2019
 #
 # @brief  configuration for contact detection tests
 #
@@ -22,20 +22,29 @@
 #
 #===============================================================================
 
-add_mesh (extrinsic_2d extrinsic_2d.geo 2 1)
+add_mesh (implicit_2d implicit_2d.geo 2 1)
+add_mesh (spheres_2d  spheres_2d.geo  2 1)
+add_mesh (implicit_3d implicit_3d.geo 3 1)
 
-add_mesh (extrinsic_3d extrinsic_3d.geo 3 1)
 
-register_test(test_extrinsic_2d
-  SOURCES test_detection_extrinsic_2d.cc
-  DEPENDS extrinsic_2d
+register_test(test_implicit_3d
+  SOURCES test_detection_implicit_3d.cc
+  DEPENDS implicit_3d
   FILES_TO_COPY options.dat
   PACKAGE contact_mechanics
   )
 
-register_test(test_extrinsic_3d
-  SOURCES test_detection_extrinsic_3d.cc
-  PACKAGE contact_mechanics
-  DEPENDS extrinsic_3d
+register_test(test_implicit_2d
+  SOURCES test_detection_implicit_2d.cc
+  DEPENDS implicit_2d
   FILES_TO_COPY options.dat
+  PACKAGE contact_mechanics
   )
+
+register_test(test_spheres_2d
+  SOURCES test_detection_implicit_2d.cc
+  DEPENDS spheres_2d
+  FILES_TO_COPY options.dat
+  PACKAGE contact_mechanics
+  )
+

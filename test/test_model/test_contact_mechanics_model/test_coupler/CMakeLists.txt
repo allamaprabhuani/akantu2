@@ -3,10 +3,10 @@
 #
 # @author Mohit Pundir <mohit.pundir@epfl.ch>
 #
-# @date creation: Tue Dec 18 2018
-# @date last modification: Tue Dec 18 2018
+# @date creation: Tue May 07 2019
+# @date last modification: Tue May 07 2019
 #
-# @brief  configuration for ContactMechanicsModel tests
+# @brief  configuration for testing coupler class for contact mechanics model
 #
 # @section LICENSE
 #
@@ -22,34 +22,11 @@
 #
 #===============================================================================
 
-add_akantu_test(test_detector "detection_test")
-add_akantu_test(test_resolution "resolution_test")
-add_akantu_test(test_coupler "coupler_test")
+add_mesh (coupling coupling.geo 2 1)
 
-add_mesh (contact_2d contact_2d.geo 2 1)
-add_mesh (contact_3d contact_3d.geo 3 1)
-add_mesh (circles_2d circles_2d.geo 2 1)
-
-
-register_test(test_contact_mechanics
-  SOURCES test_contact_mechanics_model.cc
-  DEPENDS contact_3d
+register_test( test_contact_coupling
+  SOURCES test_contact_coupling.cc
+  DEPENDS coupling
   FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
+  PACKAGE contact_mechanics model_couplers
   )
-
-register_test(test_contact_mechanics_2d
-  SOURCES test_contact_mechanics_model_2d.cc
-  DEPENDS contact_2d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
-
-
-register_test(test_contact_mechanics_circles
-  SOURCES test_contact_mechanics_model.cc
-  DEPENDS circles_2d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
-

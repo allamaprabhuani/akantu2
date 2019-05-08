@@ -79,74 +79,69 @@ void Resolution::assembleInternalForces(GhostType ghost_type) {
   
   auto & internal_force =
     const_cast<Array<Real> &>(model.getInternalForce());
+  
+  const auto local_nodes =
+    model.getMesh().getElementGroup(name).getNodes();
 
-  auto & contact_area =
-    const_cast<Array<Real> &>(model.getContactArea());
+  auto & nodal_area =
+    const_cast<Array<Real> &>(model.getNodalArea());
     
   auto & contact_map = model.getContactMap();
   
-  const auto slave_nodes = model.getMesh().getElementGroup(name).getNodes();
-  
-  for (auto & slave: slave_nodes) {
+  for (auto & slave: local_nodes) {
 
     if (contact_map.find(slave) == contact_map.end())
-      continue;
+      continue; 
+    
+    auto & element = contact_map[slave];
 
-    auto & master       = contact_map[slave].master;
-    auto & gap          = contact_map[slave].gap;
-    auto & projection   = contact_map[slave].projection;
-    auto & normal       = contact_map[slave].normal;
-    const auto & connectivity = contact_map[slave].connectivity;
-    const ElementType & type  = master.type;
+    const auto & conn = element.connectivity;
+    const auto & type = element.master.type;
 
-    UInt nb_nodes_master = Mesh::getNbNodesPerElement(master.type);
+    auto nb_nodes_master = Mesh::getNbNodesPerElement(type);
 
     Vector<Real> shapes(nb_nodes_master);
-    Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
+    Matrix<Real> dnds(spatial_dimension - 1, nb_nodes_master);
        
 #define GET_SHAPES_NATURAL(type)				\
-    ElementClass<type>::computeShapes(projection, shapes)
+    ElementClass<type>::computeShapes(element.projection, shapes)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL  
 
 #define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-    ElementClass<type>::computeDNDS(projection, shapes_derivatives)
+    ElementClass<type>::computeDNDS(element.projection, dnds)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
         
-    Vector<Real> elem_force(connectivity.size() * spatial_dimension);
-    Matrix<Real> tangents(spatial_dimension - 1, spatial_dimension);
-    Matrix<Real> global_coords(nb_nodes_master, spatial_dimension);
-
-    computeCoordinates(master, global_coords);
-    computeTangents(shapes_derivatives, global_coords, tangents);
-    
-    Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
-    computeSurfaceMatrix(tangents, surface_matrix);
-
-    Vector<Real> n(connectivity.size() * spatial_dimension);
-    
-    computeN(n, shapes, normal);
-    computeNormalForce(elem_force, n, gap);
-    
-    Array<Real> t_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> n_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> d_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
+    Vector<Real> fc(conn.size() * spatial_dimension);
    
-    computeTalpha(t_alpha, shapes,             tangents);
-    computeNalpha(n_alpha, shapes_derivatives, normal);
-    computeDalpha(d_alpha, n_alpha, t_alpha, surface_matrix, gap);
+    Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
+    computeSurfaceMatrix(element.tangents, surface_matrix);
 
-    //computeFrictionForce(elem_force, d_alpha, gap);
+    Vector<Real> n(conn.size() * spatial_dimension);
+    
+    computeN(n, shapes, element.normal);
+
+    computeNormalForce(fc, n, element.gap);
+    
+    Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+   
+    computeTalpha(t_alpha, shapes,             element.tangents);
+    computeNalpha(n_alpha, dnds,               element.normal);
+    computeDalpha(d_alpha, n_alpha, t_alpha, surface_matrix, element.gap);
+
+    //computeFrictionForce(fc, d_alpha, gap);
 
     UInt nb_degree_of_freedom = internal_force.getNbComponent();
-    for (UInt i = 0; i < connectivity.size(); ++i) {
+    for (UInt i = 0; i < conn.size(); ++i) {
 
-      UInt n = connectivity[i];
+      UInt n = conn[i];
       for (UInt j = 0; j < nb_degree_of_freedom; ++j) {	
 	UInt offset_node = n * nb_degree_of_freedom + j;
-	internal_force[offset_node] += elem_force[i*nb_degree_of_freedom + j];
-	internal_force[offset_node] *= contact_area[n];
+	internal_force[offset_node] += fc[i*nb_degree_of_freedom + j];
+	internal_force[offset_node] *= nodal_area[n];
       }
     }    
   }
@@ -158,18 +153,18 @@ void Resolution::assembleInternalForces(GhostType ghost_type) {
 void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto & contact_stiffness =
+  auto & stiffness =
     const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
 
-  const auto slave_nodes =
+  const auto local_nodes =
     model.getMesh().getElementGroup(name).getNodes();
 
-  auto & contact_area =
-    const_cast<Array<Real> &>(model.getContactArea());
+  auto & nodal_area =
+    const_cast<Array<Real> &>(model.getNodalArea());
   
   auto & contact_map = model.getContactMap();
   
-  for (auto & slave: slave_nodes) {
+  for (auto & slave: local_nodes) {
 
     if (contact_map.find(slave) == contact_map.end()) {
       continue;
@@ -205,14 +200,6 @@ void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
 
     computeCoordinates(master, global_coords);
     computeTangents(shapes_derivatives, global_coords, tangents);
-
-    std::cerr << "slave" << slave << std::endl;
-    std::cerr << "normal = " << normal << std::endl;
-    std::cerr << "projection = " << projection << std::endl;
-    std::cerr << "coords = " << global_coords << std::endl;
-    std::cerr << "shapes = "<< shapes << std::endl;
-    std::cerr << "derivatives = " << shapes_derivatives << std::endl;
-    std::cerr << "tangents = " << tangents << std::endl;
     
     Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
     computeSurfaceMatrix(tangents, surface_matrix);
@@ -239,34 +226,20 @@ void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
       UInt n = connectivity[i];
       for (UInt j : arange(nb_degree_of_freedom)) {
 	equations.push_back(n * nb_degree_of_freedom + j);
-	areas.push_back(contact_area[n]);
+	areas.push_back(nodal_area[n]);
       }
     }
 
-    /*for (auto c : connectivity) {
-      std::cerr << c << " ";
-    }
-    std::cerr << "\n";
-    
-    for (auto e : equations) {
-      std::cerr << e << " ";
-    }
-    std::cerr << "\n";*/
-
-    
     for (UInt i : arange(kc.rows())) {
       UInt row = equations[i];
       for (UInt j : arange(kc.cols())) {
 	UInt col = equations[j];
-	//std::cerr << row << "," << col << "=" << kc(i, j) <<std::endl;
 	kc(i, j) *= areas[i];
-	//std::cerr << row << "," << col << "=" << kc(i, j) <<std::endl;
-	contact_stiffness.add(row, col, kc(i, j));
+	stiffness.add(row, col, kc(i, j));
       }	
     }
   }
 
-  contact_stiffness.saveMatrix("contact-after.mtx");
   AKANTU_DEBUG_OUT();
 }
 
@@ -281,9 +254,7 @@ void Resolution::computeTangents(Matrix<Real> & shapes_derivatives, Matrix<Real>
 void Resolution::computeSurfaceMatrix(Matrix<Real> & tangents, Matrix<Real> & surface_matrix) {
 
   surface_matrix.mul<false, true>(tangents, tangents);
-  //std::cerr << "surface = " << surface_matrix << std::endl;
   surface_matrix = surface_matrix.inverse();
-  
 }
 
 /* -------------------------------------------------------------------------- */
@@ -314,7 +285,6 @@ void Resolution::computeTalpha(Array<Real> & t_alpha, Vector<Real> & shapes,
 	 t_s[(1 + j)*spatial_dimension + i] = -shapes[j] * tangent(i);
        }
      }
-     //std::cerr << "t_s = " << t_s << std::endl;
   }
 }
 
@@ -333,7 +303,6 @@ void Resolution::computeNalpha(Array<Real> & n_alpha, Matrix<Real> & shapes_deri
 	n_s[(1 + j)*spatial_dimension + i] = -dnds(j)*normal[i];
       }
     }
-    //std::cerr << "n_s  = " << n_s << std::endl;
   }
 }
 
@@ -354,13 +323,10 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
       auto & index = std::get<0>(values);
       auto & t_s   = std::get<1>(values);
       auto & n_s   = std::get<2>(values);
-
-      //std::cerr << "d_s = " << d_s << std::endl;
+      
       d_s += (t_s + gap  * n_s);
-      //std::cerr << "d_s = " << d_s << std::endl;
       d_s *= a_s(index);
     }
-    //std::cerr << "d_s" << d_s << std::endl;
   }
 }
 
@@ -369,7 +335,7 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
 void Resolution::computeCoordinates(const Element & el, Matrix<Real> & coords) {
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
   Vector<UInt> connect = model.getMesh().getConnectivity(el.type, _not_ghost)
-                                           .begin(nb_nodes_per_element)[el.element]; 
+    .begin(nb_nodes_per_element)[el.element]; 
 
   // change this to current position
   auto & positions = model.getMesh().getNodes();

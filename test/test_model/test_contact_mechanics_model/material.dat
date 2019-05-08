@@ -1,0 +1,24 @@
+material elastic [
+         name = bot_body
+         rho = 7800   # density
+         E   = 210 # young's modulu
+         nu  = 0.3    # poisson's ratio
+]
+
+material elastic [
+         name = top_body
+         rho = 7800   # density
+         E   = 2.1e11 # young's modulu
+         nu  = 0.3    # poisson's ratio
+]
+
+contact_detector [
+  type = implicit		 			
+  master = flat
+  slave = curved
+]
+
+contact_resolution penalty [
+  name = curved
+  epsilon = 100
+]

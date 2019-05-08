@@ -76,62 +76,40 @@ public:
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ///
+  /// performs the all search steps 
   void search(std::map<UInt, ContactElement> &);
+
+  /// performs global spatial search to construct spatial grids
+  void globalSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+
+  ///  performs local search to find closet master node to a slave node
+  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
+
+  /// constructs contact map for a given pair of slave and master node
+  void constructContactMap(std::map<UInt, ContactElement> &);
+  
+private:
+  /// reads the input file to get contact detection options
+  void parseSection();
+
+  /// extracts vectors which forms the plane of element
+  void vectorsAlongElement(const Element & /* element id     */,
+			   Matrix<Real> &  /* vectors matrix */);
 
   /// computes orthogonal projection on master elements
   void computeOrthogonalProjection(const UInt &           /* slave node */,
 				   const Array<Element> & /* master elements */,
 				   Array<Real> &          /* normals */,
 				   Array<Real> &          /* gaps */,
-				   Array<Real> &          /* projections */,
-				   Array<bool> &          /* status
-							     */ );
-
-  ///
-  inline std::string getSurfaceId(const std::string name) {
-    if (name == "slave") {
-      return surfaces[Surface::slave];
-    }
-    
-  };
-  
-private:
-  /// reads the input file to get contact detection options
-  void parseSection();
-     
-  /// performs global spatial search
-  void globalSearch(std::map<UInt, ContactElement> &);
-
-  ///  performs local search to create contact element
-  /// TODO: templated function typename
-  void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &,
-		   std::map<UInt, ContactElement> &);
-
-  /// constructs a grid containing nodes lying within bounding box
-  /// TODO : templated fucntion to created template Spatial Grid
-  void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
-
-  /// constructs the bounding box based on nodes list
-  void constructBoundingBox(BBox &, const Array<UInt> &);
-
-  /// computes the optimal cell size for grid 
-  void computeCellSpacing(Vector<Real> &);
-
-  /// computes the maximum in radius for a given mesh 
-  void getMaximalDetectionDistance();
-
-  /// extracts the coordinates of an element
-  void coordinatesOfElement(const Element & /* element id  */,
-			    Matrix<Real> &  /* coordinates */);
-
-  /// extracts vectors which forms the plane of element
-  void vectorsAlongElement(const Element & /* element id     */,
-			   Matrix<Real> &  /* vectors matrix */);
-  
+				   Array<Real> &          /* projections */);
+ 
   /// computes normal on an element
   void computeNormalOnElement(const Element & /* element id    */,
 			      Vector<Real> &  /* normal vector */);
+
+  /// computes tangents on a given natural coordinate
+  void computeTangentsOnElement(const Element &, Vector<Real> &,
+				Matrix<Real> &);
 
   /// computes projection of a query point on an element
   void computeProjectionOnElement(const Element &      /* element */,
@@ -146,14 +124,61 @@ private:
 				Vector<Real> &  /* real projection  */,
 				Vector<Real> &  /* natural projection */);
 
-  /// compute normal projection of slav coord on a given element
+  /// compute normal projection of slave coord on a given element
   void normalProjection(const Element & el, const Vector<Real> & slave_coord,
 			Vector<Real> & natural_coord, Real & tolerance);
 
-  /// compute the active zones for implicit detection type, uses
-  /// displacement increment to compute the actual gap value for slave
-  /// nodes which will penetrate the master surface
+  /* ------------------------------------------------------------------------ */
+  /* Inline Methods                                                           */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// checks whether the natural projection is valid or not
+  inline bool checkValidityOfProjection(Vector<Real> & );
   
+  /// extracts the coordinates of an element
+  inline void coordinatesOfElement(const Element & , Matrix<Real> & );
+
+  /// computes the optimal cell size for grid 
+  inline void computeCellSpacing(Vector<Real> & );
+
+  /// constructs a grid containing nodes lying within bounding box
+  inline void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
+
+  /// constructs the bounding box based on nodes list
+  inline void constructBoundingBox(BBox &, const Array<UInt> &);
+
+  /// get the surface id
+  template<Surface id>
+  inline std::string getSurfaceId();
+   
+  /// set the surface id
+  template<Surface id>
+  inline void setSurfaceId(const std::string);
+  
+  /// computes the maximum in radius for a given mesh 
+  inline void computeMaximalDetectionDistance();
+
+  /// constructs the connectivity for a contact element
+  inline Vector<UInt> constructConnectivity(UInt &, const Element &);
+
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// returns the maximum detection distance
+  AKANTU_GET_MACRO(MaximumDetectionDistance, max_dd, Real);
+
+  /// sets the maximum detection distance
+  AKANTU_SET_MACRO(MaximumDetectionDistance, max_dd, Real);
+
+  /// returns the bounding box extension
+  AKANTU_GET_MACRO(MaximumBoundingBox, max_bb, Real);
+
+  /// sets the bounding box extension
+  AKANTU_SET_MACRO(MaximumBoundingBox, max_bb, Real);
+
+  /// get the contact pairs
+  AKANTU_GET_MACRO(ContactPairs, contact_pairs, Array<UInt>);
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -173,16 +198,19 @@ private:
   
   /// map to contain ids for surfaces
   std::map<Surface, std::string> surfaces; 
+
+  /// contact pair slave node to closet master node
+  Array<UInt> contact_pairs;
   
   /// contains the updated positions of the nodes
   Array<Real> & positions;
 
-  /// type of detection extrinisic/intrinsic 
-  ContactDetectorType detection_type;
-  
+  /// type of detection explicit/implicit 
+  DetectionType detection_type;
 };
   
 } // namespace akantu
 
+#include "contact_detector_inline_impl.cc"
 
 #endif /* __AKANTU_CONTACT_DETECTOR_HH__ */

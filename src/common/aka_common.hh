@@ -133,7 +133,8 @@ namespace akantu {
   (heat_transfer_model)                                                 \
   (structural_mechanics_model)						\
   (embedded_model)							\
-  (contact_mechanics_model)
+  (contact_mechanics_model)						\
+  (coupler_solid_contact)
 // clang-format on
 
   /// enum ModelType defines which type of physics is solved
@@ -149,7 +150,8 @@ enum class ModelType {
   _heat_transfer_model,
   _structural_mechanics_model,
   _embedded_model,
-  _contact_mechanics_model
+  _contact_mechanics_model,
+  _coupler_solid_contact
 };
 #endif
 
@@ -178,27 +180,17 @@ enum NonLinearSolverType {
             ///  model::getNewSolver
 };
 
-
-/// @enum ContactElementType type of contact element
-enum class ContactElementType {
-  _node_to_node,
-  _node_to_segment
-};
-
-/// @enum ContactDetectorType type of contact detection
-enum ContactDetectorType {
-  _explicit,
-  _implicit
-};
+/// @enum Type of contact detection
+enum DetectionType { _explicit, _implicit};
+ 
   
-  
-  /// Type of time stepping solver
-  enum TimeStepSolverType {
-    _tsst_static,         ///< Static solution
-    _tsst_dynamic,        ///< Dynamic solver
-    _tsst_dynamic_lumped, ///< Dynamic solver with lumped mass
-    _tsst_not_defined,    ///< For not defined cases
-  };
+/// Type of time stepping solver
+enum TimeStepSolverType {
+  _tsst_static,         ///< Static solution
+  _tsst_dynamic,        ///< Dynamic solver
+  _tsst_dynamic_lumped, ///< Dynamic solver with lumped mass
+  _tsst_not_defined,    ///< For not defined cases
+};
 
   /// Type of integration scheme
   enum IntegrationSchemeType {

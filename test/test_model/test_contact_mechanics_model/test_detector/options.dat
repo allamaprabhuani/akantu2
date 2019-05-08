@@ -1,6 +1,5 @@
 contact_detector [
-  max_bb = 0.5
-  type = extrinsic		 			
-  master_surface = rigid
-  slave_surface = contact_surface
+  type = implicit		 			
+  master = flat
+  slave = curved
 ]

@@ -42,6 +42,6 @@ package_declare_documentation_files(model_couplers
   )
 
 package_declare_documentation(model_couplers
-  "This package activates the modle couplers within Akantu. "
+  "This package activates the model couplers within Akantu. "
   "It has no additional dependencies."
   )

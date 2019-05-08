@@ -116,8 +116,12 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-  return 2. * Math::triangle_inradius(coord(0).storage(), coord(1).storage(),
-                                      coord(2).storage());
+  if (coord.rows() == 2) {
+    return 2. * Math::triangle_inradius_2d(coord(0).storage(), coord(1).storage(),
+					   coord(2).storage());
+  }
+  return 2. * Math::triangle_inradius_3d(coord(0).storage(), coord(1).storage(),
+					 coord(2).storage());
 }
 
 /* -------------------------------------------------------------------------- */

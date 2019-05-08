@@ -101,36 +101,11 @@ void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> &
   Real tn = gap * epsilon;
   tn = macaulay(tn);
 
-  //Matrix<Real> ke(n_alpha.size(), n_alpha.size());
   Matrix<Real> n_mat(n.storage(), n.size(), 1);
   
   ke.mul<false, true>(n_mat, n_mat);
   ke *= epsilon * heaviside(gap);
-
-  std::cerr << " ke = " << ke << std::endl;
   
-  /*for (auto && entry1 :
-	 enumerate(make_view(n_alpha, n_alpha.size()))) {
-    
-    auto & i = std::get<0>(entry1);
-    auto & ni = std::get<1>(entry1);
-    Matrix<Real> ni_mat(ni.storage(), ni.size(), 1);
-    
-    for (auto && entry2:
-	   enumerate(make_view(n_alpha, n_alpha.size()))) {
-
-      auto & j = std::get<0>(entry2);
-      auto & nj = std::get<1>(entry2);
-      Matrix<Real> nj_mat(nj.storage(), nj.size(), 1);
-
-      Matrix<Real> tmp(nj.size(), nj.size());
-      tmp.mul<false, true>(ni_mat, nj_mat);
-      tmp *= surface_matrix[i, j] * tn;
-     
-      ke += tmp;
-    }    
-    }*/
-
   for (auto && values:
 	 zip(make_view(n_alpha, n_alpha.size()),
 	     make_view(d_alpha, d_alpha.size()))) {
@@ -149,7 +124,6 @@ void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> &
     ke -= (tmp1 + tmp2) * tn;
   }
 
-  std::cerr << " ke = " << ke << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

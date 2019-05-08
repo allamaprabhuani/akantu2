@@ -54,7 +54,8 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, const ID 
   this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
 
   this->parseSection();
-  this->getMaximalDetectionDistance();
+
+  this->computeMaximalDetectionDistance();
   
   AKANTU_DEBUG_OUT();
 }
@@ -63,6 +64,7 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, const ID 
 void ContactDetector::parseSection() {
 
   const Parser & parser = getStaticParser();
+
   const ParserSection & section =
     *(parser.getSubSections(ParserType::_contact_detector).first);
 
@@ -77,64 +79,27 @@ void ContactDetector::parseSection() {
     AKANTU_ERROR("Unknown detection type : " << type);
   }
   
-  surfaces[Surface::master] = section.getParameterValue<std::string>("master_surface");
-  surfaces[Surface::slave ] = section.getParameterValue<std::string>("slave_surface");
+  surfaces[Surface::master] = section.getParameterValue<std::string>("master");
+  surfaces[Surface::slave ] = section.getParameterValue<std::string>("slave");
 }
-    
+     
 /* -------------------------------------------------------------------------- */
-void ContactDetector::getMaximalDetectionDistance() {
-
-  AKANTU_DEBUG_IN();
-
-  Real elem_size;
-  Real max_elem_size = std::numeric_limits<Real>::min();
-
-  std::cerr << max_elem_size << std::endl;
-  auto & master_group =
-    mesh.getElementGroup(surfaces[Surface::master]);
-
-  for (auto type:
-	 master_group.elementTypes(spatial_dimension - 1, _not_ghost, _ek_regular)) {
-    
-    const auto & element_ids = master_group.getElements(type);    
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-    UInt nb_elements = element_ids.size();
-
-    Element elem;
-    elem.type = type;
-    for (auto el : element_ids) {
-      elem.element = el;
-      Matrix<Real> elem_coords(spatial_dimension, nb_nodes_per_element);
-      this->coordinatesOfElement(elem, elem_coords);
-
-      elem_size = FEEngine::getElementInradius(elem_coords, type);
-
-      std::cerr << elem_coords << std::endl;
-      std::cerr << elem_size << std::endl;
-      
-      max_elem_size = std::max(max_elem_size, elem_size);
-    }
-
-    AKANTU_DEBUG_INFO("The maximum element size : "
-		      << max_elem_size );
-
-    std::cerr << max_elem_size << std::endl;
-  }
-
-  this->max_dd = max_elem_size;
-  this->max_bb = max_elem_size;
+void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
   
-  AKANTU_DEBUG_OUT();
-}
-  
-/* -------------------------------------------------------------------------- */
-  void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
-  this->globalSearch(contact_map);
-}
-  
+  SpatialGrid<UInt> master_grid(spatial_dimension);
+
+  SpatialGrid<UInt> slave_grid(spatial_dimension);
  
+  this->globalSearch(slave_grid, master_grid);
+
+  this->localSearch(slave_grid, master_grid);
+
+  this->constructContactMap(contact_map);
+}
+   
 /* -------------------------------------------------------------------------- */
-void ContactDetector::globalSearch(std::map<UInt, ContactElement> & contact_map) {
+void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
+				   SpatialGrid<UInt> & master_grid) {
   
   auto & master_list =
     mesh.getElementGroup(surfaces[Surface::master]).getNodeGroup().getNodes();
@@ -150,11 +115,6 @@ void ContactDetector::globalSearch(std::map<UInt, ContactElement> & contact_map)
   
   auto && bbox_intersection =
     bbox_master.intersection(bbox_slave);
-
-  std::cerr << bbox_master << std::endl;
-  std::cerr << bbox_slave << std::endl;
-
-  std::cerr << bbox_intersection << std::endl;
   
   AKANTU_DEBUG_INFO( "Intersection BBox "
 		     << bbox_intersection );
@@ -164,39 +124,22 @@ void ContactDetector::globalSearch(std::map<UInt, ContactElement> & contact_map)
 
   Vector<Real> spacing(spatial_dimension);
   this->computeCellSpacing(spacing);
-    
-  auto & master_surface_list =
-    mesh.getElementGroup(surfaces[Surface::master]).getNodeGroup().getNodes();
-
-  auto & slave_surface_list =
-    mesh.getElementGroup(surfaces[Surface::slave]).getNodeGroup().getNodes();
  
-  SpatialGrid<UInt> master_grid(spatial_dimension, spacing, center);
-  this->constructGrid(master_grid, bbox_intersection, master_surface_list);
+  master_grid.setCenter(center);
+  master_grid.setSpacing(spacing);
+  this->constructGrid(master_grid, bbox_intersection, master_list);
 
-  SpatialGrid<UInt> slave_grid(spatial_dimension, spacing, center);
-  this->constructGrid(slave_grid, bbox_intersection, slave_surface_list);
-  
-  if (AKANTU_DEBUG_TEST(dblDump)) {
-    Mesh mesh(spatial_dimension, "save");
-    master_grid.saveAsMesh(mesh);
-    mesh.write("master_grid.msh");
-  }
-
-  if (AKANTU_DEBUG_TEST(dblDump)) {
-    Mesh mesh2(spatial_dimension, "save");
-    slave_grid.saveAsMesh(mesh2);
-    mesh2.write("slave_grid.msh");
-  }
-  
-  AKANTU_DEBUG_INFO( "Grid Details " << master_grid );
+  slave_grid.setCenter(center);
+  slave_grid.setSpacing(spacing);
+  this->constructGrid(slave_grid, bbox_intersection, slave_list);
+    
   // search slave grid nodes in contactelement array and if they exits
   // and still have orthogonal projection on its associated master
   // facetremove it from the spatial grid or do not consider it for
   // local search, maybe better option will be to have spatial grid of
   // type node info and one of the variable of node info should be
   // facet already exits
-  // so contact eleemnts will be updated based on the above
+  // so contact elements will be updated based on the above
   // consideration , this means only those contact elements will be
   // keep whose slave node is still in intersection bbox and still has
   // projection in its master facet
@@ -205,13 +148,11 @@ void ContactDetector::globalSearch(std::map<UInt, ContactElement> & contact_map)
   // master facets with the current master facets within a given
   // radius , this is subjected to computational cost as searching
   // neighbbor cells can be more effective.
-  this->localSearch(slave_grid, master_grid, contact_map);
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
-				  SpatialGrid<UInt> & master_grid,
-				  std::map<UInt, ContactElement> & contact_map) {
+				  SpatialGrid<UInt> & master_grid) {
 
   // local search
   // out of these array check each cell for closet node in that cell
@@ -223,10 +164,10 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   // these master surfaces will be needed later to update contact
   // elements
 
-  Array<UInt> slave_nodes;
-  Array<UInt> master_nodes;
+  //Array<UInt> slave_nodes;
+  //Array<UInt> master_nodes;
 
-  BBox bbox_master_grid(spatial_dimension); 
+  /*BBox bbox_master_grid(spatial_dimension); 
   BBox bbox_slave_grid(spatial_dimension);
 
   auto create_bbox = [&](auto & grid, auto & bbox) {
@@ -245,49 +186,41 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   create_bbox(slave_grid, bbox_slave_grid);
   
   auto && bbox_intersection =
-    bbox_master_grid.intersection(bbox_slave_grid);
+  bbox_master_grid.intersection(bbox_slave_grid);*/
 
-  std::cerr << bbox_master_grid << std::endl;
-  std::cerr << bbox_slave_grid << std::endl;
-
-  std::cerr << bbox_intersection << std::endl;
+  contact_pairs.clear();
   
-  // find the closet master node for each slave node
+  /// find the closet master node for each slave node
   for (auto && cell_id : slave_grid) {
-    AKANTU_DEBUG_INFO("Looping on next cell");
-    
-    for (auto && q1: slave_grid.getCell(cell_id)) {
+    /// loop over all the slave nodes of the current cell    
+    for (auto && slave_node: slave_grid.getCell(cell_id)) {
 
       bool pair_exists = false;
       
       Vector<Real> pos(spatial_dimension);
-      for (UInt s: arange(spatial_dimension)) {
-	pos(s) = this->positions(q1, s);
-      }
+      for (UInt s: arange(spatial_dimension)) 
+	pos(s) = this->positions(slave_node, s);
+            
+      //if (!bbox_intersection.contains(pos)) {
+      //	continue;
+      //}
 
-      if (!bbox_intersection.contains(pos)) {
-	continue;
-      }
-
-      Real closet_distance = this->max_dd * 0.5;
+      Real closet_distance = std::numeric_limits<Real>::max();
       UInt closet_master_node;
-     
-      // loop over all the neighboring cells of the current cells
+
+      /// loop over all the neighboring cells of the current cell
       for (auto && neighbor_cell : cell_id.neighbors()) {
-
-	// loop over the data of neighboring cells from master grid	
-	for (auto && q2 : master_grid.getCell(neighbor_cell)) {
+	/// loop over the data of neighboring cells from master grid	
+	for (auto && master_node : master_grid.getCell(neighbor_cell)) {
 	  
-	  AKANTU_DEBUG_INFO("Looping on neighbor cell in master");
 	  Vector<Real> pos2(spatial_dimension);
-	  for (UInt s: arange(spatial_dimension)) {
-	    pos2(s) = this->positions(q2, s);
-	  }
-
+	  for (UInt s: arange(spatial_dimension)) 
+	    pos2(s) = this->positions(master_node, s);
+	  	  
 	  Real distance = pos.distance(pos2);
   
 	  if (distance <= closet_distance) {
-	    closet_master_node = q2;
+	    closet_master_node = master_node;
 	    closet_distance = distance;
 	    pair_exists = true;
 	  }
@@ -295,156 +228,127 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
       }
 
       if (pair_exists) {
-	slave_nodes.push_back(q1);
-	master_nodes.push_back(closet_master_node);
-	std::cerr << q1 << "  ---- " << closet_master_node << "---" << closet_distance << std::endl;
+	contact_pairs.push_back(slave_node);
+	contact_pairs.push_back(closet_master_node);
       }
+      
     }
   }  
+}
 
-  std::cerr << "Number of Slave nodes = " << slave_nodes.size() << std::endl;
-  
-  for (auto && values : zip(slave_nodes, master_nodes)) {
-    const auto & slave_node  = std::get<0>(values);
-    const auto & master_node = std::get<1>(values);
+/* -------------------------------------------------------------------------- */
+void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & contact_map) {
 
-    Array<Element> elements;
-    this->mesh.getAssociatedElements(master_node, elements);
-    
-    auto normals  = std::make_unique<Array<Real>>(elements.size(),
-						  spatial_dimension, "normals");
-    auto gaps     = std::make_unique<Array<Real>>(elements.size(),
-						  1,                 "gaps"); 
-    auto natural_projections = std::make_unique<Array<Real>>(elements.size(),
-							     spatial_dimension - 1, "projections");
-    auto status = std::make_unique<Array<bool>>(elements.size(),
-						1, "status");
-    this->computeOrthogonalProjection(slave_node, elements,
-				      *normals, *gaps, *natural_projections, *status);
+  auto get_index = [&](auto & gaps, auto & projections) {
 
-    
     UInt index;
-    Real minimum_gap = std::numeric_limits<Real>::max();
-    bool to_consider = false;
-    for (UInt i : arange(gaps->size())) {
-      if (!(*status)[i])
-	continue;
+    Real gap_min  = std::numeric_limits<Real>::max();
 
-      if ((*gaps)[i] <= minimum_gap) {
-	minimum_gap = (*gaps)[i];
-	index = i;
-	to_consider = true;
+    UInt counter = 0;
+    for (auto && values : zip(gaps,
+			      make_view(projections, spatial_dimension -1))) {
+      auto & gap        = std::get<0>(values);
+      auto & projection = std::get<1>(values);
+      
+      bool is_valid = this->checkValidityOfProjection(projection);
+      
+      if (is_valid and gap <= gap_min) {
+	gap_min = gap;
+	index = counter;
       }
+      counter++;
     }
 
-    if (!to_consider) {
-      continue;
+    /// TODO: adhoc fix to assign a master element in case the
+    /// projection does not lie in the extended element. As it is
+    /// tolerance based
+    if (index >= gaps.size()) {
+      auto gap_min_it = std::min_element(gaps.begin(), gaps.end());
+      auto index_it = std::find(gaps.begin(), gaps.end(), *gap_min_it);
+      index  = *index_it;
     }
     
-    Vector<UInt> master_conn =
-      this->mesh.getConnectivity(elements[index]);
+    return index;
+  };
+
+
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn = this->mesh.getConnectivity(master);
 
     Vector<UInt> elem_conn(master_conn.size() + 1);
-    elem_conn[0] = slave_node;
+
+    elem_conn[0] = slave;
     for (UInt i = 1; i < elem_conn.size(); ++i) {
       elem_conn[i] = master_conn[i-1];
     }    
-    
-    contact_map[slave_node] = ContactElement(elements[index]);
-    contact_map[slave_node].gap = (*gaps)[index];
-    contact_map[slave_node].normal =
-      Vector<Real>(normals->begin(spatial_dimension)[index], true);
-    contact_map[slave_node].projection =
-      Vector<Real>(natural_projections->begin(spatial_dimension - 1)[index], true);
-    contact_map[slave_node].connectivity = elem_conn;    
-  }
-}
 
-  
-/* -------------------------------------------------------------------------- */
-  void ContactDetector::constructGrid(SpatialGrid<UInt> & grid, BBox & bbox,
-				     const Array<UInt> & nodes_list) {
-  auto to_grid = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s: arange(spatial_dimension)) {
-      pos(s) = this->positions(node, s);
-    }
-
-    if (bbox.contains(pos)) {
-      grid.insert(node, pos);
-    }
+    return elem_conn;
   };
 
-  std::for_each(nodes_list.begin(), nodes_list.end(), to_grid);
-}
-
-/* -------------------------------------------------------------------------- */  
-void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt> & nodes_list) {
   
-  auto to_bbox = [&](UInt node) {
-    Vector<Real> pos(spatial_dimension);
-    for (UInt s: arange(spatial_dimension)) {
-      pos(s)  = this->positions(node, s);
-    }
+  for (auto && pairs : make_view(contact_pairs, 2)) {
+
+    const auto & slave_node  = pairs(0);
+    const auto & master_node = pairs(1);
+
+    Array<Element> elements;
+    this->mesh.getAssociatedElements(master_node, elements);
+
+    Array<Real>    gaps(elements.size(),        1,                    "gaps");
+    Array<Real>    normals(elements.size(),     spatial_dimension,    "normals");
+    Array<Real>    projections(elements.size(), spatial_dimension -1, "projections");
+
+    this->computeOrthogonalProjection(slave_node, elements,
+				      normals, gaps, projections);
     
-    bbox += pos;
-  };
+    auto index = get_index(gaps, projections);
 
-  std::for_each(nodes_list.begin(), nodes_list.end(), to_bbox);
+    auto connectivity = get_connectivity(slave_node, elements[index]);
+    
+    contact_map[slave_node].setMaster(elements[index]);
+    contact_map[slave_node].setGap(gaps[index]);
+    contact_map[slave_node].setNormal(Vector<Real>(normals.begin(spatial_dimension)[index], true));
+    contact_map[slave_node].setProjection(Vector<Real>(projections.begin(spatial_dimension - 1)[index], true));
+    contact_map[slave_node].setConnectivity(connectivity);
 
-  AKANTU_DEBUG_INFO("BBox" << bbox);
-
-  std::cerr << bbox << std::endl;
-  
-  auto & lower_bound = bbox.getLowerBounds();
-  auto & upper_bound = bbox.getUpperBounds();
-
-  for (UInt s: arange(spatial_dimension)) {
-    lower_bound(s) -= this->max_bb;
-    upper_bound(s) += this->max_bb;
+    /// number of surface tangents will be equal to dimension of
+    /// surface i.e. spatial_dimension - 1 and nb of components will
+    /// still be equal to spatial dimension  
+    Matrix<Real> tangents(spatial_dimension - 1, spatial_dimension);
+    this->computeTangentsOnElement(contact_map[slave_node].master,
+				   contact_map[slave_node].projection,
+				   tangents);
+    contact_map[slave_node].setTangent(tangents);
   }
   
-  AKANTU_DEBUG_INFO("BBox" << bbox);
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactDetector::computeCellSpacing(Vector<Real> & spacing) {
-
-  for (UInt s: arange(spatial_dimension)) 
-    spacing(s) = std::sqrt(2.0) * max_dd;
-    
 }
   
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeOrthogonalProjection(const UInt & node,
 						  const Array<Element> & elements,
 						  Array<Real> & normals, Array<Real> & gaps,
-						  Array<Real> & natural_projections,
-						  Array<bool> & status) {
+						  Array<Real> & projections) {
 
   Vector<Real> query(spatial_dimension);
-  for (UInt s: arange(spatial_dimension)) {
+  for (UInt s: arange(spatial_dimension)) 
     query(s) = this->positions(node, s);
-  }
-
-  std::cerr << "node = " << node << std::endl;
+  
   for (auto && values :
 	 zip( elements,
-	      gaps,
+	      gaps, 
 	      make_view(normals , spatial_dimension),
-	      make_view(natural_projections, spatial_dimension - 1),
-	      status)) {
+	      make_view(projections, spatial_dimension - 1))) {
+    
     const auto & element = std::get<0>(values);
     auto & gap           = std::get<1>(values);
     auto & normal        = std::get<2>(values);
-    auto & natural_projection = std::get<3>(values);
-    auto & to_consider   = std::get<4>(values);
+    auto & projection    = std::get<3>(values);
     
     this->computeNormalOnElement(element, normal);
-
+   
     Vector<Real> real_projection(spatial_dimension);
     this->computeProjectionOnElement(element, normal, query,
-				     natural_projection, real_projection);     
+				     projection, real_projection);     
     
     Vector<Real> distance(spatial_dimension);
     distance = query - real_projection;
@@ -453,37 +357,21 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
     Vector<Real> direction = distance.normalize(); 
     Real cos_angle = direction.dot(normal);
 
-    Real tolerance = 1e-8;    
-    if (std::abs(cos_angle - 1) <= tolerance && detection_type == _explicit) {
+    Real tolerance = 1e-8;
+
+    /// TODO: adhoc fix to ensure that normal is always into the slave
+    /// surface. However, it doesnot work if gap is 0 as cos angle is
+    /// a nan value
+    if (std::abs(cos_angle + 1) <= tolerance) {
+      normal *= -1.0;
+    }
+    
+    if (std::abs(cos_angle - 1) <= tolerance and detection_type == _explicit) {
       gap *= -1;
-    }
-
-    UInt nb_xi_inside = 0;
-    Real epsilon = 0.05;
-    for (auto xi : natural_projection) {
-      if (xi >= -1.0 -epsilon and xi <= 1.0 + epsilon) {
-	nb_xi_inside++;
-      }
-    }  
-
-    if (nb_xi_inside == natural_projection.size()) {
-      to_consider = true;
-    }
-    else {
-      to_consider = false;
-    }
-
-    if (!to_consider) {
-      
-      std::cerr << normal << std::endl;
-      std::cerr << real_projection << std::endl;
-      std::cerr << natural_projection << std::endl;
-      std::cerr << gap << std::endl;
     }
   }
 
 }
-
  
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeNormalOnElement(const Element & element, Vector<Real> & normal) {
@@ -516,10 +404,11 @@ void ContactDetector::computeProjectionOnElement(const Element & element,
   
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(element, coords);
+
   Vector<Real> point(coords(0));  
   Real alpha = (query - point).dot(normal);
   real_projection = query - alpha * normal;
-
+  
   this->computeNaturalProjection(element, real_projection, natural_projection);  
 }
 
@@ -533,7 +422,7 @@ void ContactDetector::computeNaturalProjection(const Element & element, Vector<R
 					 _not_ghost).storage();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
-  mesh.extractNodalValuesFromElement(this->positions /*mesh.getNodes()*/, nodes_coord.storage(),
+  mesh.extractNodalValuesFromElement(this->positions, nodes_coord.storage(),
 				     elem_val + element.element * nb_nodes_per_element,
 				     nb_nodes_per_element, spatial_dimension);
   
@@ -544,20 +433,6 @@ void ContactDetector::computeNaturalProjection(const Element & element, Vector<R
 }
 
   
-/* -------------------------------------------------------------------------- */
-void ContactDetector::coordinatesOfElement(const Element & el, Matrix<Real> & coords) {
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-  Vector<UInt> connect = mesh.getConnectivity(el.type, _not_ghost)
-                             .begin(nb_nodes_per_element)[el.element]; 
-
-  for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-    UInt node = connect[n];
-    for (UInt s: arange(spatial_dimension)) {
-      coords(s, n) = this->positions(node, s);
-    }
-  }
-}
-
 /* -------------------------------------------------------------------------- */
 void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vectors) {
 
@@ -581,6 +456,41 @@ void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vec
   
 }
 
+/* -------------------------------------------------------------------------- */
+void ContactDetector::computeTangentsOnElement(const Element & el, Vector<Real> & projection, Matrix<Real> & tangents) {
+
+  const ElementType & type  = el.type;
+  
+  UInt nb_nodes_master = Mesh::getNbNodesPerElement(type);
+
+  Vector<Real> shapes(nb_nodes_master);
+  Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
+       
+#define GET_SHAPES_NATURAL(type)				\
+  ElementClass<type>::computeShapes(projection, shapes)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
+#undef GET_SHAPES_NATURAL  
+
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
+  ElementClass<type>::computeDNDS(projection, shapes_derivatives)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_DERIVATIVES_NATURAL
+    
+  
+  Matrix<Real> coords(spatial_dimension, nb_nodes_master);
+  coordinatesOfElement(el, coords);
+  
+  tangents.mul<false, true>(shapes_derivatives, coords);
+
+  auto temp_tangents = tangents.transpose();
+  for (UInt i = 0; i < spatial_dimension -1; ++i) {
+    auto temp = Vector<Real>(temp_tangents(i));
+    temp_tangents(i) = temp.normalize();
+  }
+
+  tangents = temp_tangents.transpose();
+}
+ 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::normalProjection(const Element & /*el*/, const Vector<Real> & /*slave_coord*/,
 				       Vector<Real> & /*natural_coord*/, Real & /*tolerance*/) {

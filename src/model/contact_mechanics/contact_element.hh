@@ -62,24 +62,46 @@ public:
   /* ------------------------------------------------------------------------ */
   
 public:
+  /// set the master element
+  AKANTU_SET_MACRO(Master, master, MasterType);
+  
+  /// gets the value of normal vector
+  AKANTU_GET_MACRO(Normal, normal, Vector<Real>);
+
   /// sets the value of normal vector
   AKANTU_SET_MACRO(Normal, normal, Vector<Real>);
 
   /// sets the value of tangent vector
-  AKANTU_SET_MACRO(Tangent, tangent, Vector<Real>);
+  AKANTU_SET_MACRO(Tangent, tangents, Matrix<Real>);
 
+  /// gets the value of tangent vector
+  AKANTU_GET_MACRO(Tangent, tangents, Matrix<Real>);
+
+  /// sets the value of real projection
+  AKANTU_SET_MACRO(Projection, projection, Vector<Real>);
+
+  /// gets the value of real projection
+  AKANTU_GET_MACRO(Projection, projection, Vector<Real>);
+ 
+  /// sets the connectivity of the contact
+  AKANTU_SET_MACRO(Connectivity, connectivity, Vector<UInt>);
+
+  /// gets the connectivity of the contact
+  AKANTU_GET_MACRO(Connectivity, connectivity, Vector<UInt>);
+  
   /// sets the value of gap
   AKANTU_SET_MACRO(Gap, gap, Real);
 
   /// gets the value of gap
   AKANTU_GET_MACRO(Gap, gap, Real);
 
-  /// gets the normal to the master element
-  AKANTU_GET_MACRO(Normal, normal, Vector<Real>);
-
   // sets the value of normal vector
   AKANTU_SET_MACRO(Patch, patch, Array<MasterType>);
-    
+
+  // gets the value of normal vector
+  AKANTU_GET_MACRO(Patch, patch, Array<MasterType>);
+
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */ 
@@ -94,7 +116,7 @@ public:
   Vector<Real> normal;
 
   /// normalized tangent direction
-  Vector<Real> tangent;
+  Matrix<Real> tangents;
 
   /// connectivity of the contact element
   Vector<UInt> connectivity;

@@ -108,7 +108,13 @@ public:
       this->initFullImpl(ContactMechanicsModelOptions{
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
-#endif      
+#endif
+#ifdef AKANTU_MODEL_COUPLERS
+    case ModelType::_coupler_solid_contact:
+      this->initFullImpl(CouplerSolidContactOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
+#endif
     default:
       this->initFullImpl(ModelOptions{use_named_args,
                                       std::forward<decltype(_pack)>(_pack)...});

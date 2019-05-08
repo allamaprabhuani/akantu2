@@ -71,7 +71,6 @@ void PseudoTime::assembleJacobian(const SolutionType &, Real) {
 
   J.clear();
   J.add(K);
-  J.saveMatrix("J.mtx");
   k_release = K.getRelease();
 }
 

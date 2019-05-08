@@ -218,27 +218,27 @@ FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
 }
 
 
-
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
                                    NonLinearSolverType) {
   DOFManager & dof_manager = this->getDOFManager();
 
-  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
+  this->allocNodalField(this->displacement, spatial_dimension,
+			"displacement");
   this->allocNodalField(this->displacement_increment, spatial_dimension,
                         "displacement_increment");
   this->allocNodalField(this->contact_force, spatial_dimension,
 			"contact_force");
   this->allocNodalField(this->external_force, spatial_dimension,
                         "external_force");
-  this->allocNodalField(this->gaps, 1, "gaps");
-  this->allocNodalField(this->areas, 1, "areas");
-  this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
-
-  if (!dof_manager.hasDOFs("displacement")) {
-    dof_manager.registerDOFs("displacement", *this->contact_force, _dst_nodal);
-    //dof_manager.registerDOFs("displacement", *this->blocked_dofs);
-  }
+  this->allocNodalField(this->normals, spatial_dimension,
+			"normals");
+  this->allocNodalField(this->gaps,  1,
+			"gaps");
+  this->allocNodalField(this->nodal_area, 1,
+			"areas");
+  this->allocNodalField(this->blocked_dofs, 1,
+			"blocked_dofs");
 }
   
   
@@ -328,42 +328,9 @@ void ContactMechanicsModel::search() {
    
   this->detector->search(this->contact_map);
 
-  auto & blocked_dof =
-    const_cast<Array<Real> &>(this->getBlockedDOFs());
-
-  auto & gap =
-    const_cast<Array<Real> &>(this->getGaps());
+  this->assembleFieldsFromContactMap();
   
-  for(auto & entry : contact_map) {
-    const auto & element = entry.second;
-    const auto & connectivity = element.connectivity;
-    for (UInt i = 0; i < connectivity.size(); ++i) {
-      UInt n = connectivity(i);
-      blocked_dof[n] = 1.0;
-      gap[n] = element.gap;
-    }
-  }
-
-  this->areas->clear();
-  this->external_force->clear();
-
-  this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-		this->detector->getSurfaceId("slave"));
-
-  auto ext_force_it = external_force->begin(Model::spatial_dimension);
-  auto areas_it = areas->begin();
-  UInt nb_nodes = this->mesh.getNbNodes();
-
-  for (UInt n = 0; n < nb_nodes; ++n, ++ext_force_it, ++areas_it) {
-    const auto & ext_force = *ext_force_it;
-    auto & area = *areas_it;
-
-    for (UInt i = 0; i < Model::spatial_dimension; ++i) {
-      area += pow(ext_force(i), 2);
-    }
-    
-    area = sqrt(area);
-  }
+  this->computeNodalAreas<Surface::slave>();
 }
 
 
@@ -372,12 +339,6 @@ void ContactMechanicsModel::search() {
 void ContactMechanicsModel::search(Array<Real> & increment) {
    
   this->detector->search(this->contact_map);
-
-  auto & blocked_dof =
-    const_cast<Array<Real> &>(this->getBlockedDOFs());
-
-  auto & gap =
-    const_cast<Array<Real> &>(this->getGaps());
 
   for (auto & entry: contact_map) {
     auto & element = entry.second;
@@ -390,11 +351,8 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
     }
 
     u *= -1.0;
-    std::cerr << u << std::endl;
-        
+            
     const auto & normal = element.normal;
-    std::cerr << normal << std::endl;
-    std::cerr << element.gap << std::endl;
     Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
 
     if (uv + element.gap <= 0) {
@@ -405,42 +363,58 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
     }
   }
   
-  
-  for(auto & entry : contact_map) {
-    const auto & element = entry.second;
-    const auto & connectivity = element.connectivity;
-    for (UInt i = 0; i < connectivity.size(); ++i) {
-      UInt n = connectivity(i);
-      blocked_dof[n] = 1.0;
-      gap[n] = element.gap;
-    }
-  }
+  this->assembleFieldsFromContactMap();
 
-  this->areas->clear();
-  this->external_force->clear();
+  this->computeNodalAreas<Surface::slave>();
 
-  this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-		this->detector->getSurfaceId("slave"));
-
-  auto ext_force_it = external_force->begin(Model::spatial_dimension);
-  auto areas_it = areas->begin();
-  UInt nb_nodes = this->mesh.getNbNodes();
-
-  for (UInt n = 0; n < nb_nodes; ++n, ++ext_force_it, ++areas_it) {
-    const auto & ext_force = *ext_force_it;
-    auto & area = *areas_it;
-
-    for (UInt i = 0; i < Model::spatial_dimension; ++i) {
-      area += pow(ext_force(i), 2);
-    }
-    
-    area = sqrt(area);
-  }
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::beforeSolveStep() {
+void ContactMechanicsModel::assembleFieldsFromContactMap() {
 
+  if (this->contact_map.empty()) 
+    AKANTU_ERROR("Contact map is empty, Please run search before assembling the fields");
+  
+  for(auto & entry : contact_map) {
+    const auto & element = entry.second;
+    auto connectivity = element.connectivity;
+    auto node = connectivity(0);
+
+    (*gaps)[node] = element.gap;
+
+    for (UInt i =0; i < spatial_dimension; ++i)
+      (*normals)(node, i) = element.normal[i];
+  }
+}
+  
+/* -------------------------------------------------------------------------- */
+template<Surface id>
+void ContactMechanicsModel::computeNodalAreas()  {
+
+  this->nodal_area->clear();
+  this->external_force->clear();
+
+  this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
+		this->detector->getSurfaceId<id>());
+
+  for (auto && tuple : zip(*nodal_area,
+			   make_view(*external_force, spatial_dimension))) {
+    auto & area  = std::get<0>(tuple);
+    auto & force = std::get<1>(tuple);
+
+    for (auto & f : force)
+      area += pow(f, 2);
+
+    area = sqrt(area);
+  }
+
+  this->external_force->clear();
+}
+
+  
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::beforeSolveStep() {
+  this->search();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -474,7 +448,7 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
-  // \TODO correct it for contact mechanics model, only one type of matrix
+ 
   if (matrix_id == "K")
     return _symmetric;
 
@@ -513,15 +487,12 @@ void ContactMechanicsModel::assembleLumpedMatrix(const ID & matrix_id) {
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
  
-dumper::Field * ContactMechanicsModel::createNodalFieldBool(const std::string & field_name,
-							    const std::string & group_name,
-							    __attribute__((unused)) bool padding_flag) {
-
-  //std::map<std::string, Array<bool> *> uint_nodal_fields;
-  //uint_nodal_fields["blocked_dofs"] = blocked_dofs;
+dumper::Field *
+ContactMechanicsModel::createNodalFieldBool(const std::string & field_name,
+					    const std::string & group_name,
+					    __attribute__((unused)) bool padding_flag) {
 
   dumper::Field * field = nullptr;
-  //field = mesh.createNodalField(uint_nodal_fields[field_name], group_name);
   return field;
 }
 
@@ -535,8 +506,9 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["contact_force"] = this->contact_force;
   real_nodal_fields["external_force"] = this->external_force;
   real_nodal_fields["blocked_dofs"] = this->blocked_dofs;
+  real_nodal_fields["normals"] = this->normals;
   real_nodal_fields["gaps"] = this->gaps;
-  real_nodal_fields["areas"] = this->areas;
+  real_nodal_fields["areas"] = this->nodal_area;
   
   dumper::Field * field = nullptr;
   if (padding_flag)

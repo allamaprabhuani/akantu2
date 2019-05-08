@@ -566,9 +566,10 @@ inline Real Math::distance_2d(const Real * x, const Real * y) {
   return sqrt((y[0] - x[0]) * (y[0] - x[0]) + (y[1] - x[1]) * (y[1] - x[1]));
 }
 
+
 /* -------------------------------------------------------------------------- */
-inline Real Math::triangle_inradius(const Real * coord1, const Real * coord2,
-                                    const Real * coord3) {
+inline Real Math::triangle_inradius_2d(const Real * coord1, const Real * coord2,
+				       const Real * coord3) {
   /**
    * @f{eqnarray*}{
    * r &=& A / s \\
@@ -576,12 +577,36 @@ inline Real Math::triangle_inradius(const Real * coord1, const Real * coord2,
    * s &=& \frac{a + b + c}{2}
    * @f}
    */
-
+  
   Real a, b, c;
   
   a = distance_2d(coord1, coord2);
   b = distance_2d(coord2, coord3);
   c = distance_2d(coord1, coord3);
+
+  Real s;
+  s = (a + b + c) * 0.5;
+
+  return sqrt((s - a) * (s - b) * (s - c) / s);
+}
+
+  
+/* -------------------------------------------------------------------------- */
+inline Real Math::triangle_inradius_3d(const Real * coord1, const Real * coord2,
+				       const Real * coord3) {
+  /**
+   * @f{eqnarray*}{
+   * r &=& A / s \\
+   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
+   * s &=& \frac{a + b + c}{2}
+   * @f}
+   */
+  
+  Real a, b, c;
+  
+  a = distance_3d(coord1, coord2);
+  b = distance_3d(coord2, coord3);
+  c = distance_3d(coord1, coord3);
 
   Real s;
   s = (a + b + c) * 0.5;

@@ -156,6 +156,26 @@ struct ContactMechanicsModelOptions : public ModelOptions {
 };
 #endif
 
+#ifdef AKANTU_MODEL_COUPLERS
+namespace {
+  DECLARE_NAMED_ARGUMENT(is_explicit);
+}
+/* -------------------------------------------------------------------------- */
+struct CouplerSolidContactOptions : public ModelOptions {
+  explicit CouplerSolidContactOptions(
+      AnalysisMethod analysis_method = _explicit_contact,
+      bool explicit = true)
+    : ModelOptions(analysis_method), is_explicit(explicit) {}
+
+  template <typename... pack>
+  CouplerSolidContactOptions(use_named_args_t, pack &&... _pack)
+      : CouplerSolidContactOptions(
+	      OPTIONAL_NAMED_ARG(analysis_method, _explicit_contact),
+	      OPTIONAL_NAMED_ARG(is_explicit, true)) {}
+
+    bool is_explicit{true};
+};  
+#endif
   
 } // akantu
 
