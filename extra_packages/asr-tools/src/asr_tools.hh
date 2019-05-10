@@ -1,9 +1,9 @@
 /**
- * @file   solid_mechanics_model_RVE.hh
- * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Wed Jan 13 14:54:18 2016
+ * @file   asr_tools.hh
+ * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @date   Tue Jan 16 10:26:53 2014
  *
- * @brief  SMM for RVE computations in FE2 simulations
+ * @brief  tools for the analysis of ASR samples
  *
  * @section LICENSE
  *
@@ -24,58 +24,124 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_RVE_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_RVE_HH__
-
-/* -------------------------------------------------------------------------- */
-#include "aka_grid_dynamic.hh"
+#include "aka_array.hh"
+//#include "material_selector_tmpl.hh"
+#include "mesh.hh"
 #include "solid_mechanics_model.hh"
+/* -------------------------------------------------------------------------- */
 #include <unordered_set>
 /* -------------------------------------------------------------------------- */
 
+#ifndef __AKANTU_ASR_TOOLS_HH__
+#define __AKANTU_ASR_TOOLS_HH__
+
+namespace akantu {
+class NodeGroup;
+class SolidMechanicsModel;
+} // namespace akantu
+
 namespace akantu {
 
-class SolidMechanicsModelRVE : public SolidMechanicsModel {
-
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-
+class ASRTools {
 public:
-  SolidMechanicsModelRVE(Mesh & mesh, bool use_RVE_mat_selector = true,
-                         UInt nb_gel_pockets = 400,
-                         UInt spatial_dimension = _all_dimensions,
-                         const ID & id = "solid_mechanics_model",
-                         const MemoryID & memory_id = 0);
+  ASRTools(SolidMechanicsModel & model);
 
-  virtual ~SolidMechanicsModelRVE();
+  virtual ~ASRTools() = default;
+
+  /// This function is used in case of uni-axial boundary conditions:
+  /// It detects the nodes, on which a traction needs to be applied and stores
+  /// them in a node group
+  void fillNodeGroup(NodeGroup & node_group, bool multi_axial = false);
+
+  /// Apply boundary conditions on ASR samples to imitate lab testing conditions
+  template <UInt dim>
+  void applyBoundaryConditions(const bool free_expansion,
+                               const Matrix<Real> & traction,
+                               const ID & element_group, bool multi_axial);
+
+  /// This function computes the average displacement along one side of the
+  /// sample,
+  /// caused by the expansion of gel pockets
+  Real computeAverageDisplacement(SpatialDirection direction);
+
+  /// This function computes a compoment of average volumetric strain tensor,
+  /// i.e. eps_macro_xx or eps_macro_yy or eps_macro_zz
+  Real computeVolumetricExpansion(SpatialDirection direction);
+
+  /// This function computes the amount of damage in one material phase
+  Real computeDamagedVolume(const ID & mat_name);
+
+  /// This function is used to compute the average stiffness by performing a
+  /// virtual tension test
+  Real performTensionTest(SpatialDirection direction);
+
+  /// This function calls all the functions to compute average properties and
+  /// does the tension test
+  void computeAveragePropertiesAndResidual(std::ofstream & file_output,
+                                           Real time);
+
+  /// perform tension tests and integrate the internal force on the upper
+  /// surface
+  void computeStiffnessReduction(std::ofstream & file_output, Real time);
+
+  /// just the average properties, NO tension test
+  void computeAverageProperties(std::ofstream & file_output);
+
+  /// Same as the last one but writes a csv with first column having time in
+  /// days
+  void computeAverageProperties(std::ofstream & file_output, Real time);
+
+  /// Save the state of the simulation for subsequent restart
+  void saveState(UInt current_step);
+
+  /// Load to previous state of the simulation for restart
+  bool loadState(UInt & current_step);
+
+  /// compute the volume occupied by a given material
+  Real computePhaseVolume(const ID & mat_name);
+
+  /// apply eigenstrain in cracks, that are filled with gel
+  void applyEigenGradUinCracks(const Matrix<Real> prescribed_eigen_grad_u,
+                               const ID & material_name);
+
+  /// apply eigenstrain in the cracks, that advanced in the last step
+  void applyEigenGradUinCracks(const Matrix<Real> prescribed_eigen_grad_u,
+                               const ElementTypeMapUInt & critical_elements,
+                               bool to_add = false);
+
+  /// fill fully cracked elements with gel
+  void fillCracks(ElementTypeMapReal & saved_damage);
+
+  /// drain the gel in fully cracked elements
+  void drainCracks(const ElementTypeMapReal & saved_damage);
+
+  template <UInt dim> Real computeSmallestElementSize();
+
+  // /// apply homogeneous temperature on Solid Mechanics Model
+  // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
+
+  /// compute increase in gel strain within 1 timestep
+  Real computeDeltaGelStrainThermal(const Real delta_time, const Real k,
+                             const Real activ_energy, const Real R,
+                             const Real T, Real & amount_reactive_particles,
+                             const Real saturation_const);
+
+  /// compute linear increase in gel strain
+  Real computeDeltaGelStrainLinear(const Real delta_time, const Real k);
 
   /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-protected:
-  void initFullImpl(const ModelOptions & option) override;
+  /// RVE part
 
-  /// initialize the materials
-  void initMaterials() override;
-
-  void assembleInternalForces() override;
-
-public:
   /// apply boundary contions based on macroscopic deformation gradient
   virtual void
-  applyBoundaryConditions(const Matrix<Real> & displacement_gradient);
+  applyBoundaryConditionsRve(const Matrix<Real> & displacement_gradient);
 
   /// apply homogeneous temperature field from the macroscale level to the RVEs
   virtual void applyHomogeneousTemperature(const Real & temperature);
 
   /// remove temperature from RVE on the end of ASR advancement
   virtual void removeTemperature();
-
-  /// advance the reactions -> grow gel and apply homogenized properties
-  void advanceASR(const Matrix<Real> & prestrain);
 
   /// compute average stress or strain in the model
   Real averageTensorField(UInt row_index, UInt col_index,
@@ -93,21 +159,6 @@ public:
   /// dump the RVE
   void dumpRve();
 
-  /* ------------------------------------------------------------------------ */
-  /* Data Accessor inherited members                                          */
-  /* ------------------------------------------------------------------------ */
-
-  inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<UInt> & index,
-                         const SynchronizationTag & tag) override;
-
-  /* ------------------------------------------------------------------------ */
-  /* Accessors */
-  /* ------------------------------------------------------------------------ */
-public:
-  AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
-  AKANTU_GET_MACRO(Volume, volume, Real);
-
 private:
   /// find the corner nodes
   void findCornerNodes();
@@ -117,15 +168,20 @@ private:
                              Matrix<Real> & eff_stresses,
                              Matrix<Real> & eff_strains, const UInt test_no);
 
-  void fillCracks(ElementTypeMapReal & saved_damage);
-  void drainCracks(const ElementTypeMapReal & saved_damage);
+  // void fillCracks(ElementTypeMapReal & saved_damage);
+  // void drainCracks(const ElementTypeMapReal & saved_damage);
 
   /* ------------------------------------------------------------------------ */
   /* Members */
   /* ------------------------------------------------------------------------ */
-  /// 2D hardcoded - no 3D support currently
-  using voigt_h = VoigtHelper<2>;
 
+private:
+  SolidMechanicsModel & model;
+
+  // /// 2D hardcoded - no 3D support currently
+  // using voigt_h = VoigtHelper<2>;
+
+protected:
   /// volume of the RVE
   Real volume;
 
@@ -138,43 +194,12 @@ private:
   /// left nodes
   std::unordered_set<UInt> left_nodes;
 
-  /// standard mat selector or user one
-  bool use_RVE_mat_selector;
-
-  /// the number of gel pockets inside the RVE
-  UInt nb_gel_pockets;
+  /// lower limit for stresses
+  Array<Real> stress_limit;
 
   /// dump counter
   UInt nb_dumps;
-
-  /// lower limit for stresses
-  Matrix<Real> stress_limit;
 };
-
-inline void SolidMechanicsModelRVE::unpackData(CommunicationBuffer & buffer,
-                                               const Array<UInt> & index,
-                                               const SynchronizationTag & tag) {
-  SolidMechanicsModel::unpackData(buffer, index, tag);
-
-  //  if (tag == _gst_smm_uv) {
-  //    auto disp_it = displacement->begin(spatial_dimension);
-  //
-  //    for (auto node : index) {
-  //      Vector<Real> current_disp(disp_it[node]);
-  //
-  //      // if node is at the bottom, u_bottom = u_top +u_2 -u_3
-  //      if (bottom_nodes.count(node)) {
-  //        current_disp += Vector<Real>(disp_it[corner_nodes(1)]);
-  //        current_disp -= Vector<Real>(disp_it[corner_nodes(2)]);
-  //      }
-  //      // if node is at the left, u_left = u_right +u_4 -u_3
-  //      else if (left_nodes.count(node)) {
-  //        current_disp += Vector<Real>(disp_it[corner_nodes(3)]);
-  //        current_disp -= Vector<Real>(disp_it[corner_nodes(2)]);
-  //      }
-  //    }
-  //  }
-}
 
 /* -------------------------------------------------------------------------- */
 /* ASR material selector                                                      */
@@ -200,7 +225,8 @@ public:
     for (auto el_type :
          model.getMaterial("aggregate").getElementFilter().elementTypes(dim)) {
 
-      const auto & filter = model.getMaterial("aggregate").getElementFilter()(el_type);
+      const auto & filter =
+          model.getMaterial("aggregate").getElementFilter()(el_type);
       if (!filter.size() == 0)
         AKANTU_EXCEPTION("Check the element type for aggregate material");
 
@@ -264,10 +290,8 @@ protected:
   std::string paste_material{"paste"};
   UInt paste_material_id{1};
   bool is_gel_initialized{false};
-}; // namespace akantu
+};
 
 } // namespace akantu
 
-///#include "material_selector_tmpl.hh"
-
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_RVE_HH__ */
+#endif /* __AKANTU_ASR_TOOLS_HH__ */

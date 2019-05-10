@@ -28,7 +28,6 @@
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "material_iterative_stiffness_reduction.hh"
-#include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -178,11 +177,12 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
     }
   }
 
-  auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  if (rve_model == NULL) {
+  //auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+  //if (rve_model == NULL) {
     const auto & comm = this->model.getMesh().getCommunicator();
     comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
-  }
+    //}
+
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;
 } // namespace akantu

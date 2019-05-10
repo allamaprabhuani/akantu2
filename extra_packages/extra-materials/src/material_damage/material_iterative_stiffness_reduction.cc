@@ -28,7 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "material_iterative_stiffness_reduction.hh"
 #include "communicator.hh"
-#include "solid_mechanics_model_RVE.hh"
+//#include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {

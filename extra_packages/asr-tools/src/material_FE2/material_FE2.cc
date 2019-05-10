@@ -199,7 +199,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(
 
     /// apply boundary conditions based on the current macroscopic displ.
     /// gradient
-    RVE.applyBoundaryConditions(std::get<1>(data));
+    RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
     /// advance the ASR in every RVE
     RVE.advanceASR(prestrain);
@@ -235,7 +235,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
 
     /// apply boundary conditions based on the current macroscopic displ.
     /// gradient
-    RVE.applyBoundaryConditions(std::get<1>(data));
+    RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
     /// apply homogeneous temperature field to each RVE to obtain
     /// thermoelastic effect

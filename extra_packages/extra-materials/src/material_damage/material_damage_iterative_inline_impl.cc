@@ -16,7 +16,6 @@
 #include "communicator.hh"
 #include "data_accessor.hh"
 #include "material_damage_iterative.hh"
-#include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_MATERIAL_DAMAGE_ITERATIVE_INLINE_IMPL_CC__
@@ -97,8 +96,8 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   parent::computeAllStresses(ghost_type);
 
   /// find global Gauss point with highest stress
-  auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  if (rve_model == NULL) {
+  //auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+  //if (rve_model == NULL) {
     /// is no RVE model
     const auto & comm = this->model.getMesh().getCommunicator();
     comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
@@ -106,7 +105,7 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
                    SynchronizerOperation::_max); // Emil:
                                                  // think
                                                  // about it
-  }
+    //}
   AKANTU_DEBUG_OUT();
 }
 
@@ -211,11 +210,11 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
     }
   }
 
-  auto * rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  if (rve_model == NULL) {
+  //auto * rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+  //if (rve_model == NULL) {
     const auto & comm = this->model.getMesh().getCommunicator();
     comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
-  }
+    //}
 
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;

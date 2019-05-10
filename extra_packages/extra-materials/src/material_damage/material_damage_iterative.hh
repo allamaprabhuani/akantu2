@@ -50,7 +50,6 @@ protected:
 
   /// average equivalent stress
   Real norm_av_equivalent_stress;
-
 };
 
 /**
@@ -61,7 +60,9 @@ protected:
  */
 template <UInt spatial_dimension,
           template <UInt> class ElasticParent = MaterialElastic>
-class MaterialDamageIterative : public MaterialDamage<spatial_dimension, ElasticParent>, public MaterialDamageIterativeInterface {
+class MaterialDamageIterative
+    : public MaterialDamage<spatial_dimension, ElasticParent>,
+      public MaterialDamageIterativeInterface {
   using parent = MaterialDamage<spatial_dimension, ElasticParent>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -75,14 +76,14 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
 
   /// update internal field damage
   UInt updateDamage() override;
 
   UInt updateDamageOnQuad(UInt quad_index, const Real eq_stress,
-                          const ElementType & el_type, const GhostType & ghost_type);
+                          const ElementType & el_type,
+                          const GhostType & ghost_type);
 
   /// update energies after damage has been updated
   virtual void updateEnergiesAfterDamage(ElementType el_type,

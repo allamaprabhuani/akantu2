@@ -29,7 +29,6 @@
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "material_damage_iterative_viscoelastic.hh"
-#include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {

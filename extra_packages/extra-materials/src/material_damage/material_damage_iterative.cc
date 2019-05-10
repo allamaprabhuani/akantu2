@@ -19,7 +19,6 @@
 #include "material_damage_iterative.hh"
 #include "communicator.hh"
 #include "data_accessor.hh"
-#include "solid_mechanics_model_RVE.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
