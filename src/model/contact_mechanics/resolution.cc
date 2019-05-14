@@ -74,7 +74,7 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::assembleInternalForces(GhostType ghost_type) {
+void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
   
   auto & internal_force =
@@ -150,7 +150,7 @@ void Resolution::assembleInternalForces(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::assembleStiffnessMatrix(GhostType ghost_type) {
+void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
   auto & stiffness =

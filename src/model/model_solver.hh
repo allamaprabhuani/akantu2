@@ -59,7 +59,7 @@ class ModelSolver : public Parsable,
   /* ------------------------------------------------------------------------ */
 public:
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-              UInt memory_id);
+              UInt memory_id, std::shared_ptr<DOFManager> dof_manager);
   ~ModelSolver() override;
 
   /// initialize the dof manager based on solver type passed in the input file
@@ -176,6 +176,9 @@ private:
 protected:
   ModelType model_type;
 
+  /// Underlying dof_manager (the brain...)
+  std::shared_ptr<DOFManager> dof_manager;
+
 private:
   ID parent_id;
   UInt parent_memory_id;
@@ -183,11 +186,8 @@ private:
   /// Underlying mesh
   Mesh & mesh;
 
-  /// Underlying dof_manager (the brain...)
-  std::unique_ptr<DOFManager> dof_manager;
-
   /// Default time step solver to use
-  ID default_solver_id;
+  ID default_solver_id{""};
 };
 
 struct ModelSolverOptions {

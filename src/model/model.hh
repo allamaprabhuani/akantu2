@@ -49,6 +49,7 @@ namespace akantu {
 class SynchronizerRegistry;
 class Parser;
 class DumperIOHelper;
+class DOFManager;
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
@@ -59,7 +60,7 @@ class Model : public Memory, public ModelSolver, public MeshEventHandler {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Model(Mesh & mesh, const ModelType & type,
+  Model(Mesh & mesh, const ModelType & type, std::shared_ptr<DOFManager> & dof_manager,
         UInt spatial_dimension = _all_dimensions, const ID & id = "model",
         const MemoryID & memory_id = 0);
 

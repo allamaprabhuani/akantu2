@@ -30,15 +30,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "boundary_condition.hh"
-#include "data_accessor.hh"
-#include "model.hh"
-#include "fe_engine.hh"
 #include "contact_detector.hh"
+#include "data_accessor.hh"
+#include "fe_engine.hh"
+#include "model.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_MECHANICS_MODEL_HH__
 #define __AKANTU_CONTACT_MECHANICS_MODEL_HH__
-
 
 namespace akantu {
 class Resolution;
@@ -51,30 +50,31 @@ template <ElementKind kind> class ShapeLagrange;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class ContactMechanicsModel :
-    public Model,
-    public DataAccessor<Element>,
-    public DataAccessor<UInt>,
-    public BoundaryCondition<ContactMechanicsModel> {
+class ContactMechanicsModel : public Model,
+                              public DataAccessor<Element>,
+                              public DataAccessor<UInt>,
+                              public BoundaryCondition<ContactMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
- 
+
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
-  
+
 public:
-  ContactMechanicsModel(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-			const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0,
-			const ModelType model_type = ModelType::_contact_mechanics_model);
+  ContactMechanicsModel(
+      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+      const ID & id = "contact_mechanics_model", const MemoryID & memory_id = 0,
+      std::shared_ptr<DOFManager> dof_manager = nullptr,
+      const ModelType model_type = ModelType::_contact_mechanics_model);
 
-  ContactMechanicsModel(Mesh & mesh, Array<Real> & positions, UInt spatial_dimension = _all_dimensions,
-			const ID & id = "contact_mechanics_model",
-			const MemoryID & memory_id = 0,
-			const ModelType model_type = ModelType::_contact_mechanics_model);
+  ContactMechanicsModel(
+      Mesh & mesh, Array<Real> & positions,
+      UInt spatial_dimension = _all_dimensions,
+      const ID & id = "contact_mechanics_model", const MemoryID & memory_id = 0,
+      std::shared_ptr<DOFManager> dof_manager = nullptr,
+      const ModelType model_type = ModelType::_contact_mechanics_model);
 
-  
   ~ContactMechanicsModel() override;
 
   /* ------------------------------------------------------------------------ */
@@ -84,12 +84,12 @@ protected:
   /// initialize completely the model
   void initFullImpl(const ModelOptions & options) override;
 
-   /// allocate all vectors
+  /// allocate all vectors
   void initSolver(TimeStepSolverType, NonLinearSolverType) override;
 
   /// initialize all internal arrays for resolutions
   void initResolutions();
- 
+
   /// initialize the modelType
   void initModel() override;
 
@@ -117,7 +117,7 @@ protected:
 
   /// callback for the solver, this is called at end of solve
   void afterSolveStep() override;
- 
+
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
 
@@ -126,21 +126,20 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   void search();
-  
+
   void search(Array<Real> &);
 
-  template<Surface id>
-  void computeNodalAreas();
+  template <Surface id> void computeNodalAreas();
 
   void assembleFieldsFromContactMap();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Contact Resolution                                                       */
   /* ------------------------------------------------------------------------ */
 public:
   /// register an empty contact resolution of a given type
   Resolution & registerNewResolution(const ID & res_name, const ID & res_type,
-				     const ID & opt_param);
+                                     const ID & opt_param);
 
 protected:
   /// register a resolution in the dynamic database
@@ -148,7 +147,7 @@ protected:
 
   /// read the resolution files to instantiate all the resolutions
   void instantiateResolutions();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Solver Interface                                                         */
   /* ------------------------------------------------------------------------ */
@@ -163,7 +162,6 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
   /* ------------------------------------------------------------------------ */
@@ -171,8 +169,8 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   dumper::Field * createNodalFieldReal(const std::string & field_name,
-				       const std::string & group_name,
-				       bool padding_flag) override; 
+                                       const std::string & group_name,
+                                       bool padding_flag) override;
 
   dumper::Field * createNodalFieldBool(const std::string & field_name,
                                        const std::string & group_name,
@@ -188,8 +186,7 @@ public:
   virtual void dump(const std::string & dumper_name, UInt step);
 
   virtual void dump(const std::string & dumper_name, Real time, UInt step);
-  
-  
+
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
@@ -212,8 +209,7 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
                   const SynchronizationTag & tag) override;
 
-
-protected:  
+protected:
   /// contact detection class
   friend class ContactDetector;
 
@@ -229,9 +225,9 @@ public:
 
   /// get the ContactMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
-  
-  /// get  the ContactMechanicsModel::increment  vector \warn  only  consistent if
-  /// ContactMechanicsModel::setIncrementFlagOn has been called before
+
+  /// get  the ContactMechanicsModel::increment  vector \warn  only  consistent
+  /// if ContactMechanicsModel::setIncrementFlagOn has been called before
   AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
 
   /// get the ContactMechanics::contact_force vector (internal forces)
@@ -246,25 +242,27 @@ public:
                          "use getExternalForce instead");
     return *external_force;
   }
- 
+
   /// get the ContactMechanics::blocked_dofs vector
   AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<Real> &);
 
   /// get the ContactMechanics::gaps (contact gaps)
   AKANTU_GET_MACRO(Gaps, *gaps, Array<Real> &);
-  
+
   /// get the ContactMechanics::normals (normals on slave nodes)
   AKANTU_GET_MACRO(Normals, *normals, Array<Real> &);
-  
+
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
-  
+
   /// get the ContactMechanics::contact_force vector (internal forces)
   AKANTU_GET_MACRO(CurrentPositions, current_positions, Array<Real> &);
 
   /// get the contat map
-  inline std::map<UInt, ContactElement> & getContactMap() { return contact_map; }
-  
+  inline std::map<UInt, ContactElement> & getContactMap() {
+    return contact_map;
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -274,7 +272,7 @@ private:
 
   /// displacements array
   Array<Real> * displacement;
-  
+
   /// increment of displacement
   Array<Real> * displacement_increment{nullptr};
 
@@ -283,28 +281,28 @@ private:
 
   /// external forces array
   Array<Real> * external_force{nullptr};
-  
+
   /// boundary vector
   Array<Real> * blocked_dofs{nullptr};
 
-  /// gaps 
+  /// gaps
   Array<Real> * gaps{nullptr};
-  
+
   /// normals
   Array<Real> * normals{nullptr};
 
   /// tangents
   Array<Real> * tangents{nullptr};
-  
+
   /// nodal areas
   Array<Real> * nodal_area{nullptr};
-  
+
   /// array of current position used during update residual
   Array<Real> & current_positions;
 
   /// contact detection
   std::unique_ptr<ContactDetector> detector;
-  
+
   /// list of contact resolutions
   std::vector<std::unique_ptr<Resolution>> resolutions;
 
@@ -315,16 +313,13 @@ private:
   std::map<UInt, ContactElement> contact_map;
 };
 
-  
 } // namespace akantu
 
 /* ------------------------------------------------------------------------ */
 /* inline functions                                                         */
 /* ------------------------------------------------------------------------ */
-#include "resolution.hh"
 #include "parser.hh"
+#include "resolution.hh"
 /* ------------------------------------------------------------------------ */
 
-
-
-#endif  /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__ */
+#endif /* __AKANTU_CONTACT_MECHANICS_MODEL_HH__ */

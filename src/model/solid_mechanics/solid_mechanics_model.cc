@@ -67,18 +67,13 @@ namespace akantu {
  * dimension of the problem is assumed to be the on of the mesh
  * @param id an id to identify the model
  */
-SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
-                                         const MemoryID & memory_id,
-                                         const ModelType model_type)
-    : Model(mesh, model_type, dim, id, memory_id),
-      BoundaryCondition<SolidMechanicsModel>(), f_m2a(1.0),
-      displacement(nullptr), previous_displacement(nullptr),
-      displacement_increment(nullptr), mass(nullptr), velocity(nullptr),
-      acceleration(nullptr), external_force(nullptr), internal_force(nullptr),
-      blocked_dofs(nullptr), current_position(nullptr),
+SolidMechanicsModel::SolidMechanicsModel(
+    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    : Model(mesh, model_type, dof_manager, dim, id, memory_id),
+      BoundaryCondition<SolidMechanicsModel>(),
       material_index("material index", id, memory_id),
-      material_local_numbering("material local numbering", id, memory_id),
-      are_materials_instantiated(false) {
+      material_local_numbering("material local numbering", id, memory_id) {
   AKANTU_DEBUG_IN();
 
   this->registerFEEngineObject<MyFEEngineType>("SolidMechanicsFEEngine", mesh,
@@ -90,9 +85,7 @@ SolidMechanicsModel::SolidMechanicsModel(Mesh & mesh, UInt dim, const ID & id,
                          _ek_regular);
 #endif
 
-  material_selector = std::make_shared<DefaultMaterialSelector>(material_index),
-
-  this->initDOFManager();
+  material_selector = std::make_shared<DefaultMaterialSelector>(material_index);
 
   this->registerDataAccessor(*this);
 

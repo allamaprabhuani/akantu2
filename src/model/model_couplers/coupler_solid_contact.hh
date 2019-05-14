@@ -2,12 +2,12 @@
  * @file   coupler_solid_contact_explicit.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
- * 
+ *
  * @date creation: Thu Jan 17 2019
  * @date last modification: Thu Jan 17 2019
  *
  * @brief  class for coupling of solid mechanics and conatct mechanics
- * model in explicit 
+ * model in explicit
  *
  * @section LICENSE
  *
@@ -31,10 +31,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "boundary_condition.hh"
-#include "model.hh"
-#include "data_accessor.hh"
-#include "solid_mechanics_model.hh"
 #include "contact_mechanics_model.hh"
+#include "data_accessor.hh"
+#include "model.hh"
+#include "solid_mechanics_model.hh"
 #include "sparse_matrix.hh"
 #include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
@@ -46,38 +46,37 @@
 /* Coupling : Solid Mechanics / Contact Mechanics                           */
 /* ------------------------------------------------------------------------ */
 namespace akantu {
-
 template <ElementKind kind, class IntegrationOrderFunctor>
-class IntegratorGauss;  
+class IntegratorGauss;
 template <ElementKind kind> class ShapeLagrange;
+class DOFManager;
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */  
-class CouplerSolidContact :
-    public Model,
-    public DataAccessor<Element>,
-    public DataAccessor<UInt>,
-    public BoundaryCondition<CouplerSolidContact> {
+/* -------------------------------------------------------------------------- */
+class CouplerSolidContact : public Model,
+                            public DataAccessor<Element>,
+                            public DataAccessor<UInt>,
+                            public BoundaryCondition<CouplerSolidContact> {
 
-  
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
-  
+
 public:
-  CouplerSolidContact(SolidMechanicsModel &, ContactMechanicsModel &,
-		      UInt spatial_dimension = _all_dimensions,
-		      const ID & id = "coupler_solid_contact",
-		      const ModelType model_type = ModelType::_coupler_solid_contact);
+  CouplerSolidContact(
+      SolidMechanicsModel &, ContactMechanicsModel &,
+      UInt spatial_dimension = _all_dimensions,
+      const ID & id = "coupler_solid_contact",
+      std::shared_ptr<DOFManager> dof_manager = nullptr,
+      const ModelType model_type = ModelType::_coupler_solid_contact);
 
   ~CouplerSolidContact() override;
-
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -88,7 +87,7 @@ protected:
 
   /// allocate all vectors
   void initSolver(TimeStepSolverType, NonLinearSolverType) override;
- 
+
   /// initialize the modelType
   void initModel() override;
 
@@ -121,9 +120,8 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
- 
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -133,9 +131,9 @@ public:
 
   /// get the ContactMechanicsModel::displacement vector
   AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
-  
-  /// get  the ContactMechanicsModel::increment  vector \warn  only  consistent if
-  /// ContactMechanicsModel::setIncrementFlagOn has been called before
+
+  /// get  the ContactMechanicsModel::increment  vector \warn  only  consistent
+  /// if ContactMechanicsModel::setIncrementFlagOn has been called before
   AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
 
   /// get the ContactMechanicsModel::external_force vector (external forces)
@@ -147,41 +145,15 @@ public:
                          "use getExternalForce instead");
     return *external_force;
   }
-  
-  /* ------------------------------------------------------------------------ */
-  /* Data Accessor inherited members                                          */
-  /* ------------------------------------------------------------------------ */
-public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
-
-  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                  const SynchronizationTag & tag) override;
-
-  UInt getNbData(const Array<UInt> & dofs,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
-                const SynchronizationTag & tag) const override;
-
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
-                  const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
   dumper::Field * createNodalFieldReal(const std::string & field_name,
-				       const std::string & group_name,
-				       bool padding_flag) override; 
-
-  dumper::Field * createNodalFieldBool(const std::string & field_name,
                                        const std::string & group_name,
                                        bool padding_flag) override;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -203,7 +175,7 @@ private:
   ContactMechanicsModel & contact;
 
   /// displacements array
-  Array<Real> * displacement;
+  Array<Real> * displacement{nullptr};
 
   /// increment of displacement
   Array<Real> * displacement_increment{nullptr};
@@ -212,6 +184,6 @@ private:
   Array<Real> * external_force{nullptr};
 };
 
-} // akantu
+} // namespace akantu
 
 #endif /* __COUPLER_SOLID_CONTACT_HH__  */

@@ -30,10 +30,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "contact_mechanics_model.hh"
-#include "integrator_gauss.hh"
-#include "shape_lagrange.hh"
 #include "boundary_condition_functor.hh"
 #include "dumpable_inline_impl.hh"
+#include "integrator_gauss.hh"
+#include "shape_lagrange.hh"
 #ifdef AKANTU_USE_IOHELPER
 #include "dumper_iohelper_paraview.hh"
 #endif
@@ -42,62 +42,42 @@
 #include <algorithm>
 /* -------------------------------------------------------------------------- */
 
-
 namespace akantu {
 
-ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, UInt dim, const ID & id,
-					      const MemoryID & memory_id,
-					      const ModelType model_type)
-  : Model(mesh, model_type, dim, id, memory_id), current_positions(mesh.getNodes()) {
+/* -------------------------------------------------------------------------- */
+ContactMechanicsModel::ContactMechanicsModel(
+    Mesh & mesh, Array<Real> & positions, UInt dim, const ID & id,
+    const MemoryID & memory_id, std::shared_ptr<DOFManager> dof_manager,
+    const ModelType model_type)
+    : Model(mesh, model_type, dof_manager, dim, id, memory_id),
+      current_positions(positions) {
 
   AKANTU_DEBUG_IN();
 
   this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
-					       Model::spatial_dimension);
+                                               Model::spatial_dimension);
 #if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-				 Model::spatial_dimension, _not_ghost,
-				 _ek_regular);
+                                 Model::spatial_dimension, _not_ghost,
+                                 _ek_regular);
 #endif
-  
-  this->initDOFManager();
 
   this->registerDataAccessor(*this);
-  
-  this->detector = std::make_unique<ContactDetector>(this->mesh, id + ":contact_detector");
+
+  this->detector = std::make_unique<ContactDetector>(this->mesh, current_positions,
+                                                     id + ":contact_detector");
 
   AKANTU_DEBUG_OUT();
-  
 }
 
-/* -------------------------------------------------------------------------- */  
-  ContactMechanicsModel::ContactMechanicsModel( Mesh & mesh, Array<Real> & positions, UInt dim,
-						const ID & id, const MemoryID & memory_id,
-						const ModelType model_type)
-    : Model(mesh, model_type, dim, id, memory_id), current_positions(positions) {
+/* -------------------------------------------------------------------------- */
+ContactMechanicsModel::ContactMechanicsModel(
+    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    : ContactMechanicsModel(mesh, mesh.getNodes(), dim, id, memory_id,
+                            dof_manager, model_type) {}
 
-  AKANTU_DEBUG_IN();
-
-  this->registerFEEngineObject<MyFEEngineType>("ContactMechanicsModel", mesh,
-					       Model::spatial_dimension);
-#if defined(AKANTU_USE_IOHELPER)
-  this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
-  this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-				 Model::spatial_dimension, _not_ghost,
-				 _ek_regular);
-#endif
-  
-  this->initDOFManager();
-
-  this->registerDataAccessor(*this);
-  
-  this->detector = std::make_unique<ContactDetector>(this->mesh, positions, id + ":contact_detector");
-
-  AKANTU_DEBUG_OUT();
-  
-}
-  
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::~ContactMechanicsModel() {
   AKANTU_DEBUG_IN();
@@ -127,13 +107,15 @@ void ContactMechanicsModel::instantiateResolutions() {
   std::tie(model_section, is_empty) = this->getParserSection();
 
   if (not is_empty) {
-    auto model_resolutions = model_section.getSubSections(ParserType::_contact_resolution);
+    auto model_resolutions =
+        model_section.getSubSections(ParserType::_contact_resolution);
     for (const auto & section : model_resolutions) {
       this->registerNewResolution(section);
     }
   }
 
-  auto sub_sections = this->parser.getSubSections(ParserType::_contact_resolution);
+  auto sub_sections =
+      this->parser.getSubSections(ParserType::_contact_resolution);
   for (const auto & section : sub_sections) {
     this->registerNewResolution(section);
   }
@@ -168,16 +150,15 @@ ContactMechanicsModel::registerNewResolution(const ParserSection & section) {
 
   return res;
 }
-  
+
 /* -------------------------------------------------------------------------- */
-Resolution & ContactMechanicsModel::registerNewResolution(const ID & res_name,
-							  const ID & res_type,
-							  const ID & opt_param) {
+Resolution & ContactMechanicsModel::registerNewResolution(
+    const ID & res_name, const ID & res_type, const ID & opt_param) {
   AKANTU_DEBUG_ASSERT(resolutions_names_to_id.find(res_name) ==
-		      resolutions_names_to_id.end(),
+                          resolutions_names_to_id.end(),
                       "A resolution with this name '"
-		      << res_name << "' has already been registered. "
-		      << "Please use unique names for resolutions");
+                          << res_name << "' has already been registered. "
+                          << "Please use unique names for resolutions");
 
   UInt res_count = resolutions.size();
   resolutions_names_to_id[res_name] = res_count;
@@ -186,8 +167,9 @@ Resolution & ContactMechanicsModel::registerNewResolution(const ID & res_name,
   sstr_res << this->id << ":" << res_count << ":" << res_type;
   ID res_id = sstr_res.str();
 
-  std::unique_ptr<Resolution> resolution = ResolutionFactory::getInstance().allocate(
-      res_type, spatial_dimension, opt_param, *this, res_id);
+  std::unique_ptr<Resolution> resolution =
+      ResolutionFactory::getInstance().allocate(res_type, spatial_dimension,
+                                                opt_param, *this, res_id);
 
   resolutions.push_back(std::move(resolution));
 
@@ -196,20 +178,20 @@ Resolution & ContactMechanicsModel::registerNewResolution(const ID & res_name,
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::initResolutions() {
-  AKANTU_DEBUG_ASSERT(resolutions.size() != 0, "No resolutions to initialize !");
+  AKANTU_DEBUG_ASSERT(resolutions.size() != 0,
+                      "No resolutions to initialize !");
 
   if (!are_resolutions_instantiated)
     instantiateResolutions();
 
   // \TODO check if each resolution needs a initResolution() method
 }
-  
+
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::initModel() {
   getFEEngine().initShapeFunctions(_not_ghost);
   getFEEngine().initShapeFunctions(_ghost);
 }
-
 
 /* -------------------------------------------------------------------------- */
 FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
@@ -217,31 +199,22 @@ FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
       getFEEngineClassBoundary<MyFEEngineType>(name));
 }
 
-
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                   NonLinearSolverType) {
-  DOFManager & dof_manager = this->getDOFManager();
-
-  this->allocNodalField(this->displacement, spatial_dimension,
-			"displacement");
+void ContactMechanicsModel::initSolver(
+    TimeStepSolverType /*time_step_solver_type*/, NonLinearSolverType) {
+  this->allocNodalField(this->displacement, spatial_dimension, "displacement");
   this->allocNodalField(this->displacement_increment, spatial_dimension,
                         "displacement_increment");
   this->allocNodalField(this->contact_force, spatial_dimension,
-			"contact_force");
+                        "contact_force");
   this->allocNodalField(this->external_force, spatial_dimension,
                         "external_force");
-  this->allocNodalField(this->normals, spatial_dimension,
-			"normals");
-  this->allocNodalField(this->gaps,  1,
-			"gaps");
-  this->allocNodalField(this->nodal_area, 1,
-			"areas");
-  this->allocNodalField(this->blocked_dofs, 1,
-			"blocked_dofs");
+  this->allocNodalField(this->normals, spatial_dimension, "normals");
+  this->allocNodalField(this->gaps, 1, "gaps");
+  this->allocNodalField(this->nodal_area, 1, "areas");
+  this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
 }
-  
-  
+
 /* -------------------------------------------------------------------------- */
 std::tuple<ID, TimeStepSolverType>
 ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
@@ -252,7 +225,7 @@ ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
   }
   case _implicit_contact: {
     return std::make_tuple("implicit_contact", _tsst_static);
-  }  
+  }
   default:
     return std::make_tuple("unkown", _tsst_not_defined);
   }
@@ -260,7 +233,7 @@ ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
 /* -------------------------------------------------------------------------- */
 ModelSolverOptions ContactMechanicsModel::getDefaultSolverOptions(
-   const TimeStepSolverType & type ) const {
+    const TimeStepSolverType & type) const {
   ModelSolverOptions options;
 
   switch (type) {
@@ -275,7 +248,7 @@ ModelSolverOptions ContactMechanicsModel::getDefaultSolverOptions(
     options.integration_scheme_type["displacement"] = _ist_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
     break;
-  }  
+  }
   default:
     AKANTU_EXCEPTION(type << " is not a valid time step solver type");
     break;
@@ -292,7 +265,6 @@ void ContactMechanicsModel::assembleResidual() {
   // computes the internal forces
   this->assembleInternalForces();
 
- 
   AKANTU_DEBUG_OUT();
 }
 
@@ -303,7 +275,7 @@ void ContactMechanicsModel::assembleInternalForces() {
   AKANTU_DEBUG_INFO("Assemble the contact forces");
 
   // assemble the forces due to local stresses
-  auto assemble = [&] (auto && ghost_type) {
+  auto assemble = [&](auto && ghost_type) {
     for (auto & resolution : resolutions) {
       resolution->assembleInternalForces(ghost_type);
     }
@@ -311,36 +283,33 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   AKANTU_DEBUG_INFO("Assemble residual for local elements");
   assemble(_not_ghost);
-  
+
   // assemble the stresses due to ghost elements
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   assemble(_ghost);
 
   /* ------------------------------------------------------------------------ */
-  this->getDOFManager().assembleToResidual("displacement",
-                                           *this->contact_force, 1);
-  
-  AKANTU_DEBUG_OUT();
+  this->getDOFManager().assembleToResidual("displacement", *this->contact_force,
+                                           1);
 
+  AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
-   
+
   this->detector->search(this->contact_map);
 
   this->assembleFieldsFromContactMap();
-  
+
   this->computeNodalAreas<Surface::slave>();
 }
 
-
-  
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search(Array<Real> & increment) {
-   
+
   this->detector->search(this->contact_map);
 
-  for (auto & entry: contact_map) {
+  for (auto & entry : contact_map) {
     auto & element = entry.second;
     const auto & connectivity = element.connectivity;
 
@@ -351,55 +320,54 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
     }
 
     u *= -1.0;
-            
+
     const auto & normal = element.normal;
     Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
 
     if (uv + element.gap <= 0) {
       element.gap = abs(uv + element.gap);
-    }
-    else {
+    } else {
       element.gap = 0.0;
     }
   }
-  
+
   this->assembleFieldsFromContactMap();
 
   this->computeNodalAreas<Surface::slave>();
-
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::assembleFieldsFromContactMap() {
 
-  if (this->contact_map.empty()) 
-    AKANTU_ERROR("Contact map is empty, Please run search before assembling the fields");
-  
-  for(auto & entry : contact_map) {
+  if (this->contact_map.empty())
+    AKANTU_ERROR(
+        "Contact map is empty, Please run search before assembling the fields");
+
+  for (auto & entry : contact_map) {
     const auto & element = entry.second;
     auto connectivity = element.connectivity;
     auto node = connectivity(0);
 
     (*gaps)[node] = element.gap;
 
-    for (UInt i =0; i < spatial_dimension; ++i)
+    for (UInt i = 0; i < spatial_dimension; ++i)
       (*normals)(node, i) = element.normal[i];
   }
 }
-  
+
 /* -------------------------------------------------------------------------- */
-template<Surface id>
-void ContactMechanicsModel::computeNodalAreas()  {
+template <Surface id> void ContactMechanicsModel::computeNodalAreas() {
 
   this->nodal_area->clear();
   this->external_force->clear();
 
-  this->applyBC(BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-		this->detector->getSurfaceId<id>());
+  this->applyBC(
+      BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
+      this->detector->getSurfaceId<id>());
 
-  for (auto && tuple : zip(*nodal_area,
-			   make_view(*external_force, spatial_dimension))) {
-    auto & area  = std::get<0>(tuple);
+  for (auto && tuple :
+       zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
+    auto & area = std::get<0>(tuple);
     auto & force = std::get<1>(tuple);
 
     for (auto & f : force)
@@ -411,17 +379,12 @@ void ContactMechanicsModel::computeNodalAreas()  {
   this->external_force->clear();
 }
 
-  
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::beforeSolveStep() {
-  this->search();
-}
+void ContactMechanicsModel::beforeSolveStep() { this->search(); }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::afterSolveStep() {
-  
-}
-  
+void ContactMechanicsModel::afterSolveStep() {}
+
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
   std::string space;
@@ -435,7 +398,7 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << " + fem [" << std::endl;
   getFEEngine().printself(stream, indent + 2);
   stream << space << AKANTU_INDENT << "]" << std::endl;
- 
+
   stream << space << " + resolutions [" << std::endl;
   for (auto & resolution : resolutions) {
     resolution->printself(stream, indent + 1);
@@ -445,10 +408,9 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
   stream << space << "]" << std::endl;
 }
 
-
 /* -------------------------------------------------------------------------- */
 MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
- 
+
   if (matrix_id == "K")
     return _symmetric;
 
@@ -480,27 +442,27 @@ void ContactMechanicsModel::assembleStiffnessMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::assembleLumpedMatrix(const ID & matrix_id) {
+void ContactMechanicsModel::assembleLumpedMatrix(const ID & /*matrix_id*/) {
   AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
- 
+
 dumper::Field *
-ContactMechanicsModel::createNodalFieldBool(const std::string & field_name,
-					    const std::string & group_name,
-					    __attribute__((unused)) bool padding_flag) {
+ContactMechanicsModel::createNodalFieldBool(const std::string & /*field_name*/,
+                                            const std::string & /*group_name*/,
+                                            bool /*padding_flag*/) {
 
   dumper::Field * field = nullptr;
   return field;
 }
 
-/* -------------------------------------------------------------------------- */  
+/* -------------------------------------------------------------------------- */
 dumper::Field *
 ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
-					    const std::string & group_name,
-					    bool padding_flag) {
+                                            const std::string & group_name,
+                                            bool padding_flag) {
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["contact_force"] = this->contact_force;
@@ -509,7 +471,7 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["normals"] = this->normals;
   real_nodal_fields["gaps"] = this->gaps;
   real_nodal_fields["areas"] = this->nodal_area;
-  
+
   dumper::Field * field = nullptr;
   if (padding_flag)
     field = this->mesh.createNodalField(real_nodal_fields[field_name],
@@ -520,7 +482,7 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
   return field;
 }
-  
+
 #else
 /* -------------------------------------------------------------------------- */
 dumper::Field * ContactMechanicsModel::createNodalFieldReal(
@@ -530,7 +492,7 @@ dumper::Field * ContactMechanicsModel::createNodalFieldReal(
   return nullptr;
 }
 
-#endif  
+#endif
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::dump(const std::string & dumper_name) {
@@ -544,7 +506,7 @@ void ContactMechanicsModel::dump(const std::string & dumper_name, UInt step) {
 
 /* ------------------------------------------------------------------------- */
 void ContactMechanicsModel::dump(const std::string & dumper_name, Real time,
-                             UInt step) {
+                                 UInt step) {
   mesh.dump(dumper_name, time, step);
 }
 
@@ -555,12 +517,13 @@ void ContactMechanicsModel::dump() { mesh.dump(); }
 void ContactMechanicsModel::dump(UInt step) { mesh.dump(step); }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::dump(Real time, UInt step) { mesh.dump(time, step); }
-
+void ContactMechanicsModel::dump(Real time, UInt step) {
+  mesh.dump(time, step);
+}
 
 /* -------------------------------------------------------------------------- */
-UInt ContactMechanicsModel::getNbData(const Array<Element> & elements,
-                                    const SynchronizationTag & tag) const {
+UInt ContactMechanicsModel::getNbData(
+    const Array<Element> & elements, const SynchronizationTag & /*tag*/) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -570,33 +533,31 @@ UInt ContactMechanicsModel::getNbData(const Array<Element> & elements,
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 
-
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::packData(CommunicationBuffer & buffer,
-                                   const Array<Element> & elements,
-                                   const SynchronizationTag & tag) const {
+void ContactMechanicsModel::packData(CommunicationBuffer & /*buffer*/,
+                                     const Array<Element> & /*elements*/,
+                                     const SynchronizationTag & /*tag*/) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::unpackData(CommunicationBuffer & buffer,
-                                     const Array<Element> & elements,
-                                     const SynchronizationTag & tag) {
+void ContactMechanicsModel::unpackData(CommunicationBuffer & /*buffer*/,
+                                       const Array<Element> & /*elements*/,
+                                       const SynchronizationTag & /*tag*/) {
   AKANTU_DEBUG_IN();
-
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-UInt ContactMechanicsModel::getNbData(const Array<UInt> & dofs,
-                                    const SynchronizationTag & tag) const {
+UInt ContactMechanicsModel::getNbData(
+    const Array<UInt> & dofs, const SynchronizationTag & /*tag*/) const {
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
@@ -607,25 +568,21 @@ UInt ContactMechanicsModel::getNbData(const Array<UInt> & dofs,
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::packData(CommunicationBuffer & buffer,
-                                   const Array<UInt> & dofs,
-                                   const SynchronizationTag & tag) const {
+void ContactMechanicsModel::packData(CommunicationBuffer & /*buffer*/,
+                                     const Array<UInt> & /*dofs*/,
+                                     const SynchronizationTag & /*tag*/) const {
   AKANTU_DEBUG_IN();
-
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::unpackData(CommunicationBuffer & buffer,
-                                     const Array<UInt> & dofs,
-                                     const SynchronizationTag & tag) {
+void ContactMechanicsModel::unpackData(CommunicationBuffer & /*buffer*/,
+                                       const Array<UInt> & /*dofs*/,
+                                       const SynchronizationTag & /*tag*/) {
   AKANTU_DEBUG_IN();
-
 
   AKANTU_DEBUG_OUT();
 }
-  
-  
-}  // namespace akantu
 
+} // namespace akantu

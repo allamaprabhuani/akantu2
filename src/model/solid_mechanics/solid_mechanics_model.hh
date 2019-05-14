@@ -86,6 +86,7 @@ public:
   SolidMechanicsModel(
       Mesh & mesh, UInt spatial_dimension = _all_dimensions,
       const ID & id = "solid_mechanics_model", const MemoryID & memory_id = 0,
+      std::shared_ptr<DOFManager> dof_manager = nullptr,
       const ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~SolidMechanicsModel() override;
@@ -467,7 +468,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// conversion coefficient form force/mass to acceleration
-  Real f_m2a;
+  Real f_m2a{1.0};
 
   /// displacements array
   Array<Real> * displacement;
@@ -484,6 +485,7 @@ protected:
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
+
   /// Check if materials need to recompute the mass matrix
   bool need_to_reassemble_mass{true};
 
@@ -492,9 +494,6 @@ protected:
 
   /// accelerations array
   Array<Real> * acceleration{nullptr};
-
-  /// accelerations array
-  // Array<Real> * increment_acceleration;
 
   /// external forces array
   Array<Real> * external_force{nullptr};
@@ -526,7 +525,7 @@ protected:
   std::shared_ptr<MaterialSelector> material_selector;
 
   /// tells if the material are instantiated
-  bool are_materials_instantiated;
+  bool are_materials_instantiated{false};
 
   using flatten_internal_map = std::map<std::pair<std::string, ElementKind>,
                                         ElementTypeMapArray<Real> *>;

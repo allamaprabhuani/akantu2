@@ -42,9 +42,11 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-Model::Model(Mesh & mesh, const ModelType & type, UInt dim, const ID & id,
+Model::Model(Mesh & mesh, const ModelType & type,
+             std::shared_ptr<DOFManager> & dof_manager, UInt dim, const ID & id,
              const MemoryID & memory_id)
-    : Memory(id, memory_id), ModelSolver(mesh, type, id, memory_id), mesh(mesh),
+    : Memory(id, memory_id),
+      ModelSolver(mesh, type, id, memory_id, dof_manager), mesh(mesh),
       spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
                                                : dim),
       parser(getStaticParser()) {
@@ -69,11 +71,12 @@ void Model::initFullImpl(const ModelOptions & options) {
   if (!this->hasDefaultSolver()) {
     this->initNewSolver(this->method);
   }
+
   initModel();
 
   initFEEngineBoundary();
 
-  //if(mesh.isPeriodic()) this->initPBC();
+  // if(mesh.isPeriodic()) this->initPBC();
 
   AKANTU_DEBUG_OUT();
 }
@@ -120,7 +123,8 @@ void Model::initNewSolver(const AnalysisMethod & method) {
 //     UInt slave = mesh.isDistributed() ? mesh.getGlobalNodesIds()(i1) : i1;
 //     UInt master = mesh.isDistributed() ? mesh.getGlobalNodesIds()(i2) : i2;
 
-//     AKANTU_DEBUG_INFO("pairing " << slave << " (" << Vector<Real>(coord_it[i1])
+//     AKANTU_DEBUG_INFO("pairing " << slave << " (" <<
+//     Vector<Real>(coord_it[i1])
 //                                  << ") with " << master << " ("
 //                                  << Vector<Real>(coord_it[i2]) << ")");
 // #endif

@@ -55,10 +55,17 @@ template <typename T> static T getOptionToType(const std::string & opt_str) {
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-                         UInt memory_id)
+                         UInt memory_id,
+                         std::shared_ptr<DOFManager> dof_manager)
     : Parsable(ParserType::_model, id), SolverCallback(), model_type(type),
-      parent_id(id), parent_memory_id(memory_id), mesh(mesh),
-      dof_manager(nullptr), default_solver_id("") {}
+      parent_id(id), parent_memory_id(memory_id), mesh(mesh) {
+  if (not dof_manager) {
+    initDOFManager();
+  } else {
+    this->dof_manager = dof_manager;
+    this->setDOFManager(*this->dof_manager);
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::~ModelSolver() = default;
@@ -107,6 +114,10 @@ void ModelSolver::initDOFManager() {
 
 /* -------------------------------------------------------------------------- */
 void ModelSolver::initDOFManager(const ID & solver_type) {
+  if (dof_manager) {
+    AKANTU_EXCEPTION("The DOF manager for this model is already initialized !");
+  }
+
   try {
     this->dof_manager = DOFManagerFactory::getInstance().allocate(
         solver_type, mesh, this->parent_id + ":dof_manager" + solver_type,
@@ -268,8 +279,7 @@ void ModelSolver::solveStep(const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::solveStep(SolverCallback & callback,
-			      const ID & solver_id) {
+void ModelSolver::solveStep(SolverCallback & callback, const ID & solver_id) {
   AKANTU_DEBUG_IN();
 
   TimeStepSolver & tss = this->getSolver(solver_id);
@@ -278,7 +288,7 @@ void ModelSolver::solveStep(SolverCallback & callback,
 
   AKANTU_DEBUG_OUT();
 }
-  
+
 /* -------------------------------------------------------------------------- */
 void ModelSolver::getNewSolver(const ID & solver_id,
                                TimeStepSolverType time_step_solver_type,
