@@ -54,6 +54,9 @@ public:
   /// them in a node group
   void fillNodeGroup(NodeGroup & node_group, bool multi_axial = false);
 
+  /// Apply free expansion boundary conditions
+  void applyFreeExpansionBC();
+
   /// Apply boundary conditions on ASR samples to imitate lab testing conditions
   template <UInt dim>
   void applyBoundaryConditions(const bool free_expansion,
@@ -158,6 +161,10 @@ public:
 
   /// dump the RVE
   void dumpRve();
+
+  /// apply self-weight force
+  void applyBodyForce();
+
 
 private:
   /// find the corner nodes

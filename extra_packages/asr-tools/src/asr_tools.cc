@@ -65,6 +65,118 @@ void ASRTools::applyBoundaryConditions(bool free_expansion,
   AKANTU_TO_IMPLEMENT();
 }
 
+/* ------------------------------------------------------------------------- */
+void ASRTools::applyFreeExpansionBC() {
+  /// boundary conditions
+  const auto & mesh = model.getMesh();
+  const Vector<Real> & lowerBounds = mesh.getLowerBounds();
+  const Vector<Real> & upperBounds = mesh.getUpperBounds();
+  const UInt dim = mesh.getSpatialDimension();
+  const Array<Real> & pos = mesh.getNodes();
+  Array<Real> & disp = model.getDisplacement();
+  Array<bool> & boun = model.getBlockedDOFs();
+
+  switch (dim) {
+  case 2: {
+    /// accessing bounds
+    Real bottom = lowerBounds(1);
+    Real left = lowerBounds(0);
+    Real right = upperBounds(0);
+    Real top = upperBounds(1);
+
+    Real eps = std::abs((top - bottom) * 1e-6);
+
+    for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+      }
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - right) < eps)) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - top) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+      }
+    }
+    break;
+  }
+  case 3: {
+    /// accessing bounds
+    Real bottom = lowerBounds(1);
+    Real front = upperBounds(2);
+    Real left = lowerBounds(0);
+    Real right = upperBounds(0);
+    Real top = upperBounds(1);
+    Real back = lowerBounds(2);
+
+    Real eps = std::abs((top - bottom) * 1e-6);
+
+    for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        boun(i, 2) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - right) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+        boun(i, 2) = true;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - top) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+        boun(i, 2) = true;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - right) < eps) &&
+          (std::abs(pos(i, 1) - top) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 2) = true;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 2) - front) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - top) < eps) &&
+          (std::abs(pos(i, 2) - front) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - right) < eps) &&
+          (std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 2) - front) < eps)) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+    }
+    break;
+  }
+  }
+}
+
 /* --------------------------------------------------------------------------
  */
 template <>
@@ -219,7 +331,8 @@ void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
   Real eps = std::abs((top - bottom) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
   if (multi_axial) {
-    /// fill the NodeGroup with the nodes on the left, bottom and back surface
+    /// fill the NodeGroup with the nodes on the left, bottom and back
+    /// surface
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
       if (std::abs(pos(i, 0) - right) < eps)
         node_group.add(i);
@@ -1200,42 +1313,105 @@ void ASRTools::findCornerNodes() {
   const auto & lower_bounds = mesh.getLowerBounds();
   const auto & upper_bounds = mesh.getUpperBounds();
 
-  AKANTU_DEBUG_ASSERT(dim == 2, "This is 2D only!");
-  corner_nodes.resize(4);
-  corner_nodes.set(UInt(-1));
+  switch (dim) {
+  case 2: {
+    corner_nodes.resize(4);
+    corner_nodes.set(UInt(-1));
+    for (auto && data : enumerate(make_view(position, dim))) {
+      auto node = std::get<0>(data);
+      const auto & X = std::get<1>(data);
 
-  for (auto && data : enumerate(make_view(position, dim))) {
-    auto node = std::get<0>(data);
-    const auto & X = std::get<1>(data);
-
-    auto distance = X.distance(lower_bounds);
-    // node 1
-    if (Math::are_float_equal(distance, 0)) {
-      corner_nodes(0) = node;
+      auto distance = X.distance(lower_bounds);
+      // node 1
+      if (Math::are_float_equal(distance, 0)) {
+        corner_nodes(0) = node;
+      }
+      // node 2
+      else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
+               Math::are_float_equal(X(_y), lower_bounds(_y))) {
+        corner_nodes(1) = node;
+      }
+      // node 3
+      else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
+               Math::are_float_equal(X(_y), upper_bounds(_y))) {
+        corner_nodes(2) = node;
+      }
+      // node 4
+      else if (Math::are_float_equal(X(_x), lower_bounds(_x)) &&
+               Math::are_float_equal(X(_y), upper_bounds(_y))) {
+        corner_nodes(3) = node;
+      }
     }
-    // node 2
-    else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
-             Math::are_float_equal(X(_y), lower_bounds(_y))) {
-      corner_nodes(1) = node;
-    }
-    // node 3
-    else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
-             Math::are_float_equal(X(_y), upper_bounds(_y))) {
-      corner_nodes(2) = node;
-    }
-    // node 4
-    else if (Math::are_float_equal(X(_x), lower_bounds(_x)) &&
-             Math::are_float_equal(X(_y), upper_bounds(_y))) {
-      corner_nodes(3) = node;
-    }
+    break;
   }
+  case 3: {
+    corner_nodes.resize(8);
+    corner_nodes.set(UInt(-1));
+    for (auto && data : enumerate(make_view(position, dim))) {
+      auto node = std::get<0>(data);
+      const auto & X = std::get<1>(data);
+
+      auto distance = X.distance(lower_bounds);
+      // node 1
+      if (Math::are_float_equal(distance, 0)) {
+        corner_nodes(0) = node;
+      }
+      // node 2
+      else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
+               Math::are_float_equal(X(_y), lower_bounds(_y)) &&
+               Math::are_float_equal(X(_z), lower_bounds(_z))) {
+        corner_nodes(1) = node;
+      }
+      // node 3
+      else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
+               Math::are_float_equal(X(_y), upper_bounds(_y)) &&
+               Math::are_float_equal(X(_z), lower_bounds(_z))) {
+        corner_nodes(2) = node;
+      }
+      // node 4
+      else if (Math::are_float_equal(X(_x), lower_bounds(_x)) &&
+               Math::are_float_equal(X(_y), upper_bounds(_y)) &&
+               Math::are_float_equal(X(_z), lower_bounds(_z))) {
+        corner_nodes(3) = node;
+      }
+      // node 5
+      if (Math::are_float_equal(X(_x), lower_bounds(_x)) &&
+          Math::are_float_equal(X(_y), lower_bounds(_y)) &&
+          Math::are_float_equal(X(_z), upper_bounds(_z))) {
+        corner_nodes(4) = node;
+      }
+      // node 6
+      else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
+               Math::are_float_equal(X(_y), lower_bounds(_y)) &&
+               Math::are_float_equal(X(_z), upper_bounds(_z))) {
+        corner_nodes(5) = node;
+      }
+      // node 7
+      else if (Math::are_float_equal(X(_x), upper_bounds(_x)) &&
+               Math::are_float_equal(X(_y), upper_bounds(_y)) &&
+               Math::are_float_equal(X(_z), upper_bounds(_z))) {
+        corner_nodes(6) = node;
+      }
+      // node 8
+      else if (Math::are_float_equal(X(_x), lower_bounds(_x)) &&
+               Math::are_float_equal(X(_y), upper_bounds(_y)) &&
+               Math::are_float_equal(X(_z), upper_bounds(_z))) {
+        corner_nodes(7) = node;
+      }
+    }
+    break;
+  }
+  }
+
+  //  AKANTU_DEBUG_ASSERT(dim == 2, "This is 2D only!");
 
   for (UInt i = 0; i < corner_nodes.size(); ++i) {
     if (corner_nodes(i) == UInt(-1))
       //      AKANTU_ERROR("The corner node " << i + 1 << " wasn't found");
       std::cout << "The corner node " << i + 1
-                << " wasn't found. If RVE is handled by more than 1 processor in a "
-                   "multi-scale simulation - expect error"
+                << " wasn't found. If RVE is handled by more than 1 "
+                   "processor in a "
+                   "multi-scale simulation - expect an error."
                 << std::endl;
   }
   AKANTU_DEBUG_OUT();
@@ -1557,6 +1733,28 @@ void ASRTools::dumpRve() {
   model.dump();
   //  }
   this->nb_dumps += 1;
+}
+
+/* -------------------------------------------------------------------------- */
+void ASRTools::applyBodyForce() {
+  auto spatial_dimension = model.getSpatialDimension();
+  const Mesh & mesh = model.getMesh();
+  model.assembleMassLumped();
+  auto & mass = model.getMass();
+  auto & force = model.getExternalForce();
+  Vector<Real> gravity(spatial_dimension);
+  gravity(1) = -9.81;
+
+  auto nb_nodes = mesh.getNbNodes();
+
+  for (auto && data : zip(make_view(mass, spatial_dimension),
+                          make_view(force, spatial_dimension))) {
+
+    const auto & mass_vec = (std::get<0>(data));
+    auto & force_vec = (std::get<1>(data));
+
+    force_vec += gravity * mass_vec;
+  }
 }
 
 } // namespace akantu

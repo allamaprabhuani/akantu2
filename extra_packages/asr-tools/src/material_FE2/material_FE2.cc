@@ -194,7 +194,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(
            make_view(this->eigengradu(this->el_type), spatial_dimension,
                      spatial_dimension),
            make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-           this->delta_T(this->el_type))) {
+           this->delta_T(this->el_type), this->damage_ratio(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
 
     /// apply boundary conditions based on the current macroscopic displ.
@@ -203,6 +203,9 @@ void MaterialFE2<spatial_dimension>::advanceASR(
 
     /// advance the ASR in every RVE
     RVE.advanceASR(prestrain);
+
+    /// compute damage volume in each rve
+    RVE.computeDamageRatio(std::get<5>(data));
 
     /// compute the average eigen_grad_u
     RVE.homogenizeEigenGradU(std::get<2>(data));
