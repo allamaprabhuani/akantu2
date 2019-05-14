@@ -131,7 +131,6 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
     computeTalpha(t_alpha, shapes,             element.tangents);
     computeNalpha(n_alpha, dnds,               element.normal);
     computeDalpha(d_alpha, n_alpha, t_alpha, surface_matrix, element.gap);
-
     //computeFrictionForce(fc, d_alpha, gap);
 
     UInt nb_degree_of_freedom = internal_force.getNbComponent();
@@ -213,6 +212,13 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     computeTalpha( t_alpha,  shapes,             tangents);
     computeNalpha( n_alpha,  shapes_derivatives, normal);
     computeDalpha( d_alpha,  n_alpha,  t_alpha,  surface_matrix, gap);
+    
+    Array<Real> t_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
+    Array<Real> n_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
+    Array<Real> p_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    
+
+    
     
     Matrix<Real> kc(connectivity.size() * spatial_dimension,
 		    connectivity.size() * spatial_dimension);
