@@ -30,7 +30,8 @@
 #===============================================================================
 
 package_declare(model_couplers
-  DESCRIPTION "Use Model Couplers package of Akantu")
+  DESCRIPTION "Use Model Couplers package of Akantu"
+  DEPENDS contact_mechanics)
 
 package_declare_sources(model_couplers
   model/model_couplers/coupler_solid_contact.hh
