@@ -132,7 +132,7 @@ public:
          make_view(results, results.getNbComponent() / dim, dim)) {
       auto diff = result - presult;
       auto result_error =
-          diff.template norm<L_inf>() / result.template norm<L_inf>();
+          diff.template norm<L_inf>() / presult.template norm<L_inf>();
 
       EXPECT_NEAR(0, result_error, result_tolerance);
     }
