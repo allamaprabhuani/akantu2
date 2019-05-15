@@ -63,8 +63,15 @@ protected:
 				  Array<Real> & d_alpha,
 				  Real & gap);
 
-  /// computation of frictional tractions
-  void computeFrictionalTraction(Vector<Real> & tractions);
+  /// local computation of direct stiffness matrix due to friction,
+  /// this matrix is common for both stick and slip part
+  void computeCommonModuli(Real & gap);
+
+  /// local computaion of stiffness matrix due to stick state
+  void computeStickModuli();
+
+  /// local computation of stiffness matrix due to slip state 
+  void computeSlipModuli();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -93,9 +100,10 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// penalty parameter
+  /// penalty parameter for normal stress
   Real epsilon;
-  
+  /// penalty parameter for tangential stress
+  Real epsilon_t;
 };
   
 

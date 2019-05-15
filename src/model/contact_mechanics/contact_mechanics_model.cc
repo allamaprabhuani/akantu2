@@ -380,7 +380,10 @@ template <Surface id> void ContactMechanicsModel::computeNodalAreas() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::beforeSolveStep() { this->search(); }
+void ContactMechanicsModel::beforeSolveStep() {
+  this->search();
+  
+}
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::afterSolveStep() {}
