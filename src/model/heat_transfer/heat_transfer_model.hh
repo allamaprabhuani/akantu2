@@ -62,7 +62,8 @@ public:
 
   HeatTransferModel(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
                     const ID & id = "heat_transfer_model",
-                    const MemoryID & memory_id = 0);
+                    const MemoryID & memory_id = 0,
+                    std::shared_ptr<DOFManager> dof_manager = nullptr);
 
   virtual ~HeatTransferModel();
 

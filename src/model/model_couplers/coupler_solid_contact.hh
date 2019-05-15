@@ -117,6 +117,28 @@ protected:
   void afterSolveStep() override;
 
   /* ------------------------------------------------------------------------ */
+public:
+  // DataAccessor<Element>
+  UInt getNbData(const Array<Element> &,
+                 const SynchronizationTag &) const override {
+    return 0;
+  }
+  void packData(CommunicationBuffer &, const Array<Element> &,
+                const SynchronizationTag &) const override {}
+  void unpackData(CommunicationBuffer &, const Array<Element> &,
+                  const SynchronizationTag &) override {}
+
+  // DataAccessor<UInt> nodes
+  UInt getNbData(const Array<UInt> &,
+                 const SynchronizationTag &) const override {
+    return 0;
+  }
+  void packData(CommunicationBuffer &, const Array<UInt> &,
+                const SynchronizationTag &) const override {}
+  void unpackData(CommunicationBuffer &, const Array<UInt> &,
+                  const SynchronizationTag &) override {}
+
+  /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
