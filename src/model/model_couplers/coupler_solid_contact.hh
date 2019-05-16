@@ -69,8 +69,7 @@ class CouplerSolidContact : public Model,
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
 public:
-  CouplerSolidContact(
-      SolidMechanicsModel &, ContactMechanicsModel &,
+  CouplerSolidContact(Mesh & mesh,
       UInt spatial_dimension = _all_dimensions,
       const ID & id = "coupler_solid_contact",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
@@ -117,6 +116,29 @@ protected:
   void afterSolveStep() override;
 
   /* ------------------------------------------------------------------------ */
+  /* Data Accessor inherited members                                          */
+  /* ------------------------------------------------------------------------ */
+public:
+  UInt getNbData(const Array<Element> & elements,
+                 const SynchronizationTag & tag) const override;
+
+  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                  const SynchronizationTag & tag) override;
+
+  UInt getNbData(const Array<UInt> & dofs,
+                 const SynchronizationTag & tag) const override;
+
+  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+                  const SynchronizationTag & tag) override;
+
+  
+  /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
@@ -146,13 +168,30 @@ public:
     return *external_force;
   }
 
+  /// get the solid mechanics model
+  AKANTU_GET_MACRO(SolidMechanicsModel, *solid, SolidMechanicsModel &);
+
+  /// get the contact mechanics model
+  AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &);
+  
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
+  
   dumper::Field * createNodalFieldReal(const std::string & field_name,
                                        const std::string & group_name,
                                        bool padding_flag) override;
+
+  dumper::Field * createNodalFieldBool(const std::string & field_name,
+                                       const std::string & group_name,
+                                       bool padding_flag) override;
+
+  dumper::Field * createElementalField(const std::string & field_name,
+                                       const std::string & group_name,
+                                       bool padding_flag,
+                                       const UInt & spatial_dimension,
+                                       const ElementKind & kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -169,17 +208,17 @@ private:
   /* ------------------------------------------------------------------------ */
 private:
   /// solid mechanics model
-  SolidMechanicsModel & solid;
+  SolidMechanicsModel * solid{nullptr};
 
   /// contact mechanics model
-  ContactMechanicsModel & contact;
+  ContactMechanicsModel * contact{nullptr};
 
-  /// displacements array
+  ///
   Array<Real> * displacement{nullptr};
 
-  /// increment of displacement
+  ///
   Array<Real> * displacement_increment{nullptr};
-
+  
   /// external forces array
   Array<Real> * external_force{nullptr};
 };

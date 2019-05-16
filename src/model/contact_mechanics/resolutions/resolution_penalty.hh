@@ -72,6 +72,9 @@ protected:
 
   /// local computation of stiffness matrix due to slip state 
   void computeSlipModuli();
+
+  ///
+  void computeFrictionalTraction();
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

@@ -30,7 +30,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "coupler_solid_contact.hh"
-#include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -43,26 +42,33 @@ int main(int argc, char *argv[]) {
   Mesh mesh(spatial_dimension);
   mesh.read("coupling.msh");
   
-  SolidMechanicsModel solid(mesh);
+  CouplerSolidContact coupler(mesh);
+
+  auto & solid = coupler.getSolidMechanicsModel();
+  auto & contact = coupler.getContactMechanicsModel();
+
   solid.initFull(_analysis_method = _static);
+  contact.initFull(_analysis_method = _implicit_contact);
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bot_body");
   solid.applyBC(BC::Dirichlet::IncrementValue(0.001, _y), "bot_body");
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
-
-  auto & solver = solid.getNonLinearSolver();
-  solver.set("max_iterations", 1);
-  solver.set("threshold", 1e-1);
-  solver.set("convergence_type", _scc_solution);
   
-  ContactMechanicsModel contact(mesh);
-  contact.initFull(_analysis_method = _implicit_contact);
-
-  CouplerSolidContact coupler(solid, contact);
   coupler.initFull(_analysis_method = _implicit_contact);
+
+  coupler.setBaseName("coupling");
+  coupler.addDumpFieldVector("displacement");
+  coupler.addDumpField("blocked_dofs");
+  coupler.addDumpField("external_force");
+  coupler.addDumpField("internal_force");
+  coupler.addDumpField("grad_u");
+  coupler.addDumpField("stress");
+  
   coupler.solveStep();
+
+  contact.dump();
 
   
   return 0;

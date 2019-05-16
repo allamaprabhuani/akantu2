@@ -70,7 +70,7 @@ void ResolutionPenalty::computeFrictionForce(Vector<Real> & force, Array<Real> &
 					     Real & gap) {
 
   Vector<Real> tractions(d_alpha.getNbComponent());
-  computeFrictionalTraction(tractions);
+  /*computeFrictionalTraction(tractions);
 
   for (auto && values:
 	 zip(tractions,
@@ -78,9 +78,30 @@ void ResolutionPenalty::computeFrictionForce(Vector<Real> & force, Array<Real> &
     auto & t_s = std::get<0>(values);
     auto & d_s = std::get<1>(values);
     force += d_s * t_s;
-  }
+    }*/
 }
 
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::computeFrictionTraction(Real & gap) {
+
+  Real tn = gap * epsilon;
+  tn = macaulay(tn);
+
+  // delta_xi = xi- previous_xi
+  //trial_traction = previous_traction + epsilon * metric_tensor * delta_xi;
+  //trial_slip_function = trial_traction.mod - mu * tn;
+
+  // Stick condition
+  // if trial_slip_function <= 0 
+  // traction = trial_traction;
+
+  // Slip condition
+  // else
+  // traction = mu * tn * trial_traction / trial_traction.norm()'
+  
+  
+}
+  
   
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeTangentModuli(Matrix<Real> & kc, Vector<Real> & n,
@@ -129,7 +150,10 @@ void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> &
 void ResolutionPenalty::computeFrictionalStiffness(Vector<Real> & n,
 						   Array<Real>  & n_alpha, Array<Real> & d_alpha,
 						   Real & gap) {
- 
+
+  computeCommonModuli();
+  computeStickModuli();
+  computeSlipModuli();
 }
 
 
@@ -142,6 +166,8 @@ void ResolutionPenalty::computeCommonModuli(Real & gap)  {
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeStickModuli() {
 
+  // epsilon_t * 
+  
 }
 
 /* -------------------------------------------------------------------------- */

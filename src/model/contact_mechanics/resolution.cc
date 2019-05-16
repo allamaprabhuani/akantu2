@@ -115,8 +115,8 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
         
     Vector<Real> fc(conn.size() * spatial_dimension);
    
-    Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
-    computeSurfaceMatrix(element.tangents, surface_matrix);
+    Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
+    computeMetricTensor(element.tangents, m_alpha_beta);
 
     Vector<Real> n(conn.size() * spatial_dimension);
     
@@ -130,7 +130,7 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
    
     computeTalpha(t_alpha, shapes,             element.tangents);
     computeNalpha(n_alpha, dnds,               element.normal);
-    computeDalpha(d_alpha, n_alpha, t_alpha, surface_matrix, element.gap);
+    computeDalpha(d_alpha, n_alpha, t_alpha, m_alpha_beta, element.gap);
     //computeFrictionForce(fc, d_alpha, gap);
 
     UInt nb_degree_of_freedom = internal_force.getNbComponent();
@@ -200,8 +200,8 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     computeCoordinates(master, global_coords);
     computeTangents(shapes_derivatives, global_coords, tangents);
     
-    Matrix<Real> surface_matrix(spatial_dimension - 1, spatial_dimension - 1);
-    computeSurfaceMatrix(tangents, surface_matrix);
+    Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
+    computeMetricTensor(tangents, m_alpha_beta);
     
     Vector<Real> n(connectivity.size() * spatial_dimension);
     Array<Real> t_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
@@ -211,18 +211,19 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     computeN(      n,        shapes,             normal);
     computeTalpha( t_alpha,  shapes,             tangents);
     computeNalpha( n_alpha,  shapes_derivatives, normal);
-    computeDalpha( d_alpha,  n_alpha,  t_alpha,  surface_matrix, gap);
-    
+    computeDalpha( d_alpha,  n_alpha,  t_alpha,  m_alpha_beta, gap);
+
+    /*
     Array<Real> t_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
     Array<Real> n_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
     Array<Real> p_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    
+    */
 
     
     
     Matrix<Real> kc(connectivity.size() * spatial_dimension,
 		    connectivity.size() * spatial_dimension);
-    computeTangentModuli(kc, n, n_alpha, d_alpha, surface_matrix, gap);
+    computeTangentModuli(kc, n, n_alpha, d_alpha, m_alpha_beta, gap);
         
     std::vector<UInt> equations;
     UInt nb_degree_of_freedom = model.getSpatialDimension();
@@ -257,10 +258,10 @@ void Resolution::computeTangents(Matrix<Real> & shapes_derivatives, Matrix<Real>
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::computeSurfaceMatrix(Matrix<Real> & tangents, Matrix<Real> & surface_matrix) {
+void Resolution::computeMetricTensor(Matrix<Real> & tangents, Matrix<Real> & m_alpha_beta) {
 
-  surface_matrix.mul<false, true>(tangents, tangents);
-  surface_matrix = surface_matrix.inverse();
+  m_alpha_beta.mul<false, true>(tangents, tangents);
+  m_alpha_beta = m_alpha_beta.inverse();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -314,11 +315,11 @@ void Resolution::computeNalpha(Array<Real> & n_alpha, Matrix<Real> & shapes_deri
 
 /* -------------------------------------------------------------------------- */
 void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
-			       Array<Real> & t_alpha, Matrix<Real> & surface_matrix,
+			       Array<Real> & t_alpha, Matrix<Real> & m_alpha_beta,
 			       Real & gap) {
 
   d_alpha.clear();
-  for (auto && entry : zip(surface_matrix.transpose(),
+  for (auto && entry : zip(m_alpha_beta.transpose(),
 			   make_view(d_alpha, d_alpha.size()))) {
     auto & a_s = std::get<0>(entry);
     auto & d_s = std::get<1>(entry);

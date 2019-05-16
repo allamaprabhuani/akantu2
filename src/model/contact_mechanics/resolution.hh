@@ -81,35 +81,36 @@ protected:
   void computeCoordinates(const Element & , Matrix<Real> &);
 
   /// computes tangents
-  void computeTangents(Matrix<Real> & /* shapes_derivatives */,
-		       Matrix<Real> &  /* global_coords */,
-		       Matrix<Real> &  /* tangents */);
+  void computeTangents(Matrix<Real> & ,
+		       Matrix<Real> & ,
+		       Matrix<Real> & );
 
-  /// computes surface metric matrix
-  void computeSurfaceMatrix(Matrix<Real>  & /* tangents */,
-			    Matrix<Real> & /* surface_matrix */);
+  /// computes metric tensor (@f$m_{\alpha\beta}@f$) where @f$\alpha,
+  /// \beta@f$ are surface directions
+  void computeMetricTensor(Matrix<Real> &,
+			   Matrix<Real> &);
 
   /// computes N array
-  void computeN(Vector<Real>  & /* n */,
-		Vector<Real> & /* shapes */,
-		Vector<Real> & /* normal */);
+  void computeN(Vector<Real> &,
+		Vector<Real> &,
+		Vector<Real> &);
 
-  /// computes N_{\alpha} where \alpha is number of surface dimensions
-  void computeNalpha(Array<Real>  & /* n_alpha */,
-		     Matrix<Real> & /* shapes_derivatives */,
-		     Vector<Real> & /* normal */);
+  /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension
+  void computeNalpha(Array<Real>  &,
+		     Matrix<Real> &,
+		     Vector<Real> &);
 
-  /// computes T_{\alpha} where \alpha is surface dimenion
+  /// computes (@f$T_{\alpha}@f$) where @f$\alpha@f$ is surface dimension
   void computeTalpha(Array<Real> & ,
 		     Vector<Real> & ,
 		     Matrix<Real> & );
 
-  /// computes D_{\alpha} where \alpha is number of surface dimensions
-  void computeDalpha(Array<Real> & /* d_alpha */,
-		     Array<Real> & /* n_alpha */,
-		     Array<Real> & /* t_alpha */,
-		     Matrix<Real> & /* surface_matrix */,
-		     Real & /* gap */); 
+  /// computes (@f$D_{\alpha}@f$) where @f$\alpha@f$ is surface dimension
+  void computeDalpha(Array<Real> & ,
+		     Array<Real> & ,
+		     Array<Real> & ,
+		     Matrix<Real> &,
+		     Real & ); 
 
   /* ------------------------------------------------------------------------ */
   /* Functions that resolutions can/should reimplement                        */

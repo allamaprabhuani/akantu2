@@ -200,13 +200,18 @@ FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::initSolver(
-    TimeStepSolverType /*time_step_solver_type*/, NonLinearSolverType) {
+void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
+				       NonLinearSolverType) {
+
+  auto & dof_manager = this->getDOFManager();
+
+  /* -------------------------------------------------------------------------- */
+  // for alloc type of solvers
   this->allocNodalField(this->displacement, spatial_dimension, "displacement");
   this->allocNodalField(this->displacement_increment, spatial_dimension,
                         "displacement_increment");
-  this->allocNodalField(this->contact_force, spatial_dimension,
-                        "contact_force");
+  this->allocNodalField(this->internal_force, spatial_dimension,
+                        "internal_force");
   this->allocNodalField(this->external_force, spatial_dimension,
                         "external_force");
   this->allocNodalField(this->normals, spatial_dimension, "normals");
@@ -265,6 +270,10 @@ void ContactMechanicsModel::assembleResidual() {
   // computes the internal forces
   this->assembleInternalForces();
 
+  /* ------------------------------------------------------------------------ */
+  this->getDOFManager().assembleToResidual("displacement", *this->internal_force,
+                                           1);
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -288,9 +297,6 @@ void ContactMechanicsModel::assembleInternalForces() {
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   assemble(_ghost);
 
-  /* ------------------------------------------------------------------------ */
-  this->getDOFManager().assembleToResidual("displacement", *this->contact_force,
-                                           1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -437,7 +443,7 @@ void ContactMechanicsModel::assembleStiffnessMatrix() {
     this->getDOFManager().getNewMatrix("K", getMatrixType("K"));
   }
 
-  this->getDOFManager().clearMatrix("K");
+  //this->getDOFManager().clearMatrix("K");
 
   for (auto & resolution : resolutions) {
     resolution->assembleStiffnessMatrix(_not_ghost);
@@ -468,8 +474,7 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                             bool padding_flag) {
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
-  real_nodal_fields["contact_force"] = this->contact_force;
-  real_nodal_fields["external_force"] = this->external_force;
+  real_nodal_fields["contact_force"] = this->internal_force;
   real_nodal_fields["blocked_dofs"] = this->blocked_dofs;
   real_nodal_fields["normals"] = this->normals;
   real_nodal_fields["gaps"] = this->gaps;

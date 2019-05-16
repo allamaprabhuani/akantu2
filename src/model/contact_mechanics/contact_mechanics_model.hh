@@ -230,8 +230,8 @@ public:
   /// if ContactMechanicsModel::setIncrementFlagOn has been called before
   AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
 
-  /// get the ContactMechanics::contact_force vector (internal forces)
-  AKANTU_GET_MACRO(InternalForce, *contact_force, Array<Real> &);
+  /// get the ContactMechanics::internal_force vector (internal forces)
+  AKANTU_GET_MACRO(InternalForce, *internal_force, Array<Real> &);
 
   /// get the ContactMechanicsModel::external_force vector (external forces)
   AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
@@ -255,7 +255,7 @@ public:
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
-  /// get the ContactMechanics::contact_force vector (internal forces)
+  /// get the ContactMechanics::internal_force vector (internal forces)
   AKANTU_GET_MACRO(CurrentPositions, current_positions, Array<Real> &);
 
   /// get the contat map
@@ -277,7 +277,7 @@ private:
   Array<Real> * displacement_increment{nullptr};
 
   /// contact forces array
-  Array<Real> * contact_force{nullptr};
+  Array<Real> * internal_force{nullptr};
 
   /// external forces array
   Array<Real> * external_force{nullptr};
