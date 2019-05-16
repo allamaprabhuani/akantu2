@@ -38,15 +38,15 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Resolution::Resolution(ContactMechanicsModel & model, const ID & id)
-  : Memory(id, model.getMemoryID()), Parsable(ParserType::_contact_resolution, id),
-    fem(model.getFEEngine()),
-    name(""), model(model),
-    spatial_dimension(model.getMesh().getSpatialDimension()){
+    : Memory(id, model.getMemoryID()),
+      Parsable(ParserType::_contact_resolution, id), fem(model.getFEEngine()),
+      name(""), model(model),
+      spatial_dimension(model.getMesh().getSpatialDimension()) {
 
   AKANTU_DEBUG_IN();
-  
+
   this->initialize();
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -55,9 +55,9 @@ Resolution::~Resolution() = default;
 
 /* -------------------------------------------------------------------------- */
 void Resolution::initialize() {
-  registerParam("name", name, std::string(), _pat_parsable | _pat_readable); 
+  registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
   registerParam("mu", mu, Real(0.), _pat_parsable | _pat_modifiable,
-		"Friciton Coefficient");
+                "Friciton Coefficient");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -76,23 +76,20 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
-  
-  auto & internal_force =
-    const_cast<Array<Real> &>(model.getInternalForce());
-  
-  const auto local_nodes =
-    model.getMesh().getElementGroup(name).getNodes();
 
-  auto & nodal_area =
-    const_cast<Array<Real> &>(model.getNodalArea());
-    
+  auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
+
+  const auto local_nodes = model.getMesh().getElementGroup(name).getNodes();
+
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+
   auto & contact_map = model.getContactMap();
-  
-  for (auto & slave: local_nodes) {
+
+  for (auto & slave : local_nodes) {
 
     if (contact_map.find(slave) == contact_map.end())
-      continue; 
-    
+      continue;
+
     auto & element = contact_map[slave];
 
     const auto & conn = element.connectivity;
@@ -102,28 +99,28 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
 
     Vector<Real> shapes(nb_nodes_master);
     Matrix<Real> dnds(spatial_dimension - 1, nb_nodes_master);
-       
-#define GET_SHAPES_NATURAL(type)				\
-    ElementClass<type>::computeShapes(element.projection, shapes)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
-#undef GET_SHAPES_NATURAL  
 
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-    ElementClass<type>::computeDNDS(element.projection, dnds)
+#define GET_SHAPES_NATURAL(type)                                               \
+  ElementClass<type>::computeShapes(element.projection, shapes)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
+#undef GET_SHAPES_NATURAL
+
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
+  ElementClass<type>::computeDNDS(element.projection, dnds)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
-        
+
     Vector<Real> fc(conn.size() * spatial_dimension);
    
     Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
     computeMetricTensor(element.tangents, m_alpha_beta);
 
     Vector<Real> n(conn.size() * spatial_dimension);
-    
+
     computeN(n, shapes, element.normal);
 
     computeNormalForce(fc, n, element.gap);
-    
+
     Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
     Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
     Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
@@ -137,12 +134,12 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
     for (UInt i = 0; i < conn.size(); ++i) {
 
       UInt n = conn[i];
-      for (UInt j = 0; j < nb_degree_of_freedom; ++j) {	
-	UInt offset_node = n * nb_degree_of_freedom + j;
-	internal_force[offset_node] += fc[i*nb_degree_of_freedom + j];
-	internal_force[offset_node] *= nodal_area[n];
+      for (UInt j = 0; j < nb_degree_of_freedom; ++j) {
+        UInt offset_node = n * nb_degree_of_freedom + j;
+        internal_force[offset_node] += fc[i * nb_degree_of_freedom + j];
+        internal_force[offset_node] *= nodal_area[n];
       }
-    }    
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -153,53 +150,51 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
   auto & stiffness =
-    const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
+      const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
 
-  const auto local_nodes =
-    model.getMesh().getElementGroup(name).getNodes();
+  const auto local_nodes = model.getMesh().getElementGroup(name).getNodes();
 
-  auto & nodal_area =
-    const_cast<Array<Real> &>(model.getNodalArea());
-  
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+
   auto & contact_map = model.getContactMap();
-  
-  for (auto & slave: local_nodes) {
+
+  for (auto & slave : local_nodes) {
 
     if (contact_map.find(slave) == contact_map.end()) {
       continue;
     }
 
-    auto & master       = contact_map[slave].master;
-    auto & gap          = contact_map[slave].gap;
-    auto & projection   = contact_map[slave].projection;
-    auto & normal       = contact_map[slave].normal;
+    auto & master = contact_map[slave].master;
+    auto & gap = contact_map[slave].gap;
+    auto & projection = contact_map[slave].projection;
+    auto & normal = contact_map[slave].normal;
     const auto & connectivity = contact_map[slave].connectivity;
-    const ElementType & type  = master.type;
+    const ElementType & type = master.type;
 
     UInt nb_nodes_master = Mesh::getNbNodesPerElement(master.type);
 
     Vector<Real> shapes(nb_nodes_master);
     Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
-       
-#define GET_SHAPES_NATURAL(type)				\
-    ElementClass<type>::computeShapes(projection, shapes)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
-#undef GET_SHAPES_NATURAL  
 
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-    ElementClass<type>::computeDNDS(projection, shapes_derivatives)
+#define GET_SHAPES_NATURAL(type)                                               \
+  ElementClass<type>::computeShapes(projection, shapes)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
+#undef GET_SHAPES_NATURAL
+
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
+  ElementClass<type>::computeDNDS(projection, shapes_derivatives)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
 
     Matrix<Real> elementary_stiffness(connectivity.size() * spatial_dimension,
-				      connectivity.size() * spatial_dimension);
+                                      connectivity.size() * spatial_dimension);
 
     Matrix<Real> tangents(spatial_dimension - 1, spatial_dimension);
     Matrix<Real> global_coords(nb_nodes_master, spatial_dimension);
 
     computeCoordinates(master, global_coords);
     computeTangents(shapes_derivatives, global_coords, tangents);
-    
+
     Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
     computeMetricTensor(tangents, m_alpha_beta);
     
@@ -232,18 +227,18 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     for (UInt i : arange(connectivity.size())) {
       UInt n = connectivity[i];
       for (UInt j : arange(nb_degree_of_freedom)) {
-	equations.push_back(n * nb_degree_of_freedom + j);
-	areas.push_back(nodal_area[n]);
+        equations.push_back(n * nb_degree_of_freedom + j);
+        areas.push_back(nodal_area[n]);
       }
     }
 
     for (UInt i : arange(kc.rows())) {
       UInt row = equations[i];
       for (UInt j : arange(kc.cols())) {
-	UInt col = equations[j];
-	kc(i, j) *= areas[i];
-	stiffness.add(row, col, kc(i, j));
-      }	
+        UInt col = equations[j];
+        kc(i, j) *= areas[i];
+        stiffness.add(row, col, kc(i, j));
+      }
     }
   }
 
@@ -251,13 +246,14 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::computeTangents(Matrix<Real> & shapes_derivatives, Matrix<Real> & global_coords,
-				 Matrix<Real> & tangents) {
+void Resolution::computeTangents(Matrix<Real> & shapes_derivatives,
+                                 Matrix<Real> & global_coords,
+                                 Matrix<Real> & tangents) {
 
   tangents.mul<false, false>(shapes_derivatives, global_coords);
 }
 
-/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */ 
 void Resolution::computeMetricTensor(Matrix<Real> & tangents, Matrix<Real> & m_alpha_beta) {
 
   m_alpha_beta.mul<false, true>(tangents, tangents);
@@ -265,49 +261,49 @@ void Resolution::computeMetricTensor(Matrix<Real> & tangents, Matrix<Real> & m_a
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::computeN(Vector<Real> & n, Vector<Real> & shapes, Vector<Real> & normal) {
+void Resolution::computeN(Vector<Real> & n, Vector<Real> & shapes,
+                          Vector<Real> & normal) {
 
   UInt dim = normal.size();
   for (UInt i = 0; i < dim; ++i) {
     n[i] = normal[i];
     for (UInt j = 0; j < shapes.size(); ++j) {
       n[(1 + j) * dim + i] = -normal[i] * shapes[j];
-    } 
+    }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 void Resolution::computeTalpha(Array<Real> & t_alpha, Vector<Real> & shapes,
-			       Matrix<Real> & tangents) {
+                               Matrix<Real> & tangents) {
   t_alpha.clear();
-  for (auto && values:
-	  zip(tangents.transpose(),
-	      make_view(t_alpha, t_alpha.size()))) {
+  for (auto && values :
+       zip(tangents.transpose(), make_view(t_alpha, t_alpha.size()))) {
 
-     auto & tangent = std::get<0>(values);
-     auto & t_s     = std::get<1>(values);
-     for (UInt i : arange(spatial_dimension)) {
-       t_s[i] = -tangent(i);
-       for (UInt j : arange(shapes.size())) {
-	 t_s[(1 + j)*spatial_dimension + i] = -shapes[j] * tangent(i);
-       }
-     }
+    auto & tangent = std::get<0>(values);
+    auto & t_s = std::get<1>(values);
+    for (UInt i : arange(spatial_dimension)) {
+      t_s[i] = -tangent(i);
+      for (UInt j : arange(shapes.size())) {
+        t_s[(1 + j) * spatial_dimension + i] = -shapes[j] * tangent(i);
+      }
+    }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::computeNalpha(Array<Real> & n_alpha, Matrix<Real> & shapes_derivatives,
-			       Vector<Real> & normal) {
+void Resolution::computeNalpha(Array<Real> & n_alpha,
+                               Matrix<Real> & shapes_derivatives,
+                               Vector<Real> & normal) {
   n_alpha.clear();
-  for (auto && values:
-	 zip(shapes_derivatives.transpose(),
-	     make_view(n_alpha, n_alpha.size()))) {
-    auto & dnds  = std::get<0>(values);       
-    auto & n_s   = std::get<1>(values);
+  for (auto && values : zip(shapes_derivatives.transpose(),
+                            make_view(n_alpha, n_alpha.size()))) {
+    auto & dnds = std::get<0>(values);
+    auto & n_s = std::get<1>(values);
     for (UInt i : arange(spatial_dimension)) {
       n_s[i] = 0;
       for (UInt j : arange(dnds.size())) {
-	n_s[(1 + j)*spatial_dimension + i] = -dnds(j)*normal[i];
+        n_s[(1 + j) * spatial_dimension + i] = -dnds(j) * normal[i];
       }
     }
   }
@@ -321,37 +317,37 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
   d_alpha.clear();
   for (auto && entry : zip(m_alpha_beta.transpose(),
 			   make_view(d_alpha, d_alpha.size()))) {
+
     auto & a_s = std::get<0>(entry);
     auto & d_s = std::get<1>(entry);
     for (auto && values :
-	   zip(arange(t_alpha.size()),
-	       make_view(t_alpha, t_alpha.size()),
-	       make_view(n_alpha, n_alpha.size()))) {
+         zip(arange(t_alpha.size()), make_view(t_alpha, t_alpha.size()),
+             make_view(n_alpha, n_alpha.size()))) {
       auto & index = std::get<0>(values);
-      auto & t_s   = std::get<1>(values);
-      auto & n_s   = std::get<2>(values);
-      
-      d_s += (t_s + gap  * n_s);
+      auto & t_s = std::get<1>(values);
+      auto & n_s = std::get<2>(values);
+
+      d_s += (t_s + gap * n_s);
       d_s *= a_s(index);
     }
   }
 }
 
-  
 /* -------------------------------------------------------------------------- */
 void Resolution::computeCoordinates(const Element & el, Matrix<Real> & coords) {
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-  Vector<UInt> connect = model.getMesh().getConnectivity(el.type, _not_ghost)
-    .begin(nb_nodes_per_element)[el.element]; 
+  Vector<UInt> connect = model.getMesh()
+                             .getConnectivity(el.type, _not_ghost)
+                             .begin(nb_nodes_per_element)[el.element];
 
   // change this to current position
   auto & positions = model.getMesh().getNodes();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt node = connect[n];
-    for (UInt s: arange(spatial_dimension)) {
+    for (UInt s : arange(spatial_dimension)) {
       coords(n, s) = positions(node, s);
     }
   }
 }
 
-} // akantu
+} // namespace akantu

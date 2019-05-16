@@ -97,7 +97,8 @@ public:
   SolidMechanicsModelCohesive(Mesh & mesh,
                               UInt spatial_dimension = _all_dimensions,
                               const ID & id = "solid_mechanics_model_cohesive",
-                              const MemoryID & memory_id = 0);
+                              const MemoryID & memory_id = 0,
+                              std::shared_ptr<DOFManager> dof_manager = nullptr);
 
   ~SolidMechanicsModelCohesive() override;
 

@@ -116,28 +116,27 @@ protected:
   void afterSolveStep() override;
 
   /* ------------------------------------------------------------------------ */
-  /* Data Accessor inherited members                                          */
-  /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  // DataAccessor<Element>
+  UInt getNbData(const Array<Element> &,
+                 const SynchronizationTag &) const override {
+    return 0;
+  }
+  void packData(CommunicationBuffer &, const Array<Element> &,
+                const SynchronizationTag &) const override {}
+  void unpackData(CommunicationBuffer &, const Array<Element> &,
+                  const SynchronizationTag &) override {}
 
-  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                const SynchronizationTag & tag) const override;
+  // DataAccessor<UInt> nodes
+  UInt getNbData(const Array<UInt> &,
+                 const SynchronizationTag &) const override {
+    return 0;
+  }
+  void packData(CommunicationBuffer &, const Array<UInt> &,
+                const SynchronizationTag &) const override {}
+  void unpackData(CommunicationBuffer &, const Array<UInt> &,
+                  const SynchronizationTag &) override {}
 
-  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
-                  const SynchronizationTag & tag) override;
-
-  UInt getNbData(const Array<UInt> & dofs,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
-                const SynchronizationTag & tag) const override;
-
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
-                  const SynchronizationTag & tag) override;
-
-  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -67,7 +67,7 @@ void ResolutionPenalty::computeNormalForce(Vector<Real> & force, Vector<Real> & 
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeFrictionForce(Vector<Real> & force, Array<Real> & d_alpha,
-					     Real & gap) {
+					     Real & /*gap*/) {
 
   Vector<Real> tractions(d_alpha.getNbComponent());
   /*computeFrictionalTraction(tractions);
@@ -116,7 +116,7 @@ void ResolutionPenalty::computeTangentModuli(Matrix<Real> & kc, Vector<Real> & n
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> & n,
 					       Array<Real> & n_alpha, Array<Real> & d_alpha,
-					       Matrix<Real> & surface_matrix, Real & gap) {
+					       Matrix<Real> & /*surface_matrix*/, Real & gap) {
 
   Real tn = gap * epsilon;
   tn = macaulay(tn);
@@ -154,11 +154,12 @@ void ResolutionPenalty::computeFrictionalStiffness(Vector<Real> & n,
   computeCommonModuli();
   computeStickModuli();
   computeSlipModuli();
+
 }
 
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeCommonModuli(Real & gap)  {
+void ResolutionPenalty::computeCommonModuli(Real & /*gap*/)  {
 
 
 }
