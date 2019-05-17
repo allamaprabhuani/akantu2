@@ -205,54 +205,67 @@ void ASRTools::applyBoundaryConditions<3>(bool free_expansion,
 
   /// free expansion
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    if ((std::abs(pos(i, 1) - bottom) < eps) &&
-        (std::abs(pos(i, 0) - left) < eps) &&
-        (std::abs(pos(i, 2) - back) < eps)) {
-      boun(i, 0) = true;
-      boun(i, 1) = true;
-      boun(i, 2) = true;
-      disp(i, 0) = 0.0;
-      disp(i, 1) = 0.0;
-      disp(i, 2) = 0.0;
-    }
-    if ((std::abs(pos(i, 1) - bottom) < eps) &&
-        (std::abs(pos(i, 0) - right) < eps) &&
-        (std::abs(pos(i, 2) - back) < eps)) {
-      boun(i, 1) = true;
-      disp(i, 1) = 0.0;
-      boun(i, 2) = true;
-      disp(i, 2) = 0.0;
-    }
-    if ((std::abs(pos(i, 0) - left) < eps) &&
-        (std::abs(pos(i, 1) - top) < eps) &&
-        (std::abs(pos(i, 2) - back) < eps)) {
-      boun(i, 0) = true;
-      disp(i, 0) = 0.0;
-      boun(i, 2) = true;
-      disp(i, 2) = 0.0;
-    }
-    if ((std::abs(pos(i, 0) - left) < eps) &&
-        (std::abs(pos(i, 1) - bottom) < eps) &&
-        (std::abs(pos(i, 2) - front) < eps)) {
-      boun(i, 0) = true;
-      disp(i, 0) = 0.0;
-      boun(i, 1) = true;
-      disp(i, 1) = 0.0;
-    }
-    if (!free_expansion && (std::abs(pos(i, 1) - bottom) < eps)) {
-      boun(i, 1) = true;
-      disp(i, 1) = 0.0;
-    }
-    if (multi_axial && (std::abs(pos(i, 2) - back) < eps)) {
-      boun(i, 2) = true;
-      disp(i, 2) = 0.0;
-    }
-    if (multi_axial && (std::abs(pos(i, 0) - left) < eps)) {
-      boun(i, 0) = true;
-      disp(i, 0) = 0.0;
+    if (free_expansion) {
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        boun(i, 2) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - right) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+        boun(i, 2) = true;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - top) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+        boun(i, 2) = true;
+        disp(i, 2) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 2) - front) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+      /// loaded test
+    } else {
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        boun(i, 2) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+        disp(i, 2) = 0.0;
+      }
+      if (std::abs(pos(i, 1) - bottom) < eps) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+      if (multi_axial && (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 2) = true;
+        disp(i, 2) = 0.0;
+      }
+      if (multi_axial && (std::abs(pos(i, 0) - left) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+      }
     }
   }
-
   if (!free_expansion)
     try {
       model.applyBC(BC::Neumann::FromStress(traction), element_group);
@@ -283,38 +296,49 @@ void ASRTools::applyBoundaryConditions<2>(bool free_expansion,
   disp.clear();
   boun.clear();
 
-  /// free expansion
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    if ((std::abs(pos(i, 1) - bottom) < eps) &&
-        (std::abs(pos(i, 0) - left) < eps)) {
-      boun(i, 0) = true;
-      boun(i, 1) = true;
-      disp(i, 0) = 0.0;
-      disp(i, 1) = 0.0;
-    }
-    if ((std::abs(pos(i, 1) - bottom) < eps) &&
-        (std::abs(pos(i, 0) - right) < eps)) {
-      boun(i, 1) = true;
-      disp(i, 1) = 0.0;
-    }
-    if ((std::abs(pos(i, 0) - left) < eps) &&
-        (std::abs(pos(i, 1) - top) < eps)) {
-      boun(i, 0) = true;
-      disp(i, 0) = 0.0;
-    }
-    if (!free_expansion && (std::abs(pos(i, 1) - bottom) < eps)) {
-      boun(i, 1) = true;
-      disp(i, 1) = 0.0;
+    /// free expansion
+    if (free_expansion) {
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+      }
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - right) < eps)) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+      if ((std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 1) - top) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+      }
+      /// loaded test
+    } else {
+      if (std::abs(pos(i, 1) - bottom) < eps) {
+        boun(i, 1) = true;
+        disp(i, 1) = 0.0;
+      }
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+      }
+      if (multi_axial && (std::abs(pos(i, 0) - left) < eps)) {
+        boun(i, 0) = true;
+        disp(i, 0) = 0.0;
+      }
     }
   }
-
   if (!free_expansion)
     try {
       model.applyBC(BC::Neumann::FromStress(traction), element_group);
     } catch (...) {
     }
 }
-
 /* --------------------------------------------------------------------------
  */
 void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
@@ -546,13 +570,18 @@ Real ASRTools::performTensionTest(SpatialDirection direction) {
     back = lowerBounds(2);
 
   Real eps = std::abs((top - bottom) * 1e-6);
-  const Array<Real> & pos = mesh.getNodes();
-  Array<Real> & disp = model.getDisplacement();
-  Array<bool> & boun = model.getBlockedDOFs();
+  const auto & pos = mesh.getNodes();
+  auto & disp = model.getDisplacement();
+  auto & boun = model.getBlockedDOFs();
+  auto & ext_force = model.getExternalForce();
+  Array<Real> disp_stored(disp);
+  Array<bool> boun_stored(boun);
+  Array<Real> ext_force_stored(ext_force);
   UInt nb_nodes = mesh.getNbNodes();
 
   disp.clear();
   boun.clear();
+  ext_force_stored.clear();
 
   if (dim == 3) {
     for (UInt i = 0; i < nb_nodes; ++i) {
@@ -621,6 +650,11 @@ Real ASRTools::performTensionTest(SpatialDirection direction) {
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(int_residual, SynchronizerOperation::_sum);
+
+  /// return the real boundary conditions
+  disp.copy(disp_stored);
+  boun.copy(boun_stored);
+  ext_force_stored.copy(ext_force_stored);
 
   return int_residual;
 }
@@ -1735,17 +1769,15 @@ void ASRTools::dumpRve() {
   this->nb_dumps += 1;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ASRTools::applyBodyForce() {
   auto spatial_dimension = model.getSpatialDimension();
-  const Mesh & mesh = model.getMesh();
   model.assembleMassLumped();
   auto & mass = model.getMass();
   auto & force = model.getExternalForce();
   Vector<Real> gravity(spatial_dimension);
   gravity(1) = -9.81;
-
-  auto nb_nodes = mesh.getNbNodes();
 
   for (auto && data : zip(make_view(mass, spatial_dimension),
                           make_view(force, spatial_dimension))) {
