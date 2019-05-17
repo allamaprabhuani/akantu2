@@ -21,4 +21,5 @@ contact_detector [
 contact_resolution penalty [
   name = curved
   epsilon = 100
+  epsilon_t = 100
 ]

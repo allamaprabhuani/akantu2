@@ -43,6 +43,7 @@ class ResolutionPenalty : public Resolution {
   /* ------------------------------------------------------------------------ */
 public:
   ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "");
+
   ~ResolutionPenalty() override = default;
 
 protected:
@@ -55,17 +56,17 @@ protected:
 			      Array<Real>  & n_alpha,
 			      Array<Real>  & d_alpha,
 			      Matrix<Real> & surface_matrix,
-			      Real & gap);
+			      Real &);
   
   /// local computation of stiffness matrix due to frictional stress 
-  void computeFrictionalStiffness(Vector<Real> & n,
-				  Array<Real>  & n_alpha,
-				  Array<Real> & d_alpha,
-				  Real & gap);
+  void computeFrictionalStiffness(Vector<Real> &,
+				  Array<Real>  &,
+				  Array<Real> &,
+				  Real & );
 
   /// local computation of direct stiffness matrix due to friction,
   /// this matrix is common for both stick and slip part
-  void computeCommonModuli(Real & gap);
+  void computeCommonModuli(Real &);
 
   /// local computaion of stiffness matrix due to stick state
   void computeStickModuli();
@@ -73,8 +74,10 @@ protected:
   /// local computation of stiffness matrix due to slip state 
   void computeSlipModuli();
 
-  ///
-  void computeFrictionalTraction();
+  /// computes the tractions using return map algorithm 
+  Vector<Real> computeFrictionalTraction(Matrix<Real> &,
+					 Vector<Real> &,
+					 Real &);
   
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -90,14 +93,16 @@ public:
 			    ) override;
   
   /// local computation of normal force
-  void computeNormalForce(Vector<Real> &  /* force vector  */,
-			  Vector<Real> &   /* n   */,
-			  Real & /* gap */) override;
+  void computeNormalForce(Vector<Real> &,
+			  Vector<Real> &,
+			  Real & ) override;
   
   /// local computation of friction force
-  void computeFrictionForce(Vector<Real> & /* force vector  */,
-			    Array<Real>  & /* D_alpha  */,
-			    Real & /* gap */) override;
+  void computeFrictionForce(Vector<Real> &,
+			    Array<Real>  &,
+			    Matrix<Real> &,
+			    Vector<Real> &,
+			    Real &) override;
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

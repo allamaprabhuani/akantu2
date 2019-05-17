@@ -128,7 +128,8 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
     computeTalpha(t_alpha, shapes,             element.tangents);
     computeNalpha(n_alpha, dnds,               element.normal);
     computeDalpha(d_alpha, n_alpha, t_alpha, m_alpha_beta, element.gap);
-    //computeFrictionForce(fc, d_alpha, gap);
+    computeFrictionForce(fc, d_alpha, m_alpha_beta, element.projection,
+			 element.gap);
 
     UInt nb_degree_of_freedom = internal_force.getNbComponent();
     for (UInt i = 0; i < conn.size(); ++i) {
@@ -208,9 +209,12 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     computeNalpha( n_alpha,  shapes_derivatives, normal);
     computeDalpha( d_alpha,  n_alpha,  t_alpha,  m_alpha_beta, gap);
 
-    /*
-    Array<Real> t_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
-    Array<Real> n_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
+    Array<Real> t_alpha_beta(connectivity.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
+    //computeTalphabeta(t_alpha_beta, shapes_derivatives, element.tangents);
+
+    Array<Real> p_alpha_beta(connectivity.size() * spatial_dimension, spatial_dimension - 1);
+    //computePalphabeta(p_alpha_beta, shapes_derivatives, p_t);
+    /*Array<Real> n_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
     Array<Real> p_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
     */
 

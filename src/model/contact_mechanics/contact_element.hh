@@ -112,6 +112,9 @@ public:
   /// projected slave coordinate on master element
   Vector<Real> projection;
 
+  ///
+  Vector<Real> previous_projection;
+
   /// normalized normal direction
   Vector<Real> normal;
 

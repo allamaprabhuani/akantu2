@@ -125,7 +125,9 @@ protected:
 
   /// computes the friction force
   virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & /* force */,
-				    __attribute__((unused)) Array<Real> & /* d_alpha  */,
+				    __attribute__((unused)) Array<Real>  & /* d_alpha  */,
+				    __attribute__((unused)) Matrix<Real> &,
+				    __attribute__((unused)) Vector<Real> &,
 				    __attribute__((unused)) Real & /* gap */) {
     AKANTU_TO_IMPLEMENT();
   }

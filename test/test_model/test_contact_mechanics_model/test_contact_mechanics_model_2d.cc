@@ -47,7 +47,6 @@ int main(int argc, char *argv[]) {
 
   model.setBaseNameToDumper("contact_mechanics", "contact-2d");
   model.addDumpFieldVectorToDumper("contact_mechanics", "contact_force");
-  model.addDumpFieldVectorToDumper("contact_mechanics", "external_force");
   model.addDumpFieldVectorToDumper("contact_mechanics", "normals");
   model.addDumpFieldToDumper("contact_mechanics", "gaps");
   model.addDumpFieldToDumper("contact_mechanics", "areas");

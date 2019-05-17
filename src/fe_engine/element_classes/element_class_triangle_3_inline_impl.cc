@@ -102,6 +102,22 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
 }
 
 /* -------------------------------------------------------------------------- */
+template<>
+template <class vector_type, class matrix_type>
+inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDN2DS2(
+    __attribute__((unused)) const vector_type & natural_coords, matrix_type & dn2ds2) {
+
+  /**
+   * @f[
+   * dn2ds2 = \left(
+   *            \begin{array}{}
+   * @f]
+   */
+  
+  dn2ds2 *= 0;
+}
+
+/* -------------------------------------------------------------------------- */
 template <>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(

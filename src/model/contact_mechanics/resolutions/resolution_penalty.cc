@@ -66,49 +66,61 @@ void ResolutionPenalty::computeNormalForce(Vector<Real> & force, Vector<Real> & 
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeFrictionForce(Vector<Real> & force, Array<Real> & d_alpha,
-					     Real & /*gap*/) {
+void ResolutionPenalty::computeFrictionForce(Vector<Real> & force,
+					     Array<Real>  & d_alpha,
+					     Matrix<Real> & m_alpha_beta,
+					     Vector<Real> & projection,
+					     Real & gap) {
 
-  Vector<Real> tractions(d_alpha.getNbComponent());
-  /*computeFrictionalTraction(tractions);
+  auto traction = computeFrictionalTraction(m_alpha_beta, projection, gap);
 
   for (auto && values:
-	 zip(tractions,
+	 zip(traction,
 	     make_view(d_alpha, d_alpha.size()))) {
     auto & t_s = std::get<0>(values);
     auto & d_s = std::get<1>(values);
     force += d_s * t_s;
-    }*/
+  }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeFrictionTraction(Real & gap) {
+Vector<Real> ResolutionPenalty::computeFrictionalTraction(Matrix<Real>& m_alpha_beta,
+							  Vector<Real>& xi,
+							  Real & gap) {
 
   Real tn = gap * epsilon;
   tn = macaulay(tn);
 
-  // delta_xi = xi- previous_xi
-  //trial_traction = previous_traction + epsilon * metric_tensor * delta_xi;
-  //trial_slip_function = trial_traction.mod - mu * tn;
-
-  // Stick condition
-  // if trial_slip_function <= 0 
-  // traction = trial_traction;
-
-  // Slip condition
-  // else
-  // traction = mu * tn * trial_traction / trial_traction.norm()'
+  Vector<Real> previous_xi;
   
+  auto delta_xi = xi - previous_xi;
+
+  Vector<Real> previous_traction;
+  Vector<Real> trial_traction;
+
+  trial_traction.mul<false>(m_alpha_beta, delta_xi, epsilon);
+  //trial_traction += previous_traction;
   
+  auto trial_slip_function = trial_traction.norm() - mu * tn;
+
+  Vector<Real> traction;
+  if (trial_slip_function <= 0) {
+    traction = trial_traction;
+  }
+  else{
+    traction = mu * tn * trial_traction / trial_traction.norm(); 
+  }  
+
+  return traction;
 }
   
   
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeTangentModuli(Matrix<Real> & kc, Vector<Real> & n,
 					     Array<Real> & n_alpha, Array<Real> & d_alpha,
-					     Matrix<Real> & surface_matrix,
+					     Matrix<Real> & m_alpha_beta,
 					     Real & gap)  {
-  computeNormalStiffness(kc, n, n_alpha, d_alpha, surface_matrix, gap);
+  computeNormalStiffness(kc, n, n_alpha, d_alpha, m_alpha_beta, gap);
   computeFrictionalStiffness(n, n_alpha, d_alpha, gap);
 }
 
@@ -116,7 +128,7 @@ void ResolutionPenalty::computeTangentModuli(Matrix<Real> & kc, Vector<Real> & n
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> & n,
 					       Array<Real> & n_alpha, Array<Real> & d_alpha,
-					       Matrix<Real> & /*surface_matrix*/, Real & gap) {
+					       Matrix<Real> & /*m_alpha_beta*/, Real & gap) {
 
   Real tn = gap * epsilon;
   tn = macaulay(tn);
@@ -147,11 +159,12 @@ void ResolutionPenalty::computeNormalStiffness(Matrix<Real> & ke, Vector<Real> &
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeFrictionalStiffness(Vector<Real> & n,
-						   Array<Real>  & n_alpha, Array<Real> & d_alpha,
+void ResolutionPenalty::computeFrictionalStiffness(Vector<Real> & /*n*/,
+						   Array<Real>  & /*n_alpha*/,
+						   Array<Real> & /*d_alpha*/,
 						   Real & gap) {
 
-  computeCommonModuli();
+  computeCommonModuli(gap);
   computeStickModuli();
   computeSlipModuli();
 
