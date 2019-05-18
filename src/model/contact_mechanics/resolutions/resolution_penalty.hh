@@ -66,13 +66,15 @@ protected:
 
   /// local computation of direct stiffness matrix due to friction,
   /// this matrix is common for both stick and slip part
-  void computeCommonModuli(Real &);
+  Matrix<Real> computeCommonModuli(Real &);
 
   /// local computaion of stiffness matrix due to stick state
-  void computeStickModuli();
+  Matrix<Real> computeStickModuli(Array<Real> &,
+			  Array<Real> &,
+			  Matrix<Real> &);
 
   /// local computation of stiffness matrix due to slip state 
-  void computeSlipModuli();
+  Matrix<Real> computeSlipModuli();
 
   /// computes the tractions using return map algorithm 
   Vector<Real> computeFrictionalTraction(Matrix<Real> &,

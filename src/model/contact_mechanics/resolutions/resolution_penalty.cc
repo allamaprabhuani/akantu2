@@ -172,20 +172,84 @@ void ResolutionPenalty::computeFrictionalStiffness(Vector<Real> & /*n*/,
 
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeCommonModuli(Real & /*gap*/)  {
+Matrix<Real> ResolutionPenalty::computeCommonModuli(Array<Real> & /*t_alpha_beta*/,
+						    Array<Real> & /*n_alpha_beta*/,
+						    Matrix<Real> & /*tangents*/
+						    Vector<Real> & /* n */
+						    Real & /*gap*/)  {
 
-
+  Array<Real> kt_alpha(spatial_dimension -1, d_alpha.size() * d_alpha.size(),
+			"k_T_alpha");
+  for(auto && values :
+	zip(tangents.transpose(),
+	    make_view(kt_alpha, kt_alpha.size()),
+	    make_view(t_alpha_beta, t_alpha_beta.size()),
+	    make_view(n_alpha_beta, n_alpha_beta.size()))) {
+    auto & tangent_s = std::get<0>(values);
+    auto & kt_s      = std::get<1>(values);
+    auto & t_alpha_s = std::get<2>(values);
+    auto & n_alpha_s = std::get<3>(values);
+    
+    Matrix<Real> kt_s_mat(kt_s.storage(), d_alpha.size(), d_alpha.size())
+    
+    for(auto && tuple :
+	  make_view(d_alpha, d_alpha.size())) {
+      auto & d_s = std::get<0>(tuple);
+      
+      for(auto && entry :
+	    make_view(d_alpha, d_alpha.size())) {
+	auto & d_t = std::get<0>(entry);
+	// compute constant
+	Matrix<Real> tmp(d_t.size(), d_t.size());
+	tmp.mul<false, true>(d_s, d_t);
+	kt_s_mat += tmp;
+      }
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeStickModuli() {
+Matrix<Real> ResolutionPenalty::computeStickModuli(Array<Real> & g_alpha,
+						   Array<Real> & d_alpha,
+						   Matrix<Real> & m_alpha_beta) {
 
-  // epsilon_t * 
+  Matrix<Real> k_stick(d_alpha.size(), d_alpha.size());
   
+  for (auto && values :
+	 zip(arange(d_alpha.getNbComponent())
+	     make_view(d_alpha, d_alpha.size()),
+	     make_view(g_alpha, g_alpha.size()))) {
+    auto & s   = std::get<0>(values); 
+    auto & d_s = std::get<1>(values);
+    auto & g_s = std::get<2>(values);
+
+    Matrix<Real> ds_mat(d_s.storage(), d_s.size(), 1);
+    Matrix<Real> gs_mat(g_s.storage(), g_s.size(), 1);
+
+    Matrix<Real> tmp1(d_s.size(), d_s.size());
+    tmp1.mul<false, true>(ds_mat, gs_mat);
+
+    k_stick += tmp1;
+    
+    for(auto && tuple :
+	  enumerate(make_view(d_alpha, d_alpha.size()))) {
+      auto & t   = std::get<0>(tuple);
+      auto & d_t = std::get<1>(tuple);
+       
+      Matrix<Real> dt_mat(d_t.storage(), d_t.size(), 1);
+      Matrix<Real> tmp2(d_t.size(), d_t.size());
+
+      tmp2.mul<false, true>(ds_mat, dt_mat);
+      k_stick += tmp2 * m_alpha_beta(s, t);
+    }
+
+    k_stick *= epsilon_t;
+
+    return k_stick;
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeSlipModuli() {
+Matrix<Real> ResolutionPenalty::computeSlipModuli() {
 
 }
   

@@ -176,17 +176,24 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
     Vector<Real> shapes(nb_nodes_master);
     Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
-
-#define GET_SHAPES_NATURAL(type)                                               \
+    Matrix<Real> shapes_second_derivatives((spatial_dimension-1)*(spatial_dimension-1) ,
+					   nb_nodes_master);
+    
+#define GET_SHAPES_NATURAL(type)			\
   ElementClass<type>::computeShapes(projection, shapes)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL
 
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
   ElementClass<type>::computeDNDS(projection, shapes_derivatives)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
 
+#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
+  ElementClass<type>::computeDN2DS2(projection, shapes_second_derivatives)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+    
     Matrix<Real> elementary_stiffness(connectivity.size() * spatial_dimension,
                                       connectivity.size() * spatial_dimension);
 
@@ -210,16 +217,16 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     computeDalpha( d_alpha,  n_alpha,  t_alpha,  m_alpha_beta, gap);
 
     Array<Real> t_alpha_beta(connectivity.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
-    //computeTalphabeta(t_alpha_beta, shapes_derivatives, element.tangents);
+    computeTalphabeta(t_alpha_beta, shapes_derivatives, tangents);
 
-    Array<Real> p_alpha_beta(connectivity.size() * spatial_dimension, spatial_dimension - 1);
-    //computePalphabeta(p_alpha_beta, shapes_derivatives, p_t);
-    /*Array<Real> n_alpha_beta(conn.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
-    Array<Real> p_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    */
+    Array<Real> p_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
+    Vector<Real> p_t;
+    computePalpha(p_alpha, shapes_derivatives, p_t);
 
-    
-    
+    Array<Real> n_alpha_beta(connectivity.size() * spatial_dimension,
+			     (spatial_dimension - 1) * (spatial_dimension -1));
+    computeNalphabeta(n_alpha_beta, shapes_second_derivatives, normal);
+        
     Matrix<Real> kc(connectivity.size() * spatial_dimension,
 		    connectivity.size() * spatial_dimension);
     computeTangentModuli(kc, n, n_alpha, d_alpha, m_alpha_beta, gap);
@@ -325,7 +332,8 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
     auto & a_s = std::get<0>(entry);
     auto & d_s = std::get<1>(entry);
     for (auto && values :
-         zip(arange(t_alpha.size()), make_view(t_alpha, t_alpha.size()),
+         zip(arange(t_alpha.size()),
+	     make_view(t_alpha, t_alpha.size()),
              make_view(n_alpha, n_alpha.size()))) {
       auto & index = std::get<0>(values);
       auto & t_s = std::get<1>(values);
@@ -337,6 +345,65 @@ void Resolution::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
   }
 }
 
+/* -------------------------------------------------------------------------- */
+void Resolution::computeTalphabeta(Array<Real> & t_alpha_beta,
+				   Matrix<Real> & shapes_derivatives,
+				   Matrix<Real> & tangents) {
+  t_alpha_beta.clear();
+
+  auto t_alpha_size = t_alpha_beta.size() * (spatial_dimension - 1);
+  for(auto && entry : zip(tangents.transpose(),
+			  make_view(t_alpha_beta, t_alpha_size))) {
+    auto & tangent = std::get<0>(entry);
+    auto & t_alpha = std::get<1>(entry);
+    //for(auto && values : zip(shapes_derivatives.transpose(),
+    //			     make_view(t_alpha, t_alpha_size))) {
+  //  auto & dnds = std::get<0>(values);
+      //auto & t_alpha_beta = std::get<1>(values);
+
+      //t_alpha_beta += dnds * tangent;
+    //}
+
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::computeNalphabeta(Array<Real> & n_alpha_beta,
+				   Matrix<Real> & shapes_second_derivatives,
+				   Vector<Real> & normal) {
+  n_alpha_beta.clear();
+
+  for(auto && entry : zip(shapes_second_derivatives.transpose(),
+			  make_view(n_alpha_beta, n_alpha_beta.size()))) {
+    auto & dn2ds2 = std::get<0>(entry);
+    auto & n_alpha = std::get<1>(entry);
+    
+    
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::computePalpha(Array<Real> & p_alpha,
+			       Matrix<Real> & shapes_derivatives,
+			       Vector<Real> & p_t) {
+
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::computeGalpha(Array<Real> & /*t_alpha_beta*/,
+			       Array<Real> & /*d_alpha*/,
+			       Vector<Real> & /*tangential_gap*/) {
+
+  Array<Real> g_alpha(d_alpha.size(), spatial_dimension - 1);
+  
+  for(auto && value :
+	make_view(g_alpha, g_alpha.size())){
+    auto & g_s = std::get<0>(value);
+    
+  }
+  
+}
+  
 /* -------------------------------------------------------------------------- */
 void Resolution::computeCoordinates(const Element & el, Matrix<Real> & coords) {
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);

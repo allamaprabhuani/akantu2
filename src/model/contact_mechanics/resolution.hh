@@ -110,8 +110,29 @@ protected:
 		     Array<Real> & ,
 		     Array<Real> & ,
 		     Matrix<Real> &,
-		     Real & ); 
+		     Real & );
+  /// computes @f$T_{\alpha\beta} @f$
+  void computeTalphabeta(Array<Real> &,
+			 Matrix<Real> &,
+			 Matrix<Real> &);
 
+  /// computes @f$N_{\alpha\beta} @f$
+  void computeNalphabeta(Array<Real> &,
+			 Matrix<Real> &,
+			 Vector<Real> &);
+
+  /// computes @f$P_{\alpha} @f$
+  void computePalpha(Array<Real> &,
+		     Matrix<Real> &,
+		     Vector<Real> &);
+
+  /// computes @f$G_{\alpha}@f$
+  void computeGalpha(Array<Real> &,
+		     Array<Real> &,
+		     Array<Real> &,
+		     Vector<Real> &)
+
+  
   /* ------------------------------------------------------------------------ */
   /* Functions that resolutions can/should reimplement                        */
   /* ------------------------------------------------------------------------ */
