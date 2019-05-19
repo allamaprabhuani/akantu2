@@ -101,36 +101,43 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
     Matrix<Real> dnds(spatial_dimension - 1, nb_nodes_master);
 
 #define GET_SHAPES_NATURAL(type)                                               \
-  ElementClass<type>::computeShapes(element.projection, shapes)
+    ElementClass<type>::computeShapes(element.projection, shapes)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL
 
 #define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(element.projection, dnds)
+    ElementClass<type>::computeDNDS(element.projection, dnds)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
 
     Vector<Real> fc(conn.size() * spatial_dimension);
    
-    Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
-    computeMetricTensor(element.tangents, m_alpha_beta);
-
     Vector<Real> n(conn.size() * spatial_dimension);
-
     computeN(n, shapes, element.normal);
-
+    
     computeNormalForce(fc, n, element.gap);
 
-    Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-   
-    computeTalpha(t_alpha, shapes,             element.tangents);
-    computeNalpha(n_alpha, dnds,               element.normal);
-    computeDalpha(d_alpha, n_alpha, t_alpha, m_alpha_beta, element.gap);
-    computeFrictionForce(fc, d_alpha, m_alpha_beta, element.projection,
-			 element.gap);
+    if(mu != 0) {
+      Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
+      computeMetricTensor(element.tangents, m_alpha_beta);
 
+      Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+      Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+      Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+
+      computeTalpha(t_alpha, shapes,
+		    element.tangents);
+      computeNalpha(n_alpha, dnds,
+		    element.normal);
+      computeDalpha(d_alpha, n_alpha, t_alpha,
+		    m_alpha_beta, element.gap);
+    
+      auto traction = computeFrictionalTraction(m_alpha_beta,
+						element.projection,
+						element.gap);
+      computeFrictionForce(fc, d_alpha, traction);
+    }
+    
     UInt nb_degree_of_freedom = internal_force.getNbComponent();
     for (UInt i = 0; i < conn.size(); ++i) {
 
@@ -153,83 +160,87 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   auto & stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
 
-  const auto local_nodes = model.getMesh().getElementGroup(name).getNodes();
+  const auto local_nodes =
+    model.getMesh().getElementGroup(name).getNodes();
 
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  auto & nodal_area =
+    const_cast<Array<Real> &>(model.getNodalArea());
 
   auto & contact_map = model.getContactMap();
 
   for (auto & slave : local_nodes) {
 
-    if (contact_map.find(slave) == contact_map.end()) {
+    if (contact_map.find(slave) == contact_map.end())
       continue;
-    }
-
-    auto & master = contact_map[slave].master;
-    auto & gap = contact_map[slave].gap;
-    auto & projection = contact_map[slave].projection;
-    auto & normal = contact_map[slave].normal;
-    const auto & connectivity = contact_map[slave].connectivity;
-    const ElementType & type = master.type;
-
-    UInt nb_nodes_master = Mesh::getNbNodesPerElement(master.type);
+    
+    auto & element = contact_map[slave];
+                
+    const auto & conn = element.connectivity;
+    const auto & type = element.master.type;
+    
+    UInt nb_nodes_master = Mesh::getNbNodesPerElement(type);
 
     Vector<Real> shapes(nb_nodes_master);
     Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
     Matrix<Real> shapes_second_derivatives((spatial_dimension-1)*(spatial_dimension-1) ,
 					   nb_nodes_master);
     
-#define GET_SHAPES_NATURAL(type)			\
-  ElementClass<type>::computeShapes(projection, shapes)
+#define GET_SHAPES_NATURAL(type)					\
+    ElementClass<type>::computeShapes(element.projection, shapes)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL
 
 #define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-  ElementClass<type>::computeDNDS(projection, shapes_derivatives)
+    ElementClass<type>::computeDNDS(element.projection, shapes_derivatives)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
 
 #define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
-  ElementClass<type>::computeDN2DS2(projection, shapes_second_derivatives)
+    ElementClass<type>::computeDN2DS2(element.projection, shapes_second_derivatives)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+
+    Matrix<Real> kc(conn.size() * spatial_dimension,
+		    conn.size() * spatial_dimension);
     
-    Matrix<Real> elementary_stiffness(connectivity.size() * spatial_dimension,
-                                      connectivity.size() * spatial_dimension);
-
-    Matrix<Real> tangents(spatial_dimension - 1, spatial_dimension);
-    Matrix<Real> global_coords(nb_nodes_master, spatial_dimension);
-
-    computeCoordinates(master, global_coords);
-    computeTangents(shapes_derivatives, global_coords, tangents);
-
     Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
-    computeMetricTensor(tangents, m_alpha_beta);
-    
-    Vector<Real> n(connectivity.size() * spatial_dimension);
-    Array<Real> t_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> n_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> d_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
+    computeMetricTensor(element.tangents, m_alpha_beta);
 
-    computeN(      n,        shapes,             normal);
-    computeTalpha( t_alpha,  shapes,             tangents);
-    computeNalpha( n_alpha,  shapes_derivatives, normal);
-    computeDalpha( d_alpha,  n_alpha,  t_alpha,  m_alpha_beta, gap);
+    // normal tangent moduli
+    Vector<Real> n(conn.size() * spatial_dimension);
+    Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
 
-    Array<Real> t_alpha_beta(connectivity.size() * spatial_dimension, (spatial_dimension - 1) * (spatial_dimension -1));
-    computeTalphabeta(t_alpha_beta, shapes_derivatives, tangents);
+    computeN(      n,        shapes,             element.normal);
+    computeTalpha( t_alpha,  shapes,             element.tangents);
+    computeNalpha( n_alpha,  shapes_derivatives, element.normal);
+    computeDalpha( d_alpha,  n_alpha,  t_alpha,  m_alpha_beta, element.gap);
 
-    Array<Real> p_alpha(connectivity.size() * spatial_dimension, spatial_dimension - 1);
-    Vector<Real> p_t;
-    computePalpha(p_alpha, shapes_derivatives, p_t);
+    computeNormalModuli(kc, n, n_alpha, d_alpha, m_alpha_beta, element.gap);
 
-    Array<Real> n_alpha_beta(connectivity.size() * spatial_dimension,
-			     (spatial_dimension - 1) * (spatial_dimension -1));
-    computeNalphabeta(n_alpha_beta, shapes_second_derivatives, normal);
-        
-    Matrix<Real> kc(connectivity.size() * spatial_dimension,
-		    connectivity.size() * spatial_dimension);
-    computeTangentModuli(kc, n, n_alpha, d_alpha, m_alpha_beta, gap);
+    // frictional tangent moduli
+    if(mu != 0) {
+      Array<Real> t_alpha_beta(conn.size() * spatial_dimension,
+			       (spatial_dimension - 1) * (spatial_dimension -1));
+      Array<Real> p_alpha(conn.size() * spatial_dimension,
+			  spatial_dimension - 1);
+      Array<Real> n_alpha_beta(conn.size() * spatial_dimension,
+			       (spatial_dimension - 1) * (spatial_dimension -1));
+
+      auto traction = computeFrictionalTraction(m_alpha_beta, element.projection,
+						element.gap);
+      computeTalphabeta(t_alpha_beta, shapes_derivatives, element.tangents);
+      computeNalphabeta(n_alpha_beta, shapes_second_derivatives, element.normal);
+      computePalpha(p_alpha, shapes_derivatives, traction);
+      //computeGalpha();
+      //computePbaralpha();
+      //computeTbaralphabeta();
+      
+      computeFrictionalModuli(kc, t_alpha_beta, n_alpha_beta, element.tangents,
+			      shapes_second_derivatives, n, n_alpha, d_alpha,
+			      element.gap);
+    }
         
     std::vector<UInt> equations;
     UInt nb_degree_of_freedom = model.getSpatialDimension();
@@ -254,14 +265,6 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   }
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void Resolution::computeTangents(Matrix<Real> & shapes_derivatives,
-                                 Matrix<Real> & global_coords,
-                                 Matrix<Real> & tangents) {
-
-  tangents.mul<false, false>(shapes_derivatives, global_coords);
 }
 
 /* -------------------------------------------------------------------------- */ 
@@ -354,16 +357,20 @@ void Resolution::computeTalphabeta(Array<Real> & t_alpha_beta,
   auto t_alpha_size = t_alpha_beta.size() * (spatial_dimension - 1);
   for(auto && entry : zip(tangents.transpose(),
 			  make_view(t_alpha_beta, t_alpha_size))) {
-    auto & tangent = std::get<0>(entry);
-    auto & t_alpha = std::get<1>(entry);
-    //for(auto && values : zip(shapes_derivatives.transpose(),
-    //			     make_view(t_alpha, t_alpha_size))) {
-  //  auto & dnds = std::get<0>(values);
-      //auto & t_alpha_beta = std::get<1>(values);
+    auto & tangent_s = std::get<0>(entry);
+    auto & t_alpha   = std::get<1>(entry);
+    for(auto && values : zip(shapes_derivatives.transpose(),
+    			     make_view(t_alpha, t_alpha_beta.size()))) {
+      auto & dnds      = std::get<0>(values);
+      auto & t_alpha_s = std::get<1>(values);
 
-      //t_alpha_beta += dnds * tangent;
-    //}
-
+      for (UInt i : arange(spatial_dimension)) {
+	t_alpha_s[i] = 0;
+	for (UInt j : arange(dnds.size())) {
+	  t_alpha_s[(1 + j) * spatial_dimension + i] = -dnds(j) * tangent_s[i];
+	}
+      } 
+    }
   }
 }
 
@@ -375,18 +382,40 @@ void Resolution::computeNalphabeta(Array<Real> & n_alpha_beta,
 
   for(auto && entry : zip(shapes_second_derivatives.transpose(),
 			  make_view(n_alpha_beta, n_alpha_beta.size()))) {
-    auto & dn2ds2 = std::get<0>(entry);
-    auto & n_alpha = std::get<1>(entry);
-    
-    
+    auto & dn2ds2    = std::get<0>(entry);
+    auto & n_alpha_s = std::get<1>(entry);
+
+    for (UInt i : arange(spatial_dimension)) {
+      n_alpha_s[i] = 0;
+      for (UInt j : arange(dn2ds2.size())) {
+        n_alpha_s[(1 + j) * spatial_dimension + i] = -dn2ds2(j) * normal[i];
+      }
+    }
+       
   }
 }
 
 /* -------------------------------------------------------------------------- */
 void Resolution::computePalpha(Array<Real> & p_alpha,
 			       Matrix<Real> & shapes_derivatives,
-			       Vector<Real> & p_t) {
+			       Vector<Real> & traction) {
+  p_alpha.clear();
 
+  auto normalized_traction = traction/traction.norm();
+  
+  for(auto && entry :
+	zip(shapes_derivatives.transpose(),
+	    make_view(p_alpha, p_alpha.size()))) {
+    auto & dnds = std::get<0>(entry);
+    auto & p_s  = std::get<1>(entry);
+
+    for(UInt i : arnage(spatial_dimension)) {
+      p_s[i] = 0;
+      for(UInt j : arange(dnds.size())){
+	p_s[(1 + j) * spatial_dimension + i] = -dnds(j) * normalized_traction[i];
+      }
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -395,13 +424,24 @@ void Resolution::computeGalpha(Array<Real> & /*t_alpha_beta*/,
 			       Vector<Real> & /*tangential_gap*/) {
 
   Array<Real> g_alpha(d_alpha.size(), spatial_dimension - 1);
+  auto t_alpha_size = t_alpha_beta.size() * (spatial_dimension - 1);
   
   for(auto && value :
-	make_view(g_alpha, g_alpha.size())){
+	zip(make_view(g_alpha, g_alpha.size()),
+	    make_view(t_alpha_beta, t_alpha_size))){
     auto & g_s = std::get<0>(value);
     
-  }
-  
+  }  
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::computeTbaralphabeta()  {
+
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::computePbaralpha() {
+
 }
   
 /* -------------------------------------------------------------------------- */
@@ -411,7 +451,7 @@ void Resolution::computeCoordinates(const Element & el, Matrix<Real> & coords) {
                              .getConnectivity(el.type, _not_ghost)
                              .begin(nb_nodes_per_element)[el.element];
 
-  // change this to current position
+  // todo change this to current position
   auto & positions = model.getMesh().getNodes();
   for (UInt n = 0; n < nb_nodes_per_element; ++n) {
     UInt node = connect[n];
@@ -421,4 +461,17 @@ void Resolution::computeCoordinates(const Element & el, Matrix<Real> & coords) {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+void Resolution::computeSecondDerivative(Matrix<Real> & dn2ds2, const Element & el) {
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+  Vector<UInt> connect = model.getMesh().getConnectivity(el.type, _not_ghost).begin(nb_nodes_per_element)[el.element];
+  
+  Matrix<Real> phi(dn2ds2.rows(), spatial_dimension);
+  Matrix<Real> nodal_values(nb_nodes_per_element, spatial_dimension);
+
+  computeCoordinates(el, nodal_values);
+  phi.mul<false, false>(dn2ds2, nodal_values);
+}
+  
 } // namespace akantu

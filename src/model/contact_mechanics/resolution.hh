@@ -137,29 +137,38 @@ protected:
   /* Functions that resolutions can/should reimplement                        */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// computes the normal force
-  virtual void computeNormalForce(__attribute__((unused)) Vector<Real> & /* force */,
-				  __attribute__((unused)) Vector<Real>  & /* n */,
-				  __attribute__((unused)) Real & /* gap */) {
+  /// computes the force vector due to normal traction
+  virtual void computeNormalForce(__attribute__((unused)) Vector<Real> &,
+				  __attribute__((unused)) Vector<Real> &,
+				  __attribute__((unused)) Real &) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  /// computes the friction force
-  virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & /* force */,
-				    __attribute__((unused)) Array<Real>  & /* d_alpha  */,
-				    __attribute__((unused)) Matrix<Real> &,
-				    __attribute__((unused)) Vector<Real> &,
-				    __attribute__((unused)) Real & /* gap */) {
+  /// computes the force vector due to frictional traction
+  virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & ,
+				    __attribute__((unused)) Array<Real>  & ,
+				    __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  /// compute the tangent moduli
-  virtual void computeTangentModuli(__attribute__((unused)) Matrix<Real> &,
-				    __attribute__((unused)) Vector<Real> & /* n */,
-				    __attribute__((unused)) Array<Real> & /* n_alpha */,
-				    __attribute__((unused)) Array<Real> & /* d_alpha */,
-				    __attribute__((unused)) Matrix<Real> & /* A */,
-				    __attribute__((unused)) Real & /* gap */) {
+  /// compute the tangent moduli due to normal traction
+  virtual void computeNormalModuli(__attribute__((unused)) Matrix<Real> &,
+				   __attribute__((unused)) Vector<Real> &,
+				   __attribute__((unused)) Array<Real>  &,
+				   __attribute__((unused)) Array<Real>  &,
+				   __attribute__((unused)) Matrix<Real> &,
+				   __attribute__((unused)) Real &) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  
+  /// compute the tangent moduli due to frictional traction
+  virtual void computeFrictionalModuli(__attribute__((unused)) Matrix<Real> &,
+				       __attribute__((unused)) Vector<Real> &,
+				       __attribute__((unused)) Array<Real>  &,
+				       __attribute__((unused)) Array<Real>  &,
+				       __attribute__((unused)) Matrix<Real> &,
+				       __attribute__((unused)) Real &) {
     AKANTU_TO_IMPLEMENT();
   }
 

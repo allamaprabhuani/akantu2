@@ -85,15 +85,25 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// local computation of tangent moduli
-  void computeTangentModuli(Matrix<Real> &,
-			    Vector<Real> & /* N */,
-			    Array<Real>  & /* N_alpha */,
-			    Array<Real>  & /* D_alpha */,
-			    Matrix<Real> & /* A matrix */,
-			    Real & /* gap */
-			    ) override;
-  
+  /// local computation of tangent moduli due to normal traction
+  void computeNormalModuli(Matrix<Real> & ,
+			   Vector<Real> & ,
+			   Array<Real>  & ,
+			   Array<Real>  & ,
+			   Matrix<Real> & ,
+			   Real & ) override;
+
+  /// local computation of tangent moduli due to frictional traction
+  void computeFrictionalModuli(Matrix<Real> & ,
+			       Array<Real>  & ,
+			       Array<Real>  & ,
+			       Matrix<Real> & ,
+			       Matrix<Real> & ,
+			       Vector<Real> & ,
+			       Array<Real>  & /*n_alpha*/,
+			       Array<Real> & /*d_alpha*/,
+			       Real & ) override;
+
   /// local computation of normal force
   void computeNormalForce(Vector<Real> &,
 			  Vector<Real> &,
@@ -102,9 +112,7 @@ public:
   /// local computation of friction force
   void computeFrictionForce(Vector<Real> &,
 			    Array<Real>  &,
-			    Matrix<Real> &,
-			    Vector<Real> &,
-			    Real &) override;
+			    Vector<Real> &) override;
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
