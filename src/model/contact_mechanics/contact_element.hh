@@ -129,6 +129,9 @@ public:
 
   /// an array of master nodes/elements around slave node
   Array<MasterType> patch;
+
+  ///
+  Vector<Real> traction;
 };
 
 } // akantu

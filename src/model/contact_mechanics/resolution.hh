@@ -34,6 +34,8 @@
 #include "parsable.hh"
 #include "parser.hh"
 #include "fe_engine.hh"
+#include "contact_element.hh"
+#include "resolution_utils.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_RESOLUTION_HH__
@@ -80,95 +82,49 @@ protected:
   /// computes coordinates of a given element
   void computeCoordinates(const Element & , Matrix<Real> &);
 
-  /// computes tangents
-  void computeTangents(Matrix<Real> & ,
-		       Matrix<Real> & ,
-		       Matrix<Real> & );
-
-  /// computes metric tensor (@f$m_{\alpha\beta}@f$) where @f$\alpha,
-  /// \beta@f$ are surface directions
-  void computeMetricTensor(Matrix<Real> &,
-			   Matrix<Real> &);
-
-  /// computes N array
-  void computeN(Vector<Real> &,
-		Vector<Real> &,
-		Vector<Real> &);
-
-  /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension
-  void computeNalpha(Array<Real>  &,
-		     Matrix<Real> &,
-		     Vector<Real> &);
-
-  /// computes (@f$T_{\alpha}@f$) where @f$\alpha@f$ is surface dimension
-  void computeTalpha(Array<Real> & ,
-		     Vector<Real> & ,
-		     Matrix<Real> & );
-
-  /// computes (@f$D_{\alpha}@f$) where @f$\alpha@f$ is surface dimension
-  void computeDalpha(Array<Real> & ,
-		     Array<Real> & ,
-		     Array<Real> & ,
-		     Matrix<Real> &,
-		     Real & );
-  /// computes @f$T_{\alpha\beta} @f$
-  void computeTalphabeta(Array<Real> &,
-			 Matrix<Real> &,
-			 Matrix<Real> &);
-
-  /// computes @f$N_{\alpha\beta} @f$
-  void computeNalphabeta(Array<Real> &,
-			 Matrix<Real> &,
-			 Vector<Real> &);
-
-  /// computes @f$P_{\alpha} @f$
-  void computePalpha(Array<Real> &,
-		     Matrix<Real> &,
-		     Vector<Real> &);
-
-  /// computes @f$G_{\alpha}@f$
-  void computeGalpha(Array<Real> &,
-		     Array<Real> &,
-		     Array<Real> &,
-		     Vector<Real> &)
-
-  
   /* ------------------------------------------------------------------------ */
-  /* Functions that resolutions can/should reimplement                        */
+  /* Functions that resolutions should reimplement                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// computes the force vector due to normal traction
   virtual void computeNormalForce(__attribute__((unused)) Vector<Real> &,
 				  __attribute__((unused)) Vector<Real> &,
-				  __attribute__((unused)) Real &) {
+				  __attribute__((unused)) ContactElement &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the force vector due to frictional traction
-  virtual void computeFrictionForce(__attribute__((unused)) Vector<Real> & ,
-				    __attribute__((unused)) Array<Real>  & ,
-				    __attribute__((unused)) Vector<Real> &) {
+  virtual void computeFrictionalForce(__attribute__((unused)) Vector<Real> & ,
+				      __attribute__((unused)) Array<Real>  & ,
+				      __attribute__((unused)) ContactElement &) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /// compute the frictional traction using return mapping algorithm
+  virtual bool computeFrictionalTraction(__attribute__((unused)) Matrix<Real> &,
+					 __attribute__((unused)) ContactElement &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent moduli due to normal traction
   virtual void computeNormalModuli(__attribute__((unused)) Matrix<Real> &,
+				   __attribute__((unused)) Array<Real>  &,
+				   __attribute__((unused)) Array<Real>  &,
 				   __attribute__((unused)) Vector<Real> &,
-				   __attribute__((unused)) Array<Real>  &,
-				   __attribute__((unused)) Array<Real>  &,
-				   __attribute__((unused)) Matrix<Real> &,
-				   __attribute__((unused)) Real &) {
+				   __attribute__((unused)) ContactElement &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   
   /// compute the tangent moduli due to frictional traction
   virtual void computeFrictionalModuli(__attribute__((unused)) Matrix<Real> &,
-				       __attribute__((unused)) Vector<Real> &,
+				       __attribute__((unused)) Array<Real>  &,
+				       __attribute__((unused)) Array<Real>  &,
 				       __attribute__((unused)) Array<Real>  &,
 				       __attribute__((unused)) Array<Real>  &,
 				       __attribute__((unused)) Matrix<Real> &,
-				       __attribute__((unused)) Real &) {
+				       __attribute__((unused)) Vector<Real> &,
+				       __attribute__((unused)) ContactElement &) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -183,6 +139,9 @@ public:
   /// assemble the stiffness matrix for this resolution
   void assembleStiffnessMatrix(GhostType ghost_type);
 
+  /// computes 2nd derivative of displacement
+  Matrix<Real> computeNablaOfDisplacement(ContactElement &);
+  
 public:
   /// function to print the contain of the class
   void printself(std::ostream & stream, int indent = 0) const override;

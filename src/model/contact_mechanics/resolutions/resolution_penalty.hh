@@ -46,80 +46,63 @@ public:
 
   ~ResolutionPenalty() override = default;
 
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
 protected:
   /// initialize the resolution
   void initialize();
   
   /// local computation of stifnness matrix due to normal stress
-  void computeNormalStiffness(Matrix<Real> & kc,
-			      Vector<Real> & n,
-			      Array<Real>  & n_alpha,
-			      Array<Real>  & d_alpha,
-			      Matrix<Real> & surface_matrix,
-			      Real &);
+  void computeNormalStiffness(Matrix<Real> & , Vector<Real> & ,
+			      Array<Real>  & , Array<Real>  & ,
+			      Matrix<Real> & , Real &);
   
   /// local computation of stiffness matrix due to frictional stress 
-  void computeFrictionalStiffness(Vector<Real> &,
-				  Array<Real>  &,
-				  Array<Real> &,
-				  Real & );
+  void computeFrictionalStiffness(Vector<Real> &, Array<Real>  &,
+				  Array<Real> &, Real & );
 
   /// local computation of direct stiffness matrix due to friction,
   /// this matrix is common for both stick and slip part
-  Matrix<Real> computeCommonModuli(Real &);
+  Array<Real> computeCommonModuli(Array<Real> &, Array<Real> &,
+				   Array<Real> &, Vector<Real> &, ContactElement &);
 
   /// local computaion of stiffness matrix due to stick state
-  Matrix<Real> computeStickModuli(Array<Real> &,
-			  Array<Real> &,
-			  Matrix<Real> &);
+  Matrix<Real> computeStickModuli(Array<Real> &, Array<Real> &, Matrix<Real> &);
 
   /// local computation of stiffness matrix due to slip state 
-  Matrix<Real> computeSlipModuli();
+  Matrix<Real> computeSlipModuli(Array<Real> &, Array<Real> &,
+				 Matrix<Real> &, ContactElement &);
 
-  /// computes the tractions using return map algorithm 
-  Vector<Real> computeFrictionalTraction(Matrix<Real> &,
-					 Vector<Real> &,
-					 Real &);
-  
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli due to normal traction
-  void computeNormalModuli(Matrix<Real> & ,
-			   Vector<Real> & ,
-			   Array<Real>  & ,
-			   Array<Real>  & ,
-			   Matrix<Real> & ,
-			   Real & ) override;
+  void computeNormalModuli(Matrix<Real> & , Array<Real>  & , Array<Real>  & ,
+			   Vector<Real> & , ContactElement & ) override;
 
   /// local computation of tangent moduli due to frictional traction
-  void computeFrictionalModuli(Matrix<Real> & ,
-			       Array<Real>  & ,
-			       Array<Real>  & ,
-			       Matrix<Real> & ,
-			       Matrix<Real> & ,
-			       Vector<Real> & ,
-			       Array<Real>  & /*n_alpha*/,
-			       Array<Real> & /*d_alpha*/,
-			       Real & ) override;
+  void computeFrictionalModuli(Matrix<Real> & , Array<Real>  & , Array<Real>  & ,
+			       Array<Real>  & , Array<Real>  & , Matrix<Real> &,
+			       Vector<Real> &, ContactElement & ) override;
 
-  /// local computation of normal force
-  void computeNormalForce(Vector<Real> &,
-			  Vector<Real> &,
-			  Real & ) override;
+  /// local computation of internal force due to normal traction
+  void computeNormalForce(Vector<Real> &, Vector<Real> &,  ContactElement & ) override;
   
-  /// local computation of friction force
-  void computeFrictionForce(Vector<Real> &,
-			    Array<Real>  &,
-			    Vector<Real> &) override;
-  
+  /// local computation of internal force due to frictional traction 
+  void computeFrictionalForce(Vector<Real> &, Array<Real>  &, ContactElement &) override;
+
+  /// computes the frictinal traction using return map algorithm
+  bool computeFrictionalTraction(Matrix<Real> &, ContactElement &) override;
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// penalty parameter for normal stress
   Real epsilon;
+
   /// penalty parameter for tangential stress
   Real epsilon_t;
 };
