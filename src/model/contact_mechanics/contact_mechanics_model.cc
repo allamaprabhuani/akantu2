@@ -283,7 +283,9 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   AKANTU_DEBUG_INFO("Assemble the contact forces");
 
-  // assemble the forces due to local stresses
+  this->internal_force->clear();
+  
+  // assemble the forces due to contact 
   auto assemble = [&](auto && ghost_type) {
     for (auto & resolution : resolutions) {
       resolution->assembleInternalForces(ghost_type);
@@ -302,7 +304,9 @@ void ContactMechanicsModel::assembleInternalForces() {
 }
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
-
+  
+  this->contact_map.clear();
+  
   this->detector->search(this->contact_map);
 
   this->assembleFieldsFromContactMap();
@@ -313,28 +317,79 @@ void ContactMechanicsModel::search() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search(Array<Real> & increment) {
 
+  this->contact_map.clear();
+  
   this->detector->search(this->contact_map);
 
   for (auto & entry : contact_map) {
+
     auto & element = entry.second;
     const auto & connectivity = element.connectivity;
-
+    const auto & normal = element.normal;
+    
+    auto slave_node = connectivity[0];
+    Vector<Real> u_slave(spatial_dimension);
+    
     auto master_node = connectivity[1];
-    Vector<Real> u(spatial_dimension);
+    Vector<Real> u_master(spatial_dimension);
+
     for (UInt s : arange(spatial_dimension)) {
-      u(s) = increment(master_node, s);
+      u_slave(s)  = increment(slave_node, s);
+      u_master(s) = increment(master_node, s);
     }
 
-    u *= -1.0;
+    /*auto u = (u_master.norm() > u_slave.norm()) ? u_master * -1.0 : u_slave;
 
     const auto & normal = element.normal;
     Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
 
+    std::cerr << u << " " << normal << std::endl;
+    std::cerr << uv << "  " << element.gap << " " << uv + element.gap << std::endl;
+    
     if (uv + element.gap <= 0) {
       element.gap = abs(uv + element.gap);
     } else {
       element.gap = 0.0;
+    }*/
+
+    auto u = (u_master.norm() > u_slave.norm()) ? u_master : u_slave;
+
+    Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
+    uv = abs(uv);
+    
+    std::cerr << uv << "  " << element.gap << " " << element.gap - uv << std::endl;
+    
+    if (element.gap - uv <= 0) {
+      element.gap = abs(element.gap - uv);
+    } else {
+      element.gap = 0.0;
     }
+
+    /*auto u = u_slave - u_master;
+    auto u_n = u.dot(normal);
+    u_n = abs(u_n);
+
+    auto positions = detector->getPositions();
+    Vector<Real> slave_pos(spatial_dimension);
+    Vector<Real> master_pos(spatial_dimension);
+    
+    for (auto s : arange(spatial_dimension)) {
+      slave_pos(s) = positions(slave_node, s);
+      master_pos(s) = positions(master_node, s);
+    }
+
+    auto sign = (slave_pos - master_pos).dot(normal);
+    sign/= abs(sign);
+    
+    auto g_trial = element.gap - sign * u_n;
+    if (g_trial <= 0 or sign < 0) {
+      element.gap = abs(g_trial);
+    }
+    else {
+      element.gap = 0;
+    }*/
+
+    
   }
 
   this->assembleFieldsFromContactMap();
@@ -386,10 +441,7 @@ template <Surface id> void ContactMechanicsModel::computeNodalAreas() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::beforeSolveStep() {
-  this->search();
-  
-}
+void ContactMechanicsModel::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::afterSolveStep() {}
@@ -442,8 +494,6 @@ void ContactMechanicsModel::assembleStiffnessMatrix() {
   if (!this->getDOFManager().hasMatrix("K")) {
     this->getDOFManager().getNewMatrix("K", getMatrixType("K"));
   }
-
-  //this->getDOFManager().clearMatrix("K");
 
   for (auto & resolution : resolutions) {
     resolution->assembleStiffnessMatrix(_not_ghost);
@@ -569,8 +619,7 @@ UInt ContactMechanicsModel::getNbData(
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  //  UInt nb_nodes = mesh.getNbNodes();
-
+  
   AKANTU_DEBUG_OUT();
   return size * dofs.size();
 }

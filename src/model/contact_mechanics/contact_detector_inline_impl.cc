@@ -83,7 +83,6 @@ inline void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt>
     for (UInt s: arange(spatial_dimension)) {
       pos(s)  = this->positions(node, s);
     }
-    
     bbox += pos;
   };
 
@@ -96,6 +95,8 @@ inline void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt>
     lower_bound(s) -= this->max_bb;
     upper_bound(s) += this->max_bb;
   }
+
+  std::cerr << bbox << std::endl;
   
   AKANTU_DEBUG_INFO("BBox" << bbox);
 }

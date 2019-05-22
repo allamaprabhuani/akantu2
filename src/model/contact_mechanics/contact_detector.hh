@@ -66,7 +66,7 @@ public:
   ContactDetector(Mesh &, const ID & id = "contact_detector",
 		  UInt memory_id = 0);
 
-  ContactDetector(Mesh &, Array<Real> & positions,
+  ContactDetector(Mesh &, Array<Real> positions,
 		  const ID & id = "contact_detector",
 		  UInt memory_id = 0);
         
@@ -177,8 +177,12 @@ public:
   /// sets the bounding box extension
   AKANTU_SET_MACRO(MaximumBoundingBox, max_bb, Real);
 
-  /// get the contact pairs
-  AKANTU_GET_MACRO(ContactPairs, contact_pairs, Array<UInt>);
+  /// returns the positions
+  AKANTU_GET_MACRO(Positions, positions, Array<Real>);
+
+  /// sets the positions
+  AKANTU_SET_MACRO(Positions, positions, Array<Real>);
+
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -200,10 +204,10 @@ private:
   std::map<Surface, std::string> surfaces; 
 
   /// contact pair slave node to closet master node
-  Array<UInt> contact_pairs;
+  std::vector<std::pair<UInt, UInt> > contact_pairs;
   
   /// contains the updated positions of the nodes
-  Array<Real> & positions;
+  Array<Real> positions;
 
   /// type of detection explicit/implicit 
   DetectionType detection_type;

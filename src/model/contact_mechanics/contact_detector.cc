@@ -41,16 +41,17 @@ namespace akantu {
  }
   
 /* -------------------------------------------------------------------------- */
-ContactDetector::ContactDetector(Mesh & mesh, Array<Real> & positions, const ID & id, UInt memory_id)
+ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions, const ID & id, UInt memory_id)
   : Memory(id, memory_id),
     Parsable(ParserType::_contact_detector, id),
-    mesh(mesh),
-    positions(positions) {
+    mesh(mesh) {
 
   AKANTU_DEBUG_IN();  
 
   this->spatial_dimension = mesh.getSpatialDimension();
-    
+
+  this->positions = positions;
+  
   this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
 
   this->parseSection();
@@ -163,31 +164,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   // master node
   // these master surfaces will be needed later to update contact
   // elements
-
-  //Array<UInt> slave_nodes;
-  //Array<UInt> master_nodes;
-
-  /*BBox bbox_master_grid(spatial_dimension); 
-  BBox bbox_slave_grid(spatial_dimension);
-
-  auto create_bbox = [&](auto & grid, auto & bbox) {
-    auto upper_bound = grid.getUpperBounds();
-    auto lower_bound = grid.getLowerBounds();
-    for (UInt s: arange(spatial_dimension)) {
-      lower_bound(s) -= this->max_bb;
-      upper_bound(s) += this->max_bb;
-    }
-
-    bbox += lower_bound;
-    bbox += upper_bound;
-  };
-
-  create_bbox(master_grid, bbox_master_grid);
-  create_bbox(slave_grid, bbox_slave_grid);
   
-  auto && bbox_intersection =
-  bbox_master_grid.intersection(bbox_slave_grid);*/
-
   contact_pairs.clear();
   
   /// find the closet master node for each slave node
@@ -201,10 +178,6 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
       for (UInt s: arange(spatial_dimension)) 
 	pos(s) = this->positions(slave_node, s);
             
-      //if (!bbox_intersection.contains(pos)) {
-      //	continue;
-      //}
-
       Real closet_distance = std::numeric_limits<Real>::max();
       UInt closet_master_node;
 
@@ -228,8 +201,8 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
       }
 
       if (pair_exists) {
-	contact_pairs.push_back(slave_node);
-	contact_pairs.push_back(closet_master_node);
+	contact_pairs.push_back( std::make_pair(slave_node,
+						closet_master_node));
       }
       
     }
@@ -259,7 +232,7 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
       counter++;
     }
 
-    /// TODO: adhoc fix to assign a master element in case the
+    /// todo adhoc fix to assign a master element in case the
     /// projection does not lie in the extended element. As it is
     /// tolerance based
     if (index >= gaps.size()) {
@@ -285,11 +258,11 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
     return elem_conn;
   };
 
-  
-  for (auto && pairs : make_view(contact_pairs, 2)) {
+  std::cerr << contact_pairs.size() << std::endl;
+  for (auto & pairs : contact_pairs) {
 
-    const auto & slave_node  = pairs(0);
-    const auto & master_node = pairs(1);
+    const auto & slave_node  = pairs.first;
+    const auto & master_node = pairs.second;
 
     Array<Element> elements;
     this->mesh.getAssociatedElements(master_node, elements);
@@ -355,16 +328,16 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
     gap = Math::norm(spatial_dimension, distance.storage());
     
     Vector<Real> direction = distance.normalize(); 
-    Real cos_angle = direction.dot(normal);
+    Real cos_angle = distance.dot(normal);
 
     Real tolerance = 1e-8;
-
-    /// TODO: adhoc fix to ensure that normal is always into the slave
+    
+    /// todo: adhoc fix to ensure that normal is always into the slave
     /// surface. However, it doesnot work if gap is 0 as cos angle is
     /// a nan value
-    if (std::abs(cos_angle + 1) <= tolerance) {
-      normal *= -1.0;
-    }
+    //if (std::abs(cos_angle + 1) <= tolerance) {
+    //  normal *= -1.0;
+    //}
     
     if (std::abs(cos_angle - 1) <= tolerance and detection_type == _explicit) {
       gap *= -1;

@@ -123,6 +123,9 @@ public:
 
   /// connectivity of the contact element
   Vector<UInt> connectivity;
+
+  ///
+  Vector<Real> real_projection;
   
   /// penetration gap between slave and master 
   Real gap;

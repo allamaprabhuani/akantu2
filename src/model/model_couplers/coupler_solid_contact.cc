@@ -4,10 +4,10 @@
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
  * @date creation: Thu Jan 17 2019
- * @date last modification: Thu Jan 17 2019
+ * @date last modification: Thu May 22 2019
  *
  * @brief  class for coupling of solid mechanics and conatct mechanics
- * model in explicit
+ * model
  *
  * @section LICENSE
  *
@@ -48,27 +48,21 @@ CouplerSolidContact::CouplerSolidContact(Mesh & mesh, UInt dim, const ID & id,
 
   AKANTU_DEBUG_IN();
 
-  this->registerFEEngineObject<MyFEEngineType>(
-      "CouplerSolidContact", mesh, Model::spatial_dimension);
+  this->registerFEEngineObject<MyFEEngineType>("CouplerSolidContact", mesh,
+					       Model::spatial_dimension);
 
 #if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("coupler_solid_contact", id, true);
-  this->mesh.addDumpMeshToDumper("coupler_solid_contact", mesh,
-                                 Model::spatial_dimension, _not_ghost,
-                                 _ek_regular);
+  this->mesh.addDumpMeshToDumper("coupler_solid_contact", mesh, Model::spatial_dimension,
+				 _not_ghost, _ek_regular);
 #endif
 
   this->registerDataAccessor(*this);
 
-  
-  solid = new SolidMechanicsModel(mesh, Model::spatial_dimension,
-				  "solid_mechanics_model",
-				  0,
-				  this->dof_manager);
-  contact = new ContactMechanicsModel(mesh, Model::spatial_dimension,
-				      "contact_mechanics_model",
-				      0, 
-				      this->dof_manager);
+  solid = new SolidMechanicsModel(mesh, Model::spatial_dimension, "solid_mechanics_model",
+				  0, this->dof_manager);
+  contact = new ContactMechanicsModel(mesh, Model::spatial_dimension, "contact_mechanics_model",
+				      0, this->dof_manager);
   
   AKANTU_DEBUG_OUT();
 }
@@ -101,15 +95,6 @@ FEEngine & CouplerSolidContact::getFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::initSolver(TimeStepSolverType, NonLinearSolverType) {
   DOFManager & dof_manager = this->getDOFManager();
-
-  /*this->allocNodalField(this->displacement, spatial_dimension, "displacement");
-  this->allocNodalField(this->displacement_increment, spatial_dimension,
-                       "displacement_increment");
-  this->allocNodalField(this->external_force, spatial_dimension,
-                        "external_force");
-  if (not dof_manager.hasDOFs("displacement")) {
-    dof_manager.registerDOFs("displacement", *this->displacement, _dst_nodal);
-    }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -157,43 +142,113 @@ ModelSolverOptions CouplerSolidContact::getDefaultSolverOptions(
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::assembleResidual() {
 
-  solid->assembleInternalForces();
-  contact->assembleInternalForces();
+  // computes the internal forces
+  this->assembleInternalForces();
   
-  auto & contact_force  = contact->getInternalForce();
-  auto & external_force = solid->getExternalForce();
   auto & internal_force = solid->getInternalForce();
-  
-  /*auto & blocked_dofs   = solid->getBlockedDOFs();
+  auto & external_force = solid->getExternalForce();
+ 
+  auto & contact_force  = contact->getInternalForce();
+  auto & contact_map    = contact->getContactMap();
 
-  for (auto && values : zip(make_view(external_force),
-			    make_view(contact_force),
-                            make_view(blocked_dofs))) {
-    auto & f_ext = std::get<0>(values);
-    auto & f_con = std::get<1>(values);
-    auto & blocked = std::get<2>(values);
-
-    if (!blocked)
-      f_ext = f_con;
-  }*/
-
+  for (auto & pair: contact_map) {
+    auto & connectivity = pair.second.connectivity;
+    for (auto node : connectivity) {
+      for (auto s : arange(spatial_dimension)) {
+	external_force(node, s) = contact_force(node, s);
+      }
+    }
+  }
   
   /* ------------------------------------------------------------------------ */
   this->getDOFManager().assembleToResidual("displacement",
                                            external_force, 1);
   this->getDOFManager().assembleToResidual("displacement",
-                                           internal_force, 1);
-  this->getDOFManager().assembleToResidual("displacement",
-                                           contact_force, 1);   
+                                           internal_force, 1);   
 }
 
+/* -------------------------------------------------------------------------- */
+void CouplerSolidContact::assembleResidual(const ID & residual_part) {
+  AKANTU_DEBUG_IN();
+
+  auto & internal_force = solid->getInternalForce();
+  auto & external_force = solid->getExternalForce();
+  
+  auto & contact_force  = contact->getInternalForce();
+  auto & contact_map    = contact->getContactMap();
+
+  for (auto & pair: contact_map) {
+    auto & connectivity = pair.second.connectivity;
+    for (auto node : connectivity) {
+      for (auto s : arange(spatial_dimension)) {
+	external_force(node, s) = contact_force(node, s);
+      }
+    }
+  }
+ 
+  if ("external" == residual_part) {
+    this->getDOFManager().assembleToResidual("displacement",
+                                             external_force, 1);
+    AKANTU_DEBUG_OUT();
+    return;
+  }
+
+  if ("internal" == residual_part) {
+    this->getDOFManager().assembleToResidual("displacement",
+                                             internal_force, 1);
+    AKANTU_DEBUG_OUT();
+    return;
+  }
+
+  AKANTU_CUSTOM_EXCEPTION(
+      debug::SolverCallbackResidualPartUnknown(residual_part));
+
+  AKANTU_DEBUG_OUT();
+}
+  
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::beforeSolveStep() {
-  contact->search();
+
+  Array<Real> increment(0, Model::spatial_dimension);
+  
+  auto & previous_displacement = solid->getPreviousDisplacement();
+  auto & displacement = solid->getDisplacement();
+  
+  auto disp_it = displacement.begin(Model::spatial_dimension);
+  auto disp_end = displacement.end(Model::spatial_dimension);
+  auto prev_it = previous_displacement.begin(Model::spatial_dimension);
+  
+  for (; disp_it != disp_end; ++disp_it, ++prev_it) {
+    increment.push_back(*disp_it - *prev_it);
+  }
+
+  contact->search(displacement);
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidContact::afterSolveStep() {}
+void CouplerSolidContact::afterSolveStep() {
+
+  Array<Real> current_positions(0, Model::spatial_dimension);
+
+  auto & positions = mesh.getNodes();
+  auto & displacement = solid->getDisplacement();
+
+  auto pos_it = positions.begin(Model::spatial_dimension);
+  auto pos_end = positions.end(Model::spatial_dimension);
+  auto disp_it = displacement.begin(Model::spatial_dimension);
+
+  for (; pos_it != pos_end; ++pos_it, ++disp_it) {
+    current_positions.push_back(*pos_it + *disp_it);
+  }
+
+  contact->setPositions(current_positions);
+}
+
+/* -------------------------------------------------------------------------- */
+void CouplerSolidContact::predictor() {}
+
+/* -------------------------------------------------------------------------- */
+void CouplerSolidContact::corrector() {}  
 
 /* -------------------------------------------------------------------------- */
 MatrixType CouplerSolidContact::getMatrixType(const ID & matrix_id) {
@@ -208,8 +263,7 @@ MatrixType CouplerSolidContact::getMatrixType(const ID & matrix_id) {
 void CouplerSolidContact::assembleMatrix(const ID & matrix_id) {
 
   if (matrix_id == "K") {
-    solid->assembleStiffnessMatrix();
-    contact->assembleStiffnessMatrix();
+    this->assembleStiffnessMatrix();
   }
 
 }
@@ -220,65 +274,29 @@ void CouplerSolidContact::assembleLumpedMatrix(const ID & /*matrix_id*/) {
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidContact::coupleExternalForces() {
+void CouplerSolidContact::assembleInternalForces() {
+  AKANTU_DEBUG_IN();
 
-  auto & contact_force = contact->getInternalForce();
-  auto & external_force = solid->getExternalForce();
-  auto & blocked_dofs = solid->getBlockedDOFs();
+  AKANTU_DEBUG_INFO("Assemble the internal forces");
+  
+  solid->assembleInternalForces();  
+  contact->assembleInternalForces();
 
-  for (auto && values : zip(make_view(external_force), make_view(contact_force),
-                            make_view(blocked_dofs))) {
-    auto & f_ext = std::get<0>(values);
-    auto & f_con = std::get<1>(values);
-    auto & blocked = std::get<2>(values);
-
-    if (!blocked)
-      f_ext = f_con;
-  }
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidContact::coupleStiffnessMatrices() {
-  auto & contact_stiffness =
-      const_cast<SparseMatrix &>(contact->getDOFManager().getMatrix("K"));
-  auto & solid_stiffness =
-      const_cast<SparseMatrix &>(solid->getDOFManager().getMatrix("K"));
+void CouplerSolidContact::assembleStiffnessMatrix() {
+  AKANTU_DEBUG_IN();
 
-  solid_stiffness.add(contact_stiffness);
+  AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
+
+  solid->assembleStiffnessMatrix();
+  contact->assembleStiffnessMatrix();
+  
+  AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-// void CouplerSolidContact::solve() {
-
-// search for contacts
-// contact.search();
-// can be handled by beforeSolveStep()
-
-/// assemble contact forces
-/// contact.assembleInternalForces();
-/// assemble contact stiffness matrix
-/// contact.assembleStiffnessMatrix();
-/// can be handled by solveStep but no need to solve it
-
-/// couple the external forces
-// this->coupleExternalForces();
-
-// assemble the internal forces solid mechanics model
-// assemble the stiffness forces
-// couple the contact mechanics model stiffness to solid mechanics
-// this->coupleStiffnessMatrices();
-
-// and solve the solid mechanics model with new stifffness anf
-// residual
-/// all the above steps for solid mehcanics should be handled by the
-// solveStep method with solvercall back to see that stifffness
-// matrices are coupled
-
-// ContactSolver callback(solid, contact);
-
-// contact.solveStep();
-// solid.solveStep(callback);
-//}
+  
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
@@ -297,8 +315,6 @@ dumper::Field * CouplerSolidContact::createElementalField(
   return field;
 }
 
-
-  
 /* -------------------------------------------------------------------------- */
 dumper::Field *
 CouplerSolidContact::createNodalFieldReal(const std::string & field_name,
@@ -307,7 +323,10 @@ CouplerSolidContact::createNodalFieldReal(const std::string & field_name,
 
   dumper::Field * field = nullptr;
   
-  field = solid->createNodalFieldReal(field_name, group_name, padding_flag);
+  if (field_name == "contact_force" or field_name == "normals" or field_name == "gaps")
+    field = contact->createNodalFieldReal(field_name, group_name, padding_flag);
+  else
+    field = solid->createNodalFieldReal(field_name, group_name, padding_flag);
 
   return field;
 }
@@ -318,6 +337,7 @@ dumper::Field * CouplerSolidContact::createNodalFieldBool(
     __attribute__((unused)) bool padding_flag) {
 
   dumper::Field * field = nullptr;
+
   field = solid->createNodalFieldBool(field_name, group_name, padding_flag);
   return field;
 }
@@ -347,5 +367,45 @@ dumper::Field * CouplerSolidContact::createNodalFieldBool(const std::string &,
   
 #endif
 
+/* --------------------------------------------------------------------------
+ */
+void CouplerSolidContact::dump(const std::string & dumper_name) {
+  solid->onDump();
+  mesh.dump(dumper_name);
+}
+
+/* --------------------------------------------------------------------------
+ */
+void CouplerSolidContact::dump(const std::string & dumper_name, UInt step) {
+  solid->onDump();
+  mesh.dump(dumper_name, step);
+}
+
+/* -------------------------------------------------------------------------
+ */
+void CouplerSolidContact::dump(const std::string & dumper_name, Real time,
+                               UInt step) {
+  solid->onDump();
+  mesh.dump(dumper_name, time, step);
+}
+
+/* -------------------------------------------------------------------------- */
+void CouplerSolidContact::dump() {
+  solid->onDump();
+  mesh.dump();
+}
+
+/* -------------------------------------------------------------------------- */
+void CouplerSolidContact::dump(UInt step) {
+  solid->onDump();
+  mesh.dump(step);
+}
+
+/* -------------------------------------------------------------------------- */
+void CouplerSolidContact::dump(Real time, UInt step) {
+  solid->onDump();
+  mesh.dump(time, step);
+}
+  
   
 } // namespace akantu

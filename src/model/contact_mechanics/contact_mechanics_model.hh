@@ -263,6 +263,11 @@ public:
     return contact_map;
   }
 
+  ///
+  inline void setPositions(Array<Real> positions) {
+    detector->setPositions(positions);
+  }
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -285,16 +290,16 @@ private:
   /// boundary vector
   Array<Real> * blocked_dofs{nullptr};
 
-  /// gaps
+  /// array to store gap between slave and master
   Array<Real> * gaps{nullptr};
 
-  /// normals
+  /// array to store normals from master to slave
   Array<Real> * normals{nullptr};
 
-  /// tangents
+  /// array to store tangents on the master element
   Array<Real> * tangents{nullptr};
 
-  /// nodal areas
+  /// array to store nodal areas
   Array<Real> * nodal_area{nullptr};
 
   /// array of current position used during update residual

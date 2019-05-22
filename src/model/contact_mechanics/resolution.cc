@@ -127,6 +127,8 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   auto & stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
 
+  stiffness.saveMatrix("in_assembly.mtx");
+  
   const auto local_nodes =
     model.getMesh().getElementGroup(name).getNodes();
 
@@ -148,7 +150,7 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 		    conn.size() * spatial_dimension);
     
     Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
-    ResolutionUtils::computeMetricTensor(element.tangents, m_alpha_beta);
+    ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
 
     // normal tangent moduli
     Vector<Real> n(conn.size() * spatial_dimension);

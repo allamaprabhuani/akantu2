@@ -61,7 +61,7 @@ void ResolutionPenalty::computeNormalForce(Vector<Real> & force, Vector<Real> & 
   Real tn = element.gap * epsilon;
   tn = macaulay(tn);
   for (UInt i : arange(force.size())) {
-      force[i] += tn * n[i];
+    force[i] += n[i] * tn;
   }
 }
 

@@ -84,14 +84,31 @@ protected:
   /// initialize completely the model
   void initFullImpl(const ModelOptions & options) override;
 
-  /// allocate all vectors
-  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
-
   /// initialize the modelType
   void initModel() override;
+  
+  /// get some default values for derived classes
+  std::tuple<ID, TimeStepSolverType>
+  getDefaultSolverID(const AnalysisMethod & method) override;
 
-  /// call back for the solver, computes the force residual
+
+  /* ------------------------------------------------------------------------ */
+  /* Solver Interface                                                         */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// assembles the contact stiffness matrix
+  virtual void assembleStiffnessMatrix();
+
+  /// assembles the contant internal forces
+  virtual void assembleInternalForces();
+
+protected:
+  /// callback for the solver, this adds f_{ext} - f_{int} to the residual
   void assembleResidual() override;
+
+  /// callback for the solver, this adds f_{ext} or  f_{int} to the residual
+  void assembleResidual(const ID & residual_part) override;
+  bool canSplitResidual() override { return true; }
 
   /// get the type of matrix needed
   MatrixType getMatrixType(const ID & matrix_id) override;
@@ -102,19 +119,27 @@ protected:
   /// callback for the solver, this assembles the stiffness matrix
   void assembleLumpedMatrix(const ID & matrix_id) override;
 
-  /// get some default values for derived classes
-  std::tuple<ID, TimeStepSolverType>
-  getDefaultSolverID(const AnalysisMethod & method) override;
+  /// callback for the solver, this is called at beginning of solve
+  void predictor() override;
 
-  ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const;
+  /// callback for the solver, this is called at end of solve
+  void corrector() override;
 
   /// callback for the solver, this is called at beginning of solve
   void beforeSolveStep() override;
 
   /// callback for the solver, this is called at end of solve
   void afterSolveStep() override;
+  
+  /// callback for the model to instantiate the matricess when needed
+  void initSolver(TimeStepSolverType, NonLinearSolverType) override;
 
+protected:
+  /* -------------------------------------------------------------------------- */
+  ModelSolverOptions
+  getDefaultSolverOptions(const TimeStepSolverType & type) const;
+
+  
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
@@ -192,15 +217,17 @@ public:
                                        const UInt & spatial_dimension,
                                        const ElementKind & kind) override;
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-private:
-  /// couples external forces between models
-  void coupleExternalForces();
+  virtual void dump(const std::string & dumper_name);
 
-  /// couples stiffness matrices between models
-  void coupleStiffnessMatrices();
+  virtual void dump(const std::string & dumper_name, UInt step);
+
+  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+
+  void dump() override;
+
+  virtual void dump(UInt step);
+
+  virtual void dump(Real time, UInt step);
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
