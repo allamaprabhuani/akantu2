@@ -26,30 +26,35 @@ add_akantu_test(test_detector "detection_test")
 add_akantu_test(test_resolution "resolution_test")
 add_akantu_test(test_coupler "coupler_test")
 
-add_mesh (contact_2d contact_2d.geo 2 1)
-add_mesh (contact_3d contact_3d.geo 3 1)
+add_mesh (hertz_2d hertz_2d.geo 2 1)
+add_mesh (hertz_3d hertz_3d.geo 3 1)
 add_mesh (circles_2d circles_2d.geo 2 1)
+add_mesh (flat_2d flat_2d.geo 2 1)
 
-
-register_test(test_contact_mechanics
-  SOURCES test_contact_mechanics_model.cc
-  DEPENDS contact_3d
+register_test(test_hertz_2d
+  SOURCES test_hertz_2d.cc
+  DEPENDS hertz_2d
   FILES_TO_COPY material.dat
   PACKAGE contact_mechanics
   )
 
-register_test(test_contact_mechanics_2d
-  SOURCES test_contact_mechanics_model_2d.cc
-  DEPENDS contact_2d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
-
-
-register_test(test_contact_mechanics_circles
-  SOURCES test_contact_mechanics_model.cc
+register_test(test_circles_2d
+  SOURCES test_circles_2d.cc
   DEPENDS circles_2d
   FILES_TO_COPY material.dat
   PACKAGE contact_mechanics
   )
 
+register_test(test_hertz_3d
+  SOURCES test_hertz_3d.cc
+  DEPENDS hertz_3d
+  FILES_TO_COPY material.dat
+  PACKAGE contact_mechanics
+  )
+
+register_test(test_flat_2d
+  SOURCES test_flat_2d.cc
+  DEPENDS flat_2d
+  FILES_TO_COPY material.dat
+  PACKAGE contact_mechanics
+  )

@@ -95,8 +95,6 @@ inline void ContactDetector::constructBoundingBox(BBox & bbox, const Array<UInt>
     lower_bound(s) -= this->max_bb;
     upper_bound(s) += this->max_bb;
   }
-
-  std::cerr << bbox << std::endl;
   
   AKANTU_DEBUG_INFO("BBox" << bbox);
 }
@@ -183,6 +181,50 @@ inline Vector<UInt> ContactDetector::constructConnectivity(UInt & slave, const E
 
   return elem_conn;
 }
+
+/* -------------------------------------------------------------------------- */
+inline void ContactDetector::computeNormalOnElement(const Element & element, Vector<Real> & normal) {
+  
+  Matrix<Real> vectors(spatial_dimension, spatial_dimension - 1);
+  this->vectorsAlongElement(element, vectors);
+ 
+  switch (this->spatial_dimension) {
+  case 2: {
+    Math::normal2(vectors.storage(), normal.storage());
+    break;
+  }
+  case 3: {
+    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
+    break;
+  }  
+  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  }
+        
+}
+
+/* -------------------------------------------------------------------------- */
+inline void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vectors) {
+
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
+
+  Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
+  this->coordinatesOfElement(el, coords);
+
+  switch (spatial_dimension) {
+  case 2: {
+    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
+    break;
+  }
+  case 3: {
+    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
+    vectors(1) = Vector<Real>(coords(2)) - Vector<Real>(coords(0));
+    break;
+  } 
+  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  }
+  
+}
+
   
 /* -------------------------------------------------------------------------- */  
 

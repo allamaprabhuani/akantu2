@@ -212,6 +212,8 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 /* -------------------------------------------------------------------------- */
 void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & contact_map) {
 
+  auto surface_dimension = spatial_dimension - 1;
+  
   auto get_index = [&](auto & gaps, auto & projections) {
 
     UInt index;
@@ -219,10 +221,13 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
 
     UInt counter = 0;
     for (auto && values : zip(gaps,
-			      make_view(projections, spatial_dimension -1))) {
+			      make_view(projections, surface_dimension))) {
       auto & gap        = std::get<0>(values);
       auto & projection = std::get<1>(values);
-      
+
+      /// todo adhoc fix to assign a master element in case the
+      /// projection does not lie in the extended element. As it is
+      /// tolerance based
       bool is_valid = this->checkValidityOfProjection(projection);
       
       if (is_valid and gap <= gap_min) {
@@ -232,9 +237,6 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
       counter++;
     }
 
-    /// todo adhoc fix to assign a master element in case the
-    /// projection does not lie in the extended element. As it is
-    /// tolerance based
     if (index >= gaps.size()) {
       auto gap_min_it = std::min_element(gaps.begin(), gaps.end());
       auto index_it = std::find(gaps.begin(), gaps.end(), *gap_min_it);
@@ -258,7 +260,6 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
     return elem_conn;
   };
 
-  std::cerr << contact_pairs.size() << std::endl;
   for (auto & pairs : contact_pairs) {
 
     const auto & slave_node  = pairs.first;
@@ -267,9 +268,9 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
     Array<Element> elements;
     this->mesh.getAssociatedElements(master_node, elements);
 
-    Array<Real>    gaps(elements.size(),        1,                    "gaps");
-    Array<Real>    normals(elements.size(),     spatial_dimension,    "normals");
-    Array<Real>    projections(elements.size(), spatial_dimension -1, "projections");
+    Array<Real>    gaps(elements.size(),        1,                  "gaps");
+    Array<Real>    normals(elements.size(),     spatial_dimension,  "normals");
+    Array<Real>    projections(elements.size(), surface_dimension,  "projections");
 
     this->computeOrthogonalProjection(slave_node, elements,
 				      normals, gaps, projections);
@@ -281,19 +282,17 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
     contact_map[slave_node].setMaster(elements[index]);
     contact_map[slave_node].setGap(gaps[index]);
     contact_map[slave_node].setNormal(Vector<Real>(normals.begin(spatial_dimension)[index], true));
-    contact_map[slave_node].setProjection(Vector<Real>(projections.begin(spatial_dimension - 1)[index], true));
+    contact_map[slave_node].setProjection(Vector<Real>(projections.begin(surface_dimension)[index], true));
     contact_map[slave_node].setConnectivity(connectivity);
-
-    /// number of surface tangents will be equal to dimension of
-    /// surface i.e. spatial_dimension - 1 and nb of components will
-    /// still be equal to spatial dimension  
-    Matrix<Real> tangents(spatial_dimension - 1, spatial_dimension);
+  
+    Matrix<Real> tangents(surface_dimension, spatial_dimension);
     this->computeTangentsOnElement(contact_map[slave_node].master,
 				   contact_map[slave_node].projection,
 				   tangents);
     contact_map[slave_node].setTangent(tangents);
   }
-  
+
+  contact_pairs.clear();
 }
   
 /* -------------------------------------------------------------------------- */
@@ -331,7 +330,10 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
     Real cos_angle = distance.dot(normal);
 
     Real tolerance = 1e-8;
-    
+
+    // todo adhoc fix does not work always
+    normal *= -1.0;
+        
     /// todo: adhoc fix to ensure that normal is always into the slave
     /// surface. However, it doesnot work if gap is 0 as cos angle is
     /// a nan value
@@ -346,25 +348,6 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
 
 }
  
-/* -------------------------------------------------------------------------- */
-void ContactDetector::computeNormalOnElement(const Element & element, Vector<Real> & normal) {
-  
-  Matrix<Real> vectors(spatial_dimension, spatial_dimension - 1);
-  this->vectorsAlongElement(element, vectors);
- 
-  switch (this->spatial_dimension) {
-  case 2: {
-    Math::normal2(vectors.storage(), normal.storage());
-    break;
-  }
-  case 3: {
-    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
-    break;
-  }  
-  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
-  }
-        
-}
 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeProjectionOnElement(const Element & element,
@@ -406,28 +389,6 @@ void ContactDetector::computeNaturalProjection(const Element & element, Vector<R
 }
 
   
-/* -------------------------------------------------------------------------- */
-void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real> & vectors) {
-
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
-
-  Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
-  this->coordinatesOfElement(el, coords);
-
-  switch (spatial_dimension) {
-  case 2: {
-    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
-    break;
-  }
-  case 3: {
-    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
-    vectors(1) = Vector<Real>(coords(2)) - Vector<Real>(coords(0));
-    break;
-  } 
-  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
-  }
-  
-}
 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::computeTangentsOnElement(const Element & el, Vector<Real> & projection, Matrix<Real> & tangents) {
@@ -463,36 +424,6 @@ void ContactDetector::computeTangentsOnElement(const Element & el, Vector<Real> 
 
   tangents = temp_tangents.transpose();
 }
- 
-/* -------------------------------------------------------------------------- */
-void ContactDetector::normalProjection(const Element & /*el*/, const Vector<Real> & /*slave_coord*/,
-				       Vector<Real> & /*natural_coord*/, Real & /*tolerance*/) {
-
-  /*Real fmin;
-
-  
-  auto update_fmin = [&fmin, &slave_coord, &node_coords, &natural_coord]() {
-    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension);
-    // interpolate on natual coordinate and get physical guess
-    // compute gradient or jacobian on natural cooordiante
-    // f = slave_coord - physical_guess;
     
-    return fmin;
-  };
-
-  auto closet_point_error = update_fmin();
-
-  while (tolerance < closet_point_error) {
-
-    // compute gradiend on natural coordinate
-    // compute second variation of shape function at natural coord
-    
-    
-    closet_point_error = update_fmin();
-    }*/
-  
-}
-  
-   
   
 } // akantu

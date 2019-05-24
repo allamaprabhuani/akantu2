@@ -63,11 +63,9 @@ class ContactDetector :
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactDetector(Mesh &, const ID & id = "contact_detector",
-		  UInt memory_id = 0);
+  ContactDetector(Mesh &, const ID & id = "contact_detector", UInt memory_id = 0);
 
-  ContactDetector(Mesh &, Array<Real> positions,
-		  const ID & id = "contact_detector",
+  ContactDetector(Mesh &, Array<Real> positions,  const ID & id = "contact_detector",
 		  UInt memory_id = 0);
         
   ~ContactDetector() = default;
@@ -76,7 +74,7 @@ public:
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// performs the all search steps 
+  /// performs all search steps 
   void search(std::map<UInt, ContactElement> &);
 
   /// performs global spatial search to construct spatial grids
@@ -92,41 +90,19 @@ private:
   /// reads the input file to get contact detection options
   void parseSection();
 
-  /// extracts vectors which forms the plane of element
-  void vectorsAlongElement(const Element & /* element id     */,
-			   Matrix<Real> &  /* vectors matrix */);
-
-  /// computes orthogonal projection on master elements
-  void computeOrthogonalProjection(const UInt &           /* slave node */,
-				   const Array<Element> & /* master elements */,
-				   Array<Real> &          /* normals */,
-				   Array<Real> &          /* gaps */,
-				   Array<Real> &          /* projections */);
+  /// computes the orthogonal projection on master elements
+  void computeOrthogonalProjection(const UInt & , const Array<Element> &,
+				   Array<Real> &, Array<Real> &, Array<Real> &);
  
-  /// computes normal on an element
-  void computeNormalOnElement(const Element & /* element id    */,
-			      Vector<Real> &  /* normal vector */);
-
   /// computes tangents on a given natural coordinate
-  void computeTangentsOnElement(const Element &, Vector<Real> &,
-				Matrix<Real> &);
+  void computeTangentsOnElement(const Element &, Vector<Real> &, Matrix<Real> &);
 
   /// computes projection of a query point on an element
-  void computeProjectionOnElement(const Element &      /* element */,
-				  const Vector<Real> & /* normal */,
-				  const Vector<Real> & /* query */,
-				  Vector<Real> &       /* projection
-							  */,
-				  Vector<Real> & /* real_projection */);
+  void computeProjectionOnElement(const Element &, const Vector<Real> &,
+				  const Vector<Real> &, Vector<Real> &, Vector<Real> &);
 
   /// computes natural projection of a real projection
-  void computeNaturalProjection(const Element & /* element     */,
-				Vector<Real> &  /* real projection  */,
-				Vector<Real> &  /* natural projection */);
-
-  /// compute normal projection of slave coord on a given element
-  void normalProjection(const Element & el, const Vector<Real> & slave_coord,
-			Vector<Real> & natural_coord, Real & tolerance);
+  void computeNaturalProjection(const Element &, Vector<Real> &, Vector<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Inline Methods                                                           */
@@ -160,6 +136,13 @@ public:
 
   /// constructs the connectivity for a contact element
   inline Vector<UInt> constructConnectivity(UInt &, const Element &);
+
+  /// computes normal on an element
+  inline void computeNormalOnElement(const Element &, Vector<Real> & );
+  
+  /// extracts vectors which forms the plane of element
+  inline void vectorsAlongElement(const Element &, Matrix<Real> & );
+
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

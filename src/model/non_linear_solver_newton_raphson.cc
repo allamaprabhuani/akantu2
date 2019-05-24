@@ -95,6 +95,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
 
   this->n_iter = 0;
   this->converged = false;
+  //this->dump();
 
   if (this->convergence_criteria_type == _scc_residual) {
     this->converged = this->testConvergence(this->dof_manager.getResidual());
@@ -124,7 +125,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
     if (this->convergence_criteria_type == _scc_solution and
         not this->converged)
       this->assembleResidual(solver_callback);
-    // this->dump();
+    //this->dump();
 
     this->n_iter++;
     AKANTU_DEBUG_INFO(

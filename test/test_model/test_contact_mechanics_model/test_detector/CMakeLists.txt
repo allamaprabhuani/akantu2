@@ -25,7 +25,7 @@
 add_mesh (implicit_2d implicit_2d.geo 2 1)
 add_mesh (spheres_2d  spheres_2d.geo  2 1)
 add_mesh (implicit_3d implicit_3d.geo 3 1)
-
+add_mesh (paraview_2d  paraview_2d.geo  2 1)
 
 register_test(test_implicit_3d
   SOURCES test_detection_implicit_3d.cc
@@ -40,6 +40,15 @@ register_test(test_implicit_2d
   FILES_TO_COPY options.dat
   PACKAGE contact_mechanics
   )
+
+
+register_test(test_paraview
+  SOURCES test_paraview.cc
+  DEPENDS paraview_2d
+  FILES_TO_COPY material.dat
+  PACKAGE contact_mechanics
+  )
+
 
 register_test(test_spheres_2d
   SOURCES test_detection_implicit_2d.cc

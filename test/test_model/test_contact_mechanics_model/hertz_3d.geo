@@ -1,9 +1,9 @@
-cl1 = 0.005;
-cl2 = 0.005;
+cl1 = 0.01;
+cl2 = 0.02;
 cl3 = 0.05;
-cl4 = 0.005;
-radius = 0.1;
-depth = -0.1;
+cl4 = 0.02;
+radius = 0.25;
+depth = -0.25;
 y = 0.0;
 Dz = 1;
 
@@ -20,10 +20,10 @@ Point(14) = {-radius, y, radius, cl4};
 Point(15) = {-radius, y, -radius, cl4};
 Point(16) = {radius, y, -radius, cl4};
 
-Point(17) = {radius, y + depth, radius, cl2};
-Point(18) = {-radius, y + depth, radius, cl2};
-Point(19) = {-radius, y + depth, -radius, cl2};
-Point(20) = {radius, y + depth, -radius, cl2};
+Point(17) = {radius, y + depth, radius, cl3};
+Point(18) = {-radius, y + depth, radius, cl3};
+Point(19) = {-radius, y + depth, -radius, cl3};
+Point(20) = {radius, y + depth, -radius, cl3};
 
 
 Circle(1) = {3, 4, 1};
@@ -78,8 +78,8 @@ Surface Loop(101) = {8, 9, 10, 11, 12, 13};
 Volume(3) = {101};
 
 Physical Surface("top_surface") = {5};
-Physical Surface("flat") = {9};
+Physical Surface("contact_bottom") = {9};
 Physical Surface("bottom_surface") = {8};
 Physical Volume("top_body") = {1};
 Physical Volume("bot_body") = {3};
-Physical Surface("curved") = {1, 2, 4, 3};
+Physical Surface("contact_top") = {1, 2, 4, 3};

@@ -23,10 +23,20 @@
 #===============================================================================
 
 add_mesh (coupling coupling.geo 2 1)
+add_mesh (flat_on_flat flat_on_flat.geo 2 1)
+
 
 register_test( test_contact_coupling
   SOURCES test_contact_coupling.cc
   DEPENDS coupling
   FILES_TO_COPY material.dat
+  PACKAGE contact_mechanics model_couplers
+  )
+
+
+register_test( test_coupled_stiffness
+  SOURCES test_coupled_stiffness.cc
+  DEPENDS flat_on_flat
+  FILES_TO_COPY material_stiffness.dat
   PACKAGE contact_mechanics model_couplers
   )

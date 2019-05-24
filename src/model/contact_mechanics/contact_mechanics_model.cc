@@ -306,11 +306,8 @@ void ContactMechanicsModel::assembleInternalForces() {
 void ContactMechanicsModel::search() {
   
   this->contact_map.clear();
-  
   this->detector->search(this->contact_map);
-
   this->assembleFieldsFromContactMap();
-
   this->computeNodalAreas<Surface::slave>();
 }
 
@@ -318,7 +315,6 @@ void ContactMechanicsModel::search() {
 void ContactMechanicsModel::search(Array<Real> & increment) {
 
   this->contact_map.clear();
-  
   this->detector->search(this->contact_map);
 
   for (auto & entry : contact_map) {
@@ -338,58 +334,16 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
       u_master(s) = increment(master_node, s);
     }
 
-    /*auto u = (u_master.norm() > u_slave.norm()) ? u_master * -1.0 : u_slave;
-
-    const auto & normal = element.normal;
-    Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
-
-    std::cerr << u << " " << normal << std::endl;
-    std::cerr << uv << "  " << element.gap << " " << uv + element.gap << std::endl;
-    
-    if (uv + element.gap <= 0) {
-      element.gap = abs(uv + element.gap);
-    } else {
-      element.gap = 0.0;
-    }*/
-
+    // todo check this initial guess
     auto u = (u_master.norm() > u_slave.norm()) ? u_master : u_slave;
-
     Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
-    uv = abs(uv);
-    
-    std::cerr << uv << "  " << element.gap << " " << element.gap - uv << std::endl;
-    
+   
     if (element.gap - uv <= 0) {
       element.gap = abs(element.gap - uv);
-    } else {
-      element.gap = 0.0;
-    }
-
-    /*auto u = u_slave - u_master;
-    auto u_n = u.dot(normal);
-    u_n = abs(u_n);
-
-    auto positions = detector->getPositions();
-    Vector<Real> slave_pos(spatial_dimension);
-    Vector<Real> master_pos(spatial_dimension);
-    
-    for (auto s : arange(spatial_dimension)) {
-      slave_pos(s) = positions(slave_node, s);
-      master_pos(s) = positions(master_node, s);
-    }
-
-    auto sign = (slave_pos - master_pos).dot(normal);
-    sign/= abs(sign);
-    
-    auto g_trial = element.gap - sign * u_n;
-    if (g_trial <= 0 or sign < 0) {
-      element.gap = abs(g_trial);
     }
     else {
-      element.gap = 0;
-    }*/
-
-    
+      element.gap = 0.0;
+    }    
   }
 
   this->assembleFieldsFromContactMap();

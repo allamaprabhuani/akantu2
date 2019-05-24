@@ -164,7 +164,7 @@ void CouplerSolidContact::assembleResidual() {
   this->getDOFManager().assembleToResidual("displacement",
                                            external_force, 1);
   this->getDOFManager().assembleToResidual("displacement",
-                                           internal_force, 1);   
+                                           internal_force, 1);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -282,6 +282,7 @@ void CouplerSolidContact::assembleInternalForces() {
   solid->assembleInternalForces();  
   contact->assembleInternalForces();
 
+  
   AKANTU_DEBUG_OUT();
 }
 

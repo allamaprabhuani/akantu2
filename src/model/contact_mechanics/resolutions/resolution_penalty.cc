@@ -94,7 +94,6 @@ void ResolutionPenalty::computeNormalModuli(Matrix<Real> & ke, Array<Real> & n_a
   tn = macaulay(tn);
 
   Matrix<Real> n_mat(n.storage(), n.size(), 1);
-  
   ke.mul<false, true>(n_mat, n_mat);
   ke *= epsilon * heaviside(element.gap);
   
@@ -111,11 +110,39 @@ void ResolutionPenalty::computeNormalModuli(Matrix<Real> & ke, Array<Real> & n_a
     tmp1.mul<false, true>(ns_mat, ds_mat);
 
     Matrix<Real> tmp2(n_s.size(), n_s.size());
-    tmp1.mul<false, true>(ds_mat, ns_mat);
+    tmp2.mul<false, true>(ds_mat, ns_mat);
 
     ke -= (tmp1 + tmp2) * tn;
   }
+  
+  auto surface_dimension = spatial_dimension - 1;
+  Matrix<Real> m_alpha_beta(surface_dimension, surface_dimension);
+  ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
+  
+  for (auto && values :
+	 zip(arange(surface_dimension),
+	     make_view(n_alpha, n_alpha.size()))) {
 
+    auto & s = std::get<0>(values);
+    auto & n_s = std::get<1>(values);
+
+    Matrix<Real> ns_mat(n_s.storage(), n_s.size(), 1);
+    
+    for (auto && tuple :
+	   zip(arange(surface_dimension),
+	       make_view(n_alpha, n_alpha.size()))) {
+      auto & t = std::get<0>(tuple);
+      auto & n_t = std::get<1>(tuple);
+
+      Matrix<Real> nt_mat(n_t.storage(), n_t.size(), 1);
+      
+      Matrix<Real> tmp3(n_s.size(), n_s.size());
+      tmp3.mul<false, true>(ns_mat, nt_mat);
+
+      tmp3 *= m_alpha_beta(s, t) *  tn * element.gap;
+      ke += tmp3;
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
