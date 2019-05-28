@@ -276,7 +276,7 @@ private:
   bool are_resolutions_instantiated;
 
   /// displacements array
-  Array<Real> * displacement;
+  Array<Real> * displacement{nullptr};
 
   /// increment of displacement
   Array<Real> * displacement_increment{nullptr};
@@ -292,6 +292,9 @@ private:
 
   /// array to store gap between slave and master
   Array<Real> * gaps{nullptr};
+
+  /// array to store gap from previous iteration
+  Array<Real> * previous_gaps{nullptr};
 
   /// array to store normals from master to slave
   Array<Real> * normals{nullptr};

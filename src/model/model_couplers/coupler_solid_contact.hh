@@ -134,11 +134,37 @@ protected:
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType, NonLinearSolverType) override;
 
+  /* ------------------------------------------------------------------------ */
+  /* Mass matrix for solid mechanics model                                    */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// assemble the lumped mass matrix
+  void assembleMassLumped();
+
+  /// assemble the mass matrix for consistent mass resolutions
+  void assembleMass();
+
 protected:
+  /// assemble the lumped mass matrix for local and ghost elements
+  void assembleMassLumped(GhostType ghost_type);
+
+  /// assemble the mass matrix for either _ghost or _not_ghost elements
+  void assembleMass(GhostType ghost_type);
+
+  
+protected:
+  /* -------------------------------------------------------------------------- */
+  TimeStepSolverType getDefaultSolverType() const override;
   /* -------------------------------------------------------------------------- */
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const;
 
+
+public:
+  bool isDefaultSolverExplicit() {
+    return method == _explicit_dynamic_contact;
+  }
+  
   
   /* ------------------------------------------------------------------------ */
 public:
@@ -197,6 +223,7 @@ public:
 
   /// get the contact mechanics model
   AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &);
+
   
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
@@ -247,6 +274,10 @@ private:
   
   /// external forces array
   Array<Real> * external_force{nullptr};
+
+  bool search_for_contact;
+
+  UInt step;
 };
 
 } // namespace akantu

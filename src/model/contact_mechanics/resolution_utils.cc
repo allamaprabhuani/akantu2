@@ -80,12 +80,12 @@ void ResolutionUtils::computeTalpha(Array<Real> & t_alpha, ContactElement & elem
 	       make_view(t_alpha, t_alpha.size()))) {
 
     auto & tangent_s = std::get<0>(values);
-    auto & t_s     = std::get<1>(values);
+    auto & t_s       = std::get<1>(values);
     
     for (UInt i : arange(spatial_dimension)) {
-      t_s[i] = -tangent_s(i);
+      t_s[i] = tangent_s(i); // todo there was a mius sign here
       for (UInt j : arange(shapes.size())) {
-        t_s[(1 + j) * spatial_dimension + i] = -shapes[j] * tangent_s(i);
+	t_s[(1 + j) * spatial_dimension + i] = -shapes[j] * tangent_s(i);
       }
     }
   }
@@ -135,24 +135,25 @@ void ResolutionUtils::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha
 
   Matrix<Real> m_alpha_beta(surface_dimension, surface_dimension);
   ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
+  m_alpha_beta = m_alpha_beta.inverse();
   
   for (auto && entry :
-	 zip(m_alpha_beta.transpose(),
+	 zip(arange(surface_dimension),
 	     make_view(d_alpha, d_alpha.size()))) {
 
-    auto & a_s = std::get<0>(entry);
+    auto & s   = std::get<0>(entry);
     auto & d_s = std::get<1>(entry);
 
     for (auto && values :
-         zip(arange(t_alpha.size()),
+         zip(arange(surface_dimension),
 	     make_view(t_alpha, t_alpha.size()),
              make_view(n_alpha, n_alpha.size()))) {
-      auto & index = std::get<0>(values);
-      auto & t_s = std::get<1>(values);
-      auto & n_s = std::get<2>(values);
+      auto & t   = std::get<0>(values);
+      auto & t_t = std::get<1>(values);
+      auto & n_t = std::get<2>(values);
 
-      d_s += (t_s + element.gap * n_s);
-      d_s *= a_s(index);
+      d_s += (t_t + element.gap * n_t);
+      d_s *= m_alpha_beta(s, t);
     }
   }
 }
@@ -309,7 +310,6 @@ void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha
 void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, Matrix<Real> & tangents) {
 
   m_alpha_beta.mul<false, true>(tangents, tangents);
-  m_alpha_beta = m_alpha_beta.inverse();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -318,11 +318,12 @@ void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array, Array<
   const auto & conn = element.connectivity;
   UInt nb_dofs = global_array.getNbComponent();
 
+  auto slave_node = conn[0];
   for (UInt i : arange(conn.size())) {
     UInt n = conn[i];
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
-      global_array[offset_node] += local_array[i * nb_dofs + j] * nodal_area[n];
+      global_array[offset_node] += local_array[i * nb_dofs + j] * nodal_area[slave_node];
     }
   }
 }

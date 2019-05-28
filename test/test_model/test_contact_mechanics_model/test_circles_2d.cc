@@ -59,10 +59,7 @@ int main(int argc, char *argv[]) {
   contact.initFull(_analysis_method = _implicit_contact);
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bot_body");
-  //solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bot_body");
-
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bot_body");
   
   coupler.initFull(_analysis_method = _implicit_contact);
   
@@ -74,6 +71,7 @@ int main(int argc, char *argv[]) {
   coupler.setBaseName("test-circles-2d");
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("normals");
+  coupler.addDumpFieldVector("tangents");
   coupler.addDumpFieldVector("contact_force");
   coupler.addDumpFieldVector("external_force");
   coupler.addDumpFieldVector("internal_force");
@@ -82,15 +80,14 @@ int main(int argc, char *argv[]) {
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
 
-  for (auto i : arange(nb_steps)) {
+  for (UInt i : arange(nb_steps)) {
 
-    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bot_body");
+    std::cerr << "Step " << i << std::endl;  
+    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top");
+
     coupler.solveStep();
-    
     coupler.dump();
-
-    std::cerr << "Step " << i << std::endl;
-    }
+  }
 
   finalize();
   return EXIT_SUCCESS;

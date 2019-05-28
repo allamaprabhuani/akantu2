@@ -187,7 +187,7 @@ inline void ContactDetector::computeNormalOnElement(const Element & element, Vec
   
   Matrix<Real> vectors(spatial_dimension, spatial_dimension - 1);
   this->vectorsAlongElement(element, vectors);
- 
+  
   switch (this->spatial_dimension) {
   case 2: {
     Math::normal2(vectors.storage(), normal.storage());
@@ -199,7 +199,23 @@ inline void ContactDetector::computeNormalOnElement(const Element & element, Vec
   }  
   default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
   }
-        
+
+  // to ensure that normal is always outwards from master surface
+  const auto & element_to_subelement =
+    mesh.getElementToSubelement(element.type)(element.element);
+
+  Vector<Real> outside(spatial_dimension);
+  mesh.getBarycenter(element, outside);
+  
+  Vector<Real> inside(spatial_dimension);
+  mesh.getBarycenter(element_to_subelement[0], inside);
+
+  Vector<Real> inside_to_outside = outside - inside;
+  auto projection = inside_to_outside.dot(normal);
+
+  if (projection < 0) {
+    normal *=  -1.0;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -225,6 +241,25 @@ inline void ContactDetector::vectorsAlongElement(const Element & el, Matrix<Real
   
 }
 
+/* -------------------------------------------------------------------------- */
+inline Real ContactDetector::computeGap(Vector<Real> & slave, Vector<Real> & master, Vector<Real> & normal) {
+
+  Vector<Real> slave_to_master(spatial_dimension);
+  slave_to_master = master - slave;
+
+  Real gap = slave_to_master.norm();
+  
+  auto projection = slave_to_master.dot(normal);
+
+  // if slave node is beneath th master surface 
+  if (projection > 0) {
+    gap *= -1.0;
+  }
+
+  return gap;
+}
+  
+  
   
 /* -------------------------------------------------------------------------- */  
 

@@ -44,56 +44,55 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   initialize("material.dat", argc, argv);
 
-  auto increment = 1e-3;
-  auto nb_steps = 10;
-  
+  Real time_step;
+  Real time_factor = 0.8;
+  UInt max_steps = 5000;
+    
   Mesh mesh(spatial_dimension);
-  mesh.read("hertz_2d.msh");
+  mesh.read("contact_hertz_2d.msh");
   
-  CouplerSolidContact coupler(mesh);
-
-  auto & solid   = coupler.getSolidMechanicsModel();
-  auto & contact = coupler.getContactMechanicsModel();
-
+  SolidMechanicsModel solid(mesh);
+  
   auto && selector = std::make_shared<MeshDataMaterialSelector<std::string>>(
-		     "physical_names",solid);
+		     "physical_names", solid);
   solid.setMaterialSelector(selector);
-  
-  solid.initFull(  _analysis_method = _static);
-  contact.initFull(_analysis_method = _explicit_contact);
+    
+  solid.initFull(  _analysis_method = _explicit_lumped_mass);
+
+  time_step = solid.getStableTimeStep();
+  std::cout << "Time Step = " << time_step * time_factor << "s (" << time_step
+            << "s)" << std::endl;
+  solid.setTimeStep(time_step * time_factor);
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
+   
+  solid.setBaseName("solid-explicit-dynamic");
+  solid.addDumpFieldVector("displacement");
+  solid.addDumpFieldVector("velocity");
+  solid.addDumpFieldVector("external_force");
+  solid.addDumpFieldVector("internal_force");
+  solid.addDumpField("blocked_dofs");
+  solid.addDumpField("grad_u");
+  solid.addDumpField("stress");
 
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
+  auto & velocity = solid.getVelocity();
 
-  coupler.initFull(_analysis_method = _explicit_contact);
+  Real damping_ratio = 1.0;
   
-  auto & solver = coupler.getNonLinearSolver();
-  solver.set("max_iterations", 1000);
-  solver.set("threshold", 1e-8);
-  solver.set("convergence_type", _scc_residual);
-  
-  coupler.setBaseName("test-hertz-quadratic-2d");
-  coupler.addDumpFieldVector("displacement");
-  coupler.addDumpFieldVector("normals");
-  coupler.addDumpFieldVector("tangents");
-  coupler.addDumpFieldVector("contact_force");
-  coupler.addDumpFieldVector("external_force");
-  coupler.addDumpFieldVector("internal_force");
-  coupler.addDumpField("gaps");
-  coupler.addDumpField("areas");
-  coupler.addDumpField("blocked_dofs");
-  coupler.addDumpField("grad_u");
-  coupler.addDumpField("stress");
-  
-  for (auto i : arange(nb_steps)) {
-
+  for (auto i : arange(max_steps)) {
+    auto increment = time_step * 1e-3;
     std::cerr << "Step " << i << std::endl;  
-    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom");
 
-    coupler.solveStep();       
-    coupler.dump();
+    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom"); 
+  
+    solid.solveStep();
+
+    for (auto & v : make_view(velocity)) {
+      v *= damping_ratio;
+    }
+    
+    solid.dump();
   }
 
   finalize();

@@ -44,46 +44,59 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   initialize("material.dat", argc, argv);
 
+  auto increment = 5e-3;
+  auto nb_steps = 1;
+  
   Mesh mesh(spatial_dimension);
   mesh.read("flat_2d.msh");
   
   CouplerSolidContact coupler(mesh);
-
+  
   auto & solid   = coupler.getSolidMechanicsModel();
   auto & contact = coupler.getContactMechanicsModel();
+ 
+  auto && selector = std::make_shared<MeshDataMaterialSelector<std::string>>(
+		  "physical_names",solid);
+  solid.setMaterialSelector(selector);
 
   solid.initFull(  _analysis_method = _static);
-  contact.initFull(_analysis_method = _implicit_contact);
-
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bot_body");
-  solid.applyBC(BC::Dirichlet::IncrementValue(0.005, _y), "bot_body");
+  contact.initFull(_analysis_method = _explicit_contact);
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
+
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
   
-  coupler.initFull(_analysis_method = _implicit_contact);
+  coupler.initFull(_analysis_method = _explicit_contact);
 
   auto & solver = coupler.getNonLinearSolver();
   solver.set("max_iterations", 1000);
   solver.set("threshold", 1e-8);
-  solver.set("convergence_type", _scc_solution);
+  solver.set("convergence_type", _scc_residual);
 
   coupler.setBaseName("test-flat-2d");
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("normals");
+  coupler.addDumpFieldVector("tangents");
   coupler.addDumpFieldVector("contact_force");
   coupler.addDumpFieldVector("external_force");
   coupler.addDumpFieldVector("internal_force");
   coupler.addDumpField("gaps");
+  coupler.addDumpField("previous_gaps");
+  coupler.addDumpField("areas");
   coupler.addDumpField("blocked_dofs");
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
-  
-  coupler.dump();
-  
-  coupler.solveStep();
 
   coupler.dump();
+  for (auto i : arange(nb_steps)) {
+
+    std::cerr << "Step " << i << std::endl;  
+    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom");
+
+    coupler.solveStep();       
+    coupler.dump();
+  }
 
   finalize();
   return EXIT_SUCCESS;

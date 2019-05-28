@@ -126,6 +126,8 @@ inline std::ostream & operator<<(std::ostream & stream,
   case _nls_auto:
     stream << "auto";
     break;
+  case _nls_newton_raphson_contact:
+    stream << "newton_raphson_contact";
   }
   return stream;
 }
@@ -146,6 +148,8 @@ inline std::istream & operator>>(std::istream & stream,
     type = _nls_lumped;
   else if (str == "auto")
     type = _nls_auto;
+  else if (str == "newton_raphson_contact")
+    type = _nls_newton_raphson_contact;
   else
     type = _nls_auto;
 

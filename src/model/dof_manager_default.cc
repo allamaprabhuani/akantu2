@@ -303,6 +303,7 @@ DOFManagerDefault::getNewNonLinearSolver(const ID & id,
   switch (type) {
 #if defined(AKANTU_IMPLICIT)
   case _nls_newton_raphson:
+  case _nls_newton_raphson_contact:  
   case _nls_newton_raphson_modified: {
     nls = std::make_unique<NonLinearSolverNewtonRaphson>(
         *this, type, non_linear_solver_id, this->memory_id);

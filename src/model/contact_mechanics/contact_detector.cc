@@ -70,6 +70,7 @@ void ContactDetector::parseSection() {
     *(parser.getSubSections(ParserType::_contact_detector).first);
 
   auto type = section.getParameterValue<std::string>("type");
+  
   if (type == "implicit") {
     this->detection_type = _implicit;
   }
@@ -82,19 +83,26 @@ void ContactDetector::parseSection() {
   
   surfaces[Surface::master] = section.getParameterValue<std::string>("master");
   surfaces[Surface::slave ] = section.getParameterValue<std::string>("slave");
+
+  two_pass_algorithm = section.getParameterValue<bool>("two_pass_algorithm");
 }
      
 /* -------------------------------------------------------------------------- */
 void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
+
+  contact_pairs.clear();
   
   SpatialGrid<UInt> master_grid(spatial_dimension);
-
   SpatialGrid<UInt> slave_grid(spatial_dimension);
- 
+  
   this->globalSearch(slave_grid, master_grid);
-
+  
   this->localSearch(slave_grid, master_grid);
 
+  //if (two_pass_algorithm) {
+  //  this->localSearch(master_grid, slave_grid);
+  //}
+   
   this->constructContactMap(contact_map);
 }
    
@@ -163,9 +171,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   // slave node and master node and master surfaces connected to the
   // master node
   // these master surfaces will be needed later to update contact
-  // elements
-  
-  contact_pairs.clear();
+  // elements 
   
   /// find the closet master node for each slave node
   for (auto && cell_id : slave_grid) {
@@ -200,11 +206,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 	}	
       }
 
-      if (pair_exists) {
+      if (pair_exists) 
 	contact_pairs.push_back( std::make_pair(slave_node,
-						closet_master_node));
-      }
-      
+					closet_master_node));        
     }
   }  
 }
@@ -249,7 +253,6 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
 
   auto get_connectivity = [&](auto & slave, auto & master) {
     Vector<UInt> master_conn = this->mesh.getConnectivity(master);
-
     Vector<UInt> elem_conn(master_conn.size() + 1);
 
     elem_conn[0] = slave;
@@ -289,6 +292,38 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
     this->computeTangentsOnElement(contact_map[slave_node].master,
 				   contact_map[slave_node].projection,
 				   tangents);
+
+    switch (spatial_dimension) {
+    case 2: {
+      Vector<Real> e_z(3);
+      e_z[0] = 0.;
+      e_z[1] = 0.;
+      e_z[2] = 1.;
+
+      Vector<Real> tangent(3);
+      tangent[0] =  tangents(0, 0);
+      tangent[1] =  tangents(0, 1);
+      tangent[2] =  0.;
+      
+      auto exp_normal = e_z.crossProduct(tangent);
+      
+      auto & cal_normal = contact_map[slave_node].normal;
+
+      auto ddot = cal_normal.dot(exp_normal);
+      if (ddot < 0) {
+	tangents *= -1.0;
+      }
+
+      break;
+    }
+    case 3: {
+      
+      break;
+    }
+    default:
+      break;
+    }
+    
     contact_map[slave_node].setTangent(tangents);
   }
 
@@ -321,29 +356,8 @@ void ContactDetector::computeOrthogonalProjection(const UInt & node,
     Vector<Real> real_projection(spatial_dimension);
     this->computeProjectionOnElement(element, normal, query,
 				     projection, real_projection);     
-    
-    Vector<Real> distance(spatial_dimension);
-    distance = query - real_projection;
-    gap = Math::norm(spatial_dimension, distance.storage());
-    
-    Vector<Real> direction = distance.normalize(); 
-    Real cos_angle = distance.dot(normal);
 
-    Real tolerance = 1e-8;
-
-    // todo adhoc fix does not work always
-    normal *= -1.0;
-        
-    /// todo: adhoc fix to ensure that normal is always into the slave
-    /// surface. However, it doesnot work if gap is 0 as cos angle is
-    /// a nan value
-    //if (std::abs(cos_angle + 1) <= tolerance) {
-    //  normal *= -1.0;
-    //}
-    
-    if (std::abs(cos_angle - 1) <= tolerance and detection_type == _explicit) {
-      gap *= -1;
-    }
+    gap = this->computeGap(query, real_projection, normal);
   }
 
 }

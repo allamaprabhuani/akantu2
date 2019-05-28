@@ -50,7 +50,8 @@ void ResolutionPenalty::initialize() {
 		      "Normal penalty parameter");
   this->registerParam("epsilon_t", epsilon_t, Real(0.), _pat_parsable | _pat_modifiable,
 		      "Tangential penalty parameter");
-
+  this->registerParam("quadratic", quadratic, bool(false), _pat_parsable | _pat_modifiable,
+		      "penalty function");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -59,7 +60,13 @@ void ResolutionPenalty::computeNormalForce(Vector<Real> & force, Vector<Real> & 
 
   force.clear();
   Real tn = element.gap * epsilon;
-  tn = macaulay(tn);
+
+  if (quadratic) {
+    tn = macaulay(tn)* macaulay(element.gap);
+  }
+  else {
+    tn = macaulay(tn);
+  }
   for (UInt i : arange(force.size())) {
     force[i] += n[i] * tn;
   }

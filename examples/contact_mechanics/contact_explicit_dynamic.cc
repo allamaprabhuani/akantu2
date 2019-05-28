@@ -44,11 +44,12 @@ int main(int argc, char *argv[]) {
   const UInt spatial_dimension = 2;
   initialize("material.dat", argc, argv);
 
-  auto increment = 1e-3;
-  auto nb_steps = 10;
-  
+  Real time_step;
+  Real time_factor = 0.8;
+  UInt max_steps = 1000;
+    
   Mesh mesh(spatial_dimension);
-  mesh.read("hertz_2d.msh");
+  mesh.read("contact_hertz_2d.msh");
   
   CouplerSolidContact coupler(mesh);
 
@@ -59,23 +60,26 @@ int main(int argc, char *argv[]) {
 		     "physical_names",solid);
   solid.setMaterialSelector(selector);
   
-  solid.initFull(  _analysis_method = _static);
-  contact.initFull(_analysis_method = _explicit_contact);
+  solid.initFull(  _analysis_method = _explicit_lumped_mass);
+  contact.initFull(_analysis_method = _explicit_dynamic_contact);
+
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
 
-  coupler.initFull(_analysis_method = _explicit_contact);
+  coupler.initFull(_analysis_method = _explicit_dynamic_contact);
+
+  time_step = solid.getStableTimeStep();
+  std::cout << "Time Step = " << time_step * time_factor << "s (" << time_step
+            << "s)" << std::endl;
+  coupler.setTimeStep(time_step * time_factor);
+
   
-  auto & solver = coupler.getNonLinearSolver();
-  solver.set("max_iterations", 1000);
-  solver.set("threshold", 1e-8);
-  solver.set("convergence_type", _scc_residual);
-  
-  coupler.setBaseName("test-hertz-quadratic-2d");
+  coupler.setBaseName("contact-explicit-dynamic");
   coupler.addDumpFieldVector("displacement");
+  coupler.addDumpFieldVector("velocity");
   coupler.addDumpFieldVector("normals");
   coupler.addDumpFieldVector("tangents");
   coupler.addDumpFieldVector("contact_force");
@@ -87,12 +91,14 @@ int main(int argc, char *argv[]) {
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
   
-  for (auto i : arange(nb_steps)) {
-
+  for (auto i : arange(max_steps)) {
+    Real factor = 1e-3;
+    auto increment = time_step * factor;
     std::cerr << "Step " << i << std::endl;  
     solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom");
 
-    coupler.solveStep();       
+    coupler.solveStep();
+    
     coupler.dump();
   }
 

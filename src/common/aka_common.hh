@@ -164,7 +164,8 @@ enum AnalysisMethod {
   _explicit_lumped_capacity = 2,
   _explicit_consistent_mass = 3,
   _explicit_contact = 4,
-  _implicit_contact = 5
+  _implicit_contact = 5,
+  _explicit_dynamic_contact = 6
 };
 
 /// enum DOFSupportType defines which kind of dof that can exists
@@ -176,8 +177,10 @@ enum NonLinearSolverType {
   _nls_newton_raphson,          ///< Regular Newton-Raphson
   _nls_newton_raphson_modified, ///< Newton-Raphson with initial tangent
   _nls_lumped,                  ///< Case of lumped mass or equivalent matrix
-  _nls_auto ///< This will take a default value that make sense in case of
+  _nls_auto, ///< This will take a default value that make sense in case of
             ///  model::getNewSolver
+  _nls_newton_raphson_contact   ///< Regular Newton-Raphson modified
+				/// for contact problem 
 };
 
 /// @enum Type of contact detection

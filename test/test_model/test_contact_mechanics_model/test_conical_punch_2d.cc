@@ -3,8 +3,8 @@
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Tue Apr 30 2019
- * @date last modification: Tue Apr 30 2019
+ * @date creation: Tue May 28 2019
+ * @date last modification: Tue May 28 2019
  *
  * @brief  Test for contact mechanics model class
  *
@@ -42,13 +42,13 @@ int main(int argc, char *argv[]) {
 
   
   const UInt spatial_dimension = 2;
-  initialize("material.dat", argc, argv);
+  initialize("material_punch.dat", argc, argv);
 
   auto increment = 1e-3;
   auto nb_steps = 10;
   
   Mesh mesh(spatial_dimension);
-  mesh.read("hertz_2d.msh");
+  mesh.read("conical_punch_2d.msh");
   
   CouplerSolidContact coupler(mesh);
 
@@ -62,10 +62,10 @@ int main(int argc, char *argv[]) {
   solid.initFull(  _analysis_method = _static);
   contact.initFull(_analysis_method = _explicit_contact);
 
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
-
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
+
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top_body");
 
   coupler.initFull(_analysis_method = _explicit_contact);
   
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
   solver.set("threshold", 1e-8);
   solver.set("convergence_type", _scc_residual);
   
-  coupler.setBaseName("test-hertz-quadratic-2d");
+  coupler.setBaseName("test-conical-punch-2d");
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("normals");
   coupler.addDumpFieldVector("tangents");
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
   for (auto i : arange(nb_steps)) {
 
     std::cerr << "Step " << i << std::endl;  
-    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom");
+    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top_body");
 
     coupler.solveStep();       
     coupler.dump();

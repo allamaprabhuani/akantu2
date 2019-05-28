@@ -143,7 +143,10 @@ public:
   /// extracts vectors which forms the plane of element
   inline void vectorsAlongElement(const Element &, Matrix<Real> & );
 
-
+  /// computes the gap between slave and its projection on master
+  /// surface
+  inline Real computeGap(Vector<Real> &, Vector<Real> &, Vector<Real> &);
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -170,6 +173,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
+protected:
+  /// map to contain ids for surfaces
+  std::map<Surface, std::string> surfaces; 
+  
 private:
   /// maximal detection distance for grid spacing
   Real max_dd;
@@ -183,9 +190,6 @@ private:
   /// dimension of the model
   UInt spatial_dimension{0};
   
-  /// map to contain ids for surfaces
-  std::map<Surface, std::string> surfaces; 
-
   /// contact pair slave node to closet master node
   std::vector<std::pair<UInt, UInt> > contact_pairs;
   
@@ -194,6 +198,9 @@ private:
 
   /// type of detection explicit/implicit 
   DetectionType detection_type;
+
+  ///
+  bool two_pass_algorithm;
 };
   
 } // namespace akantu

@@ -141,6 +141,12 @@ public:
 
   /// computes 2nd derivative of displacement
   Matrix<Real> computeNablaOfDisplacement(ContactElement &);
+
+private:
+  /// assemble the residual for this resolution from a given set of
+  /// surface nodes
+  void assembleInternalForces(const Array<UInt> &);
+
   
 public:
   /// function to print the contain of the class
@@ -155,6 +161,12 @@ protected:
   
   /// resolution name
   std::string name;
+
+  /// slave surface name
+  std::string slave;
+  
+  /// mastee surface name
+  std::string master;  
   
   /// model to which the resolution belong
   ContactMechanicsModel & model;
@@ -162,9 +174,10 @@ protected:
   /// friciton coefficient : mu
   Real mu;
   
-  /// spatial dimension
+  /// spatial dimensionxc
   UInt spatial_dimension;
-				   
+
+  bool two_pass_algorithm;
 };
 
 /// standard output stream operator

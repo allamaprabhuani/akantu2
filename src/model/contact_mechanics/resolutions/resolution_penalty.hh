@@ -105,6 +105,10 @@ protected:
 
   /// penalty parameter for tangential stress
   Real epsilon_t;
+
+  /// penalty fucntion
+  bool quadratic;
+  
 };
   
 

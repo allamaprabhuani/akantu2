@@ -30,31 +30,16 @@
 #
 #===============================================================================
 
-add_mesh(hertz_2d hertz_2d.geo 2 1)
-add_mesh(hertz_implicit_2d hertz_implicit_2d.geo 2 1)
-add_mesh(hertz_3d hertz_3d.geo 3 1)
+add_mesh(contact_hertz_2d contact_hertz_2d.geo 2 1)
 
-#register_example(implicit_penalty_2d
-#  SOURCES implicit_penalty_2d.cc
-#  DEPENDS hertz_implicit_2d
-#  FILES_TO_COPY material_implicit.dat
-#  )
+register_example(contact_explicit_dynamic
+  SOURCES contact_explicit_dynamic.cc
+  DEPENDS contact_hertz_2d
+  FILES_TO_COPY material.dat
+  )
 
-#register_example(explicit_penalty_2d
-#  SOURCES explicit_penalty_2d.cc
-#  DEPENDS hertz_2d
-#  FILES_TO_COPY material.dat
-#  )
-
-#register_example(explicit_penalty_3d
-#  SOURCES explicit_penalty_3d.cc
-#  DEPENDS hertz_3d
-#  FILES_TO_COPY material.dat
-#  )
-
-#register_example(solid_contact_explicit
-#  SOURCES solid_contact_explicit.cc
-#  DEPENDS hertz_2d
-#  FILES_TO_COPY material.dat
-#  )
-
+register_example(solid_explicit_dynamic
+  SOURCES solid_explicit_dynamic.cc
+  DEPENDS contact_hertz_2d
+  FILES_TO_COPY material_solid.dat
+  )

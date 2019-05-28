@@ -214,10 +214,17 @@ void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
                         "internal_force");
   this->allocNodalField(this->external_force, spatial_dimension,
                         "external_force");
-  this->allocNodalField(this->normals, spatial_dimension, "normals");
+
   this->allocNodalField(this->gaps, 1, "gaps");
+  this->allocNodalField(this->previous_gaps, 1, "previous_gaps");
   this->allocNodalField(this->nodal_area, 1, "areas");
   this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
+
+  this->allocNodalField(this->normals, spatial_dimension, "normals");
+  this->allocNodalField(this->tangents, spatial_dimension, "tangents");
+  
+  /* -------------------------------------------------------------------------- */
+  // todo register multipliers as dofs for lagrange multipliers
 }
 
 /* -------------------------------------------------------------------------- */
@@ -226,11 +233,15 @@ ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
   switch (method) {
   case _explicit_contact: {
-    return std::make_tuple("explicit_contact", _tsst_dynamic);
+    return std::make_tuple("explicit_contact", _tsst_static);
   }
   case _implicit_contact: {
     return std::make_tuple("implicit_contact", _tsst_static);
   }
+  case _explicit_dynamic_contact: {
+    return std::make_tuple("explicit_dynamic_contact", _tsst_dynamic_lumped);
+    break;
+  }  
   default:
     return std::make_tuple("unkown", _tsst_not_defined);
   }
@@ -243,13 +254,19 @@ ModelSolverOptions ContactMechanicsModel::getDefaultSolverOptions(
 
   switch (type) {
   case _tsst_dynamic: {
-    options.non_linear_solver_type = _nls_newton_raphson;
-    options.integration_scheme_type["displacement"] = _ist_pseudo_time;
-    options.solution_type["displacement"] = IntegrationScheme::_not_defined;
+    options.non_linear_solver_type = _nls_lumped;
+    options.integration_scheme_type["displacement"] = _ist_central_difference;
+    options.solution_type["displacement"] = IntegrationScheme::_acceleration;
+    break;
+  }
+  case _tsst_dynamic_lumped: {
+    options.non_linear_solver_type = _nls_lumped;
+    options.integration_scheme_type["displacement"] = _ist_central_difference;
+    options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
   case _tsst_static: {
-    options.non_linear_solver_type = _nls_newton_raphson;
+    options.non_linear_solver_type = _nls_newton_raphson_contact;
     options.integration_scheme_type["displacement"] = _ist_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
     break;
@@ -306,15 +323,30 @@ void ContactMechanicsModel::assembleInternalForces() {
 void ContactMechanicsModel::search() {
   
   this->contact_map.clear();
+  
   this->detector->search(this->contact_map);
+  
+  for (auto & entry : contact_map) {
+    auto & element = entry.second;
+
+    if (element.gap < 0) 
+      element.gap = abs(element.gap);
+    else 
+      element.gap = -element.gap;
+  }
+  
   this->assembleFieldsFromContactMap();
+
+  this->nodal_area->clear();
   this->computeNodalAreas<Surface::slave>();
 }
+ 
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search(Array<Real> & increment) {
 
   this->contact_map.clear();
+   
   this->detector->search(this->contact_map);
 
   for (auto & entry : contact_map) {
@@ -348,16 +380,19 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
 
   this->assembleFieldsFromContactMap();
 
+  this->nodal_area->clear();
   this->computeNodalAreas<Surface::slave>();
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::assembleFieldsFromContactMap() {
 
+  this->previous_gaps->copy(*(this->gaps));
+  this->gaps->clear();
+  
   if (this->contact_map.empty())
-    AKANTU_ERROR(
-        "Contact map is empty, Please run search before assembling the fields");
-
+    return;
+  
   for (auto & entry : contact_map) {
     const auto & element = entry.second;
     auto connectivity = element.connectivity;
@@ -365,23 +400,29 @@ void ContactMechanicsModel::assembleFieldsFromContactMap() {
 
     (*gaps)[node] = element.gap;
 
-    for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt i = 0; i < spatial_dimension; ++i) {
       (*normals)(node, i) = element.normal[i];
+      (*tangents)(node, i) = element.tangents(0, i);
+    }
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <Surface id> void ContactMechanicsModel::computeNodalAreas() {
 
-  this->nodal_area->clear();
   this->external_force->clear();
 
   this->applyBC(
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-      this->detector->getSurfaceId<id>());
+      this->detector->getSurfaceId<Surface::slave>());
 
+  this->applyBC(
+      BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
+      this->detector->getSurfaceId<Surface::master>());
+  
   for (auto && tuple :
-       zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
+       zip(*nodal_area,
+	   make_view(*external_force, spatial_dimension))) {
     auto & area = std::get<0>(tuple);
     auto & force = std::get<1>(tuple);
 
@@ -481,7 +522,9 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["contact_force"] = this->internal_force;
   real_nodal_fields["blocked_dofs"] = this->blocked_dofs;
   real_nodal_fields["normals"] = this->normals;
+  real_nodal_fields["tangents"] = this->tangents;
   real_nodal_fields["gaps"] = this->gaps;
+  real_nodal_fields["previous_gaps"] = this->previous_gaps;
   real_nodal_fields["areas"] = this->nodal_area;
 
   dumper::Field * field = nullptr;

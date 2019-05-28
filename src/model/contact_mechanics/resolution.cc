@@ -56,8 +56,13 @@ Resolution::~Resolution() = default;
 /* -------------------------------------------------------------------------- */
 void Resolution::initialize() {
   registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
+  registerParam("slave", slave, std::string(), _pat_parsable | _pat_readable);
+  registerParam("master", master, std::string(), _pat_parsable | _pat_readable);
   registerParam("mu", mu, Real(0.), _pat_parsable | _pat_modifiable,
                 "Friciton Coefficient");
+  registerParam("two_pass_algorithm", two_pass_algorithm, bool(false), _pat_parsable | _pat_modifiable,
+                "Two pass algorithm");
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,7 +82,16 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
-  auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
+  
+  const auto slave_nodes = model.getMesh().getElementGroup(slave).getNodes();
+  this->assembleInternalForces(slave_nodes);
+  
+  /*if (two_pass_algorithm) {
+    const auto master_nodes = model.getMesh().getElementGroup(master).getNodes();
+    this->assembleInternalForces(master_nodes);
+  }*/
+  
+  /*auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
 
   const auto local_nodes = model.getMesh().getElementGroup(name).getNodes();
 
@@ -89,17 +103,62 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
 
     if (contact_map.find(slave) == contact_map.end())
       continue;
-
+    
     auto & element = contact_map[slave];
+    
     const auto & conn = element.connectivity;
-
+    
     Vector<Real> contact_force(conn.size() * spatial_dimension);
    
     Vector<Real> n(conn.size() * spatial_dimension);
     ResolutionUtils::computeN(n, element);
     
-    computeNormalForce(contact_force, n, element);
+    computeNormalForce(contact_force, n, element);    
+    if(mu != 0) {
 
+      Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+      Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+      Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+
+      ResolutionUtils::computeTalpha(t_alpha, element);
+      ResolutionUtils::computeNalpha(n_alpha, element);
+      ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
+   
+      computeFrictionalForce(contact_force, d_alpha, element);
+    }
+    
+    ResolutionUtils::assembleToInternalForce(contact_force, internal_force,
+					     nodal_area, element);
+  }
+
+  AKANTU_DEBUG_OUT();*/
+}
+
+/* -------------------------------------------------------------------------- */  
+void Resolution::assembleInternalForces(const Array<UInt> & local_nodes) {
+  AKANTU_DEBUG_IN();
+
+  auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
+
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+
+  auto & contact_map = model.getContactMap();
+
+  for (auto & slave : local_nodes) {
+
+    if (contact_map.find(slave) == contact_map.end())
+      continue;
+    
+    auto & element = contact_map[slave];
+    
+    const auto & conn = element.connectivity;
+    
+    Vector<Real> contact_force(conn.size() * spatial_dimension);
+   
+    Vector<Real> n(conn.size() * spatial_dimension);
+    ResolutionUtils::computeN(n, element);
+    
+    computeNormalForce(contact_force, n, element);    
     if(mu != 0) {
 
       Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
@@ -120,6 +179,7 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_OUT();
 }
 
+  
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
@@ -143,7 +203,7 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
       continue;
     
     auto & element = contact_map[slave];
-                
+    
     const auto & conn = element.connectivity;
 
     Matrix<Real> kc(conn.size() * spatial_dimension,

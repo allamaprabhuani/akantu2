@@ -1,10 +1,10 @@
-cl1 = 0.001;
-cl2 = 0.005;
-cl3 = 0.005;
+cl1 = 0.0025;
+cl2 = 0.0025;
+cl3 = 0.0025;
 Dy = 0.0;
 radius = 0.1;
 y = 0.1;
-epsilon = -1e-6;
+epsilon = 0.0;
 Point(1) = {0, y + epsilon, 0, cl1};
 Point(2) = {radius, radius + y + epsilon, 0, cl2};
 Point(3) = {-radius, radius + y + epsilon, 0, cl2};
@@ -13,7 +13,7 @@ Point(11) = {0, y, 0, cl2};
 Point(12) = {radius, -radius + y, 0, cl2};
 Point(13) = {-radius,- radius + y, 0, cl2};
 
-Point(8) = {0, radius + y, 0, cl2};
+Point(8) = {0, radius + y + epsilon, 0, cl2};
 Point(18) = {0, -radius + y, 0, cl2};
 
 Circle(1) = {3, 8, 1};

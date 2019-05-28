@@ -192,8 +192,6 @@ void TimeStepSolverDefault::predictor() {
 void TimeStepSolverDefault::corrector() {
   AKANTU_DEBUG_IN();
 
-  TimeStepSolver::corrector();
-
   for (auto & pair : this->integration_schemes) {
     auto & dof_id = pair.first;
     auto & integration_scheme = pair.second;
@@ -214,17 +212,20 @@ void TimeStepSolverDefault::corrector() {
 
       UInt dof_array_comp = this->dof_manager.getDOFs(dof_id).getNbComponent();
 
+      increment.copy(this->dof_manager.getDOFs(dof_id));
+
       auto prev_dof_it = previous.begin(dof_array_comp);
       auto incr_it = increment.begin(dof_array_comp);
       auto incr_end = increment.end(dof_array_comp);
 
-      increment.copy(this->dof_manager.getDOFs(dof_id));
       for (; incr_it != incr_end; ++incr_it, ++prev_dof_it) {
         *incr_it -= *prev_dof_it;
       }
     }
   }
-
+ 
+  TimeStepSolver::corrector();
+  
   AKANTU_DEBUG_OUT();
 }
 

@@ -13,16 +13,16 @@ material elastic [
 ]
 
 contact_detector [
-  type = implicit		 			
-  slave = contact_top
-  master = contact_bottom
+  type = explicit		 			
+  slave = contact_bottom
+  master = contact_top
   two_pass_algorithm = false
 ]
 
 contact_resolution penalty [
-  name = contact_top
-  slave = contact_top
-  master = contact_bottom
+  name = contact_bottom
+  slave = contact_bottom
+  master = contact_top
   mu = 0.0
   epsilon = 0.1
   epsilon_t = 100
