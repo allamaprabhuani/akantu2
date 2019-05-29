@@ -197,8 +197,6 @@ void CouplerSolidContact::assembleResidual() {
   default:
     break;
   }
-
-  this->dump();
 }
   
 /* -------------------------------------------------------------------------- */
@@ -292,8 +290,6 @@ void CouplerSolidContact::predictor() {
 
     contact->setPositions(current_positions); 
     contact->search();
-
-    this->dump();
     break;
   }
   default:
@@ -335,7 +331,6 @@ void CouplerSolidContact::corrector() {
     contact->setPositions(current_positions); 
     contact->search();
 
-    this->dump();
     break;
   }
   default:

@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 
   Real time_step;
   Real time_factor = 0.8;
-  UInt max_steps = 1000;
+  UInt max_steps = 5000;
     
   Mesh mesh(spatial_dimension);
   mesh.read("contact_hertz_2d.msh");
@@ -63,11 +63,12 @@ int main(int argc, char *argv[]) {
   solid.initFull(  _analysis_method = _explicit_lumped_mass);
   contact.initFull(_analysis_method = _explicit_dynamic_contact);
 
+  
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
 
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
 
   coupler.initFull(_analysis_method = _explicit_dynamic_contact);
 
@@ -90,14 +91,28 @@ int main(int argc, char *argv[]) {
   coupler.addDumpField("blocked_dofs");
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
+
+  auto & velocity = solid.getVelocity();
+
+  Real damping_ratio = 0.7;
   
   for (auto i : arange(max_steps)) {
-    Real factor = 1e-3;
+
+    Real factor = 5e-4;
     auto increment = time_step * factor;
-    std::cerr << "Step " << i << std::endl;  
-    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom");
+    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top"); 
 
     coupler.solveStep();
+
+    Real epot = solid.getEnergy("potential");
+    Real ekin = solid.getEnergy("kinetic");
+
+    std::cerr << i << "," << i * increment << "," << epot << "," << ekin << ","
+	      << epot + ekin << "," << std::endl;
+
+    for (auto & v : make_view(velocity)) {
+      v *= damping_ratio;
+    }
     
     coupler.dump();
   }

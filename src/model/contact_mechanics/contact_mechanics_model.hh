@@ -129,7 +129,7 @@ public:
 
   void search(Array<Real> &);
 
-  template <Surface id> void computeNodalAreas();
+  void computeNodalAreas();
 
   void assembleFieldsFromContactMap();
 

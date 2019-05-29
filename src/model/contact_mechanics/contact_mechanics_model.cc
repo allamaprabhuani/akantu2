@@ -337,8 +337,7 @@ void ContactMechanicsModel::search() {
   
   this->assembleFieldsFromContactMap();
 
-  this->nodal_area->clear();
-  this->computeNodalAreas<Surface::slave>();
+  this->computeNodalAreas();
 }
  
 
@@ -380,8 +379,7 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
 
   this->assembleFieldsFromContactMap();
 
-  this->nodal_area->clear();
-  this->computeNodalAreas<Surface::slave>();
+  this->computeNodalAreas();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -408,8 +406,9 @@ void ContactMechanicsModel::assembleFieldsFromContactMap() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Surface id> void ContactMechanicsModel::computeNodalAreas() {
+void ContactMechanicsModel::computeNodalAreas() {
 
+  this->nodal_area->clear();
   this->external_force->clear();
 
   this->applyBC(

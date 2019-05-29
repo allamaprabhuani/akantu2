@@ -32,12 +32,12 @@ add_mesh (circles_2d circles_2d.geo 2 1)
 add_mesh (flat_2d flat_2d.geo 2 1)
 add_mesh (conical_punch_2d conical_punch_2d.geo 2 1)
 
-register_test(test_hertz_2d
-  SOURCES test_hertz_2d.cc
-  DEPENDS hertz_2d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
+#register_test(test_hertz_2d
+#  SOURCES test_hertz_2d.cc
+#  DEPENDS hertz_2d
+#  FILES_TO_COPY material.dat
+#  PACKAGE contact_mechanics
+#  )
 
 register_test(test_circles_2d
   SOURCES test_circles_2d.cc

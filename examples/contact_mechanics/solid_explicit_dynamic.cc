@@ -64,9 +64,11 @@ int main(int argc, char *argv[]) {
             << "s)" << std::endl;
   solid.setTimeStep(time_step * time_factor);
 
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
+
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "top");
-   
+  
   solid.setBaseName("solid-explicit-dynamic");
   solid.addDumpFieldVector("displacement");
   solid.addDumpFieldVector("velocity");
@@ -78,15 +80,20 @@ int main(int argc, char *argv[]) {
 
   auto & velocity = solid.getVelocity();
 
-  Real damping_ratio = 1.0;
+  Real damping_ratio = 0.7;
   
   for (auto i : arange(max_steps)) {
-    auto increment = time_step * 1e-3;
-    std::cerr << "Step " << i << std::endl;  
-
-    solid.applyBC(BC::Dirichlet::IncrementValue(increment, _y), "bottom"); 
+    auto increment = time_step * 5e-4;
+    
+    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top"); 
   
     solid.solveStep();
+
+    Real epot = solid.getEnergy("potential");
+    Real ekin = solid.getEnergy("kinetic");
+
+    std::cerr << i << "," << i * increment << "," << epot << "," << ekin << ","
+	      << epot + ekin << "," << std::endl;
 
     for (auto & v : make_view(velocity)) {
       v *= damping_ratio;
