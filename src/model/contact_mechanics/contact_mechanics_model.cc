@@ -330,7 +330,7 @@ void ContactMechanicsModel::search() {
     auto & element = entry.second;
 
     if (element.gap < 0) 
-      element.gap = abs(element.gap);
+      element.gap = std::abs(element.gap);
     else 
       element.gap = -element.gap;
   }
@@ -370,7 +370,7 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
     Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
    
     if (element.gap - uv <= 0) {
-      element.gap = abs(element.gap - uv);
+      element.gap = std::abs(element.gap - uv);
     }
     else {
       element.gap = 0.0;

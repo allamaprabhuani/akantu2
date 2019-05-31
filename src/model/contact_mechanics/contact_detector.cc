@@ -317,7 +317,21 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
       break;
     }
     case 3: {
+      auto tang_trans = tangents.transpose();
+      auto tang1 = Vector<Real>(tang_trans(0));
+      auto tang2 = Vector<Real>(tang_trans(1));
+
+      auto tang1_cross_tang2 = tang1.crossProduct(tang2);
+      auto exp_normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
       
+      auto & cal_normal = contact_map[slave_node].normal;
+
+      auto ddot = cal_normal.dot(exp_normal);
+      if (ddot < 0) {
+	tang_trans(1) *= -1.0;
+      }
+
+      tangents = tang_trans.transpose();
       break;
     }
     default:
