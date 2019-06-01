@@ -77,12 +77,24 @@ public:
   /// gets the value of tangent vector
   AKANTU_GET_MACRO(Tangent, tangents, Matrix<Real>);
 
-  /// sets the value of real projection
+  /// sets the value of natural projection
   AKANTU_SET_MACRO(Projection, projection, Vector<Real>);
-
-  /// gets the value of real projection
+    
+  /// gets the value of natural projection
   AKANTU_GET_MACRO(Projection, projection, Vector<Real>);
- 
+  
+  /// sets the value of traction
+  AKANTU_SET_MACRO(Traction, traction, Vector<Real>);
+
+  /// gets the value of traction
+  AKANTU_GET_MACRO(Traction, traction, Vector<Real>);
+
+  /// sets the value of real projection
+  AKANTU_SET_MACRO(PreviousProjection, previous_projection, Vector<Real>);
+  
+  /// gets the value of natural previous projection
+  AKANTU_GET_MACRO(PreviousProjection, previous_projection, Vector<Real>);
+  
   /// sets the connectivity of the contact
   AKANTU_SET_MACRO(Connectivity, connectivity, Vector<UInt>);
 

@@ -322,7 +322,7 @@ void ContactMechanicsModel::assembleInternalForces() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
   
-  this->contact_map.clear();
+  //this->contact_map.clear();
   
   this->detector->search(this->contact_map);
   

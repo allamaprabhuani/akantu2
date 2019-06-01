@@ -217,6 +217,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & contact_map) {
 
   auto surface_dimension = spatial_dimension - 1;
+
+  std::map<UInt, ContactElement> previous_contact_map = contact_map;
+  contact_map.clear();
   
   auto get_index = [&](auto & gaps, auto & projections) {
 
@@ -339,6 +342,22 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
     }
     
     contact_map[slave_node].setTangent(tangents);
+
+    auto search = previous_contact_map.find(slave_node);
+    if (search != previous_contact_map.end()) {
+      auto previous_projection = previous_contact_map[slave_node].getPreviousProjection();
+      contact_map[slave_node].setPreviousProjection(previous_projection);
+
+      auto previous_traction = previous_contact_map[slave_node].getTraction();
+      contact_map[slave_node].setTraction(previous_traction);
+    }
+    else {
+      Vector<Real> previous_projection(surface_dimension, 0.);
+      contact_map[slave_node].setPreviousProjection(previous_projection);
+
+      Vector<Real> previous_traction(surface_dimension, 0.);
+      contact_map[slave_node].setTraction(previous_traction);
+    }
   }
 
   contact_pairs.clear();

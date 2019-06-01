@@ -194,7 +194,7 @@ bool ResolutionPenalty::computeFrictionalTraction(Matrix<Real>& m_alpha_beta,
 
   auto delta_xi = element.projection - element.previous_projection;
 
-  Vector<Real> trial_traction;
+  Vector<Real> trial_traction(delta_xi.size());
 
   trial_traction.mul<false>(m_alpha_beta, delta_xi, epsilon);
   trial_traction += element.traction;
