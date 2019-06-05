@@ -81,8 +81,7 @@ Communicator & Communicator::getStaticCommunicator() {
   if (!static_communicator) {
     int nb_args = 0;
     char ** null = nullptr;
-    static_communicator =
-        std::make_unique<Communicator>(nb_args, null, private_member{});
+    static_communicator = std::make_unique<Communicator>(nb_args, null);
   }
 
   AKANTU_DEBUG_OUT();
@@ -92,8 +91,7 @@ Communicator & Communicator::getStaticCommunicator() {
 /* -------------------------------------------------------------------------- */
 Communicator & Communicator::getStaticCommunicator(int & argc, char **& argv) {
   if (!static_communicator)
-    static_communicator =
-        std::make_unique<Communicator>(argc, argv, private_member{});
+    static_communicator = std::make_unique<Communicator>(argc, argv);
   return getStaticCommunicator();
 }
 
@@ -178,4 +176,4 @@ AKANTU_COMM_INSTANTIATE(int);
 // template void Communicator::allReduce<SCMinMaxLoc<Real, int>>(
 //     SCMinMaxLoc<Real, int> * values, int nb_values,
 //     const SynchronizerOperation & op);
-} // akantu
+} // namespace akantu

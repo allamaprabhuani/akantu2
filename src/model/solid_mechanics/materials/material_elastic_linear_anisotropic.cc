@@ -50,25 +50,25 @@ namespace akantu {
 template <UInt dim>
 MaterialElasticLinearAnisotropic<dim>::MaterialElasticLinearAnisotropic(
     SolidMechanicsModel & model, const ID & id, bool symmetric)
-    : Material(model, id), rot_mat(dim, dim), Cprime(dim * dim, dim * dim),
-      C(voigt_h::size, voigt_h::size), eigC(voigt_h::size),
+    : Material(model, id), rot_mat(dim, dim), Cprime(dim * dim, dim * dim, 0.),
+      C(voigt_h::size, voigt_h::size, 0.), eigC(voigt_h::size, 0.),
       symmetric(symmetric), alpha(0), was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
 
-  this->dir_vecs.push_back(std::make_unique<Vector<Real>>(dim));
+  this->dir_vecs.push_back(std::make_unique<Vector<Real>>(dim, 0.));
   (*this->dir_vecs.back())[0] = 1.;
   this->registerParam("n1", *(this->dir_vecs.back()), _pat_parsmod,
                       "Direction of main material axis");
 
   if (dim > 1) {
-    this->dir_vecs.push_back(std::make_unique<Vector<Real>>(dim));
+    this->dir_vecs.push_back(std::make_unique<Vector<Real>>(dim, 0.));
     (*this->dir_vecs.back())[1] = 1.;
     this->registerParam("n2", *(this->dir_vecs.back()), _pat_parsmod,
                         "Direction of secondary material axis");
   }
 
   if (dim > 2) {
-    this->dir_vecs.push_back(std::make_unique<Vector<Real>>(dim));
+    this->dir_vecs.push_back(std::make_unique<Vector<Real>>(dim, 0.));
     (*this->dir_vecs.back())[2] = 1.;
     this->registerParam("n3", *(this->dir_vecs.back()), _pat_parsmod,
                         "Direction of tertiary material axis");

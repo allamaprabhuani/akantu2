@@ -130,6 +130,9 @@ public:
              const MeshIOType & mesh_io_type = _miot_auto);
 
 private:
+ 
+  void makeReady();
+
   /// initialize the connectivity to NULL and other stuff
   void init();
 

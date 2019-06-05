@@ -141,6 +141,8 @@ public:
             global_data_updater));
   }
 
+  void makeReady() { return this->_mesh.makeReady(); }
+
 private:
   Mesh & _mesh;
 };

@@ -142,10 +142,21 @@ namespace {
 /* Implementation                                                             */
 /* -------------------------------------------------------------------------- */
 
+struct Communicator::private_member {
+  private_member(MPI_Comm comm) : comm(std::move(comm)) {}
+  MPI_Comm comm;
+};
+
 /* -------------------------------------------------------------------------- */
-Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
-                           const private_member & /*unused*/)
+Communicator::Communicator(int & /*argc*/, char **& /*argv*/)
     : communicator_data(std::make_unique<MPICommunicatorData>()) {
+  prank = MPIDATA.rank();
+  psize = MPIDATA.size();
+}
+
+/* -------------------------------------------------------------------------- */
+Communicator::Communicator(const private_member & p)
+    : communicator_data(std::make_unique<MPICommunicatorData>(p.comm)) {
   prank = MPIDATA.rank();
   psize = MPIDATA.size();
 }
