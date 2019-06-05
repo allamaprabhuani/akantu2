@@ -77,6 +77,8 @@ public:
     setMPICommunicator(MPI_COMM_WORLD);
   }
 
+  MPICommunicatorData(MPI_Comm comm) { communicator = comm; }
+
   ~MPICommunicatorData() override {
     if (not is_externaly_initialized) {
       MPI_Finalize();
@@ -107,6 +109,9 @@ public:
     int flag;
     int * value;
     MPI_Comm_get_attr(communicator, MPI_TAG_UB, &value, &flag);
+    if (!flag) {
+      MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &value, &flag);
+    }
     AKANTU_DEBUG_ASSERT(flag, "No attribute MPI_TAG_UB.");
     return *value;
   }

@@ -85,12 +85,14 @@ struct CommunicatorInternalData {
 /* -------------------------------------------------------------------------- */
 
 class Communicator : public EventHandlerManager<CommunicatorEventHandler> {
-  struct private_member {};
+  struct private_member;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Communicator(int & argc, char **& argv, const private_member &);
+  Communicator(int & argc, char **& argv);
+  Communicator(const private_member &);
+
   ~Communicator() override;
 
   /* ------------------------------------------------------------------------ */

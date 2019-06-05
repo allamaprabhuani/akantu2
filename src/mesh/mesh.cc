@@ -274,6 +274,18 @@ void Mesh::write(const std::string & filename,
 }
 
 /* -------------------------------------------------------------------------- */
+
+void Mesh::makeReady() {
+  this->nb_global_nodes = this->nodes->size();
+  this->computeBoundingBox();
+  // this->nodes_flags->resize(nodes->size(), NodeFlag::_normal);
+  this->nodes_to_elements.resize(nodes->size());
+  for (auto & node_set : nodes_to_elements) {
+    node_set = std::make_unique<std::set<Element>>();
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 void Mesh::printself(std::ostream & stream, int indent) const {
   std::string space;
   for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
@@ -359,9 +371,7 @@ void Mesh::getGlobalConnectivity(
       std::transform(local_conn.begin_reinterpret(nb_nodes),
                      local_conn.end_reinterpret(nb_nodes),
                      g_connectivity.begin_reinterpret(nb_nodes),
-                     [&](UInt l) -> UInt {
-                       return this->getNodeGlobalId(l);
-                     });
+                     [&](UInt l) -> UInt { return this->getNodeGlobalId(l); });
     }
   }
 
@@ -461,8 +471,8 @@ void Mesh::distribute(Communicator & communicator) {
   Int psize = this->communicator->getNbProc();
 
   if (psize > 1) {
-//   return;
-// }
+    //   return;
+    // }
 
 #ifdef AKANTU_USE_SCOTCH
     Int prank = this->communicator->whoAmI();
