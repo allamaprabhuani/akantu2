@@ -83,7 +83,7 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
   
-  const auto slave_nodes = model.getMesh().getElementGroup(slave).getNodes();
+  const auto slave_nodes = model.getMesh().getElementGroup(slave).getNodeGroup().getNodes();
   this->assembleInternalForces(slave_nodes);
   
   /*if (two_pass_algorithm) {
@@ -186,11 +186,9 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
   auto & stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
-
-  stiffness.saveMatrix("in_assembly.mtx");
   
   const auto local_nodes =
-    model.getMesh().getElementGroup(name).getNodes();
+    model.getMesh().getElementGroup(name).getNodeGroup().getNodes();
 
   auto & nodal_area =
     const_cast<Array<Real> &>(model.getNodalArea());
