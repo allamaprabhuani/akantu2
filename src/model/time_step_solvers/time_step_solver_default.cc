@@ -44,8 +44,10 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 TimeStepSolverDefault::TimeStepSolverDefault(
     DOFManagerDefault & dof_manager, const TimeStepSolverType & type,
-    NonLinearSolver & non_linear_solver, const ID & id, UInt memory_id)
-    : TimeStepSolver(dof_manager, type, non_linear_solver, id, memory_id),
+    NonLinearSolver & non_linear_solver, SolverCallback & solver_callback,
+    const ID & id, UInt memory_id)
+    : TimeStepSolver(dof_manager, type, non_linear_solver, solver_callback, id,
+                     memory_id),
       dof_manager(dof_manager), is_mass_lumped(false) {
   switch (type) {
   case _tsst_dynamic:
@@ -62,7 +64,7 @@ TimeStepSolverDefault::TimeStepSolverDefault(
 }
 
 /* -------------------------------------------------------------------------- */
-void TimeStepSolverDefault::setIntegrationScheme(
+void TimeStepSolverDefault::setIntegrationSchemeInternal(
     const ID & dof_id, const IntegrationSchemeType & type,
     IntegrationScheme::SolutionType solution_type) {
   if (this->integration_schemes.find(dof_id) !=
@@ -214,12 +216,9 @@ void TimeStepSolverDefault::corrector() {
 
       increment.copy(this->dof_manager.getDOFs(dof_id));
 
-      auto prev_dof_it = previous.begin(dof_array_comp);
-      auto incr_it = increment.begin(dof_array_comp);
-      auto incr_end = increment.end(dof_array_comp);
-
-      for (; incr_it != incr_end; ++incr_it, ++prev_dof_it) {
-        *incr_it -= *prev_dof_it;
+      for (auto && data : zip(make_view(increment, dof_array_comp),
+                              make_view(previous, dof_array_comp))) {
+        std::get<0>(data) -= std::get<1>(data);
       }
     }
   }

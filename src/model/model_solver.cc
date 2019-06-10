@@ -120,7 +120,7 @@ void ModelSolver::initDOFManager(const ID & solver_type) {
 
   try {
     this->dof_manager = DOFManagerFactory::getInstance().allocate(
-        solver_type, mesh, this->parent_id + ":dof_manager" + solver_type,
+        solver_type, mesh, this->parent_id + ":dof_manager_" + solver_type,
         this->parent_memory_id);
   } catch (...) {
     AKANTU_EXCEPTION(
@@ -319,7 +319,7 @@ void ModelSolver::getNewSolver(const ID & solver_id,
       solver_id, non_linear_solver_type);
 
   this->dof_manager->getNewTimeStepSolver(solver_id, time_step_solver_type,
-                                          nls);
+                                          nls, *this);
 }
 
 /* -------------------------------------------------------------------------- */
