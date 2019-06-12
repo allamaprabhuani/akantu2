@@ -169,7 +169,7 @@ void ElementTypeMapArray<T, SupportType>::copy(
     const ElementTypeMapArray & other) {
   for (auto ghost_type : ghost_types) {
     for (auto type :
-         this->elementTypes(_all_dimensions, ghost_types, _ek_not_defined)) {
+         this->elementTypes(_all_dimensions, ghost_type, _ek_not_defined)) {
       const auto & array_to_copy = other(type, ghost_type);
       auto & array =
           this->alloc(0, array_to_copy.getNbComponent(), type, ghost_type);
@@ -414,7 +414,7 @@ inline typename ElementTypeMap<Stored, SupportType>::type_iterator::reference
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 inline typename ElementTypeMap<Stored, SupportType>::type_iterator &
-    ElementTypeMap<Stored, SupportType>::type_iterator::operator++() {
+ElementTypeMap<Stored, SupportType>::type_iterator::operator++() {
   ++list_begin;
   while ((list_begin != list_end) &&
          (((dim != _all_dimensions) &&
@@ -428,7 +428,7 @@ inline typename ElementTypeMap<Stored, SupportType>::type_iterator &
 /* -------------------------------------------------------------------------- */
 template <class Stored, typename SupportType>
 typename ElementTypeMap<Stored, SupportType>::type_iterator
-    ElementTypeMap<Stored, SupportType>::type_iterator::operator++(int) {
+ElementTypeMap<Stored, SupportType>::type_iterator::operator++(int) {
   type_iterator tmp(*this);
   operator++();
   return tmp;
