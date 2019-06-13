@@ -300,7 +300,10 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   AKANTU_DEBUG_INFO("Assemble the contact forces");
 
+  UInt nb_nodes = mesh.getNbNodes();
   this->internal_force->clear();
+  internal_force->resize(nb_nodes, 0.);
+
   
   // assemble the forces due to contact 
   auto assemble = [&](auto && ghost_type) {
@@ -385,8 +388,14 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::assembleFieldsFromContactMap() {
 
+  UInt nb_nodes = mesh.getNbNodes();
+
   this->previous_gaps->copy(*(this->gaps));
   this->gaps->clear();
+
+  gaps->resize(nb_nodes, 0.);
+  normals->resize(nb_nodes, 0.);
+  tangents->resize(nb_nodes, 0.);
   
   if (this->contact_map.empty())
     return;
@@ -408,9 +417,16 @@ void ContactMechanicsModel::assembleFieldsFromContactMap() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::computeNodalAreas() {
 
+  UInt nb_nodes = mesh.getNbNodes();
+
   this->nodal_area->clear();
   this->external_force->clear();
 
+  nodal_area->resize(nb_nodes, 0.);
+  external_force->resize(nb_nodes, 0.);
+  
+  std::cerr << *external_force <<std::endl;
+  
   this->applyBC(
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
       this->detector->getSurfaceId<Surface::slave>());

@@ -525,6 +525,7 @@ void Mesh::fillNodesToElements(UInt dimension) {
   Element e;
 
   UInt nb_nodes = nodes->size();
+  
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (this->nodes_to_elements[n])
       this->nodes_to_elements[n]->clear();

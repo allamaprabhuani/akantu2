@@ -147,7 +147,7 @@ protected:
 
   /// read the resolution files to instantiate all the resolutions
   void instantiateResolutions();
-
+  
   /* ------------------------------------------------------------------------ */
   /* Solver Interface                                                         */
   /* ------------------------------------------------------------------------ */

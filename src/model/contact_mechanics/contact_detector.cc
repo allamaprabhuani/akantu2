@@ -52,7 +52,8 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions, const ID & 
 
   this->positions = positions;
   
-  this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
+  //this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
+
 
   this->parseSection();
 
@@ -191,6 +192,9 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
       for (auto && neighbor_cell : cell_id.neighbors()) {
 	/// loop over the data of neighboring cells from master grid	
 	for (auto && master_node : master_grid.getCell(neighbor_cell)) {
+
+	  if (slave_node == master_node)
+	    continue;
 	  
 	  Vector<Real> pos2(spatial_dimension);
 	  for (UInt s: arange(spatial_dimension)) 
