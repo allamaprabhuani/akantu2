@@ -201,6 +201,10 @@ void MaterialFE2<spatial_dimension>::advanceASR(
     /// gradient
     RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
+    /// apply homogeneous temperature field to each RVE to obtain
+    /// thermoelastic effect
+    RVE.applyHomogeneousTemperature(std::get<4>(data));
+
     /// advance the ASR in every RVE
     RVE.advanceASR(prestrain);
 
