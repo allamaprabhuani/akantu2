@@ -1601,7 +1601,8 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool first_time) {
     Real stress_norm = stress.norm();
     Real stress_limit_norm = (*str_lim_vec_it).norm();
     if (stress_norm < stress_limit_norm)
-      stresses(i) = *str_lim_vec_it;
+      //stresses(i) = *str_lim_vec_it;
+      return;
   }
   /// drain cracks
   // this->drainCracks(saved_damage);
