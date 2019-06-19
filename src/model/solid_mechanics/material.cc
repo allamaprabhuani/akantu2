@@ -754,9 +754,9 @@ void Material::computePotentialEnergyByElements() {
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::computePotentialEnergy(ElementType, GhostType) {
+void Material::computePotentialEnergy(ElementType) {
   AKANTU_DEBUG_IN();
-
+  AKANTU_TO_IMPLEMENT();
   AKANTU_DEBUG_OUT();
 }
 
@@ -1265,7 +1265,7 @@ void Material::beforeSolveStep() { this->savePreviousState(); }
 void Material::afterSolveStep() {
   for (auto & type : element_filter.elementTypes(_all_dimensions, _not_ghost,
                                                  _ek_not_defined)) {
-    this->updateEnergies(type, _not_ghost);
+    this->updateEnergies(type);
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -1275,7 +1275,7 @@ void Material::onDamageIteration() { this->savePreviousState(); }
 void Material::onDamageUpdate() {
   for (auto & type : element_filter.elementTypes(_all_dimensions, _not_ghost,
                                                  _ek_not_defined)) {
-    this->updateEnergiesAfterDamage(type, _not_ghost);
+    this->updateEnergiesAfterDamage(type);
   }
 }
 
@@ -1287,10 +1287,7 @@ void Material::onDump() {
 
 /* -------------------------------------------------------------------------- */
 void Material::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
-
+  std::string space(indent, AKANTU_INDENT);
   std::string type = getID().substr(getID().find_last_of(':') + 1);
 
   stream << space << "Material " << type << " [" << std::endl;
@@ -1360,6 +1357,11 @@ void Material::applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
       current_eigengradu = prescribed_eigen_grad_u;
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+MaterialFactory & Material::getFactory() {
+  return MaterialFactory::getInstance();
 }
 
 } // namespace akantu

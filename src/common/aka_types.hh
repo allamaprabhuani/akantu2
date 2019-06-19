@@ -127,7 +127,6 @@ protected:
     this->values = data;
   }
 
-#ifndef SWIG
   template <class Other, typename = std::enable_if_t<
                              tensors::is_copyable<TensorProxy, Other>::value>>
   explicit TensorProxy(const Other & other) {
@@ -135,7 +134,7 @@ protected:
     for (UInt i = 0; i < ndim; ++i)
       this->n[i] = other.size(i);
   }
-#endif
+
 public:
   using RetType = _RetType;
 
@@ -155,7 +154,6 @@ public:
 
   T * storage() const { return values; }
 
-#ifndef SWIG
   template <class Other, typename = std::enable_if_t<
                              tensors::is_copyable<TensorProxy, Other>::value>>
   inline TensorProxy & operator=(const Other & other) {
@@ -165,7 +163,6 @@ public:
     memcpy(this->values, other.storage(), this->size() * sizeof(T));
     return *this;
   }
-#endif
   // template <class Other, typename = std::enable_if_t<
   //                          tensors::is_copyable<TensorProxy, Other>::value>>
   // inline TensorProxy & operator=(const Other && other) {
@@ -347,7 +344,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   inline TensorStorage & operator=(const TensorStorage & src) {
-    return this->operator=(dynamic_cast<RetType &>(src));
+    return this->operator=(aka::as_type<RetType>(src));
   }
 
   /* ------------------------------------------------------------------------ */
@@ -358,7 +355,8 @@ public:
                       "Cannot copy a tensor on non trivial types");
         // this test is not sufficient for Tensor of order higher than 1
         AKANTU_DEBUG_ASSERT(this->_size == src.size(),
-                            "Tensors of different size");
+                            "Tensors of different size ("
+                            << this->_size << " != " << src.size() << ")");
         memcpy((void *)this->values, (void *)src.storage(),
                this->_size * sizeof(T));
       } else {
@@ -763,7 +761,7 @@ public:
   inline bool operator!=(const Vector<T> & v) const { return !operator==(v); }
   inline bool operator<(const Vector<T> & v) const { return compare(v) == -1; }
   inline bool operator>(const Vector<T> & v) const { return compare(v) == 1; }
-#ifndef SWIG
+
   template <typename Func, typename Acc>
   decltype(auto) accumulate(const Vector<T> & v, Acc && accumulator,
                             Func && func) const {
@@ -788,7 +786,7 @@ public:
       return accumulator & (a >= b);
     });
   }
-#endif
+
   /* ------------------------------------------------------------------------ */
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
@@ -828,7 +826,6 @@ inline bool Vector<UInt>::equal(const Vector<UInt> & v,
 }
 
 /* -------------------------------------------------------------------------- */
-#ifndef SWIG
 namespace types {
   namespace details {
     template <typename Mat> class column_iterator {
@@ -867,7 +864,6 @@ namespace types {
     };
   } // namespace details
 } // namespace types
-#endif
 
 /* ------------------------------------------------------------------------ */
 /* Matrix                                                                   */
@@ -963,7 +959,6 @@ public:
     return VectorProxy<T>(this->values + j * this->n[0], this->n[0]);
   }
 
-#ifndef SWIG
 public:
   decltype(auto) begin() {
     return types::details::column_iterator<Matrix<T>>(*this, 0);
@@ -979,7 +974,6 @@ public:
     return types::details::column_iterator<const Matrix<T>>(*this,
                                                             this->cols());
   }
-#endif
 
   /* ------------------------------------------------------------------------ */
   inline void block(const Matrix & block, UInt pos_i, UInt pos_j) {

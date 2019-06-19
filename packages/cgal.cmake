@@ -29,13 +29,13 @@
 #
 #===============================================================================
 
-set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE ON
+set(CGAL_DO_NOT_WARN_ABOUT_CMAKE_BUILD_TYPE TRUE
     CACHE INTERNAL "Tells CGAL cmake to shut up" FORCE)
 
 package_declare(CGAL EXTERNAL
   DESCRIPTION "Add CGAL support in akantu"
   COMPILE_FLAGS CXX -frounding-math
-  BOOST_COMPONENTS system thread
+  #BOOST_COMPONENTS system thread
   )
 
 package_is_activated(CGAL _is_activated)

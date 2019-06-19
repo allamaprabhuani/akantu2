@@ -156,7 +156,6 @@ protected:
       std::function<Int(const Element &, const Element &)> edge_weight_function,
       std::function<Int(const Element &)> vertex_weight_function);
 
-#ifndef SWIG
 public:
   /// with the arguments to pass to the partitionner
   template <typename... pack>
@@ -168,14 +167,6 @@ public:
                            [](auto &&, auto &&) { return 1; }),
         OPTIONAL_NAMED_ARG(vertex_weight_function, [](auto &&) { return 1; }));
   }
-#else
-public:
-  void distribute() {
-    distributeImpl(Communicator::getStaticCommunicator(),
-                   [](auto &&, auto &&) { return 1; },
-                   [](auto &&) { return 1; });
-  }
-#endif
 
   /// defines is the mesh is distributed or not
   inline bool isDistributed() const { return this->is_distributed; }
@@ -217,10 +208,8 @@ public:
   /// get the master node for a given slave nodes, except if node not a slave
   inline UInt getPeriodicMaster(UInt slave) const;
 
-#ifndef SWIG
   /// get an iterable list of slaves for a given master node
   inline decltype(auto) getPeriodicSlaves(UInt master) const;
-#endif
 
   /* ------------------------------------------------------------------------ */
   /* General Methods                                                          */
@@ -385,7 +374,6 @@ public:
   void getBarycenters(Array<Real> & barycenter, const ElementType & type,
                       const GhostType & ghost_type) const;
 
-#ifndef SWIG
   /// get the element connected to a subelement (element of lower dimension)
   const auto & getElementToSubelement() const;
 
@@ -425,8 +413,7 @@ public:
 protected:
   inline auto & getElementToSubelement(const Element & element);
   inline VectorProxy<Element> getSubelementToElement(const Element & element);
-  
-#endif
+  inline VectorProxy<UInt> getConnectivity(const Element & element);
 
 public:
   /// get a name field associated to the mesh
@@ -453,9 +440,10 @@ public:
                                         const ElementKind & element_kind);
 
   template <typename T>
-  dumper::Field * createFieldFromAttachedData(const std::string & field_id,
-                                              const std::string & group_name,
-                                              const ElementKind & element_kind);
+  std::shared_ptr<dumper::Field>
+  createFieldFromAttachedData(const std::string & field_id,
+                              const std::string & group_name,
+                              const ElementKind & element_kind);
 
   /// templated getter returning the pointer to data in MeshData (modifiable)
   template <typename T>
@@ -481,11 +469,10 @@ public:
 
   inline bool isMeshFacets() const { return this->is_mesh_facets; }
 
-#ifndef SWIG
   /// return the dumper from a group and and a dumper name
   DumperIOHelper & getGroupDumper(const std::string & dumper_name,
                                   const std::string & group_name);
-#endif
+
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
   /* ------------------------------------------------------------------------ */
@@ -509,7 +496,6 @@ public:
   /// get number of facets of a given element type
   static inline UInt getNbFacetsPerElement(const ElementType & type, UInt t);
 
-#ifndef SWIG
   /// get local connectivity of a facet for a given facet type
   static inline auto getFacetLocalConnectivity(const ElementType & type,
                                                UInt t = 0);
@@ -517,13 +503,9 @@ public:
   /// get connectivity of facets for a given element
   inline auto getFacetConnectivity(const Element & element, UInt t = 0) const;
 
-#endif
-
   /// get the number of type of the surface element associated to a given
   /// element type
   static inline UInt getNbFacetTypes(const ElementType & type, UInt t = 0);
-
-#ifndef SWIG
 
   /// get the type of the surface element associated to a given element
   static inline constexpr auto getFacetType(const ElementType & type,
@@ -532,15 +514,13 @@ public:
   /// get all the type of the surface element associated to a given element
   static inline constexpr auto getAllFacetTypes(const ElementType & type);
 
-#endif
-
   /// get the number of nodes in the given element list
   static inline UInt getNbNodesPerElementList(const Array<Element> & elements);
 
   /* ------------------------------------------------------------------------ */
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
-#ifndef SWIG
+
   using type_iterator [[deprecated]] =
       ElementTypeMapArray<UInt, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
@@ -560,7 +540,6 @@ public:
            ElementKind kind = _ek_regular) const {
     return connectivities.elementTypes(dim, ghost_type, kind).end();
   }
-#endif
 
   AKANTU_GET_MACRO(ElementSynchronizer, *element_synchronizer,
                    const ElementSynchronizer &);
@@ -576,13 +555,11 @@ public:
                              *periodic_node_synchronizer,
                              PeriodicNodeSynchronizer &);
 
-// AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, StaticCommunicator
-// &);
-#ifndef SWIG
+  // AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, StaticCommunicator
+  // &);
   AKANTU_GET_MACRO(Communicator, *communicator, const auto &);
   AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, auto &);
   AKANTU_GET_MACRO(PeriodicMasterSlaves, periodic_master_slave, const auto &);
-#endif
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */

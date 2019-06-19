@@ -136,9 +136,7 @@ ElementTypeMap<Stored, SupportType>::getData(GhostType ghost_type) const {
 template <class Stored, typename SupportType>
 void ElementTypeMap<Stored, SupportType>::printself(std::ostream & stream,
                                                     int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "ElementTypeMap<" << debug::demangle(typeid(Stored).name())
          << "> [" << std::endl;
@@ -169,13 +167,21 @@ void ElementTypeMapArray<T, SupportType>::copy(
     const ElementTypeMapArray & other) {
   for (auto ghost_type : ghost_types) {
     for (auto type :
-         this->elementTypes(_all_dimensions, ghost_types, _ek_not_defined)) {
+         this->elementTypes(_all_dimensions, ghost_type, _ek_not_defined)) {
       const auto & array_to_copy = other(type, ghost_type);
       auto & array =
           this->alloc(0, array_to_copy.getNbComponent(), type, ghost_type);
       array.copy(array_to_copy);
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T, typename SupportType>
+ElementTypeMapArray<T, SupportType>::ElementTypeMapArray(
+    const ElementTypeMapArray & other)
+    : parent(), Memory(other.id + "_copy", other.memory_id), name(other.name + "_copy") {
+  this->copy(other);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -192,7 +198,7 @@ inline Array<T> & ElementTypeMapArray<T, SupportType>::alloc(
   auto it = this->getData(ghost_type).find(type);
 
   if (it == this->getData(ghost_type).end()) {
-    auto id = this->id + ":" + aka::to_string(type) + ghost_id;
+    auto id = this->id + ":" + std::to_string(type) + ghost_id;
     tmp = &(Memory::alloc<T>(id, size, nb_component, default_value));
 
     this->getData(ghost_type)[type] = tmp;
@@ -344,9 +350,7 @@ inline void ElementTypeMapArray<T, SupportType>::onElementsRemoved(
 template <typename T, typename SupportType>
 void ElementTypeMapArray<T, SupportType>::printself(std::ostream & stream,
                                                     int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "ElementTypeMapArray<" << debug::demangle(typeid(T).name())
          << "> [" << std::endl;
@@ -520,10 +524,10 @@ protected:
   using CompFunc = std::function<UInt(const ElementType &, const GhostType &)>;
 
 public:
-  ElementTypeMapArrayInitializer(const CompFunc & comp_func,
-                                 UInt spatial_dimension = _all_dimensions,
-                                 const GhostType & ghost_type = _not_ghost,
-                                 const ElementKind & element_kind = _ek_not_defined)
+  ElementTypeMapArrayInitializer(
+      const CompFunc & comp_func, UInt spatial_dimension = _all_dimensions,
+      const GhostType & ghost_type = _not_ghost,
+      const ElementKind & element_kind = _ek_not_defined)
       : comp_func(comp_func), spatial_dimension(spatial_dimension),
         ghost_type(ghost_type), element_kind(element_kind) {}
 
@@ -753,9 +757,10 @@ operator()(const Element & element, UInt component) const {
 /* -------------------------------------------------------------------------- */
 template <class T, typename SupportType>
 UInt ElementTypeMapArray<T, SupportType>::sizeImpl(
-    UInt spatial_dimension, const GhostType & ghost_type, const ElementKind & kind) const {
+    UInt spatial_dimension, const GhostType & ghost_type,
+    const ElementKind & kind) const {
   UInt size = 0;
-  for(auto && type : this->elementTypes(spatial_dimension, ghost_type, kind)) {
+  for (auto && type : this->elementTypes(spatial_dimension, ghost_type, kind)) {
     size += this->operator()(type, ghost_type).size();
   }
   return size;
@@ -773,8 +778,9 @@ UInt ElementTypeMapArray<T, SupportType>::size(pack &&... _pack) const {
     if ((not(ghost_type == requested_ghost_type)) and (not all_ghost_types))
       continue;
 
-    size += sizeImpl(OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
-                     ghost_type, OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined));
+    size +=
+        sizeImpl(OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
+                 ghost_type, OPTIONAL_NAMED_ARG(element_kind, _ek_not_defined));
   }
   return size;
 }

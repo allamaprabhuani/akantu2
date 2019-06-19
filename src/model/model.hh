@@ -75,7 +75,6 @@ protected:
   virtual void initFullImpl(const ModelOptions & options);
 
 public:
-#ifndef SWIG
   template <typename... pack>
   std::enable_if_t<are_named_argument<pack...>::value>
   initFull(pack &&... _pack) {
@@ -127,7 +126,6 @@ public:
   initFull(pack &&... _pack) {
     this->initFullImpl(std::forward<decltype(_pack)>(_pack)...);
   }
-#endif
 
   /// initialize a new solver if needed
   void initNewSolver(const AnalysisMethod & method);
@@ -230,7 +228,7 @@ public:
   void setTextModeToDumper();
 
   virtual void addDumpGroupFieldToDumper(const std::string & field_id,
-                                         dumper::Field * field,
+                                         std::shared_ptr<dumper::Field> field,
                                          DumperIOHelper & dumper);
 
   virtual void addDumpField(const std::string & field_id);
@@ -282,28 +280,28 @@ public:
                                                const std::string & field_id,
                                                const std::string & group_name);
 
-  virtual dumper::Field *
+  virtual std::shared_ptr<dumper::Field>
   createNodalFieldReal(__attribute__((unused)) const std::string & field_name,
                        __attribute__((unused)) const std::string & group_name,
                        __attribute__((unused)) bool padding_flag) {
     return nullptr;
   }
 
-  virtual dumper::Field *
+  virtual std::shared_ptr<dumper::Field>
   createNodalFieldUInt(__attribute__((unused)) const std::string & field_name,
                        __attribute__((unused)) const std::string & group_name,
                        __attribute__((unused)) bool padding_flag) {
     return nullptr;
   }
 
-  virtual dumper::Field *
+  virtual std::shared_ptr<dumper::Field>
   createNodalFieldBool(__attribute__((unused)) const std::string & field_name,
                        __attribute__((unused)) const std::string & group_name,
                        __attribute__((unused)) bool padding_flag) {
     return nullptr;
   }
 
-  virtual dumper::Field *
+  virtual std::shared_ptr<dumper::Field>
   createElementalField(__attribute__((unused)) const std::string & field_name,
                        __attribute__((unused)) const std::string & group_name,
                        __attribute__((unused)) bool padding_flag,

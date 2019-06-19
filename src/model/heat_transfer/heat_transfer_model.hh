@@ -47,7 +47,7 @@ namespace akantu {
 template <ElementKind kind, class IntegrationOrderFunctor>
 class IntegratorGauss;
 template <ElementKind kind> class ShapeLagrange;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -110,11 +110,12 @@ public:
   Real getStableTimeStep();
 
   /// set the stable timestep
-  void setTimeStep(Real time_step, const ID & solver_id="") override;
-  
-// temporary protection to prevent bad usage: should check for bug
+  void setTimeStep(Real time_step, const ID & solver_id = "") override;
+
+  // temporary protection to prevent bad usage: should check for bug
 protected:
-  /// compute the internal heat flux \todo Need code review: currently not public method 
+  /// compute the internal heat flux \todo Need code review: currently not
+  /// public method
   void assembleInternalHeatRate();
 
 public:
@@ -178,19 +179,21 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  dumper::Field * createNodalFieldReal(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag) override;
+  std::shared_ptr<dumper::Field>
+  createNodalFieldReal(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
 
-  dumper::Field * createNodalFieldBool(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag) override;
+  std::shared_ptr<dumper::Field>
+  createNodalFieldBool(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
 
-  dumper::Field * createElementalField(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag,
-                                       const UInt & spatial_dimension,
-                                       const ElementKind & kind) override;
+  std::shared_ptr<dumper::Field>
+  createElementalField(const std::string & field_name,
+                       const std::string & group_name, bool padding_flag,
+                       const UInt & spatial_dimension,
+                       const ElementKind & kind) override;
 
   virtual void dump(const std::string & dumper_name);
 
@@ -331,7 +334,7 @@ private:
                                                            {_ghost, 0}};
 };
 
-} // akantu
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */

@@ -62,11 +62,15 @@ ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
 #if defined(AKANTU_USE_IOHELPER)
   this->registerDumper<DumperParaview>("paraview_" + group_name, group_name,
                                        true);
-  this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(), _all_dimensions);
+  this->addDumpFilteredMesh(mesh, elements, node_group.getNodes(),
+                            _all_dimensions);
 #endif
 
   AKANTU_DEBUG_OUT();
 }
+
+/* -------------------------------------------------------------------------- */
+ElementGroup::ElementGroup(const ElementGroup & other) = default;
 
 /* -------------------------------------------------------------------------- */
 void ElementGroup::empty() { elements.free(); }

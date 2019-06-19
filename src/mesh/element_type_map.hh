@@ -298,7 +298,7 @@ public:
 
   /// standard assigment (copy) operator
   void operator=(const ElementTypeMapArray &) = delete;
-  ElementTypeMapArray(const ElementTypeMapArray &) = delete;
+  ElementTypeMapArray(const ElementTypeMapArray &);
 
   /// explicit copy
   void copy(const ElementTypeMapArray & other);
