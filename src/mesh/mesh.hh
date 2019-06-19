@@ -280,11 +280,8 @@ public:
 
   
 public:
-  /// fills the nodes_to_elements structure
-  void fillNodesToElements();
-
   /// fills the nodes_to_elements for given dimension elements
-  void fillNodesToElements(UInt);
+  void fillNodesToElements(UInt dimension = _all_dimensions);
   
 private:
   /// update the global ids, nodes type, ...

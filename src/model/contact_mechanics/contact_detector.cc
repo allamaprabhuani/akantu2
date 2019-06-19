@@ -52,8 +52,7 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions, const ID & 
 
   this->positions = positions;
   
-  //this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
-
+  this->mesh.fillNodesToElements(this->spatial_dimension - 1);  
 
   this->parseSection();
 

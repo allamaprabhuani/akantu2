@@ -486,46 +486,13 @@ void Mesh::getAssociatedElements(const UInt & node,
     elements.push_back(element);
 }
 
-  
-/* -------------------------------------------------------------------------- */
-void Mesh::fillNodesToElements() {
-  Element e;
-
-  UInt nb_nodes = nodes->size();
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    if (this->nodes_to_elements[n])
-      this->nodes_to_elements[n]->clear();
-    else
-      this->nodes_to_elements[n] = std::make_unique<std::set<Element>>();
-  }
-
-  for (auto ghost_type : ghost_types) {
-    e.ghost_type = ghost_type;
-    for (const auto & type :
-         elementTypes(spatial_dimension, ghost_type, _ek_not_defined)) {
-      e.type = type;
-
-      UInt nb_element = this->getNbElement(type, ghost_type);
-      Array<UInt>::const_iterator<Vector<UInt>> conn_it =
-          connectivities(type, ghost_type)
-              .begin(Mesh::getNbNodesPerElement(type));
-
-      for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
-        e.element = el;
-        const Vector<UInt> & conn = *conn_it;
-        for (UInt n = 0; n < conn.size(); ++n)
-          nodes_to_elements[conn(n)]->insert(e);
-      }
-    }
-  }
-}
-
 /* -------------------------------------------------------------------------- */
 void Mesh::fillNodesToElements(UInt dimension) {
   Element e;
 
   UInt nb_nodes = nodes->size();
-  
+  this->nodes_to_elements.resize(nodes->size());
+    
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (this->nodes_to_elements[n])
       this->nodes_to_elements[n]->clear();

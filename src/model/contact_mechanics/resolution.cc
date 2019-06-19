@@ -82,56 +82,10 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
-  
   const auto slave_nodes = model.getMesh().getElementGroup(slave).getNodeGroup().getNodes();
   this->assembleInternalForces(slave_nodes);
-  
-  /*if (two_pass_algorithm) {
-    const auto master_nodes = model.getMesh().getElementGroup(master).getNodes();
-    this->assembleInternalForces(master_nodes);
-  }*/
-  
-  /*auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
 
-  const auto local_nodes = model.getMesh().getElementGroup(name).getNodes();
-
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
-
-  auto & contact_map = model.getContactMap();
-
-  for (auto & slave : local_nodes) {
-
-    if (contact_map.find(slave) == contact_map.end())
-      continue;
-    
-    auto & element = contact_map[slave];
-    
-    const auto & conn = element.connectivity;
-    
-    Vector<Real> contact_force(conn.size() * spatial_dimension);
-   
-    Vector<Real> n(conn.size() * spatial_dimension);
-    ResolutionUtils::computeN(n, element);
-    
-    computeNormalForce(contact_force, n, element);    
-    if(mu != 0) {
-
-      Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-      Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-      Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-
-      ResolutionUtils::computeTalpha(t_alpha, element);
-      ResolutionUtils::computeNalpha(n_alpha, element);
-      ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
-   
-      computeFrictionalForce(contact_force, d_alpha, element);
-    }
-    
-    ResolutionUtils::assembleToInternalForce(contact_force, internal_force,
-					     nodal_area, element);
-  }
-
-  AKANTU_DEBUG_OUT();*/
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */  
@@ -291,8 +245,8 @@ Matrix<Real> Resolution::computeNablaOfDisplacement(ContactElement & element) {
     }
   }
 
-  Matrix<Real> shape_second_derivatives(surface_dimension * surface_dimension,
-					nb_nodes_per_element);
+  //Matrix<Real> shape_second_derivatives(surface_dimension * surface_dimension,
+  //					nb_nodes_per_element);
   
   //#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
   //ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
