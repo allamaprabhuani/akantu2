@@ -70,11 +70,22 @@ if (_is_activated)
     )
 endif()
 
-add_library(pyakantu OBJECT ${PYAKANTU_SRCS})
-target_link_libraries(pyakantu PUBLIC  akantu pybind11)
-target_include_directories(pyakantu INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(pyakantu PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+package_is_activated(contact_mechanics _is_activated)
+if(_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_contact_mechanics_model.cc
+    )
+endif()
 
-pybind11_add_module(py11_akantu $<TARGET_OBJECTS:pyakantu>)
-target_link_libraries(py11_akantu PRIVATE pyakantu)
+package_is_activated(model_couplers _is_activated)
+if(_is_activated)
+  list(APPEND PYAKANTU_SRCS
+    py_model_couplers.cc
+    )
+endif()
+
+
+pybind11_add_module(py11_akantu ${PYAKANTU_SRCS})
+target_link_libraries(py11_akantu PRIVATE akantu pybind11)
+target_include_directories(py11_akantu INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(py11_akantu PROPERTIES DEBUG_POSTFIX "")

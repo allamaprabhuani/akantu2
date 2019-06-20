@@ -130,9 +130,7 @@ enum EventHandlerPriority {
   (structural_mechanics_model)						\
   (embedded_model)							\
   (contact_mechanics_model)						\
-  (coupler_solid_contact)
-  (structural_mechanics_model)                                          \
-  (embedded_model)
+  (coupler_solid_contact)						
 // clang-format on
 
 /// enum ModelType defines which type of physics is solved
@@ -148,7 +146,7 @@ enum AnalysisMethod {
   _explicit_lumped_mass = 2,
   _explicit_lumped_capacity = 2,
   _explicit_consistent_mass = 3,
-  explicit_contact = 4,
+  _explicit_contact = 4,
   _implicit_contact = 5,
   _explicit_dynamic_contact = 6
 };
@@ -166,6 +164,7 @@ enum DOFSupportType { _dst_nodal, _dst_generic };
   (gmres)                                                              \
   (bfgs)                                                               \
   (cg)                                                                 \
+  (newton_raphson_contact)					       \
   (auto)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(NonLinearSolverType, AKANTU_NON_LINEAR_SOLVER_TYPES)
@@ -183,10 +182,10 @@ enum class NonLinearSolverType {
   _gmres,
   _bfgs,
   _cg,
-  _auto,  ///< This will take a default value that make sense in case of
-          ///  model::getNewSolver
   _newton_raphson_contact,  ///< Regular Newton-Raphson modified
                             /// for contact problem
+  _auto,  ///< This will take a default value that make sense in case of
+          ///  model::getNewSolver
 };
 #endif
 
@@ -248,7 +247,6 @@ enum class IntegrationSchemeType {
                            ///  defined alpha
 };
 #endif
->>>>>>> master
 
 #if !defined(DOXYGEN)
 // clang-format off

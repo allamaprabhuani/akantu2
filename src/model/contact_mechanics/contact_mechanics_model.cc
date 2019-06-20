@@ -65,8 +65,8 @@ ContactMechanicsModel::ContactMechanicsModel(
 
   this->registerDataAccessor(*this);
 
-  this->detector = std::make_unique<ContactDetector>(this->mesh, current_positions,
-                                                     id + ":contact_detector");
+  this->detector = std::make_unique<ContactDetector>(
+      this->mesh, current_positions, id + ":contact_detector");
 
   AKANTU_DEBUG_OUT();
 }
@@ -200,12 +200,9 @@ FEEngine & ContactMechanicsModel::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
-				       NonLinearSolverType) {
+void ContactMechanicsModel::initSolver(
+    TimeStepSolverType /*time_step_solver_type*/, NonLinearSolverType) {
 
-  auto & dof_manager = this->getDOFManager();
-
-  /* -------------------------------------------------------------------------- */
   // for alloc type of solvers
   this->allocNodalField(this->displacement, spatial_dimension, "displacement");
   this->allocNodalField(this->displacement_increment, spatial_dimension,
@@ -222,8 +219,7 @@ void ContactMechanicsModel::initSolver(TimeStepSolverType time_step_solver_type,
 
   this->allocNodalField(this->normals, spatial_dimension, "normals");
   this->allocNodalField(this->tangents, spatial_dimension, "tangents");
-  
-  /* -------------------------------------------------------------------------- */
+
   // todo register multipliers as dofs for lagrange multipliers
 }
 
@@ -233,17 +229,18 @@ ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
   switch (method) {
   case _explicit_contact: {
-    return std::make_tuple("explicit_contact", _tsst_static);
+    return std::make_tuple("explicit_contact", TimeStepSolverType::_static);
   }
   case _implicit_contact: {
-    return std::make_tuple("implicit_contact", _tsst_static);
+    return std::make_tuple("implicit_contact", TimeStepSolverType::_static);
   }
   case _explicit_dynamic_contact: {
-    return std::make_tuple("explicit_dynamic_contact", _tsst_dynamic_lumped);
+    return std::make_tuple("explicit_dynamic_contact",
+                           TimeStepSolverType::_dynamic_lumped);
     break;
-  }  
+  }
   default:
-    return std::make_tuple("unkown", _tsst_not_defined);
+    return std::make_tuple("unkown", TimeStepSolverType::_not_defined);
   }
 }
 
@@ -253,21 +250,25 @@ ModelSolverOptions ContactMechanicsModel::getDefaultSolverOptions(
   ModelSolverOptions options;
 
   switch (type) {
-  case _tsst_dynamic: {
-    options.non_linear_solver_type = _nls_lumped;
-    options.integration_scheme_type["displacement"] = _ist_central_difference;
+  case TimeStepSolverType::_dynamic: {
+    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.integration_scheme_type["displacement"] =
+        IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
-  case _tsst_dynamic_lumped: {
-    options.non_linear_solver_type = _nls_lumped;
-    options.integration_scheme_type["displacement"] = _ist_central_difference;
+  case TimeStepSolverType::_dynamic_lumped: {
+    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.integration_scheme_type["displacement"] =
+        IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
-  case _tsst_static: {
-    options.non_linear_solver_type = _nls_newton_raphson_contact;
-    options.integration_scheme_type["displacement"] = _ist_pseudo_time;
+  case TimeStepSolverType::_static: {
+    options.non_linear_solver_type =
+        NonLinearSolverType::_newton_raphson_contact;
+    options.integration_scheme_type["displacement"] =
+        IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
     break;
   }
@@ -288,9 +289,9 @@ void ContactMechanicsModel::assembleResidual() {
   this->assembleInternalForces();
 
   /* ------------------------------------------------------------------------ */
-  this->getDOFManager().assembleToResidual("displacement", *this->internal_force,
-                                           1);
-  
+  this->getDOFManager().assembleToResidual("displacement",
+                                           *this->internal_force, 1);
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -304,8 +305,7 @@ void ContactMechanicsModel::assembleInternalForces() {
   this->internal_force->clear();
   internal_force->resize(nb_nodes, 0.);
 
-  
-  // assemble the forces due to contact 
+  // assemble the forces due to contact
   auto assemble = [&](auto && ghost_type) {
     for (auto & resolution : resolutions) {
       resolution->assembleInternalForces(ghost_type);
@@ -319,36 +319,32 @@ void ContactMechanicsModel::assembleInternalForces() {
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
   assemble(_ghost);
 
-
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
-  
-  //this->contact_map.clear();
-  
+
   this->detector->search(this->contact_map);
-  
+
   for (auto & entry : contact_map) {
     auto & element = entry.second;
 
-    if (element.gap < 0) 
+    if (element.gap < 0)
       element.gap = std::abs(element.gap);
-    else 
+    else
       element.gap = -element.gap;
   }
-  
+
   this->assembleFieldsFromContactMap();
 
   this->computeNodalAreas();
 }
- 
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search(Array<Real> & increment) {
 
   this->contact_map.clear();
-   
+
   this->detector->search(this->contact_map);
 
   for (auto & entry : contact_map) {
@@ -356,28 +352,27 @@ void ContactMechanicsModel::search(Array<Real> & increment) {
     auto & element = entry.second;
     const auto & connectivity = element.connectivity;
     const auto & normal = element.normal;
-    
+
     auto slave_node = connectivity[0];
     Vector<Real> u_slave(spatial_dimension);
-    
+
     auto master_node = connectivity[1];
     Vector<Real> u_master(spatial_dimension);
 
     for (UInt s : arange(spatial_dimension)) {
-      u_slave(s)  = increment(slave_node, s);
+      u_slave(s) = increment(slave_node, s);
       u_master(s) = increment(master_node, s);
     }
 
     // todo check this initial guess
     auto u = (u_master.norm() > u_slave.norm()) ? u_master : u_slave;
     Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
-   
+
     if (element.gap - uv <= 0) {
       element.gap = std::abs(element.gap - uv);
-    }
-    else {
+    } else {
       element.gap = 0.0;
-    }    
+    }
   }
 
   this->assembleFieldsFromContactMap();
@@ -396,10 +391,10 @@ void ContactMechanicsModel::assembleFieldsFromContactMap() {
   gaps->resize(nb_nodes, 0.);
   normals->resize(nb_nodes, 0.);
   tangents->resize(nb_nodes, 0.);
-  
+
   if (this->contact_map.empty())
     return;
-  
+
   for (auto & entry : contact_map) {
     const auto & element = entry.second;
     auto connectivity = element.connectivity;
@@ -424,9 +419,9 @@ void ContactMechanicsModel::computeNodalAreas() {
 
   nodal_area->resize(nb_nodes, 0.);
   external_force->resize(nb_nodes, 0.);
-  
-  std::cerr << *external_force <<std::endl;
-  
+
+  ///todo change it for self contact as master is also slave therefore
+  ///double the area will be considered
   this->applyBC(
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
       this->detector->getSurfaceId<Surface::slave>());
@@ -434,10 +429,9 @@ void ContactMechanicsModel::computeNodalAreas() {
   this->applyBC(
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
       this->detector->getSurfaceId<Surface::master>());
-  
+
   for (auto && tuple :
-       zip(*nodal_area,
-	   make_view(*external_force, spatial_dimension))) {
+       zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
     auto & area = std::get<0>(tuple);
     auto & force = std::get<1>(tuple);
 
@@ -518,17 +512,17 @@ void ContactMechanicsModel::assembleLumpedMatrix(const ID & /*matrix_id*/) {
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 
-dumper::Field *
+std::shared_ptr<dumper::Field>
 ContactMechanicsModel::createNodalFieldBool(const std::string & /*field_name*/,
                                             const std::string & /*group_name*/,
                                             bool /*padding_flag*/) {
 
-  dumper::Field * field = nullptr;
+  std::shared_ptr<dumper::Field> field;
   return field;
 }
 
 /* -------------------------------------------------------------------------- */
-dumper::Field *
+std::shared_ptr<dumper::Field>
 ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                             const std::string & group_name,
                                             bool padding_flag) {
@@ -542,23 +536,24 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["previous_gaps"] = this->previous_gaps;
   real_nodal_fields["areas"] = this->nodal_area;
 
-  dumper::Field * field = nullptr;
-  if (padding_flag)
-    field = this->mesh.createNodalField(real_nodal_fields[field_name],
-                                        group_name, 3);
-  else
-    field =
-        this->mesh.createNodalField(real_nodal_fields[field_name], group_name);
+  if (padding_flag) {
+    return this->mesh.createNodalField(real_nodal_fields[field_name],
+                                       group_name, 3);
+  } else {
+    return this->mesh.createNodalField(real_nodal_fields[field_name],
+                                       group_name);
+  }
 
+  std::shared_ptr<dumper::Field> field;
   return field;
 }
 
 #else
 /* -------------------------------------------------------------------------- */
-dumper::Field * ContactMechanicsModel::createNodalFieldReal(
-    __attribute__((unused)) const std::string & field_name,
-    __attribute__((unused)) const std::string & group_name,
-    __attribute__((unused)) bool padding_flag) {
+std::shared_ptr<dumper::Field>
+ContactMechanicsModel::createNodalFieldReal(const std::string & /*field_name*/,
+                                            const std::string & /*group_name*/,
+                                            bool /*padding_flag*/) {
   return nullptr;
 }
 
@@ -631,7 +626,7 @@ UInt ContactMechanicsModel::getNbData(
   AKANTU_DEBUG_IN();
 
   UInt size = 0;
-  
+
   AKANTU_DEBUG_OUT();
   return size * dofs.size();
 }

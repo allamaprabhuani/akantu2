@@ -1,6 +1,7 @@
 /* -------------------------------------------------------------------------- */
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include <material_selector.hh>
 #include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/operators.h>
@@ -141,7 +142,6 @@ void define_material(py::module & mod, const std::string & name) {
 /* -------------------------------------------------------------------------- */
 
 [[gnu::visibility("default")]] void register_material(py::module & mod) {
-
   py::class_<MaterialFactory>(mod, "MaterialFactory")
       .def_static("getInstance",
                   []() -> MaterialFactory & { return Material::getFactory(); },
@@ -165,5 +165,30 @@ void define_material(py::module & mod, const std::string & name) {
 
   define_material<Material>(mod, "Material");
 }
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+void register_data_material_selector(py::module & mod,
+                                          const std::string & name) {
+  py::class_<ElementDataMaterialSelector<T>, MaterialSelector,
+             std::shared_ptr<ElementDataMaterialSelector<T>>>(
+      mod, ("ElementDataMaterialSelector" + name).c_str());
+
+  py::class_<MeshDataMaterialSelector<T>, ElementDataMaterialSelector<T>,
+             std::shared_ptr<MeshDataMaterialSelector<T>>>(
+      mod, ("MeshDataMaterialSelector" + name).c_str())
+      .def(py::init<const std::string &, SolidMechanicsModel &, UInt>(),
+           py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
+}
+
+/* -------------------------------------------------------------------------- */
+void register_material_selector(py::module & mod) {
+  py::class_<MaterialSelector, std::shared_ptr<MaterialSelector>>(
+      mod, "MaterialSelector");
+
+  register_data_material_selector<std::string>(mod, "String");
+}
+
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu

@@ -35,13 +35,14 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
- ContactDetector::ContactDetector(Mesh & mesh, const ID & id,  UInt memory_id)
+ ContactDetector::ContactDetector(Mesh & mesh, const ID & id,  const MemoryID & memory_id)
    : ContactDetector(mesh, mesh.getNodes(), id, memory_id) {
   
  }
   
 /* -------------------------------------------------------------------------- */
-ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions, const ID & id, UInt memory_id)
+ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions, const ID & id,
+				 const MemoryID & memory_id)
   : Memory(id, memory_id),
     Parsable(ParserType::_contact_detector, id),
     mesh(mesh) {
@@ -258,7 +259,7 @@ void ContactDetector::constructContactMap(std::map<UInt, ContactElement> & conta
 
 
   auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn = this->mesh.getConnectivity(master);
+    Vector<UInt> master_conn = const_cast<const Mesh &>(this->mesh).getConnectivity(master);
     Vector<UInt> elem_conn(master_conn.size() + 1);
 
     elem_conn[0] = slave;

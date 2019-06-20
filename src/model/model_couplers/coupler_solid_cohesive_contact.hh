@@ -57,10 +57,11 @@ class DOFManager;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class CouplerSolidCohesiveContact : public Model,
-				    public DataAccessor<Element>,
-				    public DataAccessor<UInt>,
-				    public BoundaryCondition<CouplerSolidCohesiveContact> {
+class CouplerSolidCohesiveContact
+    : public Model,
+      public DataAccessor<Element>,
+      public DataAccessor<UInt>,
+      public BoundaryCondition<CouplerSolidCohesiveContact> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
@@ -73,8 +74,8 @@ class CouplerSolidCohesiveContact : public Model,
                        FacetsCohesiveIntegrationOrderFunctor>;
 
 public:
-  CouplerSolidCohesiveContact(Mesh & mesh,
-      UInt spatial_dimension = _all_dimensions,
+  CouplerSolidCohesiveContact(
+      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
       const ID & id = "coupler_solid_cohesive_contact",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
       const ModelType model_type = ModelType::_coupler_solid_contact);
@@ -90,11 +91,10 @@ protected:
 
   /// initialize the modelType
   void initModel() override;
-  
+
   /// get some default values for derived classes
   std::tuple<ID, TimeStepSolverType>
   getDefaultSolverID(const AnalysisMethod & method) override;
-
 
   /* ------------------------------------------------------------------------ */
   /* Solver Interface                                                         */
@@ -134,7 +134,7 @@ protected:
 
   /// callback for the solver, this is called at end of solve
   void afterSolveStep() override;
-  
+
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType, NonLinearSolverType) override;
 
@@ -155,21 +155,18 @@ protected:
   /// assemble the mass matrix for either _ghost or _not_ghost elements
   void assembleMass(GhostType ghost_type);
 
-  
 protected:
-  /* -------------------------------------------------------------------------- */
+  /* --------------------------------------------------------------------------
+   */
   TimeStepSolverType getDefaultSolverType() const override;
-  /* -------------------------------------------------------------------------- */
+  /* --------------------------------------------------------------------------
+   */
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const;
 
-
 public:
-  bool isDefaultSolverExplicit() {
-    return method == _explicit_dynamic_contact;
-  }
-  
-  
+  bool isDefaultSolverExplicit() { return method == _explicit_dynamic_contact; }
+
   /* ------------------------------------------------------------------------ */
 public:
   // DataAccessor<Element>
@@ -223,30 +220,31 @@ public:
   }
 
   /// get the solid mechanics model
-  AKANTU_GET_MACRO(SolidMechanicsModelCohesive, *solid, SolidMechanicsModelCohesive &);
+  AKANTU_GET_MACRO(SolidMechanicsModelCohesive, *solid,
+                   SolidMechanicsModelCohesive &);
 
   /// get the contact mechanics model
   AKANTU_GET_MACRO(ContactMechanicsModel, *contact, ContactMechanicsModel &);
 
-  
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  
-  dumper::Field * createNodalFieldReal(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag) override;
+  std::shared_ptr<dumper::Field>
+  createNodalFieldReal(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
 
-  dumper::Field * createNodalFieldBool(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag) override;
+  std::shared_ptr<dumper::Field>
+  createNodalFieldBool(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
 
-  dumper::Field * createElementalField(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag,
-                                       const UInt & spatial_dimension,
-                                       const ElementKind & kind) override;
+  std::shared_ptr<dumper::Field>
+  createElementalField(const std::string & field_name,
+                       const std::string & group_name, bool padding_flag,
+                       const UInt & spatial_dimension,
+                       const ElementKind & kind) override;
 
   virtual void dump(const std::string & dumper_name);
 
@@ -275,7 +273,7 @@ private:
 
   ///
   Array<Real> * displacement_increment{nullptr};
-  
+
   /// external forces array
   Array<Real> * external_force{nullptr};
 

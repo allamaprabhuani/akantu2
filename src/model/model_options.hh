@@ -134,49 +134,34 @@ struct EmbeddedInterfaceModelOptions : SolidMechanicsModelOptions {
 };
 #endif
 
-
 #ifdef AKANTU_CONTACT_MECHANICS
-namespace {
-  DECLARE_NAMED_ARGUMENT(is_explicit);
-}
 /* -------------------------------------------------------------------------- */
 struct ContactMechanicsModelOptions : public ModelOptions {
   explicit ContactMechanicsModelOptions(
-      AnalysisMethod analysis_method = _explicit_contact,
-      bool explicit = true)
-    : ModelOptions(analysis_method), is_explicit(explicit) {}
+      AnalysisMethod analysis_method = _explicit_contact)
+      : ModelOptions(analysis_method) {}
 
   template <typename... pack>
   ContactMechanicsModelOptions(use_named_args_t, pack &&... _pack)
       : ContactMechanicsModelOptions(
-	      OPTIONAL_NAMED_ARG(analysis_method, _explicit_contact),
-	      OPTIONAL_NAMED_ARG(is_explicit, true)) {}
-
-    bool is_explicit{true};
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_contact)) {}
 };
 #endif
 
 #ifdef AKANTU_MODEL_COUPLERS
-namespace {
-  DECLARE_NAMED_ARGUMENT(is_explicit);
-}
 /* -------------------------------------------------------------------------- */
 struct CouplerSolidContactOptions : public ModelOptions {
   explicit CouplerSolidContactOptions(
-      AnalysisMethod analysis_method = _explicit_contact,
-      bool explicit = true)
-    : ModelOptions(analysis_method), is_explicit(explicit) {}
+      AnalysisMethod analysis_method = _explicit_dynamic_contact)
+      : ModelOptions(analysis_method) {}
 
   template <typename... pack>
   CouplerSolidContactOptions(use_named_args_t, pack &&... _pack)
       : CouplerSolidContactOptions(
-	      OPTIONAL_NAMED_ARG(analysis_method, _explicit_contact),
-	      OPTIONAL_NAMED_ARG(is_explicit, true)) {}
-
-    bool is_explicit{true};
-};  
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_dynamic_contact)) {}
+};
 #endif
-  
-} // akantu
+
+} // namespace akantu
 
 #endif /* __AKANTU_MODEL_OPTIONS_HH__ */

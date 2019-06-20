@@ -30,7 +30,6 @@ namespace akantu {
 
 [[gnu::visibility("default")]] void
 register_solid_mechanics_model(py::module & mod) {
-
   py::class_<SolidMechanicsModelOptions>(mod, "SolidMechanicsModelOptions")
       .def(py::init<AnalysisMethod>(),
            py::arg("analysis_method") = _explicit_lumped_mass);
@@ -38,9 +37,10 @@ register_solid_mechanics_model(py::module & mod) {
   py::class_<SolidMechanicsModel, Model>(mod, "SolidMechanicsModel",
                                          py::multiple_inheritance())
       .def(py::init<Mesh &, UInt, const ID &, const MemoryID &,
-                    const ModelType>(),
+                    std::shared_ptr<DOFManager>, const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("id") = "solid_mechanics_model", py::arg("memory_id") = 0,
+           py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_solid_mechanics_model)
       .def("initFull",
            [](SolidMechanicsModel & self,

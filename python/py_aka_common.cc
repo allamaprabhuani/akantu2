@@ -48,6 +48,9 @@ void register_enums(py::module & mod) {
       .value("_explicit_lumped_mass", _explicit_lumped_mass)
       .value("_explicit_lumped_capacity", _explicit_lumped_capacity)
       .value("_explicit_consistent_mass", _explicit_consistent_mass)
+      .value("_explicit_contact", _explicit_contact)
+      .value("_implicit_contact", _implicit_contact)
+      .value("_explicit_dynamic_contact", _explicit_dynamic_contact)
       .export_values();
 
   PY_AKANTU_REGISTER_CLASS_ENUM(ModelType, AKANTU_MODEL_TYPES, mod);

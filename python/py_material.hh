@@ -8,7 +8,7 @@ struct module;
 namespace akantu {
 
 void register_material(pybind11::module & mod);
-
+void register_material_selector(pybind11::module & mod);
 } // namespace akantu
 
 #endif // __AKANTU_PY_MATERIAL_HH__

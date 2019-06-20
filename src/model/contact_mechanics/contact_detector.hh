@@ -63,10 +63,11 @@ class ContactDetector :
   /* ------------------------------------------------------------------------ */
 public:
   
-  ContactDetector(Mesh &, const ID & id = "contact_detector", UInt memory_id = 0);
+  ContactDetector(Mesh &, const ID & id = "contact_detector",
+		  const MemoryID & memory_id = 0);
 
   ContactDetector(Mesh &, Array<Real> positions,  const ID & id = "contact_detector",
-		  UInt memory_id = 0);
+		  const MemoryID &  memory_id = 0);
         
   ~ContactDetector() = default;
 

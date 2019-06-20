@@ -26,6 +26,15 @@
 #if defined(AKANTU_COHESIVE_ELEMENT)
 #include "py_solid_mechanics_model_cohesive.hh"
 #endif
+
+#if defined(AKANTU_CONTACT_MECHANICS)
+#include "py_contact_mechanics_model.hh"
+#endif
+
+#if defined(AKANTU_MODEL_COUPLERS)
+#include "py_model_couplers.hh"
+#endif
+
 /* -------------------------------------------------------------------------- */
 #include <aka_error.hh>
 /* -------------------------------------------------------------------------- */
@@ -49,7 +58,7 @@ void register_all(pybind11::module & mod) {
   register_mesh(mod);
 
   register_fe_engine(mod);
-    
+
   register_boundary_conditions(mod);
   register_model(mod);
 #if defined(AKANTU_HEAT_TRANSFER)
@@ -59,10 +68,18 @@ void register_all(pybind11::module & mod) {
 #if defined(AKANTU_SOLID_MECHANICS)
   register_solid_mechanics_model(mod);
   register_material(mod);
+  register_material_selector(mod);
 #endif
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   register_solid_mechanics_model_cohesive(mod);
+#endif
+
+#if defined(AKANTU_CONTACT_MECHANICS)
+  register_contact_mechanics_model(mod);
+#endif
+#if defined(AKANTU_MODEL_COUPLERS)
+  register_model_couplers(mod);
 #endif
 }
 } // namespace akantu

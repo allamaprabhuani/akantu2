@@ -41,33 +41,36 @@
 
 namespace akantu {
 
-CouplerSolidCohesiveContact::CouplerSolidCohesiveContact(Mesh & mesh, UInt dim, const ID & id,
-							 std::shared_ptr<DOFManager> dof_manager,
-							 const ModelType model_type)
-  : Model(mesh, model_type, dof_manager, dim, id) {
+CouplerSolidCohesiveContact::CouplerSolidCohesiveContact(
+    Mesh & mesh, UInt dim, const ID & id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    : Model(mesh, model_type, dof_manager, dim, id) {
 
   AKANTU_DEBUG_IN();
 
-  this->registerFEEngineObject<MyFEEngineCohesiveType>("CohesiveFEEngine", mesh,
-						       Model::spatial_dimension);
+  this->registerFEEngineObject<MyFEEngineCohesiveType>(
+      "CohesiveFEEngine", mesh, Model::spatial_dimension);
 
 #if defined(AKANTU_USE_IOHELPER)
-  this->mesh.registerDumper<DumperParaview>("coupler_solid_cohesive_contact", id, true);
-  this->mesh.addDumpMeshToDumper("coupler_solid_cohesive_contact", mesh, Model::spatial_dimension,
-				 _not_ghost, _ek_cohesive);
+  this->mesh.registerDumper<DumperParaview>("coupler_solid_cohesive_contact",
+                                            id, true);
+  this->mesh.addDumpMeshToDumper("coupler_solid_cohesive_contact", mesh,
+                                 Model::spatial_dimension, _not_ghost,
+                                 _ek_cohesive);
 #endif
 
   this->registerDataAccessor(*this);
 
   solid = new SolidMechanicsModelCohesive(mesh, Model::spatial_dimension,
-					  "solid_mechanics_model_cohesive", 0, this->dof_manager);
+                                          "solid_mechanics_model_cohesive", 0,
+                                          this->dof_manager);
   contact = new ContactMechanicsModel(mesh, Model::spatial_dimension,
-				      "contact_mechanics_model", 0, this->dof_manager);
+                                      "contact_mechanics_model", 0,
+                                      this->dof_manager);
 
   registerFEEngineObject<MyFEEngineFacetType>(
       "FacetsFEEngine", mesh.getMeshFacets(), Model::spatial_dimension - 1);
 
-  
   AKANTU_DEBUG_OUT();
 }
 
@@ -84,17 +87,15 @@ void CouplerSolidCohesiveContact::initFullImpl(const ModelOptions & options) {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidCohesiveContact::initModel() {
-  
-  
+
   getFEEngine("CohesiveFEEngine").initShapeFunctions(_not_ghost);
   getFEEngine("CohesiveFEEngine").initShapeFunctions(_ghost);
-  
+
   getFEEngine("FacetsFEEngine").initShapeFunctions(_not_ghost);
   getFEEngine("FacetsFEEngine").initShapeFunctions(_ghost);
-  
-  //getFEEngine().initShapeFunctions(_not_ghost);
-  //getFEEngine().initShapeFunctions(_ghost);
 
+  // getFEEngine().initShapeFunctions(_not_ghost);
+  // getFEEngine().initShapeFunctions(_ghost);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -104,7 +105,8 @@ FEEngine & CouplerSolidCohesiveContact::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidCohesiveContact::initSolver(TimeStepSolverType, NonLinearSolverType) {
+void CouplerSolidCohesiveContact::initSolver(TimeStepSolverType,
+                                             NonLinearSolverType) {
   DOFManager & dof_manager = this->getDOFManager();
 }
 
@@ -114,47 +116,51 @@ CouplerSolidCohesiveContact::getDefaultSolverID(const AnalysisMethod & method) {
 
   switch (method) {
   case _explicit_contact: {
-    return std::make_tuple("explicit_contact", _tsst_static);
+    return std::make_tuple("explicit_contact", TimeStepSolverType::_static);
   }
   case _implicit_contact: {
-    return std::make_tuple("implicit_contact", _tsst_static);
+    return std::make_tuple("implicit_contact", TimeStepSolverType::_static);
   }
   case _explicit_dynamic_contact: {
-    return std::make_tuple("explicit_dynamic_contact", _tsst_dynamic_lumped);
+    return std::make_tuple("explicit_dynamic_contact",
+                           TimeStepSolverType::_dynamic_lumped);
     break;
-  }  
+  }
   default:
-    return std::make_tuple("unkown", _tsst_not_defined);
+    return std::make_tuple("unkown", TimeStepSolverType::_not_defined);
   }
 }
 
 /* -------------------------------------------------------------------------- */
 TimeStepSolverType CouplerSolidCohesiveContact::getDefaultSolverType() const {
-  return _tsst_dynamic_lumped;
+  return TimeStepSolverType::_dynamic_lumped;
 }
 
-  
 /* -------------------------------------------------------------------------- */
 ModelSolverOptions CouplerSolidCohesiveContact::getDefaultSolverOptions(
     const TimeStepSolverType & type) const {
   ModelSolverOptions options;
 
   switch (type) {
-  case _tsst_dynamic_lumped: {
-    options.non_linear_solver_type = _nls_lumped;
-    options.integration_scheme_type["displacement"] = _ist_central_difference;
+  case TimeStepSolverType::_dynamic_lumped: {
+    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.integration_scheme_type["displacement"] =
+        IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
-  case _tsst_dynamic: {
-    options.non_linear_solver_type = _nls_lumped;
-    options.integration_scheme_type["displacement"] = _ist_central_difference;
+  case TimeStepSolverType::_dynamic: {
+    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.integration_scheme_type["displacement"] =
+        IntegrationSchemeType::_central_difference;
     options.solution_type["displacement"] = IntegrationScheme::_acceleration;
     break;
   }
-  case _tsst_static: {
-    options.non_linear_solver_type = _nls_newton_raphson_contact;
-    options.integration_scheme_type["displacement"] = _ist_pseudo_time;
+  case TimeStepSolverType::_static: {
+    options.non_linear_solver_type =
+        NonLinearSolverType::_newton_raphson_contact;
+    options.integration_scheme_type["displacement"] =
+        IntegrationSchemeType::_pseudo_time;
     options.solution_type["displacement"] = IntegrationScheme::_not_defined;
     break;
   }
@@ -171,21 +177,21 @@ void CouplerSolidCohesiveContact::assembleResidual() {
 
   // computes the internal forces
   this->assembleInternalForces();
-  
+
   auto & internal_force = solid->getInternalForce();
   auto & external_force = solid->getExternalForce();
- 
-  auto & contact_force  = contact->getInternalForce();
-  auto & contact_map    = contact->getContactMap();
+
+  auto & contact_force = contact->getInternalForce();
+  auto & contact_map = contact->getContactMap();
 
   switch (method) {
   case _explicit_dynamic_contact:
   case _explicit_contact: {
-    for (auto & pair: contact_map) {
+    for (auto & pair : contact_map) {
       auto & connectivity = pair.second.connectivity;
       for (auto node : connectivity) {
-	for (auto s : arange(spatial_dimension)) 
-	  external_force(node, s) = contact_force(node, s);
+        for (auto s : arange(spatial_dimension))
+          external_force(node, s) = contact_force(node, s);
       }
     }
     break;
@@ -193,42 +199,38 @@ void CouplerSolidCohesiveContact::assembleResidual() {
   default:
     break;
   }
-    
+
   /* ------------------------------------------------------------------------ */
-  this->getDOFManager().assembleToResidual("displacement",
-                                           external_force, 1);
-  this->getDOFManager().assembleToResidual("displacement",
-                                           internal_force, 1);
+  this->getDOFManager().assembleToResidual("displacement", external_force, 1);
+  this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
   switch (method) {
   case _implicit_contact: {
-    this->getDOFManager().assembleToResidual("displacement",
-					     contact_force, 1);
+    this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
     break;
   }
   default:
     break;
   }
 }
-  
+
 /* -------------------------------------------------------------------------- */
 void CouplerSolidCohesiveContact::assembleResidual(const ID & residual_part) {
   AKANTU_DEBUG_IN();
 
   auto & internal_force = solid->getInternalForce();
   auto & external_force = solid->getExternalForce();
-  
-  auto & contact_force  = contact->getInternalForce();
-  auto & contact_map    = contact->getContactMap();
 
-  
+  auto & contact_force = contact->getInternalForce();
+  auto & contact_map = contact->getContactMap();
+
   switch (method) {
-  case _explicit_dynamic_contact:  
+  case _explicit_dynamic_contact:
   case _explicit_contact: {
-    for (auto & pair: contact_map) {
+    for (auto & pair : contact_map) {
       auto & connectivity = pair.second.connectivity;
       for (auto node : connectivity) {
-	for (auto s : arange(spatial_dimension)) 
-	  external_force(node, s) = contact_force(node, s);
+        for (auto s : arange(spatial_dimension))
+          external_force(node, s) = contact_force(node, s);
       }
     }
     break;
@@ -236,27 +238,25 @@ void CouplerSolidCohesiveContact::assembleResidual(const ID & residual_part) {
   default:
     break;
   }
-   
+
   if ("external" == residual_part) {
-    this->getDOFManager().assembleToResidual("displacement",
-                                             external_force, 1);
+    this->getDOFManager().assembleToResidual("displacement", external_force, 1);
     AKANTU_DEBUG_OUT();
     return;
   }
 
   if ("internal" == residual_part) {
-    this->getDOFManager().assembleToResidual("displacement",
-                                             internal_force, 1);
+    this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
     switch (method) {
     case _implicit_contact: {
-      this->getDOFManager().assembleToResidual("displacement",
-					       contact_force, 1);
+      this->getDOFManager().assembleToResidual("displacement", contact_force,
+                                               1);
       break;
     }
     default:
       break;
     }
-    
+
     AKANTU_DEBUG_OUT();
     return;
   }
@@ -266,7 +266,7 @@ void CouplerSolidCohesiveContact::assembleResidual(const ID & residual_part) {
 
   AKANTU_DEBUG_OUT();
 }
-  
+
 /* -------------------------------------------------------------------------- */
 void CouplerSolidCohesiveContact::beforeSolveStep() {}
 
@@ -283,63 +283,60 @@ void CouplerSolidCohesiveContact::predictor() {
     Array<Real> current_positions(0, Model::spatial_dimension);
     auto positions = mesh.getNodes();
     current_positions.copy(positions);
-  
-    auto us = this->getDOFManager().getDOFs("displacement");
-    //const auto deltas = this->getDOFManager().getSolution("displacement");
-    const auto blocked_dofs = this->getDOFManager().getBlockedDOFs("displacement");
 
-    for (auto && tuple : zip(make_view(us),
-			     make_view(blocked_dofs),
-			     make_view(current_positions))) {
-      auto & u           = std::get<0>(tuple);
-      const auto & bld   = std::get<1>(tuple);
-      auto & cp          = std::get<2>(tuple);
+    auto us = this->getDOFManager().getDOFs("displacement");
+    // const auto deltas = this->getDOFManager().getSolution("displacement");
+    const auto blocked_dofs =
+        this->getDOFManager().getBlockedDOFs("displacement");
+
+    for (auto && tuple : zip(make_view(us), make_view(blocked_dofs),
+                             make_view(current_positions))) {
+      auto & u = std::get<0>(tuple);
+      const auto & bld = std::get<1>(tuple);
+      auto & cp = std::get<2>(tuple);
 
       if (not bld)
-	cp += u;   
+        cp += u;
     }
 
-    contact->setPositions(current_positions); 
+    contact->setPositions(current_positions);
     contact->search();
     break;
   }
   default:
     break;
   }
-
-
 }
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidCohesiveContact::corrector() {
 
   switch (method) {
-  case _implicit_contact:  
+  case _implicit_contact:
   case _explicit_contact: {
     Array<Real> displacement(0, Model::spatial_dimension);
 
     Array<Real> current_positions(0, Model::spatial_dimension);
     auto positions = mesh.getNodes();
     current_positions.copy(positions);
-  
+
     auto us = this->getDOFManager().getDOFs("displacement");
     const auto deltas = this->getDOFManager().getSolution("displacement");
-    const auto blocked_dofs = this->getDOFManager().getBlockedDOFs("displacement");
+    const auto blocked_dofs =
+        this->getDOFManager().getBlockedDOFs("displacement");
 
-    for (auto && tuple : zip(make_view(us),
-			     deltas,
-			     make_view(blocked_dofs),
-			     make_view(current_positions))) {
-      auto & u           = std::get<0>(tuple);
+    for (auto && tuple : zip(make_view(us), deltas, make_view(blocked_dofs),
+                             make_view(current_positions))) {
+      auto & u = std::get<0>(tuple);
       const auto & delta = std::get<1>(tuple);
-      const auto & bld   = std::get<2>(tuple);
-      auto & cp          = std::get<3>(tuple);
+      const auto & bld = std::get<2>(tuple);
+      auto & cp = std::get<3>(tuple);
 
       if (not bld)
-	cp += u + delta;   
+        cp += u + delta;
     }
 
-    contact->setPositions(current_positions); 
+    contact->setPositions(current_positions);
     contact->search();
 
     break;
@@ -347,32 +344,32 @@ void CouplerSolidCohesiveContact::corrector() {
   default:
     break;
   }
-    
+
   /*auto & internal_force = solid->getInternalForce();
   auto & external_force = solid->getExternalForce();
 
-  
-  
+
+
   std::stringstream filename;
   filename << "out" << "-00" << step << ".csv";
- 
+
   std::ofstream outfile(filename.str());
- 
+
   outfile << "x,gap,residual" << std::endl;
-  
+
   auto & contact_map    = contact->getContactMap();
   for (auto & pair: contact_map) {
       auto & connectivity = pair.second.connectivity;
       auto node = connectivity(0);
       if (pair.second.gap > 0) {
-	outfile << positions(node, 0) << "," << pair.second.gap << ","
-		<< external_force(node, 1) + internal_force(node, 1)  << std::endl;
+    outfile << positions(node, 0) << "," << pair.second.gap << ","
+        << external_force(node, 1) + internal_force(node, 1)  << std::endl;
       }
   }
 
   outfile.close();
   step++;*/
-}  
+}
 
 /* -------------------------------------------------------------------------- */
 MatrixType CouplerSolidCohesiveContact::getMatrixType(const ID & matrix_id) {
@@ -407,10 +404,10 @@ void CouplerSolidCohesiveContact::assembleInternalForces() {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_INFO("Assemble the internal forces");
-  
-  solid->assembleInternalForces();  
+
+  solid->assembleInternalForces();
   contact->assembleInternalForces();
-  
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -430,7 +427,7 @@ void CouplerSolidCohesiveContact::assembleStiffnessMatrix() {
   default:
     break;
   }
-     
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -440,12 +437,10 @@ void CouplerSolidCohesiveContact::assembleMassLumped() {
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidCohesiveContact::assembleMass() {
-  solid->assembleMass();
-}
+void CouplerSolidCohesiveContact::assembleMass() { solid->assembleMass(); }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidCohesiveContact::assembleMassLumped(GhostType ghost_type)  {
+void CouplerSolidCohesiveContact::assembleMassLumped(GhostType ghost_type) {
   solid->assembleMassLumped(ghost_type);
 }
 
@@ -453,77 +448,79 @@ void CouplerSolidCohesiveContact::assembleMassLumped(GhostType ghost_type)  {
 void CouplerSolidCohesiveContact::assembleMass(GhostType ghost_type) {
   solid->assembleMass(ghost_type);
 }
-  
+
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-dumper::Field * CouplerSolidCohesiveContact::createElementalField(
+std::shared_ptr<dumper::Field>
+CouplerSolidCohesiveContact::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, const UInt & spatial_dimension,
     const ElementKind & kind) {
 
-  dumper::Field * field = nullptr;
+  return solid->createElementalField(field_name, group_name, padding_flag,
+                                     spatial_dimension, kind);
 
-  field = solid->createElementalField(field_name, group_name, padding_flag,
-				      spatial_dimension, kind);
-  
+  std::shared_ptr<dumper::Field> field;
   return field;
 }
 
 /* -------------------------------------------------------------------------- */
-dumper::Field *
-CouplerSolidCohesiveContact::createNodalFieldReal(const std::string & field_name,
-                                          const std::string & group_name,
-                                          bool padding_flag) {
+std::shared_ptr<dumper::Field>
+CouplerSolidCohesiveContact::createNodalFieldReal(
+    const std::string & field_name, const std::string & group_name,
+    bool padding_flag) {
 
-  dumper::Field * field = nullptr;
-  
   if (field_name == "contact_force" or field_name == "normals" or
       field_name == "gaps" or field_name == "previous_gaps" or
-      field_name == "areas" or  field_name == "tangents")
-    field = contact->createNodalFieldReal(field_name, group_name, padding_flag);
-  else
-    field = solid->createNodalFieldReal(field_name, group_name, padding_flag);
+      field_name == "areas" or field_name == "tangents") {
+    return contact->createNodalFieldReal(field_name, group_name, padding_flag);
+  } else {
+    return solid->createNodalFieldReal(field_name, group_name, padding_flag);
+  }
 
+  std::shared_ptr<dumper::Field> field;
   return field;
 }
 
-/* -------------------------------------------------------------------------- */  
-dumper::Field * CouplerSolidCohesiveContact::createNodalFieldBool(
+/* -------------------------------------------------------------------------- */
+std::shared_ptr<dumper::Field>
+CouplerSolidCohesiveContact::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
-    __attribute__((unused)) bool padding_flag) {
+    bool padding_flag) {
 
-  dumper::Field * field = nullptr;
+  return solid->createNodalFieldBool(field_name, group_name, padding_flag);
 
-  field = solid->createNodalFieldBool(field_name, group_name, padding_flag);
+  std::shared_ptr<dumper::Field> field;
   return field;
 }
-  
+
 #else
 
 /* -------------------------------------------------------------------------- */
-dumper::Field * CouplerSolidCohesiveContact::createElementalField(const std::string &,
-                                                          const std::string &,
-                                                          bool, const UInt &,
-                                                          const ElementKind &) {
+std::shared_ptr<dumper::Field>
+CouplerSolidCohesiveContact::createElementalField(const std::string &,
+                                                  const std::string &, bool,
+                                                  const UInt &,
+                                                  const ElementKind &) {
   return nullptr;
 }
 
 /* ----------------------------------------------------------------------- */
-dumper::Field * CouplerSolidCohesiveContact::createNodalFieldReal(const std::string &,
-                                                          const std::string &,
-                                                          bool) {
+std::shared_ptr<dumper::Field>
+CouplerSolidCohesiveContact::createNodalFieldReal(const std::string &,
+                                                  const std::string &, bool) {
   return nullptr;
 }
 
 /*-------------------------------------------------------------------*/
-dumper::Field * CouplerSolidCohesiveContact::createNodalFieldBool(const std::string &,
-                                                          const std::string &,
-                                                          bool) {
+std::shared_ptr<dumper::Field>
+CouplerSolidCohesiveContact::createNodalFieldBool(const std::string &,
+                                                  const std::string &, bool) {
   return nullptr;
 }
-  
+
 #endif
 
 /* --------------------------------------------------------------------------
@@ -535,15 +532,16 @@ void CouplerSolidCohesiveContact::dump(const std::string & dumper_name) {
 
 /* --------------------------------------------------------------------------
  */
-void CouplerSolidCohesiveContact::dump(const std::string & dumper_name, UInt step) {
+void CouplerSolidCohesiveContact::dump(const std::string & dumper_name,
+                                       UInt step) {
   solid->onDump();
   mesh.dump(dumper_name, step);
 }
 
 /* -------------------------------------------------------------------------
  */
-void CouplerSolidCohesiveContact::dump(const std::string & dumper_name, Real time,
-                               UInt step) {
+void CouplerSolidCohesiveContact::dump(const std::string & dumper_name,
+                                       Real time, UInt step) {
   solid->onDump();
   mesh.dump(dumper_name, time, step);
 }
@@ -565,6 +563,5 @@ void CouplerSolidCohesiveContact::dump(Real time, UInt step) {
   solid->onDump();
   mesh.dump(time, step);
 }
-  
-  
+
 } // namespace akantu

@@ -170,7 +170,7 @@ inline void ContactDetector::computeMaximalDetectionDistance() {
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt> ContactDetector::constructConnectivity(UInt & slave, const Element & master) {
     
-  Vector<UInt> master_conn = this->mesh.getConnectivity(master);
+  Vector<UInt> master_conn = const_cast<const Mesh &>(this->mesh).getConnectivity(master);
 
   Vector<UInt> elem_conn(master_conn.size() + 1);
 
