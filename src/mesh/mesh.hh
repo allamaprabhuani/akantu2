@@ -488,6 +488,9 @@ public:
   /// get spatial dimension of a type of element
   static inline UInt getSpatialDimension(const ElementType & type);
 
+  /// get the natural space dimension of a type of element
+  static inline UInt getNaturalSpaceDimension(const ElementType & type);
+  
   /// get number of facets of a given element type
   static inline UInt getNbFacetsPerElement(const ElementType & type);
 

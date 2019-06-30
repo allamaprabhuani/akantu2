@@ -46,11 +46,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::ContactMechanicsModel(
-    Mesh & mesh, Array<Real> & positions, UInt dim, const ID & id,
-    const MemoryID & memory_id, std::shared_ptr<DOFManager> dof_manager,
-    const ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id, memory_id),
-      current_positions(positions) {
+    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
+    : Model(mesh, model_type, dof_manager, dim, id, memory_id) {
 
   AKANTU_DEBUG_IN();
 
@@ -59,24 +57,17 @@ ContactMechanicsModel::ContactMechanicsModel(
 #if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-                                 Model::spatial_dimension, _not_ghost,
+                                 Model::spatial_dimension - 1, _not_ghost,
                                  _ek_regular);
 #endif
 
   this->registerDataAccessor(*this);
 
-  this->detector = std::make_unique<ContactDetector>(
-      this->mesh, current_positions, id + ":contact_detector");
+  this->detector =
+      std::make_unique<ContactDetector>(this->mesh, id + ":contact_detector");
 
   AKANTU_DEBUG_OUT();
 }
-
-/* -------------------------------------------------------------------------- */
-ContactMechanicsModel::ContactMechanicsModel(
-    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
-    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : ContactMechanicsModel(mesh, mesh.getNodes(), dim, id, memory_id,
-                            dof_manager, model_type) {}
 
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::~ContactMechanicsModel() {
@@ -420,15 +411,13 @@ void ContactMechanicsModel::computeNodalAreas() {
   nodal_area->resize(nb_nodes, 0.);
   external_force->resize(nb_nodes, 0.);
 
-  ///todo change it for self contact as master is also slave therefore
-  ///double the area will be considered
+  auto & fem_boundary = this->getFEEngineBoundary(); 
+  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
+  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
+  
   this->applyBC(
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-      this->detector->getSurfaceId<Surface::slave>());
-
-  this->applyBC(
-      BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-      this->detector->getSurfaceId<Surface::master>());
+      mesh.getElementGroup("contact_surface"));
 
   for (auto && tuple :
        zip(*nodal_area, make_view(*external_force, spatial_dimension))) {

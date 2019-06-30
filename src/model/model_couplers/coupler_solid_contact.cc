@@ -1,5 +1,5 @@
 /**
- * @file   coupler_solid_contact_explicit.cc
+ * @file   coupler_solid_contact.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
@@ -268,12 +268,14 @@ void CouplerSolidContact::predictor() {
   case _explicit_dynamic_contact: {
     Array<Real> displacement(0, Model::spatial_dimension);
 
-    Array<Real> current_positions(0, Model::spatial_dimension);
+    /*Array<Real> current_positions(0, Model::spatial_dimension);
     auto positions = mesh.getNodes();
-    current_positions.copy(positions);
+    current_positions.copy(positions);*/
 
+    auto & current_positions = contact->getContactDetector().getPositions();
+    current_positions.copy(mesh.getNodes());
+    
     auto us = this->getDOFManager().getDOFs("displacement");
-    // const auto deltas = this->getDOFManager().getSolution("displacement");
     const auto blocked_dofs =
         this->getDOFManager().getBlockedDOFs("displacement");
 
@@ -287,7 +289,7 @@ void CouplerSolidContact::predictor() {
         cp += u;
     }
 
-    contact->setPositions(current_positions);
+    //contact->setPositions(current_positions);
     contact->search();
     break;
   }
@@ -332,31 +334,6 @@ void CouplerSolidContact::corrector() {
   default:
     break;
   }
-
-  /*auto & internal_force = solid->getInternalForce();
-  auto & external_force = solid->getExternalForce();
-
-
-
-  std::stringstream filename;
-  filename << "out" << "-00" << step << ".csv";
-
-  std::ofstream outfile(filename.str());
-
-  outfile << "x,gap,residual" << std::endl;
-
-  auto & contact_map    = contact->getContactMap();
-  for (auto & pair: contact_map) {
-      auto & connectivity = pair.second.connectivity;
-      auto node = connectivity(0);
-      if (pair.second.gap > 0) {
-    outfile << positions(node, 0) << "," << pair.second.gap << ","
-        << external_force(node, 1) + internal_force(node, 1)  << std::endl;
-      }
-  }
-
-  outfile.close();
-  step++;*/
 }
 
 /* -------------------------------------------------------------------------- */

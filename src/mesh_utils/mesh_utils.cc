@@ -462,22 +462,22 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   /// copy the renumbered connectivity to the right place
   auto & local_conn = mesh_accessor.getConnectivity(type);
   local_conn.resize(nb_local_element);
-    
-  if(nb_local_element > 0) {
+
+  if (nb_local_element > 0) {
     memcpy(local_conn.storage(), local_connectivities.storage(),
            nb_local_element * nb_nodes_per_element * sizeof(UInt));
   }
 
   auto & ghost_conn = mesh_accessor.getConnectivity(type, _ghost);
   ghost_conn.resize(nb_ghost_element);
-  
-  if(nb_ghost_element > 0) {
+
+  if (nb_ghost_element > 0) {
     std::memcpy(ghost_conn.storage(),
                 local_connectivities.storage() +
-                nb_local_element * nb_nodes_per_element,
+                    nb_local_element * nb_nodes_per_element,
                 nb_ghost_element * nb_nodes_per_element * sizeof(UInt));
   }
-  
+
   auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
   ghost_counter.resize(nb_ghost_element, 1);
 
@@ -623,6 +623,8 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
                             bool facet_mode) {
   AKANTU_DEBUG_IN();
 
+  NewElementsEvent event;
+
   for (auto gt_facet : ghost_types) {
     for (auto && type_facet :
          mesh_facets.elementTypes(facet_dimension, gt_facet)) {
@@ -648,6 +650,12 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
 #else
       conn_facet.resize(new_nb_facet);
 #endif
+      Element facet{type_facet, 0, gt_facet};
+      for (auto el : arange(old_nb_facet, new_nb_facet)) {
+	facet.element = el;
+	event.getList().push_back(facet);
+      }
+
       auto conn_facet_begin = conn_facet.begin(nb_nodes_per_facet);
 
       auto & subfacet_to_facet =
@@ -700,6 +708,8 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
                                        doubled_nodes);
     }
   }
+
+  mesh_facets.sendEvent(event);
 
   AKANTU_DEBUG_OUT();
 }
@@ -1094,6 +1104,8 @@ void MeshUtils::doublePointFacet(Mesh & mesh, Mesh & mesh_facets,
   if (spatial_dimension != 1)
     return;
 
+  NewElementsEvent event;
+
   auto & position = mesh.getNodes();
 
   for (auto gt_facet : ghost_types) {
@@ -1114,6 +1126,12 @@ void MeshUtils::doublePointFacet(Mesh & mesh, Mesh & mesh_facets,
       auto new_nb_nodes = old_nb_nodes + nb_facet_to_double;
       position.resize(new_nb_nodes);
       conn_facet.resize(new_nb_facet);
+
+      Element facet{type_facet, 0, gt_facet};
+      for (auto el : arange(old_nb_facet, new_nb_facet)) {
+	facet.element = el;
+	event.getList().push_back(facet);
+      }
 
       auto old_nb_doubled_nodes = doubled_nodes.size();
       doubled_nodes.resize(old_nb_doubled_nodes + nb_facet_to_double);
@@ -1143,6 +1161,8 @@ void MeshUtils::doublePointFacet(Mesh & mesh, Mesh & mesh_facets,
       }
     }
   }
+
+  mesh_facets.sendEvent(event);
 
   AKANTU_DEBUG_OUT();
 }
@@ -1329,6 +1349,8 @@ void MeshUtils::doubleSubfacet(Mesh & mesh, Mesh & mesh_facets,
   if (spatial_dimension == 1)
     return;
 
+  NewElementsEvent event;
+
   for (auto gt_subfacet : ghost_types) {
     for (auto type_subfacet : mesh_facets.elementTypes(0, gt_subfacet)) {
       auto & sf_to_double = mesh_facets.getData<UInt>(
@@ -1349,6 +1371,12 @@ void MeshUtils::doubleSubfacet(Mesh & mesh, Mesh & mesh_facets,
       UInt new_nb_subfacet = old_nb_subfacet + nb_subfacet_to_double;
 
       conn_subfacet.resize(new_nb_subfacet);
+
+      Element subfacet{type_subfacet, 0, gt_subfacet};
+      for ( auto el : arange(old_nb_subfacet, new_nb_subfacet)) {
+	subfacet.element = el;
+	event.getList().push_back(subfacet);
+      }
 
       std::vector<UInt> nodes_to_double;
       UInt old_nb_doubled_nodes = doubled_nodes.size();
@@ -1410,6 +1438,8 @@ void MeshUtils::doubleSubfacet(Mesh & mesh, Mesh & mesh_facets,
     }
   }
 
+  mesh_facets.sendEvent(event);
+  
   AKANTU_DEBUG_OUT();
 }
 

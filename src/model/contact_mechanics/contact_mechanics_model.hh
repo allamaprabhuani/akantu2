@@ -68,13 +68,6 @@ public:
       std::shared_ptr<DOFManager> dof_manager = nullptr,
       const ModelType model_type = ModelType::_contact_mechanics_model);
 
-  ContactMechanicsModel(
-      Mesh & mesh, Array<Real> & positions,
-      UInt spatial_dimension = _all_dimensions,
-      const ID & id = "contact_mechanics_model", const MemoryID & memory_id = 0,
-      std::shared_ptr<DOFManager> dof_manager = nullptr,
-      const ModelType model_type = ModelType::_contact_mechanics_model);
-
   ~ContactMechanicsModel() override;
 
   /* ------------------------------------------------------------------------ */
@@ -147,7 +140,7 @@ protected:
 
   /// read the resolution files to instantiate all the resolutions
   void instantiateResolutions();
-  
+
   /* ------------------------------------------------------------------------ */
   /* Solver Interface                                                         */
   /* ------------------------------------------------------------------------ */
@@ -168,13 +161,15 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  std::shared_ptr<dumper::Field> createNodalFieldReal(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag) override;
+  std::shared_ptr<dumper::Field>
+  createNodalFieldReal(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
 
-  std::shared_ptr<dumper::Field> createNodalFieldBool(const std::string & field_name,
-                                       const std::string & group_name,
-                                       bool padding_flag) override;
+  std::shared_ptr<dumper::Field>
+  createNodalFieldBool(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
   void dump() override;
 
   virtual void dump(UInt step);
@@ -255,8 +250,8 @@ public:
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
-  /// get the ContactMechanics::internal_force vector (internal forces)
-  AKANTU_GET_MACRO(CurrentPositions, current_positions, Array<Real> &);
+  /// get contact detector
+  AKANTU_GET_MACRO_NOT_CONST(ContactDetector, *detector, ContactDetector &);
 
   /// get the contat map
   inline std::map<UInt, ContactElement> & getContactMap() {
@@ -304,9 +299,6 @@ private:
 
   /// array to store nodal areas
   Array<Real> * nodal_area{nullptr};
-
-  /// array of current position used during update residual
-  Array<Real> & current_positions;
 
   /// contact detection
   std::unique_ptr<ContactDetector> detector;

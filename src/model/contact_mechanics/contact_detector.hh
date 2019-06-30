@@ -30,52 +30,48 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_memory.hh"
-#include "aka_grid_dynamic.hh"
 #include "aka_bbox.hh"
-#include "mesh.hh"
-#include "mesh_io.hh"
-#include "fe_engine.hh"
-#include "parsable.hh"
-#include "element_group.hh"
+#include "aka_grid_dynamic.hh"
+#include "aka_memory.hh"
 #include "contact_element.hh"
 #include "element_class.hh"
+#include "element_group.hh"
+#include "fe_engine.hh"
+#include "mesh.hh"
+#include "mesh_io.hh"
+#include "node_selector.hh"
+#include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_DETECTOR_HH__
 #define __AKANTU_CONTACT_DETECTOR_HH__
 
-
 namespace akantu {
 
-enum class Surface {
-  master,
-  slave
-};
-  
-/* -------------------------------------------------------------------------- */ 
+enum class Surface { master, slave };
 
-class ContactDetector :
-    private Memory, public Parsable {
+/* -------------------------------------------------------------------------- */
+
+class ContactDetector : private Memory, public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  
   ContactDetector(Mesh &, const ID & id = "contact_detector",
-		  const MemoryID & memory_id = 0);
+                  const MemoryID & memory_id = 0);
 
-  ContactDetector(Mesh &, Array<Real> positions,  const ID & id = "contact_detector",
-		  const MemoryID &  memory_id = 0);
-        
+  ContactDetector(Mesh &, Array<Real> positions,
+                  const ID & id = "contact_detector",
+                  const MemoryID & memory_id = 0);
+
   ~ContactDetector() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Members                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// performs all search steps 
+  /// performs all search steps
   void search(std::map<UInt, ContactElement> &);
 
   /// performs global spatial search to construct spatial grids
@@ -86,37 +82,40 @@ public:
 
   /// constructs contact map for a given pair of slave and master node
   void constructContactMap(std::map<UInt, ContactElement> &);
-  
+
 private:
   /// reads the input file to get contact detection options
   void parseSection();
 
   /// computes the orthogonal projection on master elements
-  void computeOrthogonalProjection(const UInt & , const Array<Element> &,
-				   Array<Real> &, Array<Real> &, Array<Real> &);
- 
+  void computeOrthogonalProjection(const UInt &, const Array<Element> &,
+                                   Array<Real> &, Array<Real> &, Array<Real> &);
+
   /// computes tangents on a given natural coordinate
-  void computeTangentsOnElement(const Element &, Vector<Real> &, Matrix<Real> &);
+  void computeTangentsOnElement(const Element &, Vector<Real> &,
+                                Matrix<Real> &);
 
   /// computes projection of a query point on an element
   void computeProjectionOnElement(const Element &, const Vector<Real> &,
-				  const Vector<Real> &, Vector<Real> &, Vector<Real> &);
+                                  const Vector<Real> &, Vector<Real> &,
+                                  Vector<Real> &);
 
   /// computes natural projection of a real projection
-  void computeNaturalProjection(const Element &, Vector<Real> &, Vector<Real> &);
+  void computeNaturalProjection(const Element &, Vector<Real> &,
+                                Vector<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Inline Methods                                                           */
   /* ------------------------------------------------------------------------ */
 public:
   /// checks whether the natural projection is valid or not
-  inline bool checkValidityOfProjection(Vector<Real> & );
-  
-  /// extracts the coordinates of an element
-  inline void coordinatesOfElement(const Element & , Matrix<Real> & );
+  inline bool checkValidityOfProjection(Vector<Real> &);
 
-  /// computes the optimal cell size for grid 
-  inline void computeCellSpacing(Vector<Real> & );
+  /// extracts the coordinates of an element
+  inline void coordinatesOfElement(const Element &, Matrix<Real> &);
+
+  /// computes the optimal cell size for grid
+  inline void computeCellSpacing(Vector<Real> &);
 
   /// constructs a grid containing nodes lying within bounding box
   inline void constructGrid(SpatialGrid<UInt> &, BBox &, const Array<UInt> &);
@@ -125,85 +124,85 @@ public:
   inline void constructBoundingBox(BBox &, const Array<UInt> &);
 
   /// get the surface id
-  template<Surface id>
-  inline std::string getSurfaceId();
-   
+  template <Surface id> inline std::string getSurfaceId();
+
   /// set the surface id
-  template<Surface id>
-  inline void setSurfaceId(const std::string);
-  
-  /// computes the maximum in radius for a given mesh 
+  template <Surface id> inline void setSurfaceId(const std::string);
+
+  /// computes the maximum in radius for a given mesh
   inline void computeMaximalDetectionDistance();
 
   /// constructs the connectivity for a contact element
   inline Vector<UInt> constructConnectivity(UInt &, const Element &);
 
   /// computes normal on an element
-  inline void computeNormalOnElement(const Element &, Vector<Real> & );
-  
+  inline void computeNormalOnElement(const Element &, Vector<Real> &);
+
   /// extracts vectors which forms the plane of element
-  inline void vectorsAlongElement(const Element &, Matrix<Real> & );
+  inline void vectorsAlongElement(const Element &, Matrix<Real> &);
 
   /// computes the gap between slave and its projection on master
   /// surface
   inline Real computeGap(Vector<Real> &, Vector<Real> &, Vector<Real> &);
-  
+
+  /// filter boundary elements
+   inline void filterBoundaryElements(Array<Element> & elements,
+				      Array<Element> & boundary_elements);
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
   /// returns the maximum detection distance
   AKANTU_GET_MACRO(MaximumDetectionDistance, max_dd, Real);
-
-  /// sets the maximum detection distance
   AKANTU_SET_MACRO(MaximumDetectionDistance, max_dd, Real);
 
   /// returns the bounding box extension
   AKANTU_GET_MACRO(MaximumBoundingBox, max_bb, Real);
-
-  /// sets the bounding box extension
   AKANTU_SET_MACRO(MaximumBoundingBox, max_bb, Real);
 
-  /// returns the positions
-  AKANTU_GET_MACRO(Positions, positions, Array<Real>);
-
-  /// sets the positions
+  AKANTU_GET_MACRO_NOT_CONST(Positions, positions, Array<Real> &);
   AKANTU_SET_MACRO(Positions, positions, Array<Real>);
 
-  
+  AKANTU_GET_MACRO_NOT_CONST(NodeSelector, *node_selector, NodeSelector &);
+  AKANTU_SET_MACRO(NodeSelector, node_selector, std::shared_ptr<NodeSelector>);
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
   /// map to contain ids for surfaces
-  std::map<Surface, std::string> surfaces; 
-  
+  std::map<Surface, std::string> surfaces;
+
 private:
   /// maximal detection distance for grid spacing
   Real max_dd;
 
   /// maximal bounding box extension
   Real max_bb;
-  
+
   /// Mesh
   Mesh & mesh;
 
   /// dimension of the model
   UInt spatial_dimension{0};
-  
+
+  /// node selector for selecting master and slave nodes
+  std::shared_ptr<NodeSelector> node_selector;
+
   /// contact pair slave node to closet master node
-  std::vector<std::pair<UInt, UInt> > contact_pairs;
-  
+  std::vector<std::pair<UInt, UInt>> contact_pairs;
+
   /// contains the updated positions of the nodes
   Array<Real> positions;
 
-  /// type of detection explicit/implicit 
+  /// type of detection explicit/implicit
   DetectionType detection_type;
 
   ///
   bool two_pass_algorithm;
 };
-  
+
 } // namespace akantu
 
 #include "contact_detector_inline_impl.cc"

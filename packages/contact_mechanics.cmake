@@ -45,7 +45,10 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/resolution_utils.hh
   model/contact_mechanics/resolution_utils.cc
   model/contact_mechanics/resolutions/resolution_penalty.hh
-  model/contact_mechanics/resolutions/resolution_penalty.cc)
+  model/contact_mechanics/resolutions/resolution_penalty.cc
+
+  model/contact_mechanics/node_selector.hh
+  model/contact_mechanics/node_selector.cc)
 
 package_declare_documentation_files(contact_mechanics
   manual-contactmechanicsmodel.tex

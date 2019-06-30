@@ -60,9 +60,8 @@ void Resolution::initialize() {
   registerParam("master", master, std::string(), _pat_parsable | _pat_readable);
   registerParam("mu", mu, Real(0.), _pat_parsable | _pat_modifiable,
                 "Friciton Coefficient");
-  registerParam("two_pass_algorithm", two_pass_algorithm, bool(false), _pat_parsable | _pat_modifiable,
-                "Two pass algorithm");
-
+  registerParam("two_pass_algorithm", two_pass_algorithm, bool(false),
+                _pat_parsable | _pat_modifiable, "Two pass algorithm");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,14 +81,16 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
-  const auto slave_nodes = model.getMesh().getElementGroup(slave).getNodeGroup().getNodes();
+  const auto slave_nodes =
+      model.getContactDetector().getNodeSelector().getSlaveList();
+
   this->assembleInternalForces(slave_nodes);
 
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */  
-void Resolution::assembleInternalForces(const Array<UInt> & local_nodes) {
+/* -------------------------------------------------------------------------- */
+void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
   AKANTU_DEBUG_IN();
 
   auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
@@ -98,69 +99,73 @@ void Resolution::assembleInternalForces(const Array<UInt> & local_nodes) {
 
   auto & contact_map = model.getContactMap();
 
-  for (auto & slave : local_nodes) {
+  for (auto & slave : slave_nodes) {
 
     if (contact_map.find(slave) == contact_map.end())
       continue;
-    
+
     auto & element = contact_map[slave];
-    
+
     const auto & conn = element.connectivity;
-    
+
     Vector<Real> contact_force(conn.size() * spatial_dimension);
-   
+
     Vector<Real> n(conn.size() * spatial_dimension);
     ResolutionUtils::computeN(n, element);
-    
-    computeNormalForce(contact_force, n, element);    
-    if(mu != 0) {
 
-      Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-      Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-      Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    computeNormalForce(contact_force, n, element);
+    if (mu != 0) {
+
+      Array<Real> t_alpha(conn.size() * spatial_dimension,
+                          spatial_dimension - 1);
+      Array<Real> n_alpha(conn.size() * spatial_dimension,
+                          spatial_dimension - 1);
+      Array<Real> d_alpha(conn.size() * spatial_dimension,
+                          spatial_dimension - 1);
 
       ResolutionUtils::computeTalpha(t_alpha, element);
       ResolutionUtils::computeNalpha(n_alpha, element);
       ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
-   
+
       computeFrictionalForce(contact_force, d_alpha, element);
     }
-    
+
     ResolutionUtils::assembleToInternalForce(contact_force, internal_force,
-					     nodal_area, element);
+                                             nodal_area, element);
   }
 
   AKANTU_DEBUG_OUT();
 }
 
-  
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
   auto & stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
-  
-  const auto local_nodes =
-    model.getMesh().getElementGroup(name).getNodeGroup().getNodes();
 
-  auto & nodal_area =
-    const_cast<Array<Real> &>(model.getNodalArea());
+  // const auto local_nodes =
+  //    model.getMesh().getElementGroup(name).getNodeGroup().getNodes();
+
+  const auto slave_nodes =
+      model.getContactDetector().getNodeSelector().getSlaveList();
+
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
 
   auto & contact_map = model.getContactMap();
 
-  for (auto & slave : local_nodes) {
+  for (auto & slave : slave_nodes) {
 
     if (contact_map.find(slave) == contact_map.end())
       continue;
-    
+
     auto & element = contact_map[slave];
-    
+
     const auto & conn = element.connectivity;
 
     Matrix<Real> kc(conn.size() * spatial_dimension,
-		    conn.size() * spatial_dimension);
-    
+                    conn.size() * spatial_dimension);
+
     Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
     ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
 
@@ -171,21 +176,23 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
     Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
 
-    ResolutionUtils::computeN(      n,        element);
-    ResolutionUtils::computeTalpha( t_alpha,  element);
-    ResolutionUtils::computeNalpha( n_alpha,  element);
-    ResolutionUtils::computeDalpha( d_alpha,  n_alpha,  t_alpha, element);
+    ResolutionUtils::computeN(n, element);
+    ResolutionUtils::computeTalpha(t_alpha, element);
+    ResolutionUtils::computeNalpha(n_alpha, element);
+    ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
 
     computeNormalModuli(kc, n_alpha, d_alpha, n, element);
 
     // frictional tangent moduli
-    if(mu != 0) {
+    if (mu != 0) {
       Array<Real> t_alpha_beta(conn.size() * spatial_dimension,
-			       (spatial_dimension - 1) * (spatial_dimension -1));
+                               (spatial_dimension - 1) *
+                                   (spatial_dimension - 1));
       Array<Real> p_alpha(conn.size() * spatial_dimension,
-			  spatial_dimension - 1);
+                          spatial_dimension - 1);
       Array<Real> n_alpha_beta(conn.size() * spatial_dimension,
-			       (spatial_dimension - 1) * (spatial_dimension -1));
+                               (spatial_dimension - 1) *
+                                   (spatial_dimension - 1));
 
       computeFrictionalTraction(m_alpha_beta, element);
 
@@ -194,11 +201,11 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
       ResolutionUtils::computePalpha(p_alpha, element);
 
       auto phi = computeNablaOfDisplacement(element);
-            
-      computeFrictionalModuli(kc, t_alpha_beta, n_alpha_beta,
-			      n_alpha, d_alpha, phi, n, element);
+
+      computeFrictionalModuli(kc, t_alpha_beta, n_alpha_beta, n_alpha, d_alpha,
+                              phi, n, element);
     }
-        
+
     std::vector<UInt> equations;
     UInt nb_degree_of_freedom = model.getSpatialDimension();
 
@@ -223,20 +230,20 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
   AKANTU_DEBUG_OUT();
 }
-  
+
 /* -------------------------------------------------------------------------- */
 Matrix<Real> Resolution::computeNablaOfDisplacement(ContactElement & element) {
 
   const auto & type = element.master.type;
   const auto & conn = element.connectivity;
-  
+
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;
 
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
   Matrix<Real> values(spatial_dimension, nb_nodes_per_element);
-  
+
   auto & displacement = model.getDisplacement();
   for (UInt n : arange(nb_nodes_per_element)) {
     UInt node = conn[n];
@@ -245,18 +252,19 @@ Matrix<Real> Resolution::computeNablaOfDisplacement(ContactElement & element) {
     }
   }
 
-  //Matrix<Real> shape_second_derivatives(surface_dimension * surface_dimension,
-  //					nb_nodes_per_element);
-  
+  // Matrix<Real> shape_second_derivatives(surface_dimension *
+  // surface_dimension, 					nb_nodes_per_element);
+
   //#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
   //ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
   // AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
   //#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
 
-  Matrix<Real> nabla_u(surface_dimension * surface_dimension, spatial_dimension);
-  //nabla_u.mul<false, true>(shape_second_derivatives, values);
+  Matrix<Real> nabla_u(surface_dimension * surface_dimension,
+                       spatial_dimension);
+  // nabla_u.mul<false, true>(shape_second_derivatives, values);
 
   return nabla_u;
 }
-  
+
 } // namespace akantu

@@ -280,12 +280,10 @@ void CouplerSolidCohesiveContact::predictor() {
   case _explicit_dynamic_contact: {
     Array<Real> displacement(0, Model::spatial_dimension);
 
-    Array<Real> current_positions(0, Model::spatial_dimension);
-    auto positions = mesh.getNodes();
-    current_positions.copy(positions);
+    auto & current_positions = contact->getContactDetector().getPositions();
+    current_positions.copy(mesh.getNodes());
 
     auto us = this->getDOFManager().getDOFs("displacement");
-    // const auto deltas = this->getDOFManager().getSolution("displacement");
     const auto blocked_dofs =
         this->getDOFManager().getBlockedDOFs("displacement");
 
@@ -299,7 +297,6 @@ void CouplerSolidCohesiveContact::predictor() {
         cp += u;
     }
 
-    contact->setPositions(current_positions);
     contact->search();
     break;
   }

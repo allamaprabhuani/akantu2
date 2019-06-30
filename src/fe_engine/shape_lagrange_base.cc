@@ -130,9 +130,12 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
                                      shapes(itp_type, ghost_type), type,
                                      ghost_type, elements);
 
-    computeShapeDerivativesOnIntegrationPoints(
-        nodes, natural_coords, shapes_derivatives(itp_type, ghost_type), type,
-        ghost_type, elements);
+    if (mesh.getSpatialDimension() == mesh.getNaturalSpaceDimension(type) ||
+        _kind != _ek_regular) {
+      computeShapeDerivativesOnIntegrationPoints(
+          nodes, natural_coords, shapes_derivatives(itp_type, ghost_type), type,
+          ghost_type, elements);
+    }
   }
 #undef INIT_SHAPE_FUNCTIONS
 

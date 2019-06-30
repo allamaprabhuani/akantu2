@@ -65,19 +65,19 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <>
 inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
-  this->nodes_to_elements.resize(nodes->size());
+  this->fillNodesToElements();
+  /*this->nodes_to_elements.resize(nodes->size());
   for (const auto & elem : event.getList()) {
     const Array<UInt> & conn = connectivities(elem.type, elem.ghost_type);
 
     UInt nb_nodes_per_elem = this->getNbNodesPerElement(elem.type);
-
     for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
       UInt node = conn(elem.element, n);
       if (not nodes_to_elements[node])
         nodes_to_elements[node] = std::make_unique<std::set<Element>>();
       nodes_to_elements[node]->insert(elem);
     }
-  }
+    }*/
 
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
@@ -345,7 +345,6 @@ inline ElementTypeMapArray<T> & Mesh::getData(const ID & data_name) {
   return this->getElementalData<T>(data_name);
 }
 
-
 /* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbElement(const ElementType & type,
                                const GhostType & ghost_type) const {
@@ -427,6 +426,17 @@ inline UInt Mesh::getSpatialDimension(const ElementType & type) {
 #undef GET_SPATIAL_DIMENSION
 
   return spatial_dimension;
+}
+
+/* -------------------------------------------------------------------------- */
+inline UInt Mesh::getNaturalSpaceDimension(const ElementType & type) {
+  UInt natural_dimension = 0;
+#define GET_NATURAL_DIMENSION(type)                                            \
+  natural_dimension = ElementClass<type>::getNaturalSpaceDimension()
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_DIMENSION);
+#undef GET_NATURAL_DIMENSION
+
+  return natural_dimension;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -684,7 +694,8 @@ void Mesh::addPeriodicSlave(UInt slave, UInt master) {
                       << getNodeGlobalId(slave) << " [lid: " << slave << "]"
                       << ", master gid:" << getNodeGlobalId(master)
                       << " [lid: " << master << "]");
-    // std::cout << "adding periodic slave, slave gid:" << getNodeGlobalId(slave)
+    // std::cout << "adding periodic slave, slave gid:" <<
+    // getNodeGlobalId(slave)
     //           << " [lid: " << slave << "]"
     //           << ", master gid:" << getNodeGlobalId(master)
     //           << " [lid: " << master << "]" << std::endl;
@@ -729,10 +740,7 @@ public:
       ++it;
       return *this;
     }
-    bool
-    operator!=(const const_iterator & other) {
-      return other.it != it;
-    }
+    bool operator!=(const const_iterator & other) { return other.it != it; }
     auto operator*() { return it->second; }
   };
 
