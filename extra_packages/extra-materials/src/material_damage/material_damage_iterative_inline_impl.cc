@@ -264,7 +264,7 @@ inline UInt
 MaterialDamageIterative<spatial_dimension, ElasticParent>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
 
-  if (tag == _gst_user_2) {
+  if (tag == SynchronizationTag::_user_2) {
     return sizeof(Real) * this->getModel().getNbIntegrationPoints(elements);
   }
 
@@ -276,7 +276,7 @@ template <UInt spatial_dimension, template <UInt> class ElasticParent>
 inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
-  if (tag == _gst_user_2) {
+  if (tag == SynchronizationTag::_user_2) {
     DataAccessor<Element>::packElementalDataHelper(
         this->damage, buffer, elements, true, this->damage.getFEEngine());
   }
@@ -290,7 +290,7 @@ inline void
 MaterialDamageIterative<spatial_dimension, ElasticParent>::unpackData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) {
-  if (tag == _gst_user_2) {
+  if (tag == SynchronizationTag::_user_2) {
     DataAccessor<Element>::unpackElementalDataHelper(
         this->damage, buffer, elements, true, this->damage.getFEEngine());
   }

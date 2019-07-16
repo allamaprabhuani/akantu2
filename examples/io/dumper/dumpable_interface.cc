@@ -86,10 +86,14 @@ int main(int argc, char * argv[]) {
   wheels_elements.append(mesh.getElementGroup("rwheel_1"));
   wheels_elements.append(mesh.getElementGroup("rwheel_2"));
 
-  const Array<UInt> & lnode_1 = (mesh.getElementGroup("lwheel_1")).getNodes();
-  const Array<UInt> & lnode_2 = (mesh.getElementGroup("lwheel_2")).getNodes();
-  const Array<UInt> & rnode_1 = (mesh.getElementGroup("rwheel_1")).getNodes();
-  const Array<UInt> & rnode_2 = (mesh.getElementGroup("rwheel_2")).getNodes();
+  const Array<UInt> & lnode_1 =
+      (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
+  const Array<UInt> & lnode_2 =
+      (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
+  const Array<UInt> & rnode_1 =
+      (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
+  const Array<UInt> & rnode_2 =
+      (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
 
   Array<Real> & node = mesh.getNodes();
   UInt nb_nodes = mesh.getNbNodes();
@@ -124,8 +128,9 @@ int main(int argc, char * argv[]) {
   ElementTypeMapArrayFilter<UInt> filtered_colour(
       colour, wheels_elements.getElements());
 
-  dumper::Field * colour_field_wheel =
-      new dumper::ElementalField<UInt, Vector, true>(filtered_colour);
+  auto colour_field_wheel =
+      std::make_shared<dumper::ElementalField<UInt, Vector, true>>(
+          filtered_colour);
   mesh.addDumpFieldExternal("color", colour_field_wheel);
 
   mesh.addDumpFieldExternalToDumper("wheels", "displacement", displacement);
@@ -133,7 +138,7 @@ int main(int argc, char * argv[]) {
 
   // For some specific cases the Fields should be created, as when you want to
   // pad an array
-  dumper::Field * displacement_vector_field =
+  auto displacement_vector_field =
       mesh.createNodalField(&displacement, "all", 3);
   mesh.addDumpFieldExternal("displacement_as_paraview_vector",
                             displacement_vector_field);

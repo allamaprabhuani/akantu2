@@ -65,14 +65,10 @@ namespace akantu {
 
 class MPICommunicatorData : public CommunicatorInternalData {
 public:
-  MPICommunicatorData(const MPI_Comm & comm) {
-    int is_initialized = 0;
-    MPI_Initialized(&is_initialized);
-    if (not is_initialized) {
-      AKANTU_DEBUG_WARNING("A communicator was asked before akantu was "
-                           "initialized in doubt MPI will be initialized");
-      debug::debugger.printBacktrace();
-      initialize();
+  MPICommunicatorData() {
+    MPI_Initialized(&is_externaly_initialized);
+    if (not is_externaly_initialized) {
+      MPI_Init(nullptr, nullptr); // valid according to the spec
     }
     MPI_Comm_create_errhandler(MPICommunicatorData::errorHandler,
                                &error_handler);
@@ -81,24 +77,9 @@ public:
   }
 
   ~MPICommunicatorData() override {
-    // int is_initialized = 0;
-    // MPI_Initialized(&is_initialized);
-    // if (is_initialized) {
-    //   MPI_Comm_set_errhandler(communicator, save_error_handler);
-    //}
-  }
-
-  static void initialize() {
-    int is_initialized = 0;
-    MPI_Initialized(&is_initialized);
-    if (not is_initialized) {
-      MPI_Init(nullptr, nullptr); // valid according to the spec
-      is_internaly_initialized = true;
-    }
-  }
-
-  static void finalize() {
-    if (is_internaly_initialized) {
+    if (not is_externaly_initialized) {
+      MPI_Comm_set_errhandler(communicator, save_error_handler);
+      MPI_Errhandler_free(&error_handler);
       MPI_Finalize();
       is_internaly_initialized = false;
     }

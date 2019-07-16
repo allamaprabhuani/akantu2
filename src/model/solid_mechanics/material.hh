@@ -52,9 +52,13 @@
 namespace akantu {
 class Model;
 class SolidMechanicsModel;
+class Material;
 } // namespace akantu
 
 namespace akantu {
+
+using MaterialFactory =
+    Factory<Material, ID, UInt, const ID &, SolidMechanicsModel &, const ID &>;
 
 /**
  * Interface of all materials
@@ -123,8 +127,7 @@ protected:
   }
 
   /// compute the potential energy
-  virtual void computePotentialEnergy(ElementType el_type,
-                                      GhostType ghost_type = _not_ghost);
+  virtual void computePotentialEnergy(ElementType el_type);
 
   /// compute the potential energy for an element
   virtual void
@@ -135,14 +138,10 @@ protected:
     AKANTU_TO_IMPLEMENT();
   }
 
-  virtual void updateEnergies(__attribute__((unused)) ElementType el_type,
-                              __attribute__((unused))
-                              GhostType ghost_type = _not_ghost) {}
+  virtual void updateEnergies(__attribute__((unused)) ElementType el_type) {}
 
   virtual void updateEnergiesAfterDamage(__attribute__((unused))
-                                         ElementType el_type,
-                                         __attribute__((unused))
-                                         GhostType ghost_type = _not_ghost) {}
+                                         ElementType el_type) {}
 
   /// set the material to steady state (to be implemented for materials that
   /// need it)
@@ -487,6 +486,9 @@ public:
   /// specify if the matrix need to be recomputed for this material
   virtual bool hasStiffnessMatrixChanged() { return true; }
 
+  /// static method to reteive the material factory
+  static MaterialFactory & getFactory();
+
 protected:
   bool isInit() const { return is_init; }
 
@@ -590,7 +592,7 @@ inline std::ostream & operator<<(std::ostream & stream,
       make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
                 this->spatial_dimension);                                      \
                                                                                \
-  auto && stress_view =                                                        \
+  auto stress_view =                                                        \
       make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
                 this->spatial_dimension);                                      \
                                                                                \
@@ -618,10 +620,10 @@ inline std::ostream & operator<<(std::ostream & stream,
       make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
                 this->spatial_dimension);                                      \
                                                                                \
-  UInt && tangent_size =                                                       \
+  auto tangent_size =                                                          \
       this->getTangentStiffnessVoigtSize(this->spatial_dimension);             \
                                                                                \
-  auto tangent_view = make_view(tangent_mat, tangent_size, tangent_size);      \
+  auto && tangent_view = make_view(tangent_mat, tangent_size, tangent_size);      \
                                                                                \
   for (auto && data : zip(grad_u_view, stress_view, tangent_view)) {           \
     [[gnu::unused]] Matrix<Real> & grad_u = std::get<0>(data);                 \
@@ -631,10 +633,6 @@ inline std::ostream & operator<<(std::ostream & stream,
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END }
 
 /* -------------------------------------------------------------------------- */
-namespace akantu {
-using MaterialFactory =
-    Factory<Material, ID, UInt, const ID &, SolidMechanicsModel &, const ID &>;
-} // namespace akantu
 
 #define INSTANTIATE_MATERIAL_ONLY(mat_name)                                    \
   template class mat_name<1>;                                                  \
@@ -660,7 +658,7 @@ using MaterialFactory =
 
 #define INSTANTIATE_MATERIAL(id, mat_name)                                     \
   INSTANTIATE_MATERIAL_ONLY(mat_name);                                         \
-  static bool material_is_alocated_##id[[gnu::unused]] =                       \
+  static bool material_is_alocated_##id [[gnu::unused]] =                      \
       MaterialFactory::getInstance().registerAllocator(                        \
           #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
 

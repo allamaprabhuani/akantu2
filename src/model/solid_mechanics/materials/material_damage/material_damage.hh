@@ -59,12 +59,13 @@ public:
   void computeTangentModuli(const ElementType & el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
+
   bool hasStiffnessMatrixChanged() override { return true; }
 
 protected:
   /// update the dissipated energy, must be called after the stress have been
   /// computed
-  void updateEnergies(ElementType el_type, GhostType ghost_type) override;
+  void updateEnergies(ElementType el_type) override;
 
   /// compute the tangent stiffness matrix for a given quadrature point
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);

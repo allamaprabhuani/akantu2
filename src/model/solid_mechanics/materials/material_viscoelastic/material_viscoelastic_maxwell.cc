@@ -279,14 +279,16 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computePotentialEnergy(
-    ElementType el_type, GhostType ghost_type) {
+    ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type,
-                                                             ghost_type);
+  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type);
 
-  if (ghost_type != _not_ghost)
-    return;
+  auto epot = this->potential_energy(el_type).begin();
+  auto sigma_v_it = this->sigma_v(el_type).begin(
+      spatial_dimension, spatial_dimension, this->Eta.size());
+  auto epsilon_v_it = this->epsilon_v(el_type).begin(
+      spatial_dimension, spatial_dimension, this->Eta.size());
 
   auto epot = this->potential_energy(el_type, ghost_type).begin();
   auto sigma_v_it =
@@ -371,7 +373,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep() {
 
       MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
     }
-    this->updateDissipatedEnergy(el_type, _not_ghost);
+    this->updateDissipatedEnergy(el_type);
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -542,13 +544,10 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateIntVariables() {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
-    ElementType el_type, GhostType ghost_type) {
+    ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  if (ghost_type != _not_ghost)
-    return;
-
-  this->computePotentialEnergy(el_type, ghost_type);
+  this->computePotentialEnergy(el_type);
 
   auto epot = this->potential_energy(el_type, ghost_type).begin();
   auto dis_energy = this->dissipated_energy(el_type, ghost_type).begin();
@@ -566,7 +565,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
                                .begin(spatial_dimension, spatial_dimension);
 
   /// Loop on all quadrature points
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
   updateDissipatedEnergyOnQuad(grad_u, *previous_gradu_it, sigma,
                                *previous_sigma_it, *dis_energy, *integral,

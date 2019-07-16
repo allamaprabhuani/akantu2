@@ -58,7 +58,7 @@ UInt getIOHelperType(ElementType type);
 namespace dumper {
   class Field;
   class VariableBase;
-}
+} // namespace dumper
 
 class Mesh;
 
@@ -90,12 +90,13 @@ public:
                        const ElementKind & element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
-  void registerField(const std::string & field_id, dumper::Field * field);
+  void registerField(const std::string & field_id,
+                     std::shared_ptr<dumper::Field> field);
   /// remove the Field identified by name from managed fields
   void unRegisterField(const std::string & field_id);
   /// register a VariableBase object identified by name and provided by pointer
   void registerVariable(const std::string & variable_id,
-                        dumper::VariableBase * variable);
+                        std::shared_ptr<dumper::VariableBase> variable);
   /// remove a VariableBase identified by name from managed fields
   void unRegisterVariable(const std::string & variable_id);
 
@@ -135,10 +136,11 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// internal iohelper::Dumper
-  iohelper::Dumper * dumper;
+  std::unique_ptr<iohelper::Dumper> dumper;
 
-  using Fields = std::map<std::string, dumper::Field *>;
-  using Variables = std::map<std::string, dumper::VariableBase *>;
+  using Fields = std::map<std::string, std::shared_ptr<dumper::Field>>;
+  using Variables =
+      std::map<std::string, std::shared_ptr<dumper::VariableBase>>;
 
   /// list of registered fields to dump
   Fields fields;
@@ -160,6 +162,6 @@ protected:
   const Communicator * communicator;
 };
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_DUMPER_IOHELPER_HH__ */
