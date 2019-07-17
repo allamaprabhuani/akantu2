@@ -106,6 +106,12 @@ InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
+  if (coord.rows() == 2) {
+    return Math::distance_2d(coord(0).storage(), coord(1).storage());
+  }
+  if (coord.rows() == 3) {
+    return Math::distance_3d(coord(0).storage(), coord(1).storage());
+  }
   return std::abs(coord(0, 0) - coord(0, 1));
 }
 
