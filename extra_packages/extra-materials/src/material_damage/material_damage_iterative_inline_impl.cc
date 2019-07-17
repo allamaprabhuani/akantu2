@@ -222,8 +222,8 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    updateEnergiesAfterDamage(ElementType el_type, GhostType ghost_type) {
-  parent::updateEnergies(el_type, ghost_type);
+    updateEnergiesAfterDamage(ElementType el_type) {
+  parent::updateEnergies(el_type);
 }
 
 /* -------------------------------------------------------------------------- */

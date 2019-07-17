@@ -110,8 +110,8 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep() {
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-    this->updateDissipatedEnergy(el_type, _not_ghost);
-    this->updateDissipatedEnergyDamage(el_type, _not_ghost);
+    this->updateDissipatedEnergy(el_type);
+    this->updateDissipatedEnergyDamage(el_type);
     this->damage.saveCurrentValues();
     this->gradu_last.copy(this->gradu);
   }
@@ -188,31 +188,30 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
  * elastic strain is taken into account. Trapezoidal rule is used. */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeViscoelastic<
-    spatial_dimension>::updateDissipatedEnergyDamage(ElementType el_type,
-                                                     GhostType ghost_type) {
+    spatial_dimension>::updateDissipatedEnergyDamage(ElementType el_type) {
 
-  auto epsilon_p = this->gradu_last(el_type, ghost_type)
+  auto epsilon_p = this->gradu_last(el_type)
                        .begin(spatial_dimension, spatial_dimension);
   auto sigma_v_it =
-      this->sigma_v(el_type, ghost_type)
+      this->sigma_v(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
   auto epsilon_v_it =
-      this->epsilon_v(el_type, ghost_type)
+      this->epsilon_v(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
   auto sigma_v_pr_it =
-      this->sigma_v.previous(el_type, ghost_type)
+      this->sigma_v.previous(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
   auto epsilon_v_pr_it =
-      this->epsilon_v.previous(el_type, ghost_type)
+      this->epsilon_v.previous(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-  auto dam_it = this->damage(el_type, ghost_type).begin();
-  auto dam_pr_it = this->damage.previous(el_type, ghost_type).begin();
+  auto dam_it = this->damage(el_type).begin();
+  auto dam_pr_it = this->damage.previous(el_type).begin();
 
-  auto epot = this->potential_energy(el_type, ghost_type).begin();
-  auto ints = this->int_sigma(el_type, ghost_type).begin();
-  auto edd = this->dissipated_energy_damage(el_type, ghost_type).begin();
+  auto epot = this->potential_energy(el_type).begin();
+  auto ints = this->int_sigma(el_type).begin();
+  auto edd = this->dissipated_energy_damage(el_type).begin();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
   updateDissipatedEnergyDamageOnQuad(
       grad_u, *epsilon_p, *sigma_v_it, *epsilon_v_it, *sigma_v_pr_it,
@@ -235,26 +234,21 @@ void MaterialDamageIterativeViscoelastic<
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeViscoelastic<
-    spatial_dimension>::computePotentialEnergy(ElementType el_type,
-                                               GhostType ghost_type) {
+    spatial_dimension>::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type,
-                                                             ghost_type);
+  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type);
 
-  if (ghost_type != _not_ghost)
-    return;
-
-  auto epot = this->potential_energy(el_type, ghost_type).begin();
+  auto epot = this->potential_energy(el_type).begin();
   auto sigma_v_it =
-      this->sigma_v(el_type, ghost_type)
+      this->sigma_v(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
   auto epsilon_v_it =
-      this->epsilon_v(el_type, ghost_type)
+      this->epsilon_v(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-  auto dam_it = this->damage(el_type, ghost_type).begin();
+  auto dam_it = this->damage(el_type).begin();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
   this->computePotentialEnergyOnQuad(grad_u, *epot, *sigma_v_it, *epsilon_v_it,
                                      *dam_it);

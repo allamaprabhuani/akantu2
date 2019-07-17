@@ -60,7 +60,7 @@ private:
 
 namespace akantu {
 
-int MPICommunicatorData::is_internaly_initialized = 0;
+int MPICommunicatorData::is_externaly_initialized = 0;
 
 /* -------------------------------------------------------------------------- */
 struct MPIPrivateMember : public Communicator::private_member {

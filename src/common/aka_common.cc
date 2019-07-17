@@ -154,8 +154,6 @@ const ParserSection & getUserParser() {
   return *(static_parser.getSubSections(ParserType::_user).first);
 }
 
-std::unique_ptr<Communicator> Communicator::static_communicator;
-
 std::ostream & operator<<(std::ostream & stream, NodeFlag flag) {
   using under = std::underlying_type_t<NodeFlag>;
   int digits = std::log(std::numeric_limits<under>::max() + 1)/std::log(16);

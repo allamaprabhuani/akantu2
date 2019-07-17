@@ -167,13 +167,6 @@ public:
                            [](auto &&, auto &&) { return 1; }),
         OPTIONAL_NAMED_ARG(vertex_weight_function, [](auto &&) { return 1; }));
   }
-#else
-  void distribute() {
-    distributeImpl(Communicator::getWorldCommunicator(),
-                   [](auto &&, auto &&) { return 1; },
-                   [](auto &&) { return 1; });
-  }
-#endif
 
   /// defines is the mesh is distributed or not
   inline bool isDistributed() const { return this->is_distributed; }

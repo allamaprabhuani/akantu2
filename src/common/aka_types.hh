@@ -1095,11 +1095,12 @@ public:
     Vector<T> tmp_eigs(eigenvalues.size());
     Matrix<T> tmp_eig_vects(eigenvectors.rows(), eigenvectors.cols());
 
-    if (tmp_eig_vects.rows() == 0 || tmp_eig_vects.cols() == 0)
+    if (tmp_eig_vects.rows() == 0 || tmp_eig_vects.cols() == 0) {
       Math::matrixEig(tmp.cols(), tmp.storage(), tmp_eigs.storage());
-    else
+    } else {
       Math::matrixEig(tmp.cols(), tmp.storage(), tmp_eigs.storage(),
                       tmp_eig_vects.storage());
+    }
 
     if (not sort) {
       eigenvalues = tmp_eigs;
@@ -1108,25 +1109,23 @@ public:
     }
 
     Vector<UInt> perm(eigenvalues.size());
-    for (UInt i = 0; i < perm.size(); ++i)
+    for (UInt i = 0; i < perm.size(); ++i) {
       perm(i) = i;
+    }
 
-      std::sort(perm.storage(), perm.storage() + perm.size(),
-                EigenSorter(tmp_eigs));
+    std::sort(perm.storage(), perm.storage() + perm.size(),
+              EigenSorter(tmp_eigs));
 
-      for (UInt i = 0; i < perm.size(); ++i)
-        eigenvalues(i) = tmp_eigs(perm(i));
+    for (UInt i = 0; i < perm.size(); ++i) {
+      eigenvalues(i) = tmp_eigs(perm(i));
+    }
 
-      if (tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0)
-        for (UInt i = 0; i < perm.size(); ++i) {
-          for (UInt j = 0; j < eigenvectors.rows(); ++j) {
-            eigenvectors(j, i) = tmp_eig_vects(j, perm(i));
-          }
+    if (tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0) {
+      for (UInt i = 0; i < perm.size(); ++i) {
+        for (UInt j = 0; j < eigenvectors.rows(); ++j) {
+          eigenvectors(j, i) = tmp_eig_vects(j, perm(i));
         }
-    } else {
-      eigenvalues = tmp_eigs;
-      if (tmp_eig_vects.rows() != 0 && tmp_eig_vects.cols() != 0)
-        eigenvectors = tmp_eig_vects;
+      }
     }
   }
 

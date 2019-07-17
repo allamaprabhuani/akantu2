@@ -129,8 +129,7 @@ public:
   void forceNotUpdateVariable();
 
   /// compute the elastic potential energy
-  void computePotentialEnergy(ElementType el_type,
-                              GhostType ghost_type = _not_ghost) override;
+  void computePotentialEnergy(ElementType el_type);
 
 protected:
   void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u, Real & epot,
@@ -139,7 +138,7 @@ protected:
 
   /// update the dissipated energy, is called after the stress have been
   /// computed
-  void updateDissipatedEnergy(ElementType el_type, GhostType ghost_type);
+  void updateDissipatedEnergy(ElementType el_type);
 
   void updateDissipatedEnergyOnQuad(const Matrix<Real> grad_u,
                                     const Matrix<Real> previous_grad_u,

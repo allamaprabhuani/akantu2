@@ -290,15 +290,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computePotentialEnergy(
   auto epsilon_v_it = this->epsilon_v(el_type).begin(
       spatial_dimension, spatial_dimension, this->Eta.size());
 
-  auto epot = this->potential_energy(el_type, ghost_type).begin();
-  auto sigma_v_it =
-      this->sigma_v(el_type, ghost_type)
-          .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-  auto epsilon_v_it =
-      this->epsilon_v(el_type, ghost_type)
-          .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
 
   this->computePotentialEnergyOnQuad(grad_u, *epot, *sigma_v_it, *epsilon_v_it);
   ++epot;
@@ -549,19 +541,19 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
 
   this->computePotentialEnergy(el_type);
 
-  auto epot = this->potential_energy(el_type, ghost_type).begin();
-  auto dis_energy = this->dissipated_energy(el_type, ghost_type).begin();
-  auto integral = this->integral(el_type, ghost_type).begin();
-  auto mech_work = this->mechanical_work(el_type, ghost_type).begin();
+  auto epot = this->potential_energy(el_type).begin();
+  auto dis_energy = this->dissipated_energy(el_type).begin();
+  auto integral = this->integral(el_type).begin();
+  auto mech_work = this->mechanical_work(el_type).begin();
   auto sigma_v_it =
-      this->sigma_v(el_type, ghost_type)
+      this->sigma_v(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
   auto epsilon_v_it =
-      this->epsilon_v(el_type, ghost_type)
+      this->epsilon_v(el_type)
           .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-  auto previous_gradu_it = this->gradu.previous(el_type, ghost_type)
+  auto previous_gradu_it = this->gradu.previous(el_type)
                                .begin(spatial_dimension, spatial_dimension);
-  auto previous_sigma_it = this->stress.previous(el_type, ghost_type)
+  auto previous_sigma_it = this->stress.previous(el_type)
                                .begin(spatial_dimension, spatial_dimension);
 
   /// Loop on all quadrature points

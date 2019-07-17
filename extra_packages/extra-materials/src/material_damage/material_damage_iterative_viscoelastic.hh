@@ -69,7 +69,7 @@ public:
   void afterSolveStep() override;
 
   /// updates energy dissipated due to damage only
-  void updateDissipatedEnergyDamage(ElementType el_type, GhostType ghost_type);
+  void updateDissipatedEnergyDamage(ElementType el_type);
 
   /// update the last converged stress and strain arrays as well as current
   /// values of internal variables
@@ -80,8 +80,7 @@ public:
   void beforeSolveStep() override;
 
   /// compute the elastic potential energy
-  void computePotentialEnergy(ElementType el_type,
-                              GhostType ghost_type) override;
+  void computePotentialEnergy(ElementType el_type) override;
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
