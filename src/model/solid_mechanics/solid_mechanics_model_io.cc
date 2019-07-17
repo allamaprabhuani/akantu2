@@ -112,7 +112,7 @@ SolidMechanicsModel::flattenInternal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::flattenAllRegisteredInternals(
-    const ElementKind & kind) {
+							const ElementKind & kind) {
   ElementKind _kind;
   ID _id;
 

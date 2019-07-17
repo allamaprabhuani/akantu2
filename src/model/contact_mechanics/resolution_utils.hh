@@ -30,9 +30,9 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "fe_engine.hh"
 #include "contact_mechanics_model.hh"
 #include "contact_element.hh"
+#include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_RESOLUTION_UTILS_HH__
@@ -50,15 +50,15 @@ public:
   /// computes the metric tensor (@f$m_{\alpha\beta}@f$) where @f$\alpha,
   /// \beta@f$ are surface directions
   static void computeMetricTensor(Matrix<Real> & metric_tensor,
-				  Matrix<Real> & tangents);
+                                  Matrix<Real> & tangents);
 
   /// computes the N array which is normal times the shape functions
-  /// of contact element 
+  /// of contact element
   static void computeN(Vector<Real> & n_array, ContactElement & element);
 
   /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension
   /// and it is shape derivatives times normal
-  static void computeNalpha(Array<Real>  & n_alpha, ContactElement & element);
+  static void computeNalpha(Array<Real> & n_alpha, ContactElement & element);
 
   /// computes (@f$T_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension and it is shape functions times the tangents
@@ -67,29 +67,36 @@ public:
   /// computes (@f$D_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension
   static void computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
-			    Array<Real> & t_alpha, ContactElement & element);
-  
+                            Array<Real> & t_alpha, ContactElement & element);
+
   /// computes @f$T_{\alpha\beta} @f$ which is shape derivatives
   /// times the tangents
-  static void computeTalphabeta(Array<Real> & t_alpha_beta, ContactElement & element);
+  static void computeTalphabeta(Array<Real> & t_alpha_beta,
+                                ContactElement & element);
 
   /// computes @f$N_{\alpha\beta} @f$ which is shape 2nd derivatives times
   /// the normal
-  static void computeNalphabeta(Array<Real> & n_alpha_beta, ContactElement & element);
+  static void computeNalphabeta(Array<Real> & n_alpha_beta,
+                                ContactElement & element);
 
   /// computes @f$P_{\alpha} @f$
-  static void computePalpha(Array<Real> & p_alpha, ContactElement & element) ;
+  static void computePalpha(Array<Real> & p_alpha, ContactElement & element);
 
   /// computes @f$G_{\alpha}@f$
   static void computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha_beta,
-			    Array<Real> & d_alpha, Matrix<Real> & phi,
-			    ContactElement &);
+                            Array<Real> & d_alpha, Matrix<Real> & phi,
+                            ContactElement &);
 
-  static void assembleToInternalForce(Vector<Real> & local_array, Array<Real> & global_array,
-				      Array<Real> & nodal_area, ContactElement & element);
+  static void assembleToInternalForce(Vector<Real> & local_array,
+                                      Array<Real> & global_array,
+                                      Array<Real> & nodal_area,
+                                      ContactElement & element,
+                                      Array<Real> & frequency);
 
-  static void assembleToStiffnessMatrix(Matrix<Real> & local_matrix, Matrix<Real> & global_matrix,
-					Array<Real> & nodal_area, ContactElement & element);
+  static void assembleToStiffnessMatrix(Matrix<Real> & local_matrix,
+                                        Matrix<Real> & global_matrix,
+                                        Array<Real> & nodal_area,
+                                        ContactElement & element);
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -97,9 +104,9 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class members                                                            */
   /* ------------------------------------------------------------------------ */
-private:  
-};  
-  
-} //akantu
+private:
+};
+
+} // namespace akantu
 
 #endif /* __AKANTU_RESOLUTION_UTILS_HH__ */

@@ -57,7 +57,7 @@ ContactMechanicsModel::ContactMechanicsModel(
 #if defined(AKANTU_USE_IOHELPER)
   this->mesh.registerDumper<DumperParaview>("contact_mechanics", id, true);
   this->mesh.addDumpMeshToDumper("contact_mechanics", mesh,
-                                 Model::spatial_dimension - 1, _not_ghost,
+                                 Model::spatial_dimension, _not_ghost,
                                  _ek_regular);
 #endif
 
@@ -202,7 +202,7 @@ void ContactMechanicsModel::initSolver(
                         "internal_force");
   this->allocNodalField(this->external_force, spatial_dimension,
                         "external_force");
-
+ 
   this->allocNodalField(this->gaps, 1, "gaps");
   this->allocNodalField(this->previous_gaps, 1, "previous_gaps");
   this->allocNodalField(this->nodal_area, 1, "areas");

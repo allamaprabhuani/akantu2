@@ -1,5 +1,5 @@
 /**
- * @file   node_selector.cc
+ * @file   surface_selector.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
@@ -29,19 +29,19 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "node_selector.hh"
+#include "surface_selector.hh"
 #include "model.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-NodeSelector::NodeSelector(const Model & model)
+SurfaceSelector::SurfaceSelector(const Model & model)
     : Parsable(ParserType::_contact_detector), mesh(model.getMesh()) {}
 
 /* -------------------------------------------------------------------------- */
-PhysicalSurfaceNodeSelector::PhysicalSurfaceNodeSelector(const Model & model)
-    : NodeSelector(model) {
+PhysicalSurfaceSelector::PhysicalSurfaceSelector(const Model & model)
+    : SurfaceSelector(model) {
 
   const Parser & parser = getStaticParser();
 
@@ -59,25 +59,25 @@ PhysicalSurfaceNodeSelector::PhysicalSurfaceNodeSelector(const Model & model)
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & PhysicalSurfaceNodeSelector::getMasterList() {
+Array<UInt> & PhysicalSurfaceSelector::getMasterList() {
   return mesh.getElementGroup(master).getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & PhysicalSurfaceNodeSelector::getSlaveList() {
+Array<UInt> & PhysicalSurfaceSelector::getSlaveList() {
   return mesh.getElementGroup(slave).getNodeGroup().getNodes();
 }
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
 /* -------------------------------------------------------------------------- */
-CohesiveSurfaceNodeSelector::CohesiveSurfaceNodeSelector(const Model & model)
-    : NodeSelector(model), mesh_facets(model.getMesh().getMeshFacets()) {
+CohesiveSurfaceSelector::CohesiveSurfaceSelector(const Model & model)
+    : SurfaceSelector(model), mesh_facets(model.getMesh().getMeshFacets()) {
   this->mesh.registerEventHandler(*this, _ehp_lowest);
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveSurfaceNodeSelector::onNodesAdded(const Array<UInt> & new_nodes,
-                                               const NewNodesEvent & event) {
+void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
+                                           const NewNodesEvent & event) {
 
   if (not aka::is_of_type<CohesiveNewNodesEvent>(event))
     return;
@@ -87,8 +87,6 @@ void CohesiveSurfaceNodeSelector::onNodesAdded(const Array<UInt> & new_nodes,
 
   UInt nb_new_nodes = new_nodes.size();
   UInt nb_old_nodes = old_nodes.size();
-
-  //new_nodes_list.reserve(nb_new_nodes + nb_old_nodes);
 
   for (auto n : arange(nb_new_nodes)) {
     new_nodes_list.push_back(new_nodes(n));
@@ -117,7 +115,111 @@ void CohesiveSurfaceNodeSelector::onNodesAdded(const Array<UInt> & new_nodes,
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveSurfaceNodeSelector::filterBoundaryElements(
+void CohesiveSurfaceSelector::filterBoundaryElements(
+    Array<Element> & elements, Array<Element> & boundary_elements) {
+
+  for (auto elem : elements) {
+
+    // to ensure that normal is always outwards from master surface
+    const auto & element_to_subelement =
+        mesh_facets.getElementToSubelement(elem.type)(elem.element);
+
+    UInt nb_subelements_regular = 0;
+    for (auto subelem : element_to_subelement) {
+      if (subelem == ElementNull)
+        continue;
+
+      if (subelem.kind() == _ek_regular) {
+        ++nb_subelements_regular;
+      }
+    }
+
+    auto nb_subelements = element_to_subelement.size();
+
+    if (nb_subelements_regular < nb_subelements and nb_subelements != 1) {
+      boundary_elements.push_back(elem);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+Array<UInt> & CohesiveSurfaceSelector::getMasterList() {
+  return this->getNewNodesList();
+}
+
+/* -------------------------------------------------------------------------- */
+Array<UInt> & CohesiveSurfaceSelector::getSlaveList() {
+  return this->getNewNodesList();
+}
+
+/* -------------------------------------------------------------------------- */
+AllSurfaceSelector::AllSurfaceSelector(const Model & model)
+    : SurfaceSelector(model), mesh_facets(model.getMesh().getMeshFacets()) {
+  this->mesh.registerEventHandler(*this, _ehp_lowest);
+
+  const Parser & parser = getStaticParser();
+
+  const ParserSection & section =
+      *(parser.getSubSections(ParserType::_contact_detector).first);
+
+  master = section.getParameterValue<std::string>("master");
+  slave = section.getParameterValue<std::string>("slave");
+
+  auto & group = mesh_facets.createElementGroup("contact_surface");
+  group.append(mesh_facets.getElementGroup(master));
+  group.append(mesh_facets.getElementGroup(slave));
+
+  group.optimize();
+}
+
+/* -------------------------------------------------------------------------- */
+void AllSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
+                                      const NewNodesEvent & event) {
+
+  if (not aka::is_of_type<CohesiveNewNodesEvent>(event))
+    return;
+
+  const auto & cohesive_event = aka::as_type<CohesiveNewNodesEvent>(event);
+  const auto & old_nodes = cohesive_event.getOldNodesList();
+
+  UInt nb_new_nodes = new_nodes.size();
+  UInt nb_old_nodes = old_nodes.size();
+
+  auto & slave_group = mesh_facets.getElementGroup(slave).getNodeGroup();
+  auto & master_group = mesh_facets.getElementGroup(master).getNodeGroup();
+
+  for (auto n : arange(nb_new_nodes)) {
+    new_nodes_list.push_back(new_nodes(n));
+    slave_group.add(new_nodes(n));
+    master_group.add(new_nodes(n));
+  }
+
+  for (auto n : arange(nb_old_nodes)) {
+    new_nodes_list.push_back(old_nodes(n));
+    slave_group.add(old_nodes(n));
+    master_group.add(old_nodes(n));
+  }
+
+  mesh_facets.fillNodesToElements(mesh.getSpatialDimension() - 1);
+
+  auto & group = mesh_facets.getElementGroup("contact_surface");
+
+  for (auto node : new_nodes_list) {
+    Array<Element> all_elements;
+    mesh_facets.getAssociatedElements(node, all_elements);
+
+    Array<Element> mesh_facet_elements;
+    this->filterBoundaryElements(all_elements, mesh_facet_elements);
+
+    for (auto nb_elem : arange(mesh_facet_elements.size()))
+      group.add(mesh_facet_elements[nb_elem], true);
+  }
+
+  group.optimize();
+}
+
+/* -------------------------------------------------------------------------- */
+void AllSurfaceSelector::filterBoundaryElements(
     Array<Element> & elements, Array<Element> & boundary_elements) {
 
   for (auto elem : elements) {
@@ -145,88 +247,15 @@ void CohesiveSurfaceNodeSelector::filterBoundaryElements(
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & CohesiveSurfaceNodeSelector::getMasterList() {
+Array<UInt> & AllSurfaceSelector::getMasterList() {
   return this->getNewNodesList();
+  //return mesh_facets.getElementGroup(master).getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
-Array<UInt> & CohesiveSurfaceNodeSelector::getSlaveList() {
+Array<UInt> & AllSurfaceSelector::getSlaveList() {
   return this->getNewNodesList();
-}
-
-/* -------------------------------------------------------------------------- */
-AllSurfaceNodeSelector::AllSurfaceNodeSelector(const Model & model)
-    : NodeSelector(model), mesh_facets(model.getMesh().getMeshFacets()) {
-  this->mesh.registerEventHandler(*this, _ehp_lowest);
-
-  const Parser & parser = getStaticParser();
-
-  const ParserSection & section =
-      *(parser.getSubSections(ParserType::_contact_detector).first);
-
-  master = section.getParameterValue<std::string>("master");
-  slave = section.getParameterValue<std::string>("slave");
-
-  auto & group = mesh_facets.createElementGroup("contact_surface");
-  group.append(mesh.getElementGroup(master));
-  group.append(mesh.getElementGroup(slave));
-
-  group.optimize();
-}
-
-/* -------------------------------------------------------------------------- */
-void AllSurfaceNodeSelector::onNodesAdded(const Array<UInt> & new_nodes,
-                                          const NewNodesEvent & event) {
-
-  if (not aka::is_of_type<CohesiveNewNodesEvent>(event))
-    return;
-
-  const auto & cohesive_event = aka::as_type<CohesiveNewNodesEvent>(event);
-  const auto & old_nodes = cohesive_event.getOldNodesList();
-
-  UInt nb_new_nodes = new_nodes.size();
-  UInt nb_old_nodes = old_nodes.size();
-
-  new_nodes_list.reserve(nb_new_nodes + nb_old_nodes);
-
-  auto & slave_group = mesh.getElementGroup(slave).getNodeGroup();
-  auto & master_group = mesh.getElementGroup(master).getNodeGroup();
-
-  for (auto n : arange(nb_new_nodes)) {
-    new_nodes_list.push_back(new_nodes(n));
-    slave_group.add(new_nodes(n));
-    master_group.add(new_nodes(n));
-  }
-
-  for (auto n : arange(nb_old_nodes)) {
-    new_nodes_list.push_back(old_nodes(n));
-    slave_group.add(old_nodes(n));
-    master_group.add(old_nodes(n));
-  }
-
-  mesh_facets.fillNodesToElements(mesh.getSpatialDimension() - 1);
-
-  auto & group = mesh_facets.getElementGroup("contact_surface");
-
-  for (auto node : new_nodes_list) {
-    Array<Element> mesh_facet_elements;
-    mesh_facets.getAssociatedElements(node, mesh_facet_elements);
-
-    for (auto nb_elem : arange(mesh_facet_elements.size()))
-      group.add(mesh_facet_elements[nb_elem], true);
-  }
-
-  group.optimize();
-}
-
-/* -------------------------------------------------------------------------- */
-Array<UInt> & AllSurfaceNodeSelector::getMasterList() {
-  return mesh.getElementGroup(master).getNodeGroup().getNodes();
-}
-
-/* -------------------------------------------------------------------------- */
-Array<UInt> & AllSurfaceNodeSelector::getSlaveList() {
-  return mesh.getElementGroup(slave).getNodeGroup().getNodes();
+  //return mesh_facets.getElementGroup(slave).getNodeGroup().getNodes();
 }
 
 #endif

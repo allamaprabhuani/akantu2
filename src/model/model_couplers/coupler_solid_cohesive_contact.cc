@@ -107,7 +107,7 @@ FEEngine & CouplerSolidCohesiveContact::getFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 void CouplerSolidCohesiveContact::initSolver(TimeStepSolverType,
                                              NonLinearSolverType) {
-  DOFManager & dof_manager = this->getDOFManager();
+  //DOFManager & dof_manager = this->getDOFManager();
 }
 
 /* -------------------------------------------------------------------------- */

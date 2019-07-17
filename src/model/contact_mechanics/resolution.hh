@@ -161,23 +161,15 @@ protected:
   
   /// resolution name
   std::string name;
-
-  /// slave surface name
-  std::string slave;
-  
-  /// mastee surface name
-  std::string master;  
-  
+ 
   /// model to which the resolution belong
   ContactMechanicsModel & model;
 
-  /// friciton coefficient : mu
+  /// friction coefficient : mu
   Real mu;
   
-  /// spatial dimensionxc
+  /// spatial dimension
   UInt spatial_dimension;
-
-  bool two_pass_algorithm;
 };
 
 /// standard output stream operator

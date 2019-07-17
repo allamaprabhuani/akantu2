@@ -53,10 +53,6 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions,
 
   this->parseSection();
 
-  // this->mesh.fillNodesToElements(this->spatial_dimension - 1);
-
-  // this->computeMaximalDetectionDistance();
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -77,10 +73,6 @@ void ContactDetector::parseSection() {
   } else {
     AKANTU_ERROR("Unknown detection type : " << type);
   }
-
-  // surfaces[Surface::master] =
-  // section.getParameterValue<std::string>("master"); surfaces[Surface::slave] =
-  // section.getParameterValue<std::string>("slave");
 
   two_pass_algorithm = section.getParameterValue<bool>("two_pass_algorithm");
 }
@@ -111,8 +103,8 @@ void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
 void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
                                    SpatialGrid<UInt> & master_grid) {
 
-  auto & master_list = node_selector->getMasterList();
-  auto & slave_list = node_selector->getSlaveList();
+  auto & master_list = surface_selector->getMasterList();
+  auto & slave_list = surface_selector->getSlaveList();
 
   BBox bbox_master(spatial_dimension);
   this->constructBoundingBox(bbox_master, master_list);
@@ -221,37 +213,6 @@ void ContactDetector::constructContactMap(
   std::map<UInt, ContactElement> previous_contact_map = contact_map;
   contact_map.clear();
 
-  auto get_index = [&](auto & gaps, auto & projections) {
-    UInt index;
-    Real gap_min = std::numeric_limits<Real>::max();
-
-    UInt counter = 0;
-    for (auto && values :
-         zip(gaps, make_view(projections, surface_dimension))) {
-      auto & gap = std::get<0>(values);
-      auto & projection = std::get<1>(values);
-
-      /// todo adhoc fix to assign a master element in case the
-      /// projection does not lie in the extended element. As it is
-      /// tolerance based
-      bool is_valid = this->checkValidityOfProjection(projection);
-
-      if (is_valid and gap <= gap_min) {
-        gap_min = gap;
-        index = counter;
-      }
-      counter++;
-    }
-
-    if (index >= gaps.size()) {
-      auto gap_min_it = std::min_element(gaps.begin(), gaps.end());
-      auto index_it = std::find(gaps.begin(), gaps.end(), *gap_min_it);
-      index = *index_it;
-    }
-
-    return index;
-  };
-
   auto get_connectivity = [&](auto & slave, auto & master) {
     Vector<UInt> master_conn =
         const_cast<const Mesh &>(this->mesh).getConnectivity(master);
@@ -267,32 +228,34 @@ void ContactDetector::constructContactMap(
 
   for (auto & pairs : contact_pairs) {
 
-    const auto & slave_node = pairs.first;
+    const auto & slave_node  = pairs.first;
     const auto & master_node = pairs.second;
 
     Array<Element> all_elements;
     this->mesh.getAssociatedElements(master_node, all_elements);
 
-    Array<Element> elements;
-    this->filterBoundaryElements(all_elements, elements);
+    Array<Element> boundary_elements;
+    this->filterBoundaryElements(all_elements, boundary_elements);
 
-    std::cerr << "---" << slave_node << std::endl;
-    for (auto sl_el : elements) {
-      std::cerr << sl_el << std::endl;
+    Array<Real> gaps(boundary_elements.size(), 1, "gaps");
+    Array<Real> normals(boundary_elements.size(), spatial_dimension, "normals");
+    Array<Real> projections(boundary_elements.size(), surface_dimension,
+                            "projections");
+
+    auto index = this->computeOrthogonalProjection(slave_node, boundary_elements, normals,
+						   gaps, projections);
+
+    if (index == UInt(-1)) {
+      continue;
     }
     
-    Array<Real> gaps(elements.size(), 1, "gaps");
-    Array<Real> normals(elements.size(), spatial_dimension, "normals");
-    Array<Real> projections(elements.size(), surface_dimension, "projections");
+    // get the index of master element from potential elements
+    //auto index = this->getElementIndex(gaps, projections, normals);
+        
+    auto connectivity = get_connectivity(slave_node, boundary_elements[index]);
 
-    this->computeOrthogonalProjection(slave_node, elements, normals, gaps,
-                                      projections);
-
-    auto index = get_index(gaps, projections);
-
-    auto connectivity = get_connectivity(slave_node, elements[index]);
-
-    contact_map[slave_node].setMaster(elements[index]);
+    // assign contact element attributes
+    contact_map[slave_node].setMaster(boundary_elements[index]);
     contact_map[slave_node].setGap(gaps[index]);
     contact_map[slave_node].setNormal(
         Vector<Real>(normals.begin(spatial_dimension)[index], true));
@@ -300,13 +263,14 @@ void ContactDetector::constructContactMap(
         Vector<Real>(projections.begin(surface_dimension)[index], true));
     contact_map[slave_node].setConnectivity(connectivity);
 
+    // tangent computation on master surface
     Matrix<Real> tangents(surface_dimension, spatial_dimension);
     this->computeTangentsOnElement(contact_map[slave_node].master,
                                    contact_map[slave_node].projection,
                                    tangents);
 
-    std::cerr << contact_map[slave_node].normal <<std::endl;
-
+    // to ensure that direction of tangents are correct, cross product
+    // of tangents should give the normal vector computed earlier
     switch (spatial_dimension) {
     case 2: {
       Vector<Real> e_z(3);
@@ -354,6 +318,8 @@ void ContactDetector::constructContactMap(
 
     contact_map[slave_node].setTangent(tangents);
 
+    // friction calculation requires history of previous natural
+    // projection as well as traction
     auto search = previous_contact_map.find(slave_node);
     if (search != previous_contact_map.end()) {
       auto previous_projection =
@@ -369,19 +335,34 @@ void ContactDetector::constructContactMap(
       Vector<Real> previous_traction(surface_dimension, 0.);
       contact_map[slave_node].setTraction(previous_traction);
     }
+
+    // to ensure the self contact between surface does not lead to
+    // detection of master element which is closet but not
+    // orthogonally opposite to the slave surface
+    bool is_valid_self_contact =
+        this->checkValidityOfSelfContact(slave_node, contact_map[slave_node]);
+
+    if (!is_valid_self_contact) {
+      contact_map.erase(slave_node);
+    }
   }
 
   contact_pairs.clear();
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::computeOrthogonalProjection(
+UInt ContactDetector::computeOrthogonalProjection(
     const UInt & node, const Array<Element> & elements, Array<Real> & normals,
     Array<Real> & gaps, Array<Real> & projections) {
 
   Vector<Real> query(spatial_dimension);
   for (UInt s : arange(spatial_dimension))
     query(s) = this->positions(node, s);
+
+  UInt counter = 0;
+  UInt index   = UInt(-1);
+  
+  Real min_gap = std::numeric_limits<Real>::max();
 
   for (auto && values :
        zip(elements, gaps, make_view(normals, spatial_dimension),
@@ -399,7 +380,34 @@ void ContactDetector::computeOrthogonalProjection(
                                      real_projection);
 
     gap = this->computeGap(query, real_projection, normal);
+
+    // check if gap is valid for not
+    // to check this we need normal on master element, vector from
+    // real projection to slave node, if it is explicit detection
+    // scheme, we want it to interpenetrate, the dot product should be
+    // negative opposite
+    
+    bool is_valid = this->checkValidityOfProjection(projection);
+    
+    auto master_to_slave = query - real_projection;
+    auto norm = master_to_slave.norm();
+
+    if (norm != 0) 
+      master_to_slave /= norm;
+
+    auto cos_angle = master_to_slave.dot(normal);
+    auto difference = std::abs(cos_angle + 1.0);
+    
+    if (difference <= 1e-8 and gap <= min_gap and is_valid) {
+      min_gap = gap;
+      index   = counter;
+      gap *= -1.0;
+    }
+
+    counter++;
   }
+
+  return index;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -412,9 +420,10 @@ void ContactDetector::computeProjectionOnElement(
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(element, coords);
-
+  
   Vector<Real> point(coords(0));
   Real alpha = (query - point).dot(normal);
+  
   real_projection = query - alpha * normal;
 
   this->computeNaturalProjection(element, real_projection, natural_projection);

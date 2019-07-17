@@ -43,3 +43,9 @@ register_example(solid_explicit_dynamic
   DEPENDS contact_hertz_2d
   FILES_TO_COPY material_solid.dat
   )
+
+register_example(node_selector
+  SOURCES test_node_selector.cc
+  DEPENDS contact_hertz_2d
+  FILES_TO_COPY material.dat
+  )

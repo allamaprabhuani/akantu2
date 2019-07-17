@@ -313,14 +313,18 @@ void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, Matrix<Re
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array, Array<Real> & global_array,
-					      Array<Real> & nodal_area, ContactElement & element) {
+void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array,
+                                              Array<Real> & global_array,
+                                              Array<Real> & nodal_area,
+                                              ContactElement & element,
+                                              Array<Real> & frequency) {
   const auto & conn = element.connectivity;
   UInt nb_dofs = global_array.getNbComponent();
 
   auto slave_node = conn[0];
-  for (UInt i : arange(conn.size())) {
+  for (UInt i : arange(1)) {
     UInt n = conn[i];
+    frequency[n] += 1;
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
       global_array[offset_node] += local_array[i * nb_dofs + j] * nodal_area[slave_node];

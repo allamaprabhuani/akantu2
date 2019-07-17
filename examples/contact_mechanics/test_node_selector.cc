@@ -1,5 +1,5 @@
 #include "aka_common.hh"
-#include "node_selector.hh"
+#include "surface_selector.hh"
 #include "contact_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -16,7 +16,7 @@ int main(int argc, char * argv[]) {
 
   ContactMechanicsModel model(mesh);
 
-  PhysicalSurfaceNodeSelector selector(model);
+  PhysicalSurfaceSelector selector(model);
   auto & slave = selector.getSlaveList();
   auto & master = selector.getMasterList();
   

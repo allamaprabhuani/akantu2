@@ -38,6 +38,42 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
+inline UInt ContactDetector::getElementIndex(Array<Real> & gaps,
+                                             Array<Real> & projections,
+					     Array<Real> & normals) {
+  auto surface_dimension = spatial_dimension - 1;
+
+  UInt index;
+  Real gap_min = std::numeric_limits<Real>::max();
+
+  UInt counter = 0;
+  for (auto && values : zip(gaps, make_view(projections, surface_dimension))) {
+    auto & gap = std::get<0>(values);
+    auto & projection = std::get<1>(values);
+
+    bool is_valid = this->checkValidityOfProjection(projection);
+
+    if (is_valid and gap <= gap_min) {
+      gap_min = gap;
+      index = counter;
+    }
+    counter++;
+  }
+
+  // if a slave node does not have a valid projection on any of the
+  // element, the minimum projection is taken as valid projection,
+  // this sometimes leads to situation where a slave node is outside
+  // but is still consider for potential contact
+  if (index >= gaps.size()) {
+    auto gap_min_it = std::min_element(gaps.begin(), gaps.end());
+    auto index_it = std::find(gaps.begin(), gaps.end(), *gap_min_it);
+    index = *index_it;
+  }
+
+  return index;
+}
+
+/* -------------------------------------------------------------------------- */
 inline bool
 ContactDetector::checkValidityOfProjection(Vector<Real> & projection) {
 
@@ -139,31 +175,9 @@ inline void ContactDetector::computeMaximalDetectionDistance() {
 
   Real elem_size;
   Real max_elem_size = std::numeric_limits<Real>::min();
+  Real min_elem_size = std::numeric_limits<Real>::max();
 
-  /*auto & master_group =
-  mesh.getElementGroup(surfaces[Surface::master]);
-
-  for (auto type : master_group.elementTypes(spatial_dimension - 1, _not_ghost,
-                                             _ek_regular)) {
-
-    const auto & element_ids = master_group.getElements(type);
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-
-    Element elem;
-    elem.type = type;
-    for (auto el : element_ids) {
-      elem.element = el;
-      Matrix<Real> elem_coords(spatial_dimension, nb_nodes_per_element);
-      this->coordinatesOfElement(elem, elem_coords);
-
-      elem_size = FEEngine::getElementInradius(elem_coords, type);
-      max_elem_size = std::max(max_elem_size, elem_size);
-    }
-
-    AKANTU_DEBUG_INFO("The maximum element size : " << max_elem_size);
-    }*/
-
-  auto & master_nodes = this->node_selector->getMasterList();
+  auto & master_nodes = this->surface_selector->getMasterList();
 
   for (auto & master : master_nodes) {
     Array<Element> elements;
@@ -176,11 +190,13 @@ inline void ContactDetector::computeMaximalDetectionDistance() {
 
       elem_size = FEEngine::getElementInradius(elem_coords, element.type);
       max_elem_size = std::max(max_elem_size, elem_size);
+      min_elem_size = std::min(min_elem_size, elem_size);
     }
   }
 
   AKANTU_DEBUG_INFO("The maximum element size : " << max_elem_size);
 
+  this->min_dd = min_elem_size;
   this->max_dd = max_elem_size;
   this->max_bb = max_elem_size;
 
@@ -283,7 +299,7 @@ inline Real ContactDetector::computeGap(Vector<Real> & slave,
 
   // if slave node is beneath the master surface
   if (projection > 0) {
-    gap *= -1.0;
+    //gap *= -1.0;
   }
 
   return gap;
@@ -296,29 +312,70 @@ ContactDetector::filterBoundaryElements(Array<Element> & elements,
 
   for (auto elem : elements) {
 
-    // to ensure that normal is always outwards from master surface
     const auto & element_to_subelement =
         mesh.getElementToSubelement(elem.type)(elem.element);
 
+    // for regular boundary elements
+    if (element_to_subelement.size() == 1 and
+        element_to_subelement[0].kind() == _ek_regular) {
+      boundary_elements.push_back(elem);
+      continue;
+    }
+
+    // for cohesive boundary elements
     UInt nb_subelements_regular = 0;
     for (auto subelem : element_to_subelement) {
       if (subelem == ElementNull)
         continue;
 
-      if (subelem.kind() == _ek_regular) {
+      if (subelem.kind() == _ek_regular)
         ++nb_subelements_regular;
-      }
     }
 
     auto nb_subelements = element_to_subelement.size();
 
-    if (nb_subelements_regular < nb_subelements) {
+    if (nb_subelements_regular < nb_subelements)
       boundary_elements.push_back(elem);
-    }
   }
 }
 
 /* -------------------------------------------------------------------------- */
+inline bool
+ContactDetector::checkValidityOfSelfContact(const UInt & slave_node,
+                                            const ContactElement & element) {
+
+  UInt master_node;
+
+  for (auto & pair : contact_pairs) {
+    if (pair.first == slave_node) {
+      master_node = pair.second;
+      break;
+    }
+  }
+
+  Array<Element> elements;
+  this->mesh.getAssociatedElements(slave_node, elements);
+  
+  for (auto & elem : elements) {
+    if (elem.kind() != _ek_regular)
+      continue;
+
+    Vector<UInt> connectivity =
+        const_cast<const Mesh &>(this->mesh).getConnectivity(elem);
+
+    auto node_iter =
+        std::find(connectivity.begin(), connectivity.end(), master_node);
+    if (node_iter != connectivity.end()) {
+      return false;
+    }
+  }
+
+  if (std::abs(element.gap) > 2.0 * min_dd) {
+    return false;
+  }
+
+  return true;
+}
 
 } // namespace akantu
 

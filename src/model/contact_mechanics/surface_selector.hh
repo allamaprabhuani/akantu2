@@ -1,5 +1,5 @@
 /**
- * @file   node_selector.hh
+ * @file   surface_selector.hh
  *
  * @author Mohit Pundir <pundir.pundir@epfl.ch>
  *
@@ -40,8 +40,8 @@
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_NODE_SELECTOR_HH__
-#define __AKANTU_NODE_SELECTOR_HH__
+#ifndef __AKANTU_SURFACE_SELECTOR_HH__
+#define __AKANTU_SURFACE_SELECTOR_HH__
 
 namespace akantu {
 class Model;
@@ -50,16 +50,16 @@ class GlobalIdsUpdater;
 namespace akantu {
 
 /**
- * main class to assign nodes for contact detection
+ * main class to assign surfaces for contact detection
  */
-class NodeSelector : public MeshEventHandler, public Parsable {
+class SurfaceSelector : public MeshEventHandler, public Parsable {
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 public:
-  NodeSelector(const Model & model);
+  SurfaceSelector(const Model & model);
 
-  virtual ~NodeSelector() = default;
+  virtual ~SurfaceSelector() = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -78,12 +78,12 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-class PhysicalSurfaceNodeSelector : public NodeSelector {
+class PhysicalSurfaceSelector : public SurfaceSelector {
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 public:
-  PhysicalSurfaceNodeSelector(const Model & model);
+  PhysicalSurfaceSelector(const Model & model);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -103,12 +103,12 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_COHESIVE_ELEMENT)
-class CohesiveSurfaceNodeSelector : public NodeSelector {
+class CohesiveSurfaceSelector : public SurfaceSelector {
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 public:
-  CohesiveSurfaceNodeSelector(const Model & model);
+  CohesiveSurfaceSelector(const Model & model);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -144,14 +144,14 @@ protected:
   Array<UInt> new_nodes_list;
 };
 
-class AllSurfaceNodeSelector : public NodeSelector {
+class AllSurfaceSelector : public SurfaceSelector {
   /* ------------------------------------------------------------------------
    */
   /* Constructor/Destructor */
   /* ------------------------------------------------------------------------
    */
 public:
-  AllSurfaceNodeSelector(const Model & model);
+  AllSurfaceSelector(const Model & model);
 
   /* ------------------------------------------------------------------------
    */
@@ -161,6 +161,9 @@ public:
 protected:
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
+
+  void filterBoundaryElements(Array<Element> & elements,
+                              Array<Element> & boundary_elements);
 
 public:
   Array<UInt> & getMasterList() override;
@@ -194,4 +197,4 @@ protected:
 
 } // namespace akantu
 
-#endif /*  __AKANTU_NODE_SELECTOR_HH__  */
+#endif /*  __AKANTU_SURFACE_SELECTOR_HH__  */

@@ -230,7 +230,7 @@ public:
 
   /// get the ContactMechanicsModel::external_force vector (external forces)
   AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
-
+  
   /// get the ContactMechanicsModel::force vector (external forces)
   Array<Real> & getForce() {
     AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "

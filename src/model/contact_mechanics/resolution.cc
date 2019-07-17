@@ -56,12 +56,8 @@ Resolution::~Resolution() = default;
 /* -------------------------------------------------------------------------- */
 void Resolution::initialize() {
   registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
-  registerParam("slave", slave, std::string(), _pat_parsable | _pat_readable);
-  registerParam("master", master, std::string(), _pat_parsable | _pat_readable);
   registerParam("mu", mu, Real(0.), _pat_parsable | _pat_modifiable,
                 "Friciton Coefficient");
-  registerParam("two_pass_algorithm", two_pass_algorithm, bool(false),
-                _pat_parsable | _pat_modifiable, "Two pass algorithm");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,7 +78,7 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
   const auto slave_nodes =
-      model.getContactDetector().getNodeSelector().getSlaveList();
+      model.getContactDetector().getSurfaceSelector().getSlaveList();
 
   this->assembleInternalForces(slave_nodes);
 
@@ -99,21 +95,22 @@ void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
 
   auto & contact_map = model.getContactMap();
 
+  Array<Real> frequency(internal_force.size(), 1);
+    
   for (auto & slave : slave_nodes) {
 
     if (contact_map.find(slave) == contact_map.end())
       continue;
 
     auto & element = contact_map[slave];
-
     const auto & conn = element.connectivity;
 
     Vector<Real> contact_force(conn.size() * spatial_dimension);
-
     Vector<Real> n(conn.size() * spatial_dimension);
-    ResolutionUtils::computeN(n, element);
 
+    ResolutionUtils::computeN(n, element);
     computeNormalForce(contact_force, n, element);
+
     if (mu != 0) {
 
       Array<Real> t_alpha(conn.size() * spatial_dimension,
@@ -131,7 +128,7 @@ void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
     }
 
     ResolutionUtils::assembleToInternalForce(contact_force, internal_force,
-                                             nodal_area, element);
+                                             nodal_area, element, frequency);
   }
 
   AKANTU_DEBUG_OUT();
@@ -141,14 +138,11 @@ void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
 void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
+  const auto slave_nodes =
+      model.getContactDetector().getSurfaceSelector().getSlaveList();
+
   auto & stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
-
-  // const auto local_nodes =
-  //    model.getMesh().getElementGroup(name).getNodeGroup().getNodes();
-
-  const auto slave_nodes =
-      model.getContactDetector().getNodeSelector().getSlaveList();
 
   auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
 
@@ -171,14 +165,15 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
     // normal tangent moduli
     Vector<Real> n(conn.size() * spatial_dimension);
-
-    Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-
     ResolutionUtils::computeN(n, element);
+    
+    Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
     ResolutionUtils::computeTalpha(t_alpha, element);
+    
+    Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
     ResolutionUtils::computeNalpha(n_alpha, element);
+    
+    Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);      
     ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
 
     computeNormalModuli(kc, n_alpha, d_alpha, n, element);
@@ -186,17 +181,16 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     // frictional tangent moduli
     if (mu != 0) {
       Array<Real> t_alpha_beta(conn.size() * spatial_dimension,
-                               (spatial_dimension - 1) *
-                                   (spatial_dimension - 1));
+                               (spatial_dimension - 1) * (spatial_dimension - 1));
+      ResolutionUtils::computeTalphabeta(t_alpha_beta, element);
+      
       Array<Real> p_alpha(conn.size() * spatial_dimension,
                           spatial_dimension - 1);
       Array<Real> n_alpha_beta(conn.size() * spatial_dimension,
-                               (spatial_dimension - 1) *
-                                   (spatial_dimension - 1));
+                               (spatial_dimension - 1) * (spatial_dimension - 1));
 
       computeFrictionalTraction(m_alpha_beta, element);
-
-      ResolutionUtils::computeTalphabeta(t_alpha_beta, element);
+      
       ResolutionUtils::computeNalphabeta(n_alpha_beta, element);
       ResolutionUtils::computePalpha(p_alpha, element);
 

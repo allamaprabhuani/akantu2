@@ -29,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "aka_bbox.hh"
+#include "aka_common.hh"
 #include "aka_grid_dynamic.hh"
 #include "aka_memory.hh"
 #include "contact_element.hh"
@@ -39,8 +39,8 @@
 #include "fe_engine.hh"
 #include "mesh.hh"
 #include "mesh_io.hh"
-#include "node_selector.hh"
 #include "parsable.hh"
+#include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_DETECTOR_HH__
@@ -88,7 +88,7 @@ private:
   void parseSection();
 
   /// computes the orthogonal projection on master elements
-  void computeOrthogonalProjection(const UInt &, const Array<Element> &,
+  UInt computeOrthogonalProjection(const UInt &, const Array<Element> &,
                                    Array<Real> &, Array<Real> &, Array<Real> &);
 
   /// computes tangents on a given natural coordinate
@@ -146,8 +146,17 @@ public:
   inline Real computeGap(Vector<Real> &, Vector<Real> &, Vector<Real> &);
 
   /// filter boundary elements
-   inline void filterBoundaryElements(Array<Element> & elements,
-				      Array<Element> & boundary_elements);
+  inline void filterBoundaryElements(Array<Element> & elements,
+                                     Array<Element> & boundary_elements);
+
+  /// checks whether self contact condition leads to a master element
+  /// which is closet but not orthogonally opposite to slave surface
+  inline bool checkValidityOfSelfContact(const UInt &, const ContactElement &);
+
+  /// get the valid contact element index from a potential patch of
+  /// contact elements
+  inline UInt getElementIndex(Array<Real> & gaps, Array<Real> & projections,
+			      Array<Real> & normals);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -164,8 +173,10 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(Positions, positions, Array<Real> &);
   AKANTU_SET_MACRO(Positions, positions, Array<Real>);
 
-  AKANTU_GET_MACRO_NOT_CONST(NodeSelector, *node_selector, NodeSelector &);
-  AKANTU_SET_MACRO(NodeSelector, node_selector, std::shared_ptr<NodeSelector>);
+  AKANTU_GET_MACRO_NOT_CONST(SurfaceSelector, *surface_selector,
+                             SurfaceSelector &);
+  AKANTU_SET_MACRO(SurfaceSelector, surface_selector,
+                   std::shared_ptr<SurfaceSelector>);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -178,6 +189,9 @@ private:
   /// maximal detection distance for grid spacing
   Real max_dd;
 
+  /// minimal detection distance for grid spacing
+  Real min_dd;
+
   /// maximal bounding box extension
   Real max_bb;
 
@@ -188,7 +202,7 @@ private:
   UInt spatial_dimension{0};
 
   /// node selector for selecting master and slave nodes
-  std::shared_ptr<NodeSelector> node_selector;
+  std::shared_ptr<SurfaceSelector> surface_selector;
 
   /// contact pair slave node to closet master node
   std::vector<std::pair<UInt, UInt>> contact_pairs;
