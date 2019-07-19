@@ -140,6 +140,9 @@ public:
   /// get the eigen opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(EigenOpening, eigen_opening, Real);
 
+  /// get the eigen opening
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(DeltaMax, delta_max, Real);
+
   /// get the normals
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Normals, normals, Real);
 
