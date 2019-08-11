@@ -28,7 +28,8 @@ template <UInt spatial_dimension, template <UInt> class ElasticParent>
 MaterialDamageIterative<spatial_dimension, ElasticParent>::
     MaterialDamageIterative(SolidMechanicsModel & model, const ID & id)
     : parent(model, id), Sc("Sc", *this), reduction_step("damage_step", *this),
-      equivalent_stress("equivalent_stress", *this), max_reductions(0) {
+      equivalent_stress("equivalent_stress", *this), max_reductions(0),
+      stress_trace("stress_trace", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sc", Sc, _pat_parsable, "critical stress threshold");
@@ -44,12 +45,16 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
                       _pat_parsable | _pat_modifiable, "maximum damage value");
   this->registerParam("max_reductions", max_reductions, UInt(10),
                       _pat_parsable | _pat_modifiable, "max reductions");
+  this->registerParam(
+      "contact", contact, false, _pat_parsable | _pat_modifiable,
+      "parameter responsible for the stiffness recovery when in compression");
 
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
   this->reduction_step.initialize(1);
+  this->stress_trace.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,13 +72,20 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   for (auto && data : zip(make_view(this->stress(el_type, ghost_type),
                                     spatial_dimension, spatial_dimension),
                           make_view(Sc(el_type, ghost_type)),
-                          make_view(equivalent_stress(el_type, ghost_type)))) {
+                          make_view(equivalent_stress(el_type, ghost_type)),
+                          make_view(stress_trace(el_type, ghost_type)))) {
 
     const auto & sigma = std::get<0>(data);
     const auto & sigma_crit = std::get<1>(data);
     auto & sigma_equ = std::get<2>(data);
+    auto & sigma_tr = std::get<3>(data);
+
     /// compute eigenvalues
     sigma.eig(eigenvalues);
+    /// update trace
+    sigma_tr = 0;
+    for (auto & n : eigenvalues)
+      sigma_tr += n;
     /// find max eigenvalue and normalize by tensile strength
     sigma_equ = *(std::max_element(eigenvalues.storage(),
                                    eigenvalues.storage() + spatial_dimension)) /
@@ -96,16 +108,16 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   parent::computeAllStresses(ghost_type);
 
   /// find global Gauss point with highest stress
-  //auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  //if (rve_model == NULL) {
-    /// is no RVE model
-    const auto & comm = this->model.getMesh().getCommunicator();
-    comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
-    comm.allReduce(norm_av_equivalent_stress,
-                   SynchronizerOperation::_max); // Emil:
-                                                 // think
-                                                 // about it
-    //}
+  // auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+  // if (rve_model == NULL) {
+  /// is no RVE model
+  const auto & comm = this->model.getMesh().getCommunicator();
+  comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
+  comm.allReduce(norm_av_equivalent_stress,
+                 SynchronizerOperation::_max); // Emil:
+                                               // think
+                                               // about it
+  //}
   AKANTU_DEBUG_OUT();
 }
 
@@ -150,11 +162,16 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeStress(
   parent::computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
+  auto sigma_tr_it = this->stress_trace(el_type, ghost_type).begin();
+  auto e_stress_it = this->equivalent_stress(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  computeDamageAndStressOnQuad(sigma, *dam);
+  if ((this->contact && *e_stress_it >= 0.) || not this->contact)
+    computeDamageAndStressOnQuad(sigma, *dam);
   ++dam;
+  ++sigma_tr_it;
+  ++e_stress_it;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
@@ -210,11 +227,11 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
     }
   }
 
-  //auto * rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  //if (rve_model == NULL) {
-    const auto & comm = this->model.getMesh().getCommunicator();
-    comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
-    //}
+  // auto * rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+  // if (rve_model == NULL) {
+  const auto & comm = this->model.getMesh().getCommunicator();
+  comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
+  //}
 
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;

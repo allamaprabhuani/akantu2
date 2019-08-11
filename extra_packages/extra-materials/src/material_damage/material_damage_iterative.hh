@@ -149,6 +149,13 @@ protected:
 
   /// maximum damage value
   Real max_damage;
+
+  /// recovery of stiffness when in compression
+  bool contact;
+
+  /// trace of a stress tensor to judge on compression
+  InternalField<Real> stress_trace;
+
 };
 
 } // namespace akantu
