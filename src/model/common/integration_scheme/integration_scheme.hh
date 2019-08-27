@@ -53,6 +53,8 @@ public:
     _temperature = 0,
     _velocity = 1,
     _temperature_rate = 1,
+    _pressure = 0,
+    _pressure_rate = 1,
     _acceleration = 2,
   };
 

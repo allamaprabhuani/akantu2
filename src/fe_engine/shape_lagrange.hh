@@ -74,6 +74,13 @@ public:
       const GhostType & ghost_type,
       const Array<UInt> & filter_elements) const override;
 
+  /// computes the shape functions variations for spatial dim != natural dim
+  template <ElementType type>
+  void computeShapeDerivativesOnIntegrationPoints1DIn2D(
+      const Array<Real> & nodes, const Matrix<Real> & integration_points,
+      Array<Real> & shape_derivatives, const GhostType & ghost_type,
+      const Array<UInt> & filter_elements = empty_filter) const;
+
   /// pre compute all shapes on the element integration points from natural
   /// coordinates
   template <ElementType type>

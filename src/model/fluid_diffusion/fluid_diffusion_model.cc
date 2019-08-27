@@ -1,18 +1,11 @@
 /**
- * @file   heat_transfer_model.cc
+ * @file   fluid_diffusion_model.hh
  *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
- * @author David Simon Kammer <david.kammer@epfl.ch>
- * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Rui Wang <rui.wang@epfl.ch>
  *
- * @date creation: Sun May 01 2011
- * @date last modification: Tue Feb 20 2018
+ * @date creation: Aug 2019
  *
- * @brief  Implementation of HeatTransferModel class
+ * @brief  Implementation of Transient fluid diffusion model
  *
  * @section LICENSE
  *
@@ -63,7 +56,7 @@ namespace fluid_diffusion {
       ComputeRhoFunctor(const FluidDiffusionModel & model) : model(model){};
 
       void operator()(Matrix<Real> & rho, const Element &) const {
-        rho.set(model.getCapacity() * model.getDensity());
+        rho.set(model.getPushability());
       }
 
     private:
@@ -79,8 +72,14 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
       pressure_gradient("pressure_gradient", id),
       pressure_on_qpoints("pressure_on_qpoints", id),
       permeability_on_qpoints("permeability_on_qpoints", id),
-      k_gradp_on_qpoints("k_gradp_on_qpoints", id) {
+      aperture_on_qpoints("aperture_on_qpoints", id),
+      k_gradp_on_qpoints("k_gradp_on_qpoints", id), viscosity(0.),
+      pushability(0.), default_aperture(0.) {
   AKANTU_DEBUG_IN();
+
+  // mesh.registerEventHandler(*this, akantu::_ehp_lowest);
+
+  this->spatial_dimension = std::max(1, int(mesh.getSpatialDimension()) - 1);
 
   this->initDOFManager();
 
@@ -93,18 +92,17 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
                                SynchronizationTag::_htm_gradient_pressure);
   }
 
-  registerFEEngineObject<FEEngineType>(id + ":fem", mesh,
-                                       spatial_dimension - 1);
+  registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
 
 #ifdef AKANTU_USE_IOHELPER
   this->mesh.registerDumper<DumperParaview>("fluid_diffusion", id, true);
-  this->mesh.addDumpMesh(mesh, spatial_dimension - 1, _not_ghost, _ek_regular);
+  this->mesh.addDumpMesh(mesh, spatial_dimension, _not_ghost, _ek_regular);
 #endif
 
-  this->registerParam("viscosity", viscosity, _pat_parsmod);
-  this->registerParam("pressure_reference", P_ref, 0., _pat_parsmod);
-  this->registerParam("capacity", capacity, _pat_parsmod);
-  this->registerParam("density", density, _pat_parsmod);
+  this->registerParam("viscosity", viscosity, 1., _pat_parsmod);
+  this->registerParam("pushability", pushability, 1., _pat_parsmod);
+  this->registerParam("default_aperture", default_aperture, 1.e-5,
+                      _pat_parsmod);
 
   AKANTU_DEBUG_OUT();
 }
@@ -118,6 +116,7 @@ void FluidDiffusionModel::initModel() {
   pressure_on_qpoints.initialize(fem, _nb_component = 1);
   pressure_gradient.initialize(fem, _nb_component = 1);
   permeability_on_qpoints.initialize(fem, _nb_component = 1);
+  aperture_on_qpoints.initialize(fem, _nb_component = 1);
   k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
 }
 
@@ -149,7 +148,7 @@ void FluidDiffusionModel::assembleCapacityLumped(const GhostType & ghost_type) {
   fluid_diffusion::details::ComputeRhoFunctor compute_rho(*this);
 
   for (auto & type :
-       mesh.elementTypes(spatial_dimension - 1, ghost_type, _ek_regular)) {
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     fem.assembleFieldLumped(compute_rho, "M", "pressure", this->getDOFManager(),
                             type, ghost_type);
   }
@@ -198,6 +197,24 @@ void FluidDiffusionModel::assembleResidual() {
 void FluidDiffusionModel::predictor() { ++pressure_release; }
 
 /* -------------------------------------------------------------------------- */
+void FluidDiffusionModel::afterSolveStep() {
+  AKANTU_DEBUG_IN();
+
+  ++solution_release;
+  need_to_reassemble_capacity_lumped = true;
+  need_to_reassemble_capacity = true;
+
+  /// interpolating pressures on integration points for further use by BC
+  const GhostType gt = _not_ghost;
+  for (auto && type : mesh.elementTypes(spatial_dimension, gt, _ek_regular)) {
+    this->getFEEngine().interpolateOnIntegrationPoints(
+        *pressure, pressure_on_qpoints(type, gt), 1, type, gt);
+
+    AKANTU_DEBUG_OUT();
+  }
+}
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::assembleCapacityLumped() {
   AKANTU_DEBUG_IN();
 
@@ -215,7 +232,8 @@ void FluidDiffusionModel::assembleCapacityLumped() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
                                      NonLinearSolverType) {
   DOFManager & dof_manager = this->getDOFManager();
@@ -224,35 +242,37 @@ void FluidDiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
   this->allocNodalField(this->external_flux, "external_flux");
   this->allocNodalField(this->internal_flux, "internal_flux");
   this->allocNodalField(this->blocked_dofs, "blocked_dofs");
+  // this->allocNodalField(this->aperture, "aperture");
 
   if (!dof_manager.hasDOFs("pressure")) {
     dof_manager.registerDOFs("pressure", *this->pressure, _dst_nodal);
     dof_manager.registerBlockedDOFs("pressure", *this->blocked_dofs);
   }
 
-  // if (time_step_solver_type == TimeStepSolverType::_dynamic ||
-  //     time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
-  //   this->allocNodalField(this->pressure_rate, "pressure_rate");
+  if (time_step_solver_type == TimeStepSolverType::_dynamic ||
+      time_step_solver_type == TimeStepSolverType::_dynamic_lumped) {
+    this->allocNodalField(this->pressure_rate, "pressure_rate");
 
-  if (!dof_manager.hasDOFsDerivatives("pressure", 1)) {
-    dof_manager.registerDOFsDerivative("pressure", 1, *this->pressure_rate);
+    if (!dof_manager.hasDOFsDerivatives("pressure", 1)) {
+      dof_manager.registerDOFsDerivative("pressure", 1, *this->pressure_rate);
+    }
   }
 }
-
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 std::tuple<ID, TimeStepSolverType>
 FluidDiffusionModel::getDefaultSolverID(const AnalysisMethod & method) {
   switch (method) {
-  // case _explicit_lumped_mass: {
-  //   return std::make_tuple("explicit_lumped",
-  //   TimeStepSolverType::_dynamic_lumped);
-  // }
+  case _explicit_lumped_mass: {
+    return std::make_tuple("explicit_lumped",
+                           TimeStepSolverType::_dynamic_lumped);
+  }
   case _static: {
     return std::make_tuple("static", TimeStepSolverType::_static);
   }
-  // case _implicit_dynamic: {
-  //   return std::make_tuple("implicit", TimeStepSolverType::_dynamic);
-  // }
+  case _implicit_dynamic: {
+    return std::make_tuple("implicit", TimeStepSolverType::_dynamic);
+  }
   default:
     return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
   }
@@ -265,13 +285,13 @@ ModelSolverOptions FluidDiffusionModel::getDefaultSolverOptions(
   ModelSolverOptions options;
 
   switch (type) {
-  // case TimeStepSolverType::_dynamic_lumped: {
-  //   options.non_linear_solver_type = NonLinearSolverType::_lumped;
-  //   options.integration_scheme_type["pressure"] =
-  //   IntegrationSchemeType::_forward_euler;
-  //   options.solution_type["pressure"] = IntegrationScheme::_pressure_rate;
-  //   break;
-  // }
+  case TimeStepSolverType::_dynamic_lumped: {
+    options.non_linear_solver_type = NonLinearSolverType::_lumped;
+    options.integration_scheme_type["pressure"] =
+        IntegrationSchemeType::_forward_euler;
+    options.solution_type["pressure"] = IntegrationScheme::_pressure_rate;
+    break;
+  }
   case TimeStepSolverType::_static: {
     options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
     options.integration_scheme_type["pressure"] =
@@ -279,23 +299,20 @@ ModelSolverOptions FluidDiffusionModel::getDefaultSolverOptions(
     options.solution_type["pressure"] = IntegrationScheme::_not_defined;
     break;
   }
-  // case TimeStepSolverType::_dynamic: {
-  //   if (this->method == _explicit_consistent_mass) {
-  //     options.non_linear_solver_type =
-  //     NonLinearSolverType::_newton_raphson;
-  //     options.integration_scheme_type["pressure"] =
-  //     IntegrationSchemeType::_forward_euler;
-  //     options.solution_type["pressure"] =
-  //         IntegrationScheme::_pressure_rate;
-  //   } else {
-  //     options.non_linear_solver_type =
-  //     NonLinearSolverType::_newton_raphson;
-  //     options.integration_scheme_type["pressure"] =
-  //     IntegrationSchemeType::_backward_euler;
-  //     options.solution_type["pressure"] = IntegrationScheme::_pressure;
-  //   }
-  //   break;
-  // }
+  case TimeStepSolverType::_dynamic: {
+    if (this->method == _explicit_consistent_mass) {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["pressure"] =
+          IntegrationSchemeType::_forward_euler;
+      options.solution_type["pressure"] = IntegrationScheme::_pressure_rate;
+    } else {
+      options.non_linear_solver_type = NonLinearSolverType::_newton_raphson;
+      options.integration_scheme_type["pressure"] =
+          IntegrationSchemeType::_backward_euler;
+      options.solution_type["pressure"] = IntegrationScheme::_pressure;
+    }
+    break;
+  }
   default:
     AKANTU_EXCEPTION(type << " is not a valid time step solver type");
   }
@@ -333,7 +350,8 @@ void FluidDiffusionModel::assemblePermeabilityMatrix() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::assemblePermeabilityMatrix(
     const GhostType & ghost_type) {
   AKANTU_DEBUG_IN();
@@ -341,7 +359,7 @@ void FluidDiffusionModel::assemblePermeabilityMatrix(
   auto & fem = this->getFEEngine();
 
   for (auto && type :
-       mesh.elementTypes(spatial_dimension - 1, ghost_type, _ek_regular)) {
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto nb_element = mesh.getNbElement(type, ghost_type);
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
@@ -369,51 +387,52 @@ void FluidDiffusionModel::assemblePermeabilityMatrix(
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::computePermeabilityOnQuadPoints(
     const GhostType & ghost_type) {
-  // // if already computed once check if need to compute
-  // if (not initial_permeability[ghost_type]) {
-  //   // if pressure did not change, conductivity will not vary
-  //   if (pressure_release == permeability_release[ghost_type])
-  //     return;
 
-  //   // if permeability_variation is 0 no need to recompute
-  //   if (permeability_variation == 0.)
-  //     return;
-  // }
+  // if already computed once check if need to compute
+  if (not initial_permeability[ghost_type]) {
+    // if aperture did not change, permeability will not vary
+    if (solution_release == permeability_release[ghost_type])
+      return;
+  }
 
   for (auto & type :
-       mesh.elementTypes(spatial_dimension - 1, ghost_type, _ek_regular)) {
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
 
-    auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-    auto nb_element = mesh.getNbElement(type);
-    Array<Real> apperture_interpolated(nb_element * nb_nodes_per_element, 1);
+    // auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    // auto nb_element = mesh.getNbElement(type);
+    // Array<Real> aperture_interpolated(nb_element * nb_nodes_per_element,
+    // 1);
 
-    // compute the pressure on quadrature points
-    this->getFEEngine().interpolateOnIntegrationPoints(
-        *apperture, apperture_interpolated, 1, type, ghost_type);
+    // // compute the pressure on quadrature points
+    // this->getFEEngine().interpolateOnIntegrationPoints(
+    //     *aperture, aperture_interpolated, 1, type, ghost_type);
 
     auto & perm = permeability_on_qpoints(type, ghost_type);
-    for (auto && tuple : zip(perm, apperture_interpolated)) {
+    auto & aperture = aperture_on_qpoints(type, ghost_type);
+    for (auto && tuple : zip(perm, aperture)) {
       auto & k = std::get<0>(tuple);
-      auto & apper = std::get<1>(tuple);
-      k = apper * apper / (12 * this->viscosity);
+      auto & aper = std::get<1>(tuple);
+      k = aper * aper / (12 * this->viscosity);
     }
   }
 
-  permeability_release[ghost_type] = pressure_release;
+  permeability_release[ghost_type] = solution_release;
   initial_permeability[ghost_type] = false;
 
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::computeKgradP(const GhostType & ghost_type) {
   computePermeabilityOnQuadPoints(ghost_type);
 
   for (auto & type :
-       mesh.elementTypes(spatial_dimension - 1, ghost_type, _ek_regular)) {
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & gradient = pressure_gradient(type, ghost_type);
     this->getFEEngine().gradientOnIntegrationPoints(*pressure, gradient, 1,
                                                     type, ghost_type);
@@ -431,7 +450,8 @@ void FluidDiffusionModel::computeKgradP(const GhostType & ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::assembleInternalFlux() {
   AKANTU_DEBUG_IN();
 
@@ -445,7 +465,7 @@ void FluidDiffusionModel::assembleInternalFlux() {
     computeKgradP(ghost_type);
 
     for (auto type :
-         mesh.elementTypes(spatial_dimension - 1, ghost_type, _ek_regular)) {
+         mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
       UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
       auto & k_gradp_on_qpoints_vect = k_gradp_on_qpoints(type, ghost_type);
@@ -467,48 +487,53 @@ void FluidDiffusionModel::assembleInternalFlux() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-// Real FluidDiffusionModel::getStableTimeStep() {
-//   AKANTU_DEBUG_IN();
+/* --------------------------------------------------------------------------
+ */
+Real FluidDiffusionModel::getStableTimeStep() {
+  AKANTU_DEBUG_IN();
 
-//   Real el_size;
-//   Real min_el_size = std::numeric_limits<Real>::max();
-//   Real permeabilitymax = 1 / this->viscosity;
+  Real el_size;
+  Real min_el_size = std::numeric_limits<Real>::max();
+  this->computePermeabilityOnQuadPoints(_not_ghost);
+  Real max_perm_on_qpoint;
 
-//   for (auto & type :
-//        mesh.elementTypes(spatial_dimension - 1, _not_ghost, _ek_regular)) {
+  for (auto & type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
-//     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    auto & perm = permeability_on_qpoints(type, _not_ghost);
+    auto mesh_dim = this->mesh.getSpatialDimension();
+    Array<Real> coord(0, nb_nodes_per_element * mesh_dim);
+    FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
+                                         _not_ghost);
 
-//     Array<Real> coord(0, nb_nodes_per_element * spatial_dimension);
-//     FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
-//                                          _not_ghost);
+    for (auto && data :
+         zip(make_view(coord, mesh_dim, nb_nodes_per_element), perm)) {
+      Matrix<Real> & el_coord = std::get<0>(data);
+      auto & el_perm = std::get<1>(data);
+      el_size = getFEEngine().getElementInradius(el_coord, type);
+      min_el_size = std::min(min_el_size, el_size);
+      max_perm_on_qpoint = std::max(max_perm_on_qpoint, el_perm);
+    }
 
-//     auto el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
-//     UInt nb_element = mesh.getNbElement(type);
+    AKANTU_DEBUG_INFO("The minimum element size : "
+                      << min_el_size << " and the max permeability is : "
+                      << max_perm_on_qpoint);
+  }
 
-//     for (UInt el = 0; el < nb_element; ++el, ++el_coord) {
-//       el_size = getFEEngine().getElementInradius(*el_coord, type);
-//       min_el_size = std::min(min_el_size, el_size);
-//     }
+  Real min_dt =
+      2. * min_el_size * min_el_size / 4. * pushability / max_perm_on_qpoint;
 
-//     AKANTU_DEBUG_INFO("The minimum element size : "
-//                       << min_el_size
-//                       << " and the max permeability is : " <<
-//                       permeabilitymax);
-//   }
+  /// TODO: why factor 4 in the equation above?
 
-//   Real min_dt = 2. * min_el_size * min_el_size / 4. * density * capacity /
-//                 permeabilitymax;
+  mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
 
-//   mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
+  AKANTU_DEBUG_OUT();
 
-//   AKANTU_DEBUG_OUT();
-
-//   return min_dt;
-// }
-// /* --------------------------------------------------------------------------
-// */
+  return min_dt;
+}
+/* --------------------------------------------------------------------------
+ */
 
 void FluidDiffusionModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
@@ -518,7 +543,8 @@ void FluidDiffusionModel::setTimeStep(Real time_step, const ID & solver_id) {
 #endif
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::readMaterials() {
   auto sect = this->getParserSection();
 
@@ -528,14 +554,16 @@ void FluidDiffusionModel::readMaterials() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::initFullImpl(const ModelOptions & options) {
   Model::initFullImpl(options);
 
   readMaterials();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::assembleCapacity() {
   AKANTU_DEBUG_IN();
   auto ghost_type = _not_ghost;
@@ -547,7 +575,7 @@ void FluidDiffusionModel::assembleCapacity() {
   fluid_diffusion::details::ComputeRhoFunctor rho_functor(*this);
 
   for (auto && type :
-       mesh.elementTypes(spatial_dimension - 1, ghost_type, _ek_regular)) {
+       mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     fem.assembleFieldMatrix(rho_functor, "M", "pressure", this->getDOFManager(),
                             type, ghost_type);
   }
@@ -557,7 +585,8 @@ void FluidDiffusionModel::assembleCapacity() {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::computeRho(Array<Real> & rho, ElementType type,
                                      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -567,19 +596,159 @@ void FluidDiffusionModel::computeRho(Array<Real> & rho, ElementType type,
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
   rho.resize(nb_element * nb_quadrature_points);
-  rho.set(this->capacity);
-
-  // Real * rho_1_val = rho.storage();
-  // /// compute @f$ rho @f$ for each nodes of each element
-  // for (UInt el = 0; el < nb_element; ++el) {
-  //   for (UInt n = 0; n < nb_quadrature_points; ++n) {
-  //     *rho_1_val++ = this->capacity;
-  //   }
-  // }
+  rho.set(this->pushability);
 
   AKANTU_DEBUG_OUT();
 }
 
+/* --------------------------------------------------------------------------
+ */
+void FluidDiffusionModel::onElementsAdded(const Array<Element> & element_list,
+                                          const NewElementsEvent & /*event*/) {
+  AKANTU_DEBUG_IN();
+
+  this->resizeFields();
+
+  auto type_fluid =
+      *mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular).begin();
+  const auto nb_quad_elem =
+      getFEEngine().getNbIntegrationPoints(type_fluid, _not_ghost);
+  auto aperture_it =
+      make_view(getApertureOnQpoints(type_fluid), nb_quad_elem).begin();
+
+  /// assign default aperture to newly added nodes
+  for (auto && element : element_list) {
+    auto elem_id = element.element;
+    for (auto ip : arange(nb_quad_elem)) {
+      aperture_it[elem_id](ip) = this->default_aperture;
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------------
+ */
+void FluidDiffusionModel::resizeFields() {
+
+  AKANTU_DEBUG_IN();
+
+  /// elemental fields
+  auto & fem = this->getFEEngine();
+  pressure_on_qpoints.initialize(fem, _nb_component = 1);
+  pressure_gradient.initialize(fem, _nb_component = 1);
+  permeability_on_qpoints.initialize(fem, _nb_component = 1);
+  aperture_on_qpoints.initialize(fem, _nb_component = 1);
+  k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
+
+  /// nodal fields
+  UInt nb_nodes = mesh.getNbNodes();
+
+  if (pressure) {
+    pressure->resize(nb_nodes, 0.);
+    ++solution_release;
+  }
+  if (external_flux)
+    external_flux->resize(nb_nodes, 0.);
+  if (internal_flux)
+    internal_flux->resize(nb_nodes, 0.);
+  if (blocked_dofs)
+    blocked_dofs->resize(nb_nodes, 0.);
+  if (pressure_rate)
+    pressure_rate->resize(nb_nodes, 0.);
+
+  need_to_reassemble_capacity_lumped = true;
+  need_to_reassemble_capacity = true;
+
+  AKANTU_DEBUG_OUT();
+}
+/* --------------------------------------------------------------------------
+ */
+
+#if defined(AKANTU_COHESIVE_ELEMENT)
+void FluidDiffusionModel::getApertureOnQpointsFromCohesive(
+    const SolidMechanicsModelCohesive & coh_model) {
+  AKANTU_DEBUG_IN();
+
+  // get element types
+  auto & coh_mesh = coh_model.getMesh();
+  const auto dim = coh_mesh.getSpatialDimension();
+  const GhostType gt = _not_ghost;
+  auto type = *coh_mesh.elementTypes(dim, gt, _ek_regular).begin();
+  const ElementType type_facets = Mesh::getFacetType(type);
+  const ElementType typecoh = FEEngine::getCohesiveElementType(type_facets);
+  const auto nb_coh_elem = coh_mesh.getNbElement(typecoh);
+  const auto nb_quad_coh_elem = coh_model.getFEEngine("CohesiveFEEngine")
+                                    .getNbIntegrationPoints(typecoh, gt);
+
+  auto type_fluid =
+      *mesh.elementTypes(spatial_dimension, gt, _ek_regular).begin();
+  const auto nb_fluid_elem = mesh.getNbElement(type_fluid);
+  const auto nb_quad_elem =
+      getFEEngine().getNbIntegrationPoints(type_fluid, gt);
+  AKANTU_DEBUG_ASSERT(nb_quad_coh_elem == nb_quad_elem,
+                      "Different number of integration points per cohesive "
+                      "and fluid elements");
+  AKANTU_DEBUG_ASSERT(nb_coh_elem == nb_fluid_elem,
+                      "Different number of cohesive and fluid elements");
+  auto aperture_it =
+      make_view(getApertureOnQpoints(type_fluid), nb_quad_elem).begin();
+
+  /// loop on each segment element
+  for (auto && element_nb : arange(nb_fluid_elem)) {
+
+    Element element{type_fluid, element_nb, gt};
+    auto global_coh_elem =
+        mesh.getElementalData<akantu::Element>("cohesive_elements")(element);
+    auto ge = global_coh_elem.element;
+    auto le = coh_model.getMaterialLocalNumbering(
+        global_coh_elem.type, global_coh_elem.ghost_type)(ge);
+    auto model_mat_index = coh_model.getMaterialByElement(
+        global_coh_elem.type, global_coh_elem.ghost_type)(ge);
+    const auto & material = coh_model.getMaterial(model_mat_index);
+
+    // /// access cohesive material
+    // const auto & mat = dynamic_cast<const MaterialCohesive &>(material);
+    // const auto & normal_open_norm = mat.getNormalOpeningNorm(typecoh, gt);
+    const auto normal_open_norm_it =
+        make_view(material.getArray<Real>("normal_opening_norm", typecoh),
+                  nb_quad_coh_elem)
+            .begin();
+
+    /// loop on each IP
+    for (UInt ip : arange(nb_quad_coh_elem)) {
+      auto normal_open_norm_ip = normal_open_norm_it[le](ip);
+      auto & aperture_ip = aperture_it[ge](ip);
+      if (normal_open_norm_ip < this->default_aperture) {
+        aperture_ip = this->default_aperture;
+      } else {
+        aperture_ip = normal_open_norm_ip;
+      }
+    }
+  }
+  AKANTU_DEBUG_OUT();
+}
+#endif
+
+/* -------------------------------------------------------------------------- */
+
+Array<Real> FluidDiffusionModel::getQpointsCoord() {
+  AKANTU_DEBUG_IN();
+
+  const auto & nodes_coords = mesh.getNodes();
+  const GhostType gt = _not_ghost;
+  auto type_fluid =
+      *mesh.elementTypes(spatial_dimension, gt, _ek_regular).begin();
+  const auto nb_fluid_elem = mesh.getNbElement(type_fluid);
+  auto & fem = this->getFEEngine();
+  const auto nb_quad_points = fem.getNbIntegrationPoints(type_fluid, gt);
+
+  Array<Real> quad_coords(nb_fluid_elem * nb_quad_points,
+                          spatial_dimension + 1);
+  fem.interpolateOnIntegrationPoints(nodes_coords, quad_coords,
+                                     spatial_dimension + 1, type_fluid, gt);
+  AKANTU_DEBUG_OUT();
+  return quad_coords;
+}
 // /* --------------------------------------------------------------------------
 // */ Real FluidDiffusionModel::computeThermalEnergyByNode() {
 //   AKANTU_DEBUG_IN();
@@ -707,7 +876,8 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldBool(
   return field;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldReal(
     const std::string & field_name, const std::string & group_name,
     __attribute__((unused)) bool padding_flag) {
@@ -723,8 +893,7 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldReal(
   real_nodal_fields["pressure_rate"] = pressure_rate;
   real_nodal_fields["external_flux"] = external_flux;
   real_nodal_fields["internal_flux"] = internal_flux;
-  real_nodal_fields["increment"] = increment;
-  real_nodal_fields["apperture"] = apperture;
+  // real_nodal_fields["increment"] = increment;
 
   std::shared_ptr<dumper::Field> field =
       mesh.createNodalField(real_nodal_fields[field_name], group_name);
@@ -732,7 +901,8 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldReal(
   return field;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 std::shared_ptr<dumper::Field> FluidDiffusionModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
     __attribute__((unused)) bool padding_flag,
@@ -743,22 +913,36 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createElementalField(
 
   if (field_name == "partitions")
     field = mesh.createElementalField<UInt, dumper::ElementPartitionField>(
-        mesh.getConnectivities(), group_name, this->spatial_dimension - 1,
+        mesh.getConnectivities(), group_name, this->spatial_dimension,
         element_kind);
   else if (field_name == "pressure_gradient") {
     ElementTypeMap<UInt> nb_data_per_elem =
-        this->mesh.getNbDataPerElem(pressure_gradient, element_kind);
+        this->mesh.getNbDataPerElem(pressure_gradient);
 
     field = mesh.createElementalField<Real, dumper::InternalMaterialField>(
-        pressure_gradient, group_name, this->spatial_dimension - 1,
-        element_kind, nb_data_per_elem);
+        pressure_gradient, group_name, this->spatial_dimension, element_kind,
+        nb_data_per_elem);
   } else if (field_name == "permeability") {
     ElementTypeMap<UInt> nb_data_per_elem =
-        this->mesh.getNbDataPerElem(permeability_on_qpoints, element_kind);
+        this->mesh.getNbDataPerElem(permeability_on_qpoints);
 
     field = mesh.createElementalField<Real, dumper::InternalMaterialField>(
-        permeability_on_qpoints, group_name, this->spatial_dimension - 1,
+        permeability_on_qpoints, group_name, this->spatial_dimension,
         element_kind, nb_data_per_elem);
+  } else if (field_name == "aperture") {
+    ElementTypeMap<UInt> nb_data_per_elem =
+        this->mesh.getNbDataPerElem(aperture_on_qpoints);
+
+    field = mesh.createElementalField<Real, dumper::InternalMaterialField>(
+        aperture_on_qpoints, group_name, this->spatial_dimension, element_kind,
+        nb_data_per_elem);
+  } else if (field_name == "pressure_on_qpoints") {
+    ElementTypeMap<UInt> nb_data_per_elem =
+        this->mesh.getNbDataPerElem(pressure_on_qpoints);
+
+    field = mesh.createElementalField<Real, dumper::InternalMaterialField>(
+        pressure_on_qpoints, group_name, this->spatial_dimension, element_kind,
+        nb_data_per_elem);
   }
 
   return field;
@@ -766,7 +950,8 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createElementalField(
 
 /* -------------------------------------------------------------------------- */
 #else
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 std::shared_ptr<dumper::Field> FluidDiffusionModel::createElementalField(
     __attribute__((unused)) const std::string & field_name,
     __attribute__((unused)) const std::string & group_name,
@@ -775,7 +960,8 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createElementalField(
   return nullptr;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldBool(
     __attribute__((unused)) const std::string & field_name,
     __attribute__((unused)) const std::string & group_name,
@@ -783,7 +969,8 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldBool(
   return nullptr;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldReal(
     __attribute__((unused)) const std::string & field_name,
     __attribute__((unused)) const std::string & group_name,
@@ -792,32 +979,39 @@ std::shared_ptr<dumper::Field> FluidDiffusionModel::createNodalFieldReal(
 }
 #endif
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::dump(const std::string & dumper_name) {
   mesh.dump(dumper_name);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::dump(const std::string & dumper_name, UInt step) {
   mesh.dump(dumper_name, step);
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::dump(const std::string & dumper_name, Real time,
                                UInt step) {
   mesh.dump(dumper_name, time, step);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::dump() { mesh.dump(); }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::dump(UInt step) { mesh.dump(step); }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void FluidDiffusionModel::dump(Real time, UInt step) { mesh.dump(time, step); }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline UInt
 FluidDiffusionModel::getNbData(const Array<UInt> & indexes,
                                const SynchronizationTag & tag) const {
@@ -838,7 +1032,8 @@ FluidDiffusionModel::getNbData(const Array<UInt> & indexes,
   return size;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline void
 FluidDiffusionModel::packData(CommunicationBuffer & buffer,
                               const Array<UInt> & indexes,
@@ -857,7 +1052,8 @@ FluidDiffusionModel::packData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
                                             const Array<UInt> & indexes,
                                             const SynchronizationTag & tag) {
@@ -876,7 +1072,8 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline UInt
 FluidDiffusionModel::getNbData(const Array<Element> & elements,
                                const SynchronizationTag & tag) const {
@@ -909,7 +1106,8 @@ FluidDiffusionModel::getNbData(const Array<Element> & elements,
   return size;
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline void
 FluidDiffusionModel::packData(CommunicationBuffer & buffer,
                               const Array<Element> & elements,
@@ -929,7 +1127,8 @@ FluidDiffusionModel::packData(CommunicationBuffer & buffer,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
                                             const Array<Element> & elements,
                                             const SynchronizationTag & tag) {
@@ -949,5 +1148,6 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 } // namespace akantu

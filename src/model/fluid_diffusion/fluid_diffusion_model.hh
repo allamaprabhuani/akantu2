@@ -1,17 +1,11 @@
 /**
  * @file   fluid_diffusion_model.hh
  *
- * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
- * @author Lucas Frerot <lucas.frerot@epfl.ch>
- * @author Srinivasa Babu Ramisetti <srinivasa.ramisetti@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
- * @author Rui Wang <rui.wang@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
- * @date creation: Sun May 01 2011
- * @date last modification: Mon Feb 05 2018
+ * @date creation: Aug 2019
  *
- * @brief  Model of Heat
- Transfer
+ * @brief  Transient fluid diffusion model based on the Heat Transfer Model
  *
  * @section LICENSE
  *
@@ -36,7 +30,13 @@
 /* -------------------------------------------------------------------------- */
 #include "data_accessor.hh"
 #include "fe_engine.hh"
+#include "fluid_diffusion_model_event_handler.hh"
 #include "model.hh"
+#if defined(AKANTU_COHESIVE_ELEMENT)
+#include "material_cohesive.hh"
+#include "solid_mechanics_model_cohesive.hh"
+#endif
+
 /* -------------------------------------------------------------------------- */
 #include <array>
 /* -------------------------------------------------------------------------- */
@@ -52,9 +52,11 @@ template <ElementKind kind> class ShapeLagrange;
 
 namespace akantu {
 
-class FluidDiffusionModel : public Model,
-                          public DataAccessor<Element>,
-                          public DataAccessor<UInt> {
+class FluidDiffusionModel
+    : public Model,
+      public DataAccessor<Element>,
+      public DataAccessor<UInt>,
+      public EventHandlerManager<FluidDiffusionModelEventHandler> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -62,8 +64,8 @@ public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
   FluidDiffusionModel(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-                    const ID & id = "fluid_diffusion_model",
-                    const MemoryID & memory_id = 0);
+                      const ID & id = "fluid_diffusion_model",
+                      const MemoryID & memory_id = 0);
 
   virtual ~FluidDiffusionModel();
 
@@ -85,6 +87,9 @@ protected:
 
   void predictor() override;
 
+  /// callback for the solver, this is called at end of solve
+  void afterSolveStep() override;
+
   /// compute the heat flux
   void assembleResidual() override;
 
@@ -102,12 +107,30 @@ protected:
 
   ModelSolverOptions
   getDefaultSolverOptions(const TimeStepSolverType & type) const;
+
+  /// resize all fields on nodes added event
+  void resizeFields();
+
+public:
+  /// get coordinates of qpoints in same order as other elemental fields
+  Array<Real> getQpointsCoord();
+
+  /// get apperture at nodes from displacement field of cohesive model
+#if defined(AKANTU_COHESIVE_ELEMENT)
+  // void
+  // getApertureFromCohesiveModel(const SolidMechanicsModelCohesive &
+  // coh_model);
+
+  void getApertureOnQpointsFromCohesive(
+      const SolidMechanicsModelCohesive & coh_model);
+#endif
+
   /* ------------------------------------------------------------------------ */
   /* Methods for explicit                                                     */
   /* ------------------------------------------------------------------------ */
 public:
-  // /// compute and get the stable time step
-  // Real getStableTimeStep();
+  /// compute and get the stable time step
+  Real getStableTimeStep();
 
   /// set the stable timestep
   void setTimeStep(Real time_step, const ID & solver_id = "") override;
@@ -122,6 +145,12 @@ public:
   /// calculate the lumped capacity vector for heat transfer problem
   void assembleCapacityLumped();
 
+  /* ------------------------------------------------------------------------ */
+  /* Mesh Event Handler inherited members                                     */
+  /* ------------------------------------------------------------------------ */
+protected:
+  void onElementsAdded(const Array<Element> & element_list,
+                       const NewElementsEvent & /*event*/) override;
   /* ------------------------------------------------------------------------ */
   /* Methods for static                                                       */
   /* ------------------------------------------------------------------------ */
@@ -210,8 +239,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Density, density, Real);
-  AKANTU_GET_MACRO(Capacity, capacity, Real);
+  AKANTU_GET_MACRO(Pushability, pushability, Real);
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
   /// get the current value of the time step
@@ -223,20 +251,24 @@ public:
   /// get the external heat rate vector
   AKANTU_GET_MACRO(ExternalFlux, *external_flux, Array<Real> &);
   /// get the temperature gradient
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PressureGradient,
-                                         pressure_gradient, Real);
-  /// get the conductivity on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PressureGradient, pressure_gradient,
+                                         Real);
+  /// get the permeability on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PermeabilityOnQpoints,
                                          permeability_on_qpoints, Real);
   /// get the conductivity on q points
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PressureOnQpoints,
-                                         pressure_on_qpoints, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PressureOnQpoints, pressure_on_qpoints,
+                                         Real);
+  /// get the aperture on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ApertureOnQpoints, aperture_on_qpoints,
+                                         Real);
+  /// get the aperture on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ApertureOnQpoints, aperture_on_qpoints,
+                                   Real);
   /// internal variables
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(KgradP, k_gradp_on_qpoints, Real);
   /// get the temperature
   AKANTU_GET_MACRO(Pressure, *pressure, Array<Real> &);
-  /// get the apperture
-  AKANTU_GET_MACRO(Apperture, *apperture, Array<Real> &);
   /// get the temperature derivative
   AKANTU_GET_MACRO(PressureRate, *pressure_rate, Array<Real> &);
 
@@ -279,14 +311,8 @@ private:
   /// pressure derivatives array
   Array<Real> * pressure_rate{nullptr};
 
-  /// increment array (@f$\delta \dot P@f$ or @f$\delta P@f$)
-  Array<Real> * increment{nullptr};
-
-  /// pressure array
-  Array<Real> * apperture{nullptr};
-
-  /// the density
-  Real density;
+  // /// increment array (@f$\delta \dot P@f$ or @f$\delta P@f$)
+  // Array<Real> * increment{nullptr};
 
   /// the speed of the changing temperature
   ElementTypeMapArray<Real> pressure_gradient;
@@ -296,6 +322,9 @@ private:
 
   /// conductivity tensor on quadrature points
   ElementTypeMapArray<Real> permeability_on_qpoints;
+
+  /// aperture on quadrature points
+  ElementTypeMapArray<Real> aperture_on_qpoints;
 
   /// vector k \grad T on quad points
   ElementTypeMapArray<Real> k_gradp_on_qpoints;
@@ -309,21 +338,19 @@ private:
   /// boundary vector
   Array<bool> * blocked_dofs{nullptr};
 
-  // realtime
-  Real time;
-
-  /// capacity
-  Real capacity;
-
   // viscosity
   Real viscosity;
 
-  // reference temperature for the interpretation of temperature variation
-  Real P_ref;
+  /// pushability Cs = 1/h dh/dP
+  Real pushability;
+
+  // default value of aperture on a newly added nodesynchronizer
+  Real default_aperture;
 
   bool need_to_reassemble_capacity{true};
   bool need_to_reassemble_capacity_lumped{true};
   UInt pressure_release{0};
+  UInt solution_release{0};
   UInt permeability_matrix_release{0};
   std::unordered_map<GhostType, bool> initial_permeability{{_not_ghost, true},
                                                            {_ghost, true}};

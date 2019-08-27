@@ -55,6 +55,10 @@ std::istream & operator>>(std::istream & stream,
     type = IntegrationScheme::_velocity;
   else if (str == "temperature_rate")
     type = IntegrationScheme::_temperature_rate;
+  else if (str == "pressure")
+    type = IntegrationScheme::_pressure;
+  else if (str == "pressure_rate")
+    type = IntegrationScheme::_pressure_rate;
   else if (str == "acceleration")
     type = IntegrationScheme::_acceleration;
   else {

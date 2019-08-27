@@ -41,7 +41,7 @@ FEEngineElementTypeMapArrayInitializer::FEEngineElementTypeMapArrayInitializer(
     : MeshElementTypeMapArrayInitializer(
           fe_engine.getMesh(), nb_component,
           spatial_dimension == UInt(-2)
-              ? fe_engine.getMesh().getSpatialDimension()
+              ? fe_engine.getElementDimension()
               : spatial_dimension,
           ghost_type, element_kind, true, false),
       fe_engine(fe_engine) {}
@@ -54,7 +54,7 @@ FEEngineElementTypeMapArrayInitializer::FEEngineElementTypeMapArrayInitializer(
     : MeshElementTypeMapArrayInitializer(
           fe_engine.getMesh(), nb_component,
           spatial_dimension == UInt(-2)
-              ? fe_engine.getMesh().getSpatialDimension()
+              ? fe_engine.getElementDimension()
               : spatial_dimension,
           ghost_type, element_kind, true, false),
       fe_engine(fe_engine) {}

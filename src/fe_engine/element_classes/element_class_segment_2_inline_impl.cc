@@ -89,16 +89,31 @@ InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
-  return std::abs(coord(0, 0) - coord(0, 1));
+  auto dim = coord.rows();
+  Real inrad;
+  switch (dim) {
+  case 2: {
+    inrad = Math::distance_2d(coord(0).storage(), coord(1).storage());
+    break;
+  }
+  case 3: {
+    inrad = Math::distance_3d(coord(0).storage(), coord(1).storage());
+    break;
+  }
+  default: { inrad = std::abs(coord(0, 0) - coord(0, 1)); }
+  }
+  return inrad;
 }
 
-// /* --------------------------------------------------------------------------
+// /*
+// --------------------------------------------------------------------------
 // */
-// template<> inline bool ElementClass<_segment_2>::contains(const Vector<Real>
-// & natural_coords) {
+// template<> inline bool ElementClass<_segment_2>::contains(const
+// Vector<Real> & natural_coords) {
 //   if (natural_coords(0) < -1.) return false;
 //   if (natural_coords(0) > 1.) return false;
 //   return true;
 // }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */

@@ -108,8 +108,7 @@ struct HeatTransferModelOptions : public ModelOptions {
 #ifdef AKANTU_FLUID_DIFFUSION
 /* -------------------------------------------------------------------------- */
 struct FluidDiffusionModelOptions : public ModelOptions {
-  explicit FluidDiffusionModelOptions(
-      AnalysisMethod analysis_method = _static)
+  explicit FluidDiffusionModelOptions(AnalysisMethod analysis_method = _static)
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
@@ -148,6 +147,6 @@ struct EmbeddedInterfaceModelOptions : SolidMechanicsModelOptions {
 };
 #endif
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_MODEL_OPTIONS_HH__ */
