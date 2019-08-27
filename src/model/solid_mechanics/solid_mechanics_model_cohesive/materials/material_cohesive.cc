@@ -54,10 +54,11 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       total_energy("total_energy", *this), opening("opening", *this),
       eigen_opening("eigen_opening", *this), tractions("tractions", *this),
       contact_tractions("contact_tractions", *this),
-      contact_opening("contact_opening", *this), delta_max("delta max", *this),
-      use_previous_delta_max(false), use_previous_opening(false),
-      damage("damage", *this), sigma_c("sigma_c", *this),
-      normals("normals", *this) {
+      contact_opening("contact_opening", *this),
+      normal_opening_norm("normal_opening_norm", *this),
+      delta_max("delta max", *this), use_previous_delta_max(false),
+      use_previous_opening(false), damage("damage", *this),
+      sigma_c("sigma_c", *this), normals("normals", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -91,6 +92,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->contact_tractions.initialize(spatial_dimension);
   this->contact_opening.initialize(spatial_dimension);
 
+  this->normal_opening_norm.initialize(1);
+  this->normal_opening_norm.initializeHistory();
+
   this->opening.initialize(spatial_dimension);
   this->opening.initializeHistory();
 
@@ -117,8 +121,10 @@ void MaterialCohesive::initMaterial() {
   Material::initMaterial();
   if (this->use_previous_delta_max)
     this->delta_max.initializeHistory();
-  if (this->use_previous_opening)
+  if (this->use_previous_opening) {
     this->opening.initializeHistory();
+    this->normal_opening_norm.initializeHistory();
+  }
   AKANTU_DEBUG_OUT();
 }
 
@@ -449,17 +455,15 @@ void MaterialCohesive::updateEnergies(ElementType type) {
 
   if (Mesh::getKind(type) != _ek_cohesive)
     return;
-  
+
   Vector<Real> b(spatial_dimension);
   Vector<Real> h(spatial_dimension);
   auto erev = reversible_energy(type).begin();
   auto etot = total_energy(type).begin();
   auto traction_it = tractions(type).begin(spatial_dimension);
-  auto traction_old_it =
-      tractions.previous(type).begin(spatial_dimension);
+  auto traction_old_it = tractions.previous(type).begin(spatial_dimension);
   auto opening_it = opening(type).begin(spatial_dimension);
-  auto opening_old_it =
-      opening.previous(type).begin(spatial_dimension);
+  auto opening_old_it = opening.previous(type).begin(spatial_dimension);
 
   auto traction_end = tractions(type).end(spatial_dimension);
 

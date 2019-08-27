@@ -140,6 +140,13 @@ public:
   /// get the eigen opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(EigenOpening, eigen_opening, Real);
 
+  /// get the contact opening
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ContactOpening, contact_opening, Real);
+
+  /// get the normal opening
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NormalOpeningNorm, normal_opening_norm,
+                                   Real);
+
   /// get the eigen opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(DeltaMax, delta_max, Real);
 
@@ -210,6 +217,9 @@ protected:
 
   /// normal openings for contact tractions
   CohesiveInternalField<Real> contact_opening;
+
+  /// normal openings
+  CohesiveInternalField<Real> normal_opening_norm;
 
   /// maximum displacement
   CohesiveInternalField<Real> delta_max;

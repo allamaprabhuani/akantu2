@@ -32,8 +32,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dof_synchronizer.hh"
 #include "material_cohesive_linear.hh"
+#include "dof_synchronizer.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */
@@ -341,6 +341,8 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
       contact_tractions(el_type, ghost_type).begin(spatial_dimension);
   auto contact_opening_it =
       contact_opening(el_type, ghost_type).begin(spatial_dimension);
+  auto normal_opening_norm_it =
+      normal_opening_norm(el_type, ghost_type).begin();
 
   auto normal_it = normal.begin(spatial_dimension);
   auto traction_end = tractions(el_type, ghost_type).end(spatial_dimension);
@@ -358,15 +360,15 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
   for (; traction_it != traction_end;
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,
        ++delta_c_it, ++damage_it, ++contact_traction_it, ++insertion_stress_it,
-       ++contact_opening_it) {
+       ++contact_opening_it, ++normal_opening_norm_it) {
 
-    Real normal_opening_norm, tangential_opening_norm;
+    Real /*normal_opening_norm,*/ tangential_opening_norm;
     bool penetration;
     this->computeTractionOnQuad(
         *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
         *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
-        normal_opening_norm, tangential_opening_norm, *damage_it, penetration,
-        *contact_traction_it, *contact_opening_it);
+        *normal_opening_norm_it, tangential_opening_norm, *damage_it,
+        penetration, *contact_traction_it, *contact_opening_it);
   }
 
   AKANTU_DEBUG_OUT();
@@ -419,4 +421,4 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTangentTraction(
 
 INSTANTIATE_MATERIAL(cohesive_linear, MaterialCohesiveLinear);
 
-} // akantu
+} // namespace akantu
