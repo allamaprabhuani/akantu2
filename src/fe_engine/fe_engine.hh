@@ -116,9 +116,9 @@ public:
                          UInt index,
                          const GhostType & ghost_type = _not_ghost) const = 0;
 
-/* ------------------------------------------------------------------------ */
-/* compatibility with old FEEngine fashion */
-/* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------ */
+  /* compatibility with old FEEngine fashion */
+  /* ------------------------------------------------------------------------ */
   /// get the number of integration points
   virtual UInt
   getNbIntegrationPoints(const ElementType & type,
@@ -177,10 +177,10 @@ public:
               const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// left multiples a vector by the shape functions
-  virtual void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
-                          const ElementType & type,
-                          const GhostType & ghost_type,
-                          const Array<UInt> & filter_elements) const = 0;
+  virtual void
+  computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
+             const ElementType & type, const GhostType & ghost_type,
+             const Array<UInt> & filter_elements = empty_filter) const = 0;
 
   /// Compute the interpolation point position in the global coordinates for
   /// many element types
@@ -253,17 +253,17 @@ public:
 
   /// pre-compute normals on integration points
   virtual void computeNormalsOnIntegrationPoints(
-      __attribute__((unused)) const Array<Real> & field,
-      __attribute__((unused)) const GhostType & ghost_type = _not_ghost) {
+      const Array<Real> & /*field*/,
+      const GhostType & /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// pre-compute normals on integration points
   virtual void computeNormalsOnIntegrationPoints(
-      __attribute__((unused)) const Array<Real> & field,
-      __attribute__((unused)) Array<Real> & normal,
-      __attribute__((unused)) const ElementType & type,
-      __attribute__((unused)) const GhostType & ghost_type = _not_ghost) const {
+      const Array<Real> & /*field*/, Array<Real> & /*normal*/,
+      const ElementType & /*type*/,
+      const GhostType & /*ghost_type*/ = _not_ghost,
+      const Array<UInt> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }
 

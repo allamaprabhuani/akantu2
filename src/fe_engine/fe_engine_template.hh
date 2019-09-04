@@ -255,18 +255,19 @@ public:
       const GhostType & ghost_type = _not_ghost) override;
   void computeNormalsOnIntegrationPoints(
       const Array<Real> & field, Array<Real> & normal, const ElementType & type,
-      const GhostType & ghost_type = _not_ghost) const override;
+      const GhostType & ghost_type = _not_ghost,
+      const Array<UInt> & filter_elements = empty_filter) const override;
   template <ElementType type>
-  void computeNormalsOnIntegrationPoints(const Array<Real> & field,
-                                         Array<Real> & normal,
-                                         const GhostType & ghost_type) const;
+  void computeNormalsOnIntegrationPoints(
+      const Array<Real> & field, Array<Real> & normal,
+      const GhostType & ghost_type,
+      const Array<UInt> & filter_elements = empty_filter) const;
 
 private:
   // To avoid a weird full specialization of a method in a non specalized class
-  void
-  computeNormalsOnIntegrationPointsPoint1(const Array<Real> &,
-                                          Array<Real> & normal,
-                                          const GhostType & ghost_type) const;
+  void computeNormalsOnIntegrationPointsPoint1(
+      const Array<Real> &, Array<Real> & normal, const GhostType & ghost_type,
+      const Array<UInt> & filter_elements = empty_filter) const;
 
 public:
   /// function to print the contain of the class

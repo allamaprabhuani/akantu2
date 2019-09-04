@@ -717,16 +717,22 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
   AKANTU_DEBUG_IN();
 
   this->material_index.initialize(mesh, _element_kind = _ek_not_defined,
+                                  _spatial_dimension = spatial_dimension,
                                   _with_nb_element = true,
                                   _default_value = UInt(-1));
   this->material_local_numbering.initialize(
-      mesh, _element_kind = _ek_not_defined, _with_nb_element = true,
+      mesh,
+      _spatial_dimension = spatial_dimension,
+      _element_kind = _ek_not_defined, _with_nb_element = true,
       _default_value = UInt(-1));
+
 
   ElementTypeMapArray<UInt> filter("new_element_filter", this->getID(),
                                    this->getMemoryID());
-
   for (auto & elem : element_list) {
+    if (mesh.getSpatialDimension(elem.type) != spatial_dimension)
+      continue;
+
     if (!filter.exists(elem.type, elem.ghost_type))
       filter.alloc(0, 1, elem.type, elem.ghost_type);
     filter(elem.type, elem.ghost_type).push_back(elem.element);
@@ -735,11 +741,23 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
   this->assignMaterialToElements(&filter);
 
   std::vector<Array<Element>> element_list_by_material(materials.size());
-  splitElementByMaterial(element_list, element_list_by_material);
+  for (auto elements_range : MeshElementsByTypes(element_list)) {
+    auto type = elements_range.getType();
+    auto ghost_type = elements_range.getGhostType();
 
-  for (auto && material : enumerate(materials))
+    if (mesh.getSpatialDimension(type) != spatial_dimension)
+      continue;
+
+    auto & elements = elements_range.getElements();
+    splitElementByMaterial(elements, type, ghost_type,
+                           element_list_by_material);
+
+  }
+
+  for (auto && material : enumerate(materials)) {
     std::get<1>(material)->onElementsAdded(
         element_list_by_material[std::get<0>(material)], event);
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -929,7 +947,7 @@ void SolidMechanicsModel::updateNonLocalInternal(
     if (not aka::is_of_type<MaterialNonLocalInterface>(*mat))
       continue;
 
-    auto & mat_non_local = dynamic_cast<MaterialNonLocalInterface&>(*mat);
+    auto & mat_non_local = dynamic_cast<MaterialNonLocalInterface &>(*mat);
     mat_non_local.updateNonLocalInternals(internal_flat, field_name, ghost_type,
                                           kind);
   }
@@ -942,16 +960,24 @@ FEEngine & SolidMechanicsModel::getFEEngineBoundary(const ID & name) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::splitElementByMaterial(
-    const Array<Element> & elements,
+    const Array<UInt> & elements, const ElementType & type,
+    const GhostType & ghost_type,
     std::vector<Array<Element>> & elements_per_mat) const {
+
+  elements_per_mat.resize(materials.size());
+
+  auto && material_local_numbering =
+      this->material_local_numbering(type, ghost_type);
+  auto && material_index = this->material_index(type, ghost_type);
   for (const auto & el : elements) {
-    Element mat_el = el;
-    mat_el.element = this->material_local_numbering(el);
-    elements_per_mat[this->material_index(el)].push_back(mat_el);
+    Element mat_el = {type, el, ghost_type};
+    mat_el.element = material_local_numbering(el);
+    elements_per_mat[material_index[el]].push_back(mat_el);
   }
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 UInt SolidMechanicsModel::getNbData(const Array<Element> & elements,
                                     const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();

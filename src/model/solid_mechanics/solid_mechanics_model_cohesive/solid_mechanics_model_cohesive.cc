@@ -152,9 +152,12 @@ SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
       return Mesh::getKind(el.type) == _ek_cohesive;
     });
 
-    this->registerSynchronizer(*cohesive_synchronizer, SynchronizationTag::_material_id);
-    this->registerSynchronizer(*cohesive_synchronizer, SynchronizationTag::_smm_stress);
-    this->registerSynchronizer(*cohesive_synchronizer, SynchronizationTag::_smm_boundary);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_material_id);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_smm_stress);
+    this->registerSynchronizer(*cohesive_synchronizer,
+                               SynchronizationTag::_smm_boundary);
   }
 
   this->inserter = std::make_unique<CohesiveElementInserter>(
@@ -548,10 +551,8 @@ void SolidMechanicsModelCohesive::onElementsAdded(
   AKANTU_DEBUG_IN();
 
   SolidMechanicsModel::onElementsAdded(element_list, event);
-
   if (is_extrinsic)
     resizeFacetStress();
-
   AKANTU_DEBUG_OUT();
 }
 
@@ -637,7 +638,8 @@ void SolidMechanicsModelCohesive::printself(std::ostream & stream,
                                             int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
-  stream << space << "SolidMechanicsModelCohesive [" << "\n";
+  stream << space << "SolidMechanicsModelCohesive ["
+         << "\n";
   SolidMechanicsModel::printself(stream, indent + 2);
   stream << space << "]" << std::endl;
 }

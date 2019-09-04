@@ -270,7 +270,8 @@ public:
 
 protected:
   void
-  splitElementByMaterial(const Array<Element> & elements,
+  splitElementByMaterial(const Array<UInt> & elements, const ElementType & type,
+                         const GhostType & ghost_type,
                          std::vector<Array<Element>> & elements_per_mat) const;
 
   template <typename Operation>
@@ -403,7 +404,7 @@ public:
 
   /// get an iterable on the materials
   inline decltype(auto) getMaterials() const;
-  
+
   /// get a particular material (by material index)
   inline Material & getMaterial(UInt mat_index);
 

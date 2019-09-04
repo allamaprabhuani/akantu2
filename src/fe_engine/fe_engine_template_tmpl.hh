@@ -33,9 +33,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
-#include "dof_manager.hh"
 #include "fe_engine_template.hh"
+#include "dof_manager.hh"
+#include "mesh_iterators.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -840,14 +840,14 @@ namespace fe_engine {
                 template <ElementKind> class S, ElementKind k, class IOF>
       static void call(const FEEngineTemplate<I, S, k, IOF> &,
                        const Array<Real> &, Array<Real> &, const ElementType &,
-                       const GhostType &) {
+                       const GhostType &, const Array<UInt> &) {
         AKANTU_TO_IMPLEMENT();
       }
     };
 
 #define COMPUTE_NORMALS_ON_INTEGRATION_POINTS(type)                            \
-  fem.template computeNormalsOnIntegrationPoints<type>(field, normal,          \
-                                                       ghost_type);
+  fem.template computeNormalsOnIntegrationPoints<type>(                        \
+      field, normal, ghost_type, filter_elements);
 
 #define AKANTU_SPECIALIZE_COMPUTE_NORMALS_ON_INTEGRATION_POINTS(kind)          \
   template <> struct ComputeNormalsOnIntegrationPoints<kind> {                 \
@@ -855,7 +855,8 @@ namespace fe_engine {
               template <ElementKind> class S, ElementKind k, class IOF>        \
     static void call(const FEEngineTemplate<I, S, k, IOF> & fem,               \
                      const Array<Real> & field, Array<Real> & normal,          \
-                     const ElementType & type, const GhostType & ghost_type) { \
+                     const ElementType & type, const GhostType & ghost_type,   \
+                     const Array<UInt> & filter_elements) {                    \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(COMPUTE_NORMALS_ON_INTEGRATION_POINTS,  \
                                        kind);                                  \
     }                                                                          \
@@ -873,12 +874,12 @@ namespace fe_engine {
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
-    computeNormalsOnIntegrationPoints(const Array<Real> & field,
-                                      Array<Real> & normal,
-                                      const ElementType & type,
-                                      const GhostType & ghost_type) const {
+    computeNormalsOnIntegrationPoints(
+        const Array<Real> & field, Array<Real> & normal,
+        const ElementType & type, const GhostType & ghost_type,
+        const Array<UInt> & filter_elements) const {
   fe_engine::details::ComputeNormalsOnIntegrationPoints<kind>::call(
-      *this, field, normal, type, ghost_type);
+      *this, field, normal, type, ghost_type, filter_elements);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -886,13 +887,15 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
 void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
-    computeNormalsOnIntegrationPoints(const Array<Real> & field,
-                                      Array<Real> & normal,
-                                      const GhostType & ghost_type) const {
+    computeNormalsOnIntegrationPoints(
+        const Array<Real> & field, Array<Real> & normal,
+        const GhostType & ghost_type,
+        const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   if (type == _point_1) {
-    computeNormalsOnIntegrationPointsPoint1(field, normal, ghost_type);
+    computeNormalsOnIntegrationPointsPoint1(field, normal, ghost_type,
+                                            filter_elements);
     return;
   }
 
@@ -901,23 +904,22 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   UInt nb_points = getNbIntegrationPoints(type, ghost_type);
 
   UInt nb_element = mesh.getConnectivity(type, ghost_type).size();
+  if (filter_elements != empty_filter) {
+    nb_element = filter_elements.size();
+  }
   normal.resize(nb_element * nb_points);
-  Array<Real>::matrix_iterator normals_on_quad =
-      normal.begin_reinterpret(spatial_dimension, nb_points, nb_element);
-  Array<Real> f_el(0, spatial_dimension * nb_nodes_per_element);
-  FEEngine::extractNodalToElementField(mesh, field, f_el, type, ghost_type);
 
-  const Matrix<Real> & quads =
+  Array<Real> f_el(0, spatial_dimension * nb_nodes_per_element);
+  FEEngine::extractNodalToElementField(mesh, field, f_el, type, ghost_type,
+                                       filter_elements);
+  const auto & quads =
       integrator.template getIntegrationPoints<type>(ghost_type);
 
-  Array<Real>::matrix_iterator f_it =
-      f_el.begin(spatial_dimension, nb_nodes_per_element);
-
-  for (UInt elem = 0; elem < nb_element; ++elem) {
-    ElementClass<type>::computeNormalsOnNaturalCoordinates(quads, *f_it,
-                                                           *normals_on_quad);
-    ++normals_on_quad;
-    ++f_it;
+  for (auto data : zip(make_view(f_el, spatial_dimension, nb_nodes_per_element),
+                       make_view(normal, spatial_dimension, nb_points))) {
+    auto & f = std::get<0>(data);
+    auto & n = std::get<1>(data);
+    ElementClass<type>::computeNormalsOnNaturalCoordinates(quads, f, n);
   }
 
   AKANTU_DEBUG_OUT();
@@ -1321,6 +1323,40 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::onElementsAdded(
     const Array<Element> & new_elements, const NewElementsEvent &) {
   integrator.onElementsAdded(new_elements);
   shape_functions.onElementsAdded(new_elements);
+
+  //  Real * coord = mesh.getNodes().storage();
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  if (element_dimension != spatial_dimension - 1)
+    return;
+
+  // allocate the normal arrays
+  normals_on_integration_points.initialize(
+      *this, _nb_component = spatial_dimension, _element_kind = kind);
+
+  for (auto elements_range : MeshElementsByTypes(new_elements)) {
+    auto type = elements_range.getType();
+    auto ghost_type = elements_range.getGhostType();
+
+    if (mesh.getSpatialDimension(type) != spatial_dimension - 1)
+      continue;
+
+    auto nb_points = getNbIntegrationPoints(type, ghost_type);
+    auto & elements = elements_range.getElements();
+
+    Array<Real> normals(elements.size(), spatial_dimension);
+    computeNormalsOnIntegrationPoints(mesh.getNodes(), normals, type,
+                                      ghost_type, elements);
+
+    auto & normals_on_quad = normals_on_integration_points(type, ghost_type);
+    auto normals_on_quad_it =
+        make_view(normals_on_quad, spatial_dimension, nb_points).begin();
+
+    for (auto data :
+         zip(elements, make_view(normals, spatial_dimension, nb_points))) {
+      Matrix<Real> normals_on_quad = normals_on_quad_it[std::get<0>(data)];
+      normals_on_quad = std::get<1>(data);
+    };
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1342,22 +1378,23 @@ template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
     computeNormalsOnIntegrationPointsPoint1(
-        const Array<Real> &, Array<Real> & normal,
-        const GhostType & ghost_type) const {
+        const Array<Real> &, Array<Real> & normal, const GhostType & ghost_type,
+        const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(mesh.getSpatialDimension() == 1,
                       "Mesh dimension must be 1 to compute normals on points!");
   const auto type = _point_1;
-  auto spatial_dimension = mesh.getSpatialDimension();
+
   // UInt nb_nodes_per_element  = Mesh::getNbNodesPerElement(type);
   auto nb_points = getNbIntegrationPoints(type, ghost_type);
   const auto & connectivity = mesh.getConnectivity(type, ghost_type);
   auto nb_element = connectivity.size();
 
+  if (filter_elements != empty_filter)
+    nb_element = filter_elements.size();
+
   normal.resize(nb_element * nb_points);
-  auto normals_on_quad =
-      normal.begin_reinterpret(spatial_dimension, nb_points, nb_element);
   const auto & segments = mesh.getElementToSubelement(type, ghost_type);
   const auto & coords = mesh.getNodes();
 
@@ -1367,7 +1404,12 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   else
     mesh_segment = &mesh;
 
-  for (UInt elem = 0; elem < nb_element; ++elem) {
+  for (auto data : enumerate(make_view(normal, nb_points))) {
+    auto elem = std::get<0>(data);
+    auto & normals_on_quad = std::get<1>(data);
+    if (filter_elements != empty_filter)
+      elem = filter_elements(elem);
+
     UInt nb_segment = segments(elem).size();
     AKANTU_DEBUG_ASSERT(
         nb_segment > 0,
@@ -1391,10 +1433,7 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
       normal_value = difference / std::abs(difference);
     }
 
-    for (UInt n(0); n < nb_points; ++n) {
-      (*normals_on_quad)(0, n) = normal_value;
-    }
-    ++normals_on_quad;
+    normals_on_quad.set(normal_value);
   }
 
   AKANTU_DEBUG_OUT();

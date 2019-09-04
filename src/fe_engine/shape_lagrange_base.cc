@@ -35,8 +35,7 @@
 
 namespace akantu {
 
-ShapeLagrangeBase::ShapeLagrangeBase(const Mesh & mesh,
-                                     UInt spatial_dimension,
+ShapeLagrangeBase::ShapeLagrangeBase(const Mesh & mesh, UInt spatial_dimension,
                                      const ElementKind & kind, const ID & id,
                                      const MemoryID & memory_id)
     : ShapeFunctions(mesh, spatial_dimension, id, memory_id), _kind(kind) {}
@@ -109,9 +108,9 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
     auto type = elements_range.getType();
     auto ghost_type = elements_range.getGhostType();
 
-    if(mesh.getSpatialDimension(type) != _spatial_dimension)
+    if (mesh.getSpatialDimension(type) != _spatial_dimension)
       continue;
-    
+
     if (mesh.getKind(type) != _kind)
       continue;
 
@@ -131,12 +130,12 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
 
     if (_spatial_dimension != mesh.getSpatialDimension())
       continue;
-    
+
     if (not this->shapes_derivatives.exists(itp_type, ghost_type)) {
       auto size_of_shapesd = this->getShapeDerivativesSize(type);
       this->shapes_derivatives.alloc(0, size_of_shapesd, itp_type, ghost_type);
     }
-   
+
     computeShapeDerivativesOnIntegrationPoints(
         nodes, natural_coords, shapes_derivatives(itp_type, ghost_type), type,
         ghost_type, elements);
@@ -145,14 +144,16 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ShapeLagrangeBase::onElementsRemoved(
     const Array<Element> &, const ElementTypeMapArray<UInt> & new_numbering) {
   this->shapes.onElementsRemoved(new_numbering);
   this->shapes_derivatives.onElementsRemoved(new_numbering);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ShapeLagrangeBase::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
