@@ -453,6 +453,7 @@ public:
                                    bool resize_with_parent, const T & defaul_);
 
   /// Facets mesh accessor
+  inline bool hasMeshFacets();
   inline const Mesh & getMeshFacets() const;
   inline Mesh & getMeshFacets();
 
@@ -513,7 +514,7 @@ public:
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
 
-  using type_iterator [[deprecated]] =
+  using type_iterator[[deprecated]] =
       ElementTypeMapArray<UInt, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<UInt, ElementType>::ElementTypesIteratorHelper;

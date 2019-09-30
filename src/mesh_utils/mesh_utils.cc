@@ -462,22 +462,22 @@ void MeshUtils::renumberMeshNodes(Mesh & mesh,
   /// copy the renumbered connectivity to the right place
   auto & local_conn = mesh_accessor.getConnectivity(type);
   local_conn.resize(nb_local_element);
-    
-  if(nb_local_element > 0) {
+
+  if (nb_local_element > 0) {
     memcpy(local_conn.storage(), local_connectivities.storage(),
            nb_local_element * nb_nodes_per_element * sizeof(UInt));
   }
 
   auto & ghost_conn = mesh_accessor.getConnectivity(type, _ghost);
   ghost_conn.resize(nb_ghost_element);
-  
-  if(nb_ghost_element > 0) {
+
+  if (nb_ghost_element > 0) {
     std::memcpy(ghost_conn.storage(),
                 local_connectivities.storage() +
-                nb_local_element * nb_nodes_per_element,
+                    nb_local_element * nb_nodes_per_element,
                 nb_ghost_element * nb_nodes_per_element * sizeof(UInt));
   }
-  
+
   auto & ghost_counter = mesh_accessor.getGhostsCounters(type, _ghost);
   ghost_counter.resize(nb_ghost_element, 1);
 
@@ -622,7 +622,7 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
                             UInt facet_dimension, Array<UInt> & doubled_nodes,
                             bool facet_mode) {
   AKANTU_DEBUG_IN();
-
+  NewElementsEvent new_facets;
   for (auto gt_facet : ghost_types) {
     for (auto && type_facet :
          mesh_facets.elementTypes(facet_dimension, gt_facet)) {
@@ -686,6 +686,7 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
 
           /// update facet_to_subfacet array
           mesh_facets.getElementToSubelement(subfacet).push_back(new_facet);
+          new_facets.getList().push_back(new_facet);
         }
       }
 
@@ -700,7 +701,7 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
                                        doubled_nodes);
     }
   }
-
+  mesh_facets.sendEvent(new_facets);
   AKANTU_DEBUG_OUT();
 }
 
@@ -1608,7 +1609,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
           // check which are the connected elements
           std::vector<Element> connected_elements;
           for (auto && cit : element_seen_counter) {
-            if (cit.second == nb_nodes_per_facet)
+            if (cit.second >= nb_nodes_per_facet)
               connected_elements.push_back(cit.first);
           }
 
