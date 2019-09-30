@@ -123,7 +123,7 @@ void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
 #if defined(AKANTU_USE_IOHELPER)
-  this->mesh.getDumper().setTimeStep(time_step);
+  // this->mesh.getDumper().setTimeStep(time_step);
 #endif
 }
 
