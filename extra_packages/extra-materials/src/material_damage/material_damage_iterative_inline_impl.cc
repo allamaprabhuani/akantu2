@@ -29,7 +29,7 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
     MaterialDamageIterative(SolidMechanicsModel & model, const ID & id)
     : parent(model, id), Sc("Sc", *this), reduction_step("damage_step", *this),
       equivalent_stress("equivalent_stress", *this), max_reductions(0),
-      stress_trace("stress_trace", *this) {
+      min_equivalent_stress("min_equivalent_stress", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sc", Sc, _pat_parsable, "critical stress threshold");
@@ -45,16 +45,23 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
                       _pat_parsable | _pat_modifiable, "maximum damage value");
   this->registerParam("max_reductions", max_reductions, UInt(10),
                       _pat_parsable | _pat_modifiable, "max reductions");
-  this->registerParam(
-      "contact", contact, false, _pat_parsable | _pat_modifiable,
-      "parameter responsible for the stiffness recovery when in compression");
+  this->registerParam("contact", contact, false,
+                      _pat_parsable | _pat_modifiable,
+                      "parameter responsible for the stiffness recovery when "
+                      "in compression");
+  this->registerParam("smoothen_stiffness_change", smoothen_stiffness_change,
+                      false, _pat_parsable | _pat_modifiable,
+                      "smoothening stiffness change from damaged to "
+                      "non-damaged when in compression");
+  this->registerParam("K", K, 5000., _pat_parsable | _pat_modifiable,
+                      "parameter of smoothening law");
 
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
   this->reduction_step.initialize(1);
-  this->stress_trace.initialize(1);
+  this->min_equivalent_stress.initialize(1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -69,27 +76,30 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   /// Vector to store eigenvalues of current stress tensor
   Vector<Real> eigenvalues(spatial_dimension);
 
-  for (auto && data : zip(make_view(this->stress(el_type, ghost_type),
-                                    spatial_dimension, spatial_dimension),
-                          make_view(Sc(el_type, ghost_type)),
-                          make_view(equivalent_stress(el_type, ghost_type)),
-                          make_view(stress_trace(el_type, ghost_type)))) {
+  for (auto && data :
+       zip(make_view(this->stress(el_type, ghost_type), spatial_dimension,
+                     spatial_dimension),
+           make_view(Sc(el_type, ghost_type)),
+           make_view(equivalent_stress(el_type, ghost_type)),
+           make_view(min_equivalent_stress(el_type, ghost_type)))) {
 
     const auto & sigma = std::get<0>(data);
     const auto & sigma_crit = std::get<1>(data);
-    auto & sigma_equ = std::get<2>(data);
-    auto & sigma_tr = std::get<3>(data);
+    auto & sigma_eq = std::get<2>(data);
+    auto & min_sigma_eq = std::get<3>(data);
 
     /// compute eigenvalues
     sigma.eig(eigenvalues);
-    /// update trace
-    sigma_tr = 0;
-    for (auto & n : eigenvalues)
-      sigma_tr += n;
-    /// find max eigenvalue and normalize by tensile strength
-    sigma_equ = *(std::max_element(eigenvalues.storage(),
-                                   eigenvalues.storage() + spatial_dimension)) /
-                sigma_crit;
+
+    /// find max and min eigenvalues and normalize by tensile strength
+    sigma_eq = *(std::max_element(eigenvalues.storage(),
+                                  eigenvalues.storage() + spatial_dimension)) /
+               sigma_crit;
+
+    min_sigma_eq =
+        *(std::min_element(eigenvalues.storage(),
+                           eigenvalues.storage() + spatial_dimension)) /
+        sigma_crit;
   }
 
   AKANTU_DEBUG_OUT();
@@ -102,7 +112,6 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   /// reset normalized maximum and average equivalent stresses
   if (ghost_type == _not_ghost) {
     norm_max_equivalent_stress = 0;
-    norm_av_equivalent_stress = 0;
   }
 
   parent::computeAllStresses(ghost_type);
@@ -113,10 +122,6 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   /// is no RVE model
   const auto & comm = this->model.getMesh().getCommunicator();
   comm.allReduce(norm_max_equivalent_stress, SynchronizerOperation::_max);
-  comm.allReduce(norm_av_equivalent_stress,
-                 SynchronizerOperation::_max); // Emil:
-                                               // think
-                                               // about it
   //}
   AKANTU_DEBUG_OUT();
 }
@@ -124,8 +129,8 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
-                                           GhostType ghost_type) {
+    findMaxNormalizedEquivalentStress(ElementType el_type,
+                                      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   if (ghost_type == _not_ghost) {
@@ -135,7 +140,6 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
     auto equivalent_stress_end = e_stress.end();
     Array<Real> & dam = this->damage(el_type);
     auto dam_it = dam.begin();
-    UInt counter = 0;
 
     for (; equivalent_stress_it != equivalent_stress_end;
          ++equivalent_stress_it, ++dam_it) {
@@ -146,10 +150,7 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
           *dam_it < max_damage) {
         norm_max_equivalent_stress = *equivalent_stress_it;
       }
-      norm_av_equivalent_stress += *equivalent_stress_it;
-      counter += 1;
     }
-    norm_av_equivalent_stress /= counter;
   }
   AKANTU_DEBUG_OUT();
 }
@@ -162,26 +163,83 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::computeStress(
   parent::computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  auto sigma_tr_it = this->stress_trace(el_type, ghost_type).begin();
+  auto min_e_stress_it =
+      this->min_equivalent_stress(el_type, ghost_type).begin();
   auto e_stress_it = this->equivalent_stress(el_type, ghost_type).begin();
+  auto Sc_it = this->Sc(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  if ((this->contact && *e_stress_it >= 0.) || not this->contact)
+  if (this->contact) {
+    if (*min_e_stress_it < 0.) {
+      if (this->smoothen_stiffness_change)
+        computeStressInCompression(sigma, grad_u, *dam, *Sc_it);
+    } else
+      computeDamageAndStressOnQuad(sigma, *dam);
+  } else
     computeDamageAndStressOnQuad(sigma, *dam);
+
   ++dam;
-  ++sigma_tr_it;
+  ++min_e_stress_it;
   ++e_stress_it;
+  ++Sc_it;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   computeNormalizedEquivalentStress(this->gradu(el_type, ghost_type), el_type,
                                     ghost_type);
   norm_max_equivalent_stress = 0;
-  norm_av_equivalent_stress = 0;
-  findMaxAndAvNormalizedEquivalentStress(el_type, ghost_type);
+  findMaxNormalizedEquivalentStress(el_type, ghost_type);
 
   AKANTU_DEBUG_OUT();
+} // namespace akantu
+
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension, template <UInt> class ElasticParent>
+void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeTangentModuli(const ElementType & el_type,
+                         Array<Real> & tangent_matrix, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+  ElasticParent<spatial_dimension>::computeTangentModuli(
+      el_type, tangent_matrix, ghost_type);
+
+  Real * dam = this->damage(el_type, ghost_type).storage();
+  auto min_e_stress_it =
+      this->min_equivalent_stress(el_type, ghost_type).begin();
+  auto grad_u_it = this->gradu(el_type, ghost_type)
+                       .begin(spatial_dimension, spatial_dimension);
+  auto stress_it = this->stress(el_type, ghost_type)
+                       .begin(spatial_dimension, spatial_dimension);
+  auto Sc_it = this->Sc(el_type, ghost_type).begin();
+
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
+
+  if (this->contact) {
+    if (*min_e_stress_it < 0.) {
+      if (this->smoothen_stiffness_change)
+        computeTangentModuliInCompression(tangent, *stress_it, *grad_u_it, *dam,
+                                          *Sc_it);
+    } else
+      computeTangentModuliOnQuad(tangent, *dam);
+  } else
+    computeTangentModuliOnQuad(tangent, *dam);
+
+  ++dam;
+  ++min_e_stress_it;
+  ++grad_u_it;
+  ++stress_it;
+  ++Sc_it;
+
+  MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
+
+  AKANTU_DEBUG_OUT();
+} // namespace akantu
+
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension, template <UInt> class ElasticParent>
+void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam) {
+  tangent *= (1 - dam);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -314,6 +372,85 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::unpackData(
   return parent::unpackData(buffer, elements, tag);
 }
 
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension, template <UInt> class ElasticParent>
+inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeStressInCompression(Matrix<Real> & sigma, Matrix<Real> & grad_u,
+                               Real & dam, Real & sigma_crit) {
+
+  auto eps = computeStrainByPrincStressDirection(sigma, grad_u, false);
+  auto delta0 = sigma_crit / this->E;
+  Real smooth_coef = computeSmootheningCoefficient(eps, dam, delta0);
+  sigma *= smooth_coef;
+}
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension, template <UInt> class ElasticParent>
+inline Real MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeStrainByPrincStressDirection(Matrix<Real> & sigma,
+                                        Matrix<Real> & grad_u,
+                                        bool max_stress) {
+
+  // computing strain in the direction of the minimum principal stress
+  Vector<Real> eigenvalues(spatial_dimension);
+  Matrix<Real> rotation_matrix(spatial_dimension, spatial_dimension);
+
+  // compute eigenvalues
+  sigma.eig(eigenvalues, rotation_matrix, false);
+
+  /// normalize each column of the rotation matrix by the length of
+  /// corresponding eigen vector
+  for (auto && c : arange(rotation_matrix.cols())) {
+    Vector<Real> vect = rotation_matrix(c);
+    vect /= vect.norm();
+    rotation_matrix(c) = vect;
+  }
+
+  // position of the biggest or smallest stress value
+  Real pos;
+  if (max_stress)
+    pos = std::distance(
+        eigenvalues.storage(),
+        std::max_element(eigenvalues.storage(),
+                         eigenvalues.storage() + spatial_dimension));
+  else
+    pos = std::distance(
+        eigenvalues.storage(),
+        std::min_element(eigenvalues.storage(),
+                         eigenvalues.storage() + spatial_dimension));
+
+  // principal strain corresponding to the smallest principal stress
+  Matrix<Real> strain(grad_u);
+  strain = grad_u + grad_u.transpose();
+  strain *= 0.5;
+  Matrix<Real> princ_strain(spatial_dimension, spatial_dimension);
+  Matrix<Real> temp(princ_strain);
+  temp.mul<true, false>(rotation_matrix, strain);
+  princ_strain.mul<false, false>(temp, rotation_matrix);
+
+  return princ_strain(pos, pos);
+}
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension, template <UInt> class ElasticParent>
+inline Real MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeSmootheningCoefficient(Real & eps, Real & dam, Real & delta0) {
+  // smoothening between two slopes is done by tanh function
+  // as the center of smoothening minus delta0 is taken
+  Real smooth_coef = 1. - dam / 2 * (1 + tanh(this->K * (eps + delta0)));
+  return smooth_coef;
+}
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension, template <UInt> class ElasticParent>
+inline void MaterialDamageIterative<spatial_dimension, ElasticParent>::
+    computeTangentModuliInCompression(Matrix<Real> & tangent,
+                                      Matrix<Real> & sigma,
+                                      Matrix<Real> & grad_u, Real & dam,
+                                      Real & sigma_crit) {
+
+  auto eps = computeStrainByPrincStressDirection(sigma, grad_u, false);
+  auto delta0 = sigma_crit / this->E;
+  Real smooth_coef = computeSmootheningCoefficient(eps, dam, delta0);
+  tangent *= smooth_coef;
+}
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */

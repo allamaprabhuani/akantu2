@@ -38,7 +38,18 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 ASRTools::ASRTools(SolidMechanicsModel & model)
-    : model(model), volume(0.), stress_limit(0), nb_dumps(0) {
+    : model(model), volume(0.), stress_limit(0), nb_dumps(0),
+      doubled_facets_ready(false), doubled_nodes_ready(false), node_pairs(0) {
+
+  // register event handler for asr tools
+  model.getMesh().registerEventHandler(*this, _ehp_lowest);
+  if (model.getMesh().hasMeshFacets())
+    model.getMesh().getMeshFacets().registerEventHandler(*this, _ehp_lowest);
+
+  // resize the array of tuples
+  node_pairs.resize(2);
+  // TODO make it dependent on number of gel sites
+
   /// find four corner nodes of the RVE
   findCornerNodes();
 
@@ -1601,7 +1612,7 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool first_time) {
     Real stress_norm = stress.norm();
     Real stress_limit_norm = (*str_lim_vec_it).norm();
     if (stress_norm < stress_limit_norm)
-      //stresses(i) = *str_lim_vec_it;
+      // stresses(i) = *str_lim_vec_it;
       return;
   }
   /// drain cracks
@@ -1788,6 +1799,332 @@ void ASRTools::applyBodyForce() {
 
     force_vec += gravity * mass_vec;
   }
+}
+/* -------------------------------------------------------------------------
+ */
+void ASRTools::insertCohElemByCoord(const Vector<Real> & position) {
+  AKANTU_DEBUG_IN();
+
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  const auto gt = _not_ghost;
+
+  // insert cohesive elements
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & insertion = inserter.getInsertionFacetsByElement();
+  auto & mesh_facets = inserter.getMeshFacets();
+  Vector<Real> bary_facet(dim);
+
+  Real min_dist = std::numeric_limits<Real>::max();
+  Element source_facet;
+  for_each_element(mesh_facets,
+                   [&](auto && facet) {
+                     mesh_facets.getBarycenter(facet, bary_facet);
+                     auto dist = bary_facet.distance(position);
+                     if (dist < min_dist) {
+                       min_dist = dist;
+                       source_facet = facet;
+                     }
+                   },
+                   _spatial_dimension = dim - 1);
+  inserter.getCheckFacets(source_facet.type, gt)(source_facet.element) = false;
+  insertion(source_facet) = true;
+
+  inserter.insertElements();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------
+ */
+void ASRTools::insertCohElemByLimits(const Matrix<Real> & insertion_limits,
+                                     std::string coh_mat_name) {
+  AKANTU_DEBUG_IN();
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto pos_it = make_view(mesh.getNodes(), dim).begin();
+
+  // insert cohesive elements
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & insertion = inserter.getInsertionFacetsByElement();
+  auto & mesh_facets = inserter.getMeshFacets();
+  auto coh_material = model.getMaterialIndex(coh_mat_name);
+  auto tolerance = Math::getTolerance();
+  Vector<Real> bary_facet(dim);
+
+  for_each_element(
+      mesh_facets,
+      [&](auto && facet) {
+        mesh_facets.getBarycenter(facet, bary_facet);
+        UInt coord_in_limit = 0;
+
+        while (coord_in_limit < dim and
+               bary_facet(coord_in_limit) >
+                   (insertion_limits(coord_in_limit, 0) - tolerance) and
+               bary_facet(coord_in_limit) <
+                   (insertion_limits(coord_in_limit, 1) + tolerance))
+          ++coord_in_limit;
+
+        if (coord_in_limit == dim) {
+          coh_model.getFacetMaterial(facet.type, facet.ghost_type)(
+              facet.element) = coh_material;
+          inserter.getCheckFacets(facet.type, facet.ghost_type)(facet.element) =
+              false;
+          insertion(facet) = true;
+        }
+      },
+      _spatial_dimension = dim - 1);
+
+  inserter.insertElements();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------
+ */
+void ASRTools::insertCohElemRandomly(const UInt & nb_coh_elem,
+                                     std::string coh_mat_name,
+                                     std::string matrix_mat_name) {
+  AKANTU_DEBUG_IN();
+
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+
+  // get element types
+  const GhostType gt = _not_ghost;
+  auto type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
+  auto type_facets = Mesh::getFacetType(type);
+  auto & inserter = coh_model.getElementInserter();
+  auto & insertion = inserter.getInsertionFacetsByElement();
+  Vector<Real> bary_facet(dim);
+  auto coh_material = model.getMaterialIndex(coh_mat_name);
+  auto & mesh_facets = inserter.getMeshFacets();
+  auto matrix_material_id = model.getMaterialIndex(matrix_mat_name);
+
+  auto & matrix_elements =
+      mesh_facets.createElementGroup("matrix_facets", dim - 1);
+
+  for_each_element(mesh_facets,
+                   [&](auto && facet) {
+                     mesh_facets.getBarycenter(facet, bary_facet);
+                     auto & facet_material = coh_model.getFacetMaterial(
+                         facet.type, facet.ghost_type)(facet.element);
+
+                     if (facet_material == matrix_material_id)
+                       matrix_elements.add(facet);
+                   },
+                   _spatial_dimension = dim - 1);
+
+  // Will be used to obtain a seed for the random number engine
+  std::random_device rd;
+  // Standard mersenne_twister_engine seeded with rd()
+  std::mt19937 random_generator(rd());
+  std::uniform_int_distribution<> dis(
+      0, matrix_elements.getElements(type_facets).size() - 1);
+
+  for (auto coh_el : arange(nb_coh_elem)) {
+    auto id = dis(random_generator);
+    Element facet;
+    facet.type = type_facets;
+    facet.element = matrix_elements.getElements(type_facets)(id);
+    facet.ghost_type = gt;
+
+    coh_model.getFacetMaterial(facet.type, facet.ghost_type)(facet.element) =
+        coh_material;
+    inserter.getCheckFacets(facet.type, facet.ghost_type)(facet.element) =
+        false;
+    insertion(facet) = true;
+  }
+
+  inserter.insertElements();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------
+ */
+const Array<Element>
+ASRTools::insertCohElOrFacetsByCoord(const Vector<Real> & position,
+                                     bool add_neighbors,
+                                     bool only_double_facets) {
+  AKANTU_DEBUG_IN();
+
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  const auto gt = _not_ghost;
+  const auto & pos = mesh.getNodes();
+  const auto pos_it = make_view(pos, dim).begin();
+  auto & node_group = mesh.createNodeGroup("doubled_nodes");
+
+  // insert cohesive elements
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & insertion = inserter.getInsertionFacetsByElement();
+  auto & mesh_facets = inserter.getMeshFacets();
+  Vector<Real> bary_facet(dim);
+
+  Real min_dist = std::numeric_limits<Real>::max();
+  Element cent_facet;
+  for_each_element(mesh_facets,
+                   [&](auto && facet) {
+                     mesh_facets.getBarycenter(facet, bary_facet);
+                     auto dist = std::abs(bary_facet.distance(position));
+                     if (dist < min_dist) {
+                       min_dist = dist;
+                       cent_facet = facet;
+                     }
+                   },
+                   _spatial_dimension = dim - 1);
+
+  inserter.getCheckFacets(cent_facet.type, gt)(cent_facet.element) = false;
+  insertion(cent_facet) = true;
+  Array<Element> facets_added;
+  facets_added.push_back(cent_facet);
+
+  if (add_neighbors) {
+    auto & facet_conn = mesh_facets.getConnectivity(cent_facet.type, gt);
+    CSR<Element> nodes_to_elements;
+    MeshUtils::buildNode2Elements(mesh_facets, nodes_to_elements, dim - 1);
+
+    // Synchronizer element connected to the nodes of the facet
+    for (auto node : arange(2)) {
+      // add corner nodes to the group
+      node_group.add(facet_conn(cent_facet.element, node));
+
+      // add corner node to the tuples
+      std::get<0>(node_pairs(node)) = facet_conn(cent_facet.element, node);
+
+      // vector of the central facet
+      Vector<Real> cent_facet_dir(pos_it[facet_conn(cent_facet.element, !node)],
+                                  true);
+      cent_facet_dir -=
+          Vector<Real>(pos_it[facet_conn(cent_facet.element, node)]);
+      cent_facet_dir /= cent_facet_dir.norm();
+      Real min_dot = std::numeric_limits<Real>::max();
+      Element neighbor;
+      Vector<Real> neighbor_facet_dir(dim);
+      for (auto & elem :
+           nodes_to_elements.getRow(facet_conn(cent_facet.element, node))) {
+        if (elem.element == cent_facet.element)
+          continue;
+        if (elem.type != cent_facet.type)
+          continue;
+        // vector of the neighboring facet
+        if (facet_conn(elem.element, 0) ==
+            facet_conn(cent_facet.element, node)) {
+          neighbor_facet_dir = pos_it[facet_conn(elem.element, 1)];
+        } else if (facet_conn(elem.element, 1) ==
+                   facet_conn(cent_facet.element, node)) {
+          neighbor_facet_dir = pos_it[facet_conn(elem.element, 0)];
+        } else
+          AKANTU_EXCEPTION("Neighboring facet doesn't have node in common with "
+                           "the central one.");
+        neighbor_facet_dir -=
+            Vector<Real>(pos_it[facet_conn(cent_facet.element, node)]);
+
+        neighbor_facet_dir /= neighbor_facet_dir.norm();
+
+        Real dot = cent_facet_dir.dot(neighbor_facet_dir);
+        if (dot < min_dot) {
+          min_dot = dot;
+          neighbor = elem;
+        }
+      }
+
+      inserter.getCheckFacets(neighbor.type, gt)(neighbor.element) = false;
+      insertion(neighbor) = true;
+      facets_added.push_back(neighbor);
+    }
+  }
+
+  inserter.insertElements(only_double_facets);
+
+  // flag internal facets
+  auto & doubled_facets = mesh_facets.getData<bool>("doubled_facets");
+  doubled_facets.initialize(mesh_facets, _spatial_dimension = dim - 1,
+                            _with_nb_element = true, _default_value = false);
+
+  for (auto & facet : facets_added) {
+    Array<bool> & doubled_facets_array =
+        doubled_facets(facet.type, facet.ghost_type);
+    doubled_facets_array(facet.element) = true;
+  }
+
+  // create empty element group with nodes to apply Dirichlet
+  model.getMesh().createElementGroupFromNodeGroup("doubled_nodes",
+                                                  "doubled_nodes", dim - 1);
+  AKANTU_DEBUG_OUT();
+  return facets_added;
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::onElementsAdded(const Array<Element> & elements,
+                               const NewElementsEvent &) {
+
+  if (this->doubled_facets_ready)
+    return;
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & mesh_facets = mesh.getMeshFacets();
+  auto & doubled_facets = mesh_facets.getData<bool>("doubled_facets");
+  doubled_facets.initialize(mesh_facets, _spatial_dimension = dim - 1,
+                            _with_nb_element = true, _default_value = false);
+
+  for (auto elements_range : akantu::MeshElementsByTypes(elements)) {
+    auto type = elements_range.getType();
+    auto ghost_type = elements_range.getGhostType();
+
+    if (mesh.getKind(type) != _ek_regular)
+      continue;
+
+    if (ghost_type != _not_ghost)
+      continue;
+
+    auto & doubled_facets_array =
+        mesh_facets.getData<bool>("doubled_facets", type, ghost_type);
+    auto & element_ids = elements_range.getElements();
+
+    for (auto && el : element_ids) {
+      doubled_facets_array(el) = true;
+    }
+  }
+  this->doubled_facets_ready = true;
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
+                            const NewNodesEvent &) {
+  AKANTU_DEBUG_IN();
+  if (this->doubled_nodes_ready)
+    return;
+  auto & mesh = model.getMesh();
+  auto & node_group = mesh.getNodeGroup("doubled_nodes");
+  auto pos_it = make_view(mesh.getNodes(), mesh.getSpatialDimension()).begin();
+
+  for (auto & node : new_nodes) {
+    node_group.add(node);
+
+    // complete pairs with lower nodes
+    Vector<Real> lower_coord = pos_it[node];
+    for (auto & pair : node_pairs) {
+      Vector<Real> upper_coord = pos_it[std::get<0>(pair)];
+      if (upper_coord == lower_coord)
+        std::get<1>(pair) = node;
+    }
+  }
+
+  this->doubled_nodes_ready = true;
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void ASRTools::applyDeltaU(Real delta_u) {
+  // get element group with nodes to apply Dirichlet
+  auto & crack_facets = model.getMesh().getElementGroup("doubled_nodes");
+
+  DeltaU delta_u_bc(model, delta_u, getNodePairs());
+  model.applyBC(delta_u_bc, crack_facets);
 }
 
 } // namespace akantu

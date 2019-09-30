@@ -41,9 +41,6 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(NormMaxEquivalentStress,
                              norm_max_equivalent_stress, Real &);
 
-  /// get average normalized equivalent stress
-  AKANTU_GET_MACRO(NormAvEquivalentStress, norm_av_equivalent_stress, Real);
-
 protected:
   /// maximum equivalent stress
   Real norm_max_equivalent_stress;
@@ -88,7 +85,7 @@ public:
   /// update energies after damage has been updated
   virtual void updateEnergiesAfterDamage(ElementType el_type);
 
-  /// compute the equivalent stress on each Gauss point (i.e. the max prinicpal
+  /// compute the equivalent stress on each Gauss point (i.e. the max principal
   /// stress) and normalize it by the tensile strength
   virtual void
   computeNormalizedEquivalentStress(const Array<Real> & grad_u,
@@ -97,8 +94,8 @@ public:
 
   /// find max and average normalized equivalent stress
   virtual void
-  findMaxAndAvNormalizedEquivalentStress(ElementType el_type,
-                                         GhostType ghost_type = _not_ghost);
+  findMaxNormalizedEquivalentStress(ElementType el_type,
+                                    GhostType ghost_type = _not_ghost);
 
 protected:
   /// constitutive law for all element of a type
@@ -107,6 +104,30 @@ protected:
 
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
 
+  /// compute stress based on smooth change from damaged stiffness to not
+  inline void computeStressInCompression(Matrix<Real> & sigma,
+                                         Matrix<Real> & grad_u, Real & dam,
+                                         Real & sigma_crit);
+  /// computes max/min principal stress, then princ strain in same dir
+  inline Real computeStrainByPrincStressDirection(Matrix<Real> & sigma,
+                                                  Matrix<Real> & grad_u,
+                                                  bool max_stress = true);
+  /// compute smoothening coefficient based on minus delta0 and param K
+  inline Real computeSmootheningCoefficient(Real & eps, Real & dam,
+                                            Real & delta0);
+  /// compute the tangent stiffness matrix for an element type
+  void computeTangentModuli(const ElementType & el_type,
+                            Array<Real> & tangent_matrix,
+                            GhostType ghost_type = _not_ghost) override;
+
+  /// compute the tangent stiffness matrix for a given quadrature point
+  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
+  /// compute the tangent stiffness matrix for a given quadrature point in
+  /// compression based on smoothening
+  inline void computeTangentModuliInCompression(Matrix<Real> & tangent,
+                                                Matrix<Real> & sigma,
+                                                Matrix<Real> & grad_u,
+                                                Real & dam, Real & sigma_crit);
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
@@ -154,8 +175,13 @@ protected:
   bool contact;
 
   /// trace of a stress tensor to judge on compression
-  InternalField<Real> stress_trace;
+  InternalField<Real> min_equivalent_stress;
 
+  /// coefficient K for smoothening (adjusted for delta0 = 1e-4)
+  Real K = 5000;
+
+  /// smoothening stiffness change from the damaged one to non-damaged
+  bool smoothen_stiffness_change = false;
 };
 
 } // namespace akantu

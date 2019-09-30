@@ -178,7 +178,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
                                           el_type, ghost_type);
   this->norm_max_equivalent_stress = 0;
   this->norm_av_equivalent_stress = 0;
-  this->findMaxAndAvNormalizedEquivalentStress(el_type, ghost_type);
+  this->findMaxNormalizedEquivalentStress(el_type, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }
