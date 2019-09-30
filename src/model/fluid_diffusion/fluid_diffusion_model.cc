@@ -55,8 +55,21 @@ namespace fluid_diffusion {
     public:
       ComputeRhoFunctor(const FluidDiffusionModel & model) : model(model){};
 
-      void operator()(Matrix<Real> & rho, const Element &) const {
-        rho.set(model.getPushability());
+      void operator()(Matrix<Real> & rho, const Element & element) const {
+        auto & type = element.type;
+        auto & gt = element.ghost_type;
+        auto & aperture = model.getApertureOnQpoints(type, gt);
+        auto nb_quad_points = aperture.getNbComponent();
+        Real aperture_av = 0.;
+        for (auto q : arange(nb_quad_points)) {
+          aperture_av += aperture(element.element, q);
+        }
+        aperture_av /= nb_quad_points;
+        if (model.isModelVelocityDependent())
+          rho.set(model.getCompressibility() * aperture_av);
+        else
+          rho.set((model.getCompressibility() + model.getPushability()) *
+                  aperture_av);
       }
 
     private:
@@ -71,10 +84,13 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
     : Model(mesh, ModelType::_fluid_diffusion_model, dim, id, memory_id),
       pressure_gradient("pressure_gradient", id),
       pressure_on_qpoints("pressure_on_qpoints", id),
+      delta_pres_on_qpoints("delta_pres_on_qpoints", id),
       permeability_on_qpoints("permeability_on_qpoints", id),
       aperture_on_qpoints("aperture_on_qpoints", id),
+      prev_aperture_on_qpoints("prev_aperture_on_qpoints", id),
       k_gradp_on_qpoints("k_gradp_on_qpoints", id), viscosity(0.),
-      pushability(0.), default_aperture(0.) {
+      compressibility(0.), default_aperture(0.), use_aperture_speed(false),
+      pushability(0.), insertion_damage(0.) {
   AKANTU_DEBUG_IN();
 
   // mesh.registerEventHandler(*this, akantu::_ehp_lowest);
@@ -100,9 +116,12 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
 #endif
 
   this->registerParam("viscosity", viscosity, 1., _pat_parsmod);
-  this->registerParam("pushability", pushability, 1., _pat_parsmod);
+  this->registerParam("compressibility", compressibility, 1., _pat_parsmod);
   this->registerParam("default_aperture", default_aperture, 1.e-5,
                       _pat_parsmod);
+  this->registerParam("use_aperture_speed", use_aperture_speed, _pat_parsmod);
+  this->registerParam("pushability", pushability, 1., _pat_parsmod);
+  this->registerParam("insertion_damage", insertion_damage, 0., _pat_parsmod);
 
   AKANTU_DEBUG_OUT();
 }
@@ -114,9 +133,12 @@ void FluidDiffusionModel::initModel() {
   fem.initShapeFunctions(_ghost);
 
   pressure_on_qpoints.initialize(fem, _nb_component = 1);
+  delta_pres_on_qpoints.initialize(fem, _nb_component = 1);
   pressure_gradient.initialize(fem, _nb_component = 1);
   permeability_on_qpoints.initialize(fem, _nb_component = 1);
   aperture_on_qpoints.initialize(fem, _nb_component = 1);
+  if (use_aperture_speed)
+    prev_aperture_on_qpoints.initialize(fem, _nb_component = 1);
   k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
 }
 
@@ -207,11 +229,13 @@ void FluidDiffusionModel::afterSolveStep() {
   /// interpolating pressures on integration points for further use by BC
   const GhostType gt = _not_ghost;
   for (auto && type : mesh.elementTypes(spatial_dimension, gt, _ek_regular)) {
+    Array<Real> tmp(pressure_on_qpoints(type, gt));
     this->getFEEngine().interpolateOnIntegrationPoints(
         *pressure, pressure_on_qpoints(type, gt), 1, type, gt);
-
-    AKANTU_DEBUG_OUT();
+    delta_pres_on_qpoints(type, gt) = pressure_on_qpoints(type, gt);
+    delta_pres_on_qpoints(type, gt) -= tmp;
   }
+  AKANTU_DEBUG_OUT();
 }
 /* --------------------------------------------------------------------------
  */
@@ -416,7 +440,7 @@ void FluidDiffusionModel::computePermeabilityOnQuadPoints(
     for (auto && tuple : zip(perm, aperture)) {
       auto & k = std::get<0>(tuple);
       auto & aper = std::get<1>(tuple);
-      k = aper * aper / (12 * this->viscosity);
+      k = aper * aper * aper / (12 * this->viscosity);
     }
   }
 
@@ -474,6 +498,15 @@ void FluidDiffusionModel::assembleInternalFlux() {
       Array<Real> bt_k_gP(nb_quad_points, nb_nodes_per_element);
       fem.computeBtD(k_gradp_on_qpoints_vect, bt_k_gP, type, ghost_type);
 
+      if (this->use_aperture_speed) {
+        auto aper_speed = aperture_on_qpoints(type, ghost_type);
+        aper_speed -= prev_aperture_on_qpoints(type, ghost_type);
+        aper_speed *= 1 / this->time_step;
+        Array<Real> aper_speed_by_shapes(nb_quad_points, nb_nodes_per_element);
+
+        fem.computeNtb(aper_speed, aper_speed_by_shapes, type, ghost_type);
+        bt_k_gP += aper_speed_by_shapes;
+      }
       UInt nb_elements = mesh.getNbElement(type, ghost_type);
       Array<Real> int_bt_k_gP(nb_elements, nb_nodes_per_element);
 
@@ -494,37 +527,35 @@ Real FluidDiffusionModel::getStableTimeStep() {
 
   Real el_size;
   Real min_el_size = std::numeric_limits<Real>::max();
-  this->computePermeabilityOnQuadPoints(_not_ghost);
-  Real max_perm_on_qpoint;
+  Real max_aper_on_qpoint = std::numeric_limits<Real>::min();
 
   for (auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
     auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-    auto & perm = permeability_on_qpoints(type, _not_ghost);
+    auto & aper = aperture_on_qpoints(type, _not_ghost);
+    auto nb_quad_per_element = aper.getNbComponent();
     auto mesh_dim = this->mesh.getSpatialDimension();
     Array<Real> coord(0, nb_nodes_per_element * mesh_dim);
     FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
                                          _not_ghost);
 
-    for (auto && data :
-         zip(make_view(coord, mesh_dim, nb_nodes_per_element), perm)) {
+    for (auto && data : zip(make_view(coord, mesh_dim, nb_nodes_per_element),
+                            make_view(aper, nb_quad_per_element))) {
       Matrix<Real> & el_coord = std::get<0>(data);
-      auto & el_perm = std::get<1>(data);
+      Vector<Real> & el_aper = std::get<1>(data);
       el_size = getFEEngine().getElementInradius(el_coord, type);
       min_el_size = std::min(min_el_size, el_size);
-      max_perm_on_qpoint = std::max(max_perm_on_qpoint, el_perm);
+      max_aper_on_qpoint = std::max(max_aper_on_qpoint, el_aper.norm<L_inf>());
     }
 
     AKANTU_DEBUG_INFO("The minimum element size : "
-                      << min_el_size << " and the max permeability is : "
-                      << max_perm_on_qpoint);
+                      << min_el_size
+                      << " and the max aperture is : " << max_aper_on_qpoint);
   }
 
-  Real min_dt =
-      2. * min_el_size * min_el_size / 4. * pushability / max_perm_on_qpoint;
-
-  /// TODO: why factor 4 in the equation above?
+  Real min_dt = 2. * min_el_size * min_el_size / 4 * this->compressibility /
+                max_aper_on_qpoint / max_aper_on_qpoint;
 
   mesh.getCommunicator().allReduce(min_dt, SynchronizerOperation::_min);
 
@@ -535,11 +566,11 @@ Real FluidDiffusionModel::getStableTimeStep() {
 /* --------------------------------------------------------------------------
  */
 
-void FluidDiffusionModel::setTimeStep(Real time_step, const ID & solver_id) {
+void FluidDiffusionModel::setTimeStep(Real dt, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
-
+  this->time_step = dt;
 #if defined(AKANTU_USE_IOHELPER)
-  this->mesh.getDumper("fluid_diffusion").setTimeStep(time_step);
+  // this->mesh.getDumper("fluid_diffusion").setTimeStep(time_step);
 #endif
 }
 
@@ -557,9 +588,8 @@ void FluidDiffusionModel::readMaterials() {
 /* --------------------------------------------------------------------------
  */
 void FluidDiffusionModel::initFullImpl(const ModelOptions & options) {
-  Model::initFullImpl(options);
-
   readMaterials();
+  Model::initFullImpl(options);
 }
 
 /* --------------------------------------------------------------------------
@@ -591,21 +621,28 @@ void FluidDiffusionModel::computeRho(Array<Real> & rho, ElementType type,
                                      GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  FEEngine & fem = this->getFEEngine();
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
-
-  rho.resize(nb_element * nb_quadrature_points);
-  rho.set(this->pushability);
+  rho.copy(aperture_on_qpoints(type, ghost_type));
+  if (this->use_aperture_speed)
+    rho *= this->compressibility;
+  else
+    rho *= (this->compressibility + this->pushability);
 
   AKANTU_DEBUG_OUT();
-}
+} // namespace akantu
 
 /* --------------------------------------------------------------------------
  */
 void FluidDiffusionModel::onElementsAdded(const Array<Element> & element_list,
                                           const NewElementsEvent & /*event*/) {
   AKANTU_DEBUG_IN();
+  if (element_list.size() == 0)
+    return;
+  /// TODO had to do this ugly way because the meeting is in 3 days
+  // removing it will make the assemble mass matrix fail. jacobians are not
+  // updated
+  auto & fem = this->getFEEngine();
+  fem.initShapeFunctions(_not_ghost);
+  fem.initShapeFunctions(_ghost);
 
   this->resizeFields();
 
@@ -635,9 +672,12 @@ void FluidDiffusionModel::resizeFields() {
   /// elemental fields
   auto & fem = this->getFEEngine();
   pressure_on_qpoints.initialize(fem, _nb_component = 1);
+  delta_pres_on_qpoints.initialize(fem, _nb_component = 1);
   pressure_gradient.initialize(fem, _nb_component = 1);
   permeability_on_qpoints.initialize(fem, _nb_component = 1);
   aperture_on_qpoints.initialize(fem, _nb_component = 1);
+  if (use_aperture_speed)
+    prev_aperture_on_qpoints.initialize(fem, _nb_component = 1);
   k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
 
   /// nodal fields
@@ -666,7 +706,7 @@ void FluidDiffusionModel::resizeFields() {
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
 void FluidDiffusionModel::getApertureOnQpointsFromCohesive(
-    const SolidMechanicsModelCohesive & coh_model) {
+    const SolidMechanicsModelCohesive & coh_model, bool first_time) {
   AKANTU_DEBUG_IN();
 
   // get element types
@@ -676,7 +716,7 @@ void FluidDiffusionModel::getApertureOnQpointsFromCohesive(
   auto type = *coh_mesh.elementTypes(dim, gt, _ek_regular).begin();
   const ElementType type_facets = Mesh::getFacetType(type);
   const ElementType typecoh = FEEngine::getCohesiveElementType(type_facets);
-  const auto nb_coh_elem = coh_mesh.getNbElement(typecoh);
+  // const auto nb_coh_elem = coh_mesh.getNbElement(typecoh);
   const auto nb_quad_coh_elem = coh_model.getFEEngine("CohesiveFEEngine")
                                     .getNbIntegrationPoints(typecoh, gt);
 
@@ -685,17 +725,22 @@ void FluidDiffusionModel::getApertureOnQpointsFromCohesive(
   const auto nb_fluid_elem = mesh.getNbElement(type_fluid);
   const auto nb_quad_elem =
       getFEEngine().getNbIntegrationPoints(type_fluid, gt);
-  AKANTU_DEBUG_ASSERT(nb_quad_coh_elem == nb_quad_elem,
-                      "Different number of integration points per cohesive "
-                      "and fluid elements");
-  AKANTU_DEBUG_ASSERT(nb_coh_elem == nb_fluid_elem,
-                      "Different number of cohesive and fluid elements");
+  // AKANTU_DEBUG_ASSERT(nb_quad_coh_elem == nb_quad_elem,
+  //                     "Different number of integration points per cohesive "
+  //                     "and fluid elements");
+
+  // save previous aperture
+  if (not first_time && use_aperture_speed)
+    prev_aperture_on_qpoints.copy(aperture_on_qpoints);
+
+  // AKANTU_DEBUG_ASSERT(nb_coh_elem == nb_fluid_elem,
+  //                     "Different number of cohesive and fluid elements");
+
   auto aperture_it =
       make_view(getApertureOnQpoints(type_fluid), nb_quad_elem).begin();
 
   /// loop on each segment element
   for (auto && element_nb : arange(nb_fluid_elem)) {
-
     Element element{type_fluid, element_nb, gt};
     auto global_coh_elem =
         mesh.getElementalData<akantu::Element>("cohesive_elements")(element);
@@ -713,23 +758,191 @@ void FluidDiffusionModel::getApertureOnQpointsFromCohesive(
         make_view(material.getArray<Real>("normal_opening_norm", typecoh),
                   nb_quad_coh_elem)
             .begin();
-
-    /// loop on each IP
-    for (UInt ip : arange(nb_quad_coh_elem)) {
-      auto normal_open_norm_ip = normal_open_norm_it[le](ip);
-      auto & aperture_ip = aperture_it[ge](ip);
-      if (normal_open_norm_ip < this->default_aperture) {
+    if (nb_quad_elem == 1) {
+      /// coh el quad points are averaged to assign single opening to flow el
+      Real aperture_av = 0.;
+      for (UInt ip : arange(nb_quad_coh_elem)) {
+        auto normal_open_norm_ip = normal_open_norm_it[le](ip);
+        aperture_av += normal_open_norm_ip;
+      }
+      aperture_av /= nb_quad_coh_elem;
+      auto & aperture_ip = aperture_it[ge](0);
+      if (aperture_av < this->default_aperture) {
         aperture_ip = this->default_aperture;
       } else {
-        aperture_ip = normal_open_norm_ip;
+        aperture_ip = aperture_av;
+      }
+    } else {
+      /// each flow el quad point gets aperture from corresponding coh el qp
+      for (UInt ip : arange(nb_quad_coh_elem)) {
+        auto normal_open_norm_ip = normal_open_norm_it[le](ip);
+        auto & aperture_ip = aperture_it[ge](ip);
+        if (normal_open_norm_ip < this->default_aperture) {
+          aperture_ip = this->default_aperture;
+        } else {
+          aperture_ip = normal_open_norm_ip;
+        }
+      }
+    }
+  }
+  // save previous aperture
+  if (first_time && use_aperture_speed)
+    prev_aperture_on_qpoints.copy(aperture_on_qpoints);
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void FluidDiffusionModel::updateFluidElementsFromCohesive(
+    const SolidMechanicsModelCohesive & coh_model) {
+  AKANTU_DEBUG_IN();
+
+  // get element types
+  auto & coh_mesh = coh_model.getMesh();
+  const auto dim = coh_mesh.getSpatialDimension();
+  const GhostType gt = _not_ghost;
+  auto type = *coh_mesh.elementTypes(dim, gt, _ek_regular).begin();
+  const ElementType type_facets = Mesh::getFacetType(type);
+  const ElementType typecoh = FEEngine::getCohesiveElementType(type_facets);
+  const auto nb_coh_elem = coh_mesh.getNbElement(typecoh);
+  const auto nb_quad_coh_elem = coh_model.getFEEngine("CohesiveFEEngine")
+                                    .getNbIntegrationPoints(typecoh, gt);
+
+  auto type_fluid =
+      *mesh.elementTypes(spatial_dimension, gt, _ek_regular).begin();
+  const auto nb_fluid_elem = mesh.getNbElement(type_fluid);
+
+  // check if there is need to add more fluid elements
+  if (nb_coh_elem == nb_fluid_elem)
+    return;
+
+  NewElementsEvent new_facets;
+  NewNodesEvent new_nodes;
+  NewElementsEvent new_fluid_facets;
+
+  /// loop on each cohesive element and check its damage
+  for (auto && coh_el : arange(nb_coh_elem)) {
+
+    // check if this cohesive element is present in fluid mesh
+    auto & existing_coh_elements =
+        mesh.getData<Element>("cohesive_elements", type_facets, gt);
+    Element coh_element = {typecoh, coh_el, gt};
+    auto it = existing_coh_elements.find(coh_element);
+    if (it != UInt(-1))
+      continue;
+
+    // check damage at the cohesive element
+    // Element element{type_fluid, element_nb, gt};
+    auto le = coh_model.getMaterialLocalNumbering(typecoh, gt)(coh_el);
+    auto model_mat_index = coh_model.getMaterialByElement(typecoh, gt)(coh_el);
+    const auto & material = coh_model.getMaterial(model_mat_index);
+    const auto damage_it =
+        make_view(material.getArray<Real>("damage", typecoh), nb_quad_coh_elem)
+            .begin();
+    Real damage_av = 0.;
+    for (auto ip : arange(nb_quad_coh_elem)) {
+      auto damage_ip = damage_it[le](ip);
+      damage_av += damage_ip;
+    }
+    damage_av /= nb_quad_coh_elem;
+
+    if (damage_av < this->insertion_damage)
+      continue;
+
+    // add fluid element to connectivity and corresponding nodes
+    Array<UInt> & nodes_added = new_nodes.getList();
+    auto & crack_facets = coh_mesh.getElementGroup("crack_facets");
+    auto & nodes = mesh.getNodes();
+    auto && coh_nodes = coh_mesh.getNodes();
+    auto && coh_conn = coh_mesh.getConnectivity(typecoh, gt);
+    Vector<UInt> conn(coh_conn.getNbComponent() / 2);
+    auto coh_facet_conn_it = make_view(coh_mesh.getConnectivity(typecoh, gt),
+                                       coh_conn.getNbComponent() / 2)
+                                 .begin();
+    auto cohesive_nodes_first_half = coh_facet_conn_it[2 * coh_el];
+    for (auto c : akantu::arange(conn.size())) {
+      auto coh_node = cohesive_nodes_first_half(c);
+      Vector<Real> pos(mesh.getSpatialDimension());
+      for (auto && data : enumerate(pos)) {
+        std::get<1>(data) = coh_nodes(coh_node, std::get<0>(data));
+      }
+      auto idx = nodes.find(pos);
+      if (idx == UInt(-1)) {
+        nodes.push_back(pos);
+        conn(c) = nodes.size() - 1;
+        nodes_added.push_back(nodes.size() - 1);
+      } else {
+        conn(c) = idx;
+      }
+    }
+    mesh.getData<Element>("cohesive_elements", type_facets, gt)
+        .push_back(coh_element);
+    mesh.getConnectivity(type_facets, gt).push_back(conn);
+    Element fluid_facet{type_facets,
+                        mesh.getConnectivity(type_facets, gt).size() - 1, gt};
+    new_fluid_facets.getList().push_back(fluid_facet);
+
+    // instantiate connectivity type for this facet type if not yet done
+    if (not coh_mesh.getConnectivities().exists(type_facets, gt))
+      coh_mesh.addConnectivityType(type_facets, gt);
+
+    // add two facets per cohesive element into cohesive mesh
+    auto & facet_conn_mesh = coh_mesh.getConnectivity(type_facets, gt);
+    for (auto f : akantu::arange(2)) {
+      Vector<UInt> coh_nodes_one_side = coh_facet_conn_it[2 * coh_el + f];
+      facet_conn_mesh.push_back(coh_nodes_one_side);
+      Element new_facet{type_facets, facet_conn_mesh.size() - 1, gt};
+      crack_facets.add(new_facet);
+      new_facets.getList().push_back(new_facet);
+    }
+  }
+  mesh.sendEvent(new_nodes);
+  mesh.sendEvent(new_fluid_facets);
+  MeshUtils::fillElementToSubElementsData(coh_mesh);
+  coh_mesh.sendEvent(new_facets);
+
+  AKANTU_DEBUG_OUT();
+}
+
+#endif
+
+/* --------------------------------------------------------------------------
+ */
+void FluidDiffusionModel::applyExternalFluxAtElementGroup(
+    const Real & rate, const ElementGroup & group, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && type : group.elementTypes(spatial_dimension, ghost_type)) {
+    const auto & element_ids = group.getElements(type, ghost_type);
+
+    const auto nb_fluid_elem = mesh.getNbElement(type);
+    const auto type_size = element_ids.size();
+    AKANTU_DEBUG_ASSERT(type_size <= nb_fluid_elem,
+                        "Number of provided source facets exceeds total number "
+                        "of flow elements");
+    const auto fluid_conn_it =
+        make_view(mesh.getConnectivity(type, ghost_type),
+                  mesh.getConnectivity(type, ghost_type).getNbComponent())
+            .begin();
+    auto & source = getExternalFlux();
+    source.clear();
+
+    /// loop on each element of the group
+    for (auto el : element_ids) {
+      AKANTU_DEBUG_ASSERT(el <= nb_fluid_elem,
+                          "Element number in the source facets group exceeds "
+                          "maximum number of flow elements");
+
+      const Vector<UInt> fluid_conn = fluid_conn_it[el];
+      for (auto & node : fluid_conn) {
+        source(node) += rate / (fluid_conn.size() * element_ids.size());
       }
     }
   }
   AKANTU_DEBUG_OUT();
 }
-#endif
-
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 
 Array<Real> FluidDiffusionModel::getQpointsCoord() {
   AKANTU_DEBUG_IN();
@@ -749,6 +962,7 @@ Array<Real> FluidDiffusionModel::getQpointsCoord() {
   AKANTU_DEBUG_OUT();
   return quad_coords;
 }
+
 // /* --------------------------------------------------------------------------
 // */ Real FluidDiffusionModel::computeThermalEnergyByNode() {
 //   AKANTU_DEBUG_IN();
@@ -1146,6 +1360,42 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
   }
   default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
   }
+}
+
+/* -------------------------------------------------------------------------
+ */
+void FluidDiffusionModel::injectIntoFacetsByCoord(const Vector<Real> & position,
+                                                  const Real & injection_rate) {
+  AKANTU_DEBUG_IN();
+
+  auto dim = mesh.getSpatialDimension();
+  const auto gt = _not_ghost;
+  const auto & pos = mesh.getNodes();
+  const auto pos_it = make_view(pos, dim).begin();
+  auto & source = *external_flux;
+
+  Vector<Real> bary_facet(dim);
+
+  Real min_dist = std::numeric_limits<Real>::max();
+  Element inj_facet;
+  for_each_element(mesh,
+                   [&](auto && facet) {
+                     mesh.getBarycenter(facet, bary_facet);
+                     auto dist = std::abs(bary_facet.distance(position));
+                     if (dist < min_dist) {
+                       min_dist = dist;
+                       inj_facet = facet;
+                     }
+                   },
+                   _spatial_dimension = dim - 1);
+
+  auto & facet_conn = mesh.getConnectivity(inj_facet.type, gt);
+  auto nb_nodes_per_elem = facet_conn.getNbComponent();
+  for (auto node : arange(nb_nodes_per_elem)) {
+    source(facet_conn(inj_facet.element, node)) =
+        injection_rate / nb_nodes_per_elem;
+  }
+  AKANTU_DEBUG_OUT();
 }
 
 /* --------------------------------------------------------------------------

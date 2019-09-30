@@ -115,16 +115,22 @@ public:
   /// get coordinates of qpoints in same order as other elemental fields
   Array<Real> getQpointsCoord();
 
+#ifdef AKANTU_COHESIVE_ELEMENT
   /// get apperture at nodes from displacement field of cohesive model
-#if defined(AKANTU_COHESIVE_ELEMENT)
-  // void
-  // getApertureFromCohesiveModel(const SolidMechanicsModelCohesive &
-  // coh_model);
-
   void getApertureOnQpointsFromCohesive(
+      const SolidMechanicsModelCohesive & coh_model, bool first_time = false);
+
+  /// insert fluid elements based on cohesive elements and their damage
+  void updateFluidElementsFromCohesive(
       const SolidMechanicsModelCohesive & coh_model);
 #endif
 
+  void applyExternalFluxAtElementGroup(const Real & rate,
+                                       const ElementGroup & source_facets,
+                                       GhostType ghost_type = _not_ghost);
+
+  void injectIntoFacetsByCoord(const Vector<Real> & position,
+                               const Real & injection_rate);
   /* ------------------------------------------------------------------------ */
   /* Methods for explicit                                                     */
   /* ------------------------------------------------------------------------ */
@@ -239,6 +245,7 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  AKANTU_GET_MACRO(Compressibility, compressibility, Real);
   AKANTU_GET_MACRO(Pushability, pushability, Real);
   /// get the dimension of the system space
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
@@ -256,9 +263,12 @@ public:
   /// get the permeability on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PermeabilityOnQpoints,
                                          permeability_on_qpoints, Real);
-  /// get the conductivity on q points
+  /// get the pressure on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PressureOnQpoints, pressure_on_qpoints,
                                          Real);
+  /// get the pressure change on q points
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(DeltaPressureOnQpoints,
+                                         delta_pres_on_qpoints, Real);
   /// get the aperture on q points
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ApertureOnQpoints, aperture_on_qpoints,
                                          Real);
@@ -272,6 +282,7 @@ public:
   /// get the temperature derivative
   AKANTU_GET_MACRO(PressureRate, *pressure_rate, Array<Real> &);
 
+  inline bool isModelVelocityDependent() const { return use_aperture_speed; }
   // /// get the energy denominated by thermal
   // Real getEnergy(const std::string & energy_id, const ElementType & type,
   //                UInt index);
@@ -317,14 +328,20 @@ private:
   /// the speed of the changing temperature
   ElementTypeMapArray<Real> pressure_gradient;
 
-  /// temperature field on quadrature points
+  /// pressure field on quadrature points
   ElementTypeMapArray<Real> pressure_on_qpoints;
+
+  /// pressure change on quadrature points
+  ElementTypeMapArray<Real> delta_pres_on_qpoints;
 
   /// conductivity tensor on quadrature points
   ElementTypeMapArray<Real> permeability_on_qpoints;
 
   /// aperture on quadrature points
   ElementTypeMapArray<Real> aperture_on_qpoints;
+
+  /// aperture on quadrature points
+  ElementTypeMapArray<Real> prev_aperture_on_qpoints;
 
   /// vector k \grad T on quad points
   ElementTypeMapArray<Real> k_gradp_on_qpoints;
@@ -341,8 +358,8 @@ private:
   // viscosity
   Real viscosity;
 
-  /// pushability Cs = 1/h dh/dP
-  Real pushability;
+  /// compressibility Cf = 1/pho drho/dP
+  Real compressibility;
 
   // default value of aperture on a newly added nodesynchronizer
   Real default_aperture;
@@ -356,6 +373,13 @@ private:
                                                            {_ghost, true}};
   std::unordered_map<GhostType, UInt> permeability_release{{_not_ghost, 0},
                                                            {_ghost, 0}};
+  bool use_aperture_speed{false};
+
+  // pushability Ch = 1/h dh/dP
+  Real pushability;
+
+  // damage at which cohesive element will be duplicated in fluid mesh
+  Real insertion_damage;
 };
 
 } // namespace akantu
