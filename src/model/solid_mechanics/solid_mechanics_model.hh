@@ -405,7 +405,7 @@ public:
 
   /// get an iterable on the materials
   inline decltype(auto) getMaterials() const;
-  
+
   /// get a particular material (by material index)
   inline Material & getMaterial(UInt mat_index);
 

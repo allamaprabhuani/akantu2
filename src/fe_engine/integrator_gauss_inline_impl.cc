@@ -170,8 +170,9 @@ inline void IntegratorGauss<kind, IntegrationOrderFunctor>::
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind, class IntegrationOrderFunctor>
 IntegratorGauss<kind, IntegrationOrderFunctor>::IntegratorGauss(
-    const Mesh & mesh, const ID & id, const MemoryID & memory_id)
-    : Integrator(mesh, id, memory_id) {
+    const Mesh & mesh, UInt spatial_dimension, const ID & id,
+    const MemoryID & memory_id)
+    : Integrator(mesh, spatial_dimension, id, memory_id) {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_OUT();
@@ -294,6 +295,11 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
 
   //  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_element);
   for (UInt elem = 0; elem < nb_element; ++elem, ++x_it) {
+    if (filter_elements != empty_filter) {
+      jacobians_it = jacobians_begin + filter_elements(elem);
+      extra_normal = extra_normal_begin + filter_elements(elem);
+    }
+
     const Matrix<Real> & X = *x_it;
     Vector<Real> & J = *jacobians_it;
     Matrix<Real> R(nb_dofs, nb_dofs);
@@ -312,9 +318,6 @@ void IntegratorGauss<_ek_structural, DefaultIntegrationOrderFunctor>::
     if (filter_elements == empty_filter) {
       ++jacobians_it;
       ++extra_normal;
-    } else {
-      jacobians_it = jacobians_begin + filter_elements(elem);
-      extra_normal = extra_normal_begin + filter_elements(elem);
     }
   }
 
@@ -660,6 +663,9 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::onElementsAdded(
     auto type = elements_range.getType();
     auto ghost_type = elements_range.getGhostType();
 
+    if (mesh.getSpatialDimension(type) != _spatial_dimension)
+      continue;
+    
     if (mesh.getKind(type) != kind)
       continue;
 

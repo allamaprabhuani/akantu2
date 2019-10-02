@@ -268,6 +268,6 @@ inline std::ostream & operator<<(std::ostream & stream, const BBox & bbox) {
   return stream;
 }
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_AKA_BBOX_HH__ */

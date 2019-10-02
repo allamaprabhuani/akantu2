@@ -291,6 +291,6 @@ private:
 
 #include "aka_math_tmpl.hh"
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_AKA_MATH_H__ */

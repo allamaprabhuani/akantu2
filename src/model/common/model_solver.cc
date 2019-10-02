@@ -290,6 +290,11 @@ void ModelSolver::solveStep(SolverCallback & callback, const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
+void ModelSolver::solveStep(const ID & solver_id) {
+  solveStep(*this, solver_id);
+}
+
+/* -------------------------------------------------------------------------- */
 void ModelSolver::getNewSolver(const ID & solver_id,
                                TimeStepSolverType time_step_solver_type,
                                NonLinearSolverType non_linear_solver_type) {
@@ -318,8 +323,8 @@ void ModelSolver::getNewSolver(const ID & solver_id,
   NonLinearSolver & nls = this->dof_manager->getNewNonLinearSolver(
       solver_id, non_linear_solver_type);
 
-  this->dof_manager->getNewTimeStepSolver(solver_id, time_step_solver_type,
-                                          nls, *this);
+  this->dof_manager->getNewTimeStepSolver(solver_id, time_step_solver_type, nls,
+                                          *this);
 }
 
 /* -------------------------------------------------------------------------- */
