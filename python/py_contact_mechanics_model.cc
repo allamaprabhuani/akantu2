@@ -2,6 +2,7 @@
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <contact_mechanics_model.hh>
+#include <surface_selector.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
@@ -52,6 +53,7 @@ void register_contact_mechanics_model(py::module & mod) {
              self.initFull(_analysis_method = analysis_method);
            },
            py::arg("_analysis_method"))
+      .def_function(search)
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
       .def_function_nocopy(getExternalForce)
@@ -66,6 +68,17 @@ void register_contact_mechanics_model(py::module & mod) {
                        &ContactMechanicsModel::dump))
       .def("dump", py::overload_cast<const std::string &, Real, UInt>(
                        &ContactMechanicsModel::dump));
+
+  py::class_<ContactDetector>(mod, "ContactDetector")
+    .def(py::init<Mesh &, const ID &, const MemoryID &>(),
+	 py::arg("mesh"), py::arg("id") = "contact_detector",
+	 py::arg("memory_id") = 0)
+    .def("search", [](ContactDetector & self, std::map<UInt, ContactElement> & contact_map) {
+	self.search(contact_map);
+      });
+  
+  py::class_<ContactElement>(mod, "ContactElement")
+    .def(py::init<>());
 }
 
 } // namespace akantu

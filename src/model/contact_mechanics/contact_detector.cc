@@ -93,6 +93,31 @@ void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
   this->constructContactMap(contact_map);
 }
 
+
+/* -------------------------------------------------------------------------- */
+void ContactDetector::search(std::map<UInt, ContactElement> & contact_map,
+			       Array<Real> & gaps, Array<Real> & normals,
+			       Array<Real> & tangents, Array<Real> & projections) {
+
+  this->mesh.fillNodesToElements(this->spatial_dimension - 1);
+  this->computeMaximalDetectionDistance();
+
+  contact_pairs.clear();
+
+  SpatialGrid<UInt> master_grid(spatial_dimension);
+  SpatialGrid<UInt> slave_grid(spatial_dimension);
+
+  this->globalSearch(slave_grid, master_grid);
+
+  this->localSearch(slave_grid, master_grid);
+
+  createContactElements(contact_map,
+			gaps, normals,
+			tangents, projections);
+
+}
+
+  
 /* -------------------------------------------------------------------------- */
 void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
                                    SpatialGrid<UInt> & master_grid) {
@@ -289,14 +314,9 @@ void ContactDetector::constructContactMap(
           previous_contact_map[slave_node].getPreviousProjection();
       contact_map[slave_node].setPreviousProjection(previous_projection);
 
-      auto previous_traction = previous_contact_map[slave_node].getTraction();
-      contact_map[slave_node].setTraction(previous_traction);
     } else {
       Vector<Real> previous_projection(surface_dimension, 0.);
       contact_map[slave_node].setPreviousProjection(previous_projection);
-
-      Vector<Real> previous_traction(surface_dimension, 0.);
-      contact_map[slave_node].setTraction(previous_traction);
     }
 
     // to ensure the self contact between surface does not lead to
@@ -313,6 +333,65 @@ void ContactDetector::constructContactMap(
   contact_pairs.clear();
 }
 
+
+/* -------------------------------------------------------------------------- */
+void ContactDetector::createContactElements(std::map<UInt, ContactElement> & contact_map,
+					    Array<Real> & gaps, Array<Real> & normals,
+					    Array<Real> & tangents, Array<Real> & projections) {
+
+  auto surface_dimension = spatial_dimension - 1;
+
+  for (auto & pairs : contact_pairs) {
+
+    const auto & slave_node = pairs.first;
+    Vector<Real> slave(spatial_dimension);
+    for (UInt s : arange(spatial_dimension))
+      slave(s) = this->positions(slave_node, s);
+
+    const auto & master_node = pairs.second;
+    Array<Element> elements;
+    this->mesh.getAssociatedElements(master_node, elements);
+
+    Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
+    
+    UInt index;
+    switch (detection_type) {
+    case _explicit: {
+      index =
+	GeometryUtils::orthogonalProjection<_explicit>(mesh, positions,
+						       slave, elements,
+						       gaps.begin()[slave_node],
+						       projection);
+      break;
+    }
+    case _implicit: {
+      index =
+	GeometryUtils::orthogonalProjection<_implicit>(mesh, positions, slave,
+						       elements,
+						       gaps.begin()[slave_node],
+						       projection);
+      break;
+    }  
+    default:
+      break;
+    }
+        
+    if (index == UInt(-1)) 
+      continue;
+
+       
+    //bool valid_self_contact = this->checkValidityOfSelfContact(slave_node,
+    //						       elements[index]);
+
+    //if (!valid_self_contact) 
+    //  continue;
+     
+  }
+
+  contact_pairs.clear();
+}
+
+  
 /* -------------------------------------------------------------------------- */
 UInt ContactDetector::computeOrthogonalProjection(
     const UInt & node, const Array<Element> & elements, Array<Real> & normals,
@@ -352,7 +431,7 @@ UInt ContactDetector::computeOrthogonalProjection(
     // should be positive and 1.0
 
     bool is_valid = this->checkValidityOfProjection(projection);
-
+    
     auto master_to_slave = query - real_projection;
     auto norm = master_to_slave.norm();
     if (norm != 0)

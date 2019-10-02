@@ -36,6 +36,7 @@
 #include "fe_engine.hh"
 #include "contact_element.hh"
 #include "resolution_utils.hh"
+#include "geometry_utils.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_RESOLUTION_HH__
@@ -83,29 +84,46 @@ protected:
   void computeCoordinates(const Element & , Matrix<Real> &);
 
   /* ------------------------------------------------------------------------ */
-  /* Functions that resolutions should reimplement                            */
+  /* Functions that resolutions should reimplement for force                  */
   /* ------------------------------------------------------------------------ */
-protected:
+public:
   /// computes the force vector due to normal traction
-  virtual void computeNormalForce(__attribute__((unused)) Vector<Real> &,
-				  __attribute__((unused)) Vector<Real> &,
-				  __attribute__((unused)) ContactElement &) {
+  virtual void computeNormalForce(__attribute__((unused)) ContactElement &,
+				  __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  /// computes the force vector due to frictional traction
-  virtual void computeFrictionalForce(__attribute__((unused)) Vector<Real> & ,
-				      __attribute__((unused)) Array<Real>  & ,
-				      __attribute__((unused)) ContactElement &) {
+  /// computes the tangential force vector due to frictional traction
+  virtual void computeTangentialForce(__attribute__((unused)) ContactElement &,
+				      __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  /// compute the frictional traction using return mapping algorithm
-  virtual bool computeFrictionalTraction(__attribute__((unused)) Matrix<Real> &,
-					 __attribute__((unused)) ContactElement &) {
+protected:
+  /// local computation of trial tangential traction due to friction
+  virtual void computeTrialTangentialTraction(__attribute__((unused)) ContactElement &,
+					      __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
+  /// local computation of tangential traction due to stick
+  virtual void computeStickTangentialTraction(__attribute__((unused)) ContactElement &,
+					      __attribute__((unused)) Vector<Real> &,
+					      __attribute__((unused)) Vector<Real> &) {
+    AKANTU_TO_IMPLEMENT();
+  }
+  
+  /// local computation of tangential traction due to slip
+  virtual void computeSlipTangentialTraction(__attribute__((unused)) ContactElement &,
+					     __attribute__((unused)) Vector<Real> &,
+					     __attribute__((unused)) Vector<Real> &) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Functions that resolutions should reimplement for stiffness              */
+  /* ------------------------------------------------------------------------ */
+public:
   /// compute the tangent moduli due to normal traction
   virtual void computeNormalModuli(__attribute__((unused)) Matrix<Real> &,
 				   __attribute__((unused)) Array<Real>  &,
@@ -147,6 +165,11 @@ private:
   /// surface nodes
   void assembleInternalForces(const Array<UInt> &);
 
+  /// assemble the local array to global array for a contact element
+  void assembleLocalToGlobalArray(const UInt & slave,
+				  const ContactElement & , Vector<Real> & , Array<Real> & );
+  
+  
   
 public:
   /// function to print the contain of the class

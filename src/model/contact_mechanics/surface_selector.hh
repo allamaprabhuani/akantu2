@@ -47,72 +47,51 @@ namespace akantu {
 class Model;
 class GlobalIdsUpdater;
 } // namespace akantu
+
 namespace akantu {
 
 /**
  * main class to assign surfaces for contact detection
  */
 class SurfaceSelector : public MeshEventHandler, public Parsable {
-  /* ------------------------------------------------------------------------ */
-  /* Constructor/Destructor                                                   */
-  /* ------------------------------------------------------------------------ */
 public:
   SurfaceSelector(Mesh & mesh);
-
   virtual ~SurfaceSelector() = default;
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
 public:
   virtual Array<UInt> & getMasterList() = 0;
-
   virtual Array<UInt> & getSlaveList() = 0;
 
-  /* ------------------------------------------------------------------------ */
-  /* Members                                                                  */
-  /* ------------------------------------------------------------------------ */
 protected:
   Mesh & mesh;
 };
 
 /* -------------------------------------------------------------------------- */
-
+/**
+ * class that selects contact surface from physical names 
+ */
 class PhysicalSurfaceSelector : public SurfaceSelector {
-  /* ------------------------------------------------------------------------ */
-  /* Constructor/Destructor                                                   */
-  /* ------------------------------------------------------------------------ */
 public:
   PhysicalSurfaceSelector(Mesh & mesh);
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
 public:
   Array<UInt> & getMasterList() override;
-
   Array<UInt> & getSlaveList() override;
 
-  /* ------------------------------------------------------------------------ */
-  /* Members                                                                  */
-  /* ------------------------------------------------------------------------ */
 protected:
   std::string master;
   std::string slave;
 };
 
 /* -------------------------------------------------------------------------- */
+/**
+ * class that selects contact surface from cohesive elements
+ */
 #if defined(AKANTU_COHESIVE_ELEMENT)
 class CohesiveSurfaceSelector : public SurfaceSelector {
-  /* ------------------------------------------------------------------------ */
-  /* Constructor/Destructor                                                   */
-  /* ------------------------------------------------------------------------ */
 public:
   CohesiveSurfaceSelector(Mesh & mesh);
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
 protected:
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
@@ -122,42 +101,25 @@ protected:
 
 public:
   Array<UInt> & getMasterList() override;
-
   Array<UInt> & getSlaveList() override;
 
-  /* ------------------------------------------------------------------------
-   */
-  /*                                                                          */
-  /* ------------------------------------------------------------------------
-   */
   AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<UInt> &);
   AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<UInt> &);
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Members */
-  /* ------------------------------------------------------------------------
-   */
 protected:
   Mesh & mesh_facets;
-
   Array<UInt> new_nodes_list;
 };
 
-class AllSurfaceSelector : public SurfaceSelector {
-  /* ------------------------------------------------------------------------
-   */
-  /* Constructor/Destructor */
-  /* ------------------------------------------------------------------------
-   */
+/* -------------------------------------------------------------------------- */
+/**
+ * class that selects contact surface from both cohesive elements and
+ * physical names
+ */
+class AllSurfaceSelector : public SurfaceSelector { 
 public:
   AllSurfaceSelector(Mesh & mesh);
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Methods */
-  /* ------------------------------------------------------------------------
-   */
 protected:
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
@@ -170,26 +132,13 @@ public:
 
   Array<UInt> & getSlaveList() override;
 
-  /* ------------------------------------------------------------------------
-   */
-  /*                                                                          */
-  /* ------------------------------------------------------------------------
-   */
   AKANTU_GET_MACRO_NOT_CONST(NewNodesList, new_nodes_list, Array<UInt> &);
   AKANTU_GET_MACRO(NewNodesList, new_nodes_list, const Array<UInt> &);
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Members */
-  /* ------------------------------------------------------------------------
-   */
 protected:
   std::string master;
-
   std::string slave;
-
   Mesh & mesh_facets;
-
   Array<UInt> new_nodes_list;
 };
 

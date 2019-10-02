@@ -1,0 +1,314 @@
+/**
+ * @file   geometry_utils.cc
+ *
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
+ *
+ * @date creation: Mon Mmay 20 2019
+ * @date last modification: Mon May 20 2019
+ *
+ * @brief  Implementation of various utilities needed for contact geometry 
+ *
+ * @section LICENSE
+ *
+ * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ *
+ * Akantu is free  software: you can redistribute it and/or  modify it under the
+ * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ *
+ * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * details.
+ *
+ * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/* -------------------------------------------------------------------------- */
+#include "geometry_utils.hh"
+/* -------------------------------------------------------------------------- */
+
+namespace akantu{
+
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
+			   const Element & element, Vector<Real> & normal) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  UInt surface_dimension = spatial_dimension - 1;
+  
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
+
+  UInt * elem_val = mesh.getConnectivity(element.type, _not_ghost).storage();
+  mesh.extractNodalValuesFromElement(positions, coords.storage(),
+                                     elem_val + element.element * nb_nodes_per_element,
+                                     nb_nodes_per_element, spatial_dimension);
+
+  Matrix<Real> vectors(spatial_dimension, surface_dimension);
+  switch (spatial_dimension) {
+  case 2: {
+    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
+    Math::normal2(vectors.storage(), normal.storage());
+    break;
+  }
+  case 3: {
+    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
+    vectors(1) = Vector<Real>(coords(2)) - Vector<Real>(coords(0));
+    Math::normal3(vectors(0).storage(), vectors(1).storage(), normal.storage());
+    break;
+  }
+  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  }
+
+  // to ensure that normal is always outwards from master surface
+  const auto & element_to_subelement =
+      mesh.getElementToSubelement(element.type)(element.element);
+
+  Vector<Real> outside(spatial_dimension);
+  mesh.getBarycenter(element, outside);
+
+  // check if mesh facets exists for cohesive elements contact
+  Vector<Real> inside(spatial_dimension);
+  if (mesh.isMeshFacets()) {
+    mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
+  } else {
+    mesh.getBarycenter(element_to_subelement[0], inside);
+  }
+
+  Vector<Real> inside_to_outside = outside - inside;
+  auto projection = inside_to_outside.dot(normal);
+
+  if (projection < 0) {
+    normal *= -1.0;
+  }  
+}
+
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positions,
+				   const Element & element, Vector<Real> & natural_coord,
+				   Matrix<Real> & tangents) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
+
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+                                     elem_val + element.element * nb_nodes_per_element,
+                                     nb_nodes_per_element, spatial_dimension);
+
+  UInt surface_dimension = spatial_dimension - 1;
+  Matrix<Real> dnds(surface_dimension, nb_nodes_per_element);
+  
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
+  ElementClass<type>::computeDNDS(natural_coord, dnds)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_DERIVATIVES_NATURAL
+
+  tangents.mul<false, true>(dnds, nodes_coord);
+
+  auto temp_tangents = tangents.transpose();
+  for (UInt i = 0; i < spatial_dimension - 1; ++i) {
+    auto temp = Vector<Real>(temp_tangents(i));
+    temp_tangents(i) = temp.normalize();
+  }
+
+  tangents = temp_tangents.transpose();
+
+  // to ensure that direction of tangents are correct, cross product
+  // of tangents should give the normal vector computed earlier
+  /*switch (spatial_dimension) {
+  case 2: {
+    Vector<Real> e_z(3);
+    e_z[0] = 0.;
+    e_z[1] = 0.;
+    e_z[2] = 1.;
+
+    Vector<Real> tangent(3);
+    tangent[0] = tangents(0, 0);
+    tangent[1] = tangents(0, 1);
+    tangent[2] = 0.;
+
+    auto exp_normal = e_z.crossProduct(tangent);
+
+    auto & cal_normal = element.normal;
+
+    auto ddot = cal_normal.dot(exp_normal);
+    if (ddot < 0) {
+      tangents *= -1.0;
+    }
+
+    break;
+  }
+  case 3: {
+    auto tang_trans = tangents.transpose();
+    auto tang1 = Vector<Real>(tang_trans(0));
+    auto tang2 = Vector<Real>(tang_trans(1));
+
+    auto tang1_cross_tang2 = tang1.crossProduct(tang2);
+    auto exp_normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
+
+    auto & cal_normal = element.normal;
+
+    auto ddot = cal_normal.dot(exp_normal);
+    if (ddot < 0) {
+      tang_trans(1) *= -1.0;
+    }
+
+    tangents = tang_trans.transpose();
+    break;
+  }
+  default:
+    break;
+  }*/
+}
+
+
+/* -------------------------------------------------------------------------- */
+template<DetectionType detection>  
+UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
+					 const Vector<Real> & slave,
+					 const Array<Element> & elements,
+					 Real & gap, Vector<Real> & natural_projection) {
+
+  UInt index = UInt(-1);
+  Real min_gap = std::numeric_limits<Real>::max();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  
+  UInt counter = 0;
+  for (auto & element : elements) {
+    if (!isBoundaryElement(element)) 
+      continue;
+
+    Vector<Real> normal(spatial_dimension);
+    GeometryUtils::normal(mesh, positions, element, normal);
+    
+    Vector<Real> master(spatial_dimension);
+    GeometryUtils::realProjection(mesh, positions, slave, element, normal, master);
+
+    Vector<Real> xi(natural_projection.size());
+    GeometryUtils::naturalProjection(mesh, positions, element, master, xi);
+
+    auto master_to_slave = slave - master;
+    Real temp_gap = master_to_slave.norm();
+    
+    if (temp_gap != 0) 
+      master_to_slave /= temp_gap;
+
+    Real tolerance = 1e-8;
+    auto product = master_to_slave.dot(normal);
+
+    Real variation;
+    switch (detection) {
+    case _explicit: {
+      variation = std::abs(product + 1.0);
+      break;
+    }
+    case _implicit: {
+      variation = std::abs(product - 1.0);
+      break;
+    }
+    default:
+      break;
+    }
+    
+    if (variation <= tolerance and temp_gap <= min_gap and isValidProjection(xi)) {
+      gap     = -temp_gap;
+      min_gap = temp_gap;
+      index   = counter;
+      natural_projection = xi; 
+    }
+    
+    counter++;
+  }
+
+  return index;
+}
+
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positions,
+				   const Vector<Real> & slave, const Element & element,
+				   const Vector<Real> & normal, 
+				   Vector<Real> & projection) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
+
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+                                     elem_val + element.element * nb_nodes_per_element,
+                                     nb_nodes_per_element, spatial_dimension);
+  
+  Vector<Real> point(nodes_coord(0));
+  Real alpha = (slave - point).dot(normal);
+
+  projection = slave - alpha * normal;
+}
+
+
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & positions,
+				      const Element & element,
+				      Vector<Real> & real_projection,
+				      Vector<Real> & natural_projection) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
+
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+                                     elem_val + element.element * nb_nodes_per_element,
+                                     nb_nodes_per_element, spatial_dimension);
+
+#define GET_NATURAL_COORDINATE(type)                                           \
+  ElementClass<type>::inverseMap(real_projection, nodes_coord,                 \
+                                 natural_projection)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
+#undef GET_NATURAL_COORDINATE
+}
+
+
+/* -------------------------------------------------------------------------- */
+bool GeometryUtils::isValidProjection(const Vector<Real> & projection) {
+  
+  UInt nb_xi_inside = 0;
+  Real tolerance = 1e-3;
+
+  for (auto xi : projection) {
+    if (xi >= -1.0 - tolerance and xi <= 1.0 + tolerance)
+      nb_xi_inside++;
+  }
+
+  if (nb_xi_inside == projection.size())
+    return true;
+
+  return false;
+}
+
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::contravariantBasis(const Matrix<Real> & covariant, Matrix<Real> & contravariant) {
+
+  Matrix<Real> A(covariant.rows(), covariant.rows());
+  A.mul<false, true>(covariant, covariant);
+
+  auto inv_A = A.inverse();
+
+  contravariant.mul<false, false>(inv_A, covariant); 
+}
+  
+}

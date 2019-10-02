@@ -8,7 +8,7 @@ material elastic [
 material elastic [
          name = top_body
          rho = 1.0   # density
-         E   = 1.0 # young's modulu
+         E   = 1e5 # young's modulu
          nu  = 0.0   # poisson's ratio
 ]
 
@@ -24,5 +24,4 @@ contact_resolution penalty [
   mu = 0.0
   epsilon_n = 100.0
   epsilon_t = 100
-
 ] 

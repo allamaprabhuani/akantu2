@@ -35,9 +35,10 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeN(Vector<Real> & n, ContactElement & element) {
+void ResolutionUtils::firstVariationNormalGap(ContactElement & element,
+					      Vector<Real> & delta_g) {
 
-  n.clear();
+  delta_g.clear();
   
   const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
@@ -51,15 +52,16 @@ void ResolutionUtils::computeN(Vector<Real> & n, ContactElement & element) {
 #undef GET_SHAPES_NATURAL
 
   for (UInt i : arange(spatial_dimension)) {
-    n[i] = element.normal[i];
+    delta_g[i] = element.normal[i];
     for (UInt j : arange(shapes.size())) {
-      n[(1 + j) * spatial_dimension + i] = -shapes[j] * element.normal[i];
+      delta_g[(1 + j) * spatial_dimension + i] = -shapes[j] * element.normal[i];
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeTalpha(Array<Real> & t_alpha, ContactElement & element) {
+void ResolutionUtils::computeTalpha(ContactElement & element,
+				    Array<Real> & t_alpha) {
 
   t_alpha.clear();
 
@@ -92,7 +94,8 @@ void ResolutionUtils::computeTalpha(Array<Real> & t_alpha, ContactElement & elem
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeNalpha(Array<Real> & n_alpha, ContactElement & element) {
+void ResolutionUtils::computeNalpha(ContactElement & element,
+				    Array<Real> & n_alpha) {
 
   n_alpha.clear();
 
@@ -125,34 +128,45 @@ void ResolutionUtils::computeNalpha(Array<Real> & n_alpha, ContactElement & elem
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
-				    Array<Real> & t_alpha, ContactElement & element) {
+void ResolutionUtils::firstVariationNaturalCoordinate(ContactElement & element,
+						      Array<Real> & delta_xi) {
 
-  d_alpha.clear();
+  delta_xi.clear();
   
   const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
-
+  auto spatial_dimension = surface_dimension + 1;
+  
   Matrix<Real> m_alpha_beta(surface_dimension, surface_dimension);
   ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
   m_alpha_beta = m_alpha_beta.inverse();
+
+  auto nb_nodes_master = Mesh::getNbNodesPerElement(type);
+  auto nb_nodes = nb_nodes_master + 1;
+  
+  Array<Real> t_alpha(nb_nodes * spatial_dimension,
+		      surface_dimension);
+  Array<Real> n_alpha(nb_nodes * spatial_dimension,
+		      surface_dimension);
+  ResolutionUtils::computeTalpha(element, t_alpha);
+  ResolutionUtils::computeNalpha(element, n_alpha);
   
   for (auto && entry :
 	 zip(arange(surface_dimension),
-	     make_view(d_alpha, d_alpha.size()))) {
+	     make_view(delta_xi, delta_xi.size()))) {
 
-    auto & s   = std::get<0>(entry);
-    auto & d_s = std::get<1>(entry);
+    auto & alpha   = std::get<0>(entry);
+    auto & d_alpha = std::get<1>(entry);
 
     for (auto && values :
          zip(arange(surface_dimension),
 	     make_view(t_alpha, t_alpha.size()),
              make_view(n_alpha, n_alpha.size()))) {
-      auto & t   = std::get<0>(values);
-      auto & t_t = std::get<1>(values);
-      auto & n_t = std::get<2>(values);
+      auto & beta   = std::get<0>(values);
+      auto & t_beta = std::get<1>(values);
+      auto & n_beta = std::get<2>(values);
 
-      d_s += (t_t + element.gap * n_t) * m_alpha_beta(s, t);
+      d_alpha += (t_beta + element.gap * n_beta) * m_alpha_beta(alpha, beta);
     }
   }
 }
@@ -240,7 +254,7 @@ void ResolutionUtils::computePalpha(Array<Real> & p_alpha,
 				    ContactElement & element) {
   p_alpha.clear();
 
-  const auto & type = element.master.type;
+  /*const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;
   
@@ -266,7 +280,7 @@ void ResolutionUtils::computePalpha(Array<Real> & p_alpha,
 	p_s[(1 + j) * spatial_dimension + i] = -dnds(j) * normalized_traction[i];
       }
     }
-  }
+  }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -319,7 +333,7 @@ void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array,
   UInt nb_dofs = global_array.getNbComponent();
 
   auto slave_node = conn[0];
-
+ 
   UInt total_nodes = 1;
   if (is_master_deformable) {
     total_nodes = conn.size();

@@ -52,22 +52,24 @@ public:
   static void computeMetricTensor(Matrix<Real> & metric_tensor,
                                   Matrix<Real> & tangents);
 
-  /// computes the N array which is normal times the shape functions
-  /// of contact element
-  static void computeN(Vector<Real> & n_array, ContactElement & element);
+  /// computes the first variation of normal gap
+  static void firstVariationNormalGap(ContactElement & element,
+				      Vector<Real> & delta_g);
 
   /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension
   /// and it is shape derivatives times normal
-  static void computeNalpha(Array<Real> & n_alpha, ContactElement & element);
+  static void computeNalpha(ContactElement & element,
+			    Array<Real> & n_alpha);
 
   /// computes (@f$T_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension and it is shape functions times the tangents
-  static void computeTalpha(Array<Real> & t_alpha, ContactElement & element);
+  static void computeTalpha(ContactElement & element,
+			    Array<Real> & t_alpha);
 
-  /// computes (@f$D_{\alpha}@f$) where @f$\alpha@f$ is surface
+  /// computes (@f$\nabla \xi_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension
-  static void computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha,
-                            Array<Real> & t_alpha, ContactElement & element);
+  static void firstVariationNaturalCoordinate(ContactElement & element,
+					      Array<Real> & delta_xi);
 
   /// computes @f$T_{\alpha\beta} @f$ which is shape derivatives
   /// times the tangents

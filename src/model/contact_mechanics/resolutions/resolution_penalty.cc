@@ -50,45 +50,127 @@ void ResolutionPenalty::initialize() {
   this->registerParam("epsilon_t", epsilon_t, Real(0.),
                       _pat_parsable | _pat_modifiable,
                       "Tangential penalty parameter");
-  this->registerParam("quadratic", quadratic, bool(false),
-                      _pat_parsable | _pat_modifiable, "penalty function");
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeNormalForce(Vector<Real> & force,
-                                           Vector<Real> & n,
-                                           ContactElement & element) {
+void ResolutionPenalty::computeNormalForce(ContactElement & element,
+					   Vector<Real> & force) {
 
   force.clear();
-  Real tn = element.gap * epsilon_n;
+  Real sigma_n = macaulay(element.gap) * epsilon_n;
 
-  if (quadratic) {
-    tn = macaulay(tn) * macaulay(element.gap);
-  } else {
-    tn = macaulay(tn);
-  }
-  for (UInt i : arange(force.size())) {
-    force[i] += n[i] * tn;
+  auto nb_nodes_master = Mesh::getNbNodesPerElement(element.master.type);
+  auto nb_nodes = nb_nodes_master + 1;
+  
+  Vector<Real> delta_gap(nb_nodes * spatial_dimension);
+  ResolutionUtils::firstVariationNormalGap(element, delta_gap);
+  
+  for (UInt i : arange(force.size())) 
+    force[i] += delta_gap[i] * sigma_n;
+  
+}
+
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::computeTangentialForce(ContactElement & element,
+					       Vector<Real> & force) {
+
+  if (mu == 0) 
+    return;
+
+  UInt surface_dimension = spatial_dimension - 1; 
+
+  Vector<Real> traction_trial(spatial_dimension);
+  Vector<Real> traction_tangential(spatial_dimension);
+  computeTrialTangentialTraction(element, traction_trial);
+
+  Real sigma_n = epsilon_n * macaulay(element.gap);
+
+  bool stick = (traction_trial.norm() <= mu * sigma_n) ? true : false;
+  if (stick) 
+    computeStickTangentialTraction(element, traction_trial, traction_tangential);
+  else 
+    computeSlipTangentialTraction(element, traction_trial, traction_tangential);
+  
+  auto nb_nodes_master = Mesh::getNbNodesPerElement(element.master.type);
+  auto nb_nodes = nb_nodes_master + 1;
+
+  Array<Real> delta_xi(nb_nodes * spatial_dimension, surface_dimension);
+  ResolutionUtils::firstVariationNaturalCoordinate(element, delta_xi);
+  
+  for (auto && values : zip(traction_tangential,
+			    make_view(delta_xi, delta_xi.size()))) {
+    auto & t_alpha = std::get<0>(values);
+    auto & d_alpha = std::get<1>(values);
+    force += d_alpha * t_alpha;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeFrictionalForce(Vector<Real> & force,
-                                               Array<Real> & d_alpha,
-                                               ContactElement & element) {
+void ResolutionPenalty::computeTrialTangentialTraction(ContactElement & element,
+						       Vector<Real> & traction) {
 
-  Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
-  ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
-  computeFrictionalTraction(m_alpha_beta, element);
+  UInt spatial_dimension = model.getMesh().getSpatialDimension();
+  UInt surface_dimension = spatial_dimension - 1;
+  
+  Matrix<Real> covariant_basis(surface_dimension, spatial_dimension);
+  GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
+				element.master, element.projection, covariant_basis);
 
-  auto & traction = element.traction;
-  for (auto && values : zip(traction, make_view(d_alpha, d_alpha.size()))) {
-    auto & t_s = std::get<0>(values);
-    auto & d_s = std::get<1>(values);
-    force += d_s * t_s;
+  Matrix<Real> contravariant_basis(surface_dimension, spatial_dimension);
+  GeometryUtils::contravariantBasis(covariant_basis, contravariant_basis);
+
+  auto & contravariant_projection = element.projection;
+  auto & covariant_stick = element.stick_projection;
+
+  Vector<Real> covariant_projection(surface_dimension);
+  for (auto && values : zip(covariant_projection,
+			    contravariant_projection,
+			    contravariant_basis.transpose())) {
+    auto & temp = std::get<0>(values);
+    Vector<Real> contravariant(std::get<2>(values));
+
+    temp = contravariant.dot(contravariant);
+    temp *= std::get<1>(values);
   }
+
+  auto covariant_slip = covariant_projection - covariant_stick;
+  Matrix<Real> mat_traction(spatial_dimension, 1);
+  //mat_traction.mul<true, false>(contravariant_basis, covariant_slip, epsilon_t);
+
+  traction = Vector<Real>(mat_traction[0]);
 }
 
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::computeStickTangentialTraction(ContactElement & element,
+						       Vector<Real> & traction_trial,
+						       Vector<Real> & traction_tangential) {
+  traction_tangential = traction_trial;
+}
+  
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::computeSlipTangentialTraction(ContactElement & element,
+						      Vector<Real> & traction_trial,
+						      Vector<Real> & traction_tangential) {
+  
+  auto slip_vector = traction_trial;
+  slip_vector /= slip_vector.norm();
+
+  Real sigma_n = epsilon_n * macaulay(element.gap);
+  traction_tangential = slip_vector;
+  traction_tangential *= sigma_n;
+  
+  auto slip = macaulay(traction_trial.norm() - mu * sigma_n);
+  slip /= epsilon_t;
+
+  // slip needs to be multiplied with nodal area
+  
+  //Vector<Real> slip_covariant;
+  //GeometryUtils::toCovariantBasis(slip_vector, slip_covariant);
+  
+  //element.stick_point += slip * slip_covariant;
+}
+  
+  
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalModuli(Matrix<Real> & ke,
                                             Array<Real> & n_alpha,
@@ -177,33 +259,6 @@ void ResolutionPenalty::computeFrictionalModuli(
     k_t = computeStickModuli(g_alpha, d_alpha, m_alpha_beta);
   else
     k_t = computeSlipModuli(g_alpha, d_alpha, m_alpha_beta, element);*/
-}
-
-/* -------------------------------------------------------------------------- */
-bool ResolutionPenalty::computeFrictionalTraction(Matrix<Real> & m_alpha_beta,
-                                                  ContactElement & element) {
-
-  Real tn = element.gap * epsilon_n;
-  tn = macaulay(tn);
-
-  auto delta_xi = element.projection - element.previous_projection;
-
-  Vector<Real> trial_traction(delta_xi.size());
-
-  trial_traction.mul<false>(m_alpha_beta, delta_xi, epsilon_n);
-  trial_traction += element.traction;
-
-  auto trial_slip_function = trial_traction.norm() - mu * tn;
-
-  bool stick = false;
-  if (trial_slip_function <= 0) {
-    element.traction = trial_traction;
-    stick = true;
-  } else {
-    element.traction = mu * tn * trial_traction / trial_traction.norm();
-  }
-
-  return stick;
 }
 
 /* -------------------------------------------------------------------------- */

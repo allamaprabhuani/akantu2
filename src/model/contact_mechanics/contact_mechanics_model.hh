@@ -230,7 +230,13 @@ public:
 
   /// get the ContactMechanicsModel::external_force vector (external forces)
   AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
-  
+
+  /// get the ContactMechanics::normal_force vector (normal forces)
+  AKANTU_GET_MACRO(NormalForce, *normal_force, Array<Real> &);
+
+  /// get the ContactMechanics::tangential_force vector (friction forces)
+  AKANTU_GET_MACRO(TangentialForce, *tangential_force, Array<Real> &);
+
   /// get the ContactMechanicsModel::force vector (external forces)
   Array<Real> & getForce() {
     AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "
@@ -250,6 +256,10 @@ public:
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
+  /// get the ContactMechanics::stick_or_slip vector (slip/stick
+  /// state)
+  AKANTU_GET_MACRO(StickSlip, *stick_or_slip, Array<Real> &);
+  
   /// get contact detector
   AKANTU_GET_MACRO_NOT_CONST(ContactDetector, *detector, ContactDetector &);
 
@@ -261,6 +271,10 @@ public:
   ///
   inline void setPositions(Array<Real> positions) {
     detector->setPositions(positions);
+  }
+
+  inline Array<Real> & getPositions() {
+    return detector->getPositions();
   }
 
   /* ------------------------------------------------------------------------ */
@@ -282,15 +296,18 @@ private:
   /// external forces array
   Array<Real> * external_force{nullptr};
 
+  /// normal force array
+  Array<Real> * normal_force{nullptr};
+
+  /// friction force array
+  Array<Real> * tangential_force{nullptr};
+
   /// boundary vector
   Array<Real> * blocked_dofs{nullptr};
 
   /// array to store gap between slave and master
   Array<Real> * gaps{nullptr};
-
-  /// array to store gap from previous iteration
-  Array<Real> * previous_gaps{nullptr};
-
+ 
   /// array to store normals from master to slave
   Array<Real> * normals{nullptr};
 
@@ -300,6 +317,14 @@ private:
   /// array to store nodal areas
   Array<Real> * nodal_area{nullptr};
 
+  /// array to store stick/slip state :
+  Array<Real> * stick_or_slip{nullptr};
+
+  /// array to store stick point projection in covariant basis
+  Array<Real> * stick_point{nullptr};
+
+  Array<Real> * projections{nullptr};
+  
   /// contact detection
   std::unique_ptr<ContactDetector> detector;
 
@@ -311,6 +336,7 @@ private:
 
   /// mapping between slave node its respective contact element
   std::map<UInt, ContactElement> contact_map;
+
 };
 
 } // namespace akantu

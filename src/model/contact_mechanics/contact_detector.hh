@@ -41,6 +41,7 @@
 #include "mesh_io.hh"
 #include "parsable.hh"
 #include "surface_selector.hh"
+#include "geometry_utils.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_CONTACT_DETECTOR_HH__
@@ -74,6 +75,10 @@ public:
   /// performs all search steps
   void search(std::map<UInt, ContactElement> &);
 
+  void search(std::map<UInt, ContactElement> & contact_map,
+	      Array<Real> & gaps, Array<Real> & normals,
+	      Array<Real> & tangents, Array<Real> & projections);
+  
   /// performs global spatial search to construct spatial grids
   void globalSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
 
@@ -83,6 +88,11 @@ public:
   /// constructs contact map for a given pair of slave and master node
   void constructContactMap(std::map<UInt, ContactElement> &);
 
+  /// create contact elements
+  void createContactElements(std::map<UInt, ContactElement> & elements,
+			     Array<Real> & gaps, Array<Real> & normals,
+			     Array<Real> & tangents, Array<Real> & projections);
+  
 private:
   /// reads the input file to get contact detection options
   void parseSection();
@@ -149,12 +159,15 @@ public:
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
-  inline bool checkValidityOfSelfContact(const UInt &, const ContactElement &);
+  inline bool checkValidityOfSelfContact(const UInt &, ContactElement &);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
+  /// get the mesh
+  AKANTU_GET_MACRO(Mesh, mesh, Mesh &)
+
   /// returns the maximum detection distance
   AKANTU_GET_MACRO(MaximumDetectionDistance, max_dd, Real);
   AKANTU_SET_MACRO(MaximumDetectionDistance, max_dd, Real);

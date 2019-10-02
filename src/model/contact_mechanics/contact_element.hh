@@ -52,8 +52,8 @@ public:
 
   ContactElement() = default;
 
-  ContactElement(MasterType master)
-    : master(master) {}
+  ContactElement(SlaveType & slave, MasterType & master)
+    : slave(slave), master(master) {}
   
   ~ContactElement() = default;
 
@@ -83,12 +83,6 @@ public:
   /// gets the value of natural projection
   AKANTU_GET_MACRO(Projection, projection, Vector<Real>);
   
-  /// sets the value of traction
-  AKANTU_SET_MACRO(Traction, traction, Vector<Real>);
-
-  /// gets the value of traction
-  AKANTU_GET_MACRO(Traction, traction, Vector<Real>);
-
   /// sets the value of real projection
   AKANTU_SET_MACRO(PreviousProjection, previous_projection, Vector<Real>);
   
@@ -117,7 +111,10 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */ 
-public:   
+public:
+  /// slave node
+  SlaveType slave;
+  
   /// master element/node
   MasterType master;
 
@@ -127,6 +124,9 @@ public:
   ///
   Vector<Real> previous_projection;
 
+  ///
+  Vector<Real> stick_projection;
+  
   /// normalized normal direction
   Vector<Real> normal;
 
@@ -144,9 +144,6 @@ public:
 
   /// an array of master nodes/elements around slave node
   Array<MasterType> patch;
-
-  ///
-  Vector<Real> traction;
 };
 
 } // akantu

@@ -426,6 +426,8 @@ CouplerSolidContact::createNodalFieldReal(const std::string & field_name,
                                           bool padding_flag) {
 
   if (field_name == "contact_force" or field_name == "normals" or
+      field_name == "normal_force" or field_name == "tangential_force" or
+      field_name == "stick_or_slip" or
       field_name == "gaps" or field_name == "previous_gaps" or
       field_name == "areas" or field_name == "tangents") {
     return contact->createNodalFieldReal(field_name, group_name, padding_flag);

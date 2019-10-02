@@ -1,0 +1,6 @@
+contact_detector [
+  type = explicit
+  slave = contact_bottom
+  master = contact_top
+  two_pass_algorithm = false
+]

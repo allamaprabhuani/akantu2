@@ -75,7 +75,7 @@ protected:
 				 Matrix<Real> &, ContactElement &);
 
   /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
+  /* Methods for stiffness computation                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli due to normal traction
@@ -87,15 +87,26 @@ public:
 			       Array<Real>  & , Array<Real>  & , Matrix<Real> &,
 			       Vector<Real> &, ContactElement & ) override;
 
-  /// local computation of internal force due to normal traction
-  void computeNormalForce(Vector<Real> &, Vector<Real> &,  ContactElement & ) override;
+  /* ------------------------------------------------------------------------ */
+  /* Methods for force computation                                            */
+  /* ------------------------------------------------------------------------ */
+public:
+  /// local computation of normal force due to normal contact
+  void computeNormalForce(ContactElement &, Vector<Real> &) override;
   
-  /// local computation of internal force due to frictional traction 
-  void computeFrictionalForce(Vector<Real> &, Array<Real>  &, ContactElement &) override;
+  /// local computation of tangential force due to frictional traction 
+  void computeTangentialForce(ContactElement &, Vector<Real> &) override;
 
-  /// computes the frictinal traction using return map algorithm
-  bool computeFrictionalTraction(Matrix<Real> &, ContactElement &) override;
+protected:
+  /// local computation of trial tangential traction due to friction
+  void computeTrialTangentialTraction(ContactElement &, Vector<Real> &) override;
 
+  /// local computation of tangential traction due to stick 
+  void computeStickTangentialTraction(ContactElement &, Vector<Real> &, Vector<Real> &) override;
+
+  /// local computation of tangential traction due to slip
+  void computeSlipTangentialTraction(ContactElement &, Vector<Real> &, Vector<Real> &) override;
+  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -105,10 +116,6 @@ protected:
 
   /// penalty parameter for tangential stress
   Real epsilon_t;
-
-  /// penalty fucntion
-  bool quadratic;
-  
 };
   
 

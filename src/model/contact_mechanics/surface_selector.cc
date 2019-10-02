@@ -39,7 +39,11 @@ namespace akantu {
 SurfaceSelector::SurfaceSelector(Mesh & mesh)
     : Parsable(ParserType::_contact_detector), mesh(mesh) {}
 
+
 /* -------------------------------------------------------------------------- */
+/**
+ * class that selects contact surface from physical names 
+ */
 PhysicalSurfaceSelector::PhysicalSurfaceSelector(Mesh & mesh)
     : SurfaceSelector(mesh) {
 
@@ -47,11 +51,13 @@ PhysicalSurfaceSelector::PhysicalSurfaceSelector(Mesh & mesh)
 
   const ParserSection & section =
       *(parser.getSubSections(ParserType::_contact_detector).first);
-
+  
   master = section.getParameterValue<std::string>("master");
   slave = section.getParameterValue<std::string>("slave");
 
-  auto & group = mesh.createElementGroup("contact_surface");
+  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  auto & group = mesh.createElementGroup("contact_surface",
+					 surface_dimension);
   group.append(mesh.getElementGroup(master));
   group.append(mesh.getElementGroup(slave));
 
@@ -68,6 +74,11 @@ Array<UInt> & PhysicalSurfaceSelector::getSlaveList() {
   return mesh.getElementGroup(slave).getNodeGroup().getNodes();
 }
 
+
+/* -------------------------------------------------------------------------- */
+/**
+ * class that selects contact surface from cohesive elements
+ */
 #if defined(AKANTU_COHESIVE_ELEMENT)
 /* -------------------------------------------------------------------------- */
 CohesiveSurfaceSelector::CohesiveSurfaceSelector(Mesh & mesh)
@@ -98,8 +109,9 @@ void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
 
   mesh_facets.fillNodesToElements(mesh.getSpatialDimension() - 1);
 
-  auto & group =
-      mesh_facets.createElementGroup("contact_surface", _all_dimensions, true);
+  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  auto & group = mesh_facets.createElementGroup("contact_surface",
+						surface_dimension, true);
 
   for (auto node : new_nodes_list) {
     Array<Element> all_elements;
@@ -152,6 +164,10 @@ Array<UInt> & CohesiveSurfaceSelector::getSlaveList() {
 }
 
 /* -------------------------------------------------------------------------- */
+/**
+ * class that selects contact surface from both cohesive elements and
+ * physical names
+ */
 AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
     : SurfaceSelector(mesh), mesh_facets(mesh.getMeshFacets()) {
   this->mesh.registerEventHandler(*this, _ehp_lowest);
@@ -164,7 +180,9 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
   master = section.getParameterValue<std::string>("master");
   slave = section.getParameterValue<std::string>("slave");
 
-  auto & group = mesh_facets.createElementGroup("contact_surface");
+  UInt surface_dimension = this->mesh.getSpatialDimension() - 1;
+  auto & group = mesh_facets.createElementGroup("contact_surface",
+						surface_dimension);
   group.append(mesh_facets.getElementGroup(master));
   group.append(mesh_facets.getElementGroup(slave));
 
@@ -248,13 +266,11 @@ void AllSurfaceSelector::filterBoundaryElements(
 /* -------------------------------------------------------------------------- */
 Array<UInt> & AllSurfaceSelector::getMasterList() {
   return this->getNewNodesList();
-  //return mesh_facets.getElementGroup(master).getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
 Array<UInt> & AllSurfaceSelector::getSlaveList() {
   return this->getNewNodesList();
-  //return mesh_facets.getElementGroup(slave).getNodeGroup().getNodes();
 }
 
 #endif

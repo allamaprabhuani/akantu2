@@ -202,14 +202,20 @@ void ContactMechanicsModel::initSolver(
                         "internal_force");
   this->allocNodalField(this->external_force, spatial_dimension,
                         "external_force");
- 
+  this->allocNodalField(this->normal_force, spatial_dimension,
+			"normal_force");
+  this->allocNodalField(this->tangential_force, spatial_dimension,
+			"tangential_force");
+  
   this->allocNodalField(this->gaps, 1, "gaps");
-  this->allocNodalField(this->previous_gaps, 1, "previous_gaps");
   this->allocNodalField(this->nodal_area, 1, "areas");
   this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
 
+  this->allocNodalField(this->stick_or_slip, 1, "stick_or_slip");
+  
   this->allocNodalField(this->normals, spatial_dimension, "normals");
   this->allocNodalField(this->tangents, spatial_dimension, "tangents");
+  this->allocNodalField(this->projections, spatial_dimension - 1, "projections");
 
   // todo register multipliers as dofs for lagrange multipliers
 }
@@ -315,7 +321,10 @@ void ContactMechanicsModel::assembleInternalForces() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
 
-  this->detector->search(this->contact_map);
+  this->detector->search(contact_map, *gaps,
+			 *normals, *tangents, *projections);
+  
+  /*this->detector->search(this->contact_map);
 
   for (auto & entry : contact_map) {
     auto & element = entry.second;
@@ -328,7 +337,7 @@ void ContactMechanicsModel::search() {
 
   this->assembleFieldsFromContactMap();
 
-  this->computeNodalAreas();
+  this->computeNodalAreas();*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -376,7 +385,6 @@ void ContactMechanicsModel::assembleFieldsFromContactMap() {
 
   UInt nb_nodes = mesh.getNbNodes();
 
-  this->previous_gaps->copy(*(this->gaps));
   this->gaps->clear();
 
   gaps->resize(nb_nodes, 0.);
@@ -517,13 +525,15 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                             bool padding_flag) {
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
-  real_nodal_fields["contact_force"] = this->internal_force;
-  real_nodal_fields["blocked_dofs"] = this->blocked_dofs;
-  real_nodal_fields["normals"] = this->normals;
-  real_nodal_fields["tangents"] = this->tangents;
-  real_nodal_fields["gaps"] = this->gaps;
-  real_nodal_fields["previous_gaps"] = this->previous_gaps;
-  real_nodal_fields["areas"] = this->nodal_area;
+  real_nodal_fields["contact_force"]    = this->internal_force;
+  real_nodal_fields["normal_force"]     = this->normal_force;
+  real_nodal_fields["tangential_force"] = this->tangential_force;
+  real_nodal_fields["blocked_dofs"]     = this->blocked_dofs;
+  real_nodal_fields["normals"]          = this->normals;
+  real_nodal_fields["tangents"]         = this->tangents;
+  real_nodal_fields["gaps"]             = this->gaps;
+  real_nodal_fields["areas"]            = this->nodal_area;
+  real_nodal_fields["stick_or_slip"]    = this->stick_or_slip;
 
   if (padding_flag) {
     return this->mesh.createNodalField(real_nodal_fields[field_name],

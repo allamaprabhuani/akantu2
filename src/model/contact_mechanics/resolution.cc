@@ -91,9 +91,7 @@ void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
 void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
   AKANTU_DEBUG_IN();
 
-  auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
-  auto & nodal_area     = const_cast<Array<Real> &>(model.getNodalArea());
-  auto & contact_map    = model.getContactMap();
+  auto & contact_map = model.getContactMap();
     
   for (auto & slave : slave_nodes) {
 
@@ -102,36 +100,56 @@ void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
 
     auto & element    = contact_map[slave];
     const auto & conn = element.connectivity;
+       
+    Vector<Real> f_n(conn.size() * spatial_dimension);
+    computeNormalForce(element, f_n);
 
-    Vector<Real> contact_force(conn.size() * spatial_dimension);
-    Vector<Real> n(conn.size() * spatial_dimension);
+    Vector<Real> f_t(conn.size() * spatial_dimension);
+    computeTangentialForce(element, f_t);
+ 
+    Vector<Real> f_c(conn.size() * spatial_dimension);
+    f_c = f_n + f_t;
 
-    ResolutionUtils::computeN(n, element);
-    computeNormalForce(contact_force, n, element);
-
-    if (mu != 0) {
-
-      Array<Real> t_alpha(conn.size() * spatial_dimension,
-                          spatial_dimension - 1);
-      Array<Real> n_alpha(conn.size() * spatial_dimension,
-                          spatial_dimension - 1);
-      Array<Real> d_alpha(conn.size() * spatial_dimension,
-                          spatial_dimension - 1);
-
-      ResolutionUtils::computeTalpha(t_alpha, element);
-      ResolutionUtils::computeNalpha(n_alpha, element);
-      ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
-
-      computeFrictionalForce(contact_force, d_alpha, element);
-    }
-
-    ResolutionUtils::assembleToInternalForce(contact_force, internal_force,
-                                             nodal_area, element, is_master_deformable);
+    assembleLocalToGlobalArray(slave, element, f_n, model.getNormalForce());
+    assembleLocalToGlobalArray(slave, element, f_t, model.getTangentialForce());
+    assembleLocalToGlobalArray(slave, element, f_c, model.getInternalForce());
   }
 
   AKANTU_DEBUG_OUT();
 }
 
+/* -------------------------------------------------------------------------- */
+void Resolution::assembleLocalToGlobalArray(const UInt & slave, const ContactElement & element,
+					    Vector<Real> & local, Array<Real> & global) {
+
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn =
+    const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
+    Vector<UInt> elem_conn(master_conn.size() + 1);
+
+    elem_conn[0] = slave;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i - 1];
+    }
+
+    return elem_conn;
+  };
+
+  auto connectivity = get_connectivity(slave, element.master);
+  
+  UInt nb_dofs  = global.getNbComponent();
+  UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
+
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  for (UInt i : arange(nb_nodes)) { 
+    UInt n = connectivity[i];
+    for (UInt j : arange(nb_dofs)) {
+      UInt offset_node = n * nb_dofs + j;
+      global[offset_node] += local[i * nb_dofs + j] * nodal_area[slave];
+    }
+  }
+}
+  
 /* -------------------------------------------------------------------------- */
 void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
@@ -163,22 +181,22 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
     // normal tangent moduli
     Vector<Real> n(conn.size() * spatial_dimension);
-    ResolutionUtils::computeN(n, element);
+    ResolutionUtils::firstVariationNormalGap(element, n);
     
     Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    ResolutionUtils::computeTalpha(t_alpha, element);
+    ResolutionUtils::computeTalpha(element, t_alpha);
     
     Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
-    ResolutionUtils::computeNalpha(n_alpha, element);
+    ResolutionUtils::computeNalpha(element, n_alpha);
     
     Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);      
-    ResolutionUtils::computeDalpha(d_alpha, n_alpha, t_alpha, element);
+    ResolutionUtils::firstVariationNaturalCoordinate(element, d_alpha);
 
     computeNormalModuli(kc, n_alpha, d_alpha, n, element);
 
     // frictional tangent moduli
     if (mu != 0) {
-      Array<Real> t_alpha_beta(conn.size() * spatial_dimension,
+      /*Array<Real> t_alpha_beta(conn.size() * spatial_dimension,
                                (spatial_dimension - 1) * (spatial_dimension - 1));
       ResolutionUtils::computeTalphabeta(t_alpha_beta, element);
       
@@ -195,7 +213,7 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
       auto phi = computeNablaOfDisplacement(element);
 
       computeFrictionalModuli(kc, t_alpha_beta, n_alpha_beta, n_alpha, d_alpha,
-                              phi, n, element);
+      phi, n, element);*/
     }
 
     std::vector<UInt> equations;
