@@ -36,12 +36,12 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SurfaceSelector::SurfaceSelector(const Model & model)
-    : Parsable(ParserType::_contact_detector), mesh(model.getMesh()) {}
+SurfaceSelector::SurfaceSelector(Mesh & mesh)
+    : Parsable(ParserType::_contact_detector), mesh(mesh) {}
 
 /* -------------------------------------------------------------------------- */
-PhysicalSurfaceSelector::PhysicalSurfaceSelector(const Model & model)
-    : SurfaceSelector(model) {
+PhysicalSurfaceSelector::PhysicalSurfaceSelector(Mesh & mesh)
+    : SurfaceSelector(mesh) {
 
   const Parser & parser = getStaticParser();
 
@@ -70,8 +70,8 @@ Array<UInt> & PhysicalSurfaceSelector::getSlaveList() {
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
 /* -------------------------------------------------------------------------- */
-CohesiveSurfaceSelector::CohesiveSurfaceSelector(const Model & model)
-    : SurfaceSelector(model), mesh_facets(model.getMesh().getMeshFacets()) {
+CohesiveSurfaceSelector::CohesiveSurfaceSelector(Mesh & mesh)
+    : SurfaceSelector(mesh), mesh_facets(mesh.getMeshFacets()) {
   this->mesh.registerEventHandler(*this, _ehp_lowest);
 }
 
@@ -119,8 +119,7 @@ void CohesiveSurfaceSelector::filterBoundaryElements(
     Array<Element> & elements, Array<Element> & boundary_elements) {
 
   for (auto elem : elements) {
-
-    // to ensure that normal is always outwards from master surface
+    
     const auto & element_to_subelement =
         mesh_facets.getElementToSubelement(elem.type)(elem.element);
 
@@ -153,8 +152,8 @@ Array<UInt> & CohesiveSurfaceSelector::getSlaveList() {
 }
 
 /* -------------------------------------------------------------------------- */
-AllSurfaceSelector::AllSurfaceSelector(const Model & model)
-    : SurfaceSelector(model), mesh_facets(model.getMesh().getMeshFacets()) {
+AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
+    : SurfaceSelector(mesh), mesh_facets(mesh.getMeshFacets()) {
   this->mesh.registerEventHandler(*this, _ehp_lowest);
 
   const Parser & parser = getStaticParser();

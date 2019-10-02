@@ -95,6 +95,10 @@ private:
   void computeTangentsOnElement(const Element &, Vector<Real> &,
                                 Matrix<Real> &);
 
+  /// computes tangents on a given natural coordinate
+  void computeTangentsOnElement(const Element &, Vector<Real> &,
+				Vector<Real> &, Matrix<Real> &);
+  
   /// computes projection of a query point on an element
   void computeProjectionOnElement(const Element &, const Vector<Real> &,
                                   const Vector<Real> &, Vector<Real> &,
@@ -123,12 +127,6 @@ public:
   /// constructs the bounding box based on nodes list
   inline void constructBoundingBox(BBox &, const Array<UInt> &);
 
-  /// get the surface id
-  template <Surface id> inline std::string getSurfaceId();
-
-  /// set the surface id
-  template <Surface id> inline void setSurfaceId(const std::string);
-
   /// computes the maximum in radius for a given mesh
   inline void computeMaximalDetectionDistance();
 
@@ -143,7 +141,7 @@ public:
 
   /// computes the gap between slave and its projection on master
   /// surface
-  inline Real computeGap(Vector<Real> &, Vector<Real> &, Vector<Real> &);
+  inline Real computeGap(Vector<Real> &, Vector<Real> &);
 
   /// filter boundary elements
   inline void filterBoundaryElements(Array<Element> & elements,
@@ -152,11 +150,6 @@ public:
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
   inline bool checkValidityOfSelfContact(const UInt &, const ContactElement &);
-
-  /// get the valid contact element index from a potential patch of
-  /// contact elements
-  inline UInt getElementIndex(Array<Real> & gaps, Array<Real> & projections,
-			      Array<Real> & normals);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -170,6 +163,10 @@ public:
   AKANTU_GET_MACRO(MaximumBoundingBox, max_bb, Real);
   AKANTU_SET_MACRO(MaximumBoundingBox, max_bb, Real);
 
+  /// returns the minimum detection distance
+  AKANTU_GET_MACRO(MinimumDetectionDistance, min_dd, Real);
+  AKANTU_SET_MACRO(MinimumDetectionDistance, min_dd, Real);
+  
   AKANTU_GET_MACRO_NOT_CONST(Positions, positions, Array<Real> &);
   AKANTU_SET_MACRO(Positions, positions, Array<Real>);
 
@@ -181,10 +178,6 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-  /// map to contain ids for surfaces
-  std::map<Surface, std::string> surfaces;
-
 private:
   /// maximal detection distance for grid spacing
   Real max_dd;
@@ -212,9 +205,6 @@ private:
 
   /// type of detection explicit/implicit
   DetectionType detection_type;
-
-  ///
-  bool two_pass_algorithm;
 };
 
 } // namespace akantu

@@ -90,8 +90,7 @@ public:
   static void assembleToInternalForce(Vector<Real> & local_array,
                                       Array<Real> & global_array,
                                       Array<Real> & nodal_area,
-                                      ContactElement & element,
-                                      Array<Real> & frequency);
+                                      ContactElement & element, bool is_master_deformable);
 
   static void assembleToStiffnessMatrix(Matrix<Real> & local_matrix,
                                         Matrix<Real> & global_matrix,

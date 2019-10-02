@@ -16,7 +16,7 @@ int main(int argc, char * argv[]) {
 
   ContactMechanicsModel model(mesh);
 
-  PhysicalSurfaceSelector selector(model);
+  PhysicalSurfaceSelector selector(mesh);
   auto & slave = selector.getSlaveList();
   auto & master = selector.getMasterList();
   

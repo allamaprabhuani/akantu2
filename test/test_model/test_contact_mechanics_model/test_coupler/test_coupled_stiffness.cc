@@ -34,6 +34,7 @@
 #include "coupler_solid_contact.hh"
 #include "non_linear_solver.hh"
 #include "sparse_matrix.hh"
+#include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -41,7 +42,8 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 int main(int argc, char *argv[]) {
 
-  
+  Real max_displacement = 0.01;
+
   const UInt spatial_dimension = 2;
   initialize("material_stiffness.dat", argc, argv);
 
@@ -53,22 +55,28 @@ int main(int argc, char *argv[]) {
   auto & solid   = coupler.getSolidMechanicsModel();
   auto & contact = coupler.getContactMechanicsModel();
 
+  auto && selector = std::make_shared<MeshDataMaterialSelector<std::string>>(
+      "physical_names", solid);
+  solid.setMaterialSelector(selector);
+  
   solid.initFull(  _analysis_method = _static);
   contact.initFull(_analysis_method = _implicit_contact);
 
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top_body");
-  solid.applyBC(BC::Dirichlet::IncrementValue(-0.001, _y), "top_body");
-
+  auto &&surface_selector = std::make_shared<PhysicalSurfaceSelector>(mesh);
+  contact.getContactDetector().setSurfaceSelector(surface_selector);
+  
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
   
+  solid.applyBC(BC::Dirichlet::IncrementValue(-max_displacement, _y), "top");
+  
   coupler.initFull(_analysis_method = _implicit_contact);
 
-  auto & solver = coupler.getNonLinearSolver();
-  solver.set("max_iterations", 1);
-  solver.set("threshold", 1e-1);
-  solver.set("convergence_type", _scc_solution);
-  
+  auto &solver = coupler.getNonLinearSolver();
+  solver.set("max_iterations", 1000);
+  solver.set("threshold", 1e-2);
+  solver.set("convergence_type", SolveConvergenceCriteria::_residual);
+ 
   coupler.setBaseName("test-coupled-stiffness");
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("normals");

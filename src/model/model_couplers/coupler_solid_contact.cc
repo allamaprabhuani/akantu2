@@ -173,8 +173,7 @@ void CouplerSolidContact::assembleResidual() {
   auto & contact_map = contact->getContactMap();
 
   switch (method) {
-  case _explicit_dynamic_contact:
-  case _explicit_contact: {
+  case _explicit_dynamic_contact: {
     for (auto & pair : contact_map) {
       auto & connectivity = pair.second.connectivity;
       for (auto node : connectivity) {
@@ -192,6 +191,7 @@ void CouplerSolidContact::assembleResidual() {
   this->getDOFManager().assembleToResidual("displacement", external_force, 1);
   this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
   switch (method) {
+  case _explicit_contact:
   case _implicit_contact: {
     this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
     break;
@@ -212,8 +212,7 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   auto & contact_map = contact->getContactMap();
 
   switch (method) {
-  case _explicit_dynamic_contact:
-  case _explicit_contact: {
+  case _explicit_dynamic_contact: {
     for (auto & pair : contact_map) {
       auto & connectivity = pair.second.connectivity;
       for (auto node : connectivity) {
@@ -236,9 +235,10 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   if ("internal" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
     switch (method) {
+    case _explicit_contact:
     case _implicit_contact: {
       this->getDOFManager().assembleToResidual("displacement", contact_force,
-                                               1);
+                                                1);
       break;
     }
     default:
@@ -265,13 +265,10 @@ void CouplerSolidContact::afterSolveStep() {}
 void CouplerSolidContact::predictor() {
 
   switch (method) {
+  case _implicit_contact:
   case _explicit_dynamic_contact: {
     Array<Real> displacement(0, Model::spatial_dimension);
-
-    /*Array<Real> current_positions(0, Model::spatial_dimension);
-    auto positions = mesh.getNodes();
-    current_positions.copy(positions);*/
-
+    
     auto & current_positions = contact->getContactDetector().getPositions();
     current_positions.copy(mesh.getNodes());
     
@@ -285,11 +282,10 @@ void CouplerSolidContact::predictor() {
       const auto & bld = std::get<1>(tuple);
       auto & cp = std::get<2>(tuple);
 
-      if (not bld)
-        cp += u;
+      //if (not bld)
+      cp += u;
     }
 
-    //contact->setPositions(current_positions);
     contact->search();
     break;
   }
@@ -300,35 +296,29 @@ void CouplerSolidContact::predictor() {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::corrector() {
-
+  
   switch (method) {
-  case _implicit_contact:
   case _explicit_contact: {
     Array<Real> displacement(0, Model::spatial_dimension);
-
-    Array<Real> current_positions(0, Model::spatial_dimension);
-    auto positions = mesh.getNodes();
-    current_positions.copy(positions);
-
+    
+    auto & current_positions = contact->getContactDetector().getPositions();
+    current_positions.copy(mesh.getNodes());
+    
     auto us = this->getDOFManager().getDOFs("displacement");
-    const auto deltas = this->getDOFManager().getSolution("displacement");
     const auto blocked_dofs =
         this->getDOFManager().getBlockedDOFs("displacement");
 
-    for (auto && tuple : zip(make_view(us), deltas, make_view(blocked_dofs),
+    for (auto && tuple : zip(make_view(us), make_view(blocked_dofs),
                              make_view(current_positions))) {
       auto & u = std::get<0>(tuple);
-      const auto & delta = std::get<1>(tuple);
-      const auto & bld = std::get<2>(tuple);
-      auto & cp = std::get<3>(tuple);
+      const auto & bld = std::get<1>(tuple);
+      auto & cp = std::get<2>(tuple);
 
-      if (not bld)
-        cp += u + delta;
+      //if (not bld)
+      cp += u;
     }
 
-    contact->setPositions(current_positions);
     contact->search();
-
     break;
   }
   default:
@@ -385,6 +375,7 @@ void CouplerSolidContact::assembleStiffnessMatrix() {
   solid->assembleStiffnessMatrix();
 
   switch (method) {
+  case _explicit_contact:  
   case _implicit_contact: {
     contact->assembleStiffnessMatrix();
     break;

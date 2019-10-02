@@ -23,11 +23,19 @@
 #===============================================================================
 
 add_mesh (node node.geo 2 1)
+add_mesh (hertz_explicit hertz_explicit.geo 2 1)
 
 register_test(test_node_selector
   SOURCES test_node_selector.cc
   DEPENDS node
   FILES_TO_COPY options.dat
+  PACKAGE contact_mechanics
+  )
+
+register_test(test_explicit_detection
+  SOURCES test_explicit_detection.cc
+  DEPENDS hertz_explicit
+  FILES_TO_COPY options_explicit.dat
   PACKAGE contact_mechanics
   )
 

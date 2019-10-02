@@ -73,8 +73,6 @@ void ContactDetector::parseSection() {
   } else {
     AKANTU_ERROR("Unknown detection type : " << type);
   }
-
-  two_pass_algorithm = section.getParameterValue<bool>("two_pass_algorithm");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -91,10 +89,6 @@ void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
   this->globalSearch(slave_grid, master_grid);
 
   this->localSearch(slave_grid, master_grid);
-
-  // if (two_pass_algorithm) {
-  //  this->localSearch(master_grid, slave_grid);
-  //}
 
   this->constructContactMap(contact_map);
 }
@@ -184,13 +178,32 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
           if (slave_node == master_node)
             continue;
 
+	  bool is_valid = true;
+          Array<Element> elements;
+          this->mesh.getAssociatedElements(slave_node, elements);
+
+          for (auto & elem : elements) {
+            if (elem.kind() != _ek_regular)
+              continue;
+
+            Vector<UInt> connectivity =
+                const_cast<const Mesh &>(this->mesh).getConnectivity(elem);
+
+            auto node_iter = std::find(connectivity.begin(), connectivity.end(),
+                                       master_node);
+            if (node_iter != connectivity.end()) {
+              is_valid = false;
+	      break;
+            }
+          }
+
           Vector<Real> pos2(spatial_dimension);
           for (UInt s : arange(spatial_dimension))
             pos2(s) = this->positions(master_node, s);
 
           Real distance = pos.distance(pos2);
 
-          if (distance <= closet_distance) {
+          if (distance <= closet_distance and is_valid) {
             closet_master_node = master_node;
             closet_distance = distance;
             pair_exists = true;
@@ -228,7 +241,7 @@ void ContactDetector::constructContactMap(
 
   for (auto & pairs : contact_pairs) {
 
-    const auto & slave_node  = pairs.first;
+    const auto & slave_node = pairs.first;
     const auto & master_node = pairs.second;
 
     Array<Element> all_elements;
@@ -242,16 +255,13 @@ void ContactDetector::constructContactMap(
     Array<Real> projections(boundary_elements.size(), surface_dimension,
                             "projections");
 
-    auto index = this->computeOrthogonalProjection(slave_node, boundary_elements, normals,
-						   gaps, projections);
+    auto index = this->computeOrthogonalProjection(
+        slave_node, boundary_elements, normals, gaps, projections);
 
     if (index == UInt(-1)) {
       continue;
     }
-    
-    // get the index of master element from potential elements
-    //auto index = this->getElementIndex(gaps, projections, normals);
-        
+
     auto connectivity = get_connectivity(slave_node, boundary_elements[index]);
 
     // assign contact element attributes
@@ -267,54 +277,7 @@ void ContactDetector::constructContactMap(
     Matrix<Real> tangents(surface_dimension, spatial_dimension);
     this->computeTangentsOnElement(contact_map[slave_node].master,
                                    contact_map[slave_node].projection,
-                                   tangents);
-
-    // to ensure that direction of tangents are correct, cross product
-    // of tangents should give the normal vector computed earlier
-    switch (spatial_dimension) {
-    case 2: {
-      Vector<Real> e_z(3);
-      e_z[0] = 0.;
-      e_z[1] = 0.;
-      e_z[2] = 1.;
-
-      Vector<Real> tangent(3);
-      tangent[0] = tangents(0, 0);
-      tangent[1] = tangents(0, 1);
-      tangent[2] = 0.;
-
-      auto exp_normal = e_z.crossProduct(tangent);
-
-      auto & cal_normal = contact_map[slave_node].normal;
-
-      auto ddot = cal_normal.dot(exp_normal);
-      if (ddot < 0) {
-        tangents *= -1.0;
-      }
-
-      break;
-    }
-    case 3: {
-      auto tang_trans = tangents.transpose();
-      auto tang1 = Vector<Real>(tang_trans(0));
-      auto tang2 = Vector<Real>(tang_trans(1));
-
-      auto tang1_cross_tang2 = tang1.crossProduct(tang2);
-      auto exp_normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
-
-      auto & cal_normal = contact_map[slave_node].normal;
-
-      auto ddot = cal_normal.dot(exp_normal);
-      if (ddot < 0) {
-        tang_trans(1) *= -1.0;
-      }
-
-      tangents = tang_trans.transpose();
-      break;
-    }
-    default:
-      break;
-    }
+                                   contact_map[slave_node].normal, tangents);
 
     contact_map[slave_node].setTangent(tangents);
 
@@ -360,8 +323,8 @@ UInt ContactDetector::computeOrthogonalProjection(
     query(s) = this->positions(node, s);
 
   UInt counter = 0;
-  UInt index   = UInt(-1);
-  
+  UInt index = UInt(-1);
+
   Real min_gap = std::numeric_limits<Real>::max();
 
   for (auto && values :
@@ -379,29 +342,48 @@ UInt ContactDetector::computeOrthogonalProjection(
     this->computeProjectionOnElement(element, normal, query, projection,
                                      real_projection);
 
-    gap = this->computeGap(query, real_projection, normal);
+    gap = this->computeGap(query, real_projection);
 
-    // check if gap is valid for not
+    // check if gap is valid or not
     // to check this we need normal on master element, vector from
     // real projection to slave node, if it is explicit detection
     // scheme, we want it to interpenetrate, the dot product should be
-    // negative opposite
-    
+    // negative and -1.0 and for implciit detection , the dot product
+    // should be positive and 1.0
+
     bool is_valid = this->checkValidityOfProjection(projection);
-    
+
     auto master_to_slave = query - real_projection;
     auto norm = master_to_slave.norm();
-
-    if (norm != 0) 
+    if (norm != 0)
       master_to_slave /= norm;
 
-    auto cos_angle = master_to_slave.dot(normal);
-    auto difference = std::abs(cos_angle + 1.0);
-    
-    if (difference <= 1e-8 and gap <= min_gap and is_valid) {
-      min_gap = gap;
-      index   = counter;
-      gap *= -1.0;
+    Real tolerance = 1e-8;
+
+    switch (detection_type) {
+    case _explicit: {
+      auto product = master_to_slave.dot(normal);
+      auto variation = std::abs(product + 1.0);
+
+      if (variation <= tolerance and gap <= min_gap and is_valid) {
+        min_gap = gap;
+        index = counter;
+        gap *= -1.0;
+      }
+      break;
+    }
+    case _implicit: {
+      auto product = master_to_slave.dot(normal);
+      auto variation = std::abs(product - 1.0);
+
+      if (variation <= tolerance and gap <= min_gap and is_valid) {
+        min_gap = gap;
+        index = counter;
+        gap *= -1.0;
+      }
+    }
+    default:
+      break;
     }
 
     counter++;
@@ -420,10 +402,10 @@ void ContactDetector::computeProjectionOnElement(
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(element, coords);
-  
+
   Vector<Real> point(coords(0));
   Real alpha = (query - point).dot(normal);
-  
+
   real_projection = query - alpha * normal;
 
   this->computeNaturalProjection(element, real_projection, natural_projection);
@@ -485,6 +467,90 @@ void ContactDetector::computeTangentsOnElement(const Element & el,
   }
 
   tangents = temp_tangents.transpose();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactDetector::computeTangentsOnElement(const Element & el,
+                                               Vector<Real> & projection,
+                                               Vector<Real> & normal,
+                                               Matrix<Real> & tangents) {
+
+  const ElementType & type = el.type;
+
+  UInt nb_nodes_master = Mesh::getNbNodesPerElement(type);
+
+  Vector<Real> shapes(nb_nodes_master);
+  Matrix<Real> shapes_derivatives(spatial_dimension - 1, nb_nodes_master);
+
+#define GET_SHAPES_NATURAL(type)                                               \
+  ElementClass<type>::computeShapes(projection, shapes)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
+#undef GET_SHAPES_NATURAL
+
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
+  ElementClass<type>::computeDNDS(projection, shapes_derivatives)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_DERIVATIVES_NATURAL
+
+  Matrix<Real> coords(spatial_dimension, nb_nodes_master);
+  coordinatesOfElement(el, coords);
+
+  tangents.mul<false, true>(shapes_derivatives, coords);
+
+  auto temp_tangents = tangents.transpose();
+  for (UInt i = 0; i < spatial_dimension - 1; ++i) {
+    auto temp = Vector<Real>(temp_tangents(i));
+    temp_tangents(i) = temp.normalize();
+  }
+
+  tangents = temp_tangents.transpose();
+
+  // to ensure that direction of tangents are correct, cross product
+  // of tangents should give the normal vector computed earlier
+  switch (spatial_dimension) {
+  case 2: {
+    Vector<Real> e_z(3);
+    e_z[0] = 0.;
+    e_z[1] = 0.;
+    e_z[2] = 1.;
+
+    Vector<Real> tangent(3);
+    tangent[0] = tangents(0, 0);
+    tangent[1] = tangents(0, 1);
+    tangent[2] = 0.;
+
+    auto exp_normal = e_z.crossProduct(tangent);
+
+    auto & cal_normal = normal;
+
+    auto ddot = cal_normal.dot(exp_normal);
+    if (ddot < 0) {
+      tangents *= -1.0;
+    }
+
+    break;
+  }
+  case 3: {
+    auto tang_trans = tangents.transpose();
+    auto tang1 = Vector<Real>(tang_trans(0));
+    auto tang2 = Vector<Real>(tang_trans(1));
+
+    auto tang1_cross_tang2 = tang1.crossProduct(tang2);
+    auto exp_normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
+
+    auto & cal_normal = normal;
+
+    auto ddot = cal_normal.dot(exp_normal);
+    if (ddot < 0) {
+      tang_trans(1) *= -1.0;
+    }
+
+    tangents = tang_trans.transpose();
+    break;
+  }
+  default:
+    break;
+  }
 }
 
 } // namespace akantu

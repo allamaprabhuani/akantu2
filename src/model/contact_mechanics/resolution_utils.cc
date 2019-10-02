@@ -83,7 +83,7 @@ void ResolutionUtils::computeTalpha(Array<Real> & t_alpha, ContactElement & elem
     auto & t_s       = std::get<1>(values);
     
     for (UInt i : arange(spatial_dimension)) {
-      t_s[i] = tangent_s(i); // todo there was a mius sign here
+      t_s[i] = tangent_s(i);
       for (UInt j : arange(shapes.size())) {
 	t_s[(1 + j) * spatial_dimension + i] = -shapes[j] * tangent_s(i);
       }
@@ -152,8 +152,7 @@ void ResolutionUtils::computeDalpha(Array<Real> & d_alpha, Array<Real> & n_alpha
       auto & t_t = std::get<1>(values);
       auto & n_t = std::get<2>(values);
 
-      d_s += (t_t + element.gap * n_t);
-      d_s *= m_alpha_beta(s, t);
+      d_s += (t_t + element.gap * n_t) * m_alpha_beta(s, t);
     }
   }
 }
@@ -279,7 +278,6 @@ void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha
 
   const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
-  //auto spatial_dimension = surface_dimension + 1;
 
   auto & tangents = element.tangents;
   auto tangential_gap = element.projection - element.previous_projection;
@@ -316,15 +314,19 @@ void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, Matrix<Re
 void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array,
                                               Array<Real> & global_array,
                                               Array<Real> & nodal_area,
-                                              ContactElement & element,
-                                              Array<Real> & frequency) {
+                                              ContactElement & element, bool is_master_deformable) {
   const auto & conn = element.connectivity;
   UInt nb_dofs = global_array.getNbComponent();
 
   auto slave_node = conn[0];
-  for (UInt i : arange(1)) {
+
+  UInt total_nodes = 1;
+  if (is_master_deformable) {
+    total_nodes = conn.size();
+  }
+  
+  for (UInt i : arange(total_nodes)) { // 1 to only consider slave node 
     UInt n = conn[i];
-    frequency[n] += 1;
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
       global_array[offset_node] += local_array[i * nb_dofs + j] * nodal_area[slave_node];

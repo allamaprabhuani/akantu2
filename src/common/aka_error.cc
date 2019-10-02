@@ -68,6 +68,8 @@
 namespace akantu {
 namespace debug {
 
+
+
   static void printBacktraceAndExit(int) { std::terminate(); }
 
   /* ------------------------------------------------------------------------ */

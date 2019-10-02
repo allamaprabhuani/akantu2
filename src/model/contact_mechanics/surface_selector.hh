@@ -57,7 +57,7 @@ class SurfaceSelector : public MeshEventHandler, public Parsable {
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 public:
-  SurfaceSelector(const Model & model);
+  SurfaceSelector(Mesh & mesh);
 
   virtual ~SurfaceSelector() = default;
 
@@ -83,7 +83,7 @@ class PhysicalSurfaceSelector : public SurfaceSelector {
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 public:
-  PhysicalSurfaceSelector(const Model & model);
+  PhysicalSurfaceSelector(Mesh & mesh);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -108,7 +108,7 @@ class CohesiveSurfaceSelector : public SurfaceSelector {
   /* Constructor/Destructor                                                   */
   /* ------------------------------------------------------------------------ */
 public:
-  CohesiveSurfaceSelector(const Model & model);
+  CohesiveSurfaceSelector(Mesh & mesh);
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -151,7 +151,7 @@ class AllSurfaceSelector : public SurfaceSelector {
   /* ------------------------------------------------------------------------
    */
 public:
-  AllSurfaceSelector(const Model & model);
+  AllSurfaceSelector(Mesh & mesh);
 
   /* ------------------------------------------------------------------------
    */

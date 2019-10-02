@@ -27,42 +27,11 @@ add_akantu_test(test_resolution "resolution_test")
 add_akantu_test(test_coupler "coupler_test")
 
 add_mesh (hertz_2d hertz_2d.geo 2 1)
-add_mesh (hertz_3d hertz_3d.geo 3 1)
-add_mesh (circles_2d circles_2d.geo 2 1)
-add_mesh (flat_2d flat_2d.geo 2 1)
-add_mesh (conical_punch_2d conical_punch_2d.geo 2 1)
 
-#register_test(test_hertz_2d
-#  SOURCES test_hertz_2d.cc
-#  DEPENDS hertz_2d
-#  FILES_TO_COPY material.dat
-#  PACKAGE contact_mechanics
-#  )
-
-register_test(test_circles_2d
-  SOURCES test_circles_2d.cc
-  DEPENDS circles_2d
+register_test(test_hertz_2d
+  SOURCES test_hertz_2d.cc
+  DEPENDS hertz_2d
   FILES_TO_COPY material.dat
   PACKAGE contact_mechanics
   )
 
-register_test(test_hertz_3d
-  SOURCES test_hertz_3d.cc
-  DEPENDS hertz_3d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
-
-register_test(test_flat_2d
-  SOURCES test_flat_2d.cc
-  DEPENDS flat_2d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
-
-register_test(test_conical_punch_2d
-  SOURCES test_conical_punch_2d.cc
-  DEPENDS conical_punch_2d
-  FILES_TO_COPY material_punch.dat
-  PACKAGE contact_mechanics
-  )

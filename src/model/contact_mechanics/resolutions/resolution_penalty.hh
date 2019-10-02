@@ -101,7 +101,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// penalty parameter for normal stress
-  Real epsilon;
+  Real epsilon_n;
 
   /// penalty parameter for tangential stress
   Real epsilon_t;

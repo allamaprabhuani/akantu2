@@ -44,7 +44,7 @@ ResolutionPenalty::ResolutionPenalty(ContactMechanicsModel & model,
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::initialize() {
-  this->registerParam("epsilon", epsilon, Real(0.),
+  this->registerParam("epsilon_n", epsilon_n, Real(0.),
                       _pat_parsable | _pat_modifiable,
                       "Normal penalty parameter");
   this->registerParam("epsilon_t", epsilon_t, Real(0.),
@@ -60,7 +60,7 @@ void ResolutionPenalty::computeNormalForce(Vector<Real> & force,
                                            ContactElement & element) {
 
   force.clear();
-  Real tn = element.gap * epsilon;
+  Real tn = element.gap * epsilon_n;
 
   if (quadratic) {
     tn = macaulay(tn) * macaulay(element.gap);
@@ -96,14 +96,14 @@ void ResolutionPenalty::computeNormalModuli(Matrix<Real> & ke,
                                             Vector<Real> & n,
                                             ContactElement & element) {
 
-  Real tn = element.gap * epsilon;
+  Real tn = element.gap * epsilon_n;
   tn = macaulay(tn);
 
   Matrix<Real> n_mat(n.storage(), n.size(), 1);
   ke.mul<false, true>(n_mat, n_mat);
-  ke *= epsilon * heaviside(element.gap);
-
-  for (auto && values : zip(make_view(n_alpha, n_alpha.size()),
+  ke *= epsilon_n * heaviside(element.gap);
+  
+  /* for (auto && values : zip(make_view(n_alpha, n_alpha.size()),
                             make_view(d_alpha, d_alpha.size()))) {
     auto & n_s = std::get<0>(values);
     auto & d_s = std::get<1>(values);
@@ -145,7 +145,7 @@ void ResolutionPenalty::computeNormalModuli(Matrix<Real> & ke,
       tmp3 *= m_alpha_beta(s, t) * tn * element.gap;
       ke += tmp3;
     }
-  }
+    }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -183,14 +183,14 @@ void ResolutionPenalty::computeFrictionalModuli(
 bool ResolutionPenalty::computeFrictionalTraction(Matrix<Real> & m_alpha_beta,
                                                   ContactElement & element) {
 
-  Real tn = element.gap * epsilon;
+  Real tn = element.gap * epsilon_n;
   tn = macaulay(tn);
 
   auto delta_xi = element.projection - element.previous_projection;
 
   Vector<Real> trial_traction(delta_xi.size());
 
-  trial_traction.mul<false>(m_alpha_beta, delta_xi, epsilon);
+  trial_traction.mul<false>(m_alpha_beta, delta_xi, epsilon_n);
   trial_traction += element.traction;
 
   auto trial_slip_function = trial_traction.norm() - mu * tn;
@@ -292,17 +292,17 @@ Matrix<Real> ResolutionPenalty::computeStickModuli(
 
 /* -------------------------------------------------------------------------- */
 Matrix<Real> ResolutionPenalty::computeSlipModuli(
-    Array<Real> & /*g_alpha*/, Array<Real> & d_alpha,
-    Matrix<Real> & /*m_alpha_beta*/, ContactElement & element) {
+						  Array<Real> & /*g_alpha*/, Array<Real> & d_alpha,
+						  Matrix<Real> & /*m_alpha_beta*/, ContactElement & /*element*/) {
 
-  Real tn = element.gap * epsilon;
+  /*Real tn = element.gap * epsilon;
   tn = macaulay(tn);
 
   Real factor;
   factor = epsilon_t * mu * tn;
 
   auto p_t = element.traction;
-  p_t /= p_t.norm();
+  p_t /= p_t.norm();*/
 
   Matrix<Real> k_slip(d_alpha.size(), d_alpha.size());
 

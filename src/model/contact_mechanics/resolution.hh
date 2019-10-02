@@ -155,7 +155,17 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:  
+protected:
+  
+  /// friction coefficient : mu
+  Real mu;
+  
+  /// spatial dimension
+  UInt spatial_dimension;
+
+  /// is master surface deformable
+  bool is_master_deformable;
+  
   /// Link to the fem object in the model
   FEEngine & fem;
   
@@ -165,11 +175,6 @@ protected:
   /// model to which the resolution belong
   ContactMechanicsModel & model;
 
-  /// friction coefficient : mu
-  Real mu;
-  
-  /// spatial dimension
-  UInt spatial_dimension;
 };
 
 /// standard output stream operator
@@ -192,7 +197,7 @@ template <typename T>
 T macaulay(T var) {return var < 0 ? 0 : var; }
 
 template <typename T>
-T heaviside(T var) {return var < 0 ? 0 : 1;  }
+T heaviside(T var) {return var < 0 ? 0 : 1.0;  }
 } // namespace akantu
 
 #define INSTANTIATE_RESOLUTION_ONLY(res_name)                                    \

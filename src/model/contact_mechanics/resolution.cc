@@ -58,6 +58,8 @@ void Resolution::initialize() {
   registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
   registerParam("mu", mu, Real(0.), _pat_parsable | _pat_modifiable,
                 "Friciton Coefficient");
+  registerParam("is_master_deformable", is_master_deformable, bool(false),
+                _pat_parsable | _pat_readable, "Is master surface deformable");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -90,19 +92,15 @@ void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
   AKANTU_DEBUG_IN();
 
   auto & internal_force = const_cast<Array<Real> &>(model.getInternalForce());
-
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
-
-  auto & contact_map = model.getContactMap();
-
-  Array<Real> frequency(internal_force.size(), 1);
+  auto & nodal_area     = const_cast<Array<Real> &>(model.getNodalArea());
+  auto & contact_map    = model.getContactMap();
     
   for (auto & slave : slave_nodes) {
 
     if (contact_map.find(slave) == contact_map.end())
       continue;
 
-    auto & element = contact_map[slave];
+    auto & element    = contact_map[slave];
     const auto & conn = element.connectivity;
 
     Vector<Real> contact_force(conn.size() * spatial_dimension);
@@ -128,7 +126,7 @@ void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
     }
 
     ResolutionUtils::assembleToInternalForce(contact_force, internal_force,
-                                             nodal_area, element, frequency);
+                                             nodal_area, element, is_master_deformable);
   }
 
   AKANTU_DEBUG_OUT();
@@ -204,17 +202,26 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     UInt nb_degree_of_freedom = model.getSpatialDimension();
 
     std::vector<Real> areas;
+    
+    UInt total_nodes = 1;
+    UInt total_nb_degree_of_freedom = nb_degree_of_freedom;
+    if (is_master_deformable) {
+      total_nodes = conn.size();
+      total_nb_degree_of_freedom *= total_nodes;
+    }
+
+    auto slave_node = conn[0];
     for (UInt i : arange(conn.size())) {
       UInt n = conn[i];
       for (UInt j : arange(nb_degree_of_freedom)) {
         equations.push_back(n * nb_degree_of_freedom + j);
-        areas.push_back(nodal_area[n]);
+        areas.push_back(nodal_area[slave_node]);
       }
     }
 
-    for (UInt i : arange(kc.rows())) {
+    for (UInt i : arange(total_nb_degree_of_freedom)) {
       UInt row = equations[i];
-      for (UInt j : arange(kc.cols())) {
+      for (UInt j : arange(total_nb_degree_of_freedom)) {
         UInt col = equations[j];
         kc(i, j) *= areas[i];
         stiffness.add(row, col, kc(i, j));
@@ -249,10 +256,10 @@ Matrix<Real> Resolution::computeNablaOfDisplacement(ContactElement & element) {
   // Matrix<Real> shape_second_derivatives(surface_dimension *
   // surface_dimension, 					nb_nodes_per_element);
 
-  //#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
-  //ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
-  // AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
-  //#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+  /*#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
+  ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
+  #undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL*/
 
   Matrix<Real> nabla_u(surface_dimension * surface_dimension,
                        spatial_dimension);

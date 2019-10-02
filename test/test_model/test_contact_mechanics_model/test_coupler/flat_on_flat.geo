@@ -25,9 +25,12 @@ Line Loop(1) = {2, 3, 4, 5};
 Line Loop(2) = {6, 7, 8, 9};
 Plane Surface(1) = {1};
 Plane Surface(2) = {2};
+
 Physical Line("contact_top") = {2};
 Physical Line("contact_bottom") = {8};
+
 Physical Line("top") = {4};
 Physical Line("bottom") = {6};
+
 Physical Surface("bot_body") = {2};
 Physical Surface("top_body") = {1};

@@ -38,50 +38,14 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt ContactDetector::getElementIndex(Array<Real> & gaps,
-                                             Array<Real> & projections,
-					     Array<Real> & normals) {
-  auto surface_dimension = spatial_dimension - 1;
-
-  UInt index;
-  Real gap_min = std::numeric_limits<Real>::max();
-
-  UInt counter = 0;
-  for (auto && values : zip(gaps, make_view(projections, surface_dimension))) {
-    auto & gap = std::get<0>(values);
-    auto & projection = std::get<1>(values);
-
-    bool is_valid = this->checkValidityOfProjection(projection);
-
-    if (is_valid and gap <= gap_min) {
-      gap_min = gap;
-      index = counter;
-    }
-    counter++;
-  }
-
-  // if a slave node does not have a valid projection on any of the
-  // element, the minimum projection is taken as valid projection,
-  // this sometimes leads to situation where a slave node is outside
-  // but is still consider for potential contact
-  if (index >= gaps.size()) {
-    auto gap_min_it = std::min_element(gaps.begin(), gaps.end());
-    auto index_it = std::find(gaps.begin(), gaps.end(), *gap_min_it);
-    index = *index_it;
-  }
-
-  return index;
-}
-
-/* -------------------------------------------------------------------------- */
 inline bool
 ContactDetector::checkValidityOfProjection(Vector<Real> & projection) {
 
   UInt nb_xi_inside = 0;
-  Real epsilon = 1e-3;
+  Real tolerance = 1e-3;
 
   for (auto xi : projection) {
-    if (xi >= -1.0 - epsilon and xi <= 1.0 + epsilon)
+    if (xi >= -1.0 - tolerance and xi <= 1.0 + tolerance)
       nb_xi_inside++;
   }
 
@@ -155,17 +119,6 @@ inline void ContactDetector::constructGrid(SpatialGrid<UInt> & grid,
   };
 
   std::for_each(nodes_list.begin(), nodes_list.end(), to_grid);
-}
-
-/* -------------------------------------------------------------------------- */
-template <Surface id> inline std::string ContactDetector::getSurfaceId() {
-  return surfaces[id];
-}
-
-/* -------------------------------------------------------------------------- */
-template <Surface id>
-inline void ContactDetector::setSurfaceId(const std::string name) {
-  surfaces[id] = name;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -287,21 +240,12 @@ inline void ContactDetector::vectorsAlongElement(const Element & el,
 
 /* -------------------------------------------------------------------------- */
 inline Real ContactDetector::computeGap(Vector<Real> & slave,
-                                        Vector<Real> & master,
-                                        Vector<Real> & normal) {
+                                        Vector<Real> & master) {
 
   Vector<Real> slave_to_master(spatial_dimension);
   slave_to_master = master - slave;
 
   Real gap = slave_to_master.norm();
-
-  auto projection = slave_to_master.dot(normal);
-
-  // if slave node is beneath the master surface
-  if (projection > 0) {
-    //gap *= -1.0;
-  }
-
   return gap;
 }
 
@@ -355,7 +299,7 @@ ContactDetector::checkValidityOfSelfContact(const UInt & slave_node,
 
   Array<Element> elements;
   this->mesh.getAssociatedElements(slave_node, elements);
-  
+
   for (auto & elem : elements) {
     if (elem.kind() != _ek_regular)
       continue;

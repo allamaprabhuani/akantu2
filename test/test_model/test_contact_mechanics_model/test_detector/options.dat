@@ -13,9 +13,7 @@ material elastic [
 ]
 
 contact_detector [
-  type = implicit		 			
-  master = contact_top
-  slave = contact_bottom
+  type = explicit		 			
   two_pass_algorithm = false
 ]
 
