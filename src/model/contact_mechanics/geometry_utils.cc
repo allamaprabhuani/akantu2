@@ -32,8 +32,9 @@
 #include "geometry_utils.hh"
 /* -------------------------------------------------------------------------- */
 
-namespace akantu{
 
+namespace akantu {
+  
 /* -------------------------------------------------------------------------- */
 void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
 			   const Element & element, Vector<Real> & normal) {
@@ -172,11 +173,11 @@ void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positi
 
 
 /* -------------------------------------------------------------------------- */
-template<DetectionType detection>  
 UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
 					 const Vector<Real> & slave,
 					 const Array<Element> & elements,
-					 Real & gap, Vector<Real> & natural_projection) {
+					 Real & gap, Vector<Real> & natural_projection,
+					 Vector<Real> & normal, Real alpha) {
 
   UInt index = UInt(-1);
   Real min_gap = std::numeric_limits<Real>::max();
@@ -185,14 +186,14 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   
   UInt counter = 0;
   for (auto & element : elements) {
-    if (!isBoundaryElement(element)) 
+    if (!GeometryUtils::isBoundaryElement(mesh, element)) 
       continue;
 
-    Vector<Real> normal(spatial_dimension);
-    GeometryUtils::normal(mesh, positions, element, normal);
+    Vector<Real> normal_ele(spatial_dimension);
+    GeometryUtils::normal(mesh, positions, element, normal_ele);
     
     Vector<Real> master(spatial_dimension);
-    GeometryUtils::realProjection(mesh, positions, slave, element, normal, master);
+    GeometryUtils::realProjection(mesh, positions, slave, element, normal_ele, master);
 
     Vector<Real> xi(natural_projection.size());
     GeometryUtils::naturalProjection(mesh, positions, element, master, xi);
@@ -204,27 +205,17 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
       master_to_slave /= temp_gap;
 
     Real tolerance = 1e-8;
-    auto product = master_to_slave.dot(normal);
+    auto product = master_to_slave.dot(normal_ele);
 
-    Real variation;
-    switch (detection) {
-    case _explicit: {
-      variation = std::abs(product + 1.0);
-      break;
-    }
-    case _implicit: {
-      variation = std::abs(product - 1.0);
-      break;
-    }
-    default:
-      break;
-    }
-    
-    if (variation <= tolerance and temp_gap <= min_gap and isValidProjection(xi)) {
+    auto variation = std::abs(product + alpha);
+         
+    if (variation <= tolerance and temp_gap <= min_gap and GeometryUtils::isValidProjection(xi)) {
       gap     = -temp_gap;
       min_gap = temp_gap;
       index   = counter;
-      natural_projection = xi; 
+      natural_projection = xi;
+      normal = normal_ele;
+      
     }
     
     counter++;
@@ -284,25 +275,8 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
 
 
 /* -------------------------------------------------------------------------- */
-bool GeometryUtils::isValidProjection(const Vector<Real> & projection) {
-  
-  UInt nb_xi_inside = 0;
-  Real tolerance = 1e-3;
-
-  for (auto xi : projection) {
-    if (xi >= -1.0 - tolerance and xi <= 1.0 + tolerance)
-      nb_xi_inside++;
-  }
-
-  if (nb_xi_inside == projection.size())
-    return true;
-
-  return false;
-}
-
-/* -------------------------------------------------------------------------- */
 void GeometryUtils::contravariantBasis(const Matrix<Real> & covariant, Matrix<Real> & contravariant) {
-
+  
   Matrix<Real> A(covariant.rows(), covariant.rows());
   A.mul<false, true>(covariant, covariant);
 

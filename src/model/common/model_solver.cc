@@ -274,11 +274,6 @@ void ModelSolver::setDefaultSolver(const ID & solver_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::solveStep(const ID & solver_id) {
-  solveStep(*this, solver_id);
-}
-
-/* -------------------------------------------------------------------------- */
 void ModelSolver::solveStep(SolverCallback & callback, const ID & solver_id) {
   AKANTU_DEBUG_IN();
 

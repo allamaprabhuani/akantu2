@@ -75,9 +75,10 @@ public:
   /// performs all search steps
   void search(std::map<UInt, ContactElement> &);
 
-  void search(std::map<UInt, ContactElement> & contact_map,
+  /// performs all search steps
+  void search(Array<ContactElement> & contact_map,
 	      Array<Real> & gaps, Array<Real> & normals,
-	      Array<Real> & tangents, Array<Real> & projections);
+	      Array<Real> & projections);
   
   /// performs global spatial search to construct spatial grids
   void globalSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
@@ -89,9 +90,9 @@ public:
   void constructContactMap(std::map<UInt, ContactElement> &);
 
   /// create contact elements
-  void createContactElements(std::map<UInt, ContactElement> & elements,
+  void createContactElements(Array<ContactElement> & elements,
 			     Array<Real> & gaps, Array<Real> & normals,
-			     Array<Real> & tangents, Array<Real> & projections);
+			     Array<Real> & projections);
   
 private:
   /// reads the input file to get contact detection options
@@ -161,6 +162,11 @@ public:
   /// which is closet but not orthogonally opposite to slave surface
   inline bool checkValidityOfSelfContact(const UInt &, ContactElement &);
 
+  /// checks whether self contact condition leads to a master element
+  /// which is closet but not orthogonally opposite to slave surface
+  inline bool isValidSelfContact(const UInt &, const Real & , const Vector<Real> &);
+
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

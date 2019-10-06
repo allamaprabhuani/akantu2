@@ -52,17 +52,7 @@ public:
 protected:
   /// initialize the resolution
   void initialize();
-  
-  /// local computation of stifnness matrix due to normal stress
-  void computeNormalStiffness(Matrix<Real> & , Vector<Real> & ,
-			      Array<Real>  & , Array<Real>  & ,
-			      Matrix<Real> & , Real &);
-  
-  /// local computation of stiffness matrix due to frictional stress 
-  void computeFrictionalStiffness(Vector<Real> &, Array<Real>  &,
-				  Array<Real> &, Real & );
 
-  /// local computation of direct stiffness matrix due to friction,
   /// this matrix is common for both stick and slip part
   Array<Real> computeCommonModuli(Array<Real> &, Array<Real> &,
 				   Array<Real> &, Vector<Real> &, ContactElement &);
@@ -79,8 +69,8 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli due to normal traction
-  void computeNormalModuli(Matrix<Real> & , Array<Real>  & , Array<Real>  & ,
-			   Vector<Real> & , ContactElement & ) override;
+  void computeNormalModuli(const ContactElement & , const Matrix<Real>  & ,
+			   const Vector<Real>  & , Matrix<Real> &) override;
 
   /// local computation of tangent moduli due to frictional traction
   void computeFrictionalModuli(Matrix<Real> & , Array<Real>  & , Array<Real>  & ,
@@ -92,20 +82,23 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of normal force due to normal contact
-  void computeNormalForce(ContactElement &, Vector<Real> &) override;
+  void computeNormalForce(const ContactElement &, Vector<Real> &) override;
   
   /// local computation of tangential force due to frictional traction 
-  void computeTangentialForce(ContactElement &, Vector<Real> &) override;
+  void computeTangentialForce(const ContactElement &, Vector<Real> &) override;
 
 protected:
   /// local computation of trial tangential traction due to friction
-  void computeTrialTangentialTraction(ContactElement &, Vector<Real> &) override;
+  void computeTrialTangentialTraction(const ContactElement &, const Matrix<Real> &,
+				      Vector<Real> &) override;
 
   /// local computation of tangential traction due to stick 
-  void computeStickTangentialTraction(ContactElement &, Vector<Real> &, Vector<Real> &) override;
+  void computeStickTangentialTraction(const ContactElement &, Vector<Real> &,
+				      Vector<Real> &) override;
 
   /// local computation of tangential traction due to slip
-  void computeSlipTangentialTraction(ContactElement &, Vector<Real> &, Vector<Real> &) override;
+  void computeSlipTangentialTraction(const ContactElement &, const Matrix<Real> &,
+				     Vector<Real> &, Vector<Real> &) override;
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

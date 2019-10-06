@@ -95,11 +95,12 @@ void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
 
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::search(std::map<UInt, ContactElement> & contact_map,
-			       Array<Real> & gaps, Array<Real> & normals,
-			       Array<Real> & tangents, Array<Real> & projections) {
+void ContactDetector::search(Array<ContactElement> & elements,
+			     Array<Real> & gaps, Array<Real> & normals,
+			     Array<Real> & projections) {
 
-  this->mesh.fillNodesToElements(this->spatial_dimension - 1);
+  UInt surface_dimension = spatial_dimension - 1;
+  this->mesh.fillNodesToElements(surface_dimension);
   this->computeMaximalDetectionDistance();
 
   contact_pairs.clear();
@@ -111,9 +112,7 @@ void ContactDetector::search(std::map<UInt, ContactElement> & contact_map,
 
   this->localSearch(slave_grid, master_grid);
 
-  createContactElements(contact_map,
-			gaps, normals,
-			tangents, projections);
+  createContactElements(elements, gaps, normals, projections);
 
 }
 
@@ -335,12 +334,27 @@ void ContactDetector::constructContactMap(
 
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::createContactElements(std::map<UInt, ContactElement> & contact_map,
+void ContactDetector::createContactElements(Array<ContactElement> & contact_elements,
 					    Array<Real> & gaps, Array<Real> & normals,
-					    Array<Real> & tangents, Array<Real> & projections) {
+					    Array<Real> & projections) {
 
   auto surface_dimension = spatial_dimension - 1;
-
+ 
+  Real alpha;
+  switch (detection_type) {
+  case _explicit: {
+    alpha = 1.0;
+    break;
+  }
+  case _implicit: {
+    alpha = -1.0;
+    break;
+  }  
+  default:
+    AKANTU_EXCEPTION(detection_type << " is not a valid contact detection type");
+    break;
+  }
+      
   for (auto & pairs : contact_pairs) {
 
     const auto & slave_node = pairs.first;
@@ -352,40 +366,22 @@ void ContactDetector::createContactElements(std::map<UInt, ContactElement> & con
     Array<Element> elements;
     this->mesh.getAssociatedElements(master_node, elements);
 
+    auto & gap = gaps.begin()[slave_node];
+    Vector<Real> normal(normals.begin(spatial_dimension)[slave_node]);
     Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
-    
-    UInt index;
-    switch (detection_type) {
-    case _explicit: {
-      index =
-	GeometryUtils::orthogonalProjection<_explicit>(mesh, positions,
-						       slave, elements,
-						       gaps.begin()[slave_node],
-						       projection);
-      break;
-    }
-    case _implicit: {
-      index =
-	GeometryUtils::orthogonalProjection<_implicit>(mesh, positions, slave,
-						       elements,
-						       gaps.begin()[slave_node],
-						       projection);
-      break;
-    }  
-    default:
-      break;
-    }
-        
+    auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave, elements,
+						     gap, projection, normal, alpha);
+
+    // if not a valid projection is found on patch of elements index is -1
     if (index == UInt(-1)) 
       continue;
 
-       
-    //bool valid_self_contact = this->checkValidityOfSelfContact(slave_node,
-    //						       elements[index]);
-
-    //if (!valid_self_contact) 
-    //  continue;
-     
+    // if not a valid self contact 
+    if (!isValidSelfContact(slave_node, gap, normal)) 
+      continue;
+        
+    // create contact element
+    contact_elements.push_back(ContactElement(slave_node, elements[index]));
   }
 
   contact_pairs.clear();

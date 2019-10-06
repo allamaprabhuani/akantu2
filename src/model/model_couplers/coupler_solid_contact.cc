@@ -170,9 +170,8 @@ void CouplerSolidContact::assembleResidual() {
   auto & external_force = solid->getExternalForce();
 
   auto & contact_force = contact->getInternalForce();
-  auto & contact_map = contact->getContactMap();
 
-  switch (method) {
+  /*switch (method) {
   case _explicit_dynamic_contact: {
     for (auto & pair : contact_map) {
       auto & connectivity = pair.second.connectivity;
@@ -185,7 +184,34 @@ void CouplerSolidContact::assembleResidual() {
   }
   default:
     break;
+  }*/
+
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
+    Vector<UInt> elem_conn(master_conn.size() + 1);
+
+    elem_conn[0] = slave;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i - 1];
+    }
+    return elem_conn;
+  };
+
+  
+  switch(method) {
+  case _explicit_dynamic_contact: {
+    for (auto & element : contact->getContactElements()) {
+      for (auto & conn : get_connectivity(element.slave, element.master)) {
+	for (auto dim : arange(spatial_dimension)) {
+	  external_force(conn, dim) = contact_force(conn, dim);
+	}
+      }
+    }
   }
+  default:
+    break;
+  }
+  
 
   /* ------------------------------------------------------------------------ */
   this->getDOFManager().assembleToResidual("displacement", external_force, 1);
@@ -209,9 +235,35 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   auto & external_force = solid->getExternalForce();
 
   auto & contact_force = contact->getInternalForce();
-  auto & contact_map = contact->getContactMap();
 
-  switch (method) {
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
+    Vector<UInt> elem_conn(master_conn.size() + 1);
+
+    elem_conn[0] = slave;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i - 1];
+    }
+    return elem_conn;
+  };
+
+  
+  switch(method) {
+  case _explicit_dynamic_contact: {
+    for (auto & element : contact->getContactElements()) {
+      for (auto & conn : get_connectivity(element.slave, element.master)) {
+	for (auto dim : arange(spatial_dimension)) {
+	  external_force(conn, dim) = contact_force(conn, dim);
+	}
+      }
+    }
+  }
+  default:
+    break;
+  }
+
+  
+  /*  switch (method) {
   case _explicit_dynamic_contact: {
     for (auto & pair : contact_map) {
       auto & connectivity = pair.second.connectivity;
@@ -224,7 +276,7 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   }
   default:
     break;
-  }
+    }*/
 
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", external_force, 1);

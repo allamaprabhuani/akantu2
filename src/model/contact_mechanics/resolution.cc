@@ -40,11 +40,11 @@ namespace akantu {
 Resolution::Resolution(ContactMechanicsModel & model, const ID & id)
     : Memory(id, model.getMemoryID()),
       Parsable(ParserType::_contact_resolution, id), fem(model.getFEEngine()),
-      name(""), model(model),
-      spatial_dimension(model.getMesh().getSpatialDimension()) {
+      name(""), model(model) {
 
   AKANTU_DEBUG_IN();
 
+  spatial_dimension = model.getMesh().getSpatialDimension();
   this->initialize();
 
   AKANTU_DEBUG_OUT();
@@ -79,47 +79,38 @@ void Resolution::printself(std::ostream & stream, int indent) const {
 void Resolution::assembleInternalForces(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
-  const auto slave_nodes =
-      model.getContactDetector().getSurfaceSelector().getSlaveList();
-
-  this->assembleInternalForces(slave_nodes);
+  this->assembleInternalForces();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::assembleInternalForces(const Array<UInt> & slave_nodes) {
+void Resolution::assembleInternalForces() {
   AKANTU_DEBUG_IN();
 
-  auto & contact_map = model.getContactMap();
-    
-  for (auto & slave : slave_nodes) {
-
-    if (contact_map.find(slave) == contact_map.end())
-      continue;
-
-    auto & element    = contact_map[slave];
-    const auto & conn = element.connectivity;
-       
-    Vector<Real> f_n(conn.size() * spatial_dimension);
+  for (auto & element : model.getContactElements()) {
+     
+    auto nb_nodes  = element.getNbNodes();
+           
+    Vector<Real> f_n(nb_nodes * spatial_dimension);
     computeNormalForce(element, f_n);
 
-    Vector<Real> f_t(conn.size() * spatial_dimension);
+    Vector<Real> f_t(nb_nodes * spatial_dimension);
     computeTangentialForce(element, f_t);
  
-    Vector<Real> f_c(conn.size() * spatial_dimension);
+    Vector<Real> f_c(nb_nodes * spatial_dimension);
     f_c = f_n + f_t;
 
-    assembleLocalToGlobalArray(slave, element, f_n, model.getNormalForce());
-    assembleLocalToGlobalArray(slave, element, f_t, model.getTangentialForce());
-    assembleLocalToGlobalArray(slave, element, f_c, model.getInternalForce());
+    assembleLocalToGlobalArray(element, f_n, model.getNormalForce());
+    assembleLocalToGlobalArray(element, f_t, model.getTangentialForce());
+    assembleLocalToGlobalArray(element, f_c, model.getInternalForce());
   }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Resolution::assembleLocalToGlobalArray(const UInt & slave, const ContactElement & element,
+void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
 					    Vector<Real> & local, Array<Real> & global) {
 
   auto get_connectivity = [&](auto & slave, auto & master) {
@@ -135,7 +126,7 @@ void Resolution::assembleLocalToGlobalArray(const UInt & slave, const ContactEle
     return elem_conn;
   };
 
-  auto connectivity = get_connectivity(slave, element.master);
+  auto connectivity = get_connectivity(element.slave, element.master);
   
   UInt nb_dofs  = global.getNbComponent();
   UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
@@ -145,7 +136,47 @@ void Resolution::assembleLocalToGlobalArray(const UInt & slave, const ContactEle
     UInt n = connectivity[i];
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
-      global[offset_node] += local[i * nb_dofs + j] * nodal_area[slave];
+      global[offset_node] += local[i * nb_dofs + j] * nodal_area[element.slave];
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
+					     const Matrix<Real> & local, SparseMatrix & global) {
+
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn =
+    const_cast<const Mesh &>(model.getMesh()).getConnectivity(master);
+    Vector<UInt> elem_conn(master_conn.size() + 1);
+
+    elem_conn[0] = slave;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i - 1];
+    }
+
+    return elem_conn;
+  };
+
+  auto connectivity = get_connectivity(element.slave, element.master);
+
+  auto nb_dofs  = spatial_dimension;
+  UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
+  UInt total_nb_dofs = nb_dofs * nb_nodes;
+  
+  std::vector<UInt> equations;     
+  for (UInt i : arange(connectivity.size())) {
+    UInt conn = connectivity[i];
+    for (UInt j : arange(nb_dofs)) {
+      equations.push_back(conn * nb_dofs + j);
+    }
+  }
+  
+  for (UInt i : arange(total_nb_dofs)) {
+    UInt row = equations[i];
+    for (UInt j : arange(total_nb_dofs)) {
+      UInt col = equations[j];
+      global.add(row, col, local(i, j));
     }
   }
 }
@@ -154,48 +185,56 @@ void Resolution::assembleLocalToGlobalArray(const UInt & slave, const ContactEle
 void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
 
-  const auto slave_nodes =
-      model.getContactDetector().getSurfaceSelector().getSlaveList();
-
   auto & stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
 
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  auto & gaps = model.getGaps();
+  auto & projections = model.getProjections();
+  auto & normals = model.getNormals();
+  
+  UInt surface_dimension = spatial_dimension - 1;
+  
+  for (auto & element : model.getContactElements()) {
 
-  auto & contact_map = model.getContactMap();
+    auto nb_nodes  = element.getNbNodes();
 
-  for (auto & slave : slave_nodes) {
+    Real gap(gaps.begin()[element.slave]);
+    Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
+    Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
+    
+    Matrix<Real> covariant_basis(surface_dimension, spatial_dimension);
+    GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
+				  element.master, projection, covariant_basis);
 
-    if (contact_map.find(slave) == contact_map.end())
-      continue;
+    Vector<Real> delta_g(nb_nodes * spatial_dimension);
+    ResolutionUtils::firstVariationNormalGap(element, projection, normal, delta_g);
+       
+    Matrix<Real> ddelta_g(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
+    ResolutionUtils::secondVariationNormalGap(element, covariant_basis,
+					      projection, normal, gap, ddelta_g);
+    
+    Matrix<Real> k_n(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
+    computeNormalModuli(element, ddelta_g, delta_g, k_n);
 
-    auto & element = contact_map[slave];
-
-    const auto & conn = element.connectivity;
-
-    Matrix<Real> kc(conn.size() * spatial_dimension,
-                    conn.size() * spatial_dimension);
-
-    Matrix<Real> m_alpha_beta(spatial_dimension - 1, spatial_dimension - 1);
+    assembleLocalToGlobalMatrix(element, k_n, stiffness);
+    
+    /*Matrix<Real> m_alpha_beta(surface_dimension, surface_dimension);
     ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
 
     // normal tangent moduli
-    Vector<Real> n(conn.size() * spatial_dimension);
-    ResolutionUtils::firstVariationNormalGap(element, n);
-    
-    Array<Real> t_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+        
+    Array<Real> t_alpha(nb_nodes * spatial_dimension, surface_dimension);
     ResolutionUtils::computeTalpha(element, t_alpha);
     
-    Array<Real> n_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);
+    Array<Real> n_alpha(nb_nodes * spatial_dimension, surface_dimension);
     ResolutionUtils::computeNalpha(element, n_alpha);
     
-    Array<Real> d_alpha(conn.size() * spatial_dimension, spatial_dimension - 1);      
+    Array<Real> d_alpha(nb_nodes * spatial_dimension, surface_dimension);      
     ResolutionUtils::firstVariationNaturalCoordinate(element, d_alpha);
 
-    computeNormalModuli(kc, n_alpha, d_alpha, n, element);
+    computeNormalModuli(kc, n_alpha, d_alpha, delta_g, element);*/
 
     // frictional tangent moduli
-    if (mu != 0) {
       /*Array<Real> t_alpha_beta(conn.size() * spatial_dimension,
                                (spatial_dimension - 1) * (spatial_dimension - 1));
       ResolutionUtils::computeTalphabeta(t_alpha_beta, element);
@@ -214,9 +253,8 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
       computeFrictionalModuli(kc, t_alpha_beta, n_alpha_beta, n_alpha, d_alpha,
       phi, n, element);*/
-    }
 
-    std::vector<UInt> equations;
+    /*std::vector<UInt> equations;
     UInt nb_degree_of_freedom = model.getSpatialDimension();
 
     std::vector<Real> areas;
@@ -244,46 +282,11 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
         kc(i, j) *= areas[i];
         stiffness.add(row, col, kc(i, j));
       }
-    }
+      }*/
   }
 
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
-Matrix<Real> Resolution::computeNablaOfDisplacement(ContactElement & element) {
-
-  const auto & type = element.master.type;
-  const auto & conn = element.connectivity;
-
-  auto surface_dimension = Mesh::getSpatialDimension(type);
-  auto spatial_dimension = surface_dimension + 1;
-
-  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-
-  Matrix<Real> values(spatial_dimension, nb_nodes_per_element);
-
-  auto & displacement = model.getDisplacement();
-  for (UInt n : arange(nb_nodes_per_element)) {
-    UInt node = conn[n];
-    for (UInt s : arange(spatial_dimension)) {
-      values(s, n) = displacement(node, s);
-    }
-  }
-
-  // Matrix<Real> shape_second_derivatives(surface_dimension *
-  // surface_dimension, 					nb_nodes_per_element);
-
-  /*#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
-  ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
-  #undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL*/
-
-  Matrix<Real> nabla_u(surface_dimension * surface_dimension,
-                       spatial_dimension);
-  // nabla_u.mul<false, true>(shape_second_derivatives, values);
-
-  return nabla_u;
-}
 
 } // namespace akantu

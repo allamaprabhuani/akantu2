@@ -120,8 +120,6 @@ protected:
 public:
   void search();
 
-  void search(Array<Real> &);
-
   void computeNodalAreas();
 
   void assembleFieldsFromContactMap();
@@ -256,6 +254,12 @@ public:
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
+  /// get the ContactMechanics::areas (nodal areas)
+  AKANTU_GET_MACRO(StickProjections, *stick_projections, Array<Real> &);
+
+  /// get the ContactMechanics::areas (nodal areas)
+  AKANTU_GET_MACRO(Projections, *projections, Array<Real> &);
+  
   /// get the ContactMechanics::stick_or_slip vector (slip/stick
   /// state)
   AKANTU_GET_MACRO(StickSlip, *stick_or_slip, Array<Real> &);
@@ -268,6 +272,11 @@ public:
     return contact_map;
   }
 
+  /// get the contat map
+  inline Array<ContactElement> & getContactElements() {
+    return contact_elements;
+  }
+  
   ///
   inline void setPositions(Array<Real> positions) {
     detector->setPositions(positions);
@@ -321,8 +330,9 @@ private:
   Array<Real> * stick_or_slip{nullptr};
 
   /// array to store stick point projection in covariant basis
-  Array<Real> * stick_point{nullptr};
+  Array<Real> * stick_projections{nullptr};
 
+  // array to store projections in covariant basis
   Array<Real> * projections{nullptr};
   
   /// contact detection
@@ -337,6 +347,8 @@ private:
   /// mapping between slave node its respective contact element
   std::map<UInt, ContactElement> contact_map;
 
+  ///
+  Array<ContactElement> contact_elements;
 };
 
 } // namespace akantu

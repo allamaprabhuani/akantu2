@@ -50,27 +50,37 @@ public:
   /// computes the metric tensor (@f$m_{\alpha\beta}@f$) where @f$\alpha,
   /// \beta@f$ are surface directions
   static void computeMetricTensor(Matrix<Real> & metric_tensor,
-                                  Matrix<Real> & tangents);
+                                  const Matrix<Real> & tangents);
 
   /// computes the first variation of normal gap
-  static void firstVariationNormalGap(ContactElement & element,
-				      Vector<Real> & delta_g);
+  static void firstVariationNormalGap(const ContactElement & , const Vector<Real> &,
+				      const Vector<Real> &, Vector<Real> &);
 
+  /// computes the seond variation of normal gap
+  static void secondVariationNormalGap(const ContactElement & , const Matrix<Real> & ,
+				       const Vector<Real> &, const Vector<Real> &, Real &,
+				       Matrix<Real> & );
+  
   /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension
   /// and it is shape derivatives times normal
-  static void computeNalpha(ContactElement & element,
-			    Array<Real> & n_alpha);
+  static void computeNalpha(const ContactElement & , const Vector<Real> &,
+			    const Vector<Real> &, Array<Real> & );
 
   /// computes (@f$T_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension and it is shape functions times the tangents
-  static void computeTalpha(ContactElement & element,
-			    Array<Real> & t_alpha);
+  static void computeTalpha(const ContactElement &, const Matrix<Real> &,
+			    const Vector<Real> &, Array<Real> & );
 
   /// computes (@f$\nabla \xi_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension
-  static void firstVariationNaturalCoordinate(ContactElement & element,
-					      Array<Real> & delta_xi);
+  static void firstVariationNaturalCoordinate(const ContactElement &, const Matrix<Real> &,
+					      const Vector<Real> &, const Vector<Real> &,
+					      const Real &, Array<Real> &);
 
+  ///computes second variation of surface parameter
+  static void secondvariationNaturalCoordinate();
+
+  
   /// computes @f$T_{\alpha\beta} @f$ which is shape derivatives
   /// times the tangents
   static void computeTalphabeta(Array<Real> & t_alpha_beta,

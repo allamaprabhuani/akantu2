@@ -45,46 +45,50 @@ class GeometryUtils {
   /* ------------------------------------------------------------------------ */
 public:
   /// computes the normal on an element
-  static inline void normal(const Mesh & mesh, const Array<Real> & positions,
-			    const Element & element, Vector<Real> & normal);
+  static void normal(const Mesh & mesh, const Array<Real> & positions,
+		     const Element & element, Vector<Real> & normal);
 
   /// computes the orthogonal projection on a set of elements and
   /// returns natural projection and normal gap and index of element
-  template<DetectionType detection>  
-  static inline UInt orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
-					  const Vector<Real> & slave,
-					  const Array<Element> & elements,
-					  Real & gap,
-					  Vector<Real> & natural_projection);
-
-  /// checks if the element is truly a boundary element or not
-  static inline bool isBoundaryElement(const Element & element);
-
-  /// checks if the natural projection is valid for not
-  static inline bool isValidProjection(const Vector<Real> & projection);
+  static UInt orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
+				   const Vector<Real> & slave,
+				   const Array<Element> & elements,
+				   Real & gap, Vector<Real> & natural_projection,
+				   Vector<Real> & normal, Real alpha);
 
   /// computes the natural projection on an element
-  static inline void naturalProjection(const Mesh & mesh, const Array<Real> & positions,
-				       const Element & element, Vector<Real> & real_projection,
-				       Vector<Real> & natural_projection);
+  static void naturalProjection(const Mesh & mesh, const Array<Real> & positions,
+				const Element & element, Vector<Real> & real_projection,
+				Vector<Real> & natural_projection);
   
   /// computes the real projection on an element
-  static inline void realProjection(const Mesh & mesh, const Array<Real> & positions,
+  static void realProjection(const Mesh & mesh, const Array<Real> & positions,
 				    const Vector<Real> & slave,  const Element & element,
 				    const Vector<Real> & normal, Vector<Real> & projection);
 
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
-  static inline void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
+  static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
 				    const Element & element, Vector<Real> & natural_coord,
 				    Matrix<Real> & basis);
 
   /// computes the contravariant basis on projection point
-  static inline void contravariantBasis(const Matrix<Real> & covariant,
-					Matrix<Real> & contravariant);
-};
+  static void contravariantBasis(const Matrix<Real> & covariant,
+				 Matrix<Real> & contravariant);
 
+  /// checks if the element is truly a boundary element or not
+  inline static bool isBoundaryElement(const Mesh & mesh, const Element & element);
+
+  /// checks if the natural projection is valid for not
+  inline static bool isValidProjection(const Vector<Real> & projection);
+
+
+};
+  
 }
+
+
+#include "geometry_utils_inline_impl.cc"  
 
 
 #endif /* __AKANTU_GEOMETRY_UTILS_HH__ */

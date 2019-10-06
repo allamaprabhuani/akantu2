@@ -52,11 +52,20 @@ public:
 
   ContactElement() = default;
 
-  ContactElement(SlaveType & slave, MasterType & master)
+  ContactElement(const SlaveType & slave, const MasterType & master)
     : slave(slave), master(master) {}
   
   ~ContactElement() = default;
 
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
+public:
+  inline UInt getNbNodes() const {
+    auto nb_master_nodes = Mesh::getNbNodesPerElement(master.type);
+    return nb_master_nodes + 1;
+  }
+  
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -101,12 +110,6 @@ public:
   /// gets the value of gap
   AKANTU_GET_MACRO(Gap, gap, Real);
 
-  // sets the value of normal vector
-  AKANTU_SET_MACRO(Patch, patch, Array<MasterType>);
-
-  // gets the value of normal vector
-  AKANTU_GET_MACRO(Patch, patch, Array<MasterType>);
-
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -142,8 +145,6 @@ public:
   /// penetration gap between slave and master 
   Real gap;
 
-  /// an array of master nodes/elements around slave node
-  Array<MasterType> patch;
 };
 
 } // akantu

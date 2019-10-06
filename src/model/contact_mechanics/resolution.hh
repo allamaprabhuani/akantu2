@@ -88,33 +88,35 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// computes the force vector due to normal traction
-  virtual void computeNormalForce(__attribute__((unused)) ContactElement &,
+  virtual void computeNormalForce(__attribute__((unused)) const ContactElement &,
 				  __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// computes the tangential force vector due to frictional traction
-  virtual void computeTangentialForce(__attribute__((unused)) ContactElement &,
+  virtual void computeTangentialForce(__attribute__((unused)) const ContactElement &,
 				      __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
 protected:
   /// local computation of trial tangential traction due to friction
-  virtual void computeTrialTangentialTraction(__attribute__((unused)) ContactElement &,
+  virtual void computeTrialTangentialTraction(__attribute__((unused)) const ContactElement &,
+					      __attribute__((unused)) const Matrix<Real> &,
 					      __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// local computation of tangential traction due to stick
-  virtual void computeStickTangentialTraction(__attribute__((unused)) ContactElement &,
+  virtual void computeStickTangentialTraction(__attribute__((unused)) const ContactElement &,
 					      __attribute__((unused)) Vector<Real> &,
 					      __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
   }
   
   /// local computation of tangential traction due to slip
-  virtual void computeSlipTangentialTraction(__attribute__((unused)) ContactElement &,
+  virtual void computeSlipTangentialTraction(__attribute__((unused)) const ContactElement &,
+					     __attribute__((unused)) const Matrix<Real> &,
 					     __attribute__((unused)) Vector<Real> &,
 					     __attribute__((unused)) Vector<Real> &) {
     AKANTU_TO_IMPLEMENT();
@@ -125,11 +127,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the tangent moduli due to normal traction
-  virtual void computeNormalModuli(__attribute__((unused)) Matrix<Real> &,
-				   __attribute__((unused)) Array<Real>  &,
-				   __attribute__((unused)) Array<Real>  &,
-				   __attribute__((unused)) Vector<Real> &,
-				   __attribute__((unused)) ContactElement &) {
+  virtual void computeNormalModuli(__attribute__((unused)) const ContactElement &,
+				   __attribute__((unused)) const Matrix<Real> &,
+				   __attribute__((unused)) const Vector<Real> &,
+				   __attribute__((unused)) Matrix<Real> & ) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -157,19 +158,16 @@ public:
   /// assemble the stiffness matrix for this resolution
   void assembleStiffnessMatrix(GhostType ghost_type);
 
-  /// computes 2nd derivative of displacement
-  Matrix<Real> computeNablaOfDisplacement(ContactElement &);
-
 private:
-  /// assemble the residual for this resolution from a given set of
-  /// surface nodes
-  void assembleInternalForces(const Array<UInt> &);
+  /// assemble the residual for this resolution 
+  void assembleInternalForces();
 
   /// assemble the local array to global array for a contact element
-  void assembleLocalToGlobalArray(const UInt & slave,
-				  const ContactElement & , Vector<Real> & , Array<Real> & );
-  
-  
+  void assembleLocalToGlobalArray(const ContactElement & , Vector<Real> & , Array<Real> & );
+
+  /// assemble the local stiffness to global stiffness for a contact element
+  void assembleLocalToGlobalMatrix(const ContactElement &, const Matrix<Real> &, SparseMatrix &);
+
   
 public:
   /// function to print the contain of the class

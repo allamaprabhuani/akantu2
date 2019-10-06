@@ -321,61 +321,22 @@ void ContactMechanicsModel::assembleInternalForces() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
 
-  this->detector->search(contact_map, *gaps,
-			 *normals, *tangents, *projections);
+  UInt nb_nodes = mesh.getNbNodes();
+
+  // this to resize if cohesive elements are added
+  gaps->resize(nb_nodes, 0.);
+  normals->resize(nb_nodes, 0.);
+  projections->resize(nb_nodes, 0.);
   
-  /*this->detector->search(this->contact_map);
-
-  for (auto & entry : contact_map) {
-    auto & element = entry.second;
-
-    if (element.gap < 0)
-      element.gap = std::abs(element.gap);
+  this->detector->search(contact_elements, *gaps,
+			 *normals, *projections);
+  
+  for (auto & gap : *gaps) {
+    if (gap < 0)
+      gap = std::abs(gap);
     else
-      element.gap = -element.gap;
+      gap = -gap;
   }
-
-  this->assembleFieldsFromContactMap();
-
-  this->computeNodalAreas();*/
-}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::search(Array<Real> & increment) {
-
-  this->contact_map.clear();
-
-  this->detector->search(this->contact_map);
-
-  for (auto & entry : contact_map) {
-
-    auto & element = entry.second;
-    const auto & connectivity = element.connectivity;
-    const auto & normal = element.normal;
-
-    auto slave_node = connectivity[0];
-    Vector<Real> u_slave(spatial_dimension);
-
-    auto master_node = connectivity[1];
-    Vector<Real> u_master(spatial_dimension);
-
-    for (UInt s : arange(spatial_dimension)) {
-      u_slave(s) = increment(slave_node, s);
-      u_master(s) = increment(master_node, s);
-    }
-
-    // todo check this initial guess
-    auto u = (u_master.norm() > u_slave.norm()) ? u_master : u_slave;
-    Real uv = Math::vectorDot(u.storage(), normal.storage(), spatial_dimension);
-
-    if (element.gap - uv <= 0) {
-      element.gap = std::abs(element.gap - uv);
-    } else {
-      element.gap = 0.0;
-    }
-  }
-
-  this->assembleFieldsFromContactMap();
 
   this->computeNodalAreas();
 }
@@ -413,8 +374,8 @@ void ContactMechanicsModel::computeNodalAreas() {
 
   UInt nb_nodes = mesh.getNbNodes();
 
-  this->nodal_area->clear();
-  this->external_force->clear();
+  nodal_area->clear();
+  external_force->clear();
 
   nodal_area->resize(nb_nodes, 0.);
   external_force->resize(nb_nodes, 0.);

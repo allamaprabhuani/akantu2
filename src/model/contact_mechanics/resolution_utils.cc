@@ -35,7 +35,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::firstVariationNormalGap(ContactElement & element,
+void ResolutionUtils::firstVariationNormalGap(const ContactElement & element,
+					      const Vector<Real> & projection,
+					      const Vector<Real> & normal,
 					      Vector<Real> & delta_g) {
 
   delta_g.clear();
@@ -47,21 +49,87 @@ void ResolutionUtils::firstVariationNormalGap(ContactElement & element,
   Vector<Real> shapes(Mesh::getNbNodesPerElement(type));
   
 #define GET_SHAPES_NATURAL(type)                                               \
-    ElementClass<type>::computeShapes(element.projection, shapes)
+    ElementClass<type>::computeShapes(projection, shapes)
     AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL
 
   for (UInt i : arange(spatial_dimension)) {
-    delta_g[i] = element.normal[i];
+    delta_g[i] = normal[i];
     for (UInt j : arange(shapes.size())) {
-      delta_g[(1 + j) * spatial_dimension + i] = -shapes[j] * element.normal[i];
+      delta_g[(1 + j) * spatial_dimension + i] = -shapes[j] * normal[i];
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeTalpha(ContactElement & element,
-				    Array<Real> & t_alpha) {
+void ResolutionUtils::secondVariationNormalGap(const ContactElement & element,
+					       const Matrix<Real> & covariant_basis,
+					       const Vector<Real> & projection,
+					       const Vector<Real> & normal, Real & gap,
+					       Matrix<Real> & ddelta_g) {
+
+  const auto & type = element.master.type;
+  auto surface_dimension = Mesh::getSpatialDimension(type);
+  auto spatial_dimension = surface_dimension + 1;
+
+  UInt nb_nodes = element.getNbNodes();
+  
+  Array<Real> dnds_n(nb_nodes * spatial_dimension, surface_dimension);
+  ResolutionUtils::computeNalpha(element, projection, normal, dnds_n);
+  
+  Array<Real> delta_xi(nb_nodes * spatial_dimension, surface_dimension);
+  ResolutionUtils::firstVariationNaturalCoordinate(element, covariant_basis,
+						   projection, normal, gap, delta_xi);
+  
+  Matrix<Real> a_alpha_beta(surface_dimension, surface_dimension);
+  ResolutionUtils::computeMetricTensor(a_alpha_beta, covariant_basis);
+  a_alpha_beta = a_alpha_beta.inverse();
+
+  for (auto && values : zip(arange(surface_dimension),
+			    make_view(dnds_n, dnds_n.size()),
+			    make_view(delta_xi, delta_xi.size()))) {
+
+    auto & alpha = std::get<0>(values);
+    auto & dnds_n_alpha = std::get<1>(values);
+    auto & delta_xi_alpha = std::get<2>(values);
+
+    Matrix<Real> mat_n(dnds_n_alpha.storage(), dnds_n_alpha.size(), 1);
+    Matrix<Real> mat_xi(delta_xi_alpha.storage(), delta_xi_alpha.size(), 1);
+
+    Matrix<Real> tmp1(dnds_n_alpha.size(), dnds_n_alpha.size());
+    tmp1.mul<false, true>(mat_n, mat_xi, -1);
+
+    Matrix<Real> tmp2(dnds_n_alpha.size(), dnds_n_alpha.size());
+    tmp2.mul<false, true>(mat_xi, mat_n, -1);
+
+    Matrix<Real> term1(dnds_n_alpha.size(), dnds_n_alpha.size());
+    term1 = tmp1 + tmp2;
+
+    // missing term 2
+    
+    Matrix<Real> term3(dnds_n_alpha.size(), dnds_n_alpha.size());
+    for (auto && values2 : zip(arange(surface_dimension),
+			       make_view(dnds_n, dnds_n.size()))) {
+      auto & beta = std::get<0>(values2);
+      auto & dnds_n_beta = std::get<1>(values2);
+
+      Matrix<Real> mat_n_beta(dnds_n_beta.storage(), dnds_n_beta.size(), 1);
+
+      Real factor = gap * a_alpha_beta(alpha, beta);
+      Matrix<Real> tmp(dnds_n_alpha.size(), dnds_n_alpha.size());
+      tmp.mul<false, true>(mat_n, mat_n_beta, factor);
+
+      term3 += tmp;
+    }
+
+    ddelta_g += term1 + term3;
+  }
+}
+  
+/* -------------------------------------------------------------------------- */
+void ResolutionUtils::computeTalpha(const ContactElement & element,
+				    const Matrix<Real> & covariant_basis,
+				    const Vector<Real> & projection, Array<Real> & t_alpha) {
 
   t_alpha.clear();
 
@@ -70,32 +138,31 @@ void ResolutionUtils::computeTalpha(ContactElement & element,
   auto spatial_dimension = surface_dimension + 1;
   
   Vector<Real> shapes(Mesh::getNbNodesPerElement(type));
-  
+
 #define GET_SHAPES_NATURAL(type)                                               \
-    ElementClass<type>::computeShapes(element.projection, shapes)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
+  ElementClass<type>::computeShapes(projection, shapes)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL
 
-    auto & tangents = element.tangents;
     for (auto && values :
-	   zip(tangents.transpose(),
+	   zip(covariant_basis.transpose(),
 	       make_view(t_alpha, t_alpha.size()))) {
 
-    auto & tangent_s = std::get<0>(values);
-    auto & t_s       = std::get<1>(values);
+    auto & tangent_beta = std::get<0>(values);
+    auto & t_beta       = std::get<1>(values);
     
     for (UInt i : arange(spatial_dimension)) {
-      t_s[i] = tangent_s(i);
+      t_beta[i] = tangent_beta(i);
       for (UInt j : arange(shapes.size())) {
-	t_s[(1 + j) * spatial_dimension + i] = -shapes[j] * tangent_s(i);
+	t_beta[(1 + j) * spatial_dimension + i] = -shapes[j] * tangent_beta(i);
       }
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeNalpha(ContactElement & element,
-				    Array<Real> & n_alpha) {
+void ResolutionUtils::computeNalpha(const ContactElement & element, const Vector<Real> & projection,
+				    const Vector<Real> & normal, Array<Real> & n_alpha) {
 
   n_alpha.clear();
 
@@ -107,7 +174,7 @@ void ResolutionUtils::computeNalpha(ContactElement & element,
 				 Mesh::getNbNodesPerElement(type));
 
 #define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-  ElementClass<type>::computeDNDS(element.projection, shape_derivatives)
+  ElementClass<type>::computeDNDS(projection, shape_derivatives)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
 #undef GET_SHAPE_DERIVATIVES_NATURAL
   
@@ -121,14 +188,17 @@ void ResolutionUtils::computeNalpha(ContactElement & element,
     for (UInt i : arange(spatial_dimension)) {
       n_s[i] = 0;
       for (UInt j : arange(dnds.size())) {
-        n_s[(1 + j) * spatial_dimension + i] = -dnds(j) * element.normal[i];
+        n_s[(1 + j) * spatial_dimension + i] = -dnds(j) * normal[i];
       }
     }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::firstVariationNaturalCoordinate(ContactElement & element,
+void ResolutionUtils::firstVariationNaturalCoordinate(const ContactElement & element,
+						      const Matrix<Real> & covariant_basis,
+						      const Vector<Real> & projection,
+						      const Vector<Real> & normal, const Real & gap,
 						      Array<Real> & delta_xi) {
 
   delta_xi.clear();
@@ -138,18 +208,16 @@ void ResolutionUtils::firstVariationNaturalCoordinate(ContactElement & element,
   auto spatial_dimension = surface_dimension + 1;
   
   Matrix<Real> m_alpha_beta(surface_dimension, surface_dimension);
-  ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
+  ResolutionUtils::computeMetricTensor(m_alpha_beta, covariant_basis);
   m_alpha_beta = m_alpha_beta.inverse();
 
-  auto nb_nodes_master = Mesh::getNbNodesPerElement(type);
-  auto nb_nodes = nb_nodes_master + 1;
+  auto nb_nodes = element.getNbNodes();
   
-  Array<Real> t_alpha(nb_nodes * spatial_dimension,
-		      surface_dimension);
-  Array<Real> n_alpha(nb_nodes * spatial_dimension,
-		      surface_dimension);
-  ResolutionUtils::computeTalpha(element, t_alpha);
-  ResolutionUtils::computeNalpha(element, n_alpha);
+  Array<Real> t_alpha(nb_nodes * spatial_dimension, surface_dimension);
+  Array<Real> n_alpha(nb_nodes * spatial_dimension, surface_dimension);
+
+  ResolutionUtils::computeTalpha(element, covariant_basis, projection, t_alpha);
+  ResolutionUtils::computeNalpha(element, projection, normal, n_alpha);
   
   for (auto && entry :
 	 zip(arange(surface_dimension),
@@ -166,7 +234,7 @@ void ResolutionUtils::firstVariationNaturalCoordinate(ContactElement & element,
       auto & t_beta = std::get<1>(values);
       auto & n_beta = std::get<2>(values);
 
-      d_alpha += (t_beta + element.gap * n_beta) * m_alpha_beta(alpha, beta);
+      d_alpha += (t_beta + gap * n_beta) * m_alpha_beta(alpha, beta);
     }
   }
 }
@@ -178,7 +246,7 @@ void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
   
   const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
-  //auto spatial_dimension = surface_dimension + 1;
+  auto spatial_dimension = surface_dimension + 1;
   
   Matrix<Real> shape_derivatives(surface_dimension,
 				 Mesh::getNbNodesPerElement(type));
@@ -251,7 +319,7 @@ void ResolutionUtils::computeNalphabeta(Array<Real> & n_alpha_beta,
 
 /* -------------------------------------------------------------------------- */
 void ResolutionUtils::computePalpha(Array<Real> & p_alpha,
-				    ContactElement & element) {
+				    ContactElement & /*element*/) {
   p_alpha.clear();
 
   /*const auto & type = element.master.type;
@@ -319,7 +387,7 @@ void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, Matrix<Real> & tangents) {
+void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, const Matrix<Real> & tangents) {
 
   m_alpha_beta.mul<false, true>(tangents, tangents);
 }

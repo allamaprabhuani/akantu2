@@ -339,6 +339,65 @@ ContactDetector::checkValidityOfSelfContact(const UInt & slave_node,
   return true;
 }
 
+
+
+/* -------------------------------------------------------------------------- */
+inline bool
+ContactDetector::isValidSelfContact(const UInt & slave_node, const Real & gap,
+				    const Vector<Real> & normal) {
+
+  UInt master_node;
+
+  // finding the master node corresponding to slave node
+  for (auto & pair : contact_pairs) {
+    if (pair.first == slave_node) {
+      master_node = pair.second;
+      break;
+    }
+  }
+
+  Array<Element> slave_elements;
+  this->mesh.getAssociatedElements(slave_node, slave_elements);
+
+  // Check 1 : master node is not connected to elements connected to
+  // slave node
+  Vector<Real> slave_normal(spatial_dimension);
+  for (auto & element : slave_elements) {
+    if (element.kind() != _ek_regular)
+      continue;
+
+    Vector<UInt> connectivity =
+        const_cast<const Mesh &>(this->mesh).getConnectivity(element);
+
+    // finding the normal at slave node by averaging of normals 
+    Vector<Real> normal(spatial_dimension);
+    GeometryUtils::normal(mesh, positions, element, normal);
+    slave_normal = slave_normal + normal;
+    
+    auto node_iter =
+        std::find(connectivity.begin(), connectivity.end(), master_node);
+    if (node_iter != connectivity.end()) 
+      return false;
+  }
+
+  // Check 2 : if gap is twice the size of smallest element 
+  if (std::abs(gap) > 2.0 * min_dd) 
+    return false;
+  
+  // Check 3 : check the directions of normal at slave node and at
+  // master element, should be in opposite directions 
+  auto norm = slave_normal.norm();
+  if (norm != 0)
+    slave_normal /= norm;
+     
+  auto product = slave_normal.dot(normal);
+  if (product >= 0)  
+    return false;
+  
+  return true;
+}
+
+  
 } // namespace akantu
 
 #endif /*  __AKANTU_CONTACT_DETECTOR_INLINE_IMPL_CC__ */
