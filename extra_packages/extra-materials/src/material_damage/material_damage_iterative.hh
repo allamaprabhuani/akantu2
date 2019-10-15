@@ -97,40 +97,22 @@ public:
   findMaxNormalizedEquivalentStress(ElementType el_type,
                                     GhostType ghost_type = _not_ghost);
 
+  inline void rotateTensor(Matrix<Real> & T,
+                           const Matrix<Real> & rotation_matrix);
+
 protected:
-  /// constitutive law for all element of a type
-  virtual void computeStress(ElementType el_type,
-                             GhostType ghost_type = _not_ghost);
-
-  inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
-
-  /// compute stress based on smooth change from damaged stiffness to not
-  inline void computeStressInCompression(Matrix<Real> & sigma,
-                                         Matrix<Real> & grad_u, Real & dam,
-                                         Real & sigma_crit);
-  /// computes max/min principal stress, then princ strain in same dir
-  inline Real computeStrainByPrincStressDirection(Matrix<Real> & sigma,
-                                                  Matrix<Real> & grad_u,
-                                                  bool max_stress = true);
+  inline auto computePrincStrainAndRotMatrix(const Matrix<Real> & sigma,
+                                             const Matrix<Real> & grad_u,
+                                             bool max_strain = true);
   /// compute smoothening coefficient based on minus delta0 and param K
-  inline Real computeSmootheningCoefficient(Real & eps, Real & dam,
-                                            Real & delta0);
-  /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
-                            Array<Real> & tangent_matrix,
-                            GhostType ghost_type = _not_ghost) override;
+  inline Real computeSmoothingFactor(const Real & eps, const Real & sigma_prime,
+                                     const Real & dam, const Real & delta0);
 
-  /// compute the tangent stiffness matrix for a given quadrature point
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
-  /// compute the tangent stiffness matrix for a given quadrature point in
-  /// compression based on smoothening
-  inline void computeTangentModuliInCompression(Matrix<Real> & tangent,
-                                                Matrix<Real> & sigma,
-                                                Matrix<Real> & grad_u,
-                                                Real & dam, Real & sigma_crit);
-  /* ------------------------------------------------------------------------ */
-  /* DataAccessor inherited members                                           */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* DataAccessor inherited members */
+  /* ------------------------------------------------------------------------
+   */
 
   inline UInt getNbData(const Array<Element> & elements,
                         const SynchronizationTag & tag) const override;
@@ -143,9 +125,11 @@ protected:
                          const Array<Element> & elements,
                          const SynchronizationTag & tag) override;
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Class Members */
+  /* ------------------------------------------------------------------------
+   */
 protected:
   /// resistance to damage
   RandomInternalField<Real> Sc;
@@ -182,6 +166,9 @@ protected:
 
   /// smoothening stiffness change from the damaged one to non-damaged
   bool smoothen_stiffness_change = false;
+
+  /// 1st vector normal to crack, 2nd (& 3rd) - vector(s) in crack plane
+  InternalField<Real> crack_normals;
 };
 
 } // namespace akantu

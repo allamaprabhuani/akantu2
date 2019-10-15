@@ -41,10 +41,11 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
 class MaterialDamageIterativeViscoelastic
-    : public MaterialIterativeStiffnessReduction<dim,
-                                                 MaterialViscoelasticMaxwell> {
+    : public MaterialIterativeStiffnessReductionIsotropic<
+          dim, MaterialViscoelasticMaxwell> {
   using parent =
-      MaterialIterativeStiffnessReduction<dim, MaterialViscoelasticMaxwell>;
+      MaterialIterativeStiffnessReductionIsotropic<dim,
+                                                   MaterialViscoelasticMaxwell>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -99,8 +100,8 @@ protected:
   void updateDissipatedEnergyDamageOnQuad(
       Matrix<Real> grad_u, Matrix<Real> epsilon_p, Tensor3<Real> sigma_v,
       Tensor3<Real> epsilon_v, Tensor3<Real> sigma_v_pr,
-      Tensor3<Real> epsilon_v_pr, Real dam, Real dam_pr,
-      Real & epot, Real & ints, Real & edd);
+      Tensor3<Real> epsilon_v_pr, Real dam, Real dam_pr, Real & epot,
+      Real & ints, Real & edd);
 
   /// updates potential energy accounting for damage
   void computePotentialEnergyOnQuad(Matrix<Real> grad_u, Real & epot,

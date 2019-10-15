@@ -1,6 +1,7 @@
 /**
- * @file   material_iterative_stiffness_reduction.cc
+ * @file   material_damage_iterative_elastic.cc
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @date   Thu Feb 18 16:03:56 2016
  *
  * @brief  Implementation of material iterative stiffness reduction
@@ -26,13 +27,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_iterative_stiffness_reduction.hh"
 #include "communicator.hh"
+#include "material_damage_iterative_isotropic.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
-INSTANTIATE_MATERIAL(iterative_stiffness_reduction,
-                     MaterialIterativeStiffnessReduction);
+INSTANTIATE_MATERIAL(damage_iterative_isotropic,
+                     MaterialDamageIterativeIsotropic);
 
 } // namespace akantu

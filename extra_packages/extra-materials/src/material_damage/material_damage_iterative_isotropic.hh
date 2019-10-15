@@ -1,6 +1,7 @@
 /**
- * @file   material_iterative_stiffness_reduction.hh
+ * @file   material_damage_iterative.hh
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @date   Thu Feb 18 15:25:05 2016
  *
  * @brief  Damage material with constant stiffness reduction
@@ -26,46 +27,56 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material_damage_iterative_isotropic.hh"
+#include "material_damage_iterative.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__
-#define __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__
+#ifndef __AKANTU_MATERIAL_DAMAGE_ITERATIVE_ISOTROPIC_HH__
+#define __AKANTU_MATERIAL_DAMAGE_ITERATIVE_ISOTROPIC_HH__
 
 namespace akantu {
 
 /**
- * Material damage iterative
+ * Material damage iterative isotropic
  *
- * parameters in the material files :
- *   - Gfx
- *   - h
- *   - Sc
  */
-/// Proposed by Rots and Invernizzi, 2004: Regularized sequentially linear
-// saw-tooth softening model (section 4.2)
-template <UInt spatial_dimension, class IsotropicParent =
-                                      MaterialDamageIterativeIsotropic<
-                                          spatial_dimension, MaterialElastic>>
-class MaterialIterativeStiffnessReduction
-    : public IsotropicParent {
+
+template <UInt spatial_dimension,
+          template <UInt> class ElasticParent = MaterialElastic>
+class MaterialDamageIterativeIsotropic
+    : public MaterialDamageIterative<spatial_dimension, ElasticParent> {
+  using parent = MaterialDamageIterative<spatial_dimension, ElasticParent>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
-                                      const ID & id = "");
+  MaterialDamageIterativeIsotropic(SolidMechanicsModel & model,
+                                   const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// init the material
-  void initMaterial() override;
+  void computeStress(ElementType el_type, GhostType ghost_type) override;
 
-  /// update internal field damage
-  UInt updateDamage() override;
+  void computeTangentModuli(const ElementType & el_type,
+                            Array<Real> & tangent_matrix,
+                            GhostType ghost_type) override;
 
+protected:
+  // simple multiplication by the (1 - damage)
+  inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
+  // if any of stress components is compressive - full stiffness recovery
+  inline void computeStressInCompression(Matrix<Real> & sigma,
+                                         Matrix<Real> & grad_u, Real & dam,
+                                         Real & sigma_crit);
+  // simple multiplication by the (1 - damage)
+  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
+
+  // if any of stress components is compressive - full stiffness recovery
+  inline void computeTangentModuliInCompression(Matrix<Real> & tangent,
+                                                 Matrix<Real> & sigma,
+                                                 Matrix<Real> & grad_u,
+                                                 Real & dam, Real & sigma_crit);
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
@@ -77,30 +88,13 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// the ultimate strain
-  InternalField<Real> eps_u;
-
-  /// the initial strength
-  InternalField<Real> Sc_init;
-
-  /// the tangent of the tensile stress-strain softening
-  InternalField<Real> D;
-
-  /// fracture energy
-  Real Gf;
-
-  /// crack_band_width for normalization of fracture energy
-  Real crack_band_width;
-
-  /// the reduction constant (denoted by a in the paper of rots)
-  Real reduction_constant;
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
 };
-
-template<UInt dim, template<UInt> class ElasticParent>
-using MaterialIterativeStiffnessReductionIsotropic = MaterialIterativeStiffnessReduction<dim, MaterialDamageIterativeIsotropic<dim, ElasticParent>>;
 
 } // namespace akantu
 
-#include "material_iterative_stiffness_reduction_inline_impl.cc"
+#include "material_damage_iterative_isotropic_inline_impl.cc"
 
-#endif /* __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__ */
+#endif /* __AKANTU_MATERIAL_DAMAGE_ITERATIVE_ISOTROPIC_HH__ */

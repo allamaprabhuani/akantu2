@@ -33,12 +33,12 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
-MaterialIterativeStiffnessReduction<spatial_dimension, ElasticParent>::
+template <UInt spatial_dimension, class IsotropicParent>
+MaterialIterativeStiffnessReduction<spatial_dimension, IsotropicParent>::
     MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
                                         const ID & id)
-    : parent(model, id), eps_u("ultimate_strain", *this),
-      Sc_init("initial_strength", *this), D("tangent", *this), Gf(0.),
+    : IsotropicParent(model, id), eps_u("eps_u", *this),
+      Sc_init("Sc_init", *this), D("D", *this), Gf(0.),
       crack_band_width(0.), reduction_constant(0.) {
   AKANTU_DEBUG_IN();
 
@@ -57,11 +57,11 @@ MaterialIterativeStiffnessReduction<spatial_dimension, ElasticParent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
+template <UInt spatial_dimension, class IsotropicParent>
 void MaterialIterativeStiffnessReduction<spatial_dimension,
-                                         ElasticParent>::initMaterial() {
+                                         IsotropicParent>::initMaterial() {
   AKANTU_DEBUG_IN();
-  parent::initMaterial();
+  IsotropicParent::initMaterial();
   this->Sc_init.copy(this->Sc);
 
   for (auto ghost_type : ghost_types) {
@@ -87,9 +87,9 @@ void MaterialIterativeStiffnessReduction<spatial_dimension,
 
 /* --------------------------------------------------------------------------
  */
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
+template <UInt spatial_dimension, class IsotropicParent>
 UInt MaterialIterativeStiffnessReduction<spatial_dimension,
-                                         ElasticParent>::updateDamage() {
+                                         IsotropicParent>::updateDamage() {
   UInt nb_damaged_elements = 0;
 
   if (this->norm_max_equivalent_stress >= 1.) {
@@ -121,7 +121,7 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
       Real dt = this->model.getTimeStep();
       Real E_sum = E_ef;
 
-      if (parent::getID().find("viscoelastic_maxwell") != std::string::npos) {
+      if (IsotropicParent::getID().find("viscoelastic_maxwell") != std::string::npos) {
         E_ef = this->getParam("Einf");
         const Vector<Real> & Eta = this->getParam("Eta");
         const Vector<Real> & Ev = this->getParam("Ev");
@@ -144,7 +144,7 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
            ++equivalent_stress_it, ++dam_it, ++reduction_it, ++eps_u_it,
            ++Sc_it, ++Sc_init_it, ++D_it) {
 
-        if (parent::getID().find("viscoelastic_maxwell") != std::string::npos) {
+        if (Material::getID().find("viscoelastic_maxwell") != std::string::npos) {
           *eps_u_it = 2. * this->Gf / (*Sc_init_it * this->crack_band_width) +
                       *Sc_init_it * (1 / E_ef - 1 / E_sum);
           *D_it = *(Sc_init_it) / ((*eps_u_it) - ((*Sc_init_it) / E_ef));
@@ -177,11 +177,11 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
     }
   }
 
-  //auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
-  //if (rve_model == NULL) {
-    const auto & comm = this->model.getMesh().getCommunicator();
-    comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
-    //}
+  // auto rve_model = dynamic_cast<SolidMechanicsModelRVE *>(&this->model);
+  // if (rve_model == NULL) {
+  const auto & comm = this->model.getMesh().getCommunicator();
+  comm.allReduce(nb_damaged_elements, SynchronizerOperation::_sum);
+  //}
 
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;

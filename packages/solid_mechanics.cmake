@@ -64,8 +64,13 @@ package_declare_sources(solid_mechanics
   model/solid_mechanics/materials/material_elastic_linear_anisotropic.cc
   model/solid_mechanics/materials/material_elastic_linear_anisotropic.hh
   model/solid_mechanics/materials/material_elastic_linear_anisotropic_inline_impl.cc
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic_heterogeneous.cc
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic_heterogeneous.hh
+  model/solid_mechanics/materials/material_elastic_linear_anisotropic_heterogeneous_inline_impl.cc
   model/solid_mechanics/materials/material_elastic_orthotropic.cc
   model/solid_mechanics/materials/material_elastic_orthotropic.hh
+  model/solid_mechanics/materials/material_elastic_orthotropic_heterogeneous.cc
+  model/solid_mechanics/materials/material_elastic_orthotropic_heterogeneous.hh
   model/solid_mechanics/materials/material_damage/material_anisotropic_damage.hh
   model/solid_mechanics/materials/material_damage/material_anisotropic_damage.cc
   model/solid_mechanics/materials/material_damage/material_anisotropic_damage_tmpl.hh

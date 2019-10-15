@@ -1925,7 +1925,7 @@ void ASRTools::insertCohElemRandomly(const UInt & nb_coh_elem,
   std::uniform_int_distribution<> dis(
       0, matrix_elements.getElements(type_facets).size() - 1);
 
-  for (auto coh_el : arange(nb_coh_elem)) {
+  for (auto _ [[gnu::unused]] : arange(nb_coh_elem)) {
     auto id = dis(random_generator);
     Element facet;
     facet.type = type_facets;
