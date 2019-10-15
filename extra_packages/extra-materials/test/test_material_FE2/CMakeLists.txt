@@ -16,12 +16,14 @@
 
 #===============================================================================
 
-register_test(test_material_FE2
-  SOURCES test_material_FE2.cc
-  FILES_TO_COPY material.dat periodic_plate.msh square.msh
-  DIRECTORIES_TO_CREATE paraview
-  PACKAGE extra_materials
-  )
+add_mesh(periodic_plate periodic_plate.geo 2 1)
+#register_test(test_material_FE2
+#  SOURCES test_material_FE2.cc
+#  DEPENDS periodic_plate
+#  FILES_TO_COPY material.dat square.msh
+#  DIRECTORIES_TO_CREATE paraview
+#  PACKAGE extra_materials
+#  )
 
 register_test(test_eigenstrain_homogenization
   SOURCES test_eigenstrain_homogenization.cc
@@ -39,7 +41,6 @@ register_test(test_elastic_homogenization
   PACKAGE implicit extra_materials
   )
 
-add_mesh(periodic_plate periodic_plate.geo 2 1)
 register_test(test_node_selection
   SOURCES  test_node_selection.cc 
   DEPENDS periodic_plate
