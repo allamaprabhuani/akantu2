@@ -169,9 +169,9 @@ void MaterialElasticOrthotropicHeterogeneous<
                                          Vector<Real> & _eigC,
                                          Matrix<Real> & _dir_vecs) {
 
-  Real _nu21 = _nu12 * this->E2 / this->E1;
-  Real _nu31 = _nu13 * this->E3 / this->E1;
-  Real _nu32 = _nu23 * this->E3 / this->E2;
+  Real _nu21 = _nu12 * _E2 / _E1;
+  Real _nu31 = _nu13 * _E3 / _E1;
+  Real _nu32 = _nu23 * _E3 / _E2;
 
   // Full (i.e. dim^2 by dim^2) stiffness tensor in material frame
   if (Dim == 1) {

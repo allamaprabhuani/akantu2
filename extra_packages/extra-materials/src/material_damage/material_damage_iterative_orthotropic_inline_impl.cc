@@ -133,17 +133,9 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
     Real & _G12, Real & _G13, Real & _G23, Matrix<Real> & _Cprime,
     Matrix<Real> & _C, Vector<Real> & _eigC, Matrix<Real> & _dir_vecs) {
 
-  bool need_to_update_internals = false;
   /// parameters reduction & update of C and Cprime only in case of damage
   if (dam > 0) {
-    /// check if elasticity parameters are already reduced by damage
-    if (_E1 != this->E1 * (1 - dam)) {
-      _nu12 = this->nu12 * (1 - dam);
-      _nu13 = this->nu13 * (1 - dam);
-      _nu23 = this->nu23 * (1 - dam);
-      _E1 = this->E1 * (1 - dam);
-      need_to_update_internals = true;
-    }
+
     /// detect compression in the normal to crack plane direction
     Vector<Real> normal_to_crack = Vector<Real>(_dir_vecs(0));
     auto traction_on_crack = sigma * normal_to_crack;
@@ -151,22 +143,25 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
 
     /// recover stiffness only when compressive stress is considerable
     if (std::abs(stress_normal_to_crack) > this->E / 1e9 &&
-        stress_normal_to_crack < 0 && _E1 != this->E1) {
+        stress_normal_to_crack < 0) {
       _E1 = this->E1;
-      need_to_update_internals = true;
-    }
-
-    if (need_to_update_internals) {
+      _nu12 = this->nu12;
+      _nu13 = this->nu13;
+      _G12 = this->G12;
+      _G13 = this->G13;
+    } else {
+      _E1 = this->E1 * (1 - dam);
+      _nu12 = this->nu12 * (1 - dam);
+      _nu13 = this->nu13 * (1 - dam);
       /// update shear moduli (Stable orthotropic materials (Li & Barbic))
-      _G12 = std::sqrt(_E1 * _E2) / 2 / (1 + _nu12);
-      _G13 = std::sqrt(_E1 * _E3) / 2 / (1 + _nu13);
-      _G23 = std::sqrt(_E2 * _E3) / 2 / (1 + _nu23);
-
-      // calling on quad function of mat_orthotropic_heterogeneous
-      this->updateInternalParametersOnQuad(_E1, _E2, _E3, _nu12, _nu13, _nu23,
-                                           _G12, _G13, _G23, _Cprime, _C, _eigC,
-                                           _dir_vecs);
+      _G12 = std::sqrt(_E1 * _E2) / 2 / (1 + std::sqrt(_nu12 * this->nu12));
+      _G13 = std::sqrt(_E1 * _E3) / 2 / (1 + std::sqrt(_nu13 * this->nu13));
     }
+
+    // calling on quad function of mat_orthotropic_heterogeneous
+    this->updateInternalParametersOnQuad(_E1, _E2, _E3, _nu12, _nu13, _nu23,
+                                         _G12, _G13, _G23, _Cprime, _C, _eigC,
+                                         _dir_vecs);
   }
   // calling on quad function of mat_anisotropic_heterogeneous
   this->computeStressOnQuad(grad_u, sigma, _C);
