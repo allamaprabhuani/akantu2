@@ -32,7 +32,6 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
     : parent(model, id), Sc("Sc", *this),
       reduction_step("reduction_step", *this),
       equivalent_stress("equivalent_stress", *this), max_reductions(0),
-      min_equivalent_stress("min_equivalent_stress", *this),
       crack_normals("normal_to_crack", *this) {
   AKANTU_DEBUG_IN();
 
@@ -44,28 +43,17 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
       "damage threshold at which damage damage will be set to 1");
   this->registerParam(
       "dam_tolerance", dam_tolerance, 0.01, _pat_parsable | _pat_modifiable,
-      "damage tolerance to decide if quadrature point will be damageed");
+      "damage tolerance to decide if quadrature point will be damaged");
   this->registerParam("max_damage", max_damage, 0.99999,
                       _pat_parsable | _pat_modifiable, "maximum damage value");
   this->registerParam("max_reductions", max_reductions, UInt(10),
                       _pat_parsable | _pat_modifiable, "max reductions");
-  this->registerParam("contact", contact, false,
-                      _pat_parsable | _pat_modifiable,
-                      "parameter responsible for the stiffness recovery when "
-                      "in compression");
-  this->registerParam("smoothen_stiffness_change", smoothen_stiffness_change,
-                      false, _pat_parsable | _pat_modifiable,
-                      "smoothening stiffness change from damaged to "
-                      "non-damaged when in compression");
-  this->registerParam("K", K, 5000., _pat_parsable | _pat_modifiable,
-                      "parameter of smoothening law");
 
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
   this->reduction_step.initialize(1);
-  this->min_equivalent_stress.initialize(1);
   this->crack_normals.initialize(spatial_dimension * spatial_dimension);
 
   AKANTU_DEBUG_OUT();
@@ -85,21 +73,18 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
                                     spatial_dimension, spatial_dimension),
                           make_view(Sc(el_type, ghost_type)),
                           make_view(equivalent_stress(el_type, ghost_type)),
-                          make_view(min_equivalent_stress(el_type, ghost_type)),
                           make_view(crack_normals(el_type, ghost_type),
                                     spatial_dimension, spatial_dimension))) {
 
     const auto & sigma = std::get<0>(data);
     const auto & sigma_crit = std::get<1>(data);
     auto & sigma_eq = std::get<2>(data);
-    auto & min_sigma_eq = std::get<3>(data);
-    auto & crack_norm = std::get<4>(data);
+    auto & crack_norm = std::get<3>(data);
 
     /// compute eigenvalues and eigenvectors and sort them
     sigma.eig(eigenvalues, crack_norm, true);
 
     sigma_eq = eigenvalues[0] / sigma_crit;
-    min_sigma_eq = eigenvalues[spatial_dimension - 1] / sigma_crit;
 
     /// normalize each eigenvector
     for (auto && vec : crack_norm) {
@@ -161,81 +146,6 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
   }
   AKANTU_DEBUG_OUT();
 }
-/* -----------------------------------------------------------------------*/
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline auto MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    computePrincStrainAndRotMatrix(const Matrix<Real> & sigma,
-                                   const Matrix<Real> & grad_u,
-                                   bool max_strain) {
-
-  Vector<Real> eigEps(spatial_dimension);
-  Matrix<Real> rotation_matrix(spatial_dimension, spatial_dimension);
-
-  // small strain tensor
-  Matrix<Real> strain(grad_u);
-  strain += grad_u.transpose();
-  strain *= 0.5;
-
-  // compute eigenvalues
-  strain.eig(eigEps, rotation_matrix, false);
-
-  /// normalize each column of the rotation matrix by the length of
-  /// corresponding eigen vector
-  for (auto && c : arange(rotation_matrix.cols())) {
-    Vector<Real> vect(rotation_matrix(c));
-    vect /= vect.norm();
-  }
-
-  Matrix<Real> RtSigma(spatial_dimension, spatial_dimension);
-  Matrix<Real> SigmaPrime(spatial_dimension, spatial_dimension);
-  Vector<Real> eigSigma(spatial_dimension);
-  RtSigma.mul<true, false>(rotation_matrix, sigma);
-  SigmaPrime.mul<false, false>(RtSigma, rotation_matrix);
-  for (auto i : arange(spatial_dimension))
-    eigSigma[i] = SigmaPrime(i, i);
-
-  // position of the biggest or smallest stress value
-  Real pos;
-  if (max_strain)
-    pos =
-        std::distance(eigSigma.storage(),
-                      std::max_element(eigSigma.storage(),
-                                       eigSigma.storage() + spatial_dimension));
-  else
-    pos =
-        std::distance(eigSigma.storage(),
-                      std::min_element(eigSigma.storage(),
-                                       eigSigma.storage() + spatial_dimension));
-
-  return std::make_tuple(eigEps, eigSigma, rotation_matrix, pos);
-}
-/* --------------------------------------------------------------------------
- */
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline Real MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    computeSmoothingFactor(const Real & eps, const Real & sigma_prime,
-                           const Real & dam, const Real & delta0) {
-  // smoothening between two slopes is done by tanh function
-  // as the center of smoothening minus delta0 is taken
-  Real smooth_coef = 1. - dam;
-  if (sigma_prime < 0)
-    smooth_coef = 1. - dam / 2 * (1 + tanh(this->K * (eps + delta0)));
-  return smooth_coef;
-}
-/* ----------------------------------------------------------------------*/
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline void
-MaterialDamageIterative<spatial_dimension, ElasticParent>::rotateTensor(
-    Matrix<Real> & T, const Matrix<Real> & rotation_matrix) {
-  AKANTU_DEBUG_ASSERT(T.rows() == rotation_matrix.rows() and
-                          T.cols() == rotation_matrix.cols(),
-                      "Dimensions of tensors do not match");
-
-  Matrix<Real> temp(T);
-  temp.mul<true, false>(rotation_matrix, T);
-  T.mul<false, false>(temp, rotation_matrix);
-}
-
 /* --------------------------------------------------------------------------
  */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>

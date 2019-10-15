@@ -65,18 +65,9 @@ public:
 protected:
   // simple multiplication by the (1 - damage)
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
-  // if any of stress components is compressive - full stiffness recovery
-  inline void computeStressInCompression(Matrix<Real> & sigma,
-                                         Matrix<Real> & grad_u, Real & dam,
-                                         Real & sigma_crit);
   // simple multiplication by the (1 - damage)
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
 
-  // if any of stress components is compressive - full stiffness recovery
-  inline void computeTangentModuliInCompression(Matrix<Real> & tangent,
-                                                 Matrix<Real> & sigma,
-                                                 Matrix<Real> & grad_u,
-                                                 Real & dam, Real & sigma_crit);
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */

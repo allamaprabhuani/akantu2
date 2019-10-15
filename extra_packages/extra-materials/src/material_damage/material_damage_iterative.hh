@@ -44,9 +44,6 @@ public:
 protected:
   /// maximum equivalent stress
   Real norm_max_equivalent_stress;
-
-  /// average equivalent stress
-  Real norm_av_equivalent_stress;
 };
 
 /**
@@ -154,18 +151,6 @@ protected:
 
   /// maximum damage value
   Real max_damage;
-
-  /// recovery of stiffness when in compression
-  bool contact;
-
-  /// trace of a stress tensor to judge on compression
-  InternalField<Real> min_equivalent_stress;
-
-  /// coefficient K for smoothening (adjusted for delta0 = 1e-4)
-  Real K = 5000;
-
-  /// smoothening stiffness change from the damaged one to non-damaged
-  bool smoothen_stiffness_change = false;
 
   /// 1st vector normal to crack, 2nd (& 3rd) - vector(s) in crack plane
   InternalField<Real> crack_normals;

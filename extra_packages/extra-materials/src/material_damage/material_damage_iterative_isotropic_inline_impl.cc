@@ -48,20 +48,14 @@ void MaterialDamageIterativeIsotropic<
   parent::computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  auto min_e_stress_it =
-      this->min_equivalent_stress(el_type, ghost_type).begin();
   auto e_stress_it = this->equivalent_stress(el_type, ghost_type).begin();
   auto Sc_it = this->Sc(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  if (this->contact && *min_e_stress_it < 0. && this->smoothen_stiffness_change)
-    computeStressInCompression(sigma, grad_u, *dam, *Sc_it);
-  else
-    computeDamageAndStressOnQuad(sigma, *dam);
+  computeDamageAndStressOnQuad(sigma, *dam);
 
   ++dam;
-  ++min_e_stress_it;
   ++e_stress_it;
   ++Sc_it;
 
@@ -74,21 +68,7 @@ void MaterialDamageIterativeIsotropic<
 
   AKANTU_DEBUG_OUT();
 }
-/* --------------------------------------------------------------------------
- */
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
-    computeStressInCompression(Matrix<Real> & sigma, Matrix<Real> & grad_u,
-                               Real & dam, Real & sigma_crit) {
 
-  auto tuple = this->computePrincStrainAndRotMatrix(sigma, grad_u, false);
-  auto eps = std::get<0>(tuple)(std::get<3>(tuple));
-  auto sigm = std::get<1>(tuple)(std::get<3>(tuple));
-  Real stiffness = this->E;
-  auto delta0 = sigma_crit / stiffness;
-  Real smooth_coef = this->computeSmoothingFactor(eps, sigm, dam, delta0);
-  sigma *= smooth_coef;
-}
 /* --------------------------------------------------------------------------
  */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
@@ -108,8 +88,6 @@ void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
       el_type, tangent_matrix, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  auto min_e_stress_it =
-      this->min_equivalent_stress(el_type, ghost_type).begin();
   auto grad_u_it = this->gradu(el_type, ghost_type)
                        .begin(spatial_dimension, spatial_dimension);
   auto stress_it = this->stress(el_type, ghost_type)
@@ -118,14 +96,8 @@ void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 
-  if (this->contact && *min_e_stress_it < 0. && this->smoothen_stiffness_change)
-    computeTangentModuliInCompression(tangent, *stress_it, *grad_u_it, *dam,
-                                      *Sc_it);
-
-  else
-    computeTangentModuliOnQuad(tangent, *dam);
+  computeTangentModuliOnQuad(tangent, *dam);
   ++dam;
-  ++min_e_stress_it;
   ++grad_u_it;
   ++stress_it;
   ++Sc_it;
@@ -133,23 +105,6 @@ void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
   AKANTU_DEBUG_OUT();
-}
-/* --------------------------------------------------------------------------
- */
-template <UInt spatial_dimension, template <UInt> class ElasticParent>
-inline void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
-    computeTangentModuliInCompression(Matrix<Real> & tangent,
-                                      Matrix<Real> & sigma,
-                                      Matrix<Real> & grad_u, Real & dam,
-                                      Real & sigma_crit) {
-
-  auto tuple = this->computePrincStrainAndRotMatrix(sigma, grad_u, false);
-  auto eps = std::get<0>(tuple)(std::get<3>(tuple));
-  auto sigm = std::get<1>(tuple)(std::get<3>(tuple));
-  Real stiffness = this->E;
-  auto delta0 = sigma_crit / stiffness;
-  Real smooth_coef = this->computeSmoothingFactor(eps, sigm, dam, delta0);
-  tangent *= smooth_coef;
 }
 /* --------------------------------------------------------------------------
  */
