@@ -66,16 +66,6 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   }
   }
 }
-/* --------------------------------------------------------------------------
- */
-template <UInt dim>
-void ASRTools::applyBoundaryConditions(bool free_expansion,
-                                       const Matrix<Real> & traction,
-                                       const ID & element_group,
-                                       bool multi_axial) {
-  AKANTU_TO_IMPLEMENT();
-}
-
 /* ------------------------------------------------------------------------- */
 void ASRTools::applyFreeExpansionBC() {
   /// boundary conditions
@@ -87,100 +77,42 @@ void ASRTools::applyFreeExpansionBC() {
   Array<Real> & disp = model.getDisplacement();
   Array<bool> & boun = model.getBlockedDOFs();
 
+  /// accessing bounds
+  Real bottom = lowerBounds(1);
+  Real left = lowerBounds(0);
+  Real top = upperBounds(1);
+  Real eps = std::abs((top - bottom) * 1e-6);
+
   switch (dim) {
   case 2: {
-    /// accessing bounds
-    Real bottom = lowerBounds(1);
-    Real left = lowerBounds(0);
-    Real right = upperBounds(0);
-    Real top = upperBounds(1);
-
-    Real eps = std::abs((top - bottom) * 1e-6);
-
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps)) {
-        boun(i, 0) = true;
-        boun(i, 1) = true;
-        disp(i, 0) = 0.0;
-        disp(i, 1) = 0.0;
-      }
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - right) < eps)) {
+      if (std::abs(pos(i, 1) - bottom) < eps) {
         boun(i, 1) = true;
         disp(i, 1) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - top) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
+
+        if (std::abs(pos(i, 0) - left) < eps) {
+          boun(i, 0) = true;
+          disp(i, 0) = 0.0;
+        }
       }
     }
     break;
   }
   case 3: {
     /// accessing bounds
-    Real bottom = lowerBounds(1);
-    Real front = upperBounds(2);
-    Real left = lowerBounds(0);
-    Real right = upperBounds(0);
-    Real top = upperBounds(1);
     Real back = lowerBounds(2);
-
-    Real eps = std::abs((top - bottom) * 1e-6);
-
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
-        boun(i, 0) = true;
-        boun(i, 1) = true;
-        boun(i, 2) = true;
-        disp(i, 0) = 0.0;
-        disp(i, 1) = 0.0;
-        disp(i, 2) = 0.0;
-      }
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - right) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
+      if (std::abs(pos(i, 1) - bottom) < eps) {
         boun(i, 1) = true;
         disp(i, 1) = 0.0;
-        boun(i, 2) = true;
-        disp(i, 2) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - top) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-        boun(i, 2) = true;
-        disp(i, 2) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - right) < eps) &&
-          (std::abs(pos(i, 1) - top) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
-        boun(i, 2) = true;
-        disp(i, 2) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 2) - front) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - top) < eps) &&
-          (std::abs(pos(i, 2) - front) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - right) < eps) &&
-          (std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 2) - front) < eps)) {
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
+
+        if ((std::abs(pos(i, 0) - left) < eps) &&
+            (std::abs(pos(i, 2) - back) < eps)) {
+          boun(i, 0) = true;
+          boun(i, 2) = true;
+          disp(i, 0) = 0.0;
+          disp(i, 2) = 0.0;
+        }
       }
     }
     break;
@@ -190,22 +122,17 @@ void ASRTools::applyFreeExpansionBC() {
 
 /* --------------------------------------------------------------------------
  */
-template <>
-void ASRTools::applyBoundaryConditions<3>(bool free_expansion,
-                                          const Matrix<Real> & traction,
-                                          const ID & element_group,
-                                          bool multi_axial) {
+void ASRTools::applyLoadedBC(const Matrix<Real> & traction,
+                             const ID & element_group, bool multi_axial) {
 
   /// boundary conditions
   const auto & mesh = model.getMesh();
+  const UInt dim = mesh.getSpatialDimension();
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
   Real bottom = lowerBounds(1);
-  Real front = upperBounds(2);
   Real left = lowerBounds(0);
-  Real right = upperBounds(0);
   Real top = upperBounds(1);
-  Real back = lowerBounds(2);
 
   Real eps = std::abs((top - bottom) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
@@ -214,45 +141,28 @@ void ASRTools::applyBoundaryConditions<3>(bool free_expansion,
   disp.clear();
   boun.clear();
 
-  /// free expansion
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    if (free_expansion) {
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
-        boun(i, 0) = true;
+  switch (dim) {
+  case 2: {
+    for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
+      if (std::abs(pos(i, 1) - bottom) < eps) {
         boun(i, 1) = true;
-        boun(i, 2) = true;
-        disp(i, 0) = 0.0;
         disp(i, 1) = 0.0;
-        disp(i, 2) = 0.0;
       }
       if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - right) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
-        boun(i, 2) = true;
-        disp(i, 2) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - top) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
+          (std::abs(pos(i, 0) - left) < eps)) {
         boun(i, 0) = true;
         disp(i, 0) = 0.0;
-        boun(i, 2) = true;
-        disp(i, 2) = 0.0;
       }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 2) - front) < eps)) {
+      if (multi_axial && (std::abs(pos(i, 0) - left) < eps)) {
         boun(i, 0) = true;
         disp(i, 0) = 0.0;
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
       }
-      /// loaded test
-    } else {
+    }
+    break;
+  }
+  case 3: {
+    Real back = lowerBounds(2);
+    for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
       if ((std::abs(pos(i, 1) - bottom) < eps) &&
           (std::abs(pos(i, 0) - left) < eps) &&
           (std::abs(pos(i, 2) - back) < eps)) {
@@ -277,79 +187,13 @@ void ASRTools::applyBoundaryConditions<3>(bool free_expansion,
       }
     }
   }
-  if (!free_expansion)
-    try {
-      model.applyBC(BC::Neumann::FromStress(traction), element_group);
-    } catch (...) {
-    }
-}
-
-/* --------------------------------------------------------------------------
- */
-template <>
-void ASRTools::applyBoundaryConditions<2>(bool free_expansion,
-                                          const Matrix<Real> & traction,
-                                          const ID & element_group,
-                                          bool multi_axial) {
-  /// boundary conditions
-  const auto & mesh = model.getMesh();
-  const Vector<Real> & lowerBounds = mesh.getLowerBounds();
-  const Vector<Real> & upperBounds = mesh.getUpperBounds();
-  Real bottom = lowerBounds(1);
-  Real left = lowerBounds(0);
-  Real right = upperBounds(0);
-  Real top = upperBounds(1);
-
-  Real eps = std::abs((top - bottom) * 1e-6);
-  const Array<Real> & pos = mesh.getNodes();
-  Array<Real> & disp = model.getDisplacement();
-  Array<bool> & boun = model.getBlockedDOFs();
-  disp.clear();
-  boun.clear();
-
-  for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-    /// free expansion
-    if (free_expansion) {
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps)) {
-        boun(i, 0) = true;
-        boun(i, 1) = true;
-        disp(i, 0) = 0.0;
-        disp(i, 1) = 0.0;
-      }
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - right) < eps)) {
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
-      }
-      if ((std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 1) - top) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-      }
-      /// loaded test
-    } else {
-      if (std::abs(pos(i, 1) - bottom) < eps) {
-        boun(i, 1) = true;
-        disp(i, 1) = 0.0;
-      }
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-      }
-      if (multi_axial && (std::abs(pos(i, 0) - left) < eps)) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
-      }
-    }
   }
-  if (!free_expansion)
-    try {
-      model.applyBC(BC::Neumann::FromStress(traction), element_group);
-    } catch (...) {
-    }
+  try {
+    model.applyBC(BC::Neumann::FromStress(traction), element_group);
+  } catch (...) {
+  }
 }
+
 /* --------------------------------------------------------------------------
  */
 void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
@@ -1925,7 +1769,7 @@ void ASRTools::insertCohElemRandomly(const UInt & nb_coh_elem,
   std::uniform_int_distribution<> dis(
       0, matrix_elements.getElements(type_facets).size() - 1);
 
-  for (auto _ [[gnu::unused]] : arange(nb_coh_elem)) {
+  for (auto _[[gnu::unused]] : arange(nb_coh_elem)) {
     auto id = dis(random_generator);
     Element facet;
     facet.type = type_facets;

@@ -66,11 +66,9 @@ public:
   /// Apply free expansion boundary conditions
   void applyFreeExpansionBC();
 
-  /// Apply boundary conditions on ASR samples to imitate lab testing conditions
-  template <UInt dim>
-  void applyBoundaryConditions(const bool free_expansion,
-                               const Matrix<Real> & traction,
-                               const ID & element_group, bool multi_axial);
+  /// Apply loaded boundary conditions
+  void applyLoadedBC(const Matrix<Real> & traction, const ID & element_group,
+                     bool multi_axial);
 
   /// This function computes the average displacement along one side of the
   /// sample,
