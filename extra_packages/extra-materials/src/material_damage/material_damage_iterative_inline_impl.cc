@@ -32,7 +32,7 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
     : parent(model, id), Sc("Sc", *this),
       reduction_step("reduction_step", *this),
       equivalent_stress("equivalent_stress", *this), max_reductions(0),
-      crack_normals("normal_to_crack", *this) {
+      crack_normals("crack_normals", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sc", Sc, _pat_parsable, "critical stress threshold");

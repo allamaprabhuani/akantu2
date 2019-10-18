@@ -33,6 +33,7 @@
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
 #include <fstream>
+
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -397,125 +398,6 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::performTensionTest(SpatialDirection direction) {
-  UInt dir;
-
-  if (direction == _x)
-    dir = 0;
-  if (direction == _y)
-    dir = 1;
-  if (direction == _z) {
-    AKANTU_DEBUG_ASSERT(model.getSpatialDimension() == 3,
-                        "Error in problem dimension!!!");
-    dir = 2;
-  }
-
-  const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
-
-  /// boundary conditions
-  const Vector<Real> & lowerBounds = mesh.getLowerBounds();
-  const Vector<Real> & upperBounds = mesh.getUpperBounds();
-  Real bottom = lowerBounds(1);
-  Real top = upperBounds(1);
-  Real left = lowerBounds(0);
-  Real back;
-
-  if (dim == 3)
-    back = lowerBounds(2);
-
-  Real eps = std::abs((top - bottom) * 1e-6);
-  const auto & pos = mesh.getNodes();
-  auto & disp = model.getDisplacement();
-  auto & boun = model.getBlockedDOFs();
-  auto & ext_force = model.getExternalForce();
-  Array<Real> disp_stored(disp);
-  Array<bool> boun_stored(boun);
-  Array<Real> ext_force_stored(ext_force);
-  UInt nb_nodes = mesh.getNbNodes();
-
-  disp.clear();
-  boun.clear();
-  ext_force_stored.clear();
-
-  if (dim == 3) {
-    for (UInt i = 0; i < nb_nodes; ++i) {
-
-      /// fix one corner node to avoid sliding
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps) &&
-          (std::abs(pos(i, 2) - back) < eps)) {
-        boun(i, 0) = true;
-        boun(i, 1) = true;
-        boun(i, 2) = true;
-        disp(i, 0) = 0.0;
-        disp(i, 1) = 0.0;
-        disp(i, 2) = 0.0;
-      }
-
-      if ((std::abs(pos(i, dir) - lowerBounds(dir)) < eps)) {
-        boun(i, dir) = true;
-        disp(i, dir) = 0.0;
-      }
-      if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
-        boun(i, dir) = true;
-        disp(i, dir) = 1.e-2;
-      }
-    }
-  }
-
-  else {
-    for (UInt i = 0; i < nb_nodes; ++i) {
-
-      /// fix one corner node to avoid sliding
-      if ((std::abs(pos(i, 1) - bottom) < eps) &&
-          (std::abs(pos(i, 0) - left) < eps)) {
-        boun(i, 0) = true;
-        boun(i, 1) = true;
-        disp(i, 0) = 0.0;
-        disp(i, 1) = 0.0;
-      }
-
-      if ((std::abs(pos(i, dir) - lowerBounds(dir)) < eps)) {
-        boun(i, dir) = true;
-        disp(i, dir) = 0.0;
-      }
-      if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
-        boun(i, dir) = true;
-        disp(i, dir) = 1.e-2;
-      }
-    }
-  }
-
-  // model.getExternalForce().clear();
-
-  model.solveStep();
-
-  /// compute the force (residual in this case) along the edge of the
-  /// imposed displacement
-  Real int_residual = 0.;
-  const Array<Real> & residual = model.getInternalForce();
-
-  for (UInt n = 0; n < nb_nodes; ++n) {
-    if (std::abs(pos(n, dir) - upperBounds(dir)) < eps &&
-        mesh.isLocalOrMasterNode(n)) {
-      int_residual += -residual(n, dir);
-    }
-  }
-
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  comm.allReduce(int_residual, SynchronizerOperation::_sum);
-
-  /// return the real boundary conditions
-  disp.copy(disp_stored);
-  boun.copy(boun_stored);
-  ext_force_stored.copy(ext_force_stored);
-
-  return int_residual;
-}
-
-/* --------------------------------------------------------------------------
- */
 void ASRTools::computeAveragePropertiesAndResidual(std::ofstream & file_output,
 
                                                    Real time) {
@@ -603,6 +485,129 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output,
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << "," << int_residual_z << std::endl;
   }
+}
+
+/* --------------------------------------------------------------------------
+ */
+Real ASRTools::performTensionTest(SpatialDirection direction) {
+  UInt dir;
+
+  if (direction == _x)
+    dir = 0;
+  if (direction == _y)
+    dir = 1;
+  if (direction == _z) {
+    AKANTU_DEBUG_ASSERT(model.getSpatialDimension() == 3,
+                        "Error in problem dimension!!!");
+    dir = 2;
+  }
+
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+
+  /// boundary conditions
+  const Vector<Real> & lowerBounds = mesh.getLowerBounds();
+  const Vector<Real> & upperBounds = mesh.getUpperBounds();
+  Real bottom = lowerBounds(1);
+  Real top = upperBounds(1);
+  Real left = lowerBounds(0);
+  Real back;
+
+  if (dim == 3)
+    back = lowerBounds(2);
+
+  Real eps = std::abs((top - bottom) * 1e-6);
+  const auto & pos = mesh.getNodes();
+  auto & disp = model.getDisplacement();
+  auto & boun = model.getBlockedDOFs();
+  auto & ext_force = model.getExternalForce();
+  Array<Real> disp_stored(disp);
+  Array<bool> boun_stored(boun);
+  Array<Real> ext_force_stored(ext_force);
+  UInt nb_nodes = mesh.getNbNodes();
+
+  disp.clear();
+  boun.clear();
+  ext_force.clear();
+
+  if (dim == 3) {
+    for (UInt i = 0; i < nb_nodes; ++i) {
+
+      /// fix one corner node to avoid sliding
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps) &&
+          (std::abs(pos(i, 2) - back) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        boun(i, 2) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+        disp(i, 2) = 0.0;
+      }
+
+      if ((std::abs(pos(i, dir) - lowerBounds(dir)) < eps)) {
+        boun(i, dir) = true;
+        disp(i, dir) = 0.0;
+      }
+      if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
+        boun(i, dir) = true;
+        disp(i, dir) = 1.e-2;
+      }
+    }
+  } else {
+    for (UInt i = 0; i < nb_nodes; ++i) {
+
+      /// fix one corner node to avoid sliding
+      if ((std::abs(pos(i, 1) - bottom) < eps) &&
+          (std::abs(pos(i, 0) - left) < eps)) {
+        boun(i, 0) = true;
+        boun(i, 1) = true;
+        disp(i, 0) = 0.0;
+        disp(i, 1) = 0.0;
+      }
+
+      if ((std::abs(pos(i, dir) - lowerBounds(dir)) < eps)) {
+        boun(i, dir) = true;
+        disp(i, dir) = 0.0;
+      }
+      if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
+        boun(i, dir) = true;
+        disp(i, dir) = 1.e-2;
+      }
+    }
+  }
+
+  try {
+    model.solveStep();
+  } catch (debug::Exception & e) {
+    auto & solver = model.getNonLinearSolver("static");
+    int nb_iter = solver.get("nb_iterations");
+    std::cout << "Didn't converge in " << nb_iter << " iterations."
+              << std::endl;
+    throw e;
+  }
+
+  /// compute the force (residual in this case) along the edge of the
+  /// imposed displacement
+  Real int_residual = 0.;
+  const Array<Real> & residual = model.getInternalForce();
+
+  for (UInt n = 0; n < nb_nodes; ++n) {
+    if (std::abs(pos(n, dir) - upperBounds(dir)) < eps &&
+        mesh.isLocalOrMasterNode(n)) {
+      int_residual += -residual(n, dir);
+    }
+  }
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(int_residual, SynchronizerOperation::_sum);
+
+  /// return the real boundary conditions
+  disp.copy(disp_stored);
+  boun.copy(boun_stored);
+  ext_force.copy(ext_force_stored);
+
+  return int_residual;
 }
 
 /* --------------------------------------------------------------------------

@@ -75,7 +75,11 @@ protected:
       Matrix<Real> & sigma, Matrix<Real> & grad_u, Real & dam, Real & _E1,
       Real & _E2, Real & _E3, Real & _nu12, Real & _nu13, Real & _nu23,
       Real & _G12, Real & _G13, Real & _G23, Matrix<Real> & _Cprime,
-      Matrix<Real> & _C, Vector<Real> & _eigC, Matrix<Real> & _dir_vecs);
+      Matrix<Real> & _C, Vector<Real> & _eigC, Matrix<Real> & _dir_vecs,
+      UInt & nb_flicks);
+
+  // reset flickering counters before solve step
+  void beforeSolveStep();
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
@@ -91,6 +95,15 @@ protected:
 
   /// initial elastic modulus = E1 = E2 = E3
   Real E;
+
+  /// number of times element changed from tension to compression
+  InternalField<UInt> nb_state_changes;
+
+  /// flag responsible to fix stiffness if element is flickering
+  bool fix_flickering_elements;
+
+  /// max allowed nb of state changes
+  UInt max_state_changes_allowed;
 };
 
 } // namespace akantu
