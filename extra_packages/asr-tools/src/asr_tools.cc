@@ -123,7 +123,7 @@ void ASRTools::applyFreeExpansionBC() {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::applyLoadedBC(const Matrix<Real> & traction,
+void ASRTools::applyLoadedBC(const Vector<Real> & traction,
                              const ID & element_group, bool multi_axial) {
 
   /// boundary conditions
@@ -189,10 +189,10 @@ void ASRTools::applyLoadedBC(const Matrix<Real> & traction,
     }
   }
   }
-  try {
-    model.applyBC(BC::Neumann::FromStress(traction), element_group);
-  } catch (...) {
-  }
+  // try {
+    model.applyBC(BC::Neumann::FromTraction(traction), element_group);
+  // } catch (...) {
+  // }
 }
 
 /* --------------------------------------------------------------------------

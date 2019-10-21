@@ -67,7 +67,7 @@ public:
   void applyFreeExpansionBC();
 
   /// Apply loaded boundary conditions
-  void applyLoadedBC(const Matrix<Real> & traction, const ID & element_group,
+  void applyLoadedBC(const Vector<Real> & traction, const ID & element_group,
                      bool multi_axial);
 
   /// This function computes the average displacement along one side of the

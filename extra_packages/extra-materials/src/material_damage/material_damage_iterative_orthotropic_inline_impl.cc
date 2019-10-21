@@ -167,8 +167,8 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
         _E1 = this->E1;
         _nu12 = this->nu12;
         _nu13 = this->nu13;
-        _G12 = this->G12;
-        _G13 = this->G13;
+        // _G12 = this->G12;
+        // _G13 = this->G13;
         ++nb_flicks;
       } else {
         _E1 = this->E1 * (1 - dam);
