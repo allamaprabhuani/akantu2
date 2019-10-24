@@ -45,6 +45,9 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::
                       UInt(5), _pat_parsmod,
                       "How many times an element can change between tension "
                       "and compression stiffness");
+  this->registerParam("contact", contact, true, _pat_parsmod,
+                      "Account for contact by recovering initial stiffness in "
+                      "direction orthogonal to crack");
   this->nb_state_changes.initialize(1);
 }
 /* -------------------------------------------------------------------------- */
@@ -162,7 +165,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
     if (nb_flicks <= this->max_state_changes_allowed) {
 
       /// recover stiffness only when compressive stress is considerable
-      if (std::abs(stress_normal_to_crack) > this->E / 1e9 &&
+      if (this->contact && std::abs(stress_normal_to_crack) > this->E / 1e9 &&
           stress_normal_to_crack < 0) {
         _E1 = this->E1;
         _nu12 = this->nu12;

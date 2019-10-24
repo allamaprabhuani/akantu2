@@ -104,6 +104,9 @@ protected:
 
   /// max allowed nb of state changes
   UInt max_state_changes_allowed;
+
+  /// flag to trigger contact
+  bool contact;
 };
 
 } // namespace akantu
