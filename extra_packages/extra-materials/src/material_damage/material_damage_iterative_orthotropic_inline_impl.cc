@@ -160,10 +160,13 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
     auto traction_on_crack = sigma * normal_to_crack;
     auto stress_normal_to_crack = normal_to_crack.dot(traction_on_crack);
 
-    /// elements who exceed max allowed number of state changes keep the last
-    /// state for the rest of the solve step
-    if (nb_flicks <= this->max_state_changes_allowed) {
-
+    /// elements who exceed max allowed number of state changes get the average
+    /// elastic properties
+    if (nb_flicks == this->max_state_changes_allowed) {
+      _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
+      _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
+      _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
+    } else {
       /// recover stiffness only when compressive stress is considerable
       if (this->contact && std::abs(stress_normal_to_crack) > this->E / 1e9 &&
           stress_normal_to_crack < 0) {
@@ -181,12 +184,11 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
         _G12 = std::sqrt(_E1 * _E2) / 2 / (1 + std::sqrt(_nu12 * this->nu12));
         _G13 = std::sqrt(_E1 * _E3) / 2 / (1 + std::sqrt(_nu13 * this->nu13));
       }
-
-      // calling on quad function of mat_orthotropic_heterogeneous
-      this->updateInternalParametersOnQuad(_E1, _E2, _E3, _nu12, _nu13, _nu23,
-                                           _G12, _G13, _G23, _Cprime, _C, _eigC,
-                                           _dir_vecs);
     }
+    // calling on quad function of mat_orthotropic_heterogeneous
+    this->updateInternalParametersOnQuad(_E1, _E2, _E3, _nu12, _nu13, _nu23,
+                                         _G12, _G13, _G23, _Cprime, _C, _eigC,
+                                         _dir_vecs);
   }
   // calling on quad function of mat_anisotropic_heterogeneous
   this->computeStressOnQuad(grad_u, sigma, _C);
