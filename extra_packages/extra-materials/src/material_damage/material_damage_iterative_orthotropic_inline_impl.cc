@@ -181,8 +181,11 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
         _nu12 = this->nu12 * (1 - dam);
         _nu13 = this->nu13 * (1 - dam);
         /// update shear moduli (Stable orthotropic materials (Li & Barbic))
-        _G12 = std::sqrt(_E1 * _E2) / 2 / (1 + std::sqrt(_nu12 * this->nu12));
-        _G13 = std::sqrt(_E1 * _E3) / 2 / (1 + std::sqrt(_nu13 * this->nu13));
+        // _G12 = std::sqrt(_E1 * _E2) / 2 / (1 + std::sqrt(_nu12 *
+        // this->nu12)); _G13 = std::sqrt(_E1 * _E3) / 2 / (1 + std::sqrt(_nu13
+        // * this->nu13));
+        _G12 = this->G12 * (1 - dam) * (1 - dam);
+        _G13 = this->G13 * (1 - dam) * (1 - dam);
       }
     }
     // calling on quad function of mat_orthotropic_heterogeneous
