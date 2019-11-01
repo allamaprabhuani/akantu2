@@ -107,6 +107,9 @@ protected:
 
   /// flag to trigger contact
   bool contact;
+
+  /// flag to apply stiffness in all directions
+  bool iso_damage;
 };
 
 } // namespace akantu
