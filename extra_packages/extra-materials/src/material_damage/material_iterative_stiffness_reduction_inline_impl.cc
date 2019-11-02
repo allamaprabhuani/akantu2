@@ -38,8 +38,8 @@ MaterialIterativeStiffnessReduction<spatial_dimension, IsotropicParent>::
     MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
                                         const ID & id)
     : IsotropicParent(model, id), eps_u("eps_u", *this),
-      Sc_init("Sc_init", *this), D("D", *this), Gf(0.),
-      crack_band_width(0.), reduction_constant(0.) {
+      Sc_init("Sc_init", *this), D("D", *this), Gf(0.), crack_band_width(0.),
+      reduction_constant(0.) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Gf", Gf, _pat_parsable | _pat_modifiable,
@@ -83,8 +83,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension,
     }
   }
   AKANTU_DEBUG_OUT();
-} // namespace akantu
-
+}
 /* --------------------------------------------------------------------------
  */
 template <UInt spatial_dimension, class IsotropicParent>
@@ -121,7 +120,8 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
       Real dt = this->model.getTimeStep();
       Real E_sum = E_ef;
 
-      if (IsotropicParent::getID().find("viscoelastic_maxwell") != std::string::npos) {
+      if (IsotropicParent::getID().find("viscoelastic_maxwell") !=
+          std::string::npos) {
         E_ef = this->getParam("Einf");
         const Vector<Real> & Eta = this->getParam("Eta");
         const Vector<Real> & Ev = this->getParam("Ev");
@@ -144,7 +144,8 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
            ++equivalent_stress_it, ++dam_it, ++reduction_it, ++eps_u_it,
            ++Sc_it, ++Sc_init_it, ++D_it) {
 
-        if (Material::getID().find("viscoelastic_maxwell") != std::string::npos) {
+        if (Material::getID().find("viscoelastic_maxwell") !=
+            std::string::npos) {
           *eps_u_it = 2. * this->Gf / (*Sc_init_it * this->crack_band_width) +
                       *Sc_init_it * (1 / E_ef - 1 / E_sum);
           *D_it = *(Sc_init_it) / ((*eps_u_it) - ((*Sc_init_it) / E_ef));

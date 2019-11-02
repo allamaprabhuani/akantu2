@@ -37,8 +37,8 @@ template <UInt spatial_dimension>
 MaterialDamageIterativeOrthotropic<spatial_dimension>::
     MaterialDamageIterativeOrthotropic(SolidMechanicsModel & model,
                                        const ID & id)
-    : parent(model, id), E(0.), nb_state_changes("nb_state_changes", *this) {
-  this->registerParam("fix_flickering_elements", fix_flickering_elements, false,
+    : parent(model, id), nb_state_changes("nb_state_changes", *this), E(0.) {
+  this->registerParam("fix_flickering_elements", fix_flickering_elements, true,
                       _pat_parsmod,
                       "Flag for fixing stiffness of flickering elements");
   this->registerParam("max_state_changes_allowed", max_state_changes_allowed,
@@ -50,7 +50,6 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::
                       "direction orthogonal to crack");
   this->registerParam("iso_damage", iso_damage, false, _pat_parsmod,
                       "Reduce stiffness in all directions");
-  this->nb_state_changes.initialize(1);
 }
 /* -------------------------------------------------------------------------- */
 
@@ -58,6 +57,7 @@ template <UInt spatial_dimension>
 void MaterialDamageIterativeOrthotropic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   parent::initMaterial();
+  this->nb_state_changes.initialize(1);
   this->E = this->E1;
   AKANTU_DEBUG_OUT();
 }
@@ -164,10 +164,14 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
 
     /// elements who exceed max allowed number of state changes get the average
     /// elastic properties
-    if (nb_flicks == this->max_state_changes_allowed) {
-      _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
-      _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
-      _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
+    if (this->fix_flickering_elements &&
+        nb_flicks == this->max_state_changes_allowed) {
+      // _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
+      // _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
+      // _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
+      _E1 = this->E1 * (1 - dam);
+      _nu12 = this->nu12 * (1 - dam);
+      _nu13 = this->nu13 * (1 - dam);
     } else {
       /// recover stiffness only when compressive stress is considerable
       if (this->contact && std::abs(stress_normal_to_crack) > this->E / 1e9 &&
@@ -225,9 +229,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::beforeSolveStep() {
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
-    if (this->fix_flickering_elements) {
-      this->nb_state_changes(el_type, _not_ghost).clear();
-    }
+    this->nb_state_changes(el_type, _not_ghost).clear();
   }
 }
 /* --------------------------------------------------------------------------

@@ -79,7 +79,7 @@ protected:
       UInt & nb_flicks);
 
   // reset flickering counters before solve step
-  void beforeSolveStep();
+  void beforeSolveStep() override;
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
@@ -92,12 +92,11 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   using voigt_h = VoigtHelper<spatial_dimension>;
+  /// number of state changes
+  InternalField<UInt> nb_state_changes;
 
   /// initial elastic modulus = E1 = E2 = E3
   Real E;
-
-  /// number of times element changed from tension to compression
-  InternalField<UInt> nb_state_changes;
 
   /// flag responsible to fix stiffness if element is flickering
   bool fix_flickering_elements;
