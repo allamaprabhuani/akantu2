@@ -38,9 +38,6 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::
     MaterialDamageIterativeOrthotropic(SolidMechanicsModel & model,
                                        const ID & id)
     : parent(model, id), nb_state_changes("nb_state_changes", *this), E(0.) {
-  this->registerParam("fix_flickering_elements", fix_flickering_elements, true,
-                      _pat_parsmod,
-                      "Flag for fixing stiffness of flickering elements");
   this->registerParam("max_state_changes_allowed", max_state_changes_allowed,
                       UInt(5), _pat_parsmod,
                       "How many times an element can change between tension "
@@ -164,8 +161,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
 
     /// elements who exceed max allowed number of state changes get the average
     /// elastic properties
-    if (this->fix_flickering_elements &&
-        nb_flicks == this->max_state_changes_allowed) {
+    if (nb_flicks == this->max_state_changes_allowed) {
       _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
       _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
       _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));

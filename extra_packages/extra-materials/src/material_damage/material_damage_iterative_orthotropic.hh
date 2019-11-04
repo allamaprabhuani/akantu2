@@ -98,9 +98,6 @@ protected:
   /// initial elastic modulus = E1 = E2 = E3
   Real E;
 
-  /// flag responsible to fix stiffness if element is flickering
-  bool fix_flickering_elements;
-
   /// max allowed nb of state changes
   UInt max_state_changes_allowed;
 

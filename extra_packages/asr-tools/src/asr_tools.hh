@@ -83,17 +83,18 @@ public:
   Real computeDamagedVolume(const ID & mat_name);
 
   /// This function is used to compute the average stiffness by performing a
-  /// virtual tension test
-  Real performTensionTest(SpatialDirection direction);
+  /// virtual loading test
+  Real performLoadingTest(SpatialDirection direction, bool tension);
 
   /// This function calls all the functions to compute average properties and
   /// does the tension test
   void computeAveragePropertiesAndResidual(std::ofstream & file_output,
-                                           Real time);
+                                           Real time, bool tension = true);
 
   /// perform tension tests and integrate the internal force on the upper
   /// surface
-  void computeStiffnessReduction(std::ofstream & file_output, Real time);
+  void computeStiffnessReduction(std::ofstream & file_output, Real time,
+                                 bool tension = true);
 
   /// just the average properties, NO tension test
   void computeAverageProperties(std::ofstream & file_output);

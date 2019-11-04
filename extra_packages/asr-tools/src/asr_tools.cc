@@ -190,7 +190,7 @@ void ASRTools::applyLoadedBC(const Vector<Real> & traction,
   }
   }
   // try {
-    model.applyBC(BC::Neumann::FromTraction(traction), element_group);
+  model.applyBC(BC::Neumann::FromTraction(traction), element_group);
   // } catch (...) {
   // }
 }
@@ -400,7 +400,7 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
  */
 void ASRTools::computeAveragePropertiesAndResidual(std::ofstream & file_output,
 
-                                                   Real time) {
+                                                   Real time, bool tension) {
 
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -424,8 +424,8 @@ void ASRTools::computeAveragePropertiesAndResidual(std::ofstream & file_output,
     //   saved_damage.clear();
     //   fillCracks(model, saved_damage);
     // }
-    Real int_residual_x = performTensionTest(_x);
-    Real int_residual_y = performTensionTest(_y);
+    Real int_residual_x = performLoadingTest(_x, tension);
+    Real int_residual_y = performLoadingTest(_y, tension);
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
@@ -443,9 +443,9 @@ void ASRTools::computeAveragePropertiesAndResidual(std::ofstream & file_output,
     //   saved_damage.clear();
     //   fillCracks(model, saved_damage);
     // }
-    Real int_residual_x = performTensionTest(_x);
-    Real int_residual_y = performTensionTest(_y);
-    Real int_residual_z = performTensionTest(_z);
+    Real int_residual_x = performLoadingTest(_x, false);
+    Real int_residual_y = performLoadingTest(_y, false);
+    Real int_residual_z = performLoadingTest(_z, false);
     if (prank == 0)
       file_output << av_strain_x << " " << av_strain_y << " " << av_strain_z
                   << " " << av_displ_x << " " << av_displ_y << " " << av_displ_z
@@ -458,8 +458,8 @@ void ASRTools::computeAveragePropertiesAndResidual(std::ofstream & file_output,
 }
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeStiffnessReduction(std::ofstream & file_output,
-                                         Real time) {
+void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
+                                         bool tension) {
 
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -470,17 +470,17 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output,
   auto prank = comm.whoAmI();
 
   if (dim == 2) {
-    Real int_residual_x = performTensionTest(_x);
-    Real int_residual_y = performTensionTest(_y);
+    Real int_residual_x = performLoadingTest(_x, tension);
+    Real int_residual_y = performLoadingTest(_y, tension);
     if (prank == 0)
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << std::endl;
   }
 
   else {
-    Real int_residual_x = performTensionTest(_x);
-    Real int_residual_y = performTensionTest(_y);
-    Real int_residual_z = performTensionTest(_z);
+    Real int_residual_x = performLoadingTest(_x, tension);
+    Real int_residual_y = performLoadingTest(_y, tension);
+    Real int_residual_z = performLoadingTest(_z, tension);
     if (prank == 0)
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << "," << int_residual_z << std::endl;
@@ -489,7 +489,7 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output,
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::performTensionTest(SpatialDirection direction) {
+Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   UInt dir;
 
   if (direction == _x)
@@ -551,7 +551,7 @@ Real ASRTools::performTensionTest(SpatialDirection direction) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = 1.e-2;
+        disp(i, dir) = tension? 1.e-2 : -1.e-2;
       }
     }
   } else {
@@ -572,7 +572,7 @@ Real ASRTools::performTensionTest(SpatialDirection direction) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = 1.e-2;
+        disp(i, dir) = tension? 1.e-2 : -1.e-2;
       }
     }
   }
@@ -1106,8 +1106,7 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time, const Real k,
   return delta_strain;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -----------------------------------------------------------------------*/
 Real ASRTools::computeDeltaGelStrainLinear(const Real delta_time,
                                            const Real k) {
   /// compute increase in gel strain value for dt simply by deps = k *
@@ -1118,8 +1117,7 @@ Real ASRTools::computeDeltaGelStrainLinear(const Real delta_time,
   return delta_strain;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ---------------------------------------------------------------------- */
 void ASRTools::applyBoundaryConditionsRve(
     const Matrix<Real> & displacement_gradient) {
   AKANTU_DEBUG_IN();
