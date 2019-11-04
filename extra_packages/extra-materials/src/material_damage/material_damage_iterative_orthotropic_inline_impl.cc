@@ -166,19 +166,19 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::computeOrthotropicStress(
     /// elastic properties
     if (this->fix_flickering_elements &&
         nb_flicks == this->max_state_changes_allowed) {
-      // _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
-      // _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
-      // _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
-      _E1 = this->E1 * (1 - dam);
-      _nu12 = this->nu12 * (1 - dam);
-      _nu13 = this->nu13 * (1 - dam);
+      _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
+      _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
+      _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
+      // _E1 = this->E1 * (1 - dam);
+      // _nu12 = this->nu12 * (1 - dam);
+      // _nu13 = this->nu13 * (1 - dam);
     } else {
       /// recover stiffness only when compressive stress is considerable
       if (this->contact && std::abs(stress_normal_to_crack) > this->E / 1e9 &&
           stress_normal_to_crack < 0) {
         _E1 = this->E1;
-        // _nu12 = this->nu12;
-        // _nu13 = this->nu13;
+        _nu12 = this->nu12;
+        _nu13 = this->nu13;
         // _G12 = this->G12;
         // _G13 = this->G13;
         ++nb_flicks;
