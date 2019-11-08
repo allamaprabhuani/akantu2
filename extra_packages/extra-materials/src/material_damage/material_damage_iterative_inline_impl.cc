@@ -62,8 +62,7 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    computeNormalizedEquivalentStress(const Array<Real> & /*grad_us*/,
-                                      ElementType el_type,
+    computeNormalizedEquivalentStress(ElementType el_type,
                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   /// Vector to store eigenvalues of current stress tensor

@@ -48,21 +48,16 @@ void MaterialDamageIterativeIsotropic<
   parent::computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  auto e_stress_it = this->equivalent_stress(el_type, ghost_type).begin();
-  auto Sc_it = this->Sc(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   computeDamageAndStressOnQuad(sigma, *dam);
 
   ++dam;
-  ++e_stress_it;
-  ++Sc_it;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-  this->computeNormalizedEquivalentStress(this->gradu(el_type, ghost_type),
-                                          el_type, ghost_type);
+  this->computeNormalizedEquivalentStress(el_type, ghost_type);
   this->norm_max_equivalent_stress = 0;
   this->findMaxNormalizedEquivalentStress(el_type, ghost_type);
 
@@ -88,19 +83,11 @@ void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
       el_type, tangent_matrix, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
-  auto grad_u_it = this->gradu(el_type, ghost_type)
-                       .begin(spatial_dimension, spatial_dimension);
-  auto stress_it = this->stress(el_type, ghost_type)
-                       .begin(spatial_dimension, spatial_dimension);
-  auto Sc_it = this->Sc(el_type, ghost_type).begin();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
 
   computeTangentModuliOnQuad(tangent, *dam);
   ++dam;
-  ++grad_u_it;
-  ++stress_it;
-  ++Sc_it;
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 

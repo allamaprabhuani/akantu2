@@ -127,7 +127,6 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
             SolveConvergenceCriteria::_solution and
         not this->converged)
       this->assembleResidual(solver_callback);
-    // this->dump();
 
     this->n_iter++;
     AKANTU_DEBUG_INFO(

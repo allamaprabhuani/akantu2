@@ -174,8 +174,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
-  this->computeNormalizedEquivalentStress(this->gradu(el_type, ghost_type),
-                                          el_type, ghost_type);
+  this->computeNormalizedEquivalentStress(el_type, ghost_type);
   this->norm_max_equivalent_stress = 0;
   this->findMaxNormalizedEquivalentStress(el_type, ghost_type);
 

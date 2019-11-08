@@ -127,6 +127,54 @@ UInt MaterialIterativeStiffnessReductionOrthotropic<
   AKANTU_DEBUG_OUT();
   return nb_damaged_elements;
 }
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialIterativeStiffnessReductionOrthotropic<spatial_dimension>::
+    computeNormalizedEquivalentStress(ElementType el_type,
+                                      GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+  /// Vector to store eigenvalues of current stress tensor
+  Vector<Real> eigenvalues(spatial_dimension);
+
+  for (auto && data :
+       zip(make_view(this->stress(el_type, ghost_type), spatial_dimension,
+                     spatial_dimension),
+           make_view(this->Sc(el_type, ghost_type)),
+           make_view(this->equivalent_stress(el_type, ghost_type)),
+           make_view(this->crack_normals(el_type, ghost_type),
+                     spatial_dimension, spatial_dimension),
+           this->reduction_step(el_type, ghost_type))) {
+
+    const auto & sigma = std::get<0>(data);
+    const auto & sigma_crit = std::get<1>(data);
+    auto & sigma_eq = std::get<2>(data);
+    auto & crack_norm = std::get<3>(data);
+    auto & red_step = std::get<4>(data);
+
+    if (red_step == 0) {
+      /// compute eigenvalues and eigenvectors and sort them
+      sigma.eig(eigenvalues, crack_norm, true);
+      sigma_eq = eigenvalues[0] / sigma_crit;
+      // /// normalize each eigenvector
+      // for (auto && vec : crack_norm) {
+      //   Vector<Real> vector(vec);
+      //   vector.normalize();
+      // }
+      crack_norm = crack_norm.transpose();
+    } else {
+      /// obtain stress component normal to crack plane
+      Vector<Real> normal_to_crack(spatial_dimension);
+      /// normals are stored row-wise
+      for (auto i : arange(spatial_dimension))
+        normal_to_crack(i) = crack_norm(0, i);
+      auto traction_on_crack = sigma * normal_to_crack;
+      auto stress_normal_to_crack = normal_to_crack.dot(traction_on_crack);
+      sigma_eq = stress_normal_to_crack / sigma_crit;
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+}
 /* --------------------------------------------------------------------------
  */
 

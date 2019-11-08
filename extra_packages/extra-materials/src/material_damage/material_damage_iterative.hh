@@ -85,8 +85,7 @@ public:
   /// compute the equivalent stress on each Gauss point (i.e. the max principal
   /// stress) and normalize it by the tensile strength
   virtual void
-  computeNormalizedEquivalentStress(const Array<Real> & grad_u,
-                                    ElementType el_type,
+  computeNormalizedEquivalentStress(ElementType el_type,
                                     GhostType ghost_type = _not_ghost);
 
   /// find max and average normalized equivalent stress

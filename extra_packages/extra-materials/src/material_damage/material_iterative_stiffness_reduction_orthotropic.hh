@@ -55,6 +55,13 @@ public:
 public:
   /// update internal field damage and associated principal directions
   UInt updateDamage() override;
+
+  /// compute largest principal stress in undamaged elements and stress normal
+  /// to crack direction in damaged elements and normalize by the tensile
+  /// strength
+  void
+  computeNormalizedEquivalentStress(ElementType el_type,
+                                    GhostType ghost_type = _not_ghost) override;
 };
 
 } // namespace akantu
