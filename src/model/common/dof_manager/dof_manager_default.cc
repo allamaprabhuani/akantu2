@@ -116,24 +116,24 @@ void DOFManagerDefault::assembleToGlobalArray(
                       "The array to assemble does not have a correct size."
                           << " (" << array_to_assemble.getID() << ")");
 
-  if (dof_data.support_type == _dst_nodal and mesh->isPeriodic()) {
-    for (auto && data :
-         zip(dof_data.local_equation_number, dof_data.associated_nodes,
-             make_view(array_to_assemble))) {
-      auto && equ_num = std::get<0>(data);
-      auto && node = std::get<1>(data);
-      auto && arr = std::get<2>(data);
-      global_array(equ_num) +=
-          scale_factor * (arr) * (not this->mesh->isPeriodicSlave(node));
-    }
-  } else {
-    for (auto && data :
-         zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
-      auto && equ_num = std::get<0>(data);
-      auto && arr = std::get<1>(data);
-      global_array(equ_num) += scale_factor * (arr);
-    }
+  // if (dof_data.support_type == _dst_nodal and mesh->isPeriodic()) {
+  //   for (auto && data :
+  //        zip(dof_data.local_equation_number, dof_data.associated_nodes,
+  //            make_view(array_to_assemble))) {
+  //     auto && equ_num = std::get<0>(data);
+  //     auto && node = std::get<1>(data);
+  //     auto && arr = std::get<2>(data);
+  //     global_array(equ_num) +=
+  //         scale_factor * (arr) * (not this->mesh->isPeriodicSlave(node));
+  //   }
+  // } else {
+  for (auto && data :
+       zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
+    auto && equ_num = std::get<0>(data);
+    auto && arr = std::get<1>(data);
+    global_array(equ_num) += scale_factor * (arr);
   }
+  // }
   AKANTU_DEBUG_OUT();
 }
 
@@ -465,7 +465,7 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 //           return std::make_unique<DOFManagerDefault>(id, mem_id);
 //         });
 
-static bool dof_manager_is_registered [[gnu::unused]] =
+static bool dof_manager_is_registered[[gnu::unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
         [](Mesh & mesh, const ID & id,
@@ -473,7 +473,7 @@ static bool dof_manager_is_registered [[gnu::unused]] =
           return std::make_unique<DOFManagerDefault>(mesh, id, mem_id);
         });
 
-static bool dof_manager_is_registered_mumps [[gnu::unused]] =
+static bool dof_manager_is_registered_mumps[[gnu::unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "mumps",
         [](Mesh & mesh, const ID & id,
