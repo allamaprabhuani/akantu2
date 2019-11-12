@@ -191,7 +191,7 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   Real max_eq_stress_paste = 0;
 
   auto & solver = this->getNonLinearSolver();
-  solver.set("max_iterations", 2);
+  solver.set("max_iterations", 50);
   solver.set("threshold", 1e-6);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 

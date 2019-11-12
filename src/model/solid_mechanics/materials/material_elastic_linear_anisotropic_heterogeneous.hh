@@ -31,8 +31,10 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "material.hh"
-#include "material_elastic.hh"
+//#include "material.hh"
+//#include "material_elastic.hh"
+#include "material_thermal.hh"
+
 /* -------------------------------------------------------------------------- */
 #include <vector>
 /* -------------------------------------------------------------------------- */
@@ -52,7 +54,8 @@ namespace akantu {
  *   - C_ij  : entry on the stiffness
  */
 template <UInt Dim>
-class MaterialElasticLinearAnisotropicHeterogeneous : public Material {
+class MaterialElasticLinearAnisotropicHeterogeneous
+    : public MaterialThermal<Dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -61,6 +64,8 @@ public:
                                                 const ID & id = "",
                                                 bool symmetric = true);
 
+private:
+  using parent = MaterialThermal<Dim>;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -132,7 +137,7 @@ protected:
   bool symmetric;
 
   /// viscous proportion
-  Real alpha;
+  Real beta;
 
   /// defines if the stiffness was computed
   bool was_stiffness_assembled;

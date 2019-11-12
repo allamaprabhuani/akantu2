@@ -47,10 +47,10 @@ template <UInt dim>
 MaterialElasticLinearAnisotropicHeterogeneous<dim>::
     MaterialElasticLinearAnisotropicHeterogeneous(SolidMechanicsModel & model,
                                                   const ID & id, bool symmetric)
-    : Material(model, id), Cprime(dim * dim, dim * dim),
+    : parent(model, id), Cprime(dim * dim, dim * dim),
       C_field("C_field", *this), eigC_field("eigC_field", *this),
       dir_vecs_field("dir_vecs_field", *this),
-      Cprime_field("Cprime_field", *this), symmetric(symmetric), alpha(0),
+      Cprime_field("Cprime_field", *this), symmetric(symmetric), beta(0),
       was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
 
@@ -85,7 +85,7 @@ MaterialElasticLinearAnisotropicHeterogeneous<dim>::
                           _pat_parsmod, "Coefficient " + param.str());
     }
   }
-  this->registerParam("alpha", this->alpha, _pat_parsmod,
+  this->registerParam("beta", this->beta, _pat_parsmod,
                       "Proportion of viscous stress");
   this->dir_vecs_field.initialize(dim * dim);
   this->Cprime_field.initialize(dim * dim * dim * dim);

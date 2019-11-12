@@ -551,7 +551,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = (2 * tension -1) * 1.e-1;
+        disp(i, dir) = (2 * tension - 1) * 1.e-1;
       }
     }
   } else {
@@ -572,7 +572,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = (2 * tension -1) * 1.e-1;
+        disp(i, dir) = (2 * tension - 1) * 1.e-1;
       }
     }
   }
@@ -1299,12 +1299,7 @@ void ASRTools::findCornerNodes() {
 
   for (UInt i = 0; i < corner_nodes.size(); ++i) {
     if (corner_nodes(i) == UInt(-1))
-      //      AKANTU_ERROR("The corner node " << i + 1 << " wasn't found");
-      std::cout << "The corner node " << i + 1
-                << " wasn't found. If RVE is handled by more than 1 "
-                   "processor in a "
-                   "multi-scale simulation - expect an error."
-                << std::endl;
+      AKANTU_ERROR("The corner node " << i + 1 << " wasn't found");
   }
   AKANTU_DEBUG_OUT();
 }
@@ -1384,7 +1379,8 @@ Real ASRTools::averageTensorField(UInt row_index, UInt col_index,
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool first_time) {
+void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro,
+                                   bool /*first_time*/) {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1430,12 +1426,12 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool first_time) {
   // _default_value = 0); this->fillCracks(saved_damage);
 
   /// virtual test 1:
-  H(0, 0) = 0.01;
+  H(0, 0) = -0.01;
   performVirtualTesting(H, stresses, strains, 0);
 
   /// virtual test 2:
   H.clear();
-  H(1, 1) = 0.01;
+  H(1, 1) = -0.01;
   performVirtualTesting(H, stresses, strains, 1);
 
   /// virtual test 3:
@@ -1444,24 +1440,24 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool first_time) {
   H(1, 0) = 0.01;
   performVirtualTesting(H, stresses, strains, 2);
 
-  /// set up the stress limit at 10% of stresses in undamaged state
-  if (first_time) {
-    auto && str_lim_mat_it =
-        make_view(this->stress_limit, voigt_size, voigt_size).begin();
-    *str_lim_mat_it = stresses * 0.1;
-  }
+  // /// set up the stress limit at 10% of stresses in undamaged state
+  // if (first_time) {
+  //   auto && str_lim_mat_it =
+  //       make_view(this->stress_limit, voigt_size, voigt_size).begin();
+  //   *str_lim_mat_it = stresses * 0.1;
+  // }
 
-  /// compare stresses with the lower limit and update if needed
-  auto && str_lim_vec_it = make_view(this->stress_limit, voigt_size).begin();
-  for (UInt i = 0; i != voigt_size; ++i, ++str_lim_vec_it) {
-    Vector<Real> stress = stresses(i);
-    // Vector<Real> stress_lim = stress_limit(i);
-    Real stress_norm = stress.norm();
-    Real stress_limit_norm = (*str_lim_vec_it).norm();
-    if (stress_norm < stress_limit_norm)
-      // stresses(i) = *str_lim_vec_it;
-      return;
-  }
+  // /// compare stresses with the lower limit and update if needed
+  // auto && str_lim_vec_it = make_view(this->stress_limit, voigt_size).begin();
+  // for (UInt i = 0; i != voigt_size; ++i, ++str_lim_vec_it) {
+  //   Vector<Real> stress = stresses(i);
+  //   // Vector<Real> stress_lim = stress_limit(i);
+  //   Real stress_norm = stress.norm();
+  //   Real stress_limit_norm = (*str_lim_vec_it).norm();
+  //   if (stress_norm < stress_limit_norm)
+  //     // stresses(i) = *str_lim_vec_it;
+  //     return;
+  // }
   /// drain cracks
   // this->drainCracks(saved_damage);
 
@@ -1492,7 +1488,7 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
   applyBoundaryConditionsRve(H);
 
   auto & solver = model.getNonLinearSolver();
-  solver.set("max_iterations", 2);
+  solver.set("max_iterations", 50);
   solver.set("threshold", 1e-6);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
@@ -1943,6 +1939,8 @@ void ASRTools::onElementsAdded(const Array<Element> & elements,
 void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
                             const NewNodesEvent &) {
   AKANTU_DEBUG_IN();
+  if (new_nodes.size() == 0)
+    return;
   if (this->doubled_nodes_ready)
     return;
   auto & mesh = model.getMesh();
