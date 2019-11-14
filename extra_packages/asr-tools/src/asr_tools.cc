@@ -1297,10 +1297,10 @@ void ASRTools::findCornerNodes() {
 
   //  AKANTU_DEBUG_ASSERT(dim == 2, "This is 2D only!");
 
-  for (UInt i = 0; i < corner_nodes.size(); ++i) {
-    if (corner_nodes(i) == UInt(-1))
-      AKANTU_ERROR("The corner node " << i + 1 << " wasn't found");
-  }
+  // for (UInt i = 0; i < corner_nodes.size(); ++i) {
+  //   if (corner_nodes(i) == UInt(-1))
+  //     AKANTU_ERROR("The corner node " << i + 1 << " wasn't found");
+  // }
   AKANTU_DEBUG_OUT();
 }
 /* --------------------------------------------------------------------------
