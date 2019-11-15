@@ -1621,7 +1621,7 @@ void ASRTools::dumpRve() {
   //  if (this->nb_dumps % 10 == 0) {
   model.dump();
   //  }
-  this->nb_dumps += 1;
+  // this->nb_dumps += 1;
 }
 
 /* --------------------------------------------------------------------------
