@@ -99,7 +99,7 @@ MaterialElasticLinearAnisotropicHeterogeneous<dim>::
 template <UInt dim>
 void MaterialElasticLinearAnisotropicHeterogeneous<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
-  Material::initMaterial();
+  parent::initMaterial();
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
@@ -119,7 +119,7 @@ void MaterialElasticLinearAnisotropicHeterogeneous<dim>::initMaterial() {
 template <UInt dim>
 void MaterialElasticLinearAnisotropicHeterogeneous<
     dim>::updateInternalParameters() {
-  Material::updateInternalParameters();
+  parent::updateInternalParameters();
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
@@ -244,15 +244,18 @@ void MaterialElasticLinearAnisotropicHeterogeneous<dim>::computeStress(
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
   AKANTU_DEBUG_IN();
+  parent::computeStress(el_type, ghost_type);
 
+  auto sigma_th_it = make_view(this->sigma_th(el_type, ghost_type)).begin();
   auto C_it = make_view(this->C_field(el_type, _not_ghost), voigt_h::size,
                         voigt_h::size)
                   .begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  this->computeStressOnQuad(grad_u, sigma, *C_it);
+  this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
 
+  ++sigma_th_it;
   ++C_it;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 }

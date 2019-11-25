@@ -71,12 +71,12 @@ public:
 
 protected:
   // recover damaged stiffness only in the direction where compression
-  inline void computeOrthotropicStress(
-      Matrix<Real> & sigma, Matrix<Real> & grad_u, Real & dam, Real & _E1,
-      Real & _E2, Real & _E3, Real & _nu12, Real & _nu13, Real & _nu23,
-      Real & _G12, Real & _G13, Real & _G23, Matrix<Real> & _Cprime,
-      Matrix<Real> & _C, Vector<Real> & _eigC, Matrix<Real> & _dir_vecs,
-      UInt & nb_flicks);
+  inline void reduceInternalParameters(Matrix<Real> & sigma, Real & dam,
+                                       Real & _E1, Real & _E2, Real & _E3,
+                                       Real & _nu12, Real & _nu13, Real & _nu23,
+                                       Real & _G12, Real & _G13, Real & _G23,
+                                       Matrix<Real> & _dir_vecs,
+                                       UInt & nb_flicks);
 
   // reset flickering counters before solve step
   void beforeSolveStep() override;
@@ -92,11 +92,9 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   using voigt_h = VoigtHelper<spatial_dimension>;
+
   /// number of state changes
   InternalField<UInt> nb_state_changes;
-
-  /// initial elastic modulus = E1 = E2 = E3
-  Real E;
 
   /// max allowed nb of state changes
   UInt max_state_changes_allowed;

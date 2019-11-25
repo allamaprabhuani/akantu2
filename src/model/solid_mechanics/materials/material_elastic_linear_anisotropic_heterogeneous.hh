@@ -31,9 +31,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-//#include "material.hh"
-//#include "material_elastic.hh"
 #include "material_thermal.hh"
+#include "plane_stress_toolbox.hh"
 
 /* -------------------------------------------------------------------------- */
 #include <vector>
@@ -55,7 +54,8 @@ namespace akantu {
  */
 template <UInt Dim>
 class MaterialElasticLinearAnisotropicHeterogeneous
-    : public MaterialThermal<Dim> {
+    : public PlaneStressToolbox<Dim,
+                                MaterialThermal<Dim>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -65,7 +65,8 @@ public:
                                                 bool symmetric = true);
 
 private:
-  using parent = MaterialThermal<Dim>;
+  using parent =
+      PlaneStressToolbox<Dim, MaterialThermal<Dim>>;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -97,8 +98,8 @@ protected:
 
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-                                  Matrix<Real> & sigma,
-                                  const Matrix<Real> & C) const;
+                                  Matrix<Real> & sigma, const Matrix<Real> & C,
+                                  const Real sigma_th) const;
 
   /// tangent matrix for a given quadrature point
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent,

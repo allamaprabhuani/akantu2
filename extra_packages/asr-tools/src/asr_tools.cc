@@ -1124,6 +1124,9 @@ void ASRTools::applyBoundaryConditionsRve(
 
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
+  /// transform into Green strain to exclude rotations
+  auto F = displacement_gradient + Matrix<Real>::eye(dim);
+  auto E = 0.5 * (F.transpose() * F - Matrix<Real>::eye(dim));
   /// get the position of the nodes
   const Array<Real> & pos = mesh.getNodes();
   /// storage for the coordinates of a given node and the displacement
@@ -1136,7 +1139,7 @@ void ASRTools::applyBoundaryConditionsRve(
     x(0) = pos(node, 0);
     x(1) = pos(node, 1);
     x -= lower_bounds;
-    appl_disp.mul<false>(displacement_gradient, x);
+    appl_disp.mul<false>(E, x);
     (model.getBlockedDOFs())(node, 0) = true;
     (model.getDisplacement())(node, 0) = appl_disp(0);
     (model.getBlockedDOFs())(node, 1) = true;
@@ -1485,6 +1488,17 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
                                      Matrix<Real> & eff_strains,
                                      const UInt test_no) {
   AKANTU_DEBUG_IN();
+  auto & disp = model.getDisplacement();
+  auto & boun = model.getBlockedDOFs();
+  auto & ext_force = model.getExternalForce();
+  Array<Real> disp_stored(disp);
+  Array<bool> boun_stored(boun);
+  Array<Real> ext_force_stored(ext_force);
+
+  disp.clear();
+  boun.clear();
+  ext_force.clear();
+
   applyBoundaryConditionsRve(H);
 
   auto & solver = model.getNonLinearSolver();
@@ -1501,6 +1515,12 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
   eff_strains(1, test_no) = averageTensorField(1, 1, "strain");
   eff_stresses(2, test_no) = averageTensorField(1, 0, "stress");
   eff_strains(2, test_no) = 2. * averageTensorField(1, 0, "strain");
+
+  /// return the real boundary conditions
+  disp.copy(disp_stored);
+  boun.copy(boun_stored);
+  ext_force.copy(ext_force_stored);
+
   AKANTU_DEBUG_OUT();
 }
 

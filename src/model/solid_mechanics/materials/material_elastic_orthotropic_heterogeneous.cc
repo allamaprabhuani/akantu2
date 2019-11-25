@@ -181,35 +181,58 @@ void MaterialElasticOrthotropicHeterogeneous<
 
   Real Gamma;
 
-  if (Dim == 2)
-    Gamma = 1 / (1 - _nu12 * _nu21);
-
-  if (Dim == 3)
-    Gamma = 1 / (1 - _nu12 * _nu21 - _nu23 * _nu32 - _nu31 * _nu13 -
-                 2 * _nu21 * _nu32 * _nu13);
+  Gamma = 1 / (1 - _nu12 * _nu21 - _nu23 * _nu32 - _nu31 * _nu13 -
+               2 * _nu21 * _nu32 * _nu13);
 
   // Lamé's first parameters
   _Cprime(0, 0) = _E1 * (1 - _nu23 * _nu32) * Gamma;
   _Cprime(1, 1) = _E2 * (1 - _nu13 * _nu31) * Gamma;
-  if (Dim == 3)
-    _Cprime(2, 2) = _E3 * (1 - _nu12 * _nu21) * Gamma;
-
-  // normalised poisson's ratio's
   _Cprime(1, 0) = _Cprime(0, 1) = _E1 * (_nu21 + _nu31 * _nu23) * Gamma;
-  if (Dim == 3) {
-    _Cprime(2, 0) = _Cprime(0, 2) = _E1 * (_nu31 + _nu21 * _nu32) * Gamma;
-    _Cprime(2, 1) = _Cprime(1, 2) = _E2 * (_nu32 + _nu12 * _nu31) * Gamma;
+
+  _Cprime(2, 2) = _E3 * (1 - _nu12 * _nu21) * Gamma;
+  _Cprime(2, 0) = _Cprime(0, 2) = _E1 * (_nu31 + _nu21 * _nu32) * Gamma;
+  _Cprime(2, 1) = _Cprime(1, 2) = _E2 * (_nu32 + _nu12 * _nu31) * Gamma;
+
+  _Cprime(3, 3) = _G23;
+  _Cprime(4, 4) = _G13;
+  _Cprime(5, 5) = _G12;
+
+  this->rotateCprime(_Cprime, _dir_vecs, _C);
+  _C.eig(_eigC);
+}
+
+/* --------------------------------------------------------------------------
+ */
+template <>
+void MaterialElasticOrthotropicHeterogeneous<2>::updateInternalParametersOnQuad(
+    const Real & _E1, const Real & _E2, const Real & _E3, const Real & _nu12,
+    const Real & _nu13, const Real & _nu23, const Real & _G12,
+    const Real & /*_G13*/, const Real & /*_G23*/, Matrix<Real> & _Cprime,
+    Matrix<Real> & _C, Vector<Real> & _eigC, Matrix<Real> & _dir_vecs) {
+
+  Real _nu21 = _nu12 * _E2 / _E1;
+  Real _nu31 = _nu13 * _E3 / _E1;
+  Real _nu32 = _nu23 * _E3 / _E2;
+
+  Real Gamma;
+
+  if (this->plane_stress)
+    Gamma = 1 / (1 - _nu12 * _nu21);
+  else
+    Gamma = 1 / (1 - _nu12 * _nu21 - _nu23 * _nu32 - _nu31 * _nu13 -
+                 2 * _nu21 * _nu32 * _nu13);
+
+  if (this->plane_stress) {
+    _Cprime(0, 0) = _E1 * Gamma;
+    _Cprime(1, 1) = _E2 * Gamma;
+    _Cprime(1, 0) = _Cprime(0, 1) = _E1 * _nu21 * Gamma;
+  } else {
+    _Cprime(0, 0) = _E1 * (1 - _nu23 * _nu32) * Gamma;
+    _Cprime(1, 1) = _E2 * (1 - _nu13 * _nu31) * Gamma;
+    _Cprime(1, 0) = _Cprime(0, 1) = _E1 * (_nu21 + _nu31 * _nu23) * Gamma;
   }
+  _Cprime(2, 2) = _G12;
 
-  // Lamé's second parameters (shear moduli)
-  if (Dim == 3) {
-    _Cprime(3, 3) = _G23;
-    _Cprime(4, 4) = _G13;
-    _Cprime(5, 5) = _G12;
-  } else
-    _Cprime(2, 2) = _G12;
-
-  /* 1) rotation of C into the global frame */
   this->rotateCprime(_Cprime, _dir_vecs, _C);
   _C.eig(_eigC);
 }

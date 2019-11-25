@@ -43,13 +43,14 @@ namespace akantu {
 template <UInt dim>
 inline void
 MaterialElasticLinearAnisotropicHeterogeneous<dim>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma,
-    const Matrix<Real> & _C) const {
+    const Matrix<Real> & grad_u, Matrix<Real> & sigma, const Matrix<Real> & _C,
+    const Real sigma_th) const {
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
   // http://en.wikipedia.org/wiki/Voigt_notation
   Vector<Real> voigt_strain(voigt_h::size);
   Vector<Real> voigt_stress(voigt_h::size);
+  Vector<Real> voigt_thermal_stress(voigt_h::size);
 
   for (UInt I = 0; I < voigt_h::size; ++I) {
     Real voigt_factor = voigt_h::factors[I];
@@ -57,9 +58,10 @@ MaterialElasticLinearAnisotropicHeterogeneous<dim>::computeStressOnQuad(
     UInt j = voigt_h::vec[I][1];
 
     voigt_strain(I) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
+    voigt_thermal_stress(I) = (i == j) * sigma_th;
   }
 
-  voigt_stress = _C * voigt_strain;
+  voigt_stress = _C * voigt_strain + voigt_thermal_stress;
 
   for (UInt I = 0; I < voigt_h::size; ++I) {
     UInt i = voigt_h::vec[I][0];
