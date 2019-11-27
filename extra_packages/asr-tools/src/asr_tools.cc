@@ -606,6 +606,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   disp.copy(disp_stored);
   boun.copy(boun_stored);
   ext_force.copy(ext_force_stored);
+  model.assembleInternalForces();
 
   return int_residual;
 }
@@ -1520,6 +1521,7 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
   disp.copy(disp_stored);
   boun.copy(boun_stored);
   ext_force.copy(ext_force_stored);
+  model.assembleInternalForces();
 
   AKANTU_DEBUG_OUT();
 }
