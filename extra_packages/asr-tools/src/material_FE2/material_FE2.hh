@@ -69,13 +69,13 @@ public:
 
   /// compute ASR eigenstrain based on RVE temperature and time increase
   /// (independent of overall time)
-  void computeNewGelStrain(const Real & delta_time);
+  Matrix<Real> computeNewGelStrain(const Real & delta_time, const Real & temp);
 
   /// compute ASR eigenstrain based on RVE temperature and time increase
   /// (linearly decreasing to 0 with time)
-  void computeNewGelStrainTimeDependent(const Real & delta_time, const Real & T,
-                                        Matrix<Real> & gelstrain,
-                                        Real & non_reacted_gel);
+  Matrix<Real> computeNewGelStrainTimeDependent(const Real & delta_time,
+                                                const Real & T,
+                                                Real & non_reacted_gel);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);

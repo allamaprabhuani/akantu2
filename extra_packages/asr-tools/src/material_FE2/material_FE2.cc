@@ -250,10 +250,10 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
 
     /// compute new gel strain for every element
     if (this->sat_const)
-      this->computeNewGelStrainTimeDependent(
-          delta_time, std::get<4>(data), std::get<5>(data), std::get<6>(data));
+      std::get<5>(data) = computeNewGelStrainTimeDependent(
+          delta_time, std::get<4>(data), std::get<6>(data));
     else
-      this->computeNewGelStrain(delta_time);
+      std::get<5>(data) = computeNewGelStrain(delta_time, std::get<4>(data));
 
     /// advance the ASR in every RVE based on the new gel strain
     RVE.advanceASR(std::get<5>(data));
@@ -270,6 +270,9 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
 
     /// compute the new effective stiffness of the RVE
     RVE.homogenizeStiffness(std::get<3>(data));
+
+    /// apply temperature back for the output
+    RVE.applyHomogeneousTemperature(std::get<4>(data));
   }
 
   AKANTU_DEBUG_OUT();
@@ -277,38 +280,35 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::computeNewGelStrain(
-    const Real & delta_time) {
+Matrix<Real>
+MaterialFE2<spatial_dimension>::computeNewGelStrain(const Real & delta_time,
+                                                    const Real & T) {
   AKANTU_DEBUG_IN();
 
-  for (auto && data : zip(RVEs,
-                          make_view(this->gelstrain(this->el_type),
-                                    spatial_dimension, spatial_dimension),
-                          this->delta_T(this->el_type))) {
+  Matrix<Real> gelstrain(spatial_dimension, spatial_dimension);
 
-    auto & gelstrain = (std::get<1>(data));
-    const auto & T = (std::get<2>(data));
+  const auto & k = this->k;
+  const auto & Ea = this->activ_energy;
+  const auto & R = this->R;
 
-    const auto & k = this->k;
-    const auto & Ea = this->activ_energy;
-    const auto & R = this->R;
+  /// compute increase in gel strain value for interval of time delta_time
+  /// as temperatures are stored in C, conversion to K is done
+  Real delta_strain = k * std::exp(-Ea / (R * (T + 273.15))) * delta_time;
 
-    /// compute increase in gel strain value for interval of time delta_time
-    /// as temperatures are stored in C, conversion to K is done
-    Real delta_strain = k * std::exp(-Ea / (R * (T + 273.15))) * delta_time;
-
-    for (UInt i = 0; i != spatial_dimension; ++i)
-      gelstrain(i, i) += delta_strain;
-  }
+  for (UInt i = 0; i != spatial_dimension; ++i)
+    gelstrain(i, i) += delta_strain;
   AKANTU_DEBUG_OUT();
+
+  return gelstrain;
 }
 
 /* --------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
-    const Real & delta_time, const Real & T, Matrix<Real> & gelstrain,
-    Real & non_reacted_gel) {
+Matrix<Real> MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
+    const Real & delta_time, const Real & T, Real & non_reacted_gel) {
   AKANTU_DEBUG_IN();
+
+  Matrix<Real> gelstrain(spatial_dimension, spatial_dimension);
 
   const auto & k = this->k;
   const auto & Ea = this->activ_energy;
@@ -330,6 +330,8 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
     non_reacted_gel = 0.;
 
   AKANTU_DEBUG_OUT();
+
+  return gelstrain;
 }
 
 /* ----------------------------------------------------------- */
