@@ -250,10 +250,10 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
 
     /// compute new gel strain for every element
     if (this->sat_const)
-      std::get<5>(data) = computeNewGelStrainTimeDependent(
-          delta_time, std::get<4>(data), std::get<6>(data));
+      computeNewGelStrainTimeDependent(std::get<5>(data), delta_time,
+                                       std::get<4>(data), std::get<6>(data));
     else
-      std::get<5>(data) = computeNewGelStrain(delta_time, std::get<4>(data));
+      computeNewGelStrain(std::get<5>(data), delta_time, std::get<4>(data));
 
     /// advance the ASR in every RVE based on the new gel strain
     RVE.advanceASR(std::get<5>(data));
@@ -280,12 +280,9 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-Matrix<Real>
-MaterialFE2<spatial_dimension>::computeNewGelStrain(const Real & delta_time,
-                                                    const Real & T) {
+void MaterialFE2<spatial_dimension>::computeNewGelStrain(
+    Matrix<Real> & gelstrain, const Real & delta_time, const Real & T) {
   AKANTU_DEBUG_IN();
-
-  Matrix<Real> gelstrain(spatial_dimension, spatial_dimension);
 
   const auto & k = this->k;
   const auto & Ea = this->activ_energy;
@@ -298,17 +295,14 @@ MaterialFE2<spatial_dimension>::computeNewGelStrain(const Real & delta_time,
   for (UInt i = 0; i != spatial_dimension; ++i)
     gelstrain(i, i) += delta_strain;
   AKANTU_DEBUG_OUT();
-
-  return gelstrain;
 }
 
 /* --------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-Matrix<Real> MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
-    const Real & delta_time, const Real & T, Real & non_reacted_gel) {
+void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
+    Matrix<Real> & gelstrain, const Real & delta_time, const Real & T,
+    Real & non_reacted_gel) {
   AKANTU_DEBUG_IN();
-
-  Matrix<Real> gelstrain(spatial_dimension, spatial_dimension);
 
   const auto & k = this->k;
   const auto & Ea = this->activ_energy;
@@ -330,8 +324,6 @@ Matrix<Real> MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
     non_reacted_gel = 0.;
 
   AKANTU_DEBUG_OUT();
-
-  return gelstrain;
 }
 
 /* ----------------------------------------------------------- */
