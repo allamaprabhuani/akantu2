@@ -264,24 +264,25 @@ public:
   GelMaterialSelector(SolidMechanicsModel & model, const Real box_size,
                       const std::string & gel_material,
                       const UInt nb_gel_pockets,
-                      std::string paste_material = "paste",
+                      std::string aggregate_material = "aggregate",
                       Real /*tolerance*/ = 0.)
       : MeshDataMaterialSelector<std::string>("physical_names", model),
         model(model), gel_material(gel_material),
         nb_gel_pockets(nb_gel_pockets), nb_placed_gel_pockets(0),
-        box_size(box_size), paste_material(paste_material) {}
+        box_size(box_size), aggregate_material(aggregate_material) {}
 
   void initGelPocket() {
-    paste_material_id = model.getMaterialIndex(paste_material);
+    aggregate_material_id = model.getMaterialIndex(aggregate_material);
 
     Mesh & mesh = this->model.getMesh();
     UInt dim = model.getSpatialDimension();
     //    Element el{_triangle_3, 0, _not_ghost};
-    for (auto el_type :
-         model.getMaterial("aggregate").getElementFilter().elementTypes(dim)) {
+    for (auto el_type : model.getMaterial(aggregate_material)
+                            .getElementFilter()
+                            .elementTypes(dim)) {
 
       const auto & filter =
-          model.getMaterial("aggregate").getElementFilter()(el_type);
+          model.getMaterial(aggregate_material).getElementFilter()(el_type);
       if (!filter.size() == 0)
         AKANTU_EXCEPTION("Check the element type for aggregate material");
 
@@ -308,10 +309,10 @@ public:
         checked_baries.insert(bary_id);
         el.element = bary_id;
         if (MeshDataMaterialSelector<std::string>::operator()(el) ==
-            paste_material_id)
-          continue; /// element belongs to paste
-        gel_pockets.push_back(el);
-        placed_gel_pockets += 1;
+            aggregate_material_id) {
+          gel_pockets.push_back(el);
+          placed_gel_pockets += 1;
+        }
       }
     }
     is_gel_initialized = true;
@@ -322,7 +323,7 @@ public:
       initGelPocket();
 
     UInt temp_index = MeshDataMaterialSelector<std::string>::operator()(elem);
-    if (temp_index == paste_material_id)
+    if (temp_index != aggregate_material_id)
       return temp_index;
     auto iit = gel_pockets.begin();
     auto eit = gel_pockets.end();
@@ -330,7 +331,6 @@ public:
       nb_placed_gel_pockets += 1;
       std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
       return model.getMaterialIndex(gel_material);
-      ;
     }
     return temp_index;
   }
@@ -342,8 +342,8 @@ protected:
   UInt nb_gel_pockets;
   UInt nb_placed_gel_pockets;
   Real box_size;
-  std::string paste_material{"paste"};
-  UInt paste_material_id{1};
+  std::string aggregate_material{"aggregate"};
+  UInt aggregate_material_id{1};
   bool is_gel_initialized{false};
 };
 
