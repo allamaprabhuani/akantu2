@@ -67,13 +67,11 @@ public:
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
-  /// compute ASR eigenstrain based on RVE temperature and time increase
-  /// (independent of overall time)
+  /// gel strain inrease linear with time, exponential with temperature
   void computeNewGelStrain(Matrix<Real> & gelstrain, const Real & delta_time,
                            const Real & temp);
 
-  /// compute ASR eigenstrain based on RVE temperature and time increase
-  /// (linearly decreasing to 0 with time)
+  /// assymptotic gel strain - time curve
   void computeNewGelStrainTimeDependent(Matrix<Real> & gelstrain,
                                         const Real & delta_time, const Real & T,
                                         Real & non_reacted_gel);
@@ -96,6 +94,12 @@ public:
 
   /// dump all the rves
   void dump();
+
+  /// increase gel strain according to time step
+  void increaseGelStrain(Real & dt);
+
+  /// update damage ratio after converged step
+  virtual void afterSolveStep();
 
 private:
   void initialize();
@@ -146,6 +150,10 @@ protected:
   InternalField<Real> non_reacted_gel;
 
   InternalField<Real> damage_ratio;
+
+  /// Macro eigen stress incrementally summed from homogenized meso-scale
+  InternalField<Real> eigen_stress;
+
 };
 
 /* -------------------------------------------------------------------------- */

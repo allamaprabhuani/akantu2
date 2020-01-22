@@ -65,7 +65,8 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
     const ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  parent::computeStress(el_type, ghost_type);
+  PlaneStressToolbox<spatial_dimension, MaterialThermal<spatial_dimension>>::
+      computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
   auto E1_it =

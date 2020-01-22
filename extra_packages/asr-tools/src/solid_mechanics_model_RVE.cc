@@ -48,7 +48,7 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
     : SolidMechanicsModel(mesh, dim, id, memory_id),
       ASRTools(dynamic_cast<SolidMechanicsModel &>(*this)),
       use_RVE_mat_selector(use_RVE_mat_selector),
-      nb_gel_pockets(nb_gel_pockets) {
+      nb_gel_pockets(nb_gel_pockets), stiffness_changed(true) {
   AKANTU_DEBUG_IN();
   // /// find the four corner nodes of the RVE
   // findCornerNodes();
@@ -189,10 +189,11 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   UInt nb_damaged_elements = 0;
   Real max_eq_stress_aggregate = 0;
   Real max_eq_stress_paste = 0;
+  this->stiffness_changed = false;
 
   auto & solver = this->getNonLinearSolver();
   solver.set("max_iterations", 50);
-  solver.set("threshold", 1e-6);
+  solver.set("threshold", 1e-5);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   do {
@@ -210,6 +211,10 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     else
       nb_damaged_elements =
           (mat_paste.updateDamage() + mat_aggregate.updateDamage());
+
+    /// mark the flag to update stiffness if elements were damaged
+    if (nb_damaged_elements)
+      this->stiffness_changed = true;
 
     std::cout << "the number of damaged elements is " << nb_damaged_elements
               << std::endl;

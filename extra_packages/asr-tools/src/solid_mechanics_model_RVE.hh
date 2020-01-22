@@ -47,8 +47,7 @@ class SolidMechanicsModelRVE : public SolidMechanicsModel, public ASRTools {
 
 public:
   SolidMechanicsModelRVE(Mesh & mesh, bool use_RVE_mat_selector = true,
-                         UInt nb_gel_pockets = 400,
-                         UInt dim = _all_dimensions,
+                         UInt nb_gel_pockets = 400, UInt dim = _all_dimensions,
                          const ID & id = "solid_mechanics_model",
                          const MemoryID & memory_id = 0);
 
@@ -68,34 +67,8 @@ protected:
   void assembleInternalForces() override;
 
 public:
-  // /// apply boundary contions based on macroscopic deformation gradient
-  // virtual void
-  // applyBoundaryConditions(const Matrix<Real> & displacement_gradient);
-
-  // /// apply homogeneous temperature field from the macroscale level to the
-  // RVEs virtual void applyHomogeneousTemperature(const Real & temperature);
-
-  // /// remove temperature from RVE on the end of ASR advancement
-  // virtual void removeTemperature();
-
   /// advance the reactions -> grow gel and apply homogenized properties
   void advanceASR(const Matrix<Real> & prestrain);
-
-  // /// compute average stress or strain in the model
-  // Real averageTensorField(UInt row_index, UInt col_index,
-  //                         const ID & field_type);
-
-  // /// compute effective stiffness of the RVE
-  // void homogenizeStiffness(Matrix<Real> & C_macro, bool first_time = false);
-
-  // /// compute average eigenstrain
-  // void homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro);
-
-  // /// compute damage volume in different phases
-  // void computeDamageRatio(Real & damage);
-
-  // /// dump the RVE
-  // void dumpRve();
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -111,42 +84,20 @@ public:
 public:
   AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
   AKANTU_GET_MACRO(Volume, volume, Real);
+  bool hasStiffnessChanged() { return this->stiffness_changed; };
 
 private:
-  // /// find the corner nodes
-  // void findCornerNodes();
-
-  // /// perform virtual testing
-  // void performVirtualTesting(const Matrix<Real> & H,
-  //                            Matrix<Real> & eff_stresses,
-  //                            Matrix<Real> & eff_strains, const UInt test_no);
-
-  // void fillCracks(ElementTypeMapReal & saved_damage);
-  // void drainCracks(const ElementTypeMapReal & saved_damage);
-
   /* ------------------------------------------------------------------------ */
   /* Members */
   /* ------------------------------------------------------------------------ */
-  // /// volume of the RVE
-  // Real volume;
-
-  // /// corner nodes 1, 2, 3, 4 (see Leonardo's thesis, page 98)
-  // Array<UInt> corner_nodes;
-
-  // /// bottom nodes
-  // std::unordered_set<UInt> bottom_nodes;
-
-  // /// left nodes
-  // std::unordered_set<UInt> left_nodes;
-
   /// standard mat selector or user one
   bool use_RVE_mat_selector;
 
   /// the number of gel pockets inside the RVE
   UInt nb_gel_pockets;
 
-  // /// dump counter
-  // UInt nb_dumps;
+  /// the number of gel pockets inside the RVE
+  bool stiffness_changed;
 };
 
 inline void SolidMechanicsModelRVE::unpackData(CommunicationBuffer & buffer,

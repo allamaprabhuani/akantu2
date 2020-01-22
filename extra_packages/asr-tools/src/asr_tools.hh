@@ -166,9 +166,14 @@ public:
   void onNodesAdded(const Array<UInt> & new_nodes,
                     const NewNodesEvent & nodes_event);
 
+  /// apply self-weight force
+  void applyBodyForce();
+
   /// apply delta u on nodes
   void applyDeltaU(Real delta_u);
 
+  /// apply eigenstrain on gel material
+  void applyGelStrain(const Matrix<Real> & prestrain);
   /* ------------------------------------------------------------------------ */
   /// RVE part
 
@@ -186,8 +191,8 @@ public:
   Real averageTensorField(UInt row_index, UInt col_index,
                           const ID & field_type);
 
-  /// compute effective stiffness of the RVE
-  void homogenizeStiffness(Matrix<Real> & C_macro, bool first_time = false);
+  /// compute effective stiffness of the RVE (in tension by default)
+  void homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test = true);
 
   /// compute average eigenstrain
   void homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro);
@@ -198,8 +203,8 @@ public:
   /// dump the RVE
   void dumpRve();
 
-  /// apply self-weight force
-  void applyBodyForce();
+  /// compute average stress in the RVE
+  void homogenizeStressField(Matrix<Real> & stress);
 
 private:
   /// find the corner nodes

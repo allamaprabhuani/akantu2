@@ -1125,9 +1125,9 @@ void ASRTools::applyBoundaryConditionsRve(
 
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
-  /// transform into Green strain to exclude rotations
-  auto F = displacement_gradient + Matrix<Real>::eye(dim);
-  auto E = 0.5 * (F.transpose() * F - Matrix<Real>::eye(dim));
+  // /// transform into Green strain to exclude rotations
+  // auto F = displacement_gradient + Matrix<Real>::eye(dim);
+  // auto E = 0.5 * (F.transpose() * F - Matrix<Real>::eye(dim));
   /// get the position of the nodes
   const Array<Real> & pos = mesh.getNodes();
   /// storage for the coordinates of a given node and the displacement
@@ -1140,7 +1140,7 @@ void ASRTools::applyBoundaryConditionsRve(
     x(0) = pos(node, 0);
     x(1) = pos(node, 1);
     x -= lower_bounds;
-    appl_disp.mul<false>(E, x);
+    appl_disp.mul<false>(displacement_gradient, x);
     (model.getBlockedDOFs())(node, 0) = true;
     (model.getDisplacement())(node, 0) = appl_disp(0);
     (model.getBlockedDOFs())(node, 1) = true;
@@ -1383,8 +1383,18 @@ Real ASRTools::averageTensorField(UInt row_index, UInt col_index,
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro,
-                                   bool /*first_time*/) {
+void ASRTools::homogenizeStressField(Matrix<Real> & stress) {
+  AKANTU_DEBUG_IN();
+  stress(0, 0) = averageTensorField(0, 0, "stress");
+  stress(1, 1) = averageTensorField(1, 1, "stress");
+  stress(0, 1) = averageTensorField(0, 1, "stress");
+  stress(1, 0) = averageTensorField(1, 0, "stress");
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1430,12 +1440,12 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro,
   // _default_value = 0); this->fillCracks(saved_damage);
 
   /// virtual test 1:
-  H(0, 0) = -0.01;
+  H(0, 0) = 0.01 * (2 * tensile_test - 1);
   performVirtualTesting(H, stresses, strains, 0);
 
   /// virtual test 2:
   H.clear();
-  H(1, 1) = -0.01;
+  H(1, 1) = 0.01 * (2 * tensile_test - 1);
   performVirtualTesting(H, stresses, strains, 1);
 
   /// virtual test 3:
@@ -1992,6 +2002,28 @@ void ASRTools::applyDeltaU(Real delta_u) {
 
   DeltaU delta_u_bc(model, delta_u, getNodePairs());
   model.applyBC(delta_u_bc, crack_facets);
+}
+
+/* -------------------------------------------------------------------------- */
+void ASRTools::applyGelStrain(const Matrix<Real> & prestrain) {
+  AKANTU_DEBUG_IN();
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  AKANTU_DEBUG_ASSERT(dim == 2, "This is 2D only!");
+
+  /// apply the new eigenstrain
+  for (auto element_type :
+       mesh.elementTypes(dim, _not_ghost, _ek_not_defined)) {
+    Array<Real> & prestrain_vect =
+        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
+            "eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it)
+      (*prestrain_it) = prestrain;
+  }
+  AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu
