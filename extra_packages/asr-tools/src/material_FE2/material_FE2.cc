@@ -212,7 +212,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
     /// compute the new effective stiffness of the RVE
     auto & C_macro = std::get<5>(data);
     if (RVE.hasStiffnessChanged())
-      RVE.homogenizeStiffness(C_macro);
+      RVE.homogenizeStiffness(C_macro, false);
 
     // prepare necessary tensors for stress computation
     auto & grad_u = std::get<1>(data);
