@@ -149,11 +149,15 @@ protected:
   /// percent of yet non-reacted gel (for time-dependent asr simulation)
   InternalField<Real> non_reacted_gel;
 
+  /// ratio between area of damaged elements weighted by damage value
+  /// and the total area of RVE
   InternalField<Real> damage_ratio;
+
+  InternalField<Real> damage_ratio_paste;
+  InternalField<Real> damage_ratio_agg;
 
   /// Macro eigen stress incrementally summed from homogenized meso-scale
   InternalField<Real> eigen_stress;
-
 };
 
 /* -------------------------------------------------------------------------- */

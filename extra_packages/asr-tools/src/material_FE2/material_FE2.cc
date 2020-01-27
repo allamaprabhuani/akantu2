@@ -28,7 +28,10 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), C("material_stiffness", *this),
       gelstrain("gelstrain", *this), non_reacted_gel("non_reacted_gel", *this),
-      damage_ratio("damage_ratio", *this), eigen_stress("eigen_stress", *this) {
+      damage_ratio("damage_ratio", *this),
+      damage_ratio_paste("damage_ratio_paste", *this),
+      damage_ratio_agg("damage_ratio_agg", *this),
+      eigen_stress("eigen_stress", *this) {
   AKANTU_DEBUG_IN();
 
   this->C.initialize(voigt_h::size * voigt_h::size);
@@ -200,10 +203,9 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 
     /// compute the average average rVE stress and accumulate into
     /// macroscale eigenstress
-    Matrix<Real> av_rve_stress(spatial_dimension, spatial_dimension);
-    auto & eigstress = std::get<4>(data);
-    RVE.homogenizeStressField(av_rve_stress);
-    eigstress += av_rve_stress;
+    // Matrix<Real> av_rve_stress(spatial_dimension, spatial_dimension);
+    // auto & eigstress = std::get<4>(data);
+    RVE.homogenizeStressField(std::get<2>(data));
 
     // /// remove temperature field - not to mess up with the stiffness
     // /// homogenization further
@@ -214,38 +216,38 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
     if (RVE.hasStiffnessChanged())
       RVE.homogenizeStiffness(C_macro);
 
-    // prepare necessary tensors for stress computation
-    auto & grad_u = std::get<1>(data);
-    auto & sigma = std::get<2>(data);
-    auto & sigma_th = std::get<3>(data);
+    // // prepare necessary tensors for stress computation
+    // auto & grad_u = std::get<1>(data);
+    // auto & sigma = std::get<2>(data);
+    // auto & sigma_th = std::get<3>(data);
 
-    // create vectors to store stress and strain in Voigt notation
-    // for efficient computation of stress
-    Vector<Real> voigt_strain(voigt_h::size);
-    Vector<Real> voigt_stress(voigt_h::size);
-    Vector<Real> voigt_eig_stress(voigt_h::size);
+    // // create vectors to store stress and strain in Voigt notation
+    // // for efficient computation of stress
+    // Vector<Real> voigt_strain(voigt_h::size);
+    // Vector<Real> voigt_stress(voigt_h::size);
+    // Vector<Real> voigt_eig_stress(voigt_h::size);
 
-    /// copy strains in Voigt notation
-    for (UInt I = 0; I < voigt_h::size; ++I) {
-      /// copy stress in
-      Real voigt_factor = voigt_h::factors[I];
-      UInt i = voigt_h::vec[I][0];
-      UInt j = voigt_h::vec[I][1];
+    // /// copy strains in Voigt notation
+    // for (UInt I = 0; I < voigt_h::size; ++I) {
+    //   /// copy stress in
+    //   Real voigt_factor = voigt_h::factors[I];
+    //   UInt i = voigt_h::vec[I][0];
+    //   UInt j = voigt_h::vec[I][1];
 
-      voigt_strain(I) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
-      voigt_eig_stress(I) = eigstress(i, j);
-    }
+    //   voigt_strain(I) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
+    //   voigt_eig_stress(I) = eigstress(i, j);
+    // }
 
-    // compute stresses in Voigt notation
-    voigt_stress.mul<false>(C_macro, voigt_strain);
-    voigt_stress += voigt_eig_stress;
+    // // compute stresses in Voigt notation
+    // // voigt_stress.mul<false>(C_macro, voigt_strain);
+    // voigt_stress += voigt_eig_stress;
 
-    /// copy stresses back in full vectorised notation
-    for (UInt I = 0; I < voigt_h::size; ++I) {
-      UInt i = voigt_h::vec[I][0];
-      UInt j = voigt_h::vec[I][1];
-      sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
-    }
+    // /// copy stresses back in full vectorised notation
+    // for (UInt I = 0; I < voigt_h::size; ++I) {
+    //   UInt i = voigt_h::vec[I][0];
+    //   UInt j = voigt_h::vec[I][1];
+    //   sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
+    // }
   }
   AKANTU_DEBUG_OUT();
 }
