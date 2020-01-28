@@ -63,6 +63,9 @@ public:
   /// them in a node group
   void fillNodeGroup(NodeGroup & node_group, bool multi_axial = false);
 
+  /// compute volume of the model passed to ASRTools (RVE if FE2_mat)
+  void computeModelVolume();
+
   /// Apply free expansion boundary conditions
   void applyFreeExpansionBC();
 
@@ -102,6 +105,10 @@ public:
   /// Same as the last one but writes a csv with first column having time in
   /// days
   void computeAverageProperties(std::ofstream & file_output, Real time);
+
+  /// Averages strains & displacements + damage ratios in FE2 material
+  void computeAveragePropertiesFe2Material(std::ofstream & file_output,
+                                           Real time);
 
   /// Save the state of the simulation for subsequent restart
   void saveState(UInt current_step);
@@ -187,6 +194,9 @@ public:
   /// remove temperature from RVE on the end of ASR advancement
   virtual void removeTemperature();
 
+  /// averages scalar field over the WHOLE!!! volume of a model
+  Real averageScalarField(const ID & field_name);
+
   /// compute average stress or strain in the model
   Real averageTensorField(UInt row_index, UInt col_index,
                           const ID & field_type);
@@ -197,8 +207,12 @@ public:
   /// compute average eigenstrain
   void homogenizeEigenGradU(Matrix<Real> & eigen_gradu_macro);
 
-  /// compute damage volume in different phases
+  /// compute damage to the RVE area ratio
   void computeDamageRatio(Real & damage);
+
+  /// compute damage to material area ratio
+  void computeDamageRatioPerMaterial(Real & damage_ratio,
+                                     const ID & material_name);
 
   /// dump the RVE
   void dumpRve();
@@ -224,9 +238,9 @@ public:
     return node_pairs;
   }
 
-  /* ------------------------------------------------------------------------ */
+  /* --------------------------------------------------------------------- */
   /* Members */
-  /* ------------------------------------------------------------------------ */
+  /* --------------------------------------------------------------------- */
 
 private:
   SolidMechanicsModel & model;

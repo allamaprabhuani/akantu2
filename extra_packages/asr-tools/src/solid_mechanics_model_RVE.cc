@@ -92,15 +92,7 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   auto & fem = this->getFEEngine("SolidMechanicsFEEngine");
 
   /// compute the volume of the RVE
-  GhostType gt = _not_ghost;
-  for (auto element_type :
-       this->mesh.elementTypes(spatial_dimension, gt, _ek_not_defined)) {
-    Array<Real> Volume(this->mesh.getNbElement(element_type) *
-                           fem.getNbIntegrationPoints(element_type),
-                       1, 1.);
-    this->volume = fem.integrate(Volume, element_type);
-  }
-
+  this->computeModelVolume();
   std::cout << "The volume of the RVE is " << this->volume << std::endl;
 
   /// dumping

@@ -155,9 +155,6 @@ protected:
 
   InternalField<Real> damage_ratio_paste;
   InternalField<Real> damage_ratio_agg;
-
-  /// Macro eigen stress incrementally summed from homogenized meso-scale
-  InternalField<Real> eigen_stress;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -43,9 +43,11 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
       doubled_facets_ready(false), doubled_nodes_ready(false), node_pairs(0) {
 
   // register event handler for asr tools
-  model.getMesh().registerEventHandler(*this, _ehp_lowest);
-  if (model.getMesh().hasMeshFacets())
-    model.getMesh().getMeshFacets().registerEventHandler(*this, _ehp_lowest);
+  auto & mesh = model.getMesh();
+  auto const dim = model.getSpatialDimension();
+  mesh.registerEventHandler(*this, _ehp_lowest);
+  if (mesh.hasMeshFacets())
+    mesh.getMeshFacets().registerEventHandler(*this, _ehp_lowest);
 
   // resize the array of tuples
   node_pairs.resize(2);
@@ -55,7 +57,6 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   findCornerNodes();
 
   /// resize stress limit according to the dimension size
-  auto const dim = model.getSpatialDimension();
   switch (dim) {
   case 2: {
     stress_limit.resize(VoigtHelper<2>::size * VoigtHelper<2>::size);
@@ -66,6 +67,21 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
     break;
   }
   }
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::computeModelVolume() {
+  auto const dim = model.getSpatialDimension();
+  auto & mesh = model.getMesh();
+  auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
+  GhostType gt = _not_ghost;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    Array<Real> Volume(mesh.getNbElement(element_type) *
+                           fem.getNbIntegrationPoints(element_type),
+                       1, 1.);
+    this->volume += fem.integrate(Volume, element_type);
+  }
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(this->volume, SynchronizerOperation::_sum);
 }
 /* ------------------------------------------------------------------------- */
 void ASRTools::applyFreeExpansionBC() {
@@ -668,6 +684,45 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
   Real av_displ_y = computeAverageDisplacement(_y);
   Real damage_agg = computeDamagedVolume("aggregate");
   Real damage_paste = computeDamagedVolume("paste");
+
+  if (dim == 2) {
+
+    if (prank == 0)
+      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
+                  << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
+                  << damage_paste << std::endl;
+  }
+
+  else {
+    Real av_displ_z = computeAverageDisplacement(_z);
+    Real av_strain_z = computeVolumetricExpansion(_z);
+
+    if (prank == 0)
+      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
+                  << av_strain_z << "," << av_displ_x << "," << av_displ_y
+                  << "," << av_displ_z << "," << damage_agg << ","
+                  << damage_paste << std::endl;
+  }
+}
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
+                                                   Real time) {
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+
+  AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
+
+  /// variables for parallel execution
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+
+  Real av_strain_x = computeVolumetricExpansion(_x);
+  Real av_strain_y = computeVolumetricExpansion(_y);
+  Real av_displ_x = computeAverageDisplacement(_x);
+  Real av_displ_y = computeAverageDisplacement(_y);
+  Real damage_paste = averageScalarField("damage_ratio_paste");
+  Real damage_agg = averageScalarField("damage_ratio_agg");
 
   if (dim == 2) {
 
@@ -1309,6 +1364,43 @@ void ASRTools::findCornerNodes() {
 }
 /* --------------------------------------------------------------------------
  */
+Real ASRTools::averageScalarField(const ID & field_name) {
+  AKANTU_DEBUG_IN();
+  auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
+  Real average = 0;
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+
+  GhostType gt = _not_ghost;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+      const auto & elem_filter =
+          model.getMaterial(m).getElementFilter(element_type);
+      if (!elem_filter.size())
+        continue;
+      const auto & scalar_field =
+          model.getMaterial(m).getInternal<Real>(field_name)(element_type);
+      Array<Real> int_scalar_vec(elem_filter.size(), 1, "int_of_scalar");
+
+      fem.integrate(scalar_field, int_scalar_vec, 1, element_type, _not_ghost,
+                    elem_filter);
+
+      for (UInt k = 0; k < elem_filter.size(); ++k)
+        average += int_scalar_vec(k);
+    }
+  }
+
+  /// compute total model volume
+  if (!this->volume)
+    computeModelVolume();
+
+  return average / this->volume;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------------
+ */
 Real ASRTools::averageTensorField(UInt row_index, UInt col_index,
                                   const ID & field_type) {
   AKANTU_DEBUG_IN();
@@ -1376,6 +1468,10 @@ Real ASRTools::averageTensorField(UInt row_index, UInt col_index,
     }
   }
 
+  /// compute total model volume
+  if (!this->volume)
+    computeModelVolume();
+
   return average / this->volume;
 
   AKANTU_DEBUG_OUT();
@@ -1409,7 +1505,8 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   // GhostType gt = _not_ghost;
   // for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
   //   auto & prestrain_vect =
-  //       const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
+  //       const_cast<Array<Real>
+  //       &>(model.getMaterial("gel").getInternal<Real>(
   //           "eigen_grad_u")(element_type));
   //   auto prestrain_it = prestrain_vect.begin(dim, dim);
   //   auto prestrain_end = prestrain_vect.end(dim, dim);
@@ -1462,8 +1559,9 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   // }
 
   // /// compare stresses with the lower limit and update if needed
-  // auto && str_lim_vec_it = make_view(this->stress_limit, voigt_size).begin();
-  // for (UInt i = 0; i != voigt_size; ++i, ++str_lim_vec_it) {
+  // auto && str_lim_vec_it = make_view(this->stress_limit,
+  // voigt_size).begin(); for (UInt i = 0; i != voigt_size; ++i,
+  // ++str_lim_vec_it) {
   //   Vector<Real> stress = stresses(i);
   //   // Vector<Real> stress_lim = stress_limit(i);
   //   Real stress_norm = stress.norm();
@@ -1644,11 +1742,47 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
           fe_engine.integrate(damage_array, element_type, gt, filter);
     }
   }
+
+  /// compute total model volume
+  if (!this->volume)
+    computeModelVolume();
+
   damage_ratio /= this->volume;
 }
 
 /* --------------------------------------------------------------------------
  */
+void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
+                                             const ID & material_name) {
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  Material & mat = model.getMaterial(material_name);
+  const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+  const FEEngine & fe_engine = model.getFEEngine();
+  damage_ratio = 0.;
+  Real mat_volume = 0.;
+
+  // Loop over the boundary element types
+  for (auto & element_type : filter_map.elementTypes(dim, gt)) {
+    const Array<UInt> & filter = filter_map(element_type);
+    if (!filter_map.exists(element_type, gt))
+      continue;
+    if (filter.size() == 0)
+      continue;
+
+    auto & damage_array = mat.getInternal<Real>("damage")(element_type);
+
+    damage_ratio += fe_engine.integrate(damage_array, element_type, gt, filter);
+    Array<Real> volume(
+        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
+    mat_volume += fe_engine.integrate(volume, element_type, gt, filter);
+  }
+
+  damage_ratio /= mat_volume;
+}
+
+/* -------------------------------------------------------------------------*/
 void ASRTools::dumpRve() {
   //  if (this->nb_dumps % 10 == 0) {
   model.dump();
@@ -1934,7 +2068,8 @@ ASRTools::insertCohElOrFacetsByCoord(const Vector<Real> & position,
   AKANTU_DEBUG_OUT();
   return facets_added;
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ASRTools::onElementsAdded(const Array<Element> & elements,
                                const NewElementsEvent &) {
 
@@ -1967,7 +2102,8 @@ void ASRTools::onElementsAdded(const Array<Element> & elements,
   }
   this->doubled_facets_ready = true;
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
                             const NewNodesEvent &) {
   AKANTU_DEBUG_IN();
@@ -1995,7 +2131,8 @@ void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ASRTools::applyDeltaU(Real delta_u) {
   // get element group with nodes to apply Dirichlet
   auto & crack_facets = model.getMesh().getElementGroup("doubled_nodes");
@@ -2004,7 +2141,8 @@ void ASRTools::applyDeltaU(Real delta_u) {
   model.applyBC(delta_u_bc, crack_facets);
 }
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 void ASRTools::applyGelStrain(const Matrix<Real> & prestrain) {
   AKANTU_DEBUG_IN();
   auto & mesh = model.getMesh();
