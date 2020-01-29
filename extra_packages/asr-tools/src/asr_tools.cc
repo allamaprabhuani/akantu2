@@ -74,14 +74,17 @@ void ASRTools::computeModelVolume() {
   auto & mesh = model.getMesh();
   auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
   GhostType gt = _not_ghost;
+  this->volume = 0;
   for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
     Array<Real> Volume(mesh.getNbElement(element_type) *
                            fem.getNbIntegrationPoints(element_type),
                        1, 1.);
     this->volume += fem.integrate(Volume, element_type);
   }
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  comm.allReduce(this->volume, SynchronizerOperation::_sum);
+  // auto && comm = akantu::Communicator::getWorldCommunicator();
+  // std::cout << "starting reduction";
+  // comm.allReduce(this->volume, SynchronizerOperation::_sum);
+  // std::cout << " ending reduction" << std::endl;
 }
 /* ------------------------------------------------------------------------- */
 void ASRTools::applyFreeExpansionBC() {
