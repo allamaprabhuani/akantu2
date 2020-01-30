@@ -338,6 +338,10 @@ public:
   }
 
   UInt operator()(const Element & elem) {
+    /// variables for parallel execution
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    auto prank = comm.whoAmI();
+
     if (not is_gel_initialized)
       initGelPocket();
 
@@ -348,7 +352,8 @@ public:
     auto eit = gel_pockets.end();
     if (std::find(iit, eit, elem) != eit) {
       nb_placed_gel_pockets += 1;
-      std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
+      if (prank == 0)
+        std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
       return model.getMaterialIndex(gel_material);
     }
     return temp_index;

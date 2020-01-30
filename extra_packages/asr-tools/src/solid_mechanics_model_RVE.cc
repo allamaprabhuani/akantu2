@@ -50,8 +50,6 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
       use_RVE_mat_selector(use_RVE_mat_selector),
       nb_gel_pockets(nb_gel_pockets), stiffness_changed(true) {
   AKANTU_DEBUG_IN();
-  // /// find the four corner nodes of the RVE
-  // findCornerNodes();
 
   /// remove the corner nodes from the surface node groups:
   /// This most be done because corner nodes a not periodic
@@ -89,11 +87,15 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   SolidMechanicsModel::initFullImpl(options_cp);
 
   // this->initMaterials();
-  auto & fem = this->getFEEngine("SolidMechanicsFEEngine");
+
+  /// variables for parallel execution
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
 
   /// compute the volume of the RVE
   this->computeModelVolume();
-  std::cout << "The volume of the RVE is " << this->volume << std::endl;
+  if (prank == 0)
+    std::cout << "The volume of the RVE is " << this->volume << std::endl;
 
   /// dumping
   std::stringstream base_name;
@@ -112,15 +114,13 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   this->addDumpField("internal_force");
   this->addDumpField("delta_T");
 
-  // this->dump();
-  // this->nb_dumps += 1;
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelRVE::assembleInternalForces() {
-  /// displacement correction
 
+  /// displacement correction
   auto disp_begin = make_view(*this->displacement, spatial_dimension).begin();
 
   auto u_top_corr = Vector<Real>(disp_begin[this->corner_nodes(2)]) -
@@ -188,6 +188,10 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   solver.set("threshold", 1e-5);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
+  /// variables for parallel execution
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+
   do {
     this->solveStep();
 
@@ -208,8 +212,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     if (nb_damaged_elements)
       this->stiffness_changed = true;
 
-    std::cout << "the number of damaged elements is " << nb_damaged_elements
-              << std::endl;
+    if (prank == 0)
+      std::cout << "The number of damaged elements is " << nb_damaged_elements
+                << std::endl;
   } while (nb_damaged_elements);
 
   //  if (this->nb_dumps % 10 == 0) {
