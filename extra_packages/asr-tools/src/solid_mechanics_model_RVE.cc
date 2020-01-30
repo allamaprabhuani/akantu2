@@ -212,9 +212,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     if (nb_damaged_elements)
       this->stiffness_changed = true;
 
-    if (prank == 0)
-      std::cout << "The number of damaged elements is " << nb_damaged_elements
-                << std::endl;
+    // if (prank == 0)
+    std::cout << "Proc " << prank << " the number of damaged elements is "
+              << nb_damaged_elements << std::endl;
   } while (nb_damaged_elements);
 
   //  if (this->nb_dumps % 10 == 0) {
