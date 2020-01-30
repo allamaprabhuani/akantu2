@@ -498,7 +498,7 @@ UInt MaterialFE2<spatial_dimension>::getNbRVEs() {
   AKANTU_DEBUG_IN();
   UInt nb_RVEs = 0;
   for (auto && data : enumerate(RVEs)) {
-    nb_RVEs = std::get<0>(data);
+    nb_RVEs = std::get<0>(data) + 1;
   }
   return nb_RVEs;
   AKANTU_DEBUG_OUT();
