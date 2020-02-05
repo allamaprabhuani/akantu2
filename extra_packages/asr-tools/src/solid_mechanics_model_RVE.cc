@@ -192,8 +192,17 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
 
+  /// save nodal fields (disp, boun & ext_force)
+  this->storeNodalFields();
+
   do {
+    /// restore nodals and update grad_u accordingly
+    this->restoreNodalFields();
+
     this->solveStep();
+
+    /// restore historical internal fields (sigma_v for visc)
+    this->restoreInternalFields();
 
     /// compute damage
     max_eq_stress_aggregate = mat_aggregate.getNormMaxEquivalentStress();
@@ -212,9 +221,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     if (nb_damaged_elements)
       this->stiffness_changed = true;
 
-    // if (prank == 0)
     std::cout << "Proc " << prank << " the number of damaged elements is "
               << nb_damaged_elements << std::endl;
+
   } while (nb_damaged_elements);
 
   //  if (this->nb_dumps % 10 == 0) {

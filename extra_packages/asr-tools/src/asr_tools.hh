@@ -214,6 +214,16 @@ public:
 
   /// compute average stress in the RVE
   void homogenizeStressField(Matrix<Real> & stress);
+protected:
+    /// storing nodal fields before tests
+  void storeNodalFields();
+
+  /// restoring nodal fields before tests
+  void restoreNodalFields();
+
+  /// restoring internal fields after tests
+  void restoreInternalFields();
+
 
 private:
   /// find the corner nodes
@@ -223,15 +233,6 @@ private:
   void performVirtualTesting(const Matrix<Real> & H,
                              Matrix<Real> & eff_stresses,
                              Matrix<Real> & eff_strains, const UInt test_no);
-
-  /// storing nodal fields before tests
-  void storeNodalFields();
-
-  /// restoring nodal fields before tests
-  void restoreNodalFields();
-
-  /// restoring internal fields after tests
-  void restoreInternalFields();
 
   /* ------------------------------------------------------------------------
    */

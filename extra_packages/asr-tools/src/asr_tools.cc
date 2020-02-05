@@ -453,7 +453,6 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
 
   /// return the nodal values
   restoreNodalFields();
-  // model.assembleInternalForces();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -473,6 +472,8 @@ void ASRTools::restoreNodalFields() {
   disp.copy(this->disp_stored);
   boun.copy(this->boun_stored);
   ext_force.copy(this->ext_force_stored);
+  /// update grad_u
+  model.assembleInternalForces();
 }
 /* -------------------------------------------------------------------------- */
 void ASRTools::restoreInternalFields() {
@@ -1564,7 +1565,6 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
 
   /// return the nodal values
   restoreNodalFields();
-  // model.assembleInternalForces();
 
   AKANTU_DEBUG_OUT();
 } // namespace akantu
