@@ -89,11 +89,6 @@ public:
   /// virtual loading test
   Real performLoadingTest(SpatialDirection direction, bool tension);
 
-  /// This function calls all the functions to compute average properties and
-  /// does the tension test
-  void computeAveragePropertiesAndResidual(std::ofstream & file_output,
-                                           Real time, bool tension = true);
-
   /// perform tension tests and integrate the internal force on the upper
   /// surface
   void computeStiffnessReduction(std::ofstream & file_output, Real time,
@@ -229,9 +224,17 @@ private:
                              Matrix<Real> & eff_stresses,
                              Matrix<Real> & eff_strains, const UInt test_no);
 
-  // void fillCracks(ElementTypeMapReal & saved_damage);
-  // void drainCracks(const ElementTypeMapReal & saved_damage);
-  /* ------------------------------------------------------------------------ */
+  /// storing nodal fields before tests
+  void storeNodalFields();
+
+  /// restoring nodal fields before tests
+  void restoreNodalFields();
+
+  /// restoring internal fields after tests
+  void restoreInternalFields();
+
+  /* ------------------------------------------------------------------------
+   */
 public:
   // Accessors
   inline Array<std::tuple<UInt, UInt>> getNodePairs() const {
@@ -271,8 +274,13 @@ protected:
   bool doubled_facets_ready;
   bool doubled_nodes_ready;
 
-  // array of tuples to store nodes pairs:1st- is the on on the upper facet
+  // array of tuples to store nodes pairs:1st- is the one on the upper facet
   Array<std::tuple<UInt, UInt>> node_pairs;
+
+  // arrays to store nodal values during virtual tests
+  Array<Real> disp_stored;
+  Array<Real> ext_force_stored;
+  Array<bool> boun_stored;
 };
 
 /* -------------------------------------------------------------------------- */

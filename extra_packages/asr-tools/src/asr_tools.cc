@@ -1,7 +1,7 @@
 /**
  * @file   ASR_tools.cc
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
- * @date   Tue Jan 16 10:26:53 2014
+ * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  *
  * @brief  implementation tools for the analysis of ASR samples
  *
@@ -40,11 +40,14 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 ASRTools::ASRTools(SolidMechanicsModel & model)
     : model(model), volume(0.), stress_limit(0), nb_dumps(0),
-      doubled_facets_ready(false), doubled_nodes_ready(false), node_pairs(0) {
+      doubled_facets_ready(false), doubled_nodes_ready(false), node_pairs(0),
+      disp_stored(0, model.getSpatialDimension()),
+      ext_force_stored(0, model.getSpatialDimension()),
+      boun_stored(0, model.getSpatialDimension()) {
 
   // register event handler for asr tools
   auto & mesh = model.getMesh();
-  auto const dim = model.getSpatialDimension();
+  // auto const dim = model.getSpatialDimension();
   mesh.registerEventHandler(*this, _ehp_lowest);
   if (mesh.hasMeshFacets())
     mesh.getMeshFacets().registerEventHandler(*this, _ehp_lowest);
@@ -56,17 +59,17 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   /// find four corner nodes of the RVE
   findCornerNodes();
 
-  /// resize stress limit according to the dimension size
-  switch (dim) {
-  case 2: {
-    stress_limit.resize(VoigtHelper<2>::size * VoigtHelper<2>::size);
-    break;
-  }
-  case 3: {
-    stress_limit.resize(VoigtHelper<3>::size * VoigtHelper<3>::size);
-    break;
-  }
-  }
+  // /// resize stress limit according to the dimension size
+  // switch (dim) {
+  // case 2: {
+  //   stress_limit.resize(VoigtHelper<2>::size * VoigtHelper<2>::size);
+  //   break;
+  // }
+  // case 3: {
+  //   stress_limit.resize(VoigtHelper<3>::size * VoigtHelper<3>::size);
+  //   break;
+  // }
+  // }
 }
 /* -------------------------------------------------------------------------- */
 void ASRTools::computeModelVolume() {
@@ -417,66 +420,6 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
 
 /* --------------------------------------------------------------------------
  */
-void ASRTools::computeAveragePropertiesAndResidual(std::ofstream & file_output,
-
-                                                   Real time, bool tension) {
-
-  const auto & mesh = model.getMesh();
-  const auto dim = mesh.getSpatialDimension();
-  AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
-
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
-  Real av_strain_x = computeVolumetricExpansion(_x);
-  Real av_strain_y = computeVolumetricExpansion(_y);
-  Real av_displ_x = computeAverageDisplacement(_x);
-  Real av_displ_y = computeAverageDisplacement(_y);
-  Real damage_agg = computeDamagedVolume("aggregate");
-  Real damage_paste = computeDamagedVolume("paste");
-
-  ElementTypeMapReal saved_damage("saved_damage");
-  if (dim == 2) {
-    // if (filled_cracks) {
-    //   saved_damage.initialize(mesh, _spatial_dimension = dim);
-    //   saved_damage.clear();
-    //   fillCracks(model, saved_damage);
-    // }
-    Real int_residual_x = performLoadingTest(_x, tension);
-    Real int_residual_y = performLoadingTest(_y, tension);
-    if (prank == 0)
-      file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
-                  << damage_paste << "," << int_residual_x << ","
-                  << int_residual_y << std::endl;
-    // if (filled_cracks)
-    //   drainCracks(model, saved_damage);
-  }
-
-  else {
-    Real av_displ_z = computeAverageDisplacement(_z);
-    Real av_strain_z = computeVolumetricExpansion(_z);
-    // if (filled_cracks) {
-    //   saved_damage.initialize(mesh, _spatial_dimension = dim);
-    //   saved_damage.clear();
-    //   fillCracks(model, saved_damage);
-    // }
-    Real int_residual_x = performLoadingTest(_x, false);
-    Real int_residual_y = performLoadingTest(_y, false);
-    Real int_residual_z = performLoadingTest(_z, false);
-    if (prank == 0)
-      file_output << av_strain_x << " " << av_strain_y << " " << av_strain_z
-                  << " " << av_displ_x << " " << av_displ_y << " " << av_displ_z
-                  << " " << damage_agg << " " << damage_paste << " "
-                  << int_residual_x << " " << int_residual_y << " "
-                  << int_residual_z << std::endl;
-    // if (filled_cracks)
-    //   drainCracks(model, saved_damage);
-  }
-}
-/* --------------------------------------------------------------------------
- */
 void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
                                          bool tension) {
 
@@ -487,6 +430,9 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
   /// variables for parallel execution
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
+
+  /// save nodal values before test
+  storeNodalFields();
 
   if (dim == 2) {
     Real int_residual_x = performLoadingTest(_x, tension);
@@ -504,8 +450,37 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << "," << int_residual_z << std::endl;
   }
+
+  /// return the nodal values
+  restoreNodalFields();
+  // model.assembleInternalForces();
 }
 
+/* -------------------------------------------------------------------------- */
+void ASRTools::storeNodalFields() {
+  auto & disp = this->model.getDisplacement();
+  auto & boun = this->model.getBlockedDOFs();
+  auto & ext_force = this->model.getExternalForce();
+  this->disp_stored.copy(disp);
+  this->boun_stored.copy(boun);
+  this->ext_force_stored.copy(ext_force);
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::restoreNodalFields() {
+  auto & disp = this->model.getDisplacement();
+  auto & boun = this->model.getBlockedDOFs();
+  auto & ext_force = this->model.getExternalForce();
+  disp.copy(this->disp_stored);
+  boun.copy(this->boun_stored);
+  ext_force.copy(this->ext_force_stored);
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::restoreInternalFields() {
+  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+    Material & mat = model.getMaterial(m);
+    mat.restorePreviousState();
+  }
+}
 /* --------------------------------------------------------------------------
  */
 Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
@@ -540,9 +515,6 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   auto & disp = model.getDisplacement();
   auto & boun = model.getBlockedDOFs();
   auto & ext_force = model.getExternalForce();
-  Array<Real> disp_stored(disp);
-  Array<bool> boun_stored(boun);
-  Array<Real> ext_force_stored(ext_force);
   UInt nb_nodes = mesh.getNbNodes();
 
   disp.clear();
@@ -618,14 +590,11 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
     }
   }
 
+  /// restore historical internal fields
+  restoreInternalFields();
+
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(int_residual, SynchronizerOperation::_sum);
-
-  /// return the real boundary conditions
-  disp.copy(disp_stored);
-  boun.copy(boun_stored);
-  ext_force.copy(ext_force_stored);
-  model.assembleInternalForces();
 
   return int_residual;
 }
@@ -1518,6 +1487,9 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   //     (*prestrain_it) = zero_eigengradu;
   // }
 
+  /// save nodal values before tests
+  storeNodalFields();
+
   /// storage for results of 3 different loading states
   UInt voigt_size = 1;
   switch (dim) {
@@ -1590,6 +1562,10 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
     }
   }
 
+  /// return the nodal values
+  restoreNodalFields();
+  // model.assembleInternalForces();
+
   AKANTU_DEBUG_OUT();
 } // namespace akantu
 
@@ -1603,10 +1579,6 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
   auto & disp = model.getDisplacement();
   auto & boun = model.getBlockedDOFs();
   auto & ext_force = model.getExternalForce();
-  Array<Real> disp_stored(disp);
-  Array<bool> boun_stored(boun);
-  Array<Real> ext_force_stored(ext_force);
-
   disp.clear();
   boun.clear();
   ext_force.clear();
@@ -1628,11 +1600,8 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
   eff_stresses(2, test_no) = averageTensorField(1, 0, "stress");
   eff_strains(2, test_no) = 2. * averageTensorField(1, 0, "strain");
 
-  /// return the real boundary conditions
-  disp.copy(disp_stored);
-  boun.copy(boun_stored);
-  ext_force.copy(ext_force_stored);
-  model.assembleInternalForces();
+  /// restore historical internal fields
+  restoreInternalFields();
 
   AKANTU_DEBUG_OUT();
 }
