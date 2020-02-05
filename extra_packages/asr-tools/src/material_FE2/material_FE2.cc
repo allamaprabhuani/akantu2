@@ -68,6 +68,9 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
                       "universal gas constant R in Arrhenius law");
   this->registerParam("saturation_constant", sat_const, Real(0.0),
                       _pat_parsable | _pat_modifiable, "saturation constant");
+  this->registerParam("tensile_stiffness", tensile_stiffness,
+                      _pat_parsable | _pat_modifiable,
+                      "if stiffness has to be homogenized via tensile test");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -106,7 +109,7 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
     RVE.initFull(_analysis_method = _static);
 
     /// compute intial stiffness of the RVE
-    RVE.homogenizeStiffness(C);
+    RVE.homogenizeStiffness(C, this->tensile_stiffness);
   }
   AKANTU_DEBUG_OUT();
 }
@@ -212,7 +215,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
     /// compute the new effective stiffness of the RVE
     auto & C_macro = std::get<4>(data);
     if (RVE.hasStiffnessChanged())
-      RVE.homogenizeStiffness(C_macro);
+      RVE.homogenizeStiffness(C_macro, this->tensile_stiffness);
 
     // // prepare necessary tensors for stress computation
     // auto & grad_u = std::get<1>(data);
@@ -340,7 +343,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(
     RVE.homogenizeEigenGradU(std::get<2>(data));
 
     /// compute the new effective stiffness of the RVE
-    RVE.homogenizeStiffness(std::get<3>(data));
+    RVE.homogenizeStiffness(std::get<3>(data), this->tensile_stiffness);
   }
 
   AKANTU_DEBUG_OUT();
@@ -395,7 +398,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
     RVE.homogenizeEigenGradU(std::get<2>(data));
 
     /// compute the new effective stiffness of the RVE
-    RVE.homogenizeStiffness(std::get<3>(data));
+    RVE.homogenizeStiffness(std::get<3>(data), this->tensile_stiffness);
 
     /// apply temperature back for the output
     RVE.applyHomogeneousTemperature(std::get<4>(data));
