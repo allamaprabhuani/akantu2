@@ -102,13 +102,14 @@ public:
   /// update internal variable on a converged Newton
   void afterSolveStep() override;
 
-  /// update internal variable based on previous and current strain values
-  void updateIntVariables();
+  // /// update internal variable based on previous and current strain values
+  // void updateIntVariables();
 
-  /// update the internal variable sigma_v on quadrature point
-  void updateIntVarOnQuad(const Matrix<Real> & grad_u,
-                          const Matrix<Real> & previous_grad_u,
-                          Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v);
+  // /// update the internal variable sigma_v on quadrature point
+  // void updateIntVarOnQuad(const Matrix<Real> & grad_u,
+  //                         const Matrix<Real> & previous_grad_u,
+  //                         Tensor3<Real> & sigma_v, Tensor3<Real> &
+  //                         epsilon_v);
 
   /// constitutive law for all element of a type
   void computeStress(ElementType el_type,
@@ -119,17 +120,21 @@ public:
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
-  /// save previous stress and strain values into "previous" arrays
-  void savePreviousState() override;
+  // /// save previous stress and strain values into "previous" arrays
+  // void savePreviousState() override;
 
-  /// change flag of updateIntVar to true
-  void forceUpdateVariable();
+  // /// change flag of updateIntVar to true
+  // void forceUpdateVariable();
 
-  /// change flag of updateIntVar to false
-  void forceNotUpdateVariable();
+  // /// change flag of updateIntVar to false
+  // void forceNotUpdateVariable();
 
   /// compute the elastic potential energy
   void computePotentialEnergy(ElementType el_type);
+
+  /// compute effective Young's modulus for a certain viscous element
+  void computeEffectiveModulus(UInt & nb_of_element, Real & E_ef_v,
+                               Real & exp_dt_lambda, Real dam = 0);
 
 protected:
   void computePotentialEnergyOnQuad(const Matrix<Real> & grad_u, Real & epot,
@@ -147,15 +152,24 @@ protected:
                                     Real & dis_energy, Real & integral,
                                     Real & mech_work, const Real & pot_energy);
 
+  // /// compute stresses on a quadrature point
+  // void computeStressOnQuad(const Matrix<Real> & grad_u,
+  //                          const Matrix<Real> & previous_grad_u,
+  //                          Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
+  //                          const Real & sigma_th);
   /// compute stresses on a quadrature point
-  void computeStressOnQuad(const Matrix<Real> & grad_u,
-                           const Matrix<Real> & previous_grad_u,
-                           Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
-                           const Real & sigma_th);
+  void computeStressOnQuad(Matrix<Real> & grad_u,
+                           Matrix<Real> & previous_grad_u, Matrix<Real> & sigma,
+                           Tensor3<Real> & sigma_v, Real & sigma_th,
+                           Real dam = 0);
+  /// update internal variables accounting for damage level
+  void
+  updateSigmaViscOnQuad(Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u,
+                        Tensor3<Real> & sigma_v, /*Tensor3<Real> & epsilon_v,*/
+                        Real dam = 0);
 
   /// compute tangent moduli on a quadrature point
-  void computeTangentModuliOnQuad(Matrix<Real> & tangent);
-
+  void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real dam = 0);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -212,8 +226,8 @@ protected:
   /// Mechanical work
   InternalField<Real> mechanical_work;
 
-  /// Update internal variable after solve step or not
-  bool update_variable_flag;
+  // /// Update internal variable after solve step or not
+  // bool update_variable_flag;
 };
 
 } // namespace akantu
