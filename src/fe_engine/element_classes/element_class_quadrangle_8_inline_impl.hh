@@ -96,8 +96,9 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_8, _gt_quadrangle_8,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template<class D1, class D2, aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
-    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
+    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
 
   /// Natural coordinates
   const Real xi = c(0);
@@ -115,8 +116,9 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template<class D1, class D2>
 inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
-    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
+    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
 
   const Real xi = c(0);
   const Real eta = c(1);
@@ -144,8 +146,9 @@ inline void InterpolationElement<_itp_serendip_quadrangle_8>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template<class D>
 inline Real
-GeometricalElement<_gt_quadrangle_8>::getInradius(const Ref<const MatrixXr> & coord) {
+GeometricalElement<_gt_quadrangle_8>::getInradius(const Eigen::MatrixBase<D> & coord) {
   Real a, b, h;
 
   auto && u0 = coord.col(0);
@@ -178,10 +181,11 @@ GeometricalElement<_gt_quadrangle_8>::getInradius(const Ref<const MatrixXr> & co
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
+template<class D>
+inline Real
 InterpolationElement<_itp_serendip_quadrangle_8>::computeSpecialJacobian(
-    const Ref<const MatrixXr> & J, Real & jac) {
+    const Eigen::MatrixBase<D> & J) {
   auto Jstatic = Eigen::Map<const Eigen::Matrix<Real, 2, 3>>(J.data());
-  jac = Jstatic.row(0).cross(Jstatic.row(1)).norm();
+  return Jstatic.row(0).cross(Jstatic.row(1)).norm();
 }
 } // namespace akantu

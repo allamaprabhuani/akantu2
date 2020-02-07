@@ -190,10 +190,10 @@ public:
   /// assemble the residual for this material
   virtual void assembleInternalForces(GhostType ghost_type);
 
-  /// save the stress in the previous_stress if needed
+  /// save the internals in the previous_stress if needed
   virtual void savePreviousState();
 
-  /// restore the stress from previous_stress if needed
+  /// restore the internals from previous_stress if needed
   virtual void restorePreviousState();
 
   /// compute the stresses for this material

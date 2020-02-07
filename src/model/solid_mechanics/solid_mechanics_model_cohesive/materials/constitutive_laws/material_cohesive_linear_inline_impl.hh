@@ -49,7 +49,7 @@ template <UInt dim>
 inline Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
     const Matrix<Real> & stress, const Vector<Real> & normal,
     const Vector<Real> & tangent, Vector<Real> & normal_traction) const {
-  normal_traction.mul<false>(stress, normal);
+  normal_traction = stress * normal;
 
   Real normal_contrib = normal_traction.dot(normal);
 
@@ -176,14 +176,12 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
 
   /// compute normal and tangential opening vectors
   normal_opening_norm = opening.dot(normal);
-  normal_opening = normal;
-  normal_opening *= normal_opening_norm;
+  normal_opening = normal * normal_opening_norm;
 
-  tangential_opening = opening;
-  tangential_opening -= normal_opening;
+  tangential_opening = opening - normal_opening;
   tangential_opening_norm = tangential_opening.norm();
 
-  Real delta =
+  auto delta =
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
 
   penetration = normal_opening_norm < 0.0;
@@ -195,18 +193,14 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
   Real derivative = 0; // derivative = d(t/delta)/ddelta
   Real t = 0;
 
-  Matrix<Real> n_outer_n(spatial_dimension, spatial_dimension);
-  n_outer_n.outerProduct(normal, normal);
+  auto && n_outer_n = normal * normal.transpose();
 
   if (penetration) {
     /// stiffness in compression given by the penalty parameter
-    tangent += n_outer_n;
-    tangent *= penalty;
+    tangent = penalty * (tangent + n_outer_n);
 
     opening = tangential_opening;
-    normal_opening_norm = opening.dot(normal);
-    normal_opening = normal;
-    normal_opening *= normal_opening_norm;
+    normal_opening_norm = normal * opening.dot(normal);
   } else {
     delta += normal_opening_norm * normal_opening_norm;
   }
@@ -237,8 +231,7 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
   }
 
   /// computation of the derivative of the constitutive law (dT/ddelta)
-  Matrix<Real> I(spatial_dimension, spatial_dimension);
-  I.eye(this->beta2_kappa);
+  auto && I = Eigen::Matrix<Real, dim, dim>::Identity() * this->beta2_kappa;
 
   Matrix<Real> nn(n_outer_n);
   nn *= (1. - this->beta2_kappa);
@@ -256,7 +249,7 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
   t_hat += this->beta2_kappa * tangential_opening;
 
   Matrix<Real> prov(spatial_dimension, spatial_dimension);
-  prov.outerProduct(t_hat, t_tilde);
+  prov = t_hat * t_tilde.transpose();
   prov *= derivative / delta;
   prov += nn;
 

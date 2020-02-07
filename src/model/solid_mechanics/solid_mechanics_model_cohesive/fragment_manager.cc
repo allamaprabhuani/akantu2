@@ -338,7 +338,7 @@ void FragmentManager::computeInertiaMoments() {
   for (UInt frag = 0; frag < global_nb_fragment; ++frag,
             ++integrated_moments_it, ++inertia_moments_it,
             ++principal_directions_it) {
-    integrated_moments_it->eig(*inertia_moments_it, *principal_directions_it);
+    integrated_moments_it->eigh(*inertia_moments_it, *principal_directions_it);
   }
 
   if (dump_data) {

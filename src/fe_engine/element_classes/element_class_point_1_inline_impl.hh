@@ -57,26 +57,33 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_point_1, _gt_point, _itp_lagrange_point_1,
 /* --------------r------------------------------------------------------------
  */
 template <>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_point_1>::computeShapes(
-    const Ref<const VectorXr> & /*natural_coords*/, Ref<VectorXr> N) {
+    const Eigen::MatrixBase<D1> & /*natural_coords*/,
+    Eigen::MatrixBase<D2> & N) {
   N(0) = 1; /// N1(q_0)
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_point_1>::computeDNDS(
-    const Ref<const VectorXr> & /*natural_coords*/, Ref<MatrixXr> /*dnds*/) {}
+    const Eigen::MatrixBase<D1> & /*natural_coords*/,
+    Eigen::MatrixBase<D2> & /*dnds*/) {}
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void InterpolationElement<_itp_lagrange_point_1>::computeSpecialJacobian(
-    const Ref<const MatrixXr> & /*J*/, Real & jac) {
-  jac = 0.;
+template <class D>
+inline Real InterpolationElement<_itp_lagrange_point_1>::computeSpecialJacobian(
+    const Eigen::MatrixBase<D> & /*J*/) {
+  return 0.;
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline Real GeometricalElement<_gt_point>::getInradius(
-    const Ref<const MatrixXr> & /*coord*/) {
+    const Eigen::MatrixBase<D> & /*coord*/) {
   return 0.;
 }
 } // namespace akantu

@@ -34,8 +34,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_class.hh"
+//#include "element_class.hh"
 #include "gauss_integration_tmpl.hh"
+#include "aka_iterators.hh"
 /* -------------------------------------------------------------------------- */
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
@@ -93,22 +94,25 @@ GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(UInt t) {
 
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
+template <class D>
 inline bool GeometricalElement<geometrical_type, shape>::contains(
-    const Ref<const VectorXr> & coords) {
+    const Eigen::MatrixBase<D> & coords) {
   return GeometricalShapeContains<shape>::contains(coords);
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline bool GeometricalShapeContains<_gst_point>::contains(
-    const Ref<const VectorXr> & coords) {
+    const Eigen::MatrixBase<D> & coords) {
   return (coords(0) < std::numeric_limits<Real>::epsilon());
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline bool GeometricalShapeContains<_gst_square>::contains(
-    const Ref<const VectorXr> & coords) {
+    const Eigen::MatrixBase<D> & coords) {
   bool in = true;
   for (UInt i = 0; i < coords.size() && in; ++i) {
     in &= ((coords(i) >= -(1. + std::numeric_limits<Real>::epsilon())) &&
@@ -119,8 +123,9 @@ inline bool GeometricalShapeContains<_gst_square>::contains(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline bool GeometricalShapeContains<_gst_triangle>::contains(
-    const Ref<const VectorXr> & coords) {
+    const Eigen::MatrixBase<D> & coords) {
   bool in = true;
   Real sum = 0;
   for (Int i = 0; (i < coords.size()) && in; ++i) {
@@ -136,8 +141,9 @@ inline bool GeometricalShapeContains<_gst_triangle>::contains(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline bool GeometricalShapeContains<_gst_prism>::contains(
-    const Ref<const VectorXr> & coords) {
+    const Eigen::MatrixBase<D> & coords) {
   bool in = ((coords(0) >= -1.) && (coords(0) <= 1.)); // x in segment [-1, 1]
 
   // y and z in triangle
@@ -152,48 +158,53 @@ inline bool GeometricalShapeContains<_gst_prism>::contains(
 /* InterpolationElement                                                       */
 /* -------------------------------------------------------------------------- */
 template <InterpolationType interpolation_type, InterpolationKind kind>
-template <typename Derived1, typename Derived2,
-          aka::enable_if_matrices_t<Derived1, Derived2> *>
+template <typename D1, typename D2,
+          aka::enable_if_t<aka::are_matrices<D1, D2>::value> *>
 inline void InterpolationElement<interpolation_type, kind>::computeShapes(
-    const Eigen::MatrixBase<Derived1> & natural_coord,
-    const Eigen::MatrixBase<Derived2> & N_) {
-  Eigen::MatrixBase<Derived2> & N = const_cast<Eigen::MatrixBase<Derived2> &>(
+    const Eigen::MatrixBase<D1> & Xs, const Eigen::MatrixBase<D2> & N_) {
+
+  Eigen::MatrixBase<D2> & N = const_cast<Eigen::MatrixBase<D2> &>(
       N_); // as advised by the Eigen developers
 
-  UInt nb_points = natural_coord.cols();
-  for (UInt p = 0; p < nb_points; ++p) {
-    computeShapes(natural_coord(p), N(p));
+  for (auto && data : zip(Xs, N)) {
+    computeShapes(std::get<0>(data), std::get<1>(data));
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <InterpolationType interpolation_type, InterpolationKind kind>
+template <class D>
 inline void InterpolationElement<interpolation_type, kind>::computeDNDS(
-    const Ref<const MatrixXr> & natural_coord, Tensor3<Real> & dnds) {
-  UInt nb_points = natural_coord.cols();
-  for (UInt p = 0; p < nb_points; ++p) {
-    computeDNDS(natural_coord(p), dnds(p));
+    const Eigen::MatrixBase<D> & Xs, Tensor3Base<Real> & dNdS) {
+  for (auto && data : zip(Xs, dNdS)) {
+    computeDNDS(std::get<0>(data), std::get<1>(data));
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/**
- * interpolate on a point a field for which values are given on the
- * node of the element using the shape functions at this interpolation point
- *
- * @param nodal_values values of the function per node @f$ f_{ij} = f_{n_i j}
- *@f$ so it should be a matrix of size nb_nodes_per_element @f$\times@f$
- *nb_degree_of_freedom
- * @param shapes value of shape functions at the interpolation point
- * @param interpolated interpolated value of f @f$ f_j(\xi) = \sum_i f_{n_i j}
- *N_i @f$
- */
-template <InterpolationType interpolation_type, InterpolationKind kind>
-inline void InterpolationElement<interpolation_type, kind>::interpolate(
-    const Ref<const MatrixXr> & nodal_values,
-    const Ref<const VectorXr> & shapes, Ref<VectorXr> interpolated) {
-  interpolated = nodal_values * shapes;
-}
+// /* --------------------------------------------------------------------------
+// */
+// /**
+//  * interpolate on a point a field for which values are given on the
+//  * node of the element using the shape functions at this interpolation point
+//  *
+//  * @param nodal_values values of the function per node @f$ f_{ij} = f_{n_i j}
+//  *@f$ so it should be a matrix of size nb_nodes_per_element @f$\times@f$
+//  *nb_degree_of_freedom
+//  * @param shapes value of shape functions at the interpolation point
+//  * @param interpolated interpolated value of f @f$ f_j(\xi) = \sum_i f_{n_i
+//  j} *N_i @f$
+//  */
+// template <InterpolationType interpolation_type, InterpolationKind kind>
+// template <typename Derived1, typename Derived2, typename Derived3,
+//           aka::enable_if_t<aka::conjunction<
+//               aka::is_matrice<Derived1>, aka::is_vector<Derived2>>::value> *
+//               = nullptr>
+// inline auto
+// InterpolationElement<interpolation_type, kind>::interpolate(
+//     const Eigen::MatrixBase<Derived1> & nodal_values,
+//     const Eigen::MatrixBase<Derived2> & shapes) {
+//   return nodal_values * shapes;
+// }
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -215,13 +226,12 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
     const Eigen::MatrixBase<Derived2> & Ns,
     const Eigen::MatrixBase<Derived3> & interpolated_) {
 
-  Eigen::MatrixBase<Derived3> & interpolated =
-      const_cast<Eigen::MatrixBase<Derived3> &>(
-          interpolated_); // as advised by the Eigen developers
+  auto && interpolated = const_cast<Eigen::MatrixBase<Derived3> &>(
+      interpolated_); // as advised by the Eigen developers
 
   UInt nb_points = Ns.cols();
   for (UInt p = 0; p < nb_points; ++p) {
-    interpolate(nodal_values, Ns(p), interpolated(p));
+    interpolated(p) = interpolate(nodal_values, Ns(p));
   }
 }
 
@@ -237,32 +247,34 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
  * @param interpolated interpolated value of f @f$ f_j(\xi) = \sum_i f_{n_i j}
  *N_i @f$
  */
-template <InterpolationType interpolation_type, InterpolationKind kind>
-inline void
-InterpolationElement<interpolation_type, kind>::interpolateOnNaturalCoordinates(
-    const Ref<const VectorXr> & natural_coords,
-    const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated) {
-  using interpolation = InterpolationProperty<interpolation_type>;
-  Eigen::Matrix<Real, interpolation::nb_nodes_per_element, 1> shapes;
-  computeShapes(natural_coords, shapes);
+// template <InterpolationType interpolation_type, InterpolationKind kind>
+// inline decltype(auto)
+// InterpolationElement<interpolation_type,
+// kind>::interpolateOnNaturalCoordinates(
+//     const Ref<const VectorXr> & natural_coords,
+//     const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated) {
+//   using interpolation = InterpolationProperty<interpolation_type>;
+//   Eigen::Matrix<Real, interpolation::nb_nodes_per_element, 1> shapes;
+//   computeShapes(natural_coords, shapes);
 
-  interpolate(nodal_values, shapes, interpolated);
-}
+//   return interpolate(nodal_values, shapes);
+// }
 
 /* -------------------------------------------------------------------------- */
 /// @f$ gradient_{ij} = \frac{\partial f_j}{\partial s_i} = \sum_k
 /// \frac{\partial N_k}{\partial s_i}f_{j n_k} @f$
 template <InterpolationType interpolation_type, InterpolationKind kind>
-inline void
+template <typename Derived1, typename Derived2>
+inline decltype(auto)
 InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
-    const Ref<const VectorXr> & natural_coords, const Ref<const MatrixXr> & f,
-    Ref<MatrixXr> gradient) {
+    const Eigen::MatrixBase<Derived1> & natural_coords,
+    const Eigen::MatrixBase<Derived2> & f) {
   Eigen::Matrix<
       Real, InterpolationProperty<interpolation_type>::natural_space_dimension,
       InterpolationProperty<interpolation_type>::nb_nodes_per_element>
       dnds;
   computeDNDS(natural_coords, dnds);
-  gradient = f * dnds.transpose();
+  return f * dnds.transpose();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -367,7 +379,7 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
 
   Matrix<Real> J(dimension, interpolation_property::natural_space_dimension);
   for (UInt p = 0; p < nb_points; ++p) {
-    interpolation_element::gradientOnNaturalCoordinates(coord.col(p), f, J);
+    J = interpolation_element::gradientOnNaturalCoordinates(coord.col(p), f);
     if (dimension == 2) {
       Math::normal2(J.data(), normals.col(p).data());
     }
@@ -517,15 +529,15 @@ ElementClass<type, kind>::inverseMap(const Ref<const VectorXr> & real_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementType type, ElementKind kind>
 template <typename Derived1, typename Derived2, typename Derived3,
-            aka::enable_if_matrices_t<Derived1, Derived2, Derived3> *>
-inline void
-ElementClass<type, kind>::inverseMap(const Eigen::MatrixBase<Derived1> & real_coords,
-                                     const Eigen::MatrixBase<Derived2> & node_coords,
-                                     const Eigen::MatrixBase<Derived3> & natural_coords_,
-                                     UInt max_iterations,
-                                     Real tolerance) {
-  Eigen::MatrixBase<Derived2> & natural_coords = const_cast<Eigen::MatrixBase<Derived2> &>(
-      natural_coords_); // as advised by the Eigen developers
+          aka::enable_if_matrices_t<Derived1, Derived2, Derived3> *>
+inline void ElementClass<type, kind>::inverseMap(
+    const Eigen::MatrixBase<Derived1> & real_coords,
+    const Eigen::MatrixBase<Derived2> & node_coords,
+    const Eigen::MatrixBase<Derived3> & natural_coords_, UInt max_iterations,
+    Real tolerance) {
+  Eigen::MatrixBase<Derived2> & natural_coords =
+      const_cast<Eigen::MatrixBase<Derived2> &>(
+          natural_coords_); // as advised by the Eigen developers
 
   UInt nb_points = real_coords.cols();
   for (UInt p = 0; p < nb_points; ++p) {

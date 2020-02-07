@@ -37,6 +37,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model.hh"
+#include "integration_point.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MATERIAL_INLINE_IMPL_HH_
@@ -150,11 +151,9 @@ inline decltype(auto) Material::gradUToE(const Matrix<Real> & grad_u) {
 /* -------------------------------------------------------------------------- */
 inline Real Material::stressToVonMises(const Matrix<Real> & stress) {
   // compute deviatoric stress
-  UInt dim = stress.cols();
-  Matrix<Real> deviatoric_stress =
-      Matrix<Real>::Identity(dim, dim) * -1. * stress.trace() / 3.;
-
-  deviatoric_stress += stress;
+  auto dim = stress.cols();
+  auto && deviatoric_stress =
+      stress - Matrix<Real>::Identity(dim, dim) * stress.trace() / 3.;
 
   // return Von Mises stress
   return std::sqrt(3. * deviatoric_stress.doubleDot(deviatoric_stress) / 2.);
@@ -217,11 +216,10 @@ Material::convertToGlobalElement(const Element & local_element) const {
 inline IntegrationPoint
 Material::convertToLocalPoint(const IntegrationPoint & global_point) const {
   const FEEngine & fem = this->model.getFEEngine();
-  UInt nb_quad = fem.getNbIntegrationPoints(global_point.type);
-  Element el =
+  auto && nb_quad = fem.getNbIntegrationPoints(global_point.type);
+  auto && el =
       this->convertToLocalElement(static_cast<const Element &>(global_point));
-  IntegrationPoint tmp_quad(el, global_point.num_point, nb_quad);
-  return tmp_quad;
+  return IntegrationPoint(el, global_point.num_point, nb_quad);
 }
 
 /* -------------------------------------------------------------------------- */

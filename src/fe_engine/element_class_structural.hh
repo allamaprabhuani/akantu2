@@ -33,7 +33,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "element_class.hh"
+#include "aka_iterators.hh"
+//#include "element_class.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_
@@ -64,21 +65,20 @@ public:
   using interpolation_property = InterpolationProperty<interpolation_type>;
 
   /// compute the shape values for a given set of points in natural coordinates
-  static inline void computeShapes(const Matrix<Real> & natural_coord,
-                                   const Matrix<Real> & real_coord,
-                                   const Matrix<Real> & T, Tensor3<Real> & Ns) {
-    for (UInt i = 0; i < natural_coord.cols(); ++i) {
-      Matrix<Real> N_T = Ns(i);
-      Matrix<Real> N(N_T.rows(), N_T.cols());
-      computeShapes(natural_coord(i), real_coord, N);
-      N_T.mul<false, false>(N, T);
+  template <typename D1, typename D2>
+  static inline void computeShapes(const Eigen::MatrixBase<D1> & Xs,
+                                   const Eigen::MatrixBase<D2> & x,
+                                   TensorBase<Real, 3> & Ns) {
+    for(auto && data : zip(Xs, Ns)) {
+      computeShapes(std::get<0>(data), x, std::get<1>(data));
     }
   }
 
   /// compute the shape values for a given point in natural coordinates
-  static inline void computeShapes(const Vector<Real> & natural_coord,
-                                   const Matrix<Real> & real_coord,
-                                   Matrix<Real> & N);
+  template <typename D1, typename D2, typename D3>
+  static inline void computeShapes(const Eigen::MatrixBase<D1> & natural_coord,
+                                   const Eigen::MatrixBase<D2> & real_coord,
+                                   Eigen::MatrixBase<D3> & N);
 
   static inline void computeShapesMass(const Matrix<Real> & natural_coords,
                                        const Matrix<Real> & xs,
@@ -95,20 +95,16 @@ public:
   }
 
   /// compute shape derivatives (input is dxds) for a set of points
-  static inline void computeShapeDerivatives(const Tensor3<Real> & Js,
-                                             const Tensor3<Real> & DNDSs,
+  static inline void computeShapeDerivatives(const TensorBase<Real, 3> & Js,
+                                             const TensorBase<Real, 3> & DNDSs,
                                              const Matrix<Real> & R,
-                                             Tensor3<Real> & Bs) {
+                                             TensorBase<Real, 3> & Bs) {
     for (UInt i = 0; i < Js.size(2); ++i) {
-      Matrix<Real> J = Js(i);
-      Matrix<Real> DNDS = DNDSs(i);
-      Matrix<Real> DNDX(DNDS.rows(), DNDS.cols());
-      auto inv_J = J.inverse();
-      DNDX.mul<false, false>(inv_J, DNDS);
-      Matrix<Real> B_R = Bs(i);
+      auto && DNDX = Js(i).inverse() * DNDSs(i);
+      auto && B_R = Bs(i);
       Matrix<Real> B(B_R.rows(), B_R.cols());
       arrangeInVoigt(DNDX, B);
-      B_R.mul<false, false>(B, R);
+      B_R = B * R;
     }
   }
 
@@ -117,13 +113,12 @@ public:
    * shape functions along with variation of natural coordinates on a given set
    * of points in natural coordinates
    */
-  static inline void computeDNDS(const Matrix<Real> & natural_coord,
-                                 const Matrix<Real> & real_coord,
-                                 Tensor3<Real> & dnds) {
-    for (UInt i = 0; i < natural_coord.cols(); ++i) {
-      Matrix<Real> dnds_t = dnds(i);
-      computeDNDS(natural_coord(i), real_coord, dnds_t);
-    }
+  template <typename D1, typename D2>
+  static inline void computeDNDS(const Eigen::MatrixBase<D1> & Xs,
+                                 const Eigen::MatrixBase<D2> & xs,
+                                 TensorBase<Real, 3> & dnds) {
+    for (auto && data : zip(Xs, dnds))
+      computeDNDS(std::get<0>(data), xs, std::get<1>(data));
   }
 
   /**
@@ -132,17 +127,19 @@ public:
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  static inline void computeDNDS(const Vector<Real> & natural_coord,
-                                 const Matrix<Real> & real_coord,
-                                 Matrix<Real> & dnds);
+  template <typename D1, typename D2, typename D3>
+  static inline void computeDNDS(const Eigen::MatrixBase<D1> & Xs,
+                                 const Eigen::MatrixBase<D2> & xs,
+                                 Eigen::MatrixBase<D3> & dnds);
 
   /**
    * arrange B in Voigt notation from DNDS
    */
-  static inline void arrangeInVoigt(const Matrix<Real> & dnds,
-                                    Matrix<Real> & B) {
+  template <class D1, class D2>
+  static inline void arrangeInVoigt(const Eigen::MatrixBase<D1> & dnds,
+                                    Eigen::MatrixBase<D2> & B) {
     // Default implementation assumes dnds is already in Voigt notation
-    B.deepCopy(dnds);
+    B = dnds;
   }
 
 public:
@@ -210,44 +207,49 @@ protected:
       ElementClass<ElementClassProperty<element_type>::parent_element_type>;
 
 public:
+  template <class D1, class D2, class D3>
   static inline void
-  computeRotationMatrix(Matrix<Real> & /*R*/, const Matrix<Real> & /*X*/,
-                        const Vector<Real> & /*extra_normal*/) {
+  computeRotationMatrix(Eigen::MatrixBase<D1> & /*R*/,
+                        const Eigen::MatrixBase<D2> & /*X*/,
+                        const Eigen::MatrixBase<D3> & /*extra_normal*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute jacobian (or integration variable change factor) for a given point
-  static inline void computeJMat(const Vector<Real> & natural_coords,
-                                 const Matrix<Real> & Xs, Matrix<Real> & J) {
+  template <typename D1, typename D2, typename D3>
+  static inline void computeJMat(const Eigen::MatrixBase<D1> & natural_coords,
+                                 const Eigen::MatrixBase<D2> & Xs,
+                                 Eigen::MatrixBase<D3> & J) {
     Matrix<Real> dnds(Xs.rows(), Xs.cols());
     parent_element::computeDNDS(natural_coords, dnds);
-    J.mul<false, true>(dnds, Xs);
+    J = dnds * Xs.transpose();
   }
 
-  static inline void computeJMat(const Matrix<Real> & natural_coords,
-                                 const Matrix<Real> & Xs, Tensor3<Real> & Js) {
-    for (UInt i = 0; i < natural_coords.cols(); ++i) {
-      // because non-const l-value reference does not bind to r-value
-      Matrix<Real> J = Js(i);
-      computeJMat(Vector<Real>(natural_coords(i)), Xs, J);
+  template <typename D1, typename D2>
+  static inline void computeJMat(const Eigen::MatrixBase<D1> & Xs,
+                                 const Eigen::MatrixBase<D2> & xs,
+                                 Tensor3<Real> & Js) {
+    for (auto && data : zip(Xs, Js)) {
+      computeJMat(std::get<0>(data), xs, std::get<1>(data));
     }
   }
 
-  static inline void computeJacobian(const Matrix<Real> & natural_coords,
-                                     const Matrix<Real> & node_coords,
+  template <typename D1, typename D2>
+  static inline void computeJacobian(const Eigen::MatrixBase<D1> & Xs,
+                                     const Eigen::MatrixBase<D2> & xs,
                                      Vector<Real> & jacobians) {
     using itp = typename interpolation_element::interpolation_property;
     Tensor3<Real> Js(itp::natural_space_dimension, itp::natural_space_dimension,
-                     natural_coords.cols());
-    computeJMat(natural_coords, node_coords, Js);
-    for (UInt i = 0; i < natural_coords.cols(); ++i) {
-      Matrix<Real> J = Js(i);
-      jacobians(i) = J.det();
+                     Xs.cols());
+    computeJMat(Xs, xs, Js);
+    for (auto && data : zip(jacobians, Js)) {
+      std::get<0>(data) = std::get<1>(data).determinant();
     }
   }
 
-  static inline void computeRotation(const Matrix<Real> & node_coords,
-                                     Matrix<Real> & rotation);
+  template <typename D1, typename D2>
+  static inline void computeRotation(const Eigen::MatrixBase<D1> & xs,
+                                     Eigen::MatrixBase<D2> & R);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(Kind, _ek_structural, ElementKind);

@@ -41,6 +41,10 @@
 #ifndef AKANTU_AKA_ARRAY_TMPL_HH_
 #define AKANTU_AKA_ARRAY_TMPL_HH_
 
+/* -------------------------------------------------------------------------- */
+#include "aka_array.hh"
+/* -------------------------------------------------------------------------- */
+
 namespace akantu {
 
 namespace debug {
@@ -283,8 +287,7 @@ public:
 
   /// append a Vector or a Matrix
   template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
-                                        aka::is_tensor_proxy<C<T>>::value>>
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
   inline void push_back(const C<T> & new_elem) {
     AKANTU_DEBUG_ASSERT(
         nb_component == new_elem.size(),
@@ -367,9 +370,11 @@ public:
   inline UInt getAllocatedSize() const { return this->allocated_size; }
 
   /// give the address of the memory allocated for this vector
-  [[deprecated("use data instead to be stl compatible")]]
-  T * storage() const { return values; };
+  [[deprecated("use data instead to be stl compatible")]] T * storage() const {
+    return values;
+  };
   T * data() const { return values; };
+
 protected:
   /// allocation type agnostic  data access
   T * values{nullptr};
@@ -852,11 +857,11 @@ namespace detail {
 
   template <typename Arr, typename T, typename... Ns>
   decltype(auto) get_iterator(Arr && array, T * data, Ns &&... ns) {
+    const auto is_const_arr =
+        std::is_const<std::remove_reference_t<Arr>>::value;
     using type = ViewIteratorHelper_t<sizeof...(Ns) - 1, T>;
-    using iterator =
-        std::conditional_t<std::is_const<std::remove_reference_t<Arr>>::value,
-                           const_view_iterator<type>,
-                           view_iterator<type>>;
+    using iterator = std::conditional_t<is_const_arr, const_view_iterator<type>,
+                                        view_iterator<type>>;
     static_assert(sizeof...(Ns), "You should provide a least one size");
 
     if (array.getNbComponent() * array.size() !=
@@ -870,11 +875,9 @@ namespace detail {
               << debug::demangle(typeid(type).name()) << to_string_all(ns...));
     }
 
-    auto && it = aka::apply(
-        [&](auto... n) {
-          return iterator(data, n...);
-        },
-        take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
+    auto && it =
+        aka::apply([&](auto... n) { return iterator(data, n...); },
+                   take_front<sizeof...(Ns) - 1>(std::make_tuple(ns...)));
 
     return it;
   }
@@ -1012,8 +1015,7 @@ decltype(auto) make_view(Array && array, const Ns... ns) {
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
 template <typename R>
-inline auto
-Array<T, is_scal>::erase(const view_iterator<R> & it) {
+inline auto Array<T, is_scal>::erase(const view_iterator<R> & it) {
   T * curr = it.data();
   UInt pos = (curr - this->values) / this->nb_component;
   erase(pos);

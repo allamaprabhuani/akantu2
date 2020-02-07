@@ -33,7 +33,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_error.hh"
 #include "aka_iterators.hh"
-//#include "parameter_registry.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>

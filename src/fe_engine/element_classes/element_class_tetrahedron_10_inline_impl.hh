@@ -149,8 +149,9 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_tetrahedron_10, _gt_tetrahedron_10,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template<class D1, class D2, aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
-    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
+    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
   /// Natural coordinates
   Real xi = natural_coords(0);
   Real eta = natural_coords(1);
@@ -177,8 +178,9 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template<class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
-    const Ref<const VectorXr> & natural_coords, Ref<MatrixXr> dnds) {
+    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & dnds) {
   /**
    * \f[
    * dnds = \left(
@@ -263,8 +265,9 @@ inline void InterpolationElement<_itp_lagrange_tetrahedron_10>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template<class D>
 inline Real GeometricalElement<_gt_tetrahedron_10>::getInradius(
-    const Ref<const MatrixXr> & coord) {
+    const Eigen::MatrixBase<D> & coord) {
   // Only take the four corner tetrahedra
   UInt tetrahedra[4][4] = {
       {0, 4, 6, 7}, {4, 1, 5, 8}, {6, 5, 2, 9}, {7, 8, 9, 3}};

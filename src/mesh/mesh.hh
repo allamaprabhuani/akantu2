@@ -22,12 +22,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -108,8 +108,7 @@ class Mesh : public EventHandlerManager<MeshEventHandler>,
 private:
   /// default constructor used for chaining, the last parameter is just to
   /// differentiate constructors
-  Mesh(UInt spatial_dimension, const ID & id,
-       Communicator & communicator);
+  Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator);
 
 public:
   /// constructor that create nodes coordinates array
@@ -269,7 +268,7 @@ public:
 public:
   /// fills the nodes_to_elements for given dimension elements
   void fillNodesToElements(UInt dimension = _all_dimensions);
-  
+
 private:
   /// update the global ids, nodes type, ...
   std::tuple<UInt, UInt> updateGlobalData(NewNodesEvent & nodes_event,
@@ -389,16 +388,15 @@ public:
   const auto & getSubelementToElement() const;
 
   /// get the subelement connected to an element
-  const auto &
-  getSubelementToElement(ElementType el_type,
-                         GhostType ghost_type = _not_ghost) const;
+  const auto & getSubelementToElement(ElementType el_type,
+                                      GhostType ghost_type = _not_ghost) const;
 
   /// get the subelement (element of lower dimension) connected to a element
-  VectorProxy<Element> getSubelementToElement(const Element & element) const;
+  decltype(auto) getSubelementToElement(const Element & element) const;
 
   /// get connectivity of a given element
-  inline VectorProxy<UInt> getConnectivity(const Element & element) const;
-  inline Vector<UInt>
+  inline decltype(auto) getConnectivity(const Element & element) const;
+  inline decltype(auto)
   getConnectivityWithPeriodicity(const Element & element) const;
 
 protected:
@@ -406,7 +404,7 @@ protected:
   auto & getElementToSubelementNC();
   auto & getSubelementToElementNC();
   inline auto & getElementToSubelementNC(const Element & element);
-  inline VectorProxy<Element> getSubelementToElementNC(const Element & element);
+  inline decltype(auto) getSubelementToElementNC(const Element & element);
   /// get the element connected to a subelement
   auto & getElementToSubelementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);
@@ -414,7 +412,7 @@ protected:
   auto & getSubelementToElementNC(ElementType el_type,
                                   GhostType ghost_type = _not_ghost);
 
-  inline VectorProxy<UInt> getConnectivityNC(const Element & element);
+  inline decltype(auto) getConnectivityNC(const Element & element);
 
 public:
   /// get a name field associated to the mesh
@@ -492,7 +490,7 @@ public:
 
   /// get the natural space dimension of a type of element
   static inline UInt getNaturalSpaceDimension(const ElementType & type);
-  
+
   /// get number of facets of a given element type
   static inline UInt getNbFacetsPerElement(ElementType type);
 
@@ -501,10 +499,11 @@ public:
 
   /// get local connectivity of a facet for a given facet type
   static inline decltype(auto) getFacetLocalConnectivity(ElementType type,
-                                               UInt t = 0);
+                                                         UInt t = 0);
 
   /// get connectivity of facets for a given element
-  inline decltype(auto) getFacetConnectivity(const Element & element, UInt t = 0) const;
+  inline decltype(auto) getFacetConnectivity(const Element & element,
+                                             UInt t = 0) const;
 
   /// get the number of type of the surface element associated to a given
   /// element type
@@ -523,8 +522,7 @@ public:
   /* Element type Iterator                                                    */
   /* ------------------------------------------------------------------------ */
 
-  using type_iterator =
-      ElementTypeMapArray<UInt, ElementType>::type_iterator;
+  using type_iterator = ElementTypeMapArray<UInt, ElementType>::type_iterator;
   using ElementTypesIteratorHelper =
       ElementTypeMapArray<UInt, ElementType>::ElementTypesIteratorHelper;
 

@@ -56,6 +56,20 @@ Mesh::ElementTypesIteratorHelper Mesh::elementTypes(pack &&... _pack) const {
 }
 
 /* -------------------------------------------------------------------------- */
+inline decltype(auto) Mesh::getConnectivity(const Element & element) const {
+  const auto & conn = connectivities(element.type, element.ghost_type);
+  auto it = conn.begin(conn.getNbComponent());
+  return it[element.element];
+}
+
+/* -------------------------------------------------------------------------- */
+inline decltype(auto) Mesh::getConnectivity(const Element & element) {
+  auto & conn = connectivities(element.type, element.ghost_type);
+  auto it = conn.begin(conn.getNbComponent());
+  return it[element.element];
+}
+
+/* -------------------------------------------------------------------------- */
 inline RemovedNodesEvent::RemovedNodesEvent(const Mesh & mesh,
                                             const std::string & origin)
     : MeshEvent<UInt>(origin),
@@ -257,13 +271,13 @@ inline auto & Mesh::getSubelementToElementNC(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline VectorProxy<Element>
+inline decltype(auto)
 Mesh::getSubelementToElement(const Element & element) const {
   return this->getSubelementToElement().get(element);
 }
 
 /* -------------------------------------------------------------------------- */
-inline VectorProxy<Element>
+inline decltype(auto)
 Mesh::getSubelementToElementNC(const Element & element) {
   return this->getSubelementToElement().get(element);
 }
@@ -365,7 +379,7 @@ inline UInt Mesh::getNbElement(const UInt spatial_dimension,
 /* -------------------------------------------------------------------------- */
 inline void Mesh::getBarycenter(const Element & element,
                                 Vector<Real> & barycenter) const {
-  Vector<UInt> conn = getConnectivity(element);
+  auto && conn = getConnectivity(element);
   Matrix<Real> local_coord(spatial_dimension, conn.size());
   auto node_begin = make_view(*nodes, spatial_dimension).begin();
 
@@ -536,12 +550,12 @@ inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
-inline VectorProxy<UInt> Mesh::getConnectivity(const Element & element) const {
+inline decltype(auto) Mesh::getConnectivity(const Element & element) const {
   return connectivities.get(element);
 }
 
 /* -------------------------------------------------------------------------- */
-inline VectorProxy<UInt> Mesh::getConnectivityNC(const Element & element) {
+inline decltype(auto) Mesh::getConnectivityNC(const Element & element) {
   return connectivities.get(element);
 }
 
@@ -755,7 +769,7 @@ inline decltype(auto) Mesh::getPeriodicSlaves(UInt master) const {
 /* -------------------------------------------------------------------------- */
 inline Vector<UInt>
 Mesh::getConnectivityWithPeriodicity(const Element & element) const {
-  auto && conn = getConnectivity(element);
+  Vector<UInt> conn = getConnectivity(element);
   if (not isPeriodic()) {
     return conn;
   }

@@ -58,8 +58,7 @@ template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<not _is_vector> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE auto operator()(Index c) const {
   const auto & d = this->derived();
-  return Map<const Matrix<Scalar, RowsAtCompileTime, 1>>(
-      d.data() + c * d.outerStride(), d.outerStride());
+  return d.col(c);
 }
 
 template <bool _is_vector = IsVectorAtCompileTime,
@@ -84,10 +83,44 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) operator()(Index i,
   return Base::operator()(i, j);
 }
 
+template <
+    typename ED = Derived,
+    typename T = std::remove_reference_t<decltype(*std::declval<ED>().data())>,
+    std::enable_if_t<not std::is_const<T>::value and
+                     ED::IsVectorAtCompileTime> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) begin();
+template <
+    typename ED = Derived,
+    typename T = std::remove_reference_t<decltype(*std::declval<ED>().data())>,
+    std::enable_if_t<not std::is_const<T>::value and
+                     ED::IsVectorAtCompileTime> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) end();
 
+template <typename ED = Derived,
+          std::enable_if_t<ED::IsVectorAtCompileTime> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) begin() const;
+template <typename ED = Derived,
+          std::enable_if_t<ED::IsVectorAtCompileTime> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) end() const;
+
+template <
+    typename ED = Derived,
+    typename T = std::remove_reference_t<decltype(*std::declval<ED>().data())>,
+    std::enable_if_t<not std::is_const<T>::value and
+                     not ED::IsVectorAtCompileTime> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) begin();
+template <
+    typename ED = Derived,
+    typename T = std::remove_reference_t<decltype(*std::declval<ED>().data())>,
+    std::enable_if_t<not std::is_const<T>::value and
+                     not ED::IsVectorAtCompileTime> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) end();
+
+template <typename ED = Derived,
+          std::enable_if_t<not ED::IsVectorAtCompileTime> * = nullptr>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) begin() const;
+template <typename ED = Derived,
+          std::enable_if_t<not ED::IsVectorAtCompileTime> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE decltype(auto) end() const;
 
 // clang-format off
@@ -128,25 +161,33 @@ distance(const MatrixBase<OtherDerived> & other) const {
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
-doubleDot(const MatrixBase<OtherDerived> & other) {
+doubleDot(const MatrixBase<OtherDerived> & other) const {
   Scalar sum = 0;
-  eigen_assert(rows() == cols() and rows() == other.rows() and cols() == other.cols());
+  eigen_assert(rows() == cols() and rows() == other.rows() and
+               cols() == other.cols());
 
-for (Index i = 0; i < rows() ; ++i) {
-    for (Index j = 0; j < cols() ; ++j) {
+  for (Index i = 0; i < rows(); ++i) {
+    for (Index j = 0; j < cols(); ++j) {
       sum += coeff(i, j) * other.coeff(i, j);
     }
   }
 }
 
-template <typename OtherDerived, std::enable_if_t<OtherDerived::IsVectorAtCompileTime>  = nullptr>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar
-eig(const MatrixBase<OtherDerived> & other) {
-  EigenSolver<Derived> solver(*this, false);
-  other = solver.eigenvalues();
-}
+template <typename OtherDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
+eig(MatrixBase<OtherDerived> & other);
 
+template <typename D1, typename D2>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eig(MatrixBase<D1> & values,
+                                               MatrixBase<D2> & vectors);
 
+template <typename OtherDerived>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
+eigh(MatrixBase<OtherDerived> & other);
+
+template <typename D1, typename D2>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(MatrixBase<D1> & values,
+                                                MatrixBase<D2> & vectors);
 /*
 public:
 */

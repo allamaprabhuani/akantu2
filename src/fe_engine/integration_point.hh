@@ -79,7 +79,8 @@ public:
   //   this->position.shallowCopy(position);
   // };
 
-  // IntegrationPoint(const IntegrationPoint & quad)
+  constexpr IntegrationPoint(const IntegrationPoint & quad) = default;
+  constexpr IntegrationPoint(IntegrationPoint && quad) = default;
   //     : Element(quad), num_point(quad.num_point), global_num(quad.global_num),
   //       position(nullptr, 0) {
   //   position.shallowCopy(quad.position);

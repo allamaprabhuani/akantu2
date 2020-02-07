@@ -84,7 +84,8 @@ template <GeometricalType geometrical_type> struct GeometricalShape {
 /// Templated GeometricalShape with function contains
 template <GeometricalShapeType shape> struct GeometricalShapeContains {
   /// Check if the point (vector in 2 and 3D) at natural coordinate coord
-  static inline bool contains(const Ref<const VectorXr> & coord);
+  template <class D>
+  static inline bool contains(const Eigen::MatrixBase<D> & coord);
 };
 
 #if !defined(DOXYGEN)
@@ -126,18 +127,21 @@ class GeometricalElement {
 
 public:
   /// compute the in-radius: \todo should be renamed for characteristic length
-  static inline Real getInradius(const Ref<const MatrixXr> & /*coord*/) {
+  template <class D>
+  static inline Real getInradius(const Eigen::MatrixBase<D> & /*X*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the normal to the element
-  static inline void getNormal(const Ref<const MatrixXr> & /*nodes_coords*/,
-                               Ref<VectorXr> /*normal*/) {
+  template <class D1, class D2>
+  static inline void getNormal(const Eigen::MatrixBase<D1> & /*X*/,
+                               Eigen::MatrixBase<D2> &/*n*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// true if the natural coordinates are in the element
-  static inline bool contains(const Ref<const VectorXr> & coord);
+  template <class D>
+  static inline bool contains(const Eigen::MatrixBase<D> & coord);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension,
@@ -187,14 +191,16 @@ public:
   using interpolation_property = InterpolationProperty<interpolation_type>;
 
   /// compute the shape values for a given set of points in natural coordinates
-  template <typename Derived1, typename Derived2,
-            aka::enable_if_matrices_t<Derived1, Derived2> * = nullptr>
-  static inline void
-  computeShapes(const Eigen::MatrixBase<Derived1> & natural_coord,
-                const Eigen::MatrixBase<Derived2> & shapes);
+  template <class D1, class D2,
+            aka::enable_if_t<aka::are_matrices<D1, D2>::value> * = nullptr>
+  static inline void computeShapes(const Eigen::MatrixBase<D1> & natural_coord,
+                                   const Eigen::MatrixBase<D2> & shapes);
 
   /// compute the shape values for a given point in natural coordinates
-  static inline void computeShapes(const Ref<const VectorXr> &, Ref<VectorXr>) {
+  template <class D1, class D2,
+            aka::enable_if_t<aka::are_vectors<D1, D2>::value> * = nullptr>
+  static inline void computeShapes(const Eigen::MatrixBase<D1> &,
+                                   Eigen::MatrixBase<D2> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -203,15 +209,18 @@ public:
    * shape functions along with variation of natural coordinates on a given set
    * of points in natural coordinates
    */
-  static inline void computeDNDS(const Ref<const MatrixXr> & natural_coord,
-                                 Tensor3<Real> & dnds);
+  template <class D>
+  static inline void computeDNDS(const Eigen::MatrixBase<D> & Xs,
+                                 Tensor3Base<Real> & dnds);
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the variation of
    * shape functions along with
    * variation of natural coordinates on a given point in natural
    * coordinates
    */
-  static inline void computeDNDS(const Ref<const VectorXr> &, Ref<MatrixXr>) {
+  template <class D1, class D2>
+  static inline void computeDNDS(const Eigen::MatrixBase<D1> & /*Xs*/,
+                                 Eigen::MatrixBase<D2> & /*dNdS*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -237,35 +246,44 @@ public:
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
-  static inline void computeSpecialJacobian(const Ref<const MatrixXr> &,
-                                            Real &) {
+  template <class D>
+  static inline Real computeSpecialJacobian(const Eigen::MatrixBase<D> &) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// interpolate a field given (arbitrary) natural coordinates
-  static inline void
-  interpolateOnNaturalCoordinates(const Ref<const VectorXr> & natural_coords,
-                                  const Ref<const MatrixXr> & nodal_values,
-                                  Ref<VectorXr> interpolated);
+  template <class Derived1, class Derived2>
+  static inline decltype(auto) interpolateOnNaturalCoordinates(
+      const Eigen::MatrixBase<Derived1> & natural_coords,
+      const Eigen::MatrixBase<Derived2> & nodal_values) {
+    using interpolation = InterpolationProperty<interpolation_type>;
+    Eigen::Matrix<Real, interpolation::nb_nodes_per_element, 1> shapes;
+    computeShapes(natural_coords, shapes);
+
+    return interpolate(nodal_values, shapes);
+  }
 
   /// interpolate a field given the shape functions on the interpolation point
-  static inline void interpolate(const Ref<const MatrixXr> & nodal_values,
-                                 const Ref<const VectorXr> & shapes,
-                                 Ref<VectorXr> interpolated);
+  template <class Derived1, class Derived2>
+  static inline auto
+  interpolate(const Eigen::MatrixBase<Derived1> & nodal_values,
+              const Eigen::MatrixBase<Derived2> & shapes) {
+    return nodal_values * shapes;
+  }
 
   /// interpolate a field given the shape functions on the interpolations points
-  template <typename Derived1, typename Derived2, typename Derived3,
+  template <class Derived1, class Derived2, class Derived3,
             aka::enable_if_matrices_t<Derived1, Derived2, Derived3> * = nullptr>
   static inline void
   interpolate(const Eigen::MatrixBase<Derived1> & nodal_values,
               const Eigen::MatrixBase<Derived2> & Ns,
-              const Eigen::MatrixBase<Derived3> & interpolated_);
+              const Eigen::MatrixBase<Derived3> & interpolated);
 
   /// compute the gradient of a given field on the given natural coordinates
-  static inline void
-  gradientOnNaturalCoordinates(const Ref<const VectorXr> & natural_coords,
-                               const Ref<const MatrixXr> & f,
-                               Ref<MatrixXr> gradient);
+  template <class Derived1, class Derived2>
+  static inline decltype(auto) gradientOnNaturalCoordinates(
+      const Eigen::MatrixBase<Derived1> & natural_coords,
+      const Eigen::MatrixBase<Derived2> & f);
 
 public:
   static AKANTU_GET_MACRO_NOT_CONST(
@@ -381,7 +399,7 @@ public:
                                 Real tolerance = 1e-10);
 
   /// get natural coordinates from real coordinates
-  template <typename Derived1, typename Derived2, typename Derived3,
+  template <class Derived1, class Derived2, class Derived3,
             aka::enable_if_matrices_t<Derived1, Derived2, Derived3> * = nullptr>
   static inline void
   inverseMap(const Eigen::MatrixBase<Derived1> & real_coords,

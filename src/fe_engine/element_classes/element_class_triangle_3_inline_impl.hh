@@ -68,23 +68,19 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_triangle_3, _gt_triangle_3,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2, aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeShapes(
-    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
-
-  /// Natural coordinates
-  Real c0 =
-      1 - natural_coords(0) - natural_coords(1); /// @f$ c0 = 1 - \xi - \eta @f$
-  Real c1 = natural_coords(0);                   /// @f$ c1 = \xi @f$
-  Real c2 = natural_coords(1);                   /// @f$ c2 = \eta @f$
-
-  N(0) = c0; /// N1(q_0)
-  N(1) = c1; /// N2(q_0)
-  N(2) = c2; /// N3(q_0)
+    const Eigen::MatrixBase<D1> & X, Eigen::MatrixBase<D2> & N) {
+  N(0) = 1 - X(0) - X(1); /// @f$ c0 = 1 - \xi - \eta @f$
+  N(1) = X(0);              /// @f$ c1 = \xi @f$
+  N(2) = X(1);              /// @f$ c2 = \eta @f$
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
-    const Ref<const VectorXr> & /*natural_coords*/, Ref<MatrixXr> dnds) {
+    const Eigen::MatrixBase<D1> & /*natural_coords*/,
+    Eigen::MatrixBase<D2> & dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -115,18 +111,19 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline void
 InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
-    const Ref<const MatrixXr> & J, Real & jac) {
-  Eigen::Map<const Eigen::Matrix<Real, 2, 3>> Jstatic(
-      J.data());
-  jac = Jstatic.row(0).cross(Jstatic.row(1)).norm();
+    const Eigen::MatrixBase<D> & J) {
+  const auto & Jt = J.transpose();
+  return Jt(0).cross(Jt(1)).norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline Real GeometricalElement<_gt_triangle_3>::getInradius(
-    const Ref<const MatrixXr> & coord) {
+    const Eigen::MatrixBase<D> & coord) {
   return 2. * Math::triangle_inradius(coord.col(0), coord.col(1),
                                       coord.col(2));
 }

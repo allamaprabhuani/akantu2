@@ -60,8 +60,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_segment_2, _gt_segment_2,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
-    const Ref<const VectorXr> & natural_coords, Ref<VectorXr> N) {
+    const Eigen::MatrixBase<D1> & natural_coords, Eigen::MatrixBase<D2> & N) {
 
   /// natural coordinate
   Real c = natural_coords(0);
@@ -69,11 +71,13 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeShapes(
   N(0) = 0.5 * (1 - c);
   N(1) = 0.5 * (1 + c);
 }
-/* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
-    const Ref<const VectorXr> & /*natural_coords*/, Ref<MatrixXr> dnds) {
+    const Eigen::MatrixBase<D1> & /*natural_coords*/,
+    Eigen::MatrixBase<D2> & dnds) {
 
   /// dN1/de
   dnds(0, 0) = -.5;
@@ -90,27 +94,29 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
+template <D>
 inline void
 InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
-    const Ref<const MatrixXr> & dxds, Real & jac) {
-  jac = dxds.norm();
+    const Eigen::MatrixBase<D> & dxds) {
+  return dxds.norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline Real GeometricalElement<_gt_segment_2>::getInradius(
-    const Ref<const MatrixXr> & coord) {
+    const Eigen::MatrixBase<D> & coord) {
   auto a{coord(0)};
   auto b{coord(1)};
 
   return (b - a).norm();
 }
 
+/* -------------------------------------------------------------------------- */
 template <>
-inline void
-GeometricalElement<_gt_segment_2>::getNormal(const Ref<const MatrixXr> & coord,
-                                             Ref<VectorXr> normal) {
+template <class D1, class D2>
+inline void GeometricalElement<_gt_segment_2>::getNormal(
+    const Eigen::MatrixBase<D1> & coord, Eigen::MatrixBase<D2> & normal) {
   AKANTU_DEBUG_ASSERT(normal.size() == 2,
                       "The normal is only uniquely defined in 2D");
   Vector<Real> tmp = coord.col(0) - coord.col(1);

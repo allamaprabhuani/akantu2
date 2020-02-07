@@ -71,12 +71,20 @@ namespace detail {
     using const_proxy = Eigen::Map<const Derived>;
   };
 
-  template <typename T, std::size_t _dim, bool is_proxy>
-  struct IteratorHelper<TensorBase<T, _dim, is_proxy>> {
+  template <typename T, std::size_t _dim>
+  struct IteratorHelper<Tensor<T, _dim>> {
     static constexpr Int dim = _dim;
     using pointer = T *;
-    using proxy = TensorBase<T, _dim, true>;
-    using const_proxy = TensorBase<const T, _dim, true>;
+    using proxy = TensorProxy<T, _dim>;
+    using const_proxy = TensorProxy<const T, _dim>;
+  };
+
+  template <typename T, std::size_t _dim>
+  struct IteratorHelper<TensorProxy<T, _dim>> {
+    static constexpr Int dim = _dim;
+    using pointer = T *;
+    using proxy = TensorProxy<T, _dim>;
+    using const_proxy = TensorProxy<const T, _dim>;
   };
 
   /* --------------------------------------------------------------------------
@@ -88,7 +96,6 @@ namespace detail {
     using helper = IteratorHelper<std::decay_t<R>>;
     using internal_value_type = IR;
     using internal_pointer = IR *;
-
     using scalar_pointer = typename helper::pointer;
     using proxy_t = typename helper::proxy;
     using const_proxy_t = typename helper::const_proxy;
@@ -104,7 +111,7 @@ namespace detail {
   private:
     template <std::size_t... I>
     constexpr auto get_new_const_proxy(scalar_pointer data,
-                                 std::index_sequence<I...>) const {
+                                       std::index_sequence<I...>) const {
       return const_proxy_t(data, dims[I]...);
     }
 
@@ -131,14 +138,39 @@ namespace detail {
       return reset_proxy(t, this->ret_ptr, std::make_index_sequence<dim>());
     }
 
-  public:
-    template <typename... Ns>
-    internal_view_iterator(scalar_pointer data, Ns... ns)
-        : dims({Int(ns)...}), _offset(detail::product_all(std::forward<Ns>(ns)...)),
-          initial(data), ret_ptr(data), proxy(data, ns...),
-          const_proxy(data, ns...) {}
+  protected:
+    template <typename OR, typename OD, typename OIR,
+              std::enable_if_t<std::is_convertible<
+                  decltype(std::declval<OIR>().data()),
+                  decltype(std::declval<IR>().data())>::value> * = nullptr>
+    explicit internal_view_iterator(
+        internal_view_iterator<OR, OD, OIR, dim> & it)
+        : dims(it.dims), _offset(it._offset), initial(it.initial),
+          ret_ptr(it.ret_ptr), proxy(get_new_proxy(it.ret_ptr)),
+          const_proxy(get_new_const_proxy(it.ret_ptr)) {}
 
-    internal_view_iterator() : internal_view_iterator(nullptr) {}
+    template <typename OR, typename OD, typename OIR, Int _dim>
+    friend class internal_view_iterator;
+
+    template <typename... Args>
+    using valid_args_t = typename std::enable_if<
+        aka::conjunction<aka::disjunction<std::is_integral<Args>,
+                                          std::is_enum<Args>>...>::value and
+            dim == sizeof...(Args),
+        int>::type;
+
+  public:
+    template <typename... Ns, valid_args_t<Ns...> = 0>
+    internal_view_iterator(scalar_pointer data, Ns... ns)
+        : dims({Int(ns)...}),
+          _offset(detail::product_all(std::forward<Ns>(ns)...)), initial(data),
+          ret_ptr(data), proxy(data, ns...), const_proxy(data, ns...) {}
+
+    template<Int _dim = dim, std::enable_if_t<_dim == 1> * = nullptr>
+    internal_view_iterator() : proxy(nullptr, 0), const_proxy(nullptr, 0) {}
+
+    template<Int _dim = dim, std::enable_if_t<_dim == 2> * = nullptr>
+    internal_view_iterator() : proxy(nullptr, 0, 0), const_proxy(nullptr, 0, 0) {}
 
     internal_view_iterator(const internal_view_iterator & it)
         : proxy(get_new_proxy(it.ret_ptr)),
@@ -182,6 +214,11 @@ namespace detail {
       return proxy;
     }
 
+    inline pointer operator->() {
+      reset_proxy(proxy);
+      return &proxy;
+    }
+
     inline daughter & operator++() {
       ret_ptr += _offset;
       return static_cast<daughter &>(*this);
@@ -207,7 +244,7 @@ namespace detail {
     }
 
     inline auto operator[](UInt n) const {
-      return get_new_proxy(ret_ptr + n * _offset);
+      return get_new_const_proxy(ret_ptr + n * _offset);
     }
 
     inline bool operator==(const internal_view_iterator & other) const {
@@ -262,8 +299,7 @@ namespace detail {
     const_proxy_t const_proxy;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   /**
    * Specialization for scalar types
    */
@@ -296,6 +332,7 @@ namespace detail {
     inline reference operator*() { return *ret; }
     inline const_reference operator*() const { return *ret; }
     inline pointer operator->() { return ret; };
+
     inline daughter & operator++() {
       ++ret;
       return static_cast<daughter &>(*this);
@@ -356,7 +393,7 @@ template <typename R> class view_iterator;
 template <typename R>
 class const_view_iterator
     : public detail::internal_view_iterator<const R, const_view_iterator<R>,
-                                             R> {
+                                            R> {
 public:
   using parent =
       detail::internal_view_iterator<const R, const_view_iterator, R>;
@@ -375,9 +412,13 @@ public:
   const_view_iterator(P * data, Ns... ns) : parent(data, ns...) {}
 
   const_view_iterator & operator=(const const_view_iterator & it) = default;
+
+  template <typename OR,
+            std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
+  const_view_iterator(const_view_iterator<OR> & it) : parent(it) {}
 };
 
-template <class R, bool is_tensor_ = is_tensor<R>::value>
+template <class R, bool is_tensor_ = aka::is_tensor<R>::value>
 struct ConstConverterIteratorHelper {
   static inline auto convert(const view_iterator<R> & it) {
     return const_view_iterator<R>(std::unique_ptr<R>(new R(*it, false)));
@@ -418,7 +459,7 @@ public:
 
 namespace {
   template <std::size_t dim, typename T> struct ViewIteratorHelper {
-    using type = TensorBase<T, dim, true>;
+    using type = TensorProxy<T, dim>;
   };
 
   template <typename T> struct ViewIteratorHelper<0, T> { using type = T; };
@@ -461,4 +502,4 @@ namespace {
 
 } // namespace akantu
 
-#endif /* __AKANTU_AKA_VIEW_ITERATORS_HH__ */
+#endif /* !__AKANTU_AKA_VIEW_ITERATORS_HH__ */

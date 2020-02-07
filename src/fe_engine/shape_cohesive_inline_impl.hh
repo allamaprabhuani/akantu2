@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_iterators.hh"
-#include "shape_cohesive.hh"
+//#include "shape_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SHAPE_COHESIVE_INLINE_IMPL_HH_
@@ -85,7 +85,7 @@ void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
 
   auto compute = [&](const auto & el) {
     auto ptr = shapesd_val + el * nb_points * size_of_shapesd;
-    Tensor3<Real> B(ptr, spatial_dimension, nb_nodes_per_element, nb_points);
+    Tensor3Proxy<Real> B(ptr, spatial_dimension, nb_nodes_per_element, nb_points);
     ElementClass<type>::computeDNDS(integration_points, B);
   };
 

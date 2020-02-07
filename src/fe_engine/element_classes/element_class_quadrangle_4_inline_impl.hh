@@ -79,8 +79,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_quadrangle_4, _gt_quadrangle_4,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(
-    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
+    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
   N(0) = 1. / 4. * (1. - c(0)) * (1. - c(1)); /// N1(q_0)
   N(1) = 1. / 4. * (1. + c(0)) * (1. - c(1)); /// N2(q_0)
   N(2) = 1. / 4. * (1. + c(0)) * (1. + c(1)); /// N3(q_0)
@@ -88,8 +90,9 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeShapes(
 }
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(
-    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
+    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
   /**
    * @f[
    * dnds = \left(
@@ -138,17 +141,19 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
+template <class D>
+inline Real
 InterpolationElement<_itp_lagrange_quadrangle_4>::computeSpecialJacobian(
-    const Ref<const MatrixXr> & J, Real & jac) {
+    const Eigen::MatrixBase<D> & J) {
   auto Jstatic = Eigen::Map<const Eigen::Matrix<Real, 2, 3>>(J.data());
-  jac = (Jstatic.row(0).cross(Jstatic.row(1))).norm();
+  return (Jstatic.row(0).cross(Jstatic.row(1))).norm();
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline Real
-GeometricalElement<_gt_quadrangle_4>::getInradius(const Ref<const MatrixXr> & coord) {
+template <class D>
+inline Real GeometricalElement<_gt_quadrangle_4>::getInradius(
+    const Eigen::MatrixBase<D> & coord) {
   auto && u0 = coord.col(0);
   auto && u1 = coord.col(1);
   auto && u2 = coord.col(2);

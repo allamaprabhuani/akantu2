@@ -180,9 +180,9 @@ void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
   }
 
   // scale sigma_c
-  sigma_c_vec -= base_sigma_c;
-  sigma_c_vec *= std::pow(this->volume_s / volume, 1. / this->m_s);
-  sigma_c_vec += base_sigma_c;
+  sigma_c_vec = (sigma_c_vec.array() - base_sigma_c) *
+                    std::pow(this->volume_s / volume, 1. / this->m_s) +
+                base_sigma_c;
 
   AKANTU_DEBUG_OUT();
 }

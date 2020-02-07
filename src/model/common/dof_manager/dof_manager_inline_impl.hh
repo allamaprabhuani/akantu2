@@ -72,7 +72,7 @@ const DOFManager::DOFData & DOFManager::getDOFData(const ID & dof_id) const {
 inline void DOFManager::extractElementEquationNumber(
     const Array<Int> & equation_numbers, const Vector<UInt> & connectivity,
     UInt nb_degree_of_freedom, Vector<Int> & element_equation_number) {
-  for (UInt i = 0, ld = 0; i < connectivity.size(); ++i) {
+  for (Int i = 0, ld = 0; i < connectivity.size(); ++i) {
     UInt n = connectivity(i);
     for (UInt d = 0; d < nb_degree_of_freedom; ++d, ++ld) {
       element_equation_number(ld) =

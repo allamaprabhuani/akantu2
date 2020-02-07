@@ -89,8 +89,10 @@ AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_pentahedron_15, _gt_pentahedron_15,
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2,
+          aka::enable_if_t<aka::are_vectors<D1, D2>::value> *>
 inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeShapes(
-    const Ref<const VectorXr> & c, Ref<VectorXr> N) {
+    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & N) {
   auto && x = c(0);
   auto && y = c(1);
   auto && z = c(2);
@@ -115,8 +117,9 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeShapes(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D1, class D2>
 inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
-    const Ref<const VectorXr> & c, Ref<MatrixXr> dnds) {
+    const Eigen::MatrixBase<D1> & c, Eigen::MatrixBase<D2> & dnds) {
   auto && x = c(0);
   auto && y = c(1);
   auto && z = c(2);
@@ -175,8 +178,9 @@ inline void InterpolationElement<_itp_lagrange_pentahedron_15>::computeDNDS(
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <class D>
 inline Real GeometricalElement<_gt_pentahedron_15>::getInradius(
-    const Ref<const MatrixXr> & coord) {
-  return GeometricalElement<_gt_pentahedron_6>::getInradius(coord)*0.5;
+    const Eigen::MatrixBase<D> & coord) {
+  return GeometricalElement<_gt_pentahedron_6>::getInradius(coord) * 0.5;
 }
 } // namespace akantu

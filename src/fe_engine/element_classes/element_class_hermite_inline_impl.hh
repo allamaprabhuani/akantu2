@@ -21,12 +21,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -82,7 +82,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_static_if.hh"
-#include "element_class_structural.hh"
+//#include "element_class_structural.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_ELEMENT_CLASS_HERMITE_INLINE_IMPL_HH_
@@ -115,7 +115,8 @@ namespace {
       auto M1 = 1. / 4. * (2. - 3. * xi + xi3);
       auto M2 = 1. / 4. * (2. + 3. * xi - xi3);
       auto L1 = a / 4. * (1 - xi - xi2 + xi3);
-      auto L2 = a / 4. * (-1 - xi + xi2 + xi3);;
+      auto L2 = a / 4. * (-1 - xi + xi2 + xi3);
+      ;
 
 #if 1 // Version where we also interpolate the rotations
       // Derivatives (with respect to x) of previous functions interpolating
@@ -127,8 +128,8 @@ namespace {
 
       // clang-format off
       //    v1   t1   v2   t2
-      N = {{M1 , L1 , M2 , L2},   // displacement interpolation
-	   {M1_, L1_, M2_, L2_}}; // rotation interpolation
+      N << M1 , L1 , M2 , L2,   // displacement interpolation
+           M1_, L1_, M2_, L2_; // rotation interpolation
       // clang-format on
 
 #else // Version where we only interpolate displacements
@@ -140,9 +141,9 @@ namespace {
     }
 
     /* ---------------------------------------------------------------------- */
-
-    inline void computeDNDS(const Vector<Real> & natural_coords, Real a,
-                            Matrix<Real> & B) {
+    template <class D1, class D2>
+    inline void computeDNDS(const Eigen::MatrixBase<D1> & natural_coords,
+                            Real a, Eigen::MatrixBase<D2> & B) {
       // natural coordinate
       Real xi = natural_coords(0);
       // Derivatives with respect to xi for rotations
@@ -151,30 +152,33 @@ namespace {
       auto L1 = 1. * a / 2. * (3 * xi - 1);
       auto L2 = 1. * a / 2. * (3 * xi + 1);
 
-      //    v1  t1  v2  t2
-      B = {{M1, L1, M2, L2}}; // computing curvature : {chi} = [B]{d}
-      B /= a; // to account for first order deriv w/r to x
+      //   v1  t1  v2  t2
+      B << M1, L1, M2, L2; // computing curvature : {chi} = [B]{d}
+      B /= a;              // to account for first order deriv w/r to x
     }
   } // namespace details
 } // namespace
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <typename Derived1, typename Derived2, typename Derived3>
 inline void
 InterpolationElement<_itp_hermite_2, _itk_structural>::computeShapes(
-    const Vector<Real> & natural_coords, const Matrix<Real> & real_coord,
-    Matrix<Real> & N) {
+    const Eigen::MatrixBase<Derived1> & natural_coords,
+    const Eigen::MatrixBase<Derived2> & real_coord,
+    Eigen::MatrixBase<Derived3> & N) {
   auto L = details::computeLength(real_coord);
   details::computeShapes(natural_coords, L / 2, N);
 }
 
 /* -------------------------------------------------------------------------- */
 template <>
+template <typename D1, typename D2, typename D3>
 inline void InterpolationElement<_itp_hermite_2, _itk_structural>::computeDNDS(
-    const Vector<Real> & natural_coords, const Matrix<Real> & real_coord,
-    Matrix<Real> & B) {
-  auto L = details::computeLength(real_coord);
-  details::computeDNDS(natural_coords, L / 2, B);
+    const Eigen::MatrixBase<D1> & Xs, const Eigen::MatrixBase<D2> & xs,
+    Eigen::MatrixBase<D3> & B) {
+  auto L = details::computeLength(xs);
+  details::computeDNDS(Xs, L / 2, B);
 }
 
 } // namespace akantu

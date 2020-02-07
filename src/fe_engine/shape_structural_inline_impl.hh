@@ -33,7 +33,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_iterators.hh"
-#include "shape_structural.hh"
+//#include "shape_structural.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SHAPE_STRUCTURAL_INLINE_IMPL_HH_
@@ -296,31 +296,32 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
                      nb_nodes_per_element * nb_dof, nb_points),
            make_view(rot_matrices, nb_dof, nb_dof))) {
     // compute shape derivatives
-    auto & X = std::get<0>(tuple);
+    auto & x = std::get<0>(tuple);
     auto & B = std::get<1>(tuple);
     auto & RDOFs = std::get<2>(tuple);
 
     Tensor3<Real> dnds(natural_spatial_dimension,
                        ElementClass<type>::interpolation_property::dnds_columns,
                        B.size(2));
-    ElementClass<type>::computeDNDS(natural_coords, X, dnds);
+    ElementClass<type>::computeDNDS(natural_coords, x, dnds);
 
     Tensor3<Real> J(natural_spatial_dimension, natural_spatial_dimension,
                     natural_coords.cols());
 
     // Computing the coordinates of the element in the natural space
-    auto R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
-    Matrix<Real> T(B.size(1), B.size(1), 0);
+    auto && R = RDOFs.block(0, 0, spatial_dimension, spatial_dimension);
+    Matrix<Real> T(B.size(1), B.size(1));
+    T.fill(0);
 
     for (UInt i = 0; i < nb_nodes_per_element; ++i) {
-      T.block(RDOFs, i * RDOFs.rows(), i * RDOFs.rows());
+      T.block(i * RDOFs.rows(), i * RDOFs.rows(), RDOFs.rows(), RDOFs.cols()) = RDOFs;
     }
 
     // Rotate to local basis
-    auto x =
-        (R * X).block(0, 0, natural_spatial_dimension, nb_nodes_per_element);
+    auto && rx =
+        (R * x).block(0, 0, natural_spatial_dimension, nb_nodes_per_element);
 
-    ElementClass<type>::computeJMat(natural_coords, x, J);
+    ElementClass<type>::computeJMat(natural_coords, rx, J);
     ElementClass<type>::computeShapeDerivatives(J, dnds, T, B);
   }
 
@@ -363,14 +364,10 @@ void ShapeStructural<kind>::interpolateOnIntegrationPoints(
   for_each_element(nb_element, filter_elements, [&](auto && el) {
     auto & uq = *out_it;
     const auto & u = *u_it;
-    auto N = Tensor3<Real>(shapes_it[el]);
+    auto && N = shapes_it[el];
 
     for (auto && q : arange(uq.size(2))) {
-      auto uq_q = Matrix<Real>(uq(q));
-      auto u_q = Matrix<Real>(u(q));
-      auto N_q = Matrix<Real>(N(q));
-
-      uq_q.mul<false, false>(N_q, u_q);
+      uq(q) = N(q) * u(q);
     }
 
     ++out_it;
@@ -416,11 +413,7 @@ void ShapeStructural<kind>::gradientOnIntegrationPoints(
     auto B = Tensor3<Real>(shapesd_it[el]);
 
     for (auto && q : arange(nablau.size(2))) {
-      auto nablau_q = Matrix<Real>(nablau(q));
-      auto u_q = Matrix<Real>(u(q));
-      auto B_q = Matrix<Real>(B(q));
-
-      nablau_q.mul<false, false>(B_q, u_q);
+      nablau(q) = B(q) * u(q);
     }
 
     ++out_it;
