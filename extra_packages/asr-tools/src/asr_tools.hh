@@ -214,18 +214,22 @@ public:
 
   /// compute average stress in the RVE
   void homogenizeStressField(Matrix<Real> & stress);
-protected:
-    /// storing nodal fields before tests
+
+  /// storing nodal fields before tests
   void storeNodalFields();
 
   /// restoring nodal fields before tests
   void restoreNodalFields();
 
+  /// resetting nodal fields
+  void resetNodalFields();
+
   /// restoring internal fields after tests
   void restoreInternalFields();
 
+  /// resetting internal fields with history
+  void resetInternalFields();
 
-private:
   /// find the corner nodes
   void findCornerNodes();
 

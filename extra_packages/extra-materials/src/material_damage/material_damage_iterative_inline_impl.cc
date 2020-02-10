@@ -49,8 +49,6 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
   this->registerParam("max_reductions", max_reductions, UInt(10),
                       _pat_parsable | _pat_modifiable, "max reductions");
 
-  this->use_previous_stress = true;
-  this->use_previous_gradu = true;
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
   this->reduction_step.initialize(1);

@@ -192,6 +192,10 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
            this->delta_T(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
 
+    /// reset nodal and internal fields
+    RVE.resetNodalFields();
+    RVE.resetInternalFields();
+
     /// apply boundary conditions based on the current macroscopic displ.
     /// gradient
     RVE.applyBoundaryConditionsRve(std::get<1>(data));

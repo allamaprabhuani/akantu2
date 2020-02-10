@@ -475,11 +475,29 @@ void ASRTools::restoreNodalFields() {
   /// update grad_u
   model.assembleInternalForces();
 }
+
+/* ---------------------------------------------------------------------- */
+void ASRTools::resetNodalFields() {
+  auto & disp = this->model.getDisplacement();
+  auto & boun = this->model.getBlockedDOFs();
+  auto & ext_force = this->model.getExternalForce();
+  disp.clear();
+  boun.clear();
+  ext_force.clear();
+}
+
 /* -------------------------------------------------------------------------- */
 void ASRTools::restoreInternalFields() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
     mat.restorePreviousState();
+  }
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::resetInternalFields() {
+  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+    Material & mat = model.getMaterial(m);
+    mat.resetInternalsWithHistory();
   }
 }
 /* --------------------------------------------------------------------------

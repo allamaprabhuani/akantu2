@@ -53,8 +53,6 @@ MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
 
   this->registerParam("Einf", Einf, Real(1.), _pat_parsable | _pat_modifiable,
                       "Stiffness of the elastic element");
-  this->registerParam("user_dt", user_dt, Real(0.),
-                      _pat_parsable | _pat_modifiable, "User-defined timestep");
   this->registerParam("Eta", Eta, _pat_parsable | _pat_modifiable,
                       "Viscosity of a Maxwell element");
   this->registerParam("Ev", Ev, _pat_parsable | _pat_modifiable,
@@ -729,6 +727,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeEffectiveModulus(
 
   if (Math::are_float_equal(exp_dt_lambda, 1)) {
     E_ef_v = (1 - dam) * this->Ev(visc_nb);
+  } else if (Math::are_float_equal(exp_dt_lambda, 0)) {
+    E_ef_v = 0.;
   } else {
     E_ef_v = std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(visc_nb) *
                           lambda / dt,

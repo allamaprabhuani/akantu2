@@ -199,10 +199,10 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     /// restore nodals and update grad_u accordingly
     this->restoreNodalFields();
 
-    this->solveStep();
-
     /// restore historical internal fields (sigma_v for visc)
     this->restoreInternalFields();
+
+    this->solveStep();
 
     /// compute damage
     max_eq_stress_aggregate = mat_aggregate.getNormMaxEquivalentStress();
