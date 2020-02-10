@@ -206,6 +206,9 @@ public:
   /// restore the stress from previous_stress if needed
   virtual void restorePreviousState();
 
+  /// resets all internals with history and their previous values too
+  virtual void resetInternalsWithHistory();
+
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
   // virtual void
@@ -592,7 +595,7 @@ inline std::ostream & operator<<(std::ostream & stream,
       make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
                 this->spatial_dimension);                                      \
                                                                                \
-  auto stress_view =                                                        \
+  auto stress_view =                                                           \
       make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
                 this->spatial_dimension);                                      \
                                                                                \
@@ -623,7 +626,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   auto tangent_size =                                                          \
       this->getTangentStiffnessVoigtSize(this->spatial_dimension);             \
                                                                                \
-  auto && tangent_view = make_view(tangent_mat, tangent_size, tangent_size);      \
+  auto && tangent_view = make_view(tangent_mat, tangent_size, tangent_size);   \
                                                                                \
   for (auto && data : zip(grad_u_view, stress_view, tangent_view)) {           \
     [[gnu::unused]] Matrix<Real> & grad_u = std::get<0>(data);                 \
@@ -658,7 +661,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 #define INSTANTIATE_MATERIAL(id, mat_name)                                     \
   INSTANTIATE_MATERIAL_ONLY(mat_name);                                         \
-  static bool material_is_alocated_##id [[gnu::unused]] =                      \
+  static bool material_is_alocated_##id[[gnu::unused]] =                       \
       MaterialFactory::getInstance().registerAllocator(                        \
           #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
 

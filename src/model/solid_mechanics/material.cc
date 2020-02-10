@@ -170,6 +170,18 @@ void Material::restorePreviousState() {
 }
 
 /* -------------------------------------------------------------------------- */
+void Material::resetInternalsWithHistory() {
+  AKANTU_DEBUG_IN();
+
+  for (auto pair : internal_vectors_real)
+    if (pair.second->hasHistory()) {
+      pair.second->reset();
+      pair.second->resetPreviousValues();
+    }
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
 /**
  * Compute  the  residual  by  assembling  @f$\int_{e}  \sigma_e  \frac{\partial
  * \varphi}{\partial X} dX @f$
