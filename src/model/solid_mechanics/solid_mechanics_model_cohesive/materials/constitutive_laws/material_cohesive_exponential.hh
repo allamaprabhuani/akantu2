@@ -79,20 +79,28 @@ protected:
                               GhostType ghost_type = _not_ghost) override;
 
 private:
-  void computeCoupledTraction(Vector<Real> & tract, const Vector<Real> & normal,
-                              Real delta, const Vector<Real> & opening,
+  template <class D1, class D2, class D3>
+  void computeCoupledTraction(Eigen::MatrixBase<D1> & tract,
+                              const Eigen::MatrixBase<D2> & normal, Real delta,
+                              const Eigen::MatrixBase<D3> & opening,
                               Real & delta_max_new, Real delta_max);
 
-  void computeCompressiveTraction(Vector<Real> & tract,
-                                  const Vector<Real> & normal, Real delta_n,
-                                  const Vector<Real> & opening);
+  template <class D1, class D2, class D3>
+  void computeCompressiveTraction(Eigen::MatrixBase<D1> & tract,
+                                  const Eigen::MatrixBase<D2> & normal,
+                                  Real delta_n,
+                                  const Eigen::MatrixBase<D3> & opening);
 
-  void computeCoupledTangent(Matrix<Real> & tangent,
-                             const Vector<Real> & normal, Real delta,
-                             const Vector<Real> & opening, Real delta_max_new);
+  template <class D1, class D2, class D3>
+  void computeCoupledTangent(Eigen::MatrixBase<D1> & tangent,
+                             const Eigen::MatrixBase<D2> & normal, Real delta,
+                             const Eigen::MatrixBase<D3> & opening,
+                             Real delta_max_new);
 
-  void computeCompressivePenalty(Matrix<Real> & tangent,
-                                 const Vector<Real> & normal, Real delta_n);
+  template <class D1, class D2>
+  void computeCompressivePenalty(Eigen::MatrixBase<D1> & tangent,
+                                 const Eigen::MatrixBase<D2> & normal,
+                                 Real delta_n);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

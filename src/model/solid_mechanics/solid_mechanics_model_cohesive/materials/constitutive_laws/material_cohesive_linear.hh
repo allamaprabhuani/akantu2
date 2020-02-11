@@ -73,10 +73,11 @@ public:
   void checkInsertion(bool check_only = false) override;
 
   /// compute effective stress norm for insertion check
-  Real computeEffectiveNorm(const Matrix<Real> & stress,
-                            const Vector<Real> & normal,
-                            const Vector<Real> & tangent,
-                            Vector<Real> & normal_traction) const;
+  template <class D1, class D2, class D3, class D4>
+  Real computeEffectiveNorm(const Eigen::MatrixBase<D1> & stress,
+                            const Eigen::MatrixBase<D2> & normal,
+                            const Eigen::MatrixBase<D3> & tangent,
+                            const Eigen::MatrixBase<D4> & normal_stress) const;
 
 protected:
   /// constitutive law
@@ -101,21 +102,27 @@ protected:
   void scaleInsertionTraction();
 
   /// compute the traction for a given quadrature point
+  template <class D1, class D2, class D3, class D4, class D5, class D6,
+            class D7, class D8>
   inline void computeTractionOnQuad(
-      Vector<Real> & traction, Vector<Real> & opening,
-      const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
-      const Vector<Real> & insertion_stress, const Real & sigma_c,
-      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_traction,
-      Vector<Real> & contact_opening);
+      Eigen::MatrixBase<D1> & traction, Eigen::MatrixBase<D2> & opening,
+      const Eigen::MatrixBase<D3> & normal, Real & delta_max,
+      const Real & delta_c, const Eigen::MatrixBase<D4> & insertion_stress,
+      const Real & sigma_c, Eigen::MatrixBase<D5> & normal_opening,
+      Eigen::MatrixBase<D6> & tangential_opening, Real & normal_opening_norm,
+      Real & tangential_opening_norm, Real & damage, bool & penetration,
+      Eigen::MatrixBase<D7> & contact_traction,
+      Eigen::MatrixBase<D8> & contact_opening) const;
 
+  template <class D1, class D2, class D3, class D4, class D5, class D6>
   inline void computeTangentTractionOnQuad(
-      Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
-      const Real & sigma_c, Vector<Real> & opening, const Vector<Real> & normal,
-      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_opening);
+      Eigen::MatrixBase<D1> & tangent, Real & delta_max, const Real & delta_c,
+      const Real & sigma_c, Eigen::MatrixBase<D2> & opening,
+      const Eigen::MatrixBase<D3> & normal,
+      Eigen::MatrixBase<D4> & normal_opening,
+      Eigen::MatrixBase<D5> & tangential_opening, Real & normal_opening_norm,
+      Real & tangential_opening_norm, Real & damage, bool & penetration,
+      Eigen::MatrixBase<D6> & contact_opening) const;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

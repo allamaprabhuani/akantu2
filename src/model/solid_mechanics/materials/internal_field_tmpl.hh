@@ -141,8 +141,8 @@ void InternalFieldTmpl<Material, T>::resize() {
                              type, ghost));
       }
 
-      this->setArrayValues(vect->storage() + old_size * vect->getNbComponent(),
-                           vect->storage() + new_size * vect->getNbComponent());
+      this->setArrayValues(vect->data() + old_size * vect->getNbComponent(),
+                           vect->data() + new_size * vect->getNbComponent());
     }
   }
 }
