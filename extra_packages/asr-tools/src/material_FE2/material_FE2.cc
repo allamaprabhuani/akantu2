@@ -524,6 +524,20 @@ template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
   AKANTU_DEBUG_OUT();
 }
 
+/* --------------------------------------------------------------------------
+ */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::setTimeStep(Real time_step) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && RVE : RVEs) {
+    /// set time step to all the RVEs
+    RVE->setTimeStep(time_step);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
 INSTANTIATE_MATERIAL(material_FE2, MaterialFE2);
 
 } // namespace akantu

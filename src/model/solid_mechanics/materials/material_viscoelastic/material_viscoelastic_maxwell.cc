@@ -57,13 +57,8 @@ MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
                       "Viscosity of a Maxwell element");
   this->registerParam("Ev", Ev, _pat_parsable | _pat_modifiable,
                       "Stiffness of a Maxwell element");
-  // this->update_variable_flag = true;
   this->use_previous_stress = true;
   this->use_previous_gradu = true;
-
-  // this->internals_to_save.insert("sigma_v");
-  // this->internals_to_save.insert("previous_grad_u");
-  // this->use_previous_stress_thermal = true;
 
   // this->dissipated_energy.initialize(1);
   // this->integral.initialize(1);
@@ -88,7 +83,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::initMaterial() {
   UInt stress_size = spatial_dimension * spatial_dimension;
   this->sigma_v.initialize(stress_size * this->Ev.size());
   this->sigma_v.initializeHistory();
-  // this->epsilon_v.initialize(stress_size * this->Ev.size());
 
   AKANTU_DEBUG_OUT();
 }

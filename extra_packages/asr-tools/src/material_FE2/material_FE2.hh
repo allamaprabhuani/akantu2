@@ -98,6 +98,9 @@ public:
   /// increase gel strain according to time step
   void increaseGelStrain(Real & dt);
 
+  /// set time step to all RVEs
+  void setTimeStep(Real dt);
+
   /// update damage ratio after converged step
   virtual void afterSolveStep();
 
