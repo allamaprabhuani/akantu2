@@ -165,6 +165,20 @@ count_if(InputIt first, InputIt last, UnaryPredicate p) {
   return ret;
 }
 
+namespace detail {
+  template <class T, class Tuple, std::size_t... I>
+  constexpr T make_from_tuple_impl(Tuple && t, std::index_sequence<I...>) {
+    return T(std::get<I>(std::forward<Tuple>(t))...);
+  }
+} // namespace detail
+
+template <class T, class Tuple> constexpr T make_from_tuple(Tuple && t) {
+  return detail::make_from_tuple_impl<T>(
+      std::forward<Tuple>(t),
+      std::make_index_sequence<
+          std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
+}
+
 #else
 template <bool B> using bool_constant = std::bool_constant<B>;
 template <bool B> constexpr bool bool_constant_v = std::bool_constant<B>::value;

@@ -552,6 +552,9 @@ public:
 template <typename T> using Tensor3 = Tensor<T, 3>;
 template <typename T> using Tensor3Proxy = TensorProxy<T, 3>;
 template <typename T> using Tensor3Base = TensorBase<T, 3>;
+
+class ArrayBase;
+
 /* -------------------------------------------------------------------------- */
 namespace details {
   template <typename T> struct MapPlainObjectType { using type = T; };
@@ -565,7 +568,103 @@ namespace details {
   template <typename T>
   using MapPlainObjectType_t = typename MapPlainObjectType<T>::type;
 
+  template <typename Scalar, Idx...> struct EigenMatrixViewHelper {};
+
+  template <typename Scalar, Idx RowsAtCompileTime>
+  struct EigenMatrixViewHelper<Scalar, RowsAtCompileTime> {
+    using type = Eigen::Matrix<Scalar, RowsAtCompileTime, 1>;
+  };
+
+  template <typename Scalar, Idx RowsAtCompileTime, Idx ColsAtCompileTime>
+  struct EigenMatrixViewHelper<Scalar, RowsAtCompileTime, ColsAtCompileTime> {
+    using type = Eigen::Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>;
+  };
+
+  template <typename Scalar, Idx... sizes>
+  using EigenMatrixViewHelper_t =
+      typename EigenMatrixViewHelper<Scalar, sizes...>::type;
+
+  template <typename Array, Idx... sizes> class EigenView {
+    static_assert(sizeof...(sizes) == 1 or sizeof...(sizes) == 2,
+                  "Eigen only supports Vector and Matrices");
+    using size_type = typename std::decay_t<Array>::size_type;
+    using value_type = typename std::decay_t<Array>::value_type;
+
+  public:
+    EigenView(Array && array, decltype(sizes)... sizes_)
+        : array(array), sizes_(sizes_...) {}
+
+    EigenView(Array && array) : array(array), sizes_(sizes...) {}
+
+    EigenView(const EigenView & other) = default;
+    EigenView(EigenView && other) = default;
+
+    template <typename T = std::remove_reference_t<
+                  decltype(*std::declval<Array>().data())>,
+              std::enable_if_t<not std::is_const<T>::value> * = nullptr>
+    decltype(auto) begin() {
+      return aka::make_from_tuple<::akantu::view_iterator<
+          Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+          std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
+    }
+
+    template <typename T = std::remove_reference_t<
+                  decltype(*std::declval<Array>().data())>,
+              std::enable_if_t<not std::is_const<T>::value> * = nullptr>
+    decltype(auto) end() {
+      return aka::make_from_tuple<::akantu::view_iterator<
+          Eigen::Map<EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+          std::tuple_cat(std::make_tuple(array.get().data() + array_size()),
+                         sizes_));
+    }
+
+    decltype(auto) begin() const {
+      return aka::make_from_tuple<::akantu::view_iterator<
+          Eigen::Map<const EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+          std::tuple_cat(std::make_tuple(array.get().data()), sizes_));
+    }
+    decltype(auto) end() const {
+      return aka::make_from_tuple<::akantu::view_iterator<
+          Eigen::Map<const EigenMatrixViewHelper_t<value_type, sizes...>>>>(
+          std::tuple_cat(std::make_tuple(array.get().data() + array_size()),
+                         sizes_));
+    }
+
+  private:
+    template <
+        class A = Array,
+        std::enable_if_t<std::is_base_of<ArrayBase, std::decay_t<A>>::value> * =
+            nullptr>
+    size_type array_size() {
+      return array.get().size() * array.get().getNbComponent();
+    }
+
+    template <class A = Array,
+              std::enable_if_t<not std::is_base_of<
+                  ArrayBase, std::decay_t<A>>::value> * = nullptr>
+    size_type array_size() {
+      return array.get().size();
+    }
+
+  private:
+    std::reference_wrapper<std::remove_reference_t<Array>> array;
+    std::tuple<decltype(sizes)...> sizes_;
+  };
+
 } // namespace details
+
+template <Idx RowsAtCompileTime, typename Array>
+decltype(auto) make_view(Array && array) {
+  return details::EigenView<Array, RowsAtCompileTime>(
+      std::forward<Array>(array), RowsAtCompileTime);
+}
+
+template <Idx RowsAtCompileTime, Idx ColsAtCompileTime, typename Array>
+decltype(auto) make_view(Array && array) {
+  return details::EigenView<Array, RowsAtCompileTime, ColsAtCompileTime>(
+      std::forward<Array>(array), RowsAtCompileTime, ColsAtCompileTime);
+}
+
 } // namespace akantu
 
 namespace Eigen {

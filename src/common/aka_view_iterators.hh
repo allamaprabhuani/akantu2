@@ -65,7 +65,8 @@ namespace detail {
     static constexpr Int n = Derived::ColsAtCompileTime;
 
   public:
-    static constexpr Int dim = Derived::IsVectorAtCompileTime ? 1 : 2;
+    static constexpr Int dim =
+        Derived::IsVectorAtCompileTime and m != 1 ? 1 : 2;
     using pointer = T *;
     using proxy = Eigen::Map<Derived>;
     using const_proxy = Eigen::Map<const Derived>;
@@ -153,11 +154,11 @@ namespace detail {
     friend class internal_view_iterator;
 
     template <typename... Args>
-    using valid_args_t = typename std::enable_if<
+    using valid_args_t = std::enable_if_t<
         aka::conjunction<aka::disjunction<std::is_integral<Args>,
                                           std::is_enum<Args>>...>::value and
             dim == sizeof...(Args),
-        int>::type;
+        int>;
 
   public:
     template <typename... Ns, valid_args_t<Ns...> = 0>
@@ -166,11 +167,20 @@ namespace detail {
           _offset(detail::product_all(std::forward<Ns>(ns)...)), initial(data),
           ret_ptr(data), proxy(data, ns...), const_proxy(data, ns...) {}
 
-    template<Int _dim = dim, std::enable_if_t<_dim == 1> * = nullptr>
+    // Static 1x1 matrix cannot be differenciated from vector in eigen
+    template <typename RD = std::decay_t<R>,
+              std::enable_if_t<RD::RowsAtCompileTime == 1 and
+                               RD::ColsAtCompileTime == 1> * = nullptr>
+    internal_view_iterator(scalar_pointer data, Idx rows)
+        : dims({rows, 1}), _offset(rows), initial(data), ret_ptr(data),
+          proxy(data, rows, 1), const_proxy(data, rows, 1) {}
+
+    template <Int _dim = dim, std::enable_if_t<_dim == 1> * = nullptr>
     internal_view_iterator() : proxy(nullptr, 0), const_proxy(nullptr, 0) {}
 
-    template<Int _dim = dim, std::enable_if_t<_dim == 2> * = nullptr>
-    internal_view_iterator() : proxy(nullptr, 0, 0), const_proxy(nullptr, 0, 0) {}
+    template <Int _dim = dim, std::enable_if_t<_dim == 2> * = nullptr>
+    internal_view_iterator()
+        : proxy(nullptr, 0, 0), const_proxy(nullptr, 0, 0) {}
 
     internal_view_iterator(const internal_view_iterator & it)
         : proxy(get_new_proxy(it.ret_ptr)),

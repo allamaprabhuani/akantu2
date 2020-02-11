@@ -130,6 +130,7 @@ template <typename T,
 class ArrayDataLayer : public ArrayBase {
 public:
   using value_type = T;
+  using size_type = typename ArrayBase::size_type;
   using reference = value_type &;
   using pointer_type = value_type *;
   using const_reference = const value_type &;
@@ -223,6 +224,7 @@ private:
   /* ------------------------------------------------------------------------ */
 public:
   using value_type = typename parent::value_type;
+  using size_type = typename parent::size_type;
   using reference = typename parent::reference;
   using pointer_type = typename parent::pointer_type;
   using const_reference = typename parent::const_reference;
