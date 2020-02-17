@@ -57,6 +57,8 @@ void register_contact_mechanics_model(py::module & mod) {
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
       .def_function_nocopy(getExternalForce)
+      .def_function_nocopy(getNormalForce)
+      .def_function_nocopy(getTangentialForce)
       .def_function_nocopy(getInternalForce)
       .def_function_nocopy(getGaps)
       .def_function_nocopy(getNormals)
@@ -68,17 +70,27 @@ void register_contact_mechanics_model(py::module & mod) {
                        &ContactMechanicsModel::dump))
       .def("dump", py::overload_cast<const std::string &, Real, UInt>(
                        &ContactMechanicsModel::dump));
-
-  py::class_<ContactDetector>(mod, "ContactDetector")
-    .def(py::init<Mesh &, const ID &, const MemoryID &>(),
-	 py::arg("mesh"), py::arg("id") = "contact_detector",
-	 py::arg("memory_id") = 0)
-    .def("search", [](ContactDetector & self, std::map<UInt, ContactElement> & contact_map) {
-	self.search(contact_map);
-      });
   
   py::class_<ContactElement>(mod, "ContactElement")
     .def(py::init<>());
+
+  py::class_<GeometryUtils>(mod, "GeometryUtils")
+    .def_static("normal", &GeometryUtils::normal, py::arg("mesh"), py::arg("positions"),
+		py::arg("element"), py::arg("normal"), py::arg("outward") = true)
+    .def_static("covariantBasis", &GeometryUtils::covariantBasis, py::arg("mesh"),
+		py::arg("positions"), py::arg("element"), py::arg("normal"),
+		py::arg("natural_projection"), py::arg("basis"))
+    .def_static("curvature", &GeometryUtils::curvature)
+    .def_static("contravariantBasis", &GeometryUtils::contravariantBasis,
+		py::arg("covariant_basis"), py::arg("basis"))
+    .def_static("realProjection", &GeometryUtils::realProjection, py::arg("mesh"),
+		py::arg("positions"), py::arg("slave"), py::arg("element"),
+		py::arg("normal"), py::arg("projection"))
+    .def_static("naturalProjection", &GeometryUtils::naturalProjection, py::arg("mesh"),
+		py::arg("positions"), py::arg("element"), py::arg("real_projection"),
+		py::arg("projection"))
+    .def_static("isBoundaryElement", &GeometryUtils::isBoundaryElement);
+    
 }
 
 } // namespace akantu

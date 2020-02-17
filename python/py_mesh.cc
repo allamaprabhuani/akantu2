@@ -49,8 +49,17 @@ void register_mesh(py::module & mod) {
              return self.getNbElement(type, ghost_type);
            },
            py::arg("type"), py::arg("ghost_type") = _not_ghost)
+      .def("fillNodesToElements", &Mesh::fillNodesToElements,
+	   py::arg("dimension") = _all_dimensions)
+      .def("getAssociatedElements", [](Mesh & self, const UInt & node, py::list l) {
+	  Array<Element> elements;
+	  self.getAssociatedElements(node, elements);
+	  for (auto && element : elements) {
+	    l.append(element);
+	  }
+	}) 
       .def_static("getSpatialDimension", [](ElementType & type) {
-        return Mesh::getSpatialDimension(type);
+	  return Mesh::getSpatialDimension(type);
       });
 
   /* ------------------------------------------------------------------------ */

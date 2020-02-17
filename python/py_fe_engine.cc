@@ -12,7 +12,8 @@ namespace akantu {
 __attribute__((visibility("default"))) void
 register_fe_engine(py::module & mod) {
 
-  py::class_<Element>(mod, "Element");
+  py::class_<Element>(mod, "Element")
+    .def(py::init<ElementType, UInt, GhostType>());
 
   py::class_<FEEngine>(mod, "FEEngine")
       .def("computeIntegrationPointsCoordinates",
