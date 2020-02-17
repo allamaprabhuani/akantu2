@@ -120,25 +120,25 @@ template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDN2DS2(
    const vector_type & c, matrix_type & dn2ds2) {
 
+  dn2ds2(0, 0) = 0;
   dn2ds2(0, 1) = 0;
   dn2ds2(0, 2) = 0;
   dn2ds2(0, 3) = 0;
-  dn2ds2(0, 4) = 0;
 
-  dn2ds2(1, 1) = 1./4.;
-  dn2ds2(1, 2) = -1./4.;
-  dn2ds2(1, 3) = 1./4.;
-  dn2ds2(1, 4) = -1./4.;
+  dn2ds2(1, 0) = 1./4.;
+  dn2ds2(1, 1) = -1./4.;
+  dn2ds2(1, 2) = 1./4.;
+  dn2ds2(1, 3) = -1./4.;
 
-  dn2ds2(2, 1) = 1./4.;
-  dn2ds2(2, 2) = -1./4.;
-  dn2ds2(2, 3) = 1./4.;
-  dn2ds2(2, 4) = -1./4.;
+  dn2ds2(2, 0) = 1./4.;
+  dn2ds2(2, 1) = -1./4.;
+  dn2ds2(2, 2) = 1./4.;
+  dn2ds2(2, 3) = -1./4.;
 
+  dn2ds2(3, 0) = 0;
   dn2ds2(3, 1) = 0;
   dn2ds2(3, 2) = 0;
   dn2ds2(3, 3) = 0;
-  dn2ds2(3, 4) = 0;
 }
 
 /* -------------------------------------------------------------------------- */
