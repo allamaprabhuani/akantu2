@@ -76,30 +76,12 @@ void ContactDetector::parseSection() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::search(std::map<UInt, ContactElement> & contact_map) {
-
-  this->mesh.fillNodesToElements(this->spatial_dimension - 1);
-  this->computeMaximalDetectionDistance();
-
-  contact_pairs.clear();
-
-  SpatialGrid<UInt> master_grid(spatial_dimension);
-  SpatialGrid<UInt> slave_grid(spatial_dimension);
-
-  this->globalSearch(slave_grid, master_grid);
-
-  this->localSearch(slave_grid, master_grid);
-
-  this->constructContactMap(contact_map);
-}
-
-
-/* -------------------------------------------------------------------------- */
 void ContactDetector::search(Array<ContactElement> & elements,
 			     Array<Real> & gaps, Array<Real> & normals,
 			     Array<Real> & projections) {
 
   UInt surface_dimension = spatial_dimension - 1;
+
   this->mesh.fillNodesToElements(surface_dimension);
   this->computeMaximalDetectionDistance();
 
@@ -112,7 +94,7 @@ void ContactDetector::search(Array<ContactElement> & elements,
 
   this->localSearch(slave_grid, master_grid);
 
-  createContactElements(elements, gaps, normals, projections);
+  this->createContactElements(elements, gaps, normals, projections);
 
 }
 
@@ -242,7 +224,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::constructContactMap(
+/*void ContactDetector::constructContactMap(
     std::map<UInt, ContactElement> & contact_map) {
 
   auto surface_dimension = spatial_dimension - 1;
@@ -330,7 +312,7 @@ void ContactDetector::constructContactMap(
   }
 
   contact_pairs.clear();
-}
+  }*/
 
 
 /* -------------------------------------------------------------------------- */

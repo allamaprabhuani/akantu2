@@ -100,7 +100,7 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
 
   Matrix<Real> covariant_basis(surface_dimension, spatial_dimension);
   GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
-				element.master, projection, covariant_basis);
+				element.master, normal, projection, covariant_basis);
   
   Vector<Real> traction_trial(spatial_dimension);
   computeTrialTangentialTraction(element, covariant_basis, traction_trial);
@@ -160,7 +160,7 @@ void ResolutionPenalty::computeTrialTangentialTraction(const ContactElement & el
 }
 
 /* -------------------------------------------------------------------------- */
-  void ResolutionPenalty::computeStickTangentialTraction(const ContactElement & /*element*/,
+void ResolutionPenalty::computeStickTangentialTraction(const ContactElement & /*element*/,
 						       Vector<Real> & traction_trial,
 						       Vector<Real> & traction_tangential) {
   traction_tangential = traction_trial;
@@ -207,8 +207,8 @@ void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & ele
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
-					    const Matrix<Real> & ddelta_g,
-					    const Vector<Real> & delta_g, Matrix<Real> & stiffness) {
+					    Matrix<Real> & ddelta_g,
+					    Vector<Real> & delta_g, Matrix<Real> & stiffness) {
 
   auto & gaps = model.getGaps();
   auto & gap = gaps.begin()[element.slave];
@@ -219,14 +219,26 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   Matrix<Real> tmp(delta_g.storage(), delta_g.size(), 1);
   Matrix<Real> mat_delta_g(delta_g.size(), delta_g.size());
 
-  Real macaulay_gap = macaulay(gap);
-  mat_delta_g.mul<false, true>(tmp, tmp, macaulay_gap);
-    
+  Real heaviside_gap = heaviside(gap);
+  mat_delta_g.mul<false, true>(tmp, tmp, heaviside_gap);
 
+  Real macaulay_gap = macaulay(gap);
+  ddelta_g *= macaulay_gap;
+  
   stiffness += mat_delta_g + ddelta_g;
   stiffness *= epsilon_n * nodal_area;
 }
   
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::computeTangentialModuli(const ContactElement & /*element*/,
+						Matrix<Real> & /*ddelta_g*/,
+						Vector<Real> & /*delta_g*/,
+						Matrix<Real> & /*stiffness*/){
+
+  if (mu == 0) 
+    return;
+  
+}
   
 /* -------------------------------------------------------------------------- */
 /*void ResolutionPenalty::computeNormalModuli(Matrix<Real> & ke,
@@ -238,7 +250,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   auto & gaps = model.getGaps();
   auto & gap = gaps.begin()[element.slave];
   
-Real tn = gap * epsilon_n;
+  Real tn = gap * epsilon_n;
   tn = macaulay(tn);
 
   Matrix<Real> n_mat(n.storage(), n.size(), 1);

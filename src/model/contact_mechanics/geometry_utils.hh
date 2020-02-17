@@ -46,7 +46,7 @@ class GeometryUtils {
 public:
   /// computes the normal on an element
   static void normal(const Mesh & mesh, const Array<Real> & positions,
-		     const Element & element, Vector<Real> & normal);
+		     const Element & element, Vector<Real> & normal, bool outward=true);
 
   /// computes the orthogonal projection on a set of elements and
   /// returns natural projection and normal gap and index of element
@@ -69,9 +69,16 @@ public:
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
   static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
-				    const Element & element, Vector<Real> & natural_coord,
-				    Matrix<Real> & basis);
+			     const Element & element,  const Vector<Real> & normal,
+			     Vector<Real> & natural_coord,
+			     Matrix<Real> & basis);
 
+  // computes the curvature on projection
+  static void curvature(const Mesh & mesh, const Array<Real> & positions,
+			const Element & element, const Vector<Real> & natural_coord,
+			Matrix<Real> & curvature);
+
+  
   /// computes the contravariant basis on projection point
   static void contravariantBasis(const Matrix<Real> & covariant,
 				 Matrix<Real> & contravariant);

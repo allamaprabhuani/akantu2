@@ -47,18 +47,24 @@ class ResolutionUtils {
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// computes the metric tensor (@f$m_{\alpha\beta}@f$) where @f$\alpha,
+  /// computes the first covariant metric tensor (@f$A_{\alpha\beta}@f$) where @f$\alpha,
   /// \beta@f$ are surface directions
   static void computeMetricTensor(Matrix<Real> & metric_tensor,
                                   const Matrix<Real> & tangents);
 
+  /// computes the second covariant metric tensor
+  /// (@f$H_{\alpha\beta}@f$)
+  static void computeSecondMetricTensor(const ContactElement &, const Matrix<Real> &,
+					const Vector<Real> &, Matrix<Real> &);
+  
   /// computes the first variation of normal gap
   static void firstVariationNormalGap(const ContactElement & , const Vector<Real> &,
 				      const Vector<Real> &, Vector<Real> &);
 
   /// computes the seond variation of normal gap
   static void secondVariationNormalGap(const ContactElement & , const Matrix<Real> & ,
-				       const Vector<Real> &, const Vector<Real> &, Real &,
+				       const Matrix<Real> &, const Vector<Real> &,
+				       const Vector<Real> &, Real &,
 				       Matrix<Real> & );
   
   /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension

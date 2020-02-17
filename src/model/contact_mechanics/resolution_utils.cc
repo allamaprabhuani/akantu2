@@ -64,7 +64,8 @@ void ResolutionUtils::firstVariationNormalGap(const ContactElement & element,
 /* -------------------------------------------------------------------------- */
 void ResolutionUtils::secondVariationNormalGap(const ContactElement & element,
 					       const Matrix<Real> & covariant_basis,
-					       const Vector<Real> & projection,
+					       const Matrix<Real> & curvature,
+ 					       const Vector<Real> & projection,
 					       const Vector<Real> & normal, Real & gap,
 					       Matrix<Real> & ddelta_g) {
 
@@ -85,6 +86,10 @@ void ResolutionUtils::secondVariationNormalGap(const ContactElement & element,
   ResolutionUtils::computeMetricTensor(a_alpha_beta, covariant_basis);
   a_alpha_beta = a_alpha_beta.inverse();
 
+  Matrix<Real> h_alpha_beta(surface_dimension, surface_dimension);
+  ResolutionUtils::computeSecondMetricTensor(element, curvature,
+					     normal, h_alpha_beta);
+
   for (auto && values : zip(arange(surface_dimension),
 			    make_view(dnds_n, dnds_n.size()),
 			    make_view(delta_xi, delta_xi.size()))) {
@@ -93,6 +98,8 @@ void ResolutionUtils::secondVariationNormalGap(const ContactElement & element,
     auto & dnds_n_alpha = std::get<1>(values);
     auto & delta_xi_alpha = std::get<2>(values);
 
+    // term 1 from Numerical methods in contact mechanics : Vlad
+    // Yastrebov eq 2.48 
     Matrix<Real> mat_n(dnds_n_alpha.storage(), dnds_n_alpha.size(), 1);
     Matrix<Real> mat_xi(delta_xi_alpha.storage(), delta_xi_alpha.size(), 1);
 
@@ -105,24 +112,43 @@ void ResolutionUtils::secondVariationNormalGap(const ContactElement & element,
     Matrix<Real> term1(dnds_n_alpha.size(), dnds_n_alpha.size());
     term1 = tmp1 + tmp2;
 
-    // missing term 2
-    
+    // computing term 2 & term 3 from Numerical methods in contact
+    // mechanics : Vlad Yastrebov eq 2.48
+    Matrix<Real> term2(delta_xi_alpha.size(), delta_xi_alpha.size());
     Matrix<Real> term3(dnds_n_alpha.size(), dnds_n_alpha.size());
+
     for (auto && values2 : zip(arange(surface_dimension),
-			       make_view(dnds_n, dnds_n.size()))) {
+			       make_view(dnds_n, dnds_n.size()),
+			       make_view(delta_xi, delta_xi.size()))) {
       auto & beta = std::get<0>(values2);
       auto & dnds_n_beta = std::get<1>(values2);
+      auto & delta_xi_beta = std::get<2>(values2);
 
+      // term 2
+      Matrix<Real> mat_xi_beta(delta_xi_beta.storage(), delta_xi.size(), 1);
+      Matrix<Real> tmp3(delta_xi_beta.size(), delta_xi_beta.size());
+
+      Real pre_factor = h_alpha_beta(alpha, beta);
+      for (auto k : arange(surface_dimension)) {
+	for (auto m : arange(surface_dimension)) {
+	  pre_factor -= gap * h_alpha_beta(alpha, k) * a_alpha_beta(k, m) * h_alpha_beta(m, beta);
+	}
+      }
+
+      pre_factor *= -1.;
+      tmp3.mul<false, true>(mat_xi, mat_xi_beta, pre_factor);
+
+      // term 3
       Matrix<Real> mat_n_beta(dnds_n_beta.storage(), dnds_n_beta.size(), 1);
 
       Real factor = gap * a_alpha_beta(alpha, beta);
-      Matrix<Real> tmp(dnds_n_alpha.size(), dnds_n_alpha.size());
-      tmp.mul<false, true>(mat_n, mat_n_beta, factor);
+      Matrix<Real> tmp4(dnds_n_alpha.size(), dnds_n_alpha.size());
+      tmp4.mul<false, true>(mat_n, mat_n_beta, factor);
 
-      term3 += tmp;
+      term3 += tmp4;
     }
 
-    ddelta_g += term1 + term3;
+    ddelta_g += term1 + term2 + term3;
   }
 }
   
@@ -246,8 +272,7 @@ void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
   
   const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
-  auto spatial_dimension = surface_dimension + 1;
-  
+    
   Matrix<Real> shape_derivatives(surface_dimension,
 				 Mesh::getNbNodesPerElement(type));
 
@@ -392,6 +417,26 @@ void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, const Mat
   m_alpha_beta.mul<false, true>(tangents, tangents);
 }
 
+
+/* -------------------------------------------------------------------------- */
+void ResolutionUtils::computeSecondMetricTensor(const ContactElement & element,
+						const Matrix<Real> & curvature,
+						const Vector<Real> & normal,
+						Matrix<Real> & metric) {
+
+  const auto & type = element.master.type;
+  auto surface_dimension = Mesh::getSpatialDimension(type);
+  
+  auto i = 0;
+  for (auto alpha : arange(surface_dimension) ) {
+    for (auto beta : arange(surface_dimension)) {
+      Vector<Real> temp(curvature(i));
+      metric(alpha, beta) = normal.dot(temp);
+      i++;
+    }
+  }    
+}
+  
 /* -------------------------------------------------------------------------- */
 void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array,
                                               Array<Real> & global_array,

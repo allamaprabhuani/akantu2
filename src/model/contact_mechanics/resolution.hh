@@ -128,9 +128,17 @@ protected:
 public:
   /// compute the tangent moduli due to normal traction
   virtual void computeNormalModuli(__attribute__((unused)) const ContactElement &,
-				   __attribute__((unused)) const Matrix<Real> &,
-				   __attribute__((unused)) const Vector<Real> &,
+				   __attribute__((unused)) Matrix<Real> &,
+				   __attribute__((unused)) Vector<Real> &,
 				   __attribute__((unused)) Matrix<Real> & ) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+  /// compute the tangent moduli due to tangential traction
+  virtual void computeTangentialModuli(__attribute__((unused)) const ContactElement &,
+				       __attribute__((unused)) Matrix<Real> &,
+				       __attribute__((unused)) Vector<Real> &,
+				       __attribute__((unused)) Matrix<Real> & ) {
     AKANTU_TO_IMPLEMENT();
   }
 

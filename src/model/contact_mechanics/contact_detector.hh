@@ -73,9 +73,6 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// performs all search steps
-  void search(std::map<UInt, ContactElement> &);
-
-  /// performs all search steps
   void search(Array<ContactElement> & contact_map,
 	      Array<Real> & gaps, Array<Real> & normals,
 	      Array<Real> & projections);
@@ -85,9 +82,6 @@ public:
 
   ///  performs local search to find closet master node to a slave node
   void localSearch(SpatialGrid<UInt> &, SpatialGrid<UInt> &);
-
-  /// constructs contact map for a given pair of slave and master node
-  void constructContactMap(std::map<UInt, ContactElement> &);
 
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,

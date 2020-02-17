@@ -300,7 +300,12 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   UInt nb_nodes = mesh.getNbNodes();
   this->internal_force->clear();
+  this->normal_force->clear();
+  this->tangential_force->clear();
+
   internal_force->resize(nb_nodes, 0.);
+  normal_force->resize(nb_nodes, 0.);
+  tangential_force->resize(nb_nodes, 0.);
 
   // assemble the forces due to contact
   auto assemble = [&](auto && ghost_type) {
@@ -323,9 +328,15 @@ void ContactMechanicsModel::search() {
 
   UInt nb_nodes = mesh.getNbNodes();
 
+  contact_elements.clear();
+  contact_elements.resize(0);
+  
   // this to resize if cohesive elements are added
+  gaps->clear();
   gaps->resize(nb_nodes, 0.);
+  normals->clear();
   normals->resize(nb_nodes, 0.);
+  projections->clear();
   projections->resize(nb_nodes, 0.);
   
   this->detector->search(contact_elements, *gaps,

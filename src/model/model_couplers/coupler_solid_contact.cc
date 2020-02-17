@@ -171,21 +171,6 @@ void CouplerSolidContact::assembleResidual() {
 
   auto & contact_force = contact->getInternalForce();
 
-  /*switch (method) {
-  case _explicit_dynamic_contact: {
-    for (auto & pair : contact_map) {
-      auto & connectivity = pair.second.connectivity;
-      for (auto node : connectivity) {
-        for (auto s : arange(spatial_dimension))
-          external_force(node, s) = contact_force(node, s);
-      }
-    }
-    break;
-  }
-  default:
-    break;
-  }*/
-
   auto get_connectivity = [&](auto & slave, auto & master) {
     Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
     Vector<UInt> elem_conn(master_conn.size() + 1);
@@ -199,6 +184,8 @@ void CouplerSolidContact::assembleResidual() {
 
   
   switch(method) {
+  case _explicit_contact:
+  case _implicit_contact:  
   case _explicit_dynamic_contact: {
     for (auto & element : contact->getContactElements()) {
       for (auto & conn : get_connectivity(element.slave, element.master)) {
@@ -219,7 +206,7 @@ void CouplerSolidContact::assembleResidual() {
   switch (method) {
   case _explicit_contact:
   case _implicit_contact: {
-    this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
+    //this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
     break;
   }
   default:
@@ -231,6 +218,8 @@ void CouplerSolidContact::assembleResidual() {
 void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   AKANTU_DEBUG_IN();
 
+  //contact->assembleInternalForces();
+  
   auto & internal_force = solid->getInternalForce();
   auto & external_force = solid->getExternalForce();
 
@@ -248,7 +237,7 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   };
 
   
-  switch(method) {
+  /*switch(method) {
   case _explicit_dynamic_contact: {
     for (auto & element : contact->getContactElements()) {
       for (auto & conn : get_connectivity(element.slave, element.master)) {
@@ -260,26 +249,12 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   }
   default:
     break;
-  }
-
-  
-  /*  switch (method) {
-  case _explicit_dynamic_contact: {
-    for (auto & pair : contact_map) {
-      auto & connectivity = pair.second.connectivity;
-      for (auto node : connectivity) {
-        for (auto s : arange(spatial_dimension))
-          external_force(node, s) = contact_force(node, s);
-      }
-    }
-    break;
-  }
-  default:
-    break;
     }*/
 
+  
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", external_force, 1);
+    this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
     AKANTU_DEBUG_OUT();
     return;
   }
@@ -289,8 +264,7 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
     switch (method) {
     case _explicit_contact:
     case _implicit_contact: {
-      this->getDOFManager().assembleToResidual("displacement", contact_force,
-                                                1);
+      this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
       break;
     }
     default:
@@ -429,7 +403,7 @@ void CouplerSolidContact::assembleStiffnessMatrix() {
   switch (method) {
   case _explicit_contact:  
   case _implicit_contact: {
-    contact->assembleStiffnessMatrix();
+    //contact->assembleStiffnessMatrix();
     break;
   }
   default:

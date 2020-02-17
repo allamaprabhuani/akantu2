@@ -37,7 +37,7 @@ namespace akantu {
   
 /* -------------------------------------------------------------------------- */
 void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
-			   const Element & element, Vector<Real> & normal) {
+			   const Element & element, Vector<Real> & normal, bool outward) {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
   UInt surface_dimension = spatial_dimension - 1;
@@ -67,31 +67,35 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
   }
 
   // to ensure that normal is always outwards from master surface
-  const auto & element_to_subelement =
-      mesh.getElementToSubelement(element.type)(element.element);
+  if (outward) {
+      
+   const auto & element_to_subelement =
+     mesh.getElementToSubelement(element.type)(element.element);
 
-  Vector<Real> outside(spatial_dimension);
-  mesh.getBarycenter(element, outside);
+   Vector<Real> outside(spatial_dimension);
+   mesh.getBarycenter(element, outside);
 
-  // check if mesh facets exists for cohesive elements contact
-  Vector<Real> inside(spatial_dimension);
-  if (mesh.isMeshFacets()) {
-    mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
-  } else {
-    mesh.getBarycenter(element_to_subelement[0], inside);
+   // check if mesh facets exists for cohesive elements contact
+   Vector<Real> inside(spatial_dimension);
+   if (mesh.isMeshFacets()) {
+     mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
+   } else {
+     mesh.getBarycenter(element_to_subelement[0], inside);
+   }
+
+   Vector<Real> inside_to_outside = outside - inside;
+   auto projection = inside_to_outside.dot(normal);
+
+   if (projection < 0) {
+     normal *= -1.0;
+   }
   }
-
-  Vector<Real> inside_to_outside = outside - inside;
-  auto projection = inside_to_outside.dot(normal);
-
-  if (projection < 0) {
-    normal *= -1.0;
-  }  
 }
 
 /* -------------------------------------------------------------------------- */
 void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positions,
-				   const Element & element, Vector<Real> & natural_coord,
+				   const Element & element, const Vector<Real> & normal,
+				   Vector<Real> & natural_coord,
 				   Matrix<Real> & tangents) {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -125,7 +129,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positi
 
   // to ensure that direction of tangents are correct, cross product
   // of tangents should give the normal vector computed earlier
-  /*switch (spatial_dimension) {
+  switch (spatial_dimension) {
   case 2: {
     Vector<Real> e_z(3);
     e_z[0] = 0.;
@@ -139,13 +143,10 @@ void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positi
 
     auto exp_normal = e_z.crossProduct(tangent);
 
-    auto & cal_normal = element.normal;
-
-    auto ddot = cal_normal.dot(exp_normal);
+    auto ddot = normal.dot(exp_normal);
     if (ddot < 0) {
       tangents *= -1.0;
     }
-
     break;
   }
   case 3: {
@@ -156,9 +157,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positi
     auto tang1_cross_tang2 = tang1.crossProduct(tang2);
     auto exp_normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
 
-    auto & cal_normal = element.normal;
-
-    auto ddot = cal_normal.dot(exp_normal);
+    auto ddot = normal.dot(exp_normal);
     if (ddot < 0) {
       tang_trans(1) *= -1.0;
     }
@@ -168,10 +167,37 @@ void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positi
   }
   default:
     break;
-  }*/
+  }
 }
 
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
+			      const Element & element, const Vector<Real> & natural_coord,
+			      Matrix<Real> & curvature) {
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto surface_dimension = spatial_dimension - 1;
 
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  
+  Matrix<Real> dn2ds2(surface_dimension * surface_dimension,
+		      Mesh::getNbNodesPerElement(type));
+  
+#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
+    ElementClass<type>::computeDN2DS2(natural_coord, dn2ds2)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+
+    Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
+    mesh.extractNodalValuesFromElement(positions, coords.storage(),
+				       elem_val + element.element * nb_nodes_per_element,
+				       nb_nodes_per_element, spatial_dimension);
+
+    curvature.mul<false, true>(coords, dn2ds2);
+}
+
+  
 /* -------------------------------------------------------------------------- */
 UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
 					 const Vector<Real> & slave,
