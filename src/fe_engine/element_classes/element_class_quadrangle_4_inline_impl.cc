@@ -118,7 +118,7 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDNDS(
 template<>
 template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeDN2DS2(
-   const vector_type & c, matrix_type & dn2ds2) {
+    const vector_type & /*c*/, matrix_type & dn2ds2) {
 
   dn2ds2(0, 0) = 0;
   dn2ds2(0, 1) = 0;

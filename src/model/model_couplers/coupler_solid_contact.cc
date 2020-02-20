@@ -225,7 +225,7 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
 
   auto & contact_force = contact->getInternalForce();
 
-  auto get_connectivity = [&](auto & slave, auto & master) {
+  /*auto get_connectivity = [&](auto & slave, auto & master) {
     Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
     Vector<UInt> elem_conn(master_conn.size() + 1);
 
@@ -234,10 +234,10 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
       elem_conn[i] = master_conn[i - 1];
     }
     return elem_conn;
-  };
+    };
 
   
-  /*switch(method) {
+  switch(method) {
   case _explicit_dynamic_contact: {
     for (auto & element : contact->getContactElements()) {
       for (auto & conn : get_connectivity(element.slave, element.master)) {
@@ -305,7 +305,7 @@ void CouplerSolidContact::predictor() {
     for (auto && tuple : zip(make_view(us), make_view(blocked_dofs),
                              make_view(current_positions))) {
       auto & u = std::get<0>(tuple);
-      const auto & bld = std::get<1>(tuple);
+      //const auto & bld = std::get<1>(tuple);
       auto & cp = std::get<2>(tuple);
 
       //if (not bld)
@@ -337,7 +337,7 @@ void CouplerSolidContact::corrector() {
     for (auto && tuple : zip(make_view(us), make_view(blocked_dofs),
                              make_view(current_positions))) {
       auto & u = std::get<0>(tuple);
-      const auto & bld = std::get<1>(tuple);
+      //const auto & bld = std::get<1>(tuple);
       auto & cp = std::get<2>(tuple);
 
       //if (not bld)
