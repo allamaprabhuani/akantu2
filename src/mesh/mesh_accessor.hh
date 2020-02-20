@@ -61,7 +61,7 @@ public:
   inline UInt getNbGlobalNodes() const { return this->_mesh.nb_global_nodes; }
 
   /// set the global number of nodes
-  inline void setNbGlobalNodes(UInt nb_global_nodes) {
+  inline void setNbGlobalNodes(Int nb_global_nodes) {
     this->_mesh.nb_global_nodes = nb_global_nodes;
   }
 
@@ -169,10 +169,10 @@ public:
   }
 
   template <typename T>
-  inline auto & getData(const std::string & data_name, ElementType el_type,
-                        GhostType ghost_type = _not_ghost,
-                        UInt nb_component = 1, bool size_to_nb_element = true,
-                        bool resize_with_parent = false) {
+  inline auto &
+  getData(const std::string & data_name, const ElementType & el_type,
+          const GhostType & ghost_type = _not_ghost, Int nb_component = 1,
+          bool size_to_nb_element = true, bool resize_with_parent = false) {
     return this->_mesh.getDataPointer<T>(data_name, el_type, ghost_type,
                                          nb_component, size_to_nb_element,
                                          resize_with_parent);
@@ -200,12 +200,12 @@ public:
   void makeReady() { this->_mesh.makeReady(); }
 
   /* ------------------------------------------------------------------------ */
-  void addPeriodicSlave(UInt slave, UInt master) {
+  void addPeriodicSlave(Idx slave, Idx master) {
     this->_mesh.addPeriodicSlave(slave, master);
   }
 
   void markMeshPeriodic() {
-    for (UInt s : arange(this->_mesh.spatial_dimension)) {
+    for (Idx s : arange(this->_mesh.spatial_dimension)) {
       this->_mesh.is_periodic |= 1 << s;
     }
   }

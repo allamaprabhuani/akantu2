@@ -29,7 +29,7 @@
 #include <math.h>
 
 namespace akantu {
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 
 /* -------------------------------------------------------------------------- */
 MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
@@ -53,7 +53,7 @@ MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialIGFEMIterativeStiffnessReduction<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
@@ -71,7 +71,7 @@ void MaterialIGFEMIterativeStiffnessReduction<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -123,7 +123,7 @@ void MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIGFEMIterativeStiffnessReduction<
     spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
@@ -233,7 +233,7 @@ UInt MaterialIGFEMIterativeStiffnessReduction<
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMIterativeStiffnessReduction<
     spatial_dimension>::onElementsAdded(__attribute__((unused))
                                         const Array<Element> & element_list,

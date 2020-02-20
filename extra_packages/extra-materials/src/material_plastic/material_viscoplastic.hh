@@ -37,7 +37,7 @@ namespace akantu {
  *   - ts: Time step
  */
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialViscoPlastic : public MaterialPlastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

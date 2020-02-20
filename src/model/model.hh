@@ -61,13 +61,13 @@ class Model : public ModelSolver, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
 public:
   /// Normal constructor where the DOFManager is created internally
-  Model(Mesh & mesh, const ModelType & type, UInt dim = _all_dimensions,
+  Model(Mesh & mesh, const ModelType & type, Int dim = _all_dimensions,
         const ID & id = "model");
 
   /// Model constructor the the dof manager is created externally, for example
   /// in a ModelCoupler
   Model(Mesh & mesh, const ModelType & type,
-        std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
+        std::shared_ptr<DOFManager> dof_manager, Int dim = _all_dimensions,
         const ID & id = "model");
 
   ~Model() override;
@@ -190,7 +190,7 @@ public:
 
 protected:
   template <typename T>
-  void allocNodalField(std::unique_ptr<Array<T>> & array, UInt nb_component,
+  void allocNodalField(std::unique_ptr<Array<T>> & array, Int nb_component,
                        const ID & name) const;
 
   /* ------------------------------------------------------------------------ */
@@ -217,7 +217,7 @@ public:
   /// register a fem object associated with name
   template <typename FEEngineClass>
   inline void registerFEEngineObject(const std::string & name, Mesh & mesh,
-                                     UInt spatial_dimension);
+                                     Int spatial_dimension);
   /// unregister a fem object associated with name
   inline void unRegisterFEEngineObject(const std::string & name);
 
@@ -242,7 +242,7 @@ public:
   /* Pack and unpack hexlper functions                                         */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbIntegrationPoints(const Array<Element> & elements,
+  inline Int getNbIntegrationPoints(const Array<Element> & elements,
                                      const ID & fem_id = ID()) const;
 
   /* ------------------------------------------------------------------------ */
@@ -286,8 +286,8 @@ public:
   virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
                                          const std::string & field_id,
                                          const std::string & group_name,
-                                         UInt spatial_dimension,
-                                         ElementKind element_kind,
+                                         Int spatial_dimension,
+                                         const ElementKind & element_kind,
                                          bool padding_flag);
 
   virtual void removeDumpGroupField(const std::string & field_id,
@@ -311,7 +311,7 @@ public:
   }
 
   virtual std::shared_ptr<dumpers::Field>
-  createNodalFieldUInt(const std::string & /*field_name*/,
+  createNodalFieldInt(const std::string & /*field_name*/,
                        const std::string & /*group_name*/,
                        bool /*padding_flag*/) {
     return nullptr;
@@ -326,7 +326,7 @@ public:
 
   virtual std::shared_ptr<dumpers::Field> createElementalField(
       const std::string & /*field_name*/, const std::string & /*group_name*/,
-      bool /*padding_flag*/, UInt /*spatial_dimension*/, ElementKind /*kind*/) {
+      bool /*padding_flag*/, Int /*spatial_dimension*/, ElementKind /*kind*/) {
     return nullptr;
   }
 
@@ -360,7 +360,7 @@ protected:
   Mesh & mesh;
 
   /// Spatial dimension of the problem
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// the main fem object present in all  models
   FEEngineMap fems;

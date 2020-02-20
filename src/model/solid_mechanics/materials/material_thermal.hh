@@ -38,7 +38,7 @@
 #define AKANTU_MATERIAL_THERMAL_HH_
 
 namespace akantu {
-template <UInt spatial_dimension> class MaterialThermal : public Material {
+template <Int spatial_dimension> class MaterialThermal : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -93,7 +93,7 @@ protected:
 /* ------------------------------------------------------------------------ */
 /* Inline impl                                                              */
 /* ------------------------------------------------------------------------ */
-template <UInt dim>
+template <Int dim>
 inline void MaterialThermal<dim>::computeStressOnQuad(Real & sigma,
                                                       const Real & deltaT) {
   sigma = -this->E / (1. - 2. * this->nu) * this->alpha * deltaT;

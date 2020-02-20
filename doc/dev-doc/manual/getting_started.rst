@@ -7,7 +7,7 @@ Building ``Akantu``
 Dependencies
 ````````````
 
-In order to compile ``Akantu``  any compiler supporting fully C++14 should work
+In order to compile ``Akantu``  any compiler supporting fully C++14 should work.
 In addition some libraries are required:
 
  - CMake (>= 3.5.1)
@@ -48,6 +48,32 @@ follow the usual way::
   [ Set the options that you need ]
   > make
   > make install
+
+Using the python interface
+--------------------------
+
+You can install ``Akantu`` using pip::
+
+  > pip install akantu
+
+You can then import the package in a python script as::
+
+  import akantu
+
+The python API is similar to the C++ one, see :ref:`reference` . If you encouter any problem with the python interface, you are welcome to do a merge request or post an issue on `GitLab <https://gitlab.com/akantu/akantu/-/issues>`_ .
+  
+Tutorials with the python interface
+```````````````````````````````````    
+
+To help getting started, several tutorials using the python interface
+are available as notebooks with pre-installed version of ``Akantu`` on Binder.
+The following tutorials are currently available:
+
+`Plate whith a hole loaded <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=plate-hole/plate-hole.ipynb>`_
+
+`Loaded cohesive crack <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=cohesive-fracture/cohesive-fracture.ipynb>`_
+
+`Making your constitutive law in python <https://mybinder.org/v2/git/https%3A%2F%2Fgitlab.com%2Fakantu%2Ftutorials.git/HEAD?filepath=constitutive-laws/python_constitutive_law.ipynb>`_
 
 
 Writing a ``main`` function

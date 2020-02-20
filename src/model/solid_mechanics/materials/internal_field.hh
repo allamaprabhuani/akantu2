@@ -57,13 +57,13 @@ public:
 
   /// This constructor is only here to let cohesive elements compile
   InternalFieldTmpl(const ID & id, Material & material, FEEngine & fem,
-		    const ElementTypeMapArray<UInt> & element_filter);
+		    const ElementTypeMapArray<Idx> & element_filter);
 
   /// More general constructor
-  InternalFieldTmpl(const ID & id, Material & material, UInt dim, FEEngine & fem,
-		    const ElementTypeMapArray<UInt> & element_filter);
+  InternalFieldTmpl(const ID & id, Material & material, Int dim, FEEngine & fem,
+		    const ElementTypeMapArray<Idx> & element_filter);
 
-    InternalFieldTmpl(const ID & id, const InternalFieldTmpl<Material, T> & other);
+  InternalFieldTmpl(const ID & id, const InternalFieldTmpl<Material, T> & other);
 
 
 private:
@@ -103,7 +103,7 @@ public:
 
   /// remove the quadrature points corresponding to suppressed elements
   virtual void
-  removeIntegrationPoints(const ElementTypeMapArray<UInt> & new_numbering);
+  removeIntegrationPoints(const ElementTypeMapArray<Int> & new_numbering);
 
   /// print the content
   void printself(std::ostream & stream, int /*indent*/ = 0) const override;
@@ -119,7 +119,7 @@ public:
 
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
-  void internalInitialize(UInt nb_component);
+  void internalInitialize(Int nb_component);
 
   /// set the values for new internals
   virtual void setArrayValues(T * begin, T * end);
@@ -175,10 +175,10 @@ public:
   }
 
   /// get the array for a given type of the element_filter
-  const Array<UInt> &
-  getFilter(ElementType type,
-            GhostType ghost_type = _not_ghost) const {
-    return this->element_filter(type, ghost_type);
+  const decltype(auto)
+  getFilter(const ElementType & type,
+            const GhostType & ghost_type = _not_ghost) const {
+    return (this->element_filter(type, ghost_type));
   }
 
   /// get the Array corresponding to the type en ghost_type specified
@@ -231,11 +231,11 @@ public:
   ElementKind getElementKind() const { return element_kind; }
 
   /// return the number of components
-  UInt getNbComponent() const { return nb_component; }
+  Int getNbComponent() const { return nb_component; }
 
   /// return the spatial dimension corresponding to the internal element type
   /// loop filter
-  UInt getSpatialDimension() const { return this->spatial_dimension; }
+  Int getSpatialDimension() const { return this->spatial_dimension; }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -248,19 +248,19 @@ protected:
   FEEngine * fem{nullptr};
 
   /// Element filter if needed
-  const ElementTypeMapArray<UInt> & element_filter;
+  const ElementTypeMapArray<Int> & element_filter;
 
   /// default value
   T default_value{};
 
   /// spatial dimension of the element to consider
-  UInt spatial_dimension{0};
+  Int spatial_dimension{0};
 
   /// ElementKind of the element to consider
   ElementKind element_kind{_ek_regular};
 
   /// Number of component of the internal field
-  UInt nb_component{0};
+  Int nb_component{0};
 
   /// Is the field initialized
   bool is_init{false};

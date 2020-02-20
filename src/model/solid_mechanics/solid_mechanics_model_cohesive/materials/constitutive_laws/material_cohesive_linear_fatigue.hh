@@ -60,7 +60,7 @@ namespace akantu {
  *      cycles (default: delta_c)
  */
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveLinearFatigue
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

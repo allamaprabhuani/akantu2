@@ -122,7 +122,7 @@ protected:
 
   /// Empty array to be able to return consistent filtered arrays
   Array<T> empty_array;
-  Array<UInt> empty_filter;
+  Array<Int> empty_filter;
 };
 
 } // namespace akantu

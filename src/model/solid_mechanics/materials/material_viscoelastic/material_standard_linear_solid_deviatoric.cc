@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialStandardLinearSolidDeviatoric<
     dim>::MaterialStandardLinearSolidDeviatoric(SolidMechanicsModel & model,
                                                 const ID & id)
@@ -64,7 +64,7 @@ MaterialStandardLinearSolidDeviatoric<
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
@@ -75,14 +75,14 @@ void MaterialStandardLinearSolidDeviatoric<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::updateInternalParameters() {
   MaterialElastic<dim>::updateInternalParameters();
   E_inf = this->E - this->Ev;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::setToSteadyState(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -121,7 +121,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::setToSteadyState(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -187,7 +187,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -253,7 +253,7 @@ void MaterialStandardLinearSolidDeviatoric<dim>::updateDissipatedEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
   AKANTU_DEBUG_IN();
 
@@ -271,7 +271,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
@@ -286,7 +286,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
     const std::string & type) {
   if (type == "dissipated") {
@@ -299,7 +299,7 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getEnergy(
     const std::string & energy_id, ElementType type, UInt index) {
   if (energy_id == "dissipated") {

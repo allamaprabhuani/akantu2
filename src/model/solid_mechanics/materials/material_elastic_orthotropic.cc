@@ -142,7 +142,7 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialElasticOrthotropic<spatial_dimension>::
     computePotentialEnergyByElement(ElementType type, UInt index,
                                     Vector<Real> & epot_on_quad_points) {

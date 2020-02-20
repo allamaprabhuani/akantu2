@@ -31,7 +31,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_named_argument.hh"
-#include "aka_static_if.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -62,7 +61,7 @@ public:
     AKANTU_GET_MACRO(Type, type, ElementType);
     AKANTU_GET_MACRO(GhostType, ghost_type, GhostType);
 
-    const Array<UInt> & getElements() {
+    const Array<Int> & getElements() {
       elements.resize(end - begin);
       auto el_it = elements.begin();
       for (auto it = begin; it != end; ++it, ++el_it) {
@@ -77,7 +76,7 @@ public:
     GhostType ghost_type{_casper};
     elements_iterator begin;
     elements_iterator end;
-    Array<UInt> elements;
+    Array<Int> elements;
   };
 
   /* ------------------------------------------------------------------------ */
@@ -165,7 +164,7 @@ namespace mesh_iterators {
 
 /* -------------------------------------------------------------------------- */
 template <class Func>
-void for_each_element(UInt nb_elements, const Array<UInt> & filter_elements,
+void for_each_element(Int nb_elements, const Array<Idx> & filter_elements,
                       Func && function) {
   if (filter_elements != empty_filter) {
     std::for_each(filter_elements.begin(), filter_elements.end(),
@@ -180,7 +179,7 @@ void for_each_element(UInt nb_elements, const Array<UInt> & filter_elements,
 template <class Func, typename... pack>
 void for_each_element(const Mesh & mesh, Func && function, pack &&... _pack) {
   auto requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _casper);
-  const ElementTypeMapArray<UInt> * filter =
+  const ElementTypeMapArray<Idx> * filter =
       OPTIONAL_NAMED_ARG(element_filter, nullptr);
 
   bool all_ghost_types = requested_ghost_type == _casper;
@@ -203,7 +202,7 @@ void for_each_element(const Mesh & mesh, Func && function, pack &&... _pack) {
     }
 
     for (auto type : element_types) {
-      const Array<UInt> * filter_array;
+      const Array<Idx> * filter_array;
 
       if (filter) {
         filter_array = &((*filter)(type, ghost_type));

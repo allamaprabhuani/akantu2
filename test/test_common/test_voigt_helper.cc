@@ -88,7 +88,7 @@ protected:
   Vector<Real> vector_factor;
 };
 
-template <UInt dim>
+template <Int dim>
 using spatial_dimension_t = std::integral_constant<UInt, dim>;
 
 using TestTypes =

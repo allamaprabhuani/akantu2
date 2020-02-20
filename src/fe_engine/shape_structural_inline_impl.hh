@@ -86,8 +86,8 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::computeShapesOnIntegrationPointsInternal(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
-    Array<Real> & shapes, GhostType ghost_type,
-    const Array<UInt> & filter_elements, bool mass) const {
+    Array<Real> & shapes, const GhostType & ghost_type,
+    const Array<Int> & filter_elements) const {
 
   auto nb_points = integration_points.cols();
   auto nb_element = mesh.getConnectivity(type, ghost_type).size();
@@ -313,8 +313,9 @@ void ShapeStructural<kind>::precomputeShapeDerivativesOnIntegrationPoints(
     Matrix<Real> T(B.size(1), B.size(1));
     T.fill(0);
 
-    for (UInt i = 0; i < nb_nodes_per_element; ++i) {
-      T.block(i * RDOFs.rows(), i * RDOFs.rows(), RDOFs.rows(), RDOFs.cols()) = RDOFs;
+    for (Int i = 0; i < nb_nodes_per_element; ++i) {
+      T.block(i * RDOFs.rows(), i * RDOFs.rows(), RDOFs.rows(), RDOFs.cols()) =
+          RDOFs;
     }
 
     // Rotate to local basis
@@ -333,7 +334,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_dof,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   AKANTU_DEBUG_ASSERT(out_uq.getNbComponent() == nb_dof,
@@ -353,13 +354,14 @@ void ShapeStructural<kind>::interpolateOnIntegrationPoints(
   auto nb_quad_points = nb_quad_points_per_element * u_el.size();
   out_uq.resize(nb_quad_points);
 
-  auto out_it = out_uq.begin_reinterpret(nb_dof, 1, nb_quad_points_per_element,
-                                         u_el.size());
-  auto shapes_it =
-      shapes_.begin_reinterpret(nb_dof, nb_dof * nb_nodes_per_element,
-                                nb_quad_points_per_element, nb_element);
-  auto u_it = u_el.begin_reinterpret(nb_dof * nb_nodes_per_element, 1,
-                                     nb_quad_points_per_element, u_el.size());
+  auto out_it =
+      make_view(out_uq, nb_dof, 1, nb_quad_points_per_element).begin();
+  auto shapes_it = make_view(shapes_, nb_dof, nb_dof * nb_nodes_per_element,
+                             nb_quad_points_per_element)
+                       .begin();
+  auto u_it = make_view(u_el, nb_dof * nb_nodes_per_element, 1,
+                        nb_quad_points_per_element)
+                  .begin();
 
   for_each_element(nb_element, filter_elements, [&](auto && el) {
     auto & uq = *out_it;
@@ -381,7 +383,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeStructural<kind>::gradientOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_nablauq, UInt nb_dof,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto itp_type = FEEngine::getInterpolationType(type);
@@ -428,7 +430,7 @@ template <>
 template <ElementType type>
 void ShapeStructural<_ek_structural>::computeBtD(
     const Array<Real> & Ds, Array<Real> & BtDs, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
 
   auto nb_stress = ElementClass<type>::getNbStressComponents();

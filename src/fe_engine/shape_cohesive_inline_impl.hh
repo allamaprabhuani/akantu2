@@ -64,28 +64,29 @@ inline void ShapeLagrange<_ek_cohesive>::initShapeFunctions(
 template <ElementType type>
 void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> &, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    Array<Real> & shape_derivatives, const GhostType & ghost_type,
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  UInt size_of_shapesd = ElementClass<type>::getShapeDerivativesSize();
-  UInt spatial_dimension = ElementClass<type>::getNaturalSpaceDimension();
-  UInt nb_nodes_per_element =
+  auto size_of_shapesd = ElementClass<type>::getShapeDerivativesSize();
+  auto spatial_dimension = ElementClass<type>::getNaturalSpaceDimension();
+  auto nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt nb_points = integration_points.cols();
-  UInt nb_element = mesh.getConnectivity(type, ghost_type).size();
+  auto nb_points = integration_points.cols();
+  auto nb_element = mesh.getConnectivity(type, ghost_type).size();
 
   AKANTU_DEBUG_ASSERT(shape_derivatives.getNbComponent() == size_of_shapesd,
                       "The shapes_derivatives array does not have the correct "
                           << "number of component");
 
   shape_derivatives.resize(nb_element * nb_points);
-  Real * shapesd_val = shape_derivatives.data();
+  auto * shapesd_val = shape_derivatives.data();
 
   auto compute = [&](const auto & el) {
     auto ptr = shapesd_val + el * nb_points * size_of_shapesd;
-    Tensor3Proxy<Real> B(ptr, spatial_dimension, nb_nodes_per_element, nb_points);
+    Tensor3Proxy<Real> B(ptr, spatial_dimension, nb_nodes_per_element,
+                         nb_points);
     ElementClass<type>::computeDNDS(integration_points, B);
   };
 
@@ -98,8 +99,8 @@ void ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
 inline void
 ShapeLagrange<_ek_cohesive>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, ElementType type,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    Array<Real> & shape_derivatives, const ElementType & type,
+    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \
   computeShapeDerivativesOnIntegrationPoints<type>(                            \
       nodes, integration_points, shape_derivatives, ghost_type,                \
@@ -152,7 +153,7 @@ void ShapeLagrange<_ek_cohesive>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(
     const Array<Real> & nodal_f, Array<Real> & elemental_f,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_itp_element =
@@ -175,12 +176,12 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(
   ReduceFunction reduce_function;
 
   auto compute = [&](const auto & el) {
-    Matrix<Real> & u = *u_it;
+    auto && u = *u_it;
     Matrix<UInt> el_conn(conn[el]);
 
     // compute the average/difference of the nodal field loaded from cohesive
     // element
-    for (UInt n = 0; n < el_conn.rows(); ++n) {
+    for (Int n = 0; n < el_conn.rows(); ++n) {
       UInt node_plus = el_conn(n, 0);
       UInt node_minus = el_conn(n, 1);
       for (UInt d = 0; d < nb_degree_of_freedom; ++d) {
@@ -202,7 +203,7 @@ void ShapeLagrange<_ek_cohesive>::extractNodalToElementField(
 template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -227,7 +228,7 @@ void ShapeLagrange<_ek_cohesive>::interpolateOnIntegrationPoints(
 template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::variationOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -253,8 +254,8 @@ void ShapeLagrange<_ek_cohesive>::variationOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementType type, class ReduceFunction>
 void ShapeLagrange<_ek_cohesive>::computeNormalsOnIntegrationPoints(
-    const Array<Real> & u, Array<Real> & normals_u,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    const Array<Real> & u, Array<Real> & normals_u, GhostType ghost_type,
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_element = this->mesh.getNbElement(type, ghost_type);
@@ -275,25 +276,23 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnIntegrationPoints(
         u, tangents_u, spatial_dimension, ghost_type, filter_elements);
   }
 
-  Real * tangent = tangents_u.data();
-
   if (spatial_dimension == 3) {
-    for (auto & normal : make_view(normals_u, spatial_dimension)) {
-      Math::vectorProduct3(tangent, tangent + spatial_dimension,
-                           normal.data());
+    for (auto && data :
+         zip(make_view<3>(normals_u), make_view<3, 2>(tangents_u))) {
+      auto && n = std::get<0>(data);
+      auto && ts = std::get<1>(data);
 
-      normal /= normal.norm();
-      tangent += spatial_dimension * 2;
+      n = (ts(0).cross(ts(1))).normalized();
     }
   } else if (spatial_dimension == 2) {
-    for (auto & normal : make_view(normals_u, spatial_dimension)) {
-      Vector<Real> a1(tangent, spatial_dimension);
+    for (auto && data :
+         zip(make_view<2>(normals_u), make_view<2>(tangents_u))) {
+      auto && n = std::get<0>(data);
+      auto && t = std::get<1>(data);
 
-      normal(0) = -a1(1);
-      normal(1) = a1(0);
-      normal.normalize();
-
-      tangent += spatial_dimension;
+      n(0) = -t(1);
+      n(1) = t(0);
+      n.normalize();
     }
   } else if (spatial_dimension == 1) {
     const auto facet_type = Mesh::getFacetType(type);
@@ -312,7 +311,7 @@ void ShapeLagrange<_ek_cohesive>::computeNormalsOnIntegrationPoints(
       for (UInt p = 0; p < 2; ++p) {
         Element facet = facets(el, p);
         Element segment = segments(facet.element)[0];
-        Vector<Real> barycenter(values + p, 1);
+        VectorProxy<Real> barycenter(values + p, 1);
         mesh.getBarycenter(segment, barycenter);
       }
 

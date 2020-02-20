@@ -41,7 +41,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
                                       const ID & id)
     : Parent(model, id), was_stiffness_assembled(false) {
@@ -51,7 +51,7 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
                                       UInt /*a_dim*/,
                                       const Mesh & mesh, FEEngine & fe_engine,
@@ -63,7 +63,7 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElastic<dim>::initialize() {
+template <Int dim> void MaterialElastic<dim>::initialize() {
   this->registerParam("lambda", lambda, _pat_readable,
                       "First Lamé coefficient");
   this->registerParam("mu", mu, _pat_readable, "Second Lamé coefficient");
@@ -71,7 +71,7 @@ template <UInt dim> void MaterialElastic<dim>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElastic<dim>::initMaterial() {
+template <Int dim> void MaterialElastic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent::initMaterial();
 
@@ -84,7 +84,7 @@ template <UInt dim> void MaterialElastic<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElastic<dim>::updateInternalParameters() {
+template <Int dim> void MaterialElastic<dim>::updateInternalParameters() {
   MaterialThermal<dim>::updateInternalParameters();
 
   this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2 * this->nu));
@@ -112,7 +112,7 @@ template <> void MaterialElastic<2>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -150,8 +150,8 @@ void MaterialElastic<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
+template <Int dim>
+void MaterialElastic<dim>::computeTangentModuli(const ElementType & el_type,
                                                 Array<Real> & tangent_matrix,
                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -166,19 +166,19 @@ void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-Real MaterialElastic<dim>::getPushWaveSpeed(const Element & /*unused*/) const {
+template <Int dim>
+Real MaterialElastic<dim>::getPushWaveSpeed(const Element &) const {
   return sqrt((lambda + 2 * mu) / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-Real MaterialElastic<dim>::getShearWaveSpeed(const Element & /*unused*/) const {
+template <Int dim>
+Real MaterialElastic<dim>::getShearWaveSpeed(const Element &) const {
   return sqrt(mu / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
@@ -210,7 +210,7 @@ void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergyByElement(
     ElementType type, UInt index, Vector<Real> & epot_on_quad_points) {
   auto gradu_it = this->gradu(type).begin(dim, dim);

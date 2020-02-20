@@ -116,16 +116,16 @@ public:
   /// interpolate nodal values on the integration points
   template <ElementType type>
   void interpolateOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & uq, UInt nb_dof,
-      GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
+      const GhostType & ghost_type = _not_ghost,
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// compute the gradient of u on the integration points
   template <ElementType type>
   void gradientOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq, UInt nb_dof,
-      GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
+      const GhostType & ghost_type = _not_ghost,
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
   template <ElementType type>
@@ -163,14 +163,14 @@ public:
   template <ElementType type>
   void computeBtD(const Array<Real> & /*Ds*/, Array<Real> & /*BtDs*/,
                   GhostType /*ghost_type*/,
-                  const Array<UInt> & /*filter_elements*/) const {
+                  const Array<Int> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   template <ElementType type>
   void computeBtDB(const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/,
                    UInt /*order_d*/, GhostType /*ghost_type*/,
-                   const Array<UInt> & /*filter_elements*/) const {
+                   const Array<Int> & /*filter_elements*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -185,8 +185,8 @@ public:
   template <ElementType type>
   void
   computeNtb(const Array<Real> & /*bs*/, Array<Real> & /*Ntbs*/,
-             GhostType /*ghost_type*/,
-             const Array<UInt> & /*filter_elements*/ = empty_filter) const {
+             const GhostType & /*ghost_type*/,
+             const Array<Int> & /*filter_elements*/ = empty_filter) const {
     AKANTU_TO_IMPLEMENT();
   }
 

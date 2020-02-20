@@ -244,7 +244,7 @@ namespace _aka_gauss_helpers {
 #endif
 } // namespace _aka_gauss_helpers
 
-template <ElementType element_type, UInt n>
+template <ElementType element_type, Int n>
 constexpr decltype(auto)
 GaussIntegrationElement<element_type, n>::getQuadraturePoints() {
   const InterpolationType itp_type =
@@ -257,7 +257,7 @@ GaussIntegrationElement<element_type, n>::getQuadraturePoints() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType element_type, UInt n>
+template <ElementType element_type, Int n>
 constexpr decltype(auto)
 GaussIntegrationElement<element_type, n>::getWeights() {
   const InterpolationType itp_type =
@@ -270,8 +270,8 @@ GaussIntegrationElement<element_type, n>::getWeights() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType element_type, UInt n>
-constexpr UInt
+template <ElementType element_type, Int n>
+constexpr Int
 GaussIntegrationElement<element_type, n>::getNbQuadraturePoints() {
   const InterpolationType itp_type =
       ElementClassProperty<element_type>::interpolation_type;

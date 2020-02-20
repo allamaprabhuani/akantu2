@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialNeohookean<spatial_dimension>::MaterialNeohookean(
     SolidMechanicsModel & model, const ID & id)
     : PlaneStressToolbox<spatial_dimension>(model, id) {
@@ -60,7 +60,7 @@ MaterialNeohookean<spatial_dimension>::MaterialNeohookean(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   PlaneStressToolbox<spatial_dimension>::initMaterial();
@@ -85,7 +85,7 @@ template <> void MaterialNeohookean<2>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::updateInternalParameters() {
   lambda = nu * E / ((1 + nu) * (1 - 2 * nu));
   mu = E / (2 * (1 + nu));
@@ -94,7 +94,7 @@ void MaterialNeohookean<spatial_dimension>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialNeohookean<dim>::computeCauchyStressPlaneStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -128,7 +128,7 @@ void MaterialNeohookean<2>::computeCauchyStressPlaneStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialNeohookean<dim>::computeStress(ElementType el_type,
                                             GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -165,7 +165,7 @@ void MaterialNeohookean<2>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialNeohookean<dim>::computeThirdAxisDeformation(
     ElementType /*el_type*/, GhostType /*ghost_type*/) {}
 
@@ -191,7 +191,7 @@ void MaterialNeohookean<2>::computeThirdAxisDeformation(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
@@ -211,7 +211,7 @@ void MaterialNeohookean<spatial_dimension>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialNeohookean<spatial_dimension>::computeTangentModuli(
     __attribute__((unused)) ElementType el_type,
     Array<Real> & tangent_matrix,
@@ -255,14 +255,14 @@ void MaterialNeohookean<2>::computeTangentModuli(__attribute__((unused))
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialNeohookean<spatial_dimension>::getPushWaveSpeed(
     __attribute__((unused)) const Element & element) const {
   return sqrt((this->lambda + 2 * this->mu) / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialNeohookean<spatial_dimension>::getShearWaveSpeed(
     __attribute__((unused)) const Element & element) const {
   return sqrt(this->mu / this->rho);

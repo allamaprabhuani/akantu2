@@ -39,7 +39,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
     SolidMechanicsModel & model, const ID & id)
     : MaterialNonLocalParent(model, id), Ehat("epsilon_equ", *this),
@@ -58,7 +58,7 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
   ID local;
   if (this->damage_in_compute_stress) {
@@ -75,7 +75,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -96,7 +96,7 @@ void MaterialMazarsNonLocal<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();

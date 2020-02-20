@@ -13,7 +13,7 @@
  */
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, const Real lambda,
     const Real mu) const {
@@ -38,7 +38,7 @@ inline void MaterialIGFEMElastic<1>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, const Real lambda, const Real mu) const {
   UInt n = tangent.cols();
@@ -76,7 +76,7 @@ inline void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialIGFEMElastic<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
   AKANTU_DEBUG_TO_IMPLEMENT();

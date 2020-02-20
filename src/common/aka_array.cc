@@ -44,7 +44,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <> UInt Array<Real>::find(const Real & elem) const {
+template <> Idx Array<Real>::find(const Real & elem) const {
   AKANTU_DEBUG_IN();
 
   Real epsilon = std::numeric_limits<Real>::epsilon();

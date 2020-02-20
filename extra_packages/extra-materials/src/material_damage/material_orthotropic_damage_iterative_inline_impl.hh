@@ -13,7 +13,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialOrthotropicDamageIterative<spatial_dimension>::
     computeDamageAndStressOnQuad(Matrix<Real> & sigma,
                                  Matrix<Real> & one_minus_D,

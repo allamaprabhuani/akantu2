@@ -325,7 +325,7 @@ void Material::computeAllCauchyStresses(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void Material::StoCauchy(ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -424,8 +424,9 @@ void Material::assembleStiffnessMatrix(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
+template <Int dim>
+void Material::assembleStiffnessMatrix(const ElementType & type,
+                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<UInt> & elem_filter = element_filter(type, ghost_type);
@@ -485,8 +486,8 @@ void Material::assembleStiffnessMatrix(ElementType type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void Material::assembleStiffnessMatrixNL(ElementType type,
+template <Int dim>
+void Material::assembleStiffnessMatrixNL(const ElementType & type,
                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -558,8 +559,8 @@ void Material::assembleStiffnessMatrixNL(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-void Material::assembleStiffnessMatrixL2(ElementType type,
+template <Int dim>
+void Material::assembleStiffnessMatrixL2(const ElementType & type,
                                          GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -649,7 +650,7 @@ void Material::assembleStiffnessMatrixL2(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void Material::assembleInternalForces(GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();

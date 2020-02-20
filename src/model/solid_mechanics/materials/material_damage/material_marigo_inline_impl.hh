@@ -39,7 +39,7 @@
 
 namespace akantu {
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::computeStressOnQuad(
     Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam, Real & Y,
     Real & Ydq) {
@@ -67,7 +67,7 @@ inline void MaterialMarigo<spatial_dimension>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam, Real & Y, Real & Ydq) {
   Real Fd = Y - Ydq - Sd * dam;
@@ -81,7 +81,7 @@ inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline UInt MaterialMarigo<spatial_dimension>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
@@ -98,7 +98,7 @@ inline UInt MaterialMarigo<spatial_dimension>::getNbData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialMarigo<spatial_dimension>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
@@ -114,7 +114,7 @@ inline void MaterialMarigo<spatial_dimension>::packData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialMarigo<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
                                               const Array<Element> & elements,

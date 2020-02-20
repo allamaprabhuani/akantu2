@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
                                                   const ID & id)
     : MaterialDamage<spatial_dimension>(model, id), K0("K0", *this),
@@ -58,7 +58,7 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
                                                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();

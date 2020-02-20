@@ -49,7 +49,7 @@ namespace akantu {
 /**
  * Material plastic with a linear evolution of the yielding stress
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialLinearIsotropicHardening
     : public MaterialPlastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

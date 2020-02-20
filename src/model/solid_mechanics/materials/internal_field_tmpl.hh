@@ -51,7 +51,7 @@ InternalFieldTmpl<Material, T>::InternalFieldTmpl(const ID & id, Material & mate
 template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
     const ID & id, Material & material, FEEngine & fem,
-    const ElementTypeMapArray<UInt> & element_filter)
+    const ElementTypeMapArray<Idx> & element_filter)
     : ElementTypeMapArray<T>(id, material.getID()),
       material(material), fem(&fem), element_filter(element_filter),
       spatial_dimension(material.getSpatialDimension()) {}
@@ -60,7 +60,7 @@ InternalFieldTmpl<Material, T>::InternalFieldTmpl(
 template <class Material, typename T>
 InternalFieldTmpl<Material, T>::InternalFieldTmpl(
     const ID & id, Material & material, UInt dim, FEEngine & fem,
-    const ElementTypeMapArray<UInt> & element_filter)
+    const ElementTypeMapArray<Idx> & element_filter)
     : ElementTypeMapArray<T>(id, material.getID()),
       material(material), fem(&fem), element_filter(element_filter),
       spatial_dimension(dim) {}
@@ -169,14 +169,14 @@ void InternalFieldTmpl<Material, T>::reset() {
 
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::internalInitialize(UInt nb_component) {
+void InternalFieldTmpl<Material, T>::internalInitialize(Int nb_component) {
   if (!this->is_init) {
     this->nb_component = nb_component;
 
     for (auto ghost : ghost_types) {
       for (const auto & type : this->filterTypes(ghost)) {
-        UInt nb_element = this->element_filter(type, ghost).size();
-        UInt nb_quadrature_points =
+        auto nb_element = this->element_filter(type, ghost).size();
+        auto nb_quadrature_points =
             this->fem->getNbIntegrationPoints(type, ghost);
         if (this->exists(type, ghost)) {
           this->operator()(type, ghost)
@@ -247,7 +247,7 @@ void InternalFieldTmpl<Material, T>::restorePreviousValues() {
 /* -------------------------------------------------------------------------- */
 template <class Material, typename T>
 void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
-    const ElementTypeMapArray<UInt> & new_numbering) {
+    const ElementTypeMapArray<Idx> & new_numbering) {
   for (auto ghost_type : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, ghost_type,
                                                 _ek_not_defined)) {
@@ -260,10 +260,10 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
         continue;
       }
 
-      const Array<UInt> & renumbering = new_numbering(type, ghost_type);
+      const auto & renumbering = new_numbering(type, ghost_type);
 
-      UInt nb_quad_per_elem = fem->getNbIntegrationPoints(type, ghost_type);
-      UInt nb_component = vect.getNbComponent();
+      auto nb_quad_per_elem = fem->getNbIntegrationPoints(type, ghost_type);
+      auto nb_component = vect.getNbComponent();
 
       Array<T> tmp(renumbering.size() * nb_quad_per_elem, nb_component);
 
@@ -279,9 +279,9 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
                  "!!");
 
       UInt new_size = 0;
-      for (UInt i = 0; i < renumbering.size(); ++i) {
-        UInt new_i = renumbering(i);
-        if (new_i != UInt(-1)) {
+      for (Int i = 0; i < renumbering.size(); ++i) {
+        auto new_i = renumbering(i);
+        if (new_i != Int(-1)) {
           memcpy(tmp.data() + new_i * nb_component * nb_quad_per_elem,
                  vect.data() + i * nb_component * nb_quad_per_elem,
                  nb_component * nb_quad_per_elem * sizeof(T));

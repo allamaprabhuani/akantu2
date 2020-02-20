@@ -346,7 +346,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <typename T> inline void allGather(Array<T> & values) const {
-    AKANTU_DEBUG_ASSERT(UInt(getNbProc()) == values.size(),
+    AKANTU_DEBUG_ASSERT(getNbProc() == values.size(),
                         "The array size is not correct");
     this->allGatherImpl(values.data(), values.getNbComponent());
   }

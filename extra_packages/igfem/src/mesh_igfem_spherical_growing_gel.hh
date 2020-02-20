@@ -73,7 +73,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> class MeshIgfemSphericalGrowingGel {
+template <Int dim> class MeshIgfemSphericalGrowingGel {
 // definition of the element list
 #define ELEMENT_LIST (_triangle_3)(_igfem_triangle_4)(_igfem_triangle_5)
 

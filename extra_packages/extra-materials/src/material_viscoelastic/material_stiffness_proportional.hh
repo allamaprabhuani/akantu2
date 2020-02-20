@@ -41,7 +41,7 @@ namespace akantu {
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  *   - alpha : viscous ratio
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialStiffnessProportional
     : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

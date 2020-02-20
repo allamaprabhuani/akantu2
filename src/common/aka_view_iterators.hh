@@ -28,7 +28,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "aka_types.hh"
+//#include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 #include <memory>
 /* -------------------------------------------------------------------------- */
@@ -171,9 +171,21 @@ namespace detail {
     template <typename RD = std::decay_t<R>,
               std::enable_if_t<RD::RowsAtCompileTime == 1 and
                                RD::ColsAtCompileTime == 1> * = nullptr>
-    internal_view_iterator(scalar_pointer data, Idx rows)
+    constexpr internal_view_iterator(scalar_pointer data, Idx rows)
         : dims({rows, 1}), _offset(rows), initial(data), ret_ptr(data),
-          proxy(data, rows, 1), const_proxy(data, rows, 1) {}
+          proxy(data, rows, 1), const_proxy(data, rows, 1) {
+      AKANTU_DEBUG_ASSERT(rows == 1, "1x1 Matrix");
+    }
+
+    // Static matrix again hard to distinguish from vectors
+    template <typename RD = std::decay_t<R>,
+              std::enable_if_t<(RD::RowsAtCompileTime > 1) and
+                               RD::ColsAtCompileTime == 1> * = nullptr>
+    constexpr internal_view_iterator(scalar_pointer data, Idx rows, Idx cols)
+        : dims({rows}), _offset(rows), initial(data), ret_ptr(data),
+          proxy(data, rows, 1), const_proxy(data, rows, 1) {
+      AKANTU_DEBUG_ASSERT(cols == 1, "nx1 Matrix");
+    }
 
     template <Int _dim = dim, std::enable_if_t<_dim == 1> * = nullptr>
     internal_view_iterator() : proxy(nullptr, 0), const_proxy(nullptr, 0) {}
@@ -196,6 +208,20 @@ namespace detail {
     internal_view_iterator(internal_view_iterator && it) = default;
 
     virtual ~internal_view_iterator() = default;
+
+    template <typename OR, typename OD, typename OIR,
+              std::enable_if_t<std::is_convertible<
+                  decltype(std::declval<OIR>().data()),
+                  decltype(std::declval<IR>().data())>::value> * = nullptr>
+    inline internal_view_iterator &
+    operator=(const internal_view_iterator<OR, OD, OIR, dim> & it) {
+      this->_offset = it._offset;
+      this->initial = it.initial;
+      this->ret_ptr = it.ret_ptr;
+      reset_proxy(this->proxy);
+      reset_proxy(this->const_proxy);
+      return *this;
+    }
 
     inline internal_view_iterator &
     operator=(const internal_view_iterator & it) {
@@ -299,6 +325,7 @@ namespace detail {
 
     inline scalar_pointer data() const { return ret_ptr; }
     inline difference_type offset() const { return _offset; }
+    inline decltype(auto) getDims() const { return dims; }
 
   protected:
     std::array<Int, dim> dims;
@@ -426,12 +453,28 @@ public:
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
   const_view_iterator(const_view_iterator<OR> & it) : parent(it) {}
+
+  template <typename OR,
+            std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
+  const_view_iterator & operator=(const const_view_iterator<OR> & it) {
+    return dynamic_cast<const_view_iterator &>(parent::operator=(it));
+  }
 };
 
 template <class R, bool is_tensor_ = aka::is_tensor<R>::value>
 struct ConstConverterIteratorHelper {
+protected:
+  template <std::size_t... I>
+  static inline auto convert_helper(const view_iterator<R> & it,
+                                    std::index_sequence<I...>) {
+    return const_view_iterator<R>(it.data(), it.getDims()[I]...);
+  }
+
+public:
   static inline auto convert(const view_iterator<R> & it) {
-    return const_view_iterator<R>(std::unique_ptr<R>(new R(*it, false)));
+    return convert_helper(
+        it, std::make_index_sequence<
+                std::tuple_size<decltype(it.getDims())>::value>());
   }
 };
 

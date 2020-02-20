@@ -32,14 +32,14 @@
 
 
 add_mesh(square square.geo DIM 2)
-register_example(bi-material
+register_example(bi_material
   SCRIPT bi-material.py
   PYTHON
   FILES_TO_COPY material.dat
   DEPENDS square)
 
 add_mesh(bar bar.geo DIM 2)
-register_example(custom-material
+register_example(custom_material
   SCRIPT custom-material.py
   PYTHON
   FILES_TO_COPY material.dat

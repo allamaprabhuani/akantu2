@@ -20,7 +20,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialBrittle<spatial_dimension>::MaterialBrittle(SolidMechanicsModel & model,
                                                     const ID & id)
     : MaterialDamage<spatial_dimension>(model, id),
@@ -41,7 +41,7 @@ MaterialBrittle<spatial_dimension>::MaterialBrittle(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittle<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamage<spatial_dimension>::initMaterial();
@@ -73,13 +73,13 @@ void MaterialBrittle<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittle<spatial_dimension>::updateInternalParameters() {
   MaterialDamage<spatial_dimension>::updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittle<spatial_dimension>::computeStress(ElementType el_type,
                                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();

@@ -18,7 +18,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialIGFEMSawToothDamage<dim>::MaterialIGFEMSawToothDamage(
     SolidMechanicsModel & model, const ID & id)
     : Material(model, id), Parent(model, id), Sc("Sc", *this),
@@ -38,7 +38,7 @@ MaterialIGFEMSawToothDamage<dim>::MaterialIGFEMSawToothDamage(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialIGFEMSawToothDamage<dim>::initMaterial() {
+template <Int dim> void MaterialIGFEMSawToothDamage<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   Parent::initMaterial();
@@ -55,7 +55,7 @@ template <UInt dim> void MaterialIGFEMSawToothDamage<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -100,7 +100,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::computeAllStresses(
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -118,7 +118,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::computeAllStresses(
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::
     findMaxNormalizedEquivalentStress(ElementType el_type,
                                       GhostType ghost_type) {
@@ -149,7 +149,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -174,7 +174,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
@@ -254,7 +254,7 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage() {
 // }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
     __attribute__((unused)) const Array<Element> & element_list,
     __attribute__((unused)) const NewElementsEvent & event) {

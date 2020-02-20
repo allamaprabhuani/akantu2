@@ -60,7 +60,7 @@ namespace akantu {
 class SolidMechanicsModel
     : public Model,
       public DataAccessor<Element>,
-      public DataAccessor<UInt>,
+      public DataAccessor<Idx>,
       public BoundaryCondition<SolidMechanicsModel>,
       public NonLocalManagerCallback,
       public EventHandlerManager<SolidMechanicsModelEventHandler> {
@@ -71,11 +71,11 @@ class SolidMechanicsModel
 public:
   class NewMaterialElementsEvent : public NewElementsEvent {
   public:
-    AKANTU_GET_MACRO_NOT_CONST(MaterialList, material, Array<UInt> &);
-    AKANTU_GET_MACRO(MaterialList, material, const Array<UInt> &);
+    AKANTU_GET_MACRO_NOT_CONST(MaterialList, material, Array<Int> &);
+    AKANTU_GET_MACRO(MaterialList, material, const Array<Int> &);
 
   protected:
-    Array<UInt> material;
+    Array<Int> material;
   };
 
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
@@ -84,7 +84,7 @@ protected:
   using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler>;
 
 public:
-  SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
+  SolidMechanicsModel(Mesh & mesh, Int dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
                       std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
@@ -196,7 +196,7 @@ protected:
 
   /// set the element_id_by_material and add the elements to the good materials
   virtual void
-  assignMaterialToElements(const ElementTypeMapArray<UInt> * filter = nullptr);
+  assignMaterialToElements(const ElementTypeMapArray<Idx> * filter = nullptr);
 
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
@@ -222,7 +222,7 @@ protected:
 
   /// compute the kinetic energy
   Real getKineticEnergy();
-  Real getKineticEnergy(ElementType type, UInt index);
+  Real getKineticEnergy(const ElementType & type, Idx index);
 
   /// compute the external work (for impose displacement, the velocity should be
   /// given too)
@@ -252,8 +252,8 @@ protected:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -261,13 +261,13 @@ public:
   void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
                   const SynchronizationTag & tag) override;
 
-  UInt getNbData(const Array<UInt> & dofs,
-                 const SynchronizationTag & tag) const override;
-
-  void packData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  Int getNbData(const Array<Idx> & dofs,
                 const SynchronizationTag & tag) const override;
 
-  void unpackData(CommunicationBuffer & buffer, const Array<UInt> & dofs,
+  void packData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
+                const SynchronizationTag & tag) const override;
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Idx> & dofs,
                   const SynchronizationTag & tag) override;
 
 protected:
@@ -282,20 +282,19 @@ protected:
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */
 protected:
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
-  void onNodesRemoved(const Array<UInt> & element_list,
-                      const Array<UInt> & new_numbering,
+  void onNodesRemoved(const Array<Idx> & element_list,
+                      const Array<Idx> & new_numbering,
                       const RemovedNodesEvent & event) override;
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
   void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> & /*unused*/,
-                         const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
-                         const ChangedElementsEvent & /*unused*/) override{};
+  void onElementsChanged(const Array<Element> &, const Array<Element> &,
+                         const ElementTypeMapArray<Idx> &,
+                         const ChangedElementsEvent &) override{};
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
@@ -306,8 +305,9 @@ public:
   //! decide wether a field is a material internal or not
   bool isInternal(const std::string & field_name, ElementKind element_kind);
   //! give the amount of data per element
-  virtual ElementTypeMap<UInt>
-  getInternalDataPerElem(const std::string & field_name, ElementKind kind);
+  virtual ElementTypeMap<Int>
+  getInternalDataPerElem(const std::string & field_name,
+                         const ElementKind & kind);
 
   //! flatten a given material internal field
   ElementTypeMapArray<Real> &
@@ -329,15 +329,16 @@ public:
   std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       UInt spatial_dimension, ElementKind kind) override;
+                       const Int & spatial_dimension,
+                       const ElementKind & kind) override;
 
   void dump(const std::string & dumper_name) override;
-  void dump(const std::string & dumper_name, UInt step) override;
-  void dump(const std::string & dumper_name, Real time, UInt step) override;
+  void dump(const std::string & dumper_name, Int step) override;
+  void dump(const std::string & dumper_name, Real time, Int step) override;
 
   void dump() override;
-  void dump(UInt step) override;
-  void dump(Real time, UInt step) override;
+  void dump(Int step) override;
+  void dump(Real time, Int step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -421,7 +422,7 @@ public:
   inline const Material & getMaterial(const std::string & name) const;
 
   /// get a particular material id from is name
-  inline UInt getMaterialIndex(const std::string & name) const;
+  inline Int getMaterialIndex(const std::string & name) const;
 
   /// give the number of materials
   inline UInt getNbMaterials() const { return materials.size(); }
@@ -446,7 +447,7 @@ public:
   Real getEnergy(const std::string & energy_id);
 
   /// Compute energy for an element type and material index
-  Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
+  Real getEnergy(const std::string & energy_id, ElementType type, Idx index);
 
   /// Compute energy for an individual element
   Real getEnergy(const std::string & energy_id, const Element & element) {
@@ -456,18 +457,16 @@ public:
   /// Compute energy for an element group
   Real getEnergy(const ID & energy_id, const ID & group_id);
 
-  AKANTU_GET_MACRO(MaterialByElement, material_index,
-                   const ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO(MaterialLocalNumbering, material_local_numbering,
-                   const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_AUTO(MaterialByElement, material_index);
+  AKANTU_GET_MACRO_AUTO(MaterialLocalNumbering, material_local_numbering);
 
   /// vectors containing local material element index for each global element
   /// index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialByElement, material_index,
-                                         UInt);
-  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, UInt);
+                                         Int);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, Int);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialLocalNumbering,
-                                         material_local_numbering, UInt);
+                                         material_local_numbering, Int);
   // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
   //                                  material_local_numbering, UInt);
 
@@ -493,10 +492,10 @@ protected:
   /* ------------------------------------------------------------------------ */
 private:
   /// release version of the displacement array
-  UInt displacement_release{0};
+  Int displacement_release{0};
 
   /// release version of the current_position array
-  UInt current_position_release{0};
+  Int current_position_release{0};
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
@@ -504,7 +503,7 @@ private:
   bool need_to_reassemble_mass{true};
 
   /// mapping between material name and material internal id
-  std::map<std::string, UInt> materials_names_to_id;
+  std::map<std::string, Int> materials_names_to_id;
 
 protected:
   /// conversion coefficient form force/mass to acceleration
@@ -541,11 +540,11 @@ protected:
   std::unique_ptr<Array<Real>> current_position;
 
   /// Arrays containing the material index for each element
-  ElementTypeMapArray<UInt> material_index;
+  ElementTypeMapArray<Int> material_index;
 
   /// Arrays containing the position in the element filter of the material
   /// (material's local numbering)
-  ElementTypeMapArray<UInt> material_local_numbering;
+  ElementTypeMapArray<Int> material_local_numbering;
 
   /// list of used materials
   std::vector<std::unique_ptr<Material>> materials;

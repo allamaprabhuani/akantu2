@@ -40,7 +40,7 @@
 
 namespace akantu {
 
-template <UInt dim>
+template <Int dim>
 class CustomNonLocalTestMaterial
     : public MaterialNonLocal<dim, MaterialElastic<dim>> {
 public:

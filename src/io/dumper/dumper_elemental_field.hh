@@ -44,7 +44,7 @@ namespace akantu {
 namespace dumpers {
 /* -------------------------------------------------------------------------- */
 
-template <typename T, template <class> class ret = Vector,
+template <typename T, class ret = Vector<T>,
           bool filtered = false>
 class ElementalField
     : public GenericElementalField<SingleType<T, ret, filtered>,
@@ -62,7 +62,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   ElementalField(const field_type & field,
-                 UInt spatial_dimension = _all_dimensions,
+                 Int spatial_dimension = _all_dimensions,
                  GhostType ghost_type = _not_ghost,
                  ElementKind element_kind = _ek_not_defined)
       : GenericElementalField<types, elemental_field_iterator>(

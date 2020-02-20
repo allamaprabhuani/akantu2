@@ -37,7 +37,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 
 namespace {
-  template <UInt dim>
+  template <Int dim>
   std::unique_ptr<Material>
   materialAnisotropicDamage(std::integral_constant<UInt, dim> /*unused*/,
                             const ID & option, SolidMechanicsModel & model,

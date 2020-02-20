@@ -33,7 +33,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialIterativeStiffnessReduction<spatial_dimension>::
     MaterialIterativeStiffnessReduction(SolidMechanicsModel & model,
                                         const ID & id)
@@ -56,7 +56,7 @@ MaterialIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamageIterative<spatial_dimension>::initMaterial();
@@ -84,7 +84,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIterativeStiffnessReduction<spatial_dimension>::
     computeNormalizedEquivalentStress(const Array<Real> & grad_u,
                                       ElementType el_type,
@@ -128,7 +128,7 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIterativeStiffnessReduction<spatial_dimension>::updateDamage() {
   UInt nb_damaged_elements = 0;
 

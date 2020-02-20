@@ -14,7 +14,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialIGFEMSawToothDamage<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam) {
@@ -22,7 +22,7 @@ MaterialIGFEMSawToothDamage<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage(
     UInt quad_index, const Real eq_stress, ElementType el_type,
     GhostType ghost_type) {

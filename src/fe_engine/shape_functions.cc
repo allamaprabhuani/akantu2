@@ -50,13 +50,13 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
     ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
     const Array<Real> & quadrature_points_coordinates,
-    GhostType ghost_type, const Array<UInt> & element_filter) const {
+    const GhostType & ghost_type, const Array<Idx> & element_filter) const {
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = this->mesh.getSpatialDimension();
-  UInt nb_element = this->mesh.getNbElement(type, ghost_type);
-  UInt nb_element_filter;
+  auto spatial_dimension = this->mesh.getSpatialDimension();
+  auto nb_element = this->mesh.getNbElement(type, ghost_type);
+  decltype(nb_element) nb_element_filter;
 
   if (element_filter == empty_filter) {
     nb_element_filter = nb_element;
@@ -64,7 +64,7 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     nb_element_filter = element_filter.size();
   }
 
-  auto nb_quad_per_element =
+  constexpr auto nb_quad_per_element =
       GaussIntegrationElement<type>::getNbQuadraturePoints();
   auto nb_interpolation_points_per_elem =
       interpolation_points_coordinates.size() / nb_element;
@@ -92,34 +92,36 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
         .resize(nb_element_filter);
   }
 
-  Array<Real> & quad_inv_mat =
-      quad_points_coordinates_inv_matrices(type, ghost_type);
-  Array<Real> & interp_points_mat =
+  auto & quad_inv_mat = quad_points_coordinates_inv_matrices(type, ghost_type);
+  auto & interp_points_mat =
       interpolation_points_coordinates_matrices(type, ghost_type);
 
-  Matrix<Real> quad_coord_matrix(nb_quad_per_element, nb_quad_per_element);
+  Matrix<Real, nb_quad_per_element, nb_quad_per_element> quad_coord_matrix;
 
-  Array<Real>::const_matrix_iterator quad_coords_it =
-      quadrature_points_coordinates.begin_reinterpret(
-          spatial_dimension, nb_quad_per_element, nb_element_filter);
-
-  Array<Real>::const_matrix_iterator points_coords_begin =
-      interpolation_points_coordinates.begin_reinterpret(
-          spatial_dimension, nb_interpolation_points_per_elem, nb_element);
-
-  Array<Real>::matrix_iterator inv_quad_coord_it =
-      quad_inv_mat.begin(nb_quad_per_element, nb_quad_per_element);
-
-  Array<Real>::matrix_iterator int_points_mat_it = interp_points_mat.begin(
-      nb_interpolation_points_per_elem, nb_quad_per_element);
+  auto points_coords_begin =
+      make_view(interpolation_points_coordinates, spatial_dimension,
+                nb_interpolation_points_per_elem)
+          .begin();
 
   /// loop over the elements of the current material and element type
-  for (UInt el = 0; el < nb_element_filter;
-       ++el, ++inv_quad_coord_it, ++int_points_mat_it, ++quad_coords_it) {
-    /// matrix containing the quadrature points coordinates
-    const Matrix<Real> & quad_coords = *quad_coords_it;
+  for (auto && data :
+       zip(element_filter,
+           make_view<nb_quad_per_element, nb_quad_per_element>(quad_inv_mat),
+           make_view(interp_points_mat, nb_interpolation_points_per_elem,
+                     nb_quad_per_element),
+           make_view(quadrature_points_coordinates, spatial_dimension,
+                     nb_quad_per_element))) {
+
+    auto element = std::get<0>(data);
     /// matrix to store the matrix inversion result
-    Matrix<Real> & inv_quad_coord_matrix = *inv_quad_coord_it;
+    auto & inv_quad_coord_matrix = std::get<1>(data);
+    /// matrix to store the interpolation points coordinates
+    /// compatible with these functions
+    auto & inv_points_coord_matrix = std::get<2>(data);
+    /// matrix containing the quadrature points coordinates
+    auto & quad_coords = std::get<3>(data);
+    /// matrix containing the interpolation points coordinates
+    auto & points_coords = points_coords_begin[element];
 
     /// insert the quad coordinates in a matrix compatible with the
     /// interpolation
@@ -127,14 +129,7 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
                                                  quad_coord_matrix);
 
     /// invert the interpolation matrix
-    inv_quad_coord_matrix.inverse(quad_coord_matrix);
-
-    /// matrix containing the interpolation points coordinates
-    const Matrix<Real> & points_coords =
-        points_coords_begin[element_filter(el)];
-    /// matrix to store the interpolation points coordinates
-    /// compatible with these functions
-    Matrix<Real> & inv_points_coord_matrix = *int_points_mat_it;
+    inv_quad_coord_matrix = quad_coord_matrix.inverse();
 
     /// insert the quad coordinates in a matrix compatible with the
     /// interpolation
@@ -151,11 +146,11 @@ void ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
     ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
     const ElementTypeMapArray<Real> & quadrature_points_coordinates,
-    const ElementTypeMapArray<UInt> * element_filter) const {
+    const ElementTypeMapArray<Idx> * element_filter) const {
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = this->mesh.getSpatialDimension();
+  auto spatial_dimension = this->mesh.getSpatialDimension();
 
   for (auto ghost_type : ghost_types) {
     auto types_iterable = mesh.elementTypes(spatial_dimension, ghost_type);
@@ -165,12 +160,12 @@ void ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     }
 
     for (auto type : types_iterable) {
-      UInt nb_element = mesh.getNbElement(type, ghost_type);
+      auto nb_element = mesh.getNbElement(type, ghost_type);
       if (nb_element == 0) {
         continue;
       }
 
-      const Array<UInt> * elem_filter;
+      const Array<Idx> * elem_filter;
       if (element_filter != nullptr) {
         elem_filter = &((*element_filter)(type, ghost_type));
       } else {
@@ -199,12 +194,12 @@ void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
     const ElementTypeMapArray<Real> & field,
     const ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
     const ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
-    ElementTypeMapArray<Real> & result, GhostType ghost_type,
-    const ElementTypeMapArray<UInt> * element_filter) const {
+    ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
+    const ElementTypeMapArray<Idx> * element_filter) const {
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = this->mesh.getSpatialDimension();
+  auto spatial_dimension = this->mesh.getSpatialDimension();
 
   auto types_iterable = mesh.elementTypes(spatial_dimension, ghost_type);
   if (element_filter != nullptr) {
@@ -213,12 +208,12 @@ void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
   }
 
   for (auto type : types_iterable) {
-    UInt nb_element = mesh.getNbElement(type, ghost_type);
+    auto nb_element = mesh.getNbElement(type, ghost_type);
     if (nb_element == 0) {
       continue;
     }
-    
-    const Array<UInt> * elem_filter;
+
+    const Array<Idx> * elem_filter;
     if (element_filter != nullptr) {
       elem_filter = &((*element_filter)(type, ghost_type));
     } else {

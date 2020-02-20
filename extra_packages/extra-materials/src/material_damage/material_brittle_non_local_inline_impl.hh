@@ -23,7 +23,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialBrittleNonLocal<spatial_dimension>::MaterialBrittleNonLocal(
     SolidMechanicsModel & model, const ID & id)
     : Material(model, id), MaterialBrittleNonLocalParent(model, id),
@@ -38,7 +38,7 @@ MaterialBrittleNonLocal<spatial_dimension>::MaterialBrittleNonLocal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   this->model.getNonLocalManager().registerNonLocalVariable(
@@ -48,7 +48,7 @@ void MaterialBrittleNonLocal<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -86,7 +86,7 @@ void MaterialBrittleNonLocal<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -108,7 +108,7 @@ void MaterialBrittleNonLocal<spatial_dimension>::computeNonLocalStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialBrittleNonLocal<
     spatial_dimension>::nonLocalVariableToNeighborhood() {
   this->model.getNonLocalManager().nonLocalVariableToNeighborhood(

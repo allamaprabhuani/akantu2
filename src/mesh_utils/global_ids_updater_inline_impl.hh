@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
-#include "global_ids_updater.hh"
+//#include "global_ids_updater.hh"
 #include "mesh.hh"
 #include "mesh_accessor.hh"
 /* -------------------------------------------------------------------------- */
@@ -43,8 +43,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt GlobalIdsUpdater::getNbData(const Array<Element> & elements,
-                                        const SynchronizationTag & tag) const {
+inline Int GlobalIdsUpdater::getNbData(const Array<Element> & elements,
+                                       const SynchronizationTag & tag) const {
   UInt size = 0;
   if (tag == SynchronizationTag::_giu_global_conn) {
     size += Mesh::getNbNodesPerElementList(elements) *
@@ -72,12 +72,12 @@ inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
 
   for (const auto & element : elements) {
     /// get element connectivity
-    const Vector<UInt> current_conn =
+    auto && current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
     /// loop on all connectivity nodes
     for (auto node : current_conn) {
-      UInt index = -1;
+      Int index = -1;
       if ((this->reduce and mesh.isLocalOrMasterNode(node)) or
           (not this->reduce and not mesh.isPureGhostNode(node))) {
         index = global_nodes_ids(node);
@@ -109,12 +109,12 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
 
   for (const auto & element : elements) {
     /// get element connectivity
-    Vector<UInt> current_conn =
+    auto && current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
     /// loop on all connectivity nodes
     for (auto node : current_conn) {
-      UInt index;
+      Int index;
       Int node_prank;
       buffer >> index;
       buffer >> node_prank;
@@ -126,7 +126,7 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
       }
 #endif
 
-      if (index == UInt(-1)) {
+      if (index == Int(-1)) {
         continue;
       }
 

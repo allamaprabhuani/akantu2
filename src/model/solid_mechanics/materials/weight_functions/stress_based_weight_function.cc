@@ -40,7 +40,6 @@ StressBasedWeightFunction::StressBasedWeightFunction(NonLocalManager & manager)
 // stress_base("stress_base", material), selected_stress_base(NULL),
 // characteristic_size("lc", material),  selected_characteristic_size(NULL)
 {
-
   // this->registerParam("ft", this->ft, 0., _pat_parsable, "Tensile strength");
   // stress_diag.initialize(spatial_dimension);
   // stress_base.initialize(spatial_dimension * spatial_dimension);
@@ -59,7 +58,7 @@ void StressBasedWeightFunction::init() {
   //   for(; it != last_type; ++it) {
   //     UInt nb_quadrature_points =
   // 	this->material.getModel().getFEEngine().getNbQuadraturePoints(*it, gt);
-  //     const Array<UInt> & element_filter =
+  //     const Array<Int> & element_filter =
   //     this->material.getElementFilter(*it, gt);
   //     UInt nb_element = element_filter.size();
 

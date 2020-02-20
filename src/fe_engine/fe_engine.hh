@@ -83,15 +83,15 @@ public:
   static void extractNodalToElementField(
       const Mesh & mesh, const Array<T> & nodal_f, Array<T> & elemental_f,
       ElementType type, GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /// filter a field
   template <typename T>
   static void
-  filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
+  filterElementalData(const Mesh & mesh, const Array<T> & quad_f,
                       Array<T> & filtered_f, ElementType type,
                       GhostType ghost_type = _not_ghost,
-                      const Array<UInt> & filter_elements = empty_filter);
+                      const Array<Int> & filter_elements = empty_filter);
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
@@ -101,22 +101,27 @@ public:
   integrate(const Array<Real> & f, Array<Real> & intf,
             UInt nb_degree_of_freedom, ElementType type,
             GhostType ghost_type = _not_ghost,
-            const Array<UInt> & filter_elements = empty_filter) const = 0;
+            const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// integrate a scalar value f on all elements of type "type"
   virtual Real
   integrate(const Array<Real> & f, ElementType type,
             GhostType ghost_type = _not_ghost,
-            const Array<UInt> & filter_elements = empty_filter) const = 0;
+            const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// integrate f for all integration points of type "type" but don't sum over
   /// all integration points
   virtual void integrateOnIntegrationPoints(
       const Array<Real> & f, Array<Real> & intf, UInt nb_degree_of_freedom,
       ElementType type, GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const = 0;
+      const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
+  Real integrate(const Ref<const VectorXr> & f, const Element & element) const {
+    return integrate(f, element.type, element.element, element.ghost_type);
+  }
+
+private:
   virtual Real integrate(const Ref<const VectorXr> & f, ElementType type,
                          UInt index,
                          GhostType ghost_type = _not_ghost) const = 0;
@@ -124,8 +129,9 @@ public:
   /* ------------------------------------------------------------------------ */
   /* compatibility with old FEEngine fashion */
   /* ------------------------------------------------------------------------ */
+public:
   /// get the number of integration points
-  virtual UInt
+  virtual Int
   getNbIntegrationPoints(ElementType type,
                          GhostType ghost_type = _not_ghost) const = 0;
 
@@ -142,8 +148,8 @@ public:
 
   /// get integration points
   const virtual MatrixXr &
-  getIntegrationPoints(const ElementType & type,
-                       const GhostType & ghost_type = _not_ghost) const = 0;
+  getIntegrationPoints(ElementType type,
+                       GhostType ghost_type = _not_ghost) const = 0;
 
   /* ------------------------------------------------------------------------ */
   /* Shape method bridges                                                     */
@@ -152,16 +158,16 @@ public:
   /// from nodal values u
   virtual void gradientOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & nablauq,
-      UInt nb_degree_of_freedom, ElementType type,
+      const UInt nb_degree_of_freedom, ElementType type,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const = 0;
+      const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// Interpolate a nodal field u at the integration points of an element type
   /// -> uq
   virtual void interpolateOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
       ElementType type, GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const = 0;
+      const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// Interpolate a nodal field u at the integration points of many element
   /// types -> uq
@@ -174,21 +180,21 @@ public:
   computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
              ElementType type,
              GhostType ghost_type = _not_ghost,
-             const Array<UInt> & filter_elements = empty_filter) const = 0;
+             const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// left and right  multiplies a tensor by the shapes derivaties
   virtual void
   computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
               ElementType type,
               GhostType ghost_type = _not_ghost,
-              const Array<UInt> & filter_elements = empty_filter) const = 0;
+              const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// left multiples a vector by the shape functions
   virtual void
   computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
              ElementType type,
              GhostType ghost_type = _not_ghost,
-             const Array<UInt> & filter_elements = empty_filter) const = 0;
+             const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// left and right  multiplies a tensor by the shapes
   virtual void
@@ -208,7 +214,7 @@ public:
   virtual void computeIntegrationPointsCoordinates(
       Array<Real> & integration_points_coordinates, ElementType type,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const = 0;
+      const Array<Int> & filter_elements = empty_filter) const = 0;
 
   /// Build pre-computed matrices for interpolation of field form integration
   /// points at other given positions (interpolation_points)

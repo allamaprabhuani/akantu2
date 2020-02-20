@@ -84,8 +84,8 @@ public:
 public:
   virtual void onElementsAdded(const Array<Element> & /*unused*/) {}
   virtual void
-  onElementsRemoved(const Array<Element> & /*unused*/,
-                    const ElementTypeMapArray<UInt> & new_numbering) {
+  onElementsRemoved(const Array<Element> &,
+                    const ElementTypeMapArray<Idx> & new_numbering) {
     jacobians.onElementsRemoved(new_numbering);
   }
   /* ------------------------------------------------------------------------ */

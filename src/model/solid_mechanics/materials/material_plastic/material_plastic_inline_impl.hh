@@ -39,7 +39,7 @@
 
 namespace akantu {
 
-template <UInt dim>
+template <Int dim>
 inline void MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
     const Matrix<Real> & delta_grad_u, Matrix<Real> & sigma,
     const Matrix<Real> & previous_sigma, Matrix<Real> & inelastic_strain,
@@ -57,7 +57,7 @@ inline void MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialPlastic<dim>::computeStressAndInelasticStrainOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,

@@ -41,7 +41,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /// Infinitesimal deformations
-template <UInt dim>
+template <Int dim>
 inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
@@ -104,7 +104,7 @@ inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
 
 /* -------------------------------------------------------------------------- */
 /// Finite deformations
-template <UInt dim>
+template <Int dim>
 inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
@@ -222,7 +222,7 @@ inline void MaterialLinearIsotropicHardening<dim>::computeStressOnQuad(
 
 /* -------------------------------------------------------------------------- */
 
-template <UInt dim>
+template <Int dim>
 inline void MaterialLinearIsotropicHardening<dim>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, __attribute__((unused)) const Matrix<Real> & grad_u,
     __attribute__((unused)) const Matrix<Real> & previous_grad_u,

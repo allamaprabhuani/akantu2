@@ -37,7 +37,7 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialMazars<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
@@ -72,7 +72,7 @@ inline void MaterialMazars<spatial_dimension>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
@@ -97,7 +97,7 @@ inline void MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
     const Real & epsilon_equ,
     __attribute__((unused)) const Matrix<Real> & sigma,

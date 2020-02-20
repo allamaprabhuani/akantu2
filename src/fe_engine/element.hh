@@ -44,7 +44,7 @@ namespace akantu {
 class Element {
 public:
   ElementType type;
-  UInt element;
+  Idx element;
   GhostType ghost_type;
 
   // ElementKind kind;
@@ -83,7 +83,7 @@ public:
 };
 
 namespace {
-  const Element ElementNull{_not_defined, UInt(-1), _casper};
+  const Element ElementNull{_not_defined, Idx(-1), _casper};
   //      Element{_not_defined, 0, _casper, _ek_not_defined};
 } // namespace
 

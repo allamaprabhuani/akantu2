@@ -297,7 +297,7 @@ void DOFManagerDefault::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   this->addToProfile(matrix_id, dof_id, type, ghost_type);
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(

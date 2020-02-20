@@ -20,7 +20,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialStiffnessProportional<spatial_dimension>::MaterialStiffnessProportional(
     SolidMechanicsModel & model, const ID & id)
     : MaterialElastic<spatial_dimension>(model, id),
@@ -38,7 +38,7 @@ MaterialStiffnessProportional<spatial_dimension>::MaterialStiffnessProportional(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElastic<spatial_dimension>::initMaterial();
@@ -46,7 +46,7 @@ void MaterialStiffnessProportional<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -93,7 +93,7 @@ void MaterialStiffnessProportional<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();

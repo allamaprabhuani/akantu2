@@ -65,8 +65,8 @@ inline void ShapeLagrange<kind>::initShapeFunctions(
 template <ElementKind kind>
 template <ElementType type>
 inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
-    const Ref<const MatrixXr> & node_coords, const Ref<const MatrixXr> & natural_coords,
-    Tensor3<Real> & shapesd) const {
+    const Ref<const MatrixXr> & node_coords,
+    const Ref<const MatrixXr> & natural_coords, Tensor3<Real> & shapesd) const {
   AKANTU_DEBUG_IN();
 
   // compute dnds
@@ -88,16 +88,16 @@ inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::inverseMap(const Ref<const VectorXr> & real_coords,
-                                     UInt elem, Ref<VectorXr> natural_coords,
-                                     GhostType ghost_type) const {
+                                     Int elem, Ref<VectorXr> natural_coords,
+                                     const GhostType & ghost_type) const {
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt nb_nodes_per_element =
+  Int spatial_dimension = mesh.getSpatialDimension();
+  Int nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
+  auto * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
   mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
@@ -112,8 +112,9 @@ void ShapeLagrange<kind>::inverseMap(const Ref<const VectorXr> & real_coords,
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-bool ShapeLagrange<kind>::contains(const Ref<const VectorXr> & real_coords, UInt elem,
-                                   GhostType ghost_type) const {
+bool ShapeLagrange<kind>::contains(const Ref<const VectorXr> & real_coords,
+                                   UInt elem,
+                                   const GhostType & ghost_type) const {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
   Vector<Real> natural_coords(spatial_dimension);
@@ -163,9 +164,9 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
 
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
-  UInt nb_points = real_coords.cols();
-  UInt nb_nodes_per_element =
+  auto spatial_dimension = mesh.getSpatialDimension();
+  auto nb_points = real_coords.cols();
+  auto nb_nodes_per_element =
       ElementClass<type>::getNbNodesPerInterpolationElement();
 
   AKANTU_DEBUG_ASSERT(mesh.getSpatialDimension() == shapesd.size(0) &&
@@ -177,14 +178,14 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
   Matrix<Real> natural_coords(spatial_dimension, nb_points);
 
   // Creates the matrix of natural coordinates
-  for (UInt i = 0; i < nb_points; i++) {
+  for (Int i = 0; i < nb_points; i++) {
     Vector<Real> real_point = real_coords(i);
     Vector<Real> natural_point = natural_coords(i);
 
     inverseMap<type>(real_point, elem, natural_point, ghost_type);
   }
 
-  UInt * elem_val = mesh.getConnectivity(type, ghost_type).data();
+  Int * elem_val = mesh.getConnectivity(type, ghost_type).data();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
 
   mesh.extractNodalValuesFromElement(mesh.getNodes(), nodes_coord.data(),
@@ -208,8 +209,8 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    Array<Real> & shape_derivatives, const GhostType & ghost_type,
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -261,8 +262,8 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 template <ElementKind kind>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-    Array<Real> & shape_derivatives, ElementType type,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    Array<Real> & shape_derivatives, const ElementType & type,
+    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
 #define AKANTU_COMPUTE_SHAPES(type)                                            \
   computeShapeDerivativesOnIntegrationPoints<type>(                            \
       nodes, integration_points, shape_derivatives, ghost_type,                \
@@ -319,7 +320,7 @@ template <ElementType type>
 void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
     const Array<Real> & shapes, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element =
@@ -340,7 +341,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -361,7 +362,7 @@ template <ElementType type>
 void ShapeLagrange<kind>::gradientOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_nablauq,
     UInt nb_degree_of_freedom, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -387,9 +388,9 @@ void ShapeLagrange<kind>::gradientOnIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
-void ShapeLagrange<kind>::computeBtD(
-    const Array<Real> & Ds, Array<Real> & BtDs, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
+                                     GhostType ghost_type,
+                                     const Array<Int> & filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   const auto & shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
@@ -433,7 +434,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeBtDB(
     const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   const auto & shapes_derivatives =
       this->shapes_derivatives(itp_type, ghost_type);
@@ -491,7 +492,7 @@ template <>
 template <>
 inline void ShapeLagrange<_ek_regular>::computeBtDB<_point_1>(
     const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/, UInt /*order_d*/,
-    GhostType /*ghost_type*/, const Array<UInt> & /*filter_elements*/) const {
+    GhostType /*ghost_type*/, const Array<Int> & /*filter_elements*/) const {
   AKANTU_TO_IMPLEMENT();
 }
 
@@ -500,7 +501,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeNtbN(
     const Array<Real> & bs, Array<Real> & NtbNs, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
 
   auto itp_type = ElementClassProperty<type>::interpolation_type;
   auto size_of_shapes = ElementClass<type>::getShapeSize();
@@ -539,7 +540,7 @@ template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeNtb(
     const Array<Real> & bs, Array<Real> & Ntbs, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   Ntbs.resize(bs.size());

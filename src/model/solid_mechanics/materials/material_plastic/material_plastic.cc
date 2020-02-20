@@ -39,7 +39,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model,
                                                     const ID & id)
     : MaterialElastic<spatial_dimension>(model, id),
@@ -52,7 +52,7 @@ MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model,
   AKANTU_DEBUG_OUT();
 }
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model,
                                                     UInt dim, const Mesh & mesh,
                                                     FEEngine & fe_engine,
@@ -72,7 +72,7 @@ MaterialPlastic<spatial_dimension>::MaterialPlastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialPlastic<spatial_dimension>::initialize() {
   this->registerParam("h", h, Real(0.), _pat_parsable | _pat_modifiable,
                       "Hardening  modulus");
@@ -94,7 +94,7 @@ void MaterialPlastic<spatial_dimension>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialPlastic<spatial_dimension>::getEnergy(const std::string & type) {
   if (type == "plastic") {
     return getPlasticEnergy();
@@ -103,7 +103,7 @@ Real MaterialPlastic<spatial_dimension>::getEnergy(const std::string & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialPlastic<spatial_dimension>::getPlasticEnergy() {
   AKANTU_DEBUG_IN();
 
@@ -121,7 +121,7 @@ Real MaterialPlastic<spatial_dimension>::getPlasticEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialPlastic<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
@@ -150,7 +150,7 @@ void MaterialPlastic<spatial_dimension>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialPlastic<spatial_dimension>::updateEnergies(ElementType el_type) {
   AKANTU_DEBUG_IN();
 

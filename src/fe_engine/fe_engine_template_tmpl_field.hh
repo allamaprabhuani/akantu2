@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "fe_engine_template.hh"
+//#include "fe_engine_template.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_FE_ENGINE_TEMPLATE_TMPL_FIELD_HH_
@@ -51,12 +51,11 @@ namespace fe_engine {
         UInt nb_degree_of_freedom = field.getNbComponent();
         field.resize(nb_integration_points * nb_element);
 
-        auto field_it = field.begin_reinterpret(
-            nb_degree_of_freedom, nb_integration_points, nb_element);
-
         Element el{type, 0, ghost_type};
-        for (; el.element < nb_element; ++el.element, ++field_it) {
-          field_funct(*field_it, el);
+        for (auto && data : enumerate(make_view(field, nb_degree_of_freedom,
+                                                nb_integration_points))) {
+          el.element = std::get<0>(data);
+          field_funct(std::get<1>(data), el);
         }
       }
     } // namespace
@@ -174,29 +173,25 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
                          GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt shapes_size = ElementClass<type>::getShapeSize();
-  UInt nb_degree_of_freedom = field.getNbComponent();
+  auto shapes_size = ElementClass<type>::getShapeSize();
+  auto nb_degree_of_freedom = field.getNbComponent();
 
-  auto * field_times_shapes =
-      new Array<Real>(0, shapes_size * nb_degree_of_freedom);
+  auto field_times_shapes =
+      std::make_shared<Array<Real>>(0, shapes_size * nb_degree_of_freedom);
 
   shape_functions.template computeNtb<type>(field, *field_times_shapes,
                                             ghost_type);
 
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  auto * int_field_times_shapes = new Array<Real>(
+  auto nb_element = mesh.getNbElement(type, ghost_type);
+  auto int_field_times_shapes = std::make_shared<Array<Real>>(
       nb_element, shapes_size * nb_degree_of_freedom, "inte_rho_x_shapes");
 
   integrator.template integrate<type>(
       *field_times_shapes, *int_field_times_shapes,
       nb_degree_of_freedom * shapes_size, ghost_type, empty_filter);
 
-  delete field_times_shapes;
-
   dof_manager.assembleElementalArrayToLumpedMatrix(
       dof_id, *int_field_times_shapes, matrix_id, type, ghost_type);
-
-  delete int_field_times_shapes;
 
   AKANTU_DEBUG_OUT();
 }
@@ -215,19 +210,19 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
                                   GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  ElementType type_p1 = ElementClass<type>::getP1ElementType();
-  UInt nb_nodes_per_element_p1 = Mesh::getNbNodesPerElement(type_p1);
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom = field.getNbComponent();
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  const auto & type_p1 = ElementClass<type>::getP1ElementType();
+  auto nb_nodes_per_element_p1 = Mesh::getNbNodesPerElement(type_p1);
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom = field.getNbComponent();
+  auto nb_element = mesh.getNbElement(type, ghost_type);
 
   Vector<Real> nodal_factor(nb_nodes_per_element);
 
 #define ASSIGN_WEIGHT_TO_NODES(corner, mid)                                    \
   {                                                                            \
-    for (UInt n = 0; n < nb_nodes_per_element_p1; n++)                         \
+    for (Int n = 0; n < nb_nodes_per_element_p1; n++)                          \
       nodal_factor(n) = corner;                                                \
-    for (UInt n = nb_nodes_per_element_p1; n < nb_nodes_per_element; n++)      \
+    for (Int n = nb_nodes_per_element_p1; n < nb_nodes_per_element; n++)       \
       nodal_factor(n) = mid;                                                   \
   }
 
@@ -252,7 +247,7 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   if (type == _pentahedron_15) {
     // coefficients derived by scaling the diagonal terms of the corresponding
     // consistent mass computed with 8 gauss points;
-    for (UInt n = 0; n < nb_nodes_per_element_p1; n++) {
+    for (Int n = 0; n < nb_nodes_per_element_p1; n++)
       nodal_factor(n) = 51. / 2358.;
     }
 
@@ -444,16 +439,21 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
     GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
+  auto shapes_size = ElementClass<type>::getShapeSize();
+  auto nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
+  auto lmat_size = nb_degree_of_freedom * shapes_size;
+  auto nb_element = mesh.getNbElement(type, ghost_type);
+
   // \int N * N  so degree 2 * degree of N
-  const UInt polynomial_degree =
+  const auto polynomial_degree =
       2 * ElementClassProperty<type>::polynomial_degree;
 
   // getting the integration points
-  Matrix<Real> integration_points =
+  auto integration_points =
       integrator.template getIntegrationPoints<type, polynomial_degree>();
 
-  UInt nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  auto nb_integration_points = integration_points.cols();
+  auto vect_size = nb_integration_points * nb_element;
 
   // getting the shapes on the integration points
   auto shapes_voigt =
@@ -471,18 +471,19 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
   auto lmat_size = shapes_voigt->getNbComponent() / nb_degree_of_freedom;
 
   // computing \rho * N
-  Array<Real> local_mat(vect_size, lmat_size * lmat_size);
-  auto N_it = shapes_voigt->begin(nb_degree_of_freedom, lmat_size);
-  auto lmat_it = local_mat.begin(lmat_size, lmat_size);
-  auto field_it = field.begin_reinterpret(nb_degree_of_freedom, field.size());
-
-  for (UInt q = 0; q < vect_size; ++q, ++lmat_it, ++N_it, ++field_it) {
-    const auto & rho = *field_it;
-    const auto & N = *N_it;
-    auto & mat = *lmat_it;
+  mshapes_it = make_view(modified_shapes, nb_degree_of_freedom, lmat_size);
+  auto lmat = make_view(local_mat, lmat_size, lmat_size);
+  auto field_it = make_view(field, nb_degree_of_freedom);
+  for (auto && data :
+       zip(make_view(local_mat, lmat_size, lmat_size),
+           make_view(modified_shapes, nb_degree_of_freedom, lmat_size),
+           make_view(field, nb_degree_of_freedom))) {
+    const auto & rho = std::get<2>(data);
+    const auto & N = std::get<1>(data);
+    auto & mat = std::get<0>(data);
 
     Matrix<Real> Nt = N.transpose();
-    for (UInt d = 0; d < Nt.cols(); ++d) {
+    for (Int d = 0; d < Nt.cols(); ++d) {
       Nt(d) *= rho(d);
     }
 

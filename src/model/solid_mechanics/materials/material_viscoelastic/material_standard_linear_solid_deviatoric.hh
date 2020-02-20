@@ -68,7 +68,7 @@ namespace akantu {
  *   - Ev  : stiffness of the viscous element
  */
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialStandardLinearSolidDeviatoric
     : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

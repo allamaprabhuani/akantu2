@@ -53,7 +53,7 @@ template <class T> class SpatialGrid;
 // Model element
 template <class ModelPolicy> class ModelElement;
 
-extern const Array<UInt> empty_filter;
+extern const Array<Int> empty_filter;
 
 class Parser;
 class ParserSection;

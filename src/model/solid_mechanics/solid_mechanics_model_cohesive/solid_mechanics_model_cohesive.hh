@@ -173,7 +173,7 @@ private:
   /* ------------------------------------------------------------------------ */
 
 protected:
-  void onNodesAdded(const Array<UInt> & new_nodes,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
@@ -204,7 +204,7 @@ public:
   //                bool extrinsic = false);
 
 protected:
-  //void synchronizeGhostFacetsConnectivity();
+  // void synchronizeGhostFacetsConnectivity();
 
   void updateCohesiveSynchronizers(NewElementsEvent & elements_event);
   void updateFacetStressSynchronizer();
@@ -215,8 +215,8 @@ protected:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 public:
-  UInt getNbData(const Array<Element> & elements,
-                 const SynchronizationTag & tag) const override;
+  Int getNbData(const Array<Element> & elements,
+                const SynchronizationTag & tag) const override;
 
   void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
                 const SynchronizationTag & tag) const override;
@@ -225,7 +225,7 @@ public:
                   const SynchronizationTag & tag) override;
 
 protected:
-  UInt getNbQuadsForFacetCheck(const Array<Element> & elements) const;
+  Int getNbQuadsForFacetCheck(const Array<Element> & elements) const;
 
   template <typename T>
   void packFacetStressDataHelper(const ElementTypeMapArray<T> & data_to_pack,
@@ -247,20 +247,19 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// get facet mesh
-  AKANTU_GET_MACRO(MeshFacets, mesh.getMeshFacets(), const Mesh &);
+  AKANTU_GET_MACRO_AUTO(MeshFacets, mesh.getMeshFacets());
 
   /// get stress on facets vector
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(StressOnFacets, facet_stress, Real);
 
   /// get facet material
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetMaterial, facet_material, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetMaterial, facet_material, Idx);
 
   /// get facet material
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetMaterial, facet_material, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetMaterial, facet_material, Idx);
 
   /// get facet material
-  AKANTU_GET_MACRO(FacetMaterial, facet_material,
-                   const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_AUTO(FacetMaterial, facet_material);
 
   /// @todo THIS HAS TO BE CHANGED
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Tangents, tangents, Real);
@@ -289,7 +288,7 @@ private:
   ElementTypeMapArray<Real> facet_stress;
 
   /// material to use if a cohesive element is created on a facet
-  ElementTypeMapArray<UInt> facet_material;
+  ElementTypeMapArray<Idx> facet_material;
 
   bool is_extrinsic{false};
 

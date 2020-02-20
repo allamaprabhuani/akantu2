@@ -36,18 +36,18 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      const ID & id)
+template <Int spatial_dimension>
+MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model,
+                                                    const ID & id)
     : Material(model, id), delta_T("delta_T", *this),
       sigma_th("sigma_th", *this), use_previous_stress_thermal(false) {
   this->initialize();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      UInt spatial_dimension, const Mesh & mesh,
+                                      Int spatial_dimension, const Mesh & mesh,
                                       FEEngine & fe_engine, const ID & id)
     : Material(model, spatial_dimension, mesh, fe_engine, id),
       delta_T("delta_T", *this, dim, fe_engine, this->element_filter),
@@ -57,7 +57,7 @@ MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialThermal<dim>::initialize() {
+template <Int dim> void MaterialThermal<dim>::initialize() {
   this->registerParam("E", E, Real(0.), _pat_parsable | _pat_modifiable,
                       "Young's modulus");
   this->registerParam("nu", nu, Real(0.5), _pat_parsable | _pat_modifiable,
@@ -71,7 +71,7 @@ template <UInt dim> void MaterialThermal<dim>::initialize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialThermal<dim>::initMaterial() {
+template <Int dim> void MaterialThermal<dim>::initMaterial() {
   sigma_th.initialize(1);
 
   if (use_previous_stress_thermal) {
@@ -82,7 +82,7 @@ template <UInt dim> void MaterialThermal<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialThermal<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
   for (auto && tuple : zip(this->delta_T(el_type, ghost_type),

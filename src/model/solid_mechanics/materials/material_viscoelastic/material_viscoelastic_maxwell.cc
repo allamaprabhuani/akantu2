@@ -41,7 +41,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
     SolidMechanicsModel & model, const ID & id)
     : MaterialElastic<spatial_dimension>(model, id),
@@ -72,7 +72,7 @@ MaterialViscoelasticMaxwell<spatial_dimension>::MaterialViscoelasticMaxwell(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
 
@@ -93,7 +93,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<
     spatial_dimension>::updateInternalParameters() {
   MaterialElastic<spatial_dimension>::updateInternalParameters();
@@ -174,7 +174,7 @@ template <> void MaterialViscoelasticMaxwell<2>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -208,7 +208,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Matrix<Real> & sigma, Tensor3<Real> & sigma_v, const Real & sigma_th) {
@@ -267,7 +267,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
@@ -291,7 +291,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::
     computePotentialEnergyOnQuad(const Matrix<Real> & grad_u, Real & epot,
                                  Tensor3<Real> & sigma_v,
@@ -320,9 +320,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep(
-    bool converged) {
+template <Int spatial_dimension>
+void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep(bool converged) {
 
   Material::afterSolveStep(converged);
 
@@ -359,7 +358,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep(
   }
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateIntVarOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Tensor3<Real> & sigma_v, Tensor3<Real> & epsilon_v) {
@@ -413,7 +412,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateIntVarOnQuad(
   }
 }
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -445,7 +444,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent) {
 
@@ -453,7 +452,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::savePreviousState() {
 
   for (auto & el_type : this->element_filter.elementTypes(
@@ -489,7 +488,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::savePreviousState() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateIntVariables() {
 
   for (auto & el_type : this->element_filter.elementTypes(
@@ -521,7 +520,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateIntVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
@@ -558,7 +557,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::
     updateDissipatedEnergyOnQuad(const Matrix<Real> & grad_u,
                                  const Matrix<Real> & previous_grad_u,
@@ -583,7 +582,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getDissipatedEnergy()
     const {
   AKANTU_DEBUG_IN();
@@ -603,7 +602,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getDissipatedEnergy()
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getDissipatedEnergy(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
@@ -618,7 +617,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getDissipatedEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getMechanicalWork() const {
   AKANTU_DEBUG_IN();
 
@@ -637,7 +636,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getMechanicalWork() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getMechanicalWork(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
@@ -651,7 +650,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getMechanicalWork(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy()
     const {
   AKANTU_DEBUG_IN();
@@ -671,7 +670,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy()
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
@@ -686,7 +685,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
     const std::string & type) {
   if (type == "dissipated") {
@@ -702,7 +701,7 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
     const std::string & energy_id, ElementType type, UInt index) {
   if (energy_id == "dissipated") {
@@ -718,13 +717,13 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::forceUpdateVariable() {
   update_variable_flag = true;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::forceNotUpdateVariable() {
   update_variable_flag = false;
 }

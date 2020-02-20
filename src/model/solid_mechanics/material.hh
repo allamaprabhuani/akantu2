@@ -209,8 +209,9 @@ public:
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// add an element to the local mesh filter
-  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
-  inline UInt addElement(const Element & element);
+  inline auto addElement(const ElementType & type, Int element,
+                         const GhostType & ghost_type);
+  inline auto addElement(const Element & element);
 
   /// add many elements at once
   void addElements(const Array<Element> & elements_to_add);
@@ -265,21 +266,23 @@ protected:
   /* ------------------------------------------------------------------------ */
 protected:
   /// assemble the residual
-  template <UInt dim> void assembleInternalForces(GhostType ghost_type);
+  template <Int dim> void assembleInternalForces(GhostType ghost_type);
 
-  template <UInt dim>
-  void computeAllStressesFromTangentModuli(ElementType type,
+  template <Int dim>
+  void computeAllStressesFromTangentModuli(const ElementType & type,
                                            GhostType ghost_type);
 
-  template <UInt dim>
-  void assembleStiffnessMatrix(ElementType type, GhostType ghost_type);
+  template <Int dim>
+  void assembleStiffnessMatrix(const ElementType & type, GhostType ghost_type);
 
   /// assembling in finite deformation
-  template <UInt dim>
-  void assembleStiffnessMatrixNL(ElementType type, GhostType ghost_type);
+  template <Int dim>
+  void assembleStiffnessMatrixNL(const ElementType & type,
+                                 GhostType ghost_type);
 
-  template <UInt dim>
-  void assembleStiffnessMatrixL2(ElementType type, GhostType ghost_type);
+  template <Int dim>
+  void assembleStiffnessMatrixL2(const ElementType & type,
+                                 GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Conversion functions                                                     */
@@ -291,24 +294,24 @@ public:
 
   /// Sets the stress matrix according to Bathe et al, IJNME, Vol 9, 353-386,
   /// 1975
-  template <UInt dim>
+  template <Int dim>
   static inline void setCauchyStressMatrix(const Matrix<Real> & S_t,
                                            Matrix<Real> & sigma);
 
   /// write the stress tensor in the Voigt notation.
-  template <UInt dim>
+  template <Int dim>
   static inline decltype(auto) stressToVoigt(const Matrix<Real> & stress) {
     return VoigtHelper<dim>::matrixToVoigt(stress);
   }
 
   /// write the strain tensor in the Voigt notation.
-  template <UInt dim>
+  template <Int dim>
   static inline decltype(auto) strainToVoigt(const Matrix<Real> & strain) {
     return VoigtHelper<dim>::matrixToVoigtWithFactors(strain);
   }
 
   /// write a voigt vector to stress
-  template <UInt dim>
+  template <Int dim>
   static inline void voigtToStress(const Vector<Real> & voigt,
                                    Matrix<Real> & stress) {
     VoigtHelper<dim>::voigtToMatrix(voigt, stress);
@@ -316,35 +319,35 @@ public:
 
   /// Computation of Cauchy stress tensor in the case of finite deformation from
   /// the 2nd Piola-Kirchhoff for a given element type
-  template <UInt dim>
+  template <Int dim>
   void StoCauchy(ElementType el_type, GhostType ghost_type = _not_ghost);
 
   /// Computation the Cauchy stress the 2nd Piola-Kirchhoff and the deformation
   /// gradient
-  template <UInt dim>
+  template <Int dim>
   inline void StoCauchy(const Matrix<Real> & F, const Matrix<Real> & S,
                         Matrix<Real> & sigma, const Real & C33 = 1.0) const;
 
-  template <UInt dim>
+  template <Int dim>
   static inline void gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F);
 
-  template <UInt dim>
+  template <Int dim>
   static inline decltype(auto) gradUToF(const Matrix<Real> & grad_u);
 
   static inline void rightCauchy(const Matrix<Real> & F, Matrix<Real> & C);
   static inline void leftCauchy(const Matrix<Real> & F, Matrix<Real> & B);
 
-  template <UInt dim>
+  template <Int dim>
   static inline void gradUToEpsilon(const Matrix<Real> & grad_u,
                                     Matrix<Real> & epsilon);
-  template <UInt dim>
+  template <Int dim>
   static inline decltype(auto) gradUToEpsilon(const Matrix<Real> & grad_u);
 
-  template <UInt dim>
+  template <Int dim>
   static inline void gradUToE(const Matrix<Real> & grad_u,
                               Matrix<Real> & epsilon);
 
-  template <UInt dim>
+  template <Int dim>
   static inline decltype(auto) gradUToE(const Matrix<Real> & grad_u);
 
   static inline Real stressToVonMises(const Matrix<Real> & stress);
@@ -366,8 +369,8 @@ protected:
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
 public:
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -394,20 +397,17 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  void onNodesAdded(const Array<UInt> & /*unused*/,
-                    const NewNodesEvent & /*unused*/) override{};
-  void onNodesRemoved(const Array<UInt> & /*unused*/,
-                      const Array<UInt> & /*unused*/,
-                      const RemovedNodesEvent & /*unused*/) override{};
+  void onNodesAdded(const Array<Idx> &, const NewNodesEvent &) override{};
+  void onNodesRemoved(const Array<Idx> &, const Array<Idx> &,
+                      const RemovedNodesEvent &) override{};
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
   void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> & /*unused*/,
-                         const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
-                         const ChangedElementsEvent & /*unused*/) override{};
+  void onElementsChanged(const Array<Element> &, const Array<Element> &,
+                         const ElementTypeMapArray<Idx> &,
+                         const ChangedElementsEvent &) override{};
 
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */
@@ -445,9 +445,9 @@ public:
   virtual Real getEnergy(const std::string & type);
   /// return the energy (identified by id) for the provided element
   virtual Real getEnergy(const std::string & energy_id, ElementType type,
-                         UInt index);
+                         Idx index);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy,
@@ -455,7 +455,7 @@ public:
   AKANTU_GET_MACRO(GradU, gradu, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(Stress, stress, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(ElementFilter, element_filter,
-                   const ElementTypeMapArray<UInt> &);
+                   const ElementTypeMapArray<Int> &);
   AKANTU_GET_MACRO(FEEngine, fem, FEEngine &);
 
   bool isNonLocal() const { return is_non_local; }
@@ -560,10 +560,10 @@ protected:
   Real rho{0.};
 
   /// spatial dimension
-  UInt spatial_dimension;
+  Int spatial_dimension;
 
   /// list of element handled by the material
-  ElementTypeMapArray<UInt> element_filter;
+  ElementTypeMapArray<Idx> element_filter;
 
   /// stresses arrays ordered by element types
   InternalField<Real> stress;

@@ -117,8 +117,13 @@ struct is_eigen_map<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
 
 /* -------------------------------------------------------------------------- */
 namespace aka {
+
 template <typename T>
-using is_tensor = std::is_base_of<akantu::TensorTraitBase, T>;
+struct is_tensor : public std::is_base_of<akantu::TensorTraitBase, T> {};
+
+template <typename PlainObjectType, int MapOptions, typename StrideType>
+struct is_tensor<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+    : public std::true_type {};
 
 template <typename T, size_t n>
 using is_tensor_n = std::is_base_of<akantu::TensorTrait<n>, T>;

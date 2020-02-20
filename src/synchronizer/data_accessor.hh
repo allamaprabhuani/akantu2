@@ -66,8 +66,8 @@ public:
    * @brief get  the number of  data to exchange  for a given array of T
    * (elements or dofs) and a given akantu::SynchronizationTag
    */
-  virtual UInt getNbData(const Array<T> & elements,
-                         const SynchronizationTag & tag) const = 0;
+  virtual Int getNbData(const Array<T> & elements,
+                        const SynchronizationTag & tag) const = 0;
 
   /**
    * @brief pack the data for a given array of T (elements or dofs) and a given
@@ -93,8 +93,8 @@ public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  virtual UInt getNbData(const Array<Element> & elements,
-                         const SynchronizationTag & tag) const = 0;
+  virtual Int getNbData(const Array<Element> & elements,
+                        const SynchronizationTag & tag) const = 0;
   virtual void packData(CommunicationBuffer & buffer,
                         const Array<Element> & element,
                         const SynchronizationTag & tag) const = 0;
@@ -157,30 +157,30 @@ public:
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-template <> class DataAccessor<UInt> : public virtual DataAccessorBase {
+template <> class DataAccessor<Idx> : public virtual DataAccessorBase {
 public:
   DataAccessor() = default;
   ~DataAccessor() override = default;
 
-  virtual UInt getNbData(const Array<UInt> & elements,
-                         const SynchronizationTag & tag) const = 0;
+  virtual Int getNbData(const Array<Idx> & elements,
+                        const SynchronizationTag & tag) const = 0;
   virtual void packData(CommunicationBuffer & buffer,
-                        const Array<UInt> & element,
+                        const Array<Idx> & element,
                         const SynchronizationTag & tag) const = 0;
   virtual void unpackData(CommunicationBuffer & buffer,
-                          const Array<UInt> & element,
+                          const Array<Idx> & element,
                           const SynchronizationTag & tag) = 0;
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T, bool pack_helper>
   static void packUnpackDOFDataHelper(Array<T> & data,
                                       CommunicationBuffer & buffer,
-                                      const Array<UInt> & dofs);
+                                      const Array<Idx> & dofs);
 
   template <typename T>
   static inline void packDOFDataHelper(const Array<T> & data_to_pack,
                                        CommunicationBuffer & buffer,
-                                       const Array<UInt> & dofs) {
+                                       const Array<Idx> & dofs) {
     packUnpackDOFDataHelper<T, true>(const_cast<Array<T> &>(data_to_pack),
                                      buffer, dofs);
   }
@@ -188,7 +188,7 @@ public:
   template <typename T>
   static inline void unpackDOFDataHelper(Array<T> & data_to_unpack,
                                          CommunicationBuffer & buffer,
-                                         const Array<UInt> & dofs) {
+                                         const Array<Idx> & dofs) {
     packUnpackDOFDataHelper<T, false>(data_to_unpack, buffer, dofs);
   }
 };
@@ -223,7 +223,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  UInt getNbData(const Array<Entity> & entities,
+  Int getNbData(const Array<Entity> & entities,
                  const SynchronizationTag & tag) const override {
     if (tag != this->tag) {
       return 0;

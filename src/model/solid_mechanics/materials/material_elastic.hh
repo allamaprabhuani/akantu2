@@ -50,7 +50,7 @@ namespace akantu {
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialElastic
     : public PlaneStressToolbox<spatial_dimension,
                                 MaterialThermal<spatial_dimension>> {

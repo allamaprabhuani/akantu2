@@ -54,10 +54,10 @@ namespace akantu {
 class DefaultMaterialCohesiveSelector : public MaterialSelector {
 public:
   DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
-  UInt operator()(const Element & element) override;
+  Int operator()(const Element & element) override;
 
 private:
-  const ElementTypeMapArray<UInt> & facet_material;
+  const ElementTypeMapArray<Idx> & facet_material;
   const Mesh & mesh;
 };
 
@@ -66,7 +66,7 @@ private:
 class MeshDataMaterialCohesiveSelector : public MaterialSelector {
 public:
   MeshDataMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
-  UInt operator()(const Element & element) override;
+  Int operator()(const Element & element) override;
 
 protected:
   const SolidMechanicsModelCohesive & model;
@@ -84,14 +84,14 @@ public:
   MaterialCohesiveRulesSelector(const SolidMechanicsModelCohesive & model,
                                 const MaterialCohesiveRules & rules,
                                 ID mesh_data_id = "physical_names");
-  UInt operator()(const Element & element) override;
+  Int operator()(const Element & element) override;
 
 private:
   const SolidMechanicsModelCohesive & model;
   ID mesh_data_id;
   const Mesh & mesh;
   const Mesh & mesh_facets;
-  UInt spatial_dimension;
+  Int spatial_dimension;
   MaterialCohesiveRules rules;
 };
 

@@ -35,7 +35,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialCohesiveLinearFatigue<spatial_dimension>::MaterialCohesiveLinearFatigue(
     SolidMechanicsModel & model, const ID & id)
     : MaterialCohesiveLinear<spatial_dimension>(model, id),
@@ -61,7 +61,7 @@ MaterialCohesiveLinearFatigue<spatial_dimension>::MaterialCohesiveLinearFatigue(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
   MaterialCohesiveLinear<spatial_dimension>::initMaterial();
 
@@ -85,7 +85,7 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -129,10 +129,9 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     delta_dot_prec_array = &delta_dot_prec(el_type, ghost_type);
   }
 
-  auto * memory_space = new Real[2 * spatial_dimension];
-  Vector<Real> normal_opening(memory_space, spatial_dimension);
-  Vector<Real> tangential_opening(memory_space + spatial_dimension,
-                                  spatial_dimension);
+
+  Vector<Real, spatial_dimension> normal_opening;
+  Vector<Real, spatial_dimension> tangential_opening;
 
   Real tolerance = Math::getTolerance();
 
@@ -295,7 +294,6 @@ void MaterialCohesiveLinearFatigue<spatial_dimension>::computeTraction(
     delta_prec_array(q) = delta;
   }
 
-  delete[] memory_space;
   AKANTU_DEBUG_OUT();
 }
 

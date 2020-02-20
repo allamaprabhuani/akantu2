@@ -31,7 +31,7 @@ namespace akantu {
  * parameters in the material files :
  *   - Sc
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialDamageIterative : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

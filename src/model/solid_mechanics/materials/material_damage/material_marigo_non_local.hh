@@ -48,7 +48,7 @@ namespace akantu {
  *
  * parameters in the material files :
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialMarigoNonLocal
     : public MaterialDamageNonLocal<spatial_dimension,
                                     MaterialMarigo<spatial_dimension>> {

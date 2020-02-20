@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
-#include "fe_engine.hh"
+//#include "fe_engine.hh"
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 #include "element_type_conversion.hh"
@@ -122,13 +122,13 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
                                           Array<T> & elemental_f,
                                           ElementType type,
                                           GhostType ghost_type,
-                                          const Array<UInt> & filter_elements) {
+                                          const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
-  UInt nb_degree_of_freedom = nodal_f.getNbComponent();
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  UInt * conn_val = mesh.getConnectivity(type, ghost_type).data();
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  auto nb_degree_of_freedom = nodal_f.getNbComponent();
+  auto nb_element = mesh.getNbElement(type, ghost_type);
+  auto * conn_val = mesh.getConnectivity(type, ghost_type).data();
 
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
@@ -139,16 +139,16 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
   T * nodal_f_val = nodal_f.data();
   T * f_val = elemental_f.data();
 
-  UInt * el_conn;
-  for (UInt el = 0; el < nb_element; ++el) {
-    if (filter_elements != empty_filter) {
+  Idx * el_conn;
+  for (Int el = 0; el < nb_element; ++el) {
+    if (filter_elements != empty_filter)
       el_conn = conn_val + filter_elements(el) * nb_nodes_per_element;
     } else {
       el_conn = conn_val + el * nb_nodes_per_element;
     }
 
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt node = *(el_conn + n);
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
+      auto node = *(el_conn + n);
       std::copy(nodal_f_val + node * nb_degree_of_freedom,
                 nodal_f_val + (node + 1) * nb_degree_of_freedom, f_val);
       f_val += nb_degree_of_freedom;
@@ -161,19 +161,20 @@ void FEEngine::extractNodalToElementField(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
-                                   Array<T> & filtered_f, ElementType type,
+                                   Array<T> & filtered_f,
+                                   ElementType type,
                                    GhostType ghost_type,
-                                   const Array<UInt> & filter_elements) {
+                                   const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
+  auto nb_element = mesh.getNbElement(type, ghost_type);
   if (nb_element == 0) {
     filtered_f.resize(0);
     return;
   }
 
-  UInt nb_degree_of_freedom = elem_f.getNbComponent();
-  UInt nb_data_per_element = elem_f.size() / nb_element;
+  auto nb_degree_of_freedom = elem_f.getNbComponent();
+  auto nb_data_per_element = elem_f.size() / nb_element;
 
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
@@ -185,8 +186,8 @@ void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
   T * f_val = filtered_f.data();
 
   UInt el_offset;
-  for (UInt el = 0; el < nb_element; ++el) {
-    if (filter_elements != empty_filter) {
+  for (Idx el = 0; el < nb_element; ++el) {
+    if (filter_elements != empty_filter)
       el_offset = filter_elements(el);
     } else {
       el_offset = el;

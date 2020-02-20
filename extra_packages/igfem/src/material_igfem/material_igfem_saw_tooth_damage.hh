@@ -22,7 +22,7 @@
 
 namespace akantu {
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialIGFEMSawToothDamage
     : public MaterialDamage<spatial_dimension, MaterialIGFEMElastic> {
   /* ------------------------------------------------------------------------ */

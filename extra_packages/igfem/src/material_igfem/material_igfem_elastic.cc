@@ -18,7 +18,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialIGFEMElastic<dim>::MaterialIGFEMElastic(SolidMechanicsModel & model,
                                                 const ID & id)
     : Material(model, id), Parent(model, id), lambda("lambda", *this),
@@ -29,14 +29,14 @@ MaterialIGFEMElastic<dim>::MaterialIGFEMElastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialIGFEMElastic<dim>::initialize() {
+template <Int dim> void MaterialIGFEMElastic<dim>::initialize() {
   this->lambda.initialize(1);
   this->mu.initialize(1);
   this->kpa.initialize(1);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialIGFEMElastic<dim>::initMaterial() {
+template <Int dim> void MaterialIGFEMElastic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
   Parent::initMaterial();
@@ -49,7 +49,7 @@ template <UInt dim> void MaterialIGFEMElastic<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
     const Array<Element> & element_list) {
 
@@ -107,7 +107,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -131,7 +131,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuli(
     __attribute__((unused)) ElementType el_type,
     Array<Real> & tangent_matrix,
@@ -150,7 +150,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergy(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -186,7 +186,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergyByElement(
     ElementType type, UInt index, Vector<Real> & epot_on_quad_points) {
   // Array<Real>::matrix_iterator gradu_it =
@@ -228,7 +228,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergyByElement(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
 

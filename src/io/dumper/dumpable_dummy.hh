@@ -75,31 +75,31 @@ public:
                               const std::string & dumper_name,
                               const bool is_default = false) {}
 
-  void addDumpMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-                   GhostType ghost_type = _not_ghost,
-                   ElementKind element_kind = _ek_not_defined) {}
+  void addDumpMesh(const Mesh & mesh, Int spatial_dimension = _all_dimensions,
+                   const GhostType & ghost_type = _not_ghost,
+                   const ElementKind & element_kind = _ek_not_defined) {}
 
   void addDumpMeshToDumper(const std::string & dumper_name, const Mesh & mesh,
-                           UInt spatial_dimension = _all_dimensions,
-                           GhostType ghost_type = _not_ghost,
-                           ElementKind element_kind = _ek_not_defined) {
+                           Int spatial_dimension = _all_dimensions,
+                           const GhostType & ghost_type = _not_ghost,
+                           const ElementKind & element_kind = _ek_not_defined) {
   }
 
   void addDumpFilteredMesh(const Mesh & mesh,
-                           const ElementTypeMapArray<UInt> & elements_filter,
-                           const Array<UInt> & nodes_filter,
-                           UInt spatial_dimension = _all_dimensions,
-                           GhostType ghost_type = _not_ghost,
-                           ElementKind element_kind = _ek_not_defined) {
+                           const ElementTypeMapArray<Idx> & elements_filter,
+                           const Array<Idx> & nodes_filter,
+                           Int spatial_dimension = _all_dimensions,
+                           const GhostType & ghost_type = _not_ghost,
+                           const ElementKind & element_kind = _ek_not_defined) {
   }
 
   void addDumpFilteredMeshToDumper(
       const std::string & dumper_name, const Mesh & mesh,
-      const ElementTypeMapArray<UInt> & elements_filter,
-      const Array<UInt> & nodes_filter,
-      UInt spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined) {}
+      const ElementTypeMapArray<Idx> & elements_filter,
+      const Array<Idx> & nodes_filter,
+      Int spatial_dimension = _all_dimensions,
+      const GhostType & ghost_type = _not_ghost,
+      const ElementKind & element_kind = _ek_not_defined) {}
 
   virtual void addDumpField(const std::string & field_id) {
     AKANTU_TO_IMPLEMENT();
@@ -140,9 +140,9 @@ public:
   void
   addDumpFieldExternal(const std::string & field_id,
                        const ElementTypeMapArray<T> & field,
-                       UInt spatial_dimension = _all_dimensions,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined) {
+                       Int spatial_dimension = _all_dimensions,
+                       const GhostType & ghost_type = _not_ghost,
+                       const ElementKind & element_kind = _ek_not_defined) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }
@@ -150,9 +150,9 @@ public:
   void addDumpFieldExternalToDumper(
       const std::string & dumper_name, const std::string & field_id,
       const ElementTypeMapArray<T> & field,
-      UInt spatial_dimension = _all_dimensions,
-      GhostType ghost_type = _not_ghost,
-      ElementKind element_kind = _ek_not_defined) {
+      Int spatial_dimension = _all_dimensions,
+      const GhostType & ghost_type = _not_ghost,
+      const ElementKind & element_kind = _ek_not_defined) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }
@@ -205,20 +205,20 @@ public:
                          "AKANTU_USE_IOHELPER in cmake.");
   }
 
-  void dump(UInt step) {
+  void dump(Int step) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }
-  void dump(const std::string & dumper_name, UInt step) {
+  void dump(const std::string & dumper_name, Int step) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }
 
-  void dump(Real current_time, UInt step) {
+  void dump(Real current_time, Int step) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }
-  void dump(const std::string & dumper_name, Real current_time, UInt step) {
+  void dump(const std::string & dumper_name, Real current_time, Int step) {
     AKANTU_DEBUG_WARNING("No dumper activated at compilation, turn on "
                          "AKANTU_USE_IOHELPER in cmake.");
   }

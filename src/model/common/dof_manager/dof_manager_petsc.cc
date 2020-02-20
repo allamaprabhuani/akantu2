@@ -206,7 +206,7 @@ void DOFManagerPETSc::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   auto & A = getMatrix(matrix_id);
   DOFManager::assembleElementalMatricesToMatrix_(
       A, dof_id, elementary_mat, type, ghost_type, elemental_matrix_type,

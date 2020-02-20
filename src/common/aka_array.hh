@@ -70,7 +70,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the amount of space allocated in bytes
-  virtual UInt getMemorySize() const = 0;
+  virtual Int getMemorySize() const = 0;
 
   // changed empty to match std::vector empty
   inline bool empty() const __attribute__((warn_unused_result)) {
@@ -85,11 +85,11 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// Get the Size of the Array
-  UInt size() const { return size_; }
+  decltype(auto) size() const { return size_; }
   /// Get the number of components
-  AKANTU_GET_MACRO(NbComponent, nb_component, UInt);
+  decltype(auto) getNbComponent() const { return nb_component; }
   /// Get the name of th array
-  AKANTU_GET_MACRO(ID, id, const ID &);
+  AKANTU_GET_MACRO_AUTO(ID, id);
   /// Set the name of th array
   AKANTU_SET_MACRO(ID, id, const ID &);
 
@@ -101,10 +101,10 @@ protected:
   ID id;
 
   /// the size used
-  UInt size_{0};
+  Int size_{0};
 
   /// number of components
-  UInt nb_component{1};
+  Int nb_component{1};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -139,11 +139,11 @@ public:
   ~ArrayDataLayer() override = default;
 
   /// Allocation of a new vector
-  explicit ArrayDataLayer(UInt size = 0, UInt nb_component = 1,
+  explicit ArrayDataLayer(Int size = 0, Int nb_component = 1,
                           const ID & id = "");
 
   /// Allocation of a new vector with a default value
-  ArrayDataLayer(UInt size, UInt nb_component, const_reference value,
+  ArrayDataLayer(Int size, Int nb_component, const_reference value,
                  const ID & id = "");
 
   /// Copy constructor (deep copy)
@@ -166,10 +166,10 @@ protected:
   virtual void deallocate() {}
 
   // allocate the memory
-  virtual void allocate(UInt size, UInt nb_component);
+  virtual void allocate(Int size, Int nb_component);
 
   // allocate and initialize the memory
-  virtual void allocate(UInt size, UInt nb_component, const T & value);
+  virtual void allocate(Int size, Int nb_component, const T & value);
 
 public:
   /// append a tuple of size nb_component containing value
@@ -178,25 +178,24 @@ public:
   // inline void push_back(const value_type new_elem[]);
 
   /// append a Vector or a Matrix
-  template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
-  inline void push_back(const C<T> & new_elem);
+  template <typename Derived>
+  inline void push_back(const Eigen::MatrixBase<Derived> & new_elem);
 
   /// changes the allocated size but not the size, if new_size = 0, the size is
   /// set to min(current_size and reserve size)
-  virtual void reserve(UInt size, UInt new_size = UInt(-1));
+  virtual void reserve(Int size, Int new_size = Int(-1));
 
   /// change the size of the Array
-  virtual void resize(UInt size);
+  virtual void resize(Int size);
 
   /// change the size of the Array and initialize the values
-  virtual void resize(UInt size, const T & val);
+  virtual void resize(Int size, const T & val);
 
   /// get the amount of space allocated in bytes
-  inline UInt getMemorySize() const override;
+  inline Int getMemorySize() const override;
 
   /// Get the real size allocated in memory
-  inline UInt getAllocatedSize() const;
+  inline Int getAllocatedSize() const;
 
   /// give the address of the memory allocated for this vector
   [[deprecated("use data instead to be stl compatible")]] T * storage() const {
@@ -235,10 +234,10 @@ public:
   Array() : Array(0){};
 
   /// Allocation of a new vector
-  explicit Array(UInt size, UInt nb_component = 1, const ID & id = "");
+  explicit Array(Int size, Int nb_component = 1, const ID & id = "");
 
   /// Allocation of a new vector with a default value
-  explicit Array(UInt size, UInt nb_component, const_reference value,
+  explicit Array(Int size, Int nb_component, const_reference value,
                  const ID & id = "");
 
   /// Copy constructor
@@ -276,7 +275,7 @@ public:
   using matrix_iterator = view_iterator<MatrixProxy<T>>;
   /// const iterator returning Matrices of size (m, n) on entries of Array with
   /// nb_component = m*n
-  using const_matrix_iterator = const_view_iterator<MatrixProxy<T>>;
+  using const_matrix_iterator = const_view_iterator<MatrixProxy<const T>>;
 
   /// iterator returning Tensor3 of size (m, n, k) on entries of Array with
   /// nb_component = m*n*k
@@ -286,19 +285,23 @@ public:
   using const_tensor3_iterator = const_view_iterator<Tensor3Proxy<T>>;
 
   /* ------------------------------------------------------------------------ */
-  template <typename... Ns> inline decltype(auto) begin(Ns &&... n);
-  template <typename... Ns> inline decltype(auto) end(Ns &&... n);
-
-  template <typename... Ns> inline decltype(auto) begin(Ns &&... n) const;
-  template <typename... Ns> inline decltype(auto) end(Ns &&... n) const;
-
-  template <typename... Ns> inline decltype(auto) begin_reinterpret(Ns &&... n);
-  template <typename... Ns> inline decltype(auto) end_reinterpret(Ns &&... n);
+  template <typename... Ns> inline auto begin(Ns &&... n);
+  template <typename... Ns> inline auto end(Ns &&... n);
+  template <typename... Ns> inline auto begin(Ns &&... n) const;
+  template <typename... Ns> inline auto end(Ns &&... n) const;
 
   template <typename... Ns>
-  inline decltype(auto) begin_reinterpret(Ns &&... n) const;
+  [[deprecated("use make_view instead")]] inline auto
+  begin_reinterpret(Ns &&... n);
   template <typename... Ns>
-  inline decltype(auto) end_reinterpret(Ns &&... n) const;
+  [[deprecated("use make_view instead")]] inline auto
+  end_reinterpret(Ns &&... n);
+  template <typename... Ns>
+  [[deprecated("use make_view instead")]] inline auto
+  begin_reinterpret(Ns &&... n) const;
+  template <typename... Ns>
+  [[deprecated("use make_view instead")]] inline auto
+  end_reinterpret(Ns &&... n) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -306,7 +309,7 @@ public:
 public:
   /// search elem in the vector, return  the position of the first occurrence or
   /// -1 if not found
-  UInt find(const_reference elem) const;
+  Idx find(const_reference elem) const;
 
   /// @see Array::find(const_reference elem) const
   //  UInt find(T elem[]) const;
@@ -326,14 +329,14 @@ public:
   }
 
   /// erase the value at position i
-  inline void erase(UInt i);
+  inline void erase(Idx i);
   /// ask Nico, clarify
   template <typename R> inline auto erase(const view_iterator<R> & it);
 
   /// @see Array::find(const_reference elem) const
   template <template <typename> class C,
             typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
-  inline UInt find(const C<T> & elem);
+  inline Idx find(const C<T> & elem);
 
   /// set all entries of the array to the value t
   /// @param t value to fill the array with
@@ -381,14 +384,14 @@ public:
   bool operator!=(const Array<T, is_scal> & other) const;
 
   /// return a reference to the j-th entry of the i-th tuple
-  inline reference operator()(UInt i, UInt j = 0);
+  inline reference operator()(Idx i, Idx j = 0);
   /// return a const reference to the j-th entry of the i-th tuple
-  inline const_reference operator()(UInt i, UInt j = 0) const;
+  inline const_reference operator()(Idx i, Idx j = 0) const;
 
   /// return a reference to the ith component of the 1D array
-  inline reference operator[](UInt i);
+  inline reference operator[](Idx i);
   /// return a const reference to the ith component of the 1D array
-  inline const_reference operator[](UInt i) const;
+  inline const_reference operator[](Idx i) const;
 };
 
 /* -------------------------------------------------------------------------- */

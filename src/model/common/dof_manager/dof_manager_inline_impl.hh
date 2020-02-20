@@ -216,14 +216,14 @@ inline NodeFlag DOFManager::getDOFFlag(Int local_id) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const Array<UInt> &
+inline decltype(auto)
 DOFManager::getDOFsAssociatedNodes(const ID & dof_id) const {
   const auto & dof_data = this->getDOFData(dof_id);
   return dof_data.associated_nodes;
 }
 
 /* -------------------------------------------------------------------------- */
-const Array<Int> &
+decltype(auto)
 DOFManager::getLocalEquationsNumbers(const ID & dof_id) const {
   return getDOFData(dof_id).local_equation_number;
 }
@@ -246,7 +246,7 @@ void DOFManager::assembleElementalMatricesToMatrix_(
     Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
     ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
-    const Array<UInt> & filter_elements) {
+    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   auto & dof_data = this->getDOFData(dof_id);

@@ -62,7 +62,7 @@ namespace akantu {
 /* Constants                                                                  */
 /* -------------------------------------------------------------------------- */
 namespace {
-  [[gnu::unused]] constexpr UInt _all_dimensions{
+  [[gnu::unused]] constexpr Int _all_dimensions{
       std::numeric_limits<UInt>::max()};
 #ifdef AKANTU_NDEBUG
   [[gnu::unused]] constexpr Real REAL_INIT_VALUE{0.};
@@ -533,6 +533,9 @@ namespace {
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
   inline type get##name() const { return variable; }
+
+#define AKANTU_GET_MACRO_AUTO(name, variable) \
+  inline decltype(auto) get##name() const { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
   inline type get##name() { return variable; }

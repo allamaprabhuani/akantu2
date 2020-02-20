@@ -14,7 +14,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
     Matrix<Real> & grad_u, Matrix<Real> & grad_v, Matrix<Real> & sigma,
     Real & dam, Real & sigma_equivalent, Real & fracture_stress) {
@@ -52,7 +52,7 @@ inline void MaterialBrittle<spatial_dimension>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialBrittle<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam, Real & sigma_c, Real & fracture_stress) {
   if (sigma_c > fracture_stress)
@@ -64,7 +64,7 @@ inline void MaterialBrittle<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline UInt MaterialBrittle<spatial_dimension>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
@@ -76,7 +76,7 @@ inline UInt MaterialBrittle<spatial_dimension>::getNbData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialBrittle<spatial_dimension>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
@@ -88,7 +88,7 @@ inline void MaterialBrittle<spatial_dimension>::packData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialBrittle<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
                                                const Array<Element> & elements,

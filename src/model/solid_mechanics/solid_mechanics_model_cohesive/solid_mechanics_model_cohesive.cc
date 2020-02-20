@@ -478,8 +478,6 @@ void SolidMechanicsModelCohesive::computeNormals() {
 
   tangents.initialize(mesh_facets, _nb_component = tangent_components,
                       _spatial_dimension = Model::spatial_dimension - 1);
-  // mesh_facets.initElementTypeMapArray(tangents, tangent_components,
-  //                                     Model::spatial_dimension - 1);
 
   for (auto facet_type :
        mesh_facets.elementTypes(Model::spatial_dimension - 1)) {
@@ -528,15 +526,8 @@ UInt SolidMechanicsModelCohesive::checkCohesiveStress() {
     }
   }
 
-  /// communicate data among processors
-  // this->synchronize(SynchronizationTag::_smmc_facets);
-
   /// insert cohesive elements
   UInt nb_new_elements = inserter->insertElements();
-
-  // if (nb_new_elements > 0) {
-  //   this->reinitializeSolver();
-  // }
 
   AKANTU_DEBUG_OUT();
 
@@ -558,7 +549,7 @@ void SolidMechanicsModelCohesive::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
+void SolidMechanicsModelCohesive::onNodesAdded(const Array<Idx> & new_nodes,
                                                const NewNodesEvent & event) {
   AKANTU_DEBUG_IN();
 
@@ -613,7 +604,6 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
   }
 
   copy(getDOFManager().getSolution("displacement"));
-  // this->assembleMassLumped();
 
   AKANTU_DEBUG_OUT();
 }

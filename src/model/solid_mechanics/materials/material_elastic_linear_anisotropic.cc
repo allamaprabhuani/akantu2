@@ -43,7 +43,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialElasticLinearAnisotropic<dim>::MaterialElasticLinearAnisotropic(
     SolidMechanicsModel & model, const ID & id, bool symmetric)
     : Material(model, id), rot_mat(dim, dim), Cprime(dim * dim, dim * dim),
@@ -87,14 +87,14 @@ MaterialElasticLinearAnisotropic<dim>::MaterialElasticLinearAnisotropic(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialElasticLinearAnisotropic<dim>::initMaterial() {
+template <Int dim> void MaterialElasticLinearAnisotropic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
   Material::initMaterial();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::updateInternalParameters() {
 
   Material::updateInternalParameters();
@@ -193,7 +193,7 @@ template <UInt Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   // Wikipedia convention:
@@ -209,7 +209,7 @@ void MaterialElasticLinearAnisotropic<dim>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -226,7 +226,7 @@ void MaterialElasticLinearAnisotropic<dim>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
@@ -249,7 +249,7 @@ void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 Real MaterialElasticLinearAnisotropic<dim>::getCelerity(
     __attribute__((unused)) const Element & element) const {
   return std::sqrt(this->eigC(0) / rho);

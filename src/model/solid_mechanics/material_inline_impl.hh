@@ -46,15 +46,15 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::addElement(ElementType type, UInt element,
-                                 GhostType ghost_type) {
-  Array<UInt> & el_filter = this->element_filter(type, ghost_type);
+inline auto Material::addElement(const ElementType & type, Int element,
+                                 const GhostType & ghost_type) {
+  auto & el_filter = this->element_filter(type, ghost_type);
   el_filter.push_back(element);
   return el_filter.size() - 1;
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::addElement(const Element & element) {
+inline auto Material::addElement(const Element & element) {
   return this->addElement(element.type, element.element, element.ghost_type);
 }
 
@@ -69,7 +69,7 @@ inline UInt Material::getCauchyStressMatrixSize(UInt dim) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void Material::gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F) {
   AKANTU_DEBUG_ASSERT(F.size() >= grad_u.size() && grad_u.size() == dim * dim,
                       "The dimension of the tensor F should be greater or "
@@ -85,7 +85,7 @@ inline void Material::gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline decltype(auto) Material::gradUToF(const Matrix<Real> & grad_u) {
   Matrix<Real> F(dim, dim);
   gradUToF<dim>(grad_u, F);
@@ -93,7 +93,7 @@ inline decltype(auto) Material::gradUToF(const Matrix<Real> & grad_u) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void Material::StoCauchy(const Matrix<Real> & F, const Matrix<Real> & S,
                                 Matrix<Real> & sigma, const Real & C33) const {
   Real J = F.determinant() * std::sqrt(C33);
@@ -115,7 +115,7 @@ inline void Material::leftCauchy(const Matrix<Real> & F, Matrix<Real> & B) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
                                      Matrix<Real> & epsilon) {
   for (UInt i = 0; i < dim; ++i) {
@@ -126,7 +126,7 @@ inline void Material::gradUToEpsilon(const Matrix<Real> & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline decltype(auto) Material::gradUToEpsilon(const Matrix<Real> & grad_u) {
   Matrix<Real> epsilon(dim, dim);
   Material::template gradUToEpsilon<dim>(grad_u, epsilon);
@@ -134,14 +134,14 @@ inline decltype(auto) Material::gradUToEpsilon(const Matrix<Real> & grad_u) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void Material::gradUToE(const Matrix<Real> & grad_u, Matrix<Real> & E) {
     E = grad_u.transpose() * grad_u / 2.;
     E += (grad_u.transpose() + grad_u)/ 2.;
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline decltype(auto) Material::gradUToE(const Matrix<Real> & grad_u) {
   Matrix<Real> E(dim, dim);
   gradUToE<dim>(grad_u, E);
@@ -160,7 +160,7 @@ inline Real Material::stressToVonMises(const Matrix<Real> & stress) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void Material::setCauchyStressMatrix(const Matrix<Real> & S_t,
                                             Matrix<Real> & sigma) {
   AKANTU_DEBUG_IN();
@@ -183,18 +183,18 @@ inline void Material::setCauchyStressMatrix(const Matrix<Real> & S_t,
 /* -------------------------------------------------------------------------- */
 inline Element
 Material::convertToLocalElement(const Element & global_element) const {
-  UInt ge = global_element.element;
+  auto ge = global_element.element;
 #ifndef AKANTU_NDEBUG
-  UInt model_mat_index = this->model.getMaterialByElement(
+  auto model_mat_index = this->model.getMaterialByElement(
       global_element.type, global_element.ghost_type)(ge);
 
-  UInt mat_index = this->model.getMaterialIndex(this->name);
+  auto mat_index = this->model.getMaterialIndex(this->name);
   AKANTU_DEBUG_ASSERT(model_mat_index == mat_index,
                       "Conversion of a global  element in a local element for "
                       "the wrong material "
                           << this->name << std::endl);
 #endif
-  UInt le = this->model.getMaterialLocalNumbering(
+  auto le = this->model.getMaterialLocalNumbering(
       global_element.type, global_element.ghost_type)(ge);
 
   Element tmp_quad{global_element.type, le, global_element.ghost_type};
@@ -204,8 +204,8 @@ Material::convertToLocalElement(const Element & global_element) const {
 /* -------------------------------------------------------------------------- */
 inline Element
 Material::convertToGlobalElement(const Element & local_element) const {
-  UInt le = local_element.element;
-  UInt ge =
+  auto le = local_element.element;
+  auto ge =
       this->element_filter(local_element.type, local_element.ghost_type)(le);
 
   Element tmp_quad{local_element.type, ge, local_element.ghost_type};
@@ -226,7 +226,7 @@ Material::convertToLocalPoint(const IntegrationPoint & global_point) const {
 inline IntegrationPoint
 Material::convertToGlobalPoint(const IntegrationPoint & local_point) const {
   const FEEngine & fem = this->model.getFEEngine();
-  UInt nb_quad = fem.getNbIntegrationPoints(local_point.type);
+  auto nb_quad = fem.getNbIntegrationPoints(local_point.type);
   Element el =
       this->convertToGlobalElement(static_cast<const Element &>(local_point));
   IntegrationPoint tmp_quad(el, local_point.num_point, nb_quad);
@@ -234,7 +234,7 @@ Material::convertToGlobalPoint(const IntegrationPoint & local_point) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Material::getNbData(const Array<Element> & elements,
+inline Int Material::getNbData(const Array<Element> & elements,
                                 const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     return (this->isFiniteDeformation() ? 3 : 1) * spatial_dimension *

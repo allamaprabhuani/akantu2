@@ -37,7 +37,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 CustomNonLocalTestMaterial<dim>::CustomNonLocalTestMaterial(
     SolidMechanicsModel & model, const ID & id)
     : MyNonLocalParent(model, id), local_damage("local_damage", *this),
@@ -48,7 +48,7 @@ CustomNonLocalTestMaterial<dim>::CustomNonLocalTestMaterial(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void CustomNonLocalTestMaterial<dim>::registerNonLocalVariables() {
   /// register the non-local variable in the manager
   this->model.getNonLocalManager().registerNonLocalVariable(
@@ -60,19 +60,19 @@ void CustomNonLocalTestMaterial<dim>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void CustomNonLocalTestMaterial<dim>::initMaterial() {
+template <Int dim> void CustomNonLocalTestMaterial<dim>::initMaterial() {
   MyNonLocalParent::initMaterial();
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void CustomNonLocalTestMaterial<dim>::computeStress(ElementType el_type,
                                                     GhostType ghost_type) {
   MyNonLocalParent::computeStress(el_type, ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void CustomNonLocalTestMaterial<dim>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
   Array<Real>::const_scalar_iterator dam =

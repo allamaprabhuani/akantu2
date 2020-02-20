@@ -20,7 +20,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialViscoPlastic<dim>::MaterialViscoPlastic(SolidMechanicsModel & model,
                                                 const ID & id)
     : MaterialPlastic<dim>(model, id) {
@@ -37,7 +37,7 @@ MaterialViscoPlastic<dim>::MaterialViscoPlastic(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
                                               GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -72,7 +72,7 @@ void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialViscoPlastic<dim>::computeTangentModuli(
     __attribute__((unused)) ElementType el_type,
     Array<Real> & tangent_matrix,

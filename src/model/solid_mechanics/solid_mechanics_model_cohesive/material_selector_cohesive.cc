@@ -49,7 +49,7 @@ DefaultMaterialCohesiveSelector::DefaultMaterialCohesiveSelector(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt DefaultMaterialCohesiveSelector::operator()(const Element & element) {
+Int DefaultMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive) {
     try {
       const Array<Element> & cohesive_el_to_facet =
@@ -88,7 +88,7 @@ MeshDataMaterialCohesiveSelector::MeshDataMaterialCohesiveSelector(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
+Int MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
   if (Mesh::getKind(element.type) == _ek_cohesive or
       Mesh::getSpatialDimension(element.type) ==
           mesh_facets.getSpatialDimension() - 1) {
@@ -133,21 +133,21 @@ MaterialCohesiveRulesSelector::MaterialCohesiveRulesSelector(
 }
 
 /* -------------------------------------------------------------------------- */
-UInt MaterialCohesiveRulesSelector::operator()(const Element & element) {
+Int MaterialCohesiveRulesSelector::operator()(const Element & element) {
   if (mesh_facets.getSpatialDimension(element.type) ==
       (spatial_dimension - 1)) {
-    const std::vector<Element> & element_to_subelement =
+    const auto & element_to_subelement =
         mesh_facets.getElementToSubelement(element.type,
                                            element.ghost_type)(element.element);
     // Array<bool> & facets_check = model.getFacetsCheck();
 
-    const Element & el1 = element_to_subelement[0];
-    const Element & el2 = element_to_subelement[1];
+    const auto & el1 = element_to_subelement[0];
+    const auto & el2 = element_to_subelement[1];
 
-    ID id1 = mesh.getData<std::string>(mesh_data_id, el1.type,
+    auto id1 = mesh.getData<std::string>(mesh_data_id, el1.type,
                                        el1.ghost_type)(el1.element);
 
-    ID id2 = id1;
+    auto id2 = id1;
     if (el2 != ElementNull) {
       id2 = mesh.getData<std::string>(mesh_data_id, el2.type,
                                       el2.ghost_type)(el2.element);

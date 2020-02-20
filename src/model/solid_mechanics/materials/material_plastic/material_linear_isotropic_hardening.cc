@@ -42,7 +42,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialLinearIsotropicHardening<dim>::MaterialLinearIsotropicHardening(
     SolidMechanicsModel & model, const ID & id)
     : MaterialPlastic<dim>(model, id) {
@@ -52,7 +52,7 @@ MaterialLinearIsotropicHardening<dim>::MaterialLinearIsotropicHardening(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialLinearIsotropicHardening<spatial_dimension>::
     MaterialLinearIsotropicHardening(SolidMechanicsModel & model, UInt dim,
                                      const Mesh & mesh, FEEngine & fe_engine,
@@ -60,7 +60,7 @@ MaterialLinearIsotropicHardening<spatial_dimension>::
     : MaterialPlastic<spatial_dimension>(model, dim, mesh, fe_engine, id) {}
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -167,7 +167,7 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(
     ElementType el_type, Array<Real> & tangent_matrix,
     GhostType ghost_type) {

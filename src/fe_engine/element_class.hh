@@ -49,9 +49,9 @@ template <ElementType element_type> struct ElementClassProperty {
   static const GeometricalType geometrical_type{_gt_not_defined};
   static const InterpolationType interpolation_type{_itp_not_defined};
   static const ElementKind element_kind{_ek_regular};
-  static const UInt spatial_dimension{0};
+  static const Int spatial_dimension{0};
   static const GaussIntegrationType gauss_integration_type{_git_not_defined};
-  static const UInt polynomial_degree{0};
+  static const Int polynomial_degree{0};
 };
 
 #if !defined(DOXYGEN)
@@ -63,9 +63,9 @@ template <ElementType element_type> struct ElementClassProperty {
     static const GeometricalType geometrical_type{geom_type};                  \
     static const InterpolationType interpolation_type{interp_type};            \
     static const ElementKind element_kind{elem_kind};                          \
-    static const UInt spatial_dimension{sp};                                   \
+    static const Int spatial_dimension{sp};                                    \
     static const GaussIntegrationType gauss_integration_type{gauss_int_type};  \
-    static const UInt polynomial_degree{min_int_order};                        \
+    static const Int polynomial_degree{min_int_order};                         \
   }
 #else
 #define AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(elem_type, geom_type,             \
@@ -135,7 +135,7 @@ public:
   /// compute the normal to the element
   template <class D1, class D2>
   static inline void getNormal(const Eigen::MatrixBase<D1> & /*X*/,
-                               Eigen::MatrixBase<D2> &/*n*/) {
+                               Eigen::MatrixBase<D2> & /*n*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -144,19 +144,19 @@ public:
   static inline bool contains(const Eigen::MatrixBase<D> & coord);
 
 public:
-  static AKANTU_GET_MACRO_NOT_CONST(SpatialDimension,
-                                    geometrical_property::spatial_dimension,
-                                    UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(NbNodesPerElement,
-                                    geometrical_property::nb_nodes_per_element,
-                                    UInt);
+  static constexpr auto getSpatialDimension() {
+    return geometrical_property::spatial_dimension;
+  }
+  static constexpr auto getNbNodesPerElement() {
+    return geometrical_property::nb_nodes_per_element;
+  }
   static inline constexpr auto getNbFacetTypes() {
     return geometrical_property::nb_facet_types;
   };
-  static inline constexpr UInt getNbFacetsPerElement(UInt t);
-  static inline constexpr UInt getNbFacetsPerElement();
+  static inline constexpr Int getNbFacetsPerElement(Idx t);
+  static inline constexpr Int getNbFacetsPerElement();
   static inline constexpr decltype(auto)
-  getFacetLocalConnectivityPerElement(UInt t = 0);
+  getFacetLocalConnectivityPerElement(Idx t = 0);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -172,8 +172,8 @@ template <InterpolationType interpolation_type> struct InterpolationProperty {};
                                                   nb_nodes, ndim)              \
   template <> struct InterpolationProperty<itp_type> {                         \
     static constexpr InterpolationKind kind{itp_kind};                         \
-    static constexpr UInt nb_nodes_per_element{nb_nodes};                      \
-    static constexpr UInt natural_space_dimension{ndim};                       \
+    static constexpr Int nb_nodes_per_element{nb_nodes};                       \
+    static constexpr Int natural_space_dimension{ndim};                        \
   }
 #else
 #define AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(itp_type, itp_kind,          \
@@ -286,26 +286,25 @@ public:
       const Eigen::MatrixBase<Derived2> & f);
 
 public:
-  static AKANTU_GET_MACRO_NOT_CONST(
-      ShapeSize,
-      InterpolationProperty<interpolation_type>::nb_nodes_per_element, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(
-      ShapeDerivativesSize,
-      (InterpolationProperty<interpolation_type>::nb_nodes_per_element *
-       InterpolationProperty<interpolation_type>::natural_space_dimension),
-      UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(
-      NaturalSpaceDimension,
-      InterpolationProperty<interpolation_type>::natural_space_dimension, UInt);
-  static AKANTU_GET_MACRO_NOT_CONST(
-      NbNodesPerInterpolationElement,
-      InterpolationProperty<interpolation_type>::nb_nodes_per_element, UInt);
+  static constexpr auto getShapeSize() {
+    return InterpolationProperty<interpolation_type>::nb_nodes_per_element;
+  }
+  static constexpr auto getShapeDerivativesSize() {
+    return (InterpolationProperty<interpolation_type>::nb_nodes_per_element *
+            InterpolationProperty<interpolation_type>::natural_space_dimension);
+  }
+  static constexpr auto getNaturalSpaceDimension() {
+    return InterpolationProperty<interpolation_type>::natural_space_dimension;
+  }
+  static constexpr auto getNbNodesPerInterpolationElement() {
+    return InterpolationProperty<interpolation_type>::nb_nodes_per_element;
+  }
 };
 
 /* -------------------------------------------------------------------------- */
 /* Integration                                                                */
 /* -------------------------------------------------------------------------- */
-template <GaussIntegrationType git_class, UInt nb_points>
+template <GaussIntegrationType git_class, Int nb_points>
 struct GaussIntegrationTypeData {
   /// quadrature points in natural coordinates
   static Real quad_positions[];
@@ -314,10 +313,10 @@ struct GaussIntegrationTypeData {
 };
 
 template <ElementType type,
-          UInt n = ElementClassProperty<type>::polynomial_degree>
+          Int n = ElementClassProperty<type>::polynomial_degree>
 class GaussIntegrationElement {
 public:
-  static constexpr UInt getNbQuadraturePoints();
+  static constexpr Int getNbQuadraturePoints();
   static constexpr decltype(auto) getQuadraturePoints();
   static constexpr decltype(auto) getWeights();
 };
@@ -409,10 +408,10 @@ public:
              Real tolerance = 1e-10);
 
 public:
-  static AKANTU_GET_MACRO_NOT_CONST(Kind, element_kind, ElementKind);
-  static constexpr AKANTU_GET_MACRO_NOT_CONST(
-      SpatialDimension, ElementClassProperty<element_type>::spatial_dimension,
-      UInt);
+  static constexpr auto getKind() { return element_kind; }
+  static constexpr auto getSpatialDimension() {
+    return ElementClassProperty<element_type>::spatial_dimension;
+  }
 
   using element_class_extra_geom_property =
       ElementClassExtraGeometryProperties<element_type>;

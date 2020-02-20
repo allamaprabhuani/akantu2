@@ -148,7 +148,7 @@ public:
 
   public:
     type_iterator(DataMapIterator & list_begin, DataMapIterator & list_end,
-                  UInt dim, ElementKind ek);
+                  Int dim, ElementKind ek);
 
     type_iterator(const type_iterator & it);
     type_iterator() = default;
@@ -164,7 +164,7 @@ public:
   private:
     DataMapIterator list_begin;
     DataMapIterator list_end;
-    UInt dim;
+    Int dim;
     ElementKind kind;
   };
 
@@ -174,7 +174,7 @@ public:
     using Container = ElementTypeMap<Stored, SupportType>;
     using iterator = typename Container::type_iterator;
 
-    ElementTypesIteratorHelper(const Container & container, UInt dim,
+    ElementTypesIteratorHelper(const Container & container, Int dim,
                                GhostType ghost_type, ElementKind kind)
         : container(std::cref(container)), dim(dim), ghost_type(ghost_type),
           kind(kind) {}
@@ -198,14 +198,14 @@ public:
 
   private:
     std::reference_wrapper<const Container> container;
-    UInt dim;
+    Int dim;
     GhostType ghost_type;
     ElementKind kind;
   };
 
 private:
   ElementTypesIteratorHelper
-  elementTypesImpl(UInt dim = _all_dimensions,
+  elementTypesImpl(Int dim = _all_dimensions,
                    GhostType ghost_type = _not_ghost,
                    ElementKind kind = _ek_not_defined) const;
 
@@ -251,7 +251,7 @@ public:
    *  @return an iterator to the first stored data matching the filters
    *          or an iterator to the end of the map if none match*/
   [[deprecated("Use elementTypes instead")]] inline type_iterator
-  firstType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+  firstType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
             ElementKind kind = _ek_not_defined) const;
   /*! Get an iterator to the end of a subset datamap. This method expects
    *  the SupportType to be ElementType.
@@ -265,7 +265,7 @@ public:
    *  @return an iterator to the last stored data matching the filters
    *          or an iterator to the end of the map if none match */
   [[deprecated("Use elementTypes instead")]] inline type_iterator
-  lastType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+  lastType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
            ElementKind kind = _ek_not_defined) const;
 
   /*! Direct access to the underlying data map. for internal use by daughter
@@ -326,17 +326,16 @@ public:
    *         ghost_data map
    *  @param default_value the default value to use to fill the array
    *  @return a reference to the allocated array */
-  inline Array<T> & alloc(UInt size, UInt nb_component,
-                          const SupportType & type, GhostType ghost_type,
+  inline Array<T> & alloc(Int size, Int nb_component,
+                          const SupportType & type,
+                          const GhostType & ghost_type,
                           const T & default_value = T());
 
   /*! allocate memory for a new array in both the data and the ghost_data map
    *  @param size number of tuples of the new array
    *  @param nb_component tuple size
-   *  @param type the type under which the array is indexed in the map
-   *  @param default_value the default value to use to fill the array
-   */
-  inline void alloc(UInt size, UInt nb_component, const SupportType & type,
+   *  @param type the type under which the array is indexed in the map*/
+  inline void alloc(Int size, Int nb_component, const SupportType & type,
                     const T & default_value = T());
 
   /* get a reference to the array of certain type
@@ -348,10 +347,10 @@ public:
 
   /// access the data of an element, this combine the map and array accessor
   inline const T & operator()(const Element & element,
-                              UInt component = 0) const;
+                              Int component = 0) const;
 
   /// access the data of an element, this combine the map and array accessor
-  inline T & operator()(const Element & element, UInt component = 0);
+  inline T & operator()(const Element & element, Int component = 0);
 
   /// access the data of an element, this combine the map and array accessor
   inline decltype(auto) get(const Element & element);
@@ -391,7 +390,7 @@ public:
    * indicates
    *         deleted entries. */
   inline void
-  onElementsRemoved(const ElementTypeMapArray<UInt> & new_numbering);
+  onElementsRemoved(const ElementTypeMapArray<Int> & new_numbering);
 
   /// text output helper
   void printself(std::ostream & stream, int indent = 0) const override;
@@ -404,19 +403,18 @@ public:
   /// return the id
   inline auto getID() const -> ID { return this->id; }
 
-  ElementTypeMap<UInt>
-  getNbComponents(UInt dim = _all_dimensions,
-                  GhostType requested_ghost_type = _not_ghost,
+  ElementTypeMap<Int>
+  getNbComponents(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
                   ElementKind kind = _ek_not_defined) const {
     ElementTypeMap<UInt> nb_components;
-    bool all_ghost_types = requested_ghost_type == _casper;
+    auto all_ghost_types = requested_ghost_type == _casper;
     for (auto ghost_type : ghost_types) {
       if ((not(ghost_type == requested_ghost_type)) and (not all_ghost_types)) {
         continue;
       }
 
       for (auto & type : this->elementTypes(dim, ghost_type, kind)) {
-        UInt nb_comp = (*this)(type, ghost_type).getNbComponent();
+        auto nb_comp = (*this)(type, ghost_type).getNbComponent();
         nb_components(type, ghost_type) = nb_comp;
       }
     }
@@ -460,14 +458,14 @@ public:
    * \li \c _all_ghost_types (default: false)
    * \endparblock
    **/
-  template <typename... pack> UInt size(pack &&... _pack) const;
+  template <typename... pack> Int size(pack &&... _pack) const;
 
   bool isNodal() const { return is_nodal; }
   void isNodal(bool is_nodal) { this->is_nodal = is_nodal; }
 
 private:
-  UInt sizeImpl(UInt spatial_dimension, GhostType ghost_type,
-                ElementKind kind) const;
+  Int sizeImpl(Int spatial_dimension, const GhostType & ghost_type,
+                const ElementKind & kind) const;
 
 private:
   ID id;
@@ -486,6 +484,8 @@ using ElementTypeMapReal = ElementTypeMapArray<Real>;
 using ElementTypeMapInt = ElementTypeMapArray<Int>;
 /// to store data Array<UInt> by element type
 using ElementTypeMapUInt = ElementTypeMapArray<UInt, ElementType>;
+/// to store data Array<Idx> by element type
+using ElementTypeMapIdx = ElementTypeMapArray<Idx>;
 
 } // namespace akantu
 

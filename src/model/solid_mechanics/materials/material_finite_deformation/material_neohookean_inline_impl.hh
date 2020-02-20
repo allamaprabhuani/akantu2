@@ -39,14 +39,14 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeDeltaStressOnQuad(
     __attribute__((unused)) const Matrix<Real> & grad_u,
     __attribute__((unused)) const Matrix<Real> & grad_delta_u,
     __attribute__((unused)) Matrix<Real> & delta_S) {}
 
 //! computes the second piola kirchhoff stress, called S
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeStressOnQuad(Matrix<Real> & grad_u,
                                                          Matrix<Real> & S,
                                                          const Real & C33) {
@@ -98,7 +98,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeThirdAxisDeformationOnQuad(
     Matrix<Real> & grad_u, Real & c33_value) {
   // Neo hookean book
@@ -114,7 +114,7 @@ inline void MaterialNeohookean<dim>::computeThirdAxisDeformationOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void
 MaterialNeohookean<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
                                                      Matrix<Real> & S) {
@@ -131,7 +131,7 @@ MaterialNeohookean<dim>::computePiolaKirchhoffOnQuad(const Matrix<Real> & E,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeFirstPiolaKirchhoffOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & S, Matrix<Real> & P) {
 
@@ -149,7 +149,7 @@ inline void MaterialNeohookean<dim>::computeFirstPiolaKirchhoffOnQuad(
 
 /**************************************************************************************/
 /*  Computation of the potential energy for a this neo hookean material */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, Real & epot) {
   Matrix<Real> F(dim, dim);
@@ -165,7 +165,7 @@ inline void MaterialNeohookean<dim>::computePotentialEnergyOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialNeohookean<dim>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, Matrix<Real> & grad_u, const Real & C33) {
 

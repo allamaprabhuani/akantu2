@@ -23,7 +23,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialDamageIterativeNonLocal<spatial_dimension>::
     MaterialDamageIterativeNonLocal(SolidMechanicsModel & model, const ID & id)
     : MaterialDamageIterativeNonLocalParent(model, id),
@@ -39,7 +39,7 @@ MaterialDamageIterativeNonLocal<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialDamageIterativeNonLocalParent::initMaterial();
@@ -51,7 +51,7 @@ void MaterialDamageIterativeNonLocal<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<spatial_dimension>::computeStress(
     ElementType /*type*/, GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
@@ -60,7 +60,7 @@ void MaterialDamageIterativeNonLocal<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialDamageIterativeNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();

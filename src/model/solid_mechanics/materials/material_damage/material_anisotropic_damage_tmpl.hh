@@ -81,7 +81,7 @@ namespace {
     }
   }
 
-  template <UInt dim> auto tensorPlus2(const Matrix<Real> & A) {
+  template <Int dim> auto tensorPlus2(const Matrix<Real> & A) {
     Real square = 0;
     tensorPlus_<dim>(A, [&](Real eig) {
       eig = std::max(eig, 0.);
@@ -91,7 +91,7 @@ namespace {
     return square;
   }
 
-  template <UInt dim> auto tensorPlusTrace(const Matrix<Real> & A) {
+  template <Int dim> auto tensorPlusTrace(const Matrix<Real> & A) {
     Real trace_plus = 0;
     Real trace_minus = 0;
     tensorPlus_<dim>(A, [&](Real eig) {
@@ -130,11 +130,11 @@ namespace {
     return tensorPlusOp<dim>(A, A_directions, std::forward<Op>(oper));
   }
 
-  template <UInt dim> auto tensorPlus(const Matrix<Real> & A) {
+  template <Int dim> auto tensorPlus(const Matrix<Real> & A) {
     return tensorPlusOp<dim>(A, [](Real x, Real /*unused*/) { return x; });
   }
 
-  template <UInt dim> auto tensorSqrt(const Matrix<Real> & A) {
+  template <Int dim> auto tensorSqrt(const Matrix<Real> & A) {
     return tensorPlusOp<dim>(
         A, [](Real x, UInt /*unused*/) { return std::sqrt(x); });
   }
@@ -295,7 +295,7 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
 /* -------------------------------------------------------------------------- */
 /* EquivalentStrain functions                                                 */
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 class EquivalentStrainMazars : public EmptyIteratorContainer {
 public:
   EquivalentStrainMazars(Material & /*mat*/) {}
@@ -308,7 +308,7 @@ public:
   }
 };
 
-template <UInt dim>
+template <Int dim>
 class EquivalentStrainMazarsDruckerPrager : public EquivalentStrainMazars<dim> {
 public:
   EquivalentStrainMazarsDruckerPrager(Material & mat)
@@ -330,7 +330,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* DamageThreshold functions                                                  */
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 class DamageThresholdLinear : public EmptyIteratorContainer {
 public:
   DamageThresholdLinear(Material & mat) : mat(mat) {
@@ -352,7 +352,7 @@ private:
   Real K0;
 };
 
-template <UInt dim> class DamageThresholdTan : public EmptyIteratorContainer {
+template <Int dim> class DamageThresholdTan : public EmptyIteratorContainer {
 public:
   DamageThresholdTan(Material & mat) : mat(mat) {
     mat.registerParam("a", a, _pat_parsable, "a");

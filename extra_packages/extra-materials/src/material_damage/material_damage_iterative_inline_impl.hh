@@ -18,7 +18,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void
 MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(
     Matrix<Real> & sigma, Real & dam) {
@@ -26,7 +26,7 @@ MaterialDamageIterative<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 UInt MaterialDamageIterative<spatial_dimension>::updateDamage(
     UInt quad_index, const Real /*eq_stress*/, ElementType el_type,
     GhostType ghost_type) {
@@ -50,7 +50,7 @@ UInt MaterialDamageIterative<spatial_dimension>::updateDamage(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline UInt MaterialDamageIterative<spatial_dimension>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
 
@@ -62,7 +62,7 @@ inline UInt MaterialDamageIterative<spatial_dimension>::getNbData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialDamageIterative<spatial_dimension>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
@@ -75,7 +75,7 @@ inline void MaterialDamageIterative<spatial_dimension>::packData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialDamageIterative<spatial_dimension>::unpackData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) {

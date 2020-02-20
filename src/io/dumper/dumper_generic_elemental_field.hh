@@ -64,7 +64,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   GenericElementalField(const field_type & field,
-                        UInt spatial_dimension = _all_dimensions,
+                        Int spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined)
       : field(field), spatial_dimension(spatial_dimension),
@@ -77,14 +77,14 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the number of components of the hosted field
-  ElementTypeMap<UInt>
-  getNbComponents(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+  ElementTypeMap<Int>
+  getNbComponents(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
                   ElementKind kind = _ek_not_defined) override {
     return this->field.getNbComponents(dim, ghost_type, kind);
   };
 
   /// return the size of the contained data: i.e. the number of elements ?
-  virtual UInt size() {
+  virtual Int size() {
     checkHomogeneity();
     return this->nb_total_element;
   }
@@ -104,9 +104,9 @@ public:
 
 protected:
   /// return the number of entries per element
-  UInt getNbDataPerElem(ElementType type,
-                        GhostType ghost_type = _not_ghost) const {
-    if (!nb_data_per_elem.exists(type, ghost_type)) {
+  Int getNbDataPerElem(const ElementType & type,
+                        const GhostType & ghost_type = _not_ghost) const {
+    if (!nb_data_per_elem.exists(type, ghost_type))
       return field(type, ghost_type).getNbComponent();
     }
 
@@ -153,7 +153,7 @@ public:
 
     /// getting information for the field of the given type
     const auto & vect = this->field(type, this->ghost_type);
-    UInt nb_data_per_elem = this->getNbDataPerElem(type);
+    auto nb_data_per_elem = this->getNbDataPerElem(type);
 
     /// define element-wise iterator
     auto view = make_view(vect, nb_data_per_elem);
@@ -178,7 +178,7 @@ public:
     }
 
     const array_type & vect = this->field(type, this->ghost_type);
-    UInt nb_data = this->getNbDataPerElem(type);
+    auto nb_data = this->getNbDataPerElem(type);
     auto it = make_view(vect, nb_data).end();
     auto rit = iterator(this->field, end, end, it, it, this->ghost_type);
     rit.setNbDataPerElem(this->nb_data_per_elem);
@@ -186,7 +186,7 @@ public:
     return rit;
   }
 
-  virtual UInt getDim() {
+  virtual Int getDim() {
     if (this->homogeneous) {
       auto tit = this->field
                      .elementTypes(this->spatial_dimension, this->ghost_type,

@@ -113,7 +113,7 @@ public:
       const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
       ElementType type, GhostType ghost_type,
       Real scale_factor = 1.,
-      const Array<UInt> & filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to the global residual array. The dof number is
@@ -124,7 +124,7 @@ public:
       const ID & dof_id, const Array<Real> & elementary_vect,
       ElementType type, GhostType ghost_type,
       Real scale_factor = 1.,
-      const Array<UInt> & filter_elements = empty_filter);
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to a global array corresponding to a lumped
@@ -132,9 +132,9 @@ public:
    */
   virtual void assembleElementalArrayToLumpedMatrix(
       const ID & dof_id, const Array<Real> & elementary_vect,
-      const ID & lumped_mtx, ElementType type,
-      GhostType ghost_type, Real scale_factor = 1.,
-      const Array<UInt> & filter_elements = empty_filter);
+      const ID & lumped_mtx, const ElementType & type,
+      const GhostType & ghost_type, Real scale_factor = 1.,
+      const Array<Int> & filter_elements = empty_filter);
 
   /**
    * Assemble elementary values to the global residual array. The dof number is
@@ -146,7 +146,7 @@ public:
       const Array<Real> & elementary_mat, ElementType type,
       GhostType ghost_type = _not_ghost,
       const MatrixType & elemental_matrix_type = _symmetric,
-      const Array<UInt> & filter_elements = empty_filter) = 0;
+      const Array<Int> & filter_elements = empty_filter) = 0;
 
   /// multiply a vector by a matrix and assemble the result to the residual
   virtual void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
@@ -235,7 +235,7 @@ protected:
       Mat & A, const ID & dof_id, const Array<Real> & elementary_mat,
       ElementType type, GhostType ghost_type,
       const MatrixType & elemental_matrix_type,
-      const Array<UInt> & filter_elements);
+      const Array<Int> & filter_elements);
 
   template <typename Vec>
   void assembleMatMulVectToArray_(const ID & dof_id, const ID & A_id,
@@ -351,11 +351,11 @@ public:
 
   /// Get the equation numbers corresponding to a dof_id. This might be used to
   /// access the matrix.
-  inline const Array<Int> & getLocalEquationsNumbers(const ID & dof_id) const;
+  inline decltype(auto) getLocalEquationsNumbers(const ID & dof_id) const;
 
 protected:
   /// get the array of dof types (use only if you know what you do...)
-  inline const Array<UInt> & getDOFsAssociatedNodes(const ID & dof_id) const;
+  inline decltype(auto)  getDOFsAssociatedNodes(const ID & dof_id) const;
 
 protected:
   /* ------------------------------------------------------------------------ */
@@ -510,21 +510,21 @@ public:
 protected:
   friend class GlobalDOFInfoDataAccessor;
   /// helper function for the DOFManager::onNodesAdded method
-  virtual std::pair<UInt, UInt> updateNodalDOFs(const ID & dof_id,
+  virtual std::pair<Int, Int> updateNodalDOFs(const ID & dof_id,
                                                 const Array<UInt> & nodes_list);
 
   template <typename Func>
-  auto countDOFsForNodes(const DOFData & dof_data, UInt nb_nodes,
+  auto countDOFsForNodes(const DOFData & dof_data, Int nb_nodes,
                          Func && getNode);
 
-  void updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
-                      UInt nb_new_pure_local, UInt nb_nodes,
-                      const std::function<UInt(UInt)> & getNode);
+  void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
+                      Int nb_new_pure_local, Int nb_nodes,
+                      const std::function<Idx(Idx)> & getNode);
 
-  void updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
-                      UInt nb_new_pure_local);
+  void updateDOFsData(DOFData & dof_data, Int nb_new_local_dofs,
+                      Int nb_new_pure_local);
 
-  auto computeFirstDOFIDs(UInt nb_new_local_dofs, UInt nb_new_pure_local);
+  auto computeFirstDOFIDs(Int nb_new_local_dofs, Int nb_new_pure_local);
 
   /// resize all the global information and takes the needed measure like
   /// cleaning matrices profiles
@@ -532,23 +532,23 @@ protected:
 
 public:
   /// function to implement to react on  akantu::NewNodesEvent
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<Idx> & nodes_list,
                     const NewNodesEvent & event) override;
   /// function to implement to react on  akantu::RemovedNodesEvent
-  void onNodesRemoved(const Array<UInt> & nodes_list,
-                      const Array<UInt> & new_numbering,
+  void onNodesRemoved(const Array<Idx> & nodes_list,
+                      const Array<Idx> & new_numbering,
                       const RemovedNodesEvent & event) override;
   /// function to implement to react on  akantu::NewElementsEvent
   void onElementsAdded(const Array<Element> & elements_list,
                        const NewElementsEvent & event) override;
   /// function to implement to react on  akantu::RemovedElementsEvent
   void onElementsRemoved(const Array<Element> & elements_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
   /// function to implement to react on  akantu::ChangedElementsEvent
   void onElementsChanged(const Array<Element> & old_elements_list,
                          const Array<Element> & new_elements_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const ChangedElementsEvent & event) override;
 
 protected:
@@ -600,21 +600,21 @@ protected:
 
     /* ---------------------------------------------------------------------- */
     /// number of dofs to consider locally for this dof id
-    UInt local_nb_dofs{0};
+    Int local_nb_dofs{0};
 
     /// Number of purely local dofs
-    UInt pure_local_nb_dofs{0};
+    Int pure_local_nb_dofs{0};
 
     /// number of ghost dofs
-    UInt ghosts_nb_dofs{0};
+    Int ghosts_nb_dofs{0};
 
     /// local numbering equation numbers
-    Array<Int> local_equation_number;
+    Array<Idx> local_equation_number;
 
     /// associated node for _dst_nodal dofs only
-    Array<UInt> associated_nodes;
+    Array<Idx> associated_nodes;
 
-    virtual Array<Int> & getLocalEquationsNumbers() {
+    virtual Array<Idx> & getLocalEquationsNumbers() {
       return local_equation_number;
     }
   };

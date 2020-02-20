@@ -239,7 +239,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
   if (psize == 1) {
     const ElementType element_type = _triangle_3;
     /// prepare output: compute barycenters for elements that can be damaged
-    const Array<UInt> & element_filter =
+    const Array<Int> & element_filter =
         model.getMaterial(0).getElementFilter(element_type, _not_ghost);
     Array<Real> barycenters(element_filter.getSize(), spatial_dimension);
     Array<Real>::vector_iterator bary_it = barycenters.begin(spatial_dimension);
@@ -342,7 +342,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
         bary_regular.end(spatial_dimension);
     /// compare the regular elements
     ElementType element_type = _triangle_3;
-    const Array<UInt> & element_filter =
+    const Array<Int> & element_filter =
         model.getMaterial(0).getElementFilter(element_type, _not_ghost);
     const Array<Real> & damage_regular_el =
         model.getMaterial(0).getInternal<Real>("damage")(element_type,
@@ -380,7 +380,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model) {
     /// compare the IGFEM elements
     UInt nb_sub_elements = 2;
     element_type = _igfem_triangle_5;
-    const Array<UInt> & element_filter_igfem =
+    const Array<Int> & element_filter_igfem =
         model.getMaterial(2).getElementFilter(element_type, _not_ghost);
     const Array<Real> & damage_regular_el_igfem =
         model.getMaterial(2).getInternal<Real>("damage")(element_type,

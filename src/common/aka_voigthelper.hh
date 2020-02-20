@@ -46,7 +46,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> class VoigtHelper {
+template <Int dim> class VoigtHelper {
   static_assert(dim > 0U, "Cannot be < 1D");
   static_assert(dim < 4U, "Cannot be > 3D");
 

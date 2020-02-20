@@ -87,7 +87,7 @@ public:
   void computeAllStresses(GhostType /*ghost_type*/ = _not_ghost) override{};
 
   // add the facet to be handled by the material
-  UInt addFacet(const Element & element);
+  Idx addFacet(const Element & element);
 
 protected:
   virtual void computeTangentTraction(ElementType /*el_type*/,
@@ -117,7 +117,7 @@ protected:
                                GhostType ghost_type = _not_ghost) = 0;
 
   /// parallelism functions
-  inline UInt getNbData(const Array<Element> & elements,
+  inline Int getNbData(const Array<Element> & elements,
                         const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
@@ -145,10 +145,9 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
   /// get facet filter
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, UInt);
-  AKANTU_GET_MACRO(FacetFilter, facet_filter,
-                   const ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(FacetFilter, facet_filter, Idx);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(FacetFilter, facet_filter, Idx);
+  AKANTU_GET_MACRO_AUTO(FacetFilter, facet_filter);
   // AKANTU_GET_MACRO(ElementFilter, element_filter, const
   // ElementTypeMapArray<UInt> &);
 
@@ -166,7 +165,7 @@ public:
 
   /// return the energy (identified by id) for the provided element
   Real getEnergy(const std::string & energy_id, ElementType type,
-                 UInt index) override {
+                 Idx index) override {
     return Material::getEnergy(energy_id, type, index);
   }
 
@@ -175,7 +174,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// list of facets assigned to this material
-  ElementTypeMapArray<UInt> facet_filter;
+  ElementTypeMapArray<Idx> facet_filter;
 
   /// Link to the cohesive fem object in the model
   FEEngine & fem_cohesive;

@@ -36,7 +36,7 @@
 
 #define TOLERANCE 1e-7
 
-template <UInt dim> class Point {
+template <Int dim> class Point {
 public:
   Point() : id(0), tol(TOLERANCE) {
     for (UInt i = 0; i < dim; ++i)
@@ -104,11 +104,11 @@ private:
   double tol;
 };
 
-template <UInt dim> struct neighbors_map_t {
+template <Int dim> struct neighbors_map_t {
   typedef std::map<Point<dim>, std::vector<Point<dim>>> type;
 };
 
-template <UInt dim>
+template <Int dim>
 inline std::ostream & operator<<(std::ostream & stream,
                                  const Point<dim> & _this) {
   _this.write(stream);

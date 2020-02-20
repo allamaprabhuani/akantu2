@@ -38,15 +38,15 @@
 namespace akantu {
 
 #define AKANTU_INSTANTIATE_TYPES(r, data, type)                                \
-  constexpr std::array<UInt, ElementClass<type>::getNbFacetTypes()>            \
+  constexpr std::array<Int, ElementClass<type>::getNbFacetTypes()>             \
       GeometricalElementProperty<                                              \
           ElementClassProperty<type>::geometrical_type>::nb_facets;            \
-  constexpr std::array<UInt, ElementClass<type>::getNbFacetTypes()>            \
+  constexpr std::array<Int, ElementClass<type>::getNbFacetTypes()>             \
       GeometricalElementProperty<                                              \
           ElementClassProperty<type>::geometrical_type>::nb_nodes_per_facet;   \
   constexpr std::array<                                                        \
-      UInt, detail::sizeFacetConnectivity<GeometricalElementProperty<          \
-                ElementClassProperty<type>::geometrical_type>>()>              \
+      Int, detail::sizeFacetConnectivity<GeometricalElementProperty<           \
+               ElementClassProperty<type>::geometrical_type>>()>               \
       GeometricalElementProperty<ElementClassProperty<                         \
           type>::geometrical_type>::facet_connectivity_vect;                   \
   constexpr std::array<ElementType, ElementClass<type>::getNbFacetTypes()>     \

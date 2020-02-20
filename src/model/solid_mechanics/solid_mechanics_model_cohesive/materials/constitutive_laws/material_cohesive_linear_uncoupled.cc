@@ -41,10 +41,10 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialCohesiveLinearUncoupled<spatial_dimension>::
+template <Int dim>
+MaterialCohesiveLinearUncoupled<dim>::
     MaterialCohesiveLinearUncoupled(SolidMechanicsModel & model, const ID & id)
-    : MaterialCohesiveLinear<spatial_dimension>(model, id),
+    : MaterialCohesiveLinear<dim>(model, id),
       delta_n_max("delta_n_max", *this), delta_t_max("delta_t_max", *this),
       damage_n("damage_n", *this), damage_t("damage_t", *this) {
 
@@ -58,11 +58,11 @@ MaterialCohesiveLinearUncoupled<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialCohesiveLinearUncoupled<spatial_dimension>::initMaterial() {
+template <Int dim>
+void MaterialCohesiveLinearUncoupled<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
-  MaterialCohesiveLinear<spatial_dimension>::initMaterial();
+  MaterialCohesiveLinear<dim>::initMaterial();
 
   delta_n_max.initialize(1);
   delta_t_max.initialize(1);
@@ -76,9 +76,9 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTraction(
-    const Array<Real> & /*unused*/, ElementType el_type, GhostType ghost_type) {
+template <Int dim>
+void MaterialCohesiveLinearUncoupled<dim>::computeTraction(
+    const Array<Real> &, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   delta_n_max.resize();
@@ -88,18 +88,18 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTraction(
 
   /// define iterators
   auto traction_it =
-      this->tractions(el_type, ghost_type).begin(spatial_dimension);
+      this->tractions(el_type, ghost_type).begin(dim);
 
   auto traction_end =
-      this->tractions(el_type, ghost_type).end(spatial_dimension);
+      this->tractions(el_type, ghost_type).end(dim);
 
-  auto opening_it = this->opening(el_type, ghost_type).begin(spatial_dimension);
+  auto opening_it = this->opening(el_type, ghost_type).begin(dim);
   auto contact_traction_it =
-      this->contact_tractions(el_type, ghost_type).begin(spatial_dimension);
+      this->contact_tractions(el_type, ghost_type).begin(dim);
   auto contact_opening_it =
-      this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
+      this->contact_opening(el_type, ghost_type).begin(dim);
 
-  auto normal_it = this->normal.begin(spatial_dimension);
+  auto normal_it = this->normal.begin(dim);
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_n_max_it = delta_n_max(el_type, ghost_type).begin();
   auto delta_t_max_it = delta_t_max(el_type, ghost_type).begin();
@@ -108,10 +108,10 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTraction(
   auto damage_t_it = damage_t(el_type, ghost_type).begin();
 
   auto insertion_stress_it =
-      this->insertion_stress(el_type, ghost_type).begin(spatial_dimension);
+      this->insertion_stress(el_type, ghost_type).begin(dim);
 
-  Vector<Real> normal_opening(spatial_dimension);
-  Vector<Real> tangential_opening(spatial_dimension);
+  Vector<Real> normal_opening(dim);
+  Vector<Real> tangential_opening(dim);
 
   /// loop on each quadrature point
   for (; traction_it != traction_end;
@@ -176,8 +176,8 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTraction(
     *delta_t_max_it = std::max(*delta_t_max_it, delta_t);
     *damage_t_it = std::min(*delta_t_max_it / *delta_c_it, Real(1.));
 
-    Vector<Real> normal_traction(spatial_dimension);
-    Vector<Real> shear_traction(spatial_dimension);
+    Vector<Real> normal_traction(dim);
+    Vector<Real> shear_traction(dim);
 
     /// NORMAL TRACTIONS
     if (Math::are_float_equal(*damage_n_it, 1.)) {
@@ -221,17 +221,17 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTraction(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTangentTraction(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    const Array<Real> & /*unused*/, GhostType ghost_type) {
+template <Int dim>
+void MaterialCohesiveLinearUncoupled<dim>::computeTangentTraction(
+    const ElementType & el_type, Array<Real> & tangent_matrix,
+    const Array<Real> &, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
-  auto tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
-  auto tangent_end = tangent_matrix.end(spatial_dimension, spatial_dimension);
-  auto normal_it = this->normal.begin(spatial_dimension);
-  auto opening_it = this->opening(el_type, ghost_type).begin(spatial_dimension);
+  auto tangent_it = tangent_matrix.begin(dim, dim);
+  auto tangent_end = tangent_matrix.end(dim, dim);
+  auto normal_it = this->normal.begin(dim);
+  auto opening_it = this->opening(el_type, ghost_type).begin(dim);
 
   /// NB: delta_max_it points on delta_max_previous, i.e. the
   /// delta_max related to the solution of the previous incremental
@@ -243,10 +243,10 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTangentTraction(
   auto damage_n_it = damage_n(el_type, ghost_type).begin();
 
   auto contact_opening_it =
-      this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
+      this->contact_opening(el_type, ghost_type).begin(dim);
 
-  Vector<Real> normal_opening(spatial_dimension);
-  Vector<Real> tangential_opening(spatial_dimension);
+  Vector<Real> normal_opening(dim);
+  Vector<Real> tangential_opening(dim);
 
   for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it,
                                     ++sigma_c_it, ++delta_c_it,
@@ -290,8 +290,8 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTangentTraction(
     Real T = 0;
 
     /// TANGENT STIFFNESS FOR NORMAL TRACTIONS
-    Matrix<Real> n_outer_n(spatial_dimension, spatial_dimension);
-    n_outer_n.outerProduct(*normal_it, *normal_it);
+    Matrix<Real> n_outer_n(dim, dim);
+    n_outer_n = *normal_it * (*normal_it).transpose();
 
     if (penetration) {
       /// stiffness in compression given by the penalty parameter
@@ -343,8 +343,8 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTangentTraction(
       Delta_tilde += mm;
 
       const Vector<Real> & Delta_hat(normal_opening);
-      Matrix<Real> prov(spatial_dimension, spatial_dimension);
-      prov.outerProduct(Delta_hat, Delta_tilde);
+      Matrix<Real> prov(dim, dim);
+      prov = Delta_hat * Delta_tilde.transpose();
       prov *= derivative / delta_n;
       prov += nn;
 
@@ -386,28 +386,16 @@ void MaterialCohesiveLinearUncoupled<spatial_dimension>::computeTangentTraction(
     }
 
     /// computation of the derivative of the constitutive law (dT/ddelta)
-    Matrix<Real> I(spatial_dimension, spatial_dimension);
-    I.eye();
-    Matrix<Real> nn(n_outer_n);
-    I -= nn;
-    I *= T / delta_t;
+    auto I = (Matrix<Real, dim, dim>::Identity() - n_outer_n) * (T / delta_t);
 
-    Vector<Real> Delta_tilde(normal_opening);
-    Delta_tilde *= (delta_c2_R2 - this->beta2_kappa2);
-    Vector<Real> mm(*opening_it);
-    mm *= this->beta2_kappa2;
-    Delta_tilde += mm;
+    auto && Delta_tilde = normal_opening * (delta_c2_R2 - this->beta2_kappa2)
+        + *opening_it  * this->beta2_kappa2;
 
-    Vector<Real> Delta_hat(tangential_opening);
-    Delta_hat *= this->beta2_kappa;
-    Matrix<Real> prov(spatial_dimension, spatial_dimension);
-    prov.outerProduct(Delta_hat, Delta_tilde);
-    prov *= derivative / delta_t;
-    prov += I;
+    auto && Delta_hat = tangential_opening * this->beta2_kappa;
 
-    Matrix<Real> prov_t = prov.transpose();
+    auto && prov = Delta_hat * Delta_tilde.transpose() * derivative / delta_t + I;
 
-    *tangent_it += prov_t;
+    *tangent_it += prov.transpose();
   }
 
   AKANTU_DEBUG_OUT();

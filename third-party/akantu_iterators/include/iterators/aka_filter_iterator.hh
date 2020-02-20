@@ -46,13 +46,13 @@ namespace iterators {
   public:
     using value_type =
         decltype(std::declval<container_iterator_t>().operator[](0));
-    using difference_type = typename filter_iterator_t::difference_type;
+    using difference_type = typename std::decay_t<filter_iterator_t>::difference_type;
     using pointer = std::decay_t<value_type> *;
     using reference = value_type &;
-    using iterator_category = typename filter_iterator_t::iterator_category;
+    using iterator_category = typename std::decay_t<filter_iterator_t>::iterator_category;
 
     FilterIterator(filter_iterator_t filter_it,
-                   container_iterator_t container_begin)
+                   container_iterator_t && container_begin)
         : filter_it(std::move(filter_it)),
           container_begin(std::move(container_begin)) {}
 
@@ -111,6 +111,7 @@ namespace containers {
     decltype(auto) begin() const {
       return iterators::make_filter_iterator(filter.begin(), container.begin());
     }
+
     decltype(auto) begin() {
       return iterators::make_filter_iterator(filter.begin(), container.begin());
     }
@@ -118,6 +119,7 @@ namespace containers {
     decltype(auto) end() const {
       return iterators::make_filter_iterator(filter.end(), container.begin());
     }
+
     decltype(auto) end() {
       return iterators::make_filter_iterator(filter.end(), container.begin());
     }

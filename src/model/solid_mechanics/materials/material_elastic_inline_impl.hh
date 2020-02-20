@@ -40,7 +40,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma,
     Real sigma_th) const {
@@ -65,7 +65,7 @@ inline void MaterialElastic<1>::computeStressOnQuad(const Matrix<Real> & grad_u,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent) const {
   UInt n = tangent.cols();
@@ -104,7 +104,7 @@ inline void MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialElastic<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
   epot = .5 * sigma.doubleDot(grad_u);

@@ -98,28 +98,29 @@ public:
       return true;
     }
 
-    const Array<UInt> & mat_indexes =
+    const auto & mat_indexes =
         model.getMaterialByElement(el.type, el.ghost_type);
-    const Array<UInt> & mat_loc_num =
+    const auto & mat_loc_num =
         model.getMaterialLocalNumbering(el.type, el.ghost_type);
 
     const auto & mat = static_cast<const MaterialCohesive &>(
         model.getMaterial(mat_indexes(el.element)));
 
-    UInt el_index = mat_loc_num(el.element);
-    UInt nb_quad_per_element =
+    auto el_index = mat_loc_num(el.element);
+    auto nb_quad_per_element =
         model.getFEEngine("CohesiveFEEngine")
             .getNbIntegrationPoints(el.type, el.ghost_type);
 
-    const Array<Real> & damage_array = mat.getDamage(el.type, el.ghost_type);
+    const auto & damage_array = mat.getDamage(el.type, el.ghost_type);
 
-    AKANTU_DEBUG_ASSERT(nb_quad_per_element * el_index < damage_array.size(),
+    AKANTU_DEBUG_ASSERT(Int(nb_quad_per_element * el_index) <
+                            damage_array.size(),
                         "This quadrature point is out of range");
 
-    const Real * element_damage =
+    const auto * element_damage =
         damage_array.data() + nb_quad_per_element * el_index;
 
-    UInt unbroken_quads = std::count_if(
+    auto unbroken_quads = std::count_if(
         element_damage, element_damage + nb_quad_per_element, is_unbroken);
 
     return (unbroken_quads > 0);
@@ -295,12 +296,12 @@ void FragmentManager::computeInertiaMoments() {
 
       Vector<Real> relative_coords(spatial_dimension);
 
-      for (UInt el = 0; el < el_list_array.size(); ++el) {
-        UInt global_el = el_list_array(el);
+      for (Int el = 0; el < el_list_array.size(); ++el) {
+        auto global_el = el_list_array(el);
 
         /// loop over quadrature points
-        for (UInt q = 0; q < nb_quad_per_element; ++q) {
-          UInt global_q = global_el * nb_quad_per_element + q;
+        for (Int q = 0; q < nb_quad_per_element; ++q) {
+          auto global_q = global_el * nb_quad_per_element + q;
           auto && moments_matrix = moments_begin[global_q];
           const auto & quad_coord_vector = quad_coordinates_begin[global_q];
 
@@ -311,9 +312,9 @@ void FragmentManager::computeInertiaMoments() {
 
           moments_matrix = relative_coords * relative_coords.transpose();
           Real trace = moments_matrix.trace();
-          moments_matrix *= -1.;
-          moments_matrix += trace * Matrix<Real>::Identity(spatial_dimension,
-                                                           spatial_dimension);
+          moments_matrix = -1. * moments_matrix +
+                           trace * Matrix<Real>::Identity(spatial_dimension,
+                                                          spatial_dimension);
         }
       }
     }
@@ -364,25 +365,25 @@ void FragmentManager::computeAllData(Real damage_limit) {
 void FragmentManager::storeMassDensityPerIntegrationPoint() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
+  auto spatial_dimension = model.getSpatialDimension();
 
   for (auto type : mesh.elementTypes(_spatial_dimension = spatial_dimension,
                    _element_kind = _ek_regular)) {
-    Array<Real> & mass_density_array = mass_density(type);
+    auto & mass_density_array = mass_density(type);
 
-    UInt nb_element = mesh.getNbElement(type);
-    UInt nb_quad_per_element = model.getFEEngine().getNbIntegrationPoints(type);
+    auto nb_element = mesh.getNbElement(type);
+    auto nb_quad_per_element = model.getFEEngine().getNbIntegrationPoints(type);
     mass_density_array.resize(nb_element * nb_quad_per_element);
 
-    const Array<UInt> & mat_indexes = model.getMaterialByElement(type);
+    const auto & mat_indexes = model.getMaterialByElement(type);
 
-    Real * mass_density_it = mass_density_array.data();
+    auto * mass_density_it = mass_density_array.data();
 
     /// store mass_density for each element and quadrature point
-    for (UInt el = 0; el < nb_element; ++el) {
-      Material & mat = model.getMaterial(mat_indexes(el));
+    for (Int el = 0; el < nb_element; ++el) {
+      auto & mat = model.getMaterial(mat_indexes(el));
 
-      for (UInt q = 0; q < nb_quad_per_element; ++q, ++mass_density_it) {
+      for (Int q = 0; q < nb_quad_per_element; ++q, ++mass_density_it)
         *mass_density_it = mat.getRho();
       }
     }
@@ -396,8 +397,8 @@ void FragmentManager::integrateFieldOnFragments(
     ElementTypeMapArray<Real> & field, Array<Real> & output) {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = model.getSpatialDimension();
-  UInt nb_component = output.getNbComponent();
+  auto spatial_dimension = model.getSpatialDimension();
+  auto nb_component = output.getNbComponent();
 
   /// integration part
   output.resize(global_nb_fragment);
@@ -414,34 +415,33 @@ void FragmentManager::integrateFieldOnFragments(
     for (auto type :
          el_list.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
-      UInt nb_quad_per_element =
+      auto nb_quad_per_element =
           model.getFEEngine().getNbIntegrationPoints(type);
 
-      const Array<Real> & density_array = mass_density(type);
-      Array<Real> & field_array = field(type);
-      const Array<UInt> & elements = el_list(type);
+      const auto & density_array = mass_density(type);
+      auto & field_array = field(type);
+      const auto & elements = el_list(type);
 
       /// generate array to be integrated by filtering fragment's elements
       Array<Real> integration_array(elements.size() * nb_quad_per_element,
                                     nb_component);
 
-      auto field_array_begin = field_array.begin_reinterpret(
-          nb_quad_per_element, nb_component,
-          field_array.size() / nb_quad_per_element);
-      auto density_array_begin = density_array.begin_reinterpret(
-          nb_quad_per_element, density_array.size() / nb_quad_per_element);
+      auto field_array_begin =
+          make_view(field_array, nb_quad_per_element, nb_component).begin();
+      auto density_array_begin =
+          make_view(density_array, nb_quad_per_element).begin();
 
       for (auto && data : enumerate(make_view(
                integration_array, nb_quad_per_element, nb_component))) {
-        UInt global_el = elements(std::get<0>(data));
+        auto global_el = elements(std::get<0>(data));
         auto & int_array = std::get<1>(data);
         int_array = field_array_begin[global_el];
 
         /// multiply field by density
-        const Vector<Real> & density_vector = density_array_begin[global_el];
+        const auto & density_vector = density_array_begin[global_el];
 
-        for (UInt i = 0; i < nb_quad_per_element; ++i) {
-          for (UInt j = 0; j < nb_component; ++j) {
+        for (Int i = 0; i < nb_quad_per_element; ++i) {
+          for (Int j = 0; j < nb_component; ++j) {
             int_array(i, j) *= density_vector(i);
           }
         }
@@ -461,7 +461,7 @@ void FragmentManager::integrateFieldOnFragments(
   }
 
   /// sum output over all processors
-  const Communicator & comm = mesh.getCommunicator();
+  const auto & comm = mesh.getCommunicator();
   comm.allReduce(output, SynchronizerOperation::_sum);
 
   AKANTU_DEBUG_OUT();

@@ -30,12 +30,16 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+/* -------------------------------------------------------------------------- */
+#include "aka_config.hh"
+/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_DUMPABLE_INLINE_IMPL_HH_
 #define AKANTU_DUMPABLE_INLINE_IMPL_HH_
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
+
 #include "dumper_elemental_field.hh"
 #include "dumper_nodal_field.hh"
 /* -------------------------------------------------------------------------- */
@@ -86,9 +90,9 @@ Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
 template <typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
                                            const ElementTypeMapArray<T> & field,
-                                           UInt spatial_dimension,
-                                           GhostType ghost_type,
-                                           ElementKind element_kind) {
+                                           Int spatial_dimension,
+                                           const GhostType & ghost_type,
+                                           const ElementKind & element_kind) {
   this->addDumpFieldExternalToDumper(this->default_dumper, field_id, field,
                                      spatial_dimension, ghost_type,
                                      element_kind);
@@ -98,8 +102,8 @@ inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
 template <typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(
     const std::string & dumper_name, const std::string & field_id,
-    const ElementTypeMapArray<T> & field, UInt spatial_dimension,
-    GhostType ghost_type, ElementKind element_kind) {
+    const ElementTypeMapArray<T> & field, Int spatial_dimension,
+    const GhostType & ghost_type, const ElementKind & element_kind) {
 
   std::shared_ptr<dumpers::Field> field_cont;
 #if defined(AKANTU_IGFEM)

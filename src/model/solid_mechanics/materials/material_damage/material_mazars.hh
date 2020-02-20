@@ -57,7 +57,7 @@ namespace akantu {
  *   - Bc   : Parameter damage compression 2
  *   - beta : Parameter for shear
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialMazars : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

@@ -60,14 +60,14 @@ ElementClass<element_type, element_kind>::getFacetTypes() {
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
 inline constexpr decltype(auto)
 GeometricalElement<geometrical_type,
-                   shape>::getFacetLocalConnectivityPerElement(UInt t) {
-  int pos = 0;
-  for (UInt i = 0; i < t; ++i) {
+                   shape>::getFacetLocalConnectivityPerElement(Idx t) {
+  Int pos = 0;
+  for (Int i = 0; i < t; ++i) {
     pos += geometrical_property::nb_facets[i] *
            geometrical_property::nb_nodes_per_facet[i];
   }
 
-  return Eigen::Map<const Eigen::Matrix<UInt, Eigen::Dynamic, Eigen::Dynamic>>(
+  return Eigen::Map<const Eigen::Matrix<Int, Eigen::Dynamic, Eigen::Dynamic>>(
       geometrical_property::facet_connectivity_vect.data() + pos,
       geometrical_property::nb_facets[t],
       geometrical_property::nb_nodes_per_facet[t]);
@@ -75,10 +75,10 @@ GeometricalElement<geometrical_type,
 
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
-inline constexpr UInt
+inline constexpr Int
 GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement() {
-  UInt total_nb_facets = 0;
-  for (UInt n = 0; n < geometrical_property::nb_facet_types; ++n) {
+  Int total_nb_facets = 0;
+  for (Int n = 0; n < geometrical_property::nb_facet_types; ++n) {
     total_nb_facets += geometrical_property::nb_facets[n];
   }
 
@@ -87,8 +87,8 @@ GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement() {
 
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
-inline constexpr UInt
-GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(UInt t) {
+inline constexpr Int
+GeometricalElement<geometrical_type, shape>::getNbFacetsPerElement(Idx t) {
   return geometrical_property::nb_facets[t];
 }
 
@@ -229,8 +229,8 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
   auto && interpolated = const_cast<Eigen::MatrixBase<Derived3> &>(
       interpolated_); // as advised by the Eigen developers
 
-  UInt nb_points = Ns.cols();
-  for (UInt p = 0; p < nb_points; ++p) {
+  auto nb_points = Ns.cols();
+  for (auto p = 0; p < nb_points; ++p) {
     interpolated(p) = interpolate(nodal_values, Ns(p));
   }
 }
@@ -337,7 +337,7 @@ inline void
 ElementClass<type, kind>::computeJacobian(const Ref<const MatrixXr> & J,
                                           Real & jacobians) {
   if (J.rows() == J.cols()) {
-    jacobians = Math::det<element_property::spatial_dimension>(J.data());
+    jacobians = J.determinant();
   } else {
     interpolation_element::computeSpecialJacobian(J, jacobians);
   }

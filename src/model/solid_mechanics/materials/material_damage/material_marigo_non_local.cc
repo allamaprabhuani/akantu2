@@ -38,7 +38,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 MaterialMarigoNonLocal<spatial_dimension>::MaterialMarigoNonLocal(
     SolidMechanicsModel & model, const ID & id)
     : MaterialMarigoNonLocalParent(model, id), Y("Y", *this),
@@ -51,7 +51,7 @@ MaterialMarigoNonLocal<spatial_dimension>::MaterialMarigoNonLocal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMarigoNonLocal<spatial_dimension>::registerNonLocalVariables() {
   this->model.getNonLocalManager().registerNonLocalVariable(this->Y.getName(),
                                                             Ynl.getName(), 1);
@@ -61,7 +61,7 @@ void MaterialMarigoNonLocal<spatial_dimension>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMarigoNonLocal<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -82,7 +82,7 @@ void MaterialMarigoNonLocal<spatial_dimension>::computeStress(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 void MaterialMarigoNonLocal<spatial_dimension>::computeNonLocalStress(
     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();

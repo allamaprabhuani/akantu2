@@ -14,7 +14,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 inline void MaterialDamageLinear<spatial_dimension>::computeStressOnQuad(
     Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam, Real & K) {
   Real Fdiag[3];

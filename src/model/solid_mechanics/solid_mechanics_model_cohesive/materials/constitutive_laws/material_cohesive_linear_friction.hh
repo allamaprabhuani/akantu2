@@ -50,7 +50,7 @@ namespace akantu {
  *   - mu   : friction coefficient
  *   - penalty_for_friction : Penalty parameter for the friction behavior
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveLinearFriction
     : public MaterialCohesiveLinear<spatial_dimension> {
   /* ------------------------------------------------------------------------ */

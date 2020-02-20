@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "synchronizer_impl.hh"
+//#include "synchronizer_impl.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -566,7 +566,7 @@ inline void SynchronizerImpl<UInt>::initScatterGatherCommunicationScheme() {
   if (this->rank == UInt(this->root)) {
     master_receive_entities[this->root].copy(entities_to_send);
 
-    Array<UInt> nb_entities_per_proc(this->nb_proc);
+    Array<Int> nb_entities_per_proc(this->nb_proc);
     communicator.gather(entities_to_send.size(), nb_entities_per_proc);
 
     for (UInt p = 0; p < nb_proc; ++p) {

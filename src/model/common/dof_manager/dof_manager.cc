@@ -75,8 +75,8 @@ std::vector<ID> DOFManager::getDOFIDs() const {
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayLocalArray(
     const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-    ElementType type, GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const ElementType & type, const GhostType & ghost_type, Real scale_factor,
+    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_element;
@@ -132,9 +132,9 @@ void DOFManager::assembleElementalArrayLocalArray(
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToResidual(
-    const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
-    GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const ID & dof_id, const Array<Real> & elementary_vect,
+    const ElementType & type, const GhostType & ghost_type, Real scale_factor,
+    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -157,8 +157,9 @@ void DOFManager::assembleElementalArrayToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
-    Real scale_factor, const Array<UInt> & filter_elements) {
+    const ID & lumped_mtx, const ElementType & type,
+    const GhostType & ghost_type, Real scale_factor,
+    const Array<Int> & filter_elements) {
   AKANTU_DEBUG_IN();
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);

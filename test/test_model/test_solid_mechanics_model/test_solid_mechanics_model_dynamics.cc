@@ -55,7 +55,7 @@ const Vector<Real> psi2 = {0., 1., 0.};
 const Real knorm = k.norm();
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> struct Verification {};
+template <Int dim> struct Verification {};
 
 /* -------------------------------------------------------------------------- */
 template <> struct Verification<1> {

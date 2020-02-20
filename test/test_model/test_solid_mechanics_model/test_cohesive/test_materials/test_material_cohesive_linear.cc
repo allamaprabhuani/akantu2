@@ -35,7 +35,7 @@
 #include "material_cohesive_linear.hh"
 /* -------------------------------------------------------------------------- */
 
-template <UInt dim>
+template <Int dim>
 struct TestMaterialCohesiveLinear
     : public TestMaterialCohesive<MaterialCohesiveLinear, dim> {
 

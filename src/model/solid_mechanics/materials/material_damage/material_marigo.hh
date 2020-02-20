@@ -50,7 +50,7 @@ namespace akantu {
  *   - Sd  : (default: 5000)
  *   - Ydrandomness  : (default:0)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialMarigo : public MaterialDamage<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

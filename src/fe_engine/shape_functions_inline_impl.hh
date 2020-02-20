@@ -34,7 +34,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "fe_engine.hh"
-#include "shape_functions.hh"
+//#include "shape_functions.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_SHAPE_FUNCTIONS_INLINE_IMPL_HH_
@@ -58,10 +58,10 @@ ShapeFunctions::getShapesDerivatives(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt ShapeFunctions::getShapeSize(ElementType type) {
+inline Int ShapeFunctions::getShapeSize(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt shape_size = 0;
+  Int shape_size = 0;
 #define GET_SHAPE_SIZE(type) shape_size = ElementClass<type>::getShapeSize()
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SIZE); // ,
@@ -73,10 +73,10 @@ inline UInt ShapeFunctions::getShapeSize(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt ShapeFunctions::getShapeDerivativesSize(ElementType type) {
+inline Int ShapeFunctions::getShapeDerivativesSize(const ElementType & type) {
   AKANTU_DEBUG_IN();
 
-  UInt shape_derivatives_size = 0;
+  Int shape_derivatives_size = 0;
 #define GET_SHAPE_DERIVATIVES_SIZE(type)                                       \
   shape_derivatives_size = ElementClass<type>::getShapeDerivativesSize()
 
@@ -89,18 +89,18 @@ inline UInt ShapeFunctions::getShapeDerivativesSize(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type>
-void ShapeFunctions::setIntegrationPointsByType(const Matrix<Real> & points,
-                                                GhostType ghost_type) {
+template <ElementType type, class D1>
+void ShapeFunctions::setIntegrationPointsByType(
+    const Eigen::MatrixBase<D1> & points, const GhostType & ghost_type) {
   if (not this->integration_points.exists(type, ghost_type))
     this->integration_points(type, ghost_type) = points;
 }
 
 /* -------------------------------------------------------------------------- */
-inline void
-ShapeFunctions::buildInterpolationMatrix(const Matrix<Real> & coordinates,
-                                         Matrix<Real> & coordMatrix,
-                                         UInt integration_order) {
+template <typename D1, typename D2>
+inline void ShapeFunctions::buildInterpolationMatrix(
+    const Eigen::MatrixBase<D1> & coordinates,
+    Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) const {
   switch (integration_order) {
   case 1: {
     for (Int i = 0; i < coordinates.cols(); ++i)
@@ -127,137 +127,151 @@ ShapeFunctions::buildInterpolationMatrix(const Matrix<Real> & coordinates,
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type>
-inline void ShapeFunctions::buildElementalFieldInterpolationMatrix(
-    const Matrix<Real> & /*unused*/, Matrix<Real> & /*unused*/,
-    UInt /*unused*/) const {
-  AKANTU_TO_IMPLEMENT();
-}
+template <ElementType type> class BuildElementalFieldInterpolationMatrix {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> &, Eigen::MatrixBase<D2> &,
+                   Int) const {
+    AKANTU_TO_IMPLEMENT();
+  }
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void ShapeFunctions::buildElementalFieldInterpolationMatrix<_segment_2>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
-  buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-}
+template <> class BuildElementalFieldInterpolationMatrix<_segment_2> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
+    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+  }
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void ShapeFunctions::buildElementalFieldInterpolationMatrix<_segment_3>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
-  buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-}
+template <> class BuildElementalFieldInterpolationMatrix<_segment_3> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
+    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+  }
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void ShapeFunctions::buildElementalFieldInterpolationMatrix<_triangle_3>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
-  buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-}
+template <> class BuildElementalFieldInterpolationMatrix<_triangle_3> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
+    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+  }
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void ShapeFunctions::buildElementalFieldInterpolationMatrix<_triangle_6>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
-  buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-}
+template <> class BuildElementalFieldInterpolationMatrix<_triangle_6> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
+    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+  }
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void
-ShapeFunctions::buildElementalFieldInterpolationMatrix<_tetrahedron_4>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
-  buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-}
+template <> class BuildElementalFieldInterpolationMatrix<_tetrahedron_4> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
+    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+  }
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void
-ShapeFunctions::buildElementalFieldInterpolationMatrix<_tetrahedron_10>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
-  buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-}
+template <> class BuildElementalFieldInterpolationMatrix<_tetrahedron_10> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
+    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+  }
+};
 
 /**
  * @todo Write a more efficient interpolation for quadrangles by
  * dropping unnecessary quadrature points
  *
  */
-
 /* -------------------------------------------------------------------------- */
-template <>
-inline void
-ShapeFunctions::buildElementalFieldInterpolationMatrix<_quadrangle_4>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
+template <> class BuildElementalFieldInterpolationMatrix<_quadrangle_4> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
 
-  if (integration_order !=
-      ElementClassProperty<_quadrangle_4>::polynomial_degree) {
-    AKANTU_TO_IMPLEMENT();
-  } else {
-    for (Int i = 0; i < coordinates.cols(); ++i) {
-      auto x = coordinates(0, i);
-      auto y = coordinates(1, i);
+    if (integration_order !=
+        ElementClassProperty<_quadrangle_4>::polynomial_degree) {
+      AKANTU_TO_IMPLEMENT();
+    } else {
+      for (Int i = 0; i < coordinates.cols(); ++i) {
+        auto x = coordinates(0, i);
+        auto y = coordinates(1, i);
 
-      coordMatrix(i, 0) = 1;
-      coordMatrix(i, 1) = x;
-      coordMatrix(i, 2) = y;
-      coordMatrix(i, 3) = x * y;
+        coordMatrix(i, 0) = 1;
+        coordMatrix(i, 1) = x;
+        coordMatrix(i, 2) = y;
+        coordMatrix(i, 3) = x * y;
+      }
     }
   }
-}
+};
 
 /* -------------------------------------------------------------------------- */
-template <>
-inline void
-ShapeFunctions::buildElementalFieldInterpolationMatrix<_quadrangle_8>(
-    const Matrix<Real> & /*unused*/ coordinates,
-    Matrix<Real> & /*unused*/ coordMatrix,
-    UInt /*unused*/ integration_order) const {
+template <> class BuildElementalFieldInterpolationMatrix<_quadrangle_8> {
+  template <typename D1, typename D2>
+  inline void call(const Eigen::MatrixBase<D1> & coordinates,
+                   Eigen::MatrixBase<D2> & coordMatrix,
+                   Int integration_order) const {
 
-  if (integration_order !=
-      ElementClassProperty<_quadrangle_8>::polynomial_degree) {
-    AKANTU_TO_IMPLEMENT();
-  } else {
-    for (Int i = 0; i < coordinates.cols(); ++i) {
-      // UInt j = 0;
-      auto x = coordinates(0, i);
-      auto y = coordinates(1, i);
+    if (integration_order !=
+        ElementClassProperty<_quadrangle_8>::polynomial_degree) {
+      AKANTU_TO_IMPLEMENT();
+    } else {
+      for (Int i = 0; i < coordinates.cols(); ++i) {
+        // Int j = 0;
+        auto x = coordinates(0, i);
+        auto y = coordinates(1, i);
 
-      coordMatrix(i, 0) = 1;
-      coordMatrix(i, 1) = x;
-      coordMatrix(i, 2) = y;
-      coordMatrix(i, 3) = x * y;
-      // for (UInt e = 0; e <= 2; ++e) {
-      //   for (UInt n = 0; n <= 2; ++n) {
-      //     coordMatrix(i, j) = std::pow(x, e) * std::pow(y, n);
-      //     ++j;
-      //   }
-      // }
+        coordMatrix(i, 0) = 1;
+        coordMatrix(i, 1) = x;
+        coordMatrix(i, 2) = y;
+        coordMatrix(i, 3) = x * y;
+        // for (Int e = 0; e <= 2; ++e) {
+        //   for (Int n = 0; n <= 2; ++n) {
+        //     coordMatrix(i, j) = std::pow(x, e) * std::pow(y, n);
+        //     ++j;
+        //   }
+        // }
+      }
     }
   }
+};
+
+/* -------------------------------------------------------------------------- */
+template <ElementType type, typename D1, typename D2>
+inline void ShapeFunctions::buildElementalFieldInterpolationMatrix(
+    const Eigen::MatrixBase<D1> & coordinates,
+    Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) const {
+  BuildElementalFieldInterpolationMatrix<type>::call(coordinates, coordMatrix,
+                                                     integration_order);
 }
+
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
     const Array<Real> & field,
     const Array<Real> & interpolation_points_coordinates_matrices,
     const Array<Real> & quad_points_coordinates_inv_matrices,
-    ElementTypeMapArray<Real> & result, GhostType ghost_type,
-    const Array<UInt> & element_filter) const {
+    ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
+    const Array<Int> & element_filter) const {
   AKANTU_DEBUG_IN();
 
   auto nb_element = this->mesh.getNbElement(type, ghost_type);
@@ -296,8 +310,8 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
       nb_quad_per_element, nb_quad_per_element);
 
   /// loop over the elements of the current filter and element type
-  for (UInt el = 0; el < nb_element; ++el, ++field_it, ++inv_quad_coord_it,
-            ++interpolation_points_coordinates_it) {
+  for (Int el = 0; el < nb_element; ++el, ++field_it, ++inv_quad_coord_it,
+           ++interpolation_points_coordinates_it) {
     /**
      * matrix containing the inversion of the quadrature points'
      * coordinates
@@ -315,7 +329,8 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
 
     /// multiply the coordinates matrix by the coefficients matrix and store the
     /// result
-    result_begin[element_filter(el)] = coefficients.transpose() * coord.transpose();
+    result_begin[element_filter(el)] =
+        coefficients.transpose() * coord.transpose();
   }
 
   AKANTU_DEBUG_OUT();
@@ -324,50 +339,46 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
-    const Array<Real> & u_el, Array<Real> & uq, GhostType ghost_type,
-    const Array<Real> & shapes, const Array<UInt> & filter_elements) const {
+    const Array<Real> & u_el, Array<Real> & uq, const GhostType & ghost_type,
+    const Array<Real> & shapes, const Array<Int> & filter_elements) const {
   auto nb_element = mesh.getNbElement(type, ghost_type);
   auto nb_nodes_per_element = ElementClass<type>::getShapeSize();
   auto nb_points = shapes.size() / mesh.getNbElement(type, ghost_type);
   auto nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;
 
   Array<Real>::const_matrix_iterator N_it;
-  Array<Real> * filtered_N = nullptr;
+  std::unique_ptr<Array<Real>> filtered_N;
   if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
-    filtered_N = new Array<Real>(0, shapes.getNbComponent());
+    filtered_N = std::make_unique<Array<Real>>(0, shapes.getNbComponent());
     FEEngine::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type,
                                   filter_elements);
-    N_it = filtered_N->begin_reinterpret(nb_nodes_per_element, nb_points,
-                                         nb_element);
+    N_it = make_view(*filtered_N, nb_nodes_per_element, nb_points).begin();
   } else {
-    N_it =
-        shapes.begin_reinterpret(nb_nodes_per_element, nb_points, nb_element);
+    N_it = make_view(shapes, nb_nodes_per_element, nb_points).begin();
   }
 
   uq.resize(nb_element * nb_points);
 
-  auto u_it = u_el.begin(nb_degree_of_freedom, nb_nodes_per_element);
-  auto inter_u_it =
-      uq.begin_reinterpret(nb_degree_of_freedom, nb_points, nb_element);
+  auto u_it =
+      make_view(u_el, nb_degree_of_freedom, nb_nodes_per_element).begin();
+  auto uq_it = make_view(uq, nb_degree_of_freedom, nb_points).begin();
 
-  for (UInt el = 0; el < nb_element; ++el, ++N_it, ++u_it, ++inter_u_it) {
+  for (Int el = 0; el < nb_element; ++el, ++N_it, ++u_it, ++uq_it) {
     const auto & u = *u_it;
     const auto & N = *N_it;
-    auto & inter_u = *inter_u_it;
+    auto & uq = *uq_it;
 
-    inter_u.template mul<false, false>(u, N);
+    uq = u * N;
   }
-
-  delete filtered_N;
 }
 
 /* -------------------------------------------------------------------------- */
 template <ElementType type>
 void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
     const Array<Real> & u_el, Array<Real> & out_nablauq,
-    GhostType ghost_type, const Array<Real> & shapes_derivatives,
-    const Array<UInt> & filter_elements) const {
+    const GhostType & ghost_type, const Array<Real> & shapes_derivatives,
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   auto nb_nodes_per_element =
@@ -394,12 +405,12 @@ void ShapeFunctions::gradientElementalFieldOnIntegrationPoints(
   auto u_it = u_el.begin(nb_degree_of_freedom, nb_nodes_per_element);
   auto nabla_u_it = out_nablauq.begin(nb_degree_of_freedom, element_dimension);
 
-  for (UInt el = 0; el < nb_element; ++el, ++u_it) {
+  for (Int el = 0; el < nb_element; ++el, ++u_it) {
     const auto & u = *u_it;
-    for (UInt q = 0; q < nb_points; ++q, ++B_it, ++nabla_u_it) {
+    for (Int q = 0; q < nb_points; ++q, ++B_it, ++nabla_u_it) {
       const auto & B = *B_it;
       auto & nabla_u = *nabla_u_it;
-      nabla_u.template mul<false, true>(u, B);
+      nabla_u = u * B.transpose();
     }
   }
 

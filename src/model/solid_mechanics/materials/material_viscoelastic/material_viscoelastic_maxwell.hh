@@ -81,7 +81,7 @@ namespace akantu {
  *   - Eta<N>: viscosity of the Nst Maxwell element
  */
 
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialViscoelasticMaxwell : public MaterialElastic<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

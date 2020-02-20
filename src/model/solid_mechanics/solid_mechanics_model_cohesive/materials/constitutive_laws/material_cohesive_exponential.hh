@@ -53,7 +53,7 @@ namespace akantu {
  * 0)
  *   - delta_c   : critical opening (default: 0)
  */
-template <UInt spatial_dimension>
+template <Int spatial_dimension>
 class MaterialCohesiveExponential : public MaterialCohesive {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

@@ -34,7 +34,7 @@
 #include "test_material.hh"
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 TestMaterial<dim>::TestMaterial(SolidMechanicsModel & model, const ID & id)
     : Parent(model, id), grad_u_nl("grad_u non local", *this) {
   this->is_non_local = true;
@@ -42,7 +42,7 @@ TestMaterial<dim>::TestMaterial(SolidMechanicsModel & model, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void TestMaterial<dim>::registerNonLocalVariables() {
+template <Int dim> void TestMaterial<dim>::registerNonLocalVariables() {
   this->model.getNonLocalManager().registerNonLocalVariable(
       this->gradu.getName(), grad_u_nl.getName(), dim * dim);
 

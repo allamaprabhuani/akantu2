@@ -78,12 +78,12 @@ public:
   /// mesh event handler onElementsChanged
   void onElementsChanged(const Array<Element> & old_elements_list,
                          const Array<Element> & new_elements_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const ChangedElementsEvent & event) override;
 
   /// mesh event handler onRemovedElement
-  void onElementsRemoved(const Array<Element> & element_to_remove,
-                         const ElementTypeMapArray<UInt> & new_numbering,
+  void onElementsRemoved(const Array<Element> & element_list,
+                         const ElementTypeMapArray<Idx> & new_numbering,
                          const RemovedElementsEvent & event) override;
 
 protected:
@@ -91,7 +91,7 @@ protected:
   void removeElements(const Array<Element> & element_to_remove);
 
   /// renumber the elements in the synchronizer
-  void renumberElements(const ElementTypeMapArray<UInt> & new_numbering);
+  void renumberElements(const ElementTypeMapArray<Idx> & new_numbering);
 
   /// build processor to element correspondence
   void buildElementToPrank();

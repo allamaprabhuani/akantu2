@@ -18,7 +18,7 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialViscoPlastic<dim>::computeStressOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
@@ -64,7 +64,7 @@ inline void MaterialViscoPlastic<dim>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialViscoPlastic<dim>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent, const Matrix<Real> & /*grad_u*/,
     const Matrix<Real> & /*previous_grad_u*/,

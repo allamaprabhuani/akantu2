@@ -68,14 +68,14 @@ public:
   template <ElementType type>
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, GhostType ghost_type,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      Array<Real> & shape_derivatives, const GhostType & ghost_type,
+      const Array<Int> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
-      Array<Real> & shape_derivatives, ElementType type,
-      GhostType ghost_type,
-      const Array<UInt> & filter_elements) const override;
+      Array<Real> & shape_derivatives, const ElementType & type,
+      const GhostType & ghost_type,
+      const Array<Int> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
   /// coordinates
@@ -95,13 +95,13 @@ public:
   void interpolateOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void interpolateOnIntegrationPoints(
       const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
       const Array<Real> & shapes, GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
   template <ElementType type>
@@ -115,23 +115,23 @@ public:
   void gradientOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
                   GhostType ghost_type,
-                  const Array<UInt> & filter_elements) const;
+                  const Array<Int> & filter_elements) const;
 
   template <ElementType type>
   void computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
                    GhostType ghost_type,
-                   const Array<UInt> & filter_elements) const;
+                   const Array<Int> & filter_elements) const;
 
   /// multiply a field by shape functions  @f$ fts_{ij} = f_i * \varphi_j @f$
   template <ElementType type>
   void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
                   GhostType ghost_type,
-                  const Array<UInt> & filter_elements = empty_filter) const;
+                  const Array<Int> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs,
@@ -140,7 +140,7 @@ public:
 
   /// find natural coords from real coords provided an element
   template <ElementType type>
-  void inverseMap(const Ref<const VectorXr> & real_coords, UInt element,
+  void inverseMap(const Ref<const VectorXr> & real_coords, Int element,
                   Ref<VectorXr> natural_coords,
                   GhostType ghost_type = _not_ghost) const;
 

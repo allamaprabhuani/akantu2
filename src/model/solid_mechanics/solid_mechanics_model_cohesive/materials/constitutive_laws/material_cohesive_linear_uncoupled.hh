@@ -49,9 +49,8 @@ namespace akantu {
  * parameters in the material files :
  *  - roughness : define the interaction between mode I and mode II (default: 0)
  */
-template <UInt spatial_dimension>
-class MaterialCohesiveLinearUncoupled
-    : public MaterialCohesiveLinear<spatial_dimension> {
+template <Int dim>
+class MaterialCohesiveLinearUncoupled : public MaterialCohesiveLinear<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

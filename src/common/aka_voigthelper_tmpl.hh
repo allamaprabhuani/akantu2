@@ -38,10 +38,10 @@
 
 namespace akantu {
 
-template <UInt dim> constexpr UInt VoigtHelper<dim>::size;
+template <Int dim> constexpr UInt VoigtHelper<dim>::size;
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class M, class V>
 inline void VoigtHelper<dim>::matrixToVoigt(M && matrix, V && vector) {
   for (UInt I = 0; I < size; ++I) {
@@ -52,7 +52,7 @@ inline void VoigtHelper<dim>::matrixToVoigt(M && matrix, V && vector) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class M>
 inline decltype(auto) VoigtHelper<dim>::matrixToVoigt(M && matrix) {
   Vector<Real> vector(size);
@@ -61,7 +61,7 @@ inline decltype(auto) VoigtHelper<dim>::matrixToVoigt(M && matrix) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class M, class V>
 inline void VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix,
                                                        V && vector) {
@@ -73,7 +73,7 @@ inline void VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class M>
 inline decltype(auto) VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix) {
   Vector<Real> vector(size);
@@ -82,7 +82,7 @@ inline decltype(auto) VoigtHelper<dim>::matrixToVoigtWithFactors(M && matrix) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class M, class V>
 inline void VoigtHelper<dim>::voigtToMatrix(V && vector, M && matrix) {
   for (UInt I = 0; I < size; ++I) {
@@ -93,7 +93,7 @@ inline void VoigtHelper<dim>::voigtToMatrix(V && vector, M && matrix) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class V>
 inline decltype(auto) VoigtHelper<dim>::voigtToMatrix(V && vector) {
   Matrix<Real> matrix(dim, dim);
@@ -102,7 +102,7 @@ inline decltype(auto) VoigtHelper<dim>::voigtToMatrix(V && vector) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
     const Matrix<Real> & B, Matrix<Real> & Bvoigt, UInt nb_nodes_per_element) {
   Bvoigt.zero();
@@ -147,7 +147,7 @@ inline void VoigtHelper<dim>::transferBMatrixToSymVoigtBMatrix(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void VoigtHelper<dim>::transferBMatrixToBNL(const Matrix<Real> & B,
                                                    Matrix<Real> & Bvoigt,
                                                    UInt nb_nodes_per_element) {

@@ -40,7 +40,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialCohesiveExponential<dim>::MaterialCohesiveExponential(
     SolidMechanicsModel & model, const ID & id)
     : MaterialCohesive(model, id) {
@@ -63,7 +63,7 @@ MaterialCohesiveExponential<dim>::MaterialCohesiveExponential(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MaterialCohesiveExponential<dim>::initMaterial() {
+template <Int dim> void MaterialCohesiveExponential<dim>::initMaterial() {
 
   AKANTU_DEBUG_IN();
   MaterialCohesive::initMaterial();
@@ -80,7 +80,7 @@ template <UInt dim> void MaterialCohesiveExponential<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialCohesiveExponential<dim>::computeTraction(
     const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -137,7 +137,7 @@ void MaterialCohesiveExponential<dim>::computeTraction(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2, class D3>
 void MaterialCohesiveExponential<dim>::computeCoupledTraction(
     Eigen::MatrixBase<D1> & tract, const Eigen::MatrixBase<D2> & normal,
@@ -169,7 +169,7 @@ void MaterialCohesiveExponential<dim>::computeCoupledTraction(
 }
 
 /* ------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2, class D3>
 void MaterialCohesiveExponential<dim>::computeCompressiveTraction(
     Eigen::MatrixBase<D1> & tract, const Eigen::MatrixBase<D2> & normal,
@@ -189,7 +189,7 @@ void MaterialCohesiveExponential<dim>::computeCompressiveTraction(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialCohesiveExponential<dim>::computeTangentTraction(
     ElementType el_type, Array<Real> & tangent_matrix,
     const Array<Real> & normal, GhostType ghost_type) {
@@ -252,7 +252,7 @@ void MaterialCohesiveExponential<dim>::computeTangentTraction(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2, class D3>
 void MaterialCohesiveExponential<dim>::computeCoupledTangent(
     Eigen::MatrixBase<D1> & tangent, const Eigen::MatrixBase<D2> & normal,
@@ -283,7 +283,7 @@ void MaterialCohesiveExponential<dim>::computeCoupledTangent(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2>
 void MaterialCohesiveExponential<dim>::computeCompressivePenalty(
     Eigen::MatrixBase<D1> & tangent, const Eigen::MatrixBase<D2> & normal,

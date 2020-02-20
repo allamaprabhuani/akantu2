@@ -35,7 +35,7 @@
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 TestMaterialDamage<dim>::TestMaterialDamage(SolidMechanicsModel & model,
                                             const ID & id)
     : Parent(model, id), grad_u_nl("grad_u non local", *this) {
@@ -44,7 +44,7 @@ TestMaterialDamage<dim>::TestMaterialDamage(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void TestMaterialDamage<dim>::registerNonLocalVariables() {
+template <Int dim> void TestMaterialDamage<dim>::registerNonLocalVariables() {
   this->model.getNonLocalManager().registerNonLocalVariable(
       this->gradu.getName(), grad_u_nl.getName(), dim * dim);
 

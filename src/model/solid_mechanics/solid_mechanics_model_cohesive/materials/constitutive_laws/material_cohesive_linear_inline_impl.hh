@@ -34,6 +34,7 @@
 /* -------------------------------------------------------------------------- */
 //#include "material_cohesive_linear.hh"
 #include "solid_mechanics_model_cohesive.hh"
+#include "aka_static_if.hh"
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -45,13 +46,14 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2, class D3, class D4>
 Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
     const Eigen::MatrixBase<D1> & stress, const Eigen::MatrixBase<D2> & normal,
     const Eigen::MatrixBase<D3> & tangent,
     const Eigen::MatrixBase<D4> & normal_traction_) const {
-  Eigen::MatrixBase<D4>& normal_traction = const_cast< Eigen::MatrixBase<D4>& >(normal_traction_);
+  Eigen::MatrixBase<D4> & normal_traction =
+      const_cast<Eigen::MatrixBase<D4> &>(normal_traction_);
   normal_traction = stress * normal;
 
   Real normal_contrib = normal_traction.dot(normal);
@@ -59,16 +61,18 @@ Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
   /// in 3D tangential components must be summed
   Real tangent_contrib = 0;
 
-  if (dim == 2) {
-    Real tangent_contrib_tmp = normal_traction.dot(tangent);
-    tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
-  }
-  if (dim == 3) {
-    for (auto && tangent_v : tangent) {
-      Real tangent_contrib_tmp = normal_traction.dot(tangent_v);
-      tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
-    }
-  }
+  static_if(aka::bool_constant<dim == 2>{})
+      .then([&tangent_contrib, &normal_traction](auto && tangent) {
+        Real tangent_contrib_tmp = normal_traction.dot(tangent);
+        tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
+      })
+      .else_if(aka::bool_constant<dim == 3>{})
+      .then([&tangent_contrib, &normal_traction](auto && tangent) {
+        for (auto && tangent_v : tangent) {
+          Real tangent_contrib_tmp = normal_traction.dot(tangent_v);
+          tangent_contrib += tangent_contrib_tmp * tangent_contrib_tmp;
+        }
+      })(tangent);
 
   tangent_contrib = std::sqrt(tangent_contrib);
   normal_contrib = std::max(Real(0.), normal_contrib);
@@ -78,7 +82,7 @@ Real MaterialCohesiveLinear<dim>::computeEffectiveNorm(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2, class D3, class D4, class D5, class D6, class D7,
           class D8>
 inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
@@ -159,7 +163,7 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 template <class D1, class D2, class D3, class D4, class D5, class D6>
 inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
     Eigen::MatrixBase<D1> & tangent, Real & delta_max, const Real & delta_c,
@@ -204,7 +208,9 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
     tangent = penalty * (tangent + n_outer_n);
 
     opening = tangential_opening;
-    normal_opening_norm = normal * opening.dot(normal);
+
+    normal_opening_norm = opening.dot(normal);
+    normal_opening = normal * normal_opening_norm;
   } else {
     delta += normal_opening_norm * normal_opening_norm;
   }
@@ -237,7 +243,7 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
   /// computation of the derivative of the constitutive law (dT/ddelta)
   auto && I = Eigen::Matrix<Real, dim, dim>::Identity() * this->beta2_kappa;
 
-  auto &&  nn = (n_outer_n * (1. - this->beta2_kappa)  + I) * t / delta;
+  auto && nn = (n_outer_n * (1. - this->beta2_kappa) + I) * t / delta;
   auto && mm = opening * this->beta2_kappa2;
 
   auto && t_tilde = normal_opening * (1. - this->beta2_kappa2) + mm;

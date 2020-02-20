@@ -37,7 +37,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MaterialCohesiveLinearFriction<dim>::
     MaterialCohesiveLinearFriction(SolidMechanicsModel & model, const ID & id)
     : MaterialParent(model, id), residual_sliding("residual_sliding", *this),
@@ -55,7 +55,7 @@ MaterialCohesiveLinearFriction<dim>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialCohesiveLinearFriction<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
 
@@ -69,7 +69,7 @@ void MaterialCohesiveLinearFriction<dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialCohesiveLinearFriction<dim>::computeTraction(
     __attribute__((unused)) const Array<Real> & normal, ElementType el_type,
     GhostType ghost_type) {
@@ -176,7 +176,7 @@ void MaterialCohesiveLinearFriction<dim>::computeTraction(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MaterialCohesiveLinearFriction<dim>::computeTangentTraction(
     ElementType el_type, Array<Real> & tangent_matrix,
     const Array<Real> & /*normal*/, GhostType ghost_type) {

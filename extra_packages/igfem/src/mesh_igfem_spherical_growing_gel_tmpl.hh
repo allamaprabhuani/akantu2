@@ -31,13 +31,13 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 MeshIgfemSphericalGrowingGel<dim>::MeshIgfemSphericalGrowingGel(Mesh & mesh)
     : mesh(mesh), nb_nodes_fem(mesh.getNbNodes()), nb_enriched_nodes(0),
       synchronizer(NULL) {}
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::init() {
+template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::init() {
   nb_nodes_fem = mesh.getNbNodes();
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();
@@ -64,7 +64,7 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::init() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
     const std::list<SK::Sphere_3> & query_list) {
   /// store number of currently enriched nodes
@@ -115,7 +115,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
   AKANTU_DEBUG_IN();
 
@@ -180,7 +180,7 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
+template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
   AKANTU_DEBUG_IN();
 
   NewIGFEMElementsEvent new_elements_event;
@@ -402,7 +402,7 @@ template <UInt dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
   Mesh mesh_facets(mesh.initMeshFacets());
   MeshUtils::buildSegmentToNodeType(mesh, mesh_facets, synchronizer);
@@ -446,7 +446,7 @@ void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 void MeshIgfemSphericalGrowingGel<dim>::updateNodeType(
     const Array<UInt> & nodes_list, const Array<UInt> & new_node_per_elem,
     ElementType type, GhostType ghost_type) {

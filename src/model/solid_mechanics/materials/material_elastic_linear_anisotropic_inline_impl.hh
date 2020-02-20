@@ -41,7 +41,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma) const {
   auto voigt_strain = strainToVoigt<dim>(gradUToEpsilon<dim>(grad_u));
@@ -50,7 +50,7 @@ inline void MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialElasticLinearAnisotropic<dim>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent) const {
 
@@ -58,7 +58,7 @@ inline void MaterialElasticLinearAnisotropic<dim>::computeTangentModuliOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
+template <Int dim>
 inline void MaterialElasticLinearAnisotropic<dim>::computePotentialEnergyOnQuad(
     const Matrix<Real> & grad_u, const Matrix<Real> & sigma, Real & epot) {
 

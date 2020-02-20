@@ -70,7 +70,7 @@ public:
   void interpolateOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
   template <ElementType type>
@@ -84,7 +84,7 @@ public:
   void gradientOnIntegrationPoints(
       const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<UInt> & filter_elements = empty_filter) const;
+      const Array<Int> & filter_elements = empty_filter) const;
 
   /// multiply a field by shape functions  @f$ fts_{ij} = f_i * \varphi_j @f$
   template <ElementType type>

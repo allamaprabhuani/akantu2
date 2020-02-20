@@ -46,7 +46,7 @@ namespace akantu {
  *   - h : Hardening parameter (default: 0)
  *   - sigmay : Yield stress
  */
-template <UInt dim> class MaterialPlastic : public MaterialElastic<dim> {
+template <Int dim> class MaterialPlastic : public MaterialElastic<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

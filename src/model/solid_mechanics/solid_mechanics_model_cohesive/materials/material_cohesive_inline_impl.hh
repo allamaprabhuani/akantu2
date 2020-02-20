@@ -37,8 +37,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialCohesive::addFacet(const Element & element) {
-  Array<UInt> & f_filter = facet_filter(element.type, element.ghost_type);
+inline Int MaterialCohesive::addFacet(const Element & element) {
+  auto & f_filter = facet_filter(element.type, element.ghost_type);
   f_filter.push_back(element.element);
   return f_filter.size() - 1;
 }
@@ -50,7 +50,7 @@ void MaterialCohesive::computeNormal(const Array<Real> & /*position*/,
                                      GhostType /*ghost_type*/) {}
 
 /* -------------------------------------------------------------------------- */
-inline UInt MaterialCohesive::getNbData(const Array<Element> & elements,
+inline Int MaterialCohesive::getNbData(const Array<Element> & elements,
                                         const SynchronizationTag & tag) const {
 
   switch (tag) {

@@ -485,7 +485,7 @@ void ShapeLagrange<_ek_igfem>::precomputeShapeDerivativesOnIntegrationPoints(
 template <ElementType type>
 void ShapeLagrange<_ek_igfem>::interpolateOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
-    GhostType ghost_type, const Array<UInt> & filter_elements) const {
+    GhostType ghost_type, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
@@ -511,7 +511,7 @@ template <ElementType type>
 void ShapeLagrange<_ek_igfem>::gradientOnIntegrationPoints(
     const Array<Real> & in_u, Array<Real> & out_nablauq,
     UInt nb_degree_of_freedom, GhostType ghost_type,
-    const Array<UInt> & filter_elements) const {
+    const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
   InterpolationType itp_type = ElementClassProperty<type>::interpolation_type;
