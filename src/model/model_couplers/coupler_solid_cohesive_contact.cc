@@ -421,10 +421,9 @@ CouplerSolidCohesiveContact::createElementalField(
     bool padding_flag, const UInt & spatial_dimension,
     const ElementKind & kind) {
 
-  return solid->createElementalField(field_name, group_name, padding_flag,
-                                     spatial_dimension, kind);
-
   std::shared_ptr<dumper::Field> field;
+  field = solid->createElementalField(field_name, group_name, padding_flag,
+				      spatial_dimension, kind);
   return field;
 }
 
@@ -434,15 +433,15 @@ CouplerSolidCohesiveContact::createNodalFieldReal(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag) {
 
+  std::shared_ptr<dumper::Field> field;
   if (field_name == "contact_force" or field_name == "normals" or
       field_name == "gaps" or field_name == "previous_gaps" or
       field_name == "areas" or field_name == "tangents") {
-    return contact->createNodalFieldReal(field_name, group_name, padding_flag);
+    field = contact->createNodalFieldReal(field_name, group_name, padding_flag);
   } else {
-    return solid->createNodalFieldReal(field_name, group_name, padding_flag);
+    field = solid->createNodalFieldReal(field_name, group_name, padding_flag);
   }
 
-  std::shared_ptr<dumper::Field> field;
   return field;
 }
 
@@ -452,9 +451,8 @@ CouplerSolidCohesiveContact::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag) {
 
-  return solid->createNodalFieldBool(field_name, group_name, padding_flag);
-
   std::shared_ptr<dumper::Field> field;
+  field = solid->createNodalFieldBool(field_name, group_name, padding_flag);
   return field;
 }
 
