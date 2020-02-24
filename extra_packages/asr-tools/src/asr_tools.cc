@@ -1146,7 +1146,7 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day, const Rea
                       std::exp(-activ_energy / (R * (T + 273.15))) * delta_time_day;
 
   amount_reactive_particles -= std::exp(-activ_energy / (R * (T + 273.15))) *
-                               delta_time / saturation_const;
+                               delta_time_day / saturation_const;
 
   if (amount_reactive_particles < 0.)
     amount_reactive_particles = 0.;
