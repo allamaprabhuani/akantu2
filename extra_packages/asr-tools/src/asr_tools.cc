@@ -1143,7 +1143,7 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day, const Rea
   /// as temperatures are stored in C, conversion to K is done
 
   Real delta_strain = amount_reactive_particles * k *
-                      std::exp(-activ_energy / (R * (T + 273.15))) * delta_time;
+                      std::exp(-activ_energy / (R * (T + 273.15))) * delta_time_day;
 
   amount_reactive_particles -= std::exp(-activ_energy / (R * (T + 273.15))) *
                                delta_time / saturation_const;

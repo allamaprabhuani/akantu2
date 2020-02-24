@@ -424,7 +424,7 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrain(
 
   /// compute increase in gel strain value for interval of time delta_time
   /// as temperatures are stored in C, conversion to K is done
-  Real delta_strain = k * std::exp(-Ea / (R * (T + 273.15))) * delta_time;
+  Real delta_strain = k * std::exp(-Ea / (R * (T + 273.15))) * delta_time_day;
 
   for (UInt i = 0; i != spatial_dimension; ++i)
     gelstrain(i, i) += delta_strain;
