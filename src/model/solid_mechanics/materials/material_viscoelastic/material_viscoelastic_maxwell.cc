@@ -425,81 +425,6 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuliOnQuad(
   tangent.copy(this->C);
   tangent *= E_ef;
 }
-
-/* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialViscoelasticMaxwell<spatial_dimension>::savePreviousState() {
-
-//   for (auto & el_type : this->element_filter.elementTypes(
-//            _all_dimensions, _not_ghost, _ek_not_defined)) {
-
-//     auto sigma_th_it = this->sigma_th(el_type, _not_ghost).begin();
-
-//     auto previous_sigma_th_it =
-//         this->sigma_th.previous(el_type, _not_ghost).begin();
-
-//     auto previous_gradu_it = this->gradu.previous(el_type, _not_ghost)
-//                                  .begin(spatial_dimension,
-//                                  spatial_dimension);
-
-//     auto previous_sigma_it = this->stress.previous(el_type, _not_ghost)
-//                                  .begin(spatial_dimension,
-//                                  spatial_dimension);
-
-//     auto sigma_v_it =
-//         this->sigma_v(el_type, _not_ghost)
-//             .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-
-//     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-//     auto & previous_grad_u = *previous_gradu_it;
-//     auto & previous_sigma = *previous_sigma_it;
-
-//     previous_grad_u.copy(grad_u);
-//     previous_sigma.copy(sigma);
-//     *previous_sigma_th_it = *sigma_th_it;
-
-//     ++previous_gradu_it, ++previous_sigma_it, ++previous_sigma_th_it,
-//         ++sigma_v_it, ++sigma_th_it;
-//     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-//   }
-// }
-
-/* -------------------------------------------------------------------------- */
-// template <UInt spatial_dimension>
-// void MaterialViscoelasticMaxwell<spatial_dimension>::updateIntVariables() {
-
-//   for (auto & el_type : this->element_filter.elementTypes(
-//            _all_dimensions, _not_ghost, _ek_not_defined)) {
-
-//     auto previous_gradu_it = this->gradu.previous(el_type, _not_ghost)
-//                                  .begin(spatial_dimension,
-//                                  spatial_dimension);
-//     auto previous_sigma_it = this->stress.previous(el_type, _not_ghost)
-//                                  .begin(spatial_dimension,
-//                                  spatial_dimension);
-
-//     auto sigma_v_it =
-//         this->sigma_v(el_type, _not_ghost)
-//             .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-
-//     auto epsilon_v_it =
-//         this->epsilon_v(el_type, _not_ghost)
-//             .begin(spatial_dimension, spatial_dimension, this->Eta.size());
-
-//     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-
-//     // updateIntVarOnQuad(grad_u, *previous_gradu_it, *sigma_v_it,
-//     // *epsilon_v_it);
-//     updateSigmaViscOnQuad(grad_u, *previous_gradu_it, *sigma_v_it);
-
-//     ++previous_gradu_it;
-//     ++sigma_v_it;
-//     ++epsilon_v_it;
-
-//     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-//   }
-// }
-
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
@@ -698,19 +623,6 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
     return MaterialElastic<spatial_dimension>::getEnergy(energy_id, type,
                                                          index);
 }
-
-// /* --------------------------------------------------------------------------
-// */ template <UInt spatial_dimension> void
-// MaterialViscoelasticMaxwell<spatial_dimension>::forceUpdateVariable() {
-//   update_variable_flag = true;
-// }
-
-// /* --------------------------------------------------------------------------
-// */ template <UInt spatial_dimension> void
-// MaterialViscoelasticMaxwell<spatial_dimension>::forceNotUpdateVariable() {
-//   update_variable_flag = false;
-// }
-
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeEffectiveModulus(
@@ -721,8 +633,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeEffectiveModulus(
 
   if (Math::are_float_equal(exp_dt_lambda, 1)) {
     E_ef_v = (1 - dam) * this->Ev(visc_nb);
-  } else if (Math::are_float_equal(exp_dt_lambda, 0)) {
-    E_ef_v = 0.;
+  // } else if (Math::are_float_equal(exp_dt_lambda, 0)) {
+  //   E_ef_v = 0.;
   } else {
     E_ef_v = std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(visc_nb) *
                           lambda / dt,

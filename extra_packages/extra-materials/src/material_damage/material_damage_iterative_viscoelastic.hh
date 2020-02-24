@@ -46,10 +46,10 @@ class MaterialDamageIterativeViscoelastic
   using iterative_parent =
       MaterialIterativeStiffnessReductionIsotropic<dim,
                                                    MaterialViscoelasticMaxwell>;
-  using viscous_granparent = MaterialViscoelasticMaxwell<dim>;
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+  using viscous_grandparent = MaterialViscoelasticMaxwell<dim>;
+  /* --------------------------------------------------------------------- */
+  /* Constructors/Destructors                                              */
+  /* --------------------------------------------------------------------- */
 public:
   MaterialDamageIterativeViscoelastic(SolidMechanicsModel & model,
                                       const ID & id = "");

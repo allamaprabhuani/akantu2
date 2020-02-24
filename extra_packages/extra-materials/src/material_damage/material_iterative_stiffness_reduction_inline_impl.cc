@@ -28,6 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "material_iterative_stiffness_reduction.hh"
+#include "material_viscoelastic_maxwell.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -116,27 +117,22 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
       auto D_it = this->D(el_type, ghost_type).begin();
 
       /// EXPERIMENTAL
-      Real E_ef = this->E;
-      Real dt = this->model.getTimeStep();
-      Real E_sum = E_ef;
+      Real E_ef_sum = this->E;
+      Real E_sum = E_ef_sum;
 
-      if (IsotropicParent::getID().find("viscoelastic_maxwell") !=
-          std::string::npos) {
-        E_ef = this->getParam("Einf");
+      if (aka::is_of_type<MaterialViscoelasticMaxwell<spatial_dimension>>(
+              *this)) {
+        E_ef_sum = this->getParam("Einf");
+        E_sum = this->getParam("Einf");
         const Vector<Real> & Eta = this->getParam("Eta");
         const Vector<Real> & Ev = this->getParam("Ev");
 
         for (UInt k = 0; k < Eta.size(); ++k) {
-          Real lambda = Eta(k) / Ev(k);
-          Real exp_dt_lambda = exp(-dt / lambda);
-          Real gamma = lambda * (1 - exp_dt_lambda) / dt;
           E_sum += Ev(k);
-
-          if (Math::are_float_equal(exp_dt_lambda, 1)) {
-            E_ef += Ev(k);
-          } else {
-            E_ef += std::min(gamma * Ev(k), Ev(k));
-          }
+          Real E_ef, exp_dt_lambda;
+          dynamic_cast<MaterialViscoelasticMaxwell<spatial_dimension> &>(*this)
+              .computeEffectiveModulus(k, E_ef, exp_dt_lambda);
+          E_ef_sum += E_ef;
         }
       }
       /// loop over all the quads of the given element type
@@ -144,11 +140,11 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
            ++equivalent_stress_it, ++dam_it, ++reduction_it, ++eps_u_it,
            ++Sc_it, ++Sc_init_it, ++D_it) {
 
-        if (Material::getID().find("viscoelastic_maxwell") !=
-            std::string::npos) {
+        if (aka::is_of_type<MaterialViscoelasticMaxwell<spatial_dimension>>(
+                *this)) {
           *eps_u_it = 2. * this->Gf / (*Sc_init_it * this->crack_band_width) +
-                      *Sc_init_it * (1 / E_ef - 1 / E_sum);
-          *D_it = *(Sc_init_it) / ((*eps_u_it) - ((*Sc_init_it) / E_ef));
+                      *Sc_init_it * (1 / E_ef_sum - 1 / E_sum);
+          *D_it = *(Sc_init_it) / ((*eps_u_it) - ((*Sc_init_it) / E_ef_sum));
         }
 
         /// check if damage occurs
@@ -169,8 +165,8 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
             *dam_it =
                 1. - (1. / std::pow(this->reduction_constant, *reduction_it));
             /// update the stiffness on this quad
-            *Sc_it = (*eps_u_it) * (1. - (*dam_it)) * E_ef * (*D_it) /
-                     ((1. - (*dam_it)) * E_ef + (*D_it));
+            *Sc_it = (*eps_u_it) * (1. - (*dam_it)) * E_ef_sum * (*D_it) /
+                     ((1. - (*dam_it)) * E_ef_sum + (*D_it));
           }
           nb_damaged_elements += 1;
         }

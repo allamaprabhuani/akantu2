@@ -259,17 +259,17 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt) {
+void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
   for (auto && data : zip(this->delta_T(this->el_type),
                           make_view(this->gelstrain(this->el_type),
                                     spatial_dimension, spatial_dimension),
                           this->non_reacted_gel(this->el_type))) {
     /// compute new gel strain for every element
     if (this->sat_const)
-      computeNewGelStrainTimeDependent(std::get<1>(data), dt, std::get<0>(data),
+      computeNewGelStrainTimeDependent(std::get<1>(data), dt_day, std::get<0>(data),
                                        std::get<2>(data));
     else
-      computeNewGelStrain(std::get<1>(data), dt, std::get<0>(data));
+      computeNewGelStrain(std::get<1>(data), dt_day, std::get<0>(data));
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -415,7 +415,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
  */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeNewGelStrain(
-    Matrix<Real> & gelstrain, const Real & delta_time, const Real & T) {
+    Matrix<Real> & gelstrain, const Real & delta_time_day, const Real & T) {
   AKANTU_DEBUG_IN();
 
   const auto & k = this->k;
@@ -434,7 +434,7 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrain(
 /* --------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
-    Matrix<Real> & gelstrain, const Real & delta_time, const Real & T,
+    Matrix<Real> & gelstrain, const Real & delta_time_day, const Real & T,
     Real & non_reacted_gel) {
   AKANTU_DEBUG_IN();
 
@@ -452,7 +452,7 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
     gelstrain(i, i) += delta_strain;
 
   non_reacted_gel -= std::exp(-Ea / (R * (T + 273.15))) *
-                     (delta_time / 60 / 60 / 24) / sat_const;
+                     delta_time / sat_const;
 
   if (non_reacted_gel < 0.)
     non_reacted_gel = 0.;

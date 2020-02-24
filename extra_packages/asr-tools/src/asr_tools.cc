@@ -1134,7 +1134,7 @@ template <UInt dim> Real ASRTools::computeSmallestElementSize() {
 
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time, const Real k,
+Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day, const Real k,
                                             const Real activ_energy,
                                             const Real R, const Real T,
                                             Real & amount_reactive_particles,
@@ -1146,7 +1146,7 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time, const Real k,
                       std::exp(-activ_energy / (R * (T + 273.15))) * delta_time;
 
   amount_reactive_particles -= std::exp(-activ_energy / (R * (T + 273.15))) *
-                               (delta_time / 60 / 60 / 24) / saturation_const;
+                               delta_time / saturation_const;
 
   if (amount_reactive_particles < 0.)
     amount_reactive_particles = 0.;

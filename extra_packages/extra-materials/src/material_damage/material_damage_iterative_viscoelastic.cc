@@ -72,7 +72,7 @@ void MaterialDamageIterativeViscoelastic<
   auto dam_it = dam.begin();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
-  viscous_granparent::computeTangentModuliOnQuad(tangent, *dam_it);
+  viscous_grandparent::computeTangentModuliOnQuad(tangent, *dam_it);
   ++dam_it;
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
@@ -127,7 +127,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  viscous_granparent::computeStressOnQuad(grad_u, *previous_gradu_it, sigma,
+  viscous_grandparent::computeStressOnQuad(grad_u, *previous_gradu_it, sigma,
                                           *sigma_v_it, *sigma_th_it, *dam_it);
   ++sigma_th_it;
   ++previous_gradu_it;
