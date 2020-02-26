@@ -135,7 +135,7 @@ public:
   // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
 
   /// compute increase in gel strain within 1 timestep
-  Real computeDeltaGelStrainThermal(const Real delta_time, const Real k,
+  Real computeDeltaGelStrainThermal(const Real delta_time_day, const Real k,
                                     const Real activ_energy, const Real R,
                                     const Real T,
                                     Real & amount_reactive_particles,
