@@ -354,34 +354,6 @@ void ContactMechanicsModel::search() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::assembleFieldsFromContactMap() {
-
-  UInt nb_nodes = mesh.getNbNodes();
-
-  this->gaps->clear();
-
-  gaps->resize(nb_nodes, 0.);
-  normals->resize(nb_nodes, 0.);
-  tangents->resize(nb_nodes, 0.);
-
-  if (this->contact_map.empty())
-    return;
-
-  for (auto & entry : contact_map) {
-    const auto & element = entry.second;
-    auto connectivity = element.connectivity;
-    auto node = connectivity(0);
-
-    (*gaps)[node] = element.gap;
-
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      (*normals)(node, i) = element.normal[i];
-      (*tangents)(node, i) = element.tangents(0, i);
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::computeNodalAreas() {
 
   UInt nb_nodes = mesh.getNbNodes();

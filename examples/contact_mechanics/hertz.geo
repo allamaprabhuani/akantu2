@@ -1,10 +1,10 @@
 cl1 = 0.005;
 cl2 = 0.005;
-cl3 = 0.0025;
+cl3 = 0.001;
 Dy = 0.0;
 radius = 0.1;
 y = 0.1;
-epsilon = 0;
+epsilon = 1e-3;
 
 Point(1) = {0, y, 0, cl1};
 Point(2) = {radius, radius + y, 0, cl2};
@@ -40,12 +40,11 @@ Point{10} In Surface{11};
 Point{11} In Surface{11};
 Point{12} In Surface{11};
 
-
 Physical Line("contact_bottom") = {6, 8};
 Physical Line("contact_top") = {1, 2};
 
 Physical Line("top") = {3, 13};
 Physical Line("bottom") = {4};
 
-Physical Surface("top_body") = {9};
-Physical Surface("bot_body") = {11};
+Physical Surface("uppper") = {9};
+Physical Surface("lower") = {11};

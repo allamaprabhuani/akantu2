@@ -33,6 +33,7 @@
 #include "contact_mechanics_model.hh"
 #include "coupler_solid_contact.hh"
 #include "non_linear_solver.hh"
+#include "surface_selector.hh"
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
   UInt max_steps = 5000;
     
   Mesh mesh(spatial_dimension);
-  mesh.read("contact_hertz_2d.msh");
+  mesh.read("hertz.msh");
   
   CouplerSolidContact coupler(mesh);
 
@@ -63,12 +64,12 @@ int main(int argc, char *argv[]) {
   solid.initFull(  _analysis_method = _explicit_lumped_mass);
   contact.initFull(_analysis_method = _explicit_dynamic_contact);
 
-  
+  auto && surface_selector = std::make_shared<PhysicalSurfaceSelector>(mesh);
+  contact.getContactDetector().setSurfaceSelector(surface_selector);
+ 
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
-
   solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-
 
   coupler.initFull(_analysis_method = _explicit_dynamic_contact);
 
@@ -82,7 +83,6 @@ int main(int argc, char *argv[]) {
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("velocity");
   coupler.addDumpFieldVector("normals");
-  coupler.addDumpFieldVector("tangents");
   coupler.addDumpFieldVector("contact_force");
   coupler.addDumpFieldVector("external_force");
   coupler.addDumpFieldVector("internal_force");

@@ -30,22 +30,10 @@
 #
 #===============================================================================
 
-add_mesh(contact_hertz_2d contact_hertz_2d.geo 2 1)
+add_mesh(hertz hertz.geo 2 1)
 
 register_example(contact_explicit_dynamic
   SOURCES contact_explicit_dynamic.cc
-  DEPENDS contact_hertz_2d
-  FILES_TO_COPY material.dat
-  )
-
-register_example(solid_explicit_dynamic
-  SOURCES solid_explicit_dynamic.cc
-  DEPENDS contact_hertz_2d
-  FILES_TO_COPY material_solid.dat
-  )
-
-register_example(node_selector
-  SOURCES test_node_selector.cc
-  DEPENDS contact_hertz_2d
+  DEPENDS hertz
   FILES_TO_COPY material.dat
   )

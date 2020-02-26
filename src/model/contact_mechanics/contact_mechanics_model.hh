@@ -122,8 +122,6 @@ public:
 
   void computeNodalAreas();
 
-  void assembleFieldsFromContactMap();
-
   /* ------------------------------------------------------------------------ */
   /* Contact Resolution                                                       */
   /* ------------------------------------------------------------------------ */
@@ -267,21 +265,12 @@ public:
   /// get contact detector
   AKANTU_GET_MACRO_NOT_CONST(ContactDetector, *detector, ContactDetector &);
 
-  /// get the contat map
-  inline std::map<UInt, ContactElement> & getContactMap() {
-    return contact_map;
-  }
-
-  /// get the contat map
+  /// get the contact elements
   inline Array<ContactElement> & getContactElements() {
     return contact_elements;
   }
-  
-  ///
-  inline void setPositions(Array<Real> positions) {
-    detector->setPositions(positions);
-  }
 
+  /// get the current positions of the nodes
   inline Array<Real> & getPositions() {
     return detector->getPositions();
   }
@@ -343,9 +332,6 @@ private:
 
   /// mapping between resolution name and resolution internal id
   std::map<std::string, UInt> resolutions_names_to_id;
-
-  /// mapping between slave node its respective contact element
-  std::map<UInt, ContactElement> contact_map;
 
   ///
   Array<ContactElement> contact_elements;

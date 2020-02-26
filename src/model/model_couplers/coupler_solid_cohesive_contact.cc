@@ -64,7 +64,7 @@ CouplerSolidCohesiveContact::CouplerSolidCohesiveContact(
   solid = new SolidMechanicsModelCohesive(mesh, Model::spatial_dimension,
                                           "solid_mechanics_model_cohesive", 0,
                                           this->dof_manager);
-  contact = new ContactMechanicsModel(mesh, Model::spatial_dimension,
+  contact = new ContactMechanicsModel(mesh.getMeshFacets(), Model::spatial_dimension,
                                       "contact_mechanics_model", 0,
                                       this->dof_manager);
 
@@ -177,19 +177,29 @@ void CouplerSolidCohesiveContact::assembleResidual() {
   auto & external_force = solid->getExternalForce();
 
   auto & contact_force = contact->getInternalForce();
-  auto & contact_map = contact->getContactMap();
+ 
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
+    Vector<UInt> elem_conn(master_conn.size() + 1);
 
+    elem_conn[0] = slave;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i - 1];
+    }
+    return elem_conn;
+  };
+
+  
   switch (method) {
   case _explicit_dynamic_contact:
   case _explicit_contact: {
-    for (auto & pair : contact_map) {
-      auto & connectivity = pair.second.connectivity;
-      for (auto node : connectivity) {
-        for (auto s : arange(spatial_dimension))
-          external_force(node, s) = contact_force(node, s);
+    for (auto & element : contact->getContactElements()) {
+      for (auto & conn : get_connectivity(element.slave, element.master)) {
+	for (auto dim : arange(spatial_dimension)) {
+	  external_force(conn, dim) = contact_force(conn, dim);
+	}
       }
     }
-    break;
   }
   default:
     break;
@@ -216,24 +226,35 @@ void CouplerSolidCohesiveContact::assembleResidual(const ID & residual_part) {
   auto & external_force = solid->getExternalForce();
 
   auto & contact_force = contact->getInternalForce();
-  auto & contact_map = contact->getContactMap();
 
+  auto get_connectivity = [&](auto & slave, auto & master) {
+    Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
+    Vector<UInt> elem_conn(master_conn.size() + 1);
+
+    elem_conn[0] = slave;
+    for (UInt i = 1; i < elem_conn.size(); ++i) {
+      elem_conn[i] = master_conn[i - 1];
+    }
+    return elem_conn;
+  };
+
+  
   switch (method) {
   case _explicit_dynamic_contact:
   case _explicit_contact: {
-    for (auto & pair : contact_map) {
-      auto & connectivity = pair.second.connectivity;
-      for (auto node : connectivity) {
-        for (auto s : arange(spatial_dimension))
-          external_force(node, s) = contact_force(node, s);
+    for (auto & element : contact->getContactElements()) {
+      for (auto & conn : get_connectivity(element.slave, element.master)) {
+	for (auto dim : arange(spatial_dimension)) {
+	  external_force(conn, dim) = contact_force(conn, dim);
+	}
       }
     }
-    break;
   }
   default:
     break;
   }
 
+  
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", external_force, 1);
     AKANTU_DEBUG_OUT();
@@ -435,13 +456,15 @@ CouplerSolidCohesiveContact::createNodalFieldReal(
 
   std::shared_ptr<dumper::Field> field;
   if (field_name == "contact_force" or field_name == "normals" or
+      field_name == "normal_force" or field_name == "tangential_force" or
+      field_name == "stick_or_slip" or
       field_name == "gaps" or field_name == "previous_gaps" or
       field_name == "areas" or field_name == "tangents") {
-    field = contact->createNodalFieldReal(field_name, group_name, padding_flag);
+    field =  contact->createNodalFieldReal(field_name, group_name, padding_flag);
   } else {
     field = solid->createNodalFieldReal(field_name, group_name, padding_flag);
   }
-
+  
   return field;
 }
 
