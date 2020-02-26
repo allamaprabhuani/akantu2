@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import math
 
-
 class SinBoundary:
 
     def __init__(self, amplitude, phase):

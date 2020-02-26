@@ -80,7 +80,9 @@ target_include_directories(iohelper
 
 set_target_properties(iohelper PROPERTIES PUBLIC_HEADER "${IOHELPER_COMMON_HEADERS}")
 set_property(TARGET iohelper PROPERTY CXX_STANDARD 11)
-
+if(APPLE)
+   set_property(TARGET iohelper PROPERTY MACOSX_RPATH ON)	
+endif()
 export(TARGETS iohelper
   FILE "${CMAKE_BINARY_DIR}/IOHelperLibraryDepends.cmake")
 export(PACKAGE IOHelper)
@@ -93,14 +95,18 @@ if(NOT IOHELPER_TARGETS_EXPORT)
   set(IOHELPER_TARGETS_EXPORT IOHelperLibraryDepends)
 endif()
 
-install(TARGETS iohelper
-  EXPORT ${IOHELPER_TARGETS_EXPORT}
-  ARCHIVE DESTINATION lib COMPONENT lib
-  LIBRARY DESTINATION lib COMPONENT lib
-  RUNTIME DESTINATION lib COMPONENT lib
-  PUBLIC_HEADER DESTINATION include/iohelper COMPONENT dev
-  )
 
+install(TARGETS iohelper
+    EXPORT ${IOHELPER_TARGETS_EXPORT}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT IOHelper_runtime
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT IOHelper_runtime
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            COMPONENT IOHelper_runtime
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/iohelper/
+            COMPONENT IOHelper_development
+    )
 # Install the export set for use with the install-tree
 if("${IOHELPER_TARGETS_EXPORT}" STREQUAL "IOHelperLibraryDepends")
   install(EXPORT IOHelperLibraryDepends DESTINATION  lib/iohelper

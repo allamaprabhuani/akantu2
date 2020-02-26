@@ -44,7 +44,7 @@
 namespace akantu {
 
 CohesiveElementInserter::CohesiveElementInserter(Mesh & mesh, const ID & id)
-    : Parsable(ParserType::_cohesive_inserter), id(id), mesh(mesh),
+    : Parsable(ParserType::_cohesive_inserter, id), id(id), mesh(mesh),
       mesh_facets(mesh.initMeshFacets()),
       insertion_facets("insertion_facets", id),
       insertion_limits(mesh.getSpatialDimension(), 2),

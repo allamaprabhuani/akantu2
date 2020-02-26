@@ -131,8 +131,7 @@ function(mumps_add_dependency _pdep _libs)
     else()
       set(${_libs} ${${_u_pdep}_LIBRARIES} PARENT_SCOPE)
     endif()
-  elseif(_pdep MATCHES "MPI")
-    if(MUMPS_PLAT STREQUAL "_seq")
+  elseif(_pdep MATCHES "MPISeq")
       find_library(MUMPS_LIBRARY_MPISEQ mpiseq${MUMPS_PREFIX}
         PATHS "${MUMPS_DIR}"
         ENV MUMPS_DIR
@@ -140,10 +139,9 @@ function(mumps_add_dependency _pdep _libs)
         )
       set(${_libs} ${MUMPS_LIBRARY_MPISEQ} PARENT_SCOPE)
       mark_as_advanced(MUMPS_LIBRARY_MPISEQ)
-    else()
-      find_package(MPI REQUIRED C Fortran QUIET)
-      set(${_libs} ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES} PARENT_SCOPE)
-    endif()
+  elseif(_pdep MATCHES "MPI")
+    find_package(MPI REQUIRED C Fortran QUIET)
+    set(${_libs} ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES} PARENT_SCOPE)
   else()
     find_package(${_pdep} REQUIRED QUIET)
     set(${_libs} ${${_u_pdep}_LIBRARIES} ${${_u_pdep}_LIBRARY} PARENT_SCOPE)
@@ -181,9 +179,13 @@ ${_u_first_precision}MUMPS_STRUC_C id;
 
   #===============================================================================
   set(_mumps_dep_symbol_BLAS ${_first_precision}gemm)
-  set(_mumps_dep_symbol_ScaLAPACK numroc)
-  set(_mumps_dep_symbol_MPI mpi_send)
-  set(_mumps_dep_symbol_Scotch SCOTCH_graphInit)
+  if(MUMPS_PLAT STREQUAL _seq)
+	set(_mumps_dep_symbol_MPISeq pdpotrf)
+  else()
+  	set(_mumps_dep_symbol_ScaLAPACK numroc)
+  	set(_mumps_dep_symbol_MPI mpi_send)
+  endif()
+  set(_mumps_dep_symbol_Scotch scotchfstratexit)
   set(_mumps_dep_symbol_Scotch_ptscotch scotchfdgraphexit)
   set(_mumps_dep_symbol_Scotch_esmumps esmumps)
   set(_mumps_dep_symbol_mumps_common mumps_abort)
@@ -193,14 +195,24 @@ ${_u_first_precision}MUMPS_STRUC_C id;
 
   # added for fucking macosx that cannot fail at link
   set(_mumps_run_dep_symbol_mumps_common mumps_fac_descband)
-  set(_mumps_run_dep_symbol_MPI mpi_bcast)
-  set(_mumps_run_dep_symbol_ScaLAPACK idamax)
-
+  if(MUMPS_PLAT STREQUAL _seq)
+    set(_mumps_run_dep_symbol_MPISeq mpi_bcast)
+  else()	
+	set(_mumps_run_dep_symbol_MPI mpi_bcast)
+    set(_mumps_run_dep_symbol_ScaLAPACK idamax)
+  endif()
+  
   set(_mumps_dep_comp_Scotch_ptscotch COMPONENTS ptscotch)
   set(_mumps_dep_comp_Scotch_esmumps COMPONENTS esmumps)
 
-  set(_mumps_potential_dependencies mumps_common pord BLAS ScaLAPACK MPI
+  set(_mumps_potential_dependencies mumps_common pord BLAS
     Scotch Scotch_ptscotch Scotch_esmumps METIS ParMETIS)
+	
+  if(MUMPS_PLAT STREQUAL _seq)
+	list(APPEND _mumps_potential_dependencies MPISeq)
+  else()
+    list(APPEND _mumps_potential_dependencies ScaLAPACK MPI)
+  endif()
   #===============================================================================
 
   set(_retry_try_run TRUE)
@@ -224,7 +236,8 @@ ${_u_first_precision}MUMPS_STRUC_C id;
       #message("CHECKING ${_pdep}")
       set(_add_pdep FALSE)
       if (NOT _mumps_compiles AND
-          _out MATCHES "undefined reference.*${_mumps_dep_symbol_${_pdep}}")
+          (_out MATCHES "undefined reference.*${_mumps_dep_symbol_${_pdep}}"
+		  OR _out MATCHES "${_mumps_dep_symbol_${_pdep}}.*referenced from"))
         set(_add_pdep TRUE)
         #message("NEED COMPILE ${_pdep}")
       elseif(_mumps_run STREQUAL "FAILED_TO_RUN" AND

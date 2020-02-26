@@ -40,7 +40,11 @@ enable_language(CXX)
 # Misc.
 #===============================================================================
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build shared libraries.")
-
+include(GNUInstallDirs)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 find_package (ZLIB)
 
 if(ZLIB_FOUND)
