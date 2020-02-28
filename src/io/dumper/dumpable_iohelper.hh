@@ -82,9 +82,9 @@ public:
   void addDumpFilteredMesh(const Mesh & mesh,
                            const ElementTypeMapArray<Idx> & elements_filter,
                            const Array<Idx> & nodes_filter,
-                           UInt spatial_dimension = _all_dimensions,
-                           GhostType ghost_type = _not_ghost,
-                           ElementKind element_kind = _ek_not_defined);
+                           Int spatial_dimension = _all_dimensions,
+                           const GhostType & ghost_type = _not_ghost,
+                           const ElementKind & element_kind = _ek_not_defined);
 
   /// register a filtered mesh and provides a name
   void addDumpFilteredMeshToDumper(

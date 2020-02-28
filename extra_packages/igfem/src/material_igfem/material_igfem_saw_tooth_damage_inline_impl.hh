@@ -40,7 +40,7 @@ UInt MaterialIGFEMSawToothDamage<spatial_dimension>::updateDamage(
         quad_index / this->element_filter(el_type, ghost_type).getSize();
     UInt nb_quads = this->fem->getNbIntegrationPoints(el_type, ghost_type);
     UInt start_idx = el_index * nb_quads;
-    Array<UInt> & sub_mat = this->sub_material(el_type, ghost_type);
+    Array<Idx> & sub_mat = this->sub_material(el_type, ghost_type);
     UInt damaged_quads = 0;
     if (dam_on_quad < dam_threshold) {
       for (UInt q = 0; q < nb_quads; ++q, ++start_idx) {

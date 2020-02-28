@@ -46,7 +46,7 @@ Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     integrate(const Array<Real> & f, const ElementType & type,
               const GhostType & ghost_type,
-              const Array<Int> & filter_elements) const {
+              const Array<Idx> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
@@ -83,9 +83,9 @@ template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     integrate(const Array<Real> & f, Array<Real> & intf,
-              UInt nb_degree_of_freedom, const ElementType & type,
+              Int nb_degree_of_freedom, const ElementType & type,
               const GhostType & ghost_type,
-              const Array<Int> & filter_elements) const {
+              const Array<Idx> & filter_elements) const {
 
 #ifndef AKANTU_NDEBUG
   auto nb_element = mesh.getNbElement(type, ghost_type);
@@ -124,11 +124,9 @@ void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
 template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    gradientOnIntegrationPoints(
-        const Array<Real> & /* u */, Array<Real> & /*  nablauq */,
-        UInt /* nb_degree_of_freedom */, ElementType /* type  */,
-        GhostType /*  ghost_type */,
-        const Array<Int> & /*  filter_elements */) const {
+    gradientOnIntegrationPoints(const Array<Real> &, Array<Real> &, Int,
+                                const ElementType &, const GhostType &,
+                                const Array<Idx> &) const {
   AKANTU_TO_IMPLEMENT();
 }
 

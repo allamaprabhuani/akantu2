@@ -178,14 +178,3 @@ GeometricalElement<_gt_quadrangle_8>::getInradius(const Eigen::MatrixBase<D> & c
 
   return h;
 }
-
-/* -------------------------------------------------------------------------- */
-template <>
-template<class D>
-inline Real
-InterpolationElement<_itp_serendip_quadrangle_8>::computeSpecialJacobian(
-    const Eigen::MatrixBase<D> & J) {
-  auto Jstatic = Eigen::Map<const Eigen::Matrix<Real, 2, 3>>(J.data());
-  return Jstatic.row(0).cross(Jstatic.row(1)).norm();
-}
-} // namespace akantu

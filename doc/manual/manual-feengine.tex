@@ -57,7 +57,7 @@ const Array<Real> & strain_vec = model.getMaterial(m).getGradU(type);
 const Array<Real> & stress_vec = model.getMaterial(m).getStress(type);
 
 // get the element filter for the material index
-const Array<UInt> & elem_filter = model.getMaterial(m).getElementFilter(type);
+const Array<Idx> & elem_filter = model.getMaterial(m).getElementFilter(type);
 
 // initialize the integrated stress and strain arrays
 Array<Real> int_strain_vec(elem_filter.getSize(), 

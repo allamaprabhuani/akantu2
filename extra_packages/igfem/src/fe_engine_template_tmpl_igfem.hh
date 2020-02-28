@@ -90,7 +90,7 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
     computeIntegrationPointsCoordinates(
         ElementTypeMapArray<Real> & quadrature_points_coordinates,
-        const ElementTypeMapArray<UInt> * filter_elements) const {
+        const ElementTypeMapArray<Idx> * filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
   UInt spatial_dimension = mesh.getSpatialDimension();

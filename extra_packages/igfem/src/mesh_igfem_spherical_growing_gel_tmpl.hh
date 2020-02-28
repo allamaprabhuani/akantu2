@@ -85,7 +85,7 @@ void MeshIgfemSphericalGrowingGel<dim>::computeMeshQueryListIntersectionPoint(
                                                         nb_old_nodes);
       const Array<Real> intersection_points_current_type =
           *(intersector.getIntersectionPoints());
-      const Array<UInt> & new_node_per_elem = intersector.getNewNodePerElem();
+      const Array<Idx> & new_node_per_elem = intersector.getNewNodePerElem();
 
       /// Send the new node event
       UInt new_points = intersection_points_current_type.getSize();
@@ -131,8 +131,8 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
     return;
 
   RemovedNodesEvent remove_nodes(this->mesh);
-  Array<UInt> & nodes_removed = remove_nodes.getList();
-  Array<UInt> & new_numbering = remove_nodes.getNewNumbering();
+  Array<Idx> & nodes_removed = remove_nodes.getList();
+  Array<Idx> & new_numbering = remove_nodes.getNewNumbering();
 
   for (UInt nnod = 0; nnod < this->nb_nodes_fem; ++nnod) {
     new_numbering(nnod) = nnod;
@@ -157,13 +157,13 @@ void MeshIgfemSphericalGrowingGel<dim>::removeAdditionalNodes() {
           mesh.lastType(_all_dimensions, ghost_type, _ek_not_defined);
       for (; it != end; ++it) {
         ElementType type = *it;
-        Array<UInt> & connectivity_array =
+        Array<Idx> & connectivity_array =
             mesh.getConnectivity(type, ghost_type);
         UInt nb_nodes_per_element = connectivity_array.getNbComponent();
 
-        Array<UInt>::vector_iterator conn_it =
+        Array<Idx>::vector_iterator conn_it =
             connectivity_array.begin(nb_nodes_per_element);
-        Array<UInt>::vector_iterator conn_end =
+        Array<Idx>::vector_iterator conn_end =
             connectivity_array.end(nb_nodes_per_element);
 
         for (; conn_it != conn_end; ++conn_it) {
@@ -207,17 +207,17 @@ template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
 
       MeshAbstractIntersector<SK::Sphere_3> & intersector =
           *intersectors(type, ghost_type);
-      const Array<UInt> & new_node_per_elem = intersector.getNewNodePerElem();
+      const Array<Idx> & new_node_per_elem = intersector.getNewNodePerElem();
 
       UInt n_new_el = 0;
-      Array<UInt> & connectivity = this->mesh.getConnectivity(type, ghost_type);
+      Array<Idx> & connectivity = this->mesh.getConnectivity(type, ghost_type);
 
       /// get the connectivities of all types that that may transform
-      Array<UInt> & connec_igfem_tri_4 =
+      Array<Idx> & connec_igfem_tri_4 =
           this->mesh.getConnectivity(_igfem_triangle_4, ghost_type);
-      Array<UInt> & connec_igfem_tri_5 =
+      Array<Idx> & connec_igfem_tri_5 =
           this->mesh.getConnectivity(_igfem_triangle_5, ghost_type);
-      Array<UInt> & connec_tri_3 =
+      Array<Idx> & connec_tri_3 =
           this->mesh.getConnectivity(_triangle_3, ghost_type);
 
       /// create elements to store the newly generated elements
@@ -225,7 +225,7 @@ template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
       Element el_igfem_tri_4(_igfem_triangle_4, 0, ghost_type, _ek_igfem);
       Element el_igfem_tri5(_igfem_triangle_5, 0, ghost_type, _ek_igfem);
 
-      Array<UInt> & new_numbering =
+      Array<Idx> & new_numbering =
           removed_elements_event.getNewNumbering(type, ghost_type);
       new_numbering.resize(connectivity.getSize());
       /// container for element to be removed
@@ -365,7 +365,7 @@ template <Int dim> void MeshIgfemSphericalGrowingGel<dim>::buildIGFEMMesh() {
     Mesh::type_iterator iend = mesh.lastType(dim, ghost_type, _ek_not_defined);
     for (; iit != iend; ++iit) {
       ElementType type = *iit;
-      Array<UInt> & new_numbering =
+      Array<Idx> & new_numbering =
           removed_elements_event.getNewNumbering(type, ghost_type);
       UInt el_index = 0;
       UInt nb_element = this->mesh.getNbElement(type, ghost_type);
@@ -419,7 +419,7 @@ void MeshIgfemSphericalGrowingGel<dim>::buildSegmentConnectivityToNodeType() {
       const Array<Int> & segment_to_nodetype =
           mesh_facets.getData<Int>("segment_to_nodetype", type, ghost_type);
 
-      const Array<UInt> & segment_connectivity =
+      const Array<Idx> & segment_connectivity =
           mesh_facets.getConnectivity(type, ghost_type);
 
       // looping over all the segments

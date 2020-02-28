@@ -251,6 +251,10 @@ namespace Math {
   inline Real kronecker(T1 i, T2 j) {
     return static_cast<Real>(i == j);
   }
+/* -------------------------------------------------------------------------- */
+  template <typename T> static inline constexpr T pow(T x, int p) {
+    return p == 0 ? T(1) : (pow(x, p-1) * x);
+  }
 
   /// reduce all the values of an array, the summation is done in place and the
   /// array is modified

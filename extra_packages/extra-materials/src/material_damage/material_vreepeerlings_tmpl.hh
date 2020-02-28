@@ -72,7 +72,7 @@ void MaterialVreePeerlings<spatial_dimension, MatParent>::computeStress(
   Real * Nb_damage = Number_damage(el_type, ghost_type).storage();
   Real dt = this->model.getTimeStep();
 
-  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Idx> & elem_filter = this->element_filter(el_type, ghost_type);
   Array<Real> & velocity = this->model.getVelocity();
   Array<Real> & strain_rate_vrplgs =
       this->strain_rate_vreepeerlings(el_type, ghost_type);

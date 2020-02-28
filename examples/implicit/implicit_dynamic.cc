@@ -94,7 +94,7 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "blocked");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "roller");
 
-  const Array<UInt> & trac_nodes =
+  const Array<Idx> & trac_nodes =
       mesh.getElementGroup("traction").getNodeGroup().getNodes();
 
   bool dump_node = false;

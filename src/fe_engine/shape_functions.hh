@@ -96,14 +96,14 @@ protected:
   void interpolateElementalFieldOnIntegrationPoints(
       const Array<Real> & u_el, Array<Real> & uq, GhostType ghost_type,
       const Array<Real> & shapes,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// gradient of nodal values stored by element on the control points
   template <ElementType type>
   void gradientElementalFieldOnIntegrationPoints(
       const Array<Real> & u_el, Array<Real> & out_nablauq,
       const GhostType & ghost_type, const Array<Real> & shapes_derivatives,
-      const Array<Int> & filter_elements) const;
+      const Array<Idx> & filter_elements) const;
 
 protected:
   /// By element versions of non-templated eponym methods
@@ -113,7 +113,7 @@ protected:
       const Array<Real> & interpolation_points_coordinates_matrices,
       const Array<Real> & quad_points_coordinates_inv_matrices,
       ElementTypeMapArray<Real> & result, const GhostType & ghost_type,
-      const Array<Int> & element_filter) const;
+      const Array<Idx> & element_filter) const;
 
   /// Interpolate field at given position from given values of this field at
   /// integration points (field)
@@ -125,7 +125,7 @@ protected:
       ElementTypeMapArray<Real> & interpolation_points_coordinates_matrices,
       ElementTypeMapArray<Real> & quad_points_coordinates_inv_matrices,
       const Array<Real> & quadrature_points_coordinates,
-      const GhostType & ghost_type, const Array<Int> & element_filter) const;
+      const GhostType & ghost_type, const Array<Idx> & element_filter) const;
 
   /// build matrix for the interpolation of field form integration points
   template <ElementType type, typename D1, typename D2>
@@ -142,6 +142,9 @@ protected:
   buildInterpolationMatrix(const Eigen::MatrixBase<D1> & coordinates,
                            Eigen::MatrixBase<D2> & coordMatrix,
                            Int integration_order) const;
+
+  template <ElementType type>
+  friend struct BuildElementalFieldInterpolationMatrix;
 
 public:
   virtual void onElementsAdded(const Array<Element> & /*unused*/) {

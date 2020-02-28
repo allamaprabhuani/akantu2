@@ -153,15 +153,15 @@ UInt MaterialIGFEMIterativeStiffnessReduction<
       ElementType el_type = *it;
 
       /// get iterators on the needed internal fields
-      const Array<UInt> & sub_mat = this->sub_material(el_type, ghost_type);
-      Array<UInt>::const_scalar_iterator sub_mat_it = sub_mat.begin();
+      const Array<Idx> & sub_mat = this->sub_material(el_type, ghost_type);
+      Array<Idx>::const_scalar_iterator sub_mat_it = sub_mat.begin();
       Array<Real>::const_scalar_iterator equivalent_stress_it =
           this->equivalent_stress(el_type, ghost_type).begin();
       Array<Real>::const_scalar_iterator equivalent_stress_end =
           this->equivalent_stress(el_type, ghost_type).end();
       Array<Real>::scalar_iterator dam_it =
           this->damage(el_type, ghost_type).begin();
-      Array<UInt>::scalar_iterator reduction_it =
+      Array<Idx>::scalar_iterator reduction_it =
           this->reduction_step(el_type, ghost_type).begin();
       Array<Real>::const_scalar_iterator eps_u_it =
           this->eps_u(el_type, ghost_type).begin();
@@ -248,7 +248,7 @@ void MaterialIGFEMIterativeStiffnessReduction<
        g != ghost_type_t::end(); ++g) {
     GhostType ghost_type = *g;
     /// loop over all types in the material
-    typedef ElementTypeMapArray<UInt>::type_iterator iterator;
+    typedef ElementTypeMapArray<Idx>::type_iterator iterator;
     iterator it = this->element_filter.firstType(spatial_dimension, ghost_type,
                                                  _ek_igfem);
     iterator last_type =
@@ -258,7 +258,7 @@ void MaterialIGFEMIterativeStiffnessReduction<
       const ElementType el_type = *it;
       Array<Real>::scalar_iterator dam_it =
           this->damage(el_type, ghost_type).begin();
-      Array<UInt>::scalar_iterator reduction_it =
+      Array<Idx>::scalar_iterator reduction_it =
           this->reduction_step(el_type, ghost_type).begin();
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type);

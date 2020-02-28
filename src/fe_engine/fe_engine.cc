@@ -33,12 +33,13 @@
 /* -------------------------------------------------------------------------- */
 #include "fe_engine.hh"
 #include "mesh.hh"
+#include "integrator.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-FEEngine::FEEngine(Mesh & mesh, UInt element_dimension, const ID & id)
+FEEngine::FEEngine(Mesh & mesh, Int element_dimension, const ID & id)
     : mesh(mesh),
       normals_on_integration_points("normals_on_quad_points", id) {
   AKANTU_DEBUG_IN();
@@ -65,7 +66,7 @@ FEEngine::~FEEngine() {
 
 /* -------------------------------------------------------------------------- */
 typename FEEngine::ElementTypesIteratorHelper
-FEEngine::elementTypes(UInt dim, GhostType ghost_type, ElementKind kind) const {
+FEEngine::elementTypes(Int dim, GhostType ghost_type, ElementKind kind) const {
   return this->getIntegratorInterface().getJacobians().elementTypes(
       dim, ghost_type, kind);
 }

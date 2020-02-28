@@ -189,11 +189,11 @@ void SolidMechanicsModelRVE::applyHomogeneousTemperature(
   for (UInt m = 0; m < this->getNbMaterials(); ++m) {
     Material & mat = this->getMaterial(m);
 
-    const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+    const ElementTypeMapArray<Idx> & filter_map = mat.getElementFilter();
 
     // Loop over all element types
     for (auto && type : filter_map.elementTypes(spatial_dimension)) {
-      const Array<UInt> & filter = filter_map(type);
+      const Array<Idx> & filter = filter_map(type);
       if (filter.size() == 0)
         continue;
 

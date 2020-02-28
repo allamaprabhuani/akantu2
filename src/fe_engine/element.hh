@@ -47,12 +47,6 @@ public:
   Idx element;
   GhostType ghost_type;
 
-  // ElementKind kind;
-  // ElementType type{_not_defined};
-  // UInt element{0};
-  // GhostType ghost_type{_not_ghost};
-  // ElementKind kind{_ek_regular};
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
@@ -69,34 +63,19 @@ public:
            std::tie(elem.type, elem.element, elem.ghost_type);
   }
 
-  // inline bool operator==(const Element & elem) const {
-  //   return ((element == elem.element) && (type == elem.type) &&
-  //           (ghost_type == elem.ghost_type) && (kind == elem.kind));
-  // }
-
-  // inline bool operator!=(const Element & elem) const {
-  //   return ((element != elem.element) || (type != elem.type) ||
-  //           (ghost_type != elem.ghost_type) || (kind != elem.kind));
-  // }
-
   inline bool operator<(const Element & rhs) const;
 };
 
+#if __cplusplus < 201703L
 namespace {
   const Element ElementNull{_not_defined, Idx(-1), _casper};
-  //      Element{_not_defined, 0, _casper, _ek_not_defined};
 } // namespace
+#else
+  inline constexpr Element ElementNull{_not_defined, Idx(-1), _casper};
+#endif
 
 /* -------------------------------------------------------------------------- */
 inline bool Element::operator<(const Element & rhs) const {
-  // bool res =
-  //     (rhs == ElementNull) ||
-  //     ((this->kind < rhs.kind) ||
-  //      ((this->kind == rhs.kind) &&
-  //       ((this->ghost_type < rhs.ghost_type) ||
-  //        ((this->ghost_type == rhs.ghost_type) &&
-  //         ((this->type < rhs.type) ||
-  //          ((this->type == rhs.type) && (this->element < rhs.element)))))));
   return ((rhs == ElementNull) ||
           std::tie(ghost_type, type, element) <
               std::tie(rhs.ghost_type, rhs.type, rhs.element));

@@ -255,11 +255,11 @@ element type.  The following code can retrieve the
 \code{ElementTypeMapArray} which stores the connectivity arrays for a
 mesh:
 \begin{cpp}
-  const ElementTypeMapArray<UInt> & connectivities = mesh.getConnectivities();
+  const ElementTypeMapArray<Idx> & connectivities = mesh.getConnectivities();
 \end{cpp}
 Then, the specific array associated to a given element type can be obtained by
 \begin{cpp}
-  const Array<UInt> & connectivity_triangle = connectivities(_triangle_3);
+  const Array<Idx> & connectivity_triangle = connectivities(_triangle_3);
 \end{cpp}
 where the first order 3-node triangular element was used in the presented piece
 of code.
@@ -403,7 +403,7 @@ an element group to a mesh:
 \subsection{The \texttt{NodeGroup} object}
 A group of nodes is stored in \code{NodeGroup} objects.
 They are quite simple objects which store the indexes
-of the selected nodes in a \code{Array<UInt>}.
+of the selected nodes in a \code{Array<Idx>}.
 Nodes are selected by adding them when calling
 \code{NodeGroup::add}. For instance you can select nodes
 having a positive $X$ coordinate with the following code:
@@ -422,7 +422,7 @@ having a positive $X$ coordinate with the following code:
 A group of elements is stored in \code{ElementGroup} objects.
 Since a group can contain elements of various types
 the \code{ElementGroup} object stores indexes in
-a \code{ElementTypeMapArray<UInt>} object.
+a \code{ElementTypeMapArray<Idx>} object.
 Then elements can be added to the group by calling \code{addElement}.
 
 For instance, selecting the elements for which the barycenter of the nodes

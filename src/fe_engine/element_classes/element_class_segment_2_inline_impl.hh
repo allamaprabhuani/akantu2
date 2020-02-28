@@ -94,14 +94,6 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
 }
 
 /* -------------------------------------------------------------------------- */
-template <D>
-inline void
-InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
-    const Eigen::MatrixBase<D> & dxds) {
-  return dxds.norm();
-}
-
-/* -------------------------------------------------------------------------- */
 template <>
 template <class D>
 inline Real GeometricalElement<_gt_segment_2>::getInradius(

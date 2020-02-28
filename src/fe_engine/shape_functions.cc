@@ -121,7 +121,7 @@ ShapeFunctions::initElementalFieldInterpolationFromIntegrationPoints(
     /// matrix containing the quadrature points coordinates
     auto & quad_coords = std::get<3>(data);
     /// matrix containing the interpolation points coordinates
-    auto & points_coords = points_coords_begin[element];
+    auto && points_coords = points_coords_begin[element];
 
     /// insert the quad coordinates in a matrix compatible with the
     /// interpolation

@@ -49,6 +49,9 @@ namespace aka {
 template <typename T> struct is_eigen_map : public std::false_type {};
 } // namespace aka
 
+
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE akantu::Idx
+#define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
 /* -------------------------------------------------------------------------- */
 #define EIGEN_MATRIXBASE_PLUGIN "aka_types_eigen_matrix_base_plugin.hh"
 #define EIGEN_MATRIX_PLUGIN "aka_types_eigen_matrix_plugin.hh"
@@ -67,7 +70,7 @@ using Vector = Eigen::Matrix<T, n, 1>;
 
 template <typename T, Eigen::Index m = Eigen::Dynamic,
           Eigen::Index n = Eigen::Dynamic>
-using Matrix = Eigen::Matrix<T, m, n, Eigen::AutoAlign | Eigen::ColMajor>;
+using Matrix = Eigen::Matrix<T, m, n>;
 
 template <typename T, Eigen::Index n = Eigen::Dynamic>
 using VectorProxy =
@@ -153,9 +156,9 @@ using enable_if_tensors_n_t = typename enable_if_tensors_n<n, T, Ts...>::type;
 } // namespace aka
 
 namespace akantu {
-template <typename T, std::size_t ndim> class TensorBase;
-template <typename T, size_t ndim> class TensorProxy;
-template <typename T, size_t ndim> class Tensor;
+template <typename T, Int ndim> class TensorBase;
+template <typename T, Int ndim> class TensorProxy;
+template <typename T, Int ndim> class Tensor;
 } // namespace akantu
 
 #include "aka_view_iterators.hh"
@@ -163,13 +166,12 @@ template <typename T, size_t ndim> class Tensor;
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <typename T, std::size_t ndim>
-class TensorBase : public TensorTrait<ndim> {
+template <typename T, Int ndim> class TensorBase : public TensorTrait<ndim> {
   using RetType = TensorBase<T, ndim>;
   static_assert(ndim > 2, "TensorBase cannot by used for dimensions < 3");
 
 protected:
-  using idx_t = std::size_t;
+  using idx_t = Int;
 
   template <typename... Args>
   using valid_args_t = typename std::enable_if<
@@ -181,7 +183,7 @@ protected:
 public:
   using proxy = TensorBase<T, ndim>;
 
-  template <size_t _ndim = ndim,
+  template <Int _ndim = ndim,
             std::enable_if_t<_ndim == 1 or _ndim == 2, int> = 0>
   TensorBase() {
     n.fill(0);
@@ -201,7 +203,7 @@ public:
         values(std::exchange(other.values, nullptr)) {}
 
 protected:
-  template <typename Array, std::size_t... I>
+  template <typename Array, Int... I>
   constexpr auto check_indices(const Array & idx,
                                std::index_sequence<I...>) const {
     bool result = true;
@@ -224,7 +226,7 @@ protected:
     return index + idx[0];
   }
 
-  template <typename S, std::size_t... I>
+  template <typename S, int... I>
   constexpr auto get_slice(idx_t s, std::index_sequence<I...>) {
     return S(this->values + s * detail::product_all(n[I]...), n[I]...);
   }
@@ -406,13 +408,13 @@ public:
   T norm() const { return norm<L_2>(); }
 
 protected:
-  template <std::size_t N, typename... Args,
+  template <Int N, typename... Args,
             std::enable_if_t<(sizeof...(Args) == ndim), int> = 0>
   void serialize(std::ostream & stream, Args... args) const {
     stream << this->operator()(std::move(args)...);
   }
 
-  template <std::size_t N, typename... Args,
+  template <Int N, typename... Args,
             std::enable_if_t<(sizeof...(Args) < ndim), int> = 0>
   void serialize(std::ostream & stream, Args... args) const {
     stream << "[";
@@ -440,9 +442,28 @@ protected:
                                                                 n[I]...);
   }
 
+  template <std::size_t... I>
+  constexpr decltype(auto) begin(std::index_sequence<I...>) const {
+    return const_view_iterator<ViewIteratorHelper_t<sizeof...(I), T>>(values,
+                                                                      n[I]...);
+  }
+
+  template <std::size_t... I>
+  constexpr decltype(auto) end(std::index_sequence<I...>) const {
+    return const_view_iterator<ViewIteratorHelper_t<sizeof...(I), T>>(
+        values + _size, n[I]...);
+  }
+
 public:
   decltype(auto) begin() { return begin(std::make_index_sequence<ndim - 1>{}); }
   decltype(auto) end() { return end(std::make_index_sequence<ndim - 1>{}); }
+
+  decltype(auto) begin() const {
+    return begin(std::make_index_sequence<ndim - 1>{});
+  }
+  decltype(auto) end() const {
+    return end(std::make_index_sequence<ndim - 1>{});
+  }
 
 protected:
   // size per dimension
@@ -456,8 +477,7 @@ protected:
 };
 
 /* -------------------------------------------------------------------------- */
-template <typename T, size_t ndim>
-class TensorProxy : public TensorBase<T, ndim> {
+template <typename T, Int ndim> class TensorProxy : public TensorBase<T, ndim> {
 private:
   using parent = TensorBase<T, ndim>;
 
@@ -495,7 +515,7 @@ public:
 };
 
 /* -------------------------------------------------------------------------- */
-template <typename T, size_t ndim> class Tensor : public TensorBase<T, ndim> {
+template <typename T, Int ndim> class Tensor : public TensorBase<T, ndim> {
 private:
   using parent = TensorBase<T, ndim>;
 
@@ -801,4 +821,12 @@ MatrixBase<Derived>::eigh(MatrixBase<D1> & values, MatrixBase<D2> & vectors) {
 
 } // namespace Eigen
 
-#endif /* AKANTU_AKA_TYPES_HH_ */
+namespace std {
+
+template <typename POT1, typename POT2, int MapOptions, typename StrideType>
+struct is_convertible<Eigen::Map<POT1, MapOptions, StrideType>,
+                      Eigen::Map<POT2, MapOptions, StrideType>>
+    : aka::bool_constant<is_convertible<POT1, POT2>::value> {};
+
+} // namespace std
+#endif /* __AKANTU_AKA_TYPES_HH__ */

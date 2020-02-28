@@ -50,7 +50,7 @@ template <ElementKind kind> class ShapeLagrange : public ShapeLagrangeBase {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ShapeLagrange(const Mesh & mesh, UInt spatial_dimension,
+  ShapeLagrange(const Mesh & mesh, Int spatial_dimension,
                 const ID & id = "shape_lagrange");
   ~ShapeLagrange() override = default;
 
@@ -69,13 +69,13 @@ public:
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
       Array<Real> & shape_derivatives, const GhostType & ghost_type,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeShapeDerivativesOnIntegrationPoints(
       const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
       Array<Real> & shape_derivatives, const ElementType & type,
       const GhostType & ghost_type,
-      const Array<Int> & filter_elements) const override;
+      const Array<Idx> & filter_elements) const override;
 
   /// pre compute all shapes on the element integration points from natural
   /// coordinates
@@ -93,19 +93,19 @@ public:
   /// interpolate nodal values on the integration points
   template <ElementType type>
   void interpolateOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & uq, UInt nb_degree_of_freedom,
+      const Array<Real> & u, Array<Real> & uq, Int nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void interpolateOnIntegrationPoints(
-      const Array<Real> & in_u, Array<Real> & out_uq, UInt nb_degree_of_freedom,
+      const Array<Real> & in_u, Array<Real> & out_uq, Int nb_degree_of_freedom,
       const Array<Real> & shapes, GhostType ghost_type = _not_ghost,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// interpolate on physical point
   template <ElementType type>
-  void interpolate(const Ref<const VectorXr> & real_coords, UInt elem,
+  void interpolate(const Ref<const VectorXr> & real_coords, Idx elem,
                    const Ref<const MatrixXr> & nodal_values,
                    Ref<VectorXr> interpolated,
                    GhostType ghost_type) const;
@@ -113,25 +113,25 @@ public:
   /// compute the gradient of u on the integration points
   template <ElementType type>
   void gradientOnIntegrationPoints(
-      const Array<Real> & u, Array<Real> & nablauq, UInt nb_degree_of_freedom,
+      const Array<Real> & u, Array<Real> & nablauq, Int nb_degree_of_freedom,
       GhostType ghost_type = _not_ghost,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
                   GhostType ghost_type,
-                  const Array<Int> & filter_elements) const;
+                  const Array<Idx> & filter_elements) const;
 
   template <ElementType type>
-  void computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, UInt order_d,
+  void computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
                    GhostType ghost_type,
-                   const Array<Int> & filter_elements) const;
+                   const Array<Idx> & filter_elements) const;
 
   /// multiply a field by shape functions  @f$ fts_{ij} = f_i * \varphi_j @f$
   template <ElementType type>
   void computeNtb(const Array<Real> & bs, Array<Real> & Ntbs,
                   GhostType ghost_type,
-                  const Array<Int> & filter_elements = empty_filter) const;
+                  const Array<Idx> & filter_elements = empty_filter) const;
 
   template <ElementType type>
   void computeNtbN(const Array<Real> & bs, Array<Real> & NtbNs,
@@ -140,26 +140,26 @@ public:
 
   /// find natural coords from real coords provided an element
   template <ElementType type>
-  void inverseMap(const Ref<const VectorXr> & real_coords, Int element,
+  void inverseMap(const Ref<const VectorXr> & real_coords, Idx element,
                   Ref<VectorXr> natural_coords,
                   GhostType ghost_type = _not_ghost) const;
 
   /// return true if the coordinates provided are inside the element, false
   /// otherwise
   template <ElementType type>
-  bool contains(const Ref<const VectorXr> & real_coords, UInt elem,
-                GhostType ghost_type) const;
+  bool contains(const Ref<const VectorXr> & real_coords, Idx elem,
+                const GhostType & ghost_type) const;
 
   /// compute the shape on a provided point
   template <ElementType type>
-  void computeShapes(const Ref<const VectorXr> & real_coords, UInt elem,
-                     Ref<VectorXr> shapes, GhostType ghost_type) const;
+  void computeShapes(const Ref<const VectorXr> & real_coords, Idx elem,
+                     Ref<VectorXr> shapes, const GhostType & ghost_type) const;
 
   /// compute the shape derivatives on a provided point
   template <ElementType type>
-  void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords, UInt elem,
-                               Tensor3<Real> & shapes,
-                               GhostType ghost_type) const;
+  void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords, Idx elem,
+                               Tensor3Base<Real> & shapes,
+                               const GhostType & ghost_type) const;
 
 protected:
   /// compute the shape derivatives on integration points for a given element
@@ -167,7 +167,7 @@ protected:
   inline void
   computeShapeDerivativesOnCPointsByElement(const Ref<const MatrixXr> & node_coords,
                                             const Ref<const MatrixXr> & natural_coords,
-                                            Tensor3<Real> & shapesd) const;
+                                            Tensor3Base<Real> & shapesd) const;
 };
 
 } // namespace akantu

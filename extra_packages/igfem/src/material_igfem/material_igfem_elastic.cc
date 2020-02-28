@@ -71,7 +71,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
        g != ghost_type_t::end(); ++g) {
     GhostType ghost_type = *g;
     /// loop over all types in the material
-    typedef ElementTypeMapArray<UInt>::type_iterator iterator;
+    typedef ElementTypeMapArray<Idx>::type_iterator iterator;
     iterator it = this->element_filter.firstType(spatial_dimension, ghost_type,
                                                  _ek_igfem);
     iterator last_type =

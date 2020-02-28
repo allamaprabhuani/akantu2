@@ -47,7 +47,7 @@ struct AssembleFieldMatrixStructHelper<
   template <template <ElementKind, class> class I,
             template <ElementKind> class S, ElementKind k, class IOF>
   static void call(const FEEngineTemplate<I, S, k, IOF> & fem,
-                   const Array<Real> & field_1, UInt nb_degree_of_freedom,
+                   const Array<Real> & field_1, Int nb_degree_of_freedom,
                    SparseMatrix & M, Array<Real> * n,
                    ElementTypeMapArray<Real> & rotation_mat, ElementType type,
                    GhostType ghost_type) {
@@ -60,43 +60,14 @@ struct AssembleFieldMatrixStructHelper<
   }
 };
 
-// template <template <ElementKind, class> class I, template <ElementKind> class
-// S,
-//           ElementKind kind, class IntegrationOrderFunctor>
-// inline void
-// FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
-//     const Array<Real> & field_1, UInt nb_degree_of_freedom, SparseMatrix & M,
-//     Array<Real> * n, ElementTypeMapArray<Real> & rotation_mat,
-//     ElementType type, GhostType ghost_type) const {
-//   AKANTU_DEBUG_IN();
-
-//   AssembleFieldMatrixStructHelper<kind>::template call(
-//       *this, field_1, nb_degree_of_freedom, M, n, rotation_mat, type,
-//       ghost_type);
-
-//   AKANTU_DEBUG_OUT();
-// }
-// /* --------------------------------------------------------------------------
-// */ template <template <ElementKind, class> class I, template <ElementKind>
-// class S,
-//           ElementKind kind, class IntegrationOrderFunctor>
-// inline void
-// FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::computeShapesMatrix(
-//     ElementType, UInt, UInt, Array<Real> *, UInt, UInt, UInt,
-//     const bool, GhostType) const {
-
-//   AKANTU_TO_IMPLEMENT();
-// }
-
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
 inline void
 FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
-    const Array<Real> & /*unused*/, UInt /*unused*/, SparseMatrix & /*unused*/,
-    Array<Real> * /*unused*/, ElementTypeMapArray<Real> & /*unused*/,
-    GhostType /*unused*/) const {
+    const Array<Real> &, Int, SparseMatrix &, Array<Real> *,
+    ElementTypeMapArray<Real> &, const GhostType &) const {
   AKANTU_TO_IMPLEMENT();
 }
 

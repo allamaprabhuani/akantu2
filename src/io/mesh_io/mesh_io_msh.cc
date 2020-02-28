@@ -426,7 +426,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
       }
 
       Vector<UInt> local_connect(node_per_element);
-      for (UInt j = 0; j < node_per_element; ++j) {
+      for (Int j = 0; j < node_per_element; ++j) {
         UInt node_index;
         sstr_elem >> node_index;
 
@@ -443,26 +443,26 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
     }
   };
 
-  readers["$Periodic"] = [&](const std::string & /*unused*/) {
-    UInt nb_periodic_entities;
+  readers["$Periodic"] = [&](const std::string &) {
+    Int nb_periodic_entities;
     file.read_line(nb_periodic_entities);
 
     file.mesh_accessor.getNodesFlags().resize(file.mesh.getNbNodes(),
                                               NodeFlag::_normal);
 
-    for (UInt p = 0; p < nb_periodic_entities; ++p) {
+    for (Int p = 0; p < nb_periodic_entities; ++p) {
       // dimension slave-tag master-tag
-      UInt dimension;
+      Int dimension;
       file.read_line(dimension);
 
       // transformation
       file.get_line();
 
       // nb nodes
-      UInt nb_nodes;
+      Int nb_nodes;
       file.read_line(nb_nodes);
 
-      for (UInt n = 0; n < nb_nodes; ++n) {
+      for (Int n = 0; n < nb_nodes; ++n) {
         // slave master
         auto && sstr = file.get_line();
 
@@ -470,8 +470,7 @@ void MeshIOMSH::populateReaders2(File & file, Readers & readers) {
         continue;
 
         if (dimension == file.mesh.getSpatialDimension() - 1) {
-          UInt slave;
-          UInt master;
+          Idx slave, master;
 
           sstr >> slave;
           sstr >> master;
@@ -953,10 +952,10 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   outfile << nodes.size() << "\n";
 
   outfile << std::uppercase;
-  for (UInt i = 0; i < nodes.size(); ++i) {
-    Int offset = i * nodes.getNbComponent();
+  for (Int i = 0; i < nodes.size(); ++i) {
+    auto offset = i * nodes.getNbComponent();
     outfile << i + 1;
-    for (UInt j = 0; j < nodes.getNbComponent(); ++j) {
+    for (Int j = 0; j < nodes.getNbComponent(); ++j) {
       outfile << " " << nodes.data()[offset + j];
     }
 
@@ -975,14 +974,14 @@ void MeshIOMSH::write(const std::string & filename, const Mesh & mesh) {
   Int nb_elements = 0;
   for (auto && type :
        mesh.elementTypes(_all_dimensions, _not_ghost, _ek_not_defined)) {
-    const Array<UInt> & connectivity = mesh.getConnectivity(type, _not_ghost);
+    const auto & connectivity = mesh.getConnectivity(type, _not_ghost);
     nb_elements += connectivity.size();
   }
   outfile << nb_elements << "\n";
 
   std::map<Element, size_t> element_to_msh_element;
 
-  UInt element_idx = 1;
+  Idx element_idx = 1;
   auto element = ElementNull;
   for (auto && type :
        mesh.elementTypes(_all_dimensions, _not_ghost, _ek_not_defined)) {

@@ -80,18 +80,23 @@ inline Real IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind, class IntegrationOrderFunctor>
 inline void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
-    Real * f, Real * jac, Real * inte, Int nb_degree_of_freedom,
+    const Real * f, const Real * jac, Real * inte, Int nb_degree_of_freedom,
     Int nb_quadrature_points) const {
-  std::fill_n(inte, nb_degree_of_freedom, 0.);
+  Eigen::Map<VectorXr> inte_v(inte, nb_quadrature_points);
+  Eigen::Map<const VectorXr> cjac(jac, nb_quadrature_points);
 
-  auto * cjac = jac;
-  for (Int q = 0; q < nb_quadrature_points; ++q) {
-    for (Int dof = 0; dof < nb_degree_of_freedom; ++dof) {
-      inte[dof] += *f * *cjac;
-      ++f;
-    }
-    ++cjac;
-  }
+  Eigen::Map<const MatrixXr> fq(f, nb_degree_of_freedom, nb_quadrature_points);
+
+  inte_v.zero();
+  inte_v = fq * cjac;
+  // auto * cjac = jac;
+  // for (Int q = 0; q < nb_quadrature_points; ++q) {
+  //   for (Int dof = 0; dof < nb_degree_of_freedom; ++dof) {
+  //     inte[dof] += *f * *cjac;
+  //     ++f;
+  //   }
+  //   ++cjac;
+  // }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -156,11 +161,12 @@ IntegratorGauss<kind, IntegrationOrderFunctor>::computeQuadraturePoints(
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind, class IntegrationOrderFunctor>
-template <ElementType type>
+template <ElementType type, class D1, class D2, class D3>
 inline void IntegratorGauss<kind, IntegrationOrderFunctor>::
-    computeJacobianOnQuadPointsByElement(const Matrix<Real> & node_coords,
-                                         const Matrix<Real> & quad,
-                                         Vector<Real> & jacobians) const {
+    computeJacobianOnQuadPointsByElement(
+        const Eigen::MatrixBase<D1> & node_coords,
+        const Eigen::MatrixBase<D2> & quad,
+        Eigen::MatrixBase<D3> & jacobians) const {
   // jacobian
   ElementClass<type>::computeJacobian(quad, node_coords, jacobians);
 }
@@ -236,8 +242,7 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::
       jacobians_it = jacobians_begin + filter_elements(elem);
     }
 
-    auto & J = *jacobians_it;
-    computeJacobianOnQuadPointsByElement<type>(x, quad_points, J);
+    computeJacobianOnQuadPointsByElement<type>(x, quad_points, *jacobians_it);
 
     if (filter_elements == empty_filter) {
       ++jacobians_it;
@@ -395,23 +400,19 @@ void IntegratorGauss<kind, IntegrationOrderFunctor>::multiplyJacobiansByWeights(
     Array<Real> & jacobians, const Array<Int> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
-  auto nb_quadrature_points =
+  constexpr auto nb_quadrature_points =
       GaussIntegrationElement<type, polynomial_degree>::getNbQuadraturePoints();
 
   auto weights = GaussIntegrationElement<type, polynomial_degree>::getWeights();
 
-  auto && view = make_view(jacobians, nb_quadrature_points);
+  auto && view = make_view<nb_quadrature_points>(jacobians);
 
   if (filter_elements != empty_filter) {
-    auto J_it = view.begin();
-    for (auto el : filter_elements) {
-      auto && J = J_it[el];
-      J *= weights;
-    }
+    for (auto && J : filter(filter_elements, view))
+      J.array() *= weights.array();
   } else {
-    for (auto & J : make_view(jacobians, nb_quadrature_points)) {
-      J *= weights;
-    }
+    for (auto && J : view)
+      J.array() *= weights.array();
   }
 
   AKANTU_DEBUG_OUT();

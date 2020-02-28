@@ -127,71 +127,12 @@ inline void ShapeFunctions::buildInterpolationMatrix(
 }
 
 /* -------------------------------------------------------------------------- */
-template <ElementType type> class BuildElementalFieldInterpolationMatrix {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> &, Eigen::MatrixBase<D2> &,
-                   Int) const {
-    AKANTU_TO_IMPLEMENT();
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_segment_2> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
-    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_segment_3> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
-    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_triangle_3> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
-    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_triangle_6> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
-    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_tetrahedron_4> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
-    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_tetrahedron_10> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
-    buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
+template <ElementType type> struct BuildElementalFieldInterpolationMatrix {
+  template <typename ShapeFunction, typename D1, typename D2>
+  static inline void
+  call(ShapeFunction && func, const Eigen::MatrixBase<D1> & coordinates,
+       Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) {
+    func.buildInterpolationMatrix(coordinates, coordMatrix, integration_order);
   }
 };
 
@@ -201,11 +142,11 @@ template <> class BuildElementalFieldInterpolationMatrix<_tetrahedron_10> {
  *
  */
 /* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_quadrangle_4> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
+template <> struct BuildElementalFieldInterpolationMatrix<_quadrangle_4> {
+  template <typename ShapeFunction, typename D1, typename D2>
+  static inline void
+  call(ShapeFunction && /*func*/, const Eigen::MatrixBase<D1> & coordinates,
+       Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) {
 
     if (integration_order !=
         ElementClassProperty<_quadrangle_4>::polynomial_degree) {
@@ -225,11 +166,11 @@ template <> class BuildElementalFieldInterpolationMatrix<_quadrangle_4> {
 };
 
 /* -------------------------------------------------------------------------- */
-template <> class BuildElementalFieldInterpolationMatrix<_quadrangle_8> {
-  template <typename D1, typename D2>
-  inline void call(const Eigen::MatrixBase<D1> & coordinates,
-                   Eigen::MatrixBase<D2> & coordMatrix,
-                   Int integration_order) const {
+template <> struct BuildElementalFieldInterpolationMatrix<_quadrangle_8> {
+  template <typename ShapeFunction, typename D1, typename D2>
+  static inline void
+  call(ShapeFunction && /*func*/, const Eigen::MatrixBase<D1> & coordinates,
+       Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) {
 
     if (integration_order !=
         ElementClassProperty<_quadrangle_8>::polynomial_degree) {
@@ -260,8 +201,8 @@ template <ElementType type, typename D1, typename D2>
 inline void ShapeFunctions::buildElementalFieldInterpolationMatrix(
     const Eigen::MatrixBase<D1> & coordinates,
     Eigen::MatrixBase<D2> & coordMatrix, Int integration_order) const {
-  BuildElementalFieldInterpolationMatrix<type>::call(coordinates, coordMatrix,
-                                                     integration_order);
+  BuildElementalFieldInterpolationMatrix<type>::call(
+      *this, coordinates, coordMatrix, integration_order);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -276,7 +217,7 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
 
   auto nb_element = this->mesh.getNbElement(type, ghost_type);
 
-  auto nb_quad_per_element =
+  constexpr auto nb_quad_per_element =
       GaussIntegrationElement<type>::getNbQuadraturePoints();
   auto nb_interpolation_points_per_elem =
       interpolation_points_coordinates_matrices.getNbComponent() /
@@ -295,16 +236,16 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
 
   auto & result_vec = result(type, ghost_type);
 
-  auto field_it = field.begin_reinterpret(field.getNbComponent(),
-                                          nb_quad_per_element, nb_element);
+  auto field_it =
+      make_view(field, field.getNbComponent(), nb_quad_per_element).begin();
 
   auto interpolation_points_coordinates_it =
       interpolation_points_coordinates_matrices.begin(
           nb_interpolation_points_per_elem, nb_quad_per_element);
 
-  auto result_begin = result_vec.begin_reinterpret(
-      field.getNbComponent(), nb_interpolation_points_per_elem,
-      result_vec.size() / nb_interpolation_points_per_elem);
+  auto result_begin = make_view(result_vec, field.getNbComponent(),
+                                nb_interpolation_points_per_elem)
+                          .begin();
 
   auto inv_quad_coord_it = quad_points_coordinates_inv_matrices.begin(
       nb_quad_per_element, nb_quad_per_element);
@@ -322,7 +263,7 @@ inline void ShapeFunctions::interpolateElementalFieldFromIntegrationPoints(
      * multiply it by the field values over quadrature points to get
      * the interpolation coefficients
      */
-    coefficients = inv_quad_coord_matrix * *field_it->transpose();
+    coefficients = inv_quad_coord_matrix * field_it->transpose();
 
     /// matrix containing the points' coordinates
     const auto & coord = *interpolation_points_coordinates_it;
@@ -353,7 +294,7 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
     filtered_N = std::make_unique<Array<Real>>(0, shapes.getNbComponent());
     FEEngine::filterElementalData(mesh, shapes, *filtered_N, type, ghost_type,
                                   filter_elements);
-    N_it = make_view(*filtered_N, nb_nodes_per_element, nb_points).begin();
+    N_it = make_view(*filtered_N, nb_nodes_per_element, nb_points).cbegin();
   } else {
     N_it = make_view(shapes, nb_nodes_per_element, nb_points).begin();
   }

@@ -77,7 +77,7 @@ public:
   template <ElementType type>
   void integrate(const Array<Real> & in_f, Array<Real> & intf,
                  Int nb_degree_of_freedom, const GhostType & ghost_type,
-                 const Array<Int> & filter_elements) const;
+                 const Array<Idx> & filter_elements) const;
 
   /// integrate scalar field in_f
   template <ElementType type, Int polynomial_degree>
@@ -93,7 +93,7 @@ public:
   /// integrate scalar field in_f
   template <ElementType type>
   Real integrate(const Array<Real> & in_f, const GhostType & ghost_type,
-                 const Array<Int> & filter_elements) const;
+                 const Array<Idx> & filter_elements) const;
 
   /// integrate a field without using the pre-computed values
   template <ElementType type, Int polynomial_degree>
@@ -107,7 +107,7 @@ public:
                                     Array<Real> & intf,
                                     Int nb_degree_of_freedom,
                                     const GhostType & ghost_type,
-                                    const Array<Int> & filter_elements) const;
+                                    const Array<Idx> & filter_elements) const;
 
   /// return a matrix with quadrature points natural coordinates
   template <ElementType type>
@@ -128,13 +128,13 @@ protected:
   void computeJacobiansOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & quad_points,
       Array<Real> & jacobians, const GhostType & ghost_type,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   void computeJacobiansOnIntegrationPoints(
       const Array<Real> & nodes, const Matrix<Real> & quad_points,
       Array<Real> & jacobians, const ElementType & type,
       const GhostType & ghost_type,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// precompute jacobians on elements of type "type"
   template <ElementType type>
@@ -146,7 +146,7 @@ protected:
   template <ElementType type, Int polynomial_degree>
   void multiplyJacobiansByWeights(
       Array<Real> & jacobians,
-      const Array<Int> & filter_elements = empty_filter) const;
+      const Array<Idx> & filter_elements = empty_filter) const;
 
   /// compute the vector of quadrature points natural coordinates
   template <ElementType type>
@@ -171,10 +171,11 @@ protected:
 
 public:
   /// compute the jacobians on quad points for a given element
-  template <ElementType type>
-  void computeJacobianOnQuadPointsByElement(const Matrix<Real> & node_coords,
-                                            const Matrix<Real> & quad,
-                                            Vector<Real> & jacobians) const;
+  template <ElementType type, class D1, class D2, class D3>
+  inline void computeJacobianOnQuadPointsByElement(
+      const Eigen::MatrixBase<D1> & node_coords,
+      const Eigen::MatrixBase<D2> & quad,
+      Eigen::MatrixBase<D3> & jacobians) const;
 
 public:
   void onElementsAdded(const Array<Element> & elements) override;
@@ -188,7 +189,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// integrate the field f with the jacobian jac -> inte
-  inline void integrate(Real * f, Real * jac, Real * inte,
+  inline void integrate(const Real * f, const Real * jac, Real * inte,
                         Int nb_degree_of_freedom,
                         Int nb_quadrature_points) const;
 

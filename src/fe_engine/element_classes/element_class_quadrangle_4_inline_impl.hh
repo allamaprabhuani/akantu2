@@ -142,16 +142,6 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real
-InterpolationElement<_itp_lagrange_quadrangle_4>::computeSpecialJacobian(
-    const Eigen::MatrixBase<D> & J) {
-  auto Jstatic = Eigen::Map<const Eigen::Matrix<Real, 2, 3>>(J.data());
-  return (Jstatic.row(0).cross(Jstatic.row(1))).norm();
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-template <class D>
 inline Real GeometricalElement<_gt_quadrangle_4>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   auto && u0 = coord.col(0);

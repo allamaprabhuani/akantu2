@@ -37,7 +37,7 @@
 
 namespace akantu {
 
-ShapeLagrangeBase::ShapeLagrangeBase(const Mesh & mesh, UInt spatial_dimension,
+ShapeLagrangeBase::ShapeLagrangeBase(const Mesh & mesh, Int spatial_dimension,
                                      ElementKind kind, const ID & id)
     : ShapeFunctions(mesh, spatial_dimension, id), _kind(kind) {}
 
@@ -53,11 +53,9 @@ namespace shape_lagrange {
   namespace details {
     template <ElementKind kind> struct Helper {
       template <class S>
-      static void call(const S & /*unused*/, const Array<Real> & /*unused*/,
-                       const Matrix<Real> & /*unused*/,
-                       Array<Real> & /*unused*/, ElementType /*unused*/,
-                       GhostType /*unused*/,
-                       const Array<UInt> & /*unused*/) {
+      static void call(const S &, const Array<Real> &, const Matrix<Real> &,
+                       Array<Real> &, const ElementType &, const GhostType &,
+                       const Array<Idx> &) {
         AKANTU_TO_IMPLEMENT();
       }
     };
@@ -70,7 +68,7 @@ namespace shape_lagrange {
                      const Matrix<Real> & integration_points,                  \
                      Array<Real> & shapes, const ElementType & type,           \
                      const GhostType & ghost_type,                             \
-                     const Array<Int> & filter_elements) {                    \
+                     const Array<Idx> & filter_elements) {                    \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES, kind);           \
     }                                                                          \
   };
@@ -86,7 +84,7 @@ namespace shape_lagrange {
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> & nodes, const Ref<const MatrixXr> & integration_points,
     Array<Real> & shapes, const ElementType & type,
-    const GhostType & ghost_type, const Array<Int> & filter_elements) const {
+    const GhostType & ghost_type, const Array<Idx> & filter_elements) const {
 
   auto kind = Mesh::getKind(type);
 
@@ -154,8 +152,7 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
 
 /* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::onElementsRemoved(
-    const Array<Element> & /*unused*/,
-    const ElementTypeMapArray<UInt> & new_numbering) {
+    const Array<Element> &, const ElementTypeMapArray<Idx> & new_numbering) {
   this->shapes.onElementsRemoved(new_numbering);
   this->shapes_derivatives.onElementsRemoved(new_numbering);
 }

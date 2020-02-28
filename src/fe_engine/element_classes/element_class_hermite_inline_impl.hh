@@ -96,14 +96,14 @@ AKANTU_DEFINE_STRUCTURAL_INTERPOLATION_TYPE_PROPERTY(_itp_hermite_2,
                                                      1, 4);
 
 /* -------------------------------------------------------------------------- */
-
 namespace {
-  namespace details {
-    inline Real computeLength(const Matrix<Real> & real_coord) {
-      Vector<Real> x1 = real_coord(0);
-      Vector<Real> x2 = real_coord(1);
-      return x1.distance(x2);
-    }
+namespace details {
+  template <class D1>
+  inline Real computeLength(const Eigen::MatrixBase<D1> & real_coord) {
+    auto && x1 = real_coord(0);
+    auto && x2 = real_coord(1);
+    return x1.distance(x2);
+  }
 
     inline void computeShapes(const Vector<Real> & natural_coords, Real a,
                               Matrix<Real> & N) {
@@ -116,7 +116,6 @@ namespace {
       auto M2 = 1. / 4. * (2. + 3. * xi - xi3);
       auto L1 = a / 4. * (1 - xi - xi2 + xi3);
       auto L2 = a / 4. * (-1 - xi + xi2 + xi3);
-      ;
 
 #if 1 // Version where we also interpolate the rotations
       // Derivatives (with respect to x) of previous functions interpolating

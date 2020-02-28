@@ -293,7 +293,7 @@ public:
             << ") as not a size compatible with the Array (nb_component="
             << nb_component << ").");
     this->resize(this->size_ + 1);
-    std::copy_n(new_elem.data(), new_elem.size(),
+    std::copy_n(new_elem.derived().data(), new_elem.size(),
                 values + this->nb_component * (this->size_ - 1));
   }
 
@@ -959,7 +959,7 @@ namespace detail {
       return aka::apply(
           [&](auto &&... ns) {
             return detail::get_iterator(array.get(), array.get().data(),
-                                        std::forward<Ns>(ns)...);
+                                        std::forward<decltype(ns)>(ns)...);
           },
           sizes);
     }
@@ -968,7 +968,7 @@ namespace detail {
       return aka::apply(
           [&](auto &&... ns) {
             return detail::get_iterator(array.get(), array.get().data(),
-                                        std::forward<Ns>(ns)...);
+                                        std::forward<decltype(ns)>(ns)...);
           },
           sizes);
     }
@@ -979,8 +979,8 @@ namespace detail {
             return detail::get_iterator(
                 array.get(),
                 array.get().data() +
-                    detail::product_all(std::forward<Ns>(ns)...),
-                std::forward<Ns>(ns)...);
+                    detail::product_all(std::forward<decltype(ns)>(ns)...),
+                std::forward<decltype(ns)>(ns)...);
           },
           sizes);
     }
@@ -991,11 +991,14 @@ namespace detail {
             return detail::get_iterator(
                 array.get(),
                 array.get().data() +
-                    detail::product_all(std::forward<Ns>(ns)...),
-                std::forward<Ns>(ns)...);
+                    detail::product_all(std::forward<decltype(ns)>(ns)...),
+                std::forward<decltype(ns)>(ns)...);
           },
           sizes);
     }
+
+    auto cbegin() const { return this->begin(); }
+    auto cend() const { return this->end(); }
 
     auto size() const {
       return std::get<std::tuple_size<tuple>::value - 1>(sizes);

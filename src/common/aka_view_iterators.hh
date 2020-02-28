@@ -37,6 +37,10 @@
 #define __AKANTU_AKA_VIEW_ITERATORS_HH__
 
 namespace akantu {
+template <typename T, Int ndim> class TensorBase;
+}
+
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /* Iterators                                                                  */
@@ -72,15 +76,15 @@ namespace detail {
     using const_proxy = Eigen::Map<const Derived>;
   };
 
-  template <typename T, std::size_t _dim>
-  struct IteratorHelper<Tensor<T, _dim>> {
+  template <typename T, Int _dim>
+  struct IteratorHelper<TensorBase<T, _dim>> {
     static constexpr Int dim = _dim;
     using pointer = T *;
     using proxy = TensorProxy<T, _dim>;
     using const_proxy = TensorProxy<const T, _dim>;
   };
 
-  template <typename T, std::size_t _dim>
+  template <typename T, Int _dim>
   struct IteratorHelper<TensorProxy<T, _dim>> {
     static constexpr Int dim = _dim;
     using pointer = T *;
@@ -100,6 +104,7 @@ namespace detail {
     using scalar_pointer = typename helper::pointer;
     using proxy_t = typename helper::proxy;
     using const_proxy_t = typename helper::const_proxy;
+    static constexpr int dim_ = dim;
 
   public:
     using pointer = proxy_t *;
@@ -349,6 +354,7 @@ namespace detail {
     using const_reference = const R &;
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::random_access_iterator_tag;
+    static constexpr int dim_ = 0;
 
   protected:
     using internal_value_type = IR;
@@ -417,8 +423,10 @@ namespace detail {
     }
 
     inline pointer data() const { return ret; }
+    inline decltype(auto) getDims() const { return dims; }
 
   protected:
+    std::array<int, 0> dims;
     pointer ret{nullptr};
     pointer initial{nullptr};
   };
@@ -440,6 +448,18 @@ public:
   using difference_type = typename parent::difference_type;
   using iterator_category = typename parent::iterator_category;
 
+protected:
+  template <typename OR, std::size_t... I>
+  static inline auto convert_helper(const view_iterator<OR> & it,
+                                    std::index_sequence<I...>) {
+    return const_view_iterator(it.data(), it.getDims()[I]...);
+  }
+
+  template <typename OR>
+  static inline auto convert(const view_iterator<OR> & it) {
+    return convert_helper(it, std::make_index_sequence<parent::dim_>());
+  }
+
 public:
   const_view_iterator() : parent(){};
   const_view_iterator(const const_view_iterator & it) = default;
@@ -452,12 +472,19 @@ public:
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
-  const_view_iterator(const_view_iterator<OR> & it) : parent(it) {}
+  const_view_iterator(const const_view_iterator<OR> & it) : parent(it) {}
 
   template <typename OR,
-            std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
+            std::enable_if_t<not std::is_same<R, OR>::value and
+                             std::is_convertible<R, OR>::value> * = nullptr>
   const_view_iterator & operator=(const const_view_iterator<OR> & it) {
     return dynamic_cast<const_view_iterator &>(parent::operator=(it));
+  }
+
+  template <typename OR,
+            std::enable_if_t<std::is_convertible<R, OR>::value> * = nullptr>
+  const_view_iterator operator=(const view_iterator<OR> & it) {
+    return convert(it);
   }
 };
 

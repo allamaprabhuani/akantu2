@@ -112,16 +112,6 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline void
-InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
-    const Eigen::MatrixBase<D> & J) {
-  const auto & Jt = J.transpose();
-  return Jt(0).cross(Jt(1)).norm();
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-template <class D>
 inline Real GeometricalElement<_gt_triangle_3>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   return 2. * Math::triangle_inradius(coord.col(0), coord.col(1),

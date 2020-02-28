@@ -96,15 +96,6 @@ inline void InterpolationElement<_itp_lagrange_segment_3>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template <>
 template <class D>
-inline Real
-InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(
-    const Eigen::MatrixBase<D> & dxds) {
-  return Math::norm2(dxds.data());
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
-template <class D>
 inline Real GeometricalElement<_gt_segment_3>::getInradius(
     const Eigen::MatrixBase<D> & coord) {
   auto dist1 = (coord(1) - coord(0)).norm();

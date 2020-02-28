@@ -298,10 +298,10 @@ std::string MeshIODiana::readGroups(std::ifstream & infile, Mesh & mesh,
           list_ids->push_back(*it);
         }
         if (s == 2) {
-          UInt first = *it;
+          auto first = *it;
           ++it;
-          UInt second = *it;
-          for (UInt i = first; i <= second; ++i) {
+          auto second = *it;
+          for (auto i = first; i <= second; ++i) {
             list_ids->push_back(i);
           }
         }
@@ -318,17 +318,17 @@ std::string MeshIODiana::readGroups(std::ifstream & infile, Mesh & mesh,
     delete str;
 
     if (reading_nodes_group) {
-      NodeGroup & ng = mesh.createNodeGroup(name);
-      for (UInt i = 0; i < list_ids->size(); ++i) {
-        UInt node = (*list_ids)(i)-first_node_number;
+      auto & ng = mesh.createNodeGroup(name);
+      for (Int i = 0; i < list_ids->size(); ++i) {
+        auto node = (*list_ids)(i)-first_node_number;
         ng.add(node, false);
       }
       delete list_ids;
 
     } else {
-      ElementGroup & eg = mesh.createElementGroup(name);
-      for (UInt i = 0; i < list_ids->size(); ++i) {
-        Element & elem = diana_element_number_to_elements[(*list_ids)(i)];
+      auto & eg = mesh.createElementGroup(name);
+      for (Int i = 0; i < list_ids->size(); ++i) {
+        auto & elem = diana_element_number_to_elements[(*list_ids)(i)];
         if (elem.type != _not_defined) {
           eg.add(elem, false, false);
         }
@@ -376,9 +376,8 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh,
   std::string lline;
 
   std::string diana_type;
-  ElementType akantu_type;
-  ElementType akantu_type_old = _not_defined;
-  Array<UInt> * connectivity = nullptr;
+  ElementType akantu_type, akantu_type_old = _not_defined;
+  Array<Idx> * connectivity = nullptr;
   UInt node_per_element = 0;
   Element elem;
   UInt * read_order = nullptr;
@@ -438,7 +437,7 @@ std::string MeshIODiana::readConnectivity(std::ifstream & infile, Mesh & mesh,
       my_getline(infile, lline);
       std::stringstream sstr_elem(lline);
 
-      for (UInt j = (j_last + 1); j < node_per_element; ++j) {
+      for (auto j = (j_last + 1); j < node_per_element; ++j) {
 
         UInt node_index;
         sstr_elem >> node_index;
@@ -469,8 +468,8 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
   std::string line;
 
   for (auto type : mesh.elementTypes()) {
-    UInt nb_element = mesh.getNbElement(type);
-    mesh.getDataPointer<UInt>("material", type, _not_ghost, 1)
+    auto nb_element = mesh.getNbElement(type);
+    mesh.getDataPointer<Int>("material", type, _not_ghost, 1)
         .resize(nb_element);
   }
 
@@ -483,11 +482,11 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
     strncpy(tutu, line.c_str(), 249);
 
     AKANTU_DEBUG_WARNING("reading line " << line);
-    Array<UInt> temp_id(0, 2);
-    UInt mat;
+    Array<Int> temp_id(0, 2);
+    Int mat;
     while (true) {
       std::stringstream sstr_intervals_elements(line);
-      Vector<UInt> id(2);
+      Vector<Int> id(2);
       char temp;
       while (sstr_intervals_elements.good()) {
         sstr_intervals_elements >> id(0) >> temp >> id(1); // >> "/" >> mat;
@@ -505,17 +504,17 @@ std::string MeshIODiana::readMaterialElement(std::ifstream & infile,
     }
 
     // loop over elements
-    //    UInt * temp_id_val = temp_id.storage();
-    for (UInt i = 0; i < temp_id.size(); ++i) {
-      for (UInt j = temp_id(i, 0); j <= temp_id(i, 1); ++j) {
-        Element & element = diana_element_number_to_elements[j];
+    //    UInt * temp_id_val = temp_id.data();
+    for (Int i = 0; i < temp_id.size(); ++i)
+      for (Int j = temp_id(i, 0); j <= temp_id(i, 1); ++j) {
+        auto & element = diana_element_number_to_elements[j];
         if (element.type == _not_defined) {
           continue;
         }
-        UInt elem = element.element;
-        ElementType type = element.type;
-        Array<UInt> & data =
-            mesh.getDataPointer<UInt>("material", type, _not_ghost);
+        auto elem = element.element;
+        auto type = element.type;
+        auto & data =
+            mesh.getDataPointer<Int>("material", type, _not_ghost);
         data(elem) = mat;
       }
     }
@@ -542,8 +541,8 @@ std::string MeshIODiana::readMaterial(std::ifstream & infile,
   UInt mat_index;
   std::string line;
 
-  bool first_mat = true;
-  bool end = false;
+  auto first_mat = true;
+  auto end = false;
 
   UInt mat_id = 0;
 
@@ -589,8 +588,7 @@ std::string MeshIODiana::readMaterial(std::ifstream & infile,
       std::string prop_name;
       sstr_material >> prop_name;
 
-      std::map<std::string, std::string>::iterator it;
-      it = _diana_to_akantu_mat_prop.find(prop_name);
+      auto it = _diana_to_akantu_mat_prop.find(prop_name);
 
       if (it != _diana_to_akantu_mat_prop.end()) {
         Real value;

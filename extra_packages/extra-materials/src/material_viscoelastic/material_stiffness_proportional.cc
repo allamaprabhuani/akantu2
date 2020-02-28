@@ -50,7 +50,7 @@ template <Int spatial_dimension>
 void MaterialStiffnessProportional<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  Array<UInt> & elem_filter = this->element_filter(el_type, ghost_type);
+  Array<Idx> & elem_filter = this->element_filter(el_type, ghost_type);
   Array<Real> & stress_visc = stress_viscosity(el_type, ghost_type);
   Array<Real> & stress_el = stress_elastic(el_type, ghost_type);
 

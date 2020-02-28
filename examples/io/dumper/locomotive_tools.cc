@@ -41,11 +41,11 @@ using namespace akantu;
 /* -------------------------------------------------------------------------- */
 void applyRotation(const Vector<Real> & center, Real angle,
                    const Array<Real> & nodes, Array<Real> & displacement,
-                   const Array<UInt> & node_group) {
+                   const Array<Idx> & node_group) {
   auto nodes_it = nodes.begin(nodes.getNbComponent());
   auto disp_it = displacement.begin(center.size());
-  Array<UInt>::const_scalar_iterator node_num_it = node_group.begin();
-  Array<UInt>::const_scalar_iterator node_num_end = node_group.end();
+  Array<Idx>::const_scalar_iterator node_num_it = node_group.begin();
+  Array<Idx>::const_scalar_iterator node_num_end = node_group.end();
 
   Vector<Real> pos_rel(center.size());
 

@@ -85,14 +85,14 @@ public:
   /* ------------------------------------------------------------------------ */
 
   inline void unpackData(CommunicationBuffer & buffer,
-                         const Array<UInt> & index,
+                         const Array<Idx> & index,
                          const SynchronizationTag & tag) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
+  AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<Idx> &);
   AKANTU_GET_MACRO(Volume, volume, Real);
 
 private:
@@ -114,7 +114,7 @@ private:
   Real volume;
 
   /// corner nodes 1, 2, 3, 4 (see Leonardo's thesis, page 98)
-  Array<UInt> corner_nodes;
+  Array<Idx> corner_nodes;
 
   /// bottom nodes
   std::unordered_set<UInt> bottom_nodes;
@@ -133,7 +133,7 @@ private:
 };
 
 inline void SolidMechanicsModelRVE::unpackData(CommunicationBuffer & buffer,
-                                               const Array<UInt> & index,
+                                               const Array<Idx> & index,
                                                const SynchronizationTag & tag) {
   SolidMechanicsModel::unpackData(buffer, index, tag);
 

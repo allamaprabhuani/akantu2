@@ -99,7 +99,7 @@ public:
                                              const TensorBase<Real, 3> & DNDSs,
                                              const Matrix<Real> & R,
                                              TensorBase<Real, 3> & Bs) {
-    for (UInt i = 0; i < Js.size(2); ++i) {
+    for (Int i = 0; i < Js.size(2); ++i) {
       auto && DNDX = Js(i).inverse() * DNDSs(i);
       auto && B_R = Bs(i);
       Matrix<Real> B(B_R.rows(), B_R.cols());

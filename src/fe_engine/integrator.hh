@@ -43,7 +43,7 @@ class Integrator {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  Integrator(const Mesh & mesh, UInt spatial_dimension,
+  Integrator(const Mesh & mesh, Int spatial_dimension,
              const ID & id = "integrator")
       : mesh(mesh), _spatial_dimension(spatial_dimension),
         jacobians("jacobians", id) {
@@ -60,21 +60,17 @@ public:
 public:
   /// empty method
   template <ElementType type>
-  inline void precomputeJacobiansOnQuadraturePoints(__attribute__((unused))
-                                                    GhostType ghost_type) {}
+  inline void precomputeJacobiansOnQuadraturePoints(GhostType /*ghost_type*/) {}
 
   /// empty method
   void integrateOnElement(const Array<Real> & /*f*/, Real * /*intf*/,
-                          UInt /*nb_degree_of_freedom*/,
+                          Int /*nb_degree_of_freedom*/,
                           const Element & /*elem*/,
                           GhostType /*ghost_type*/) const {};
 
   /// function to print the contain of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
-    std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-      ;
-    }
+    std::string space(indent, AKANTU_INDENT);
     stream << space << "Integrator [" << std::endl;
     jacobians.printself(stream, indent + 1);
     stream << space << "]" << std::endl;
@@ -114,7 +110,7 @@ protected:
   const Mesh & mesh;
 
   // spatial dimension of the elements to consider
-  UInt _spatial_dimension;
+  Int _spatial_dimension;
 
   /// jacobians for all elements
   ElementTypeMapArray<Real> jacobians;

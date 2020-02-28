@@ -183,7 +183,7 @@ bool checkDisplacement(SolidMechanicsModel & model, ElementType type,
 
   Mesh & mesh = model.getMesh();
   UInt spatial_dimension = mesh.getSpatialDimension();
-  const Array<UInt> & connectivity = mesh.getConnectivity(type);
+  const Array<Idx> & connectivity = mesh.getConnectivity(type);
   const Array<Real> & displacement = model.getDisplacement();
   UInt nb_element = mesh.getNbElement(type);
   UInt nb_nodes_per_elem = Mesh::getNbNodesPerElement(type);

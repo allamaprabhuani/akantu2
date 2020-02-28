@@ -46,16 +46,20 @@ namespace fe_engine {
     namespace {
       template <class Functor>
       void fillField(const Functor & field_funct, Array<Real> & field,
-                     UInt nb_element, UInt nb_integration_points,
-                     ElementType type, GhostType ghost_type) {
-        UInt nb_degree_of_freedom = field.getNbComponent();
+                     Int nb_element, Int nb_integration_points,
+                     const ElementType & type, const GhostType & ghost_type) {
+        auto nb_degree_of_freedom = field.getNbComponent();
         field.resize(nb_integration_points * nb_element);
+
+        Matrix<Real> mat(nb_degree_of_freedom, nb_integration_points);
 
         Element el{type, 0, ghost_type};
         for (auto && data : enumerate(make_view(field, nb_degree_of_freedom,
                                                 nb_integration_points))) {
           el.element = std::get<0>(data);
-          field_funct(std::get<1>(data), el);
+          mat.fill(0.);
+          field_funct(mat, el);
+          mat = std::get<1>(data);
         }
       }
     } // namespace
@@ -134,9 +138,9 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldLumped(
     GhostType ghost_type) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  UInt nb_integration_points = this->getNbIntegrationPoints(type);
+  auto nb_degree_of_freedom = dof_manager.getDOFs(dof_id).getNbComponent();
+  auto nb_element = mesh.getNbElement(type, ghost_type);
+  auto nb_integration_points = this->getNbIntegrationPoints(type);
 
   Array<Real> field(0, nb_degree_of_freedom);
   fe_engine::details::fillField(field_funct, field, nb_element,
@@ -284,11 +288,10 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   auto lumped_per_node_it =
       lumped_per_node->begin(nb_degree_of_freedom, nb_nodes_per_element);
 
-  for (UInt e = 0; e < nb_element; ++e) {
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      Vector<Real> l = (*lumped_per_node_it)(n);
-      l = *int_field_it;
-      l *= nodal_factor(n);
+  for (Int e = 0; e < nb_element; ++e) {
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
+      auto && l = (*lumped_per_node_it)(n);
+      l = *int_field_it * nodal_factor(n);
     }
     ++int_field_it;
     ++lumped_per_node_it;
@@ -471,9 +474,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::assembleFieldMatrix(
   auto lmat_size = shapes_voigt->getNbComponent() / nb_degree_of_freedom;
 
   // computing \rho * N
-  mshapes_it = make_view(modified_shapes, nb_degree_of_freedom, lmat_size);
-  auto lmat = make_view(local_mat, lmat_size, lmat_size);
-  auto field_it = make_view(field, nb_degree_of_freedom);
   for (auto && data :
        zip(make_view(local_mat, lmat_size, lmat_size),
            make_view(modified_shapes, nb_degree_of_freedom, lmat_size),
