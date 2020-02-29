@@ -1,9 +1,10 @@
 build*
 .dir-locals.el
 TAGS
-!third-party/cmake
-!third-party/iohelper
 third-party/*/
+!third-party/cmake/*
+!third-party/akantu-iterators
+!third-party/iohelper
 *~
 release
 .*.swp
@@ -19,3 +20,4 @@ paraview/*
 *.pvd
 *.pvtu
 *.vtk
+compile_commands.json

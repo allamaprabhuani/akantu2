@@ -100,7 +100,7 @@ public:
   void updateInternalParameters() override;
 
   /// update internal variable on a converged Newton
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged) override;
 
   /// update internal variable based on previous and current strain values
   void updateIntVariables();
@@ -157,13 +157,16 @@ protected:
   void computeTangentModuliOnQuad(Matrix<Real> & tangent);
 
   bool hasStiffnessMatrixChanged() override {
-
     Real dt = this->model.getTimeStep();
 
     return ((this->previous_dt == dt)
                 ? (!(this->previous_dt == dt)) * (this->was_stiffness_assembled)
                 : (!(this->previous_dt == dt)));
     //  return (!(this->previous_dt == dt));
+  }
+
+  MatrixType getTangentType() override {
+    return _symmetric;
   }
 
   /* ------------------------------------------------------------------------ */

@@ -183,7 +183,7 @@ protected:
   /* SolidMechanicsModelEventHandler inherited members                        */
   /* ------------------------------------------------------------------------ */
 public:
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
@@ -205,7 +205,7 @@ public:
   //                bool extrinsic = false);
 
 protected:
-  void synchronizeGhostFacetsConnectivity();
+  //void synchronizeGhostFacetsConnectivity();
 
   void updateCohesiveSynchronizers();
   void updateFacetStressSynchronizer();

@@ -41,7 +41,6 @@ target_link_libraries(py11_akantu_test_common
 target_include_directories(py11_akantu_test_common
   PRIVATE $<TARGET_PROPERTY:py11_akantu,INCLUDE_DIRECTORIES>)
 
-
 add_mesh(mesh_dcb_2d mesh_dcb_2d.geo 2 2)
 
 register_test(test_python_interface

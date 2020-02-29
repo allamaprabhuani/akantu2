@@ -484,6 +484,14 @@ inline std::ostream & operator<<(std::ostream & stream, GhostType type);
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
   inline type get##name() { return variable; }
 
+#define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                            \
+  inline decltype(auto) get##name() const {                                    \
+    if (not ptr) {                                                             \
+      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");       \
+    }                                                                          \
+    return (*ptr);                                                             \
+  }
+
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
   inline con Array<type> & get##name(                                          \
       const support & el_type, const GhostType & ghost_type = _not_ghost)      \
@@ -540,7 +548,8 @@ namespace aka {
 
 /* ------------------------------------------------------------------------ */
 template <typename T> using is_tensor = std::is_base_of<akantu::TensorTrait, T>;
-template <typename T> using is_tensor_proxy = std::is_base_of<akantu::TensorProxyTrait, T>;
+template <typename T>
+using is_tensor_proxy = std::is_base_of<akantu::TensorProxyTrait, T>;
 /* ------------------------------------------------------------------------ */
 template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
@@ -602,6 +611,9 @@ Parser & getStaticParser();
 
 /// get access to the user part of the internal input file parser
 const ParserSection & getUserParser();
+
+#define AKANTU_CURRENT_FUNCTION                                                \
+  (std::string(__func__) + "():" + std::to_string(__LINE__))
 
 } // namespace akantu
 

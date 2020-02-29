@@ -30,10 +30,17 @@ void register_mesh(py::module & mod) {
            py::arg("memory_id") = 0)
       .def("read", &Mesh::read, py::arg("filename"),
            py::arg("mesh_io_type") = _miot_auto, "read the mesh from a file")
-      .def("getNodes",
-           [](Mesh & self) -> decltype(auto) { return self.getNodes(); },
-           py::return_value_policy::reference)
+      .def(
+          "getNodes",
+          [](Mesh & self) -> decltype(auto) { return self.getNodes(); },
+          py::return_value_policy::reference)
       .def("getNbNodes", &Mesh::getNbNodes)
+      .def(
+          "getConnectivity",
+          [](Mesh & self, const ElementType & type) -> decltype(auto) {
+            return self.getConnectivity(type);
+          },
+          py::return_value_policy::reference)
       .def("distribute", [](Mesh & self) { self.distribute(); })
       .def("getNbElement",
            [](Mesh & self, const UInt spatial_dimension,
