@@ -46,43 +46,37 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getKind(const ElementType & type) {
+inline constexpr auto Mesh::getKind(const ElementType & type) {
   ElementKind kind = _ek_not_defined;
 #define GET_KIND(type) kind = ElementClass<type>::getKind()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_KIND);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_KIND);
 #undef GET_KIND
   return kind;
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementKind Element::kind() const { return Mesh::getKind(type); }
+inline constexpr ElementKind Element::kind() const { return Mesh::getKind(type); }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getNbFacetsPerElement(const ElementType & type) {
-  AKANTU_DEBUG_IN();
-
+inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type) {
   Int n_facet = 0;
 #define GET_NB_FACET(type) n_facet = ElementClass<type>::getNbFacetsPerElement()
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_FACET);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_FACET);
 #undef GET_NB_FACET
 
-  AKANTU_DEBUG_OUT();
   return n_facet;
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getNbFacetsPerElement(const ElementType & type, Idx t) {
-  AKANTU_DEBUG_IN();
-
+inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type, Idx t) {
   Int n_facet = 0;
 #define GET_NB_FACET(type)                                                     \
   n_facet = ElementClass<type>::getNbFacetsPerElement(t)
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_FACET);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_FACET);
 #undef GET_NB_FACET
 
-  AKANTU_DEBUG_OUT();
   return n_facet;
 }
 
@@ -439,17 +433,17 @@ inline UInt Mesh::getNbNodesPerElement(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getP1ElementType(const ElementType & type) {
+inline constexpr auto Mesh::getP1ElementType(const ElementType & type) {
   ElementType p1_type = _not_defined;
 #define GET_P1_TYPE(type) p1_type = ElementClass<type>::getP1ElementType()
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_P1_TYPE);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_P1_TYPE);
 #undef GET_P1_TYPE
   return p1_type;
 }
 
 /* -------------------------------------------------------------------------- */
-inline ElementKind Mesh::getKind(ElementType type) {
+inline constexpr auto Mesh::getKind(ElementType type) {
   ElementKind kind = _ek_not_defined;
 #define GET_KIND(type) kind = ElementClass<type>::getKind()
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_KIND);
@@ -458,19 +452,19 @@ inline ElementKind Mesh::getKind(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getSpatialDimension(ElementType type) {
-  UInt spatial_dimension = 0;
+inline constexpr auto Mesh::getSpatialDimension(ElementType type) {
+  Int spatial_dimension = 0;
 #define GET_SPATIAL_DIMENSION(type)                                            \
   spatial_dimension = ElementClass<type>::getSpatialDimension()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SPATIAL_DIMENSION);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_SPATIAL_DIMENSION);
 #undef GET_SPATIAL_DIMENSION
 
   return spatial_dimension;
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNaturalSpaceDimension(const ElementType & type) {
-  UInt natural_dimension = 0;
+inline constexpr auto Mesh::getNaturalSpaceDimension(const ElementType & type) {
+  Int natural_dimension = 0;
 #define GET_NATURAL_DIMENSION(type)                                            \
   natural_dimension = ElementClass<type>::getNaturalSpaceDimension()
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_DIMENSION);
@@ -480,17 +474,17 @@ inline UInt Mesh::getNaturalSpaceDimension(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbFacetTypes(ElementType type, UInt /*t*/) {
+inline constexpr auto Mesh::getNbFacetTypes(ElementType type, UInt /*t*/) {
   UInt nb = 0;
 #define GET_NB_FACET_TYPE(type) nb = ElementClass<type>::getNbFacetTypes()
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_FACET_TYPE);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_FACET_TYPE);
 #undef GET_NB_FACET_TYPE
   return nb;
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getFacetType(const ElementType & type, Idx t) {
+inline constexpr auto Mesh::getFacetType(const ElementType & type, Idx t) {
 #define GET_FACET_TYPE(type) return ElementClass<type>::getFacetType(t);
 
   AKANTU_BOOST_ALL_ELEMENT_SWITCH_NO_DEFAULT(GET_FACET_TYPE);
@@ -510,17 +504,12 @@ inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
         map.data(), map.rows(), map.cols());                                   \
   }
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH_NO_DEFAULT(GET_FACET_TYPE);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_FACET_TYPE);
 #undef GET_FACET_TYPE
-
-  auto && map = ElementClass<_not_defined>::getFacetTypes();
-  return Eigen::Map<
-      const Eigen::Matrix<ElementType, Eigen::Dynamic, Eigen::Dynamic>>(
-      map.data(), map.rows(), map.cols());
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbFacetsPerElement(ElementType type) {
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type) {
   AKANTU_DEBUG_IN();
 
   UInt n_facet = 0;
@@ -534,7 +523,7 @@ inline UInt Mesh::getNbFacetsPerElement(ElementType type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbFacetsPerElement(ElementType type, UInt t) {
+inline constexpr auto Mesh::getNbFacetsPerElement(ElementType type, Idx t) {
   AKANTU_DEBUG_IN();
 
   UInt n_facet = 0;
@@ -550,27 +539,19 @@ inline UInt Mesh::getNbFacetsPerElement(ElementType type, UInt t) {
 
 /* -------------------------------------------------------------------------- */
 inline decltype(auto) Mesh::getFacetLocalConnectivity(ElementType type,
-                                                      UInt t) {
+                                                      Idx t) {
   AKANTU_DEBUG_IN();
 
 #define GET_FACET_CON(type)                                                    \
-  AKANTU_DEBUG_OUT();                                                          \
   return ElementClass<type>::getFacetLocalConnectivityPerElement(t)
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_FACET_CON);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_FACET_CON);
 #undef GET_FACET_CON
-
-  AKANTU_DEBUG_OUT();
-  return ElementClass<_not_defined>::getFacetLocalConnectivityPerElement(0);
-  // This avoid a compilation warning but will certainly
-  // also cause a segfault if reached
 }
 
 /* -------------------------------------------------------------------------- */
 inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
                                                  Idx t) const {
-  AKANTU_DEBUG_IN();
-
   auto local_facets = getFacetLocalConnectivity(element.type, t);
   Matrix<Idx> facets(local_facets.rows(), local_facets.cols());
 
@@ -582,7 +563,6 @@ inline decltype(auto) Mesh::getFacetConnectivity(const Element & element,
     }
   }
 
-  AKANTU_DEBUG_OUT();
   return facets;
 }
 

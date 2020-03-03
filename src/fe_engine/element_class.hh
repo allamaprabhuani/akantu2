@@ -155,8 +155,21 @@ public:
   };
   static inline constexpr Int getNbFacetsPerElement(Idx t);
   static inline constexpr Int getNbFacetsPerElement();
+
   static inline constexpr decltype(auto)
   getFacetLocalConnectivityPerElement(Idx t = 0);
+
+  template <Idx t,
+            std::size_t size = std::tuple_size<
+                decltype(geometrical_property::nb_facets)>::value,
+            std::enable_if_t<(t < size)> * = nullptr>
+  static inline constexpr decltype(auto) getFacetLocalConnectivityPerElement();
+
+  template <Idx t,
+            std::size_t size = std::tuple_size<
+                decltype(geometrical_property::nb_facets)>::value,
+            std::enable_if_t<not(t < size)> * = nullptr>
+  static inline constexpr decltype(auto) getFacetLocalConnectivityPerElement();
 };
 
 /* -------------------------------------------------------------------------- */

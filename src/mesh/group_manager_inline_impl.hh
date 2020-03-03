@@ -44,13 +44,12 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <typename T, template <bool> class dump_type>
-std::shared_ptr<dumpers::Field>
-GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
-                                   const std::string & group_name,
-                                   UInt spatial_dimension, ElementKind kind,
-                                   ElementTypeMap<UInt> nb_data_per_elem) {
+std::shared_ptr<dumper::Field> GroupManager::createElementalField(
+    const ElementTypeMapArray<T> & field, const std::string & group_name,
+    Int spatial_dimension, const ElementKind & kind,
+    ElementTypeMap<Int> nb_data_per_elem) {
 
-  const ElementTypeMapArray<T> * field_ptr = &field;
+  const auto * field_ptr = &field;
   if (field_ptr == nullptr) {
     return nullptr;
   }
@@ -65,13 +64,12 @@ GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
 /* -------------------------------------------------------------------------- */
 template <typename T, template <class> class T2,
           template <class, template <class> class, bool> class dump_type>
-std::shared_ptr<dumpers::Field>
-GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
-                                   const std::string & group_name,
-                                   UInt spatial_dimension, ElementKind kind,
-                                   ElementTypeMap<UInt> nb_data_per_elem) {
+std::shared_ptr<dumper::Field> GroupManager::createElementalField(
+    const ElementTypeMapArray<T> & field, const std::string & group_name,
+    Int spatial_dimension, const ElementKind & kind,
+    ElementTypeMap<Int> nb_data_per_elem) {
 
-  const ElementTypeMapArray<T> * field_ptr = &field;
+  const auto * field_ptr = &field;
   if (field_ptr == nullptr) {
     return nullptr;
   }
@@ -85,13 +83,12 @@ GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
 
 /* -------------------------------------------------------------------------- */
 template <typename T, template <typename T2, bool filtered>
-          class dump_type> ///< type of InternalMaterialField
-std::shared_ptr<dumpers::Field>
-GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
-                                   const std::string & group_name,
-                                   UInt spatial_dimension, ElementKind kind,
-                                   ElementTypeMap<UInt> nb_data_per_elem) {
-  const ElementTypeMapArray<T> * field_ptr = &field;
+                      class dump_type> ///< type of InternalMaterialField
+std::shared_ptr<dumper::Field> GroupManager::createElementalField(
+    const ElementTypeMapArray<T> & field, const std::string & group_name,
+    Int spatial_dimension, const ElementKind & kind,
+    ElementTypeMap<Int> nb_data_per_elem) {
+  const auto * field_ptr = &field;
 
   if (field_ptr == nullptr) {
     return nullptr;
@@ -108,8 +105,8 @@ GroupManager::createElementalField(const ElementTypeMapArray<T> & field,
 template <typename dump_type, typename field_type>
 std::shared_ptr<dumpers::Field> GroupManager::createElementalField(
     const field_type & field, const std::string & group_name,
-    UInt spatial_dimension, ElementKind kind,
-    const ElementTypeMap<UInt> & nb_data_per_elem) {
+    Int spatial_dimension, const ElementKind & kind,
+    const ElementTypeMap<Int> & nb_data_per_elem) {
   const field_type * field_ptr = &field;
   if (field_ptr == nullptr) {
     return nullptr;
@@ -129,10 +126,10 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalField(
 template <typename dump_type, typename field_type>
 std::shared_ptr<dumpers::Field> GroupManager::createElementalFilteredField(
     const field_type & field, const std::string & group_name,
-    UInt spatial_dimension, ElementKind kind,
-    ElementTypeMap<UInt> nb_data_per_elem) {
+    Int spatial_dimension, const ElementKind & kind,
+    ElementTypeMap<Int> nb_data_per_elem) {
 
-  const field_type * field_ptr = &field;
+  const auto * field_ptr = &field;
   if (field_ptr == nullptr) {
     return nullptr;
   }
@@ -140,13 +137,13 @@ std::shared_ptr<dumpers::Field> GroupManager::createElementalFilteredField(
     throw;
   }
 
-  using T = typename field_type::value_type;
-  ElementGroup & group = this->getElementGroup(group_name);
-  UInt dim = group.getDimension();
+  using T = typename field_type::type;
+  auto & group = this->getElementGroup(group_name);
+  auto dim = group.getDimension();
   if (dim != spatial_dimension) {
-    throw;
+      throw;
   }
-  const ElementTypeMapArray<UInt> & elemental_filter = group.getElements();
+  const auto & elemental_filter = group.getElements();
 
   auto * filtered = new ElementTypeMapArrayFilter<T>(field, elemental_filter,
                                                      nb_data_per_elem);
@@ -162,7 +159,7 @@ template <typename type, bool flag, template <class, bool> class ftype>
 std::shared_ptr<dumpers::Field>
 GroupManager::createNodalField(const ftype<type, flag> * field,
                                const std::string & group_name,
-                               UInt padding_size) {
+                               Int padding_size) {
   return createStridedNodalField(field, group_name, 0, 0, padding_size);
 }
 
@@ -170,8 +167,8 @@ GroupManager::createNodalField(const ftype<type, flag> * field,
 template <typename type, bool flag, template <class, bool> class ftype>
 std::shared_ptr<dumpers::Field>
 GroupManager::createStridedNodalField(const ftype<type, flag> * field,
-                                      const std::string & group_name, UInt size,
-                                      UInt stride, UInt padding_size) {
+                                      const std::string & group_name, Int size,
+                                      Int stride, Int padding_size) {
   if (not field) {
     return nullptr;
   }

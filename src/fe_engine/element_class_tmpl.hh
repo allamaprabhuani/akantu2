@@ -58,16 +58,43 @@ ElementClass<element_type, element_kind>::getFacetTypes() {
 /* GeometricalElement                                                         */
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type, GeometricalShapeType shape>
+template <Idx t, std::size_t size, std::enable_if_t<not(t < size)> *>
 inline constexpr decltype(auto)
 GeometricalElement<geometrical_type,
-                   shape>::getFacetLocalConnectivityPerElement(Idx t) {
+                   shape>::getFacetLocalConnectivityPerElement() {
+  AKANTU_ERROR("Not a valid facet id for this element type");
+}
+
+template <GeometricalType geometrical_type, GeometricalShapeType shape>
+template <Idx t, std::size_t size, std::enable_if_t<(t < size)> *>
+inline constexpr decltype(auto)
+GeometricalElement<geometrical_type,
+                   shape>::getFacetLocalConnectivityPerElement() {
   Int pos = 0;
   for (Int i = 0; i < t; ++i) {
     pos += geometrical_property::nb_facets[i] *
            geometrical_property::nb_nodes_per_facet[i];
   }
 
-  return Eigen::Map<const Eigen::Matrix<Int, Eigen::Dynamic, Eigen::Dynamic>>(
+  return Eigen::Map<
+      const Eigen::Matrix<Idx, geometrical_property::nb_facets[t],
+                          geometrical_property::nb_nodes_per_facet[t]>>(
+      geometrical_property::facet_connectivity_vect.data() + pos);
+}
+
+/* -------------------------------------------------------------------------- */
+template <GeometricalType geometrical_type, GeometricalShapeType shape>
+inline constexpr decltype(auto)
+GeometricalElement<geometrical_type,
+                   shape>::getFacetLocalConnectivityPerElement(Idx t) {
+
+  Int pos = 0;
+  for (Int i = 0; i < t; ++i) {
+    pos += geometrical_property::nb_facets[i] *
+           geometrical_property::nb_nodes_per_facet[i];
+  }
+
+  return Eigen::Map<const Eigen::Matrix<Idx, Eigen::Dynamic, Eigen::Dynamic>>(
       geometrical_property::facet_connectivity_vect.data() + pos,
       geometrical_property::nb_facets[t],
       geometrical_property::nb_nodes_per_facet[t]);
@@ -225,7 +252,7 @@ inline void InterpolationElement<interpolation_type, kind>::interpolate(
 
   auto nb_points = Ns.cols();
   for (auto p = 0; p < nb_points; ++p) {
-    interpolate(interpolated.col(p), nodal_values, Ns.col(p));
+    interpolated.col(p) = interpolate(nodal_values, Ns.col(p));
   }
 }
 
@@ -263,13 +290,15 @@ inline void
 InterpolationElement<interpolation_type, kind>::gradientOnNaturalCoordinates(
     const Eigen::MatrixBase<D1> & natural_coords,
     const Eigen::MatrixBase<D2> & f, const Eigen::MatrixBase<D3> & dfds_) {
-  Eigen::Matrix<
-      Real, InterpolationProperty<interpolation_type>::natural_space_dimension,
-      InterpolationProperty<interpolation_type>::nb_nodes_per_element>
-      dnds;
-  computeDNDS(natural_coords, dnds);
 
+  constexpr auto nsp =
+      InterpolationProperty<interpolation_type>::natural_space_dimension;
+  constexpr auto nnodes =
+      InterpolationProperty<interpolation_type>::nb_nodes_per_element;
+  Eigen::Matrix<Real, D3::ColsAtCompileTime, D2::ColsAtCompileTime> dnds(
+      nsp, nnodes);
   auto & dfds = const_cast<Eigen::MatrixBase<D3> &>(dfds_);
+  computeDNDS(natural_coords, dnds);
   dfds = f * dnds.transpose();
 }
 
@@ -342,7 +371,6 @@ ElementClass<type, kind>::computeJacobian(const Eigen::MatrixBase<D> & J) {
     switch (interpolation_property::natural_space_dimension) {
     case 1: {
       return J.norm();
-      break;
     }
     case 2: {
       auto Jstatic =
@@ -351,6 +379,7 @@ ElementClass<type, kind>::computeJacobian(const Eigen::MatrixBase<D> & J) {
     }
     }
   }
+  return 0; // avoids a warning
 }
 
 /* -------------------------------------------------------------------------- */
@@ -478,20 +507,6 @@ ElementClass<type, kind>::inverseMap(const Eigen::MatrixBase<D1> & real_coords,
 
   // J^t
   Matrix<Real> Jt(spatial_dimension, dimension);
-
-  // G = J^t * J
-  Matrix<Real> G(dimension, dimension);
-
-  // Ginv = G^{-1}
-  Matrix<Real> Ginv(dimension, dimension);
-
-  // J = Ginv * J^t
-  Matrix<Real> F(spatial_dimension, dimension);
-
-  // dxi = \xi_{k+1} - \xi in the iterative process
-  Matrix<Real> dxi(dimension, 1);
-
-  Matrix<Real> dxit(1, dimension);
 
   /* --------------------------- */
   /* init before iteration loop  */

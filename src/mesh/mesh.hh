@@ -476,23 +476,24 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// get the number of nodes per element for a given element type
-  static inline auto getNbNodesPerElement(const ElementType & type);
+  static inline constexpr auto getNbNodesPerElement(const ElementType & type);
 
   /// get the number of nodes per element for a given element type considered as
   /// a first order element
-  static inline auto getP1ElementType(const ElementType & type);
+  static inline constexpr auto getP1ElementType(const ElementType & type);
 
   /// get the kind of the element type
-  static inline auto getKind(const ElementType & type);
+  static inline constexpr auto getKind(const ElementType & type);
 
   /// get spatial dimension of a type of element
-  static inline auto getSpatialDimension(const ElementType & type);
+  static inline constexpr auto getSpatialDimension(const ElementType & type);
 
   /// get number of facets of a given element type
-  static inline auto getNbFacetsPerElement(const ElementType & type);
+  static inline constexpr auto getNbFacetsPerElement(const ElementType & type);
 
   /// get number of facets of a given element type
-  static inline auto getNbFacetsPerElement(const ElementType & type, Idx t);
+  static inline constexpr auto getNbFacetsPerElement(const ElementType & type,
+                                                     Idx t);
 
   /// get local connectivity of a facet for a given facet type
   static inline decltype(auto)
@@ -504,10 +505,12 @@ public:
 
   /// get the number of type of the surface element associated to a given
   /// element type
-  static inline auto getNbFacetTypes(const ElementType & type, Idx t = 0);
+  static inline constexpr auto getNbFacetTypes(const ElementType & type,
+                                               Idx t = 0);
 
   /// get the type of the surface element associated to a given element
-  static inline auto getFacetType(const ElementType & type, Idx t = 0);
+  static inline constexpr auto getFacetType(const ElementType & type,
+                                            Idx t = 0);
 
   /// get all the type of the surface element associated to a given element
   static inline decltype(auto) getAllFacetTypes(ElementType type);
@@ -686,18 +689,20 @@ inline std::ostream & operator<<(std::ostream & stream, const Mesh & _this) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline auto Mesh::getNbNodesPerElement(const ElementType & type) {
+inline constexpr auto Mesh::getNbNodesPerElement(const ElementType & type) {
   Int nb_nodes_per_element = 0;
+
 #define GET_NB_NODES_PER_ELEMENT(type)                                         \
   nb_nodes_per_element = ElementClass<type>::getNbNodesPerElement()
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NB_NODES_PER_ELEMENT);
+
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_NB_NODES_PER_ELEMENT);
 #undef GET_NB_NODES_PER_ELEMENT
   return nb_nodes_per_element;
 }
 
 /* -------------------------------------------------------------------------- */
 inline auto Mesh::getNbElement(const ElementType & type,
-                              const GhostType & ghost_type) const {
+                               const GhostType & ghost_type) const {
   try {
     const auto & conn = connectivities(type, ghost_type);
     return conn.size();

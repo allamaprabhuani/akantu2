@@ -51,19 +51,19 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  inline ElementKind kind() const;
+  inline constexpr ElementKind kind() const;
 
-  inline bool operator==(const Element & elem) const {
+  inline constexpr bool operator==(const Element & elem) const {
     return std::tie(type, element, ghost_type) ==
            std::tie(elem.type, elem.element, elem.ghost_type);
   }
 
-  inline bool operator!=(const Element & elem) const {
+  inline constexpr bool operator!=(const Element & elem) const {
     return std::tie(type, element, ghost_type) !=
            std::tie(elem.type, elem.element, elem.ghost_type);
   }
 
-  inline bool operator<(const Element & rhs) const;
+  inline constexpr bool operator<(const Element & rhs) const;
 };
 
 #if __cplusplus < 201703L
@@ -75,7 +75,7 @@ namespace {
 #endif
 
 /* -------------------------------------------------------------------------- */
-inline bool Element::operator<(const Element & rhs) const {
+inline constexpr bool Element::operator<(const Element & rhs) const {
   return ((rhs == ElementNull) ||
           std::tie(ghost_type, type, element) <
               std::tie(rhs.ghost_type, rhs.type, rhs.element));

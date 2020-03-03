@@ -236,7 +236,7 @@ public:
   template <typename T, template <bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      UInt spatial_dimension, const ElementKind & kind,
+      Int spatial_dimension, const ElementKind & kind,
       ElementTypeMap<Int> nb_data_per_elem = ElementTypeMap<Int>());
 
   /// register an elemental field to the given group name (overloading for
@@ -245,7 +245,7 @@ public:
             template <class, template <class> class, bool> class dump_type>
   std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      UInt spatial_dimension, const ElementKind & kind,
+      Int spatial_dimension, const ElementKind & kind,
       ElementTypeMap<Int> nb_data_per_elem = ElementTypeMap<Int>());
 
   /// register an elemental field to the given group name (overloading for
@@ -255,7 +255,7 @@ public:
             template <typename, bool filtered> class dump_type>
   std::shared_ptr<dumpers::Field>
   createElementalField(const ElementTypeMapArray<T> & field,
-                       const std::string & group_name, UInt spatial_dimension,
+                       const std::string & group_name, Int spatial_dimension,
                        const ElementKind & kind,
                        ElementTypeMap<Int> nb_data_per_elem);
 

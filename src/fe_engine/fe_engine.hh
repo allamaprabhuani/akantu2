@@ -325,8 +325,8 @@ public:
   AKANTU_GET_MACRO_NOT_CONST(Mesh, mesh, Mesh &);
 
   /// get the in-radius of an element
-  static inline Real getElementInradius(const Ref<const MatrixXr> & coord,
-                                        ElementType type);
+  static inline constexpr Real getElementInradius(const Ref<const MatrixXr> & coord,
+                                                  ElementType type);
 
   inline Real getElementInradius(const Element & element) const;
 
@@ -335,16 +335,16 @@ public:
                                          normals_on_integration_points, Real);
 
   /// get cohesive element type for a given facet type
-  static inline ElementType
-  getCohesiveElementType(ElementType type_facet);
+  static inline constexpr auto
+  getCohesiveElementType(const ElementType & type_facet);
 
   /// get igfem element type for a given regular type
   static inline Vector<ElementType>
   getIGFEMElementTypes(ElementType type);
 
   /// get the interpolation element associated to an element type
-  static inline InterpolationType
-  getInterpolationType(ElementType el_type);
+  static inline constexpr auto
+  getInterpolationType(const ElementType & el_type);
 
   /// get the shape function class (probably useless: see getShapeFunction in
   /// fe_engine_template.hh)

@@ -38,18 +38,17 @@
 
 namespace akantu {
 
-template <class InType, class OutType>
-OutType convertType(InType /*unused*/) {
+template <class InType, class OutType> auto convertType(const InType &) {
   return OutType();
 }
 
 template <>
-inline InterpolationType
-convertType<ElementType, InterpolationType>(ElementType type) {
-  InterpolationType itp_type = _itp_not_defined;
+constexpr inline auto
+convertType<ElementType, InterpolationType>(const ElementType & type) {
+  auto itp_type = _itp_not_defined;
 #define GET_ITP(type) itp_type = ElementClassProperty<type>::interpolation_type;
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_ITP);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_ITP);
 #undef GET_ITP
   return itp_type;
 }

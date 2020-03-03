@@ -678,16 +678,17 @@ namespace details {
 
 } // namespace details
 
+
 template <Idx RowsAtCompileTime, typename Array>
-decltype(auto) make_view(Array && array) {
+decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime) {
   return details::EigenView<Array, RowsAtCompileTime>(
-      std::forward<Array>(array), RowsAtCompileTime);
+      std::forward<Array>(array), rows);
 }
 
 template <Idx RowsAtCompileTime, Idx ColsAtCompileTime, typename Array>
-decltype(auto) make_view(Array && array) {
+decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime, Idx cols = ColsAtCompileTime) {
   return details::EigenView<Array, RowsAtCompileTime, ColsAtCompileTime>(
-      std::forward<Array>(array), RowsAtCompileTime, ColsAtCompileTime);
+      std::forward<Array>(array), rows, cols);
 }
 
 } // namespace akantu

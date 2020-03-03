@@ -44,13 +44,12 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline Real FEEngine::getElementInradius(const Ref<const MatrixXr> & coord,
-                                         ElementType type) {
-  Real inradius = 0;
-
+inline constexpr Real FEEngine::getElementInradius(const Ref<const MatrixXr> & coord,
+                                         const ElementType & type) {
+  Real inradius = 0.;
 #define GET_INRADIUS(type) inradius = ElementClass<type>::getInradius(coord);
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_INRADIUS);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_INRADIUS);
 #undef GET_INRADIUS
 
   return inradius;
@@ -73,7 +72,7 @@ inline Real FEEngine::getElementInradius(const Element & element) const {
 
 
 /* -------------------------------------------------------------------------- */
-inline InterpolationType FEEngine::getInterpolationType(ElementType type) {
+inline constexpr auto FEEngine::getInterpolationType(ElementType type) {
   return convertType<ElementType, InterpolationType>(type);
 }
 
@@ -81,19 +80,18 @@ inline InterpolationType FEEngine::getInterpolationType(ElementType type) {
 /// @todo rewrite this function in order to get the cohesive element
 /// type directly from the facet
 #if defined(AKANTU_COHESIVE_ELEMENT)
-inline ElementType FEEngine::getCohesiveElementType(ElementType type) {
-  ElementType ctype;
+inline constexpr auto FEEngine::getCohesiveElementType(const ElementType & type) {
 #define GET_COHESIVE_TYPE(type)                                                \
-  ctype = CohesiveFacetProperty<type>::cohesive_type;
+  return CohesiveFacetProperty<type>::cohesive_type;
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_COHESIVE_TYPE);
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH_CONSTEXPR(GET_COHESIVE_TYPE);
 #undef GET_COHESIVE_TYPE
 
-  return ctype;
 }
 #else
-inline ElementType FEEngine::getCohesiveElementType(__attribute__((unused))
-                                                    ElementType type_facet) {
+inline constexpr ElementType
+FEEngine::getCohesiveElementType(__attribute__((unused))
+                                 const ElementType & type_facet) {
   return _not_defined;
 }
 #endif

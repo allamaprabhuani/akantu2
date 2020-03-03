@@ -102,7 +102,7 @@ inline void IntegratorGauss<kind, IntegrationOrderFunctor>::integrate(
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind, class IntegrationOrderFunctor>
 template <ElementType type>
-inline const Matrix<Real> &
+inline const decltype(auto)
 IntegratorGauss<kind, IntegrationOrderFunctor>::getIntegrationPoints(
     GhostType ghost_type) const {
   AKANTU_DEBUG_ASSERT(
@@ -111,7 +111,7 @@ IntegratorGauss<kind, IntegrationOrderFunctor>::getIntegrationPoints(
           << quadrature_points.printType(type, ghost_type)
           << " have not been initialized."
           << " Did you use 'computeQuadraturePoints' function ?");
-  return quadrature_points(type, ghost_type);
+  return (quadrature_points(type, ghost_type));
 }
 
 /* -------------------------------------------------------------------------- */
