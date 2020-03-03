@@ -160,15 +160,15 @@ namespace tuple {
   }
 
 #if !defined(__INTEL_COMPILER)
-#  if defined(__clang__)
+#if defined(__clang__)
 // clang warnings here
-#    pragma clang diagnostic push
-#    pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
-#  elif (defined(__GNUC__) || defined(__GNUG__))
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
+#elif (defined(__GNUC__) || defined(__GNUG__))
 // gcc warnings here
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wpedantic"
-#  endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
   /// this is a GNU exstension
   /// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3599.html
   template <class CharT, CharT... chars>
@@ -176,11 +176,11 @@ namespace tuple {
     return make_named_tag<std::integral_constant<
         std::size_t, string_literal<CharT, chars...>::hash>>();
   }
-#  if defined(__clang__)
-#    pragma clang diagnostic pop
-#  elif (defined(__GNUC__) || defined(__GNUG__))
-#    pragma GCC diagnostic pop
-#  endif
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif (defined(__GNUC__) || defined(__GNUG__))
+#pragma GCC diagnostic pop
+#endif
 #endif
   /* ------------------------------------------------------------------------ */
   namespace details {
@@ -235,8 +235,8 @@ namespace tuple {
     }
 
     template <typename... Names, typename... Ts>
-    constexpr decltype(auto)
-    make_named_tuple_no_decay(std::tuple<Names...> /*unused*/, Ts &&... args) {
+    decltype(auto) make_named_tuple_no_decay(std::tuple<Names...> /*unused*/,
+                                             Ts &&... args) {
       return named_tuple<named_tag<Names, Ts>...>(std::forward<Ts>(args)...);
     }
 
@@ -381,10 +381,34 @@ namespace tuple {
     }
   } // namespace details
 
+  template <template <typename> class Pred, typename... Ts>
+  using filter_t = typename filter<Pred, Ts...>::type;
   template <class Tuple>
   constexpr decltype(auto) dynamic_get(std::size_t i, Tuple && tuple) {
     return details::dynamic_get_impl<0>(i, std::forward<Tuple>(tuple));
   }
+
+  template <typename... Ts> struct cat {
+    using type = decltype(std::tuple_cat(std::declval<Ts>()...));
+  };
+
+  template <typename... T> using cat_t = typename cat<T...>::type;
+
+  /* --------------------------------------------------------------------------
+   */
+  template <template <typename> class Pred, typename... Ts> struct filter {};
+
+  template <template <typename> class Pred, typename T>
+  struct filter<Pred, std::tuple<T>> {
+    using type =
+        std::conditional_t<Pred<T>::value, std::tuple<T>, std::tuple<>>;
+  };
+
+  template <template <typename> class Pred, typename T, typename... Ts>
+  struct filter<Pred, std::tuple<T, Ts...>> {
+    using type = cat_t<typename filter<Pred, std::tuple<T>>::type,
+                       typename filter<Pred, std::tuple<Ts...>>::type>;
+  };
 } // namespace tuple
 
 } // namespace AKANTU_ITERATORS_NAMESPACE

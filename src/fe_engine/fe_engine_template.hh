@@ -261,12 +261,30 @@ public:
   computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                     GhostType ghost_type = _not_ghost) override;
   void computeNormalsOnIntegrationPoints(
-      const Array<Real> & field, Array<Real> & normal, ElementType type,
-      GhostType ghost_type = _not_ghost) const override;
-  template <ElementType type>
+      const GhostType & ghost_type = _not_ghost) override;
+  void computeNormalsOnIntegrationPoints(
+      const Array<Real> & field,
+      const GhostType & ghost_type = _not_ghost) override;
+  void computeNormalsOnIntegrationPoints(
+      const Array<Real> & field, Array<Real> & normal, const ElementType & type,
+      const GhostType & ghost_type = _not_ghost) const override;
+
+  template <
+      ElementType type, ElementKind kind_ = kind,
+      std::enable_if_t<kind_ != _ek_regular> * = nullptr>
+  void computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
+                                         Array<Real> & /*normal*/,
+                                         const GhostType & /*ghost_type*/) const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+
+  template <
+      ElementType type, ElementKind kind_ = kind,
+      std::enable_if_t<kind_ == _ek_regular and type != _point_1> * = nullptr>
   void computeNormalsOnIntegrationPoints(const Array<Real> & field,
                                          Array<Real> & normal,
-                                         GhostType ghost_type) const;
+                                         const GhostType & ghost_type) const;
 
 private:
   // To avoid a weird full specialization of a method in a non specalized class

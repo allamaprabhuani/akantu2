@@ -60,10 +60,6 @@
 namespace {
 
 /* -------------------------------------------------------------------------- */
-template <::akantu::ElementType t>
-using element_type_t = std::integral_constant<::akantu::ElementType, t>;
-
-/* -------------------------------------------------------------------------- */
 template <typename... T> struct gtest_list {};
 
 template <typename... Ts> struct gtest_list<std::tuple<Ts...>> {
@@ -75,32 +71,6 @@ template <typename... T> using gtest_list_t = typename gtest_list<T...>::type;
 /* -------------------------------------------------------------------------- */
 //template <typename... T> struct tuple_concat {};
 
-template <typename... Ts>
-struct tuple_concat {
-  using type = decltype(std::tuple_cat(std::declval<Ts>()...));
-};
-
-template <typename... T>
-using tuple_concat_t = typename tuple_concat<T...>::type;
-
-/* -------------------------------------------------------------------------- */
-template <template <typename> class Pred, typename... Ts>
-struct tuple_filter {};
-
-template <template <typename> class Pred, typename T>
-struct tuple_filter<Pred, std::tuple<T>> {
-  using type = std::conditional_t<Pred<T>::value, std::tuple<T>, std::tuple<>>;
-};
-
-template <template <typename> class Pred, typename T, typename... Ts>
-struct tuple_filter<Pred, std::tuple<T, Ts...>> {
-  using type =
-      tuple_concat_t<typename tuple_filter<Pred, std::tuple<T>>::type,
-                     typename tuple_filter<Pred, std::tuple<Ts...>>::type>;
-};
-
-template <template <typename> class Pred, typename... Ts>
-using tuple_filter_t = typename tuple_filter<Pred, Ts...>::type;
 
 /* -------------------------------------------------------------------------- */
 template <size_t N, typename... Ts> struct tuple_split {};
@@ -111,7 +81,7 @@ protected:
   using split = tuple_split<N - 1, std::tuple<Ts...>>;
 
 public:
-  using type = tuple_concat_t<std::tuple<T>, typename split::type>;
+  using type = tuple::cat_t<std::tuple<T>, typename split::type>;
   using type_tail = typename split::type_tail;
 };
 
@@ -137,7 +107,7 @@ struct cross_product<std::tuple<>, std::tuple<T2s...>> {
 
 template <typename T1, typename... T1s, typename... T2s>
 struct cross_product<std::tuple<T1, T1s...>, std::tuple<T2s...>> {
-  using type = tuple_concat_t<
+  using type = tuple::cat_t<
       std::tuple<std::tuple<T1, T2s>...>,
       typename cross_product<std::tuple<T1s...>, std::tuple<T2s...>>::type>;
 };
@@ -183,11 +153,11 @@ using is_element = aka::bool_constant<T::value == type>;
 template <typename T>
 using not_is_point_1 = aka::negation<is_element<T, ::akantu::_point_1>>;
 
-using TestElementTypes = tuple_filter_t<not_is_point_1, TestElementTypesAll>;
+using TestElementTypes = tuple::filter_t<not_is_point_1, TestElementTypesAll>;
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
 using StructuralTestElementTypes =
-    tuple_filter_t<not_is_point_1, TestElementTypesStructural>;
+    tuple::filter_t<not_is_point_1, TestElementTypesStructural>;
 #endif
 
 /* -------------------------------------------------------------------------- */
