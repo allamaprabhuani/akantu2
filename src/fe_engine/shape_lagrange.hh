@@ -122,10 +122,21 @@ public:
                   GhostType ghost_type,
                   const Array<Idx> & filter_elements) const;
 
-  template <ElementType type>
+  template <ElementType type,
+            std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() !=
+                             0> * = nullptr>
   void computeBtDB(const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
                    GhostType ghost_type,
                    const Array<Idx> & filter_elements) const;
+
+  template <ElementType type,
+            std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() ==
+                             0> * = nullptr>
+  void computeBtDB(const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/,
+                   Int /*order_d*/, GhostType /*ghost_type*/,
+                   const Array<Idx> & /*filter_elements*/) const {
+    AKANTU_TO_IMPLEMENT();
+  }
 
   /// multiply a field by shape functions  @f$ fts_{ij} = f_i * \varphi_j @f$
   template <ElementType type>
@@ -157,17 +168,17 @@ public:
 
   /// compute the shape derivatives on a provided point
   template <ElementType type>
-  void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords, Idx elem,
-                               Tensor3Base<Real> & shapes,
+  void computeShapeDerivatives(const Ref<const MatrixXr> & real_coords,
+                               Idx elem, Tensor3Base<Real> & shapes,
                                const GhostType & ghost_type) const;
 
 protected:
   /// compute the shape derivatives on integration points for a given element
   template <ElementType type>
-  inline void
-  computeShapeDerivativesOnCPointsByElement(const Ref<const MatrixXr> & node_coords,
-                                            const Ref<const MatrixXr> & natural_coords,
-                                            Tensor3Base<Real> & shapesd) const;
+  inline void computeShapeDerivativesOnCPointsByElement(
+      const Ref<const MatrixXr> & node_coords,
+      const Ref<const MatrixXr> & natural_coords,
+      Tensor3Base<Real> & shapesd) const;
 };
 
 } // namespace akantu

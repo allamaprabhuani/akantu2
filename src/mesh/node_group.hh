@@ -54,7 +54,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  using const_node_iterator = Array<UInt>::const_scalar_iterator;
+  using const_node_iterator = Array<Idx>::const_scalar_iterator;
 
   /// empty the node group
   void clear();
@@ -64,17 +64,18 @@ public:
   bool empty() const __attribute__((warn_unused_result));
 
   /// iterator to the beginning of the node group
-  inline const_node_iterator begin() const;
+  inline auto begin() const;
   /// iterator to the end of the node group
-  inline const_node_iterator end() const;
+  inline auto end() const;
 
+  
   /// add a node and give the local position through an iterator
-  inline const_node_iterator add(UInt node, bool check_for_duplicate = true);
+  inline auto add(Idx node, bool check_for_duplicate = true);
 
   /// remove a node
-  inline void remove(UInt node);
+  inline void remove(Idx node);
 
-  inline decltype(auto) find(UInt node) const { return node_group.find(node); }
+  inline decltype(auto) find(Idx node) const { return node_group.find(node); }
 
   /// remove duplicated nodes
   void optimize();
@@ -92,9 +93,9 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO_NOT_CONST(Nodes, node_group, Array<UInt> &);
-  AKANTU_GET_MACRO(Nodes, node_group, const Array<UInt> &);
-  AKANTU_GET_MACRO(Name, name, const std::string &);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Nodes, node_group);
+  AKANTU_GET_MACRO_AUTO(Nodes, node_group);
+  AKANTU_GET_MACRO_AUTO(Name, name);
 
   /// give the number of nodes in the current group
   inline Idx size() const;
@@ -110,7 +111,7 @@ private:
   std::string name;
 
   /// list of nodes in the group
-  Array<UInt> node_group;
+  Array<Idx> node_group;
 
   /// reference to the mesh in question
   // const Mesh & mesh;

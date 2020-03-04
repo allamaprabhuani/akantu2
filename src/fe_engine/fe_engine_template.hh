@@ -119,6 +119,23 @@ public:
       const ElementType & type, const GhostType & ghost_type = _not_ghost,
       const Array<Idx> & filter_elements = empty_filter) const override;
 
+private:
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ == _ek_regular> * = nullptr>
+  inline void interpolate_impl(const Ref<const VectorXr> & real_coords,
+                               const Ref<const MatrixXr> & nodal_values,
+                               Ref<VectorXr> interpolated,
+                               const Element & element) const;
+
+  template <ElementKind kind_ = kind,
+            std::enable_if_t<kind_ != _ek_regular> * = nullptr>
+  inline void interpolate_impl(const Ref<const VectorXr> &,
+                               const Ref<const MatrixXr> &, Ref<VectorXr>,
+                               const Element &) const {
+    AKANTU_TO_IMPLEMENT();
+  }
+
+public:
   /// interpolate on a phyiscal point inside an element
   void interpolate(const Ref<const VectorXr> & real_coords,
                    const Ref<const MatrixXr> & nodal_values,
@@ -269,15 +286,14 @@ public:
       const Array<Real> & field, Array<Real> & normal, const ElementType & type,
       const GhostType & ghost_type = _not_ghost) const override;
 
-  template <
-      ElementType type, ElementKind kind_ = kind,
-      std::enable_if_t<kind_ != _ek_regular> * = nullptr>
-  void computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
-                                         Array<Real> & /*normal*/,
-                                         const GhostType & /*ghost_type*/) const {
+  template <ElementType type, ElementKind kind_ = kind,
+            std::enable_if_t<kind_ != _ek_regular> * = nullptr>
+  void
+  computeNormalsOnIntegrationPoints(const Array<Real> & /*field*/,
+                                    Array<Real> & /*normal*/,
+                                    const GhostType & /*ghost_type*/) const {
     AKANTU_TO_IMPLEMENT();
   }
-
 
   template <
       ElementType type, ElementKind kind_ = kind,

@@ -429,7 +429,9 @@ void ShapeLagrange<kind>::computeBtD(const Array<Real> & Ds, Array<Real> & BtDs,
 
 /* -------------------------------------------------------------------------- */
 template <ElementKind kind>
-template <ElementType type>
+template <
+    ElementType type,
+    std::enable_if_t<ElementClass<type>::getNaturalSpaceDimension() != 0> *>
 void ShapeLagrange<kind>::computeBtDB(
     const Array<Real> & Ds, Array<Real> & BtDBs, Int order_d,
     GhostType ghost_type, const Array<Idx> & filter_elements) const {
@@ -459,7 +461,6 @@ void ShapeLagrange<kind>::computeBtDB(
   if (order_d == 4) {
     auto tangent_size = VoigtHelper<dim>::size;
     Matrix<Real> B(tangent_size, dim * nb_nodes_per_element);
-    Matrix<Real> Bt_D(dim * nb_nodes_per_element, tangent_size);
 
     for (auto && values :
          zip(range(B_it, B_end), make_view(Ds, tangent_size, tangent_size),
@@ -474,7 +475,6 @@ void ShapeLagrange<kind>::computeBtDB(
       Bt_D_B = B.transpose() * D * B;
     }
   } else if (order_d == 2) {
-    Matrix<Real> Bt_D(nb_nodes_per_element, dim);
     for (auto && values :
          zip(range(B_it, B_end), make_view(Ds, dim, dim),
              make_view(BtDBs, nb_nodes_per_element, nb_nodes_per_element))) {
@@ -484,14 +484,6 @@ void ShapeLagrange<kind>::computeBtDB(
       Bt_D_B = B.transpose() * D * B;
     }
   }
-}
-
-template <>
-template <>
-inline void ShapeLagrange<_ek_regular>::computeBtDB<_point_1>(
-    const Array<Real> & /*Ds*/, Array<Real> & /*BtDBs*/, Int /*order_d*/,
-    GhostType /*ghost_type*/, const Array<Idx> & /*filter_elements*/) const {
-  AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */

@@ -34,23 +34,24 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::begin() const {
+inline auto NodeGroup::begin() const {
   return node_group.begin();
 }
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::end() const {
+inline auto NodeGroup::end() const {
   return node_group.end();
 }
 
 /* -------------------------------------------------------------------------- */
-inline NodeGroup::const_node_iterator NodeGroup::add(UInt node,
-                                                     bool check_for_duplicate) {
+inline auto NodeGroup::add(Idx node,
+                           bool check_for_duplicate) {
+  const_node_iterator it;
   if (check_for_duplicate) {
-    const_node_iterator it = std::find(begin(), end(), node);
+    it = std::find(begin(), end(), node);
     if (it == node_group.end()) {
       node_group.push_back(node);
-      return (node_group.end() - 1);
+      it= (node_group.end() - 1);
     }
     return it;
   }
@@ -60,7 +61,7 @@ inline NodeGroup::const_node_iterator NodeGroup::add(UInt node,
 }
 
 /* -------------------------------------------------------------------------- */
-inline void NodeGroup::remove(UInt node) {
+inline void NodeGroup::remove(Idx node) {
   auto it = this->node_group.begin();
   auto end = this->node_group.end();
   AKANTU_DEBUG_ASSERT(it != end, "The node group is empty!!");

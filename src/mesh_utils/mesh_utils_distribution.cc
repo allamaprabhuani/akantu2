@@ -48,14 +48,14 @@ namespace MeshUtilsDistribution {
   void distributeMeshCentralized(Mesh & mesh, UInt /*unused*/,
                                  const MeshPartition & partition) {
     MeshAccessor mesh_accessor(mesh);
-    ElementSynchronizer & element_synchronizer =
+    auto & element_synchronizer =
         mesh_accessor.getElementSynchronizer();
-    NodeSynchronizer & node_synchronizer = mesh_accessor.getNodeSynchronizer();
+    auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
 
-    const Communicator & comm = element_synchronizer.getCommunicator();
+    const auto & comm = element_synchronizer.getCommunicator();
 
-    UInt nb_proc = comm.getNbProc();
-    UInt my_rank = comm.whoAmI();
+    auto nb_proc = comm.getNbProc();
+    auto my_rank = comm.whoAmI();
 
     mesh_accessor.setNbGlobalNodes(mesh.getNbNodes());
     auto & gids = mesh_accessor.getNodesGlobalIds();
@@ -117,13 +117,13 @@ namespace MeshUtilsDistribution {
   /* ------------------------------------------------------------------------ */
   void distributeMeshCentralized(Mesh & mesh, UInt root) {
     MeshAccessor mesh_accessor(mesh);
-    ElementSynchronizer & element_synchronizer =
+    auto & element_synchronizer =
         mesh_accessor.getElementSynchronizer();
-    NodeSynchronizer & node_synchronizer = mesh_accessor.getNodeSynchronizer();
+    auto & node_synchronizer = mesh_accessor.getNodeSynchronizer();
 
-    const Communicator & comm = element_synchronizer.getCommunicator();
+    const auto & comm = element_synchronizer.getCommunicator();
 
-    UInt nb_proc = comm.getNbProc();
+    auto nb_proc = comm.getNbProc();
 
     mesh_accessor.getNodesGlobalIds().resize(0);
 

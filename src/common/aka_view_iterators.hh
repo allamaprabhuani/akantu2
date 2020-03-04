@@ -449,14 +449,26 @@ public:
   using iterator_category = typename parent::iterator_category;
 
 protected:
+
   template <typename OR, std::size_t... I>
   static inline auto convert_helper(const view_iterator<OR> & it,
                                     std::index_sequence<I...>) {
     return const_view_iterator(it.data(), it.getDims()[I]...);
   }
 
+  template <typename OR, std::size_t... I>
+  static inline auto convert_helper(const const_view_iterator<OR> & it,
+                                    std::index_sequence<I...>) {
+    return const_view_iterator(it.data(), it.getDims()[I]...);
+  }
+
   template <typename OR>
   static inline auto convert(const view_iterator<OR> & it) {
+    return convert_helper(it, std::make_index_sequence<parent::dim_>());
+  }
+
+  template <typename OR>
+  static inline auto convert(const const_view_iterator<OR> & it) {
     return convert_helper(it, std::make_index_sequence<parent::dim_>());
   }
 
@@ -472,7 +484,7 @@ public:
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
-  const_view_iterator(const const_view_iterator<OR> & it) : parent(it) {}
+  const_view_iterator(const const_view_iterator<OR> & it) : parent(convert(it)) {}
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value and

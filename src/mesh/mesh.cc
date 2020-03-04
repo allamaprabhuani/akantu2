@@ -65,7 +65,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator)
+Mesh::Mesh(Int spatial_dimension, const ID & id, Communicator & communicator)
     : GroupManager(*this, id + ":group_manager"), MeshData("mesh_data", id),
       id(id), connectivities("connectivities", id),
       ghosts_counters("ghosts_counters", id), normals("normals", id),
@@ -78,7 +78,7 @@ Mesh::Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator)
 }
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, Communicator & communicator, const ID & id)
+Mesh::Mesh(Int spatial_dimension, Communicator & communicator, const ID & id)
     : Mesh(spatial_dimension, id, communicator) {
   AKANTU_DEBUG_IN();
 
@@ -91,11 +91,11 @@ Mesh::Mesh(UInt spatial_dimension, Communicator & communicator, const ID & id)
 }
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, const ID & id)
+Mesh::Mesh(Int spatial_dimension, const ID & id)
     : Mesh(spatial_dimension, Communicator::getStaticCommunicator(), id) {}
 
 /* -------------------------------------------------------------------------- */
-Mesh::Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
+Mesh::Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
            const ID & id)
     : Mesh(spatial_dimension, id, Communicator::getStaticCommunicator()) {
   this->nodes = nodes;
@@ -115,7 +115,7 @@ void Mesh::getBarycenters(Array<Real> & barycenter, ElementType type,
                           GhostType ghost_type) const {
   barycenter.resize(getNbElement(type, ghost_type));
   for (auto && data : enumerate(make_view(barycenter, spatial_dimension))) {
-    getBarycenter(Element{type, UInt(std::get<0>(data)), ghost_type},
+    getBarycenter(Element{type, Idx(std::get<0>(data)), ghost_type},
                   std::get<1>(data));
   }
 }
@@ -131,12 +131,12 @@ public:
     mesh.getGlobalConnectivity(global_connectivity);
   }
 
-  UInt getNbData(const Array<Element> & elements,
+  Int getNbData(const Array<Element> & elements,
                  const SynchronizationTag & tag) const override {
-    UInt size = 0;
+    Int size = 0;
     if (tag == SynchronizationTag::_smmc_facets_conn) {
-      UInt nb_nodes = Mesh::getNbNodesPerElementList(elements);
-      size += nb_nodes * sizeof(UInt);
+      Int nb_nodes = Mesh::getNbNodesPerElementList(elements);
+      size += nb_nodes * sizeof(Idx);
     }
     return size;
   }
@@ -169,20 +169,20 @@ public:
   AKANTU_GET_MACRO(GlobalConnectivity, (global_connectivity), decltype(auto));
 
 protected:
-  ElementTypeMapArray<UInt> global_connectivity;
+  ElementTypeMapArray<Idx> global_connectivity;
 };
 
 /* -------------------------------------------------------------------------- */
 const Array<Real> & Mesh::getNormals(ElementType element_type,
                                      GhostType ghost_type) {
-  if (hasData("normals", element_type, ghost_type)) {
-    return getData("normals", element_type, ghost_type);
+  if (this->hasData<Real>("normals", element_type, ghost_type)) {
+    return this->getData<Real>("normals", element_type, ghost_type);
   }
 
   auto & normals = getDataPointer<Real>("normals", element_type, ghost_type,
                                         spatial_dimension, true);
   for(auto && data : enumerate(make_view(normals, spatial_dimension))) {
-
+    AKANTU_TO_IMPLEMENT();
   }
 }
 

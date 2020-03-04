@@ -117,10 +117,10 @@ protected:
   const Communicator & communicator;
 
   /// nb processors in the communicator
-  UInt nb_proc;
+  Int nb_proc;
 
   /// rank in the communicator
-  UInt rank;
+  Int rank;
 };
 
 } // namespace akantu

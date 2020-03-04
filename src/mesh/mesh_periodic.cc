@@ -41,8 +41,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 void Mesh::makePeriodic(const SpatialDirection & direction) {
-  Array<UInt> list_1;
-  Array<UInt> list_2;
+  Array<Idx> list_1;
+  Array<Idx> list_2;
   Real tolerance = 1e-10;
 
   auto lower_bound = this->getLowerBounds();
@@ -52,7 +52,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction) {
   const auto & positions = *nodes;
 
   for (auto && data : enumerate(make_view(positions, spatial_dimension))) {
-    UInt node = std::get<0>(data);
+    auto node = std::get<0>(data);
     const auto & pos = std::get<1>(data);
 
     if (std::abs((pos(direction) - lower_bound(direction)) / length) <
@@ -86,8 +86,8 @@ void Mesh::makePeriodic(const SpatialDirection & direction, const ID & list_1,
 namespace {
   struct NodeInfo {
     NodeInfo() = default;
-    NodeInfo(UInt spatial_dimension) : position(spatial_dimension) {}
-    NodeInfo(UInt node, const Vector<Real> & position,
+    NodeInfo(Int spatial_dimension) : position(spatial_dimension) {}
+    NodeInfo(Idx node, const Vector<Real> & position,
              const SpatialDirection & direction)
         : node(node), position(position) {
       this->direction_position = position(direction);
@@ -99,7 +99,7 @@ namespace {
     NodeInfo & operator=(const NodeInfo & other) = default;
     NodeInfo & operator=(NodeInfo && other)  = default;
 
-    UInt node{0};
+    Idx node{0};
     Vector<Real> position;
     Real direction_position{0.};
   };
@@ -108,8 +108,8 @@ namespace {
 /* -------------------------------------------------------------------------- */
 // left is for lower values on direction and right for highest values
 void Mesh::makePeriodic(const SpatialDirection & direction,
-                        const Array<UInt> & list_left,
-                        const Array<UInt> & list_right) {
+                        const Array<Idx> & list_left,
+                        const Array<Idx> & list_right) {
   Real tolerance = 1e-10;
 
   const auto & positions = *nodes;
@@ -126,9 +126,9 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
   std::vector<NodeInfo> nodes_right(list_right.size());
 
   BBox bbox(spatial_dimension);
-  auto to_position = [&](UInt node) {
+  auto to_position = [&](auto node) {
     Vector<Real> pos(spatial_dimension);
-    for (UInt s : arange(spatial_dimension)) {
+    for (auto s : arange(spatial_dimension)) {
       pos(s) = positions(node, s);
     }
     auto && info = NodeInfo(node, pos, direction);
@@ -145,7 +145,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
                  to_position);
   BBox bbox_right = bbox;
 
-  std::vector<UInt> new_nodes;
+  std::vector<Idx> new_nodes;
   if (is_distributed) {
     NewNodesEvent event(AKANTU_CURRENT_FUNCTION);
 
@@ -160,11 +160,11 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
       // std::cout << "Sending to " << proc << std::endl;
       for (auto & info : node_list) {
         if (bbox.contains(info.position) and isLocalOrMasterNode(info.node)) {
-          Vector<Real> pos = info.position;
+          auto pos = info.position;
           pos(direction) = info.direction_position;
 
-          NodeFlag flag = (*nodes_flags)(info.node) & NodeFlag::_periodic_mask;
-          UInt gnode = getNodeGlobalId(info.node);
+          auto flag = (*nodes_flags)(info.node) & NodeFlag::_periodic_mask;
+          auto gnode = getNodeGlobalId(info.node);
           buffer << gnode;
           buffer << pos;
           buffer << flag;
@@ -173,20 +173,20 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
           // if is slave sends master info
           if (flag == NodeFlag::_periodic_slave) {
-            UInt master = getNodeGlobalId(periodic_slave_master[info.node]);
+            auto master = getNodeGlobalId(periodic_slave_master[info.node]);
             // std::cout << " slave of " << master << std::endl;
             buffer << master;
           }
 
           // if is master sends list of slaves
           if (flag == NodeFlag::_periodic_master) {
-            UInt nb_slaves = periodic_master_slave.count(info.node);
+            auto nb_slaves = periodic_master_slave.count(info.node);
             buffer << nb_slaves;
 
             // std::cout << " master of " << nb_slaves << " nodes : [";
             auto slaves = periodic_master_slave.equal_range(info.node);
             for (auto it = slaves.first; it != slaves.second; ++it) {
-              UInt gslave = getNodeGlobalId(it->second);
+              auto gslave = getNodeGlobalId(it->second);
               // std::cout << (it == slaves.first ? "" : ", ") << gslave;
               buffer << gslave;
             }
@@ -214,7 +214,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
       while (not buffer.empty()) {
         Vector<Real> pos(spatial_dimension);
-        UInt global_node;
+        Idx global_node;
         NodeFlag flag;
         buffer >> global_node;
         buffer >> pos;
@@ -225,7 +225,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
         // get the master info of is slave
         if (flag == NodeFlag::_periodic_slave) {
-          UInt master_node;
+          Idx master_node;
           buffer >> master_node;
           // std::cout << " slave of " << master_node << std::endl;
           // auto local_master_node = getNodeLocalId(master_node);
@@ -235,11 +235,11 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
         // get the list of slaves if is master
         if ((flag & NodeFlag::_periodic_mask) == NodeFlag::_periodic_master) {
-          UInt nb_slaves;
+          Int nb_slaves;
           buffer >> nb_slaves;
           // std::cout << " master of " << nb_slaves << " nodes : [";
           for (auto ns [[gnu::unused]] : arange(nb_slaves)) {
-            UInt gslave_node;
+            Idx gslave_node;
             buffer >> gslave_node;
             // std::cout << (ns == 0 ? "" : ", ") << gslave_node;
             // auto lslave_node = getNodeLocalId(gslave_node);
@@ -250,7 +250,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
           // std::cout << "]";
         }
         // std::cout << std::endl;
-        if (local_node != UInt(-1)) {
+        if (local_node != -1) {
           continue;
         }
 

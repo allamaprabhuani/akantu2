@@ -534,8 +534,11 @@ namespace {
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
   inline type get##name() const { return variable; }
 
-#define AKANTU_GET_MACRO_AUTO(name, variable) \
+#define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
   inline decltype(auto) get##name() const { return (variable); }
+
+#define AKANTU_GET_MACRO_AUTO_NOT_CONST(name, variable)                        \
+  inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
   inline type get##name() { return variable; }
@@ -554,6 +557,14 @@ namespace {
       AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
     return (*(ptr));                                                           \
+  }
+
+#define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
+  inline decltype(auto) get##name() {                                          \
+    if (not ptr) {                                                             \
+      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
+    }                                                                          \
+    return (*ptr);                                                             \
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \

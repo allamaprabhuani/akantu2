@@ -55,7 +55,9 @@ inline constexpr auto Mesh::getKind(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr ElementKind Element::kind() const { return Mesh::getKind(type); }
+inline constexpr ElementKind Element::kind() const {
+  return Mesh::getKind(type);
+}
 
 /* -------------------------------------------------------------------------- */
 inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type) {
@@ -69,7 +71,8 @@ inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type, Idx t) {
+inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type,
+                                                  Idx t) {
   Int n_facet = 0;
 #define GET_NB_FACET(type)                                                     \
   n_facet = ElementClass<type>::getNbFacetsPerElement(t)
@@ -474,7 +477,7 @@ inline constexpr auto Mesh::getNaturalSpaceDimension(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr auto Mesh::getNbFacetTypes(ElementType type, UInt /*t*/) {
+inline constexpr auto Mesh::getNbFacetTypes(ElementType type, Idx /*t*/) {
   UInt nb = 0;
 #define GET_NB_FACET_TYPE(type) nb = ElementClass<type>::getNbFacetTypes()
 

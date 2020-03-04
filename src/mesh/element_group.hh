@@ -151,8 +151,8 @@ public:
   const Array<Idx> &
   getElements(const ElementType & type,
               const GhostType & ghost_type = _not_ghost) const;
-  AKANTU_GET_MACRO(Elements, elements, const ElementTypeMapArray<Idx> &);
-  AKANTU_GET_MACRO_NOT_CONST(Elements, elements, ElementTypeMapArray<Idx> &);
+  AKANTU_GET_MACRO_AUTO(Elements, elements);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(Elements, elements);
 
   template <class... Args> auto size(Args &&... pack) const {
     return elements.size(std::forward<Args>(pack)...);
@@ -163,11 +163,12 @@ public:
 
   //  AKANTU_GET_MACRO(Nodes, node_group.getNodes(), const Array<UInt> &);
 
-  AKANTU_GET_MACRO(NodeGroup, node_group, const NodeGroup &);
-  AKANTU_GET_MACRO_NOT_CONST(NodeGroup, node_group, NodeGroup &);
+  AKANTU_GET_MACRO_AUTO(NodeGroup, node_group);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(NodeGroup, node_group);
 
-  AKANTU_GET_MACRO(Dimension, dimension, UInt);
-  AKANTU_GET_MACRO(Name, name, std::string);
+  AKANTU_GET_MACRO_AUTO(Dimension, dimension);
+  AKANTU_GET_MACRO_AUTO(Name, name);
+
   inline Int getNbNodes() const;
 
   /* ------------------------------------------------------------------------ */

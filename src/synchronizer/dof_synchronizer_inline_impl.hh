@@ -34,7 +34,7 @@
 #include "communication_buffer.hh"
 #include "data_accessor.hh"
 #include "dof_manager_default.hh"
-#include "dof_synchronizer.hh"
+//#include "dof_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
 /* -------------------------------------------------------------------------- */
@@ -45,16 +45,16 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt DOFSynchronizer::canScatterSize() {
+inline Int DOFSynchronizer::canScatterSize() {
   return dof_manager.getLocalSystemSize();
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt DOFSynchronizer::gatheredSize() {
+inline Int DOFSynchronizer::gatheredSize() {
   return dof_manager.getSystemSize();
 }
 
-inline UInt DOFSynchronizer::localToGlobalEntity(const UInt & local) {
+inline Idx DOFSynchronizer::localToGlobalEntity(const Idx & local) {
   return dof_manager.localToGlobalEquationNumber(local);
 }
 } // namespace akantu

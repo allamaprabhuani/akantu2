@@ -456,17 +456,17 @@ SynchronizerImpl<Entity>::operator=(const SynchronizerImpl & other) {
 
 /* -------------------------------------------------------------------------- */
 template <class Entity>
-UInt SynchronizerImpl<Entity>::sanityCheckDataSize(
+Int SynchronizerImpl<Entity>::sanityCheckDataSize(
     const Array<Entity> & /*unused*/, const SynchronizationTag & /*unused*/,
     bool is_comm_desc) const {
   if (not is_comm_desc) {
     return 0;
   }
 
-  UInt size = 0;
+  Int size = 0;
   size += sizeof(SynchronizationTag); // tag
-  size += sizeof(UInt);               // comm_desc.getNbData();
-  size += sizeof(UInt);               // comm_desc.getProc();
+  size += sizeof(Int);               // comm_desc.getNbData();
+  size += sizeof(Int);               // comm_desc.getProc();
   size += sizeof(this->rank);         // mesh.getCommunicator().whoAmI();
 
   return size;
@@ -546,7 +546,7 @@ void SynchronizerImpl<Entity>::initScatterGatherCommunicationScheme() {
 
 /* -------------------------------------------------------------------------- */
 template <>
-inline void SynchronizerImpl<UInt>::initScatterGatherCommunicationScheme() {
+inline void SynchronizerImpl<Idx>::initScatterGatherCommunicationScheme() {
   AKANTU_DEBUG_IN();
 
   if (this->nb_proc == 1) {
@@ -558,19 +558,19 @@ inline void SynchronizerImpl<UInt>::initScatterGatherCommunicationScheme() {
   this->entities_from_root.clear();
   this->master_receive_entities.clear();
 
-  Array<UInt> entities_to_send;
+  Array<Idx> entities_to_send;
   fillEntityToSend(entities_to_send);
 
   std::vector<CommunicationRequest> requests;
 
-  if (this->rank == UInt(this->root)) {
+  if (this->rank == Int(this->root)) {
     master_receive_entities[this->root].copy(entities_to_send);
 
-    Array<Int> nb_entities_per_proc(this->nb_proc);
+    Array<Idx> nb_entities_per_proc(this->nb_proc);
     communicator.gather(entities_to_send.size(), nb_entities_per_proc);
 
-    for (UInt p = 0; p < nb_proc; ++p) {
-      if (p == UInt(this->root)) {
+    for (Int p = 0; p < nb_proc; ++p) {
+        if (p == Int(this->root)) {
         continue;
       }
 
@@ -627,7 +627,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
     return;
   }
 
-  std::map<UInt, CommunicationBuffer> buffers;
+  std::map<Int, CommunicationBuffer> buffers;
   std::vector<CommunicationRequest> requests;
   for (UInt p = 0; p < this->nb_proc; ++p) {
     if (p == UInt(this->root)) {
@@ -662,16 +662,16 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
   { // copy master data
     auto data_to_gather_it = to_gather.begin(to_gather.getNbComponent());
     for (auto local_entity : entities_from_root) {
-      UInt global_entity = localToGlobalEntity(local_entity);
+      auto global_entity = localToGlobalEntity(local_entity);
 
-      Vector<T> entity_data_gathered = data_gathered_it[global_entity];
-      Vector<T> entity_data_to_gather = data_to_gather_it[local_entity];
+      auto && entity_data_gathered = data_gathered_it[global_entity];
+      auto && entity_data_to_gather = data_to_gather_it[local_entity];
       entity_data_gathered = entity_data_to_gather;
     }
   }
 
-  auto rr = UInt(-1);
-  while ((rr = Communicator::waitAny(requests)) != UInt(-1)) {
+  auto rr = -1;
+  while ((rr = communicator::waitAny(requests)) != -1) {
     auto & request = requests[rr];
     auto sender = request.getSource();
 
@@ -685,7 +685,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather,
     auto & buffer = buffers[sender];
 
     for (auto global_entity : receive_entities) {
-      Vector<T> entity_data = data_gathered_it[global_entity];
+      auto && entity_data = data_gathered_it[global_entity];
       buffer >> entity_data;
     }
 
@@ -717,7 +717,7 @@ void SynchronizerImpl<Entity>::gather(const Array<T> & to_gather) {
 
   auto data_it = to_gather.begin(to_gather.getNbComponent());
   for (auto entity : this->entities_from_root) {
-    Vector<T> data = data_it[entity];
+    auto && data = data_it[entity];
     buffer << data;
   }
 

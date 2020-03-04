@@ -108,21 +108,21 @@ class Mesh : public EventHandlerManager<MeshEventHandler>,
 private:
   /// default constructor used for chaining, the last parameter is just to
   /// differentiate constructors
-  Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator);
+  Mesh(Int spatial_dimension, const ID & id, Communicator & communicator);
 
 public:
   /// constructor that create nodes coordinates array
-  Mesh(UInt spatial_dimension, const ID & id = "mesh");
+  Mesh(Int spatial_dimension, const ID & id = "mesh");
 
   /// mesh not distributed and not using the default communicator
-  Mesh(UInt spatial_dimension, Communicator & communicator,
+  Mesh(Int spatial_dimension, Communicator & communicator,
        const ID & id = "mesh");
 
   /**
    * constructor that use an existing nodes coordinates
    * array, by getting the vector of coordinates
    */
-  Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
+  Mesh(Int spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
        const ID & id = "mesh");
 
   ~Mesh() override;
@@ -433,7 +433,7 @@ public:
   inline ElementTypeMapArray<T> & getData(const ID & data_name);
 
   template <typename T>
-  ElementTypeMap<UInt> getNbDataPerElem(ElementTypeMapArray<T> & array);
+  ElementTypeMap<Int> getNbDataPerElem(ElementTypeMapArray<T> & array);
 
   template <typename T>
   std::shared_ptr<dumpers::Field>
@@ -555,8 +555,8 @@ public:
 
   // AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, StaticCommunicator
   // &);
-  AKANTU_GET_MACRO_AUTO(Communicator, communicator);
-  AKANTU_GET_MACRO_NOT_CONST(Communicator, communicator, auto &);
+  AKANTU_GET_MACRO_DEREF_PTR(Communicator, communicator);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Communicator, communicator);
   AKANTU_GET_MACRO_AUTO(PeriodicMasterSlaves, periodic_master_slave);
 
   /* ------------------------------------------------------------------------ */
@@ -620,7 +620,7 @@ private:
   std::unordered_map<Idx, Int> nodes_prank;
 
   /// global number of nodes;
-  UInt nb_global_nodes{0};
+  Int nb_global_nodes{0};
 
   /// all class of elements present in this mesh (for heterogenous meshes)
   ElementTypeMapArray<Idx> connectivities;
@@ -658,7 +658,7 @@ private:
   bool is_periodic{false};
 
   /// Communicator on which mesh is distributed
-  Communicator & communicator;
+  Communicator * communicator;
 
   /// Element synchronizer
   std::unique_ptr<ElementSynchronizer> element_synchronizer;

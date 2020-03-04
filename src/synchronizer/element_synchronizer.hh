@@ -42,7 +42,7 @@
 #include "aka_array.hh"
 #include "aka_common.hh"
 #include "mesh_partition.hh"
-#include "synchronizer_impl.hh"
+#include "synchronizer.hh"
 
 namespace akantu {
 class Mesh;
@@ -164,24 +164,23 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Sanity checks                                                            */
   /* ------------------------------------------------------------------------ */
-  UInt sanityCheckDataSize(const Array<Element> & elements,
-                           const SynchronizationTag & tag,
-                           bool from_comm_desc = true) const override;
+  Int sanityCheckDataSize(const Array<Element> & elements,
+                          const SynchronizationTag & tag,
+                          bool from_comm_desc = true) const override;
   void packSanityCheckData(CommunicationBuffer & /*buffer*/,
                            const Array<Element> & /*elements*/,
                            const SynchronizationTag & /*tag*/) const override;
   void unpackSanityCheckData(CommunicationBuffer & /*buffer*/,
                              const Array<Element> & /*elements*/,
-                             const SynchronizationTag & /*tag*/, UInt /*proc*/,
-                             UInt /*rank*/) const override;
+                             const SynchronizationTag & /*tag*/, Int /*proc*/,
+                             Int /*rank*/) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Mesh, mesh, Mesh &);
-  AKANTU_GET_MACRO(ElementToRank, element_to_prank,
-                   const ElementTypeMapArray<Int> &);
+  AKANTU_GET_MACRO_AUTO(Mesh, mesh);
+  AKANTU_GET_MACRO_AUTO(ElementToRank, element_to_prank);
 
   Int getRank(const Element & element) const final;
   /* ------------------------------------------------------------------------ */

@@ -67,7 +67,7 @@ MeshPartition::MeshPartition(Mesh & mesh, UInt spatial_dimension, const ID & id)
 MeshPartition::~MeshPartition() = default;
 
 /* -------------------------------------------------------------------------- */
-UInt MeshPartition::linearized(const Element & element) {
+Idx MeshPartition::linearized(const Element & element) {
   auto it =
       std::find_if(linearized_offsets.begin(), linearized_offsets.end(),
                    [&element](auto & a) { return a.first == element.type; });
@@ -77,9 +77,9 @@ UInt MeshPartition::linearized(const Element & element) {
 }
 
 /* -------------------------------------------------------------------------- */
-Element MeshPartition::unlinearized(UInt lin_element) {
+Element MeshPartition::unlinearized(Idx lin_element) {
   ElementType type{_not_defined};
-  UInt offset{0};
+  Idx offset{0};
   for (auto & pair : linearized_offsets) {
     if (lin_element < pair.second) {
       continue;
@@ -110,9 +110,8 @@ void MeshPartition::buildDualGraph(
   for_each_element(
       mesh,
       [&](auto && element) {
-        const auto & conn =
-            const_cast<const Mesh &>(mesh).getConnectivity(element);
-        std::map<Element, UInt> hits;
+        const auto & conn = mesh.getConnectivity(element);
+        std::map<Element, Int> hits;
 
         // count the number of nodes shared with a given element
         for (auto && node : conn) {
@@ -123,7 +122,7 @@ void MeshPartition::buildDualGraph(
 
         // define a minumum number of nodes to share to be considered as a
         // ajacent element
-        UInt magic_number{conn.size()};
+        auto magic_number{conn.size()};
         for (auto n : arange(mesh.getNbFacetTypes(element.type))) {
           magic_number = std::min(
               mesh.getNbNodesPerElement(mesh.getFacetType(element.type, n)),
@@ -213,11 +212,11 @@ void MeshPartition::fillPartitionInformation(
 
   MeshUtils::buildNode2Elements(mesh, node_to_elem);
 
-  UInt linearized_el = 0;
+  Int linearized_el = 0;
   for (const auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_not_defined)) {
-    UInt nb_element = mesh.getNbElement(type);
-    UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    auto nb_element = mesh.getNbElement(type);
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
     auto & partition = partitions.alloc(nb_element, 1, type, _not_ghost);
     auto & ghost_part_csr = ghost_partitions_csr(type, _not_ghost);
@@ -230,17 +229,17 @@ void MeshPartition::fillPartitionInformation(
     const auto & connectivity = mesh.getConnectivity(type, _not_ghost);
     auto conn_it = connectivity.begin(connectivity.getNbComponent());
 
-    for (UInt el = 0; el < nb_element; ++el, ++linearized_el) {
-      UInt part = linearized_partitions[linearized_el];
+    for (Int el = 0; el < nb_element; ++el, ++linearized_el) {
+      auto part = linearized_partitions[linearized_el];
 
       partition(el) = part;
-      std::list<UInt> list_adj_part;
-      for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-        auto conn = Vector<UInt>(*(conn_it + el));
-        UInt node = conn(n);
+      std::list<Int> list_adj_part;
+      auto conn = conn_it[el];
+      for (Int n = 0; n < nb_nodes_per_element; ++n) {
+        auto node = conn(n);
         for (const auto & adj_element : node_to_elem.getRow(node)) {
-          UInt adj_el = linearized(adj_element);
-          UInt adj_part = linearized_partitions[adj_el];
+          auto adj_el = linearized(adj_element);
+          auto adj_part = linearized_partitions[adj_el];
           if (part != adj_part) {
             list_adj_part.push_back(adj_part);
           }
@@ -263,20 +262,19 @@ void MeshPartition::fillPartitionInformation(
 
     /// convert the ghost_partitions_offset array in an offset array
     auto & ghost_partitions_offset_ptr = ghost_partitions_offset(type, _ghost);
-    for (UInt i = 1; i < nb_element; ++i) {
-      ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i - 1);
+    for (Int i = 1; i < nb_element; ++i) {
+        ghost_partitions_offset_ptr(i) += ghost_partitions_offset_ptr(i - 1);
     }
-    for (UInt i = nb_element; i > 0; --i) {
+    for (Int i = nb_element; i > 0; --i) {
       ghost_partitions_offset_ptr(i) = ghost_partitions_offset_ptr(i - 1);
     }
     ghost_partitions_offset_ptr(0) = 0;
   }
 
   // All Facets
-  for (Int sp = spatial_dimension - 1; sp >= 0; --sp) {
-    for (const auto & type :
-         mesh.elementTypes(sp, _not_ghost, _ek_not_defined)) {
-      UInt nb_element = mesh.getNbElement(type);
+  for (auto sp = spatial_dimension - 1; sp >= 0; --sp) {
+    for (const auto & type : mesh.elementTypes(sp, _not_ghost, _ek_not_defined)) {
+      auto nb_element = mesh.getNbElement(type);
 
       auto & partition = partitions.alloc(nb_element, 1, type, _not_ghost);
       AKANTU_DEBUG_INFO("Allocating partitions for " << type);
@@ -287,20 +285,20 @@ void MeshPartition::fillPartitionInformation(
           ghost_partitions_offset.alloc(nb_element + 1, 1, type, _ghost);
       auto & ghost_partition = ghost_partitions.alloc(0, 1, type, _ghost);
       AKANTU_DEBUG_INFO("Allocating ghost_partitions for " << type);
-      const Array<std::vector<Element>> & elem_to_subelem =
+      const auto & elem_to_subelem =
           mesh.getElementToSubelement(type, _not_ghost);
 
       // Facet loop
-      for (UInt i(0); i < mesh.getNbElement(type, _not_ghost); ++i) {
+      for (Int i(0); i < mesh.getNbElement(type, _not_ghost); ++i) {
         const auto & adjacent_elems = elem_to_subelem(i);
         if (adjacent_elems.empty()) {
           partition(i) = 0;
           continue;
         }
-        Element min_elem{_max_element_type, std::numeric_limits<UInt>::max(),
+        Element min_elem{_max_element_type, std::numeric_limits<Idx>::max(),
                          *(ghost_type_t{}.end())};
-        UInt min_part(std::numeric_limits<UInt>::max());
-        std::set<UInt> adjacent_parts;
+        auto min_part(std::numeric_limits<Int>::max());
+        std::set<Idx> adjacent_parts;
 
         for (auto adj_elem : adjacent_elems) {
           if (adj_elem == ElementNull) { // case of boundary elements
@@ -316,12 +314,9 @@ void MeshPartition::fillPartitionInformation(
         }
         partition(i) = min_part;
 
-        auto git = ghost_partitions_csr(min_elem.type, _not_ghost)
-                       .begin(min_elem.element);
-        auto gend = ghost_partitions_csr(min_elem.type, _not_ghost)
-                        .end(min_elem.element);
-        for (; git != gend; ++git) {
-          adjacent_parts.insert(*git);
+        for (auto & gp : ghost_partitions_csr(min_elem.type, _not_ghost)
+                             .getRow(min_elem.element)) {
+          adjacent_parts.insert(gp);
         }
 
         adjacent_parts.erase(min_part);

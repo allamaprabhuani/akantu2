@@ -44,9 +44,27 @@
 
 #define DISPATCH_HELPER(Func, ...)                                             \
   auto && call = [&](auto && enum_type) {                                      \
-    return this->Func<ElementType(enum_type)>(__VA_ARGS__);                    \
+    this->Func<ElementType(enum_type)>(__VA_ARGS__);                           \
   };                                                                           \
   tuple_dispatch<ElementTypes_t<kind>>(call, type);
+
+#define DISPATCH_SHAPE_FUNCTIONS_HELPER(Func, ...)                             \
+  auto && call = [&](auto && enum_type) {                                      \
+    shape_functions.template Func<ElementType(enum_type)>(__VA_ARGS__);        \
+  };                                                                           \
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
+
+#define DISPATCH_INTEGRATOR_HELPER(Func, ...)                                  \
+  auto && call = [&](auto && enum_type) {                                      \
+    integrator.template Func<ElementType(enum_type)>(__VA_ARGS__);             \
+  };                                                                           \
+  tuple_dispatch<ElementTypes_t<kind>>(call, type);
+
+#define DISPATCH_INTEGRATOR_WITH_RES_HELPER(Func, ...)                         \
+  auto && call = [&](auto && enum_type) {                                      \
+    return integrator.template Func<ElementType(enum_type)>(__VA_ARGS__);      \
+  };                                                                           \
+  auto res = tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
 namespace akantu {
 
@@ -177,12 +195,8 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
 
   intf.resize(nb_element);
 
-  auto call = [&](auto && integral_type) {
-    integrator.template integrate<ElementType(integral_type)>(
-        f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
-  };
-
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
+  DISPATCH_INTEGRATOR_HELPER(integrate, f, intf, nb_degree_of_freedom,
+                             ghost_type, filter_elements);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -211,15 +225,11 @@ Real FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
                           << ") has not the good number of component.");
 #endif
 
-  auto call = [&](auto && integral_type) {
-    return integrator.template integrate<ElementType(integral_type)>(
-        f, ghost_type, filter_elements);
-  };
-
-  auto integral = tuple_dispatch<ElementTypes_t<kind>>(call, type);
+  DISPATCH_INTEGRATOR_WITH_RES_HELPER(integrate, f, ghost_type,
+                                      filter_elements);
 
   AKANTU_DEBUG_OUT();
-  return integral;
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -229,11 +239,8 @@ Real FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::integrate(
     const Ref<const VectorXr> & f, const ElementType & type, Int index,
     const GhostType & ghost_type) const {
 
-  auto call = [&](auto && integral_type) {
-    return integrator.template integrate<ElementType(type)>(f, index,
-                                                            ghost_type);
-  };
-  return tuple_dispatch<ElementTypes_t<kind>>(call, type);
+  DISPATCH_INTEGRATOR_WITH_RES_HELPER(integrate, f, index, ghost_type);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -250,6 +257,7 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   if (filter_elements != empty_filter)
     nb_element = filter_elements.size();
   auto nb_quadrature_points = getNbIntegrationPoints(type);
+
 #ifndef AKANTU_NDEBUG
   //   std::stringstream sstr; sstr << ghost_type;
   //   AKANTU_DEBUG_ASSERT(sstr.str() == nablauq.getTag(),
@@ -272,19 +280,9 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 
   intf.resize(nb_element * nb_quadrature_points);
 
-  auto call = [&](auto && integral_type) {
-    integrator
-        .template integrateOnIntegrationPoints<ElementType(integral_type)>(
-            f, intf, nb_degree_of_freedom, ghost_type, filter_elements);
-  };
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
+  DISPATCH_INTEGRATOR_HELPER(integrateOnIntegrationPoints, f, intf,
+                             nb_degree_of_freedom, ghost_type, filter_elements);
 }
-
-#define DISPATCH_SHAPE_FUNCTIONS_HELPER(Func, ...)                             \
-  auto && call = [&](auto && enum_type) {                                      \
-    return shape_functions.template Func<ElementType(enum_type)>(__VA_ARGS__); \
-  };                                                                           \
-  tuple_dispatch<ElementTypes_t<kind>>(call, type);
 
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
@@ -513,43 +511,27 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-namespace fe_engine {
-  namespace details {
-    template <ElementKind kind> struct InterpolateHelper {
-      template <class S>
-      static void call(const S &, const Ref<const VectorXr> &, Int,
-                       const Ref<const MatrixXr> &, Ref<VectorXr>,
-                       const ElementType &, const GhostType &) {
-        AKANTU_TO_IMPLEMENT();
-      }
-    };
+template <template <ElementKind, class> class I, template <ElementKind> class S,
+          ElementKind kind, class IntegrationOrderFunctor>
+template <ElementKind kind_, std::enable_if_t<kind_ == _ek_regular> *>
+inline void
+FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolate_impl(
+    const Ref<const VectorXr> & real_coords,
+    const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated,
+    const Element & element) const {
 
-#define INTERPOLATE(type)                                                      \
-  shape_functions.template interpolate<type>(                                  \
-      real_coords, element, nodal_values, interpolated, ghost_type);
+  AKANTU_DEBUG_IN();
 
-#define AKANTU_SPECIALIZE_INTERPOLATE_HELPER(kind)                             \
-  template <> struct InterpolateHelper<kind> {                                 \
-    template <class S>                                                         \
-    static void call(const S & shape_functions,                                \
-                     const Ref<const VectorXr> & real_coords, Int element,     \
-                     const Ref<const MatrixXr> & nodal_values,                 \
-                     Ref<VectorXr> interpolated, const ElementType & type,     \
-                     const GhostType & ghost_type) {                           \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INTERPOLATE, kind);                     \
-    }                                                                          \
-  };
+  /// add sfinea to call only on _ek_regular
+  auto type = element.type;
+  DISPATCH_SHAPE_FUNCTIONS_HELPER(interpolate, real_coords, element.element,
+                                  nodal_values, interpolated,
+                                  element.ghost_type);
 
-    AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_INTERPOLATE_HELPER,
-                               AKANTU_FE_ENGINE_LIST_INTERPOLATE)
+  AKANTU_DEBUG_OUT();
+}
 
-#undef AKANTU_SPECIALIZE_INTERPOLATE_HELPER
-#undef INTERPOLATE
-  } // namespace details
-} // namespace fe_engine
+/* -------------------------------------------------------------------------- */
 
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
@@ -557,17 +539,8 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::interpolate(
     const Ref<const VectorXr> & real_coords,
     const Ref<const MatrixXr> & nodal_values, Ref<VectorXr> interpolated,
     const Element & element) const {
-
-  AKANTU_DEBUG_IN();
-
-  auto type = element.type;
-  DISPATCH_SHAPE_FUNCTIONS_HELPER(interpolate, real_coords, element,
-                                  nodal_values, interpolated,
-                                  element.ghost_type);
-
-  AKANTU_DEBUG_OUT();
+  interpolate_impl(real_coords, nodal_values, interpolated, element);
 }
-
 /* -------------------------------------------------------------------------- */
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
@@ -717,40 +690,6 @@ void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
 }
 
 /* -------------------------------------------------------------------------- */
-/**
- * Helper class to be able to write a partial specialization on the element kind
- */
-template <ElementKind kind> struct InverseMapHelper {
-  template <class S>
-  static void
-  call(const S & /*shape_functions*/, const Vector<Real> & /*real_coords*/,
-       Int /*element*/, const ElementType & /*type*/,
-       Vector<Real> & /*natural_coords*/, const GhostType & /*ghost_type*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
-};
-
-#define INVERSE_MAP(type)                                                      \
-  shape_functions.template inverseMap<type>(real_coords, element,              \
-                                            natural_coords, ghost_type);
-
-#define AKANTU_SPECIALIZE_INVERSE_MAP_HELPER(kind)                             \
-  template <> struct InverseMapHelper<kind> {                                  \
-    template <class S>                                                         \
-    static void call(const S & shape_functions,                                \
-                     const Vector<Real> & real_coords, Int element,            \
-                     const ElementType & type, Vector<Real> & natural_coords,  \
-                     const GhostType & ghost_type) {                           \
-      AKANTU_BOOST_KIND_ELEMENT_SWITCH(INVERSE_MAP, kind);                     \
-    }                                                                          \
-  };
-
-AKANTU_BOOST_ALL_KIND_LIST(AKANTU_SPECIALIZE_INVERSE_MAP_HELPER,
-                           AKANTU_FE_ENGINE_LIST_INVERSE_MAP)
-
-#undef AKANTU_SPECIALIZE_INVERSE_MAP_HELPER
-#undef INVERSE_MAP
-
 template <template <ElementKind, class> class I, template <ElementKind> class S,
           ElementKind kind, class IntegrationOrderFunctor>
 inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::inverseMap(
@@ -759,8 +698,9 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::inverseMap(
 
   AKANTU_DEBUG_IN();
 
-  InverseMapHelper<kind>::call(shape_functions, real_coords, element, type,
-                               natural_coords, ghost_type);
+  /// need sfinea to avoid structural
+  DISPATCH_SHAPE_FUNCTIONS_HELPER(inverseMap, real_coords, element,
+                                  natural_coords, ghost_type);
 
   AKANTU_DEBUG_OUT();
 }

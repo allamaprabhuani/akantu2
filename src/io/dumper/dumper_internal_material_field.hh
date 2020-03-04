@@ -44,7 +44,7 @@ namespace dumpers {
 
 template <typename T, bool filtered = false>
 class InternalMaterialField
-    : public GenericElementalField<SingleType<T, Vector, filtered>,
+    : public GenericElementalField<SingleType<T, Vector<T>, filtered>,
                                    quadrature_point_iterator> {
 
   /* ------------------------------------------------------------------------ */
@@ -52,7 +52,7 @@ class InternalMaterialField
   /* ------------------------------------------------------------------------ */
 
 public:
-  using types = SingleType<T, Vector, filtered>;
+  using types = SingleType<T, Vector<T>, filtered>;
   using parent = GenericElementalField<types, quadrature_point_iterator>;
   using field_type = typename types::field_type;
   using support_type = Element;
@@ -62,7 +62,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   InternalMaterialField(const field_type & field,
-                        UInt spatial_dimension = _all_dimensions,
+                        Int spatial_dimension = _all_dimensions,
                         GhostType ghost_type = _not_ghost,
                         ElementKind element_kind = _ek_not_defined)
       : parent(field, spatial_dimension, ghost_type, element_kind) {}

@@ -53,7 +53,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ElementGroup::ElementGroup(const std::string & group_name, const Mesh & mesh,
-                           NodeGroup & node_group, UInt dimension,
+                           NodeGroup & node_group, Int dimension,
                            const std::string & id)
     : mesh(mesh), name(group_name),
       elements("elements", id), node_group(node_group),
@@ -98,31 +98,21 @@ void ElementGroup::append(const ElementGroup & other_group) {
   for (auto ghost_type : ghost_types) {
     for (auto type : other_group.elementTypes(_ghost_type = ghost_type,
                      _element_kind = _ek_not_defined)) {
-      const Array<UInt> & other_elem_list =
-          other_group.elements(type, ghost_type);
-      UInt nb_other_elem = other_elem_list.size();
+      const auto & other_elem_list = other_group.elements(type, ghost_type);
+      auto nb_other_elem = other_elem_list.size();
 
-      Array<UInt> * elem_list;
-      UInt nb_elem = 0;
+      auto & elem_list = elements.alloc(0, 1, type, ghost_type);
 
-      /// create current type if doesn't exists, otherwise get information
-      if (elements.exists(type, ghost_type)) {
-        elem_list = &elements(type, ghost_type);
-        nb_elem = elem_list->size();
-      } else {
-        elem_list = &(elements.alloc(0, 1, type, ghost_type));
-      }
-
+      auto nb_elem = elem_list.size();
       /// append new elements to current list
-      elem_list->resize(nb_elem + nb_other_elem);
+      elem_list.resize(nb_elem + nb_other_elem);
       std::copy(other_elem_list.begin(), other_elem_list.end(),
-                elem_list->begin() + nb_elem);
+                elem_list.begin() + nb_elem);
 
       /// remove duplicates
-      std::sort(elem_list->begin(), elem_list->end());
-      Array<UInt>::iterator<> end =
-          std::unique(elem_list->begin(), elem_list->end());
-      elem_list->resize(end - elem_list->begin());
+      std::sort(elem_list.begin(), elem_list.end());
+      auto end = std::unique(elem_list.begin(), elem_list.end());
+      elem_list.resize(end - elem_list.begin());
     }
   }
 
@@ -149,10 +139,10 @@ void ElementGroup::optimize() {
   // increasing the locality of data when iterating on the element of a group
   for (auto ghost_type : ghost_types) {
     for (auto type : elements.elementTypes(_ghost_type = ghost_type)) {
-      Array<UInt> & els = elements(type, ghost_type);
+      auto & els = elements(type, ghost_type);
       std::sort(els.begin(), els.end());
 
-      Array<UInt>::iterator<> end = std::unique(els.begin(), els.end());
+      auto end = std::unique(els.begin(), els.end());
       els.resize(end - els.begin());
     }
   }
@@ -167,13 +157,8 @@ void ElementGroup::fillFromNodeGroup() {
 
   std::set<Element> seen;
 
-  Array<UInt>::const_iterator<> itn = this->node_group.begin();
-  Array<UInt>::const_iterator<> endn = this->node_group.end();
-  for (; itn != endn; ++itn) {
-    CSR<Element>::iterator ite = node_to_elem.begin(*itn);
-    CSR<Element>::iterator ende = node_to_elem.end(*itn);
-    for (; ite != ende; ++ite) {
-      const Element & elem = *ite;
+  for (const auto & node : this->node_group) {
+    for (const auto & elem : node_to_elem.getRow(node)) {
       if (this->dimension != _all_dimensions &&
           this->dimension != Mesh::getSpatialDimension(elem.type)) {
         continue;
@@ -182,16 +167,16 @@ void ElementGroup::fillFromNodeGroup() {
         continue;
       }
 
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(elem.type);
-      Array<UInt>::const_iterator<Vector<UInt>> conn_it =
+      auto nb_nodes_per_element = Mesh::getNbNodesPerElement(elem.type);
+      auto conn_it =
           this->mesh.getConnectivity(elem.type, elem.ghost_type)
               .begin(nb_nodes_per_element);
-      const Vector<UInt> & conn = conn_it[elem.element];
+      const auto & conn = conn_it[elem.element];
 
-      UInt count = 0;
-      for (UInt n = 0; n < conn.size(); ++n) {
+      Int count = 0;
+      for (auto n : conn) {
         count +=
-            (this->node_group.getNodes().find(conn(n)) != UInt(-1) ? 1 : 0);
+            (this->node_group.getNodes().find(n) != Idx(-1) ? 1 : 0);
       }
 
       if (count == nb_nodes_per_element) {
@@ -206,7 +191,7 @@ void ElementGroup::fillFromNodeGroup() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ElementGroup::addDimension(UInt dimension) {
+void ElementGroup::addDimension(Int dimension) {
   this->dimension = std::max(dimension, this->dimension);
 }
 

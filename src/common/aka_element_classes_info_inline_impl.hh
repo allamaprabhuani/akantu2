@@ -57,7 +57,7 @@ namespace akantu {
     switch (var) {                                                             \
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)            \
     default: {                                                                 \
-      AKANTU_ERROR("Type (" << var << ") not handled by this function"); \
+      AKANTU_ERROR("Type (" << var << ") not handled by this function");       \
     }                                                                          \
     }                                                                          \
   } while (0)
@@ -78,7 +78,7 @@ namespace akantu {
     switch (var) {                                                             \
       BOOST_PP_SEQ_FOR_EACH(AKANTU_BOOST_CASE_MACRO, macro1, list1)            \
     default: {                                                                 \
-        macro1(_not_defined);                                                  \
+      macro1(_not_defined);                                                    \
     }                                                                          \
     }                                                                          \
   } while (0)
@@ -186,9 +186,9 @@ using ElementTypes_t = typename ElementTypes<kind>::type;
 
 #define OP_CAT(s, data, elem) ElementTypes_t<elem>
 using AllElementTypes = tuple::cat_t<BOOST_PP_SEQ_ENUM(
-      BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ELEMENT_KIND))>;
+    BOOST_PP_SEQ_TRANSFORM(OP_CAT, _, AKANTU_ELEMENT_KIND))>;
 #undef OP_CAT
-    
+
 namespace details {
   template <std::size_t S> struct visit_tuple_impl {
     template <class Function, class DynamicType, class Tuple>
@@ -206,9 +206,10 @@ namespace details {
 
   template <> struct visit_tuple_impl<0> {
     template <class Function, class DynamicType, class Tuple>
-    static constexpr decltype(auto) visit(const Tuple &, Function && function,
-                                          const DynamicType & /*type*/) {
-      return function(element_type_t<_not_defined>{});
+    static constexpr auto
+    visit(const Tuple &, Function && function, const DynamicType & /*type*/)
+        -> decltype(function(std::tuple_element_t<0, Tuple>{})) {
+      throw;
     }
   };
 } // namespace details
@@ -219,7 +220,6 @@ constexpr decltype(auto) tuple_dispatch(Function && function,
   return details::visit_tuple_impl<std::tuple_size<Tuple>::value>::visit(
       Tuple{}, std::forward<Function>(function), type);
 }
-
 
 } // namespace akantu
 

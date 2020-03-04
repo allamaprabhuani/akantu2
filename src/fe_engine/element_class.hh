@@ -454,6 +454,12 @@ public:
 /* -------------------------------------------------------------------------- */
 #include "element_class_tmpl.hh"
 /* -------------------------------------------------------------------------- */
+namespace akantu {
+AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(_not_defined, _gt_not_defined,
+                                     _itp_not_defined, _ek_not_defined, 0,
+                                     _git_not_defined, 0);
+} // namespace akantu
+
 #include "element_class_hexahedron_8_inline_impl.cc"
 #include "element_class_pentahedron_6_inline_impl.cc"
 /* keep order */

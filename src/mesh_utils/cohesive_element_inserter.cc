@@ -285,7 +285,7 @@ UInt CohesiveElementInserter::insertElements(bool only_double_facets) {
 void CohesiveElementInserter::updateInsertionFacets() {
   AKANTU_DEBUG_IN();
 
-  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto spatial_dimension = mesh.getSpatialDimension();
 
   for (auto && facet_gt : ghost_types) {
     for (auto && facet_type :
