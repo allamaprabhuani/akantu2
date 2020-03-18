@@ -179,81 +179,93 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
   // Compute thermal stresses first
   Parent::computeStress(el_type, ghost_type);
 
-  for (auto && data :
-       zip(RVEs,
-           make_view(this->gradu(el_type), spatial_dimension,
-                     spatial_dimension),
-           make_view(this->stress(el_type), spatial_dimension,
-                     spatial_dimension),
-           this->sigma_th(el_type),
-           make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-           make_view(this->gelstrain(this->el_type), spatial_dimension,
-                     spatial_dimension),
-           this->delta_T(this->el_type))) {
-    auto & RVE = *(std::get<0>(data));
+  /// Iterate between macro- and meso-scales for most of the cases
+  if (not use_homogenized_stiffness) {
+    for (auto && data :
+         zip(RVEs,
+             make_view(this->gradu(el_type), spatial_dimension,
+                       spatial_dimension),
+             make_view(this->stress(el_type), spatial_dimension,
+                       spatial_dimension),
+             this->sigma_th(el_type),
+             make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
+             make_view(this->gelstrain(this->el_type), spatial_dimension,
+                       spatial_dimension),
+             this->delta_T(this->el_type))) {
+      auto & RVE = *(std::get<0>(data));
 
-    /// reset nodal and internal fields
-    RVE.resetNodalFields();
-    RVE.resetInternalFields();
+      /// reset nodal and internal fields
+      RVE.resetNodalFields();
+      RVE.resetInternalFields();
 
-    /// apply boundary conditions based on the current macroscopic displ.
-    /// gradient
-    RVE.applyBoundaryConditionsRve(std::get<1>(data));
+      /// apply boundary conditions based on the current macroscopic displ.
+      /// gradient
+      RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
-    // /// apply temperature only for the output
-    // RVE.applyHomogeneousTemperature(std::get<7>(data));
+      // /// apply temperature only for the output
+      // RVE.applyHomogeneousTemperature(std::get<7>(data));
 
-    /// advance the ASR in every RVE based on the new gel strain
-    RVE.advanceASR(std::get<5>(data));
+      /// advance the ASR in every RVE based on the new gel strain
+      RVE.advanceASR(std::get<5>(data));
 
-    /// compute the average average rVE stress and accumulate into
-    /// macroscale eigenstress
-    // Matrix<Real> av_rve_stress(spatial_dimension, spatial_dimension);
-    // auto & eigstress = std::get<4>(data);
-    RVE.homogenizeStressField(std::get<2>(data));
+      /// compute the average average rVE stress and accumulate into
+      /// macroscale eigenstress
+      RVE.homogenizeStressField(std::get<2>(data));
 
-    // /// remove temperature field - not to mess up with the stiffness
-    // /// homogenization further
-    // RVE.removeTemperature();
-
-    /// compute the new effective stiffness of the RVE
-    auto & C_macro = std::get<4>(data);
-    if (RVE.hasStiffnessChanged())
-      RVE.homogenizeStiffness(C_macro, this->tensile_stiffness);
-
-    // // prepare necessary tensors for stress computation
-    // auto & grad_u = std::get<1>(data);
-    // auto & sigma = std::get<2>(data);
-    // auto & sigma_th = std::get<3>(data);
-
-    // // create vectors to store stress and strain in Voigt notation
-    // // for efficient computation of stress
-    // Vector<Real> voigt_strain(voigt_h::size);
-    // Vector<Real> voigt_stress(voigt_h::size);
-    // Vector<Real> voigt_eig_stress(voigt_h::size);
-
-    // /// copy strains in Voigt notation
-    // for (UInt I = 0; I < voigt_h::size; ++I) {
-    //   /// copy stress in
-    //   Real voigt_factor = voigt_h::factors[I];
-    //   UInt i = voigt_h::vec[I][0];
-    //   UInt j = voigt_h::vec[I][1];
-
-    //   voigt_strain(I) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
-    //   voigt_eig_stress(I) = eigstress(i, j);
-    // }
-
-    // // compute stresses in Voigt notation
-    // // voigt_stress.mul<false>(C_macro, voigt_strain);
-    // voigt_stress += voigt_eig_stress;
-
-    // /// copy stresses back in full vectorised notation
-    // for (UInt I = 0; I < voigt_h::size; ++I) {
-    //   UInt i = voigt_h::vec[I][0];
-    //   UInt j = voigt_h::vec[I][1];
-    //   sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
-    // }
+      /// compute the new effective stiffness of the RVE
+      auto & C_macro = std::get<4>(data);
+      if (RVE.hasStiffnessChanged())
+        RVE.homogenizeStiffness(C_macro, this->tensile_stiffness);
+    }
   }
+  /// use homogen stiffness to solve macro-problem (for residual check)
+  else {
+    Array<Real>::const_scalar_iterator sigma_th_it =
+        this->sigma_th(el_type, ghost_type).begin();
+
+    // Wikipedia convention:
+    // 2*eps_ij (i!=j) = voigt_eps_I
+    // http://en.wikipedia.org/wiki/Voigt_notation
+
+    Array<Real>::const_matrix_iterator C_it =
+        this->C(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
+
+    // create vectors to store stress and strain in Voigt notation
+    // for efficient computation of stress
+    Vector<Real> voigt_strain(voigt_h::size);
+    Vector<Real> voigt_stress(voigt_h::size);
+
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+
+    const Matrix<Real> & C_mat = *C_it;
+    const Real & sigma_th = *sigma_th_it;
+
+    /// copy strains in Voigt notation
+    for (UInt I = 0; I < voigt_h::size; ++I) {
+      /// copy stress in
+      Real voigt_factor = voigt_h::factors[I];
+      UInt i = voigt_h::vec[I][0];
+      UInt j = voigt_h::vec[I][1];
+
+      voigt_strain(I) = voigt_factor * (grad_u(i, j) + grad_u(j, i)) / 2.;
+    }
+
+    // compute stresses in Voigt notation
+    voigt_stress.mul<false>(C_mat, voigt_strain);
+
+    /// copy stresses back in full vectorised notation
+    for (UInt I = 0; I < voigt_h::size; ++I) {
+      UInt i = voigt_h::vec[I][0];
+      UInt j = voigt_h::vec[I][1];
+      sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
+    }
+
+    ++C_it;
+    ++sigma_th_it;
+
+    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -266,8 +278,8 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
                           this->non_reacted_gel(this->el_type))) {
     /// compute new gel strain for every element
     if (this->sat_const)
-      computeNewGelStrainTimeDependent(std::get<1>(data), dt_day, std::get<0>(data),
-                                       std::get<2>(data));
+      computeNewGelStrainTimeDependent(std::get<1>(data), dt_day,
+                                       std::get<0>(data), std::get<2>(data));
     else
       computeNewGelStrain(std::get<1>(data), dt_day, std::get<0>(data));
   }
@@ -451,8 +463,8 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
   for (UInt i = 0; i != spatial_dimension; ++i)
     gelstrain(i, i) += delta_strain;
 
-  non_reacted_gel -= std::exp(-Ea / (R * (T + 273.15))) *
-                     delta_time_day / sat_const;
+  non_reacted_gel -=
+      std::exp(-Ea / (R * (T + 273.15))) * delta_time_day / sat_const;
 
   if (non_reacted_gel < 0.)
     non_reacted_gel = 0.;

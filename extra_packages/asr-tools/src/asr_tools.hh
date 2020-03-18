@@ -105,6 +105,10 @@ public:
   void computeAveragePropertiesFe2Material(std::ofstream & file_output,
                                            Real time);
 
+  /// perform tension tests of a specimen composed of fe2 material
+  void computeStiffnessReductionFe2Material(std::ofstream & file_output,
+                                            Real time, bool tension = true);
+
   /// Save the state of the simulation for subsequent restart
   void saveState(UInt current_step);
 

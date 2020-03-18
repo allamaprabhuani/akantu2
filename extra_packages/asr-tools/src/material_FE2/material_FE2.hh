@@ -68,13 +68,13 @@ public:
                             GhostType ghost_type = _not_ghost);
 
   /// gel strain inrease linear with time, exponential with temperature
-  void computeNewGelStrain(Matrix<Real> & gelstrain, const Real & delta_time,
-                           const Real & temp);
+  void computeNewGelStrain(Matrix<Real> & gelstrain,
+                           const Real & delta_time_day, const Real & temp);
 
   /// assymptotic gel strain - time curve
   void computeNewGelStrainTimeDependent(Matrix<Real> & gelstrain,
-                                        const Real & delta_time, const Real & T,
-                                        Real & non_reacted_gel);
+                                        const Real & delta_time_day,
+                                        const Real & T, Real & non_reacted_gel);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);
@@ -103,6 +103,12 @@ public:
 
   /// update damage ratio after converged step
   virtual void afterSolveStep();
+
+  /// enable usage of homogenized stiffness at the macro-scale
+  void enableHomogenStiffness() { this->use_homogenized_stiffness = true; };
+
+  /// disable usage of homogenized stiffness at the macro-scale
+  void disableHomogenStiffness() { this->use_homogenized_stiffness = false; };
 
 private:
   void initialize();
@@ -161,6 +167,9 @@ protected:
 
   /// flag for homogenization via tension or compression
   bool tensile_stiffness{false};
+
+  /// flag for using the homogenized stiffness to solve macro-scale problem
+  bool use_homogenized_stiffness{false};
 };
 
 /* -------------------------------------------------------------------------- */
