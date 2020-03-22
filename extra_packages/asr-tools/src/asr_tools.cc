@@ -515,7 +515,7 @@ void ASRTools::restoreNodalFields() {
   boun.copy(this->boun_stored);
   ext_force.copy(this->ext_force_stored);
   /// update grad_u
-  model.assembleInternalForces();
+  // model.assembleInternalForces();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -208,8 +208,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// advance the ASR in every RVE based on the new gel strain
       RVE.advanceASR(std::get<5>(data));
 
-      /// compute the average average rVE stress and accumulate into
-      /// macroscale eigenstress
+      /// compute the average average rVE stress
       RVE.homogenizeStressField(std::get<2>(data));
 
       /// compute the new effective stiffness of the RVE
@@ -529,6 +528,8 @@ template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
   AKANTU_DEBUG_IN();
 
   for (auto && RVE : RVEs) {
+    /// update stress field before dumping
+    RVE->assembleInternalForces();
     /// dump all the RVEs
     RVE->dumpRve();
   }

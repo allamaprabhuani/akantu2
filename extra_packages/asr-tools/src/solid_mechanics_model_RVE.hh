@@ -64,12 +64,12 @@ protected:
   /// initialize the materials
   void initMaterials() override;
 
-  void assembleInternalForces() override;
-
 public:
   /// advance the reactions -> grow gel and apply homogenized properties
   void advanceASR(const Matrix<Real> & prestrain);
 
+  /// correct the rigid boundary movement and assemble internal forces
+  void assembleInternalForces() override;
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
