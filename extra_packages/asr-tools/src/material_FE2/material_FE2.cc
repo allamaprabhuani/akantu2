@@ -211,10 +211,13 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// compute the average average rVE stress
       RVE.homogenizeStressField(std::get<2>(data));
 
+      /// decide whether stiffness homogenization is done via tension
+      bool tensile_homogen = RVE.isStressStateTensile(std::get<2>(data));
+
       /// compute the new effective stiffness of the RVE
       auto & C_macro = std::get<4>(data);
       if (RVE.hasStiffnessChanged())
-        RVE.homogenizeStiffness(C_macro, this->tensile_stiffness);
+        RVE.homogenizeStiffness(C_macro, tensile_homogen);
     }
   }
   /// use homogen stiffness to solve macro-problem (for residual check)

@@ -219,6 +219,9 @@ public:
   /// compute average stress in the RVE
   void homogenizeStressField(Matrix<Real> & stress);
 
+  /// compute hydrostatic part of the stress and tells if its tensile
+  bool isStressStateTensile(Matrix<Real> & stress);
+
   /// storing nodal fields before tests
   void storeNodalFields();
 

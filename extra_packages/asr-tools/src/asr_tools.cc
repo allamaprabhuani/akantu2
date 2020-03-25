@@ -1525,6 +1525,20 @@ void ASRTools::homogenizeStressField(Matrix<Real> & stress) {
 
 /* --------------------------------------------------------------------------
  */
+bool ASRTools::isStressStateTensile(Matrix<Real> & stress) {
+  AKANTU_DEBUG_IN();
+  Vector<Real> eigenvalues(2);
+  stress.eig(eigenvalues);
+  Real hydrostatic_stress = 0.5 * (eigenvalues(0) + eigenvalues(1));
+  if (hydrostatic_stress > 0)
+    return true;
+  return false;
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------------
+ */
 void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
