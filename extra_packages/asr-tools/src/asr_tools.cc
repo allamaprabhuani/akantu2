@@ -1527,14 +1527,16 @@ void ASRTools::homogenizeStressField(Matrix<Real> & stress) {
  */
 bool ASRTools::isStressStateTensile(Matrix<Real> & stress) {
   AKANTU_DEBUG_IN();
-  Vector<Real> eigenvalues(2);
+  auto dim = stress.rows();
+  Vector<Real> eigenvalues(dim);
   stress.eig(eigenvalues);
-  Real hydrostatic_stress = 0.5 * (eigenvalues(0) + eigenvalues(1));
-  if (hydrostatic_stress > 0)
-    return true;
-  return false;
-
+  Real hydrostatic_stress = 0;
+  UInt denominator = 0;
+  for (UInt i = 0; i < dim; ++i, ++denominator)
+    hydrostatic_stress += eigenvalues(i);
+  hydrostatic_stress /= denominator;
   AKANTU_DEBUG_OUT();
+  return (hydrostatic_stress > 0);
 }
 
 /* --------------------------------------------------------------------------
