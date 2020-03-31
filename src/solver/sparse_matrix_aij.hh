@@ -120,6 +120,10 @@ public:
   /// first added to the profile
   inline Real & operator()(UInt i, UInt j) override;
 
+  /// accessor to get the minimum value of A_{ij}
+  inline Real min() override;
+
+
 protected:
   /// This is the revert of add B += \alpha * *this;
   void addMeTo(SparseMatrix & B, Real alpha) const override;
@@ -155,7 +159,7 @@ public:
   AKANTU_GET_MACRO(ProfileRelease, profile_release, UInt);
   AKANTU_GET_MACRO(ValueRelease, value_release, UInt);
   UInt getRelease() const override { return value_release; }
-
+  
 protected:
   using KeyCOO = std::pair<UInt, UInt>;
   using coordinate_list_map = std::unordered_map<KeyCOO, UInt>;

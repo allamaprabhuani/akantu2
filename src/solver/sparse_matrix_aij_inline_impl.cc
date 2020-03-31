@@ -184,6 +184,13 @@ inline void SparseMatrixAIJ::addValues(const Vector<Int> & is,
     this->addValuesToUnsymmetric(is, js, values);
 }
 
+
+/* -------------------------------------------------------------------------- */
+inline Real SparseMatrixAIJ::min() {
+  return *std::min(this->a.begin(), this->a.end());
+}
+
+  
 } // namespace akantu
 
 #endif /* __AKANTU_SPARSE_MATRIX_AIJ_INLINE_IMPL_CC__ */
