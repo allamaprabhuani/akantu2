@@ -216,12 +216,15 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 
       /// compute the new effective stiffness of the RVE
       auto & C_macro = std::get<4>(data);
-      // if (RVE.hasStiffnessChanged())
-      RVE.homogenizeStiffness(C_macro, tensile_homogen);
+      if (RVE.hasStiffnessChanged())
+        RVE.homogenizeStiffness(C_macro, tensile_homogen);
       /// temporary output for debugging
-      std::cout << RVE.getID() << " " << std::get<2>(data)(0, 0) << " "
-                << std::get<2>(data)(0, 1) << " " << std::get<2>(data)(1, 0)
-                << " " << std::get<2>(data)(1, 1) << std::endl;
+      std::cout << RVE.getID() << " strain " << std::get<1>(data)(0, 0) << " "
+                << std::get<1>(data)(0, 1) << " " << std::get<1>(data)(1, 0)
+                << " " << std::get<1>(data)(1, 1) << " stress "
+                << std::get<2>(data)(0, 0) << " " << std::get<2>(data)(0, 1)
+                << " " << std::get<2>(data)(1, 0) << " "
+                << std::get<2>(data)(1, 1) << std::endl;
     }
   }
   /// use homogen stiffness to solve macro-problem (for residual check)
