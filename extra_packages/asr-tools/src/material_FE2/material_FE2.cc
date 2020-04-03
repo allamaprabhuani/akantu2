@@ -211,13 +211,17 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// compute the average average rVE stress
       RVE.homogenizeStressField(std::get<2>(data));
 
+      /// decide whether stiffness homogenization is done via tension
+      bool tensile_homogen = RVE.isStressStateTensile(std::get<2>(data));
+
       /// temporary output for debugging
       std::cout << " Homogenized stress " << std::get<2>(data)(0, 0) << " "
                 << std::get<2>(data)(0, 1) << " " << std::get<2>(data)(1, 0)
-                << " " << std::get<2>(data)(1, 1) << std::endl;
-
-      /// decide whether stiffness homogenization is done via tension
-      bool tensile_homogen = RVE.isStressStateTensile(std::get<2>(data));
+                << " " << std::get<2>(data)(1, 1);
+      if (tensile_homogen)
+        std::cout << " tension" << std::endl;
+      else
+        std::cout << " COMPRESSION" << std::endl;
 
       /// compute the new effective stiffness of the RVE
       auto & C_macro = std::get<4>(data);
