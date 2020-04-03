@@ -214,19 +214,14 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// decide whether stiffness homogenization is done via tension
       bool tensile_homogen = RVE.isStressStateTensile(std::get<2>(data));
 
-      /// temporary output for debugging
-      std::cout << " Homogenized stress " << std::get<2>(data)(0, 0) << " "
-                << std::get<2>(data)(0, 1) << " " << std::get<2>(data)(1, 0)
-                << " " << std::get<2>(data)(1, 1);
-      if (tensile_homogen)
-        std::cout << " tension" << std::endl;
-      else
-        std::cout << " COMPRESSION" << std::endl;
-
       /// compute the new effective stiffness of the RVE
       auto & C_macro = std::get<4>(data);
-      if (RVE.hasStiffnessChanged())
-        RVE.homogenizeStiffness(C_macro, tensile_homogen);
+      // if (RVE.hasStiffnessChanged())
+      RVE.homogenizeStiffness(C_macro, tensile_homogen);
+      /// temporary output for debugging
+      std::cout << RVE.getID() << " " << std::get<2>(data)(0, 0) << " "
+                << std::get<2>(data)(0, 1) << " " << std::get<2>(data)(1, 0)
+                << " " << std::get<2>(data)(1, 1) << std::endl;
     }
   }
   /// use homogen stiffness to solve macro-problem (for residual check)

@@ -129,6 +129,12 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
       this->assembleResidual(solver_callback);
 
     this->n_iter++;
+    std::cout << "[" << this->convergence_criteria_type
+              << "] Convergence iteration "
+              << std::setw(std::log10(this->max_iterations)) << this->n_iter
+              << ": error " << this->error << (this->converged ? " < " : " > ")
+              << this->convergence_criteria << std::endl;
+
     AKANTU_DEBUG_INFO(
         "[" << this->convergence_criteria_type << "] Convergence iteration "
             << std::setw(std::log10(this->max_iterations)) << this->n_iter
