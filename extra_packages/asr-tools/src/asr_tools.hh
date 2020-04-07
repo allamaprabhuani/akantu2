@@ -237,6 +237,12 @@ public:
   /// resetting internal fields with history
   void resetInternalFields();
 
+  /// store damage in materials who have damage
+  void storeDamageField();
+
+  /// assign stored values to the current ones
+  void restoreDamageField();
+
   /// find the corner nodes
   void findCornerNodes();
 

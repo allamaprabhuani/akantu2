@@ -153,6 +153,12 @@ protected:
 
   /// 1st vector normal to crack, 2nd (& 3rd) - vector(s) in crack plane
   InternalField<Real> crack_normals;
+
+  // array to store previously converged damage
+  InternalField<Real> damage_stored;
+
+  // array to store previously converged number of reduction steps
+  InternalField<UInt> reduction_step_stored;
 };
 
 } // namespace akantu

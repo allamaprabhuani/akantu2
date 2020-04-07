@@ -198,6 +198,9 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       RVE.resetNodalFields();
       RVE.resetInternalFields();
 
+      /// restore the damage to the previously converged state
+      RVE.restoreDamageField();
+
       /// apply boundary conditions based on the current macroscopic displ.
       /// gradient
       RVE.applyBoundaryConditionsRve(std::get<1>(data));
@@ -221,9 +224,12 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       if (RVE.hasStiffnessChanged())
         RVE.homogenizeStiffness(C_macro, tensile_homogen);
       /// temporary output for debugging
-      std::cout << RVE.getID() << " strain " << std::get<1>(data)(0, 0) << " "
-                << std::get<1>(data)(0, 1) << " " << std::get<1>(data)(1, 0)
-                << " " << std::get<1>(data)(1, 1) << " stress "
+      auto && comm = akantu::Communicator::getWorldCommunicator();
+      auto prank = comm.whoAmI();
+      std::cout << "Proc " << prank << " " << RVE.getID() << " strain "
+                << std::get<1>(data)(0, 0) << " " << std::get<1>(data)(0, 1)
+                << " " << std::get<1>(data)(1, 0) << " "
+                << std::get<1>(data)(1, 1) << " stress "
                 << std::get<2>(data)(0, 0) << " " << std::get<2>(data)(0, 1)
                 << " " << std::get<2>(data)(1, 0) << " "
                 << std::get<2>(data)(1, 1) << " stiffness "
@@ -294,6 +300,13 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
                                        std::get<0>(data), std::get<2>(data));
     else
       computeNewGelStrain(std::get<1>(data), dt_day, std::get<0>(data));
+  }
+}
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::beforeSolveStep() {
+  for (auto && RVE : RVEs) {
+    RVE->storeDamageField();
   }
 }
 /* -------------------------------------------------------------------------- */

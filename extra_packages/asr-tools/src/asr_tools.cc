@@ -542,6 +542,34 @@ void ASRTools::resetInternalFields() {
     mat.resetInternalsWithHistory();
   }
 }
+/* -------------------------------------------------------------------------- */
+void ASRTools::storeDamageField() {
+  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+    Material & mat = model.getMaterial(m);
+    if (mat.isInternal<Real>("damage_stored", _ek_regular)) {
+      auto & dam_stored = mat.getInternal<Real>("damage_stored");
+      auto & dam_current = mat.getInternal<Real>("damage");
+      dam_stored.copy(dam_current);
+      auto & red_stored = mat.getInternal<UInt>("reduction_step_stored");
+      auto & red_current = mat.getInternal<UInt>("reduction_step");
+      red_stored.copy(red_current);
+    }
+  }
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::restoreDamageField() {
+  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+    Material & mat = model.getMaterial(m);
+    if (mat.isInternal<Real>("damage_stored", _ek_regular)) {
+      auto & dam_stored = mat.getInternal<Real>("damage_stored");
+      auto & dam_current = mat.getInternal<Real>("damage");
+      dam_current.copy(dam_stored);
+      auto & red_stored = mat.getInternal<UInt>("reduction_step_stored");
+      auto & red_current = mat.getInternal<UInt>("reduction_step");
+      red_current.copy(red_stored);
+    }
+  }
+}
 /* --------------------------------------------------------------------------
  */
 Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
