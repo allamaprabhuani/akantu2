@@ -547,13 +547,22 @@ void ASRTools::resetInternalFields() {
 void ASRTools::storeDamageField() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
-    if (mat.isInternal<Real>("damage_stored", _ek_regular)) {
-      auto & dam_stored = mat.getInternal<Real>("damage_stored");
-      auto & dam_current = mat.getInternal<Real>("damage");
-      dam_stored.copy(dam_current);
-      auto & red_stored = mat.getInternal<UInt>("reduction_step_stored");
-      auto & red_current = mat.getInternal<UInt>("reduction_step");
-      red_stored.copy(red_current);
+    if (mat.isInternal<Real>("damage_stored", _ek_regular) &&
+        mat.isInternal<UInt>("reduction_step_stored", _ek_regular)) {
+      for (auto & el_type : mat.getElementFilter().elementTypes(
+               _all_dimensions, _not_ghost, _ek_not_defined)) {
+        auto & red_stored =
+            mat.getInternal<UInt>("reduction_step_stored")(el_type, _not_ghost);
+        auto & red_current =
+            mat.getInternal<UInt>("reduction_step")(el_type, _not_ghost);
+        red_stored.copy(red_current);
+
+        auto & dam_stored =
+            mat.getInternal<Real>("damage_stored")(el_type, _not_ghost);
+        auto & dam_current =
+            mat.getInternal<Real>("damage")(el_type, _not_ghost);
+        dam_stored.copy(dam_current);
+      }
     }
   }
 }
@@ -561,13 +570,22 @@ void ASRTools::storeDamageField() {
 void ASRTools::restoreDamageField() {
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
-    if (mat.isInternal<Real>("damage_stored", _ek_regular)) {
-      auto & dam_stored = mat.getInternal<Real>("damage_stored");
-      auto & dam_current = mat.getInternal<Real>("damage");
-      dam_current.copy(dam_stored);
-      auto & red_stored = mat.getInternal<UInt>("reduction_step_stored");
-      auto & red_current = mat.getInternal<UInt>("reduction_step");
-      red_current.copy(red_stored);
+    if (mat.isInternal<Real>("damage_stored", _ek_regular) &&
+        mat.isInternal<UInt>("reduction_step_stored", _ek_regular)) {
+      for (auto & el_type : mat.getElementFilter().elementTypes(
+               _all_dimensions, _not_ghost, _ek_not_defined)) {
+        auto & red_stored =
+            mat.getInternal<UInt>("reduction_step_stored")(el_type, _not_ghost);
+        auto & red_current =
+            mat.getInternal<UInt>("reduction_step")(el_type, _not_ghost);
+        red_current.copy(red_stored);
+
+        auto & dam_stored =
+            mat.getInternal<Real>("damage_stored")(el_type, _not_ghost);
+        auto & dam_current =
+            mat.getInternal<Real>("damage")(el_type, _not_ghost);
+        dam_current.copy(dam_stored);
+      }
     }
   }
 }

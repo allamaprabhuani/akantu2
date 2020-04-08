@@ -111,7 +111,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   /// parameters reduction & update of C and Cprime only in case of damage
-  if (*dam > 0) {
+  // if (*dam > 0) {
     /// reduce or recover elastic moduli due to damage
     reduceInternalParameters(sigma, *dam, *E1_it, *E2_it, *E3_it, *nu12_it,
                              *nu13_it, *nu23_it, *G12_it, *G13_it, *G23_it,
@@ -120,7 +120,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
     this->updateInternalParametersOnQuad(
         *E1_it, *E2_it, *E3_it, *nu12_it, *nu13_it, *nu23_it, *G12_it, *G13_it,
         *G23_it, *Cprime_it, *C_it, *eigC_it, *dir_vecs_it);
-  }
+  // }
   // compute stress according to anisotropic material law
   this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
 

@@ -68,9 +68,6 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
                       "universal gas constant R in Arrhenius law");
   this->registerParam("saturation_constant", sat_const, Real(0.0),
                       _pat_parsable | _pat_modifiable, "saturation constant");
-  this->registerParam("tensile_stiffness", tensile_stiffness,
-                      _pat_parsable | _pat_modifiable,
-                      "if stiffness has to be homogenized via tensile test");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -109,7 +106,7 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
     RVE.initFull(_analysis_method = _static);
 
     /// compute intial stiffness of the RVE
-    RVE.homogenizeStiffness(C, this->tensile_stiffness);
+    RVE.homogenizeStiffness(C, RVE.isTensileHomogen());
   }
   AKANTU_DEBUG_OUT();
 }
@@ -309,6 +306,16 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::beforeSolveStep() {
+  AKANTU_DEBUG_IN();
+
+  for (const auto & type :
+       this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+    Array<UInt> & elem_filter = this->element_filter(type, _not_ghost);
+
+    if (elem_filter.size() == 0)
+      return;
+  }
+
   for (auto && data : zip(RVEs, make_view(this->C(this->el_type), voigt_h::size,
                                           voigt_h::size))) {
     auto & RVE = *(std::get<0>(data));
@@ -320,10 +327,22 @@ void MaterialFE2<spatial_dimension>::beforeSolveStep() {
     if (RVE.hasStiffnessChanged())
       RVE.homogenizeStiffness(C_macro, RVE.isTensileHomogen());
   }
+  AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::afterSolveStep() {
+  AKANTU_DEBUG_IN();
+
+  for (const auto & type :
+       this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+    Array<UInt> & elem_filter = this->element_filter(type, _not_ghost);
+
+    if (elem_filter.size() == 0)
+      return;
+  }
+
   for (auto && data : zip(RVEs, this->delta_T(this->el_type),
                           this->damage_ratio(this->el_type),
                           this->damage_ratio_paste(this->el_type),
@@ -340,6 +359,7 @@ void MaterialFE2<spatial_dimension>::afterSolveStep() {
     // /// apply temperature only for the output
     // RVE.applyHomogeneousTemperature(std::get<1>(data));
   }
+  AKANTU_DEBUG_OUT();
 }
 
 /* --------------------------------------------------------------------------
@@ -396,7 +416,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(
     RVE.homogenizeEigenGradU(std::get<2>(data));
 
     /// compute the new effective stiffness of the RVE
-    RVE.homogenizeStiffness(std::get<3>(data), this->tensile_stiffness);
+    RVE.homogenizeStiffness(std::get<3>(data), RVE.isTensileHomogen());
   }
 
   AKANTU_DEBUG_OUT();
@@ -451,7 +471,7 @@ void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
     RVE.homogenizeEigenGradU(std::get<2>(data));
 
     /// compute the new effective stiffness of the RVE
-    RVE.homogenizeStiffness(std::get<3>(data), this->tensile_stiffness);
+    RVE.homogenizeStiffness(std::get<3>(data), RVE.isTensileHomogen());
 
     /// apply temperature back for the output
     RVE.applyHomogeneousTemperature(std::get<4>(data));

@@ -168,9 +168,6 @@ protected:
   InternalField<Real> damage_ratio_paste;
   InternalField<Real> damage_ratio_agg;
 
-  /// flag for homogenization via tension or compression
-  bool tensile_stiffness{false};
-
   /// flag for using the homogenized stiffness to solve macro-scale problem
   bool use_homogenized_stiffness{false};
 };
