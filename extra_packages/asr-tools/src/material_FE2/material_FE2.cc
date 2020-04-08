@@ -215,25 +215,29 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       RVE.homogenizeStressField(std::get<2>(data));
 
       /// decide whether stiffness homogenization is done via tension
-      bool tensile_homogen = RVE.isStressStateTensile(std::get<2>(data));
+      RVE.setStiffHomogenDir(std::get<2>(data));
 
-      /// compute the new effective stiffness of the RVE
-      auto & C_macro = std::get<4>(data);
-      Matrix<Real> C_copy(3, 3);
-      C_copy.copy(C_macro);
-      if (RVE.hasStiffnessChanged())
-        RVE.homogenizeStiffness(C_macro, tensile_homogen);
+      // /// compute the new effective stiffness of the RVE
+      // auto & C_macro = std::get<4>(data);
+      // Matrix<Real> C_copy(3, 3);
+      // C_copy.copy(C_macro);
+      // if (RVE.hasStiffnessChanged())
+      //   RVE.homogenizeStiffness(C_macro, tensile_homogen);
+
       /// temporary output for debugging
       auto && comm = akantu::Communicator::getWorldCommunicator();
       auto prank = comm.whoAmI();
-      std::cout << "Proc " << prank << " " << RVE.getID() << " strain "
-                << std::get<1>(data)(0, 0) << " " << std::get<1>(data)(0, 1)
-                << " " << std::get<1>(data)(1, 1) << " stress "
-                << std::get<2>(data)(0, 0) << " " << std::get<2>(data)(0, 1)
-                << " " << std::get<2>(data)(1, 1) << " stiffness "
-                << C_macro(0, 0) << " " << C_macro(0, 1) << " " << C_macro(0, 2)
-                << " " << C_macro(1, 1) << " " << C_macro(1, 2) << " "
-                << C_macro(2, 2) << std::endl;
+      std::cout
+          << "Proc " << prank << " " << RVE.getID() << " strain "
+          << std::get<1>(data)(0, 0) << " " << std::get<1>(data)(0, 1) << " "
+          << std::get<1>(data)(1, 1) << " stress " << std::get<2>(data)(0, 0)
+          << " " << std::get<2>(data)(0, 1) << " "
+          << std::get<2>(data)(1, 1)
+          // << " stiffness "
+          // << C_macro(0, 0) << " " << C_macro(0, 1) << " " << C_macro(0, 2)
+          // << " " << C_macro(1, 1) << " " << C_macro(1, 2) << " "
+          // << C_macro(2, 2)
+          << std::endl;
     }
   }
   /// use homogen stiffness to solve macro-problem (for residual check)
@@ -305,8 +309,16 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::beforeSolveStep() {
-  for (auto && RVE : RVEs) {
-    RVE->storeDamageField();
+  for (auto && data : zip(RVEs, make_view(this->C(this->el_type), voigt_h::size,
+                                          voigt_h::size))) {
+    auto & RVE = *(std::get<0>(data));
+
+    RVE.storeDamageField();
+
+    /// compute the new effective stiffness of the RVE
+    auto & C_macro = std::get<1>(data);
+    if (RVE.hasStiffnessChanged())
+      RVE.homogenizeStiffness(C_macro, RVE.isTensileHomogen());
   }
 }
 /* -------------------------------------------------------------------------- */

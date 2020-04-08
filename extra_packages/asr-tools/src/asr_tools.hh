@@ -219,8 +219,8 @@ public:
   /// compute average stress in the RVE
   void homogenizeStressField(Matrix<Real> & stress);
 
-  /// compute hydrostatic part of the stress and tells if its tensile
-  bool isStressStateTensile(Matrix<Real> & stress);
+  /// compute hydrostatic part of the stress and assign homogen direction
+  void setStiffHomogenDir(Matrix<Real> & stress);
 
   /// storing nodal fields before tests
   void storeNodalFields();
@@ -258,6 +258,7 @@ public:
   inline Array<std::tuple<UInt, UInt>> getNodePairs() const {
     return node_pairs;
   }
+  bool isTensileHomogen() { return this->tensile_homogenization; };
 
   /* --------------------------------------------------------------------- */
   /* Members */
@@ -299,6 +300,9 @@ protected:
   Array<Real> disp_stored;
   Array<Real> ext_force_stored;
   Array<bool> boun_stored;
+
+  /// if stiffness homogenization will be done in tension
+  bool tensile_homogenization{false};
 };
 
 /* -------------------------------------------------------------------------- */

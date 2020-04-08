@@ -44,7 +44,8 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
       doubled_facets_ready(false), doubled_nodes_ready(false), node_pairs(0),
       disp_stored(0, model.getSpatialDimension()),
       ext_force_stored(0, model.getSpatialDimension()),
-      boun_stored(0, model.getSpatialDimension()) {
+      boun_stored(0, model.getSpatialDimension()),
+      tensile_homogenization(false) {
 
   // register event handler for asr tools
   auto & mesh = model.getMesh();
@@ -1553,7 +1554,7 @@ void ASRTools::homogenizeStressField(Matrix<Real> & stress) {
 
 /* --------------------------------------------------------------------------
  */
-bool ASRTools::isStressStateTensile(Matrix<Real> & stress) {
+void ASRTools::setStiffHomogenDir(Matrix<Real> & stress) {
   AKANTU_DEBUG_IN();
   auto dim = stress.rows();
   Vector<Real> eigenvalues(dim);
@@ -1564,7 +1565,7 @@ bool ASRTools::isStressStateTensile(Matrix<Real> & stress) {
     hydrostatic_stress += eigenvalues(i);
   hydrostatic_stress /= denominator;
   AKANTU_DEBUG_OUT();
-  return (hydrostatic_stress > 0);
+  this->tensile_homogenization = (hydrostatic_stress > 0);
 }
 
 /* --------------------------------------------------------------------------
