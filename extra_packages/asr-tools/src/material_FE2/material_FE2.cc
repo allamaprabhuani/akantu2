@@ -231,9 +231,9 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
                 << " " << std::get<1>(data)(1, 1) << " stress "
                 << std::get<2>(data)(0, 0) << " " << std::get<2>(data)(0, 1)
                 << " " << std::get<2>(data)(1, 1) << " stiffness "
-                << C_macro(0, 0) << " " C_macro(0, 1) << " " C_macro(0, 2)
-                << " " C_macro(1, 1) << " " C_macro(1, 2) << " " C_macro(2, 2)
-                << std::endl;
+                << C_macro(0, 0) << " " << C_macro(0, 1) << " " << C_macro(0, 2)
+                << " " << C_macro(1, 1) << " " << C_macro(1, 2) << " "
+                << C_macro(2, 2) << std::endl;
     }
   }
   /// use homogen stiffness to solve macro-problem (for residual check)
