@@ -363,6 +363,17 @@ inline bool Material::isInternal<Real>(const ID & id,
   return ret;
 }
 
+template <>
+inline bool Material::isInternal<UInt>(const ID & id,
+                                       const ElementKind & element_kind) const {
+  auto internal_array = internal_vectors_uint.find(this->getID() + ":" + id);
+  bool ret = true;
+  if (internal_array == internal_vectors_uint.end() ||
+      internal_array->second->getElementKind() != element_kind)
+    ret=false;
+  return ret;
+}
+
 /* -------------------------------------------------------------------------- */
 template <typename T>
 inline ElementTypeMap<UInt>
