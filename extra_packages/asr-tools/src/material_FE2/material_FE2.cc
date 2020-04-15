@@ -219,7 +219,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       // Matrix<Real> C_copy(3, 3);
       // C_copy.copy(C_macro);
       if (RVE.hasStiffnessChanged())
-        RVE.homogenizeStiffness(C_macro, RVE.isTensileHomogen());
+        RVE.homogenizeStiffness(C_macro, false);
 
       /// temporary output for debugging
       auto && comm = akantu::Communicator::getWorldCommunicator();
