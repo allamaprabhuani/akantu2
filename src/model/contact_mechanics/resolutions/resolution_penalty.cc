@@ -67,65 +67,117 @@ void ResolutionPenalty::computeNormalForce(const ContactElement & element,
   Real gap(gaps.begin()[element.slave]);
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
-  
-  Real sigma_n = macaulay(gap) * epsilon_n;
 
+  // compute normal traction
+  Real p_n = macaulay(gap) * epsilon_n;
+
+  // compute first variation of gap
   auto nb_nodes = element.getNbNodes();
-  
   Vector<Real> delta_gap(nb_nodes * spatial_dimension);
   ResolutionUtils::firstVariationNormalGap(element, projection, normal, delta_gap);
-  
+
+  // compute normal force
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
   for (UInt i : arange(force.size())) 
-    force[i] += delta_gap[i] * sigma_n;
+    force[i] += delta_gap[i] * p_n  * nodal_area[element.slave];
   
 }
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
 					       Vector<Real> & force) {
-
-  if (mu == 0) 
+  
+  if (mu == 0)
     return;
-    
+  
   UInt surface_dimension = spatial_dimension - 1; 
-
-  auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
-
+  
+  // compute tangents
   auto & projections = model.getProjections();
   Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
   
   auto & normals = model.getNormals();
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
-
-  Matrix<Real> covariant_basis(surface_dimension, spatial_dimension);
+  
+  auto & tangents = model.getTangents();
+  Matrix<Real> covariant_basis(tangents.begin(surface_dimension,
+					      spatial_dimension)[element.slave]);
   GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
 				element.master, normal, projection, covariant_basis);
   
-  Vector<Real> traction_trial(spatial_dimension);
-  computeTrialTangentialTraction(element, covariant_basis, traction_trial);
+  // check for no-contact to contact condition
+  auto & previous_master_elements = model.getPreviousMasterElements();
+  auto & previous_element = previous_master_elements[element.slave];
 
-  Real sigma_n = epsilon_n * macaulay(gap);
-  Vector<Real> traction_tangential(spatial_dimension);
-
-  bool stick = (traction_trial.norm() <= mu * sigma_n) ? true : false;
-  if (stick) 
-    computeStickTangentialTraction(element, traction_trial, traction_tangential);
-  else 
-    computeSlipTangentialTraction(element, covariant_basis, traction_trial, traction_tangential);
+  if (previous_element.type == _not_defined)
+    return;
   
-  auto nb_nodes  = element.getNbNodes();
+  // compute tangential traction using return map algorithm
+  auto & tangential_tractions = model.getTangentialTractions();
+  Vector<Real> tangential_traction(tangential_tractions.begin(surface_dimension)[element.slave]);
+  this->computeTangentialTraction(element, covariant_basis,
+				  tangential_traction);
+  
+  // compute first variation of natural coordinate  
+  auto & gaps = model.getGaps();
+  auto & gap = gaps.begin()[element.slave];
 
+  auto nb_nodes  = element.getNbNodes();
   Array<Real> delta_xi(nb_nodes * spatial_dimension, surface_dimension);
   ResolutionUtils::firstVariationNaturalCoordinate(element, covariant_basis,
 						   projection, normal, gap, delta_xi);
-  
-  for (auto && values : zip(traction_tangential,
+
+  // compute tangential force
+  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
+  for (auto && values : zip(tangential_traction,
 			    make_view(delta_xi, delta_xi.size()))) {
     auto & traction_alpha = std::get<0>(values);
     auto & delta_xi_alpha = std::get<1>(values);
-    force += delta_xi_alpha * traction_alpha;
+    force += delta_xi_alpha * traction_alpha * nodal_area[element.slave];
   }
+}
+
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::computeTangentialTraction(const ContactElement & element,
+					   const Matrix<Real> & covariant_basis,
+					   Vector<Real> & traction_tangential) {
+
+  UInt surface_dimension = spatial_dimension - 1;
+  
+  auto & gaps = model.getGaps();
+  auto & gap = gaps.begin()[element.slave];
+
+  // Return map algorithm is employed
+  // compute trial traction
+  Vector<Real> traction_trial(surface_dimension);
+  this->computeTrialTangentialTraction(element, covariant_basis, traction_trial);
+
+  // compute norm of trial traction
+  Real traction_trial_norm = 0;
+  auto inv_A = GeometryUtils::contravariantMetricTensor(covariant_basis);  
+  for (auto i : arange(surface_dimension)) {
+    for (auto j : arange(surface_dimension)) {
+      traction_trial_norm += traction_trial[i] * traction_trial[j] * inv_A(i, j);
+    }
+  }
+  traction_trial_norm = sqrt(traction_trial_norm);
+
+  // check stick or slip condition
+  auto & stick_or_slip = model.getStickSlip();
+  auto & cond = stick_or_slip.begin()[element.slave];
+  
+  Real p_n = macaulay(gap) * epsilon_n;
+  bool stick = (traction_trial_norm <= mu * p_n) ? true : false;
+
+  if (stick) {
+    cond = 1;
+    computeStickTangentialTraction(element, traction_trial, traction_tangential);
+  } else {
+    cond = 2;
+    computeSlipTangentialTraction(element, covariant_basis, traction_trial,
+				  traction_tangential);
+  }
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -135,7 +187,7 @@ void ResolutionPenalty::computeTrialTangentialTraction(const ContactElement & el
   
   UInt surface_dimension = spatial_dimension - 1;
   
-  auto & projections = model.getProjections();
+  /*auto & projections = model.getProjections();
   Vector<Real> contravariant_projection(projections.begin(surface_dimension)[element.slave]);
 
   auto & stick_projections = model.getStickProjections();
@@ -156,7 +208,81 @@ void ResolutionPenalty::computeTrialTangentialTraction(const ContactElement & el
   }
 
   auto covariant_slip = covariant_projection - covariant_stick;
-  traction.mul<true>(contravariant_basis, covariant_slip, epsilon_t);
+  traction.mul<true>(contravariant_basis, covariant_slip, epsilon_t);*/
+
+  auto & projections =  model.getProjections();
+  Vector<Real> current_projection(projections.begin(surface_dimension)[element.slave]);
+
+  auto & previous_projections = model.getPreviousProjections();
+  Vector<Real> previous_projection(previous_projections.begin(surface_dimension)[element.slave]);
+
+  // method from Laursen et. al.
+  /*auto covariant_metric_tensor = GeometryUtils::covariantMetricTensor(covariant_basis);
+  auto increment_projection = current_projection - previous_projection;
+
+  traction.mul<false>(covariant_metric_tensor, increment_projection, epsilon_t);
+  
+  auto & previous_tangential_tractions = model.getPreviousTangentialTractions();
+  Vector<Real> previous_traction(previous_tangential_tractions.begin(surface_dimension)[element.slave]);
+  traction = previous_traction + traction;*/
+
+  // method from Schweizerhof
+  auto covariant_metric_tensor = GeometryUtils::covariantMetricTensor(covariant_basis);
+
+  auto & previous_tangential_tractions = model.getPreviousTangentialTractions();
+  Vector<Real> previous_traction(previous_tangential_tractions.begin(surface_dimension)[element.slave]);
+
+  auto & previous_tangents = model.getPreviousTangents();
+  Matrix<Real> previous_covariant_basis(previous_tangents.begin(surface_dimension,
+								spatial_dimension)[element.slave]);
+  auto previous_contravariant_metric_tensor =
+    GeometryUtils::contravariantMetricTensor(previous_covariant_basis);
+
+  auto current_tangent = covariant_basis.transpose();
+  auto previous_tangent = previous_covariant_basis.transpose();
+  
+  for (auto alpha :arange(surface_dimension)) {
+    Vector<Real> tangent_alpha(current_tangent(alpha));
+    for (auto gamma : arange(surface_dimension)) {
+      for (auto beta : arange(surface_dimension)) {
+	Vector<Real> tangent_beta(previous_tangent(beta));
+	auto t_alpha_t_beta = tangent_beta.dot(tangent_alpha);
+	traction[alpha] += previous_traction[gamma]*previous_contravariant_metric_tensor(gamma, beta)*t_alpha_t_beta;
+      }
+    }
+  }
+  
+  auto & previous_master_elements = model.getPreviousMasterElements();
+  auto & previous_element = previous_master_elements[element.slave];
+
+  Vector<Real> previous_real_projection(spatial_dimension);
+  GeometryUtils::realProjection(model.getMesh(), model.getContactDetector().getPositions(),
+				previous_element, previous_projection,
+				previous_real_projection);
+      
+  Vector<Real> current_real_projection(spatial_dimension);
+  GeometryUtils::realProjection(model.getMesh(), model.getContactDetector().getPositions(),
+				element.master, current_projection,
+				current_real_projection);
+
+  auto increment_real = current_real_projection - previous_real_projection;
+  Vector<Real> increment_xi(surface_dimension);
+
+  auto contravariant_metric_tensor = GeometryUtils::contravariantMetricTensor(covariant_basis);
+
+  // increment in natural coordinate
+  for (auto beta : arange(surface_dimension)) {
+    for (auto gamma: arange(surface_dimension)) {
+      auto temp = increment_real.dot(current_tangent(gamma));
+      temp *= contravariant_metric_tensor(beta, gamma);
+      increment_xi[beta] += temp;
+    }
+  }
+
+  Vector<Real> temp(surface_dimension);
+  temp.mul<false>(covariant_metric_tensor, increment_xi, epsilon_t);
+
+  traction -= temp;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -176,22 +302,30 @@ void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & ele
   auto & gaps = model.getGaps();
   auto & gap = gaps.begin()[element.slave];
 
-  auto & areas = model.getNodalArea();
-  auto & area = areas.begin()[element.slave];
+  // compute norm of trial traction
+  Real traction_trial_norm = 0;
+  auto inv_A = GeometryUtils::contravariantMetricTensor(covariant_basis); 
+  for (auto i : arange(surface_dimension)) {
+    for (auto j : arange(surface_dimension)) {
+      traction_trial_norm += traction_trial[i] * traction_trial[j] * inv_A(i, j);
+    }
+  }
+  traction_trial_norm = sqrt(traction_trial_norm);
+  
+  auto slip_direction = traction_trial;
+  slip_direction /= traction_trial_norm;
 
+  Real p_n = epsilon_n * macaulay(gap);
+  traction_tangential = slip_direction;
+  traction_tangential *= p_n;
+
+  /*
   auto & stick_projections = model.getStickProjections();
   Vector<Real> covariant_stick(stick_projections.begin(surface_dimension)[element.slave]);
-  
-  auto slip_vector = traction_trial;
-  slip_vector /= slip_vector.norm();
 
-  Real sigma_n = epsilon_n * macaulay(gap);
-  traction_tangential = slip_vector;
-  traction_tangential *= sigma_n;
   
-  auto slip = macaulay(traction_trial.norm() - mu * sigma_n);
+  auto slip = macaulay(traction_trial_norm - mu * p_n);
   slip /= epsilon_t;
-  slip *= area;
 
   Vector<Real> covariant_slip(surface_dimension);
   for (auto && values : zip(covariant_slip,
@@ -199,10 +333,10 @@ void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & ele
 
     auto & slip_alpha = std::get<0>(values);
     Vector<Real> covariant_alpha(std::get<1>(values));
-    slip_alpha = slip_vector.dot(covariant_alpha);
+    slip_alpha = slip_direction.dot(covariant_alpha);
   }
   
-  covariant_stick += slip * covariant_slip;
+  covariant_stick += slip * covariant_slip;*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -309,7 +443,7 @@ void ResolutionPenalty::computeFrictionalModuli(
     Array<Real> & d_alpha, Matrix<Real> & phi, Vector<Real> & n,
     ContactElement & element) {
 
-  auto k_common =
+  /*auto k_common =
       computeCommonModuli(t_alpha_beta, n_alpha_beta, d_alpha, n, element);
 
   const auto & type = element.master.type;
@@ -322,7 +456,7 @@ void ResolutionPenalty::computeFrictionalModuli(
   ResolutionUtils::computeMetricTensor(m_alpha_beta, element.tangents);
 
   Array<Real> g_alpha(conn.size() * spatial_dimension, surface_dimension);
-  ResolutionUtils::computeGalpha(g_alpha, t_alpha_beta, d_alpha, phi, element);
+  ResolutionUtils::computeGalpha(g_alpha, t_alpha_beta, d_alpha, phi, element);*/
 
   /*Matrix<Real> k_t;
   bool stick = computeFrictionalTraction(m_alpha_beta, element);
@@ -384,7 +518,7 @@ Array<Real> ResolutionPenalty::computeCommonModuli(
 Matrix<Real> ResolutionPenalty::computeStickModuli(
     Array<Real> & g_alpha, Array<Real> & d_alpha, Matrix<Real> & m_alpha_beta) {
 
-  Matrix<Real> k_stick(d_alpha.size(), d_alpha.size());
+  /*Matrix<Real> k_stick(d_alpha.size(), d_alpha.size());
 
   for (auto && values :
        zip(arange(d_alpha.getNbComponent()), make_view(d_alpha, d_alpha.size()),
@@ -414,7 +548,7 @@ Matrix<Real> ResolutionPenalty::computeStickModuli(
   }
 
   k_stick *= epsilon_t;
-  return k_stick;
+  return k_stick;*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -464,6 +598,37 @@ Matrix<Real> ResolutionPenalty::computeSlipModuli(
   return k_slip;
 }
 
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::beforeSolveStep() {
+}
+
+/* -------------------------------------------------------------------------- */
+void ResolutionPenalty::afterSolveStep(bool converged) {
+
+  auto method = model.getAnalysisMethod();
+  if (method == _explicit_lumped_mass) {
+    return ;
+  }
+  
+  auto & K =
+      const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
+
+  auto k_min = K.min();
+  auto roundoff_error = 1e-17;
+
+  const auto blocked_dofs = model.getDOFManager().getBlockedDOFs("displacement");
+  Real nb_unknowns = 0;
+  for (auto & bld : make_view(blocked_dofs)) {
+    if (not bld)
+      nb_unknowns++;
+  }
+
+  auto max_epsilon_n = k_min / sqrt(nb_unknowns * roundoff_error);
+  if (epsilon_n > max_epsilon_n)
+    epsilon_n = max_epsilon_n;
+  
+}
+  
 INSTANTIATE_RESOLUTION(penalty, ResolutionPenalty);
 
 } // namespace akantu

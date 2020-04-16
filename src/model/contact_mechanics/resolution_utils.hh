@@ -84,8 +84,10 @@ public:
 					      const Real &, Array<Real> &);
 
   ///computes second variation of surface parameter
-  static void secondvariationNaturalCoordinate();
-
+  static void secondvariationNaturalCoordinate(const Vector<Real> & projection,
+					       const Vector<Real> & previous_projection,
+					       const Element & element,
+					       const Element & previous_element);
   
   /// computes @f$T_{\alpha\beta} @f$ which is shape derivatives
   /// times the tangents
@@ -105,15 +107,6 @@ public:
                             Array<Real> & d_alpha, Matrix<Real> & phi,
                             ContactElement &);
 
-  static void assembleToInternalForce(Vector<Real> & local_array,
-                                      Array<Real> & global_array,
-                                      Array<Real> & nodal_area,
-                                      ContactElement & element, bool is_master_deformable);
-
-  static void assembleToStiffnessMatrix(Matrix<Real> & local_matrix,
-                                        Matrix<Real> & global_matrix,
-                                        Array<Real> & nodal_area,
-                                        ContactElement & element);
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -170,9 +170,9 @@ void ResolutionUtils::computeTalpha(const ContactElement & element,
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPES_NATURAL);
 #undef GET_SHAPES_NATURAL
 
-    for (auto && values :
-	   zip(covariant_basis.transpose(),
-	       make_view(t_alpha, t_alpha.size()))) {
+  for (auto && values :
+	 zip(covariant_basis.transpose(),
+	     make_view(t_alpha, t_alpha.size()))) {
 
     auto & tangent_beta = std::get<0>(values);
     auto & t_beta       = std::get<1>(values);
@@ -233,9 +233,7 @@ void ResolutionUtils::firstVariationNaturalCoordinate(const ContactElement & ele
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;
   
-  Matrix<Real> m_alpha_beta(surface_dimension, surface_dimension);
-  ResolutionUtils::computeMetricTensor(m_alpha_beta, covariant_basis);
-  m_alpha_beta = m_alpha_beta.inverse();
+  auto inv_A = GeometryUtils::contravariantMetricTensor(covariant_basis);
 
   auto nb_nodes = element.getNbNodes();
   
@@ -260,15 +258,18 @@ void ResolutionUtils::firstVariationNaturalCoordinate(const ContactElement & ele
       auto & t_beta = std::get<1>(values);
       auto & n_beta = std::get<2>(values);
 
-      d_alpha += (t_beta + gap * n_beta) * m_alpha_beta(alpha, beta);
+      //d_alpha += (t_beta + gap * n_beta) * m_alpha_beta(alpha,
+      //beta);
+      d_alpha += t_beta * inv_A(alpha, beta);
     }
   }
 }
 
+
 /* -------------------------------------------------------------------------- */
 void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
 					ContactElement & element) {
-  t_alpha_beta.clear();
+  /*t_alpha_beta.clear();
   
   const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
@@ -279,7 +280,7 @@ void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
 #define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
   ElementClass<type>::computeDNDS(element.projection, shape_derivatives)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
+  #undef GET_SHAPE_DERIVATIVES_NATURAL*/
 
   //auto t_alpha_size = t_alpha_beta.size() * surface_dimension;
 
@@ -310,10 +311,10 @@ void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
 
 /* -------------------------------------------------------------------------- */
 void ResolutionUtils::computeNalphabeta(Array<Real> & n_alpha_beta,
-					ContactElement & element) {
+    ContactElement & /*element*/) {
   n_alpha_beta.clear();
 
-  const auto & type = element.master.type;
+  /*const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;
 
@@ -339,7 +340,7 @@ void ResolutionUtils::computeNalphabeta(Array<Real> & n_alpha_beta,
       }
     }
        
-  }
+    }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -383,7 +384,7 @@ void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha
 
   g_alpha.clear();
 
-  const auto & type = element.master.type;
+  /*const auto & type = element.master.type;
   auto surface_dimension = Mesh::getSpatialDimension(type);
 
   auto & tangents = element.tangents;
@@ -407,12 +408,13 @@ void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha
       }
     }
 
-  }
+    }*/
 
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta, const Matrix<Real> & tangents) {
+void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta,
+					  const Matrix<Real> & tangents) {
 
   m_alpha_beta.mul<false, true>(tangents, tangents);
 }
@@ -437,35 +439,6 @@ void ResolutionUtils::computeSecondMetricTensor(const ContactElement & element,
   }    
 }
   
-/* -------------------------------------------------------------------------- */
-void ResolutionUtils::assembleToInternalForce(Vector<Real> & local_array,
-                                              Array<Real> & global_array,
-                                              Array<Real> & nodal_area,
-                                              ContactElement & element, bool is_master_deformable) {
-  const auto & conn = element.connectivity;
-  UInt nb_dofs = global_array.getNbComponent();
-
-  auto slave_node = conn[0];
- 
-  UInt total_nodes = 1;
-  if (is_master_deformable) {
-    total_nodes = conn.size();
-  }
-  
-  for (UInt i : arange(total_nodes)) { // 1 to only consider slave node 
-    UInt n = conn[i];
-    for (UInt j : arange(nb_dofs)) {
-      UInt offset_node = n * nb_dofs + j;
-      global_array[offset_node] += local_array[i * nb_dofs + j] * nodal_area[slave_node];
-    }
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-  void ResolutionUtils::assembleToStiffnessMatrix(Matrix<Real> & /*local_matrix*/, Matrix<Real> & /*global_matrix*/,
-						  Array<Real> & /*nodal_area*/, ContactElement & /*element*/) {
-  
-}
   
   
 } //akantu

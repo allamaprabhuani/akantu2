@@ -65,7 +65,7 @@ protected:
 				 Matrix<Real> &, ContactElement &);
 
   /* ------------------------------------------------------------------------ */
-  /* Methods for stiffness computation                                                                 */
+  /* Methods for stiffness computation                                        */
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli due to normal traction
@@ -104,6 +104,16 @@ protected:
   /// local computation of tangential traction due to slip
   void computeSlipTangentialTraction(const ContactElement &, const Matrix<Real> &,
 				     Vector<Real> &, Vector<Real> &) override;
+
+  /// local computation of tangential traction due to friction
+  void computeTangentialTraction(const ContactElement &, const Matrix<Real> &,
+				 Vector<Real> &);
+
+public:
+
+  void beforeSolveStep() override;
+
+  void afterSolveStep(bool converged = true) override;
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

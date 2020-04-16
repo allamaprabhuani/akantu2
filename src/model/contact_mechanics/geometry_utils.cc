@@ -52,6 +52,10 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
 
   Matrix<Real> vectors(spatial_dimension, surface_dimension);
   switch (spatial_dimension) {
+  case 1: {
+    normal[0] = 1;
+    break;
+  }
   case 2: {
     vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
     Math::normal2(vectors.storage(), normal.storage());
@@ -235,7 +239,10 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 
     auto variation = std::abs(product + alpha);
          
-    if (variation <= tolerance and temp_gap <= min_gap and GeometryUtils::isValidProjection(xi)) {
+    if (variation <= tolerance and
+	temp_gap <= min_gap and
+	GeometryUtils::isValidProjection(xi)) {
+
       gap     = -temp_gap;
       min_gap = temp_gap;
       index   = counter;
@@ -274,6 +281,31 @@ void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positi
   projection = slave - alpha * normal;
 }
 
+/* -------------------------------------------------------------------------- */
+void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positions,
+				   const Element & element, const Vector<Real> & natural_coord,
+				   Vector<Real> & projection) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+
+  const ElementType & type = element.type;
+
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element.type);
+  
+  Vector<Real> shapes(nb_nodes_per_element);  
+#define GET_SHAPE_NATURAL(type)		\
+  ElementClass<type>::computeShapes(natural_coord, shapes)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
+#undef GET_SHAPE_NATURAL
+
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+                                     elem_val + element.element * nb_nodes_per_element,
+                                     nb_nodes_per_element, spatial_dimension);
+
+  projection.mul<false>(nodes_coord, shapes);
+}
 
 /* -------------------------------------------------------------------------- */
 void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & positions,
@@ -301,14 +333,30 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
 
 
 /* -------------------------------------------------------------------------- */
-void GeometryUtils::contravariantBasis(const Matrix<Real> & covariant, Matrix<Real> & contravariant) {
+void GeometryUtils::contravariantBasis(const Matrix<Real> & covariant,
+				       Matrix<Real> & contravariant) {
   
-  Matrix<Real> A(covariant.rows(), covariant.rows());
-  A.mul<false, true>(covariant, covariant);
-
-  auto inv_A = A.inverse();
-
+  auto inv_A = GeometryUtils::contravariantMetricTensor(covariant);
   contravariant.mul<false, false>(inv_A, covariant); 
+}
+
+
+/* -------------------------------------------------------------------------- */
+Matrix<Real> GeometryUtils::covariantMetricTensor(const Matrix<Real> & covariant_bases) {
+  
+  Matrix<Real> A(covariant_bases.rows(), covariant_bases.rows());
+  A.mul<false, true>(covariant_bases, covariant_bases);
+  return A;
+}
+  
+  
+
+/* -------------------------------------------------------------------------- */
+Matrix<Real> GeometryUtils::contravariantMetricTensor(const Matrix<Real> & covariant_bases)  {
+
+  auto A = GeometryUtils::covariantMetricTensor(covariant_bases);
+  auto inv_A = A.inverse();
+  return inv_A;
 }
   
 }

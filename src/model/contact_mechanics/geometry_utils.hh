@@ -66,6 +66,11 @@ public:
 				    const Vector<Real> & slave,  const Element & element,
 				    const Vector<Real> & normal, Vector<Real> & projection);
 
+  /// computes the real projection from a natural coordinate
+  static void realProjection(const Mesh & mesh, const Array<Real> & positions,
+			     const Element & element, const Vector<Real> & natural_coord,
+			     Vector<Real> & projection);
+  
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
   static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
@@ -82,6 +87,12 @@ public:
   /// computes the contravariant basis on projection point
   static void contravariantBasis(const Matrix<Real> & covariant,
 				 Matrix<Real> & contravariant);
+
+  /// computes metric tesnor with covariant components
+  static Matrix<Real> covariantMetricTensor(const Matrix<Real> & );
+
+  /// computes metrix tensor with contravariant components
+  static Matrix<Real> contravariantMetricTensor(const Matrix<Real> & );
 
   /// checks if the element is truly a boundary element or not
   inline static bool isBoundaryElement(const Mesh & mesh, const Element & element);
