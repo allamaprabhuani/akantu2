@@ -74,43 +74,6 @@ public:
   /// set the master element
   AKANTU_SET_MACRO(Master, master, MasterType);
   
-  /// gets the value of normal vector
-  AKANTU_GET_MACRO(Normal, normal, Vector<Real>);
-
-  /// sets the value of normal vector
-  AKANTU_SET_MACRO(Normal, normal, Vector<Real>);
-
-  /// sets the value of tangent vector
-  AKANTU_SET_MACRO(Tangent, tangents, Matrix<Real>);
-
-  /// gets the value of tangent vector
-  AKANTU_GET_MACRO(Tangent, tangents, Matrix<Real>);
-
-  /// sets the value of natural projection
-  AKANTU_SET_MACRO(Projection, projection, Vector<Real>);
-    
-  /// gets the value of natural projection
-  AKANTU_GET_MACRO(Projection, projection, Vector<Real>);
-  
-  /// sets the value of real projection
-  AKANTU_SET_MACRO(PreviousProjection, previous_projection, Vector<Real>);
-  
-  /// gets the value of natural previous projection
-  AKANTU_GET_MACRO(PreviousProjection, previous_projection, Vector<Real>);
-  
-  /// sets the connectivity of the contact
-  AKANTU_SET_MACRO(Connectivity, connectivity, Vector<UInt>);
-
-  /// gets the connectivity of the contact
-  AKANTU_GET_MACRO(Connectivity, connectivity, Vector<UInt>);
-  
-  /// sets the value of gap
-  AKANTU_SET_MACRO(Gap, gap, Real);
-
-  /// gets the value of gap
-  AKANTU_GET_MACRO(Gap, gap, Real);
-
-  
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */ 
@@ -120,31 +83,6 @@ public:
   
   /// master element/node
   MasterType master;
-
-  /// projected slave coordinate on master element
-  Vector<Real> projection;
-
-  ///
-  Vector<Real> previous_projection;
-
-  ///
-  Vector<Real> stick_projection;
-  
-  /// normalized normal direction
-  Vector<Real> normal;
-
-  /// normalized tangent direction
-  Matrix<Real> tangents;
-
-  /// connectivity of the contact element
-  Vector<UInt> connectivity;
-
-  ///
-  Vector<Real> real_projection;
-  
-  /// penetration gap between slave and master 
-  Real gap;
-
 };
 
 } // akantu
