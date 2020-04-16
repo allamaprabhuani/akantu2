@@ -176,6 +176,11 @@ private:
   /// assemble the local stiffness to global stiffness for a contact element
   void assembleLocalToGlobalMatrix(const ContactElement &, const Matrix<Real> &, SparseMatrix &);
 
+public:
+  virtual void beforeSolveStep();
+
+  virtual void afterSolveStep(bool converged = true);
+  
   
 public:
   /// function to print the contain of the class

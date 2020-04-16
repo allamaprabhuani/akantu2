@@ -57,7 +57,7 @@ Resolution::~Resolution() = default;
 void Resolution::initialize() {
   registerParam("name", name, std::string(), _pat_parsable | _pat_readable);
   registerParam("mu", mu, Real(0.), _pat_parsable | _pat_modifiable,
-                "Friciton Coefficient");
+                "Friction Coefficient");
   registerParam("is_master_deformable", is_master_deformable, bool(false),
                 _pat_parsable | _pat_readable, "Is master surface deformable");
 }
@@ -95,7 +95,7 @@ void Resolution::assembleInternalForces() {
     Vector<Real> local_fn(nb_nodes * spatial_dimension);
     computeNormalForce(element, local_fn);
 
-    Vector<Real> local_ft(nb_nodes * spatial_dimension);
+    Vector<Real> local_ft(nb_nodes * spatial_dimension); 
     computeTangentialForce(element, local_ft);
  
     Vector<Real> local_fc(nb_nodes * spatial_dimension);
@@ -131,12 +131,11 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
   UInt nb_dofs  = global.getNbComponent();
   UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
 
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
   for (UInt i : arange(nb_nodes)) { 
     UInt n = connectivity[i];
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
-      global[offset_node] += local[i * nb_dofs + j] * nodal_area[element.slave];
+      global[offset_node] += local[i * nb_dofs + j];
     }
   }
 }
@@ -183,7 +182,8 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     assembleLocalToGlobalMatrix(element, local_kn, global_stiffness);
    
     Matrix<Real> local_kt(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
-    computeTangentialModuli(element, ddelta_g, delta_g, local_kt);
+    if (mu != 0)
+      computeTangentialModuli(element, ddelta_g, delta_g, local_kt);
     assembleLocalToGlobalMatrix(element, local_kt, global_stiffness);
   }
 
@@ -231,6 +231,15 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
   }
 }
 
+
+
+/* -------------------------------------------------------------------------- */
+void Resolution::beforeSolveStep() {
+}
+
+/* -------------------------------------------------------------------------- */
+void Resolution::afterSolveStep(bool converged) {
+}
   
 
 } // namespace akantu
