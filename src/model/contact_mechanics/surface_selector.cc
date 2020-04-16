@@ -6,7 +6,7 @@
  * @date creation: Fri Jun 21 2019
  * @date last modification: Fri Jun 21 2019
  *
- * @brief  Node selector for contact detector
+ * @brief  Surface selector for contact detector
  *
  * @section LICENSE
  *

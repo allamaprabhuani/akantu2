@@ -79,7 +79,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
   SolidMechanicsModelCohesiveOptions(
       AnalysisMethod analysis_method = _explicit_lumped_mass,
       bool extrinsic = false)
-      : SolidMechanicsModelOptions(analysis_method), is_extrinsic(extrinsic) {}
+    : SolidMechanicsModelOptions(analysis_method), is_extrinsic(extrinsic) {}
 
   template <typename... pack>
   SolidMechanicsModelCohesiveOptions(use_named_args_t, pack &&... _pack)
@@ -138,13 +138,13 @@ struct EmbeddedInterfaceModelOptions : SolidMechanicsModelOptions {
 /* -------------------------------------------------------------------------- */
 struct ContactMechanicsModelOptions : public ModelOptions {
   explicit ContactMechanicsModelOptions(
-      AnalysisMethod analysis_method = _explicit_contact)
+      AnalysisMethod analysis_method = _explicit_lumped_mass)
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
   ContactMechanicsModelOptions(use_named_args_t, pack &&... _pack)
       : ContactMechanicsModelOptions(
-            OPTIONAL_NAMED_ARG(analysis_method, _explicit_contact)) {}
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
 #endif
 
@@ -152,13 +152,13 @@ struct ContactMechanicsModelOptions : public ModelOptions {
 /* -------------------------------------------------------------------------- */
 struct CouplerSolidContactOptions : public ModelOptions {
   explicit CouplerSolidContactOptions(
-      AnalysisMethod analysis_method = _explicit_dynamic_contact)
+      AnalysisMethod analysis_method = _explicit_lumped_mass)
       : ModelOptions(analysis_method) {}
 
   template <typename... pack>
   CouplerSolidContactOptions(use_named_args_t, pack &&... _pack)
       : CouplerSolidContactOptions(
-            OPTIONAL_NAMED_ARG(analysis_method, _explicit_dynamic_contact)) {}
+            OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
 #endif
 

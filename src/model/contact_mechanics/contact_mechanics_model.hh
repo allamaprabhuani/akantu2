@@ -109,7 +109,7 @@ protected:
   void beforeSolveStep() override;
 
   /// callback for the solver, this is called at end of solve
-  void afterSolveStep() override;
+  void afterSolveStep(bool converted = true) override;
 
   /// function to print the containt of the class
   void printself(std::ostream & stream, int indent = 0) const override;
@@ -136,6 +136,9 @@ protected:
 
   /// read the resolution files to instantiate all the resolutions
   void instantiateResolutions();
+
+  /// save the parameters from previous state
+  void savePreviousState();
 
   /* ------------------------------------------------------------------------ */
   /* Solver Interface                                                         */
@@ -232,6 +235,13 @@ public:
 
   /// get the ContactMechanics::tangential_force vector (friction forces)
   AKANTU_GET_MACRO(TangentialForce, *tangential_force, Array<Real> &);
+  
+  /// get the ContactMechanics::traction vector (friction traction)
+  AKANTU_GET_MACRO(TangentialTractions, *tangential_tractions, Array<Real> &);
+
+  /// get the ContactMechanics::previous_tangential_tractions vector
+  AKANTU_GET_MACRO(PreviousTangentialTractions, *previous_tangential_tractions,
+		   Array<Real> &);
 
   /// get the ContactMechanicsModel::force vector (external forces)
   Array<Real> & getForce() {
@@ -249,18 +259,30 @@ public:
   /// get the ContactMechanics::normals (normals on slave nodes)
   AKANTU_GET_MACRO(Normals, *normals, Array<Real> &);
 
+  /// get the ContactMechanics::tangents (tangents on slave nodes)
+  AKANTU_GET_MACRO(Tangents, *tangents, Array<Real> &);
+
+  /// get the ContactMechanics::previous_tangents (tangents on slave nodes)
+  AKANTU_GET_MACRO(PreviousTangents, *previous_tangents, Array<Real> &);
+  
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
-  /// get the ContactMechanics::areas (nodal areas)
+  /// get the ContactMechanics::stick_projections (stick_projections)
   AKANTU_GET_MACRO(StickProjections, *stick_projections, Array<Real> &);
 
-  /// get the ContactMechanics::areas (nodal areas)
+  /// get the ContactMechanics::previous_projections (previous_projections)
+  AKANTU_GET_MACRO(PreviousProjections, *previous_projections, Array<Real> &);
+
+  /// get the ContactMechanics::projections (projections)
   AKANTU_GET_MACRO(Projections, *projections, Array<Real> &);
   
   /// get the ContactMechanics::stick_or_slip vector (slip/stick
   /// state)
   AKANTU_GET_MACRO(StickSlip, *stick_or_slip, Array<Real> &);
+
+  /// get the ContactMechanics::previous_master_elements
+  AKANTU_GET_MACRO(PreviousMasterElements, *previous_master_elements, Array<Element> &);
   
   /// get contact detector
   AKANTU_GET_MACRO_NOT_CONST(ContactDetector, *detector, ContactDetector &);
@@ -300,6 +322,12 @@ private:
   /// friction force array
   Array<Real> * tangential_force{nullptr};
 
+  /// friction traction array
+  Array<Real> * tangential_tractions{nullptr};
+  
+  /// previous friction traction array
+  Array<Real> * previous_tangential_tractions{nullptr};
+  
   /// boundary vector
   Array<Real> * blocked_dofs{nullptr};
 
@@ -312,6 +340,9 @@ private:
   /// array to store tangents on the master element
   Array<Real> * tangents{nullptr};
 
+  /// array to store previous tangents on the master element
+  Array<Real> * previous_tangents{nullptr};
+  
   /// array to store nodal areas
   Array<Real> * nodal_area{nullptr};
 
@@ -321,6 +352,9 @@ private:
   /// array to store stick point projection in covariant basis
   Array<Real> * stick_projections{nullptr};
 
+  /// array to store previous projections in covariant basis
+  Array<Real> * previous_projections{nullptr};
+  
   // array to store projections in covariant basis
   Array<Real> * projections{nullptr};
   
@@ -333,8 +367,11 @@ private:
   /// mapping between resolution name and resolution internal id
   std::map<std::string, UInt> resolutions_names_to_id;
 
-  ///
+  /// array to store contact elements
   Array<ContactElement> contact_elements;
+
+  /// array to store previous master elements
+  Array<Element> * previous_master_elements{nullptr};
 };
 
 } // namespace akantu

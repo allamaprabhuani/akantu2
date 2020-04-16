@@ -211,13 +211,27 @@ void ContactMechanicsModel::initSolver(
   this->allocNodalField(this->gaps, 1, "gaps");
   this->allocNodalField(this->nodal_area, 1, "areas");
   this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
-
   this->allocNodalField(this->stick_or_slip, 1, "stick_or_slip");
+  this->allocNodalField(this->previous_master_elements, 1, "previous_master_elements");
   
   this->allocNodalField(this->normals, spatial_dimension, "normals");
-  this->allocNodalField(this->tangents, spatial_dimension, "tangents");
-  this->allocNodalField(this->projections, spatial_dimension - 1, "projections");
 
+  auto surface_dimension = spatial_dimension - 1;
+  this->allocNodalField(this->tangents, surface_dimension*spatial_dimension,
+			"tangents");
+  this->allocNodalField(this->previous_tangents, surface_dimension*spatial_dimension,
+			"previous_tangents");
+  this->allocNodalField(this->projections, surface_dimension,
+			"projections");
+  this->allocNodalField(this->previous_projections, surface_dimension,
+			"previous_projections");
+  this->allocNodalField(this->stick_projections, surface_dimension,
+			"stick_projections");
+  this->allocNodalField(this->tangential_tractions, surface_dimension,
+			"tangential_tractions");
+  this->allocNodalField(this->previous_tangential_tractions, surface_dimension,
+			"previous_tangential_tractions");
+    
   // todo register multipliers as dofs for lagrange multipliers
 }
 
@@ -226,19 +240,21 @@ std::tuple<ID, TimeStepSolverType>
 ContactMechanicsModel::getDefaultSolverID(const AnalysisMethod & method) {
 
   switch (method) {
-  case _explicit_contact: {
-    return std::make_tuple("explicit_contact", TimeStepSolverType::_static);
-  }
-  case _implicit_contact: {
-    return std::make_tuple("implicit_contact", TimeStepSolverType::_static);
-  }
-  case _explicit_dynamic_contact: {
-    return std::make_tuple("explicit_dynamic_contact",
+  case _explicit_lumped_mass: {
+    return std::make_tuple("explicit_lumped",
                            TimeStepSolverType::_dynamic_lumped);
-    break;
+  }
+  case _explicit_consistent_mass: {
+    return std::make_tuple("explicit", TimeStepSolverType::_dynamic);
+  }
+  case _static: {
+    return std::make_tuple("static", TimeStepSolverType::_static);
+  }
+  case _implicit_dynamic: {
+    return std::make_tuple("implicit", TimeStepSolverType::_dynamic);
   }
   default:
-    return std::make_tuple("unkown", TimeStepSolverType::_not_defined);
+    return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
   }
 }
 
@@ -327,19 +343,26 @@ void ContactMechanicsModel::assembleInternalForces() {
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::search() {
 
-  UInt nb_nodes = mesh.getNbNodes();
-
+  // save the previous state 
+  this->savePreviousState();
+  
   contact_elements.clear();
   contact_elements.resize(0);
-  
-  // this to resize if cohesive elements are added
-  gaps->clear();
-  gaps->resize(nb_nodes, 0.);
-  normals->clear();
-  normals->resize(nb_nodes, 0.);
-  projections->clear();
-  projections->resize(nb_nodes, 0.);
-  
+
+  // this needs to be resized if cohesive elements are added 
+  UInt nb_nodes = mesh.getNbNodes();
+
+  auto resize_arrays = [&](auto & internal_array) {
+    internal_array->clear();
+    internal_array->resize(nb_nodes, 0.);
+  };
+
+  resize_arrays(gaps);
+  resize_arrays(normals);
+  resize_arrays(tangents);
+  resize_arrays(projections);
+  resize_arrays(tangential_tractions);
+    
   this->detector->search(contact_elements, *gaps,
 			 *normals, *projections);
   
@@ -354,6 +377,36 @@ void ContactMechanicsModel::search() {
 }
 
 /* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::savePreviousState() {
+
+  AKANTU_DEBUG_IN();
+
+  // saving previous natural projections 
+  previous_projections->clear();
+  previous_projections->resize(projections->size(), 0.);
+  (*previous_projections).copy(*projections);
+
+  // saving previous tangents
+  previous_tangents->clear();
+  previous_tangents->resize(tangents->size(), 0.);
+  (*previous_tangents).copy(*tangents);
+
+  // saving previous tangential traction
+  previous_tangential_tractions->clear();
+  previous_tangential_tractions->resize(tangential_tractions->size(), 0.);
+  (*previous_tangential_tractions).copy(*tangential_tractions);
+
+  previous_master_elements->clear();
+  previous_master_elements->resize(projections->size());
+  for (auto & element : contact_elements) {
+    (*previous_master_elements)[element.slave] = element.master;
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+  
+/* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::computeNodalAreas() {
 
   UInt nb_nodes = mesh.getNbNodes();
@@ -367,30 +420,39 @@ void ContactMechanicsModel::computeNodalAreas() {
   auto & fem_boundary = this->getFEEngineBoundary(); 
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
-  
-  this->applyBC(
+
+  // TODO find a better method to compute nodal area
+  switch (spatial_dimension) {
+  case 1: {
+    for (auto && area : *nodal_area) {
+      area = 1.;
+    }
+    break;
+  }
+  case 2:
+  case 3: {
+      this->applyBC(
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
       mesh.getElementGroup("contact_surface"));
 
-  for (auto && tuple :
-       zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
-    auto & area = std::get<0>(tuple);
-    auto & force = std::get<1>(tuple);
+      for (auto && tuple :
+	     zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
+	auto & area = std::get<0>(tuple);
+	auto & force = std::get<1>(tuple);
 
-    for (auto & f : force)
-      area += pow(f, 2);
+	for (auto & f : force)
+	  area += pow(f, 2);
 
-    area = sqrt(area);
+	area = sqrt(area);
+      }
+    break;
   }
-
+  default:
+    break;
+  }
+  
   this->external_force->clear();
 }
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::beforeSolveStep() {}
-
-/* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::afterSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
@@ -450,6 +512,19 @@ void ContactMechanicsModel::assembleStiffnessMatrix() {
 void ContactMechanicsModel::assembleLumpedMatrix(const ID & /*matrix_id*/) {
   AKANTU_TO_IMPLEMENT();
 }
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::beforeSolveStep() {
+  for (auto & resolution : resolutions)
+    resolution->beforeSolveStep();
+}
+
+/* -------------------------------------------------------------------------- */
+void ContactMechanicsModel::afterSolveStep(bool converged) {
+  for (auto & resolution : resolutions)
+    resolution->afterSolveStep(converged);
+}
+  
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
