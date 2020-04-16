@@ -70,7 +70,7 @@ void ContactDetector::parseSection() {
     this->detection_type = _implicit;
   } else if (type == "explicit") {
     this->detection_type = _explicit;
-  } else {
+  } else { 
     AKANTU_ERROR("Unknown detection type : " << type);
   }
 }
@@ -371,7 +371,7 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
 
   
 /* -------------------------------------------------------------------------- */
-UInt ContactDetector::computeOrthogonalProjection(
+/*UInt ContactDetector::computeOrthogonalProjection(
     const UInt & node, const Array<Element> & elements, Array<Real> & normals,
     Array<Real> & gaps, Array<Real> & projections) {
 
@@ -447,10 +447,10 @@ UInt ContactDetector::computeOrthogonalProjection(
   }
 
   return index;
-}
+  }*/
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::computeProjectionOnElement(
+/*void ContactDetector::computeProjectionOnElement(
     const Element & element, const Vector<Real> & normal,
     const Vector<Real> & query, Vector<Real> & natural_projection,
     Vector<Real> & real_projection) {
@@ -466,10 +466,10 @@ void ContactDetector::computeProjectionOnElement(
   real_projection = query - alpha * normal;
 
   this->computeNaturalProjection(element, real_projection, natural_projection);
-}
+  }*/
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::computeNaturalProjection(
+/*void ContactDetector::computeNaturalProjection(
     const Element & element, Vector<Real> & real_projection,
     Vector<Real> & natural_projection) {
 
@@ -488,10 +488,10 @@ void ContactDetector::computeNaturalProjection(
                                  natural_projection)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
 #undef GET_NATURAL_COORDINATE
-}
+}*/
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::computeTangentsOnElement(const Element & el,
+/*void ContactDetector::computeTangentsOnElement(const Element & el,
                                                Vector<Real> & projection,
                                                Matrix<Real> & tangents) {
 
@@ -524,10 +524,10 @@ void ContactDetector::computeTangentsOnElement(const Element & el,
   }
 
   tangents = temp_tangents.transpose();
-}
+  }*/
 
 /* -------------------------------------------------------------------------- */
-void ContactDetector::computeTangentsOnElement(const Element & el,
+/*void ContactDetector::computeTangentsOnElement(const Element & el,
                                                Vector<Real> & projection,
                                                Vector<Real> & normal,
                                                Matrix<Real> & tangents) {
@@ -608,6 +608,6 @@ void ContactDetector::computeTangentsOnElement(const Element & el,
   default:
     break;
   }
-}
+  }*/
 
 } // namespace akantu

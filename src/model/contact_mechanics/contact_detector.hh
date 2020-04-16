@@ -93,25 +93,25 @@ private:
   void parseSection();
 
   /// computes the orthogonal projection on master elements
-  UInt computeOrthogonalProjection(const UInt &, const Array<Element> &,
-                                   Array<Real> &, Array<Real> &, Array<Real> &);
+  //UInt computeOrthogonalProjection(const UInt &, const Array<Element> &,
+  //                                 Array<Real> &, Array<Real> &, Array<Real> &);
 
   /// computes tangents on a given natural coordinate
-  void computeTangentsOnElement(const Element &, Vector<Real> &,
-                                Matrix<Real> &);
+  //void computeTangentsOnElement(const Element &, Vector<Real> &,
+  //                              Matrix<Real> &);
 
   /// computes tangents on a given natural coordinate
-  void computeTangentsOnElement(const Element &, Vector<Real> &,
-				Vector<Real> &, Matrix<Real> &);
+  //void computeTangentsOnElement(const Element &, Vector<Real> &,
+  //				Vector<Real> &, Matrix<Real> &);
   
   /// computes projection of a query point on an element
-  void computeProjectionOnElement(const Element &, const Vector<Real> &,
-                                  const Vector<Real> &, Vector<Real> &,
-                                  Vector<Real> &);
+  //void computeProjectionOnElement(const Element &, const Vector<Real> &,
+  //                                const Vector<Real> &, Vector<Real> &,
+  //                                Vector<Real> &);
 
   /// computes natural projection of a real projection
-  void computeNaturalProjection(const Element &, Vector<Real> &,
-                                Vector<Real> &);
+  //void computeNaturalProjection(const Element &, Vector<Real> &,
+  //                              Vector<Real> &);
 
   /* ------------------------------------------------------------------------ */
   /* Inline Methods                                                           */
@@ -154,7 +154,7 @@ public:
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
-  inline bool checkValidityOfSelfContact(const UInt &, ContactElement &);
+  //inline bool checkValidityOfSelfContact(const UInt &, ContactElement &);
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface

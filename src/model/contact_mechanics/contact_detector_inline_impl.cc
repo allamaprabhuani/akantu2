@@ -284,7 +284,7 @@ ContactDetector::filterBoundaryElements(Array<Element> & elements,
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool
+/*inline bool
 ContactDetector::checkValidityOfSelfContact(const UInt & slave_node,
                                             ContactElement & element) {
 
@@ -337,7 +337,7 @@ ContactDetector::checkValidityOfSelfContact(const UInt & slave_node,
   }
   
   return true;
-}
+  }*/
 
 
 
