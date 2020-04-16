@@ -138,12 +138,12 @@ inline FEEngine & Model::getFEEngineBoundary(const ID & name) {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 void Model::allocNodalField(Array<T> *& array, UInt nb_component,
-                            const ID & name) {
+                            const ID & name, T t_default) {
   if (array)
     return;
 
   UInt nb_nodes = mesh.getNbNodes();
-  array = &(alloc<T>(id + ":" + name, nb_nodes, nb_component, T()));
+  array = &(alloc<T>(id + ":" + name, nb_nodes, nb_component, t_default));
 }
 
 /* -------------------------------------------------------------------------- */
