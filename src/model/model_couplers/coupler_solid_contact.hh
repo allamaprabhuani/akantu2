@@ -129,7 +129,7 @@ protected:
   void beforeSolveStep() override;
 
   /// callback for the solver, this is called at end of solve
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType, NonLinearSolverType) override;
