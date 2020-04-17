@@ -218,8 +218,8 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       auto & C_macro = std::get<4>(data);
       // Matrix<Real> C_copy(3, 3);
       // C_copy.copy(C_macro);
-      if (RVE.hasStiffnessChanged())
-        RVE.homogenizeStiffness(C_macro, false);
+      // if (RVE.hasStiffnessChanged())
+      //   RVE.homogenizeStiffness(C_macro, false);
 
       /// temporary output for debugging
       auto && comm = akantu::Communicator::getWorldCommunicator();
@@ -322,10 +322,9 @@ void MaterialFE2<spatial_dimension>::beforeSolveStep() {
 
     RVE.storeDamageField();
 
-    // /// compute the new effective stiffness of the RVE
-    // auto & C_macro = std::get<1>(data);
-    // if (RVE.hasStiffnessChanged())
-    //   RVE.homogenizeStiffness(C_macro, RVE.isTensileHomogen());
+    /// compute the new effective stiffness of the RVE
+    auto & C_macro = std::get<1>(data);
+    RVE.homogenizeStiffness(C_macro, false);
   }
   AKANTU_DEBUG_OUT();
 }

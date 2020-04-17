@@ -35,6 +35,7 @@
 #include "parser.hh"
 #include "sparse_matrix.hh"
 #include <string>
+#include "aka_random_generator.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -50,6 +51,7 @@ SolidMechanicsModelRVE::SolidMechanicsModelRVE(Mesh & mesh,
       use_RVE_mat_selector(use_RVE_mat_selector),
       nb_gel_pockets(nb_gel_pockets), stiffness_changed(true) {
   AKANTU_DEBUG_IN();
+  RandomGenerator<UInt>:: seed(1);
 
   /// remove the corner nodes from the surface node groups:
   /// This most be done because corner nodes a not periodic

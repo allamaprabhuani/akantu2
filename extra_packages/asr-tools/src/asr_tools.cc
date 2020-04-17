@@ -1599,19 +1599,18 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   /// 1. eps_el = (1;0;0) 2. eps_el = (0,1,0) 3. eps_el = (0,0,0.5)
 
   /// clear the eigenstrain TODO why????????
-  // Matrix<Real> zero_eigengradu(dim, dim, 0.);
-  // GhostType gt = _not_ghost;
-  // for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
-  //   auto & prestrain_vect =
-  //       const_cast<Array<Real>
-  //       &>(model.getMaterial("gel").getInternal<Real>(
-  //           "eigen_grad_u")(element_type));
-  //   auto prestrain_it = prestrain_vect.begin(dim, dim);
-  //   auto prestrain_end = prestrain_vect.end(dim, dim);
+  Matrix<Real> zero_eigengradu(dim, dim, 0.);
+  GhostType gt = _not_ghost;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect =
+        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
+            "eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
 
-  //   for (; prestrain_it != prestrain_end; ++prestrain_it)
-  //     (*prestrain_it) = zero_eigengradu;
-  // }
+    for (; prestrain_it != prestrain_end; ++prestrain_it)
+      (*prestrain_it) = zero_eigengradu;
+  }
 
   /// save nodal values before tests
   storeNodalFields();
