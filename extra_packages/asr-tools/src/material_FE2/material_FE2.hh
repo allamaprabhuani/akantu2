@@ -169,7 +169,10 @@ protected:
   InternalField<Real> damage_ratio_agg;
 
   /// flag for using the homogenized stiffness to solve macro-scale problem
-  bool use_homogenized_stiffness{false};
+  bool use_homogenized_stiffness; /// TODO remove it and associated functions
+
+  /// flag to reset damage to previously converged values on each iteration
+  bool reset_damage;
 };
 
 /* -------------------------------------------------------------------------- */

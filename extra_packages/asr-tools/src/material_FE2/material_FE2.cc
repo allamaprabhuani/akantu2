@@ -68,6 +68,8 @@ template <UInt dim> void MaterialFE2<dim>::initialize() {
                       "universal gas constant R in Arrhenius law");
   this->registerParam("saturation_constant", sat_const, Real(0.0),
                       _pat_parsable | _pat_modifiable, "saturation constant");
+  this->registerParam("reset_damage", reset_damage, false,
+                      _pat_parsable | _pat_modifiable, "reset damage");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -195,8 +197,9 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       RVE.resetNodalFields();
       RVE.resetInternalFields();
 
-      /// restore the damage to the previously converged state
-      RVE.restoreDamageField();
+      /// reset the damage to the previously converged state
+      if (reset_damage)
+        RVE.restoreDamageField();
 
       /// apply boundary conditions based on the current macroscopic displ.
       /// gradient
@@ -211,15 +214,12 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// compute the average average rVE stress
       RVE.homogenizeStressField(std::get<2>(data));
 
-      /// decide whether stiffness homogenization is done via tension
-      RVE.setStiffHomogenDir(std::get<2>(data));
-
       // /// compute the new effective stiffness of the RVE
-      auto & C_macro = std::get<4>(data);
-      // Matrix<Real> C_copy(3, 3);
-      // C_copy.copy(C_macro);
-      // if (RVE.hasStiffnessChanged())
+      // if (RVE.hasStiffnessChanged()) {
+      //   RVE.setStiffHomogenDir(std::get<2>(data));
+      //   auto & C_macro = std::get<4>(data);
       //   RVE.homogenizeStiffness(C_macro, false);
+      // }
 
       /// temporary output for debugging
       auto && comm = akantu::Communicator::getWorldCommunicator();
@@ -316,15 +316,22 @@ void MaterialFE2<spatial_dimension>::beforeSolveStep() {
       return;
   }
 
-  for (auto && data : zip(RVEs, make_view(this->C(this->el_type), voigt_h::size,
-                                          voigt_h::size))) {
+  for (auto && data :
+       zip(RVEs,
+           make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
+           make_view(this->stress(el_type), spatial_dimension,
+                     spatial_dimension))) {
     auto & RVE = *(std::get<0>(data));
 
-    RVE.storeDamageField();
+    if (reset_damage)
+      RVE.storeDamageField();
 
-    /// compute the new effective stiffness of the RVE
-    auto & C_macro = std::get<1>(data);
-    RVE.homogenizeStiffness(C_macro, false);
+    if (RVE.stiffnessChanged()) {
+      /// decide whether stiffness homogenization is done via tension
+      RVE.setStiffHomogenDir(std::get<2>(data));
+      /// compute the new effective stiffness of the RVE
+      RVE.homogenizeStiffness(std::get<1>(data), RVE.isTensileHomogen());
+    }
   }
   AKANTU_DEBUG_OUT();
 }

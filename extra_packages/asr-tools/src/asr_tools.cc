@@ -1598,7 +1598,7 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   /// apply three independent loading states to determine C
   /// 1. eps_el = (1;0;0) 2. eps_el = (0,1,0) 3. eps_el = (0,0,0.5)
 
-  /// clear the eigenstrain TODO why????????
+  /// clear the eigenstrain (to exclude stresses due to internal pressure)
   Matrix<Real> zero_eigengradu(dim, dim, 0.);
   GhostType gt = _not_ghost;
   for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {

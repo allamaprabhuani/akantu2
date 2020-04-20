@@ -84,7 +84,7 @@ public:
 public:
   AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
   AKANTU_GET_MACRO(Volume, volume, Real);
-  bool hasStiffnessChanged() { return this->stiffness_changed; };
+  bool stiffnessChanged() { return this->stiffness_changed; };
 
 private:
   /* ------------------------------------------------------------------------ */
