@@ -214,12 +214,13 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// compute the average average rVE stress
       RVE.homogenizeStressField(std::get<2>(data));
 
-      // /// compute the new effective stiffness of the RVE
-      // if (RVE.hasStiffnessChanged()) {
-      //   RVE.setStiffHomogenDir(std::get<2>(data));
-      //   auto & C_macro = std::get<4>(data);
-      //   RVE.homogenizeStiffness(C_macro, false);
-      // }
+      /// compute the new effective stiffness of the RVE
+      if (not reset_damage && RVE.stiffnessChanged()) {
+        /// decide whether stiffness homogenization is done via tension
+        RVE.setStiffHomogenDir(std::get<2>(data));
+        /// compute the new effective stiffness of the RVE
+        RVE.homogenizeStiffness(std::get<4>(data), RVE.isTensileHomogen());
+      }
 
       /// temporary output for debugging
       auto && comm = akantu::Communicator::getWorldCommunicator();
@@ -326,7 +327,7 @@ void MaterialFE2<spatial_dimension>::beforeSolveStep() {
     if (reset_damage)
       RVE.storeDamageField();
 
-    if (RVE.stiffnessChanged()) {
+    if (reset_damage && RVE.stiffnessChanged()) {
       /// decide whether stiffness homogenization is done via tension
       RVE.setStiffHomogenDir(std::get<2>(data));
       /// compute the new effective stiffness of the RVE
