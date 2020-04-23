@@ -163,8 +163,8 @@ void ASRTools::applyLoadedBC(const Vector<Real> & traction,
   const Array<Real> & pos = mesh.getNodes();
   Array<Real> & disp = model.getDisplacement();
   Array<bool> & boun = model.getBlockedDOFs();
-  disp.clear();
-  boun.clear();
+  // disp.clear();
+  // boun.clear();
 
   switch (dim) {
   case 2: {

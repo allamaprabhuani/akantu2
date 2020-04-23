@@ -1,3 +1,4 @@
+
 /**
  * @file   material_FE2.hh
  *
@@ -75,6 +76,9 @@ public:
   void computeNewGelStrainTimeDependent(Matrix<Real> & gelstrain,
                                         const Real & delta_time_day,
                                         const Real & T, Real & non_reacted_gel);
+
+  /// reset the gel strain value to a previous value
+  void resetGelStrain(const Real & old_time_step);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);

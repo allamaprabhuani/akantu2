@@ -317,23 +317,23 @@ void MaterialFE2<spatial_dimension>::beforeSolveStep() {
       return;
   }
 
-  for (auto && data :
-       zip(RVEs,
-           make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-           make_view(this->stress(el_type), spatial_dimension,
-                     spatial_dimension))) {
-    auto & RVE = *(std::get<0>(data));
+  // for (auto && data :
+  //      zip(RVEs,
+  //          make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
+  //          make_view(this->stress(el_type), spatial_dimension,
+  //                    spatial_dimension))) {
+  //   auto & RVE = *(std::get<0>(data));
 
-    if (reset_damage)
-      RVE.storeDamageField();
+  //   if (reset_damage)
+  //     RVE.storeDamageField();
 
-    if (reset_damage) {
-      /// decide whether stiffness homogenization is done via tension
-      RVE.setStiffHomogenDir(std::get<2>(data));
-      /// compute the new effective stiffness of the RVE
-      RVE.homogenizeStiffness(std::get<1>(data), RVE.isTensileHomogen());
-    }
-  }
+  //   if (reset_damage) {
+  //     /// decide whether stiffness homogenization is done via tension
+  //     RVE.setStiffHomogenDir(std::get<2>(data));
+  //     /// compute the new effective stiffness of the RVE
+  //     RVE.homogenizeStiffness(std::get<1>(data), RVE.isTensileHomogen());
+  //   }
+  // }
   AKANTU_DEBUG_OUT();
 }
 /* --------------------------------------------------------------------------
@@ -350,18 +350,32 @@ void MaterialFE2<spatial_dimension>::afterSolveStep() {
       return;
   }
 
-  for (auto && data : zip(RVEs, this->delta_T(this->el_type),
-                          this->damage_ratio(this->el_type),
-                          this->damage_ratio_paste(this->el_type),
-                          this->damage_ratio_agg(this->el_type))) {
+  for (auto && data :
+       zip(RVEs,
+           make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
+           make_view(this->stress(el_type), spatial_dimension,
+                     spatial_dimension),
+           this->delta_T(this->el_type), this->damage_ratio(this->el_type),
+           this->damage_ratio_paste(this->el_type),
+           this->damage_ratio_agg(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
 
-    /// compute damage ratio in each rve
-    RVE.computeDamageRatio(std::get<2>(data));
+    if (reset_damage)
+      RVE.storeDamageField();
+
+    if (reset_damage) {
+      /// decide whether stiffness homogenization is done via tension
+      RVE.setStiffHomogenDir(std::get<2>(data));
+      /// compute the new effective stiffness of the RVE
+      RVE.homogenizeStiffness(std::get<1>(data), RVE.isTensileHomogen());
+    }
+
+    /// compute damage ratio in each RVE
+    RVE.computeDamageRatio(std::get<4>(data));
 
     /// compute damage ratio per material
-    RVE.computeDamageRatioPerMaterial(std::get<3>(data), "paste");
-    RVE.computeDamageRatioPerMaterial(std::get<4>(data), "aggregate");
+    RVE.computeDamageRatioPerMaterial(std::get<5>(data), "paste");
+    RVE.computeDamageRatioPerMaterial(std::get<6>(data), "aggregate");
 
     // /// apply temperature only for the output
     // RVE.applyHomogeneousTemperature(std::get<1>(data));
@@ -533,6 +547,40 @@ void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
   if (non_reacted_gel < 0.)
     non_reacted_gel = 0.;
 
+  AKANTU_DEBUG_OUT();
+}
+
+/* --------------------------------------------------------------------*/
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::resetGelStrain(
+    const Real & old_time_step) {
+  AKANTU_DEBUG_IN();
+  const auto & k = this->k;
+  const auto & Ea = this->activ_energy;
+  const auto & R = this->R;
+  const auto & sat_const = this->sat_const;
+
+  for (auto && data : zip(this->delta_T(this->el_type),
+                          make_view(this->gelstrain(this->el_type),
+                                    spatial_dimension, spatial_dimension),
+                          this->non_reacted_gel(this->el_type))) {
+
+    auto & gelstrain = std::get<1>(data);
+    auto & T = std::get<0>(data);
+    auto & non_reacted_gel = std::get<2>(data);
+
+    non_reacted_gel +=
+        std::exp(-Ea / (R * (T + 273.15))) * old_time_step / sat_const;
+
+    Real prev_delta_strain = non_reacted_gel * k *
+                             std::exp(-Ea / (R * (T + 273.15))) * old_time_step;
+
+    for (UInt i = 0; i != spatial_dimension; ++i)
+      gelstrain(i, i) += -prev_delta_strain;
+
+    if (non_reacted_gel > 1.)
+      non_reacted_gel = 1.;
+  }
   AKANTU_DEBUG_OUT();
 }
 
