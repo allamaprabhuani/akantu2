@@ -215,7 +215,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       RVE.homogenizeStressField(std::get<2>(data));
 
       /// compute the new effective stiffness of the RVE
-      if (not reset_damage && RVE.stiffnessChanged()) {
+      if (not reset_damage) {
         /// decide whether stiffness homogenization is done via tension
         RVE.setStiffHomogenDir(std::get<2>(data));
         /// compute the new effective stiffness of the RVE
@@ -327,7 +327,7 @@ void MaterialFE2<spatial_dimension>::beforeSolveStep() {
     if (reset_damage)
       RVE.storeDamageField();
 
-    if (reset_damage && RVE.stiffnessChanged()) {
+    if (reset_damage) {
       /// decide whether stiffness homogenization is done via tension
       RVE.setStiffHomogenDir(std::get<2>(data));
       /// compute the new effective stiffness of the RVE
