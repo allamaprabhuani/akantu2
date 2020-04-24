@@ -96,6 +96,9 @@ protected:
   /// number of state changes
   InternalField<UInt> nb_state_changes;
 
+  /// number of state changes
+  InternalField<Real> damage_prev_iteration;
+
   /// max allowed nb of state changes
   UInt max_state_changes_allowed;
 

@@ -37,7 +37,8 @@ template <UInt spatial_dimension>
 MaterialDamageIterativeOrthotropic<spatial_dimension>::
     MaterialDamageIterativeOrthotropic(SolidMechanicsModel & model,
                                        const ID & id)
-    : parent(model, id), nb_state_changes("nb_state_changes", *this) {
+    : parent(model, id), nb_state_changes("nb_state_changes", *this),
+      damage_prev_iteration("damage_prev_iteration", *this) {
   this->registerParam("max_state_changes_allowed", max_state_changes_allowed,
                       UInt(5), _pat_parsmod,
                       "How many times an element can change between tension "
@@ -55,6 +56,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   parent::initMaterial();
   this->nb_state_changes.initialize(1);
+  this->damage_prev_iteration.initialize(1);
   this->E = this->E1;
   this->nu = this->nu12;
   AKANTU_DEBUG_OUT();
@@ -69,6 +71,8 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
       computeStress(el_type, ghost_type);
 
   Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam_prev_iter =
+      this->damage_prev_iteration(el_type, ghost_type).storage();
   auto E1_it =
       this->template getInternal<Real>("E1_field")(el_type, ghost_type).begin();
   auto E2_it =
@@ -111,7 +115,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   /// parameters reduction & update of C and Cprime only in case of damage
-  // if (*dam > 0) {
+  if (*dam != *dam_prev_iter) {
     /// reduce or recover elastic moduli due to damage
     reduceInternalParameters(sigma, *dam, *E1_it, *E2_it, *E3_it, *nu12_it,
                              *nu13_it, *nu23_it, *G12_it, *G13_it, *G23_it,
@@ -120,11 +124,16 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
     this->updateInternalParametersOnQuad(
         *E1_it, *E2_it, *E3_it, *nu12_it, *nu13_it, *nu23_it, *G12_it, *G13_it,
         *G23_it, *Cprime_it, *C_it, *eigC_it, *dir_vecs_it);
-  // }
+  }
+
+  /// update damage at previous iteration value
+  *dam_prev_iter = *dam;
+
   // compute stress according to anisotropic material law
   this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
 
   ++dam;
+  ++dam_prev_iter;
   ++E1_it;
   ++E2_it;
   ++E3_it;
