@@ -103,10 +103,11 @@ protected:
   inline void computeTractionOnQuad(
       Vector<Real> & traction, Vector<Real> & opening,
       const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
-      const Vector<Real> & insertion_stress, const Real & sigma_c,
+      const Vector<Real> & insertion_stress,
+      const Vector<Real> & insertion_compression, const Real & sigma_c,
       Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_traction,
+      Real & normal_opening_norm, Real & tangential_opening_norm,
+      Real & damage, bool & penetration, Vector<Real> & contact_traction,
       Vector<Real> & contact_opening);
 
   inline void computeTangentTractionOnQuad(
@@ -167,6 +168,8 @@ protected:
 
   /// stress at insertion
   CohesiveInternalField<Real> insertion_stress;
+  /// compression at insertion
+  CohesiveInternalField<Real> insertion_compression;
 
   /// variable saying if there should be penalty contact also after
   /// breaking the cohesive elements

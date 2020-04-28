@@ -1,18 +1,18 @@
 /**
- * @file   material_cohesive_linear_friction.hh
+ * @file   material_cohesive_linear_slipweakening.hh
  *
- * @author Mauro Corrado <mauro.corrado@epfl.ch>
- * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Mathias Lebihain <mathias.lebihain@epfl.ch>
  *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Wed Feb 21 2018
+ * @date creation: Fri Mar 06 2020
+ * @date last modification: Fri Mar 06 2020
  *
  * @brief  Linear irreversible cohesive law of mixed mode loading with
- * random stress definition for extrinsic type
+ * Mohr-Coulomb insertion criterion and slip-weakening friction for
+ * extrinsic type
  *
  * @section LICENSE
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Copyright (©)  2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  * Akantu is free  software: you can redistribute it and/or  modify it under the
@@ -32,34 +32,32 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "material_cohesive_linear.hh"
+#include "material_cohesive_linear_friction.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_HH__
-#define __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_HH__
-
+#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_SLIPWEAKENING_HH__
+#define __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_SLIPWEAKENING_HH__
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /**
- * Cohesive material linear with friction force
+ * Cohesive material linear with slip-weakening friction force
  *
  * parameters in the material files :
- *   - mu   : friction coefficient
- *   - penalty_for_friction : Penalty parameter for the friction behavior
+ *   - mu_d   : dynamic friction coefficient
  */
 template <UInt spatial_dimension>
-class MaterialCohesiveLinearFriction
-    : public MaterialCohesiveLinear<spatial_dimension> {
+class MaterialCohesiveLinearFrictionSlipWeakening
+    : public MaterialCohesiveLinearFriction<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-  using MaterialParent = MaterialCohesiveLinear<spatial_dimension>;
+  using MaterialParent = MaterialCohesiveLinearFriction<spatial_dimension>;
 
 public:
-  MaterialCohesiveLinearFriction(SolidMechanicsModel & model,
-                                 const ID & id = "");
+  MaterialCohesiveLinearFrictionSlipWeakening(SolidMechanicsModel & model,
+                                              const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -69,8 +67,9 @@ public:
   void initMaterial() override;
 
 protected:
-  /// check stress for cohesive elements insertion
-  void checkInsertion(bool check_only = false) override;
+  /// constitutive law
+  void computeTraction(const Array<Real> & normal, ElementType el_type,
+                       GhostType ghost_type = _not_ghost) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -80,24 +79,10 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// penalty parameter for the friction law
-  Real friction_penalty;
-
-  /// friction at insertion
-  RandomInternalField<Real, FacetInternalField> mu_insertion;
-
-  /// friction coefficient
-  CohesiveInternalField<Real> mu_eff;
-
-  /// history parameter for the friction law
-  CohesiveInternalField<Real> residual_sliding;
-
-  /// friction force
-  CohesiveInternalField<Real> friction_force;
+  /// dynamic friction coefficient
+  RandomInternalField<Real, CohesiveInternalField> mu_dynamic;
 };
 
 } // namespace akantu
 
-#include "material_cohesive_linear_friction_tmpl.hh"
-
-#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_HH__ */
+#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_SLIPWEAKENING_HH__ */

@@ -208,6 +208,11 @@ protected:
   /// tell if the previous opening state is needed (in iterative schemes)
   bool use_previous_opening;
 
+  /// tell if the previous contact_opening state is needed (in iterative schemes)
+  bool use_previous_contact_opening;
+
+  /// tell if the
+
   /// damage
   CohesiveInternalField<Real> damage;
 

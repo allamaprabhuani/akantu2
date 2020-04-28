@@ -1,8 +1,9 @@
 /**
- * @file   material_cohesive_linear_friction.hh
+ * @file   material_cohesive_linear_friction_coulomb.hh
  *
  * @author Mauro Corrado <mauro.corrado@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
+ * @author Mathias Lebihain <mathias.lebihain@epfl.ch>
  *
  * @date creation: Fri Jun 18 2010
  * @date last modification: Wed Feb 21 2018
@@ -32,72 +33,46 @@
 
 /* -------------------------------------------------------------------------- */
 
-#include "material_cohesive_linear.hh"
+#include "material_cohesive_linear_friction.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_HH__
-#define __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_HH__
+#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_COULOMB_HH__
+#define __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_COULOMB_HH__
 
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /**
- * Cohesive material linear with friction force
- *
- * parameters in the material files :
- *   - mu   : friction coefficient
- *   - penalty_for_friction : Penalty parameter for the friction behavior
+ * Cohesive material linear with coulomb friction force
  */
 template <UInt spatial_dimension>
-class MaterialCohesiveLinearFriction
-    : public MaterialCohesiveLinear<spatial_dimension> {
+class MaterialCohesiveLinearFrictionCoulomb
+    : public MaterialCohesiveLinearFriction<spatial_dimension> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-  using MaterialParent = MaterialCohesiveLinear<spatial_dimension>;
+  using MaterialParent = MaterialCohesiveLinearFriction<spatial_dimension>;
 
 public:
-  MaterialCohesiveLinearFriction(SolidMechanicsModel & model,
-                                 const ID & id = "");
+  MaterialCohesiveLinearFrictionCoulomb(SolidMechanicsModel & model,
+                                        const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-public:
-  /// initialize the material parameters
-  void initMaterial() override;
-
 protected:
-  /// check stress for cohesive elements insertion
-  void checkInsertion(bool check_only = false) override;
+  /// constitutive law
+  void computeTraction(const Array<Real> & normal, ElementType el_type,
+                       GhostType ghost_type = _not_ghost) override;
 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-protected:
-  /// penalty parameter for the friction law
-  Real friction_penalty;
-
-  /// friction at insertion
-  RandomInternalField<Real, FacetInternalField> mu_insertion;
-
-  /// friction coefficient
-  CohesiveInternalField<Real> mu_eff;
-
-  /// history parameter for the friction law
-  CohesiveInternalField<Real> residual_sliding;
-
-  /// friction force
-  CohesiveInternalField<Real> friction_force;
+  // /// compute tangent stiffness matrix
+  // void computeTangentTraction(const ElementType & el_type,
+  //                             Array<Real> & tangent_matrix,
+  //                             const Array<Real> & normal,
+  //                             GhostType ghost_type) override;
 };
 
 } // namespace akantu
 
-#include "material_cohesive_linear_friction_tmpl.hh"
-
-#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_HH__ */
+#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_FRICTION_COULOMB_HH__ */

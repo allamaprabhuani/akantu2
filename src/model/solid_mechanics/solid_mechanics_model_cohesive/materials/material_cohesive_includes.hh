@@ -43,7 +43,10 @@
 #define AKANTU_COHESIVE_MATERIAL_LIST                                          \
   ((2, (cohesive_linear, MaterialCohesiveLinear)))(                            \
       (2, (cohesive_linear_fatigue, MaterialCohesiveLinearFatigue)))(          \
-      (2, (cohesive_linear_friction, MaterialCohesiveLinearFriction)))(        \
+      (2, (cohesive_linear_friction_coulomb,                                   \
+           MaterialCohesiveLinearFrictionCoulomb)))(                           \
+      (2, (cohesive_linear_friction_slipweakening,                             \
+           MaterialCohesiveLinearFrictionSlipWeakening)))(                     \
       (2, (cohesive_linear_uncoupled, MaterialCohesiveLinearUncoupled)))(      \
       (2, (cohesive_bilinear, MaterialCohesiveBilinear)))(                     \
       (2, (cohesive_exponential, MaterialCohesiveExponential)))

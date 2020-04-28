@@ -49,7 +49,8 @@ MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(
     SolidMechanicsModel & model, const ID & id)
     : MaterialCohesive(model, id), sigma_c_eff("sigma_c_eff", *this),
       delta_c_eff("delta_c_eff", *this),
-      insertion_stress("insertion_stress", *this) {
+      insertion_stress("insertion_stress", *this),
+      insertion_compression("insertion_compression", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("beta", beta, Real(0.), _pat_parsable | _pat_readable,
@@ -72,7 +73,7 @@ MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(
                       "Kappa parameter");
 
   this->registerParam(
-      "contact_after_breaking", contact_after_breaking, false,
+      "contact_after_breaking", contact_after_breaking, true,
       _pat_parsable | _pat_readable,
       "Activation of contact when the elements are fully damaged");
 
@@ -99,6 +100,7 @@ void MaterialCohesiveLinear<spatial_dimension>::initMaterial() {
   sigma_c_eff.initialize(1);
   delta_c_eff.initialize(1);
   insertion_stress.initialize(spatial_dimension);
+  insertion_compression.initialize(spatial_dimension);
 
   if (not Math::are_float_equal(delta_c, 0.))
     delta_c_eff.setDefaultValue(delta_c);
@@ -189,8 +191,14 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
     bool check_only) {
   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh_facets = model->getMeshFacets();
-  CohesiveElementInserter & inserter = model->getElementInserter();
+  // get mesh and inserter
+  Mesh & mesh = this->model->getMesh();
+  const Mesh & mesh_facets = this->model->getMeshFacets();
+  CohesiveElementInserter & inserter = this->model->getElementInserter();
+
+  // get nodal fields
+  auto & shift = mesh.getNodalData<Real>("shift", spatial_dimension);
+  shift.resize(mesh.getNbNodes());
 
   for (auto && type_facet : mesh_facets.elementTypes(spatial_dimension - 1)) {
     ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
@@ -200,9 +208,12 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
     auto & sig_c_eff = sigma_c_eff(type_cohesive);
     auto & del_c = delta_c_eff(type_cohesive);
     auto & ins_stress = insertion_stress(type_cohesive);
+    auto & ins_comp = insertion_compression(type_cohesive);
     auto & trac_old = tractions.previous(type_cohesive);
     const auto & f_stress = model->getStressOnFacets(type_facet);
     const auto & sigma_lim = sigma_c(type_facet);
+    const auto & connectivity = mesh_facets.getConnectivity(type_facet);
+    auto conn_it = make_view(connectivity, connectivity.getNbComponent()).begin();
 
     UInt nb_quad_facet =
         model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
@@ -223,6 +234,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
 
     Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
     Matrix<Real> normal_traction(spatial_dimension, nb_quad_facet);
+    Matrix<Real> normal_compression(spatial_dimension, nb_quad_facet);
     Vector<Real> stress_check(nb_quad_facet);
     UInt sp2 = spatial_dimension * spatial_dimension;
 
@@ -236,6 +248,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
 
     std::vector<Real> new_sigmas;
     std::vector<Vector<Real>> new_normal_traction;
+    std::vector<Vector<Real>> new_normal_compression;
     std::vector<Real> new_delta_c;
 
     // loop over each facet belonging to this material
@@ -246,6 +259,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
         continue;
 
       // compute the effective norm on each quadrature point of the facet
+      Vector<Real> avg_compression(spatial_dimension);
       for (UInt q = 0; q < nb_quad_facet; ++q) {
         UInt current_quad = facet * nb_quad_facet + q;
         const Vector<Real> & normal = normal_begin[current_quad];
@@ -264,11 +278,18 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
         stress_tmp /= 2.;
 
         Vector<Real> normal_traction_vec(normal_traction(q));
-
         // compute normal and effective stress
         stress_check(q) = computeEffectiveNorm(stress_tmp, normal, tangent,
                                                normal_traction_vec);
+        // compute compression
+        normal_compression(q) = normal;
+        normal_compression(q) *= std::min(0., normal_traction_vec.dot(normal));
+        avg_compression += std::min(0., normal_traction_vec.dot(normal))*normal;
+        // remove compression from traction
+        normal_traction_vec -=
+                           std::min(0., normal_traction_vec.dot(normal))*normal;
       }
+      avg_compression /= nb_quad_facet;
 
       // verify if the effective stress overcomes the threshold
       Real final_stress = stress_check.mean();
@@ -288,11 +309,13 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
           Real new_sigma = stress_check(q);
           Vector<Real> normal_traction_vec(normal_traction(q));
 
-          if (spatial_dimension != 3)
+          if (spatial_dimension != 3) {
             normal_traction_vec *= -1.;
-
+            normal_compression(q) *= -1.;
+          }
           new_sigmas.push_back(new_sigma);
           new_normal_traction.push_back(normal_traction_vec);
+          new_normal_compression.push_back(normal_compression(q));
 
           Real new_delta;
 
@@ -304,6 +327,16 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
 
           new_delta_c.push_back(new_delta);
         }
+        if (spatial_dimension != 3)
+          avg_compression *= -1.;
+
+        // set initial interpenetration in case of compression
+        Vector<UInt> conn = conn_it[f];
+  			for (auto && node : conn) {
+          for (UInt dim = 0; dim < spatial_dimension; ++dim) {
+            shift(node, dim) = avg_compression(dim) / this->penalty;
+          }
+  			}
       }
     }
 
@@ -312,6 +345,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
     UInt new_nb_quad_points = new_sigmas.size();
     sig_c_eff.resize(old_nb_quad_points + new_nb_quad_points);
     ins_stress.resize(old_nb_quad_points + new_nb_quad_points);
+    ins_comp.resize(old_nb_quad_points + new_nb_quad_points);
     trac_old.resize(old_nb_quad_points + new_nb_quad_points);
     del_c.resize(old_nb_quad_points + new_nb_quad_points);
 
@@ -320,6 +354,7 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
       del_c(old_nb_quad_points + q) = new_delta_c[q];
       for (UInt dim = 0; dim < spatial_dimension; ++dim) {
         ins_stress(old_nb_quad_points + q, dim) = new_normal_traction[q](dim);
+        ins_comp(old_nb_quad_points + q, dim) = new_normal_compression[q](dim);
         trac_old(old_nb_quad_points + q, dim) = new_normal_traction[q](dim);
       }
     }
@@ -350,6 +385,8 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
   auto damage_it = damage(el_type, ghost_type).begin();
   auto insertion_stress_it =
       insertion_stress(el_type, ghost_type).begin(spatial_dimension);
+  auto insertion_compression_it =
+      insertion_compression(el_type, ghost_type).begin(spatial_dimension);
 
   Vector<Real> normal_opening(spatial_dimension);
   Vector<Real> tangential_opening(spatial_dimension);
@@ -362,10 +399,12 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
 
     Real normal_opening_norm, tangential_opening_norm;
     bool penetration;
+
     this->computeTractionOnQuad(
         *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
-        *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
-        normal_opening_norm, tangential_opening_norm, *damage_it, penetration,
+        *insertion_stress_it, *insertion_compression_it, *sigma_c_it,
+        normal_opening, tangential_opening, normal_opening_norm,
+        tangential_opening_norm, *damage_it, penetration,
         *contact_traction_it, *contact_opening_it);
   }
 

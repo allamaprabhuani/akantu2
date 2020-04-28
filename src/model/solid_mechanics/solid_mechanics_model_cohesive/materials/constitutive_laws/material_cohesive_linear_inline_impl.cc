@@ -78,10 +78,11 @@ template <UInt dim>
 inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
     Vector<Real> & traction, Vector<Real> & opening,
     const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
-    const Vector<Real> & insertion_stress, const Real & sigma_c,
+    const Vector<Real> & insertion_stress,
+    const Vector<Real> & insertion_compression, const Real & sigma_c,
     Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-    Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-    bool & penetration, Vector<Real> & contact_traction,
+    Real & normal_opening_norm, Real & tangential_opening_norm,
+    Real & damage, bool & penetration, Vector<Real> & contact_traction,
     Vector<Real> & contact_opening) {
 
   /// compute normal and tangential opening vectors
@@ -138,10 +139,8 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
   if (Math::are_float_equal(damage, 1.))
     traction.clear();
   else if (Math::are_float_equal(damage, 0.)) {
-    if (penetration)
-      traction.clear();
-    else
-      traction = insertion_stress;
+    traction = insertion_stress;
+    contact_traction = insertion_compression;
   } else {
     traction = tangential_opening;
     traction *= this->beta2_kappa;

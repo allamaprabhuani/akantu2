@@ -587,8 +587,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
       *new_ = *old_;
     }
   };
-
   copy(*displacement);
+
   copy(*blocked_dofs);
 
   if (velocity)
