@@ -77,6 +77,12 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
+  virtual void assembleContactEquilibriumAtInsertion(const ID & /*matrix_id*/,
+                                                     const ID & /*rhs_id*/,
+                                                     const ID & /*dof_id*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
   /// interpolate   stress  on   given   positions  for   each  element   (empty
   /// implemantation to avoid the generic call to be done on cohesive elements)
   virtual void interpolateStress(const ElementType /*type*/,
@@ -128,8 +134,9 @@ protected:
                          const SynchronizationTag & tag) override;
 
 protected:
-  void updateEnergies(ElementType el_type) override;
+  void afterSolveStep(bool converged = true) override;
 
+  void updateEnergies(ElementType el_type) override;
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
@@ -150,7 +157,9 @@ public:
                    const ElementTypeMapArray<UInt> &);
   // AKANTU_GET_MACRO(ElementFilter, element_filter, const
   // ElementTypeMapArray<UInt> &);
-
+  bool contactEquilibriumAtInsertion() const {
+    return contact_equilibrium_at_insertion;
+  }
   /// compute reversible energy
   Real getReversibleEnergy();
 
@@ -208,10 +217,12 @@ protected:
   /// tell if the previous opening state is needed (in iterative schemes)
   bool use_previous_opening;
 
-  /// tell if the previous contact_opening state is needed (in iterative schemes)
+  /// tell if the previous contact_opening state is needed (in iterative
+  /// schemes)
   bool use_previous_contact_opening;
 
-  /// tell if the
+  /// tell if the material needs to equilibrate contact_tractions at insertion
+  bool contact_equilibrium_at_insertion{false};
 
   /// damage
   CohesiveInternalField<Real> damage;
@@ -227,16 +238,14 @@ protected:
 
   /// array to temporarily store the normals
   Array<Real> normal;
+
+  /// tell if the element is newly inserted or not
+  CohesiveInternalField<bool> is_newly_inserted;
 };
-
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#include "material_cohesive_inline_impl.cc"
 
 } // namespace akantu
 
 #include "cohesive_internal_field_tmpl.hh"
+#include "material_cohesive_inline_impl.cc"
 
 #endif /* __AKANTU_MATERIAL_COHESIVE_HH__ */

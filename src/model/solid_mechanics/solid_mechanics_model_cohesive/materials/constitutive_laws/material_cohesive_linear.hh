@@ -106,8 +106,8 @@ protected:
       const Vector<Real> & insertion_stress,
       const Vector<Real> & insertion_compression, const Real & sigma_c,
       Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm,
-      Real & damage, bool & penetration, Vector<Real> & contact_traction,
+      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
+      bool & penetration, Vector<Real> & contact_traction,
       Vector<Real> & contact_opening);
 
   inline void computeTangentTractionOnQuad(
@@ -116,6 +116,10 @@ protected:
       Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
       Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
       bool & penetration, Vector<Real> & contact_opening);
+
+  void assembleContactEquilibriumAtInsertion(const ID & matrix_id,
+                                             const ID & rhs_id,
+                                             const ID & dof_id) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

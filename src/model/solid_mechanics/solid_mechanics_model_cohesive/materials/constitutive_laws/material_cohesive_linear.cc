@@ -86,7 +86,7 @@ MaterialCohesiveLinear<spatial_dimension>::MaterialCohesiveLinear(
                       _pat_parsable | _pat_modifiable, "recompute solution");
 
   this->use_previous_delta_max = true;
-
+  this->contact_equilibrium_at_insertion = true;
   AKANTU_DEBUG_OUT();
 }
 
@@ -213,7 +213,8 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
     const auto & f_stress = model->getStressOnFacets(type_facet);
     const auto & sigma_lim = sigma_c(type_facet);
     const auto & connectivity = mesh_facets.getConnectivity(type_facet);
-    auto conn_it = make_view(connectivity, connectivity.getNbComponent()).begin();
+    auto conn_it =
+        make_view(connectivity, connectivity.getNbComponent()).begin();
 
     UInt nb_quad_facet =
         model->getFEEngine("FacetsFEEngine").getNbIntegrationPoints(type_facet);
@@ -284,10 +285,11 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
         // compute compression
         normal_compression(q) = normal;
         normal_compression(q) *= std::min(0., normal_traction_vec.dot(normal));
-        avg_compression += std::min(0., normal_traction_vec.dot(normal))*normal;
+        avg_compression +=
+            std::min(0., normal_traction_vec.dot(normal)) * normal;
         // remove compression from traction
         normal_traction_vec -=
-                           std::min(0., normal_traction_vec.dot(normal))*normal;
+            std::min(0., normal_traction_vec.dot(normal)) * normal;
       }
       avg_compression /= nb_quad_facet;
 
@@ -332,11 +334,11 @@ void MaterialCohesiveLinear<spatial_dimension>::checkInsertion(
 
         // set initial interpenetration in case of compression
         Vector<UInt> conn = conn_it[f];
-  			for (auto && node : conn) {
+        for (auto && node : conn) {
           for (UInt dim = 0; dim < spatial_dimension; ++dim) {
             shift(node, dim) = avg_compression(dim) / this->penalty;
           }
-  			}
+        }
       }
     }
 
@@ -404,8 +406,8 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
         *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
         *insertion_stress_it, *insertion_compression_it, *sigma_c_it,
         normal_opening, tangential_opening, normal_opening_norm,
-        tangential_opening_norm, *damage_it, penetration,
-        *contact_traction_it, *contact_opening_it);
+        tangential_opening_norm, *damage_it, penetration, *contact_traction_it,
+        *contact_opening_it);
   }
 
   AKANTU_DEBUG_OUT();
@@ -454,6 +456,12 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTangentTraction(
 
   AKANTU_DEBUG_OUT();
 }
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+void MaterialCohesiveLinear<spatial_dimension>::
+    assembleContactEquilibriumAtInsertion(const ID & matrix_id,
+                                          const ID & rhs_id,
+                                          const ID & dof_id) {}
 /* -------------------------------------------------------------------------- */
 
 INSTANTIATE_MATERIAL(cohesive_linear, MaterialCohesiveLinear);

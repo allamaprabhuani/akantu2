@@ -28,6 +28,9 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include "material_cohesive.hh"
+
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 inline UInt MaterialCohesive::addFacet(const Element & element) {
@@ -56,7 +59,8 @@ inline UInt MaterialCohesive::getNbData(const Array<Element> & elements,
     return sizeof(Real) * this->getModel().getNbIntegrationPoints(
                               elements, "CohesiveFEEngine");
   }
-  default: {}
+  default: {
+  }
   }
 
   return 0;
@@ -76,7 +80,8 @@ inline void MaterialCohesive::packData(CommunicationBuffer & buffer,
   case SynchronizationTag::_smmc_damage:
     packElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
     break;
-  default: {}
+  default: {
+  }
   }
 }
 
@@ -94,6 +99,8 @@ inline void MaterialCohesive::unpackData(CommunicationBuffer & buffer,
   case SynchronizationTag::_smmc_damage:
     unpackElementDataHelper(damage, buffer, elements, "CohesiveFEEngine");
     break;
-  default: {}
+  default: {
+  }
   }
 }
+} // namespace akantu

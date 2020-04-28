@@ -57,7 +57,8 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       contact_opening("contact_opening", *this), delta_max("delta max", *this),
       use_previous_delta_max(false), use_previous_opening(false),
       use_previous_contact_opening(false), damage("damage", *this),
-      sigma_c("sigma_c", *this),  normal(0, spatial_dimension, "normal") {
+      sigma_c("sigma_c", *this), normal(0, spatial_dimension, "normal"),
+      is_newly_inserted("is_newly_inserted", *this) {
 
   AKANTU_DEBUG_IN();
 
@@ -99,6 +100,9 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
 
   if (this->model->getIsExtrinsic())
     this->sigma_c.initialize(1);
+
+  this->is_newly_inserted.initialize(1);
+  this->is_newly_inserted.setDefaultValue(true);
 
   AKANTU_DEBUG_OUT();
 }
@@ -433,6 +437,21 @@ void MaterialCohesive::computeOpening(const Array<Real> & displacement,
 #undef COMPUTE_OPENING
 
   AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void MaterialCohesive::afterSolveStep(bool converged) {
+  Material::afterSolveStep(converged);
+
+  if (not converged)
+    return;
+
+  for (auto ghost_type : ghost_types) {
+    for (auto type : element_filter.elementTypes(spatial_dimension, ghost_type,
+                                                 _ek_cohesive)) {
+      is_newly_inserted(type, ghost_type).set(false);
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
