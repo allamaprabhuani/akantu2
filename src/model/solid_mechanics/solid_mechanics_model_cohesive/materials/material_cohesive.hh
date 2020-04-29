@@ -77,9 +77,10 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  virtual void assembleContactEquilibriumAtInsertion(const ID & /*matrix_id*/,
-                                                     const ID & /*rhs_id*/,
-                                                     const ID & /*dof_id*/) {
+  virtual void
+  computeContactEquilibriumAtInsertion(const Array<Real> & /*delta_N*/,
+                                       const ElementType & /*type*/,
+                                       const GhostType & /*ghost_type*/) {
     AKANTU_TO_IMPLEMENT();
   }
 

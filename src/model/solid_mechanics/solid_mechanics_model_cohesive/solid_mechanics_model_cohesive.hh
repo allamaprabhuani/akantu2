@@ -168,6 +168,8 @@ private:
   /// init facets_check array
   void initFacetsCheck();
 
+  /// solves the gap needed for the contact at element insertion
+  void solveContactEquilibiumAtInsertion();
   /* ------------------------------------------------------------------------ */
   /* Mesh Event Handler inherited members                                     */
   /* ------------------------------------------------------------------------ */

@@ -117,9 +117,9 @@ protected:
       Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
       bool & penetration, Vector<Real> & contact_opening);
 
-  void assembleContactEquilibriumAtInsertion(const ID & matrix_id,
-                                             const ID & rhs_id,
-                                             const ID & dof_id) override;
+  void computeContactEquilibriumAtInsertion(const Array<Real> & delta_N,
+                                            const ElementType & type ,
+                                            const GhostType & ghost_type) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

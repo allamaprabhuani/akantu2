@@ -614,6 +614,8 @@ void SolidMechanicsModelCohesive::onNodesAdded(const Array<UInt> & new_nodes,
   copy(getDOFManager().getSolution("displacement"));
   // this->assembleMassLumped();
 
+  this->solveContactEquilibiumAtInsertion();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -704,5 +706,192 @@ void SolidMechanicsModelCohesive::onDump() {
 }
 
 /* -------------------------------------------------------------------------- */
+void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
+  bool contact_equilibrium_at_insertion = false;
+  for (auto & mat : materials) {
+    auto * mat_cohesive = dynamic_cast<MaterialCohesive *>(mat.get());
+    if (mat_cohesive) {
+      contact_equilibrium_at_insertion |=
+          mat_cohesive->contactEquilibriumAtInsertion();
+    }
+  }
+
+  if (not contact_equilibrium_at_insertion)
+    return;
+
+  // To not make tests fail during development WARNING remember to remove
+  return;
+
+#if !defined(AKANTU_USE_PETSC)
+  AKANTU_DEBUG_WARNING("The contact at equilibrium connot be solved with the current "
+                 "implementation, please activate PETSc at compilation");
+#else
+  auto & fem_cohesive = getFEEngine("CohesiveFEEngine");
+
+  UInt N_local = 0;
+  UInt M_local = 0;
+
+  std::unordered_map<ElementType, UInt> elements_offset;
+
+  /// counting the number of quadrature points
+  for (auto type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_cohesive)) {
+    auto nb_quadrature_points = fem_cohesive.getNbIntegrationPoints(type);
+    elements_offset[type] = M_local;
+    M_local += mesh.getNbElement(type) * nb_quadrature_points;
+  }
+
+  auto integration_point_id = [&elements_offset](auto && type, auto && num) {
+    return elements_offset[type] + num;
+  };
+
+  std::vector<bool> seen(mesh.getNbNodes(), false);
+  Array<UInt> nodes_to_du_local(mesh.getNbNodes(), 1, UInt(-1));
+  std::unordered_map<UInt, UInt> du_local_to_nodes;
+  auto add_node = [&seen, &nodes_to_du_local, &du_local_to_nodes,
+                   &N_local](auto & n) {
+    if (seen[n])
+      return;
+
+    nodes_to_du_local(n) = N_local;
+    du_local_to_nodes[N_local] = n;
+    ++N_local;
+
+    seen[n] = true;
+  };
+
+  std::Array<UInt> quads_to_dn_local(M_local, 1, UInt(-1));
+
+  auto M = 0;
+  for (auto type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_cohesive)) {
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    auto nb_quadrature_points = fem_cohesive.getNbIntegrationPoints(type);
+    for (auto && data : enumerate(make_view(mesh.getConnectivity(type),
+                                            nb_nodes_per_element / 2, 2))) {
+      for (auto q : arange(nb_quadrature_points)) {
+        quads_to_dn_local(integration_point_id(
+            type, std::get<0>(data) * nb_quadrature_points + q)) = M;
+        ++M;
+      }
+
+      auto & conn = std::get<1>(data);
+      for (auto n : arange(conn.rows())) {
+        if (conn(n, 0) == conn(n, 1))
+          continue;
+
+        add_node(conn(n, 0));
+        add_node(conn(n, 1));
+      }
+    }
+  }
+
+  auto & dof_manager = dynamic_cast<DOFManagerPETSc&>(this->getDOFManager());
+  SparseMatrixPETSc Pglobal(dof_manager,
+                            _unsymmetric, "Pglobal");
+  SolverVectorPETSc du(dof_manager, "du");
+  SolverVectorPETSc Delta_N(dof_manager, "Delta_N");
+
+  // SparseMatrixPETSc Pglobal(M_local * spatial_dimension,
+  //                           N_local * spatial_dimension);
+  // SolverVectorPETSc du(N_local * spatial_dimension);
+  // SolverVectorPETSc Delta_N(M_local * spatial_dimension);
+
+  Pglobal.clear();
+
+  for (auto type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_cohesive)) {
+    const auto & shapes_array = fem_cohesive.getShapes(type);
+    auto && shapes =
+        *(make_view(shapes_array, shapes_array.getNbComponent()).begin(),
+          nb_quadrature_points);
+
+    auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+    auto nb_quadrature_points = fem_cohesive.getNbIntegrationPoints(type);
+    auto nb_element = mesh.getNbElement(type);
+
+    /// compute Delta_N
+    Array<Real> delta_n_per_type(nb_quadrature_points * nb_element,
+                                 spatial_dimension);
+    for (auto & mat : materials) {
+      auto * mat_cohesive = dynamic_cast<MaterialCohesive *>(mat.get());
+      if (not mat_cohesive)
+        continue;
+
+      mat_cohesive->computeContactEquilibriumAtInsertion(delta_n_per_type, type,
+                                                         _not_ghost);
+    }
+
+    /// compute P local
+    Matrix<Real> A(spatial_dimension * shapes.size(),
+                   spatial_dimension * nb_nodes_per_element);
+    for (UInt i = 0; i < A.rows(); ++i) {
+      A(i, i) = 1;
+      A(i, i + A.rows()) = -1;
+    }
+
+    Tensor3<Real> N(spatial_dimension, A.rows(), nb_quadrature_points);
+    Tensor3<Real> P(N.size(0), A.cols(), nb_quadrature_points);
+    for (auto && data : zip(N, shapes, P)) {
+      Matrix<Real> N = std::get<0>(data);
+      Matrix<Real> shapes = std::get<1>(data);
+      Matrix<Real> P = std::get<2>(data);
+
+      for (auto i : arange(spatial_dimension)) {
+        for (auto && data : enumerate(shapes)) {
+          N(i, i + spatial_dimension * std::get<0>(data)) = std::get<1>(data);
+        }
+      }
+      P = N * A;
+    }
+
+    /// assemble P and delta_N
+    auto conn_it =
+        make_view(mesh.getConnectivity(type), nb_nodes_per_element).begin();
+    auto delta_n_it = make_view(delta_n_per_type, spatial_dimension).begin();
+    for (auto el : arange(nb_element)) {
+      auto && conn = conn_it[el];
+      for (auto q : arange(nb_quadrature_points)) {
+
+        auto m = quads_to_dn_local(
+            integration_point_id(type, el * nb_quadrature_points + q));
+
+        auto && delta_n = *delta_n_it;
+        for (auto si : arange(delta_n.size())) {
+          Delta_N(m * spatial_dimension + si) = delta_n(si);
+        }
+        ++delta_n_it;
+
+        for (auto ce : enumerate(conn)) {
+          auto gn = std::get<1>(ce);
+          auto ln = std::get<0>(ce);
+          auto n = nodes_to_du_local(gn);
+          if (n == UInt(-1))
+            continue;
+
+          for (auto si : arange(spatial_dimension)) {
+            for (auto sj : arange(spatial_dimension)) {
+              Pglobal(m * spatial_dimension + si, n * spatial_dimension + sj) =
+                  P(si, ln * spatial_dimension + sj, q);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /// solve for du
+
+  /// apply the solution
+  for (auto pair : du_local_to_nodes) {
+    for (auto s : arange(spatial_dimension)) {
+      (*displacement)(std::get<1>(pair), s) +=
+          du(std::get<0>(pair) * spatial_dimension + s);
+    }
+  }
+}
+
+#endif
+} // namespace akantu
 
 } // namespace akantu

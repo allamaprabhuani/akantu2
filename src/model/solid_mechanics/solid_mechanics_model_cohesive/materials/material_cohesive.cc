@@ -294,17 +294,14 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
     Array<Real> * at_nt_d_n_a = new Array<Real>(
         nb_element * nb_quadrature_points, size_at_nt_d_n_a, "A^t*N^t*D*N*A");
 
-    Array<Real>::iterator<Vector<Real>> shapes_filt_it =
-        shapes_filtered->begin(size_of_shapes);
+    auto shapes_filt_it = shapes_filtered->begin(size_of_shapes);
 
-    Array<Real>::matrix_iterator D_it =
+    auto D_it =
         tangent_stiffness_matrix->begin(spatial_dimension, spatial_dimension);
-
-    Array<Real>::matrix_iterator At_Nt_D_N_A_it =
+    auto At_Nt_D_N_A_it =
         at_nt_d_n_a->begin(spatial_dimension * nb_nodes_per_element,
                            spatial_dimension * nb_nodes_per_element);
-
-    Array<Real>::matrix_iterator At_Nt_D_N_A_end =
+    auto At_Nt_D_N_A_end =
         at_nt_d_n_a->end(spatial_dimension * nb_nodes_per_element,
                          spatial_dimension * nb_nodes_per_element);
 
