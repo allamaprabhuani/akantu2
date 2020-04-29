@@ -200,6 +200,7 @@ public:
   /* ------------------------------------------------------------------------ */
   void checkModeI(Real max_opening, Real expected_dissipated) {
     this->material->insertion_stress_ = this->material->sigma_c_ * normal;
+    this->material->insertion_compression_.set(0.);
     addOpening(normal, 0., max_opening, 100);
 
     this->material->computeTractions(*openings, normal, *tractions);
@@ -243,6 +244,7 @@ public:
     beta = this->material->get("beta");
     this->material->insertion_stress_ =
         beta * this->material->sigma_c_ * direction;
+    this->material->insertion_compression_.set(0.);
 
     addOpening(direction, 0., max_opening, 100);
 
@@ -285,7 +287,8 @@ protected:
 template <template <UInt> class Mat, UInt dim>
 struct TestMaterialCohesive : public Mat<dim> {
   TestMaterialCohesive(SolidMechanicsModel & model)
-      : Mat<dim>(model, "test"), insertion_stress_(dim, 0.) {}
+      : Mat<dim>(model, "test"), insertion_stress_(dim, 0.),
+        insertion_compression_(dim, 0.) {}
 
   virtual void SetUp() {}
   virtual void resetInternal() {}
@@ -304,6 +307,7 @@ struct TestMaterialCohesive : public Mat<dim> {
                                 Array<Real> & /*tractions*/) {}
 
   Vector<Real> insertion_stress_;
+  Vector<Real> insertion_compression_;
   Real sigma_c_{0};
   bool is_extrinsic{true};
 };

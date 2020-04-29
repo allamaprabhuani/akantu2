@@ -69,7 +69,7 @@ struct TestMaterialCohesiveLinear
 
       this->computeTractionOnQuad(
           traction, opening, normal, delta_max, this->delta_c_,
-          this->insertion_stress_, this->sigma_c_, normal_opening,
+          this->insertion_stress_, this->insertion_compression_, this->sigma_c_, normal_opening,
           tangential_opening, normal_opening_norm, tangential_opening_norm,
           damage, penetration, contact_traction, contact_opening);
 
