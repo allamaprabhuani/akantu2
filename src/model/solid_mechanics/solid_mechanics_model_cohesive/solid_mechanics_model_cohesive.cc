@@ -44,6 +44,11 @@
 #include "mesh_global_data_updater.hh"
 #include "parser.hh"
 #include "shape_cohesive.hh"
+#if defined(AKANTU_USE_PETSC)
+#include "dof_manager_petsc.hh"
+#include "solver_vector_petsc.hh"
+#include "sparse_matrix_petsc.hh"
+#endif
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
 #ifdef AKANTU_USE_IOHELPER
@@ -723,8 +728,9 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
   return;
 
 #if !defined(AKANTU_USE_PETSC)
-  AKANTU_DEBUG_WARNING("The contact at equilibrium connot be solved with the current "
-                 "implementation, please activate PETSc at compilation");
+  AKANTU_DEBUG_WARNING(
+      "The contact at equilibrium connot be solved with the current "
+      "implementation, please activate PETSc at compilation");
 #else
   auto & fem_cohesive = getFEEngine("CohesiveFEEngine");
 
@@ -760,7 +766,7 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
     seen[n] = true;
   };
 
-  std::Array<UInt> quads_to_dn_local(M_local, 1, UInt(-1));
+  Array<UInt> quads_to_dn_local(M_local, 1, UInt(-1));
 
   auto M = 0;
   for (auto type :
@@ -786,9 +792,8 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
     }
   }
 
-  auto & dof_manager = dynamic_cast<DOFManagerPETSc&>(this->getDOFManager());
-  SparseMatrixPETSc Pglobal(dof_manager,
-                            _unsymmetric, "Pglobal");
+  auto & dof_manager = dynamic_cast<DOFManagerPETSc &>(this->getDOFManager());
+  SparseMatrixPETSc Pglobal(dof_manager, _unsymmetric, "Pglobal");
   SolverVectorPETSc du(dof_manager, "du");
   SolverVectorPETSc Delta_N(dof_manager, "Delta_N");
 
@@ -801,14 +806,14 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
 
   for (auto type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_cohesive)) {
-    const auto & shapes_array = fem_cohesive.getShapes(type);
-    auto && shapes =
-        *(make_view(shapes_array, shapes_array.getNbComponent()).begin(),
-          nb_quadrature_points);
-
     auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
     auto nb_quadrature_points = fem_cohesive.getNbIntegrationPoints(type);
     auto nb_element = mesh.getNbElement(type);
+
+    const auto & shapes_array = fem_cohesive.getShapes(type);
+    auto && shapes = *(make_view(shapes_array, shapes_array.getNbComponent(),
+                                 nb_quadrature_points)
+                           .begin());
 
     /// compute Delta_N
     Array<Real> delta_n_per_type(nb_quadrature_points * nb_element,
@@ -832,17 +837,17 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
 
     Tensor3<Real> N(spatial_dimension, A.rows(), nb_quadrature_points);
     Tensor3<Real> P(N.size(0), A.cols(), nb_quadrature_points);
-    for (auto && data : zip(N, shapes, P)) {
-      Matrix<Real> N = std::get<0>(data);
-      Matrix<Real> shapes = std::get<1>(data);
-      Matrix<Real> P = std::get<2>(data);
+    for (auto && q : arange(nb_quadrature_points)) {
+      Matrix<Real> N_q = N(q);
+      Vector<Real> shapes_q = shapes(q);
+      Matrix<Real> P_q = P(q);
 
       for (auto i : arange(spatial_dimension)) {
-        for (auto && data : enumerate(shapes)) {
-          N(i, i + spatial_dimension * std::get<0>(data)) = std::get<1>(data);
+        for (auto && data : enumerate(shapes_q)) {
+          N_q(i, i + spatial_dimension * std::get<0>(data)) = std::get<1>(data);
         }
       }
-      P = N * A;
+      P_q = N_q * A;
     }
 
     /// assemble P and delta_N
@@ -858,7 +863,7 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
 
         auto && delta_n = *delta_n_it;
         for (auto si : arange(delta_n.size())) {
-          Delta_N(m * spatial_dimension + si) = delta_n(si);
+          // Delta_N(m * spatial_dimension + si)= delta_n(si);
         }
         ++delta_n_it;
 
@@ -885,13 +890,11 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
   /// apply the solution
   for (auto pair : du_local_to_nodes) {
     for (auto s : arange(spatial_dimension)) {
-      (*displacement)(std::get<1>(pair), s) +=
-          du(std::get<0>(pair) * spatial_dimension + s);
+      //      (*displacement)(std::get<1>(pair), s) += du(std::get<0>(pair) *
+      //      spatial_dimension + s);
     }
   }
-}
-
 #endif
-} // namespace akantu
+}
 
 } // namespace akantu
