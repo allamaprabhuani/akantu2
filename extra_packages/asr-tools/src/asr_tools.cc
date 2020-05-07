@@ -621,6 +621,8 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
     back = lowerBounds(2);
 
   Real eps = std::abs((top - bottom) * 1e-6);
+  Real imposed_displacement = std::abs(lowerBounds(dir) - upperBounds(dir));
+  imposed_displacement *= 0.1;
   const auto & pos = mesh.getNodes();
   auto & disp = model.getDisplacement();
   auto & boun = model.getBlockedDOFs();
@@ -652,7 +654,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = (2 * tension - 1) * 1.e-1;
+        disp(i, dir) = (2 * tension - 1) * imposed_displacement;
       }
     }
   } else {
@@ -673,7 +675,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = (2 * tension - 1) * 1.e-4;
+        disp(i, dir) = (2 * tension - 1) * imposed_displacement;
       }
     }
   }
