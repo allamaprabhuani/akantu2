@@ -114,17 +114,17 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  /// parameters reduction & update of C and Cprime only in case of damage
-  if (*dam != *dam_prev_iter) {
-    /// reduce or recover elastic moduli due to damage
-    reduceInternalParameters(sigma, *dam, *E1_it, *E2_it, *E3_it, *nu12_it,
-                             *nu13_it, *nu23_it, *G12_it, *G13_it, *G23_it,
-                             *dir_vecs_it, *flick_it);
-    /// construct the stiffness matrix with update parameters
-    this->updateInternalParametersOnQuad(
-        *E1_it, *E2_it, *E3_it, *nu12_it, *nu13_it, *nu23_it, *G12_it, *G13_it,
-        *G23_it, *Cprime_it, *C_it, *eigC_it, *dir_vecs_it);
-  }
+  /// parameters reduction & update of C and Cprime only if damage changed
+  // if (*dam != *dam_prev_iter) {
+  /// reduce or recover elastic moduli due to damage
+  reduceInternalParameters(sigma, *dam, *E1_it, *E2_it, *E3_it, *nu12_it,
+                           *nu13_it, *nu23_it, *G12_it, *G13_it, *G23_it,
+                           *dir_vecs_it, *flick_it);
+  /// construct the stiffness matrix with update parameters
+  this->updateInternalParametersOnQuad(
+      *E1_it, *E2_it, *E3_it, *nu12_it, *nu13_it, *nu23_it, *G12_it, *G13_it,
+      *G23_it, *Cprime_it, *C_it, *eigC_it, *dir_vecs_it);
+  // }
 
   /// update damage at previous iteration value
   *dam_prev_iter = *dam;
