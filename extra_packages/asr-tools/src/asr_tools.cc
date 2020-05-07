@@ -606,8 +606,6 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
     dir = 2;
   }
 
-  UInt oppos_dir;
-  oppos_dir = UInt(bool(dir) * -1);
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
 
@@ -678,8 +676,8 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
         disp(i, dir) = (2 * tension - 1) * imposed_displacement;
-        boun(i, oppos_dir) = true;
-        disp(i, oppos_dir) = 0;
+        boun(i, 1 - dir) = true;
+        disp(i, 1 - dir) = 0;
       }
     }
   }
