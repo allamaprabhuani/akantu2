@@ -673,7 +673,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       }
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
-        disp(i, dir) = (2 * tension - 1) * 1.e-1;
+        disp(i, dir) = (2 * tension - 1) * 1.e-4;
       }
     }
   }
