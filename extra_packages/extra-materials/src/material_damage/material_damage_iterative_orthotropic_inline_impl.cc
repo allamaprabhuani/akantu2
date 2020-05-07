@@ -197,8 +197,10 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
       _E1 = this->E1 * (1 - dam);
       _nu12 = this->nu12 * (1 - dam);
       _nu13 = this->nu13 * (1 - dam);
-      _G12 = this->G12 * (1 - dam);
-      _G13 = this->G13 * (1 - dam);
+      // _G12 = this->G12 * (1 - dam);
+      // _G13 = this->G13 * (1 - dam);
+      _G12 = std::sqrt(this->G12 * this->G12 * (1 - dam));
+      _G13 = std::sqrt(this->G13 * this->G13 * (1 - dam));
 
       if (this->iso_damage) {
         _E2 = this->E2 * (1 - dam);
