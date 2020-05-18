@@ -620,7 +620,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
 
   Real eps = std::abs((top - bottom) * 1e-6);
   Real imposed_displacement = std::abs(lowerBounds(dir) - upperBounds(dir));
-  imposed_displacement *= 0.005;
+  imposed_displacement *= 0.001;
   const auto & pos = mesh.getNodes();
   auto & disp = model.getDisplacement();
   auto & boun = model.getBlockedDOFs();
