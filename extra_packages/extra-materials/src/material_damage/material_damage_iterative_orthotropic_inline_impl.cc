@@ -38,7 +38,8 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::
     MaterialDamageIterativeOrthotropic(SolidMechanicsModel & model,
                                        const ID & id)
     : parent(model, id), nb_state_changes("nb_state_changes", *this),
-      damage_prev_iteration("damage_prev_iteration", *this) {
+      damage_prev_iteration("damage_prev_iteration", *this),
+      in_tension("in_tension", *this) {
   this->registerParam("max_state_changes_allowed", max_state_changes_allowed,
                       UInt(5), _pat_parsmod,
                       "How many times an element can change between tension "
@@ -55,8 +56,11 @@ template <UInt spatial_dimension>
 void MaterialDamageIterativeOrthotropic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   parent::initMaterial();
+  this->nb_state_changes.setDefaultValue(0);
   this->nb_state_changes.initialize(1);
   this->damage_prev_iteration.initialize(1);
+  this->in_tension.setDefaultValue(true);
+  this->in_tension.initialize(1);
   this->E = this->E1;
   this->nu = this->nu12;
   AKANTU_DEBUG_OUT();
@@ -70,56 +74,63 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   PlaneStressToolbox<spatial_dimension, MaterialThermal<spatial_dimension>>::
       computeStress(el_type, ghost_type);
 
+  computeC(el_type, ghost_type);
+
+  auto C_it =
+      this->C_field(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
+  auto sigma_th_it = make_view(this->sigma_th(el_type, ghost_type)).begin();
+
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  // compute stress according to anisotropic material law
+  this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
+
+  ++C_it;
+  ++sigma_th_it;
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  this->computeNormalizedEquivalentStress(el_type, ghost_type);
+  this->norm_max_equivalent_stress = 0;
+  this->findMaxNormalizedEquivalentStress(el_type, ghost_type);
+
+  AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------------- */
+template <UInt spatial_dimension>
+inline void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeC(
+    const ElementType el_type, GhostType ghost_type) {
+  AKANTU_DEBUG_IN();
+
   Real * dam = this->damage(el_type, ghost_type).storage();
   Real * dam_prev_iter =
       this->damage_prev_iteration(el_type, ghost_type).storage();
-  auto E1_it =
-      this->template getInternal<Real>("E1_field")(el_type, ghost_type).begin();
-  auto E2_it =
-      this->template getInternal<Real>("E2_field")(el_type, ghost_type).begin();
-  auto E3_it =
-      this->template getInternal<Real>("E3_field")(el_type, ghost_type).begin();
-  auto nu12_it =
-      this->template getInternal<Real>("nu12_field")(el_type, ghost_type)
-          .begin();
-  auto nu13_it =
-      this->template getInternal<Real>("nu13_field")(el_type, ghost_type)
-          .begin();
-  auto nu23_it =
-      this->template getInternal<Real>("nu23_field")(el_type, ghost_type)
-          .begin();
-  auto G12_it =
-      this->template getInternal<Real>("G12_field")(el_type, ghost_type)
-          .begin();
-  auto G13_it =
-      this->template getInternal<Real>("G13_field")(el_type, ghost_type)
-          .begin();
-  auto G23_it =
-      this->template getInternal<Real>("G23_field")(el_type, ghost_type)
-          .begin();
-  auto Cprime_it =
-      this->template getInternal<Real>("Cprime_field")(el_type, ghost_type)
-          .begin(spatial_dimension * spatial_dimension,
-                 spatial_dimension * spatial_dimension);
-  auto C_it = this->template getInternal<Real>("C_field")(el_type, ghost_type)
-                  .begin(voigt_h::size, voigt_h::size);
-  auto eigC_it =
-      this->template getInternal<Real>("eigC_field")(el_type, ghost_type)
-          .begin(voigt_h::size);
-  auto dir_vecs_it =
-      this->template getInternal<Real>("dir_vecs_field")(el_type, ghost_type)
-          .begin(spatial_dimension, spatial_dimension);
+  auto E1_it = this->E1_field(el_type, ghost_type).begin();
+  auto E2_it = this->E2_field(el_type, ghost_type).begin();
+  auto E3_it = this->E3_field(el_type, ghost_type).begin();
+  auto nu12_it = this->nu12_field(el_type, ghost_type).begin();
+  auto nu13_it = this->nu13_field(el_type, ghost_type).begin();
+  auto nu23_it = this->nu23_field(el_type, ghost_type).begin();
+  auto G12_it = this->G12_field(el_type, ghost_type).begin();
+  auto G13_it = this->G13_field(el_type, ghost_type).begin();
+  auto G23_it = this->G23_field(el_type, ghost_type).begin();
+  auto Cprime_it = this->Cprime_field(el_type, ghost_type)
+                       .begin(spatial_dimension * spatial_dimension,
+                              spatial_dimension * spatial_dimension);
+  auto C_it =
+      this->C_field(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
+  auto eigC_it = this->eigC_field(el_type, ghost_type).begin(voigt_h::size);
+  auto dir_vecs_it = this->dir_vecs_field(el_type, ghost_type)
+                         .begin(spatial_dimension, spatial_dimension);
   auto flick_it = this->nb_state_changes(el_type, ghost_type).begin();
-  auto sigma_th_it = make_view(this->sigma_th(el_type, ghost_type)).begin();
+  auto tension_it = this->in_tension(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   /// parameters reduction & update of C and Cprime only if damage changed
   // if (*dam != *dam_prev_iter) {
   /// reduce or recover elastic moduli due to damage
-  reduceInternalParameters(sigma, *dam, *E1_it, *E2_it, *E3_it, *nu12_it,
-                           *nu13_it, *nu23_it, *G12_it, *G13_it, *G23_it,
-                           *dir_vecs_it, *flick_it);
+  updateElasticModuli(sigma, grad_u, *dam, *E1_it, *E2_it, *E3_it, *nu12_it,
+                      *nu13_it, *nu23_it, *G12_it, *G13_it, *G23_it,
+                      *dir_vecs_it, *flick_it, *tension_it);
   /// construct the stiffness matrix with update parameters
   this->updateInternalParametersOnQuad(
       *E1_it, *E2_it, *E3_it, *nu12_it, *nu13_it, *nu23_it, *G12_it, *G13_it,
@@ -128,9 +139,6 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
 
   /// update damage at previous iteration value
   *dam_prev_iter = *dam;
-
-  // compute stress according to anisotropic material law
-  this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
 
   ++dam;
   ++dam_prev_iter;
@@ -148,15 +156,72 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   ++eigC_it;
   ++dir_vecs_it;
   ++flick_it;
-  ++sigma_th_it;
+  ++tension_it;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
-  this->computeNormalizedEquivalentStress(el_type, ghost_type);
-  this->norm_max_equivalent_stress = 0;
-  this->findMaxNormalizedEquivalentStress(el_type, ghost_type);
-
   AKANTU_DEBUG_OUT();
+}
+/* --------------------------------------------------------------------------
+ */
+template <UInt spatial_dimension>
+inline void
+MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
+    Matrix<Real> & /*sigma*/, Matrix<Real> & grad_u, Real & dam, Real & _E1,
+    Real & /*_E2*/, Real & /*_E3*/, Real & _nu12, Real & _nu13,
+    Real & /*_nu23*/, Real & _G12, Real & _G13, Real & /*_G23*/,
+    Matrix<Real> & _dir_vecs, UInt & nb_flicks, bool & in_tension) {
+
+  if (not dam) {
+    _E1 = this->E1;
+    _nu12 = this->nu12;
+    _nu13 = this->nu13;
+  } else {
+    Matrix<Real> strain(spatial_dimension, spatial_dimension);
+    strain = 0.5 * (grad_u + grad_u.transpose());
+
+    Vector<Real> normal_to_crack(spatial_dimension);
+    /// normals are stored row-wise
+    for (auto i : arange(spatial_dimension))
+      normal_to_crack(i) = _dir_vecs(0, i);
+    auto def_on_crack = strain * normal_to_crack;
+    auto def_normal_to_crack = normal_to_crack.dot(def_on_crack);
+    // auto traction_on_crack = sigma * normal_to_crack;
+    // auto stress_normal_to_crack = normal_to_crack.dot(traction_on_crack);
+    /// coefficients of the cubic spline function
+
+    // if (nb_flicks == this->max_state_changes_allowed) {
+    //   _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
+    //   _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
+    //   _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
+    //   // _G12 = std::sqrt(this->G12 * this->G12 * (1 - dam));
+    //   // _G13 = std::sqrt(this->G13 * this->G13 * (1 - dam));
+    //   std::cout << "Max number of state changes" << std::endl;
+    // } else {
+    if (def_normal_to_crack >= 0) {
+      if (not in_tension)
+        ++nb_flicks;
+      in_tension = true;
+      _E1 = this->E1 * (1 - dam);
+      _nu12 = this->nu12 * (1 - dam);
+      _nu13 = this->nu13 * (1 - dam);
+      _G12 = this->G12 * (1 - dam);
+      _G13 = this->G13 * (1 - dam);
+    } else {
+      if (in_tension)
+        ++nb_flicks;
+      in_tension = false;
+      // _E1 = std::min(-def_normal_to_crack * 1e13 + this->E1 * (1 - dam),
+      //                this->E1);
+      // _nu12 = std::min(this->nu12 * _E1 / this->E1, this->nu12);
+      // _nu13 = std::min(this->nu13 * _E1 / this->E1, this->nu13);
+      _E1 = this->E1;
+      _nu12 = this->nu12;
+      _nu13 = this->nu13;
+      // _G12 = this->G12;
+      // _G13 = this->G13;
+    }
+  }
+  // }
 }
 /* --------------------------------------------------------------------------
  */
@@ -164,7 +229,7 @@ template <UInt spatial_dimension>
 inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
     Matrix<Real> & sigma, Real & dam, Real & _E1, Real & _E2, Real & /*_E3*/,
-    Real & _nu12, Real & _nu13, Real & _nu23, Real & _G12, Real & _G13,
+    Real & _nu12, Real & _nu13, Real & _nu23, Real & /*_G12*/, Real & /*_G13*/,
     Real & /*_G23*/, Matrix<Real> & _dir_vecs, UInt & nb_flicks) {
 
   /// detect compression in the normal to crack plane direction
@@ -213,7 +278,8 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
     }
   }
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeOrthotropic<
     spatial_dimension>::computeTangentModuli(const ElementType & el_type,
@@ -221,11 +287,15 @@ void MaterialDamageIterativeOrthotropic<
                                              GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  auto release = this->model.getDisplacementRelease();
+  if (release != this->last_displacement_release) {
+    computeC(el_type, ghost_type);
+  }
   OrthotropicParent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
-
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeOrthotropic<spatial_dimension>::beforeSolveStep() {
 

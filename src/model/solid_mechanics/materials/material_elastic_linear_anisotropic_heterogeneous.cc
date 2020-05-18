@@ -278,7 +278,7 @@ void MaterialElasticLinearAnisotropicHeterogeneous<dim>::computeTangentModuli(
   ++C_it;
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END;
 
-  this->was_stiffness_assembled = true;
+  // this->was_stiffness_assembled = true;
 
   AKANTU_DEBUG_OUT();
 }

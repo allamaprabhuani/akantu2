@@ -438,8 +438,6 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
 
   if (dim == 2) {
     Real int_residual_x = performLoadingTest(_x, tension);
-    /// DEBUG
-    model.dump();
     Real int_residual_y = performLoadingTest(_y, tension);
     if (prank == 0)
       file_output << time << "," << int_residual_x << "," << int_residual_y
@@ -622,7 +620,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
 
   Real eps = std::abs((top - bottom) * 1e-6);
   Real imposed_displacement = std::abs(lowerBounds(dir) - upperBounds(dir));
-  imposed_displacement *= 0.1;
+  imposed_displacement *= 0.005;
   const auto & pos = mesh.getNodes();
   auto & disp = model.getDisplacement();
   auto & boun = model.getBlockedDOFs();
@@ -676,8 +674,8 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
         disp(i, dir) = (2 * tension - 1) * imposed_displacement;
-        boun(i, 1 - dir) = true;
-        disp(i, 1 - dir) = 0;
+        // boun(i, 1 - dir) = true;
+        // disp(i, 1 - dir) = 0;
       }
     }
   }
@@ -691,6 +689,10 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
               << std::endl;
     throw e;
   }
+  AKANTU_DEBUG_INFO(std::cout
+                    << "Stiffness test converged in "
+                    << model.getNonLinearSolver("static").get("nb_iterations")
+                    << std::endl);
 
   /// compute the force (residual in this case) along the edge of the
   /// imposed displacement
@@ -1605,18 +1607,7 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   /// 1. eps_el = (1;0;0) 2. eps_el = (0,1,0) 3. eps_el = (0,0,0.5)
 
   /// clear the eigenstrain (to exclude stresses due to internal pressure)
-  Matrix<Real> zero_eigengradu(dim, dim, 0.);
-  GhostType gt = _not_ghost;
-  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
-    auto & prestrain_vect =
-        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
-            "eigen_grad_u")(element_type));
-    auto prestrain_it = prestrain_vect.begin(dim, dim);
-    auto prestrain_end = prestrain_vect.end(dim, dim);
-
-    for (; prestrain_it != prestrain_end; ++prestrain_it)
-      (*prestrain_it) = zero_eigengradu;
-  }
+  clearGelEigenStrain();
 
   /// save nodal values before tests
   storeNodalFields();
@@ -1717,7 +1708,7 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
 
   auto & solver = model.getNonLinearSolver();
   solver.set("max_iterations", 50);
-  solver.set("threshold", 1e-6);
+  solver.set("threshold", 1e-5);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   model.solveStep();
@@ -2265,5 +2256,24 @@ void ASRTools::applyGelStrain(const Matrix<Real> & prestrain) {
   }
   AKANTU_DEBUG_OUT();
 }
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::clearGelEigenStrain() {
+  AKANTU_DEBUG_IN();
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  Matrix<Real> zero_eigengradu(dim, dim, 0.);
+  GhostType gt = _not_ghost;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect =
+        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
+            "eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
 
+    for (; prestrain_it != prestrain_end; ++prestrain_it)
+      (*prestrain_it) = zero_eigengradu;
+  }
+  AKANTU_DEBUG_OUT();
+}
 } // namespace akantu

@@ -251,6 +251,9 @@ public:
                              Matrix<Real> & eff_stresses,
                              Matrix<Real> & eff_strains, const UInt test_no);
 
+  /// clear the eigenstrain (to exclude stresses due to internal pressure)
+  void clearGelEigenStrain();
+
   /* ------------------------------------------------------------------------
    */
 public:

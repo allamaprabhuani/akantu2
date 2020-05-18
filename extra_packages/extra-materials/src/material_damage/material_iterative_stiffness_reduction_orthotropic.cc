@@ -58,31 +58,18 @@ UInt MaterialIterativeStiffnessReductionOrthotropic<
 
       /// get iterators on the needed internal fields
       auto equivalent_stress_it =
-          this->template getInternal<Real>("equivalent_stress")(el_type,
-                                                                ghost_type)
-              .begin();
+          this->equivalent_stress(el_type, ghost_type).begin();
       auto equivalent_stress_end =
-          this->template getInternal<Real>("equivalent_stress")(el_type,
-                                                                ghost_type)
-              .end();
-      auto dam_it =
-          this->template getInternal<Real>("damage")(el_type, ghost_type)
-              .begin();
-      auto reduction_it = this->template getInternal<UInt>("reduction_step")(
-                                  el_type, ghost_type)
-                              .begin();
-      auto eps_u_it =
-          this->template getInternal<Real>("eps_u")(el_type, ghost_type)
-              .begin();
+          this->equivalent_stress(el_type, ghost_type).end();
+      auto dam_it = this->damage(el_type, ghost_type).begin();
+      auto reduction_it = this->reduction_step(el_type, ghost_type).begin();
+      auto eps_u_it = this->eps_u(el_type, ghost_type).begin();
 
-      auto Sc_it =
-          this->template getInternal<Real>("Sc")(el_type, ghost_type).begin();
-      auto D_it =
-          this->template getInternal<Real>("D")(el_type, ghost_type).begin();
+      auto Sc_it = this->Sc(el_type, ghost_type).begin();
+      auto D_it = this->D(el_type, ghost_type).begin();
       auto crack_norm_it = this->crack_normals(el_type, ghost_type)
                                .begin(spatial_dimension, spatial_dimension);
-      auto dir_vecs_it = this->template getInternal<Real>("dir_vecs_field")(
-                                 el_type, ghost_type)
+      auto dir_vecs_it = this->dir_vecs_field(el_type, ghost_type)
                              .begin(spatial_dimension, spatial_dimension);
 
       /// loop over all the quads of the given element type
@@ -155,11 +142,6 @@ void MaterialIterativeStiffnessReductionOrthotropic<spatial_dimension>::
       /// compute eigenvalues and eigenvectors and sort them
       sigma.eig(eigenvalues, crack_norm, true);
       sigma_eq = eigenvalues[0] / sigma_crit;
-      // /// normalize each eigenvector
-      // for (auto && vec : crack_norm) {
-      //   Vector<Real> vector(vec);
-      //   vector.normalize();
-      // }
       crack_norm = crack_norm.transpose();
     } else {
       /// obtain stress component normal to crack plane

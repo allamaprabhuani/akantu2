@@ -77,19 +77,36 @@ protected:
                                        Real & _G12, Real & _G13, Real & _G23,
                                        Matrix<Real> & _dir_vecs,
                                        UInt & nb_flicks);
+  // recover damaged stiffness based on the asymptotic function with
+  // deformation normal to the crack
+  inline void updateElasticModuli(Matrix<Real> & sigma, Matrix<Real> & grad_u,
+                                  Real & dam, Real & _E1, Real & _E2,
+                                  Real & _E3, Real & _nu12, Real & _nu13,
+                                  Real & _nu23, Real & _G12, Real & _G13,
+                                  Real & _G23, Matrix<Real> & _dir_vecs,
+                                  UInt & nb_flicks, bool & in_tension);
+
+  // compute update moduli, compute C_prime and finally C
+  inline void computeC(const ElementType el_type, GhostType ghost_type);
 
   // reset flickering counters before solve step
   void beforeSolveStep() override;
-  /* ------------------------------------------------------------------------ */
-  /* DataAccessor inherited members                                           */
-  /* ------------------------------------------------------------------------ */
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* DataAccessor inherited members */
+  /* ------------------------------------------------------------------------
+   */
+  /* ------------------------------------------------------------------------
+   */
+  /* Accessors */
+  /* ------------------------------------------------------------------------
+   */
 public:
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Class Members */
+  /* ------------------------------------------------------------------------
+   */
 protected:
   using voigt_h = VoigtHelper<spatial_dimension>;
 
@@ -98,6 +115,9 @@ protected:
 
   /// number of state changes
   InternalField<Real> damage_prev_iteration;
+
+  /// stores previous stress state of an element
+  InternalField<bool> in_tension;
 
   /// max allowed nb of state changes
   UInt max_state_changes_allowed;
