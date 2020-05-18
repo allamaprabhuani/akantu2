@@ -456,6 +456,9 @@ public:
   AKANTU_SET_MACRO(MaterialSelector, material_selector,
                    std::shared_ptr<MaterialSelector>);
 
+  AKANTU_GET_MACRO_NOT_CONST(DisplacementRelease, displacement_release,
+                             Int);
+
   /// Access the non_local_manager interface
   AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);
 

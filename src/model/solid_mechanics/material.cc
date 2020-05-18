@@ -270,6 +270,27 @@ void Material::assembleInternalForces(GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
+void Material::computeGradU(const ElementType & type,
+                            const GhostType & ghost_type) {
+  auto release = model.getDisplacementRelease();
+  if (release == last_displacement_release)
+    return;
+
+  Array<UInt> & elem_filter = element_filter(type, ghost_type);
+  UInt spatial_dimension = model.getSpatialDimension();
+  Array<Real> & gradu_vect = gradu(type, ghost_type);
+
+  /// compute @f$\nabla u@f$
+  fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect,
+                                  spatial_dimension, type, ghost_type,
+                                  elem_filter);
+
+  gradu_vect -= eigengradu(type, ghost_type);
+  ++gradu_release;
+  last_displacement_release = release;
+}
+
+/* -------------------------------------------------------------------------- */
 /**
  * Compute  the  stress from the gradu
  *
@@ -287,14 +308,8 @@ void Material::computeAllStresses(GhostType ghost_type) {
 
     if (elem_filter.size() == 0)
       continue;
-    Array<Real> & gradu_vect = gradu(type, ghost_type);
 
-    /// compute @f$\nabla u@f$
-    fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect,
-                                    spatial_dimension, type, ghost_type,
-                                    elem_filter);
-
-    gradu_vect -= eigengradu(type, ghost_type);
+    this->computeGradU(type, ghost_type);
 
     /// compute @f$\mathbf{\sigma}_q@f$ from @f$\nabla u@f$
     computeStress(type, ghost_type);
@@ -450,17 +465,11 @@ void Material::assembleStiffnessMatrix(const ElementType & type,
 
   // const Array<Real> & shapes_derivatives =
   //     fem.getShapesDerivatives(type, ghost_type);
-
-  Array<Real> & gradu_vect = gradu(type, ghost_type);
+  this->computeGradU(type, ghost_type);
 
   UInt nb_element = elem_filter.size();
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
-
-  gradu_vect.resize(nb_quadrature_points * nb_element);
-
-  fem.gradientOnIntegrationPoints(model.getDisplacement(), gradu_vect, dim,
-                                  type, ghost_type, elem_filter);
 
   UInt tangent_size = getTangentStiffnessVoigtSize(dim);
 
