@@ -438,7 +438,12 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
 
   if (dim == 2) {
     Real int_residual_x = performLoadingTest(_x, tension);
+    /// DEBUG
+    model.dump();
+
     Real int_residual_y = performLoadingTest(_y, tension);
+    /// DEBUG
+    model.dump();
     if (prank == 0)
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << std::endl;
