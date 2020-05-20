@@ -242,7 +242,7 @@ void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
         node_group.add(i);
       if (std::abs(pos(i, 1) - top) < eps)
         node_group.add(i);
-      if (std::abs(pos(i, 2) - front) < eps)
+      if (dim == 3 && std::abs(pos(i, 2) - front) < eps)
         node_group.add(i);
     }
   }
@@ -437,8 +437,13 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
   storeNodalFields();
 
   if (dim == 2) {
-    Real int_residual_x = performLoadingTest(_x, tension);
-    Real int_residual_y = performLoadingTest(_y, tension);
+    Real int_residual_x, int_residual_y;
+    try {
+      int_residual_x = performLoadingTest(_x, tension);
+      int_residual_y = performLoadingTest(_y, tension);
+    } catch (...) {
+    }
+
     if (prank == 0)
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << std::endl;
