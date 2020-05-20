@@ -76,7 +76,7 @@ protected:
                                        Real & _nu12, Real & _nu13, Real & _nu23,
                                        Real & _G12, Real & _G13, Real & _G23,
                                        Matrix<Real> & _dir_vecs,
-                                       UInt & nb_flicks);
+                                       Real & nb_flicks);
   // recover damaged stiffness based on the asymptotic function with
   // deformation normal to the crack
   inline void updateElasticModuli(Matrix<Real> & sigma, Matrix<Real> & grad_u,
@@ -84,7 +84,7 @@ protected:
                                   Real & _E3, Real & _nu12, Real & _nu13,
                                   Real & _nu23, Real & _G12, Real & _G13,
                                   Real & _G23, Matrix<Real> & _dir_vecs,
-                                  UInt & nb_flicks, bool & in_tension);
+                                  Real & nb_flicks, bool & in_tension);
 
   // compute update moduli, compute C_prime and finally C
   inline void computeC(const ElementType el_type, GhostType ghost_type);
@@ -110,8 +110,8 @@ public:
 protected:
   using voigt_h = VoigtHelper<spatial_dimension>;
 
-  /// number of state changes
-  InternalField<UInt> nb_state_changes;
+  /// number of state changes (kept as Real to be able to dump it)
+  InternalField<Real> nb_state_changes;
 
   /// number of state changes
   InternalField<Real> damage_prev_iteration;
@@ -120,7 +120,7 @@ protected:
   InternalField<bool> in_tension;
 
   /// max allowed nb of state changes
-  UInt max_state_changes_allowed;
+  Real max_state_changes_allowed;
 
   /// flag to trigger contact
   bool contact;

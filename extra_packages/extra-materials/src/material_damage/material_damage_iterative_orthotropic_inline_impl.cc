@@ -41,7 +41,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::
       damage_prev_iteration("damage_prev_iteration", *this),
       in_tension("in_tension", *this) {
   this->registerParam("max_state_changes_allowed", max_state_changes_allowed,
-                      UInt(5), _pat_parsmod,
+                      Real(5), _pat_parsmod,
                       "How many times an element can change between tension "
                       "and compression stiffness");
   this->registerParam("contact", contact, true, _pat_parsmod,
@@ -56,7 +56,7 @@ template <UInt spatial_dimension>
 void MaterialDamageIterativeOrthotropic<spatial_dimension>::initMaterial() {
   AKANTU_DEBUG_IN();
   parent::initMaterial();
-  this->nb_state_changes.setDefaultValue(0);
+  this->nb_state_changes.setDefaultValue(0.);
   this->nb_state_changes.initialize(1);
   this->damage_prev_iteration.initialize(1);
   this->in_tension.setDefaultValue(true);
@@ -169,7 +169,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
     Matrix<Real> & /*sigma*/, Matrix<Real> & grad_u, Real & dam, Real & _E1,
     Real & /*_E2*/, Real & /*_E3*/, Real & _nu12, Real & _nu13,
     Real & /*_nu23*/, Real & _G12, Real & _G13, Real & /*_G23*/,
-    Matrix<Real> & _dir_vecs, UInt & nb_flicks, bool & in_tension) {
+    Matrix<Real> & _dir_vecs, Real & nb_flicks, bool & in_tension) {
 
   if (not dam) {
     _E1 = this->E1;
@@ -230,7 +230,7 @@ inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
     Matrix<Real> & sigma, Real & dam, Real & _E1, Real & _E2, Real & /*_E3*/,
     Real & _nu12, Real & _nu13, Real & _nu23, Real & /*_G12*/, Real & /*_G13*/,
-    Real & /*_G23*/, Matrix<Real> & _dir_vecs, UInt & nb_flicks) {
+    Real & /*_G23*/, Matrix<Real> & _dir_vecs, Real & nb_flicks) {
 
   /// detect compression in the normal to crack plane direction
   Vector<Real> normal_to_crack(spatial_dimension);

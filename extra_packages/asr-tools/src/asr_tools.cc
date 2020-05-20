@@ -25,15 +25,15 @@
  *
  */
 
+#include <fstream>
 /* -------------------------------------------------------------------------- */
-#include "asr_tools.hh"
 #include "aka_voigthelper.hh"
+#include "asr_tools.hh"
 #include "communicator.hh"
 #include "material_FE2.hh"
 #include "material_iterative_stiffness_reduction.hh"
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
-#include <fstream>
 
 /* -------------------------------------------------------------------------- */
 
@@ -438,12 +438,7 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
 
   if (dim == 2) {
     Real int_residual_x = performLoadingTest(_x, tension);
-    /// DEBUG
-    model.dump();
-
     Real int_residual_y = performLoadingTest(_y, tension);
-    /// DEBUG
-    model.dump();
     if (prank == 0)
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << std::endl;
@@ -679,8 +674,6 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
       if ((std::abs(pos(i, dir) - upperBounds(dir)) < eps)) {
         boun(i, dir) = true;
         disp(i, dir) = (2 * tension - 1) * imposed_displacement;
-        // boun(i, 1 - dir) = true;
-        // disp(i, 1 - dir) = 0;
       }
     }
   }
@@ -694,10 +687,6 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
               << std::endl;
     throw e;
   }
-  AKANTU_DEBUG_INFO(std::cout
-                    << "Stiffness test converged in "
-                    << model.getNonLinearSolver("static").get("nb_iterations")
-                    << std::endl);
 
   /// compute the force (residual in this case) along the edge of the
   /// imposed displacement
