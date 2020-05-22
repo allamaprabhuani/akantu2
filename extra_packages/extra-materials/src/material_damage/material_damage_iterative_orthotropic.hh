@@ -127,6 +127,9 @@ protected:
 
   /// flag to apply stiffness in all directions
   bool iso_damage;
+
+  /// flag to indicate material that it's in the loading test
+  bool loading_test{false};
 };
 
 } // namespace akantu

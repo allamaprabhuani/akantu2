@@ -28,6 +28,7 @@
 /* -------------------------------------------------------------------------- */
 #include "communicator.hh"
 #include "material_damage_iterative_orthotropic.hh"
+#include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -49,6 +50,8 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::
                       "direction orthogonal to crack");
   this->registerParam("iso_damage", iso_damage, false, _pat_parsmod,
                       "Reduce stiffness in all directions");
+  this->registerParam("loading_test", loading_test, false, _pat_modifiable,
+                      "Indicate to material that it's in the loading test");
 }
 /* -------------------------------------------------------------------------- */
 
@@ -73,8 +76,11 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
 
   PlaneStressToolbox<spatial_dimension, MaterialThermal<spatial_dimension>>::
       computeStress(el_type, ghost_type);
-
-  computeC(el_type, ghost_type);
+  /// if in loading test stop updating stiffness after 1st iteration
+  Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
+      "nb_iterations");
+  if (not(nb_iter > 0 and this->loading_test))
+    computeC(el_type, ghost_type);
 
   auto C_it =
       this->C_field(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
@@ -289,7 +295,11 @@ void MaterialDamageIterativeOrthotropic<
 
   auto release = this->model.getDisplacementRelease();
   if (release != this->last_displacement_release) {
-    computeC(el_type, ghost_type);
+    /// if in loading test stop updating stiffness after 1st iteration
+    Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
+        "nb_iterations");
+    if (not(nb_iter > 0 and this->loading_test))
+      computeC(el_type, ghost_type);
   }
   OrthotropicParent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
   AKANTU_DEBUG_OUT();

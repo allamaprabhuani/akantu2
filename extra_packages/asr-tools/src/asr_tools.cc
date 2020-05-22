@@ -1,3 +1,4 @@
+
 /**
  * @file   ASR_tools.cc
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
@@ -31,6 +32,7 @@
 #include "asr_tools.hh"
 #include "communicator.hh"
 #include "material_FE2.hh"
+#include "material_damage_iterative_orthotropic.hh"
 #include "material_iterative_stiffness_reduction.hh"
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
@@ -437,7 +439,8 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
   storeNodalFields();
 
   if (dim == 2) {
-    Real int_residual_x, int_residual_y;
+    Real int_residual_x = 0;
+    Real int_residual_y = 0;
     try {
       int_residual_x = performLoadingTest(_x, tension);
       int_residual_y = performLoadingTest(_y, tension);
@@ -612,6 +615,15 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
 
+  /// indicate to material that its in the loading test
+  UInt nb_materials = model.getNbMaterials();
+  for (UInt m = 0; m < nb_materials; ++m) {
+    Material & mat = model.getMaterial(m);
+    if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
+      mat.setParam("loading_test", true);
+    }
+  }
+
   /// boundary conditions
   const Vector<Real> & lowerBounds = mesh.getLowerBounds();
   const Vector<Real> & upperBounds = mesh.getUpperBounds();
@@ -702,6 +714,14 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
     if (std::abs(pos(n, dir) - upperBounds(dir)) < eps &&
         mesh.isLocalOrMasterNode(n)) {
       int_residual += -residual(n, dir);
+    }
+  }
+
+  /// indicate to material that its out of the loading test
+  for (UInt m = 0; m < nb_materials; ++m) {
+    Material & mat = model.getMaterial(m);
+    if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
+      mat.setParam("loading_test", false);
     }
   }
 
