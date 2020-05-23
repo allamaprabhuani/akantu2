@@ -29,52 +29,34 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+/* -------------------------------------------------------------------------- */
+#include "aka_common.hh"
+/* -------------------------------------------------------------------------- */
+#include <petscsys.h>
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_PETSC_WRAPPER_HH__
 #define __AKANTU_PETSC_WRAPPER_HH__
 
 /* -------------------------------------------------------------------------- */
-#include <mpi.h>
-#include <petscao.h>
-#include <petscis.h>
-#include <petscksp.h>
-#include <petscmat.h>
-#include <petscvec.h>
+#define PETSc_call(func, ...)                                                  \
+  do {                                                                         \
+    auto ierr = func(__VA_ARGS__);                                             \
+    if (PetscUnlikely(ierr != 0)) {                                            \
+      const char * desc;                                                       \
+      PetscErrorMessage(ierr, &desc, nullptr);                                 \
+      AKANTU_EXCEPTION("Error in PETSc call to \'" << #func                    \
+                                                   << "\': " << desc);         \
+    }                                                                          \
+  } while (false)
 
 namespace akantu {
-
-/* -------------------------------------------------------------------------- */
-struct PETScMatrixWrapper {
-  Mat mat;
-  AO ao;
-  ISLocalToGlobalMapping mapping;
-  /// MPI communicator for PETSc commands
-  MPI_Comm communicator;
-};
-
-/* -------------------------------------------------------------------------- */
-struct PETScSolverWrapper {
-  KSP ksp;
-  Vec solution;
-  Vec rhs;
-  // MPI communicator for PETSc commands
-  MPI_Comm communicator;
-};
-
-#if not defined(PETSC_CLANGUAGE_CXX)
-extern int aka_PETScError(int ierr);
-
-#define CHKERRXX(x)                                                            \
-  do {                                                                         \
-    int error = aka_PETScError(x);                                             \
-    if (error != 0) {                                                          \
-      AKANTU_EXCEPTION("Error in PETSC");                                      \
-    }                                                                          \
-  } while (0)
-#endif
-
+namespace detail {
+  template <typename T> void PETScSetName(T t, const ID & id) {
+    PETSc_call(PetscObjectSetName, reinterpret_cast<PetscObject>(t),
+               id.c_str());
+  }
+} // namespace detail
 } // namespace akantu
 
 #endif /* __AKANTU_PETSC_WRAPPER_HH__ */

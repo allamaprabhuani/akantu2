@@ -31,6 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "dof_manager.hh"
 #include "element_group.hh"
+#include "solver_sparse_matrix.hh"
 #include "solver_vector.hh"
 #include "sparse_matrix.hh"
 #include "terms_to_assemble.hh"
@@ -326,6 +327,62 @@ void DOFManager::assemblePreassembledMatrix_(Mat & A, const ID & dof_id_m,
     A.add(gi, gj, term);
   }
 }
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+template <class NLSType, class DMType>
+NonLinearSolver &
+DOFManager::registerNonLinearSolver(DMType & dm, const ID & id,
+                                    const NonLinearSolverType & type) {
+  ID non_linear_solver_id = this->id + ":nls:" + id;
+  std::unique_ptr<NonLinearSolver> nls = std::make_unique<NLSType>(
+      dm, type, non_linear_solver_id, this->memory_id);
+  return this->registerNonLinearSolver(non_linear_solver_id, nls);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class TSSType, class DMType>
+TimeStepSolver & DOFManager::registerTimeStepSolver(
+    DMType & dm, const ID & id, const TimeStepSolverType & type,
+    NonLinearSolver & non_linear_solver, SolverCallback & solver_callback) {
+  ID time_step_solver_id = this->id + ":tss:" + id;
+  std::unique_ptr<TimeStepSolver> tss =
+      std::make_unique<TSSType>(dm, type, non_linear_solver, solver_callback,
+                                time_step_solver_id, this->memory_id);
+  return this->registerTimeStepSolver(time_step_solver_id, tss);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class MatType, class DMType>
+SparseMatrix &
+DOFManager::registerSparseMatrix(DMType & dm, const ID & id,
+                                 const MatrixType & matrix_type) {
+  ID matrix_id = this->id + ":mtx:" + id;
+  std::unique_ptr<SolverSparseMatrix> sm =
+      std::make_unique<MatType>(dm, matrix_type, matrix_id);
+  return this->registerSparseMatrix(matrix_id, sm);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class MatType>
+SparseMatrix & DOFManager::registerSparseMatrix(const ID & id,
+                                                const ID & matrix_to_copy_id) {
+  ID matrix_id = this->id + ":mtx:" + id;
+  auto & sm_to_copy = aka::as_type<MatType>(
+      this->getMatrix(matrix_to_copy_id));
+  std::unique_ptr<SolverSparseMatrix> sm =
+      std::make_unique<MatType>(sm_to_copy, matrix_id);
+  return this->registerSparseMatrix(matrix_id, sm);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class MatType, class DMType>
+SolverVector & DOFManager::registerLumpedMatrix(DMType & dm, const ID & id) {
+  ID matrix_id = this->id + ":lumped_mtx:" + id;
+  std::unique_ptr<SolverVector> sm = std::make_unique<MatType>(dm, matrix_id);
+  return this->registerLumpedMatrix(matrix_id, sm);
+}
+
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu

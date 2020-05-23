@@ -40,7 +40,7 @@
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-class DOFManagerPETSc;
+class VectorPETSc;
 }
 
 namespace akantu {
@@ -50,8 +50,9 @@ class SparseMatrixPETSc : public SparseMatrix {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SparseMatrixPETSc(DOFManagerPETSc & dof_manager,
-                    const MatrixType & matrix_type,
+  SparseMatrixPETSc(const Communicator & communicator, const UInt m = 0, const UInt n = 0,
+                    const SizeType & size_type = SizeType::_local,
+                    const MatrixType & matrix_type = _unsymmetric,
                     const ID & id = "sparse_matrix_petsc");
 
   SparseMatrixPETSc(const SparseMatrixPETSc & matrix,
@@ -64,24 +65,26 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// set the matrix to 0
-  void clear() override;
+  void clear();
   void clearProfile() override;
 
   /// add a non-zero element to the profile
-  UInt add(UInt i, UInt j) override;
+  inline UInt add(UInt i, UInt j);
 
   /// assemble a local matrix in the sparse one
-  void add(UInt i, UInt j, Real value) override;
+  inline void add(UInt i, UInt j, Real value);
 
-  void addLocal(UInt i, UInt j);
-  void addLocal(UInt i, UInt j, Real val);
+  inline void addLocal(UInt i, UInt j);
+  inline void addLocal(UInt i, UInt j, Real val);
 
-  void addLocal(const Vector<Int> & rows, const Vector<Int> & cols,
-                const Matrix<Real> & vals);
+  template<class Rows, class Cols, class Values>
+  void addLocal(const Rows & rows, const Cols & cols,
+                const Values & vals);
 
   /// add a block of values
-  void addValues(const Vector<Int> & is, const Vector<Int> & js,
-                 const Matrix<Real> & values, MatrixType values_type);
+  template<class Rows, class Cols, class Values>
+  void addValues(const Rows & is, const Cols & js,
+                 const Values & values, MatrixType values_type);
 
   /// save the profil in a file using the MatrixMarket file format
   // void saveProfile(__attribute__((unused)) const std::string &) const
@@ -90,24 +93,21 @@ public:
   // }
 
   /// save the matrix in a file using the MatrixMarket file format
-  void saveMatrix(const std::string & filename) const override;
+  void saveMatrix(const std::string & filename) const;
 
   /// multiply the matrix by a coefficient
-  void mul(Real alpha) override;
+  void mul(Real alpha);
 
   /// Equivalent of *gemv in blas
-  void matVecMul(const SolverVector & x, SolverVector & y, Real alpha = 1.,
-                 Real beta = 0.) const override;
-
-  /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(Real block_val = 1.) override;
+  void matVecMul(const VectorPETSc & x, VectorPETSc & y, Real alpha = 1.,
+                 Real beta = 0.) const;
 
   /// copy the profile of a matrix
-  void copyProfile(const SparseMatrix & other) override;
+  void copyProfile(const SparseMatrix & other);
 
   void applyModifications();
 
-  void resize();
+  // void resize();
 
 protected:
   /// This is the revert of add B += \alpha * *this;
@@ -134,7 +134,7 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-  virtual UInt getRelease() const override { return release; };
+  UInt getRelease() const { return release; };
 
   operator Mat &() { return mat; }
   operator const Mat &() const { return mat; }
@@ -145,16 +145,18 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  // DOFManagerPETSc that contains the numbering for petsc
-  DOFManagerPETSc & dof_manager;
-
   /// store the PETSc matrix
   Mat mat;
 
   /// matrix release
   UInt release{0};
+
+  /// communicator used
+  MPI_Comm mpi_comm;
 };
 
 } // namespace akantu
+
+#include "sparse_matrix_petsc_tmpl.hh"
 
 #endif /* __AKANTU_PETSC_MATRIX_HH__ */

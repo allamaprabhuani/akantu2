@@ -148,9 +148,9 @@ void NonLinearSolverPETSc::solve(SolverCallback & callback) {
 
   if (not x) {
     x = std::make_unique<SolverVectorPETSc>(global_x, "temporary_solution");
+  } else {
+    *x = global_x;
   }
-
-  *x = global_x;
 
   if (not ctx) {
     ctx = std::make_unique<NonLinearSolverPETScCallback>(dof_manager, *x);

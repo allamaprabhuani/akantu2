@@ -38,9 +38,9 @@
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-class DOFManager;
 class TermsToAssemble;
 class SolverVector;
+class Communicator;
 } // namespace akantu
 
 namespace akantu {
@@ -50,7 +50,9 @@ class SparseMatrix {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SparseMatrix(DOFManager & dof_manager, const MatrixType & matrix_type,
+  SparseMatrix(const Communicator & communicator, const UInt m = 0,
+               const UInt n = 0, const SizeType & size_type = SizeType::_local,
+               const MatrixType & matrix_type = _unsymmetric,
                const ID & id = "sparse_matrix");
 
   SparseMatrix(const SparseMatrix & matrix, const ID & id = "sparse_matrix");
@@ -67,11 +69,11 @@ public:
   /// set the matrix to 0
   virtual void clear() = 0;
 
-  /// add a non-zero element to the profile
-  virtual UInt add(UInt i, UInt j) = 0;
+  // /// add a non-zero element to the profile
+  // virtual UInt add(UInt i, UInt j) = 0;
 
-  /// assemble a local matrix in the sparse one
-  virtual void add(UInt i, UInt j, Real value) = 0;
+  // /// assemble a local matrix in the sparse one
+  // virtual void add(UInt i, UInt j, Real value) = 0;
 
   /// save the profil in a file using the MatrixMarket file format
   virtual void saveProfile(const std::string & /* filename */) const {
@@ -88,13 +90,6 @@ public:
 
   /// add matrices
   virtual void add(const SparseMatrix & matrix, Real alpha = 1.);
-
-  /// Equivalent of *gemv in blas
-  virtual void matVecMul(const SolverVector & x, SolverVector & y,
-                         Real alpha = 1., Real beta = 0.) const = 0;
-
-  /// modify the matrix to "remove" the blocked dof
-  virtual void applyBoundary(Real block_val = 1.) = 0;
 
   /// copy the profile of another matrix
   virtual void copyProfile(const SparseMatrix & other) = 0;
@@ -113,17 +108,26 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  /// return the values at potition i, j
-  virtual inline Real operator()(UInt /*i*/, UInt /*j*/) const {
-    AKANTU_TO_IMPLEMENT();
-  }
-  /// return the values at potition i, j
-  virtual inline Real & operator()(UInt /*i*/, UInt /*j*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
+  // /// return the values at potition i, j
+  // virtual inline Real operator()(UInt /*i*/, UInt /*j*/) const {
+  //   AKANTU_TO_IMPLEMENT();
+  // }
+  // /// return the values at potition i, j
+  // virtual inline Real & operator()(UInt /*i*/, UInt /*j*/) {
+  //   AKANTU_TO_IMPLEMENT();
+  // }
 
   AKANTU_GET_MACRO(NbNonZero, nb_non_zero, UInt);
-  UInt size() const { return size_; }
+  UInt size() const {
+    AKANTU_DEBUG_ASSERT(m == n, "The size is not defined if the matrix is not  "
+                                "square, use cols and rows instead");
+    return m;
+  }
+
+  UInt rows() const { return m; }
+
+  UInt cols() const { return n; }
+
   AKANTU_GET_MACRO(MatrixType, matrix_type, const MatrixType &);
 
   virtual UInt getRelease() const = 0;
@@ -134,14 +138,17 @@ public:
 protected:
   ID id;
 
-  /// Underlying dof manager
-  DOFManager & _dof_manager;
+  /// Underlying communicators
+  const Communicator & communicator;
 
   /// sparce matrix type
   MatrixType matrix_type;
 
-  /// Size of the matrix
-  UInt size_;
+  /// global size of the matrix
+  Int m{0}, n{0};
+
+  /// local size of the matrix
+  Int m_local{0}, n_local{0};
 
   /// number of processors
   UInt nb_proc;

@@ -39,21 +39,26 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SparseMatrix::SparseMatrix(DOFManager & dof_manager,
+SparseMatrix::SparseMatrix(const Communicator & communicator, const UInt m,
+                           const UInt n, const SizeType & size_type,
                            const MatrixType & matrix_type, const ID & id)
-    : id(id), _dof_manager(dof_manager), matrix_type(matrix_type),
-      size_(dof_manager.getSystemSize()), nb_non_zero(0) {
+    : id(id), communicator(communicator), matrix_type(matrix_type), m(m), n(n),
+      nb_non_zero(0) {
   AKANTU_DEBUG_IN();
 
-  const auto & comm = _dof_manager.getCommunicator();
-  this->nb_proc = comm.getNbProc();
+  if (size_type == SizeType::_local) {
+    AKANTU_EXCEPTION("This case is not handled here");
+  }
+
+  this->nb_proc = communicator.getNbProc();
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix::SparseMatrix(const SparseMatrix & matrix, const ID & id)
-    : SparseMatrix(matrix._dof_manager, matrix.matrix_type, id) {
+    : SparseMatrix(matrix.communicator, matrix.m, matrix.n, SizeType::_global,
+                   matrix.matrix_type, id) {
   nb_non_zero = matrix.nb_non_zero;
 }
 

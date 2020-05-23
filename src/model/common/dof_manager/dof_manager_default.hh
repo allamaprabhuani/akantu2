@@ -43,6 +43,10 @@ class SparseMatrixAIJ;
 class NonLinearSolverDefault;
 class TimeStepSolverDefault;
 class DOFSynchronizer;
+class DOFManagerDefault;
+template <class Matrix, class DOFManager> class SolverSparseMatrixTmpl;
+using SolverSparseMatrixAIJ =
+    SolverSparseMatrixTmpl<SparseMatrixAIJ, DOFManagerDefault>;
 } // namespace akantu
 
 namespace akantu {

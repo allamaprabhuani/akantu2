@@ -283,6 +283,8 @@ package_declare_sources(core
   solver/sparse_solver.cc
   solver/sparse_solver.hh
   solver/sparse_solver_inline_impl.cc
+  solver/solver_sparse_matrix.hh
+  solver/solver_sparse_matrix_aij.cc
   solver/terms_to_assemble.hh
 
   synchronizer/communication_buffer_inline_impl.cc

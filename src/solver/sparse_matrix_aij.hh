@@ -52,8 +52,8 @@ class SparseMatrixAIJ : public SparseMatrix {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  SparseMatrixAIJ(DOFManagerDefault & dof_manager,
-                  const MatrixType & matrix_type,
+  SparseMatrixAIJ(const Communicator & communicator, const UInt m, const UInt n,
+                  const SizeType & size_type, const MatrixType & matrix_type,
                   const ID & id = "sparse_matrix_aij");
 
   SparseMatrixAIJ(const SparseMatrixAIJ & matrix,
@@ -69,23 +69,26 @@ public:
   inline void clearProfile() override;
 
   /// add a non-zero element
-  inline UInt add(UInt i, UInt j) override;
+  inline UInt add(Int i, Int j);
 
   /// set the matrix to 0
   void clear() override;
 
   /// assemble a local matrix in the sparse one
-  inline void add(UInt i, UInt j, Real value) override;
+  inline void add(Int i, Int j, Real value);
 
   /// add a block of values
   inline void addValues(const Vector<Int> & is, const Vector<Int> & js,
                         const Matrix<Real> & values, MatrixType values_type);
 
   /// set the size of the matrix
-  void resize(UInt size) { this->size_ = size; }
+  void resize(UInt size) {
+    this->m = size;
+    this->n = size;
+  }
 
   /// modify the matrix to "remove" the blocked dof
-  void applyBoundary(Real block_val = 1.) override;
+  //  void applyBoundary(Real block_val = 1.) override;
 
   /// save the profil in a file using the MatrixMarket file format
   void saveProfile(const std::string & filename) const override;
@@ -97,28 +100,24 @@ public:
   virtual void copyContent(const SparseMatrix & matrix);
 
   /// multiply the matrix by a scalar
-  void mul(Real alpha) override;
+  void mul(Real alpha);
 
   /// add matrix *this += B
   // virtual void add(const SparseMatrix & matrix, Real alpha);
-
-  /// Equivalent of *gemv in blas
-  void matVecMul(const SolverVector & x, SolverVector & y, Real alpha = 1.,
-                 Real beta = 0.) const override;
 
   void matVecMul(const Array<Real> & x, Array<Real> & y, Real alpha = 1.,
                  Real beta = 0.) const;
 
   /// copy the profile of another matrix
-  void copyProfile(const SparseMatrix & other) override;
+  void copyProfile(const SparseMatrix & other);
 
   /* ------------------------------------------------------------------------ */
   /// accessor to A_{ij} - if (i, j) not present it returns 0
-  inline Real operator()(UInt i, UInt j) const override;
+  inline Real operator()(Int i, Int j) const;
 
   /// accessor to A_{ij} - if (i, j) not present it fails, (i, j) should be
   /// first added to the profile
-  inline Real & operator()(UInt i, UInt j) override;
+  inline Real & operator()(Int i, Int j);
 
 protected:
   /// This is the revert of add B += \alpha * *this;
@@ -154,14 +153,14 @@ public:
   /// (my_release != release) and not as (my_release < release)
   AKANTU_GET_MACRO(ProfileRelease, profile_release, UInt);
   AKANTU_GET_MACRO(ValueRelease, value_release, UInt);
-  UInt getRelease() const override { return value_release; }
+  UInt getRelease() const { return value_release; }
 
 protected:
-  using KeyCOO = std::pair<UInt, UInt>;
+  using KeyCOO = std::pair<Int, Int>;
   using coordinate_list_map = std::unordered_map<KeyCOO, UInt>;
 
   /// get the pair corresponding to (i, j)
-  inline KeyCOO key(UInt i, UInt j) const {
+  inline KeyCOO key(Int i, Int j) const {
     if (this->matrix_type == _symmetric && (i > j))
       return std::make_pair(j, i);
     return std::make_pair(i, j);
@@ -170,9 +169,7 @@ protected:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-private:
-  DOFManagerDefault & dof_manager;
-
+protected:
   /// row indexes
   Array<Int> irn;
 

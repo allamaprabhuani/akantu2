@@ -99,7 +99,7 @@ void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
 
   this->mesh->getPeriodicNodeSynchronizer()
       .reduceSynchronizeWithPBCSlaves<AddOperation>(
-          aka::as_type<SolverVectorDefault>(array).getVector());
+          aka::as_type<SolverVectorDefault>(array));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,10 +142,9 @@ void DOFManagerDefault::assembleToGlobalArray(
     const ID & dof_id, const Array<Real> & array_to_assemble,
     SolverVector & global_array_v, Real scale_factor) {
 
-  assembleToGlobalArray(
-      dof_id, array_to_assemble,
-      aka::as_type<SolverVectorDefault>(global_array_v).getVector(),
-      scale_factor);
+  assembleToGlobalArray(dof_id, array_to_assemble,
+                        aka::as_type<SolverVectorDefault>(global_array_v),
+                        scale_factor);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -174,13 +173,15 @@ DOFManagerDefault::registerDOFsInternal(const ID & dof_id,
 /* -------------------------------------------------------------------------- */
 SparseMatrix & DOFManagerDefault::getNewMatrix(const ID & id,
                                                const MatrixType & matrix_type) {
-  return this->registerSparseMatrix<SparseMatrixAIJ>(*this, id, matrix_type);
+  return this->registerSparseMatrix<SolverSparseMatrixAIJ>(*this, id,
+                                                           matrix_type);
 }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix & DOFManagerDefault::getNewMatrix(const ID & id,
                                                const ID & matrix_to_copy_id) {
-  return this->registerSparseMatrix<SparseMatrixAIJ>(id, matrix_to_copy_id);
+  return this->registerSparseMatrix<SolverSparseMatrixAIJ>(id,
+                                                           matrix_to_copy_id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -191,7 +192,7 @@ SolverVector & DOFManagerDefault::getNewLumpedMatrix(const ID & id) {
 /* -------------------------------------------------------------------------- */
 SparseMatrixAIJ & DOFManagerDefault::getMatrix(const ID & id) {
   auto & matrix = DOFManager::getMatrix(id);
-  return aka::as_type<SparseMatrixAIJ>(matrix);
+  return aka::as_type<SolverSparseMatrixAIJ>(matrix);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -256,8 +257,7 @@ void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
 void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
                                         const SolverVector & global_array,
                                         Array<Real> & local_array) {
-  getArrayPerDOFs(dof_id,
-                  aka::as_type<SolverVectorDefault>(global_array).getVector(),
+  getArrayPerDOFs(dof_id, aka::as_type<SolverVectorDefault>(global_array),
                   local_array);
 }
 
@@ -265,13 +265,14 @@ void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
 void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
     const ID & dof_id, const ID & A_id, const Array<Real> & x,
     Real scale_factor) {
-  const Array<Real> & A = this->getLumpedMatrix(A_id);
-  auto & cache = aka::as_type<SolverVectorArray>(*this->data_cache);
+  const auto & A =
+      aka::as_type<SolverVectorDefault>(this->getLumpedMatrix(A_id));
+  auto & cache = aka::as_type<SolverVectorDefault>(*this->data_cache);
 
   cache.clear();
-  this->assembleToGlobalArray(dof_id, x, cache.getVector(), scale_factor);
+  this->assembleToGlobalArray(dof_id, x, cache, scale_factor);
 
-  for (auto && data : zip(make_view(A), make_view(cache.getVector()),
+  for (auto && data : zip(make_view(A), make_view(cache),
                           make_view(this->getResidualArray()))) {
     const auto & A = std::get<0>(data);
     const auto & x = std::get<1>(data);
@@ -399,17 +400,17 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
 
 /* -------------------------------------------------------------------------- */
 Array<Real> & DOFManagerDefault::getSolutionArray() {
-  return dynamic_cast<SolverVectorDefault *>(this->solution.get())->getVector();
+  return aka::as_type<SolverVectorDefault>(*this->solution);
 }
 
 /* -------------------------------------------------------------------------- */
 const Array<Real> & DOFManagerDefault::getResidualArray() const {
-  return dynamic_cast<SolverVectorDefault *>(this->residual.get())->getVector();
+  return aka::as_type<SolverVectorDefault>(*this->residual);
 }
 
 /* -------------------------------------------------------------------------- */
 Array<Real> & DOFManagerDefault::getResidualArray() {
-  return dynamic_cast<SolverVectorDefault *>(this->residual.get())->getVector();
+  return aka::as_type<SolverVectorDefault>(*this->residual);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -39,13 +39,14 @@ class DOFManager;
 
 namespace akantu {
 
+/* -------------------------------------------------------------------------- */
 class SolverVector {
 public:
   SolverVector(DOFManager & dof_manager, const ID & id = "solver_vector")
-      : id(id), _dof_manager(dof_manager) {}
+      : id(id), dof_manager_(dof_manager) {}
 
   SolverVector(const SolverVector & vector, const ID & id = "solver_vector")
-      : id(id), _dof_manager(vector._dof_manager) {}
+      : id(id), dof_manager_(vector.dof_manager_) {}
 
   virtual ~SolverVector() = default;
 
@@ -55,13 +56,13 @@ public:
   // clear the vector
   virtual void clear() = 0;
 
-  virtual operator const Array<Real> &() const = 0;
+  //virtual operator const Array<Real> &() const = 0;
 
   virtual Int size() const = 0;
   virtual Int localSize() const = 0;
 
-  virtual SolverVector & operator+(const SolverVector & y) = 0;
-  virtual SolverVector & operator=(const SolverVector & y) = 0;
+  //virtual SolverVector & operator+(const SolverVector & y) = 0;
+  //  virtual SolverVector & operator=(const SolverVector & y) = 0;
 
   UInt & release() { return release_; }
   UInt release() const { return release_; }
@@ -70,13 +71,60 @@ public:
 
 protected:
   ID id;
-
-  /// Underlying dof manager
-  DOFManager & _dof_manager;
-
+  DOFManager & dof_manager_;
   UInt release_{0};
 };
+/* -------------------------------------------------------------------------- */
 
+template <class Vector, class DOFManager>
+class SolverVectorTmpl : public SolverVector, public Vector {
+public:
+  SolverVectorTmpl(DOFManager & dof_manager, const ID & id = "solver_vector");
+  SolverVectorTmpl(const SolverVectorTmpl & vector,
+                   const ID & id = "solver_vector")
+      : SolverVector(vector, id), Vector(vector, id),
+        dof_manager(vector.dof_manager) {}
+
+  SolverVectorTmpl(const Vector & vector, DOFManager & dof_manager,
+                   const ID & id = "solver_vector")
+      : SolverVector(vector, id), Vector(vector, id), dof_manager(dof_manager) {
+  }
+
+  // resize the vector to the size of the problem
+  void resize() override;
+
+  // clear the vector
+  void clear() override { Vector::clear(); }
+
+  //operator const Array<Real> &() const override;
+
+  Int size() const override { return Vector::size(); };
+  Int localSize() const override;
+
+  SolverVectorTmpl & operator+(const SolverVectorTmpl & y) {
+    const auto & y_ = aka::as_type<Vector>(y);
+    Vector::operator+(y_);
+    ++release_;
+    return *this;
+  }
+
+  SolverVectorTmpl & operator=(const SolverVectorTmpl & y) {
+    const auto & y_ = aka::as_type<Vector>(y);
+    Vector::operator=(y_);
+    return *this;
+  }
+
+  void printself(std::ostream & stream, int indent = 0) const override {
+    Vector::printself(stream, indent);
+  }
+
+  virtual Vector & getGlobalVector();
+  virtual void setGlobalVector(const Vector & global);
+protected:
+  DOFManager & dof_manager;
+};
+
+/* -------------------------------------------------------------------------- */
 inline std::ostream & operator<<(std::ostream & stream, SolverVector & _this) {
   _this.printself(stream);
   return stream;

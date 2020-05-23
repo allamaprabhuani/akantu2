@@ -31,7 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "dof_manager_default.hh"
 #include "mesh.hh"
-#include "sparse_matrix.hh"
+#include "sparse_matrix_aij.hh"
 /* -------------------------------------------------------------------------- */
 #include <cstdlib>
 /* -------------------------------------------------------------------------- */
@@ -52,7 +52,7 @@ int main(int argc, char * argv[]) {
   Array<Real> test_synchronize(nb_nodes, spatial_dimension, "Test vector");
   dof_manager.registerDOFs("test_synchronize", test_synchronize, _dst_nodal);
 
-  auto & A = dof_manager.getNewMatrix("A", _symmetric);
+  auto & A = aka::as_type<SparseMatrixAIJ>(dof_manager.getNewMatrix("A", _symmetric));
 
   for (UInt i = 0; i < 10; ++i) {
     A.add(i, i);

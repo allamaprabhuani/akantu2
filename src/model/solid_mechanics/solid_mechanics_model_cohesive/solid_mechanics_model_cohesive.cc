@@ -46,8 +46,8 @@
 #include "shape_cohesive.hh"
 #if defined(AKANTU_USE_PETSC)
 #include "dof_manager_petsc.hh"
-#include "solver_vector_petsc.hh"
 #include "sparse_matrix_petsc.hh"
+#include "vector_petsc.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
@@ -752,21 +752,18 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
   };
 
   std::vector<bool> seen(mesh.getNbNodes(), false);
-  Array<UInt> nodes_to_du_local(mesh.getNbNodes(), 1, UInt(-1));
-  std::unordered_map<UInt, UInt> du_local_to_nodes;
-  auto add_node = [&seen, &nodes_to_du_local, &du_local_to_nodes,
-                   &N_local](auto & n) {
+  Array<Int> nodes_to_du_local(mesh.getNbNodes(), spatial_dimension, -1);
+  auto add_node = [&](auto & n) {
     if (seen[n])
       return;
-
-    nodes_to_du_local(n) = N_local;
-    du_local_to_nodes[N_local] = n;
-    ++N_local;
-
+    for (auto s : arange(spatial_dimension)) {
+      nodes_to_du_local(n, s) = N_local;
+      ++N_local;
+    }
     seen[n] = true;
   };
 
-  Array<UInt> quads_to_dn_local(M_local, 1, UInt(-1));
+  Array<Int> quads_to_dn_local(M_local, spatial_dimension, -1);
 
   auto M = 0;
   for (auto type :
@@ -776,26 +773,31 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
     for (auto && data : enumerate(make_view(mesh.getConnectivity(type),
                                             nb_nodes_per_element / 2, 2))) {
       for (auto q : arange(nb_quadrature_points)) {
-        quads_to_dn_local(integration_point_id(
-            type, std::get<0>(data) * nb_quadrature_points + q)) = M;
-        ++M;
+        for (auto s : arange(spatial_dimension)) {
+          quads_to_dn_local(
+              integration_point_id(
+                  type, std::get<0>(data) * nb_quadrature_points + q),
+              s) = M;
+          ++M;
+        }
       }
 
       auto & conn = std::get<1>(data);
       for (auto n : arange(conn.rows())) {
         if (conn(n, 0) == conn(n, 1))
           continue;
-
         add_node(conn(n, 0));
         add_node(conn(n, 1));
       }
     }
   }
 
-  auto & dof_manager = dynamic_cast<DOFManagerPETSc &>(this->getDOFManager());
-  SparseMatrixPETSc Pglobal(dof_manager, _unsymmetric, "Pglobal");
-  SolverVectorPETSc du(dof_manager, "du");
-  SolverVectorPETSc Delta_N(dof_manager, "Delta_N");
+  M_local *= spatial_dimension;
+  SparseMatrixPETSc Pglobal(mesh.getCommunicator(), M_local, N_local,
+                            SizeType::_local, _unsymmetric, "Pglobal");
+  VectorPETSc du(mesh.getCommunicator(), M_local, SizeType::_local, "du");
+  VectorPETSc Delta_N(mesh.getCommunicator(), N_local, SizeType::_local,
+                      "Delta_N");
 
   // SparseMatrixPETSc Pglobal(M_local * spatial_dimension,
   //                           N_local * spatial_dimension);
@@ -856,31 +858,24 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
     auto delta_n_it = make_view(delta_n_per_type, spatial_dimension).begin();
     for (auto el : arange(nb_element)) {
       auto && conn = conn_it[el];
+      Vector<Int> n_ids(spatial_dimension * conn.size());
+      for (auto ce : enumerate(conn)) {
+        auto gn = std::get<1>(ce);
+        auto ln = std::get<0>(ce);
+        for (auto s : arange(spatial_dimension)) {
+          n_ids(ln * spatial_dimension + s) = nodes_to_du_local(gn, s);
+        }
+      }
+
       for (auto q : arange(nb_quadrature_points)) {
+        auto && m_ids =
+            VectorProxy<Int>(&(quads_to_dn_local(integration_point_id(
+                                  type, el * nb_quadrature_points + q))),
+                              spatial_dimension);
 
-        auto m = quads_to_dn_local(
-            integration_point_id(type, el * nb_quadrature_points + q));
-
-        auto && delta_n = *delta_n_it;
-        for (auto si : arange(delta_n.size())) {
-          // Delta_N(m * spatial_dimension + si)= delta_n(si);
-        }
+        Delta_N.addValues(m_ids, *delta_n_it);
+        Pglobal.addLocal(m_ids, n_ids, P(q));
         ++delta_n_it;
-
-        for (auto ce : enumerate(conn)) {
-          auto gn = std::get<1>(ce);
-          auto ln = std::get<0>(ce);
-          auto n = nodes_to_du_local(gn);
-          if (n == UInt(-1))
-            continue;
-
-          for (auto si : arange(spatial_dimension)) {
-            for (auto sj : arange(spatial_dimension)) {
-              Pglobal(m * spatial_dimension + si, n * spatial_dimension + sj) =
-                  P(si, ln * spatial_dimension + sj, q);
-            }
-          }
-        }
       }
     }
   }
@@ -888,11 +883,18 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
   /// solve for du
 
   /// apply the solution
-  for (auto pair : du_local_to_nodes) {
-    for (auto s : arange(spatial_dimension)) {
-      //      (*displacement)(std::get<1>(pair), s) += du(std::get<0>(pair) *
-      //      spatial_dimension + s);
-    }
+  Vector<Real> dul(spatial_dimension);
+  for (auto && data : zip(arange(nodes_to_du_local.size()),
+                          make_view(nodes_to_du_local, spatial_dimension),
+                          make_view(*displacement, spatial_dimension))) {
+    auto n = std::get<0>(data);
+    auto && n_ids = std::get<1>(data);
+    auto && disp = std::get<2>(data);
+    if (not seen[n])
+      continue;
+    du.getValues(n_ids, dul);
+
+    disp += dul;
   }
 #endif
 }

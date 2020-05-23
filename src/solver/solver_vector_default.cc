@@ -31,4 +31,40 @@
 #include "dof_manager_default.hh"
 /* -------------------------------------------------------------------------- */
 
-namespace akantu {} // namespace akantu
+namespace akantu {
+
+/* -------------------------------------------------------------------------- */
+template <>
+SolverVectorTmpl<Array<Real>, DOFManagerDefault>::SolverVectorTmpl(
+    DOFManagerDefault & dof_manager, const ID & id)
+    : SolverVector(dof_manager, id), Array<Real>(
+                                         dof_manager.getLocalSystemSize(), 1,
+                                         id),
+      dof_manager(dof_manager) {}
+
+/* -------------------------------------------------------------------------- */
+template <> void SolverVectorTmpl<Array<Real>, DOFManagerDefault>::resize() {
+  Array<Real>::resize(dof_manager.getLocalSystemSize());
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+Array<Real> &
+SolverVectorTmpl<Array<Real>, DOFManagerDefault>::getGlobalVector() {
+  return *this;
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+void SolverVectorTmpl<Array<Real>, DOFManagerDefault>::setGlobalVector(
+    const Array<Real> & global) {
+  Array<Real>::operator=(global);
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+Int SolverVectorTmpl<Array<Real>, DOFManagerDefault>::localSize() const {
+  return Array<Real>::size();
+}
+
+} // namespace akantu

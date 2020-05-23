@@ -37,7 +37,7 @@
 
 namespace akantu {
 
-inline UInt SparseMatrixAIJ::add(UInt i, UInt j) {
+inline UInt SparseMatrixAIJ::add(Int i, Int j) {
   KeyCOO jcn_irn = this->key(i, j);
 
   auto it = this->irn_jcn_k.find(jcn_irn);
@@ -45,10 +45,10 @@ inline UInt SparseMatrixAIJ::add(UInt i, UInt j) {
   if (!(it == this->irn_jcn_k.end()))
     return it->second;
 
-  if (i + 1 > this->size_)
-    this->size_ = i + 1;
-  if (j + 1 > this->size_)
-    this->size_ = j + 1;
+  AKANTU_DEBUG_ASSERT(i + 1 > this->m, "I is outside the matrix ["
+                                           << i + 1 << " > " << this->m << "]");
+  AKANTU_DEBUG_ASSERT(j + 1 > this->n, "J is outside the matrix ["
+                                           << j + 1 << " > " << this->n << "]");
 
   this->irn.push_back(i + 1);
   this->jcn.push_back(j + 1);
@@ -74,7 +74,8 @@ inline void SparseMatrixAIJ::clearProfile() {
   this->jcn.resize(0);
   this->a.resize(0);
 
-  this->size_ = 0;
+  this->m = 0;
+  this->n = 0;
   this->nb_non_zero = 0;
 
   this->profile_release++;
@@ -82,7 +83,7 @@ inline void SparseMatrixAIJ::clearProfile() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline void SparseMatrixAIJ::add(UInt i, UInt j, Real value) {
+inline void SparseMatrixAIJ::add(Int i, Int j, Real value) {
   UInt idx = this->add(i, j);
 
   this->a(idx) += value;
@@ -91,7 +92,7 @@ inline void SparseMatrixAIJ::add(UInt i, UInt j, Real value) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real SparseMatrixAIJ::operator()(UInt i, UInt j) const {
+inline Real SparseMatrixAIJ::operator()(Int i, Int j) const {
   KeyCOO jcn_irn = this->key(i, j);
   auto irn_jcn_k_it = this->irn_jcn_k.find(jcn_irn);
 
@@ -101,7 +102,7 @@ inline Real SparseMatrixAIJ::operator()(UInt i, UInt j) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real & SparseMatrixAIJ::operator()(UInt i, UInt j) {
+inline Real & SparseMatrixAIJ::operator()(Int i, Int j) {
   KeyCOO jcn_irn = this->key(i, j);
   auto irn_jcn_k_it = this->irn_jcn_k.find(jcn_irn);
   AKANTU_DEBUG_ASSERT(irn_jcn_k_it != this->irn_jcn_k.end(),
@@ -120,11 +121,11 @@ SparseMatrixAIJ::addSymmetricValuesToSymmetric(const Vector<Int> & is,
                                                const Vector<Int> & js,
                                                const Matrix<Real> & values) {
   for (UInt i = 0; i < values.rows(); ++i) {
-    UInt c_irn = is(i);
-    if (c_irn < size_) {
+    Int c_irn = is(i);
+    if (c_irn < this->m) {
       for (UInt j = i; j < values.cols(); ++j) {
-        UInt c_jcn = js(j);
-        if (c_jcn < size_) {
+        Int c_jcn = js(j);
+        if (c_jcn < this->n) {
           operator()(c_irn, c_jcn) += values(i, j);
         }
       }
@@ -138,11 +139,11 @@ SparseMatrixAIJ::addUnsymmetricValuesToSymmetric(const Vector<Int> & is,
                                                  const Vector<Int> & js,
                                                  const Matrix<Real> & values) {
   for (UInt i = 0; i < values.rows(); ++i) {
-    UInt c_irn = is(i);
-    if (c_irn < size_) {
+    Int c_irn = is(i);
+    if (c_irn < this->m) {
       for (UInt j = 0; j < values.cols(); ++j) {
-        UInt c_jcn = js(j);
-        if (c_jcn < size_) {
+        Int c_jcn = js(j);
+        if (c_jcn < this->n) {
           if (c_jcn >= c_irn) {
             operator()(c_irn, c_jcn) += values(i, j);
           }
@@ -158,11 +159,11 @@ SparseMatrixAIJ::addValuesToUnsymmetric(const Vector<Int> & is,
                                         const Vector<Int> & js,
                                         const Matrix<Real> & values) {
   for (UInt i = 0; i < values.rows(); ++i) {
-    UInt c_irn = is(i);
-    if (c_irn < size_) {
+    Int c_irn = is(i);
+    if (c_irn < this->m) {
       for (UInt j = 0; j < values.cols(); ++j) {
-        UInt c_jcn = js(j);
-        if (c_jcn < size_) {
+        Int c_jcn = js(j);
+        if (c_jcn < this->n) {
           operator()(c_irn, c_jcn) += values(i, j);
         }
       }

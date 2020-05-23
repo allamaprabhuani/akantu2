@@ -28,6 +28,7 @@
  *
  */
 /* -------------------------------------------------------------------------- */
+#include "petsc_wrapper.hh"
 #include "dof_manager.hh"
 /* -------------------------------------------------------------------------- */
 #include <petscis.h>
@@ -36,30 +37,13 @@
 #ifndef __AKANTU_DOF_MANAGER_PETSC_HH__
 #define __AKANTU_DOF_MANAGER_PETSC_HH__
 
-#define PETSc_call(func, ...)                                                  \
-  do {                                                                         \
-    auto ierr = func(__VA_ARGS__);                                             \
-    if (PetscUnlikely(ierr != 0)) {                                            \
-      const char * desc;                                                       \
-      PetscErrorMessage(ierr, &desc, nullptr);                                 \
-      AKANTU_EXCEPTION("Error in PETSc call to \'" << #func                    \
-                                                   << "\': " << desc);         \
-    }                                                                          \
-  } while (false)
-
 namespace akantu {
-namespace detail {
-  template <typename T> void PETScSetName(T t, const ID & id) {
-    PETSc_call(PetscObjectSetName, reinterpret_cast<PetscObject>(t),
-               id.c_str());
-  }
-} // namespace detail
-} // namespace akantu
-
-namespace akantu {
+class VectorPETSc;
 class SparseMatrixPETSc;
-class SolverVectorPETSc;
-} // namespace akantu
+class DOFManagerPETSc;
+using SolverVectorPETSc = SolverVectorTmpl<VectorPETSc, DOFManagerPETSc>;
+using SolverSparseMatrixPETSc = SolverSparseMatrixTmpl<SparseMatrixPETSc, DOFManagerPETSc>;
+} // namespace akantu`
 
 namespace akantu {
 

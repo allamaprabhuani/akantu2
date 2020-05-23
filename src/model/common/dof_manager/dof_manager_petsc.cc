@@ -142,9 +142,9 @@ DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
   std::tie(nb_dofs, nb_pure_local_dofs, std::ignore) = ret;
 
   auto && vector = std::make_unique<SolverVectorPETSc>(*this, id + ":solution");
-  auto x = vector->getVec();
-  PETSc_call(VecGetLocalToGlobalMapping, x, &is_ltog_map);
 
+  vector->getLocalToGlobalMapping(is_ltog_map);
+  
   // redoing the indexes based on the petsc numbering
   for (auto & dof_id : dofs_ids) {
     auto & dof_data = this->getDOFDataTyped<DOFDataPETSc>(dof_id);
@@ -169,7 +169,7 @@ DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
   solution = std::move(vector);
 
   for (auto & mat : matrices) {
-    auto & A = this->getMatrix(mat.first);
+    auto & A = aka::as_type<SolverSparseMatrixPETSc>(this->getMatrix(mat.first));
     A.resize();
   }
 
@@ -262,19 +262,19 @@ TimeStepSolver & DOFManagerPETSc::getNewTimeStepSolver(
 /* -------------------------------------------------------------------------- */
 SparseMatrix & DOFManagerPETSc::getNewMatrix(const ID & id,
                                              const MatrixType & matrix_type) {
-  return this->registerSparseMatrix<SparseMatrixPETSc>(*this, id, matrix_type);
+  return this->registerSparseMatrix<SolverSparseMatrixPETSc>(*this, id, matrix_type);
 }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix & DOFManagerPETSc::getNewMatrix(const ID & id,
                                              const ID & matrix_to_copy_id) {
-  return this->registerSparseMatrix<SparseMatrixPETSc>(id, matrix_to_copy_id);
+  return this->registerSparseMatrix<SolverSparseMatrixPETSc>(id, matrix_to_copy_id);
 }
 
 /* -------------------------------------------------------------------------- */
 SparseMatrixPETSc & DOFManagerPETSc::getMatrix(const ID & id) {
   auto & matrix = DOFManager::getMatrix(id);
-  return aka::as_type<SparseMatrixPETSc>(matrix);
+  return aka::as_type<SolverSparseMatrixPETSc>(matrix);
 }
 
 /* -------------------------------------------------------------------------- */

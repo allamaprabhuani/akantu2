@@ -44,7 +44,7 @@ namespace akantu {
 class TermsToAssemble;
 class NonLinearSolver;
 class TimeStepSolver;
-class SparseMatrix;
+class SolverSparseMatrix;
 class SolverVector;
 class SolverCallback;
 } // namespace akantu
@@ -356,8 +356,9 @@ protected:
 protected:
   /* ------------------------------------------------------------------------ */
   /// register a matrix
-  SparseMatrix & registerSparseMatrix(const ID & matrix_id,
-                                      std::unique_ptr<SparseMatrix> & matrix);
+  SparseMatrix &
+  registerSparseMatrix(const ID & matrix_id,
+                       std::unique_ptr<SolverSparseMatrix> & matrix);
 
   /// register a lumped matrix (aka a Vector)
   SolverVector & registerLumpedMatrix(const ID & matrix_id,
@@ -375,51 +376,23 @@ protected:
 
   template <class NLSType, class DMType>
   NonLinearSolver & registerNonLinearSolver(DMType & dm, const ID & id,
-                                            const NonLinearSolverType & type) {
-    ID non_linear_solver_id = this->id + ":nls:" + id;
-    std::unique_ptr<NonLinearSolver> nls = std::make_unique<NLSType>(
-        dm, type, non_linear_solver_id, this->memory_id);
-    return this->registerNonLinearSolver(non_linear_solver_id, nls);
-  }
+                                            const NonLinearSolverType & type);
 
   template <class TSSType, class DMType>
   TimeStepSolver & registerTimeStepSolver(DMType & dm, const ID & id,
                                           const TimeStepSolverType & type,
                                           NonLinearSolver & non_linear_solver,
-                                          SolverCallback & solver_callback) {
-    ID time_step_solver_id = this->id + ":tss:" + id;
-    std::unique_ptr<TimeStepSolver> tss =
-        std::make_unique<TSSType>(dm, type, non_linear_solver, solver_callback,
-                                  time_step_solver_id, this->memory_id);
-    return this->registerTimeStepSolver(time_step_solver_id, tss);
-  }
+                                          SolverCallback & solver_callback);
 
   template <class MatType, class DMType>
   SparseMatrix & registerSparseMatrix(DMType & dm, const ID & id,
-                                      const MatrixType & matrix_type) {
-    ID matrix_id = this->id + ":mtx:" + id;
-    std::unique_ptr<SparseMatrix> sm =
-        std::make_unique<MatType>(dm, matrix_type, matrix_id);
-    return this->registerSparseMatrix(matrix_id, sm);
-  }
+                                      const MatrixType & matrix_type);
 
   template <class MatType>
   SparseMatrix & registerSparseMatrix(const ID & id,
-                                      const ID & matrix_to_copy_id) {
-    ID matrix_id = this->id + ":mtx:" + id;
-    auto & sm_to_copy =
-        aka::as_type<MatType>(this->getMatrix(matrix_to_copy_id));
-    std::unique_ptr<SparseMatrix> sm =
-        std::make_unique<MatType>(sm_to_copy, matrix_id);
-    return this->registerSparseMatrix(matrix_id, sm);
-  }
-
+                                      const ID & matrix_to_copy_id);
   template <class MatType, class DMType>
-  SolverVector & registerLumpedMatrix(DMType & dm, const ID & id) {
-    ID matrix_id = this->id + ":lumped_mtx:" + id;
-    std::unique_ptr<SolverVector> sm = std::make_unique<MatType>(dm, matrix_id);
-    return this->registerLumpedMatrix(matrix_id, sm);
-  }
+  SolverVector & registerLumpedMatrix(DMType & dm, const ID & id);
 
 protected:
   virtual void makeConsistentForPeriodicity(const ID & dof_id,
@@ -431,6 +404,9 @@ protected:
                                      Real scale_factor) = 0;
   virtual void getArrayPerDOFs(const ID & dof_id, const SolverVector & global,
                                Array<Real> & local) = 0;
+
+  /// Get the reference of an existing matrix
+  SolverSparseMatrix & getMatrixInterface(const ID & matrix_id);
 
 public:
   /// Get the reference of an existing matrix
@@ -618,7 +594,8 @@ protected:
   using DOFStorage = std::map<ID, std::unique_ptr<DOFData>>;
 
   /// type to store all the matrices
-  using SparseMatricesMap = std::map<ID, std::unique_ptr<SparseMatrix>>;
+  using SparseMatricesMap =
+      std::map<ID, std::unique_ptr<SolverSparseMatrix>>;
 
   /// type to store all the lumped matrices
   using LumpedMatricesMap = std::map<ID, std::unique_ptr<SolverVector>>;

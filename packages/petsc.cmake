@@ -45,8 +45,13 @@ package_declare_sources(petsc
   solver/solver_petsc.hh
   solver/solver_vector_petsc.cc
   solver/solver_vector_petsc.hh
+  solver/solver_sparse_matrix_petsc.cc
   solver/sparse_matrix_petsc.cc
   solver/sparse_matrix_petsc.hh
+  solver/sparse_matrix_petsc_tmpl.hh
+  solver/vector_petsc.cc
+  solver/vector_petsc.hh
+  solver/vector_petsc_tmpl.hh
   )
 
 package_declare_extra_files_to_package(PETSc

@@ -269,6 +269,11 @@ enum CohesiveMethod { _intrinsic, _extrinsic };
 /// @enum SparseMatrixType type of sparse matrix used
 enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 
+enum class SizeType {
+  _local,  ///<< thie m ans n sizes are local to a processor
+  _global, ///<< the m and m sizes are global accross processors
+};
+
 /* -------------------------------------------------------------------------- */
 /* Ghosts handling                                                            */
 /* -------------------------------------------------------------------------- */

@@ -55,9 +55,9 @@ Array<Real> & SolverVectorDistributed::getGlobalVector() {
 
   if (synchronizer.getCommunicator().whoAmI() == 0) {
     this->global_vector->resize(dof_manager.getSystemSize());
-    synchronizer.gather(this->vector, *this->global_vector);
+    synchronizer.gather(*this, *this->global_vector);
   } else {
-    synchronizer.gather(this->vector);
+    synchronizer.gather(*this);
   }
 
   return *this->global_vector;
@@ -67,9 +67,9 @@ Array<Real> & SolverVectorDistributed::getGlobalVector() {
 void SolverVectorDistributed::setGlobalVector(const Array<Real> & solution) {
   auto & synchronizer = dof_manager.getSynchronizer();
   if (synchronizer.getCommunicator().whoAmI() == 0) {
-    synchronizer.scatter(this->vector, solution);
+    synchronizer.scatter(*this, solution);
   } else {
-    synchronizer.scatter(this->vector);
+    synchronizer.scatter(*this);
   }
 }
 

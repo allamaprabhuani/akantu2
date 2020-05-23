@@ -28,6 +28,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "non_linear_solver.hh"
+#include "dof_manager_petsc.hh"
 /* -------------------------------------------------------------------------- */
 #include <petscsnes.h>
 /* -------------------------------------------------------------------------- */
@@ -36,9 +37,7 @@
 #define __AKANTU_NON_LINEAR_SOLVER_PETSC_HH__
 
 namespace akantu {
-class DOFManagerPETSc;
 class NonLinearSolverPETScCallback;
-class SolverVectorPETSc;
 } // namespace akantu
 
 namespace akantu {

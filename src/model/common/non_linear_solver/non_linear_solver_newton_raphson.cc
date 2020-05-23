@@ -33,7 +33,7 @@
 #include "communicator.hh"
 #include "dof_manager_default.hh"
 #include "solver_callback.hh"
-#include "solver_vector.hh"
+#include "solver_vector_default.hh"
 #include "sparse_solver_mumps.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -176,7 +176,7 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
 
   const auto & blocked_dofs = this->dof_manager.getBlockedDOFs();
 
-  const Array<Real> & array(solver_vector);
+  const Array<Real> & array(aka::as_type<SolverVectorDefault>(solver_vector));
   UInt nb_degree_of_freedoms = array.size();
 
   auto arr_it = array.begin();

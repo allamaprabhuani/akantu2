@@ -30,26 +30,41 @@
 
 /* -------------------------------------------------------------------------- */
 #include "sparse_matrix_petsc.hh"
-#include "dof_manager_petsc.hh"
 #include "mpi_communicator_data.hh"
-#include "solver_vector_petsc.hh"
+#include "vector_petsc.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SparseMatrixPETSc::SparseMatrixPETSc(DOFManagerPETSc & dof_manager,
+SparseMatrixPETSc::SparseMatrixPETSc(const Communicator & communicator, const UInt m,
+                                     const UInt n, const SizeType & size_type,
                                      const MatrixType & matrix_type,
                                      const ID & id)
-    : SparseMatrix(dof_manager, matrix_type, id), dof_manager(dof_manager) {
+    : SparseMatrix(communicator, m, n, SizeType::_global, matrix_type, id) {
   AKANTU_DEBUG_IN();
 
-  auto mpi_comm = dof_manager.getMPIComm();
+  const auto & mpi_data =
+      aka::as_type<MPICommunicatorData>(communicator.getCommunicatorData());
+  mpi_comm = mpi_data.getMPICommunicator();
 
   PETSc_call(MatCreate, mpi_comm, &mat);
   detail::PETScSetName(mat, id);
 
-  resize();
+  m_local = m;
+  n_local = n;
+
+  switch (size_type) {
+  case SizeType::_local: {
+    PETSc_call(MatSetSizes, mat, m_local, n_local, PETSC_DETERMINE,
+               PETSC_DETERMINE);
+    break;
+  }
+  case SizeType::_global: {
+    PETSc_call(MatSetSizes, mat, PETSC_DECIDE, PETSC_DECIDE, m, n);
+    break;
+  }
+  }
 
   PETSc_call(MatSetFromOptions, mat);
 
@@ -58,8 +73,20 @@ SparseMatrixPETSc::SparseMatrixPETSc(DOFManagerPETSc & dof_manager,
   PETSc_call(MatSetOption, mat, MAT_ROW_ORIENTED, PETSC_TRUE);
   PETSc_call(MatSetOption, mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE);
 
-  if (matrix_type == _symmetric)
+  if (matrix_type == _symmetric) {
     PETSc_call(MatSetOption, mat, MAT_SYMMETRIC, PETSC_TRUE);
+  }
+
+  switch (size_type) {
+  case SizeType::_local: {
+    PETSc_call(MatGetSize, mat, &(this->m), &(this->n));
+    break;
+  }
+  case SizeType::_global: {
+    PETSc_call(MatGetLocalSize, mat, &m_local, &n_local);
+    break;
+  }
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -67,7 +94,7 @@ SparseMatrixPETSc::SparseMatrixPETSc(DOFManagerPETSc & dof_manager,
 /* -------------------------------------------------------------------------- */
 SparseMatrixPETSc::SparseMatrixPETSc(const SparseMatrixPETSc & matrix,
                                      const ID & id)
-    : SparseMatrix(matrix, id), dof_manager(matrix.dof_manager) {
+    : SparseMatrix(matrix, id) {
   PETSc_call(MatDuplicate, matrix.mat, MAT_COPY_VALUES, &mat);
   detail::PETScSetName(mat, id);
 }
@@ -83,23 +110,12 @@ SparseMatrixPETSc::~SparseMatrixPETSc() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::resize() {
-  auto local_size = dof_manager.getPureLocalSystemSize();
-  PETSc_call(MatSetSizes, mat, local_size, local_size, size_, size_);
-
-  auto & is_ltog_mapping = dof_manager.getISLocalToGlobalMapping();
-  PETSc_call(MatSetLocalToGlobalMapping, mat, is_ltog_mapping, is_ltog_mapping);
-}
-
-/* -------------------------------------------------------------------------- */
 /**
  * Method to save the nonzero pattern and the values stored at each position
  * @param filename name of the file in which the information will be stored
  */
 void SparseMatrixPETSc::saveMatrix(const std::string & filename) const {
   AKANTU_DEBUG_IN();
-
-  auto mpi_comm = dof_manager.getMPIComm();
 
   /// create Petsc viewer
   PetscViewer viewer;
@@ -114,13 +130,10 @@ void SparseMatrixPETSc::saveMatrix(const std::string & filename) const {
 
 /* -------------------------------------------------------------------------- */
 /// Equivalent of *gemv in blas
-void SparseMatrixPETSc::matVecMul(const SolverVector & _x, SolverVector & _y,
+void SparseMatrixPETSc::matVecMul(const VectorPETSc & x, VectorPETSc & y,
                                   Real alpha, Real beta) const {
-  auto & x = aka::as_type<SolverVectorPETSc>(_x);
-  auto & y = aka::as_type<SolverVectorPETSc>(_y);
-
   // y = alpha A x + beta y
-  SolverVectorPETSc w(x, this->id + ":tmp");
+  VectorPETSc w(x, this->id + ":tmp");
 
   // w = A x
   if (release == 0) {
@@ -194,32 +207,6 @@ void SparseMatrixPETSc::copyProfile(const SparseMatrix & other) {
 }
 
 /* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::applyBoundary(Real block_val) {
-  AKANTU_DEBUG_IN();
-
-  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();
-  // std::vector<PetscInt> rows;
-  // for (auto && data : enumerate(blocked)) {
-  //   if (std::get<1>(data)) {
-  //     rows.push_back(std::get<0>(data));
-  //   }
-  // }
-  // applyModifications();
-
-  static int c = 0;
-
-  saveMatrix("before_blocked_" + std::to_string(c) + ".mtx");
-
-  PETSc_call(MatZeroRowsColumnsLocal, mat, blocked_dofs.size(),
-             blocked_dofs.storage(), block_val, nullptr, nullptr);
-
-  saveMatrix("after_blocked_" + std::to_string(c) + ".mtx");
-  ++c;
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 void SparseMatrixPETSc::mul(Real alpha) {
   PETSc_call(MatScale, mat, alpha);
   this->release++;
@@ -241,48 +228,6 @@ void SparseMatrixPETSc::clearProfile() {
   //   PETSc_call(MatSetOption, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);
 
   clear();
-}
-
-/* -------------------------------------------------------------------------- */
-UInt SparseMatrixPETSc::add(UInt i, UInt j) {
-  PETSc_call(MatSetValue, mat, i, j, 0, ADD_VALUES);
-  return 0;
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::add(UInt i, UInt j, Real val) {
-  PETSc_call(MatSetValue, mat, i, j, val, ADD_VALUES);
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::addLocal(UInt i, UInt j) {
-  PETSc_call(MatSetValueLocal, mat, i, j, 0, ADD_VALUES);
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::addLocal(UInt i, UInt j, Real val) {
-  PETSc_call(MatSetValueLocal, mat, i, j, val, ADD_VALUES);
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::addLocal(const Vector<Int> & rows,
-                                 const Vector<Int> & cols,
-                                 const Matrix<Real> & vals) {
-  PETSc_call(MatSetValuesLocal, mat, rows.size(), rows.storage(), cols.size(),
-             cols.storage(), vals.storage(), ADD_VALUES);
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixPETSc::addValues(const Vector<Int> & rows,
-                                  const Vector<Int> & cols,
-                                  const Matrix<Real> & vals, MatrixType type) {
-  if (type == _unsymmetric and matrix_type == _symmetric) {
-    PETSc_call(MatSetOption, mat, MAT_SYMMETRIC, PETSC_FALSE);
-    PETSc_call(MatSetOption, mat, MAT_STRUCTURALLY_SYMMETRIC, PETSC_FALSE);
-  }
-
-  PETSc_call(MatSetValues, mat, rows.size(), rows.storage(), cols.size(),
-             cols.storage(), vals.storage(), ADD_VALUES);
 }
 
 /* -------------------------------------------------------------------------- */

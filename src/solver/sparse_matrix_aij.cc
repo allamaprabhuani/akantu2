@@ -42,53 +42,22 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SparseMatrixAIJ::SparseMatrixAIJ(DOFManagerDefault & dof_manager,
+SparseMatrixAIJ::SparseMatrixAIJ(const Communicator & communicator,
+                                 const UInt m, const UInt n,
+                                 const SizeType & size_type,
                                  const MatrixType & matrix_type, const ID & id)
-    : SparseMatrix(dof_manager, matrix_type, id), dof_manager(dof_manager),
-      irn(0, 1, id + ":irn"), jcn(0, 1, id + ":jcn"), a(0, 1, id + ":a") {}
+    : SparseMatrix(communicator, m, n, size_type, matrix_type, id),
+      irn(0, 1, id + ":irn"), jcn(0, 1, id + ":jcn"),
+      a(0, 1, id + ":a") {}
 
 /* -------------------------------------------------------------------------- */
 SparseMatrixAIJ::SparseMatrixAIJ(const SparseMatrixAIJ & matrix, const ID & id)
-    : SparseMatrix(matrix, id), dof_manager(matrix.dof_manager),
+    : SparseMatrix(matrix, id), 
       irn(matrix.irn, id + ":irn"), jcn(matrix.jcn, id + ":jcn"),
       a(matrix.a, id + ":a") {}
 
 /* -------------------------------------------------------------------------- */
 SparseMatrixAIJ::~SparseMatrixAIJ() = default;
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixAIJ::applyBoundary(Real block_val) {
-  AKANTU_DEBUG_IN();
-
-  const auto & blocked_dofs = this->dof_manager.getGlobalBlockedDOFs();
-  auto begin = blocked_dofs.begin();
-  auto end = blocked_dofs.end();
-
-  auto is_blocked = [&](auto && i) -> bool {
-    auto il = this->dof_manager.globalToLocalEquationNumber(i);
-    return std::binary_search(begin, end, il);
-  };
-
-  for (auto && ij_a : zip(irn, jcn, a)) {
-    UInt ni = std::get<0>(ij_a) - 1;
-    UInt nj = std::get<1>(ij_a) - 1;
-
-    if (is_blocked(ni) or is_blocked(nj)) {
-
-      std::get<2>(ij_a) =
-          std::get<0>(ij_a) != std::get<1>(ij_a)
-              ? 0.
-              : this->dof_manager.isLocalOrMasterDOF(
-                    this->dof_manager.globalToLocalEquationNumber(ni))
-                    ? block_val
-                    : 0.;
-    }
-  }
-
-  this->value_release++;
-
-  AKANTU_DEBUG_OUT();
-}
 
 /* -------------------------------------------------------------------------- */
 void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
@@ -97,12 +66,8 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
   std::ofstream outfile;
   outfile.open(filename.c_str());
 
-  UInt m = this->size_;
-
-  auto & comm = dof_manager.getCommunicator();
-
   // write header
-  if (comm.whoAmI() == 0) {
+  if (communicator.whoAmI() == 0) {
 
     outfile << "%%MatrixMarket matrix coordinate pattern";
     if (this->matrix_type == _symmetric)
@@ -110,18 +75,18 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
     else
       outfile << " general";
     outfile << std::endl;
-    outfile << m << " " << m << " " << this->nb_non_zero << std::endl;
+    outfile << this->m << " " << this->m << " " << this->nb_non_zero << std::endl;
   }
 
-  for (auto p : arange(comm.getNbProc())) {
+  for (auto p : arange(communicator.getNbProc())) {
     // write content
-    if (comm.whoAmI() == p) {
+    if (communicator.whoAmI() == p) {
       for (UInt i = 0; i < this->nb_non_zero; ++i) {
         outfile << this->irn.storage()[i] << " " << this->jcn.storage()[i]
                 << " 1" << std::endl;
       }
     }
-    comm.barrier();
+    communicator.barrier();
   }
 
   outfile.close();
@@ -132,7 +97,7 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
 /* -------------------------------------------------------------------------- */
 void SparseMatrixAIJ::saveMatrix(const std::string & filename) const {
   AKANTU_DEBUG_IN();
-  auto & comm = dof_manager.getCommunicator();
+  auto & comm = this->communicator;
 
   // open and set the properties of the stream
   std::ofstream outfile;
@@ -155,7 +120,7 @@ void SparseMatrixAIJ::saveMatrix(const std::string & filename) const {
     else
       outfile << " general";
     outfile << std::endl;
-    outfile << this->size_ << " " << this->size_ << " " << nnz << std::endl;
+    outfile << this->m << " " << this->n << " " << nnz << std::endl;
   }
 
   for (auto p : arange(comm.getNbProc())) {
@@ -179,40 +144,32 @@ void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
                                 Real alpha, Real beta) const {
   AKANTU_DEBUG_IN();
 
-  y *= beta;
+  // y *= beta;
 
-  auto i_it = this->irn.begin();
-  auto j_it = this->jcn.begin();
-  auto a_it = this->a.begin();
-  auto a_end = this->a.end();
-  auto x_it = x.begin_reinterpret(x.size() * x.getNbComponent());
-  auto y_it = y.begin_reinterpret(x.size() * x.getNbComponent());
+  // auto i_it = this->irn.begin();
+  // auto j_it = this->jcn.begin();
 
-  for (; a_it != a_end; ++i_it, ++j_it, ++a_it) {
-    Int i = this->dof_manager.globalToLocalEquationNumber(*i_it - 1);
-    Int j = this->dof_manager.globalToLocalEquationNumber(*j_it - 1);
-    const Real & A = *a_it;
+  // auto a_it = this->a.begin();
+  // auto a_end = this->a.end();
 
-    y_it[i] += alpha * A * x_it[j];
+  // auto x_it = x.begin_reinterpret(x.size() * x.getNbComponent());
+  // auto y_it = y.begin_reinterpret(x.size() * x.getNbComponent());
 
-    if ((this->matrix_type == _symmetric) && (i != j))
-      y_it[j] += alpha * A * x_it[i];
-  }
+  // for (; a_it != a_end; ++i_it, ++j_it, ++a_it) {
+  //   Int i = this->dof_manager.globalToLocalEquationNumber(*i_it - 1);
+  //   Int j = this->dof_manager.globalToLocalEquationNumber(*j_it - 1);
+  //   const Real & A = *a_it;
 
-  if (this->dof_manager.hasSynchronizer())
-    this->dof_manager.getSynchronizer().reduceSynchronizeArray<AddOperation>(y);
+  //   y_it[i] += alpha * A * x_it[j];
+
+  //   if ((this->matrix_type == _symmetric) && (i != j))
+  //     y_it[j] += alpha * A * x_it[i];
+  // }
+
+  // if (this->dof_manager.hasSynchronizer())
+  //   this->dof_manager.getSynchronizer().reduceSynchronizeArray<AddOperation>(y);
 
   AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixAIJ::matVecMul(const SolverVector & _x, SolverVector & _y,
-                                Real alpha, Real beta) const {
-  AKANTU_DEBUG_IN();
-
-  auto && x = aka::as_type<SolverVectorArray>(_x).getVector();
-  auto && y = aka::as_type<SolverVectorArray>(_y).getVector();
-  this->matVecMul(x, y, alpha, beta);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -221,7 +178,7 @@ void SparseMatrixAIJ::copyContent(const SparseMatrix & matrix) {
   const auto & mat = aka::as_type<SparseMatrixAIJ>(matrix);
   AKANTU_DEBUG_ASSERT(nb_non_zero == mat.getNbNonZero(),
                       "The to matrix don't have the same profiles");
-  memcpy(a.storage(), mat.getA().storage(), nb_non_zero * sizeof(Real));
+  a = mat.getA();
 
   this->value_release++;
 
@@ -250,7 +207,8 @@ void SparseMatrixAIJ::copyProfile(const SparseMatrix & other) {
   this->a.resize(this->nb_non_zero);
 
   this->a.set(0.);
-  this->size_ = A.size_;
+  this->m = A.m;
+  this->n = A.n;
 
   this->profile_release = A.profile_release;
   this->value_release++;

@@ -28,7 +28,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "dof_manager_default.hh"
-#include "solver_vector_default.hh"
+#include "solver_vector.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef __AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH__
@@ -36,48 +36,48 @@
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
-inline SolverVectorArray::SolverVectorArray(DOFManagerDefault & dof_manager,
-                                            const ID & id)
-    : SolverVector(dof_manager, id) {}
+// /* -------------------------------------------------------------------------- */
+// inline SolverVectorArray::SolverVectorArray(DOFManagerDefault & dof_manager,
+//                                             const ID & id)
+//     : SolverVector(dof_manager, id) {}
+
+// /* -------------------------------------------------------------------------- */
+// inline SolverVectorArray::SolverVectorArray(const SolverVectorArray & vector,
+//                                             const ID & id)
+//     : SolverVector(vector, id) {}
+
+// /* -------------------------------------------------------------------------- */
+// template <>
+// auto SolverVectorTmpl<Array<Real>, DOFManagerDefault>::operator+(
+//     const SolverVectorTmpl & y) -> SolverVectorTmpl & {
+//   const auto & y_ = aka::as_type<SolverVectorArray>(y);
+//   this->vector += y_.getVector();
+
+//   ++this->release_;
+//   return *this;
+// }
 
 /* -------------------------------------------------------------------------- */
-inline SolverVectorArray::SolverVectorArray(const SolverVectorArray & vector,
-                                            const ID & id)
-    : SolverVector(vector, id) {}
+// template <class Array_>
+// SolverVectorTmpl &
+// SolverVectorArrayTmpl<Array_>::operator=(const SolverVectorTmpl & y) {
+//   const auto & y_ = aka::as_type<SolverVectorArray>(y);
+//   this->vector.copy(y_.getVector());
 
-/* -------------------------------------------------------------------------- */
-template <class Array_>
-SolverVector & SolverVectorArrayTmpl<Array_>::
-operator+(const SolverVector & y) {
-  const auto & y_ = aka::as_type<SolverVectorArray>(y);
-  this->vector += y_.getVector();
+//   this->release_ = y.release();
+//   return *this;
+// }
 
-  ++this->release_;
-  return *this;
-}
+// /* -------------------------------------------------------------------------- */
+// template <class Array_> inline Int SolverVectorArrayTmpl<Array_>::size() const {
+//   return this->dof_manager.getSystemSize();
+// }
 
-/* -------------------------------------------------------------------------- */
-template <class Array_>
-SolverVector & SolverVectorArrayTmpl<Array_>::
-operator=(const SolverVector & y) {
-  const auto & y_ = aka::as_type<SolverVectorArray>(y);
-  this->vector.copy(y_.getVector());
-
-  this->release_ = y.release();
-  return *this;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class Array_> inline Int SolverVectorArrayTmpl<Array_>::size() const {
-  return this->dof_manager.getSystemSize();
-}
-
-/* -------------------------------------------------------------------------- */
-template <class Array_>
-inline Int SolverVectorArrayTmpl<Array_>::localSize() const {
-  return dof_manager.getLocalSystemSize();
-}
+// /* -------------------------------------------------------------------------- */
+// template <class Array_>
+// inline Int SolverVectorArrayTmpl<Array_>::localSize() const {
+//   return dof_manager.getLocalSystemSize();
+// }
 
 } // namespace akantu
 

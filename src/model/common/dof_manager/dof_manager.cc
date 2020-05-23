@@ -37,6 +37,8 @@
 #include "node_synchronizer.hh"
 #include "non_linear_solver.hh"
 #include "periodic_node_synchronizer.hh"
+#include "solver_sparse_matrix.hh"
+#include "sparse_matrix.hh"
 #include "time_step_solver.hh"
 /* -------------------------------------------------------------------------- */
 #include <memory>
@@ -364,7 +366,9 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
         dofs_array.size() * dofs_array.getNbComponent();
     break;
   }
-  default: { AKANTU_EXCEPTION("This type of dofs is not handled yet."); }
+  default: {
+    AKANTU_EXCEPTION("This type of dofs is not handled yet.");
+  }
   }
 
   dof_data.local_nb_dofs = nb_local_dofs;
@@ -464,7 +468,7 @@ void DOFManager::registerBlockedDOFs(const ID & dof_id,
 /* -------------------------------------------------------------------------- */
 SparseMatrix &
 DOFManager::registerSparseMatrix(const ID & matrix_id,
-                                 std::unique_ptr<SparseMatrix> & matrix) {
+                                 std::unique_ptr<SolverSparseMatrix> & matrix) {
   auto it = this->matrices.find(matrix_id);
   if (it != this->matrices.end()) {
     AKANTU_EXCEPTION("The matrix " << matrix_id << " already exists in "
@@ -473,7 +477,7 @@ DOFManager::registerSparseMatrix(const ID & matrix_id,
 
   auto & ret = *matrix;
   this->matrices[matrix_id] = std::move(matrix);
-  return ret;
+  return dynamic_cast<SparseMatrix &>(ret);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -529,15 +533,27 @@ TimeStepSolver & DOFManager::registerTimeStepSolver(
 }
 
 /* -------------------------------------------------------------------------- */
-SparseMatrix & DOFManager::getMatrix(const ID & id) {
+SolverSparseMatrix & DOFManager::getMatrixInterface(const ID & id) {
   ID matrix_id = this->id + ":mtx:" + id;
-  SparseMatricesMap::const_iterator it = this->matrices.find(matrix_id);
+  auto it = this->matrices.find(matrix_id);
   if (it == this->matrices.end()) {
     AKANTU_SILENT_EXCEPTION("The matrix " << matrix_id << " does not exists in "
                                           << this->id);
   }
 
   return *(it->second);
+}
+
+/* -------------------------------------------------------------------------- */
+SparseMatrix & DOFManager::getMatrix(const ID & id) {
+  ID matrix_id = this->id + ":mtx:" + id;
+  auto it = this->matrices.find(matrix_id);
+  if (it == this->matrices.end()) {
+    AKANTU_SILENT_EXCEPTION("The matrix " << matrix_id << " does not exists in "
+                                          << this->id);
+  }
+
+  return *dynamic_cast<SparseMatrix *>(it->second.get());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -971,7 +987,7 @@ void DOFManager::updateGlobalBlockedDofs() {
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::applyBoundary(const ID & matrix_id) {
-  auto & J = this->getMatrix(matrix_id);
+  auto & J = this->getMatrixInterface(matrix_id);
 
   if (this->jacobian_release == J.getRelease()) {
     auto are_equal = this->global_blocked_dofs_release ==
@@ -996,7 +1012,7 @@ void DOFManager::assembleMatMulVectToGlobalArray(const ID & dof_id,
                                                  const Array<Real> & x,
                                                  SolverVector & array,
                                                  Real scale_factor) {
-  auto & A = this->getMatrix(A_id);
+  auto & A = this->getMatrixInterface(A_id);
 
   data_cache->clear();
   this->assembleToGlobalArray(dof_id, x, *data_cache, 1.);
