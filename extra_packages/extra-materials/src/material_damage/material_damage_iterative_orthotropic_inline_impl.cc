@@ -79,7 +79,8 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   /// if in loading test stop updating stiffness after 1st iteration
   Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
       "nb_iterations");
-  if (not(nb_iter > 0 and this->loading_test))
+  // if (not(nb_iter > 0 and this->loading_test))
+  if (nb_iter == 0)
     computeC(el_type, ghost_type);
 
   auto C_it =
@@ -298,7 +299,8 @@ void MaterialDamageIterativeOrthotropic<
     /// if in loading test stop updating stiffness after 1st iteration
     Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
         "nb_iterations");
-    if (not(nb_iter > 0 and this->loading_test))
+    // if (not(nb_iter > 0 and this->loading_test))
+    if (nb_iter == 0)
       computeC(el_type, ghost_type);
   }
   OrthotropicParent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
