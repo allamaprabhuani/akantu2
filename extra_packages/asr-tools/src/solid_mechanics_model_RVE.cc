@@ -90,7 +90,7 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
 
   auto & solver = this->getNonLinearSolver();
   solver.set("max_iterations", 50);
-  solver.set("threshold", 1e-5);
+  solver.set("threshold", 1e-4);
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
   // this->initMaterials();
 

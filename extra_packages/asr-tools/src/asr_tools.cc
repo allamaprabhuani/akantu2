@@ -1742,10 +1742,10 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
 
   applyBoundaryConditionsRve(H);
 
-  auto & solver = model.getNonLinearSolver();
-  solver.set("max_iterations", 50);
-  solver.set("threshold", 1e-5);
-  solver.set("convergence_type", SolveConvergenceCriteria::_solution);
+  // auto & solver = model.getNonLinearSolver();
+  // solver.set("max_iterations", 50);
+  // solver.set("threshold", 1e-5);
+  // solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   model.solveStep();
 
