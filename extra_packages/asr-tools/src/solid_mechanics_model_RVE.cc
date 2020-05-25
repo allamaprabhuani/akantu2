@@ -88,6 +88,10 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
 
   SolidMechanicsModel::initFullImpl(options_cp);
 
+  auto & solver = this->getNonLinearSolver();
+  solver.set("max_iterations", 50);
+  solver.set("threshold", 1e-5);
+  solver.set("convergence_type", SolveConvergenceCriteria::_solution);
   // this->initMaterials();
 
   /// variables for parallel execution
@@ -184,11 +188,6 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
   Real max_eq_stress_aggregate = 0;
   Real max_eq_stress_paste = 0;
   this->stiffness_changed = false;
-
-  auto & solver = this->getNonLinearSolver();
-  solver.set("max_iterations", 50);
-  solver.set("threshold", 1e-5);
-  solver.set("convergence_type", SolveConvergenceCriteria::_solution);
 
   /// variables for parallel execution
   auto && comm = akantu::Communicator::getWorldCommunicator();

@@ -214,28 +214,13 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
       /// compute the average average rVE stress
       RVE.homogenizeStressField(std::get<2>(data));
 
-      // /// compute the new effective stiffness of the RVE
-      // if (not reset_damage) {
-      //   /// decide whether stiffness homogenization is done via tension
-      //   RVE.setStiffHomogenDir(std::get<2>(data));
-      //   /// compute the new effective stiffness of the RVE
-      //   RVE.homogenizeStiffness(std::get<4>(data), RVE.isTensileHomogen());
-      // }
-
-      // /// temporary output for debugging
-      // auto && comm = akantu::Communicator::getWorldCommunicator();
-      // auto prank = comm.whoAmI();
-      // std::cout
-      //     << "Proc " << prank << " " << RVE.getID() << " strain "
-      //     << std::get<1>(data)(0, 0) << " " << std::get<1>(data)(0, 1) << " "
-      //     << std::get<1>(data)(1, 1) << " stress " << std::get<2>(data)(0, 0)
-      //     << " " << std::get<2>(data)(0, 1) << " "
-      //     << std::get<2>(data)(1, 1)
-      //     // << " stiffness "
-      //     // << C_macro(0, 0) << " " << C_macro(0, 1) << " " << C_macro(0, 2)
-      //     // << " " << C_macro(1, 1) << " " << C_macro(1, 2) << " "
-      //     // << C_macro(2, 2)
-      //     << std::endl;
+      /// compute the new effective stiffness of the RVE
+      if (not reset_damage) {
+        /// decide whether stiffness homogenization is done via tension
+        RVE.setStiffHomogenDir(std::get<2>(data));
+        /// compute the new effective stiffness of the RVE
+        RVE.homogenizeStiffness(std::get<4>(data), RVE.isTensileHomogen());
+      }
     }
   }
   /// use homogen stiffness to solve macro-problem (for residual check)

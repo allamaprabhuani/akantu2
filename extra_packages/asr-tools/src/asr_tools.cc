@@ -700,8 +700,8 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   } catch (debug::Exception & e) {
     auto & solver = model.getNonLinearSolver("static");
     int nb_iter = solver.get("nb_iterations");
-    std::cout << "Didn't converge in " << nb_iter << " iterations."
-              << std::endl;
+    std::cout << "Loading test did not converge in " << nb_iter
+              << " iterations." << std::endl;
     throw e;
   }
 
@@ -1623,7 +1623,7 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   AKANTU_DEBUG_ASSERT(dim == 2, "Is only implemented for 2D!!!");
 
   /// apply three independent loading states to determine C
-  /// 1. eps_el = (1;0;0) 2. eps_el = (0,1,0) 3. eps_el = (0,0,0.5)
+  /// 1. eps_el = (0.001;0;0) 2. eps_el = (0,0.001,0) 3. eps_el = (0,0,0.001)
 
   /// clear the eigenstrain (to exclude stresses due to internal pressure)
   clearGelEigenStrain();
@@ -1652,20 +1652,37 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   // saved_damage.initialize(getFEEngine(), _nb_component = 1,
   // _default_value = 0); this->fillCracks(saved_damage);
 
+  /// indicate to material that its in the loading test
+  UInt nb_materials = model.getNbMaterials();
+  for (UInt m = 0; m < nb_materials; ++m) {
+    Material & mat = model.getMaterial(m);
+    if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
+      mat.setParam("loading_test", true);
+    }
+  }
+
   /// virtual test 1:
-  H(0, 0) = 0.01 * (2 * tensile_test - 1);
+  H(0, 0) = 0.001 * (2 * tensile_test - 1);
   performVirtualTesting(H, stresses, strains, 0);
 
   /// virtual test 2:
   H.clear();
-  H(1, 1) = 0.01 * (2 * tensile_test - 1);
+  H(1, 1) = 0.001 * (2 * tensile_test - 1);
   performVirtualTesting(H, stresses, strains, 1);
 
   /// virtual test 3:
   H.clear();
-  H(0, 1) = 0.01;
-  H(1, 0) = 0.01;
+  H(0, 1) = 0.001;
+  H(1, 0) = 0.001;
   performVirtualTesting(H, stresses, strains, 2);
+
+  /// indicate to material that its out of the loading test
+  for (UInt m = 0; m < nb_materials; ++m) {
+    Material & mat = model.getMaterial(m);
+    if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
+      mat.setParam("loading_test", false);
+    }
+  }
 
   // /// set up the stress limit at 10% of stresses in undamaged state
   // if (first_time) {
