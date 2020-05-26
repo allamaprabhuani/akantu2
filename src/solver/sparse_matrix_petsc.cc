@@ -161,7 +161,7 @@ void SparseMatrixPETSc::matVecMul(const Vec & x, Vec & y, Real alpha,
 
 /* -------------------------------------------------------------------------- */
 void SparseMatrixPETSc::addMeToImpl(SparseMatrixPETSc & B, Real alpha) const {
-  if(release != 0)
+  if (release != 0)
     PETSc_call(MatAXPY, B.mat, alpha, mat, SAME_NONZERO_PATTERN);
 
   B.release++;
