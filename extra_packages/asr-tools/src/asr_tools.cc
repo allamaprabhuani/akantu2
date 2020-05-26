@@ -1652,14 +1652,14 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   // saved_damage.initialize(getFEEngine(), _nb_component = 1,
   // _default_value = 0); this->fillCracks(saved_damage);
 
-  /// indicate to material that its in the loading test
-  UInt nb_materials = model.getNbMaterials();
-  for (UInt m = 0; m < nb_materials; ++m) {
-    Material & mat = model.getMaterial(m);
-    if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
-      mat.setParam("loading_test", true);
-    }
-  }
+  // /// indicate to material that its in the loading test
+  // UInt nb_materials = model.getNbMaterials();
+  // for (UInt m = 0; m < nb_materials; ++m) {
+  //   Material & mat = model.getMaterial(m);
+  //   if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
+  //     mat.setParam("loading_test", true);
+  //   }
+  // }
 
   /// virtual test 1:
   H(0, 0) = 0.001 * (2 * tensile_test - 1);
@@ -1676,13 +1676,13 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   H(1, 0) = 0.001;
   performVirtualTesting(H, stresses, strains, 2);
 
-  /// indicate to material that its out of the loading test
-  for (UInt m = 0; m < nb_materials; ++m) {
-    Material & mat = model.getMaterial(m);
-    if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
-      mat.setParam("loading_test", false);
-    }
-  }
+  // /// indicate to material that its out of the loading test
+  // for (UInt m = 0; m < nb_materials; ++m) {
+  //   Material & mat = model.getMaterial(m);
+  //   if (aka::is_of_type<MaterialDamageIterativeOrthotropic<2>>(mat)) {
+  //     mat.setParam("loading_test", false);
+  //   }
+  // }
 
   // /// set up the stress limit at 10% of stresses in undamaged state
   // if (first_time) {
