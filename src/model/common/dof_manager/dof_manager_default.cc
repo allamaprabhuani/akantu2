@@ -143,7 +143,7 @@ void DOFManagerDefault::assembleToGlobalArray(
     SolverVector & global_array_v, Real scale_factor) {
 
   assembleToGlobalArray(dof_id, array_to_assemble,
-                        aka::as_type<SolverVectorDefault>(global_array_v),
+                        dynamic_cast<Array<Real> &>(global_array_v),
                         scale_factor);
 }
 
@@ -257,7 +257,7 @@ void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
 void DOFManagerDefault::getArrayPerDOFs(const ID & dof_id,
                                         const SolverVector & global_array,
                                         Array<Real> & local_array) {
-  getArrayPerDOFs(dof_id, aka::as_type<SolverVectorDefault>(global_array),
+  getArrayPerDOFs(dof_id, dynamic_cast<const Array<Real> &>(global_array),
                   local_array);
 }
 

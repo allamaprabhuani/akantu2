@@ -62,6 +62,15 @@ void SolverSparseMatrixTmpl<SparseMatrixPETSc, DOFManagerPETSc>::applyBoundary(
 /* -------------------------------------------------------------------------- */
 template <>
 void SolverSparseMatrixTmpl<SparseMatrixPETSc, DOFManagerPETSc>::matVecMul(
+    const Array<Real> & _x, Array<Real> & _y, Real alpha, Real beta) const {
+  auto && x = internal::make_petsc_wrapped_vector(_x);
+  auto && y = internal::make_petsc_wrapped_vector(_y);
+  SparseMatrixPETSc::matVecMul(x, y, alpha, beta);
+}
+
+/* -------------------------------------------------------------------------- */
+template <>
+void SolverSparseMatrixTmpl<SparseMatrixPETSc, DOFManagerPETSc>::matVecMul(
     const SolverVector & _x, SolverVector & _y, Real alpha, Real beta) const {
   auto & x = aka::as_type<SolverVectorPETSc>(_x);
   auto & y = aka::as_type<SolverVectorPETSc>(_y);

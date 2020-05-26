@@ -475,10 +475,10 @@ inline std::ostream & operator<<(std::ostream & stream, GhostType type);
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
   inline type get##name() { return variable; }
 
-#define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                            \
+#define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   inline decltype(auto) get##name() const {                                    \
     if (not ptr) {                                                             \
-      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");       \
+      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
     }                                                                          \
     return (*ptr);                                                             \
   }
@@ -570,7 +570,8 @@ decltype(auto) as_type(T && t) {
           std::is_base_of<std::decay_t<T>, std::decay_t<R>>, // down-cast
           std::is_base_of<std::decay_t<R>, std::decay_t<T>>  // up-cast
           >::value,
-      "Type T and R are not valid for a as_type conversion");
+      "Type T and R are not valid for a as_type conversion, as_type does not "
+      "handle side-cast");
   return dynamic_cast<std::add_lvalue_reference_t<
       std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
                          std::add_const_t<R>, R>>>(t);

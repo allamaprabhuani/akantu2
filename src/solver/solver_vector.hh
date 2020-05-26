@@ -120,6 +120,7 @@ public:
 
   virtual Vector & getGlobalVector();
   virtual void setGlobalVector(const Vector & global);
+
 protected:
   DOFManager & dof_manager;
 };

@@ -22,24 +22,24 @@ void register_model(py::module & mod) {
       .def("size", &SparseMatrix::size)
       .def("clear", &SparseMatrix::clear)
       .def("saveProfile", &SparseMatrix::saveProfile)
-      .def("saveMatrix", &SparseMatrix::saveMatrix)
-      .def(
-          "add", [](SparseMatrix & self, UInt i, UInt j) { self.add(i, j); },
-          "Add entry in the profile")
-      .def(
-          "add",
-          [](SparseMatrix & self, UInt i, UInt j, Real value) {
-            self.add(i, j, value);
-          },
-          "Add the value to the matrix")
-      .def("__call__", [](const SparseMatrix & self, UInt i, UInt j) {
-        return self(i, j);
-      });
+      .def("saveMatrix", &SparseMatrix::saveMatrix);
 
   py::class_<SparseMatrixAIJ, SparseMatrix>(mod, "SparseMatrixAIJ")
       .def("getIRN", &SparseMatrixAIJ::getIRN)
       .def("getJCN", &SparseMatrixAIJ::getJCN)
-      .def("getA", &SparseMatrixAIJ::getA);
+      .def("getA", &SparseMatrixAIJ::getA)
+      .def(
+          "add", [](SparseMatrixAIJ & self, UInt i, UInt j) { self.add(i, j); },
+          "Add entry in the profile")
+      .def(
+          "add",
+          [](SparseMatrixAIJ & self, UInt i, UInt j, Real value) {
+            self.add(i, j, value);
+          },
+          "Add the value to the matrix")
+      .def("__call__", [](const SparseMatrixAIJ & self, UInt i, UInt j) {
+        return self(i, j);
+      });
 
   py::class_<DOFManager>(mod, "DOFManager")
       .def("getMatrix", &DOFManager::getMatrix,

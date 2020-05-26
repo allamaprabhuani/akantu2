@@ -37,8 +37,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-SparseMatrixPETSc::SparseMatrixPETSc(const Communicator & communicator, const UInt m,
-                                     const UInt n, const SizeType & size_type,
+SparseMatrixPETSc::SparseMatrixPETSc(const Communicator & communicator,
+                                     const UInt m, const UInt n,
+                                     const SizeType & size_type,
                                      const MatrixType & matrix_type,
                                      const ID & id)
     : SparseMatrix(communicator, m, n, SizeType::_global, matrix_type, id) {
@@ -132,8 +133,15 @@ void SparseMatrixPETSc::saveMatrix(const std::string & filename) const {
 /// Equivalent of *gemv in blas
 void SparseMatrixPETSc::matVecMul(const VectorPETSc & x, VectorPETSc & y,
                                   Real alpha, Real beta) const {
+  matVecMul(x.getVec(), y.getVec(), alpha, beta);
+}
+
+void SparseMatrixPETSc::matVecMul(const Vec & x, Vec & y, Real alpha,
+                                  Real beta) const {
   // y = alpha A x + beta y
-  VectorPETSc w(x, this->id + ":tmp");
+  Vec w;
+  PETSc_call(VecDuplicate, x, &w);
+  detail::PETScSetName(x, this->id + ":tmp");
 
   // w = A x
   if (release == 0) {
@@ -153,7 +161,8 @@ void SparseMatrixPETSc::matVecMul(const VectorPETSc & x, VectorPETSc & y,
 
 /* -------------------------------------------------------------------------- */
 void SparseMatrixPETSc::addMeToImpl(SparseMatrixPETSc & B, Real alpha) const {
-  PETSc_call(MatAXPY, B.mat, alpha, mat, SAME_NONZERO_PATTERN);
+  if(release != 0)
+    PETSc_call(MatAXPY, B.mat, alpha, mat, SAME_NONZERO_PATTERN);
 
   B.release++;
 }

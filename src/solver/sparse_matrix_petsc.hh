@@ -102,6 +102,9 @@ public:
   void matVecMul(const VectorPETSc & x, VectorPETSc & y, Real alpha = 1.,
                  Real beta = 0.) const;
 
+  void matVecMul(const Vec & x, Vec & y, Real alpha = 1.,
+                 Real beta = 0.) const;
+
   /// copy the profile of a matrix
   void copyProfile(const SparseMatrix & other);
 

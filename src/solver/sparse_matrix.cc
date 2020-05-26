@@ -40,15 +40,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 SparseMatrix::SparseMatrix(const Communicator & communicator, const UInt m,
-                           const UInt n, const SizeType & size_type,
+                           const UInt n, const SizeType & /*size_type*/,
                            const MatrixType & matrix_type, const ID & id)
     : id(id), communicator(communicator), matrix_type(matrix_type), m(m), n(n),
       nb_non_zero(0) {
   AKANTU_DEBUG_IN();
-
-  if (size_type == SizeType::_local) {
-    AKANTU_EXCEPTION("This case is not handled here");
-  }
 
   this->nb_proc = communicator.getNbProc();
 

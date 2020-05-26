@@ -30,6 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "sparse_matrix_aij.hh"
+#include "aka_iterators.hh"
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 #ifndef __AKANTU_SPARSE_MATRIX_AIJ_INLINE_IMPL_CC__
@@ -45,9 +47,9 @@ inline UInt SparseMatrixAIJ::add(Int i, Int j) {
   if (!(it == this->irn_jcn_k.end()))
     return it->second;
 
-  AKANTU_DEBUG_ASSERT(i + 1 > this->m, "I is outside the matrix ["
+  AKANTU_DEBUG_ASSERT(i < this->m, "I is outside the matrix ["
                                            << i + 1 << " > " << this->m << "]");
-  AKANTU_DEBUG_ASSERT(j + 1 > this->n, "J is outside the matrix ["
+  AKANTU_DEBUG_ASSERT(j < this->n, "J is outside the matrix ["
                                            << j + 1 << " > " << this->n << "]");
 
   this->irn.push_back(i + 1);
@@ -80,6 +82,38 @@ inline void SparseMatrixAIJ::clearProfile() {
 
   this->profile_release++;
   this->value_release++;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class FuncIdX, class FuncIdY>
+void SparseMatrixAIJ::matVecMulLocal(const Array<Real> & x, Array<Real> & y,
+                                     FuncIdX && id_x, FuncIdY && id_y,
+                                     Real alpha, Real beta) const {
+  AKANTU_DEBUG_IN();
+
+  y *= beta;
+
+  auto i_it = this->irn.begin();
+  auto j_it = this->jcn.begin();
+
+  auto a_it = this->a.begin();
+  auto a_end = this->a.end();
+
+  auto x_it = make_view(x).begin();
+  auto y_it = make_view(y).begin();
+
+  for (auto && data : zip(irn, jcn, a)) {
+    auto i = id_y(std::get<0>(data) - 1);
+    auto j = id_x(std::get<1>(data) - 1);
+    auto && A = std::get<2>(data);
+
+    y_it[i] += alpha * A * x_it[j];
+
+    if ((this->matrix_type == _symmetric) && (i != j))
+      y_it[j] += alpha * A * x_it[i];
+  }
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */

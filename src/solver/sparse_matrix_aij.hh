@@ -105,8 +105,12 @@ public:
   /// add matrix *this += B
   // virtual void add(const SparseMatrix & matrix, Real alpha);
 
-  void matVecMul(const Array<Real> & x, Array<Real> & y, Real alpha = 1.,
-                 Real beta = 0.) const;
+  template <class FuncIdX, class FuncIdY>
+  void matVecMulLocal(const Array<Real> & x, Array<Real> & y, FuncIdX && id_x,
+                      FuncIdY && id_y, Real alpha = 1., Real beta = 0.) const;
+
+  // void matVecMul(const Array<Real> & x, Array<Real> & y, Real alpha = 1.,
+  //                Real beta = 0.) const;
 
   /// copy the profile of another matrix
   void copyProfile(const SparseMatrix & other);

@@ -70,6 +70,10 @@ public:
   virtual void resize() = 0;
 
   /// Equivalent of *gemv in blas
+  virtual void matVecMul(const Array<Real> & x, Array<Real> & y,
+                         Real alpha = 1., Real beta = 0.) const = 0;
+
+  /// Equivalent of *gemv in blas
   virtual void matVecMul(const SolverVector & x, SolverVector & y,
                          Real alpha = 1., Real beta = 0.) const = 0;
 };
@@ -95,6 +99,9 @@ public:
   inline void clearProfile() override { SparseMatrix::clearProfile(); }
   inline void clear() override { SparseMatrix::clear(); }
   inline UInt getRelease() const override { return SparseMatrix::getRelease(); }
+
+  void matVecMul(const Array<Real> & x, Array<Real> & y,
+                 Real alpha = 1., Real beta = 0.) const override;
 
   /// Equivalent of *gemv in blas
   void matVecMul(const SolverVector & x, SolverVector & y, Real alpha = 1.,

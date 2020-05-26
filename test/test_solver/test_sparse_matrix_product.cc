@@ -64,7 +64,7 @@ int main(int argc, char * argv[]) {
   if (prank == 0)
     std::cout << "Creating a SparseMatrix" << std::endl;
 
-  auto & A = dynamic_cast<SparseMatrixAIJ &>(
+  auto & A = dynamic_cast<SolverSparseMatrixAIJ &>(
       dof_manager.getNewMatrix("A", _symmetric));
 
   Array<Real> dof_vector(nb_nodes, nb_dof, "vector");

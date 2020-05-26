@@ -47,14 +47,13 @@ SparseMatrixAIJ::SparseMatrixAIJ(const Communicator & communicator,
                                  const SizeType & size_type,
                                  const MatrixType & matrix_type, const ID & id)
     : SparseMatrix(communicator, m, n, size_type, matrix_type, id),
-      irn(0, 1, id + ":irn"), jcn(0, 1, id + ":jcn"),
-      a(0, 1, id + ":a") {}
+      irn(0, 1, id + ":irn"), jcn(0, 1, id + ":jcn"), a(0, 1, id + ":a") {
+}
 
 /* -------------------------------------------------------------------------- */
 SparseMatrixAIJ::SparseMatrixAIJ(const SparseMatrixAIJ & matrix, const ID & id)
-    : SparseMatrix(matrix, id), 
-      irn(matrix.irn, id + ":irn"), jcn(matrix.jcn, id + ":jcn"),
-      a(matrix.a, id + ":a") {}
+    : SparseMatrix(matrix, id), irn(matrix.irn, id + ":irn"),
+      jcn(matrix.jcn, id + ":jcn"), a(matrix.a, id + ":a") {}
 
 /* -------------------------------------------------------------------------- */
 SparseMatrixAIJ::~SparseMatrixAIJ() = default;
@@ -75,7 +74,8 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
     else
       outfile << " general";
     outfile << std::endl;
-    outfile << this->m << " " << this->m << " " << this->nb_non_zero << std::endl;
+    outfile << this->m << " " << this->m << " " << this->nb_non_zero
+            << std::endl;
   }
 
   for (auto p : arange(communicator.getNbProc())) {
@@ -135,39 +135,6 @@ void SparseMatrixAIJ::saveMatrix(const std::string & filename) const {
   }
   // time to end
   outfile.close();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
-                                Real alpha, Real beta) const {
-  AKANTU_DEBUG_IN();
-
-  // y *= beta;
-
-  // auto i_it = this->irn.begin();
-  // auto j_it = this->jcn.begin();
-
-  // auto a_it = this->a.begin();
-  // auto a_end = this->a.end();
-
-  // auto x_it = x.begin_reinterpret(x.size() * x.getNbComponent());
-  // auto y_it = y.begin_reinterpret(x.size() * x.getNbComponent());
-
-  // for (; a_it != a_end; ++i_it, ++j_it, ++a_it) {
-  //   Int i = this->dof_manager.globalToLocalEquationNumber(*i_it - 1);
-  //   Int j = this->dof_manager.globalToLocalEquationNumber(*j_it - 1);
-  //   const Real & A = *a_it;
-
-  //   y_it[i] += alpha * A * x_it[j];
-
-  //   if ((this->matrix_type == _symmetric) && (i != j))
-  //     y_it[j] += alpha * A * x_it[i];
-  // }
-
-  // if (this->dof_manager.hasSynchronizer())
-  //   this->dof_manager.getSynchronizer().reduceSynchronizeArray<AddOperation>(y);
 
   AKANTU_DEBUG_OUT();
 }

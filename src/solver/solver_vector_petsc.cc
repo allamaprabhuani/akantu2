@@ -71,7 +71,7 @@ template <>
 void SolverVectorTmpl<VectorPETSc, DOFManagerPETSc>::resize() {
   // the arrays are destroyed and recreated in the dof manager
   // resize is so not implemented
-  AKANTU_TO_IMPLEMENT();
+  //AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
