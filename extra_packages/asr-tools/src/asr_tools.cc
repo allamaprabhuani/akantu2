@@ -116,10 +116,11 @@ void ASRTools::applyFreeExpansionBC() {
       if (std::abs(pos(i, 1) - bottom) < eps) {
         boun(i, 1) = true;
         disp(i, 1) = 0.0;
-      }
-      if (std::abs(pos(i, 0) - left) < eps) {
-        boun(i, 0) = true;
-        disp(i, 0) = 0.0;
+
+        if (std::abs(pos(i, 0) - left) < eps) {
+          boun(i, 0) = true;
+          disp(i, 0) = 0.0;
+        }
       }
     }
     break;
