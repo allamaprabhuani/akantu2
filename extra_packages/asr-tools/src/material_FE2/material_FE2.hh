@@ -111,12 +111,6 @@ public:
   /// update damage ratio after converged step
   virtual void afterSolveStep();
 
-  /// enable usage of homogenized stiffness at the macro-scale
-  void enableHomogenStiffness() { this->use_homogenized_stiffness = true; };
-
-  /// disable usage of homogenized stiffness at the macro-scale
-  void disableHomogenStiffness() { this->use_homogenized_stiffness = false; };
-
 private:
   void initialize();
 
@@ -172,11 +166,8 @@ protected:
   InternalField<Real> damage_ratio_paste;
   InternalField<Real> damage_ratio_agg;
 
-  /// flag for using the homogenized stiffness to solve macro-scale problem
-  bool use_homogenized_stiffness; /// TODO remove it and associated functions
-
   /// flag to reset damage to previously converged values on each iteration
-  bool reset_damage;
+  bool reset_damage{false};
 };
 
 /* -------------------------------------------------------------------------- */

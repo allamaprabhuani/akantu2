@@ -464,48 +464,6 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
   /// return the nodal values
   restoreNodalFields();
 }
-/* --------------------------------------------------------------------------
- */
-void ASRTools::computeStiffnessReductionFe2Material(std::ofstream & file_output,
-                                                    Real time, bool tension) {
-
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
-  /// access the FE2 material and enable usage of homogenized stiffness
-  const UInt dim = 2;
-  MaterialFE2<dim> & mat =
-      dynamic_cast<MaterialFE2<dim> &>(model.getMaterial("FE2_mat"));
-  mat.enableHomogenStiffness();
-
-  /// save nodal values before test
-  storeNodalFields();
-
-  if (dim == 2) {
-    Real int_residual_x = performLoadingTest(_x, tension);
-    Real int_residual_y = performLoadingTest(_y, tension);
-    if (prank == 0)
-      file_output << time << "," << int_residual_x << "," << int_residual_y
-                  << std::endl;
-  }
-
-  else {
-    Real int_residual_x = performLoadingTest(_x, tension);
-    Real int_residual_y = performLoadingTest(_y, tension);
-    Real int_residual_z = performLoadingTest(_z, tension);
-    if (prank == 0)
-      file_output << time << "," << int_residual_x << "," << int_residual_y
-                  << "," << int_residual_z << std::endl;
-  }
-
-  /// return the nodal values
-  restoreNodalFields();
-
-  /// disable usage of homogenized stiffness
-  mat.disableHomogenStiffness();
-}
-
 /* -------------------------------------------------------------------------- */
 void ASRTools::storeNodalFields() {
   auto & disp = this->model.getDisplacement();
