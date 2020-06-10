@@ -5,23 +5,25 @@
 #  PETSC_VERSION       - Version string (MAJOR.MINOR.SUBMINOR)
 
 if(PETSc_FIND_REQUIRED)
-  find_package(PkgConfig REQUIRED)
-else()
-  find_package(PkgConfig QUIET)
-  if(NOT PKG_CONFIG_FOUND)
-    return()
-  endif()
+  set(_required REQUIRED)
 endif()
 
-pkg_search_module(_petsc PETSc)
+find_package(PkgConfig ${_required})
 
-# Some debug code
-#get_property(_vars DIRECTORY PROPERTY VARIABLES)
-#foreach(_var ${_vars})
-#  if ("${_var}" MATCHES "^_petsc")
-#    message("${_var} -> ${${_var}}")
-#  endif()
-#endforeach()
+if(NOT PETSc_FIND_REQUIRED AND NOT PKG_CONFIG_FOUND)
+  return()
+endif()
+
+# reset the search if needed
+# get_property(_vars DIRECTORY PROPERTY VARIABLES)
+# foreach(_var ${_vars})
+#   if (("${_var}" MATCHES "_petsc") OR ("${_var}" MATCHES "PETSC"))
+#     message("${_var} -> ${${_var}}")
+#     unset(${_var})
+#   endif()
+# endforeach()
+
+pkg_search_module(_petsc ${_required} PETSc)
 
 if(_petsc_FOUND AND _petsc_VERSION)
   set(PETSC_VERSION ${_petsc_VERSION})
@@ -36,8 +38,13 @@ if(_petsc_FOUND AND (NOT PETSC_LIBRARIES))
     mark_as_advanced(PETSC_LIBRARY_${_u_lib})
   endforeach()
 
-  set(PETSC_LIBRARIES ${_petsc_libs} CACHE INTERNAL "")
-  set(PETSC_INCLUDE_DIRS ${_petsc_INCLUDE_DIRS} CACHE INTERNAL "")
+  set(PETSC_LIBRARIES ${_petsc_libs} CACHE FILEPATH "")
+  set(PETSC_INCLUDE_DIRS ${_petsc_INCLUDE_DIRS} CACHE PATH "")
+  mark_as_advanced(
+    PETSC_LIBRARIES
+    PETSC_INCLUDE_DIRS
+    )
+
   if(NOT TARGET petsc::petsc)
     add_library(petsc::petsc INTERFACE IMPORTED)
     set_property(TARGET petsc::petsc PROPERTY INTERFACE_LINK_LIBRARIES ${PETSC_LIBRARIES})

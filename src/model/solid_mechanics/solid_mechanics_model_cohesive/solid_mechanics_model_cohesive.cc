@@ -48,6 +48,7 @@
 #include "dof_manager_petsc.hh"
 #include "sparse_matrix_petsc.hh"
 #include "vector_petsc.hh"
+#include "solver_petsc.hh"
 #endif
 /* -------------------------------------------------------------------------- */
 #include "dumpable_inline_impl.hh"
@@ -798,11 +799,7 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
   VectorPETSc du(mesh.getCommunicator(), M_local, SizeType::_local, "du");
   VectorPETSc Delta_N(mesh.getCommunicator(), N_local, SizeType::_local,
                       "Delta_N");
-
-  // SparseMatrixPETSc Pglobal(M_local * spatial_dimension,
-  //                           N_local * spatial_dimension);
-  // SolverVectorPETSc du(N_local * spatial_dimension);
-  // SolverVectorPETSc Delta_N(M_local * spatial_dimension);
+  SolverPETSc solver(mesh.getCommunicator());
 
   Pglobal.clear();
 
@@ -880,7 +877,12 @@ void SolidMechanicsModelCohesive::solveContactEquilibiumAtInsertion() {
     }
   }
 
+  /// initial solution can be set in du
+
+
   /// solve for du
+  solver.setOperators(Pglobal);
+  solver.solve(du, Delta_N);
 
   /// apply the solution
   Vector<Real> dul(spatial_dimension);
