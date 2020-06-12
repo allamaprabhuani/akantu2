@@ -101,9 +101,11 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   this->n_iter = 0;
   this->converged = false;
 
-  if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual and
-      this->non_linear_solver_type != NonLinearSolverType::_newton_raphson_contact) {
- 
+  //if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual and
+  //    this->non_linear_solver_type != NonLinearSolverType::_newton_raphson_contact) {
+
+  if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual) {
+    
     this->converged = this->testConvergence(this->dof_manager.getResidual());
 
     if (this->converged)

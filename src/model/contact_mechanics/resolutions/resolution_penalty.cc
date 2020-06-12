@@ -341,9 +341,70 @@ void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & ele
 
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
+					    Matrix<Real> & stiffness) {
+  
+  auto surface_dimension = spatial_dimension - 1;
+
+  auto & gaps = model.getGaps();    
+  Real gap(gaps.begin()[element.slave]);
+
+  auto & projections = model.getProjections();
+  Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
+
+  auto & nodal_areas = model.getNodalArea();
+  auto & nodal_area = nodal_areas.begin()[element.slave];
+  
+  auto & normals = model.getNormals();
+  Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
+  
+  auto & tangents = model.getTangents();
+  Matrix<Real> covariant_basis(tangents.begin(surface_dimension,
+					      spatial_dimension)[element.slave]);
+
+  auto & mesh = model.getMesh();
+  
+  // construct A matrix
+  const ElementType & type = element.master.type;
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  Vector<Real> shapes(nb_nodes_per_element);  
+#define GET_SHAPE_NATURAL(type)		\
+  ElementClass<type>::computeShapes(projection, shapes)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
+#undef GET_SHAPE_NATURAL
+
+  UInt nb_nodes_per_contact = element.getNbNodes();
+  Matrix<Real> A(spatial_dimension, spatial_dimension*nb_nodes_per_contact); 
+
+  for (auto i : arange(nb_nodes_per_contact)) {
+    for (auto j : arange(spatial_dimension)) {
+      if (i == 0) {
+	A(j, i*spatial_dimension + j) = 1;
+	continue;
+      }
+      A(j, i*spatial_dimension + j) = -shapes[i-1];
+    }
+  }
+
+  // contruct the main part of normal matrix
+  Matrix<Real> k_main(nb_nodes_per_contact*spatial_dimension, nb_nodes_per_contact*spatial_dimension);
+
+  Matrix<Real> n_outer_n(spatial_dimension, spatial_dimension);
+  Matrix<Real> mat_n(normal.storage(), normal.size(), 1.);
+  n_outer_n.mul<false, true>(mat_n, mat_n);
+
+  Matrix<Real> tmp(spatial_dimension, spatial_dimension*nb_nodes_per_contact);
+  tmp.mul<false, false>(n_outer_n, A);
+
+  k_main.mul<true, false>(A, tmp);
+  k_main *= epsilon_n * heaviside(gap) * nodal_area;
+
+  stiffness += k_main;
+} 
+/* -------------------------------------------------------------------------- */
+/*void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
 					    Matrix<Real> & ddelta_g,
 					    Vector<Real> & delta_g, Matrix<Real> & stiffness) {
-
+  // from Vlad
   auto & gaps = model.getGaps();
   auto & gap = gaps.begin()[element.slave];
 
@@ -361,7 +422,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   
   stiffness += mat_delta_g + ddelta_g;
   stiffness *= epsilon_n * nodal_area;
-}
+  }*/
   
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeTangentialModuli(const ContactElement & /*element*/,

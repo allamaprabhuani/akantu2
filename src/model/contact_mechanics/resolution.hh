@@ -126,10 +126,16 @@ protected:
   /* Functions that resolutions should reimplement for stiffness              */
   /* ------------------------------------------------------------------------ */
 public:
-  /// compute the tangent moduli due to normal traction
-  virtual void computeNormalModuli(__attribute__((unused)) const ContactElement &,
+  /// compute the normal moduli due to normal traction
+  /*virtual void computeNormalModuli(__attribute__((unused)) const ContactElement &,
 				   __attribute__((unused)) Matrix<Real> &,
 				   __attribute__((unused)) Vector<Real> &,
+				   __attribute__((unused)) Matrix<Real> & ) {
+    AKANTU_TO_IMPLEMENT();
+    }*/
+
+  /// compute the normal moduli due to normal traction
+  virtual void computeNormalModuli(__attribute__((unused)) const ContactElement &,
 				   __attribute__((unused)) Matrix<Real> & ) {
     AKANTU_TO_IMPLEMENT();
   }

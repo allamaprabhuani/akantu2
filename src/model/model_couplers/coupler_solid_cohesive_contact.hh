@@ -78,7 +78,7 @@ public:
       Mesh & mesh, UInt spatial_dimension = _all_dimensions,
       const ID & id = "coupler_solid_cohesive_contact",
       std::shared_ptr<DOFManager> dof_manager = nullptr,
-      const ModelType model_type = ModelType::_coupler_solid_contact);
+      const ModelType model_type = ModelType::_coupler_solid_cohesive_contact);
 
   ~CouplerSolidCohesiveContact() override;
 
@@ -133,7 +133,7 @@ protected:
   void beforeSolveStep() override;
 
   /// callback for the solver, this is called at end of solve
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   /// callback for the model to instantiate the matricess when needed
   void initSolver(TimeStepSolverType, NonLinearSolverType) override;

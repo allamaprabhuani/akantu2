@@ -56,7 +56,6 @@ package_declare_sources(contact_mechanics
 package_declare_documentation_files(contact_mechanics
   manual-contactmechanicsmodel.tex
   manual-contact-detector.tex
-  manual-contact-resolutions.tex
   )
 
 package_declare_documentation(contact_mechanics

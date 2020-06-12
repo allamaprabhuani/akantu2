@@ -91,9 +91,16 @@ public:
   /// computes metric tesnor with covariant components
   static Matrix<Real> covariantMetricTensor(const Matrix<Real> & );
 
-  /// computes metrix tensor with contravariant components
+  /// computes metric tensor with contravariant components
   static Matrix<Real> contravariantMetricTensor(const Matrix<Real> & );
 
+  // computes curvature tensor with convariant components
+  static Matrix<Real> covariantCurvatureTensor(const Mesh &,
+					       const Array<Real> &,
+					       const Element &,
+					       const Vector<Real> &,
+					       const Vector<Real> &);  
+  
   /// checks if the element is truly a boundary element or not
   inline static bool isBoundaryElement(const Mesh & mesh, const Element & element);
 

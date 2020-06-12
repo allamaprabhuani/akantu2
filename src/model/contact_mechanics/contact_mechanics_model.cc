@@ -373,7 +373,10 @@ void ContactMechanicsModel::search() {
       gap = -gap;
   }
 
-  this->computeNodalAreas();
+  if (contact_elements.size() != 0) {
+     this->computeNodalAreas();
+  }
+  
 }
 
 /* -------------------------------------------------------------------------- */

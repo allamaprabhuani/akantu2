@@ -349,7 +349,6 @@ Matrix<Real> GeometryUtils::covariantMetricTensor(const Matrix<Real> & covariant
   return A;
 }
   
-  
 
 /* -------------------------------------------------------------------------- */
 Matrix<Real> GeometryUtils::contravariantMetricTensor(const Matrix<Real> & covariant_bases)  {
@@ -358,5 +357,49 @@ Matrix<Real> GeometryUtils::contravariantMetricTensor(const Matrix<Real> & covar
   auto inv_A = A.inverse();
   return inv_A;
 }
+
+/* -------------------------------------------------------------------------- */
+Matrix<Real> GeometryUtils::covariantCurvatureTensor(const Mesh & mesh,
+						     const Array<Real> & positions,
+						     const Element & element,
+						     const Vector<Real> & natural_coord,
+						     const Vector<Real> & normal) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  auto surface_dimension = spatial_dimension - 1;
+
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
   
+  Matrix<Real> dn2ds2(surface_dimension * surface_dimension,
+		      nb_nodes_per_element);
+  
+#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
+  ElementClass<type>::computeDN2DS2(natural_coord, dn2ds2)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+
+  Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
+  mesh.extractNodalValuesFromElement(positions, coords.storage(),
+				     elem_val + element.element * nb_nodes_per_element,
+				     nb_nodes_per_element, spatial_dimension);
+
+  Matrix<Real> curvature(spatial_dimension, surface_dimension*surface_dimension);
+  curvature.mul<false, true>(coords, dn2ds2);
+
+  Matrix<Real> H(surface_dimension, surface_dimension);
+
+  UInt i = 0;
+  for (auto alpha : arange(surface_dimension)) {
+    for (auto beta : arange(surface_dimension)) {
+      Vector<Real> temp(curvature(i));
+      H(alpha, beta) = temp.dot(normal);
+      i++;
+    }
+  }
+
+  return H;
+}
+
 }

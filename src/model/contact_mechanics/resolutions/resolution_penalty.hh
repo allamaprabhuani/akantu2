@@ -69,9 +69,11 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of tangent moduli due to normal traction
-  void computeNormalModuli(const ContactElement & , Matrix<Real>  & ,
-			   Vector<Real>  & , Matrix<Real> &) override;
+  //void computeNormalModuli(const ContactElement & , Matrix<Real>  & ,
+  //			   Vector<Real>  & , Matrix<Real> &) override;
+  void computeNormalModuli(const ContactElement & , Matrix<Real> &) override;
 
+  
   /// local computation of tangent moduli due to tangential traction
   void computeTangentialModuli(const ContactElement & , Matrix<Real>  & ,
 			       Vector<Real>  & , Matrix<Real> &) override;

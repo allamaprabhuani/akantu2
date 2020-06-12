@@ -114,6 +114,10 @@ public:
       this->initFullImpl(CouplerSolidContactOptions{
           use_named_args, std::forward<decltype(_pack)>(_pack)...});
       break;
+   case ModelType::_coupler_solid_cohesive_contact:
+      this->initFullImpl(CouplerSolidCohesiveContactOptions{
+          use_named_args, std::forward<decltype(_pack)>(_pack)...});
+      break;
 #endif
     default:
       this->initFullImpl(ModelOptions{use_named_args,

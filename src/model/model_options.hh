@@ -89,6 +89,7 @@ struct SolidMechanicsModelCohesiveOptions : public SolidMechanicsModelOptions {
 
   bool is_extrinsic{false};
 };
+  
 #endif
 
 #ifdef AKANTU_HEAT_TRANSFER
@@ -160,6 +161,23 @@ struct CouplerSolidContactOptions : public ModelOptions {
       : CouplerSolidContactOptions(
             OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass)) {}
 };
+
+/* -------------------------------------------------------------------------- */
+struct CouplerSolidCohesiveContactOptions : public ModelOptions {
+  CouplerSolidCohesiveContactOptions(
+      AnalysisMethod analysis_method = _explicit_lumped_mass,
+      bool extrinsic = false)
+      : ModelOptions(analysis_method), is_extrinsic(extrinsic)  {}
+
+  template<typename... pack>
+  CouplerSolidCohesiveContactOptions(use_named_args_t, pack &&... _pack)
+    : CouplerSolidCohesiveContactOptions(
+       OPTIONAL_NAMED_ARG(analysis_method, _explicit_lumped_mass),
+       OPTIONAL_NAMED_ARG(is_extrinsic, false)) {}
+  
+  bool is_extrinsic{false};
+};
+  
 #endif
 
 } // namespace akantu
