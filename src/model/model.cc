@@ -10,7 +10,6 @@
  *
  * @brief  implementation of model common parts
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -159,7 +158,7 @@ DumperIOHelper & Model::getGroupDumper(const std::string & group_name) {
 // DUMPER stuff
 /* -------------------------------------------------------------------------- */
 void Model::addDumpGroupFieldToDumper(const std::string & field_id,
-                                      std::shared_ptr<dumper::Field> field,
+                                      std::shared_ptr<dumpers::Field> field,
                                       DumperIOHelper & dumper) {
 #ifdef AKANTU_USE_IOHELPER
   dumper.registerField(field_id, field);
@@ -280,7 +279,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       bool padding_flag) {
 
 #ifdef AKANTU_USE_IOHELPER
-  std::shared_ptr<dumper::Field> field;
+  std::shared_ptr<dumpers::Field> field;
 
   if (!field)
     field = this->createNodalFieldReal(field_id, group_name, padding_flag);

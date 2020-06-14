@@ -42,20 +42,6 @@ void register_mesh(py::module & mod) {
           },
           py::return_value_policy::reference)
       .def("distribute", [](Mesh & self) { self.distribute(); })
-      .def("getNbElement",
-           [](Mesh & self, const UInt spatial_dimension,
-              const GhostType & ghost_type, const ElementKind & kind) {
-             return self.getNbElement(spatial_dimension, ghost_type, kind);
-           },
-           py::arg("spatial_dimension") = _all_dimensions,
-           py::arg("ghost_type") = _not_ghost,
-           py::arg("kind") = _ek_not_defined)
-      .def("getNbElement",
-           [](Mesh & self, const ElementType & type,
-              const GhostType & ghost_type) {
-             return self.getNbElement(type, ghost_type);
-           },
-           py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def("fillNodesToElements", &Mesh::fillNodesToElements,
 	   py::arg("dimension") = _all_dimensions)
       .def("getAssociatedElements", [](Mesh & self, const UInt & node, py::list l) {
@@ -65,6 +51,25 @@ void register_mesh(py::module & mod) {
 	    l.append(element);
 	  }
 	}) 
+      .def("makePeriodic",
+           [](Mesh & self, const SpatialDirection & direction) {
+             self.makePeriodic(direction);
+           })
+      .def(
+          "getNbElement",
+          [](Mesh & self, const UInt spatial_dimension,
+             const GhostType & ghost_type, const ElementKind & kind) {
+            return self.getNbElement(spatial_dimension, ghost_type, kind);
+          },
+          py::arg("spatial_dimension") = _all_dimensions,
+          py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_not_defined)
+      .def(
+          "getNbElement",
+          [](Mesh & self, const ElementType & type,
+             const GhostType & ghost_type) {
+            return self.getNbElement(type, ghost_type);
+          },
+          py::arg("type"), py::arg("ghost_type") = _not_ghost)
       .def_static("getSpatialDimension", [](ElementType & type) {
 	  return Mesh::getSpatialDimension(type);
       });
