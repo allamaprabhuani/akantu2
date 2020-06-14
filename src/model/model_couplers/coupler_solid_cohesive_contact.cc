@@ -553,25 +553,25 @@ void CouplerSolidCohesiveContact::assembleMass(GhostType ghost_type) {
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 CouplerSolidCohesiveContact::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, const UInt & spatial_dimension,
     const ElementKind & kind) {
 
-  std::shared_ptr<dumper::Field> field;
+  std::shared_ptr<dumpers::Field> field;
   field = solid->createElementalField(field_name, group_name, padding_flag,
 				      spatial_dimension, kind);
   return field;
 }
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 CouplerSolidCohesiveContact::createNodalFieldReal(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag) {
 
-  std::shared_ptr<dumper::Field> field;
+  std::shared_ptr<dumpers::Field> field;
   if (field_name == "contact_force" or field_name == "normals" or
       field_name == "normal_force" or field_name == "tangential_force" or
       field_name == "stick_or_slip" or
@@ -586,12 +586,12 @@ CouplerSolidCohesiveContact::createNodalFieldReal(
 }
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 CouplerSolidCohesiveContact::createNodalFieldBool(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag) {
 
-  std::shared_ptr<dumper::Field> field;
+  std::shared_ptr<dumpers::Field> field;
   field = solid->createNodalFieldBool(field_name, group_name, padding_flag);
   return field;
 }
@@ -599,7 +599,7 @@ CouplerSolidCohesiveContact::createNodalFieldBool(
 #else
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 CouplerSolidCohesiveContact::createElementalField(const std::string &,
                                                   const std::string &, bool,
                                                   const UInt &,
@@ -608,14 +608,14 @@ CouplerSolidCohesiveContact::createElementalField(const std::string &,
 }
 
 /* ----------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 CouplerSolidCohesiveContact::createNodalFieldReal(const std::string &,
                                                   const std::string &, bool) {
   return nullptr;
 }
 
 /*-------------------------------------------------------------------*/
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 CouplerSolidCohesiveContact::createNodalFieldBool(const std::string &,
                                                   const std::string &, bool) {
   return nullptr;

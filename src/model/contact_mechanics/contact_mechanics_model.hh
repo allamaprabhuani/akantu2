@@ -160,12 +160,12 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
 
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;

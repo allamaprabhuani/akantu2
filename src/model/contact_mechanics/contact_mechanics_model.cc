@@ -34,7 +34,8 @@
 #include "dumpable_inline_impl.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-#include "group_manager_inline_impl.cc"
+#include "group_manager_inline_impl.hh"
+
 #ifdef AKANTU_USE_IOHELPER
 #include "dumper_iohelper_paraview.hh"
 #endif
@@ -533,7 +534,7 @@ void ContactMechanicsModel::afterSolveStep(bool converged) {
 #ifdef AKANTU_USE_IOHELPER
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 ContactMechanicsModel::createNodalFieldBool(const std::string &,
 					    const std::string &, bool) {
 
@@ -542,7 +543,7 @@ ContactMechanicsModel::createNodalFieldBool(const std::string &,
 
   
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                             const std::string & group_name,
                                             bool padding_flag) {
@@ -558,7 +559,7 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["areas"]            = this->nodal_area;
   real_nodal_fields["stick_or_slip"]    = this->stick_or_slip;
 
-  std::shared_ptr<dumper::Field> field;
+  std::shared_ptr<dumpers::Field> field;
   if (padding_flag) 
     field = this->mesh.createNodalField(real_nodal_fields[field_name],
                                        group_name, 3);
@@ -570,7 +571,7 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 #else
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 ContactMechanicsModel::createNodalFieldBool(const std::string &,
 					    const std::string &, bool) {
 
@@ -579,7 +580,7 @@ ContactMechanicsModel::createNodalFieldBool(const std::string &,
 
 
 /* -------------------------------------------------------------------------- */
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 ContactMechanicsModel::createNodalFieldReal(const std::string & ,
                                             const std::string & , bool) {
   return nullptr;
