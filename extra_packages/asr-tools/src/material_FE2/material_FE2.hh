@@ -105,9 +105,6 @@ public:
   /// set time step to all RVEs
   void setTimeStep(Real dt);
 
-  /// Store previously converged damage values in damage_stored
-  virtual void beforeSolveStep();
-
   /// update damage ratio after converged step
   virtual void afterSolveStep();
 
