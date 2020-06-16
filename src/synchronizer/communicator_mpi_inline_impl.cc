@@ -60,8 +60,8 @@ private:
 
 namespace akantu {
 
-int MPICommunicatorData::is_externaly_initialized = 0;
-
+int MPICommunicatorData::is_externaly_initialized = -1;
+int MPICommunicatorData::mpi_communicator_instances = 0;
 /* -------------------------------------------------------------------------- */
 struct MPIPrivateMember : public Communicator::private_member {
   MPIPrivateMember(MPI_Comm comm) : mpi_comm(comm) {}
@@ -164,12 +164,12 @@ Communicator::Communicator(const private_member & comm)
 
 /* -------------------------------------------------------------------------- */
 void Communicator::initialize() {
-  MPICommunicatorData::initialize();
+  //MPICommunicatorData::initialize();
 }
 
 /* -------------------------------------------------------------------------- */
 void Communicator::finalize() {
-  MPICommunicatorData::finalize();
+  //MPICommunicatorData::finalize();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -397,12 +397,10 @@ void Communicator::exclusiveScanImpl(T * values, T * result, int nb_values,
   MPI_Comm communicator = MPIDATA.getMPICommunicator();
   MPI_Datatype type = getMPIDatatype<T>();
 
-  bool in_place = false;
   if(values == result) {
-    in_place = true;
-    values = reinterpret_cast<T*>(MPI_IN_PLACE);
+      values = reinterpret_cast<T*>(MPI_IN_PLACE);
   }
-  
+
   MPI_Exscan(values, result, nb_values, type,
            getMPISynchronizerOperation(op), communicator);
 

@@ -66,33 +66,38 @@ namespace akantu {
 class MPICommunicatorData : public CommunicatorInternalData {
 public:
   MPICommunicatorData(const MPI_Comm & comm) {
+    if (is_externaly_initialized == -1) {
+      MPI_Initialized(&is_externaly_initialized);
+    }
+
+    if (not is_externaly_initialized and mpi_communicator_instances == 0) {
+      MPI_Init(nullptr, nullptr); // valid according to the spec
+    }
+
     MPI_Comm_create_errhandler(MPICommunicatorData::errorHandler,
                                &error_handler);
     MPI_Comm_set_errhandler(comm, error_handler);
     setMPICommunicator(comm);
+    ++mpi_communicator_instances;
   }
 
   ~MPICommunicatorData() override {
-    MPI_Errhandler_free(&error_handler);
-  }
-
-  static void initialize() {
-    MPI_Initialized(&is_externaly_initialized);
-    if (not is_externaly_initialized) {
-      MPI_Init(nullptr, nullptr); // valid according to the spec
-    }
-  }
-
-  static void finalize() {
-    if (not is_externaly_initialized) {
-      MPI_Finalize();
+    int finalized{0};
+    MPI_Finalized(&finalized);
+    if (not is_externaly_initialized and not finalized) {
+      MPI_Comm_set_errhandler(communicator, saved_error_handler);
+      MPI_Errhandler_free(&error_handler);
+      --mpi_communicator_instances;
+      if(mpi_communicator_instances == 0) {
+        MPI_Finalize();
+      }
     }
   }
 
   inline void setMPICommunicator(MPI_Comm comm) {
-    MPI_Comm_set_errhandler(communicator, save_error_handler);
+    MPI_Comm_set_errhandler(communicator, saved_error_handler);
     communicator = comm;
-    MPI_Comm_get_errhandler(comm, &save_error_handler);
+    MPI_Comm_get_errhandler(comm, &saved_error_handler);
     MPI_Comm_set_errhandler(comm, error_handler);
   }
 
@@ -119,8 +124,9 @@ public:
 
 private:
   MPI_Comm communicator{MPI_COMM_WORLD};
-  MPI_Errhandler save_error_handler{MPI_ERRORS_ARE_FATAL};
+  MPI_Errhandler saved_error_handler{MPI_ERRORS_ARE_FATAL};
   static int is_externaly_initialized;
+  static int mpi_communicator_instances;
   /* ------------------------------------------------------------------------ */
   MPI_Errhandler error_handler;
 
