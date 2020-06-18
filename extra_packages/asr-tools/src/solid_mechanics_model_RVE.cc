@@ -94,14 +94,9 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   solver.set("convergence_type", SolveConvergenceCriteria::_solution);
   // this->initMaterials();
 
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
   /// compute the volume of the RVE
   this->computeModelVolume();
-  if (prank == 0)
-    std::cout << "The volume of the RVE is " << this->volume << std::endl;
+  std::cout << "The volume of the RVE is " << this->volume << std::endl;
 
   /// dumping
   std::stringstream base_name;
