@@ -248,8 +248,13 @@ public:
                              Matrix<Real> & eff_strains, const UInt test_no);
 
   /// clear the eigenstrain (to exclude stresses due to internal pressure)
-  void clearGelEigenStrain();
+  void clearASREigenStrain();
 
+  /// store elemental eigenstrain in an array
+  void storeASREigenStrain(Array<Real> & stored_eig);
+
+  /// restore eigenstrain in ASR sites from previously stored values
+  void restoreASREigenStrain(Array<Real> & stored_eig);
   /* ------------------------------------------------------------------------
    */
 public:

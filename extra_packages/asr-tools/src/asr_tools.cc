@@ -1583,8 +1583,11 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   /// apply three independent loading states to determine C
   /// 1. eps_el = (0.001;0;0) 2. eps_el = (0,0.001,0) 3. eps_el = (0,0,0.001)
 
-  /// clear the eigenstrain (to exclude stresses due to internal pressure)
-  clearGelEigenStrain();
+  /// store and clear the eigenstrain
+  ///(to exclude stresses due to internal pressure)
+  Array<Real> stored_eig(0, dim * dim, 0);
+  storeASREigenStrain(stored_eig);
+  clearASREigenStrain();
 
   /// save nodal values before tests
   storeNodalFields();
@@ -1659,8 +1662,9 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
     }
   }
 
-  /// return the nodal values
+  /// return the nodal values and the ASR eigenstrain
   restoreNodalFields();
+  restoreASREigenStrain(stored_eig);
 
   AKANTU_DEBUG_OUT();
 }
@@ -2228,11 +2232,11 @@ void ASRTools::applyGelStrain(const Matrix<Real> & prestrain) {
 }
 /* --------------------------------------------------------------------------
  */
-void ASRTools::clearGelEigenStrain() {
+void ASRTools::clearASREigenStrain() {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
-  Matrix<Real> zero_eigengradu(dim, dim, 0.);
+  Matrix<Real> zero_eigenstrain(dim, dim, 0.);
   GhostType gt = _not_ghost;
   for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
     auto & prestrain_vect =
@@ -2242,7 +2246,54 @@ void ASRTools::clearGelEigenStrain() {
     auto prestrain_end = prestrain_vect.end(dim, dim);
 
     for (; prestrain_it != prestrain_end; ++prestrain_it)
-      (*prestrain_it) = zero_eigengradu;
+      (*prestrain_it) = zero_eigenstrain;
+  }
+  AKANTU_DEBUG_OUT();
+}
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::storeASREigenStrain(Array<Real> & stored_eig) {
+  AKANTU_DEBUG_IN();
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  UInt nb_quads = 0;
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    const UInt nb_gp = model.getFEEngine().getNbIntegrationPoints(element_type);
+    nb_quads +=
+        model.getMaterial("gel").getElementFilter(element_type).size() * nb_gp;
+  }
+  stored_eig.resize(nb_quads);
+  auto stored_eig_it = stored_eig.begin(dim, dim);
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect =
+        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
+            "eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it, ++stored_eig_it)
+      (*stored_eig_it) = (*prestrain_it);
+  }
+  AKANTU_DEBUG_OUT();
+}
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::restoreASREigenStrain(Array<Real> & stored_eig) {
+  AKANTU_DEBUG_IN();
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  auto stored_eig_it = stored_eig.begin(dim, dim);
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+    auto & prestrain_vect =
+        const_cast<Array<Real> &>(model.getMaterial("gel").getInternal<Real>(
+            "eigen_grad_u")(element_type));
+    auto prestrain_it = prestrain_vect.begin(dim, dim);
+    auto prestrain_end = prestrain_vect.end(dim, dim);
+
+    for (; prestrain_it != prestrain_end; ++prestrain_it, ++stored_eig_it)
+      (*prestrain_it) = (*stored_eig_it);
   }
   AKANTU_DEBUG_OUT();
 }
