@@ -34,6 +34,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_array.hh"
 /* -------------------------------------------------------------------------- */
+#include "aka_static_memory.hh"
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
@@ -323,7 +324,7 @@ public:
       }
 
       Int diff = size - allocated_size;
-      if(diff == 0) {
+      if (diff == 0) {
         this->size_ = size;
         return;
       }
@@ -337,6 +338,9 @@ public:
       auto * tmp_ptr = reinterpret_cast<T *>(realloc(
           this->values, size_to_allocate * this->nb_component * sizeof(T)));
       if (tmp_ptr == nullptr) {
+        StaticMemory::getStaticMemory().printself(std::cerr);
+        std::cerr << "Couldn't allocate " << size << " for array " << this->id
+                  << std::endl;
         throw std::bad_alloc();
       }
 
@@ -939,6 +943,7 @@ public:
   using difference_type = std::ptrdiff_t;
   using iterator_category = std::random_access_iterator_tag;
   using pointer_type = typename Array<T, is_scal>::pointer_type;
+
 public:
   iterator_internal() = default;
 

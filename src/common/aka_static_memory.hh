@@ -39,7 +39,6 @@
 #define __AKANTU_STATIC_MEMORY_HH__
 
 /* -------------------------------------------------------------------------- */
-#include "aka_array.hh"
 #include "aka_common.hh"
 
 /* -------------------------------------------------------------------------- */
@@ -47,7 +46,7 @@
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-
+class ArrayBase;
 using ArrayMap = std::map<ID, ArrayBase *>;
 using MemoryMap = std::map<MemoryID, ArrayMap>;
 
