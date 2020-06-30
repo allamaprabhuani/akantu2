@@ -363,7 +363,8 @@ void ContactMechanicsModel::search() {
   resize_arrays(tangents);
   resize_arrays(projections);
   resize_arrays(tangential_tractions);
-    
+  resize_arrays(stick_or_slip);
+  
   this->detector->search(contact_elements, *gaps,
 			 *normals, *projections);
   
