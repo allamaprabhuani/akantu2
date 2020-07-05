@@ -317,7 +317,7 @@ void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & ele
 
   Real p_n = epsilon_n * macaulay(gap);
   traction_tangential = slip_direction;
-  traction_tangential *= p_n;
+  traction_tangential *= mu*p_n;
 
   /*
   auto & stick_projections = model.getStickProjections();
