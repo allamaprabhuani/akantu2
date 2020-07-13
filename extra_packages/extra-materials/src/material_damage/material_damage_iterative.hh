@@ -145,9 +145,6 @@ protected:
   // array to store previously converged number of reduction steps
   InternalField<UInt> reduction_step_stored;
 
-  /// volume of each element
-  InternalField<Real> elemental_volume;
-
   /// additional volume of damaged elements
   InternalField<Real> extra_volume;
 

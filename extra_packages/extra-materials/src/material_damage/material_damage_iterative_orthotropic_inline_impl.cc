@@ -107,10 +107,8 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   /// integrate volumetric strain across elements, subtract initial volume
   if (this->compute_extra_volume) {
     auto & extra_vol = this->extra_volume(el_type);
-    auto & initial_vol = this->elemental_volume(el_type);
     const auto & elem_filter = this->element_filter(el_type);
     this->fem.integrate(extra_vol, el_type, ghost_type, elem_filter);
-    extra_vol -= initial_vol;
   }
 
   this->computeNormalizedEquivalentStress(el_type, ghost_type);

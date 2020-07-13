@@ -35,7 +35,6 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
       crack_normals("crack_normals", *this),
       damage_stored("damage_stored", *this),
       reduction_step_stored("reduction_step_stored", *this),
-      elemental_volume("elemental_volume", *this),
       extra_volume("extra_volume", *this), max_reductions(0) {
   AKANTU_DEBUG_IN();
 
@@ -62,21 +61,8 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
   this->crack_normals.initialize(spatial_dimension * spatial_dimension);
   this->damage_stored.initialize(1);
   this->reduction_step_stored.initialize(1);
-  this->elemental_volume.initialize(1);
   this->extra_volume.setDefaultValue(0.);
   this->extra_volume.initialize(1);
-
-  /// compute elemental volumes
-  for (auto element_type :
-       this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    const auto & elem_filter = this->element_filter(element_type);
-    if (not elem_filter.size())
-      continue;
-    auto & volume_per_element = this->elemental_volume(element_type);
-    volume_per_element.set(1.);
-    this->fem.integrate(volume_per_element, element_type, _not_ghost,
-                        elem_filter);
-  }
 
   AKANTU_DEBUG_OUT();
 }
