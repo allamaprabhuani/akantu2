@@ -1820,6 +1820,9 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
     }
   }
 
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+
   /// compute total model volume
   if (!this->volume)
     computeModelVolume();
@@ -1855,7 +1858,11 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
     mat_volume += fe_engine.integrate(volume, element_type, gt, filter);
   }
 
-  // damage_ratio /= mat_volume;
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+  comm.allReduce(mat_volume, SynchronizerOperation::_sum);
+
+  damage_ratio /= mat_volume;
 }
 
 /* --------------------------------------------------------------------------
@@ -1886,6 +1893,10 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
         filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
     mat_volume += fe_engine.integrate(volume, element_type, gt, filter);
   }
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  comm.allReduce(mat_volume, SynchronizerOperation::_sum);
 
   crack_volume /= mat_volume;
 }
