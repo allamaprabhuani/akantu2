@@ -130,26 +130,11 @@ protected:
   /// resistance to damage
   RandomInternalField<Real> Sc;
 
-  /// the reduction
-  InternalField<UInt> reduction_step;
-
   /// internal field to store equivalent stress on each Gauss point
   InternalField<Real> equivalent_stress;
 
-  /// the number of total reductions steps until complete failure
-  UInt max_reductions;
-
-  /// damage increment
-  Real prescribed_dam;
-
-  /// deviation from max stress at which Gauss point will still get damaged
-  Real dam_tolerance;
-
-  /// define damage threshold at which damage will be set to 1
-  Real dam_threshold;
-
-  /// maximum damage value
-  Real max_damage;
+  /// the reduction
+  InternalField<UInt> reduction_step;
 
   /// 1st vector normal to crack, 2nd (& 3rd) - vector(s) in crack plane
   InternalField<Real> crack_normals;
@@ -159,6 +144,30 @@ protected:
 
   // array to store previously converged number of reduction steps
   InternalField<UInt> reduction_step_stored;
+
+  /// volume of each element
+  InternalField<Real> elemental_volume;
+
+  /// additional volume of damaged elements
+  InternalField<Real> extra_volume;
+
+  /// damage increment
+  Real prescribed_dam;
+
+  /// define damage threshold at which damage will be set to 1
+  Real dam_threshold;
+
+  /// deviation from max stress at which Gauss point will still get damaged
+  Real dam_tolerance;
+
+  /// maximum damage value
+  Real max_damage;
+
+  /// the number of total reductions steps until complete failure
+  UInt max_reductions;
+
+  /// compute additional volume in damaged elements
+  bool compute_extra_volume{false};
 };
 
 } // namespace akantu

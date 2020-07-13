@@ -708,15 +708,19 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
   Real av_strain_y = computeVolumetricExpansion(_y);
   Real av_displ_x = computeAverageDisplacement(_x);
   Real av_displ_y = computeAverageDisplacement(_y);
-  Real damage_agg = computeDamagedVolume("aggregate");
-  Real damage_paste = computeDamagedVolume("paste");
+  Real damage_agg, damage_paste, crack_agg, crack_paste;
+  computeDamageRatioPerMaterial(damage_agg, "aggregate");
+  computeDamageRatioPerMaterial(damage_paste, "paste");
+  computeCrackVolumePerMaterial(crack_agg, "aggregate");
+  computeCrackVolumePerMaterial(crack_paste, "paste");
 
   if (dim == 2) {
 
     if (prank == 0)
       file_output << av_strain_x << " " << av_strain_y << " " << av_displ_x
                   << " " << av_displ_y << " " << damage_agg << " "
-                  << damage_paste << std::endl;
+                  << damage_paste << " " << crack_agg << " " << crack_paste
+                  << std::endl;
   }
 
   else {
@@ -726,7 +730,8 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
     if (prank == 0)
       file_output << av_strain_x << " " << av_strain_y << " " << av_strain_z
                   << " " << av_displ_x << " " << av_displ_y << " " << av_displ_z
-                  << " " << damage_agg << " " << damage_paste << std::endl;
+                  << " " << damage_agg << " " << damage_paste << " "
+                  << crack_agg << " " << crack_paste << std::endl;
   }
 }
 
@@ -747,15 +752,19 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
   Real av_strain_y = computeVolumetricExpansion(_y);
   Real av_displ_x = computeAverageDisplacement(_x);
   Real av_displ_y = computeAverageDisplacement(_y);
-  Real damage_agg = computeDamagedVolume("aggregate");
-  Real damage_paste = computeDamagedVolume("paste");
+  Real damage_agg, damage_paste, crack_agg, crack_paste;
+  computeDamageRatioPerMaterial(damage_agg, "aggregate");
+  computeDamageRatioPerMaterial(damage_paste, "paste");
+  computeCrackVolumePerMaterial(crack_agg, "aggregate");
+  computeCrackVolumePerMaterial(crack_paste, "paste");
 
   if (dim == 2) {
 
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
-                  << damage_paste << std::endl;
+                  << damage_paste << " " << crack_agg << " " << crack_paste
+                  << std::endl;
   }
 
   else {
@@ -766,7 +775,8 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << av_strain_z << "," << av_displ_x << "," << av_displ_y
                   << "," << av_displ_z << "," << damage_agg << ","
-                  << damage_paste << std::endl;
+                  << damage_paste << " " << crack_agg << " " << crack_paste
+                  << std::endl;
   }
 }
 /* --------------------------------------------------------------------------
@@ -1816,7 +1826,6 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
 
   damage_ratio /= this->volume;
 }
-
 /* --------------------------------------------------------------------------
  */
 void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
@@ -1847,6 +1856,38 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
   }
 
   damage_ratio /= mat_volume;
+}
+
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
+                                             const ID & material_name) {
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  Material & mat = model.getMaterial(material_name);
+  const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+  const FEEngine & fe_engine = model.getFEEngine();
+  crack_volume = 0.;
+  Real mat_volume = 0.;
+
+  // Loop over the boundary element types
+  for (auto & element_type : filter_map.elementTypes(dim, gt)) {
+    const Array<UInt> & filter = filter_map(element_type);
+    if (!filter_map.exists(element_type, gt))
+      continue;
+    if (filter.size() == 0)
+      continue;
+
+    auto & extra_volume = mat.getInternal<Real>("extra_volume")(element_type);
+
+    crack_volume += fe_engine.integrate(extra_volume, element_type, gt, filter);
+    Array<Real> volume(
+        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
+    mat_volume += fe_engine.integrate(volume, element_type, gt, filter);
+  }
+
+  crack_volume /= mat_volume;
 }
 
 /* -------------------------------------------------------------------------*/

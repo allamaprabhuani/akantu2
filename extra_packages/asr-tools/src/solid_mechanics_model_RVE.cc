@@ -114,6 +114,7 @@ void SolidMechanicsModelRVE::initFullImpl(const ModelOptions & options) {
   this->addDumpField("equivalent_stress");
   this->addDumpField("internal_force");
   this->addDumpField("delta_T");
+  this->addDumpField("extra_volume");
 
   AKANTU_DEBUG_OUT();
 }

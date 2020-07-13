@@ -66,6 +66,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::initMaterial() {
   this->in_tension.initialize(1);
   this->E = this->E1;
   this->nu = this->nu12;
+
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
@@ -85,14 +86,32 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   auto C_it =
       this->C_field(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
   auto sigma_th_it = make_view(this->sigma_th(el_type, ghost_type)).begin();
+  auto extra_vol_it = this->extra_volume(el_type, ghost_type).begin();
+  auto dam_it = this->damage(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  // compute stress according to anisotropic material law
+  /// compute stress according to anisotropic material law
   this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
+  /// compute volumetric strain in record it into extra_volume array
+  if (this->compute_extra_volume && *dam_it) {
+    *extra_vol_it = grad_u.trace();
+    *extra_vol_it *= *extra_vol_it > 0;
+  }
 
   ++C_it;
   ++sigma_th_it;
+  ++extra_vol_it;
+  ++dam_it;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+
+  /// integrate volumetric strain across elements, subtract initial volume
+  if (this->compute_extra_volume) {
+    auto & extra_vol = this->extra_volume(el_type);
+    auto & initial_vol = this->elemental_volume(el_type);
+    const auto & elem_filter = this->element_filter(el_type);
+    this->fem.integrate(extra_vol, el_type, ghost_type, elem_filter);
+    extra_vol -= initial_vol;
+  }
 
   this->computeNormalizedEquivalentStress(el_type, ghost_type);
   this->norm_max_equivalent_stress = 0;

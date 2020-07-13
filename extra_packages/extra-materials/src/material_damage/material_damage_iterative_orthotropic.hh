@@ -130,6 +130,7 @@ protected:
 
   /// flag to indicate material that it's in the loading test
   bool loading_test{false};
+
 };
 
 } // namespace akantu

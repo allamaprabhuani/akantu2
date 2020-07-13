@@ -209,6 +209,10 @@ public:
   void computeDamageRatioPerMaterial(Real & damage_ratio,
                                      const ID & material_name);
 
+  /// compute crack volume to material volume ratio
+  void computeCrackVolumePerMaterial(Real & crack_volume,
+                                     const ID & material_name);
+
   /// dump the RVE
   void dumpRve();
 
@@ -309,9 +313,11 @@ protected:
   bool tensile_homogenization{false};
 };
 
-/* -------------------------------------------------------------------------- */
-/* ASR material selector                                                      */
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
+/* ASR material selector */
+/* --------------------------------------------------------------------------
+ */
 class GelMaterialSelector : public MeshDataMaterialSelector<std::string> {
 public:
   GelMaterialSelector(SolidMechanicsModel & model, const Real box_size,
@@ -401,9 +407,11 @@ protected:
   bool is_gel_initialized{false};
 };
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 /* Boundary conditions functors */
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 
 class Pressure : public BC::Neumann::NeumannFunctor {
 public:
@@ -500,7 +508,8 @@ protected:
   const Array<Real> & quad_coords;
 };
 
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
 
 class DeltaU : public BC::Dirichlet::DirichletFunctor {
 public:

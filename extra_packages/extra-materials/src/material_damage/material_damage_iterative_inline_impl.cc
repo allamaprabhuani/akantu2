@@ -30,11 +30,13 @@ template <UInt spatial_dimension, template <UInt> class ElasticParent>
 MaterialDamageIterative<spatial_dimension, ElasticParent>::
     MaterialDamageIterative(SolidMechanicsModel & model, const ID & id)
     : parent(model, id), Sc("Sc", *this),
+      equivalent_stress("equivalent_stress", *this),
       reduction_step("reduction_step", *this),
-      equivalent_stress("equivalent_stress", *this), max_reductions(0),
       crack_normals("crack_normals", *this),
       damage_stored("damage_stored", *this),
-      reduction_step_stored("reduction_step_stored", *this) {
+      reduction_step_stored("reduction_step_stored", *this),
+      elemental_volume("elemental_volume", *this),
+      extra_volume("extra_volume", *this), max_reductions(0) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sc", Sc, _pat_parsable, "critical stress threshold");
@@ -50,6 +52,9 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
                       _pat_parsable | _pat_modifiable, "maximum damage value");
   this->registerParam("max_reductions", max_reductions, UInt(10),
                       _pat_parsable | _pat_modifiable, "max reductions");
+  this->registerParam("compute_extra_volume", compute_extra_volume, false,
+                      _pat_parsmod,
+                      "Compute additional volume within cracked elements");
 
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
@@ -57,6 +62,21 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
   this->crack_normals.initialize(spatial_dimension * spatial_dimension);
   this->damage_stored.initialize(1);
   this->reduction_step_stored.initialize(1);
+  this->elemental_volume.initialize(1);
+  this->extra_volume.setDefaultValue(0.);
+  this->extra_volume.initialize(1);
+
+  /// compute elemental volumes
+  for (auto element_type :
+       this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
+    const auto & elem_filter = this->element_filter(element_type);
+    if (not elem_filter.size())
+      continue;
+    auto & volume_per_element = this->elemental_volume(element_type);
+    volume_per_element.set(1.);
+    this->fem.integrate(volume_per_element, element_type, _not_ghost,
+                        elem_filter);
+  }
 
   AKANTU_DEBUG_OUT();
 }

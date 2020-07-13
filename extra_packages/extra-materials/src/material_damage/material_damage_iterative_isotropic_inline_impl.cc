@@ -47,13 +47,13 @@ void MaterialDamageIterativeIsotropic<
 
   parent::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  auto dam_it = this->damage(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
-  computeDamageAndStressOnQuad(sigma, *dam);
+  computeDamageAndStressOnQuad(sigma, *dam_it);
 
-  ++dam;
+  ++dam_it;
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
