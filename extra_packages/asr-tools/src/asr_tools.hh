@@ -28,6 +28,7 @@
 #include <aka_array.hh>
 #include <aka_iterators.hh>
 #include <boundary_condition_functor.hh>
+#include <map>
 #include <mesh.hh>
 #include <mesh_accessor.hh>
 #include <mesh_events.hh>
@@ -268,6 +269,11 @@ public:
   }
   bool isTensileHomogen() { return this->tensile_homogenization; };
 
+  /// phase volumes
+  Real getPhaseVolume(const std::string & material_name) {
+    return this->phase_volumes[material_name];
+  };
+
   /* --------------------------------------------------------------------- */
   /* Members */
   /* --------------------------------------------------------------------- */
@@ -311,6 +317,9 @@ protected:
 
   /// if stiffness homogenization will be done in tension
   bool tensile_homogenization{false};
+
+  /// phase volumes
+  std::map<std::string, Real> phase_volumes;
 };
 
 /* --------------------------------------------------------------------------

@@ -63,6 +63,16 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   /// find four corner nodes of the RVE
   findCornerNodes();
 
+  /// compute volume of each phase and save it into a map
+  AKANTU_DEBUG_ASSERT(model.getNbMaterials(),
+                      "ASR tools instantiate before main model initialisation");
+
+  for (auto && mat : model.getMaterials()) {
+    this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
+    if (not this->phase_volumes[mat.getName()])
+      this->phase_volumes.erase(mat.getName());
+  }
+
   // /// resize stress limit according to the dimension size
   // switch (dim) {
   // case 2: {
@@ -1840,7 +1850,6 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
   const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
   const FEEngine & fe_engine = model.getFEEngine();
   damage_ratio = 0.;
-  Real mat_volume = 0.;
 
   // Loop over the boundary element types
   for (auto & element_type : filter_map.elementTypes(dim, gt)) {
@@ -1853,16 +1862,12 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
     auto & damage_array = mat.getInternal<Real>("damage")(element_type);
 
     damage_ratio += fe_engine.integrate(damage_array, element_type, gt, filter);
-    Array<Real> volume(
-        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
-    mat_volume += fe_engine.integrate(volume, element_type, gt, filter);
   }
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
-  comm.allReduce(mat_volume, SynchronizerOperation::_sum);
 
-  damage_ratio /= mat_volume;
+  damage_ratio /= this->phase_volumes[material_name];
 }
 
 /* --------------------------------------------------------------------------
