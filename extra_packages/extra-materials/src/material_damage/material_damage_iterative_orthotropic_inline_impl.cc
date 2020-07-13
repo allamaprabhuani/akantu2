@@ -80,13 +80,18 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   /// if in loading test stop updating stiffness after 1st iteration
   Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
       "nb_iterations");
+
   if (not(nb_iter > 0 and this->loading_test))
     computeC(el_type, ghost_type);
 
   auto C_it =
       this->C_field(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
   auto sigma_th_it = make_view(this->sigma_th(el_type, ghost_type)).begin();
-  auto extra_vol_it = this->extra_volume(el_type, ghost_type).begin();
+  const auto & elem_filter = this->element_filter(el_type);
+  auto & extra_vol = this->extra_volume(el_type);
+  Array<Real> volumetric_strain(
+      elem_filter.size() * this->fem.getNbIntegrationPoints(el_type), 1, 0.);
+  auto vol_strain_it = volumetric_strain.begin();
   auto dam_it = this->damage(el_type, ghost_type).begin();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
@@ -94,21 +99,20 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
   /// compute volumetric strain in record it into extra_volume array
   if (this->compute_extra_volume && *dam_it) {
-    *extra_vol_it = grad_u.trace();
-    *extra_vol_it *= *extra_vol_it > 0;
+    *vol_strain_it = grad_u.trace();
+    *vol_strain_it *= *vol_strain_it > 0;
   }
 
   ++C_it;
   ++sigma_th_it;
-  ++extra_vol_it;
+  ++vol_strain_it;
   ++dam_it;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   /// integrate volumetric strain across elements, subtract initial volume
   if (this->compute_extra_volume) {
-    auto & extra_vol = this->extra_volume(el_type);
-    const auto & elem_filter = this->element_filter(el_type);
-    this->fem.integrate(extra_vol, el_type, ghost_type, elem_filter);
+    this->fem.integrate(volumetric_strain, extra_vol, 1, el_type, ghost_type,
+                        elem_filter);
   }
 
   this->computeNormalizedEquivalentStress(el_type, ghost_type);
