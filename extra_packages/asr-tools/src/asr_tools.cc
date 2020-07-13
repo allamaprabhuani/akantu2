@@ -1855,7 +1855,7 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
     mat_volume += fe_engine.integrate(volume, element_type, gt, filter);
   }
 
-  damage_ratio /= mat_volume;
+  // damage_ratio /= mat_volume;
 }
 
 /* --------------------------------------------------------------------------
