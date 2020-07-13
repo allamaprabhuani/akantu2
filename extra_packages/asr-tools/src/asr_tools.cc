@@ -717,9 +717,9 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
   if (dim == 2) {
 
     if (prank == 0)
-      file_output << av_strain_x << " " << av_strain_y << " " << av_displ_x
-                  << " " << av_displ_y << " " << damage_agg << " "
-                  << damage_paste << " " << crack_agg << " " << crack_paste
+      file_output << av_strain_x << "," << av_strain_y << "," << av_displ_x
+                  << "," << av_displ_y << "," << damage_agg << ","
+                  << damage_paste << "," << crack_agg << "," << crack_paste
                   << std::endl;
   }
 
@@ -728,10 +728,10 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
     Real av_strain_z = computeVolumetricExpansion(_z);
 
     if (prank == 0)
-      file_output << av_strain_x << " " << av_strain_y << " " << av_strain_z
-                  << " " << av_displ_x << " " << av_displ_y << " " << av_displ_z
-                  << " " << damage_agg << " " << damage_paste << " "
-                  << crack_agg << " " << crack_paste << std::endl;
+      file_output << av_strain_x << "," << av_strain_y << "," << av_strain_z
+                  << "," << av_displ_x << "," << av_displ_y << "," << av_displ_z
+                  << "," << damage_agg << "," << damage_paste << ","
+                  << crack_agg << "," << crack_paste << std::endl;
   }
 }
 
@@ -763,7 +763,7 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
-                  << damage_paste << " " << crack_agg << " " << crack_paste
+                  << damage_paste << "," << crack_agg << "," << crack_paste
                   << std::endl;
   }
 
@@ -775,7 +775,7 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << av_strain_z << "," << av_displ_x << "," << av_displ_y
                   << "," << av_displ_z << "," << damage_agg << ","
-                  << damage_paste << " " << crack_agg << " " << crack_paste
+                  << damage_paste << "," << crack_agg << "," << crack_paste
                   << std::endl;
   }
 }
