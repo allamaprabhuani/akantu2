@@ -1879,7 +1879,6 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
   GhostType gt = _not_ghost;
   Material & mat = model.getMaterial(material_name);
   const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
-  const FEEngine & fe_engine = model.getFEEngine();
   crack_volume = 0.;
 
   // Loop over the boundary element types
@@ -1890,16 +1889,14 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
     if (filter.size() == 0)
       continue;
 
-    auto & extra_volume = mat.getInternal<Real>("extra_volume")(element_type);
+    auto extra_volume_copy =
+        mat.getInternal<Real>("extra_volume")(element_type);
 
-    crack_volume += fe_engine.integrate(extra_volume, element_type, gt, filter);
+    crack_volume += Math::reduce(extra_volume_copy);
   }
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(crack_volume, SynchronizerOperation::_sum);
-  std::cout << material_name << "'s volume "
-            << this->phase_volumes[material_name] << " crack volume "
-            << crack_volume << std::endl;
   crack_volume /= this->phase_volumes[material_name];
 }
 
