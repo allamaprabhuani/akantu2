@@ -68,17 +68,22 @@ public:
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
-  /// gel strain inrease linear with time, exponential with temperature
-  void computeNewGelStrain(Matrix<Real> & gelstrain,
-                           const Real & delta_time_day, const Real & temp);
+  /// compute ASR strain according to the sigmoidal rule (Larive,1998)
+  void computeASRStrainLarive(const Real & delta_time_day, const Real & T,
+                              Matrix<Real> & gelstrain);
+  // /// gel strain inrease linear with time, exponential with temperature
+  // void computeNewGelStrain(Matrix<Real> & gelstrain,
+  //                          const Real & delta_time_day, const Real &
+  //                          temp);
 
-  /// assymptotic gel strain - time curve
-  void computeNewGelStrainTimeDependent(Matrix<Real> & gelstrain,
-                                        const Real & delta_time_day,
-                                        const Real & T, Real & non_reacted_gel);
+  // /// assymptotic gel strain - time curve
+  // void computeNewGelStrainTimeDependent(Matrix<Real> & gelstrain,
+  //                                       const Real & delta_time_day,
+  //                                       const Real & T, Real &
+  //                                       non_reacted_gel);
 
-  /// reset the gel strain value to a previous value
-  void resetGelStrain(const Real & old_time_step);
+  // /// reset the gel strain value to a previous value
+  // void resetGelStrain(const Real & old_time_step);
 
   /// advance alkali-silica reaction by the user-provided gel strain
   void advanceASR(const Matrix<Real> & prestrain);
@@ -138,23 +143,26 @@ protected:
   /// number of gel pockets in each underlying RVE
   UInt nb_gel_pockets;
 
-  /// pre-exponential factor of Arrhenius law
-  Real k;
+  // /// pre-exponential factor of Arrhenius law
+  // Real k;
 
-  /// activation energy of ASR in Arrhenius law
-  Real activ_energy;
+  // /// activation energy of ASR in Arrhenius law
+  // Real activ_energy;
 
-  /// universal gas constant;
-  Real R;
+  // /// universal gas constant;
+  // Real R;
 
-  /// saturation constant for time dependent gel strain increase
-  Real sat_const;
+  // /// saturation constant for time dependent gel strain increase
+  // Real sat_const;
+
+  /// parameters of sigmoidal expansion law (Larive, 1998)
+  Real eps_inf, U_C, U_L, T_ref, time_lat_ref, time_ch_ref;
 
   /// current gelstrain due to ASR at each Gauss point
   InternalField<Real> gelstrain;
 
-  /// percent of yet non-reacted gel (for time-dependent asr simulation)
-  InternalField<Real> non_reacted_gel;
+  // /// percent of yet non-reacted gel (for time-dependent asr simulation)
+  // InternalField<Real> non_reacted_gel;
 
   /// ratio between area of damaged elements weighted by damage value
   /// and the total area of RVE

@@ -63,16 +63,6 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   /// find four corner nodes of the RVE
   findCornerNodes();
 
-  /// compute volume of each phase and save it into a map
-  AKANTU_DEBUG_ASSERT(model.getNbMaterials(),
-                      "ASR tools instantiate before main model initialisation");
-
-  for (auto && mat : model.getMaterials()) {
-    this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
-    if (not this->phase_volumes[mat.getName()])
-      this->phase_volumes.erase(mat.getName());
-  }
-
   // /// resize stress limit according to the dimension size
   // switch (dim) {
   // case 2: {
@@ -84,6 +74,15 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   //   break;
   // }
   // }
+}
+/* -------------------------------------------------------------------------- */
+void ASRTools::computePhaseVolumes() {
+  /// compute volume of each phase and save it into a map
+  for (auto && mat : model.getMaterials()) {
+    this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
+    if (not this->phase_volumes[mat.getName()])
+      this->phase_volumes.erase(mat.getName());
+  }
 }
 /* -------------------------------------------------------------------------- */
 void ASRTools::computeModelVolume() {
@@ -1225,6 +1224,23 @@ template <UInt dim> Real ASRTools::computeSmallestElementSize() {
 //     }
 //   }
 // }
+/* --------------------------------------------------------------------------
+ */
+Real ASRTools::computeASRStrainLarive(
+    const Real & delta_time_day, const Real & T, const Real & ASRStrain,
+    const Real & eps_inf, const Real & time_ch_ref, const Real & time_lat_ref,
+    const Real & U_C, const Real & U_L, const Real & T_ref) {
+
+  Real time_ch, time_lat, lambda, ksi, exp_ref;
+  ksi = ASRStrain / eps_inf;
+  time_ch = time_ch_ref * std::exp(U_C * (1. / T - 1. / T_ref));
+  time_lat = time_lat_ref * std::exp(U_L * (1. / T - 1. / T_ref));
+  exp_ref = std::exp(-time_lat / time_ch);
+  lambda = (1 + exp_ref) / (ksi + exp_ref);
+  ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
+
+  return ksi * eps_inf;
+}
 
 /* --------------------------------------------------------------------------
  */
@@ -1867,6 +1883,8 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
 
+  if (not this->phase_volumes.size())
+    computePhaseVolumes();
   damage_ratio /= this->phase_volumes[material_name];
 }
 
@@ -1897,6 +1915,8 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  if (not this->phase_volumes.size())
+    computePhaseVolumes();
   crack_volume /= this->phase_volumes[material_name];
 }
 

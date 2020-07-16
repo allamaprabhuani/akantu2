@@ -64,6 +64,9 @@ public:
   /// them in a node group
   void fillNodeGroup(NodeGroup & node_group, bool multi_axial = false);
 
+  /// compute volumes of each phase
+  void computePhaseVolumes();
+
   /// compute volume of the model passed to ASRTools (RVE if FE2_mat)
   void computeModelVolume();
 
@@ -134,6 +137,13 @@ public:
 
   // /// apply homogeneous temperature on Solid Mechanics Model
   // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
+
+  /// compute ASR strain by a sigmoidal rule (Larive, 1998)
+  Real computeASRStrainLarive(const Real & delta_time_day, const Real & T,
+                              const Real & ASRStrain, const Real & eps_inf,
+                              const Real & time_ch_ref,
+                              const Real & time_lat_ref, const Real & U_C,
+                              const Real & U_L, const Real & T_ref);
 
   /// compute increase in gel strain within 1 timestep
   Real computeDeltaGelStrainThermal(const Real delta_time_day, const Real k,
