@@ -29,18 +29,18 @@ MaterialFE2<spatial_dimension>::MaterialFE2(SolidMechanicsModel & model,
     : Parent(model, id), C("material_stiffness", *this),
       gelstrain("gelstrain",
                 *this), /*non_reacted_gel("non_reacted_gel", *this),*/
-      damage_ratio("damage_ratio", *this),
-      damage_ratio_paste("damage_ratio_paste", *this),
-      damage_ratio_agg("damage_ratio_agg", *this) {
+      crack_volume_ratio("crack_volume_ratio", *this),
+      crack_volume_ratio_paste("crack_volume_ratio_paste", *this),
+      crack_volume_ratio_agg("crack_volume_ratio_agg", *this) {
   AKANTU_DEBUG_IN();
 
   this->C.initialize(voigt_h::size * voigt_h::size);
   this->gelstrain.initialize(spatial_dimension * spatial_dimension);
   // this->non_reacted_gel.initialize(1);
   // this->non_reacted_gel.setDefaultValue(1.0);
-  this->damage_ratio.initialize(1);
-  this->damage_ratio_paste.initialize(1);
-  this->damage_ratio_agg.initialize(1);
+  this->crack_volume_ratio.initialize(1);
+  this->crack_volume_ratio_paste.initialize(1);
+  this->crack_volume_ratio_agg.initialize(1);
   this->initialize();
 
   AKANTU_DEBUG_OUT();
@@ -200,7 +200,6 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::afterSolveStep() {
   AKANTU_DEBUG_IN();
-
   for (const auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
     Array<UInt> & elem_filter = this->element_filter(type, _not_ghost);
@@ -208,17 +207,16 @@ void MaterialFE2<spatial_dimension>::afterSolveStep() {
     if (elem_filter.size() == 0)
       return;
   }
-
   for (auto && data :
        zip(RVEs,
            make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
            make_view(this->stress(el_type), spatial_dimension,
                      spatial_dimension),
-           this->delta_T(this->el_type), this->damage_ratio(this->el_type),
-           this->damage_ratio_paste(this->el_type),
-           this->damage_ratio_agg(this->el_type))) {
+           this->delta_T(this->el_type),
+           this->crack_volume_ratio(this->el_type),
+           this->crack_volume_ratio_paste(this->el_type),
+           this->crack_volume_ratio_agg(this->el_type))) {
     auto & RVE = *(std::get<0>(data));
-
     if (reset_damage)
       RVE.storeDamageField();
 
@@ -227,12 +225,12 @@ void MaterialFE2<spatial_dimension>::afterSolveStep() {
     /// compute the new effective stiffness of the RVE
     RVE.homogenizeStiffness(std::get<1>(data), RVE.isTensileHomogen());
 
-    /// compute damage ratio in each RVE
-    RVE.computeDamageRatio(std::get<4>(data));
+    /// compute crack volume ratio in each RVE
+    RVE.computeCrackVolume(std::get<4>(data));
 
-    /// compute damage ratio per material
-    RVE.computeDamageRatioPerMaterial(std::get<5>(data), "paste");
-    RVE.computeDamageRatioPerMaterial(std::get<6>(data), "aggregate");
+    /// compute crack volume ratio per material
+    RVE.computeCrackVolumePerMaterial(std::get<5>(data), "paste");
+    RVE.computeCrackVolumePerMaterial(std::get<6>(data), "aggregate");
   }
   AKANTU_DEBUG_OUT();
 }
@@ -256,46 +254,47 @@ void MaterialFE2<spatial_dimension>::computeTangentModuli(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
-template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::advanceASR(
-    const Matrix<Real> & prestrain) {
-  AKANTU_DEBUG_IN();
+// /* --------------------------------------------------------------------------
+//  */
+// template <UInt spatial_dimension>
+// void MaterialFE2<spatial_dimension>::advanceASR(
+//     const Matrix<Real> & prestrain) {
+//   AKANTU_DEBUG_IN();
 
-  for (auto && data :
-       zip(RVEs,
-           make_view(this->gradu(this->el_type), spatial_dimension,
-                     spatial_dimension),
-           make_view(this->eigengradu(this->el_type), spatial_dimension,
-                     spatial_dimension),
-           make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-           this->delta_T(this->el_type), this->damage_ratio(this->el_type))) {
-    auto & RVE = *(std::get<0>(data));
+//   for (auto && data :
+//        zip(RVEs,
+//            make_view(this->gradu(this->el_type), spatial_dimension,
+//                      spatial_dimension),
+//            make_view(this->eigengradu(this->el_type), spatial_dimension,
+//                      spatial_dimension),
+//            make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
+//            this->delta_T(this->el_type), this->damage_ratio(this->el_type)))
+//            {
+//     auto & RVE = *(std::get<0>(data));
 
-    /// apply boundary conditions based on the current macroscopic displ.
-    /// gradient
-    RVE.applyBoundaryConditionsRve(std::get<1>(data));
+//     /// apply boundary conditions based on the current macroscopic displ.
+//     /// gradient
+//     RVE.applyBoundaryConditionsRve(std::get<1>(data));
 
-    /// apply homogeneous temperature field to each RVE to obtain
-    /// thermoelastic effect
-    RVE.applyHomogeneousTemperature(std::get<4>(data));
+//     /// apply homogeneous temperature field to each RVE to obtain
+//     /// thermoelastic effect
+//     RVE.applyHomogeneousTemperature(std::get<4>(data));
 
-    /// advance the ASR in every RVE
-    RVE.advanceASR(prestrain);
+//     /// advance the ASR in every RVE
+//     RVE.advanceASR(prestrain);
 
-    /// compute damage volume in each rve
-    RVE.computeDamageRatio(std::get<5>(data));
+//     /// compute damage volume in each rve
+//     RVE.computeDamageRatio(std::get<5>(data));
 
-    /// compute the average eigen_grad_u
-    RVE.homogenizeEigenGradU(std::get<2>(data));
+//     /// compute the average eigen_grad_u
+//     RVE.homogenizeEigenGradU(std::get<2>(data));
 
-    /// compute the new effective stiffness of the RVE
-    RVE.homogenizeStiffness(std::get<3>(data), RVE.isTensileHomogen());
-  }
+//     /// compute the new effective stiffness of the RVE
+//     RVE.homogenizeStiffness(std::get<3>(data), RVE.isTensileHomogen());
+//   }
 
-  AKANTU_DEBUG_OUT();
-}
+//   AKANTU_DEBUG_OUT();
+// }
 
 // /* --------------------------------------------------------------------------
 //  */

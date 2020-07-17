@@ -220,6 +220,9 @@ public:
   void computeDamageRatioPerMaterial(Real & damage_ratio,
                                      const ID & material_name);
 
+  /// compute ratio between total crack and RVE volumes
+  void computeCrackVolume(Real & crack_volume_ratio);
+
   /// compute crack volume to material volume ratio
   void computeCrackVolumePerMaterial(Real & crack_volume,
                                      const ID & material_name);

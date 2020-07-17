@@ -166,10 +166,10 @@ protected:
 
   /// ratio between area of damaged elements weighted by damage value
   /// and the total area of RVE
-  InternalField<Real> damage_ratio;
+  InternalField<Real> crack_volume_ratio;
 
-  InternalField<Real> damage_ratio_paste;
-  InternalField<Real> damage_ratio_agg;
+  InternalField<Real> crack_volume_ratio_paste;
+  InternalField<Real> crack_volume_ratio_agg;
 
   /// flag to reset damage to previously converged values on each iteration
   bool reset_damage{false};

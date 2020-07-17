@@ -80,8 +80,10 @@ void ASRTools::computePhaseVolumes() {
   /// compute volume of each phase and save it into a map
   for (auto && mat : model.getMaterials()) {
     this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
-    if (not this->phase_volumes[mat.getName()])
+    if (not this->phase_volumes[mat.getName()]) {
       this->phase_volumes.erase(mat.getName());
+      continue;
+    }
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -97,10 +99,8 @@ void ASRTools::computeModelVolume() {
                        1, 1.);
     this->volume += fem.integrate(Volume, element_type);
   }
-  // auto && comm = akantu::Communicator::getWorldCommunicator();
-  // std::cout << "starting reduction";
-  // comm.allReduce(this->volume, SynchronizerOperation::_sum);
-  // std::cout << " ending reduction" << std::endl;
+  auto && comm = akantu::Communicator::getSelfCommunicator();
+  comm.allReduce(this->volume, SynchronizerOperation::_sum);
 }
 /* ------------------------------------------------------------------------- */
 void ASRTools::applyFreeExpansionBC() {
@@ -318,7 +318,7 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   else
     AKANTU_EXCEPTION("The parameter for the testing direction is wrong!!!");
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(av_displ, SynchronizerOperation::_sum);
   comm.allReduce(nb_nodes, SynchronizerOperation::_sum);
 
@@ -396,7 +396,7 @@ Real ASRTools::computeVolumetricExpansion(SpatialDirection direction) {
     tot_volume += int_volume;
   }
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(gradu_tot, SynchronizerOperation::_sum);
   comm.allReduce(tot_volume, SynchronizerOperation::_sum);
 
@@ -425,7 +425,7 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
     total_damage += fe_engine.integrate(damage, element_type, gt, elem_filter);
   }
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(total_damage, SynchronizerOperation::_sum);
 
   return total_damage;
@@ -440,12 +440,11 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
   const auto dim = mesh.getSpatialDimension();
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
   /// save nodal values before test
   storeNodalFields();
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
 
   if (dim == 2) {
     Real int_residual_x = 0;
@@ -695,7 +694,7 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   /// restore historical internal fields
   restoreInternalFields();
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(int_residual, SynchronizerOperation::_sum);
 
   return int_residual;
@@ -709,10 +708,6 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
   const auto dim = mesh.getSpatialDimension();
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
   Real av_strain_x = computeVolumetricExpansion(_x);
   Real av_strain_y = computeVolumetricExpansion(_y);
   Real av_displ_x = computeAverageDisplacement(_x);
@@ -722,6 +717,9 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output) {
   computeDamageRatioPerMaterial(damage_paste, "paste");
   computeCrackVolumePerMaterial(crack_agg, "aggregate");
   computeCrackVolumePerMaterial(crack_paste, "paste");
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
 
   if (dim == 2) {
 
@@ -753,10 +751,6 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
   Real av_strain_x = computeVolumetricExpansion(_x);
   Real av_strain_y = computeVolumetricExpansion(_y);
   Real av_displ_x = computeAverageDisplacement(_x);
@@ -766,6 +760,9 @@ void ASRTools::computeAverageProperties(std::ofstream & file_output,
   computeDamageRatioPerMaterial(damage_paste, "paste");
   computeCrackVolumePerMaterial(crack_agg, "aggregate");
   computeCrackVolumePerMaterial(crack_paste, "paste");
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
 
   if (dim == 2) {
 
@@ -797,16 +794,15 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
 
   AKANTU_DEBUG_ASSERT(dim != 1, "Example does not work for 1D");
 
-  /// variables for parallel execution
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-
   Real av_strain_x = computeVolumetricExpansion(_x);
   Real av_strain_y = computeVolumetricExpansion(_y);
   Real av_displ_x = computeAverageDisplacement(_x);
   Real av_displ_y = computeAverageDisplacement(_y);
   Real damage_paste = averageScalarField("damage_ratio_paste");
   Real damage_agg = averageScalarField("damage_ratio_agg");
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
 
   if (dim == 2) {
 
@@ -1028,7 +1024,7 @@ Real ASRTools::computePhaseVolume(const ID & mat_name) {
     total_volume += fe_engine.integrate(volume, element_type, gt, elem_filter);
   }
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(total_volume, SynchronizerOperation::_sum);
 
   return total_volume;
@@ -1189,7 +1185,7 @@ template <UInt dim> Real ASRTools::computeSmallestElementSize() {
   }
 
   /// find global Gauss point with highest stress
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(el_h_min, SynchronizerOperation::_min);
 
   return el_h_min;
@@ -1822,7 +1818,6 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
   damage_ratio = 0.;
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
-
   for (UInt m = 0; m < model.getNbMaterials(); ++m) {
     Material & mat = model.getMaterial(m);
     if (mat.getName() == "gel" || mat.getName() == "FE2_mat")
@@ -1846,7 +1841,7 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
     }
   }
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
 
   /// compute total model volume
@@ -1880,7 +1875,7 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
     damage_ratio += fe_engine.integrate(damage_array, element_type, gt, filter);
   }
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
 
   if (not this->phase_volumes.size())
@@ -1888,6 +1883,42 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
   damage_ratio /= this->phase_volumes[material_name];
 }
 
+/* --------------------------------------------------------------------------
+ */
+void ASRTools::computeCrackVolume(Real & crack_volume_ratio) {
+  crack_volume_ratio = 0.;
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  for (UInt m = 0; m < model.getNbMaterials(); ++m) {
+    Material & mat = model.getMaterial(m);
+    if (mat.getName() == "gel" || mat.getName() == "FE2_mat")
+      continue;
+    GhostType gt = _not_ghost;
+    const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+
+    // Loop over the boundary element types
+    for (auto & element_type : filter_map.elementTypes(dim, gt)) {
+      const Array<UInt> & filter = filter_map(element_type);
+      if (!filter_map.exists(element_type, gt))
+        continue;
+      if (filter.size() == 0)
+        continue;
+
+      auto extra_volume_copy =
+          mat.getInternal<Real>("extra_volume")(element_type);
+      crack_volume_ratio += Math::reduce(extra_volume_copy);
+    }
+  }
+
+  auto && comm = akantu::Communicator::getSelfCommunicator();
+  comm.allReduce(crack_volume_ratio, SynchronizerOperation::_sum);
+
+  /// compute total model volume
+  if (!this->volume)
+    computeModelVolume();
+
+  crack_volume_ratio /= this->volume;
+}
 /* --------------------------------------------------------------------------
  */
 void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
@@ -1913,7 +1944,7 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
     crack_volume += Math::reduce(extra_volume_copy);
   }
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto && comm = akantu::Communicator::getSelfCommunicator();
   comm.allReduce(crack_volume, SynchronizerOperation::_sum);
   if (not this->phase_volumes.size())
     computePhaseVolumes();
