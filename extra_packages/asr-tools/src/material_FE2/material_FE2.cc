@@ -227,7 +227,6 @@ void MaterialFE2<spatial_dimension>::afterSolveStep() {
 
     /// compute crack volume ratio in each RVE
     RVE.computeCrackVolume(std::get<4>(data));
-
     /// compute crack volume ratio per material
     RVE.computeCrackVolumePerMaterial(std::get<5>(data), "paste");
     RVE.computeCrackVolumePerMaterial(std::get<6>(data), "aggregate");

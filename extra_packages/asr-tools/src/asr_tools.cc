@@ -36,6 +36,7 @@
 #include "material_iterative_stiffness_reduction.hh"
 #include "non_linear_solver.hh"
 #include "solid_mechanics_model.hh"
+#include "solid_mechanics_model_RVE.hh"
 
 /* -------------------------------------------------------------------------- */
 
@@ -80,10 +81,9 @@ void ASRTools::computePhaseVolumes() {
   /// compute volume of each phase and save it into a map
   for (auto && mat : model.getMaterials()) {
     this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
-    if (not this->phase_volumes[mat.getName()]) {
+    auto it = this->phase_volumes.find(mat.getName());
+    if (it == this->phase_volumes.end())
       this->phase_volumes.erase(mat.getName());
-      continue;
-    }
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -99,8 +99,12 @@ void ASRTools::computeModelVolume() {
                        1, 1.);
     this->volume += fem.integrate(Volume, element_type);
   }
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(this->volume, SynchronizerOperation::_sum);
+
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(this->volume, SynchronizerOperation::_sum);
+  }
 }
 /* ------------------------------------------------------------------------- */
 void ASRTools::applyFreeExpansionBC() {
@@ -318,9 +322,12 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   else
     AKANTU_EXCEPTION("The parameter for the testing direction is wrong!!!");
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(av_displ, SynchronizerOperation::_sum);
-  comm.allReduce(nb_nodes, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(av_displ, SynchronizerOperation::_sum);
+    comm.allReduce(nb_nodes, SynchronizerOperation::_sum);
+  }
 
   return av_displ / nb_nodes;
 }
@@ -396,9 +403,12 @@ Real ASRTools::computeVolumetricExpansion(SpatialDirection direction) {
     tot_volume += int_volume;
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(gradu_tot, SynchronizerOperation::_sum);
-  comm.allReduce(tot_volume, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(gradu_tot, SynchronizerOperation::_sum);
+    comm.allReduce(tot_volume, SynchronizerOperation::_sum);
+  }
 
   return gradu_tot / tot_volume;
 }
@@ -425,8 +435,11 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
     total_damage += fe_engine.integrate(damage, element_type, gt, elem_filter);
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(total_damage, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(total_damage, SynchronizerOperation::_sum);
+  }
 
   return total_damage;
 }
@@ -694,8 +707,11 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   /// restore historical internal fields
   restoreInternalFields();
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(int_residual, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(int_residual, SynchronizerOperation::_sum);
+  }
 
   return int_residual;
 }
@@ -798,8 +814,8 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
   Real av_strain_y = computeVolumetricExpansion(_y);
   Real av_displ_x = computeAverageDisplacement(_x);
   Real av_displ_y = computeAverageDisplacement(_y);
-  Real damage_paste = averageScalarField("damage_ratio_paste");
-  Real damage_agg = averageScalarField("damage_ratio_agg");
+  Real crack_agg = averageScalarField("crack_volume_ratio_agg");
+  Real crack_paste = averageScalarField("crack_volume_ratio_paste");
 
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
@@ -808,8 +824,8 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
 
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
-                  << av_displ_x << "," << av_displ_y << "," << damage_agg << ","
-                  << damage_paste << std::endl;
+                  << av_displ_x << "," << av_displ_y << "," << crack_agg << ","
+                  << crack_paste << std::endl;
   }
 
   else {
@@ -819,8 +835,8 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
     if (prank == 0)
       file_output << time << "," << av_strain_x << "," << av_strain_y << ","
                   << av_strain_z << "," << av_displ_x << "," << av_displ_y
-                  << "," << av_displ_z << "," << damage_agg << ","
-                  << damage_paste << std::endl;
+                  << "," << av_displ_z << "," << crack_agg << "," << crack_paste
+                  << std::endl;
   }
 }
 
@@ -1024,12 +1040,14 @@ Real ASRTools::computePhaseVolume(const ID & mat_name) {
     total_volume += fe_engine.integrate(volume, element_type, gt, elem_filter);
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(total_volume, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(total_volume, SynchronizerOperation::_sum);
+  }
 
   return total_volume;
 }
-
 /* --------------------------------------------------------------------------
  */
 void ASRTools::applyEigenGradUinCracks(
@@ -1185,8 +1203,11 @@ template <UInt dim> Real ASRTools::computeSmallestElementSize() {
   }
 
   /// find global Gauss point with highest stress
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(el_h_min, SynchronizerOperation::_min);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(el_h_min, SynchronizerOperation::_min);
+  }
 
   return el_h_min;
 }
@@ -1841,8 +1862,11 @@ void ASRTools::computeDamageRatio(Real & damage_ratio) {
     }
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+  }
 
   /// compute total model volume
   if (!this->volume)
@@ -1875,8 +1899,11 @@ void ASRTools::computeDamageRatioPerMaterial(Real & damage_ratio,
     damage_ratio += fe_engine.integrate(damage_array, element_type, gt, filter);
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(damage_ratio, SynchronizerOperation::_sum);
+  }
 
   if (not this->phase_volumes.size())
     computePhaseVolumes();
@@ -1910,8 +1937,11 @@ void ASRTools::computeCrackVolume(Real & crack_volume_ratio) {
     }
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(crack_volume_ratio, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(crack_volume_ratio, SynchronizerOperation::_sum);
+  }
 
   /// compute total model volume
   if (!this->volume)
@@ -1944,8 +1974,12 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
     crack_volume += Math::reduce(extra_volume_copy);
   }
 
-  auto && comm = akantu::Communicator::getSelfCommunicator();
-  comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  /// do not communicate if model is multi-scale
+  if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
+    auto && comm = akantu::Communicator::getWorldCommunicator();
+    comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  }
+
   if (not this->phase_volumes.size())
     computePhaseVolumes();
   crack_volume /= this->phase_volumes[material_name];

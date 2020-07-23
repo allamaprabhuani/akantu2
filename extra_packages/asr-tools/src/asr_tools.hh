@@ -284,7 +284,10 @@ public:
 
   /// phase volumes
   Real getPhaseVolume(const std::string & material_name) {
-    return this->phase_volumes[material_name];
+    if (not this->phase_volumes.size())
+      computePhaseVolumes();
+
+    return this->phase_volumes.find(material_name)->second;
   };
 
   /* --------------------------------------------------------------------- */
