@@ -205,13 +205,13 @@ public:
 
   /// create element clusters for a given dimension
   Int createClusters(Int element_dimension, Mesh & mesh_facets,
-                      std::string cluster_name_prefix = "cluster",
-                      const ClusteringFilter & filter = ClusteringFilter());
+                     std::string cluster_name_prefix = "cluster",
+                     const ClusteringFilter & filter = ClusteringFilter());
 
   /// create element clusters for a given dimension
   Int createClusters(Int element_dimension,
-                      std::string cluster_name_prefix = "cluster",
-                      const ClusteringFilter & filter = ClusteringFilter());
+                     std::string cluster_name_prefix = "cluster",
+                     const ClusteringFilter & filter = ClusteringFilter());
 
 private:
   /// create element clusters for a given dimension
@@ -267,8 +267,8 @@ public:
   template <typename type, bool flag, template <class, bool> class ftype>
   std::shared_ptr<dumpers::Field>
   createStridedNodalField(const ftype<type, flag> * field,
-                          const std::string & group_name, Int size,
-                          Int stride, Int padding_size);
+                          const std::string & group_name, Int size, Int stride,
+                          Int padding_size);
 
 protected:
   /// fill a buffer with all the group names

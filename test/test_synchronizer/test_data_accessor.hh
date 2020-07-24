@@ -98,7 +98,7 @@ inline void TestAccessor::packData(CommunicationBuffer & buffer,
     const Element & element = *bit;
 
     Vector<Real> bary(
-        this->barycenters(element.type, element.ghost_type).storage() +
+        this->barycenters(element.type, element.ghost_type).data() +
             element.element * spatial_dimension,
         spatial_dimension);
     buffer << bary;
@@ -112,7 +112,7 @@ inline void TestAccessor::unpackData(CommunicationBuffer & buffer,
 
   for (const auto & element : elements) {
     Vector<Real> barycenter_loc(
-        this->barycenters(element.type, element.ghost_type).storage() +
+        this->barycenters(element.type, element.ghost_type).data() +
             element.element * spatial_dimension,
         spatial_dimension);
 

@@ -22,7 +22,7 @@ inline void MaterialOrthotropicDamageIterative<spatial_dimension>::
                                  Matrix<Real> & first_term,
                                  Matrix<Real> & third_term) {
 
-  // Real dmax = *(std::max_element(damage.storage(), damage.storage() +
+  // Real dmax = *(std::max_element(damage.data(), damage.data() +
   // spatial_dimension*spatial_dimension) );
   Real eta_effective = 0;
 

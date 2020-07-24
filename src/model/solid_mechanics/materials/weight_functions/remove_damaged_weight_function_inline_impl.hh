@@ -32,7 +32,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "remove_damaged_weight_function.hh"
+//#include "remove_damaged_weight_function.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_INLINE_IMPL_HH_
@@ -67,7 +67,7 @@ inline void RemoveDamagedWeightFunction::init() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt
+inline Int
 RemoveDamagedWeightFunction::getNbData(const Array<Element> & elements,
                                        const SynchronizationTag & tag) const {
 

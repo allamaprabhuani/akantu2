@@ -69,7 +69,7 @@ void MaterialDamageIterativeNonLocal<spatial_dimension>::computeNonLocalStress(
   MaterialDamage<spatial_dimension>::computeStress(el_type, ghost_type);
 
   /// multiply the stress by (1-d) to get the effective stress
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
   this->computeDamageAndStressOnQuad(sigma, *dam);

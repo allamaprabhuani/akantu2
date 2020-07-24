@@ -115,10 +115,10 @@ int main(int argc, char * argv[]) {
       model.getFEEngine("IGFEMFEEngine").getNbIntegrationPoints(type);
   Real * lambda = model.getMaterial("igfem_elastic")
                       .getArray<Real>("lambda", type, ghost_type)
-                      .storage();
+                      .data();
   Real * mu = model.getMaterial("igfem_elastic")
                   .getArray<Real>("mu", type, ghost_type)
-                  .storage();
+                  .data();
 
   Real error = 0;
   for (UInt e = 0; e < nb_element; ++e) {

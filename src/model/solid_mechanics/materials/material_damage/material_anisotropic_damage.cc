@@ -39,7 +39,7 @@ namespace akantu {
 namespace {
   template <Int dim>
   std::unique_ptr<Material>
-  materialAnisotropicDamage(std::integral_constant<UInt, dim> /*unused*/,
+  materialAnisotropicDamage(std::integral_constant<Int, dim>,
                             const ID & option, SolidMechanicsModel & model,
                             const ID & id) {
     if (option.empty() or option == "mazars") {
@@ -59,13 +59,13 @@ namespace {
   decltype(auto) dimensionDispatch(UInt dim, Args &&... args) {
     switch (dim) {
     case 1:
-      return materialAnisotropicDamage(std::integral_constant<UInt, 1>{},
+      return materialAnisotropicDamage(std::integral_constant<Int, 1>{},
                                        std::forward<Args>(args)...);
     case 2:
-      return materialAnisotropicDamage(std::integral_constant<UInt, 2>{},
+      return materialAnisotropicDamage(std::integral_constant<Int, 2>{},
                                        std::forward<Args>(args)...);
     case 3:
-      return materialAnisotropicDamage(std::integral_constant<UInt, 3>{},
+      return materialAnisotropicDamage(std::integral_constant<Int, 3>{},
                                        std::forward<Args>(args)...);
     default: {
       AKANTU_EXCEPTION("In what dimension are you leaving ?");
@@ -73,6 +73,7 @@ namespace {
     }
   }
 } // namespace
+
 static bool material_is_alocated_anisotropic_damage [[gnu::unused]] =
     MaterialFactory::getInstance().registerAllocator(
         "anisotropic_damage",

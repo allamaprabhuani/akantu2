@@ -63,7 +63,7 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
           [&](long addr) -> _aka::Array<_aka::Real> & {
             auto & array = *arrays[addr];
             py::print("gotten pointer: " +
-                      std::to_string((long)array.storage()));
+                      std::to_string((long)array.data()));
             return array;
           },
           py::return_value_policy::reference);
@@ -72,15 +72,15 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
           [&](long addr) -> _aka::Array<_aka::Real> {
             auto & array = *arrays[addr];
             py::print("gotten pointer: " +
-                      std::to_string((long)array.storage()));
+                      std::to_string((long)array.data()));
             return array;
           },
           py::return_value_policy::copy);
 
   mod.def("getRawPointerArray", [](_aka::Array<_aka::Real> & _data) {
     py::print("received proxy: " + std::to_string((long)&_data));
-    py::print("raw pointer: " + std::to_string((long)_data.storage()));
-    return (long)_data.storage();
+    py::print("raw pointer: " + std::to_string((long)_data.data()));
+    return (long)_data.data();
   });
 
   mod.def("createVector",
@@ -97,7 +97,7 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
           [&](long addr) -> _aka::Vector<_aka::Real> & {
             auto & vector = *vectors[addr];
             py::print("gotten pointer: " +
-                      std::to_string((long)vector.storage()));
+                      std::to_string((long)vector.data()));
             return vector;
           },
           py::return_value_policy::reference);
@@ -106,15 +106,15 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
           [&](long addr) -> _aka::Vector<_aka::Real> {
             auto & vector = *vectors[addr];
             py::print("gotten pointer: " +
-                      std::to_string((long)vector.storage()));
+                      std::to_string((long)vector.data()));
             return vector;
           },
           py::return_value_policy::copy);
 
   mod.def("getRawPointerVector", [](_aka::Vector<_aka::Real> & _data) {
     py::print("received proxy: " + std::to_string((long)&_data));
-    py::print("raw pointer: " + std::to_string((long)_data.storage()));
-    return (long)_data.storage();
+    py::print("raw pointer: " + std::to_string((long)_data.data()));
+    return (long)_data.data();
   });
 
   mod.def("createMatrix",
@@ -131,7 +131,7 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
           [&](long addr) -> _aka::Matrix<_aka::Real> & {
             auto & matrix = *matrices[addr];
             py::print("gotten pointer: " +
-                      std::to_string((long)matrix.storage()));
+                      std::to_string((long)matrix.data()));
             return matrix;
           },
           py::return_value_policy::reference);
@@ -140,14 +140,14 @@ PYBIND11_MODULE(py11_akantu_test_common, mod) {
           [&](long addr) -> _aka::Matrix<_aka::Real> {
             auto & matrix = *matrices[addr];
             py::print("gotten pointer: " +
-                      std::to_string((long)matrix.storage()));
+                      std::to_string((long)matrix.data()));
             return matrix;
           },
           py::return_value_policy::copy);
 
   mod.def("getRawPointerMatrix", [](_aka::Matrix<_aka::Real> & _data) {
     py::print("received proxy: " + std::to_string((long)&_data));
-    py::print("raw pointer: " + std::to_string((long)_data.storage()));
-    return (long)_data.storage();
+    py::print("raw pointer: " + std::to_string((long)_data.data()));
+    return (long)_data.data();
   });
 } // Module akantu_test_common

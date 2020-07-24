@@ -90,9 +90,9 @@ public:
   template <typename T>
   static void
   filterElementalData(const Mesh & mesh, const Array<T> & quad_f,
-                      Array<T> & filtered_f, ElementType type,
-                      GhostType ghost_type = _not_ghost,
-                      const Array<Int> & filter_elements = empty_filter);
+                      Array<T> & filtered_f, const ElementType & type,
+                      const GhostType & ghost_type = _not_ghost,
+                      const Array<Idx> & filter_elements = empty_filter);
 
   /* ------------------------------------------------------------------------ */
   /* Integration method bridges                                               */
@@ -101,20 +101,20 @@ public:
   virtual void
   integrate(const Array<Real> & f, Array<Real> & intf, Int nb_degree_of_freedom,
             const ElementType & type, const GhostType & ghost_type = _not_ghost,
-            const Array<Int> & filter_elements = empty_filter) const = 0;
+            const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// integrate a scalar value f on all elements of type "type"
   virtual Real
-  integrate(const Array<Real> & f, ElementType type,
-            GhostType ghost_type = _not_ghost,
-            const Array<Int> & filter_elements = empty_filter) const = 0;
+  integrate(const Array<Real> & f, const ElementType & type,
+            const GhostType & ghost_type = _not_ghost,
+            const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// integrate f for all integration points of type "type" but don't sum over
   /// all integration points
   virtual void integrateOnIntegrationPoints(
       const Array<Real> & f, Array<Real> & intf, Int nb_degree_of_freedom,
       const ElementType & type, const GhostType & ghost_type = _not_ghost,
-      const Array<Int> & filter_elements = empty_filter) const = 0;
+      const Array<Idx> & filter_elements = empty_filter) const = 0;
 
   /// integrate one element scalar value on all elements of type "type"
   Real integrate(const Ref<const VectorXr> & f, const Element & element) const {

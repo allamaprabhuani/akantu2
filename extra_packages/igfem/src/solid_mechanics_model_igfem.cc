@@ -495,7 +495,7 @@ void SolidMechanicsModelIGFEM::computeValuesOnEnrichedNodes() {
       UInt nb_element = mesh.getNbElement(*it, *gt);
       if (!nb_element)
         continue;
-      UInt * elem_val = mesh.getConnectivity(*it, *gt).storage();
+      UInt * elem_val = mesh.getConnectivity(*it, *gt).data();
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(*it);
       Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
       Matrix<Real> displ_val(spatial_dimension, nb_nodes_per_element);
@@ -506,13 +506,13 @@ void SolidMechanicsModelIGFEM::computeValuesOnEnrichedNodes() {
         element.element = el;
         /// get the node coordinates of the element
         mesh.extractNodalValuesFromElement(
-            mesh.getNodes(), nodes_coord.storage(),
+            mesh.getNodes(), nodes_coord.data(),
             elem_val + el * nb_nodes_per_element, nb_nodes_per_element,
             spatial_dimension);
 
         /// get the displacement values at the nodes of the element
         mesh.extractNodalValuesFromElement(
-            *(this->displacement), displ_val.storage(),
+            *(this->displacement), displ_val.data(),
             elem_val + el * nb_nodes_per_element, nb_nodes_per_element,
             spatial_dimension);
 

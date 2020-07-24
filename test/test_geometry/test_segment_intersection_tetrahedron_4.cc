@@ -81,10 +81,10 @@ int main(int argc, char * argv[]) {
   Real second_bary[] = {2. / 3., 2. / 3., 2. / 3.};
 
   // We don't know the order of the elements, so here we test permutations
-  if (!((Math::are_vector_equal(3, bary1.storage(), first_bary) &&
-         Math::are_vector_equal(3, bary2.storage(), second_bary)) ||
-        (Math::are_vector_equal(3, bary1.storage(), second_bary) &&
-         Math::are_vector_equal(3, bary2.storage(), first_bary))))
+  if (!((Math::are_vector_equal(3, bary1.data(), first_bary) &&
+         Math::are_vector_equal(3, bary2.data(), second_bary)) ||
+        (Math::are_vector_equal(3, bary1.data(), second_bary) &&
+         Math::are_vector_equal(3, bary2.data(), first_bary))))
     return EXIT_FAILURE;
 
   // Testing a segment completely inside one element
@@ -96,7 +96,7 @@ int main(int argc, char * argv[]) {
   interface_mesh.getBarycenter(test, bary);
   Real third_bary[] = {0.055, 0.055, 0.055};
 
-  if (!Math::are_vector_equal(3, bary.storage(), third_bary))
+  if (!Math::are_vector_equal(3, bary.data(), third_bary))
     return EXIT_FAILURE;
 
   // Testing a segment whose end points are inside elements
@@ -116,10 +116,10 @@ int main(int argc, char * argv[]) {
   Real fifth_bary[] = {37. / 60., 37. / 60., 37. / 60.};
 
   // We don't know the order of the elements, so here we test permutations
-  if (!((Math::are_vector_equal(3, bary1.storage(), fourth_bary) &&
-         Math::are_vector_equal(3, bary2.storage(), fifth_bary)) ||
-        (Math::are_vector_equal(3, bary1.storage(), fifth_bary) &&
-         Math::are_vector_equal(3, bary2.storage(), fourth_bary))))
+  if (!((Math::are_vector_equal(3, bary1.data(), fourth_bary) &&
+         Math::are_vector_equal(3, bary2.data(), fifth_bary)) ||
+        (Math::are_vector_equal(3, bary1.data(), fifth_bary) &&
+         Math::are_vector_equal(3, bary2.data(), fourth_bary))))
     return EXIT_FAILURE;
 
   // Testing a segment along the edge of elements
@@ -137,7 +137,7 @@ int main(int argc, char * argv[]) {
   interface_mesh.getBarycenter(test, bary);
   Real sixth_bary[] = {0.5, 0.5, 0};
 
-  if (!Math::are_vector_equal(3, bary.storage(), sixth_bary))
+  if (!Math::are_vector_equal(3, bary.data(), sixth_bary))
     return EXIT_FAILURE;
 
   return EXIT_SUCCESS;

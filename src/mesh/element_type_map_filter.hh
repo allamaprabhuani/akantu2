@@ -20,12 +20,12 @@
  * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- * 
+ *
  * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
@@ -42,20 +42,17 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 /* ElementTypeMapFilter */
 /* -------------------------------------------------------------------------- */
-
 template <class T, typename SupportType = ElementType>
 class ElementTypeMapArrayFilter {
-
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
   /* ------------------------------------------------------------------------ */
-
 public:
   using array_type = ArrayFilter<T>;
   using value_type = typename array_type::value_type;
 
   using type_iterator =
-      typename ElementTypeMapArray<UInt, SupportType>::type_iterator;
+      typename ElementTypeMapArray<Idx, SupportType>::type_iterator;
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -63,13 +60,13 @@ public:
 public:
   ElementTypeMapArrayFilter(
       const ElementTypeMapArray<T, SupportType> & array,
-      const ElementTypeMapArray<UInt, SupportType> & filter,
-      const ElementTypeMap<UInt, SupportType> & nb_data_per_elem)
+      const ElementTypeMapArray<Idx, SupportType> & filter,
+      const ElementTypeMap<Int, SupportType> & nb_data_per_elem)
       : array(array), filter(filter), nb_data_per_elem(nb_data_per_elem) {}
 
   ElementTypeMapArrayFilter(
       const ElementTypeMapArray<T, SupportType> & array,
-      const ElementTypeMapArray<UInt, SupportType> & filter)
+      const ElementTypeMapArray<Idx, SupportType> & filter)
       : array(array), filter(filter) {}
 
   ~ElementTypeMapArrayFilter() = default;
@@ -77,17 +74,17 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-
-  inline ArrayFilter<T> operator()(const SupportType & type,
-                                   GhostType ghost_type = _not_ghost) const {
+public:
+  inline const ArrayFilter<T>
+  operator()(const SupportType & type,
+             const GhostType & ghost_type = _not_ghost) const {
     if (filter.exists(type, ghost_type)) {
+      Int nb_comp = 1;
       if (nb_data_per_elem.exists(type, ghost_type)) {
-        return ArrayFilter<T>(array(type, ghost_type), filter(type, ghost_type),
-                              nb_data_per_elem(type, ghost_type) /
-                                  array(type, ghost_type).getNbComponent());
+        nb_comp = nb_data_per_elem(type, ghost_type) / array_v.getNbComponent();
       }
       return ArrayFilter<T>(array(type, ghost_type), filter(type, ghost_type),
-                            1);
+                            nb_comp);
     }
     return ArrayFilter<T>(empty_array, empty_filter, 1);
   };
@@ -117,12 +114,12 @@ public:
 
 protected:
   const ElementTypeMapArray<T, SupportType> & array;
-  const ElementTypeMapArray<UInt, SupportType> & filter;
-  ElementTypeMap<UInt> nb_data_per_elem;
+  const ElementTypeMapArray<Idx, SupportType> & filter;
+  ElementTypeMap<Int> nb_data_per_elem;
 
   /// Empty array to be able to return consistent filtered arrays
   Array<T> empty_array;
-  Array<Int> empty_filter;
+  Array<Idx> empty_filter;
 };
 
 } // namespace akantu

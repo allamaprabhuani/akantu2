@@ -213,7 +213,7 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_5>(
   UInt quads_2 = IGFEMHelper::getNbQuadraturePoints(el.type, 1);
   UInt nb_total_quads = quads_1 + quads_2;
 
-  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).storage();
+  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).data();
 
   /// loop all elements for the given type
   const Array<Idx> & filter = this->element_filter(el.type, ghost_type);
@@ -293,7 +293,7 @@ void MaterialIGFEM::setSubMaterial<_igfem_triangle_4>(
   UInt quads_2 = IGFEMHelper::getNbQuadraturePoints(el.type, 1);
   UInt nb_total_quads = quads_1 + quads_2;
 
-  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).storage();
+  UInt * sub_mat_ptr = this->sub_material(el.type, ghost_type).data();
 
   /// loop all elements for the given type
   const Array<Idx> & filter = this->element_filter(el.type, ghost_type);
@@ -351,7 +351,7 @@ void MaterialIGFEM::applyEigenGradU(
         Array<Real>::matrix_iterator eigen_end =
             this->eigengradu(type, ghost_type)
                 .end(spatial_dimension, spatial_dimension);
-        UInt * sub_mat_ptr = this->sub_material(type, ghost_type).storage();
+        UInt * sub_mat_ptr = this->sub_material(type, ghost_type).data();
 
         for (; eigen_it != eigen_end; ++eigen_it, ++sub_mat_ptr) {
           if (*sub_mat_ptr == sub_element_index) {

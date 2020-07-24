@@ -82,7 +82,7 @@ int main(int argc, char * argv[]) {
   interface_mesh.getBarycenter(test, bary);
   Real first_bary[] = {0.125, 0.25};
 
-  if (!Math::are_vector_equal(2, bary.storage(), first_bary))
+  if (!Math::are_vector_equal(2, bary.data(), first_bary))
     return EXIT_FAILURE;
 
   // Testing a segment completely inside an element
@@ -95,7 +95,7 @@ int main(int argc, char * argv[]) {
 
   Real second_bary[] = {0.1, 0.5};
 
-  if (!Math::are_vector_equal(2, bary.storage(), second_bary))
+  if (!Math::are_vector_equal(2, bary.data(), second_bary))
     return EXIT_FAILURE;
 
 #if 0

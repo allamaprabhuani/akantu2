@@ -45,7 +45,7 @@ public:
       : model(model){};
 
   void operator()(Matrix<Real> & rho, const Element & element) {
-    const Array<UInt> & mat_indexes =
+    const auto & mat_indexes =
         model.getMaterialByElement(element.type, element.ghost_type);
     Real mat_rho =
         model.getMaterial(mat_indexes(element.element)).getParam("rho");
@@ -82,13 +82,11 @@ void SolidMechanicsModel::assembleMassLumped() {
 /// for not connected nodes put mass to one in order to avoid
 #if !defined(AKANTU_NDEBUG)
   bool has_unconnected_nodes = false;
-  auto mass_it = mass->begin_reinterpret(mass->size() * mass->getNbComponent());
-  auto mass_end = mass->end_reinterpret(mass->size() * mass->getNbComponent());
-  for (; mass_it != mass_end; ++mass_it) {
-    if (std::abs(*mass_it) < std::numeric_limits<Real>::epsilon() ||
-        Math::isnan(*mass_it)) {
+  for (auto && mass : make_view(*mass)) {
+    if (std::abs(mass) < std::numeric_limits<Real>::epsilon() ||
+        Math::isnan(mass)) {
+      mass = 0.;
       has_unconnected_nodes = true;
-      break;
     }
   }
 

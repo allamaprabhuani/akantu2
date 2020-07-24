@@ -39,10 +39,10 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
-    SolidMechanicsModel & model, const ID & id)
-    : MaterialNonLocalParent(model, id), Ehat("epsilon_equ", *this),
+template <Int dim>
+MaterialMazarsNonLocal<dim>::MaterialMazarsNonLocal(SolidMechanicsModel & model,
+                                                    const ID & id)
+    : parent(model, id), Ehat("epsilon_equ", *this),
       non_local_variable("mazars_non_local", *this) {
   AKANTU_DEBUG_IN();
 
@@ -58,8 +58,8 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
+template <Int dim>
+void MaterialMazarsNonLocal<dim>::registerNonLocalVariables() {
   ID local;
   if (this->damage_in_compute_stress) {
     local = this->damage.getName();
@@ -75,49 +75,42 @@ void MaterialMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::computeStress(
-    ElementType el_type, GhostType ghost_type) {
+template <Int dim>
+void MaterialMazarsNonLocal<dim>::computeStress(ElementType el_type,
+                                                GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * damage = this->damage(el_type, ghost_type).data();
-  Real * epsilon_equ = this->Ehat(el_type, ghost_type).data();
+  auto && arguments = getArguments(el_type, ghost_type);
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-  MaterialMazars<spatial_dimension>::computeStressOnQuad(grad_u, sigma, *damage,
-                                                         *epsilon_equ);
-  ++damage;
-  ++epsilon_equ;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  for (auto && data : arguments) {
+    MaterialMazars<dim>::computeStressOnQuad(data);
+  }
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMazarsNonLocal<spatial_dimension>::computeNonLocalStress(
-    ElementType el_type, GhostType ghost_type) {
+template <Int dim>
+void MaterialMazarsNonLocal<dim>::computeNonLocalStress(ElementType el_type,
+                                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   auto & non_loc_var = non_local_variable(el_type, ghost_type);
-  Real * damage;
-  Real * epsilon_equ;
+
   if (this->damage_in_compute_stress) {
-    damage = non_loc_var.data();
-    epsilon_equ = this->Ehat(el_type, ghost_type).data();
+    auto && arguments = zip_replace<"damage"_h>(
+        getArguments(el_type, ghost_type), make_view(non_loc_var));
+
+    for (auto && data : arguments) {
+      MaterialMazars<dim>::computeDamageAndStressOnQuad(data);
+    }
   } else {
-    damage = this->damage(el_type, ghost_type).data();
-    epsilon_equ = non_loc_var.data();
+    auto && arguments = zip_replace<"Ehat"_h>(getArguments(el_type, ghost_type),
+                                              make_view(non_loc_var));
+
+    for (auto && data : arguments) {
+      MaterialMazars<dim>::computeDamageAndStressOnQuad(data);
+    }
   }
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-  this->computeDamageAndStressOnQuad(grad_u, sigma, *damage, *epsilon_equ);
-
-  ++damage;
-  ++epsilon_equ;
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
-
   AKANTU_DEBUG_OUT();
 }
 

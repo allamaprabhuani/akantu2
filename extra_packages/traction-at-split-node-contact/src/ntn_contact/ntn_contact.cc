@@ -301,7 +301,7 @@ void NTNContact::updateNormals() {
     }
   }
 
-  Real * master_normals = this->normals.storage();
+  Real * master_normals = this->normals.data();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
     if (dim == 2)
       Math::normalize2(&(master_normals[n * dim]));
@@ -451,8 +451,8 @@ void NTNContact::computeRelativeNormalField(
   rel_normal_field.resize(0);
 
   UInt dim = this->model.getSpatialDimension();
-  //  Real * field_p = field.storage();
-  //  Real * normals_p = this->normals.storage();
+  //  Real * field_p = field.data();
+  //  Real * normals_p = this->normals.data();
 
   Array<Real>::const_iterator<Vector<Real>> it_field = field.begin(dim);
   Array<Real>::const_iterator<Vector<Real>> it_normal =

@@ -97,7 +97,7 @@ int main(int argc, char * argv[]) {
 
   if (prank == 0) {
     for (akantu::UInt i = 0; i < n; ++i) {
-      solver->getRHS().storage()[i] = 1.;
+      solver->getRHS().data()[i] = 1.;
     }
   }
 

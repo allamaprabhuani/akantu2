@@ -33,6 +33,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "base_weight_function.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_
 #define AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_
@@ -69,8 +70,8 @@ public:
   /* Data Accessor inherited members                                          */
   /* ------------------------------------------------------------------------ */
 
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,

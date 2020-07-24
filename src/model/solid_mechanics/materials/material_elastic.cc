@@ -53,9 +53,8 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
-                                      UInt /*a_dim*/,
-                                      const Mesh & mesh, FEEngine & fe_engine,
-                                      const ID & id)
+                                      Int /*a_dim*/, const Mesh & mesh,
+                                      FEEngine & fe_engine, const ID & id)
     : Parent(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
   AKANTU_DEBUG_IN();
   this->initialize();
@@ -119,31 +118,17 @@ void MaterialElastic<dim>::computeStress(ElementType el_type,
 
   Parent::computeStress(el_type, ghost_type);
 
-  Array<Real>::const_scalar_iterator sigma_th_it =
-      this->sigma_th(el_type, ghost_type).begin();
+  auto && arguments = Parent::getArguments(el_type, ghost_type);
 
   if (!this->finite_deformation) {
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-    const Real & sigma_th = *sigma_th_it;
-    this->computeStressOnQuad(grad_u, sigma, sigma_th);
-    ++sigma_th_it;
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    for(auto && args : arguments) {
+      this->computeStressOnQuad(args);
+    }
   } else {
-    /// finite gradus
-    Matrix<Real> E(dim, dim);
-
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
-    /// compute E
-    this->template gradUToE<dim>(grad_u, E);
-
-    const Real & sigma_th = *sigma_th_it;
-
-    /// compute second Piola-Kirchhoff stress tensor
-    this->computeStressOnQuad(E, sigma, sigma_th);
-
-    ++sigma_th_it;
-    MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+    for(auto && args : arguments) {
+      auto && E = this->template gradUToE<dim>(tuple::get<"grad_u"_h>(args));
+      this->computeStressOnQuad(tuple::replace<"grad_u"_h>(args, E));
+    }
   }
 
   AKANTU_DEBUG_OUT();
@@ -212,33 +197,37 @@ void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
 /* -------------------------------------------------------------------------- */
 template <Int dim>
 void MaterialElastic<dim>::computePotentialEnergyByElement(
-    ElementType type, UInt index, Vector<Real> & epot_on_quad_points) {
-  auto gradu_it = this->gradu(type).begin(dim, dim);
-  auto gradu_end = this->gradu(type).begin(dim, dim);
-  auto stress_it = this->stress(type).begin(dim, dim);
+    ElementType type, Idx index, Vector<Real> & epot_on_quad_points) {
+  auto gradu_view = make_view<dim, dim>(this->gradu(type));
+  auto stress_view = make_view<dim, dim>(this->stress(type));
 
   if (this->finite_deformation) {
-    stress_it = this->piola_kirchhoff_2(type).begin(dim, dim);
+    stress_view = make_view<dim, dim>(this->piola_kirchhoff_2(type));
   }
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
 
-  gradu_it += index * nb_quadrature_points;
-  gradu_end += (index + 1) * nb_quadrature_points;
-  stress_it += index * nb_quadrature_points;
+  auto gradu_it = gradu_view.begin() + index * nb_quadrature_points;
+  auto gradu_end = gradu_it + nb_quadrature_points;
+  auto stress_it = stress_view.begin() + index * nb_quadrature_points;
+  auto stress_end = stress_it + nb_quadrature_points;
 
-  Real * epot_quad = epot_on_quad_points.data();
+  auto epot_quad = epot_on_quad_points.begin();
 
   Matrix<Real> grad_u(dim, dim);
 
   if (this->finite_deformation) {
-    for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-      auto E = this->template gradUToE<dim>(*gradu_it);
-      this->computePotentialEnergyOnQuad(E, *stress_it, *epot_quad);
+    for (auto data : zip(range(gradu_it, gradu_end),
+                         range(stress_it, stress_end), epot_on_quad_points)) {
+      auto E = this->template gradUToE<dim>(std::get<0>(data));
+      this->computePotentialEnergyOnQuad(E, std::get<1>(data),
+                                         std::get<2>(data));
     }
   } else {
-    for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-      this->computePotentialEnergyOnQuad(*gradu_it, *stress_it, *epot_quad);
+    for (auto data : zip(range(gradu_it, gradu_end),
+                         range(stress_it, stress_end), epot_on_quad_points)) {
+      this->computePotentialEnergyOnQuad(std::get<0>(data), std::get<1>(data),
+                                         std::get<2>(data));
     }
   }
 }

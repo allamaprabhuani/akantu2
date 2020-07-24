@@ -34,13 +34,13 @@
 #include "communication_buffer.hh"
 #include "data_accessor.hh"
 #include "dof_manager_default.hh"
-//#include "dof_synchronizer.hh"
+#include "dof_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_HH_
-#define AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_HH_
+// #ifndef __AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_CC__
+// #define __AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_CC__
 
 namespace akantu {
 
@@ -59,4 +59,4 @@ inline Idx DOFSynchronizer::localToGlobalEntity(const Idx & local) {
 }
 } // namespace akantu
 
-#endif /* AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_DOF_SYNCHRONIZER_INLINE_IMPL_CC__ */

@@ -79,7 +79,7 @@ private:
 template <template <class> class Op, typename T>
 void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
     Array<T> & array) const {
-  ReduceDataAccessor<UInt, Op, T> data_accessor(array,
+  ReduceDataAccessor<Idx, Op, T> data_accessor(array,
                                                 SynchronizationTag::_whatever);
   auto size =
       data_accessor.getNbData(slaves_list, SynchronizationTag::_whatever);
@@ -90,6 +90,7 @@ void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
 
   this->reduceSynchronizeArray<Op>(array);
 }
+
 
 } // namespace akantu
 

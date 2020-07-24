@@ -116,14 +116,14 @@ public:
     auto dim = normal.size();
     Matrix<Real> tangent(dim, dim - 1);
     if (dim == 2) {
-      Math::normal2(normal.storage(), tangent(0).storage());
+      Math::normal2(normal.data(), tangent(0).data());
     }
 
     if (dim == 3) {
       auto v = getRandomVector();
       tangent(0) = (v - v.dot(normal) * normal).normalize();
-      Math::normal3(normal.storage(), tangent(0).storage(),
-                    tangent(1).storage());
+      Math::normal3(normal.data(), tangent(0).data(),
+                    tangent(1).data());
     }
 
 #if defined(debug_)

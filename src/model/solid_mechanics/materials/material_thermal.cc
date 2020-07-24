@@ -32,13 +32,14 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_thermal.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model,
-                                                    const ID & id)
+template <Int dim>
+MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
+                                      const ID & id)
     : Material(model, id), delta_T("delta_T", *this),
       sigma_th("sigma_th", *this), use_previous_stress_thermal(false) {
   this->initialize();
@@ -85,9 +86,9 @@ template <Int dim> void MaterialThermal<dim>::initMaterial() {
 template <Int dim>
 void MaterialThermal<dim>::computeStress(ElementType el_type,
                                          GhostType ghost_type) {
-  for (auto && tuple : zip(this->delta_T(el_type, ghost_type),
-                           this->sigma_th(el_type, ghost_type))) {
-    computeStressOnQuad(std::get<1>(tuple), std::get<0>(tuple));
+  auto && arguments = getArguments(el_type, ghost_type);
+  for (auto && args : arguments) {
+    computeStressOnQuad(args);
   }
 }
 

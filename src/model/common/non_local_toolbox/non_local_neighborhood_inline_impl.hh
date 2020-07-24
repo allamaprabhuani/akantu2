@@ -31,7 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "non_local_neighborhood.hh"
+//#include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_NON_LOCAL_NEIGHBORHOOD_INLINE_IMPL_HH_
@@ -40,9 +40,9 @@
 namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <class WeightFunction>
-inline UInt NonLocalNeighborhood<WeightFunction>::getNbData(
+inline Int NonLocalNeighborhood<WeightFunction>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
-  UInt size = 0;
+  Int size = 0;
 
   if (tag == SynchronizationTag::_mnl_for_average) {
     for (auto & variable_id : non_local_variables) {

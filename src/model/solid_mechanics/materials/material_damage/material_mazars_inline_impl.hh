@@ -33,83 +33,90 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_mazars.hh"
-/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
-    Real & Ehat) {
-  Matrix<Real> epsilon(3, 3);
-  epsilon.zero();
+template <Int dim>
+template <typename Args>
+inline void MaterialMazars<dim>::computeStressOnQuad(Args && arguments) {
+  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+  auto && Ehat = tuple::get<"Ehat"_h>(arguments);
 
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  Matrix<Real, 3, 3> epsilon;
+  epsilon.fill(0.);
+
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
       epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
     }
   }
 
-  Vector<Real> Fdiag(3);
-  Math::matrixEig(3, epsilon.data(), Fdiag.data());
+  Vector<Real, 3> Fdiag;
+  epsilon.eigh(Fdiag);
 
   Ehat = 0.;
-  for (UInt i = 0; i < 3; ++i) {
+  for (Int i = 0; i < 3; ++i) {
     Real epsilon_p = std::max(Real(0.), Fdiag(i));
     Ehat += epsilon_p * epsilon_p;
   }
   Ehat = sqrt(Ehat);
 
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+  MaterialElastic<dim>::computeStressOnQuad(arguments);
 
   if (damage_in_compute_stress) {
-    computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
+    computeDamageOnQuad(arguments, Fdiag);
   }
 
   if (not this->is_non_local) {
-    computeDamageAndStressOnQuad(grad_u, sigma, dam, Ehat);
+    computeDamageAndStressOnQuad(arguments);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeDamageAndStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
-    Real & Ehat) {
-  if (!damage_in_compute_stress) {
-    Vector<Real> Fdiag(3);
-    Fdiag.zero();
+template <Int dim>
+template <typename Args>
+inline void
+MaterialMazars<dim>::computeDamageAndStressOnQuad(Args && arguments) {
+  auto && sigma = tuple::get<"sigma"_h>(arguments);
+  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+  auto && dam = tuple::get<"damage"_h>(arguments);
 
-    Matrix<Real> epsilon(3, 3);
-    epsilon.zero();
-    for (UInt i = 0; i < spatial_dimension; ++i) {
-      for (UInt j = 0; j < spatial_dimension; ++j) {
+  if (!damage_in_compute_stress) {
+    Vector<Real, 3> Fdiag;
+    Fdiag.clear();
+
+    Matrix<Real, 3, 3> epsilon;
+    epsilon.clear();
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j) {
         epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
       }
     }
 
-    Math::matrixEig(3, epsilon.data(), Fdiag.data());
+    epsilon.eigh(Fdiag);
 
-    computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
+    computeDamageOnQuad(arguments, Fdiag);
   }
 
   sigma *= 1 - dam;
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
-    const Real & epsilon_equ,
-    __attribute__((unused)) const Matrix<Real> & sigma,
-    const Vector<Real> & epsilon_princ, Real & dam) {
-  Real Fs = epsilon_equ - K0;
+template <Int dim>
+template <typename Args, typename Derived>
+inline void MaterialMazars<dim>::computeDamageOnQuad(
+    Args && arguments, const Eigen::MatrixBase<Derived> & epsilon_princ) {
+  auto && dam = tuple::get<"damage"_h>(arguments);
+  auto && Ehat = tuple::get<"Ehat"_h>(arguments);
+
+  Real Fs = Ehat - K0;
   if (Fs > 0.) {
     Real dam_t;
     Real dam_c;
     dam_t =
-        1 - K0 * (1 - At) / epsilon_equ - At * (exp(-Bt * (epsilon_equ - K0)));
+        1 - K0 * (1 - At) / Ehat - At * (exp(-Bt * (Ehat - K0)));
     dam_c =
-        1 - K0 * (1 - Ac) / epsilon_equ - Ac * (exp(-Bc * (epsilon_equ - K0)));
+        1 - K0 * (1 - Ac) / Ehat - Ac * (exp(-Bc * (Ehat - K0)));
 
     Real Cdiag;
     Cdiag = this->E * (1 - this->nu) / ((1 + this->nu) * (1 - 2 * this->nu));
@@ -123,7 +130,7 @@ inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
                      this->lambda * (epsilon_princ(1) + epsilon_princ(0));
 
     Vector<Real> sigma_p(3);
-    for (UInt i = 0; i < 3; i++) {
+    for (Int i = 0; i < 3; i++) {
       sigma_p(i) = std::max(Real(0.), sigma_princ(i));
     }
     // sigma_p *= 1. - dam;
@@ -131,13 +138,13 @@ inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
     Real trace_p = this->nu / this->E * (sigma_p(0) + sigma_p(1) + sigma_p(2));
 
     Real alpha_t = 0;
-    for (UInt i = 0; i < 3; ++i) {
+    for (Int i = 0; i < 3; ++i) {
       Real epsilon_t = (1 + this->nu) / this->E * sigma_p(i) - trace_p;
       Real epsilon_p = std::max(Real(0.), epsilon_princ(i));
       alpha_t += epsilon_t * epsilon_p;
     }
 
-    alpha_t /= epsilon_equ * epsilon_equ;
+    alpha_t /= Ehat * Ehat;
     alpha_t = std::min(alpha_t, Real(1.));
 
     Real alpha_c = 1. - alpha_t;
@@ -153,13 +160,4 @@ inline void MaterialMazars<spatial_dimension>::computeDamageOnQuad(
   }
 }
 
-/* -------------------------------------------------------------------------- */
-// template<UInt spatial_dimension>
-// inline void
-// MaterialMazars<spatial_dimension>::computeTangentModuliOnQuad(Matrix<Real> &
-// tangent) {
-//   MaterialElastic<spatial_dimension>::computeTangentModuliOnQuad(tangent);
-
-//   tangent *= (1-dam);
-// }
 } // namespace akantu

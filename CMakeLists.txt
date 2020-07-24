@@ -126,7 +126,7 @@ package_list_packages(${PROJECT_SOURCE_DIR}/packages
   EXTRA_PACKAGES_FOLDER ${PROJECT_SOURCE_DIR}/extra_packages
   NO_AUTO_COMPILE_FLAGS)
 
-## meta option \todo better way to do it when multiple package give enable the
+## meta option TODO better way to do it when multiple package give enable the
 ## same feature
 if(AKANTU_SCOTCH)
   set(AKANTU_PARTITIONER ON)

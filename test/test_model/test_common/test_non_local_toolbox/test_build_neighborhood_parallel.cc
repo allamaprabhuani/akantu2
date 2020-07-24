@@ -175,7 +175,7 @@ int main(int argc, char * argv[]) {
     UInt local_num = (local_el_index * nb_quads) + q_min.num_point;
     Array<Real> & damage = const_cast<Array<Real> &>(
         mat.getInternal<Real>("damage")(q_min.type, _not_ghost));
-    Real * dam_ptr = damage.storage();
+    Real * dam_ptr = damage.data();
     dam_ptr += local_num;
     *dam_ptr = 0.9;
   }

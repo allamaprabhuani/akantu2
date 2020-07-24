@@ -131,14 +131,14 @@ void SolidMechanicsModel::instantiateMaterials() {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::assignMaterialToElements(
-    const ElementTypeMapArray<UInt> * filter) {
+    const ElementTypeMapArray<Idx> * filter) {
 
   for_each_element(
       mesh,
       [&](auto && element) {
-        UInt mat_index = (*material_selector)(element);
+        auto mat_index = (*material_selector)(element);
         AKANTU_DEBUG_ASSERT(
-            mat_index < materials.size(),
+            mat_index < Int(materials.size()),
             "The material selector returned an index that does not exists");
         material_index(element) = mat_index;
       },

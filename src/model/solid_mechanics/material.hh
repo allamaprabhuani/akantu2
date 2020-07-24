@@ -128,8 +128,14 @@ protected:
   virtual void computePotentialEnergy(ElementType el_type);
 
   /// compute the potential energy for an element
+  [[gnu::deprecated("Use the interface with an Element")]] virtual void
+  computePotentialEnergyByElement(ElementType /*type*/, Int /*index*/,
+                                  Vector<Real> & /*epot_on_quad_points*/) {
+    AKANTU_TO_IMPLEMENT();
+  }
+
   virtual void
-  computePotentialEnergyByElement(ElementType /*type*/, UInt /*index*/,
+  computePotentialEnergyByElement(const Element & /*element*/,
                                   Vector<Real> & /*epot_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
   }
@@ -250,13 +256,35 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /* ------------------------------------------------------------------------ */
-  static inline UInt getTangentStiffnessVoigtSize(UInt dim);
+  constexpr static inline Int getTangentStiffnessVoigtSize(Int dim) {
+    return (dim * (dim - 1) / 2 + dim);
+  }
+
+  template <Int dim> static inline Int getTangentStiffnessVoigtSize() {
+    return getTangentStiffnessVoigtSize(dim);
+  }
 
   /// compute the potential energy by element
   void computePotentialEnergyByElements();
 
   /// resize the intenals arrays
   virtual void resizeInternals();
+
+  template <Int dim>
+  decltype(auto) getArguments(const ElementType & el_type,
+                              const GhostType & ghost_type) {
+    if (not finite_deformation) {
+      return zip(tuple::get<"sigma"_h>() =
+                     make_view<dim, dim>(this->stress(el_type, ghost_type)),
+                 tuple::get<"grad_u"_h>() =
+                     make_view<dim, dim>(this->gradu(el_type, ghost_type)));
+    } else {
+      return zip(tuple::get<"sigma"_h>() = make_view<dim, dim>(
+                     this->piola_kirchhoff_2(el_type, ghost_type)),
+                 tuple::get<"grad_u"_h>() =
+                     make_view<dim, dim>(this->gradu(el_type, ghost_type)));
+    }
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Finite deformation functions                                             */
@@ -290,30 +318,34 @@ protected:
 public:
   /// Size of the Stress matrix for the case of finite deformation see: Bathe et
   /// al, IJNME, Vol 9, 353-386, 1975
-  static inline UInt getCauchyStressMatrixSize(UInt dim);
+  constexpr inline Int getCauchyStressMatrixSize(Int dim);
 
   /// Sets the stress matrix according to Bathe et al, IJNME, Vol 9, 353-386,
   /// 1975
-  template <Int dim>
-  static inline void setCauchyStressMatrix(const Matrix<Real> & S_t,
-                                           Matrix<Real> & sigma);
+  template <Int dim, typename D1, typename D2>
+  static constexpr inline void
+  setCauchyStressMatrix(const Eigen::MatrixBase<D1> & S_t,
+                        Eigen::MatrixBase<D2> & sigma);
 
   /// write the stress tensor in the Voigt notation.
-  template <Int dim>
-  static inline decltype(auto) stressToVoigt(const Matrix<Real> & stress) {
+  template <Int dim, typename D1>
+  static constexpr inline decltype(auto)
+  stressToVoigt(const Eigen::MatrixBase<D1> & stress) {
     return VoigtHelper<dim>::matrixToVoigt(stress);
   }
 
   /// write the strain tensor in the Voigt notation.
-  template <Int dim>
-  static inline decltype(auto) strainToVoigt(const Matrix<Real> & strain) {
+  template <Int dim, typename D1>
+  static constexpr inline decltype(auto)
+  strainToVoigt(const Eigen::MatrixBase<D1> & strain) {
     return VoigtHelper<dim>::matrixToVoigtWithFactors(strain);
   }
 
   /// write a voigt vector to stress
-  template <Int dim>
-  static inline void voigtToStress(const Vector<Real> & voigt,
-                                   Matrix<Real> & stress) {
+  template <Int dim, typename D1, typename D2>
+  static constexpr inline void
+  voigtToStress(const Eigen::MatrixBase<D1> & voigt,
+                Eigen::MatrixBase<D2> & stress) {
     VoigtHelper<dim>::voigtToMatrix(voigt, stress);
   }
 
@@ -324,33 +356,44 @@ public:
 
   /// Computation the Cauchy stress the 2nd Piola-Kirchhoff and the deformation
   /// gradient
-  template <Int dim>
-  inline void StoCauchy(const Matrix<Real> & F, const Matrix<Real> & S,
-                        Matrix<Real> & sigma, const Real & C33 = 1.0) const;
+  template <Int dim, typename D1, typename D2, typename D3>
+  static constexpr inline void
+  StoCauchy(const Eigen::MatrixBase<D1> & F, const Eigen::MatrixBase<D2> & S,
+            Eigen::MatrixBase<D3> & sigma, const Real & C33 = 1.0);
 
-  template <Int dim>
-  static inline void gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F);
+  template <Int dim, typename D1, typename D2>
+  static constexpr inline void gradUToF(const Eigen::MatrixBase<D1> & grad_u,
+                                        Eigen::MatrixBase<D2> & F);
 
-  template <Int dim>
-  static inline decltype(auto) gradUToF(const Matrix<Real> & grad_u);
+  template <Int dim, typename D1>
+  static constexpr inline decltype(auto)
+  gradUToF(const Eigen::MatrixBase<D1> & grad_u);
 
-  static inline void rightCauchy(const Matrix<Real> & F, Matrix<Real> & C);
-  static inline void leftCauchy(const Matrix<Real> & F, Matrix<Real> & B);
+  template <typename D1, typename D2>
+  static constexpr inline void rightCauchy(const Eigen::MatrixBase<D1> & F,
+                                           Eigen::MatrixBase<D2> & C);
+  template <typename D1, typename D2>
+  static constexpr inline void leftCauchy(const Eigen::MatrixBase<D1> & F,
+                                          Eigen::MatrixBase<D2> & B);
 
-  template <Int dim>
-  static inline void gradUToEpsilon(const Matrix<Real> & grad_u,
-                                    Matrix<Real> & epsilon);
-  template <Int dim>
-  static inline decltype(auto) gradUToEpsilon(const Matrix<Real> & grad_u);
+  template <Int dim, typename D1, typename D2>
+  static constexpr inline void
+  gradUToEpsilon(const Eigen::MatrixBase<D1> & grad_u,
+                 Eigen::MatrixBase<D2> & epsilon);
+  template <Int dim, typename D1>
+  static constexpr inline decltype(auto)
+  gradUToEpsilon(const Eigen::MatrixBase<D1> & grad_u);
 
-  template <Int dim>
-  static inline void gradUToE(const Matrix<Real> & grad_u,
-                              Matrix<Real> & epsilon);
+  template <Int dim, typename D1, typename D2>
+  static constexpr inline void gradUToE(const Eigen::MatrixBase<D1> & grad_u,
+                                        Eigen::MatrixBase<D2> & epsilon);
 
-  template <Int dim>
-  static inline decltype(auto) gradUToE(const Matrix<Real> & grad_u);
+  template <Int dim, typename D1>
+  static constexpr inline decltype(auto)
+  gradUToE(const Eigen::MatrixBase<D1> & grad_u);
 
-  static inline Real stressToVonMises(const Matrix<Real> & stress);
+  template <typename D1>
+  static inline Real stressToVonMises(const Eigen::MatrixBase<D1> & stress);
 
 protected:
   /// converts global element to local element
@@ -437,15 +480,25 @@ public:
   /// return the potential energy for the subset of elements contained by the
   /// material
   Real getPotentialEnergy();
+
   /// return the potential energy for the provided element
-  Real getPotentialEnergy(ElementType & type, UInt index);
+  Real getPotentialEnergy(const Element & element);
+
+  [[gnu::deprecated("Use the interface with an Element")]] Real
+  getPotentialEnergy(const ElementType & type, Int index);
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
   virtual Real getEnergy(const std::string & type);
   /// return the energy (identified by id) for the provided element
-  virtual Real getEnergy(const std::string & energy_id, ElementType type,
-                         Idx index);
+  virtual Real getEnergy(const std::string & energy_id,
+                         const Element & element);
+
+  [[gnu::deprecated("Use the interface with an Element")]] virtual Real
+  getEnergy(const std::string & energy_id, const ElementType & type,
+            Idx index) final {
+    return getEnergy(energy_id, {type, index, _not_ghost});
+  }
 
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, Idx);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
@@ -475,8 +528,8 @@ public:
   inline bool isInternal(const ID & id, ElementKind element_kind) const;
 
   template <typename T>
-  ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
-                                              ElementKind element_kind) const;
+  ElementTypeMap<Int>
+  getInternalDataPerElem(const ID & id, const ElementKind & element_kind) const;
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
@@ -628,22 +681,18 @@ inline std::ostream & operator<<(std::ostream & stream,
 /// functions such as computeStress. This macro in addition to write the loop
 /// provides two tensors (matrices) sigma and grad_u
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type)       \
-  auto && grad_u_view =                                                        \
-      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
-                this->spatial_dimension);                                      \
+  auto && grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type)); \
                                                                                \
-  auto stress_view =                                                           \
-      make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
-                this->spatial_dimension);                                      \
+  auto stress_view = make_view<dim, dim>(this->stress(el_type, ghost_type));   \
                                                                                \
   if (this->isFiniteDeformation()) {                                           \
-    stress_view = make_view(this->piola_kirchhoff_2(el_type, ghost_type),      \
-                            this->spatial_dimension, this->spatial_dimension); \
+    stress_view =                                                              \
+        make_view<dim, dim>(this->piola_kirchhoff_2(el_type, ghost_type));     \
   }                                                                            \
                                                                                \
   for (auto && data : zip(grad_u_view, stress_view)) {                         \
-    [[gnu::unused]] Matrix<Real> & grad_u = std::get<0>(data);                 \
-    [[gnu::unused]] Matrix<Real> & sigma = std::get<1>(data)
+    [[gnu::unused]] auto && grad_u = std::get<0>(data);                        \
+    [[gnu::unused]] auto && sigma = std::get<1>(data)
 
 #define MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END }
 
@@ -652,23 +701,19 @@ inline std::ostream & operator<<(std::ostream & stream,
 /// loop provides two tensors (matrices) sigma_tensor, grad_u, and a matrix
 /// where the elemental tangent moduli should be stored in Voigt Notation
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_mat)              \
-  auto && grad_u_view =                                                        \
-      make_view(this->gradu(el_type, ghost_type), this->spatial_dimension,     \
-                this->spatial_dimension);                                      \
+  auto && grad_u_view = make_view<dim, dim>(this->gradu(el_type, ghost_type)); \
                                                                                \
   auto && stress_view =                                                        \
-      make_view(this->stress(el_type, ghost_type), this->spatial_dimension,    \
-                this->spatial_dimension);                                      \
+      make_view<dim, dim>(this->stress(el_type, ghost_type));                  \
                                                                                \
-  auto tangent_size =                                                          \
-      this->getTangentStiffnessVoigtSize(this->spatial_dimension);             \
+  constexpr auto tangent_size = this->getTangentStiffnessVoigtSize(dim);       \
                                                                                \
-  auto && tangent_view = make_view(tangent_mat, tangent_size, tangent_size);   \
+  auto && tangent_view = make_view<tangent_size, tangent_size>(tangent_mat);   \
                                                                                \
   for (auto && data : zip(grad_u_view, stress_view, tangent_view)) {           \
-    [[gnu::unused]] Matrix<Real> & grad_u = std::get<0>(data);                 \
-    [[gnu::unused]] Matrix<Real> & sigma = std::get<1>(data);                  \
-    Matrix<Real> & tangent = std::get<2>(data);
+    [[gnu::unused]] auto && grad_u = std::get<0>(data);                        \
+    [[gnu::unused]] auto && sigma = std::get<1>(data);                         \
+    auto && tangent = std::get<2>(data);
 
 #define MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_END }
 

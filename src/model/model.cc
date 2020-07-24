@@ -276,8 +276,8 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
 void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                       const std::string & field_id,
                                       const std::string & group_name,
-                                      UInt spatial_dimension,
-                                      ElementKind element_kind,
+                                      Int spatial_dimension,
+                                      const ElementKind & element_kind,
                                       bool padding_flag) {
 #ifdef AKANTU_USE_IOHELPER
   std::shared_ptr<dumpers::Field> field;
@@ -286,7 +286,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
     field = this->createNodalFieldReal(field_id, group_name, padding_flag);
   }
   if (!field) {
-    field = this->createNodalFieldUInt(field_id, group_name, padding_flag);
+    field = this->createNodalFieldInt(field_id, group_name, padding_flag);
   }
   if (!field) {
     field = this->createNodalFieldBool(field_id, group_name, padding_flag);
@@ -296,7 +296,7 @@ void Model::addDumpGroupFieldToDumper(const std::string & dumper_name,
                                        spatial_dimension, element_kind);
   }
   if (!field) {
-    field = this->mesh.createFieldFromAttachedData<UInt>(field_id, group_name,
+    field = this->mesh.createFieldFromAttachedData<Int>(field_id, group_name,
                                                          element_kind);
   }
   if (!field) {

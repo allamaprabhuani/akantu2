@@ -83,8 +83,8 @@ void NeighborhoodBase::createGrid() {
   const auto & lower_bounds = mesh.getLocalLowerBounds();
   const auto & upper_bounds = mesh.getLocalUpperBounds();
   Vector<Real> center = 0.5 * (upper_bounds + lower_bounds);
-  Vector<Real> spacing(spatial_dimension,
-                       this->neighborhood_radius * safety_factor);
+  Vector<Real> spacing(spatial_dimension);
+  spacing.fill(this->neighborhood_radius * safety_factor);
 
   spatial_grid = std::make_unique<SpatialGrid<IntegrationPoint>>(
       spatial_dimension, spacing, center);
@@ -263,16 +263,17 @@ void NeighborhoodBase::saveNeighborCoords(const std::string & filename) const {
 /* -------------------------------------------------------------------------- */
 void NeighborhoodBase::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
+    const ElementTypeMapArray<Idx> & new_numbering,
     const RemovedElementsEvent & event) {
   AKANTU_DEBUG_IN();
 
-  FEEngine & fem = this->model.getFEEngine();
-  UInt nb_quad = 0;
+  auto & fem = this->model.getFEEngine();
+  Int nb_quad = 0;
+
   auto cleanPoint = [&](auto && q) {
     if (new_numbering.exists(q.type, q.ghost_type)) {
-      UInt q_new_el = new_numbering(q.type, q.ghost_type)(q.element);
-      AKANTU_DEBUG_ASSERT(q_new_el != UInt(-1),
+      auto q_new_el = new_numbering(q.type, q.ghost_type)(q.element);
+      AKANTU_DEBUG_ASSERT(q_new_el != Int(-1),
                           "A local quadrature_point "
                               << q
                               << " as been removed instead of "

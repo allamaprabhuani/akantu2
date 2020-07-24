@@ -91,10 +91,10 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type);
       /// get pointer to internals for given type
-      Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-      Real * mu_ptr = this->mu(el_type, ghost_type).storage();
-      Real * kpa_ptr = this->kpa(el_type, ghost_type).storage();
-      UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).storage();
+      Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+      Real * mu_ptr = this->mu(el_type, ghost_type).data();
+      Real * kpa_ptr = this->kpa(el_type, ghost_type).data();
+      UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).data();
       for (UInt q = 0; q < nb_element * nb_quads;
            ++q, ++lambda_ptr, ++mu_ptr, ++kpa_ptr, ++sub_mat_ptr) {
         UInt index = *sub_mat_ptr;
@@ -116,8 +116,8 @@ void MaterialIGFEMElastic<spatial_dimension>::computeStress(
 
   if (!this->finite_deformation) {
     /// get pointer to internals
-    Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-    Real * mu_ptr = this->mu(el_type, ghost_type).storage();
+    Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+    Real * mu_ptr = this->mu(el_type, ghost_type).data();
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
     this->computeStressOnQuad(grad_u, sigma, *lambda_ptr, *mu_ptr);
     ++lambda_ptr;
@@ -138,8 +138,8 @@ void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuli(
     __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   /// get pointer to internals
-  Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-  Real * mu_ptr = this->mu(el_type, ghost_type).storage();
+  Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+  Real * mu_ptr = this->mu(el_type, ghost_type).data();
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
   this->computeTangentModuliOnQuad(tangent, *lambda_ptr, *mu_ptr);
   ++lambda_ptr;
@@ -210,7 +210,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computePotentialEnergyByElement(
   // gradu_end += (index+1)*nb_quadrature_points;
   // stress_it  += index*nb_quadrature_points;
 
-  // Real * epot_quad = epot_on_quad_points.storage();
+  // Real * epot_quad = epot_on_quad_points.data();
 
   // Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
 

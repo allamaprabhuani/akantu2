@@ -137,7 +137,7 @@ namespace internal {
   public:
     PETScWrapedVector(Array && array) : array(array) {
       PETSc_call(VecCreateSeqWithArray, PETSC_COMM_SELF, 1, array.size(),
-                 array.storage(), &x);
+                 array.data(), &x);
     }
 
     ~PETScWrapedVector() override { PETSc_call(VecDestroy, &x); }

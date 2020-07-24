@@ -84,15 +84,15 @@ protected:
       const ElementSynchronizer & distributed_synchronizer,
       const ElementTypeMapArray<UInt> & rank_to_facet,
       const Array<Element> * elements,
-      Array<ElementTypeMapArray<UInt> *> & connectivity,
-      Array<ElementTypeMapArray<UInt> *> & facets);
+      Array<ElementTypeMapArray<Idx> *> & connectivity,
+      Array<ElementTypeMapArray<Idx> *> & facets);
 
   /// initialize ElementTypeMap containing correspondance between
   /// facets and processors
-  void initRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet);
+  void initRankToFacet(ElementTypeMapArray<Idx> & rank_to_facet);
 
   /// find which processor a facet is assigned to
-  void buildRankToFacet(ElementTypeMapArray<UInt> & rank_to_facet,
+  void buildRankToFacet(ElementTypeMapArray<Idx> & rank_to_facet,
                         const Array<Element> * elements);
 
   /* ------------------------------------------------------------------------ */
@@ -103,7 +103,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  ElementTypeMapArray<UInt> facet_to_rank;
+  ElementTypeMapArray<Int> facet_to_rank;
 };
 
 } // namespace akantu

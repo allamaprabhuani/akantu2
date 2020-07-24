@@ -130,7 +130,7 @@ int main(int argc, char * argv[]) {
         ++nb_local_nodes(prank);
     }
 
-    comm.allGather(nb_local_nodes.storage(), 1);
+    comm.allGather(nb_local_nodes.data(), 1);
 
     UInt total_nb_nodes_parallel =
         std::accumulate(nb_local_nodes.begin(), nb_local_nodes.end(), 0);
@@ -147,7 +147,7 @@ int main(int argc, char * argv[]) {
       }
     }
 
-    comm.allGatherV(global_nodes_list.storage(), nb_local_nodes.storage());
+    comm.allGatherV(global_nodes_list.data(), nb_local_nodes.data());
 
     if (prank == 0)
       std::cout << "Maximum node index: "
@@ -171,15 +171,15 @@ int main(int argc, char * argv[]) {
 
         repeated_nodes.push_back(global_nodes_list(n));
 
-        UInt * node_position = global_nodes_list.storage() + n;
+        UInt * node_position = global_nodes_list.data() + n;
 
         for (UInt i = 1; i < appearances; ++i) {
           node_position =
               std::find(node_position + 1,
-                        global_nodes_list.storage() + total_nb_nodes_parallel,
+                        global_nodes_list.data() + total_nb_nodes_parallel,
                         global_nodes_list(n));
 
-          UInt current_index = node_position - global_nodes_list.storage();
+          UInt current_index = node_position - global_nodes_list.data();
 
           std::cout << ", " << current_index;
         }
@@ -245,10 +245,10 @@ int main(int argc, char * argv[]) {
 
   Vector<Int> nodes_to_check_size(psize);
   nodes_to_check_size(prank) = nodes_to_check.getSize();
-  comm.allGather(nodes_to_check_size.storage(), 1);
+  comm.allGather(nodes_to_check_size.data(), 1);
 
   UInt nodes_to_check_global_size = std::accumulate(
-      nodes_to_check_size.storage(), nodes_to_check_size.storage() + psize, 0);
+      nodes_to_check_size.data(), nodes_to_check_size.data() + psize, 0);
 
   if (nodes_to_check_global_size != nb_nodes_to_check_serial) {
     if (prank == 0) {
@@ -408,7 +408,7 @@ void updateDisplacement(SolidMechanicsModelCohesive & model,
         for (UInt n = 0; n < nb_nodes_per_element; ++n) {
           UInt node = connectivity(elem(el), n);
           if (!update(node)) {
-            Vector<Real> node_disp(displacement.storage() +
+            Vector<Real> node_disp(displacement.data() +
                                        node * spatial_dimension,
                                    spatial_dimension);
             node_disp += increment;
@@ -557,7 +557,7 @@ void findNodesToCheck(const Mesh & mesh,
     for (UInt el = 0; el < elem.getSize(); ++el) {
 
       UInt element = elem(el);
-      Vector<UInt> conn_el(connectivity.storage() + nb_nodes_per_elem * element,
+      Vector<UInt> conn_el(connectivity.data() + nb_nodes_per_elem * element,
                            nb_nodes_per_elem);
 
       for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
@@ -574,7 +574,7 @@ void findNodesToCheck(const Mesh & mesh,
   std::vector<CommunicationRequest *> requests;
 
   for (Int p = prank + 1; p < psize; ++p) {
-    requests.push_back(comm.asyncSend(global_nodes_to_check.storage(),
+    requests.push_back(comm.asyncSend(global_nodes_to_check.data(),
                                       global_nodes_to_check.getSize(), p,
                                       prank));
   }
@@ -588,7 +588,7 @@ void findNodesToCheck(const Mesh & mesh,
     UInt recv_nodes_size = recv_nodes.getSize();
     recv_nodes.resize(recv_nodes_size + status.getSize());
 
-    comm.receive(recv_nodes.storage() + recv_nodes_size, status.getSize(), p,
+    comm.receive(recv_nodes.data() + recv_nodes_size, status.getSize(), p,
                  p);
   }
 
@@ -626,7 +626,7 @@ bool checkEquilibrium(const Mesh & mesh, const Array<Real> & residual) {
   }
 
   const auto & comm = Communicator::getStaticCommunicator();
-  comm.allReduce(residual_sum.storage(), spatial_dimension, _so_sum);
+  comm.allReduce(residual_sum.data(), spatial_dimension, _so_sum);
 
   for (UInt s = 0; s < spatial_dimension; ++s) {
     if (!Math::are_float_equal(residual_sum(s), 0.)) {
@@ -655,14 +655,14 @@ bool checkResidual(const Array<Real> & residual, const Vector<Real> & traction,
   for (UInt n = 0; n < nodes_to_check.getSize(); ++n) {
     UInt node = nodes_to_check(n);
 
-    Vector<Real> res(residual.storage() + node * spatial_dimension,
+    Vector<Real> res(residual.data() + node * spatial_dimension,
                      spatial_dimension);
 
     total_force += res;
   }
 
   const auto & comm = Communicator::getStaticCommunicator();
-  comm.allReduce(total_force.storage(), spatial_dimension, _so_sum);
+  comm.allReduce(total_force.data(), spatial_dimension, _so_sum);
 
   Vector<Real> theoretical_total_force(spatial_dimension);
   theoretical_total_force.mul<false>(rotation, traction);
@@ -705,7 +705,7 @@ void findElementsToDisplace(const Mesh & mesh,
       UInt nb_element = mesh.getNbElement(type, ghost_type);
 
       for (UInt el = 0; el < nb_element; ++el) {
-        mesh.getBarycenter(el, type, bary.storage(), ghost_type);
+        mesh.getBarycenter(el, type, bary.data(), ghost_type);
         if (bary(0) > 0.0001)
           elem.push_back(el);
       }

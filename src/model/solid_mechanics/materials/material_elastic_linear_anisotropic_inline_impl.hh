@@ -42,8 +42,12 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <Int dim>
+template <typename Args>
 inline void MaterialElasticLinearAnisotropic<dim>::computeStressOnQuad(
-    const Matrix<Real> & grad_u, Matrix<Real> & sigma) const {
+    Args && arguments) const {
+  auto && sigma = tuple::get<"sigma"_h>(arguments);
+  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+
   auto voigt_strain = strainToVoigt<dim>(gradUToEpsilon<dim>(grad_u));
   auto voigt_stress = this->C * voigt_strain;
   voigtToStress<dim>(voigt_stress, sigma);
@@ -54,7 +58,7 @@ template <Int dim>
 inline void MaterialElasticLinearAnisotropic<dim>::computeTangentModuliOnQuad(
     Matrix<Real> & tangent) const {
 
-  tangent.copy(this->C);
+  tangent = this->C;
 }
 
 /* -------------------------------------------------------------------------- */

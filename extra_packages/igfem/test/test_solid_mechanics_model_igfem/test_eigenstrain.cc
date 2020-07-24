@@ -155,7 +155,7 @@ int main(int argc, char * argv[]) {
       mat_3.getArray<Real>("eigen_grad_u", _igfem_triangle_5, _not_ghost);
   UInt * sub_mat_ptr =
       mat_3.getArray<UInt>("sub_material", _igfem_triangle_5, _not_ghost)
-          .storage();
+          .data();
   eigen_it = eigen_grad_u_3.begin(spatial_dimension, spatial_dimension);
   eigen_end = eigen_grad_u_3.end(spatial_dimension, spatial_dimension);
   for (; eigen_it != eigen_end; ++eigen_it, ++sub_mat_ptr) {

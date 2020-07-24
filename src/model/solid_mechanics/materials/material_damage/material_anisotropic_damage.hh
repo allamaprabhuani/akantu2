@@ -38,9 +38,9 @@
 
 namespace akantu {
 
-template <UInt dim, template <UInt> class EquivalentStrain,
-          template <UInt> class DamageThreshold,
-          template <UInt> class Parent = MaterialElastic>
+template <Int dim, template <Int> class EquivalentStrain,
+          template <Int> class DamageThreshold,
+          template <Int> class Parent = MaterialElastic>
 class MaterialAnisotropicDamage : public Parent<dim> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

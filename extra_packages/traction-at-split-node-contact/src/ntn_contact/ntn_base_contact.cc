@@ -405,11 +405,11 @@ void NTNBaseContact::computeContactPressure() {
 
   // compute gap array for all nodes
   Array<Real> gap(nb_contact_nodes, 1);
-  Real * gap_p = gap.storage();
-  Real * r_disp_p = r_disp.storage();
-  Real * r_velo_p = r_velo.storage();
-  Real * r_acce_p = r_acce.storage();
-  Real * r_old_acce_p = r_old_acce.storage();
+  Real * gap_p = gap.data();
+  Real * r_disp_p = r_disp.data();
+  Real * r_velo_p = r_velo.data();
+  Real * r_acce_p = r_acce.data();
+  Real * r_old_acce_p = r_old_acce.data();
   for (UInt i = 0; i < nb_contact_nodes; ++i) {
     *gap_p = *r_disp_p + delta_t * *r_velo_p + delta_t * delta_t * *r_acce_p -
              0.5 * delta_t * delta_t * *r_old_acce_p;

@@ -80,7 +80,7 @@ target_include_directories(iohelper
 
 
 set_target_properties(iohelper PROPERTIES PUBLIC_HEADER "${IOHELPER_COMMON_HEADERS}")
-set_property(TARGET iohelper PROPERTY CXX_STANDARD 11)
+set_property(TARGET iohelper PROPERTY CXX_STANDARD 14)
 
 export(TARGETS iohelper
   FILE "${CMAKE_BINARY_DIR}/IOHelperLibraryDepends.cmake")

@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "model.hh"
-#include "neighborhood_max_criterion.hh"
+//#include "neighborhood_max_criterion.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_NEIGHBORHOOD_MAX_CRITERION_INLINE_IMPL_HH_
@@ -41,11 +41,11 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline UInt
+inline Int
 NeighborhoodMaxCriterion::getNbDataForElements(const Array<Element> & elements,
                                                SynchronizationTag tag) const {
-  UInt nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
-  UInt size = 0;
+  auto nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
+  Int size = 0;
 
   if (tag == SynchronizationTag::_nh_criterion) {
     size += sizeof(Real) * nb_quadrature_points;

@@ -33,8 +33,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include <io_helper.hh>
-
 #include "dumper_elemental_field.hh"
 #include "dumper_filtered_connectivity.hh"
 #include "dumper_iohelper.hh"
@@ -86,28 +84,8 @@ void DumperIOHelper::setTimeStep(Real time_step) {
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::dump() {
-  try {
-    dumper->dump(filename, count);
-  } catch (iohelper::IOHelperException & e) {
-    AKANTU_ERROR(
-        "I was not able to dump your data with a Dumper: " << e.what());
-  }
-
-  ++count;
-}
-
+#include <io_helper.hh>
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::dump(UInt step) {
-  this->count = step;
-  this->dump();
-}
-
-/* -------------------------------------------------------------------------- */
-void DumperIOHelper::dump(Real current_time, UInt step) {
-  this->dumper->setCurrentTime(current_time);
-  this->dump(step);
-}
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerMesh(const Mesh & mesh, UInt spatial_dimension,
@@ -300,18 +278,267 @@ template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
   return iohelper::BEAM3;
 }
 #endif
-
 /* -------------------------------------------------------------------------- */
-UInt getIOHelperType(ElementType type) {
-  UInt ioh_type = iohelper::MAX_ELEM_TYPE;
-#define GET_IOHELPER_TYPE(type) ioh_type = getIOHelperType<type>();
+namespace akantu {
 
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
-#undef GET_IOHELPER_TYPE
-  return ioh_type;
-}
+// /* -------------------------------------------------------------------------- */
+// DumperIOHelper::DumperIOHelper() = default;
 
-/* -------------------------------------------------------------------------- */
+// /* -------------------------------------------------------------------------- */
+// DumperIOHelper::~DumperIOHelper() {}
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::setParallelContext(bool is_parallel) {
+//   auto whoami = Communicator::getStaticCommunicator().whoAmI();
+//   auto nb_proc = Communicator::getStaticCommunicator().getNbProc();
+
+//   if (is_parallel)
+//     dumper->setParallelContext(whoami, nb_proc);
+//   else
+//     dumper->setParallelContext(0, 1);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::setDirectory(const std::string & directory) {
+//   this->directory = directory;
+//   dumper->setPrefix(directory);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::setBaseName(const std::string & basename) {
+//   filename = basename;
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::setTimeStep(Real time_step) {
+//   if (!time_activated)
+//     this->dumper->activateTimeDescFiles(time_step);
+//   else
+//     this->dumper->setTimeStep(time_step);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::dump() {
+//   try {
+//     dumper->dump(filename, count);
+//   } catch (iohelper::IOHelperException & e) {
+//     AKANTU_ERROR(
+//         "I was not able to dump your data with a Dumper: " << e.what());
+//   }
+
+//   ++count;
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::dump(Int step) {
+//   this->count = step;
+//   this->dump();
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::dump(Real current_time, Int step) {
+//   this->dumper->setCurrentTime(current_time);
+//   this->dump(step);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::registerMesh(const Mesh & mesh, Int spatial_dimension,
+//                                   const GhostType & ghost_type,
+//                                   const ElementKind & element_kind) {
+
+// #if defined(AKANTU_IGFEM)
+//   if (element_kind == _ek_igfem) {
+//     registerField("connectivities",
+//                   new dumper::IGFEMConnectivityField(
+//                       mesh.getConnectivities(), spatial_dimension, ghost_type));
+//   } else
+// #endif
+
+//     registerField("connectivities",
+//                   std::make_shared<dumper::ElementalField<Idx>>(
+//                       mesh.getConnectivities(), spatial_dimension, ghost_type,
+//                       element_kind));
+
+//   registerField("positions",
+//                 std::make_shared<dumper::NodalField<Real>>(mesh.getNodes()));
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::registerFilteredMesh(
+//     const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+//     const Array<Idx> & nodes_filter, Int spatial_dimension,
+//     const GhostType & ghost_type, const ElementKind & element_kind) {
+//   auto * f_connectivities = new ElementTypeMapArrayFilter<Idx>(
+//       mesh.getConnectivities(), elements_filter);
+
+//   this->registerField("connectivities",
+//                       std::make_shared<dumper::FilteredConnectivityField>(
+//                           *f_connectivities, nodes_filter, spatial_dimension,
+//                           ghost_type, element_kind));
+
+//   this->registerField("positions",
+//                       std::make_shared<dumper::NodalField<Real, true>>(
+//                           mesh.getNodes(), 0, 0, &nodes_filter));
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::registerField(const std::string & field_id,
+//                                    std::shared_ptr<dumper::Field> field) {
+//   auto it = fields.find(field_id);
+//   if (it != fields.end()) {
+//     AKANTU_DEBUG_WARNING(
+//         "The field "
+//         << field_id << " is already registered in this Dumper. Field ignored.");
+//     return;
+//   }
+
+//   fields[field_id] = field;
+//   field->registerToDumper(field_id, *dumper);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::unRegisterField(const std::string & field_id) {
+//   auto it = fields.find(field_id);
+//   if (it == fields.end()) {
+//     AKANTU_DEBUG_WARNING(
+//         "The field " << field_id
+//                      << " is not registered in this Dumper. Nothing to do.");
+//     return;
+//   }
+
+//   fields.erase(it);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::registerVariable(
+//     const std::string & variable_id,
+//     std::shared_ptr<dumper::VariableBase> variable) {
+//   auto it = variables.find(variable_id);
+
+//   if (it != variables.end()) {
+//     AKANTU_DEBUG_WARNING(
+//         "The Variable "
+//         << variable_id
+//         << " is already registered in this Dumper. Variable ignored.");
+//     return;
+//   }
+
+//   variables[variable_id] = variable;
+//   variable->registerToDumper(variable_id, *dumper);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// void DumperIOHelper::unRegisterVariable(const std::string & variable_id) {
+//   auto it = variables.find(variable_id);
+
+//   if (it == variables.end()) {
+//     AKANTU_DEBUG_WARNING(
+//         "The variable " << variable_id
+//                         << " is not registered in this Dumper. Nothing to do.");
+//     return;
+//   }
+
+//   variables.erase(it);
+// }
+
+// /* -------------------------------------------------------------------------- */
+// template <ElementType type> iohelper::ElemType getIOHelperType() {
+//   AKANTU_TO_IMPLEMENT();
+//   return iohelper::MAX_ELEM_TYPE;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_point_1>() {
+//   return iohelper::POINT_SET;
+// }
+// template <> iohelper::ElemType getIOHelperType<_segment_2>() {
+//   return iohelper::LINE1;
+// }
+// template <> iohelper::ElemType getIOHelperType<_segment_3>() {
+//   return iohelper::LINE2;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_triangle_3>() {
+//   return iohelper::TRIANGLE1;
+// }
+// template <> iohelper::ElemType getIOHelperType<_triangle_6>() {
+//   return iohelper::TRIANGLE2;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_quadrangle_4>() {
+//   return iohelper::QUAD1;
+// }
+// template <> iohelper::ElemType getIOHelperType<_quadrangle_8>() {
+//   return iohelper::QUAD2;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_tetrahedron_4>() {
+//   return iohelper::TETRA1;
+// }
+// template <> iohelper::ElemType getIOHelperType<_tetrahedron_10>() {
+//   return iohelper::TETRA2;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_hexahedron_8>() {
+//   return iohelper::HEX1;
+// }
+// template <> iohelper::ElemType getIOHelperType<_hexahedron_20>() {
+//   return iohelper::HEX2;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_pentahedron_6>() {
+//   return iohelper::PRISM1;
+// }
+// template <> iohelper::ElemType getIOHelperType<_pentahedron_15>() {
+//   return iohelper::PRISM2;
+// }
+
+// #if defined(AKANTU_COHESIVE_ELEMENT)
+// template <> iohelper::ElemType getIOHelperType<_cohesive_1d_2>() {
+//   return iohelper::COH1D2;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_cohesive_2d_4>() {
+//   return iohelper::COH2D4;
+// }
+// template <> iohelper::ElemType getIOHelperType<_cohesive_2d_6>() {
+//   return iohelper::COH2D6;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_cohesive_3d_6>() {
+//   return iohelper::COH3D6;
+// }
+// template <> iohelper::ElemType getIOHelperType<_cohesive_3d_12>() {
+//   return iohelper::COH3D12;
+// }
+
+// template <> iohelper::ElemType getIOHelperType<_cohesive_3d_8>() {
+//   return iohelper::COH3D8;
+// }
+// // template <>
+// // iohelper::ElemType getIOHelperType<_cohesive_3d_16>() { return
+// // iohelper::COH3D16; }
+// #endif
+
+// #if defined(AKANTU_STRUCTURAL_MECHANICS)
+// template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() {
+//   return iohelper::BEAM2;
+// }
+// template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
+//   return iohelper::BEAM3;
+// }
+// #endif
+
+// /* -------------------------------------------------------------------------- */
+// UInt getIOHelperType(ElementType type) {
+//   UInt ioh_type = iohelper::MAX_ELEM_TYPE;
+// #define GET_IOHELPER_TYPE(type) ioh_type = getIOHelperType<type>();
+
+//   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_IOHELPER_TYPE);
+// #undef GET_IOHELPER_TYPE
+//   return ioh_type;
+// }
+
+// /* -------------------------------------------------------------------------- */
 
 } // namespace akantu
 

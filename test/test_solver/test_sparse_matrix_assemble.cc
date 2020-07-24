@@ -73,7 +73,7 @@ int main(int argc, char * argv[]) {
 
   //   for(akantu::UInt e = 0; e < nb_element; ++e) {
   //     element.element = e;
-  //     sparse_matrix.addToMatrix(local_mat.storage(), element,
+  //     sparse_matrix.addToMatrix(local_mat.data(), element,
   //     nb_nodes_per_element);
   //   }
   // }

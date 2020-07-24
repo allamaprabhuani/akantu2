@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "non_local_manager.hh"
 #include "grid_synchronizer.hh"
+#include "integrator.hh"
 #include "model.hh"
 #include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
@@ -80,11 +81,6 @@ void NonLocalManager::initialize() {
 
   auto & mesh = this->model.getMesh();
   mesh.registerEventHandler(*this, _ehp_non_local_manager);
-
-  /// store the number of current ghost elements for each type in the mesh
-  // ElementTypeMap<UInt> nb_ghost_protected;
-  // for (auto type : mesh.elementTypes(spatial_dimension, _ghost))
-  //   nb_ghost_protected(mesh.getNbElement(type, _ghost), type, _ghost);
 
   /// exchange the missing ghosts for the non-local neighborhoods
   this->createNeighborhoodSynchronizers();
@@ -238,9 +234,10 @@ void NonLocalManager::createNeighborhoodSynchronizers() {
   /// this proc does not know all the neighborhoods -> create dummy
   /// grid so that this proc can participate in the all gather for
   /// detecting the overlap of neighborhoods this proc doesn't know
-  Vector<Real> grid_center(this->spatial_dimension,
-                           std::numeric_limits<Real>::max());
-  Vector<Real> spacing(this->spatial_dimension, 0.);
+  Vector<Real> grid_center(this->spatial_dimension);
+  grid_center.fill(std::numeric_limits<Real>::max());
+  Vector<Real> spacing(this->spatial_dimension);
+  spacing.fill(0.);
 
   dummy_grid = std::make_unique<SpatialGrid<IntegrationPoint>>(
       this->spatial_dimension, spacing, grid_center);
@@ -518,8 +515,8 @@ void NonLocalManager::cleanupExtraGhostElements() {
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::onElementsRemoved(
     const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
-    __attribute__((unused)) const RemovedElementsEvent & event) {
+    const ElementTypeMapArray<Idx> & new_numbering,
+    const RemovedElementsEvent & event) {
 
   FEEngine & fee = this->model.getFEEngine();
   NonLocalManager::removeIntegrationPointsFromMap(
@@ -552,16 +549,16 @@ void NonLocalManager::onElementsAdded(const Array<Element> & /*unused*/,
 }
 
 /* -------------------------------------------------------------------------- */
-void NonLocalManager::resizeElementTypeMap(UInt nb_component,
+void NonLocalManager::resizeElementTypeMap(Int nb_component,
                                            ElementTypeMapReal & element_map,
                                            const FEEngine & fee,
                                            const ElementKind el_kind) {
-  Mesh & mesh = this->model.getMesh();
+  auto & mesh = this->model.getMesh();
 
   for (auto gt : ghost_types) {
     for (auto type : mesh.elementTypes(spatial_dimension, gt, el_kind)) {
-      UInt nb_element = mesh.getNbElement(type, gt);
-      UInt nb_quads = fee.getNbIntegrationPoints(type, gt);
+      auto nb_element = mesh.getNbElement(type, gt);
+      auto nb_quads = fee.getNbIntegrationPoints(type, gt);
       if (!element_map.exists(type, gt)) {
         element_map.alloc(nb_element * nb_quads, nb_component, type, gt);
       } else {
@@ -573,17 +570,17 @@ void NonLocalManager::resizeElementTypeMap(UInt nb_component,
 
 /* -------------------------------------------------------------------------- */
 void NonLocalManager::removeIntegrationPointsFromMap(
-    const ElementTypeMapArray<UInt> & new_numbering, UInt nb_component,
+    const ElementTypeMapArray<Idx> & new_numbering, Int nb_component,
     ElementTypeMapReal & element_map, const FEEngine & fee,
     const ElementKind el_kind) {
 
   for (auto gt : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, gt, el_kind)) {
       if (element_map.exists(type, gt)) {
-        const Array<UInt> & renumbering = new_numbering(type, gt);
+        const auto & renumbering = new_numbering(type, gt);
 
-        Array<Real> & vect = element_map(type, gt);
-        UInt nb_quad_per_elem = fee.getNbIntegrationPoints(type, gt);
+        auto & vect = element_map(type, gt);
+        auto nb_quad_per_elem = fee.getNbIntegrationPoints(type, gt);
         Array<Real> tmp(renumbering.size() * nb_quad_per_elem, nb_component);
 
         AKANTU_DEBUG_ASSERT(
@@ -593,10 +590,10 @@ void NonLocalManager::removeIntegrationPointsFromMap(
                 << ") "
                    "!!");
 
-        UInt new_size = 0;
-        for (UInt i = 0; i < renumbering.size(); ++i) {
-          UInt new_i = renumbering(i);
-          if (new_i != UInt(-1)) {
+        Int new_size = 0;
+        for (Int i = 0; i < renumbering.size(); ++i) {
+          auto new_i = renumbering(i);
+          if (new_i != Int(-1)) {
             memcpy(tmp.data() + new_i * nb_component * nb_quad_per_elem,
                    vect.data() + i * nb_component * nb_quad_per_elem,
                    nb_component * nb_quad_per_elem * sizeof(Real));
@@ -613,8 +610,8 @@ void NonLocalManager::removeIntegrationPointsFromMap(
 /* -------------------------------------------------------------------------- */
 UInt NonLocalManager::getNbData(const Array<Element> & elements,
                                 const ID & id) const {
-  UInt size = 0;
-  UInt nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
+  Int size = 0;
+  auto nb_quadrature_points = this->model.getNbIntegrationPoints(elements);
   auto it = non_local_variables.find(id);
 
   AKANTU_DEBUG_ASSERT(it != non_local_variables.end(),
@@ -628,7 +625,6 @@ UInt NonLocalManager::getNbData(const Array<Element> & elements,
 void NonLocalManager::packData(CommunicationBuffer & buffer,
                                const Array<Element> & elements,
                                const ID & id) const {
-
   auto it = non_local_variables.find(id);
 
   AKANTU_DEBUG_ASSERT(it != non_local_variables.end(),

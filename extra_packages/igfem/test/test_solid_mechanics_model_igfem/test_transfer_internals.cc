@@ -245,7 +245,7 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
     Array<Real> barycenter_igfem(nb_igfem_element, spatial_dimension);
     Array<Real>::vector_iterator bary_it =
         barycenter_igfem.begin(spatial_dimension);
-    UInt * conn_val = mesh.getConnectivity(igfem_el_type, ghost_type).storage();
+    UInt * conn_val = mesh.getConnectivity(igfem_el_type, ghost_type).data();
     Array<Real> & nodes = mesh.getNodes();
     UInt nb_parent_nodes = IGFEMHelper::getNbParentNodes(igfem_el_type);
     /// compute the bary center of the underlying parent element
@@ -255,7 +255,7 @@ bool checkResults(Real & error, UInt & counter, SolidMechanicsModel & model,
       UInt offset = elem * nb_el_nodes;
       for (UInt n = 0; n < nb_parent_nodes; ++n) {
         memcpy(local_coord + n * spatial_dimension,
-               nodes.storage() + conn_val[offset + n] * spatial_dimension,
+               nodes.data() + conn_val[offset + n] * spatial_dimension,
                spatial_dimension * sizeof(Real));
       }
       Math::barycenter(local_coord, nb_parent_nodes, spatial_dimension,

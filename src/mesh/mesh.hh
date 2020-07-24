@@ -374,17 +374,17 @@ public:
                       GhostType ghost_type) const;
 
   /// get the element connected to a subelement (element of lower dimension)
-  const auto & getElementToSubelement() const;
+  decltype(auto) getElementToSubelement() const;
 
   /// get the element connected to a subelement
   const auto & getElementToSubelement(ElementType el_type,
                                       GhostType ghost_type = _not_ghost) const;
 
   /// get the elements connected to a subelement
-  const auto & getElementToSubelement(const Element & element) const;
+  decltype(auto) getElementToSubelement(const Element & element) const;
 
   /// get the subelement (element of lower dimension) connected to a element
-  const auto & getSubelementToElement() const;
+  decltype(auto) getSubelementToElement() const;
 
   /// get the subelement connected to an element
   const auto & getSubelementToElement(ElementType el_type,
@@ -416,24 +416,25 @@ protected:
 public:
   /// get a name field associated to the mesh
   template <typename T>
-  inline const Array<T> & getData(const ID & data_name, ElementType el_type,
-                                  GhostType ghost_type = _not_ghost) const;
+  inline decltype(auto)
+  getData(const ID & data_name, const ElementType & el_type,
+          const GhostType & ghost_type = _not_ghost) const;
 
   /// get a name field associated to the mesh
   template <typename T>
-  inline Array<T> & getData(const ID & data_name, ElementType el_type,
-                            GhostType ghost_type = _not_ghost);
+  inline decltype(auto) getData(const ID & data_name,
+                                const ElementType & el_type,
+                                const GhostType & ghost_type = _not_ghost);
 
   /// get a name field associated to the mesh
   template <typename T>
-  inline const ElementTypeMapArray<T> & getData(const ID & data_name) const;
+  inline decltype(auto) getData(const ID & data_name) const;
 
   /// get a name field associated to the mesh
-  template <typename T>
-  inline ElementTypeMapArray<T> & getData(const ID & data_name);
+  template <typename T> inline decltype(auto) getData(const ID & data_name);
 
   template <typename T>
-  ElementTypeMap<Int> getNbDataPerElem(ElementTypeMapArray<T> & array);
+  auto getNbDataPerElem(ElementTypeMapArray<T> & array) -> ElementTypeMap<Int>;
 
   template <typename T>
   std::shared_ptr<dumpers::Field>
@@ -443,33 +444,33 @@ public:
 
   /// templated getter returning the pointer to data in MeshData (modifiable)
   template <typename T>
-  inline Array<T> &
+  inline decltype(auto)
   getDataPointer(const std::string & data_name, const ElementType & el_type,
                  const GhostType & ghost_type = _not_ghost,
                  Int nb_component = 1, bool size_to_nb_element = true,
                  bool resize_with_parent = false);
 
   template <typename T>
-  inline Array<T> & getDataPointer(const ID & data_name,
-                                   const ElementType & el_type,
-                                   const GhostType & ghost_type,
-                                   Int nb_component, bool size_to_nb_element,
-                                   bool resize_with_parent, const T & defaul_);
+  inline decltype(auto)
+  getDataPointer(const ID & data_name, const ElementType & el_type,
+                 const GhostType & ghost_type, Int nb_component,
+                 bool size_to_nb_element, bool resize_with_parent,
+                 const T & defaul_);
 
   /// Facets mesh accessor
-  inline const Mesh & getMeshFacets() const;
-  inline Mesh & getMeshFacets();
+  inline auto getMeshFacets() const -> const Mesh &;
+  inline auto getMeshFacets() -> Mesh &;
 
   inline auto hasMeshFacets() const { return mesh_facets != nullptr; }
 
   /// Parent mesh accessor
-  inline const Mesh & getMeshParent() const;
+  inline auto getMeshParent() const -> const Mesh &;
 
   inline auto isMeshFacets() const { return this->is_mesh_facets; }
 
   /// return the dumper from a group and and a dumper name
-  DumperIOHelper & getGroupDumper(const std::string & dumper_name,
-                                  const std::string & group_name);
+  auto getGroupDumper(const std::string & dumper_name,
+                      const std::string & group_name) -> DumperIOHelper &;
 
   /* ------------------------------------------------------------------------ */
   /* Wrappers on ElementClass functions                                       */
@@ -528,7 +529,7 @@ public:
       ElementTypeMapArray<Idx, ElementType>::ElementTypesIteratorHelper;
 
   template <typename... pack>
-  ElementTypesIteratorHelper elementTypes(pack &&... _pack) const;
+  auto elementTypes(pack &&... _pack) const -> ElementTypesIteratorHelper;
 
   [[deprecated("Use elementTypes instead")]] inline decltype(auto)
   firstType(Int dim = _all_dimensions, GhostType ghost_type = _not_ghost,
@@ -542,16 +543,15 @@ public:
     return connectivities.elementTypes(dim, ghost_type, kind).end();
   }
 
-  AKANTU_GET_MACRO_AUTO(ElementSynchronizer, *element_synchronizer);
-  AKANTU_GET_MACRO_NOT_CONST(ElementSynchronizer, *element_synchronizer,
-                             ElementSynchronizer &);
-  AKANTU_GET_MACRO_AUTO(NodeSynchronizer, *node_synchronizer);
-  AKANTU_GET_MACRO_NOT_CONST(NodeSynchronizer, *node_synchronizer,
-                             NodeSynchronizer &);
-  AKANTU_GET_MACRO_AUTO(PeriodicNodeSynchronizer, *periodic_node_synchronizer);
-  AKANTU_GET_MACRO_NOT_CONST(PeriodicNodeSynchronizer,
-                             *periodic_node_synchronizer,
-                             PeriodicNodeSynchronizer &);
+  AKANTU_GET_MACRO_DEREF_PTR(ElementSynchronizer, element_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ElementSynchronizer,
+                                       element_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR(NodeSynchronizer, node_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(NodeSynchronizer, node_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR(PeriodicNodeSynchronizer,
+                             periodic_node_synchronizer);
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(PeriodicNodeSynchronizer,
+                                       periodic_node_synchronizer);
 
   // AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, StaticCommunicator
   // &);
@@ -566,24 +566,25 @@ private:
   friend class MeshAccessor;
   friend class MeshUtils;
 
-  AKANTU_GET_MACRO(NodesPointer, *nodes, Array<Real> &);
+  AKANTU_GET_MACRO_DEREF_PTR(NodesPointer, nodes);
 
   /// get a pointer to the nodes_global_ids Array<UInt> and create it if
   /// necessary
-  inline Array<Idx> & getNodesGlobalIdsPointer();
+  inline auto getNodesGlobalIdsPointer() -> Array<Idx> &;
 
   /// get a pointer to the nodes_type Array<Int> and create it if necessary
-  inline Array<NodeFlag> & getNodesFlagsPointer();
+  inline auto getNodesFlagsPointer() -> Array<NodeFlag> &;
 
   /// get a pointer to the connectivity Array for the given type and create it
   /// if necessary
-  inline Array<Idx> &
-  getConnectivityPointer(const ElementType & type,
-                         const GhostType & ghost_type = _not_ghost);
+  inline auto getConnectivityPointer(const ElementType & type,
+                                     const GhostType & ghost_type = _not_ghost)
+      -> Array<Idx> &;
 
   /// get the ghost element counter
-  inline Array<Idx> & getGhostsCounters(const ElementType & type,
-                                        const GhostType & ghost_type = _ghost) {
+  inline auto getGhostsCounters(const ElementType & type,
+                                const GhostType & ghost_type = _ghost)
+      -> Array<Idx> & {
     AKANTU_DEBUG_ASSERT(ghost_type != _not_ghost,
                         "No ghost counter for _not_ghost elements");
     return ghosts_counters(type, ghost_type);
@@ -591,15 +592,15 @@ private:
 
   /// get a pointer to the element_to_subelement Array for the given type and
   /// create it if necessary
-  inline Array<std::vector<Element>> &
-  getElementToSubelementPointer(ElementType type,
-                                GhostType ghost_type = _not_ghost);
+  inline decltype(auto)
+  getElementToSubelementPointer(const ElementType & type,
+                                const GhostType & ghost_type = _not_ghost);
 
   /// get a pointer to the subelement_to_element Array for the given type and
   /// create it if necessary
-  inline Array<Element> &
-  getSubelementToElementPointer(ElementType type,
-                                GhostType ghost_type = _not_ghost);
+  inline decltype(auto)
+  getSubelementToElementPointer(const ElementType & type,
+                                const GhostType & ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -633,6 +634,7 @@ private:
 
   /// size covered by the mesh on each direction
   Vector<Real> size;
+
   /// global bounding box
   BBox bbox;
 

@@ -73,8 +73,8 @@ public:
   void
   weightedAverageOnNeighbours(const ElementTypeMapReal & to_accumulate,
                               ElementTypeMapReal & accumulated,
-                              UInt nb_degree_of_freedom,
-                              GhostType ghost_type2) const override;
+                              Int nb_degree_of_freedom,
+                              const GhostType & ghost_type2) const override;
 
   /// update the weights based on the weight function
   void updateWeights() override;
@@ -88,8 +88,8 @@ protected:
   template <class Func>
   inline void foreach_weight(GhostType ghost_type, Func && func) const;
 
-  inline UInt getNbData(const Array<Element> & elements,
-                        const SynchronizationTag & tag) const override;
+  inline Int getNbData(const Array<Element> & elements,
+                       const SynchronizationTag & tag) const override;
 
   inline void packData(CommunicationBuffer & buffer,
                        const Array<Element> & elements,
@@ -103,9 +103,8 @@ protected:
   /* Accessor                                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(NonLocalManager, non_local_manager, const NonLocalManager &);
-  AKANTU_GET_MACRO_NOT_CONST(NonLocalManager, non_local_manager,
-                             NonLocalManager &);
+  AKANTU_GET_MACRO_AUTO(NonLocalManager, non_local_manager);
+  AKANTU_GET_MACRO_AUTO_NOT_CONST(NonLocalManager, non_local_manager);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

@@ -225,7 +225,7 @@ void Checker::updateDisplacement(const Vector<Real> & increment) {
     for (UInt n = 0; n < conn.size(); ++n) {
       UInt node = conn(n);
       if (!update(node)) {
-        Vector<Real> node_disp(displacement.storage() +
+        Vector<Real> node_disp(displacement.data() +
                                    node * spatial_dimension,
                                spatial_dimension);
         node_disp += increment;

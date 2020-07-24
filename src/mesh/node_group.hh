@@ -100,7 +100,7 @@ public:
   /// give the number of nodes in the current group
   inline Idx size() const;
 
-  // UInt * storage() { return node_group.storage(); };
+  // UInt * storage() { return node_group.data(); };
 
   friend class GroupManager;
   /* ------------------------------------------------------------------------ */

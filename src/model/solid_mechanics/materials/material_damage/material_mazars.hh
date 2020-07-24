@@ -76,23 +76,16 @@ public:
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-                                  Matrix<Real> & sigma, Real & damage,
-                                  Real & Ehat);
+  template <typename Args> inline void computeStressOnQuad(Args && arguments);
 
-  inline void computeDamageAndStressOnQuad(const Matrix<Real> & grad_u,
-                                           Matrix<Real> & sigma, Real & damage,
-                                           Real & Ehat);
+  template <typename Args>
+  inline void computeDamageAndStressOnQuad(Args && arguments);
 
-  inline void computeDamageOnQuad(const Real & epsilon_equ,
-                                  const Matrix<Real> & sigma,
-                                  const Vector<Real> & epsilon_princ,
-                                  Real & dam);
+  template <typename Args, typename Derived>
+  inline void
+  computeDamageOnQuad(Args && arguments,
+                      const Eigen::MatrixBase<Derived> & epsilon_princ);
 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -115,12 +108,11 @@ protected:
   bool damage_in_compute_stress;
 };
 
+} // namespace akantu
+
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+#include "material_mazars_inline_impl.cc"
 
-} // namespace akantu
-
-#include "material_mazars_inline_impl.hh"
-
-#endif /* AKANTU_MATERIAL_MAZARS_HH_ */
+#endif /* __AKANTU_MATERIAL_MAZARS_HH__ */

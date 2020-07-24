@@ -52,9 +52,9 @@ namespace dumpers {
   public:
     virtual ~ComputeFunctorInterface() = default;
 
-    virtual UInt getDim() = 0;
-    virtual UInt getNbComponent(UInt old_nb_comp) = 0;
-  };
+  virtual Int getDim() = 0;
+  virtual Int getNbComponent(Int old_nb_comp) = 0;
+};
 
   /* ------------------------------------------------------------------------ */
 
@@ -98,8 +98,8 @@ namespace dumpers {
       return out;
     }
 
-    UInt getDim() override { return 1; };
-    UInt getNbComponent(UInt old_nb_comp) override { return old_nb_comp; };
+    Int getDim() override { return 1; };
+    Int getNbComponent(UInt old_nb_comp) override { return old_nb_comp; };
   };
 
   /* ------------------------------------------------------------------------ */
@@ -167,9 +167,9 @@ namespace dumpers {
     iterator begin() { return iterator(sub_field->begin(), *func); }
     iterator end() { return iterator(sub_field->end(), *func); }
 
-    UInt getDim() { return func->getDim(); }
+    Int getDim() { return func->getDim(); }
 
-    UInt size() {
+    Int size() {
       throw;
       // return Functor::size();
       return 0;
@@ -227,7 +227,7 @@ namespace dumpers {
         return *this;
       }
 
-      UInt currentGlobalIndex() { return this->it.currentGlobalIndex(); }
+      Idx currentGlobalIndex() { return this->it.currentGlobalIndex(); }
 
       return_type operator*() { return func.func(*it, it.getCurrentElement()); }
 
@@ -265,9 +265,9 @@ namespace dumpers {
     iterator begin() { return iterator(sub_field->begin(), *func); }
     iterator end() { return iterator(sub_field->end(), *func); }
 
-    UInt getDim() { return func->getDim(); }
+    Int getDim() { return func->getDim(); }
 
-    UInt size() {
+    Int size() {
       throw;
       // return Functor::size();
       return 0;

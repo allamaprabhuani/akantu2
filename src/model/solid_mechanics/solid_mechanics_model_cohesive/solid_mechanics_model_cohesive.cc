@@ -675,7 +675,6 @@ void SolidMechanicsModelCohesive::addDumpGroupFieldToDumper(
 }
 
 /* -------------------------------------------------------------------------- */
-
 void SolidMechanicsModelCohesive::onDump() {
   this->flattenAllRegisteredInternals(_ek_cohesive);
   SolidMechanicsModel::onDump();

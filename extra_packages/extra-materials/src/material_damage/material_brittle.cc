@@ -84,7 +84,7 @@ void MaterialBrittle<spatial_dimension>::computeStress(ElementType el_type,
                                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
 
   Array<Real> & velocity = this->model.getVelocity();
   Array<Real> & strain_rate_brittle =

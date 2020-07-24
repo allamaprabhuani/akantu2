@@ -157,8 +157,8 @@ int main(int argc, char * argv[]) {
   small_frag_inertia(1) = frag_theo_mass * (el_size * el_size + h * h) / 12.;
   small_frag_inertia(2) = frag_theo_mass * (el_size * el_size + h * h) / 12.;
 
-  std::sort(small_frag_inertia.storage(),
-            small_frag_inertia.storage() + spatial_dimension,
+  std::sort(small_frag_inertia.data(),
+            small_frag_inertia.data() + spatial_dimension,
             std::greater<Real>());
 
   const Array<Real> & inertia_moments = fragment_manager.getMomentsOfInertia();
@@ -238,8 +238,8 @@ int main(int argc, char * argv[]) {
           big_frag_inertia(2) =
               big_frag_mass * (big_frag_size * big_frag_size + h * h) / 12.;
 
-          std::sort(big_frag_inertia.storage(),
-                    big_frag_inertia.storage() + spatial_dimension,
+          std::sort(big_frag_inertia.data(),
+                    big_frag_inertia.data() + spatial_dimension,
                     std::greater<Real>());
 
           if (!isInertiaEqual(current_inertia, big_frag_inertia)) {
@@ -385,7 +385,7 @@ void displaceElements(SolidMechanicsModelCohesive & model, const Real lim,
           connectivity.begin(nb_nodes_per_element);
 
       for (UInt el = 0; el < nb_element; ++el) {
-        mesh.getBarycenter(el, type, barycenter.storage(), ghost_type);
+        mesh.getBarycenter(el, type, barycenter.data(), ghost_type);
 
         if (barycenter(0) < lim) {
           const Vector<UInt> & conn = conn_el[el];

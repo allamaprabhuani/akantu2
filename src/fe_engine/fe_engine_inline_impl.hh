@@ -38,8 +38,8 @@
 #include "element_type_conversion.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_FE_ENGINE_INLINE_IMPL_HH_
-#define AKANTU_FE_ENGINE_INLINE_IMPL_HH_
+// #ifndef __AKANTU_FE_ENGINE_INLINE_IMPL_CC__
+// #define __AKANTU_FE_ENGINE_INLINE_IMPL_CC__
 
 namespace akantu {
 
@@ -204,4 +204,4 @@ void FEEngine::filterElementalData(const Mesh & mesh, const Array<T> & elem_f,
 
 } // namespace akantu
 
-#endif /* AKANTU_FE_ENGINE_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_FE_ENGINE_INLINE_IMPL_CC__ */

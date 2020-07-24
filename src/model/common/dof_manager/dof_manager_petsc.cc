@@ -127,7 +127,7 @@ auto DOFManagerPETSc::getNewDOFData(const ID & dof_id)
 }
 
 /* -------------------------------------------------------------------------- */
-std::tuple<UInt, UInt, UInt>
+std::tuple<Int, Int, Int>
 DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
                                       Array<Real> & dofs_array) {
   dofs_ids.push_back(dof_id);
@@ -155,7 +155,7 @@ DOFManagerPETSc::registerDOFsInternal(const ID & dof_id,
 
       PetscInt n;
       PETSc_call(ISGlobalToLocalMappingApply, is_ltog_map, IS_GTOLM_MASK,
-                 gidx.size(), gidx.storage(), &n, lidx.storage());
+                 gidx.size(), gidx.data(), &n, lidx.data());
     }
   }
 

@@ -98,7 +98,7 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
   std::ofstream outfile;
   outfile.open(filename.c_str());
 
-  UInt m = this->size_;
+  auto m = this->size_;
 
   auto & comm = dof_manager.getCommunicator();
 
@@ -118,8 +118,8 @@ void SparseMatrixAIJ::saveProfile(const std::string & filename) const {
   for (auto p : arange(comm.getNbProc())) {
     // write content
     if (comm.whoAmI() == p) {
-      for (UInt i = 0; i < this->nb_non_zero; ++i) {
-        outfile << this->irn.storage()[i] << " " << this->jcn.storage()[i]
+      for (auto && data : zip(this->irn, this->jcn)) {
+        outfile << std::get<0>(data) << " " << std::get<1>(data)
                 << " 1" << std::endl;
       }
     }
@@ -164,8 +164,8 @@ void SparseMatrixAIJ::saveMatrix(const std::string & filename) const {
   for (auto p : arange(comm.getNbProc())) {
     // write content
     if (comm.whoAmI() == p) {
-      for (UInt i = 0; i < this->nb_non_zero; ++i) {
-        outfile << this->irn(i) << " " << this->jcn(i) << " " << this->a(i)
+      for (auto && data : zip(this->irn, this->jcn, this->a)) {
+        outfile << std::get<0>(data) << " " << std::get<1>(data) << " " << std::get<2>(data)
                 << std::endl;
       }
     }
@@ -183,18 +183,13 @@ void SparseMatrixAIJ::matVecMul(const Array<Real> & x, Array<Real> & y,
   AKANTU_DEBUG_IN();
 
   y *= beta;
+  auto x_it = make_view(x).begin();
+  auto y_it = make_view(y).begin();
 
-  auto i_it = this->irn.begin();
-  auto j_it = this->jcn.begin();
-  auto a_it = this->a.begin();
-  auto a_end = this->a.end();
-  auto x_it = x.begin_reinterpret(x.size() * x.getNbComponent());
-  auto y_it = y.begin_reinterpret(x.size() * x.getNbComponent());
-
-  for (; a_it != a_end; ++i_it, ++j_it, ++a_it) {
-    Int i = this->dof_manager.globalToLocalEquationNumber(*i_it - 1);
-    Int j = this->dof_manager.globalToLocalEquationNumber(*j_it - 1);
-    const Real & A = *a_it;
+  for (auto && data : zip(this->irn, this->jcn, this->a)) {
+    Int i = this->dof_manager.globalToLocalEquationNumber(std::get<0>(data) - 1);
+    Int j = this->dof_manager.globalToLocalEquationNumber(std::get<1>(data) - 1);
+    const Real & A = std::get<2>(data);
 
     y_it[i] += alpha * A * x_it[j];
 

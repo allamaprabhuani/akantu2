@@ -36,11 +36,11 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_iterators.hh"
 #include "element_class.hh"
-//#include "mesh.hh"
+#include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_MESH_INLINE_IMPL_HH_
-#define AKANTU_MESH_INLINE_IMPL_HH_
+// #ifndef __AKANTU_MESH_INLINE_IMPL_CC__
+// #define __AKANTU_MESH_INLINE_IMPL_CC__
 
 namespace akantu {
 
@@ -55,7 +55,7 @@ inline constexpr auto Mesh::getKind(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline constexpr ElementKind Element::kind() const {
+inline constexpr auto Element::kind() const -> ElementKind {
   return Mesh::getKind(type);
 }
 
@@ -85,7 +85,7 @@ inline constexpr auto Mesh::getNbFacetsPerElement(const ElementType & type,
 
 /* -------------------------------------------------------------------------- */
 template <typename... pack>
-Mesh::ElementTypesIteratorHelper Mesh::elementTypes(pack &&... _pack) const {
+auto Mesh::elementTypes(pack &&... _pack) const -> ElementTypesIteratorHelper {
   return connectivities.elementTypes(_pack...);
 }
 
@@ -158,7 +158,7 @@ inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
         nodes_to_elements.size());
     auto it = nodes_to_elements.begin();
 
-    UInt new_nb_nodes = 0;
+    Int new_nb_nodes = 0;
     for (auto new_i : new_numbering) {
       if (new_i != Int(-1)) {
         tmp[new_i] = std::move(*it);
@@ -198,7 +198,7 @@ inline void Mesh::removeNodesFromArray(Array<T> & vect,
 }
 
 /* -------------------------------------------------------------------------- */
-inline Array<Idx> & Mesh::getNodesGlobalIdsPointer() {
+inline auto Mesh::getNodesGlobalIdsPointer() -> Array<Idx> & {
   AKANTU_DEBUG_IN();
   if (not nodes_global_ids) {
     nodes_global_ids = std::make_shared<Array<Idx>>(
@@ -214,8 +214,9 @@ inline Array<Idx> & Mesh::getNodesGlobalIdsPointer() {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Array<Idx> & Mesh::getConnectivityPointer(const ElementType & type,
-                                                 const GhostType & ghost_type) {
+inline auto Mesh::getConnectivityPointer(const ElementType & type,
+                                         const GhostType & ghost_type)
+    -> Array<Idx> & {
   if (connectivities.exists(type, ghost_type)) {
     return connectivities(type, ghost_type);
   }
@@ -248,7 +249,7 @@ Mesh::getSubelementToElementPointer(ElementType type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const auto & Mesh::getElementToSubelement() const {
+inline decltype(auto) Mesh::getElementToSubelement() const {
   return getData<std::vector<Element>>("element_to_subelement");
 }
 
@@ -272,7 +273,7 @@ inline auto & Mesh::getElementToSubelementNC(ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-inline const auto &
+inline decltype(auto)
 Mesh::getElementToSubelement(const Element & element) const {
   return getData<std::vector<Element>>("element_to_subelement")(element, 0);
 }
@@ -283,7 +284,7 @@ inline auto & Mesh::getElementToSubelementNC(const Element & element) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline const auto & Mesh::getSubelementToElement() const {
+inline decltype(auto) Mesh::getSubelementToElement() const {
   return getData<Element>("subelement_to_element");
 }
 
@@ -318,7 +319,7 @@ Mesh::getSubelementToElementNC(const Element & element) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline Array<T> &
+inline decltype(auto)
 Mesh::getDataPointer(const ID & data_name, const ElementType & el_type,
                      const GhostType & ghost_type, Int nb_component,
                      bool size_to_nb_element, bool resize_with_parent) {
@@ -373,14 +374,13 @@ inline Array<T> & Mesh::getData(const ID & data_name, ElementType el_type,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline const ElementTypeMapArray<T> &
-Mesh::getData(const ID & data_name) const {
+inline decltype(auto) Mesh::getData(const ID & data_name) const {
   return this->getElementalData<T>(data_name);
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline ElementTypeMapArray<T> & Mesh::getData(const ID & data_name) {
+inline decltype(auto) Mesh::getData(const ID & data_name) {
   return this->getElementalData<T>(data_name);
 }
 
@@ -502,8 +502,7 @@ inline decltype(auto) Mesh::getAllFacetTypes(ElementType type) {
 #define GET_FACET_TYPE(type)                                                   \
   {                                                                            \
     auto && map = ElementClass<type>::getFacetTypes();                         \
-    return Eigen::Map<                                                         \
-        const Eigen::Matrix<ElementType, Eigen::Dynamic, Eigen::Dynamic>>(     \
+    return Eigen::Map<const Eigen::Matrix<ElementType, Eigen::Dynamic, 1>>(    \
         map.data(), map.rows(), map.cols());                                   \
   }
 
@@ -597,44 +596,44 @@ inline void Mesh::addConnectivityType(ElementType type, GhostType ghost_type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isPureGhostNode(Idx n) const {
+inline auto Mesh::isPureGhostNode(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_shared_mask) == NodeFlag::_pure_ghost;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isLocalOrMasterNode(Idx n) const {
+inline auto Mesh::isLocalOrMasterNode(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_local_master_mask) == NodeFlag::_normal;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isLocalNode(Idx n) const {
+inline auto Mesh::isLocalNode(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_shared_mask) == NodeFlag::_normal;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isMasterNode(Idx n) const {
+inline auto Mesh::isMasterNode(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_shared_mask) == NodeFlag::_master;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isSlaveNode(Idx n) const {
+inline auto Mesh::isSlaveNode(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_shared_mask) == NodeFlag::_slave;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isPeriodicSlave(Idx n) const {
+inline auto Mesh::isPeriodicSlave(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_periodic_mask) ==
          NodeFlag::_periodic_slave;
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::isPeriodicMaster(Idx n) const {
+inline auto Mesh::isPeriodicMaster(Idx n) const -> bool {
   return ((*nodes_flags)(n)&NodeFlag::_periodic_mask) ==
          NodeFlag::_periodic_master;
 }
 
 /* -------------------------------------------------------------------------- */
-inline NodeFlag Mesh::getNodeFlag(Idx local_id) const {
+inline auto Mesh::getNodeFlag(Idx local_id) const -> NodeFlag {
   return (*nodes_flags)(local_id);
 }
 
@@ -746,7 +745,7 @@ void Mesh::addPeriodicSlave(Idx slave, Idx master) {
 }
 
 /* -------------------------------------------------------------------------- */
-Idx Mesh::getPeriodicMaster(Idx slave) const {
+auto Mesh::getPeriodicMaster(Idx slave) const -> Idx {
   return periodic_slave_master.at(slave);
 }
 
@@ -760,8 +759,8 @@ public:
       : pair(mesh.getPeriodicMasterSlaves().equal_range(master)) {}
 
   PeriodicSlaves(const PeriodicSlaves & other) = default;
-  PeriodicSlaves(PeriodicSlaves && other) = default;
-  PeriodicSlaves & operator=(const PeriodicSlaves & other) = default;
+  PeriodicSlaves(PeriodicSlaves && other) noexcept = default;
+  auto operator=(const PeriodicSlaves & other) -> PeriodicSlaves & = default;
 
   class const_iterator {
     internal_iterator it;
@@ -787,7 +786,7 @@ inline decltype(auto) Mesh::getPeriodicSlaves(Idx master) const {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Vector<Idx>
+inline decltype(auto)
 Mesh::getConnectivityWithPeriodicity(const Element & element) const {
   Vector<Idx> conn = getConnectivity(element);
   if (not isPeriodic()) {
@@ -805,4 +804,4 @@ Mesh::getConnectivityWithPeriodicity(const Element & element) const {
 
 } // namespace akantu
 
-#endif /* AKANTU_MESH_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_MESH_INLINE_IMPL_CC__ */

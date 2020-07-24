@@ -51,7 +51,7 @@ namespace dumpers {
     using parent =
         element_iterator<types, dumpers::element_partition_field_iterator>;
     using return_type =
-        typename SingleType<unsigned int, Vector, true>::return_type;
+        typename SingleType<int, Vector<int>, true>::return_type;
     using array_iterator = typename types::array_iterator;
     using field_type = typename types::field_type;
 
@@ -92,7 +92,7 @@ namespace dumpers {
    */
   template <bool filtered = false>
   class ElementPartitionField
-      : public GenericElementalField<SingleType<UInt, Vector, filtered>,
+      : public GenericElementalField<SingleType<Int, Vector<Int>, filtered>,
                                      element_partition_field_iterator> {
   public:
     /* ------------------------------------------------------------------------
@@ -101,7 +101,7 @@ namespace dumpers {
     /* ------------------------------------------------------------------------
      */
 
-    using types = SingleType<UInt, Vector, filtered>;
+    using types = SingleType<Int, Vector<Int>, filtered>;
     using iterator = element_partition_field_iterator<types>;
     using parent =
         GenericElementalField<types, element_partition_field_iterator>;
@@ -115,7 +115,7 @@ namespace dumpers {
      */
 
     ElementPartitionField(const field_type & field,
-                          UInt spatial_dimension = _all_dimensions,
+                          Int spatial_dimension = _all_dimensions,
                           GhostType ghost_type = _not_ghost,
                           ElementKind element_kind = _ek_not_defined)
         : parent(field, spatial_dimension, ghost_type, element_kind) {
@@ -128,7 +128,7 @@ namespace dumpers {
     /* ------------------------------------------------------------------------
      */
 
-    UInt getDim() override { return 1; }
+    Int getDim() override { return 1; }
   };
 
   /* --------------------------------------------------------------------------

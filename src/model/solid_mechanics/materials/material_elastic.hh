@@ -50,20 +50,20 @@ namespace akantu {
  *   - nu  : Poisson's ratio (default: 1/2)
  *   - Plane_Stress : if 0: plane strain, else: plane stress (default: 0)
  */
-template <Int spatial_dimension>
+template <Int dim>
 class MaterialElastic
-    : public PlaneStressToolbox<spatial_dimension,
-                                MaterialThermal<spatial_dimension>> {
+    : public PlaneStressToolbox<dim,
+                                MaterialThermal<dim>> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 private:
   using Parent =
-      PlaneStressToolbox<spatial_dimension, MaterialThermal<spatial_dimension>>;
+      PlaneStressToolbox<dim, MaterialThermal<dim>>;
 
 public:
   MaterialElastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialElastic(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+  MaterialElastic(SolidMechanicsModel & model, Int spatial_dimension, const Mesh & mesh,
                   FEEngine & fe_engine, const ID & id = "");
 
   ~MaterialElastic() override = default;
@@ -89,24 +89,30 @@ public:
   /// compute the elastic potential energy
   void computePotentialEnergy(ElementType el_type) override;
 
+  [[gnu::deprecated("Use the interface with an Element")]]
   void
-  computePotentialEnergyByElement(ElementType type, UInt index,
+  computePotentialEnergyByElement(ElementType type, Int index,
+                                  Vector<Real> & epot_on_quad_points) override;
+  void
+  computePotentialEnergyByElement(const Element & element,
                                   Vector<Real> & epot_on_quad_points) override;
 
+
   /// compute the p-wave speed in the material
-  Real getPushWaveSpeed(const Element & element) const override;
+  auto getPushWaveSpeed(const Element & element) const -> Real override;
 
   /// compute the s-wave speed in the material
-  Real getShearWaveSpeed(const Element & element) const override;
+  auto getShearWaveSpeed(const Element & element) const -> Real override;
 
 protected:
   /// constitutive law for a given quadrature point
-  inline void computeStressOnQuad(const Matrix<Real> & grad_u,
-                                  Matrix<Real> & sigma,
-                                  Real sigma_th = 0) const;
+  template <typename Args>
+  inline void computeStressOnQuad(Args && arguments) const;
 
   /// compute the tangent stiffness matrix for an element
-  inline void computeTangentModuliOnQuad(Matrix<Real> & tangent) const;
+  template <typename Args>
+  inline void
+  computeTangentModuliOnQuad(Args && arguments) const;
 
   /// recompute the lame coefficient if E or nu changes
   void updateInternalParameters() override;
@@ -115,14 +121,12 @@ protected:
                                                   const Matrix<Real> & sigma,
                                                   Real & epot);
 
-  bool hasStiffnessMatrixChanged() override {
+  auto hasStiffnessMatrixChanged() -> bool override {
     return (not was_stiffness_assembled);
   }
 
-  MatrixType getTangentType() override {
-    return _symmetric;
-  }
-  
+  auto getTangentType() -> MatrixType override { return _symmetric; }
+
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */

@@ -532,7 +532,7 @@ namespace {
   inline void set##name(type variable) { this->variable = variable; }
 
 #define AKANTU_GET_MACRO(name, variable, type)                                 \
-  inline type get##name() const { return variable; }
+  inline auto get##name() const->type { return variable; }
 
 #define AKANTU_GET_MACRO_AUTO(name, variable)                                  \
   inline decltype(auto) get##name() const { return (variable); }
@@ -541,7 +541,7 @@ namespace {
   inline decltype(auto) get##name() { return (variable); }
 
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
-  inline type get##name() { return variable; }
+  inline auto get##name()->type { return variable; }
 
 #define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
   inline const auto & get##name() const {                                      \
@@ -568,9 +568,9 @@ namespace {
   }
 
 #define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
-  inline con Array<type> & get##name(const support & el_type,                  \
-                                     GhostType ghost_type = _not_ghost)        \
-      con { /* NOLINT */                                                       \
+  inline auto get##name(const support & el_type,                               \
+                        const GhostType & ghost_type = _not_ghost)             \
+      con -> con Array<type> & {                                               \
     return variable(el_type, ghost_type);                                      \
   } // NOLINT
 
@@ -600,15 +600,15 @@ void readInputFile(const std::string & input_file);
 /* -------------------------------------------------------------------------- */
 /* string manipulation */
 /* -------------------------------------------------------------------------- */
-inline std::string to_lower(const std::string & str);
+inline auto to_lower(const std::string & str) -> std::string;
 /* -------------------------------------------------------------------------- */
-inline std::string trim(const std::string & to_trim);
-inline std::string trim(const std::string & to_trim, char c);
+inline auto trim(const std::string & to_trim) -> std::string;
+inline auto trim(const std::string & to_trim, char c) -> std::string;
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 /// give a string representation of the a human readable size in bit
-template <typename T> std::string printMemorySize(UInt size);
+template <typename T> auto printMemorySize(UInt size) -> std::string;
 /* -------------------------------------------------------------------------- */
 
 struct TensorTrait {};
@@ -626,7 +626,7 @@ template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
 template <typename R, typename T,
           std::enable_if_t<std::is_reference<T>::value> * = nullptr>
-bool is_of_type(T && t) {
+auto is_of_type(T && t) -> bool {
   return (
       dynamic_cast<std::add_pointer_t<
           std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
@@ -634,7 +634,8 @@ bool is_of_type(T && t) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename R, typename T> bool is_of_type(std::unique_ptr<T> & t) {
+template <typename R, typename T>
+auto is_of_type(std::unique_ptr<T> & t) -> bool {
   return (
       dynamic_cast<std::add_pointer_t<
           std::conditional_t<std::is_const<T>::value, std::add_const_t<R>, R>>>(
@@ -707,7 +708,7 @@ namespace std {
  */
 template <typename a, typename b> struct hash<std::pair<a, b>> {
   hash() = default;
-  size_t operator()(const std::pair<a, b> & p) const {
+  auto operator()(const std::pair<a, b> & p) const -> std::size_t {
     size_t seed = ah(p.first);
     return bh(p.second) + AKANTU_HASH_COMBINE_MAGIC_NUMBER + (seed << 6) +
            (seed >> 2);

@@ -47,102 +47,39 @@ extern const IntegrationPoint IntegrationPointNull;
 /* -------------------------------------------------------------------------- */
 
 class IntegrationPoint : public Element {
-
-  /* ------------------------------------------------------------------------ */
-  /* Typedefs                                                                 */
-  /* ------------------------------------------------------------------------ */
-
-public:
-  using position_type = Vector<Real>;
-
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
-
 public:
-  IntegrationPoint(const Element & element, UInt num_point = 0,
+  IntegrationPoint(const Element & element = ElementNull, UInt num_point = 0,
                    UInt nb_quad_per_element = 0)
       : Element(element), num_point(num_point),
-        global_num(element.element * nb_quad_per_element + num_point){}//,
-  //position(nullptr, 0){};
-
-  // IntegrationPoint(ElementType type = _not_defined, UInt element = 0,
-  //                  UInt num_point = 0, GhostType ghost_type = _not_ghost)
-  //     : Element{type, element, ghost_type}, num_point(num_point);
-        //position(nullptr, 0){};
-
-  // IntegrationPoint(UInt element, UInt num_point, UInt global_num,
-  //                  const position_type & position, ElementType type,
-  //                  GhostType ghost_type = _not_ghost)
-  //     : Element{type, element, ghost_type}, num_point(num_point),
-  //       global_num(global_num), position(nullptr, 0) {
-  //   this->position.shallowCopy(position);
-  // };
+        global_num(element.element * nb_quad_per_element + num_point) {}
 
   constexpr IntegrationPoint(const IntegrationPoint & quad) = default;
   constexpr IntegrationPoint(IntegrationPoint && quad) = default;
-  //     : Element(quad), num_point(quad.num_point), global_num(quad.global_num),
-  //       position(nullptr, 0) {
-  //   position.shallowCopy(quad.position);
-  // };
 
-  virtual ~IntegrationPoint() = default;
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
-
-  inline bool operator==(const IntegrationPoint & quad) const {
+public:
+  inline auto operator==(const IntegrationPoint & quad) const -> bool {
     return Element::operator==(quad) && this->num_point == quad.num_point;
   }
 
-  inline bool operator!=(const IntegrationPoint & quad) const {
+  inline auto operator!=(const IntegrationPoint & quad) const -> bool {
     return Element::operator!=(quad) || (num_point != quad.num_point) ||
            (global_num != quad.global_num);
   }
 
-  bool operator<(const IntegrationPoint & rhs) const {
+  auto operator<(const IntegrationPoint & rhs) const -> bool {
     bool res = Element::operator<(rhs) ||
                (Element::operator==(rhs) && this->num_point < rhs.num_point);
     return res;
   }
 
-  inline IntegrationPoint & operator=(const IntegrationPoint & q) {
-    if (this != &q) {
-      element = q.element;
-      type = q.type;
-      ghost_type = q.ghost_type;
-      num_point = q.num_point;
-      global_num = q.global_num;
-      //position.shallowCopy(q.position);
-    }
-
-    return *this;
-  }
-
-  /// get the position of the integration point
-  //AKANTU_GET_MACRO(Position, position, const position_type &);
-
-  /// set the position of the integration point
-  // void setPosition(const position_type & position) {
-  //   this->position.shallowCopy(position);
-  // }
-
-  // /// deep copy of the position of the integration point
-  // void copyPosition(const position_type & position) {
-  //   this->position.deepCopy(position);
-  // }
-
-  /// function to print the containt of the class
-  virtual void printself(std::ostream & stream, int indent = 0) const {
-    std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
-      ;
-    }
-    stream << space << "IntegrationPoint [";
-    stream << *static_cast<const Element *>(this);
-    stream << ", " << num_point << "(" << global_num << ")"
-           << "]";
-  }
+  inline auto operator=(const IntegrationPoint & q)
+      -> IntegrationPoint & = default;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -150,23 +87,35 @@ public:
 
 public:
   /// number of quadrature point in the element
-  UInt num_point{0};
+  Int num_point{0};
   /// global number of the quadrature point
-  UInt global_num{0};
-  // TODO might be temporary: however this class should be tought maybe...
-  //std::string material_id{""};
-private:
-  /// position of the quadrature point
-//  position_type position;
+  Int global_num{0};
 };
 
+} // namespace akantu
+
+namespace std {
+inline auto to_string(const akantu::IntegrationPoint & _this) -> string {
+  if (static_cast<const akantu::Element &>(_this) == akantu::ElementNull) {
+    return "IntegrationPoint[ElementNull]";
+  }
+
+  string str = "IntegrationPoint[ " +
+               to_string(static_cast<const akantu::Element &>(_this)) + ", " +
+               to_string(_this.num_point) + ": " + to_string(_this.global_num) +
+               "]";
+  return str;
+}
+} // namespace std
+
+namespace akantu {
+
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const IntegrationPoint & _this) {
-  _this.printself(stream);
+inline auto operator<<(std::ostream & stream, const IntegrationPoint & _this)
+    -> std::ostream & {
+  stream << std::to_string(_this);
   return stream;
 }
-
 } // namespace akantu
 
 #endif /* AKANTU_QUADRATURE_POINT_H */

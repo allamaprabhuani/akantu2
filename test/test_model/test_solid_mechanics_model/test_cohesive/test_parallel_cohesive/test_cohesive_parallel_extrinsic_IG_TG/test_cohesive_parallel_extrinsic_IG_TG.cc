@@ -128,7 +128,7 @@ void limitInsertion(SolidMechanicsModelCohesive & model) {
       for (UInt f = 0; f < nb_facet; ++f) {
         if (f_check(f)) {
 
-          mesh_facets.getBarycenter(f, type, bary_facet.storage(), ghost_type);
+          mesh_facets.getBarycenter(f, type, bary_facet.data(), ghost_type);
 
           if (!(bary_facet(0) > -tolerance && bary_facet(0) < tolerance) &&
               !(bary_facet(1) > -tolerance && bary_facet(1) < tolerance))

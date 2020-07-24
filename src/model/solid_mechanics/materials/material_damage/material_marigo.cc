@@ -34,15 +34,15 @@
 /* -------------------------------------------------------------------------- */
 #include "material_marigo.hh"
 #include "solid_mechanics_model.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
-                                                  const ID & id)
-    : MaterialDamage<spatial_dimension>(model, id), Yd("Yd", *this),
-      damage_in_y(false), yc_limit(false) {
+template <Int dim>
+MaterialMarigo<dim>::MaterialMarigo(SolidMechanicsModel & model, const ID & id)
+    : MaterialDamage<dim>(model, id), Yd("Yd", *this), damage_in_y(false),
+      yc_limit(false) {
   AKANTU_DEBUG_IN();
 
   this->registerParam("Sd", Sd, Real(5000.), _pat_parsable | _pat_modifiable);
@@ -59,10 +59,9 @@ MaterialMarigo<spatial_dimension>::MaterialMarigo(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMarigo<spatial_dimension>::initMaterial() {
+template <Int dim> void MaterialMarigo<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
-  MaterialDamage<spatial_dimension>::initMaterial();
+  MaterialDamage<dim>::initMaterial();
 
   updateInternalParameters();
 
@@ -70,31 +69,25 @@ void MaterialMarigo<spatial_dimension>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMarigo<spatial_dimension>::updateInternalParameters() {
-  MaterialDamage<spatial_dimension>::updateInternalParameters();
+template <Int dim> void MaterialMarigo<dim>::updateInternalParameters() {
+  MaterialDamage<dim>::updateInternalParameters();
   Yc = .5 * epsilon_c * this->E * epsilon_c;
   yc_limit = (std::abs(epsilon_c) > std::numeric_limits<Real>::epsilon());
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMarigo<spatial_dimension>::computeStress(ElementType el_type,
-                                                      GhostType ghost_type) {
+template <Int dim>
+void MaterialMarigo<dim>::computeStress(ElementType el_type,
+                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  auto dam = this->damage(el_type, ghost_type).begin();
-  auto Yd_q = this->Yd(el_type, ghost_type).begin();
+  Y = 0.;
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  auto && arguments = getArguments(el_type, ghost_type);
 
-  Real Y = 0.;
-  computeStressOnQuad(grad_u, sigma, *dam, Y, *Yd_q);
-
-  ++dam;
-  ++Yd_q;
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  for (auto && data : arguments) {
+    computeStressOnQuad(data);
+  }
 
   AKANTU_DEBUG_OUT();
 }

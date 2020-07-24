@@ -33,47 +33,59 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_marigo.hh"
+/* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_MATERIAL_MARIGO_INLINE_IMPL_HH_
-#define AKANTU_MATERIAL_MARIGO_INLINE_IMPL_HH_
+// #ifndef __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__
+// #define __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__
 
 namespace akantu {
 
-template <Int spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::computeStressOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam, Real & Y,
-    Real & Ydq) {
-  MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+/* -------------------------------------------------------------------------- */
+template <Int dim>
+template <typename Args>
+inline void MaterialMarigo<dim>::computeStressOnQuad(Args && arguments) {
+  auto && sigma = tuple::get<"sigma"_h>(arguments);
+  auto && grad_u = tuple::get<"grad_u"_h>(arguments);
+  auto && dam = tuple::get<"damage"_h>(arguments);
+  auto && Y = tuple::get<"Y"_h>(arguments);
+
+  MaterialElastic<dim>::computeStressOnQuad(arguments);
 
   Y = 0;
-  for (UInt i = 0; i < spatial_dimension; ++i) {
-    for (UInt j = 0; j < spatial_dimension; ++j) {
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
       Y += sigma(i, j) * (grad_u(i, j) + grad_u(j, i)) / 2.;
     }
   }
   Y *= 0.5;
 
-  if (damage_in_y) {
+  if (this->damage_in_y) {
     Y *= (1 - dam);
   }
 
-  if (yc_limit) {
-    Y = std::min(Y, Yc);
+  if (this->yc_limit) {
+    Y = std::min(Y, this->Yc);
   }
 
-  if (!this->is_non_local) {
-    computeDamageAndStressOnQuad(sigma, dam, Y, Ydq);
+  if (not this->is_non_local) {
+    computeDamageAndStressOnQuad(arguments);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
-    Matrix<Real> & sigma, Real & dam, Real & Y, Real & Ydq) {
-  Real Fd = Y - Ydq - Sd * dam;
+template <Int dim>
+template <typename Args>
+inline void
+MaterialMarigo<dim>::computeDamageAndStressOnQuad(Args && arguments) {
+  auto && sigma = tuple::get<"sigma"_h>(arguments);
+  auto && dam = tuple::get<"damage"_h>(arguments);
+  auto && Y = tuple::get<"Y"_h>(arguments);
+  auto && Yd = tuple::get<"Yd"_h>(arguments);
+
+  Real Fd = Y - Yd - Sd * dam;
 
   if (Fd > 0) {
-    dam = (Y - Ydq) / Sd;
+    dam = (Y - Yd) / Sd;
   }
   dam = std::min(dam, Real(1.));
 
@@ -81,55 +93,56 @@ inline void MaterialMarigo<spatial_dimension>::computeDamageAndStressOnQuad(
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline UInt MaterialMarigo<spatial_dimension>::getNbData(
-    const Array<Element> & elements, const SynchronizationTag & tag) const {
+template <Int dim>
+inline auto MaterialMarigo<dim>::getNbData(const Array<Element> & elements,
+                                           const SynchronizationTag & tag) const
+    -> Int {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
+  Int size = 0;
   if (tag == SynchronizationTag::_smm_init_mat) {
     size += sizeof(Real) * this->getModel().getNbIntegrationPoints(elements);
   }
 
-  size += MaterialDamage<spatial_dimension>::getNbData(elements, tag);
+  size += MaterialDamage<dim>::getNbData(elements, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline void MaterialMarigo<spatial_dimension>::packData(
-    CommunicationBuffer & buffer, const Array<Element> & elements,
-    const SynchronizationTag & tag) const {
+template <Int dim>
+inline void
+MaterialMarigo<dim>::packData(CommunicationBuffer & buffer,
+                              const Array<Element> & elements,
+                              const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
   if (tag == SynchronizationTag::_smm_init_mat) {
     this->packElementDataHelper(Yd, buffer, elements);
   }
 
-  MaterialDamage<spatial_dimension>::packData(buffer, elements, tag);
+  MaterialDamage<dim>::packData(buffer, elements, tag);
 
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-inline void
-MaterialMarigo<spatial_dimension>::unpackData(CommunicationBuffer & buffer,
-                                              const Array<Element> & elements,
-                                              const SynchronizationTag & tag) {
+template <Int dim>
+inline void MaterialMarigo<dim>::unpackData(CommunicationBuffer & buffer,
+                                            const Array<Element> & elements,
+                                            const SynchronizationTag & tag) {
   AKANTU_DEBUG_IN();
 
   if (tag == SynchronizationTag::_smm_init_mat) {
     this->unpackElementDataHelper(Yd, buffer, elements);
   }
 
-  MaterialDamage<spatial_dimension>::unpackData(buffer, elements, tag);
+  MaterialDamage<dim>::unpackData(buffer, elements, tag);
 
   AKANTU_DEBUG_OUT();
 }
 
 } // namespace akantu
 
-#endif /* AKANTU_MATERIAL_MARIGO_INLINE_IMPL_HH_ */
+//#endif /* __AKANTU_MATERIAL_MARIGO_INLINE_IMPL_CC__ */

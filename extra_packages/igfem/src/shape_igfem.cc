@@ -63,7 +63,7 @@ void ShapeLagrange<_ek_igfem>::extractValuesAtStandardNodes(
     AKANTU_BOOST_IGFEM_ELEMENT_SWITCH(GET_NODES_INFO);
 #undef GET_NODES_INFO
 
-    UInt * conn_val = mesh.getConnectivity(type, ghost_type).storage();
+    UInt * conn_val = mesh.getConnectivity(type, ghost_type).data();
     for (UInt e = 0; e < nb_elements; ++e) {
       /// copy the value at standard nodes
       UInt offset = e * nb_nodes_per_element;

@@ -152,22 +152,22 @@ public:
   // ElementTypeMapArray<UInt> &);
 
   /// compute reversible energy
-  Real getReversibleEnergy();
+  auto getReversibleEnergy() -> Real;
 
   /// compute dissipated energy
-  Real getDissipatedEnergy();
+  auto getDissipatedEnergy() -> Real;
 
   /// compute contact energy
-  Real getContactEnergy();
+  auto getContactEnergy() -> Real;
 
   /// get energy
-  Real getEnergy(const std::string & type) override;
+  auto getEnergy(const std::string & type) -> Real override;
 
   /// return the energy (identified by id) for the provided element
-  Real getEnergy(const std::string & energy_id, ElementType type,
-                 Idx index) override {
-    return Material::getEnergy(energy_id, type, index);
-  }
+  // Real getEnergy(const std::string & energy_id, const Element & element
+  //                ) override {
+  //   return Material::getEnergy(energy_id, element);
+  // }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

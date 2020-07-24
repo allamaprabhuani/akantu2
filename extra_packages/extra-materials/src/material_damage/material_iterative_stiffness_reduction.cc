@@ -116,8 +116,8 @@ void MaterialIterativeStiffnessReduction<spatial_dimension>::
 
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         (*Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;

@@ -66,9 +66,7 @@ public:
   InternalFieldTmpl(const ID & id, const InternalFieldTmpl<Material, T> & other);
 
 
-private:
-  InternalFieldTmpl operator=(const InternalFieldTmpl &) = delete;
-
+  auto operator=(const InternalField &) -> InternalField = delete;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -111,9 +109,9 @@ public:
   /// get the default value
   inline operator T() const;
 
-  virtual FEEngine & getFEEngine() { return *fem; }
+  virtual auto getFEEngine() -> FEEngine & { return *fem; }
 
-  virtual const FEEngine & getFEEngine() const { return *fem; }
+  virtual auto getFEEngine() const -> const FEEngine & { return *fem; }
 
   /// AKANTU_GET_MACRO(FEEngine, *fem, FEEngine &);
 
@@ -175,49 +173,50 @@ public:
   }
 
   /// get the array for a given type of the element_filter
-  const decltype(auto)
-  getFilter(const ElementType & type,
-            const GhostType & ghost_type = _not_ghost) const {
+  decltype(auto) getFilter(const ElementType & type,
+                           const GhostType & ghost_type = _not_ghost) const {
     return (this->element_filter(type, ghost_type));
   }
 
   /// get the Array corresponding to the type en ghost_type specified
-  virtual Array<T> & operator()(ElementType type,
-                                GhostType ghost_type = _not_ghost) {
+  virtual auto operator()(const ElementType & type,
+                          const GhostType & ghost_type = _not_ghost)
+      -> Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual const Array<T> &
-  operator()(ElementType type,
-             GhostType ghost_type = _not_ghost) const {
+  virtual auto operator()(const ElementType & type,
+                          const GhostType & ghost_type = _not_ghost) const
+      -> const Array<T> & {
     return ElementTypeMapArray<T>::operator()(type, ghost_type);
   }
 
-  virtual Array<T> & previous(ElementType type,
-                              GhostType ghost_type = _not_ghost) {
+  virtual auto previous(const ElementType & type,
+                        const GhostType & ghost_type = _not_ghost)
+      -> Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual const Array<T> &
-  previous(ElementType type,
-           GhostType ghost_type = _not_ghost) const {
+  virtual auto previous(const ElementType & type,
+                        const GhostType & ghost_type = _not_ghost) const
+      -> const Array<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual InternalFieldTmpl<Material, T> & previous() {
+  virtual auto previous() -> InternalFieldTmp<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return *(this->previous_values);
   }
 
-    virtual const InternalFieldTmpl<Material, T> & previous() const {
+  virtual auto previous() const -> const InternalFieldTmp<T> & {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -225,17 +224,17 @@ public:
   }
 
   /// check if the history is used or not
-  bool hasHistory() const { return (previous_values != nullptr); }
+  auto hasHistory() const -> bool { return (previous_values != nullptr); }
 
-  /// get the kind treated by the internal
-  ElementKind getElementKind() const { return element_kind; }
+  /// get the kind treated by  the internal
+  AKANTU_GET_MACRO_AUTO(ElementKind, element_kind);
 
   /// return the number of components
-  Int getNbComponent() const { return nb_component; }
+  AKANTU_GET_MACRO_AUTO(NbComponent, nb_component);
 
   /// return the spatial dimension corresponding to the internal element type
   /// loop filter
-  Int getSpatialDimension() const { return this->spatial_dimension; }
+  AKANTU_GET_MACRO_AUTO(SpatialDimension, spatial_dimension);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -271,9 +270,9 @@ protected:
 
   
 /// standard output stream operator
-template <class Material, typename T>
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const InternalFieldTmpl<Material, T> & _this) {
+template <typename T>
+inline auto operator<<(std::ostream & stream, const InternalFieldTmp<T> & _this)
+    -> std::ostream & {
   _this.printself(stream);
   return stream;
 }

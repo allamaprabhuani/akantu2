@@ -199,7 +199,7 @@ public:
     return 0;
   }
 
-  void setNbDataPerElem(const ElementTypeMap<UInt> & nb_data) override {
+  void setNbDataPerElem(const ElementTypeMap<Int> & nb_data) override {
     nb_data_per_elem = nb_data;
   }
 
@@ -210,15 +210,15 @@ protected:
   /// the ElementTypeMapArray embedded in the field
   const field_type & field;
   /// total number of elements
-  UInt nb_total_element;
+  Int nb_total_element;
   /// the spatial dimension of the problem
-  UInt spatial_dimension;
+  Int spatial_dimension;
   /// whether this is a ghost field or not (for type selection)
   GhostType ghost_type;
   /// The element kind to operate on
   ElementKind element_kind;
   /// The number of data per element type
-  ElementTypeMap<UInt> nb_data_per_elem;
+  ElementTypeMap<Int> nb_data_per_elem;
 };
 
 } // namespace dumpers

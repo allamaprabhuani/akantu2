@@ -105,7 +105,7 @@ public:
       const Array<Real> & /*elementary_mat*/, ElementType /*type*/,
       GhostType /*ghost_type*/,
       const MatrixType & /*elemental_matrix_type*/,
-      const Array<UInt> & /*filter_elements*/) override;
+      const Array<Idx> & /*filter_elements*/) override;
 
   void assembleMatMulVectToArray(const ID & /*dof_id*/, const ID & /*A_id*/,
                                  const Array<Real> & /*x*/,
@@ -137,12 +137,12 @@ protected:
 
   std::unique_ptr<DOFData> getNewDOFData(const ID & dof_id) override;
 
-  std::tuple<UInt, UInt, UInt>
+  std::tuple<Int, Int, Int>
   registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) override;
 
-  void updateDOFsData(DOFDataPETSc & dof_data, UInt nb_new_local_dofs,
-                      UInt nb_new_pure_local, UInt nb_node,
-                      const std::function<UInt(UInt)> & getNode);
+  void updateDOFsData(DOFDataPETSc & dof_data, Int nb_new_local_dofs,
+                      Int nb_new_pure_local, Int nb_node,
+                      const std::function<Idx(Idx)> & getNode);
 
 protected:
   void getLumpedMatrixPerDOFs(const ID & /*dof_id*/, const ID & /*lumped_mtx*/,

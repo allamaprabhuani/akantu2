@@ -165,12 +165,12 @@ public:
     return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
 
-  template <typename Tensor>
+  template <
+      typename Tensor,
+      std::enable_if_t<aka::conjunction<aka::is_tensor<Tensor>>::value> * = nullptr>
   inline void
   send(const Tensor & values, Int receiver, Int tag,
-       const CommunicationMode & mode = CommunicationMode::_auto,
-       std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-           nullptr) const {
+       const CommunicationMode & mode = CommunicationMode::_auto) const {
     return this->sendImpl(values.data(), values.size(), receiver, tag, mode);
   }
 
@@ -265,8 +265,8 @@ public:
   inline void
   allReduce(Array<T> & values,
             SynchronizerOperation op = SynchronizerOperation::_sum) const {
-    this->allReduceImpl(values.data(),
-                        values.size() * values.getNbComponent(), op);
+    this->allReduceImpl(values.data(), values.size() * values.getNbComponent(),
+                        op);
   }
 
   template <typename Derived>
@@ -288,8 +288,7 @@ public:
   inline void
   scan(Array<T> & values,
        SynchronizerOperation op = SynchronizerOperation::_sum) const {
-    this->scanImpl(values.data(), values.data(),
-                   values.size() * values.getNbComponent(), op);
+    this->scanImpl(values.data(), values.size() * values.getNbComponent(), op);
   }
 
   template <typename Tensor>
@@ -317,13 +316,10 @@ public:
   }
 
   template <typename Tensor>
-  inline void
-  exclusiveScan(Tensor & values,
-                SynchronizerOperation op = SynchronizerOperation::_sum,
-                std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
-                    nullptr) const {
-    this->exclusiveScanImpl(values.data(), values.data(), values.size(),
-                            op);
+  inline void exclusiveScan(
+      Tensor & values, SynchronizerOperation op = SynchronizerOperation::_sum,
+      std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+    this->exclusiveScanImpl(values.data(), values.size(), op);
   }
 
   template <typename T>
@@ -369,8 +365,8 @@ public:
   template <typename T>
   inline void reduce(Array<T> & values, SynchronizerOperation op,
                      int root = 0) const {
-    this->reduceImpl(values.data(), values.size() * values.getNbComponent(),
-                     op, root);
+    this->reduceImpl(values.data(), values.size() * values.getNbComponent(), op,
+                     root);
   }
 
   /* ------------------------------------------------------------------------ */
@@ -419,8 +415,8 @@ public:
   /* ------------------------------------------------------------------------ */
   template <typename T>
   inline void broadcast(Array<T> & values, int root = 0) const {
-    this->broadcastImpl(values.data(),
-                        values.size() * values.getNbComponent(), root);
+    this->broadcastImpl(values.data(), values.size() * values.getNbComponent(),
+                        root);
   }
 
   template <typename T>

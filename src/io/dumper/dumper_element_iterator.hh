@@ -82,12 +82,11 @@ public:
       if (tit != tit_end) {
 
         const array_type & vect = field(*tit, ghost_type);
-        UInt _nb_data_per_elem = getNbDataPerElem(*tit);
-        UInt nb_component = vect.getNbComponent();
-        UInt size = (vect.size() * nb_component) / _nb_data_per_elem;
+        Int _nb_data_per_elem = getNbDataPerElem(*tit);
 
-        array_it = vect.begin_reinterpret(_nb_data_per_elem, size);
-        array_it_end = vect.end_reinterpret(_nb_data_per_elem, size);
+        auto && view = make_view(vect, _nb_data_per_elem);
+        array_it = view.begin();
+        array_it_end = view.end();
       }
     }
     return *(static_cast<iterator *>(this));
@@ -101,7 +100,7 @@ public:
     return Element{*tit, array_it.getCurrentIndex(), _not_ghost};
   }
 
-  UInt getNbDataPerElem(ElementType type) const {
+  Int getNbDataPerElem(const ElementType & type) const {
     if (!nb_data_per_elem.exists(type, ghost_type)) {
       return field(type, ghost_type).getNbComponent();
     }
@@ -109,7 +108,7 @@ public:
     return nb_data_per_elem(type, ghost_type);
   }
 
-  void setNbDataPerElem(const ElementTypeMap<UInt> & nb_data) {
+  void setNbDataPerElem(const ElementTypeMap<Int> & nb_data) {
     this->nb_data_per_elem = nb_data;
   }
 
@@ -131,7 +130,7 @@ protected:
   /// ghost type identification
   const GhostType ghost_type;
   /// number of data per element
-  ElementTypeMap<UInt> nb_data_per_elem;
+  ElementTypeMap<Int> nb_data_per_elem;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -222,7 +222,13 @@ protected:
 
   /// compute the kinetic energy
   Real getKineticEnergy();
-  Real getKineticEnergy(const ElementType & type, Idx index);
+
+  [[gnu::deprecated("Use the interface with an Element")]] Real
+  getKineticEnergy(const ElementType & type, Idx index) {
+    return getKineticEnergy({type, index, _not_ghost});
+  }
+
+  Real getKineticEnergy(const Element & element);
 
   /// compute the external work (for impose displacement, the velocity should be
   /// given too)
@@ -446,12 +452,13 @@ public:
    */
   Real getEnergy(const std::string & energy_id);
 
-  /// Compute energy for an element type and material index
-  Real getEnergy(const std::string & energy_id, ElementType type, Idx index);
+  /// compute the energy for one element
+  Real getEnergy(const std::string & energy_id, const Element & element);
 
-  /// Compute energy for an individual element
-  Real getEnergy(const std::string & energy_id, const Element & element) {
-    return getEnergy(energy_id, element.type, element.element);
+  [[gnu::deprecated("Use the interface with an Element")]] Real
+  getEnergy(const std::string & energy_id, const ElementType & type,
+            Int index) {
+    return getEnergy(energy_id, {type, index, _not_ghost});
   }
 
   /// Compute energy for an element group
@@ -544,7 +551,7 @@ protected:
 
   /// Arrays containing the position in the element filter of the material
   /// (material's local numbering)
-  ElementTypeMapArray<Int> material_local_numbering;
+  ElementTypeMapArray<Idx> material_local_numbering;
 
   /// list of used materials
   std::vector<std::unique_ptr<Material>> materials;

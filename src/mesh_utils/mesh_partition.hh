@@ -46,7 +46,7 @@ class MeshPartition {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MeshPartition(Mesh & mesh, UInt spatial_dimension,
+  MeshPartition(Mesh & mesh, Int spatial_dimension,
                 const ID & id = "MeshPartitioner");
 
   virtual ~MeshPartition();
@@ -57,7 +57,7 @@ public:
 public:
   /// define a partition of the mesh
   virtual void partitionate(
-      UInt nb_part,
+      Int nb_part,
       const std::function<Int(const Element &, const Element &)> &
           edge_load_func =
               [](auto && /*unused*/, auto && /*unused*/) { return 1; },
@@ -100,7 +100,7 @@ public:
   AKANTU_GET_MACRO_AUTO(GhostPartitionCSR, ghost_partitions_csr);
 
   AKANTU_GET_MACRO_AUTO(NbPartition, nb_partitions);
-  AKANTU_SET_MACRO(NbPartition, nb_partitions, UInt);
+  AKANTU_SET_MACRO(NbPartition, nb_partitions, Int);
 
 protected:
   Idx linearized(const Element & element);

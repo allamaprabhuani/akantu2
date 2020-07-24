@@ -293,8 +293,8 @@ public:
         std::get<0>(data) = std::get<1>(data);
       }
 
-      ierr = MatSetValuesLocal(M, conn_int.size(), conn_int.storage(),
-                               conn_int.size(), conn_int.storage(), m.storage(),
+      ierr = MatSetValuesLocal(M, conn_int.size(), conn_int.data(),
+                               conn_int.size(), conn_int.data(), m.data(),
                                ADD_VALUES);
     }
 
@@ -373,9 +373,9 @@ public:
         std::get<0>(data) = std::get<1>(data);
       }
 
-      ierr = MatSetValuesLocal(K, conn_int.size(), conn_int.storage(),
-                               conn_int.size(), conn_int.storage(),
-                               k_el.storage(), ADD_VALUES);
+      ierr = MatSetValuesLocal(K, conn_int.size(), conn_int.data(),
+                               conn_int.size(), conn_int.data(),
+                               k_el.data(), ADD_VALUES);
     }
 
     ierr = MatAssemblyBegin(K, MAT_FINAL_ASSEMBLY);
@@ -416,12 +416,12 @@ public:
     ierr = VecRestoreArrayRead(x, &x_local);
 
     // VecView(x, PETSC_VIEWER_STDOUT_WORLD);
-    // std::cout << y.getID() << " " << Vector<Real>(y.storage(), y.size())
+    // std::cout << y.getID() << " " << Vector<Real>(y.data(), y.size())
     //           << std::endl;
   }
 
   void print(const Array<Real> & x) const {
-    std::cout << x.getID() << " " << Vector<Real>(x.storage(), x.size())
+    std::cout << x.getID() << " " << Vector<Real>(x.data(), x.size())
               << std::endl;
   }
 
@@ -435,7 +435,7 @@ public:
     }
     ierr = VecRestoreArray(x, &x_local);
 
-    // std::cout << y.getID() << " " << Vector<Real>(y.storage(), y.size())
+    // std::cout << y.getID() << " " << Vector<Real>(y.data(), y.size())
     //           << std::endl;
     // VecView(x, PETSC_VIEWER_STDOUT_WORLD);
   }

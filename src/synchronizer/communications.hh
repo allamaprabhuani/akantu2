@@ -48,11 +48,11 @@ public:
   using Scheme = Array<Entity>;
 
 protected:
-  using CommunicationPerProcs = std::map<UInt, Communication>;
+  using CommunicationPerProcs = std::map<Int, Communication>;
   using CommunicationsPerTags =
       std::map<SynchronizationTag, CommunicationPerProcs>;
-  using CommunicationSchemes = std::map<UInt, Scheme>;
-  using Request = std::map<UInt, std::vector<CommunicationRequest>>;
+  using CommunicationSchemes = std::map<Int, Scheme>;
+  using Request = std::map<Int, std::vector<CommunicationRequest>>;
 
   friend class CommunicationDescriptor<Entity>;
 

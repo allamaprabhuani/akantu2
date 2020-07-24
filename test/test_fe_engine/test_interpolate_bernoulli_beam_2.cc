@@ -108,8 +108,8 @@ int main() {
   fem->getShapeFunctions().interpolateOnControlPoints<_bernoulli_beam_2>(
       displ_on_nodes, displ_on_quad, 3, _not_ghost, NULL, true, 4, 3, 3);
 
-  Real * don = displ_on_nodes.storage();
-  Real * doq = displ_on_quad.storage();
+  Real * don = displ_on_nodes.data();
+  Real * doq = displ_on_quad.data();
 
   std::ofstream my_file("out.txt");
   my_file << don << std::endl;

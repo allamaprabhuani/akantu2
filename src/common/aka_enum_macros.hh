@@ -48,7 +48,7 @@
   namespace std {                                                              \
   template <> struct hash<::akantu::type_name> {                               \
     using argument_type = ::akantu::type_name;                                 \
-    size_t operator()(const argument_type & e) const noexcept {                \
+    auto operator()(const argument_type & e) const -> std::size_t noexcept {   \
       auto ue = underlying_type_t<argument_type>(e);                           \
       return uh(ue);                                                           \
     }                                                                          \
@@ -79,7 +79,7 @@
   }                                                                            \
   AKANTU_ENUM_HASH(type_name)                                                  \
   namespace std {                                                              \
-  inline string to_string(const ::akantu::type_name & type) {                  \
+  inline auto to_string(const ::akantu::type_name & type) -> string {          \
     using namespace akantu;                                                    \
     static unordered_map<::akantu::type_name, string> convert{                 \
         BOOST_PP_SEQ_FOR_EACH_I(                                               \
@@ -89,15 +89,15 @@
   }                                                                            \
   }                                                                            \
   namespace akantu {                                                           \
-  inline std::ostream & operator<<(std::ostream & stream,                      \
-                                   const type_name & type) {                   \
+  inline auto operator<<(std::ostream & stream, const type_name & type)        \
+      -> std::ostream & {                                                      \
     stream << std::to_string(type);                                            \
     return stream;                                                             \
   }
 
 #define AKANTU_ENUM_INPUT_STREAM_(type_name, list, prefix)                     \
-  inline std::istream & operator>>(std::istream & stream,                      \
-                                   type_name & type) { /* NOLINT */            \
+  inline auto operator>>(std::istream & stream, type_name & type)              \
+      ->std::istream & {                                                       \
     std::string str;                                                           \
     stream >> str; /* NOLINT */                                                \
     static std::unordered_map<std::string, type_name> convert{                 \

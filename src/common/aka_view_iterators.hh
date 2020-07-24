@@ -76,16 +76,14 @@ namespace detail {
     using const_proxy = Eigen::Map<const Derived>;
   };
 
-  template <typename T, Int _dim>
-  struct IteratorHelper<TensorBase<T, _dim>> {
+  template <typename T, Int _dim> struct IteratorHelper<TensorBase<T, _dim>> {
     static constexpr Int dim = _dim;
     using pointer = T *;
     using proxy = TensorProxy<T, _dim>;
     using const_proxy = TensorProxy<const T, _dim>;
   };
 
-  template <typename T, Int _dim>
-  struct IteratorHelper<TensorProxy<T, _dim>> {
+  template <typename T, Int _dim> struct IteratorHelper<TensorProxy<T, _dim>> {
     static constexpr Int dim = _dim;
     using pointer = T *;
     using proxy = TensorProxy<T, _dim>;
@@ -241,7 +239,7 @@ namespace detail {
     }
 
   public:
-    UInt getCurrentIndex() {
+    Idx getCurrentIndex() {
       return (this->ret_ptr - this->initial) / this->_offset;
     }
 
@@ -352,7 +350,7 @@ namespace detail {
     using pointer = R *;
     using reference = R &;
     using const_reference = const R &;
-    using difference_type = std::ptrdiff_t;
+    using difference_type = Idx;//std::ptrdiff_t;
     using iterator_category = std::random_access_iterator_tag;
     static constexpr int dim_ = 0;
 
@@ -370,7 +368,7 @@ namespace detail {
     inline internal_view_iterator &
     operator=(const internal_view_iterator & it) = default;
 
-    UInt getCurrentIndex() { return (this->ret - this->initial); };
+    Idx getCurrentIndex() { return (this->ret - this->initial); };
 
     inline reference operator*() { return *ret; }
     inline const_reference operator*() const { return *ret; }
@@ -449,7 +447,6 @@ public:
   using iterator_category = typename parent::iterator_category;
 
 protected:
-
   template <typename OR, std::size_t... I>
   static inline auto convert_helper(const view_iterator<OR> & it,
                                     std::index_sequence<I...>) {
@@ -484,7 +481,8 @@ public:
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value> * = nullptr>
-  const_view_iterator(const const_view_iterator<OR> & it) : parent(convert(it)) {}
+  const_view_iterator(const const_view_iterator<OR> & it)
+      : parent(convert(it)) {}
 
   template <typename OR,
             std::enable_if_t<not std::is_same<R, OR>::value and
@@ -575,23 +573,36 @@ namespace {
   using ViewIteratorHelper_t = typename ViewIteratorHelper<dim, T>::type;
 } // namespace
 
-// #include <iterator>
-
-// namespace std {
-// template <typename R>
-// struct iterator_traits<::akantu::types::details::vector_iterator<R>> {
-// protected:
-//   using iterator = ::akantu::types::details::vector_iterator<R>;
-
-// public:
-//   using iterator_category = typename iterator::iterator_category;
-//   using value_type = typename iterator::value_type;
-//   using difference_type = typename iterator::difference_type;
-//   using pointer = typename iterator::pointer;
-//   using reference = typename iterator::reference;
-// };
-// } // namespace std
-
 } // namespace akantu
+
+#include <iterator>
+
+namespace std {
+
+template <typename R> struct iterator_traits<::akantu::const_view_iterator<R>> {
+protected:
+  using iterator = ::akantu::const_view_iterator<R>;
+
+public:
+  using iterator_category = typename iterator::iterator_category;
+  using value_type = typename iterator::value_type;
+  using difference_type = typename iterator::difference_type;
+  using pointer = typename iterator::pointer;
+  using reference = typename iterator::reference;
+};
+
+template <typename R> struct iterator_traits<::akantu::view_iterator<R>> {
+protected:
+  using iterator = ::akantu::view_iterator<R>;
+
+public:
+  using iterator_category = typename iterator::iterator_category;
+  using value_type = typename iterator::value_type;
+  using difference_type = typename iterator::difference_type;
+  using pointer = typename iterator::pointer;
+  using reference = typename iterator::reference;
+};
+
+} // namespace std
 
 #endif /* !__AKANTU_AKA_VIEW_ITERATORS_HH__ */

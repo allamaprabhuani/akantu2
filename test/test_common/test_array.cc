@@ -163,7 +163,7 @@ TYPED_TEST(ArrayFixture, Copy) {
 
   EXPECT_EQ(1000, copy.size());
   EXPECT_EQ(10, copy.getNbComponent());
-  EXPECT_NE(this->array->storage(), copy.storage());
+  EXPECT_NE(this->array->storage(), copy.data());
 }
 
 TYPED_TEST(ArrayFixture, Set) {
@@ -177,44 +177,44 @@ TYPED_TEST(ArrayFixture, Set) {
 TYPED_TEST(ArrayFixture, Resize) {
   auto & arr = *(this->array);
 
-  auto * ptr = arr.storage();
+  auto * ptr = arr.data();
 
   arr.resize(0);
   EXPECT_EQ(0, arr.size());
-  EXPECT_TRUE(arr.storage() == nullptr or arr.storage() == ptr);
+  EXPECT_TRUE(arr.data() == nullptr or arr.data() == ptr);
   EXPECT_LE(0, arr.getAllocatedSize());
 
   arr.resize(3000);
   EXPECT_EQ(3000, arr.size());
   EXPECT_LE(3000, arr.getAllocatedSize());
 
-  ptr = arr.storage();
+  ptr = arr.data();
 
   arr.resize(0);
   EXPECT_EQ(0, arr.size());
-  EXPECT_TRUE(arr.storage() == nullptr or arr.storage() == ptr);
+  EXPECT_TRUE(arr.data() == nullptr or arr.data() == ptr);
   EXPECT_LE(0, arr.getAllocatedSize());
 }
 
 TYPED_TEST(ArrayFixture, PushBack) {
   auto & arr = *(this->array);
 
-  auto * ptr = arr.storage();
+  auto * ptr = arr.data();
 
   arr.resize(0);
   EXPECT_EQ(0, arr.size());
-  EXPECT_TRUE(arr.storage() == nullptr or arr.storage() == ptr);
+  EXPECT_TRUE(arr.data() == nullptr or arr.data() == ptr);
   EXPECT_LE(0, arr.getAllocatedSize());
 
   arr.resize(3000);
   EXPECT_EQ(3000, arr.size());
   EXPECT_LE(3000, arr.getAllocatedSize());
 
-  ptr = arr.storage();
+  ptr = arr.data();
 
   arr.resize(0);
   EXPECT_EQ(0, arr.size());
-  EXPECT_TRUE(arr.storage() == nullptr or arr.storage() == ptr);
+  EXPECT_TRUE(arr.data() == nullptr or arr.data() == ptr);
   EXPECT_LE(0, arr.getAllocatedSize());
 }
 

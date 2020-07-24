@@ -71,17 +71,17 @@ template <> struct iterator_traits<::akantu::EmptyIteratorContainer::iterator> {
 
 namespace akantu {
 namespace {
-  template <UInt dim, class Op>
-  void tensorPlus_(const Matrix<Real> & A, Op && oper) {
-    Vector<Real> A_eigs(dim);
-    A.eig(A_eigs);
+  template <Int dim, class D, class Op>
+  void tensorPlus_(const Eigen::MatrixBase<D> & A, Op && oper) {
+    Vector<Real, dim> A_eigs;
+    A.eigh(A_eigs);
 
     for (auto & ap : A_eigs) {
       oper(ap);
     }
   }
 
-  template <Int dim> auto tensorPlus2(const Matrix<Real> & A) {
+  template <Int dim, class D> auto tensorPlus2(const Eigen::MatrixBase<D> & A) {
     Real square = 0;
     tensorPlus_<dim>(A, [&](Real eig) {
       eig = std::max(eig, 0.);
@@ -91,9 +91,10 @@ namespace {
     return square;
   }
 
-  template <Int dim> auto tensorPlusTrace(const Matrix<Real> & A) {
-    Real trace_plus = 0;
-    Real trace_minus = 0;
+  template <Int dim, class D>
+  auto tensorPlusTrace(const Eigen::MatrixBase<D> & A) {
+    Real trace_plus = 0.;
+    Real trace_minus = 0.;
     tensorPlus_<dim>(A, [&](Real eig) {
       trace_plus += std::max(eig, 0.);
       trace_minus += std::min(eig, 0.);
@@ -102,11 +103,12 @@ namespace {
     return std::make_pair(trace_plus, trace_minus);
   }
 
-  template <UInt dim, class Op>
-  auto tensorPlusOp(const Matrix<Real> & A, Matrix<Real> & A_directions,
-                    Op && oper, bool sorted = false) {
-    Vector<Real> A_eigs(dim);
-    Matrix<Real> A_diag(dim, dim);
+  template <Int dim, class Op, class D1, class D2>
+  auto tensorPlusOp(const Eigen::MatrixBase<D1> & A,
+                    Eigen::MatrixBase<D2> & A_directions, Op && oper,
+                    bool sorted = false) {
+    Vector<Real, dim> A_eigs;
+    Matrix<Real, dim, dim> A_diag;
     A.eig(A_eigs, A_directions, sorted);
 
     for (auto && data : enumerate(A_eigs)) {
@@ -117,26 +119,25 @@ namespace {
     return A_directions * A_diag * A_directions.transpose();
   }
 
-  template <UInt dim, class Op>
-  auto tensorPlus(const Matrix<Real> & A, Matrix<Real> & A_directions,
-                  bool sorted = false) {
+  template <Int dim, class D1, class D2, class Op>
+  auto tensorPlus(const Eigen::MatrixBase<D1> & A,
+                  Eigen::MatrixBase<D2> & A_directions, bool sorted = false) {
     return tensorPlusOp<dim>(
-        A, A_directions, [](Real x, Real /*unused*/) { return x; }, sorted);
+        A, A_directions, [](Real x, Real) { return x; }, sorted);
   }
 
-  template <UInt dim, class Op>
-  auto tensorPlusOp(const Matrix<Real> & A, Op && oper) {
-    Matrix<Real> A_directions(dim, dim);
+  template <Int dim, class D, class Op>
+  auto tensorPlusOp(const Eigen::MatrixBase<D> & A, Op && oper) {
+    Matrix<Real, dim, dim> A_directions;
     return tensorPlusOp<dim>(A, A_directions, std::forward<Op>(oper));
   }
 
-  template <Int dim> auto tensorPlus(const Matrix<Real> & A) {
-    return tensorPlusOp<dim>(A, [](Real x, Real /*unused*/) { return x; });
+  template <Int dim, class D> auto tensorPlus(const Eigen::MatrixBase<D> & A) {
+    return tensorPlusOp<dim>(A, [](Real x, Real) { return x; });
   }
 
-  template <Int dim> auto tensorSqrt(const Matrix<Real> & A) {
-    return tensorPlusOp<dim>(
-        A, [](Real x, UInt /*unused*/) { return std::sqrt(x); });
+  template <Int dim, class D> auto tensorSqrt(const Eigen::MatrixBase<D> & A) {
+    return tensorPlusOp<dim>(A, [](Real x, Int) { return std::sqrt(x); });
   }
 
 } // namespace
@@ -144,8 +145,8 @@ namespace {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, template <UInt> class EquivalentStrain,
-          template <UInt> class DamageThreshold, template <UInt> class Parent>
+template <Int dim, template <Int> class EquivalentStrain,
+          template <Int> class DamageThreshold, template <Int> class Parent>
 MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
     MaterialAnisotropicDamage(SolidMechanicsModel & model, const ID & id)
     : Parent<dim>(model, id), damage("damage_tensor", *this),
@@ -164,8 +165,8 @@ MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, template <UInt> class EquivalentStrain,
-          template <UInt> class DamageThreshold, template <UInt> class Parent>
+template <Int dim, template <Int> class EquivalentStrain,
+          template <Int> class DamageThreshold, template <Int> class Parent>
 void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
     damageStress(Matrix<Real> & sigma, const Matrix<Real> & sigma_el,
                  const Matrix<Real> & D, Real TrD) {
@@ -173,14 +174,14 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
   //         - ((1 − D_(n + 1)) : σ~_(n + 1))/ (3 - Tr(D_(n+1))) (1 − D_(n + 1))
   //         + 1/3 (1 - Tr(D_(n+1)) <Tr(σ~_(n + 1))>_+ + <Tr(σ~_(n + 1))>_-) I
 
-  auto one_D = Matrix<Real>::eye(dim) - D;
+  auto one_D = Matrix<Real, dim, dim>::Identity() - D;
   auto sqrt_one_D = tensorSqrt<dim>(one_D);
 
   Real Tr_sigma_plus;
   Real Tr_sigma_minus;
   std::tie(Tr_sigma_plus, Tr_sigma_minus) = tensorPlusTrace<dim>(sigma_el);
 
-  auto I = Matrix<Real>::eye(dim);
+  auto I = Matrix<Real, dim, dim>::Identity();
 
   sigma = sqrt_one_D * sigma_el * sqrt_one_D -
           (one_D.doubleDot(sigma_el) / (dim - TrD) * one_D) +
@@ -188,8 +189,8 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold, Parent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, template <UInt> class EquivalentStrain,
-          template <UInt> class DamageThreshold, template <UInt> class Parent>
+template <Int dim, template <Int> class EquivalentStrain,
+          template <Int> class DamageThreshold, template <Int> class Parent>
 void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
                                Parent>::computeStress(ElementType type,
                                                       GhostType ghost_type) {
@@ -265,11 +266,11 @@ void MaterialAnisotropicDamage<dim, EquivalentStrain, DamageThreshold,
 
           computeDamage();
         } else if (std::abs(epsilon.trace()) < 1e-10) { // deviatoric case
-          Matrix<Real> n(dim, dim);
-          std::vector<UInt> ns;
+          Matrix<Real, dim, dim> n;
+          std::vector<Int> ns;
           tensorPlusOp<dim>(
               Dtmp, n,
-              [&](Real x, UInt i) {
+              [&](Real x, Int i) {
                 if (x > this->Dc) {
                   ns.push_back(i);
                   return this->Dc;
@@ -300,8 +301,8 @@ class EquivalentStrainMazars : public EmptyIteratorContainer {
 public:
   EquivalentStrainMazars(Material & /*mat*/) {}
 
-  template <class... Other>
-  Real operator()(const Matrix<Real> & epsilon, Other &&... /*other*/) {
+  template <class D, class... Other>
+  Real operator()(const Eigen::MatrixBase<D> & epsilon, Other &&... /*other*/) {
     Real epsilon_hat = 0.;
     std::tie(epsilon_hat, std::ignore) = tensorPlusTrace<dim>(epsilon);
     return std::sqrt(epsilon_hat);
@@ -316,8 +317,8 @@ public:
     mat.registerParam("k", k, _pat_parsable, "k");
   }
 
-  template <class... Other>
-  Real operator()(const Matrix<Real> & epsilon, Real /*unused*/) {
+  template <class D, class... Other>
+  Real operator()(const Eigen::MatrixBase<D> & epsilon, Real) {
     Real epsilon_hat = EquivalentStrainMazars<dim>::operator()(epsilon);
     epsilon_hat += k * epsilon.trace();
     return epsilon_hat;
@@ -330,8 +331,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* DamageThreshold functions                                                  */
 /* -------------------------------------------------------------------------- */
-template <Int dim>
-class DamageThresholdLinear : public EmptyIteratorContainer {
+template <Int dim> class DamageThresholdLinear : public EmptyIteratorContainer {
 public:
   DamageThresholdLinear(Material & mat) : mat(mat) {
     mat.registerParam("A", A, _pat_parsable, "A");

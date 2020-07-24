@@ -49,14 +49,14 @@ int main(int argc, char * argv[]) {
   mesh.read("embedded_mesh.msh");
 
   Array<Real> nodes_vec(2, dim, "reinforcement_nodes");
-  nodes_vec.storage()[0] = 0;
-  nodes_vec.storage()[1] = 0.5;
-  nodes_vec.storage()[2] = 1;
-  nodes_vec.storage()[3] = 0.5;
+  nodes_vec.data()[0] = 0;
+  nodes_vec.data()[1] = 0.5;
+  nodes_vec.data()[2] = 1;
+  nodes_vec.data()[3] = 0.5;
 
   Array<UInt> conn_vec(1, 2, "reinforcement_connectivity");
-  conn_vec.storage()[0] = 0;
-  conn_vec.storage()[1] = 1;
+  conn_vec.data()[0] = 0;
+  conn_vec.data()[1] = 1;
 
   Array<std::string> names_vec(1, 1, "reinforcement", "reinforcement_names");
 

@@ -53,45 +53,53 @@ template <Int dim> class VoigtHelper {
 public:
   /* ------------------------------------------------------------------------ */
   template <class M, class V>
-  static inline void matrixToVoigt(M && matrix, V && vector);
-
-  template <class M> static inline decltype(auto) matrixToVoigt(M && matrix);
-
-  template <class M, class V>
-  static inline void matrixToVoigtWithFactors(M && matrix, V && vector);
+  static constexpr inline void matrixToVoigt(M && matrix, V && vector);
 
   template <class M>
-  static inline decltype(auto) matrixToVoigtWithFactors(M && matrix);
+  static constexpr inline decltype(auto) matrixToVoigt(M && matrix);
 
   template <class M, class V>
-  static inline void voigtToMatrix(V && vector, M && matrix);
+  static constexpr inline void matrixToVoigtWithFactors(M && matrix,
+                                                        V && vector);
 
-  template <class V> static inline decltype(auto) voigtToMatrix(V && vector);
+  template <class M>
+  static constexpr inline decltype(auto) matrixToVoigtWithFactors(M && matrix);
+
+  template <class M, class V>
+  static constexpr inline void voigtToMatrix(V && vector, M && matrix);
+
+  template <class V>
+  static constexpr inline decltype(auto) voigtToMatrix(V && vector);
   /* ------------------------------------------------------------------------ */
 
   /// transfer the B matrix to a Voigt notation B matrix
-  inline static void transferBMatrixToSymVoigtBMatrix(
-      const Matrix<Real> & B, Matrix<Real> & Bvoigt, UInt nb_nodes_per_element);
+  template <typename D1, typename D2>
+  static constexpr inline void
+  transferBMatrixToSymVoigtBMatrix(const Eigen::MatrixBase<D1> & B,
+                                   Eigen::MatrixBase<D2> & Bvoigt,
+                                   Int nb_nodes_per_element);
 
   /// transfer the BNL matrix to a Voigt notation B matrix (See Bathe et al.
   /// IJNME vol 9, 1975)
-  inline static void transferBMatrixToBNL(const Matrix<Real> & B,
-                                          Matrix<Real> & Bvoigt,
-                                          UInt nb_nodes_per_element);
+  template <typename D1, typename D2>
+  static constexpr inline void
+  transferBMatrixToBNL(const Eigen::MatrixBase<D1> & B,
+                       Eigen::MatrixBase<D2> & Bvoigt,
+                       Int nb_nodes_per_element);
 
   /// transfer the BL2 matrix to a Voigt notation B matrix (See Bathe et al.
   /// IJNME vol 9, 1975)
-  inline static void transferBMatrixToBL2(const Matrix<Real> & B,
-                                          const Matrix<Real> & grad_u,
-                                          Matrix<Real> & Bvoigt,
-                                          UInt nb_nodes_per_element);
+  template <typename D1, typename D2, typename D3>
+  static constexpr inline void transferBMatrixToBL2(
+      const Eigen::MatrixBase<D1> & B, const Eigen::MatrixBase<D2> & grad_u,
+      Eigen::MatrixBase<D3> & Bvoigt, Int nb_nodes_per_element);
 
 public:
-  static constexpr UInt size{(dim * (dim - 1)) / 2 + dim};
+  static constexpr Int size{(dim * (dim - 1)) / 2 + dim};
   // matrix of vector index I as function of tensor indices i,j
-  static const UInt mat[dim][dim];
+  static const Idx mat[dim][dim];
   // array of matrix indices ij as function of vector index I
-  static const UInt vec[dim * dim][2];
+  static const Idx vec[dim * dim][2];
   // factors to multiply the strain by for voigt notation
   static const Real factors[size];
 };

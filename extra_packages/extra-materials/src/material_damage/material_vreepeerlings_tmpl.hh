@@ -61,15 +61,15 @@ void MaterialVreePeerlings<spatial_dimension, MatParent>::computeStress(
 
   MaterialVreePeerlingsParent::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
-  Real * equi_straint = equi_strain(el_type, ghost_type).storage();
-  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).storage();
-  Real * Kapaq = Kapa(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
+  Real * equi_straint = equi_strain(el_type, ghost_type).data();
+  Real * equi_straint_rate = equi_strain_rate(el_type, ghost_type).data();
+  Real * Kapaq = Kapa(el_type, ghost_type).data();
   Real * FullDam_Valstrain =
-      Full_dam_value_strain(el_type, ghost_type).storage();
+      Full_dam_value_strain(el_type, ghost_type).data();
   Real * FullDam_Valstrain_rate =
-      Full_dam_value_strain_rate(el_type, ghost_type).storage();
-  Real * Nb_damage = Number_damage(el_type, ghost_type).storage();
+      Full_dam_value_strain_rate(el_type, ghost_type).data();
+  Real * Nb_damage = Number_damage(el_type, ghost_type).data();
   Real dt = this->model.getTimeStep();
 
   Array<Idx> & elem_filter = this->element_filter(el_type, ghost_type);

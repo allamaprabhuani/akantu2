@@ -152,19 +152,19 @@ void SolidMechanicsModelCohesive::updateFacetStressSynchronizer() {
     const auto & facet_checks = inserter->getCheckFacets();
     const auto & mesh_facets = inserter->getMeshFacets();
     const auto & element_to_facet = mesh_facets.getElementToSubelement();
-    UInt rank = mesh.getCommunicator().whoAmI();
+    auto rank = mesh.getCommunicator().whoAmI();
 
     facet_stress_synchronizer->updateSchemes(
         [&](auto & scheme, auto & proc, auto & /*direction*/) {
-          UInt el = 0;
+          Idx el = 0;
           for (auto && element : scheme) {
             if (not facet_checks(element)) {
               continue;
             }
 
             const auto & next_el = element_to_facet(element);
-            UInt rank_left = rank_to_element(next_el[0]);
-            UInt rank_right = rank_to_element(next_el[1]);
+            auto rank_left = rank_to_element(next_el[0]);
+            auto rank_right = rank_to_element(next_el[1]);
 
             if ((rank_left == rank and rank_right == proc) or
                 (rank_left == proc and rank_right == rank)) {
@@ -199,13 +199,13 @@ template <typename T, bool pack_helper>
 void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
     ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
     const Array<Element> & elements) const {
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  UInt nb_quad_per_elem = 0;
-  UInt sp2 = spatial_dimension * spatial_dimension;
-  UInt nb_component = sp2 * 2;
+  auto current_element_type = _not_defined;
+  auto current_ghost_type = _casper;
+  Int nb_quad_per_elem = 0;
+  Int sp2 = spatial_dimension * spatial_dimension;
+  Int nb_component = sp2 * 2;
   bool element_rank = false;
-  Mesh & mesh_facets = inserter->getMeshFacets();
+  auto & mesh_facets = inserter->getMeshFacets();
 
   Array<T> * vect = nullptr;
   const Array<std::vector<Element>> * element_to_facet = nullptr;
@@ -238,7 +238,7 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
           (*element_to_facet)(el.element)[0].ghost_type == _not_ghost;
     }
 
-    for (UInt q = 0; q < nb_quad_per_elem; ++q) {
+    for (Int q = 0; q < nb_quad_per_elem; ++q) {
       VectorProxy<T> data(vect->data() +
                          (el.element * nb_quad_per_elem + q) * nb_component +
                          element_rank * sp2,

@@ -38,6 +38,7 @@
 #include "aka_types.hh"
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
+#include <io_helper.hh>
 #include <memory>
 /* -------------------------------------------------------------------------- */
 
@@ -46,8 +47,26 @@
 /* -------------------------------------------------------------------------- */
 
 namespace iohelper {
-class Dumper;
-}
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_vector<Eigen::Matrix<T, m, n>>
+    : public aka::bool_constant<Eigen::Matrix<T, m, n>::IsVectorAtCompileTime> {
+};
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_matrix<Eigen::Matrix<T, m, n>>
+    : public aka::bool_constant<
+          not Eigen::Matrix<T, m, n>::IsVectorAtCompileTime> {};
+
+template <typename Derived, int MapOptions, typename StrideType>
+struct is_vector<Eigen::Map<Derived, MapOptions, StrideType>>
+    : public aka::bool_constant<Derived::IsVectorAtCompileTime> {};
+
+template <typename Derived, int MapOptions, typename StrideType>
+struct is_matrix<Eigen::Map<Derived, MapOptions, StrideType>>
+    : public aka::bool_constant<not Derived::IsVectorAtCompileTime> {};
+
+} // namespace iohelper
 
 namespace akantu {
 
@@ -79,13 +98,11 @@ public:
                             const ElementKind & element_kind = _ek_not_defined);
 
   /// register a filtered Mesh (provided filter lists) for the current dumper
-  virtual void
-  registerFilteredMesh(const Mesh & mesh,
-                       const ElementTypeMapArray<Idx> & elements_filter,
-                       const Array<Idx> & nodes_filter,
-                       Int spatial_dimension = _all_dimensions,
-                       const GhostType & ghost_type = _not_ghost,
-                       const ElementKind & element_kind = _ek_not_defined);
+  virtual void registerFilteredMesh(
+      const Mesh & mesh, const ElementTypeMapArray<Idx> & elements_filter,
+      const Array<Idx> & nodes_filter, Int spatial_dimension = _all_dimensions,
+      const GhostType & ghost_type = _not_ghost,
+      const ElementKind & element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
   void registerField(const std::string & field_id,

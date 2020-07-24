@@ -73,9 +73,9 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
   Array<Real>::const_matrix_iterator grad_u_end =
       grad_u.end(spatial_dimension, spatial_dimension);
   /// get pointer to internals
-  Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
-  Real * mu_ptr = this->mu(el_type, ghost_type).storage();
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
+  Real * mu_ptr = this->mu(el_type, ghost_type).data();
+  Real * dam = this->damage(el_type, ghost_type).data();
   Matrix<Real> sigma(spatial_dimension, spatial_dimension);
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
     MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
@@ -86,8 +86,8 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::
     sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         *(Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -156,7 +156,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::computeStress(
 
   Parent::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
@@ -327,7 +327,7 @@ void MaterialIGFEMSawToothDamage<spatial_dimension>::onElementsAdded(
                                             new_elements, added_quads,
                                             extrapolated_internal_values);
 
-        UInt * sub_mat_ptr = this->sub_material(*it, ghost_type).storage();
+        UInt * sub_mat_ptr = this->sub_material(*it, ghost_type).data();
         Array<Real>::const_vector_iterator extrapolated_it =
             extrapolated_internal_values.begin(nb_component);
         Array<Real>::vector_iterator internal_it = internal.begin(nb_component);

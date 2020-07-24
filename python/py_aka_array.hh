@@ -68,7 +68,7 @@ namespace detail {
     }
 
     ArrayProxy(const Array<T> & src) {
-      this->values = src.storage();
+      this->values = src.data();
       this->size_ = src.size();
       this->nb_component = src.getNbComponent();
     }
@@ -149,7 +149,7 @@ namespace detail {
                             py::handle base = handle(), bool writeable = true) {
     array a;
     a = array_type_t<_aka::Array<T>>({src.size(), src.getNbComponent()},
-                                     src.storage(), base);
+                                     src.data(), base);
 
     if (not writeable) {
       array_proxy(a.ptr())->flags &= ~detail::npy_api::NPY_ARRAY_WRITEABLE_;
@@ -162,7 +162,7 @@ namespace detail {
   py::handle aka_array_cast(const _aka::Vector<T> & src,
                             py::handle base = handle(), bool writeable = true) {
     array a;
-    a = array_type_t<_aka::Vector<T>>({src.size()}, src.storage(), base);
+    a = array_type_t<_aka::Vector<T>>({src.size()}, src.data(), base);
 
     if (not writeable) {
       array_proxy(a.ptr())->flags &= ~detail::npy_api::NPY_ARRAY_WRITEABLE_;
@@ -175,7 +175,7 @@ namespace detail {
   py::handle aka_array_cast(const _aka::Matrix<T> & src,
                             py::handle base = handle(), bool writeable = true) {
     array a;
-    a = array_type_t<_aka::Matrix<T>>({src.size(0), src.size(1)}, src.storage(),
+    a = array_type_t<_aka::Matrix<T>>({src.size(0), src.size(1)}, src.data(),
                                       base);
 
     if (not writeable) {

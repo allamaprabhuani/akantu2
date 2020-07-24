@@ -73,7 +73,7 @@ void generateIGFEMMesh(const ElementType type, Mesh & mesh,
 
         /// read the coordinates
         for (UInt j = 0; j < spatial_dimension; ++j)
-          nodes.storage()[offset + j] = coord[j];
+          nodes.data()[offset + j] = coord[j];
       }
       std::getline(infile, line); /// the end of block line
     }

@@ -42,12 +42,12 @@ template <typename T, bool pack_helper>
 void DataAccessor<Element>::packUnpackNodalDataHelper(
     Array<T> & data, CommunicationBuffer & buffer,
     const Array<Element> & elements, const Mesh & mesh) {
-  UInt nb_component = data.getNbComponent();
-  UInt nb_nodes_per_element = 0;
+  Int nb_component = data.getNbComponent();
+  Int nb_nodes_per_element = 0;
 
-  ElementType current_element_type = _not_defined;
-  GhostType current_ghost_type = _casper;
-  UInt * conn = nullptr;
+  auto current_element_type = _not_defined;
+  auto current_ghost_type = _casper;
+  Int * conn = nullptr;
 
   for (const auto & el : elements) {
     if (el.type != current_element_type ||
@@ -58,10 +58,10 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
       nb_nodes_per_element = Mesh::getNbNodesPerElement(el.type);
     }
 
-    UInt el_offset = el.element * nb_nodes_per_element;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
-      UInt offset_conn = conn[el_offset + n];
-      Vector<T> data_vect(data.data() + offset_conn * nb_component,
+    auto el_offset = el.element * nb_nodes_per_element;
+    for (Int n = 0; n < nb_nodes_per_element; ++n) {
+      auto offset_conn = conn[el_offset + n];
+      VectorProxy<T> data_vect(data.data() + offset_conn * nb_component,
                           nb_component);
 
       if (pack_helper) {
@@ -100,7 +100,7 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
       nb_component = vect->getNbComponent();
     }
 
-    Vector<T> data(vect->storage() +
+    VectorProxy<T> data(vect->data() +
                        el.element * nb_component * nb_quad_per_elem,
                    nb_component * nb_quad_per_elem);
     if (pack_helper) {
@@ -113,9 +113,9 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, bool pack_helper>
-void DataAccessor<UInt>::packUnpackDOFDataHelper(Array<T> & data,
-                                                 CommunicationBuffer & buffer,
-                                                 const Array<UInt> & dofs) {
+void DataAccessor<Idx>::packUnpackDOFDataHelper(Array<T> & data,
+                                                CommunicationBuffer & buffer,
+                                                const Array<Idx> & dofs) {
   T * data_ptr = data.data();
   for (const auto & dof : dofs) {
     if (pack_helper) {
@@ -143,15 +143,14 @@ void DataAccessor<UInt>::packUnpackDOFDataHelper(Array<T> & data,
       ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,     \
       const Array<Element> & element, bool per_quadrature_point_data,          \
       const FEEngine & fem);                                                   \
-  template void DataAccessor<UInt>::packUnpackDOFDataHelper<T, true>(          \
-      Array<T> & data, CommunicationBuffer & buffer,                           \
-      const Array<UInt> & dofs);                                               \
-  template void DataAccessor<UInt>::packUnpackDOFDataHelper<T, false>(         \
-      Array<T> & data, CommunicationBuffer & buffer, const Array<UInt> & dofs)
+  template void DataAccessor<Idx>::packUnpackDOFDataHelper<T, true>(           \
+      Array<T> & data, CommunicationBuffer & buffer, const Array<Idx> & dofs); \
+  template void DataAccessor<Idx>::packUnpackDOFDataHelper<T, false>(          \
+      Array<T> & data, CommunicationBuffer & buffer, const Array<Idx> & dofs)
 
 /* -------------------------------------------------------------------------- */
 DECLARE_HELPERS(Real);
-DECLARE_HELPERS(UInt);
+DECLARE_HELPERS(Idx);
 DECLARE_HELPERS(bool);
 /* -------------------------------------------------------------------------- */
 

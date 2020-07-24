@@ -56,8 +56,8 @@ class MaterialMarigoNonLocal
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using MaterialMarigoNonLocalParent = MaterialDamageNonLocal<spatial_dimension,
-                                 MaterialMarigo<spatial_dimension>>;
+  using parent = MaterialDamageNonLocal<spatial_dimension,
+                                        MaterialMarigo<spatial_dimension>>;
   MaterialMarigoNonLocal(SolidMechanicsModel & model, const ID & id = "");
 
   /* ------------------------------------------------------------------------ */
@@ -73,10 +73,17 @@ protected:
   void computeNonLocalStress(ElementType type,
                              GhostType ghost_type = _not_ghost) override;
 
-private:
+public:
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
+  decltype(auto) getArguments(const ElementType & el_type,
+                              const GhostType & ghost_type) {
+    return zip_replace<"Y"_h>(
+        parent::getArguments(el_type, ghost_type),
+        make_view(this->Ynl(el_type, ghost_type)));
+  }
+
 public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Y, Y, Real);
 

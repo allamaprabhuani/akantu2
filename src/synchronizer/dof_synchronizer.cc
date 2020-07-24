@@ -58,7 +58,7 @@ namespace akantu {
  * constructor sets up this information.
  */
 DOFSynchronizer::DOFSynchronizer(DOFManagerDefault & dof_manager, const ID & id)
-    : SynchronizerImpl<UInt>(dof_manager.getCommunicator(), id),
+    : SynchronizerImpl<Idx>(dof_manager.getCommunicator(), id),
       dof_manager(dof_manager) {
   std::vector<ID> dof_ids = dof_manager.getDOFIDs();
 
@@ -82,7 +82,6 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
   }
 
   const auto & equation_numbers = dof_manager.getLocalEquationsNumbers(dof_id);
-
   const auto & associated_nodes = dof_manager.getDOFsAssociatedNodes(dof_id);
   const auto & node_synchronizer = dof_manager.getMesh().getNodeSynchronizer();
   const auto & node_communications = node_synchronizer.getCommunications();
@@ -133,7 +132,7 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFSynchronizer::fillEntityToSend(Array<UInt> & dofs_to_send) {
+void DOFSynchronizer::fillEntityToSend(Array<Idx> & dofs_to_send) {
   UInt nb_dofs = dof_manager.getLocalSystemSize();
 
   this->entities_from_root.zero();
@@ -154,7 +153,7 @@ void DOFSynchronizer::fillEntityToSend(Array<UInt> & dofs_to_send) {
 }
 
 /* -------------------------------------------------------------------------- */
-void DOFSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/) {
+void DOFSynchronizer::onNodesAdded(const Array<Idx> & /*nodes_list*/) {
   auto dof_ids = dof_manager.getDOFIDs();
 
   for (auto sr : iterate_send_recv) {

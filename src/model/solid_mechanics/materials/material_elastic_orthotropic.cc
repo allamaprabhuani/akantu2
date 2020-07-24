@@ -42,7 +42,7 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt Dim>
+template <Int Dim>
 MaterialElasticOrthotropic<Dim>::MaterialElasticOrthotropic(
     SolidMechanicsModel & model, const ID & id)
     : MaterialElasticLinearAnisotropic<Dim>(model, id) {
@@ -70,7 +70,7 @@ MaterialElasticOrthotropic<Dim>::MaterialElasticOrthotropic(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt Dim> void MaterialElasticOrthotropic<Dim>::initMaterial() {
+template <Int Dim> void MaterialElasticOrthotropic<Dim>::initMaterial() {
   AKANTU_DEBUG_IN();
   MaterialElasticLinearAnisotropic<Dim>::initMaterial();
 
@@ -84,7 +84,7 @@ template <UInt Dim> void MaterialElasticOrthotropic<Dim>::initMaterial() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt Dim>
+template <Int Dim>
 void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   this->C.zero();
@@ -92,9 +92,9 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 
   /* 1) construction of temporary material frame stiffness tensor------------ */
   // http://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php#Sect3_2_13
-  Real nu21 = nu12 * E2 / E1;
-  Real nu31 = nu13 * E3 / E1;
-  Real nu32 = nu23 * E3 / E2;
+  auto nu21 = nu12 * E2 / E1;
+  auto nu31 = nu13 * E3 / E1;
+  auto nu32 = nu23 * E3 / E2;
 
   // Full (i.e. dim^2 by dim^2) stiffness tensor in material frame
   if (Dim == 1) {
@@ -142,32 +142,25 @@ void MaterialElasticOrthotropic<Dim>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialElasticOrthotropic<spatial_dimension>::
-    computePotentialEnergyByElement(ElementType type, UInt index,
-                                    Vector<Real> & epot_on_quad_points) {
+template <Int dim>
+void MaterialElasticOrthotropic<dim>::computePotentialEnergyByElement(
+    ElementType type, Int index, Vector<Real> & epot_on_quad_points) {
 
-  Array<Real>::matrix_iterator gradu_it =
-      this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  Array<Real>::matrix_iterator gradu_end =
-      this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  Array<Real>::matrix_iterator stress_it =
-      this->stress(type).begin(spatial_dimension, spatial_dimension);
+  auto gradu_it = make_view<dim, dim>(this->gradu(type)).begin();
+  auto stress_it = make_view<dim, dim>(this->stress(type)).begin();
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
 
   gradu_it += index * nb_quadrature_points;
-  gradu_end += (index + 1) * nb_quadrature_points;
+  auto gradu_end = gradu_it + nb_quadrature_points;
   stress_it += index * nb_quadrature_points;
 
-  Real * epot_quad = epot_on_quad_points.data();
+  auto epot_quad = epot_on_quad_points.begin();
 
-  Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
+  Matrix<Real, dim, dim> grad_u;
 
   for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-    grad_u.copy(*gradu_it);
-
-    this->computePotentialEnergyOnQuad(grad_u, *stress_it, *epot_quad);
+    this->computePotentialEnergyOnQuad(*gradu_it, *stress_it, *epot_quad);
   }
 }
 

@@ -93,8 +93,8 @@ void MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
       grad_u.begin(spatial_dimension, spatial_dimension);
   Array<Real>::const_matrix_iterator grad_u_end =
       grad_u.end(spatial_dimension, spatial_dimension);
-  Real * mu_ptr = this->mu(el_type, ghost_type).storage();
-  Real * lambda_ptr = this->lambda(el_type, ghost_type).storage();
+  Real * mu_ptr = this->mu(el_type, ghost_type).data();
+  Real * lambda_ptr = this->lambda(el_type, ghost_type).data();
 
   /// loop over all the quadrature points and compute the equivalent stress
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
@@ -109,8 +109,8 @@ void MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
 
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         (*Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -262,7 +262,7 @@ void MaterialIGFEMIterativeStiffnessReduction<
           this->reduction_step(el_type, ghost_type).begin();
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type);
-      UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).storage();
+      UInt * sub_mat_ptr = this->sub_material(el_type, ghost_type).data();
       for (UInt q = 0; q < nb_element * nb_quads;
            ++q, ++sub_mat_ptr, ++dam_it, ++reduction_it) {
         if (*sub_mat_ptr) {

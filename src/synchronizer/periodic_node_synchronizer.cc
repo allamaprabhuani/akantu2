@@ -110,7 +110,7 @@ void PeriodicNodeSynchronizer::update() {
 
 /* -------------------------------------------------------------------------- */
 void PeriodicNodeSynchronizer::synchronizeOnceImpl(
-    DataAccessor<UInt> & data_accessor, const SynchronizationTag & tag) const {
+    DataAccessor<Idx> & data_accessor, const SynchronizationTag & tag) const {
   NodeSynchronizer::synchronizeOnceImpl(data_accessor, tag);
 
   auto size = data_accessor.getNbData(masters_list, tag);
@@ -122,7 +122,7 @@ void PeriodicNodeSynchronizer::synchronizeOnceImpl(
 
 /* -------------------------------------------------------------------------- */
 void PeriodicNodeSynchronizer::waitEndSynchronizeImpl(
-    DataAccessor<UInt> & data_accessor, const SynchronizationTag & tag) {
+    DataAccessor<Idx> & data_accessor, const SynchronizationTag & tag) {
   NodeSynchronizer::waitEndSynchronizeImpl(data_accessor, tag);
 
   auto size = data_accessor.getNbData(masters_list, tag);

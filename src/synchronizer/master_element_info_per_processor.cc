@@ -48,13 +48,13 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 MasterElementInfoPerProc::MasterElementInfoPerProc(
-    ElementSynchronizer & synchronizer, UInt message_cnt, UInt root,
+    ElementSynchronizer & synchronizer, Int message_cnt, Int root,
     ElementType type, const MeshPartition & partition)
     : ElementInfoPerProc(synchronizer, message_cnt, root, type),
       partition(partition), all_nb_local_element(nb_proc, 0),
       all_nb_ghost_element(nb_proc, 0), all_nb_element_to_send(nb_proc, 0) {
-  Vector<UInt> size(5);
-  size(0) = (UInt)type;
+  Vector<Int> size(5);
+  size(0) = (Int)type;
 
   if (type != _not_defined) {
     nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -64,7 +64,7 @@ MasterElementInfoPerProc::MasterElementInfoPerProc(
     const auto & ghost_partition =
         this->partition.getGhostPartitionCSR()(this->type, _not_ghost);
 
-    for (UInt el = 0; el < nb_element; ++el) {
+    for (Int el = 0; el < nb_element; ++el) {
       this->all_nb_local_element[partition_num(el)]++;
       for (auto part = ghost_partition.begin(el);
            part != ghost_partition.end(el); ++part) {
@@ -80,7 +80,7 @@ MasterElementInfoPerProc::MasterElementInfoPerProc(
 
     size(4) = nb_tags;
 
-    for (UInt p = 0; p < nb_proc; ++p) {
+    for (Int p = 0; p < nb_proc; ++p) {
       if (p != root) {
         size(1) = this->all_nb_local_element[p];
         size(2) = this->all_nb_ghost_element[p];
@@ -98,7 +98,7 @@ MasterElementInfoPerProc::MasterElementInfoPerProc(
       }
     }
   } else {
-    for (UInt p = 0; p < this->nb_proc; ++p) {
+    for (Int p = 0; p < this->nb_proc; ++p) {
       if (p != this->root) {
         AKANTU_DEBUG_INFO(
             "Sending empty connectivities informations to proc "
@@ -119,7 +119,7 @@ void MasterElementInfoPerProc::synchronizeConnectivities() {
   const auto & ghost_partition =
       this->partition.getGhostPartitionCSR()(this->type, _not_ghost);
 
-  std::vector<Array<UInt>> buffers(this->nb_proc);
+  std::vector<Array<Idx>> buffers(this->nb_proc);
 
   const auto & connectivities =
       this->mesh.getConnectivity(this->type, _not_ghost);
@@ -130,7 +130,7 @@ void MasterElementInfoPerProc::synchronizeConnectivities() {
            make_view(connectivities, this->nb_nodes_per_element))) {
     auto && part = std::get<0>(part_conn);
     auto && conn = std::get<1>(part_conn);
-    for (UInt i = 0; i < conn.size(); ++i) {
+    for (Int i = 0; i < conn.size(); ++i) {
       buffers[part].push_back(conn[i]);
     }
   }
@@ -142,8 +142,8 @@ void MasterElementInfoPerProc::synchronizeConnectivities() {
     auto && conn = std::get<1>(tuple);
     for (auto part = ghost_partition.begin(el); part != ghost_partition.end(el);
          ++part) {
-      UInt proc = *part;
-      for (UInt i = 0; i < conn.size(); ++i) {
+      auto proc = *part;
+      for (Int i = 0; i < conn.size(); ++i) {
         buffers[proc].push_back(conn[i]);
       }
     }
@@ -151,10 +151,10 @@ void MasterElementInfoPerProc::synchronizeConnectivities() {
 
 #ifndef AKANTU_NDEBUG
   for (auto p : arange(this->nb_proc)) {
-    UInt size = this->nb_nodes_per_element *
+    auto size = this->nb_nodes_per_element *
                 (this->all_nb_local_element[p] + this->all_nb_ghost_element[p]);
     AKANTU_DEBUG_ASSERT(
-        buffers[p].size() == size,
+        Int(buffers[p].size()) == size,
         "The connectivity data packed in the buffer are not correct");
   }
 #endif
@@ -172,7 +172,7 @@ void MasterElementInfoPerProc::synchronizeConnectivities() {
     requests.push_back(comm.asyncSend(buffers[p], p, tag));
   }
 
-  Array<UInt> & old_nodes = this->getNodesGlobalIds();
+  auto & old_nodes = this->getNodesGlobalIds();
 
   /// create the renumbered connectivity
   AKANTU_DEBUG_INFO("Renumbering local connectivities");
@@ -190,23 +190,23 @@ void MasterElementInfoPerProc::synchronizePartitions() {
   const auto & ghost_partition =
       this->partition.getGhostPartitionCSR()(this->type, _not_ghost);
 
-  std::vector<Array<UInt>> buffers(this->partition.getNbPartition());
+  std::vector<Array<Int>> buffers(this->partition.getNbPartition());
 
   /// splitting the partition information to send them to processors
-  Vector<UInt> count_by_proc(nb_proc, 0);
-  for (UInt el = 0; el < nb_element; ++el) {
-    UInt proc = partition_num(el);
+  Vector<Int> count_by_proc(nb_proc, 0);
+  for (Idx el = 0; el < nb_element; ++el) {
+    auto proc = partition_num(el);
     buffers[proc].push_back(ghost_partition.getNbCols(el));
 
-    UInt i(0);
+    Int i(0);
     for (auto part = ghost_partition.begin(el); part != ghost_partition.end(el);
          ++part, ++i) {
       buffers[proc].push_back(*part);
     }
   }
 
-  for (UInt el = 0; el < nb_element; ++el) {
-    UInt i(0);
+  for (Idx el = 0; el < nb_element; ++el) {
+    Int i(0);
     for (auto part = ghost_partition.begin(el); part != ghost_partition.end(el);
          ++part, ++i) {
       buffers[*part].push_back(partition_num(el));
@@ -214,7 +214,7 @@ void MasterElementInfoPerProc::synchronizePartitions() {
   }
 
 #ifndef AKANTU_NDEBUG
-  for (UInt p = 0; p < this->nb_proc; ++p) {
+  for (Int p = 0; p < this->nb_proc; ++p) {
     AKANTU_DEBUG_ASSERT(buffers[p].size() == (this->all_nb_ghost_element[p] +
                                               this->all_nb_element_to_send[p]),
                         "Data stored in the buffer are most probably wrong");
@@ -223,7 +223,7 @@ void MasterElementInfoPerProc::synchronizePartitions() {
 
   std::vector<CommunicationRequest> requests;
   /// last data to compute the communication scheme
-  for (UInt p = 0; p < this->nb_proc; ++p) {
+  for (Int p = 0; p < this->nb_proc; ++p) {
     if (p == this->root) {
       continue;
     }
@@ -293,7 +293,7 @@ void MasterElementInfoPerProc::synchronizeTags() {
   }
 
   std::vector<CommunicationRequest> requests;
-  for (UInt p = 0; p < nb_proc; ++p) {
+  for (Int p = 0; p < nb_proc; ++p) {
     if (p == root) {
       continue;
     }
@@ -341,26 +341,26 @@ void MasterElementInfoPerProc::fillTagBufferTemplated(
   // typename Array<T>::template const_iterator< Vector<T> > data_end =
   // data.end(data.getNbComponent());
 
-  const T * data_it = data.data();
-  const T * data_end = data.data() + data.size() * data.getNbComponent();
-  const UInt * part = partition_num.data();
+  const auto * data_it = data.data();
+  const auto * data_end = data.data() + data.size() * data.getNbComponent();
+  const auto * part = partition_num.data();
 
   /// copying the data, element by element
   for (; data_it != data_end; ++part) {
-    for (UInt j(0); j < data.getNbComponent(); ++j, ++data_it) {
+    for (Int j(0); j < data.getNbComponent(); ++j, ++data_it) {
       buffers[*part] << *data_it;
     }
   }
 
   data_it = data.data();
   /// copying the data for the ghost element
-  for (UInt el(0); data_it != data_end;
+  for (Idx el(0); data_it != data_end;
        data_it += data.getNbComponent(), ++el) {
     auto it = ghost_partition.begin(el);
     auto end = ghost_partition.end(el);
     for (; it != end; ++it) {
-      UInt proc = *it;
-      for (UInt j(0); j < data.getNbComponent(); ++j) {
+      auto proc = *it;
+      for (Int j(0); j < data.getNbComponent(); ++j) {
         buffers[proc] << data_it[j];
       }
     }
@@ -424,13 +424,13 @@ void MasterElementInfoPerProc::synchronizeGroups() {
     auto it = ghost_partition.begin(el);
     auto end = ghost_partition.end(el);
     for (; it != end; ++it) {
-      UInt proc = *it;
+      auto proc = *it;
       buffers[proc] << std::get<1>(pair);
     }
   }
 
   std::vector<CommunicationRequest> requests;
-  for (UInt p = 0; p < this->nb_proc; ++p) {
+  for (Int p = 0; p < this->nb_proc; ++p) {
     if (p == this->rank) {
       continue;
     }

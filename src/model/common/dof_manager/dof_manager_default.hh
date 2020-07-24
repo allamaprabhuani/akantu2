@@ -133,18 +133,18 @@ private:
   /// Add a symmetric matrices to a symmetric sparse matrix
   void addSymmetricElementalMatrixToSymmetric(
       SparseMatrixAIJ & matrix, const Matrix<Real> & element_mat,
-      const Vector<Int> & equation_numbers, UInt max_size);
+      const Vector<Idx> & equation_numbers, Int max_size);
 
   /// Add a unsymmetric matrices to a symmetric sparse matrix (i.e. cohesive
   /// elements)
   void addUnsymmetricElementalMatrixToSymmetric(
       SparseMatrixAIJ & matrix, const Matrix<Real> & element_mat,
-      const Vector<Int> & equation_numbers, UInt max_size);
+      const Vector<Idx> & equation_numbers, Int max_size);
 
   /// Add a matrices to a unsymmetric sparse matrix
   void addElementalMatrixToUnsymmetric(SparseMatrixAIJ & matrix,
                                        const Matrix<Real> & element_mat,
-                                       const Vector<Int> & equation_numbers,
+                                       const Vector<Idx> & equation_numbers,
                                        UInt max_size);
 
   void addToProfile(const ID & matrix_id, const ID & dof_id,
@@ -154,7 +154,7 @@ private:
   /* MeshEventHandler interface                                               */
   /* ------------------------------------------------------------------------ */
 protected:
-  std::tuple<UInt, UInt, UInt>
+  std::tuple<Int, Int, Int>
   registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) override;
 
   // std::pair<UInt, UInt>

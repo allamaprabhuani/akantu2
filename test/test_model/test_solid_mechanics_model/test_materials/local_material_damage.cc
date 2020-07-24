@@ -92,7 +92,7 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
 
   Material::computePotentialEnergy(el_type);
 
-  Real * epot = potential_energy(el_type).storage();
+  Real * epot = potential_energy(el_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);

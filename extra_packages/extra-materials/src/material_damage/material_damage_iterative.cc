@@ -72,7 +72,7 @@ void MaterialDamageIterative<spatial_dimension>::
       grad_u.begin(spatial_dimension, spatial_dimension);
   Array<Real>::const_matrix_iterator grad_u_end =
       grad_u.end(spatial_dimension, spatial_dimension);
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
   Matrix<Real> sigma(spatial_dimension, spatial_dimension);
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
     sigma.zero();
@@ -84,8 +84,8 @@ void MaterialDamageIterative<spatial_dimension>::
     sigma.eig(eigenvalues);
     /// find max eigenvalue and normalize by tensile strength
     *equivalent_stress_it =
-        *(std::max_element(eigenvalues.storage(),
-                           eigenvalues.storage() + spatial_dimension)) /
+        *(std::max_element(eigenvalues.data(),
+                           eigenvalues.data() + spatial_dimension)) /
         *(Sc_it);
     ++Sc_it;
     ++equivalent_stress_it;
@@ -161,7 +161,7 @@ void MaterialDamageIterative<spatial_dimension>::computeStress(
 
   MaterialDamage<spatial_dimension>::computeStress(el_type, ghost_type);
 
-  Real * dam = this->damage(el_type, ghost_type).storage();
+  Real * dam = this->damage(el_type, ghost_type).data();
 
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 

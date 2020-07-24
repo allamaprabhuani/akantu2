@@ -32,7 +32,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_compatibilty_with_cpp_standard.hh"
 #include "aka_error.hh"
-#include "aka_fwd.hh"
 #include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
@@ -48,7 +47,6 @@
 namespace aka {
 template <typename T> struct is_eigen_map : public std::false_type {};
 } // namespace aka
-
 
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE akantu::Idx
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
@@ -97,7 +95,7 @@ template <size_t n> struct TensorTrait : public TensorTraitBase {};
 
 namespace aka {
 template <typename Derived>
-using is_matrice = aka::bool_constant<not Derived::IsVectorAtCompileTime>;
+using is_matrix = aka::bool_constant<not Derived::IsVectorAtCompileTime>;
 
 template <typename Derived>
 using is_vector = aka::bool_constant<Derived::IsVectorAtCompileTime>;
@@ -106,7 +104,7 @@ template <typename... Ds>
 using are_vectors = aka::conjunction<is_vector<Ds>...>;
 
 template <typename... Ds>
-using are_matrices = aka::conjunction<is_matrice<Ds>...>;
+using are_matrices = aka::conjunction<is_matrix<Ds>...>;
 
 template <typename... Ds>
 using enable_if_matrices_t = std::enable_if_t<are_matrices<Ds...>::value>;
@@ -127,6 +125,9 @@ struct is_tensor : public std::is_base_of<akantu::TensorTraitBase, T> {};
 template <typename PlainObjectType, int MapOptions, typename StrideType>
 struct is_tensor<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
     : public std::true_type {};
+
+template <typename T, Eigen::Index m, Eigen::Index n>
+struct is_tensor<Eigen::Matrix<T, m, n>> : public std::true_type {};
 
 template <typename T, size_t n>
 using is_tensor_n = std::is_base_of<akantu::TensorTrait<n>, T>;
@@ -182,7 +183,7 @@ protected:
 
 public:
   using proxy = TensorBase<T, ndim>;
-
+  using size_type = Idx;
   template <Int _ndim = ndim,
             std::enable_if_t<_ndim == 1 or _ndim == 2, int> = 0>
   TensorBase() {
@@ -198,7 +199,7 @@ public:
   constexpr TensorBase(const TensorBase & other)
       : n(other.n), _size(other._size), values(other.values) {}
 
-  constexpr TensorBase(TensorBase && other)
+  constexpr TensorBase(TensorBase && other) noexcept
       : n(std::move(other.n)), _size(std::exchange(other._size, 0)),
         values(std::exchange(other.values, nullptr)) {}
 
@@ -213,7 +214,7 @@ protected:
 
   template <typename... Args> constexpr auto compute_index(Args... args) const {
     std::array<idx_t, sizeof...(Args)> idx{idx_t(args)...};
-    AKANTU_DEBUG_ASSERT(
+    static_assert(
         check_indices(idx, std::make_index_sequence<sizeof...(Args)>{}),
         "The indexes are out of bound");
 
@@ -238,50 +239,54 @@ protected:
 
 public:
   template <typename... Args, valid_args_t<Args...> = 0>
-  inline T & operator()(Args... args) {
+  inline auto operator()(Args... args) -> T & {
     return *(this->values + compute_index(std::move(args)...));
   }
 
   template <typename... Args, valid_args_t<Args...> = 0>
-  inline const T & operator()(Args... args) const {
+  inline auto operator()(Args... args) const -> const T & {
     return *(this->values + compute_index(std::move(args)...));
   }
 
-  template <idx_t _ndim = ndim, std::enable_if_t<(_ndim > 3), int> = 0>
+  template <
+      class R = T, idx_t _ndim = ndim,
+      std::enable_if_t<(_ndim > 3) and not std::is_const<R>::value> * = nullptr>
   inline auto operator()(idx_t s) {
     return get_slice<TensorProxy<T, ndim - 1>>(
-        std::move(s), std::make_index_sequence<ndim - 1>());
+        s, std::make_index_sequence<ndim - 1>());
   }
 
-  template <idx_t _ndim = ndim, std::enable_if_t<(_ndim > 3), int> = 0>
+  template <idx_t _ndim = ndim, std::enable_if_t<(_ndim > 3)> * = nullptr>
   inline auto operator()(idx_t s) const {
     return get_slice<TensorProxy<T, ndim - 1>>(
-        std::move(s), std::make_index_sequence<ndim - 1>());
+        s, std::make_index_sequence<ndim - 1>());
   }
 
-  template <idx_t _ndim = ndim, std::enable_if_t<_ndim == 3, int> = 0>
+  template <class R = T, idx_t _ndim = ndim,
+            std::enable_if_t<(_ndim == 3) and not std::is_const<R>::value> * =
+                nullptr>
   inline auto operator()(idx_t s) {
     return get_slice<
         Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>>(
-        std::move(s), std::make_index_sequence<ndim - 1>());
+        s, std::make_index_sequence<ndim - 1>());
   }
 
-  template <idx_t _ndim = ndim, std::enable_if_t<_ndim == 3, int> = 0>
+  template <idx_t _ndim = ndim, std::enable_if_t<_ndim == 3> * = nullptr>
   inline auto operator()(idx_t s) const {
-    return get_slice<
-        Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>>(
-        std::move(s), std::make_index_sequence<ndim - 1>());
+    return get_slice<Eigen::Map<const Eigen::Matrix<
+        std::remove_const_t<T>, Eigen::Dynamic, Eigen::Dynamic>>>(
+        s, std::make_index_sequence<ndim - 1>());
   }
 
 protected:
-  template <class Operator> RetType & transform(Operator && op) {
+  template <class Operator> auto transform(Operator && op) -> RetType & {
     std::transform(this->values, this->values + this->_size, this->values,
                    std::forward<Operator>(op));
     return *(static_cast<RetType *>(this));
   }
 
   template <class Other, class Operator>
-  RetType & transform(Other && other, Operator && op) {
+  auto transform(Other && other, Operator && op) -> RetType & {
     AKANTU_DEBUG_ASSERT(_size == other.size(),
                         "The two tensors do not have the same size "
                             << this->_size << " != " << other._size);
@@ -291,14 +296,14 @@ protected:
     return *(static_cast<RetType *>(this));
   }
 
-  template <class Operator> T accumulate(T init, Operator && op) {
+  template <class Operator> auto accumulate(T init, Operator && op) -> T {
     return std::accumulate(this->values, this->values + this->_size,
                            std::move(init), std::forward<Operator>(op));
   }
 
   template <class Other, class Init, class Accumulate, class Operator>
-  T transform_reduce(Other && other, T init, Accumulate && acc,
-                     Operator && op) {
+  auto transform_reduce(Other && other, T init, Accumulate && acc,
+                        Operator && op) -> T {
     return std::inner_product(
         this->values, this->values + this->_size, other.data(), std::move(init),
         std::forward<Accumulate>(acc), std::forward<Operator>(op));
@@ -312,52 +317,49 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  inline TensorBase & operator-=(const TensorBase & other) {
+  inline auto operator-=(const TensorBase & other) -> TensorBase & {
     return transform(other, [](auto && a, auto && b) { return a - b; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline TensorBase & operator+=(const T & x) {
+  inline auto operator+=(const T & x) -> TensorBase & {
     return transform([&x](auto && a) { return a + x; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline TensorBase & operator-=(const T & x) {
+  inline auto operator-=(const T & x) -> TensorBase & {
     return transform([&x](auto && a) { return a - x; });
   }
 
   /* ------------------------------------------------------------------------ */
-  inline TensorBase & operator*=(const T & x) {
+  inline auto operator*=(const T & x) -> TensorBase & {
     return transform([&x](auto && a) { return a * x; });
   }
 
   /* ---------------------------------------------------------------------- */
-  inline TensorBase & operator/=(const T & x) {
+  inline auto operator/=(const T & x) -> TensorBase & {
     return transform([&x](auto && a) { return a / x; });
   }
 
   /// Y = \alpha X + Y
-  inline TensorBase & aXplusY(const TensorBase & other, const T alpha = 1.) {
+  inline auto aXplusY(const TensorBase & other, const T alpha = 1.)
+      -> TensorBase & {
     return transform(other,
                      [&alpha](auto && a, auto && b) { return alpha * a + b; });
   }
 
   /* ------------------------------------------------------------------------ */
-
-  template <typename TO, std::size_t ndim_o, bool is_proxy_o>
-  friend class TensorBase;
-
-  T * data() { return values; }
-  const T * data() const { return values; }
+  auto data() -> T * { return values; }
+  auto data() const -> const T * { return values; }
 
   // clang-format off
   [[deprecated("use data instead to be stl compatible")]]
-  T * storage() {
+  auto storage() -> T*{
     return values;
   }
 
   [[deprecated("use data instead to be stl compatible")]]
-  const T * storage() const {
+  auto storage() const -> const T * {
     return values;
   }
   // clang-format on
@@ -405,7 +407,7 @@ public:
                     1. / norm_type);
   }
 
-  T norm() const { return norm<L_2>(); }
+  auto norm() const -> T { return norm<L_2>(); }
 
 protected:
   template <Int N, typename... Args,
@@ -498,9 +500,9 @@ public:
 
   // move constructors ---------------------------------------------------------
   // proxy -> proxy
-  TensorProxy(TensorProxy && other) : parent(other) {}
+  TensorProxy(TensorProxy && other) noexcept : parent(other) {}
 
-  TensorProxy & operator=(const TensorBase<T, ndim> & other) {
+  auto operator=(const TensorBase<T, ndim> & other) -> TensorProxy & {
     AKANTU_DEBUG_ASSERT(
         other.size() == this->size(),
         "You are trying to copy too a tensors proxy with the wrong size "
@@ -545,11 +547,11 @@ public:
 
   // move constructors ---------------------------------------------------------
   // proxy -> proxy, non proxy -> non proxy
-  Tensor(Tensor && other) : parent(other) {}
+  Tensor(Tensor && other) noexcept : parent(other) {}
 
   // copy operator -------------------------------------------------------------
   /// operator= copy-and-swap
-  Tensor & operator=(const TensorBase<T, ndim> & other) {
+  auto operator=(const TensorBase<T, ndim> & other) -> Tensor & {
     if (&other == this)
       return *this;
 
@@ -612,17 +614,21 @@ namespace details {
   template <typename Array, Idx... sizes> class EigenView {
     static_assert(sizeof...(sizes) == 1 or sizeof...(sizes) == 2,
                   "Eigen only supports Vector and Matrices");
+
+  public:
     using size_type = typename std::decay_t<Array>::size_type;
     using value_type = typename std::decay_t<Array>::value_type;
 
-  public:
     EigenView(Array && array, decltype(sizes)... sizes_)
         : array(array), sizes_(sizes_...) {}
 
     EigenView(Array && array) : array(array), sizes_(sizes...) {}
 
     EigenView(const EigenView & other) = default;
-    EigenView(EigenView && other) = default;
+    EigenView(EigenView && other) noexcept = default;
+
+    auto operator=(const EigenView & other) -> EigenView & = default;
+    auto operator=(EigenView && other) noexcept -> EigenView & = default;
 
     template <typename T = std::remove_reference_t<
                   decltype(*std::declval<Array>().data())>,
@@ -660,14 +666,14 @@ namespace details {
         class A = Array,
         std::enable_if_t<std::is_base_of<ArrayBase, std::decay_t<A>>::value> * =
             nullptr>
-    size_type array_size() {
+    auto array_size() {
       return array.get().size() * array.get().getNbComponent();
     }
 
     template <class A = Array,
               std::enable_if_t<not std::is_base_of<
                   ArrayBase, std::decay_t<A>>::value> * = nullptr>
-    size_type array_size() {
+    auto array_size() {
       return array.get().size();
     }
 
@@ -678,7 +684,6 @@ namespace details {
 
 } // namespace details
 
-
 template <Idx RowsAtCompileTime, typename Array>
 decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime) {
   return details::EigenView<Array, RowsAtCompileTime>(
@@ -686,7 +691,8 @@ decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime) {
 }
 
 template <Idx RowsAtCompileTime, Idx ColsAtCompileTime, typename Array>
-decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime, Idx cols = ColsAtCompileTime) {
+decltype(auto) make_view(Array && array, Idx rows = RowsAtCompileTime,
+                         Idx cols = ColsAtCompileTime) {
   return details::EigenView<Array, RowsAtCompileTime, ColsAtCompileTime>(
       std::forward<Array>(array), rows, cols);
 }
@@ -783,18 +789,29 @@ MatrixBase<Derived>::end() const {
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(MatrixBase<OtherDerived> & values) {
+MatrixBase<Derived>::eig(const MatrixBase<OtherDerived> & values_) {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
+  Eigen::MatrixBase<OtherDerived> & values =
+      const_cast<Eigen::MatrixBase<OtherDerived> &>(
+          values_); // as advised by the Eigen developers
+
   values = solver.eigenvalues();
 }
 
 template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors) {
+MatrixBase<Derived>::eig(const MatrixBase<D1> & values_,
+                         const MatrixBase<D2> & vectors_) {
   EigenSolver<akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
+
+  Eigen::MatrixBase<D1> & values = const_cast<Eigen::MatrixBase<D1> &>(
+      values_); // as advised by the Eigen developers
+  Eigen::MatrixBase<D2> & vectors = const_cast<Eigen::MatrixBase<D2> &>(
+      vectors_); // as advised by the Eigen developers
+
   values = solver.eigenvalues();
   vectors = solver.eigenvectors();
 }
@@ -802,20 +819,30 @@ MatrixBase<Derived>::eig(MatrixBase<D1> & values, MatrixBase<D2> & vectors) {
 template <typename Derived>
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eigh(MatrixBase<OtherDerived> & values) {
+MatrixBase<Derived>::eigh(const MatrixBase<OtherDerived> & values_) {
   SelfAdjointEigenSolver<
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
+  Eigen::MatrixBase<OtherDerived> & values =
+      const_cast<Eigen::MatrixBase<OtherDerived> &>(
+          values_); // as advised by the Eigen developers
   values = solver.eigenvalues();
 }
 
 template <typename Derived>
 template <typename D1, typename D2>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-MatrixBase<Derived>::eigh(MatrixBase<D1> & values, MatrixBase<D2> & vectors) {
+MatrixBase<Derived>::eigh(const MatrixBase<D1> & values_,
+                          const MatrixBase<D2> & vectors_) {
   SelfAdjointEigenSolver<
       akantu::details::MapPlainObjectType_t<std::decay_t<Derived>>>
       solver(*this, false);
+
+  Eigen::MatrixBase<D1> & values = const_cast<Eigen::MatrixBase<D1> &>(
+      values_); // as advised by the Eigen developers
+  Eigen::MatrixBase<D2> & vectors = const_cast<Eigen::MatrixBase<D2> &>(
+      vectors_); // as advised by the Eigen developers
+
   values = solver.eigenvalues();
   vectors = solver.eigenvectors();
 }

@@ -75,7 +75,7 @@ void compare_storages_with_ref(const type & a, Real * ref, UInt size, UInt line,
                      " instead of " + itoa(size) +
                      " [Test at line: " + itoa(line) + "]");
 
-  Real * a_ptr = a.storage();
+  Real * a_ptr = a.data();
   for (UInt i = 0; i < a.size(); ++i) {
     if (!((std::abs(a_ptr[i]) < tolerance && std::abs(ref[i]) < tolerance) ||
           std::abs((a_ptr[i] - ref[i]) / a_ptr[i]) < tolerance)) {
@@ -102,7 +102,7 @@ void compare_storages_with_ref(const type & a, Real * ref, UInt size, UInt line,
   compare_storages_with_ref(a, aref, sizeof(aref) / sizeof(aref[0]), __LINE__, \
                             txt)
 #define COMPARE_STORAGE(a, aref, txt)                                          \
-  compare_storages_with_ref(a, aref.storage(), aref.size(), __LINE__, txt)
+  compare_storages_with_ref(a, aref.data(), aref.size(), __LINE__, txt)
 
 const UInt ref_size = 10;
 

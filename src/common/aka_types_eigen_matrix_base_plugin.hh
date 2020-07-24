@@ -1,3 +1,5 @@
+using size_type = Index;
+
 template <bool _is_vector = IsVectorAtCompileTime,
           std::enable_if_t<_is_vector> * = nullptr>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
@@ -175,19 +177,19 @@ doubleDot(const MatrixBase<OtherDerived> & other) const {
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eig(MatrixBase<OtherDerived> & other);
+eig(const MatrixBase<OtherDerived> & other);
 
 template <typename D1, typename D2>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eig(MatrixBase<D1> & values,
-                                               MatrixBase<D2> & vectors);
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eig(const MatrixBase<D1> & values,
+                                               const MatrixBase<D2> & vectors);
 
 template <typename OtherDerived>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void
-eigh(MatrixBase<OtherDerived> & other);
+eigh(const MatrixBase<OtherDerived> & other);
 
 template <typename D1, typename D2>
-EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(MatrixBase<D1> & values,
-                                                MatrixBase<D2> & vectors);
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void eigh(const MatrixBase<D1> & values,
+                                                const MatrixBase<D2> & vectors);
 /*
 public:
 */

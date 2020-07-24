@@ -38,10 +38,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
-                                                  const ID & id)
-    : MaterialDamage<spatial_dimension>(model, id), K0("K0", *this),
+template <Int dim>
+MaterialMazars<dim>::MaterialMazars(SolidMechanicsModel & model, const ID & id)
+    : MaterialDamage<dim>(model, id), K0("K0", *this),
       damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
 
@@ -58,21 +57,23 @@ MaterialMazars<spatial_dimension>::MaterialMazars(SolidMechanicsModel & model,
 }
 
 /* -------------------------------------------------------------------------- */
-template <Int spatial_dimension>
-void MaterialMazars<spatial_dimension>::computeStress(ElementType el_type,
-                                                      GhostType ghost_type) {
+template <Int dim>
+void MaterialMazars<dim>::computeStress(ElementType el_type,
+                                        GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  Real * dam = this->damage(el_type, ghost_type).data();
-
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
-
+  auto & damage = this->damage(el_type, ghost_type);
   Real Ehat = 0;
-  computeStressOnQuad(grad_u, sigma, *dam, Ehat);
-  ++dam;
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
+  auto && arguments = named_zip(
+      tuple::get<"damage"_h>() = make_view(damage),
+      tuple::get<"sigma"_h>() = make_view<dim, dim>(this->stress(el_type, ghost_type)),
+      tuple::get<"grad_u"_h>() = make_view<dim, dim>(this->grad_u(el_type, ghost_type)),
+      tuple::get<"Ehat"_h>() = broadcast(Ehat, damage.size()));
 
+  for(auto && data : arguments) {
+    computeStressOnQuad(data);
+  }
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */

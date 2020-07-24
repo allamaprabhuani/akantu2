@@ -329,7 +329,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
 
     for (UInt e = 0; e < element_filter.getSize(); ++e) {
       UInt global_el_idx = element_filter(e);
-      mesh.getBarycenter(global_el_idx, element_type, bary.storage(),
+      mesh.getBarycenter(global_el_idx, element_type, bary.data(),
                          _not_ghost);
       /// find element
       for (bary_it = bary_begin; bary_it != bary_end; ++bary_it) {
@@ -367,7 +367,7 @@ bool checkDamageState(UInt step, const SolidMechanicsModelIGFEM & model,
     UInt * sub_el_ptr =
         model.getMaterial(2)
             .getInternal<UInt>("sub_material")(element_type, _not_ghost)
-            .storage();
+            .data();
 
     for (UInt e = 0; e < element_filter_igfem.getSize(); ++e) {
       UInt global_el_idx = element_filter_igfem(e);

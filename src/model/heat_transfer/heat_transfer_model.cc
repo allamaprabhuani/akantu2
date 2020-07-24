@@ -74,7 +74,7 @@ namespace heat_transfer {
 } // namespace heat_transfer
 
 /* -------------------------------------------------------------------------- */
-HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
+HeatTransferModel::HeatTransferModel(Mesh & mesh, Int dim, const ID & id,
                                      std::shared_ptr<DOFManager> dof_manager)
     : Model(mesh, ModelType::_heat_transfer_model, dof_manager, dim, id),
       temperature_gradient("temperature_gradient", id),
@@ -370,10 +370,10 @@ void HeatTransferModel::computeConductivityOnQuadPoints(GhostType ghost_type) {
       auto & T = std::get<1>(tuple);
       C = conductivity;
 
-      Matrix<Real> variation(spatial_dimension, spatial_dimension,
-                             conductivity_variation * (T - T_ref));
+      Matrix<Real> variation(spatial_dimension, spatial_dimension);
+      variation.fill(conductivity_variation * (T - T_ref));
       // @TODO: Guillaume are you sure ? why due you compute variation then ?
-      C += conductivity_variation;
+      C.array() += conductivity_variation;
     }
   }
 
@@ -403,7 +403,7 @@ void HeatTransferModel::computeKgradT(GhostType ghost_type) {
       const auto & BT = std::get<1>(values);
       auto & k_BT = std::get<2>(values);
 
-      k_BT.mul<false>(C, BT);
+      k_BT = C * BT;
     }
   }
 
@@ -425,15 +425,15 @@ void HeatTransferModel::assembleInternalHeatRate() {
 
     for (auto type :
          mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
-      UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
+      auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
       auto & k_gradt_on_qpoints_vect = k_gradt_on_qpoints(type, ghost_type);
 
-      UInt nb_quad_points = k_gradt_on_qpoints_vect.size();
+      auto nb_quad_points = k_gradt_on_qpoints_vect.size();
       Array<Real> bt_k_gT(nb_quad_points, nb_nodes_per_element);
       fem.computeBtD(k_gradt_on_qpoints_vect, bt_k_gT, type, ghost_type);
 
-      UInt nb_elements = mesh.getNbElement(type, ghost_type);
+      auto nb_elements = mesh.getNbElement(type, ghost_type);
       Array<Real> int_bt_k_gT(nb_elements, nb_nodes_per_element);
 
       fem.integrate(bt_k_gT, int_bt_k_gT, nb_nodes_per_element, type,
@@ -447,7 +447,7 @@ void HeatTransferModel::assembleInternalHeatRate() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getStableTimeStep() {
+auto HeatTransferModel::getStableTimeStep() -> Real {
   AKANTU_DEBUG_IN();
 
   Real el_size;
@@ -455,24 +455,24 @@ Real HeatTransferModel::getStableTimeStep() {
   Real conductivitymax = conductivity(0, 0);
 
   // get the biggest parameter from k11 until k33//
-  for (UInt i = 0; i < spatial_dimension; i++) {
-    for (UInt j = 0; j < spatial_dimension; j++) {
+  for (Int i = 0; i < spatial_dimension; i++) {
+      for (Int j = 0; j < spatial_dimension; j++) {
       conductivitymax = std::max(conductivity(i, j), conductivitymax);
     }
   }
   for (auto && type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
-    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+    auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
 
     Array<Real> coord(0, nb_nodes_per_element * spatial_dimension);
     FEEngine::extractNodalToElementField(mesh, mesh.getNodes(), coord, type,
                                          _not_ghost);
 
     auto el_coord = coord.begin(spatial_dimension, nb_nodes_per_element);
-    UInt nb_element = mesh.getNbElement(type);
+    auto nb_element = mesh.getNbElement(type);
 
-    for (UInt el = 0; el < nb_element; ++el, ++el_coord) {
+    for (Int el = 0; el < nb_element; ++el, ++el_coord) {
       el_size = getFEEngine().getElementInradius(*el_coord, type);
       min_el_size = std::min(min_el_size, el_size);
     }
@@ -548,16 +548,16 @@ void HeatTransferModel::computeRho(Array<Real> & rho, ElementType type,
   AKANTU_DEBUG_IN();
 
   FEEngine & fem = this->getFEEngine();
-  UInt nb_element = mesh.getNbElement(type, ghost_type);
-  UInt nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
+  auto nb_element = mesh.getNbElement(type, ghost_type);
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type, ghost_type);
 
   rho.resize(nb_element * nb_quadrature_points);
   rho.set(this->capacity);
 
   // Real * rho_1_val = rho.data();
   // /// compute @f$ rho @f$ for each nodes of each element
-  // for (UInt el = 0; el < nb_element; ++el) {
-  //   for (UInt n = 0; n < nb_quadrature_points; ++n) {
+  // for (auto el = 0; el < nb_element; ++el) {
+  //   for (auto n = 0; n < nb_quadrature_points; ++n) {
   //     *rho_1_val++ = this->capacity;
   //   }
   // }
@@ -566,7 +566,7 @@ void HeatTransferModel::computeRho(Array<Real> & rho, ElementType type,
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::computeThermalEnergyByNode() {
+auto HeatTransferModel::computeThermalEnergyByNode() -> Real {
   AKANTU_DEBUG_IN();
 
   Real ethermal = 0.;
@@ -580,7 +580,7 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
     bool is_local_node = mesh.isLocalOrMasterNode(n);
     bool count_node = is_local_node;
 
-    for (UInt i = 0; i < heat_rate.size(); ++i) {
+    for (Int i = 0; i < heat_rate.size(); ++i) {
       if (count_node) {
         heat += heat_rate[i] * time_step;
       }
@@ -595,20 +595,20 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class iterator>
-void HeatTransferModel::getThermalEnergy(
-    iterator Eth, Array<Real>::const_iterator<Real> T_it,
-    const Array<Real>::const_iterator<Real> & T_end) const {
+template <class iterator, class t_iterator>
+void HeatTransferModel::getThermalEnergy(iterator Eth, t_iterator T_it,
+                                         t_iterator T_end) const {
   for (; T_it != T_end; ++T_it, ++Eth) {
     *Eth = capacity * density * *T_it;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getThermalEnergy(ElementType type, UInt index) {
+auto HeatTransferModel::getThermalEnergy(const ElementType & type, Idx index)
+    -> Real {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = getFEEngine().getNbIntegrationPoints(type);
+  auto nb_quadrature_points = getFEEngine().getNbIntegrationPoints(type);
   Vector<Real> Eth_on_quarature_points(nb_quadrature_points);
 
   auto T_it = this->temperature_on_qpoints(type).begin();
@@ -618,11 +618,12 @@ Real HeatTransferModel::getThermalEnergy(ElementType type, UInt index) {
 
   getThermalEnergy(Eth_on_quarature_points.data(), T_it, T_end);
 
-  return getFEEngine().integrate(Eth_on_quarature_points, type, index);
+  return getFEEngine().integrate(Eth_on_quarature_points,
+                                 Element{type, index, _not_ghost});
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getThermalEnergy() {
+auto HeatTransferModel::getThermalEnergy() -> Real {
   Real Eth = 0;
 
   auto & fem = getFEEngine();
@@ -650,7 +651,7 @@ Real HeatTransferModel::getThermalEnergy() {
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getEnergy(const std::string & id) {
+auto HeatTransferModel::getEnergy(const std::string & id) -> Real {
   AKANTU_DEBUG_IN();
   Real energy = 0;
 
@@ -665,8 +666,8 @@ Real HeatTransferModel::getEnergy(const std::string & id) {
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getEnergy(const std::string & id, ElementType type,
-                                  UInt index) {
+auto HeatTransferModel::getEnergy(const std::string & id,
+                                  const ElementType & type, Int index) -> Real {
   AKANTU_DEBUG_IN();
 
   Real energy = 0.;
@@ -721,24 +722,23 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createNodalFieldReal(
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool /*padding_flag*/, UInt /*spatial_dimension*/,
-    ElementKind element_kind) {
+    bool /*padding_flag*/, const Int & /*spatial_dimension*/,
+    const ElementKind & element_kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
   if (field_name == "partitions") {
-    field = mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
+    field = mesh.createElementalField<Int, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, this->spatial_dimension,
         element_kind);
   } else if (field_name == "temperature_gradient") {
-    ElementTypeMap<UInt> nb_data_per_elem =
-        this->mesh.getNbDataPerElem(temperature_gradient);
+    auto nb_data_per_elem = this->mesh.getNbDataPerElem(temperature_gradient);
 
     field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
         temperature_gradient, group_name, this->spatial_dimension, element_kind,
         nb_data_per_elem);
   } else if (field_name == "conductivity") {
-    ElementTypeMap<UInt> nb_data_per_elem =
+    auto nb_data_per_elem =
         this->mesh.getNbDataPerElem(conductivity_on_qpoints);
 
     field = mesh.createElementalField<Real, dumpers::InternalMaterialField>(
@@ -776,12 +776,12 @@ HeatTransferModel::createNodalFieldReal(const std::string & /*field_name*/,
 #endif
 
 /* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbData(const Array<UInt> & indexes,
+inline Int HeatTransferModel::getNbData(const Array<UInt> & indexes,
                                          const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt nb_nodes = indexes.size();
+  Int size = 0;
+  auto nb_nodes = indexes.size();
 
   switch (tag) {
   case SynchronizationTag::_htm_temperature: {
@@ -799,7 +799,7 @@ inline UInt HeatTransferModel::getNbData(const Array<UInt> & indexes,
 
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
-                                        const Array<UInt> & indexes,
+                                        const Array<Idx> & indexes,
                                         const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
@@ -819,7 +819,7 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
-                                          const Array<UInt> & indexes,
+                                          const Array<Idx> & indexes,
                                           const SynchronizationTag & tag) {
   AKANTU_DEBUG_IN();
 
@@ -839,16 +839,14 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt HeatTransferModel::getNbData(const Array<Element> & elements,
-                                         const SynchronizationTag & tag) const {
+inline Int HeatTransferModel::getNbData(const Array<Element> & elements,
+                                        const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();
 
-  UInt size = 0;
-  UInt nb_nodes_per_element = 0;
-  Array<Element>::const_iterator<Element> it = elements.begin();
-  Array<Element>::const_iterator<Element> end = elements.end();
-  for (; it != end; ++it) {
-    const Element & el = *it;
+  Int size = 0;
+  auto nb_nodes_per_element = 0;
+
+  for (auto && el : elements) {
     nb_nodes_per_element += Mesh::getNbNodesPerElement(el.type);
   }
 

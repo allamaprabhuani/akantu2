@@ -28,7 +28,6 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "material.hh"
@@ -38,14 +37,14 @@
 #define AKANTU_MATERIAL_THERMAL_HH_
 
 namespace akantu {
-template <Int spatial_dimension> class MaterialThermal : public Material {
+template <Int dim> class MaterialThermal : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
   MaterialThermal(SolidMechanicsModel & model, const ID & id = "");
-  MaterialThermal(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
-                  FEEngine & fe_engine, const ID & id = "");
+  MaterialThermal(SolidMechanicsModel & model, Int spatial_dimension,
+                  const Mesh & mesh, FEEngine & fe_engine, const ID & id = "");
 
   ~MaterialThermal() override = default;
 
@@ -62,9 +61,19 @@ public:
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
   /// local computation of thermal stress
-  inline void computeStressOnQuad(Real & sigma, const Real & deltaT);
+  template<class Args>
+  inline void computeStressOnQuad(Args && args);
 
   /* ------------------------------------------------------------------------ */
+  decltype(auto) getArguments(const ElementType & el_type,
+                              const GhostType & ghost_type) {
+    return zip_append(
+        Material::getArguments<dim>(el_type, ghost_type),
+        tuple::get<"delta_T"_h>() =
+            make_view(this->delta_T(el_type, ghost_type)),
+        tuple::get<"sigma_th"_h>() =
+            make_view(this->sigma_th(el_type, ghost_type)));
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -94,14 +103,18 @@ protected:
 /* Inline impl                                                              */
 /* ------------------------------------------------------------------------ */
 template <Int dim>
-inline void MaterialThermal<dim>::computeStressOnQuad(Real & sigma,
-                                                      const Real & deltaT) {
+template <class Args>
+inline void MaterialThermal<dim>::computeStressOnQuad(Args && args) {
+  auto && sigma = tuple::get<"sigma_th"_h>(args);
+  auto && deltaT = tuple::get<"delta_T"_h>(args);
   sigma = -this->E / (1. - 2. * this->nu) * this->alpha * deltaT;
 }
 
 template <>
-inline void MaterialThermal<1>::computeStressOnQuad(Real & sigma,
-                                                    const Real & deltaT) {
+template <class Args>
+inline void MaterialThermal<1>::computeStressOnQuad(Args && args) {
+  auto && sigma = tuple::get<"sigma_th"_h>(args);
+  auto && deltaT = tuple::get<"delta_T"_h>(args);
   sigma = -this->E * this->alpha * deltaT;
 }
 

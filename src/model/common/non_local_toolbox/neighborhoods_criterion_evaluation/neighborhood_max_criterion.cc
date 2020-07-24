@@ -50,11 +50,11 @@ NeighborhoodMaxCriterion::NeighborhoodMaxCriterion(
   this->registerParam("radius", neighborhood_radius, 100.,
                       _pat_parsable | _pat_readable, "Non local radius");
 
-  Mesh & mesh = this->model.getMesh();
+  auto & mesh = this->model.getMesh();
   /// allocate the element type map arrays for _not_ghosts: One entry per quad
   GhostType ghost_type = _not_ghost;
   for (auto type : mesh.elementTypes(spatial_dimension, ghost_type)) {
-    UInt new_size = this->quad_coordinates(type, ghost_type).size();
+    auto new_size = this->quad_coordinates(type, ghost_type).size();
     this->is_highest.alloc(new_size, 1, type, ghost_type, true);
     this->criterion.alloc(new_size, 1, type, ghost_type, 1.);
   }
@@ -62,8 +62,8 @@ NeighborhoodMaxCriterion::NeighborhoodMaxCriterion(
   /// criterion needs allocation also for ghost
   ghost_type = _ghost;
   for (auto type : mesh.elementTypes(spatial_dimension, ghost_type)) {
-    UInt new_size = this->quad_coordinates(type, ghost_type).size();
-    this->criterion.alloc(new_size, 1, type, ghost_type, 1.);
+    auto new_size = this->quad_coordinates(type, ghost_type).size();
+    this->criterion.alloc(new_size, 1, type, ghost_type, true);
   }
 
   AKANTU_DEBUG_OUT();
@@ -81,8 +81,8 @@ void NeighborhoodMaxCriterion::initNeighborhood() {
   AKANTU_DEBUG_IN();
 
   /// parse the input parameter
-  const Parser & parser = getStaticParser();
-  const ParserSection & section_neighborhood =
+  const auto & parser = getStaticParser();
+  const auto & section_neighborhood =
       *(parser.getSubSections(ParserType::_neighborhood).first);
   this->parseSection(section_neighborhood);
 
@@ -93,8 +93,8 @@ void NeighborhoodMaxCriterion::initNeighborhood() {
   this->insertAllQuads(_not_ghost);
 
   /// store the number of current ghost elements for each type in the mesh
-  ElementTypeMap<UInt> nb_ghost_protected;
-  Mesh & mesh = this->model.getMesh();
+  ElementTypeMap<Int> nb_ghost_protected;
+  auto & mesh = this->model.getMesh();
   for (auto type : mesh.elementTypes(spatial_dimension, _ghost)) {
     nb_ghost_protected(mesh.getNbElement(type, _ghost), type, _ghost);
   }
@@ -234,9 +234,9 @@ void NeighborhoodMaxCriterion::checkNeighbors(GhostType ghost_type2) {
 
 /* -------------------------------------------------------------------------- */
 void NeighborhoodMaxCriterion::cleanupExtraGhostElements(
-    const ElementTypeMap<UInt> & nb_ghost_protected) {
+    const ElementTypeMap<Int> & nb_ghost_protected) {
 
-  Mesh & mesh = this->model.getMesh();
+  auto & mesh = this->model.getMesh();
   /// create remove elements event
   RemovedElementsEvent remove_elem(mesh);
   /// create set of ghosts to keep
@@ -253,8 +253,8 @@ void NeighborhoodMaxCriterion::cleanupExtraGhostElements(
   auto end = relevant_ghost_elements.end();
   for (const auto & type : mesh.elementTypes(spatial_dimension, _ghost)) {
     element.type = type;
-    UInt nb_ghost_elem = mesh.getNbElement(type, _ghost);
-    UInt nb_ghost_elem_protected = 0;
+    auto nb_ghost_elem = mesh.getNbElement(type, _ghost);
+    decltype(nb_ghost_elem) nb_ghost_elem_protected = 0;
     try {
       nb_ghost_elem_protected = nb_ghost_protected(type, _ghost);
     } catch (...) {
@@ -265,8 +265,8 @@ void NeighborhoodMaxCriterion::cleanupExtraGhostElements(
     } else {
       remove_elem.getNewNumbering(type, _ghost).resize(nb_ghost_elem);
     }
-    Array<UInt> & new_numbering = remove_elem.getNewNumbering(type, _ghost);
-    for (UInt g = 0; g < nb_ghost_elem; ++g) {
+    auto & new_numbering = remove_elem.getNewNumbering(type, _ghost);
+    for (Int g = 0; g < nb_ghost_elem; ++g) {
       element.element = g;
       if (element.element >= nb_ghost_elem_protected &&
           relevant_ghost_elements.find(element) == end) {
@@ -275,9 +275,9 @@ void NeighborhoodMaxCriterion::cleanupExtraGhostElements(
       }
     }
     /// renumber remaining ghosts
-    UInt ng = 0;
-    for (UInt g = 0; g < nb_ghost_elem; ++g) {
-      if (new_numbering(g) != UInt(-1)) {
+    Int ng = 0;
+    for (Int g = 0; g < nb_ghost_elem; ++g) {
+      if (new_numbering(g) != Int(-1)) {
         new_numbering(g) = ng;
         ++ng;
       }

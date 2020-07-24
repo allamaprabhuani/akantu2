@@ -30,7 +30,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "communications.hh"
+//#include "communications.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_COMMUNICATIONS_TMPL_HH_
@@ -67,7 +67,7 @@ template <class Entity> void Communications<Entity>::swapSendRecv() {
 /* -------------------------------------------------------------------------- */
 template <class Entity> class Communications<Entity>::iterator {
   using communication_iterator =
-      typename std::map<UInt, Communication>::iterator;
+      typename std::map<Int, Communication>::iterator;
 
 public:
   iterator() : communications(nullptr) {}

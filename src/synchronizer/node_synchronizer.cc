@@ -40,7 +40,7 @@ namespace akantu {
 NodeSynchronizer::NodeSynchronizer(Mesh & mesh, const ID & id,
                                    const bool register_to_event_manager,
                                    EventHandlerPriority event_priority)
-    : SynchronizerImpl<UInt>(mesh.getCommunicator(), id),
+    : SynchronizerImpl<Idx>(mesh.getCommunicator(), id),
       mesh(mesh) {
   AKANTU_DEBUG_IN();
 
@@ -55,14 +55,14 @@ NodeSynchronizer::NodeSynchronizer(Mesh & mesh, const ID & id,
 NodeSynchronizer::~NodeSynchronizer() = default;
 
 /* -------------------------------------------------------------------------- */
-Int NodeSynchronizer::getRank(const UInt & node) const {
+Int NodeSynchronizer::getRank(const Idx & node) const {
   return this->mesh.getNodePrank(node);
 }
 
 /* -------------------------------------------------------------------------- */
-void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
-                                    const NewNodesEvent & /*unused*/) {
-  std::map<UInt, std::vector<UInt>> nodes_per_proc;
+void NodeSynchronizer::onNodesAdded(const Array<Idx> & /*nodes_list*/,
+                                    const NewNodesEvent &) {
+  std::map<Int, std::vector<Idx>> nodes_per_proc;
 
   // recreates fully the schemes due to changes of global ids
   // \TODO add an event to handle global id changes
@@ -90,7 +90,7 @@ void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
   std::vector<CommunicationRequest> send_requests;
   for (auto && pair : communications.iterateSchemes(_recv)) {
     auto proc = pair.first;
-    AKANTU_DEBUG_ASSERT(proc != UInt(-1),
+    AKANTU_DEBUG_ASSERT(proc != -1,
                         "For real I should send something to proc -1");
 
     // if proc not in nodes_per_proc this should insert an empty array to send
@@ -137,15 +137,15 @@ void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
 }
 
 /* -------------------------------------------------------------------------- */
-UInt NodeSynchronizer::sanityCheckDataSize(const Array<UInt> & nodes,
-                                           const SynchronizationTag & tag,
-                                           bool from_comm_desc) const {
-  UInt size =
-      SynchronizerImpl<UInt>::sanityCheckDataSize(nodes, tag, from_comm_desc);
+Int NodeSynchronizer::sanityCheckDataSize(const Array<Idx> & nodes,
+                                          const SynchronizationTag & tag,
+                                          bool from_comm_desc) const {
+  auto size =
+      SynchronizerImpl<Idx>::sanityCheckDataSize(nodes, tag, from_comm_desc);
 
   // global id
   if (tag != SynchronizationTag::_giu_global_conn) {
-    size += sizeof(UInt) * nodes.size();
+    size += sizeof(Idx) * nodes.size();
   }
 
   // flag
@@ -159,7 +159,7 @@ UInt NodeSynchronizer::sanityCheckDataSize(const Array<UInt> & nodes,
 
 /* -------------------------------------------------------------------------- */
 void NodeSynchronizer::packSanityCheckData(
-    CommunicationBuffer & buffer, const Array<UInt> & nodes,
+    CommunicationBuffer & buffer, const Array<Idx> & nodes,
     const SynchronizationTag & tag) const {
   auto dim = mesh.getSpatialDimension();
   for (auto && node : nodes) {
@@ -173,9 +173,9 @@ void NodeSynchronizer::packSanityCheckData(
 
 /* -------------------------------------------------------------------------- */
 void NodeSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
-                                             const Array<UInt> & nodes,
+                                             const Array<Idx> & nodes,
                                              const SynchronizationTag & tag,
-                                             UInt proc, UInt rank) const {
+                                             Int proc, Int rank) const {
   auto dim = mesh.getSpatialDimension();
 
 #ifndef AKANTU_NDEBUG
@@ -185,7 +185,7 @@ void NodeSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
 
   for (auto && node : nodes) {
     if (tag != SynchronizationTag::_giu_global_conn) {
-      UInt global_id;
+      Int global_id;
       buffer >> global_id;
       AKANTU_DEBUG_ASSERT(global_id == mesh.getNodeGlobalId(node),
                           "The nodes global ids do not match: "
@@ -223,13 +223,13 @@ void NodeSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
 }
 
 /* -------------------------------------------------------------------------- */
-void NodeSynchronizer::fillEntityToSend(Array<UInt> & nodes_to_send) {
-  UInt nb_nodes = mesh.getNbNodes();
+void NodeSynchronizer::fillEntityToSend(Array<Idx> & nodes_to_send) {
+  auto nb_nodes = mesh.getNbNodes();
 
   this->entities_from_root.clear();
   nodes_to_send.resize(0);
 
-  for (UInt n : arange(nb_nodes)) {
+  for (Int n : arange(nb_nodes)) {
     if (not mesh.isLocalOrMasterNode(n)) {
       continue;
     }
@@ -238,7 +238,7 @@ void NodeSynchronizer::fillEntityToSend(Array<UInt> & nodes_to_send) {
   }
 
   for (auto n : entities_from_root) {
-    UInt global_node = mesh.getNodeGlobalId(n);
+    auto global_node = mesh.getNodeGlobalId(n);
     nodes_to_send.push_back(global_node);
   }
 }

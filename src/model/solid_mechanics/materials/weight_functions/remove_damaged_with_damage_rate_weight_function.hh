@@ -30,9 +30,9 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
 #include "base_weight_function.hh"
+
 /* -------------------------------------------------------------------------- */
 #ifndef AKANTU_REMOVE_DAMAGED_WITH_DAMAGE_RATE_WEIGHT_FUNCTION_HH_
 #define AKANTU_REMOVE_DAMAGED_WITH_DAMAGE_RATE_WEIGHT_FUNCTION_HH_
@@ -61,9 +61,9 @@ public:
   /* Base Weight Function inherited methods */
   /* --------------------------------------------------------------------------
    */
-  inline Real operator()(Real r,
-                         const __attribute__((unused)) IntegrationPoint & q1,
-                         const IntegrationPoint & q2);
+  inline auto operator()(Real r,
+                         const IntegrationPoint & q1,
+                         const IntegrationPoint & q2) -> Real;
 
   inline void init() override;
 

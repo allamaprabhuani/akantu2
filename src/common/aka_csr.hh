@@ -184,6 +184,7 @@ public:
 
   template <typename iterator_internal> class CSRRow {
   public:
+    using size_type = Idx;
     CSRRow(iterator_internal begin, iterator_internal end)
         : begin_(std::move(begin)), end_(std::move(end)) {}
 

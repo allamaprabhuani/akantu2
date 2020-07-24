@@ -62,8 +62,8 @@ std::shared_ptr<dumper::Field> GroupManager::createElementalField(
 }
 
 /* -------------------------------------------------------------------------- */
-template <typename T, template <class> class T2,
-          template <class, template <class> class, bool> class dump_type>
+template <typename T, class ret_type,
+          template <class, class, bool> class dump_type>
 std::shared_ptr<dumper::Field> GroupManager::createElementalField(
     const ElementTypeMapArray<T> & field, const std::string & group_name,
     Int spatial_dimension, const ElementKind & kind,

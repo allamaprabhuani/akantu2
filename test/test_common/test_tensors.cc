@@ -55,7 +55,7 @@ public:
 
   template <typename V> void compareToRef(const V & v) {
     for (int i = 0; i < size_; ++i) {
-      EXPECT_DOUBLE_EQ(reference[i], v.storage()[i]);
+      EXPECT_DOUBLE_EQ(reference[i], v.data()[i]);
     }
   }
 
@@ -83,7 +83,7 @@ protected:
 TEST_F(TensorConstructorFixture, VectorDefaultConstruct) {
   Vector<double> v;
   EXPECT_EQ(0, v.size());
-  EXPECT_EQ(nullptr, v.storage());
+  EXPECT_EQ(nullptr, v.data());
   EXPECT_EQ(false, v.isWrapped());
 }
 
@@ -301,7 +301,7 @@ TEST_F(TensorConstructorFixture, MatrixDefaultConstruct) {
   EXPECT_EQ(0, m.size());
   EXPECT_EQ(0, m.rows());
   EXPECT_EQ(0, m.cols());
-  EXPECT_EQ(nullptr, m.storage());
+  EXPECT_EQ(nullptr, m.data());
   EXPECT_EQ(false, m.isWrapped());
 }
 
@@ -545,7 +545,7 @@ TEST_F(TensorFixture, MatrixIterator) {
 
   UInt col_count = 0;
   for (auto && col : m) {
-    Vector<Real> col_hand(m.storage() + col_count * m.rows(), m.rows());
+    Vector<Real> col_hand(m.data() + col_count * m.rows(), m.rows());
     Vector<Real> col_wrap(col);
 
     auto comp = (col_wrap - col_hand).norm<L_inf>();

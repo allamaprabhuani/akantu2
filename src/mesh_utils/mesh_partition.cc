@@ -46,14 +46,14 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-MeshPartition::MeshPartition(Mesh & mesh, UInt spatial_dimension, const ID & id)
+MeshPartition::MeshPartition(Mesh & mesh, Int spatial_dimension, const ID & id)
     : mesh(mesh), spatial_dimension(spatial_dimension),
       partitions("partition", id), ghost_partitions("ghost_partition", id),
       ghost_partitions_offset("ghost_partition_offset", id),
       saved_connectivity("saved_connectivity", id) {
   AKANTU_DEBUG_IN();
 
-  UInt nb_total_element = 0;
+  Int nb_total_element = 0;
   for (auto && type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_not_defined)) {
     linearized_offsets.emplace_back(type, nb_total_element);
@@ -104,13 +104,13 @@ void MeshPartition::buildDualGraph(
   CSR<Element> nodes_to_elements;
   MeshUtils::buildNode2Elements(mesh, nodes_to_elements);
 
-  std::unordered_map<UInt, std::vector<UInt>> adjacent_elements;
+  std::unordered_map<Idx, std::vector<Idx>> adjacent_elements;
 
   // for each elements look for its connected elements
   for_each_element(
       mesh,
       [&](auto && element) {
-        const auto & conn = mesh.getConnectivity(element);
+        const auto & conn = const_cast<const Mesh &>(mesh).getConnectivity(element);
         std::map<Element, Int> hits;
 
         // count the number of nodes shared with a given element
@@ -173,10 +173,10 @@ void MeshPartition::buildDualGraph(
   }
 
   /// convert the dxadj array of sizes in a csr one of offsets
-  for (UInt i = 1; i < nb_elements; ++i) {
-    dxadj(i) += dxadj(i - 1);
+  for (auto i : arange(nb_elements)) {
+      dxadj(i) += dxadj(i - 1);
   }
-  for (UInt i = nb_elements; i > 0; --i) {
+  for (auto i : arange(nb_elements, 0, -1)) {
     dxadj(i) = dxadj(i - 1);
   }
   dxadj(0) = 0;
@@ -339,7 +339,7 @@ void MeshPartition::fillPartitionInformation(
 void MeshPartition::tweakConnectivity() {
   AKANTU_DEBUG_IN();
 
-  MeshAccessor mesh_accessor(const_cast<Mesh &>(mesh));
+  MeshAccessor mesh_accessor(mesh);
 
   for (auto && type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_not_defined)) {
@@ -365,7 +365,7 @@ void MeshPartition::tweakConnectivity() {
 /* -------------------------------------------------------------------------- */
 void MeshPartition::restoreConnectivity() {
   AKANTU_DEBUG_IN();
-  MeshAccessor mesh_accessor(const_cast<Mesh &>(mesh));
+  MeshAccessor mesh_accessor(mesh);
   for (auto && type : saved_connectivity.elementTypes(
            spatial_dimension, _not_ghost, _ek_not_defined)) {
     auto & conn = mesh_accessor.getConnectivity(type, _not_ghost);

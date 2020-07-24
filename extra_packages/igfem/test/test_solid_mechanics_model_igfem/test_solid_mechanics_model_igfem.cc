@@ -45,7 +45,7 @@ void outputArray(const Mesh & mesh, const Array<Real> & array) {
       solution_begin[mesh.getNodeGlobalId(n)] = *array_it;
   }
 
-  comm.allReduce(solution.storage(),
+  comm.allReduce(solution.data(),
                  solution.getSize() * solution.getNbComponent(), _so_sum);
   std::cout << std::fixed;
   std::cout << std::setprecision(6);

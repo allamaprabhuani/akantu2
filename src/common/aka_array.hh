@@ -323,7 +323,10 @@ public:
     parent::push_back(new_elem);
   }
 
-  /// append the content of the iterator at the end of the Array
+  template <typename Ret> inline void push_back(const const_view_iterator<Ret> & it) {
+    push_back(*it);
+  }
+
   template <typename Ret> inline void push_back(const view_iterator<Ret> & it) {
     push_back(*it);
   }
@@ -334,9 +337,8 @@ public:
   template <typename R> inline auto erase(const view_iterator<R> & it);
 
   /// @see Array::find(const_reference elem) const
-  template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
-  inline Idx find(const C<T> & elem);
+  template <typename C, std::enable_if_t<aka::is_tensor<C>::value> * = nullptr>
+  inline Idx find(const C & elem);
 
   /// set all entries of the array to the value t
   /// @param t value to fill the array with
@@ -352,9 +354,8 @@ public:
 
   /// set all tuples of the array to a given vector or matrix
   /// @param vm Matrix or Vector to fill the array with
-  template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
-  inline void set(const C<T> & vm);
+  template <typename C, std::enable_if_t<aka::is_tensor<C>::value> * = nullptr>
+  inline void set(const C & vm);
 
   /// Append the content of the other array to the current one
   void append(const Array<T> & other);

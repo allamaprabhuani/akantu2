@@ -74,7 +74,7 @@ public:
 
   /// initialize the material computed parameter
   inline void insertIntegrationPoint(const IntegrationPoint & quad,
-                                     const Vector<Real> & coords);
+                                     const Ref<Vector<Real>> & coords);
 
   /// create the pairs of quadrature points
   void updatePairList();
@@ -93,7 +93,7 @@ public:
   /// inherited function from MeshEventHandler
   virtual void
   onElementsRemoved(const Array<Element> & element_list,
-                    const ElementTypeMapArray<UInt> & new_numbering,
+                    const ElementTypeMapArray<Idx> & new_numbering,
                     const RemovedElementsEvent & event);
 
 protected:

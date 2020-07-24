@@ -95,7 +95,7 @@ int main(int argc, char * argv[]) {
   solution.block(rot_ref, 3, 3);
 
   for (auto && rot : make_view(shape.getRotations(type), 6, 6)) {
-    if (!Math::are_vector_equal(6 * 6, solution.storage(), rot.storage()))
+    if (!Math::are_vector_equal(6 * 6, solution.data(), rot.data()))
       return 1;
   }
 

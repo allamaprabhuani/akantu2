@@ -43,7 +43,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ElementInfoPerProc::ElementInfoPerProc(ElementSynchronizer & synchronizer,
-                                       UInt message_cnt, UInt root,
+                                       Int message_cnt, Int root,
                                        ElementType type)
     : MeshAccessor(synchronizer.getMesh()), synchronizer(synchronizer),
       rank(synchronizer.getCommunicator().whoAmI()),
@@ -67,7 +67,7 @@ bool ElementInfoPerProc::synchronize() {
 
 /* -------------------------------------------------------------------------- */
 void ElementInfoPerProc::fillCommunicationScheme(
-    const Array<UInt> & partition) {
+    const Array<Int> & partition) {
   AKANTU_DEBUG_IN();
 
   Element element;
@@ -76,15 +76,15 @@ void ElementInfoPerProc::fillCommunicationScheme(
   auto & communications = this->synchronizer.getCommunications();
   auto part = partition.begin();
 
-  std::map<UInt, Array<Element>> send_array_per_proc;
-  for (UInt lel = 0; lel < nb_local_element; ++lel) {
-    UInt nb_send = *part;
+  std::map<Int, Array<Element>> send_array_per_proc;
+  for (Int lel = 0; lel < nb_local_element; ++lel) {
+    auto nb_send = *part;
     ++part;
 
     element.element = lel;
     element.ghost_type = _not_ghost;
-    for (UInt p = 0; p < nb_send; ++p, ++part) {
-      UInt proc = *part;
+    for (Int p = 0; p < nb_send; ++p, ++part) {
+      auto proc = *part;
 
       AKANTU_DEBUG(dblAccessory,
                    "Must send : " << element << " to proc " << proc);
@@ -100,10 +100,10 @@ void ElementInfoPerProc::fillCommunicationScheme(
     scheme.append(send_schemes.second);
   }
 
-  std::map<UInt, Array<Element>> recv_array_per_proc;
+  std::map<Int, Array<Element>> recv_array_per_proc;
 
-  for (UInt gel = 0; gel < nb_ghost_element; ++gel, ++part) {
-    UInt proc = *part;
+  for (Int gel = 0; gel < nb_ghost_element; ++gel, ++part) {
+    auto proc = *part;
     element.element = gel;
     element.ghost_type = _ghost;
     AKANTU_DEBUG(dblAccessory,
