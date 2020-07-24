@@ -52,7 +52,7 @@ namespace tuple {
     template <
         typename T,
         std::enable_if_t<not std::is_same<named_tag, T>::value> * = nullptr>
-    explicit named_tag(T && value) // NOLINT
+    named_tag(T && value) // NOLINT
         : _value(std::forward<T>(value)) {}
 
     type _value;
@@ -98,34 +98,51 @@ namespace tuple {
   private:
     template <typename tag, std::size_t Idx,
               std::enable_if_t<Idx == sizeof...(Params)> * = nullptr>
-    static constexpr std::size_t get_element_index() noexcept {
-      return -1;
+    static constexpr std::size_t get_element_index_() noexcept {
+      return std::size_t(-1);
     }
 
     template <typename tag, std::size_t Idx,
               std::enable_if_t<(Idx < sizeof...(Params))> * = nullptr>
-    static constexpr std::size_t get_element_index() noexcept {
+    static constexpr std::size_t get_element_index_() noexcept {
       using _tag = std::tuple_element_t<Idx, Names_t>;
       return (std::is_same<_tag, tag>::value)
                  ? Idx
-                 : get_element_index<tag, Idx + 1>();
+                 : get_element_index_<tag, Idx + 1>();
     }
 
   public:
+    template <typename NT>
+    static constexpr std::size_t get_element_index() noexcept {
+      return get_element_index_<typename NT::_tag, 0>();
+    }
+
+    template <typename NT>
+    static constexpr std::size_t get_element_index(NT && /*unused*/) noexcept {
+      return get_element_index_<typename NT::_tag, 0>();
+    }
+
     template <typename NT,
               std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
     constexpr decltype(auto) get(NT && /*unused*/) noexcept {
-      const auto index = get_element_index<typename NT::_tag, 0>();
-      static_assert((index != -1), "wrong named_tag");
+      const auto index = get_element_index<NT>();
+      static_assert((index != std::size_t(-1)), "wrong named_tag");
       return (std::get<index>(*this));
     }
 
     template <typename NT,
               std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
     constexpr decltype(auto) get(NT && /*unused*/) const noexcept {
-      const auto index = get_element_index<typename NT::_tag, 0>();
-      static_assert((index != -1), "wrong named_tag");
-      return std::get<index>(*this);
+      const auto index = get_element_index<NT>();
+      static_assert((index != std::size_t(-1)), "wrong named_tag");
+      return (std::get<index>(*this));
+    }
+
+    template <typename NT,
+              std::enable_if_t<is_named_tag<NT>::value> * = nullptr>
+    constexpr auto has(NT && /*unused*/) const noexcept -> bool {
+      const auto index = get_element_index<NT>();
+      return (index != std::size_t(-1));
     }
   };
 
@@ -153,14 +170,33 @@ namespace tuple {
     return tuple.get(get<HashCode>());
   }
 
+  template <size_t HashCode, class Tuple> constexpr bool has(Tuple && tuple) {
+    return tuple.has(get<HashCode>());
+  }
+
   template <typename Param, typename Tuple,
             std::enable_if_t<is_named_tag<Param>::value> * = nullptr>
   constexpr decltype(auto) get(Tuple && tuple) noexcept {
     return tuple.template get<typename Param::hash>();
   }
 
-#if !defined(__INTEL_COMPILER)
-#if defined(__clang__)
+  template <size_t I, class Tuple> struct tuple_name_tag {
+    using type = std::tuple_element_t<I, typename Tuple::Names_t>;
+  };
+
+  template <size_t I, class Tuple>
+  using tuple_name_tag_t = typename tuple_name_tag<I, Tuple>::type;
+
+  template <size_t I, class Tuple> struct tuple_element {
+    using type = std::tuple_element_t<I, typename Tuple::parent>;
+  };
+
+  template <size_t I, class Tuple>
+  using tuple_element_t = typename tuple_element<I, Tuple>::type;
+
+#if defined(__INTEL_COMPILER)
+// intel warnings here
+#elif defined(__clang__)
 // clang warnings here
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wgnu-string-literal-operator-template"
@@ -181,7 +217,7 @@ namespace tuple {
 #elif (defined(__GNUC__) || defined(__GNUG__))
 #pragma GCC diagnostic pop
 #endif
-#endif
+
   /* ------------------------------------------------------------------------ */
   namespace details {
     template <std::size_t N> struct Foreach {
@@ -209,7 +245,8 @@ namespace tuple {
       }
     };
 
-    /* ---------------------------------------------------------------------- */
+    /* ----------------------------------------------------------------------
+     */
     template <> struct Foreach<0> {
       template <class Tuple>
       static constexpr inline auto not_equal(Tuple && a, Tuple && b) -> bool {
@@ -274,6 +311,79 @@ namespace tuple {
           std::forward<F>(func)(std::get<Is>(std::forward<Tuple>(tuple)))...);
     }
 
+    template <class Tuple, std::size_t... Is>
+    decltype(auto) flatten(Tuple && tuples,
+                           std::index_sequence<Is...> /*unused*/) {
+      return std::tuple_cat(std::get<Is>(tuples)...);
+    }
+
+    template <class Tuple, class... Vals, std::size_t... Is>
+    decltype(auto) append_impl(std::index_sequence<Is...> && /*unused*/,
+                               Tuple && tuple, Vals &&... other_vals) {
+      return make_tuple_no_decay(std::get<Is>(std::forward<Tuple>(tuple))...,
+                                 std::forward<Vals>(other_vals)...);
+    }
+
+    template <class Tuple, class... Vals, std::size_t... Is>
+    decltype(auto) append_named_impl(std::index_sequence<Is...> && /*unused*/,
+                                     Tuple && tuple, Vals &&... other_vals) {
+      return make_named_tuple_no_decay(
+          std::tuple<tuple_name_tag<Is, Tuple>..., Vals...>{},
+          std::get<Is>(std::forward<Tuple>(tuple))...,
+          std::forward<Vals>(other_vals)...);
+    }
+
+    template <std::size_t nth, class Tuple, std::size_t... Is_before,
+              std::size_t... Is_after>
+    decltype(auto) remove_impl(std::index_sequence<Is_before...> && /*unused*/,
+                               std::index_sequence<Is_after...> && /*unused*/,
+                               Tuple && tuple) {
+      return make_tuple_no_decay(
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    template <std::size_t nth, class Tuple, std::size_t... Is_before,
+              std::size_t... Is_after>
+    decltype(auto)
+    remove_named_impl(std::index_sequence<Is_before...> && /*unused*/,
+                      std::index_sequence<Is_after...> && /*unused*/,
+                      Tuple && tuple) {
+      return make_named_tuple_no_decay(
+          std::tuple<tuple::tuple_name_tag_t<Is_before, std::decay_t<Tuple>>...,
+                     tuple::tuple_name_tag_t<Is_after + nth + 1,
+                                             std::decay_t<Tuple>>...>{},
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    template <std::size_t nth, class Tuple, class Value,
+              std::size_t... Is_before, std::size_t... Is_after>
+    decltype(auto) replace_impl(std::index_sequence<Is_before...> && /*unused*/,
+                                std::index_sequence<Is_after...> && /*unused*/,
+                                Tuple && tuple, Value && value) {
+      return make_tuple_no_decay(
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::forward<Value>(value),
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    template <std::size_t nth, size_t HashCode, class Tuple, class Value,
+              std::size_t... Is_before, std::size_t... Is_after>
+    decltype(auto)
+    replace_named_impl(std::index_sequence<Is_before...> && /*unused*/,
+                       std::index_sequence<Is_after...> && /*unused*/,
+                       Tuple && tuple, Value && value) {
+      using tuple_type = std::decay_t<Tuple>;
+      return make_named_tuple_no_decay(
+          std::tuple<
+              tuple::tuple_name_tag_t<Is_before, tuple_type>...,
+              decltype(get<HashCode>()),
+              tuple::tuple_name_tag_t<Is_after + nth + 1, tuple_type>...>{},
+          std::get<Is_before>(std::forward<Tuple>(tuple))...,
+          std::forward<Value>(value),
+          std::get<Is_after + nth + 1>(std::forward<Tuple>(tuple))...);
+    }
   } // namespace details
 
   /* ------------------------------------------------------------------------
@@ -321,6 +431,7 @@ namespace tuple {
             std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{});
   }
 
+  /* ------------------------------------------------------------------------ */
   template <class F, class Tuple,
             std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
                 nullptr>
@@ -353,15 +464,8 @@ namespace tuple {
             std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{});
   }
 
-  namespace details {
-    template <class Tuple, std::size_t... Is>
-    constexpr decltype(auto) flatten(Tuple && tuples,
-                                     std::index_sequence<Is...> /*unused*/) {
-      return std::tuple_cat(std::get<Is>(tuples)...);
-    }
-  } // namespace details
-
-  template <class Tuple> constexpr decltype(auto) flatten(Tuple && tuples) {
+  /* ------------------------------------------------------------------------ */
+  template <class Tuple> decltype(auto) flatten(Tuple && tuples) {
     return details::flatten(std::forward<Tuple>(tuples),
                             std::make_index_sequence<
                                 std::tuple_size<std::decay_t<Tuple>>::value>());
@@ -394,8 +498,7 @@ namespace tuple {
 
   template <typename... T> using cat_t = typename cat<T...>::type;
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <template <typename> class Pred, typename... Ts> struct filter {};
 
   template <template <typename> class Pred, typename T>
@@ -409,9 +512,88 @@ namespace tuple {
     using type = cat_t<typename filter<Pred, std::tuple<T>>::type,
                        typename filter<Pred, std::tuple<Ts...>>::type>;
   };
+
+  template <template <typename> class Pred, typename... Ts>
+  using filter_t = typename filter<Pred, Ts...>::type;
+
+  /* ------------------------------------------------------------------------ */
+  template <class Tuple, class... Vals,
+            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
+                nullptr>
+  decltype(auto) append(Tuple && tuple, Vals &&... vals) {
+    return details::append_impl(
+        std::make_index_sequence<std::tuple_size<Tuple>::value>{},
+        std::forward<decltype(tuple)>(tuple), std::forward<Vals>(vals)...);
+  }
+
+  template <
+      class Tuple, class... Vals,
+      std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  decltype(auto) append(Tuple && tuple, Vals &&... vals) {
+    return details::append_named_impl(
+        std::make_index_sequence<
+            std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{},
+        std::forward<decltype(tuple)>(tuple), std::forward<Vals>(vals)...);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <size_t nth, class Tuple,
+            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
+                nullptr>
+  decltype(auto) remove(Tuple && tuple) {
+    return details::remove_impl<nth>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<std::tuple_size<Tuple>::value - nth - 1>{},
+        std::forward<Tuple>(tuple));
+  }
+
+  template <
+      size_t HashCode, class Tuple,
+      std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  decltype(auto) remove(Tuple && tuple) {
+    constexpr auto nth =
+        tuple.template get_element_index(tuple::get<HashCode>());
+    return details::remove_named_impl<nth>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<
+            std::tuple_size<typename std::decay_t<Tuple>::parent>::value - nth -
+            1>{},
+        std::forward<Tuple>(tuple));
+  }
+
+  template <size_t nth, class Tuple, class Value,
+            std::enable_if_t<not is_named_tuple<std::decay_t<Tuple>>::value> * =
+                nullptr>
+  decltype(auto) replace(Tuple && tuple, Value && value) {
+    return details::replace_impl<nth>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<std::tuple_size<Tuple>::value - nth - 1>{},
+        std::forward<Tuple>(tuple), std::forward<Value>(value));
+  }
+
+  template <
+      size_t HashCode, class Tuple, class Value,
+      std::enable_if_t<is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  decltype(auto) replace(Tuple && tuple, Value && value) {
+    constexpr auto nth =
+        tuple.template get_element_index(tuple::get<HashCode>());
+    return details::replace_named_impl<nth, HashCode>(
+        std::make_index_sequence<nth>{},
+        std::make_index_sequence<
+            std::tuple_size<typename std::decay_t<Tuple>::parent>::value - nth -
+            1>{},
+        std::forward<Tuple>(tuple), std::forward<Value>(value));
+  }
 } // namespace tuple
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
+
+namespace aka {
+template <typename tag, typename type_>
+struct size_type<AKANTU_ITERATORS_NAMESPACE::tuple::named_tag<tag, type_>> {
+  using type = typename std::decay_t<type_>::size_type;
+};
+} // namespace aka
 
 /* -------------------------------------------------------------------------- */
 #include <iterator>

@@ -44,6 +44,7 @@ namespace containers {
 
   template <class Iterator> class Range {
   public:
+    using size_type = std::size_t;//typename std::iterator_traits<Iterator>::difference_type;
     using iterator = Iterator;
     // ugly trick
     using const_iterator = Iterator;
@@ -82,18 +83,18 @@ namespace iterators {
     constexpr ArangeIterator(T value, T step) : value(value), step(step) {}
     constexpr ArangeIterator(const ArangeIterator &) = default;
 
-    constexpr ArangeIterator & operator++() {
+    constexpr auto operator++() -> ArangeIterator & {
       value += step;
       return *this;
     }
 
-    constexpr T operator*() const { return value; }
+    constexpr auto operator*() const -> T { return value; }
 
-    constexpr bool operator==(const ArangeIterator & other) const {
+    constexpr auto operator==(const ArangeIterator & other) const -> bool {
       return (value == other.value) and (step == other.step);
     }
 
-    constexpr bool operator!=(const ArangeIterator & other) const {
+    constexpr auto operator!=(const ArangeIterator & other) const -> bool {
       return not operator==(other);
     }
 
@@ -108,6 +109,7 @@ namespace containers {
   public:
     using iterator = iterators::ArangeIterator<T>;
     using const_iterator = iterators::ArangeIterator<T>;
+    using size_type = T;
 
     constexpr ArangeContainer(T start, T stop, T step = 1)
         : start(start), stop((stop - start) % step == 0
@@ -116,16 +118,16 @@ namespace containers {
           step(step) {}
     explicit constexpr ArangeContainer(T stop) : ArangeContainer(0, stop, 1) {}
 
-    constexpr T operator[](std::size_t i) {
+    constexpr auto operator[](std::size_t i) -> T {
       T val = start + i * step;
       assert(val < stop && "i is out of range");
       return val;
     }
 
-    constexpr T size() { return (stop - start) / step; }
+    constexpr auto size() -> T { return (stop - start) / step; }
 
-    constexpr iterator begin() { return iterator(start, step); }
-    constexpr iterator end() { return iterator(stop, step); }
+    constexpr auto begin() -> iterator { return iterator(start, step); }
+    constexpr auto end() -> iterator { return iterator(stop, step); }
 
   private:
     const T start{0}, stop{0}, step{1};

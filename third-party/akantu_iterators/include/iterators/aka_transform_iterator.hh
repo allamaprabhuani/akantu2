@@ -98,6 +98,7 @@ namespace containers {
     // using const_iterator = typename
     // std::decay_t<container_t>::const_iterator; using iterator = typename
     // std::decay_t<container_t>::iterator;
+    using size_type = typename std::decay_t<container_t>::size_type;
 
     TransformIteratorAdaptor(container_t && cont, operator_t op)
         : cont(std::forward<container_t>(cont)),
@@ -148,6 +149,12 @@ decltype(auto) make_dereference_adaptor(container_t && cont) {
   return make_transform_adaptor(
       std::forward<container_t>(cont),
       [](auto && value) -> decltype(*value) { return *value; });
+}
+
+template <typename Type, typename Size>
+decltype(auto) broadcast(Type && data, Size size) {
+  return make_transform_adaptor(
+      arange(size), [data](auto && value) -> decltype(auto) { return data; });
 }
 
 } // namespace AKANTU_ITERATORS_NAMESPACE

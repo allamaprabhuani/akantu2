@@ -154,8 +154,8 @@ constexpr decltype(auto) apply(F && f, Tuple && t) {
 /* -------------------------------------------------------------------------- */
 // count_if
 template <class InputIt, class UnaryPredicate>
-typename std::iterator_traits<InputIt>::difference_type
-count_if(InputIt first, InputIt last, UnaryPredicate p) {
+auto count_if(InputIt first, InputIt last, UnaryPredicate p) ->
+    typename std::iterator_traits<InputIt>::difference_type {
   typename std::iterator_traits<InputIt>::difference_type ret = 0;
   for (; first != last; ++first) {
     if (p(*first)) {
@@ -167,12 +167,15 @@ count_if(InputIt first, InputIt last, UnaryPredicate p) {
 
 namespace detail {
   template <class T, class Tuple, std::size_t... I>
-  constexpr T make_from_tuple_impl(Tuple && t, std::index_sequence<I...>) {
+  constexpr auto make_from_tuple_impl(Tuple && t,
+                                      std::index_sequence<I...> /*unused*/)
+      -> T {
     return T(std::get<I>(std::forward<Tuple>(t))...);
   }
 } // namespace detail
 
-template <class T, class Tuple> constexpr T make_from_tuple(Tuple && t) {
+template <class T, class Tuple>
+constexpr auto make_from_tuple(Tuple && t) -> T {
   return detail::make_from_tuple_impl<T>(
       std::forward<Tuple>(t),
       std::make_index_sequence<
@@ -201,6 +204,14 @@ decltype(auto) count_if(InputIt first, InputIt last, UnaryPredicate p) {
 template <typename cat1, typename cat2>
 using is_iterator_category_at_least =
     std::is_same<std::common_type_t<cat1, cat2>, cat2>;
+
+template<typename T>
+struct size_type {
+  using type = typename std::decay_t<T>::size_type;
+};
+
+template<typename T>
+using size_type_t = typename size_type<T>::type;
 
 } // namespace aka
 

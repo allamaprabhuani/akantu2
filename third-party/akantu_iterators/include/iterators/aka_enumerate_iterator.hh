@@ -43,17 +43,17 @@ namespace AKANTU_ITERATORS_NAMESPACE {
 
 /* -------------------------------------------------------------------------- */
 namespace iterators {
-  template <class Iterator> class EnumerateIterator {
+  template <class Iterator, class size_type_> class EnumerateIterator {
   public:
     using value_type =
         std::tuple<std::size_t,
                    typename std::iterator_traits<Iterator>::value_type>;
-    using difference_type = std::size_t;
+    using difference_type = size_type_;
     using pointer =
-        std::tuple<std::size_t,
+        std::tuple<size_type_,
                    typename std::iterator_traits<Iterator>::pointer>;
     using reference =
-        std::tuple<std::size_t,
+        std::tuple<size_type_,
                    typename std::iterator_traits<Iterator>::reference>;
     using iterator_category = std::input_iterator_tag;
 
@@ -90,38 +90,45 @@ namespace iterators {
 
   private:
     Iterator iterator;
-    size_t index{0};
+    size_type_ index{0};
   };
 
-  template <class Iterator>
-  inline constexpr decltype(auto) enumerate(Iterator && iterator) {
-    return EnumerateIterator<Iterator>(std::forward<Iterator>(iterator));
+  template <class Iterator, class size_type_ = std::size_t>
+  inline constexpr decltype(auto) enumerate(Iterator && iterator,
+                                            size_type_ /*size*/) {
+    return EnumerateIterator<Iterator, size_type_>(
+        std::forward<Iterator>(iterator));
   }
 
 } // namespace iterators
 
 namespace containers {
   template <class... Containers> class EnumerateContainer {
+    using ZipContainer_t = ZipContainer<Containers...>;
+    using size_type = typename ZipContainer_t::size_type;
+
   public:
     explicit EnumerateContainer(Containers &&... containers)
         : zip_container(std::forward<Containers>(containers)...) {}
 
     decltype(auto) begin() {
-      return iterators::enumerate(zip_container.begin());
+      return iterators::enumerate(zip_container.begin(), size_type{});
     }
 
     decltype(auto) begin() const {
-      return iterators::enumerate(zip_container.begin());
+      return iterators::enumerate(zip_container.begin(), size_type{});
     }
 
-    decltype(auto) end() { return iterators::enumerate(zip_container.end()); }
+    decltype(auto) end() {
+      return iterators::enumerate(zip_container.end(), size_type{});
+    }
 
     decltype(auto) end() const {
-      return iterators::enumerate(zip_container.end());
+      return iterators::enumerate(zip_container.end(), size_type{});
     }
 
   private:
-    ZipContainer<Containers...> zip_container;
+    ZipContainer_t zip_container;
   };
 } // namespace containers
 
@@ -134,13 +141,13 @@ inline constexpr decltype(auto) enumerate(Container &&... container) {
 } // namespace AKANTU_ITERATORS_NAMESPACE
 
 namespace std {
-template <class Iterator>
-struct iterator_traits<
-    ::AKANTU_ITERATORS_NAMESPACE::iterators::EnumerateIterator<Iterator>> {
+template <class Iterator, class size_type>
+struct iterator_traits<::AKANTU_ITERATORS_NAMESPACE::iterators::
+                           EnumerateIterator<Iterator, size_type>> {
 private:
   using iterator_type =
       typename ::AKANTU_ITERATORS_NAMESPACE::iterators::EnumerateIterator<
-          Iterator>;
+          Iterator, size_type>;
 
 public:
   using iterator_category = typename iterator_type::iterator_category;

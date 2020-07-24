@@ -99,6 +99,8 @@ namespace iterators {
 namespace containers {
   template <class filter_t, class Container> class FilterAdaptor {
   public:
+    using size_type = typename std::decay_t<Container>::size_type;
+
     FilterAdaptor(filter_t && filter, Container && container)
         : filter(std::forward<filter_t>(filter)),
           container(std::forward<Container>(container)) {

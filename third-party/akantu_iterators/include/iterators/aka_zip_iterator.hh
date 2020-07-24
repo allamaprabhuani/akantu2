@@ -198,9 +198,10 @@ zip_iterator(tuple::named_tuple<Iterators...> && iterators_tuple) {
 namespace containers {
   template <template <class...> class Tuple, class... Containers>
   class ZipContainer_ {
-    using containers_t = Tuple<Containers...>;
-
   public:
+    using containers_t = Tuple<Containers...>;
+    using size_type = std::common_type_t<aka::size_type_t<Containers>...>;
+
     explicit ZipContainer_(Containers &&... containers)
         : containers(std::forward<Containers>(containers)...) {}
 
@@ -228,7 +229,79 @@ namespace containers {
                            std::forward<containers_t>(containers)));
     }
 
+  protected:
+    template <class... OtherContainers, std::size_t... Is>
+    decltype(auto) append(std::index_sequence<Is...> && /*unused*/,
+                          OtherContainers &&... other_containers) {
+      return ZipContainer_<Tuple, Containers..., OtherContainers...>(
+          std::get<Is>(std::forward<containers_t>(containers))...,
+          std::forward<OtherContainers>(
+              std::forward<OtherContainers>(other_containers))...);
+    }
+
+    template <class OtherContainers, std::size_t... Is>
+    decltype(auto) extend(std::index_sequence<Is...> && /*unused*/,
+                          OtherContainers && other_containers) {
+      return append(
+          std::make_index_sequence<sizeof...(Containers)>{},
+          std::get<Is>(std::forward<containers_t>(other_containers))...);
+    }
+
+    // template <std::size_t nth, std::size_t... Is_before,
+    //           std::size_t... Is_after>
+    // decltype(auto) remove(std::index_sequence<Is_before...> && /*unused*/,
+    //                       std::index_sequence<Is_after...> && /*unused*/) {
+    //   using tuple::tuple_element_t;
+    //   return ZipContainer_<
+    //       Tuple, tuple_element_t<Is_before, containers_t>...,
+    //       tuple_element_t<Is_after + nth + 1, containers_t>...>(
+    //       std::forward<tuple_element_t<Is_before, containers_t>>(
+    //           std::get<Is_before>(containers))...,
+    //       std::forward<tuple_element_t<Is_after + nth + 1, containers_t>>(
+    //           std::get<Is_after + nth + 1>(containers))...);
+    // }
+
+  public:
+    template <class... OtherContainers>
+    decltype(auto) append(OtherContainers &&... other_containers) {
+      static_assert(
+          tuple::is_named_tuple<containers_t>::value ==
+              aka::conjunction<
+                  tuple::is_named_tag<std::decay_t<OtherContainers>>...>::value,
+          "Cannot append named tag in non named zip or vice "
+          "versa");
+      return append(std::make_index_sequence<sizeof...(Containers)>{},
+                    std::forward<OtherContainers>(other_containers)...);
+    }
+
+    template <class... OtherContainers>
+    decltype(auto)
+    extend(const ZipContainer_<Tuple, OtherContainers...> & other) {
+      return extend(std::make_index_sequence<sizeof...(OtherContainers)>{},
+                    other.containers);
+    }
+
+    // template <size_t Tag, class Containers_t = containers_t,
+    //           std::enable_if_t<tuple::is_named_tuple<Containers_t>::value> *
+    //           =
+    //               nullptr>
+    // decltype(auto) remove() {
+    //   constexpr auto nth =
+    //       containers.template get_element_index(tuple::get<Tag>());
+    //   return remove<nth>(
+    //       std::make_index_sequence<nth>{},
+    //       std::make_index_sequence<sizeof...(Containers) - nth - 1>{});
+    // }
+
+    template <size_t Tag> decltype(auto) remove();
+
+    template <size_t Tag, class Container>
+    decltype(auto) replace(Container && cont);
+
   private:
+    template <template <class...> class OtherTuple, class... OtherContainers>
+    friend class ZipContainer_;
+
     containers_t containers;
   };
 
@@ -240,24 +313,92 @@ namespace containers {
 } // namespace containers
 
 /* -------------------------------------------------------------------------- */
-template <class... Containers> decltype(auto) zip(Containers &&... conts) {
+template <class... Containers,
+          std::enable_if_t<not aka::conjunction<tuple::is_named_tag<
+              std::decay_t<Containers>>...>::value> * = nullptr>
+decltype(auto) zip(Containers &&... conts) {
   return containers::ZipContainer<Containers...>(
       std::forward<Containers>(conts)...);
 }
 
-template <class... NamedContainers>
-decltype(auto) named_zip(NamedContainers &&... conts) {
-  return containers::NamedZipContainer<NamedContainers...>(
-      std::forward<NamedContainers>(conts)...);
+template <class... Containers,
+          std::enable_if_t<aka::conjunction<tuple::is_named_tag<
+              std::decay_t<Containers>>...>::value> * = nullptr>
+decltype(auto) zip(Containers &&... conts) {
+  return containers::NamedZipContainer<Containers...>(
+      std::forward<Containers>(conts)...);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class... zip_container_t>
-decltype(auto) make_zip_cat(zip_container_t &&... cont) {
-  return make_transform_adaptor(
-      zip(std::forward<zip_container_t>(cont)...),
-      [](auto && value) { return tuple::flatten(value); });
+template <class zip_container_1_t, class zip_container_2_t>
+decltype(auto) zip_cat(zip_container_1_t && cont1, zip_container_2_t && cont2) {
+  return std::forward<zip_container_1_t>(cont1).extend(
+      std::forward<zip_container_2_t>(cont2));
 }
+
+template <class zip_container_t, class... container_t>
+decltype(auto) zip_append(zip_container_t && zip_container,
+                          container_t &&... cont) {
+  return std::forward<zip_container_t>(zip_container)
+      .append(std::forward<container_t>(cont)...);
+}
+
+template <size_t Tag, class zip_container_t, class container_t>
+decltype(auto) zip_replace(zip_container_t && zip_container,
+                           container_t && cont) {
+  return std::forward<zip_container_t>(zip_container)
+      .template replace<Tag>(std::forward<container_t>(cont));
+}
+
+template <size_t Tag, class zip_container_t>
+decltype(auto) zip_remove(zip_container_t && zip_container) {
+  return std::forward<zip_container_t>(zip_container).template remove<Tag>();
+}
+
+namespace details {
+  template <class Tuple, std::size_t... Is,
+            std::enable_if_t<
+                tuple::is_named_tuple<std::decay_t<Tuple>>::value> * = nullptr>
+  decltype(auto)
+  make_zip_from_tuple_impl(std::index_sequence<Is...> && /*unused*/,
+                           Tuple && tuple) {
+    return zip(
+        std::get<tuple::tuple_name_tag<Is, std::decay_t<Tuple>>>() =
+            std::forward<tuple::tuple_element_t<Is, std::decay_t<Tuple>>>(
+                std::get<Is>(tuple))...);
+  }
+} // namespace details
+
+template <class Tuple, std::enable_if_t<tuple::is_named_tuple<
+                           std::decay_t<Tuple>>::value> * = nullptr>
+decltype(auto) make_zip_from_tuple(Tuple && tuple) {
+  return details::make_zip_from_tuple_impl(
+      std::make_index_sequence<
+          std::tuple_size<typename std::decay_t<Tuple>::parent>::value>{},
+      std::forward<Tuple>(tuple));
+}
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+namespace containers {
+  template <template <class...> class Tuple, class... Containers>
+  template <std::size_t nth>
+  decltype(auto) ZipContainer_<Tuple, Containers...>::remove() {
+    return make_zip_from_tuple(
+        tuple::remove<nth>(std::forward<containers_t>(containers)));
+  }
+
+  template <template <class...> class Tuple, class... Containers>
+  template <std::size_t nth, class Container>
+  decltype(auto)
+  ZipContainer_<Tuple, Containers...>::replace(Container && cont) {
+    return make_zip_from_tuple(tuple::replace<nth>(
+        std::forward<containers_t>(containers), std::forward<Container>(cont)));
+  }
+
+} // namespace containers
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 } // namespace AKANTU_ITERATORS_NAMESPACE
 

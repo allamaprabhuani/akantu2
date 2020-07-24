@@ -227,6 +227,97 @@ TEST_F(TestZipFixutre, Cat) {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+TEST_F(TestZipFixutre, SimpleNamedTest) {
+  size_t i = 0;
+  for (auto && pair :
+       named_zip(tuple::get<"a"_h>() = this->a, tuple::get<"b"_h> = this->b)) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 0);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, ConstTest) {
+  size_t i = 0;
+  const auto & ca = this->a;
+  const auto & cb = this->b;
+  for (auto && pair : named_zip(tuple::get<"a"_h>() = ca, tuple::get<"b"_h> = cb) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b">(pair), i, 0, 0);
+    EXPECT_EQ(
+        true,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"a"_h>(pair))>>::value);
+    EXPECT_EQ(
+        true,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"b"_h>(pair))>>::value);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, MixteTest) {
+  size_t i = 0;
+  const auto & cb = this->b;
+  for (auto && pair : zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = cb)) {
+    this->check(std::get<0>(pair), std::get<1>(pair), i, 0, 0);
+    EXPECT_EQ(
+        false,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"a"_h>(pair))>>::value);
+    EXPECT_EQ(
+        true,
+        std::is_const<
+            std::remove_reference_t<decltype(tuple::get<"b"_h>(pair))>>::value);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, MoveNamedTest) {
+  size_t i = 0;
+  for (auto && pair :
+       named_zip(tuple::get<"a"_h>() = C<int>(0, this->size),
+       tuple::get<"b"_h>() = C<int>(this->size, 2 * this->size))) {
+    this->check(tuple::get<"a"_h>(pair), tuple::get<"b"_h>(pair), i, 0, 1);
+    ++i;
+  }
+}
+
+TEST_F(TestZipFixutre, BidirectionalNamed) {
+  auto _zip = named_zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b);
+  auto begin = _zip.begin();
+
+  auto it = begin;
+  ++it;
+  EXPECT_EQ(begin, --it);
+
+  it = begin;
+  EXPECT_EQ(begin, it++);
+  EXPECT_EQ(begin, --it);
+
+  auto it2 = it = begin;
+  ++it;
+  ++it2;
+  EXPECT_EQ(it2, it--);
+  EXPECT_EQ(begin, it);
+}
+
+TEST_F(TestZipFixutre, RandomAccessNamed) {
+  auto _zip = zip(tuple::get<"a"_h>() = a, tuple::get<"b"_h>() = b);
+  auto begin = _zip.begin();
+  auto end = _zip.end();
+
+  auto && val5 = begin[5];
+  this->check(tuple::get<"a"_h>(val5), tuple::get<"b"_h>(val5), 5, 0, 0);
+
+  auto && val13 = begin[13];
+  this->check(tuple::get<"a"_h>(val13), tuple::get<"b"_h>(val13), 13, 0, 0);
+
+  EXPECT_EQ(end - begin, a.size());
+  auto it = ++begin;
+  EXPECT_EQ(begin + 1, ++it);
+  EXPECT_EQ(begin, it - 1);
+}
+
 TEST(TestNamedZipFixutre, Simple) {
   std::vector<int> a{0, 10, 20, 30, 40};
   std::vector<int> b{0, 1, 2, 3, 4};
