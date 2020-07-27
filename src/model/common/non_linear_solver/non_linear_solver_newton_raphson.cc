@@ -113,6 +113,9 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
     this->convergence_criteria_normalized =
         this->error * this->convergence_criteria;
   }
+  else {
+    this->convergence_criteria_normalized = this->convergence_criteria;
+  }
 
   do {
     if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson or
