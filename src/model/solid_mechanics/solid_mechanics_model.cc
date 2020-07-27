@@ -365,7 +365,7 @@ void SolidMechanicsModel::afterSolveStep(bool converged) {
 void SolidMechanicsModel::predictor() { ++displacement_release; }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::corrector() { ++displacement_release; }
+  void SolidMechanicsModel::corrector() { ++displacement_release; }
 
 /* -------------------------------------------------------------------------- */
 /**

@@ -337,7 +337,10 @@ void ContactMechanicsModel::assembleInternalForces() {
 
   // assemble the stresses due to ghost elements
   AKANTU_DEBUG_INFO("Assemble residual for ghost elements");
-  assemble(_ghost);
+  //assemble(_ghost);
+  // TODO : uncomment when developing code for parallelization,
+  // currently it addes the force twice for not ghost elements
+  // hence source of error
 
   AKANTU_DEBUG_OUT();
 }

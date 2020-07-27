@@ -285,7 +285,6 @@ void CouplerSolidContact::predictor() {
   
     
   switch (method) {
-  case _static:
   case _explicit_lumped_mass: {    
     auto & current_positions = contact->getContactDetector().getPositions();
     current_positions.copy(solid->getCurrentPosition());
@@ -388,11 +387,11 @@ void CouplerSolidContact::assembleStiffnessMatrix() {
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
 
   solid->assembleStiffnessMatrix();
-
+ 
   switch (method) {
   case _static:
   case _implicit_dynamic: {
-    contact->assembleStiffnessMatrix();
+    contact->assembleStiffnessMatrix();    
     break;
   }
   default:

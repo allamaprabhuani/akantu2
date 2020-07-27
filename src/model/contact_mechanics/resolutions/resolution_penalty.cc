@@ -396,7 +396,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   tmp.mul<false, false>(n_outer_n, A);
 
   k_main.mul<true, false>(A, tmp);
-  k_main *= epsilon_n * heaviside(gap) * nodal_area;
+  k_main *= epsilon_n * heaviside(gap); // * nodal_area;
 
   stiffness += k_main;
 } 
@@ -666,7 +666,7 @@ void ResolutionPenalty::beforeSolveStep() {
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::afterSolveStep(bool converged) {
 
-  auto method = model.getAnalysisMethod();
+  /*auto method = model.getAnalysisMethod();
   if (method == _explicit_lumped_mass) {
     return ;
   }
@@ -686,7 +686,7 @@ void ResolutionPenalty::afterSolveStep(bool converged) {
 
   auto max_epsilon_n = k_min / sqrt(nb_unknowns * roundoff_error);
   if (epsilon_n > max_epsilon_n)
-    epsilon_n = max_epsilon_n;
+  epsilon_n = max_epsilon_n;*/
   
 }
   

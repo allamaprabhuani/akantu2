@@ -340,6 +340,7 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
   for (auto & pairs : contact_pairs) {
 
     const auto & slave_node = pairs.first;
+
     Vector<Real> slave(spatial_dimension);
     for (UInt s : arange(spatial_dimension))
       slave(s) = this->positions(slave_node, s);
