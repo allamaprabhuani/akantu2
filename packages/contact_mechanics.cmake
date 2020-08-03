@@ -49,7 +49,9 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/resolution_utils.cc
   model/contact_mechanics/resolutions/resolution_penalty.hh
   model/contact_mechanics/resolutions/resolution_penalty.cc
-
+  model/contact_mechanics/resolutions/resolution_penalty_quadratic.hh
+  model/contact_mechanics/resolutions/resolution_penalty_quadratic.cc
+  
   model/contact_mechanics/surface_selector.hh
   model/contact_mechanics/surface_selector.cc)
 

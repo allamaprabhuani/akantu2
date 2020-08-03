@@ -283,6 +283,13 @@ enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 
 /// @enum Type of contact detection
 enum DetectionType { _explicit, _implicit};
+
+/// @enum no contact or stick or slip state
+enum ContactState {
+  _no_contact = 0,
+  _stick = 1,
+  _slip = 2,
+};
   
 /* -------------------------------------------------------------------------- */
 /* Ghosts handling                                                            */
