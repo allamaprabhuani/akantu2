@@ -283,63 +283,6 @@ ContactDetector::filterBoundaryElements(Array<Element> & elements,
   }
 }
 
-/* -------------------------------------------------------------------------- */
-/*inline bool
-ContactDetector::checkValidityOfSelfContact(const UInt & slave_node,
-                                            ContactElement & element) {
-
-  UInt master_node;
-
-  for (auto & pair : contact_pairs) {
-    if (pair.first == slave_node) {
-      master_node = pair.second;
-      break;
-    }
-  }
-
-  Array<Element> elements;
-  this->mesh.getAssociatedElements(slave_node, elements);
-
-  Vector<Real> slave_normal(spatial_dimension);
-  for (auto & elem : elements) {
-    if (elem.kind() != _ek_regular)
-      continue;
-
-    Vector<UInt> connectivity =
-        const_cast<const Mesh &>(this->mesh).getConnectivity(elem);
-
-    Vector<Real> normal(spatial_dimension);
-    this->computeNormalOnElement(elem, normal);
-
-    slave_normal = slave_normal + normal;
-    
-    auto node_iter =
-        std::find(connectivity.begin(), connectivity.end(), master_node);
-    if (node_iter != connectivity.end()) {
-      return false;
-    }
-
-    
-  }
-
-  if (std::abs(element.gap) > 2.0 * min_dd) {
-    return false;
-  }
-
-  auto norm = slave_normal.norm();
-  if (norm != 0) {
-    slave_normal /= norm;
-  }   
-
-  auto product = slave_normal.dot(element.normal);
-  if (product >= 0) { 
-    return false;
-  }
-  
-  return true;
-  }*/
-
-
 
 /* -------------------------------------------------------------------------- */
 inline bool

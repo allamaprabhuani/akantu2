@@ -146,13 +146,6 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
 
   auto & global_stiffness =
       const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
-
-  auto & gaps = model.getGaps();
-  auto & projections = model.getProjections();
-  auto & normals = model.getNormals();
-  auto & tangents = model.getTangents();
-  
-  UInt surface_dimension = spatial_dimension - 1;
   
   for (auto & element : model.getContactElements()) {
 
@@ -161,37 +154,10 @@ void Resolution::assembleStiffnessMatrix(GhostType /*ghost_type*/) {
     Matrix<Real> local_kn(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
     computeNormalModuli(element, local_kn);
     assembleLocalToGlobalMatrix(element, local_kn, global_stiffness);
-   
 
-    /*Real gap(gaps.begin()[element.slave]);
-    Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
-    Vector<Real> projection(projections.begin(surface_dimension)[element.slave]);
-    Matrix<Real> covariant_basis(tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
-    
-    //Matrix<Real> covariant_basis(surface_dimension, spatial_dimension);
-    //GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
-    //				  element.master, normal, projection, covariant_basis);
-
-    Vector<Real> delta_g(nb_nodes * spatial_dimension);
-    ResolutionUtils::firstVariationNormalGap(element, projection, normal, delta_g);
-       
-    Matrix<Real> curvature(spatial_dimension,
-			   surface_dimension * surface_dimension);
-    GeometryUtils::curvature(model.getMesh(), model.getContactDetector().getPositions(),
-			     element.master, projection, curvature);
-    
-    Matrix<Real> ddelta_g(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
-    ResolutionUtils::secondVariationNormalGap(element, covariant_basis, curvature,
-					      projection, normal, gap, ddelta_g);
-    
-    Matrix<Real> local_kn(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
-    computeNormalModuli(element, ddelta_g, delta_g, local_kn);
-    assembleLocalToGlobalMatrix(element, local_kn, global_stiffness);
-   
     Matrix<Real> local_kt(nb_nodes * spatial_dimension, nb_nodes * spatial_dimension);
-    if (mu != 0)
-      computeTangentialModuli(element, ddelta_g, delta_g, local_kt);
-    assembleLocalToGlobalMatrix(element, local_kt, global_stiffness);*/
+    computeTangentialModuli(element, local_kt);
+    assembleLocalToGlobalMatrix(element, local_kt, global_stiffness);
   }
 
   AKANTU_DEBUG_OUT();
@@ -241,12 +207,10 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
 
 
 /* -------------------------------------------------------------------------- */
-void Resolution::beforeSolveStep() {
-}
+void Resolution::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
-void Resolution::afterSolveStep(bool converged) {
-}
+void Resolution::afterSolveStep(bool converged) {}
   
 
 } // namespace akantu

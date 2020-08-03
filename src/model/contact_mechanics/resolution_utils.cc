@@ -224,7 +224,7 @@ void ResolutionUtils::computeNalpha(const ContactElement & element, const Vector
 void ResolutionUtils::firstVariationNaturalCoordinate(const ContactElement & element,
 						      const Matrix<Real> & covariant_basis,
 						      const Vector<Real> & projection,
-						      const Vector<Real> & normal, const Real & gap,
+						      const Vector<Real> & normal, const Real & /*gap*/,
 						      Array<Real> & delta_xi) {
 
   delta_xi.clear();
@@ -256,7 +256,7 @@ void ResolutionUtils::firstVariationNaturalCoordinate(const ContactElement & ele
              make_view(n_alpha, n_alpha.size()))) {
       auto & beta   = std::get<0>(values);
       auto & t_beta = std::get<1>(values);
-      auto & n_beta = std::get<2>(values);
+      //auto & n_beta = std::get<2>(values);
 
       //d_alpha += (t_beta + gap * n_beta) * m_alpha_beta(alpha,
       //beta);
@@ -265,153 +265,153 @@ void ResolutionUtils::firstVariationNaturalCoordinate(const ContactElement & ele
   }
 }
 
-
-/* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
-					ContactElement & element) {
-  /*t_alpha_beta.clear();
-  
-  const auto & type = element.master.type;
-  auto surface_dimension = Mesh::getSpatialDimension(type);
-    
-  Matrix<Real> shape_derivatives(surface_dimension,
-				 Mesh::getNbNodesPerElement(type));
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-  ElementClass<type>::computeDNDS(element.projection, shape_derivatives)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-  #undef GET_SHAPE_DERIVATIVES_NATURAL*/
-
-  //auto t_alpha_size = t_alpha_beta.size() * surface_dimension;
-
-  //auto & tangents = element.tangents;
-  /*for(auto && entry :
-	zip(tangents.transpose(),
-	    make_view(t_alpha_beta, t_alpha_size))) {
-
-    auto & tangent_s = std::get<0>(entry);
-    auto & t_alpha   = std::get<1>(entry);
-
-    for(auto && values :
-	  zip(shape_derivatives.transpose(),
-	      make_view(t_alpha, t_alpha_beta.size()))) {
-
-      auto & dnds      = std::get<0>(values);
-      auto & t_alpha_s = std::get<1>(values);
-
-      for (UInt i : arange(spatial_dimension)) {
-	t_alpha_s[i] = 0;
-	for (UInt j : arange(dnds.size())) {
-	  t_alpha_s[(1 + j) * spatial_dimension + i] = -dnds(j) * tangent_s(i);
-	}
-      } 
-    }
-  }*/
-}
-
-/* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeNalphabeta(Array<Real> & n_alpha_beta,
-    ContactElement & /*element*/) {
-  n_alpha_beta.clear();
-
-  /*const auto & type = element.master.type;
-  auto surface_dimension = Mesh::getSpatialDimension(type);
-  auto spatial_dimension = surface_dimension + 1;
-
-  Matrix<Real> shape_second_derivatives(surface_dimension * surface_dimension,
-					Mesh::getNbNodesPerElement(type));
-  
-#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
-    ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
-
-  for(auto && entry :
-	zip(shape_second_derivatives.transpose(),
-	    make_view(n_alpha_beta, n_alpha_beta.size()))) {
-
-    auto & dn2ds2    = std::get<0>(entry);
-    auto & n_alpha_s = std::get<1>(entry);
-
-    for (UInt i : arange(spatial_dimension)) {
-      n_alpha_s[i] = 0;
-      for (UInt j : arange(dn2ds2.size())) {
-        n_alpha_s[(1 + j) * spatial_dimension + i] = -dn2ds2(j) * element.normal[i];
-      }
-    }
-       
-    }*/
-}
-
-/* -------------------------------------------------------------------------- */
-void ResolutionUtils::computePalpha(Array<Real> & p_alpha,
-				    ContactElement & /*element*/) {
-  p_alpha.clear();
-
-  /*const auto & type = element.master.type;
-  auto surface_dimension = Mesh::getSpatialDimension(type);
-  auto spatial_dimension = surface_dimension + 1;
-  
-  Matrix<Real> shape_derivatives(surface_dimension,
-				 Mesh::getNbNodesPerElement(type));
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
-  ElementClass<type>::computeDNDS(element.projection, shape_derivatives)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
-
-  auto normalized_traction = element.traction/element.traction.norm();
-  
-  for(auto && entry :
-	zip(shape_derivatives.transpose(),
-	    make_view(p_alpha, p_alpha.size()))) {
-    auto & dnds = std::get<0>(entry);
-    auto & p_s  = std::get<1>(entry);
-
-    for(UInt i : arange(spatial_dimension)) {
-      p_s[i] = 0;
-      for(UInt j : arange(dnds.size())){
-	p_s[(1 + j) * spatial_dimension + i] = -dnds(j) * normalized_traction[i];
-      }
-    }
-  }*/
-}
-
-/* -------------------------------------------------------------------------- */
-void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha_beta,
-				    Array<Real> & d_alpha, Matrix<Real> & phi,
-				    ContactElement & element) {
-
-  g_alpha.clear();
-
-  /*const auto & type = element.master.type;
-  auto surface_dimension = Mesh::getSpatialDimension(type);
-
-  auto & tangents = element.tangents;
-  auto tangential_gap = element.projection - element.previous_projection;
-
-  for(auto alpha : arange(surface_dimension)) {
-    auto & g_a = g_alpha[alpha];
-    auto & tangent_alpha = tangents[alpha];
-    
-    for(auto beta : arange(surface_dimension)) {
-      auto & t_a_b = t_alpha_beta(alpha, beta); 
-      auto & t_b_a = t_alpha_beta(beta, alpha);
-      auto & gt_beta = tangential_gap[beta];
-      auto & tangents_beta = tangents[beta];
-      
-      for(auto gamma : arange(surface_dimension)) {
-	auto & d_gamma = d_alpha(gamma);
-	auto tmp = phi(beta, gamma) * tangent_alpha + phi(alpha,gamma) * tangents_beta;
-
-	g_a += (-t_a_b - t_b_a + tmp * d_gamma)*gt_beta;
-      }
-    }
-
-    }*/
-
-}
-
+//
+///* -------------------------------------------------------------------------- */
+//void ResolutionUtils::computeTalphabeta(Array<Real> & t_alpha_beta,
+//					ContactElement & element) {
+//  /*t_alpha_beta.clear();
+//  
+//  const auto & type = element.master.type;
+//  auto surface_dimension = Mesh::getSpatialDimension(type);
+//    
+//  Matrix<Real> shape_derivatives(surface_dimension,
+//				 Mesh::getNbNodesPerElement(type));
+//
+//#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
+//  ElementClass<type>::computeDNDS(element.projection, shape_derivatives)
+//  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+//  #undef GET_SHAPE_DERIVATIVES_NATURAL*/
+//
+//  //auto t_alpha_size = t_alpha_beta.size() * surface_dimension;
+//
+//  //auto & tangents = element.tangents;
+//  /*for(auto && entry :
+//	zip(tangents.transpose(),
+//	    make_view(t_alpha_beta, t_alpha_size))) {
+//
+//    auto & tangent_s = std::get<0>(entry);
+//    auto & t_alpha   = std::get<1>(entry);
+//
+//    for(auto && values :
+//	  zip(shape_derivatives.transpose(),
+//	      make_view(t_alpha, t_alpha_beta.size()))) {
+//
+//      auto & dnds      = std::get<0>(values);
+//      auto & t_alpha_s = std::get<1>(values);
+//
+//      for (UInt i : arange(spatial_dimension)) {
+//	t_alpha_s[i] = 0;
+//	for (UInt j : arange(dnds.size())) {
+//	  t_alpha_s[(1 + j) * spatial_dimension + i] = -dnds(j) * tangent_s(i);
+//	}
+//      } 
+//    }
+//  }*/
+//}
+//
+///* -------------------------------------------------------------------------- */
+//void ResolutionUtils::computeNalphabeta(Array<Real> & n_alpha_beta,
+//    ContactElement & /*element*/) {
+//  n_alpha_beta.clear();
+//
+//  /*const auto & type = element.master.type;
+//  auto surface_dimension = Mesh::getSpatialDimension(type);
+//  auto spatial_dimension = surface_dimension + 1;
+//
+//  Matrix<Real> shape_second_derivatives(surface_dimension * surface_dimension,
+//					Mesh::getNbNodesPerElement(type));
+//  
+//#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
+//    ElementClass<type>::computeDN2DS2(element.projection, shape_second_derivatives)
+//    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
+//#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+//
+//  for(auto && entry :
+//	zip(shape_second_derivatives.transpose(),
+//	    make_view(n_alpha_beta, n_alpha_beta.size()))) {
+//
+//    auto & dn2ds2    = std::get<0>(entry);
+//    auto & n_alpha_s = std::get<1>(entry);
+//
+//    for (UInt i : arange(spatial_dimension)) {
+//      n_alpha_s[i] = 0;
+//      for (UInt j : arange(dn2ds2.size())) {
+//        n_alpha_s[(1 + j) * spatial_dimension + i] = -dn2ds2(j) * element.normal[i];
+//      }
+//    }
+//       
+//    }*/
+//}
+//
+///* -------------------------------------------------------------------------- */
+//void ResolutionUtils::computePalpha(Array<Real> & p_alpha,
+//				    ContactElement & /*element*/) {
+//  p_alpha.clear();
+//
+//  /*const auto & type = element.master.type;
+//  auto surface_dimension = Mesh::getSpatialDimension(type);
+//  auto spatial_dimension = surface_dimension + 1;
+//  
+//  Matrix<Real> shape_derivatives(surface_dimension,
+//				 Mesh::getNbNodesPerElement(type));
+//
+//#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
+//  ElementClass<type>::computeDNDS(element.projection, shape_derivatives)
+//  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+//#undef GET_SHAPE_DERIVATIVES_NATURAL
+//
+//  auto normalized_traction = element.traction/element.traction.norm();
+//  
+//  for(auto && entry :
+//	zip(shape_derivatives.transpose(),
+//	    make_view(p_alpha, p_alpha.size()))) {
+//    auto & dnds = std::get<0>(entry);
+//    auto & p_s  = std::get<1>(entry);
+//
+//    for(UInt i : arange(spatial_dimension)) {
+//      p_s[i] = 0;
+//      for(UInt j : arange(dnds.size())){
+//	p_s[(1 + j) * spatial_dimension + i] = -dnds(j) * normalized_traction[i];
+//      }
+//    }
+//  }*/
+//}
+//
+///* -------------------------------------------------------------------------- */
+//void ResolutionUtils::computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha_beta,
+//				    Array<Real> & d_alpha, Matrix<Real> & phi,
+//				    ContactElement & element) {
+//
+//  g_alpha.clear();
+//
+//  /*const auto & type = element.master.type;
+//  auto surface_dimension = Mesh::getSpatialDimension(type);
+//
+//  auto & tangents = element.tangents;
+//  auto tangential_gap = element.projection - element.previous_projection;
+//
+//  for(auto alpha : arange(surface_dimension)) {
+//    auto & g_a = g_alpha[alpha];
+//    auto & tangent_alpha = tangents[alpha];
+//    
+//    for(auto beta : arange(surface_dimension)) {
+//      auto & t_a_b = t_alpha_beta(alpha, beta); 
+//      auto & t_b_a = t_alpha_beta(beta, alpha);
+//      auto & gt_beta = tangential_gap[beta];
+//      auto & tangents_beta = tangents[beta];
+//      
+//      for(auto gamma : arange(surface_dimension)) {
+//	auto & d_gamma = d_alpha(gamma);
+//	auto tmp = phi(beta, gamma) * tangent_alpha + phi(alpha,gamma) * tangents_beta;
+//
+//	g_a += (-t_a_b - t_b_a + tmp * d_gamma)*gt_beta;
+//      }
+//    }
+//
+//    }*/
+//
+//}
+//
 /* -------------------------------------------------------------------------- */
 void ResolutionUtils::computeMetricTensor(Matrix<Real> & m_alpha_beta,
 					  const Matrix<Real> & tangents) {

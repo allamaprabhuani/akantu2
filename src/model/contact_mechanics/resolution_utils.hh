@@ -91,21 +91,21 @@ public:
   
   /// computes @f$T_{\alpha\beta} @f$ which is shape derivatives
   /// times the tangents
-  static void computeTalphabeta(Array<Real> & t_alpha_beta,
-                                ContactElement & element);
+  //static void computeTalphabeta(Array<Real> & t_alpha_beta,
+  //                              ContactElement & element);
 
   /// computes @f$N_{\alpha\beta} @f$ which is shape 2nd derivatives times
   /// the normal
-  static void computeNalphabeta(Array<Real> & n_alpha_beta,
-                                ContactElement & element);
+  //static void computeNalphabeta(Array<Real> & n_alpha_beta,
+  //                              ContactElement & element);
 
   /// computes @f$P_{\alpha} @f$
-  static void computePalpha(Array<Real> & p_alpha, ContactElement & element);
+  //static void computePalpha(Array<Real> & p_alpha, ContactElement & element);
 
   /// computes @f$G_{\alpha}@f$
-  static void computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha_beta,
-                            Array<Real> & d_alpha, Matrix<Real> & phi,
-                            ContactElement &);
+  //static void computeGalpha(Array<Real> & g_alpha, Array<Real> & t_alpha_beta,
+  //                         Array<Real> & d_alpha, Matrix<Real> & phi,
+  //                          ContactElement &);
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */

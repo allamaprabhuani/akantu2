@@ -59,7 +59,9 @@ namespace akantu {
  * \code
  *
  *  virtual void computeNormalForce();
- *  virtual void computeFrictionForce();
+ *  virtual void computeTangentialForce();
+ *  virtual void computeNormalModuli();
+ *  virtual void computeTangentialModuli();
  *
  * \endcode
  *
@@ -183,7 +185,7 @@ protected:
   /// is master surface deformable
   bool is_master_deformable;
   
-  /// Link to the fem object in the model
+  /// Link to the fe engine object in the model
   FEEngine & fem;
   
   /// resolution name

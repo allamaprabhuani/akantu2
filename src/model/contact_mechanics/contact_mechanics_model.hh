@@ -49,6 +49,9 @@ template <ElementKind kind> class ShapeLagrange;
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
+
+  
+
 /* -------------------------------------------------------------------------- */
 class ContactMechanicsModel : public Model,
                               public DataAccessor<Element>,
@@ -268,18 +271,15 @@ public:
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
-  /// get the ContactMechanics::stick_projections (stick_projections)
-  AKANTU_GET_MACRO(StickProjections, *stick_projections, Array<Real> &);
-
   /// get the ContactMechanics::previous_projections (previous_projections)
   AKANTU_GET_MACRO(PreviousProjections, *previous_projections, Array<Real> &);
 
   /// get the ContactMechanics::projections (projections)
   AKANTU_GET_MACRO(Projections, *projections, Array<Real> &);
   
-  /// get the ContactMechanics::stick_or_slip vector (slip/stick
+  /// get the ContactMechanics::contact_state vector (no_contact/stick/slip
   /// state)
-  AKANTU_GET_MACRO(StickSlip, *stick_or_slip, Array<Real> &);
+  AKANTU_GET_MACRO(ContactState, *contact_state, Array<Real> &);
 
   /// get the ContactMechanics::previous_master_elements
   AKANTU_GET_MACRO(PreviousMasterElements, *previous_master_elements, Array<Element> &);
@@ -347,10 +347,7 @@ private:
   Array<Real> * nodal_area{nullptr};
 
   /// array to store stick/slip state :
-  Array<Real> * stick_or_slip{nullptr};
-
-  /// array to store stick point projection in covariant basis
-  Array<Real> * stick_projections{nullptr};
+  Array<Real> * contact_state{nullptr};
 
   /// array to store previous projections in covariant basis
   Array<Real> * previous_projections{nullptr};

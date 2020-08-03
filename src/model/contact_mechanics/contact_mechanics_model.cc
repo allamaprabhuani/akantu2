@@ -68,6 +68,9 @@ ContactMechanicsModel::ContactMechanicsModel(
   this->detector =
       std::make_unique<ContactDetector>(this->mesh, id + ":contact_detector");
 
+  registerFEEngineObject<MyFEEngineType>("ContactFacetsFEEngine", mesh,
+					 Model::spatial_dimension - 1);
+  
   AKANTU_DEBUG_OUT();
 }
 
@@ -182,8 +185,16 @@ void ContactMechanicsModel::initResolutions() {
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::initModel() {
-  getFEEngine().initShapeFunctions(_not_ghost);
-  getFEEngine().initShapeFunctions(_ghost);
+
+  AKANTU_DEBUG_IN();
+  
+  getFEEngine("ContactMechanicsModel").initShapeFunctions(_not_ghost);
+  getFEEngine("ContactMechanicsModel").initShapeFunctions(_ghost);
+
+  getFEEngine("ContactFacetsFEEngine").initShapeFunctions(_not_ghost);
+  getFEEngine("ContactFacetsFEEngine").initShapeFunctions(_ghost);
+
+  AKANTU_DEBUG_OUT(); 
 }
 
 /* -------------------------------------------------------------------------- */
@@ -212,7 +223,7 @@ void ContactMechanicsModel::initSolver(
   this->allocNodalField(this->gaps, 1, "gaps");
   this->allocNodalField(this->nodal_area, 1, "areas");
   this->allocNodalField(this->blocked_dofs, 1, "blocked_dofs");
-  this->allocNodalField(this->stick_or_slip, 1, "stick_or_slip");
+  this->allocNodalField(this->contact_state, 1, "contact_state");
   this->allocNodalField(this->previous_master_elements, 1, "previous_master_elements");
   
   this->allocNodalField(this->normals, spatial_dimension, "normals");
@@ -222,12 +233,6 @@ void ContactMechanicsModel::initSolver(
 			"tangents");
   this->allocNodalField(this->previous_tangents, surface_dimension*spatial_dimension,
 			"previous_tangents");
-  this->allocNodalField(this->projections, surface_dimension,
-			"projections");
-  this->allocNodalField(this->previous_projections, surface_dimension,
-			"previous_projections");
-  this->allocNodalField(this->stick_projections, surface_dimension,
-			"stick_projections");
   this->allocNodalField(this->tangential_tractions, surface_dimension,
 			"tangential_tractions");
   this->allocNodalField(this->previous_tangential_tractions, surface_dimension,
@@ -366,7 +371,7 @@ void ContactMechanicsModel::search() {
   resize_arrays(tangents);
   resize_arrays(projections);
   resize_arrays(tangential_tractions);
-  resize_arrays(stick_or_slip);
+  resize_arrays(contact_state);
   
   this->detector->search(contact_elements, *gaps,
 			 *normals, *projections);
@@ -424,12 +429,20 @@ void ContactMechanicsModel::computeNodalAreas() {
 
   nodal_area->resize(nb_nodes, 0.);
   external_force->resize(nb_nodes, 0.);
-
-  auto & fem_boundary = this->getFEEngineBoundary(); 
+  
+  auto & fem_boundary = this->getFEEngineBoundary("ContactMechanicsModel");
+  
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
+  
+  /*getFEEngine("ContactFacetsFEEngine").initShapeFunctions(getPositions(), _not_ghost);
+  getFEEngine("ContactFacetsFEEngine").initShapeFunctions(getPositions(), _ghost);
 
-  // TODO find a better method to compute nodal area
+  auto & fem_boundary = this->getFEEngineBoundary("ContactFacetsFEEngine");
+  
+  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
+  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);*/
+  
   switch (spatial_dimension) {
   case 1: {
     for (auto && area : *nodal_area) {
@@ -561,7 +574,7 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["tangents"]         = this->tangents;
   real_nodal_fields["gaps"]             = this->gaps;
   real_nodal_fields["areas"]            = this->nodal_area;
-  real_nodal_fields["stick_or_slip"]    = this->stick_or_slip;
+  real_nodal_fields["contact_state"]    = this->contact_state;
 
   std::shared_ptr<dumpers::Field> field;
   if (padding_flag) 

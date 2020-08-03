@@ -1,12 +1,12 @@
 /**
- * @file   resolution_penalty.cc
+ * @file   resolution_penalty_quadratic.cc
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Mon Jan 7 2019
- * @date last modification: Mon Jan 7 2019
+ * @date creation: Sun Aug 2 2020
+ * @date last modification: Sun Aug 2 2020
  *
- * @brief  Specialization of the resolution class for the penalty method
+ * @brief  Specialization of the resolution class for the quadratic penalty method
  *
  * @section LICENSE
  *
@@ -29,40 +29,34 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "resolution_penalty.hh"
+#include "resolution_penalty_quadratic.hh"
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-ResolutionPenalty::ResolutionPenalty(ContactMechanicsModel & model,
-                                     const ID & id)
-    : Resolution(model, id) {
+ResolutionPenaltyQuadratic::ResolutionPenaltyQuadratic(ContactMechanicsModel & model ,
+						       const ID & id)
+  : Parent(model, id) {
   AKANTU_DEBUG_IN();
   this->initialize();
   AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::initialize() {
-  this->registerParam("epsilon_n", epsilon_n, Real(0.),
-                      _pat_parsable | _pat_modifiable,
-                      "Normal penalty parameter");
-  this->registerParam("epsilon_t", epsilon_t, Real(0.),
-                      _pat_parsable | _pat_modifiable,
-                      "Tangential penalty parameter");
-}
-
-/* -------------------------------------------------------------------------- */  
-Real ResolutionPenalty::computeNormalTraction(Real & gap) {
-  return epsilon_n * macaulay(gap);
+void ResolutionPenaltyQuadratic::initialize() {
+  Parent::initialize();
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeNormalForce(const ContactElement & element,
-					   Vector<Real> & force) {
-
+Real ResolutionPenaltyQuadratic::computeNormalTraction(Real & gap) {
+  return epsilon_n *( macaulay(gap) * macaulay(gap) + macaulay(gap));
+}
+  
+/* -------------------------------------------------------------------------- */
+void ResolutionPenaltyQuadratic::computeNormalForce(const ContactElement & element,
+						    Vector<Real> & force) {
   force.clear();
-
+  
   auto & gaps = model.getGaps();
   auto & projections = model.getProjections();
   auto & normals = model.getNormals();
@@ -87,13 +81,15 @@ void ResolutionPenalty::computeNormalForce(const ContactElement & element,
     force[i] += delta_gap[i] * p_n  * nodal_area[element.slave];
   
 }
-
+  
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
-					       Vector<Real> & force) {
+void ResolutionPenaltyQuadratic::computeTangentialForce(const ContactElement & element,
+							Vector<Real> & force) {
   
   if (mu == 0)
     return;
+
+  force.clear();
   
   UInt surface_dimension = spatial_dimension - 1; 
   
@@ -142,8 +138,9 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
   }
 }
 
+
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeTangentialTraction(const ContactElement & element,
+void ResolutionPenaltyQuadratic::computeTangentialTraction(const ContactElement & element,
 					   const Matrix<Real> & covariant_basis,
 					   Vector<Real> & traction_tangential) {
 
@@ -186,7 +183,7 @@ void ResolutionPenalty::computeTangentialTraction(const ContactElement & element
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeTrialTangentialTraction(const ContactElement & element,
+void ResolutionPenaltyQuadratic::computeTrialTangentialTraction(const ContactElement & element,
 						       const Matrix<Real> & covariant_basis,
 						       Vector<Real> & traction) {
   
@@ -268,14 +265,14 @@ void ResolutionPenalty::computeTrialTangentialTraction(const ContactElement & el
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeStickTangentialTraction(const ContactElement & /*element*/,
+void ResolutionPenaltyQuadratic::computeStickTangentialTraction(const ContactElement & /*element*/,
 						       Vector<Real> & traction_trial,
 						       Vector<Real> & traction_tangential) {
   traction_tangential = traction_trial;
 }
   
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & element,
+void ResolutionPenaltyQuadratic::computeSlipTangentialTraction(const ContactElement & element,
 						      const Matrix<Real> & covariant_basis,
 						      Vector<Real> & traction_trial,
 						      Vector<Real> & traction_tangential) {
@@ -303,7 +300,7 @@ void ResolutionPenalty::computeSlipTangentialTraction(const ContactElement & ele
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
+void ResolutionPenaltyQuadratic::computeNormalModuli(const ContactElement & element,
 					    Matrix<Real> & stiffness) {
   
   auto surface_dimension = spatial_dimension - 1;
@@ -440,7 +437,7 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
 } 
   
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeTangentialModuli(const ContactElement & element,
+void ResolutionPenaltyQuadratic::computeTangentialModuli(const ContactElement & element,
 						Matrix<Real> & stiffness){
 
   if (mu == 0)
@@ -467,7 +464,7 @@ void ResolutionPenalty::computeTangentialModuli(const ContactElement & element,
   
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeStickModuli(const ContactElement & element,
+void ResolutionPenaltyQuadratic::computeStickModuli(const ContactElement & element,
 					   Matrix<Real> & stiffness) {
 
   auto surface_dimension = spatial_dimension - 1;
@@ -628,8 +625,8 @@ void ResolutionPenalty::computeStickModuli(const ContactElement & element,
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::computeSlipModuli(const ContactElement & element,
-					  Matrix<Real> & stiffness) {
+void ResolutionPenaltyQuadratic::computeSlipModuli(const ContactElement & element,
+						   Matrix<Real> & stiffness) {
 
   
   auto surface_dimension = spatial_dimension - 1;
@@ -830,11 +827,11 @@ void ResolutionPenalty::computeSlipModuli(const ContactElement & element,
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::beforeSolveStep() {
+void ResolutionPenaltyQuadratic::beforeSolveStep() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::afterSolveStep(bool converged) {
+void ResolutionPenaltyQuadratic::afterSolveStep(bool converged) {
 
   /*auto method = model.getAnalysisMethod();
   if (method == _explicit_lumped_mass) {
@@ -860,6 +857,7 @@ void ResolutionPenalty::afterSolveStep(bool converged) {
   
 }
   
-INSTANTIATE_RESOLUTION(penalty, ResolutionPenalty);
 
+INSTANTIATE_RESOLUTION(penalty_quadratic, ResolutionPenaltyQuadratic);  
+  
 } // namespace akantu

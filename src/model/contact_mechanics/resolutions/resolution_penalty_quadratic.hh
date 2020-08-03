@@ -1,12 +1,12 @@
 /**
- * @file   contact_resolution_penalty.hh
+ * @file   contact_resolution_penalty_quadratic.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Fri Jun 18 2010
- * @date last modification: Mon Jan 29 2018
+ * @date creation: Sun Aug 02 2020
+ * @date last modification: Sun Aug 02 2020
  *
- * @brief  Linear Penalty Resolution for Contact Mechanics Model
+ * @brief  Quadratic Penalty Resolution for Contact Mechanics Model 
  *
  * @section LICENSE
  *
@@ -30,21 +30,25 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
-#include "resolution.hh"
+#include "resolution_penalty.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RESOLUTION_PENALTY_HH__
-#define __AKANTU_RESOLUTION_PENALTY_HH__
+#ifndef __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__
+#define __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__
 
 namespace akantu {
-class ResolutionPenalty : public Resolution {
+
+class ResolutionPenaltyQuadratic : public ResolutionPenalty {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
+private:
+  using Parent = ResolutionPenalty;
+  
 public:
-  ResolutionPenalty(ContactMechanicsModel & model, const ID & id = "");
+  ResolutionPenaltyQuadratic(ContactMechanicsModel & model, const ID & id = "");
 
-  ~ResolutionPenalty() override = default;
+  ~ResolutionPenaltyQuadratic() override = default;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -105,21 +109,11 @@ public:
 
   void beforeSolveStep() override;
 
-  void afterSolveStep(bool converged = true) override;
-  
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-protected:
-  /// penalty parameter for normal traction
-  Real epsilon_n;
-
-  /// penalty parameter for tangential traction
-  Real epsilon_t;
+  void afterSolveStep(bool converged = true) override;  
 };
-  
 
 } // akantu
 
 
-#endif /* __AKANTU_RESOLUTION_PENALTY_HH__  */
+
+#endif /* __AKANTU_RESOLUTION_PENALTY_QUADRATIC_HH__ */
