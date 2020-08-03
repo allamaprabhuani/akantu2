@@ -98,7 +98,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   /// compute stress according to anisotropic material law
   this->computeStressOnQuad(grad_u, sigma, *C_it, *sigma_th_it);
   /// compute volumetric strain in record it into extra_volume array
-  if (this->compute_extra_volume && *dam_it) {
+  if (*dam_it) {
     *vol_strain_it = grad_u.trace();
     *vol_strain_it *= *vol_strain_it > 0;
   }
@@ -110,10 +110,8 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
 
   /// integrate volumetric strain across elements, subtract initial volume
-  if (this->compute_extra_volume) {
-    this->fem.integrate(volumetric_strain, extra_vol, 1, el_type, ghost_type,
-                        elem_filter);
-  }
+  this->fem.integrate(volumetric_strain, extra_vol, 1, el_type, ghost_type,
+                      elem_filter);
 
   this->computeNormalizedEquivalentStress(el_type, ghost_type);
   this->norm_max_equivalent_stress = 0;

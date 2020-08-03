@@ -162,9 +162,6 @@ protected:
 
   /// the number of total reductions steps until complete failure
   UInt max_reductions;
-
-  /// compute additional volume in damaged elements
-  bool compute_extra_volume{false};
 };
 
 } // namespace akantu

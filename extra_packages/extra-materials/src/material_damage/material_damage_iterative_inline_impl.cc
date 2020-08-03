@@ -51,9 +51,6 @@ MaterialDamageIterative<spatial_dimension, ElasticParent>::
                       _pat_parsable | _pat_modifiable, "maximum damage value");
   this->registerParam("max_reductions", max_reductions, UInt(10),
                       _pat_parsable | _pat_modifiable, "max reductions");
-  this->registerParam("compute_extra_volume", compute_extra_volume, false,
-                      _pat_parsmod,
-                      "Compute additional volume within cracked elements");
 
   this->Sc.initialize(1);
   this->equivalent_stress.initialize(1);
