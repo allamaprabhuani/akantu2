@@ -50,7 +50,7 @@ int main(int argc, char * argv[]) {
 
   /// apply boundary conditions
   Matrix<Real> grad_u_macro(spatial_dimension, spatial_dimension, 0.);
-  model.applyBoundaryConditions(grad_u_macro);
+  model.applyBoundaryConditionsRve(grad_u_macro);
 
   model.setBaseName("one-inclusion");
   model.addDumpFieldVector("displacement");
