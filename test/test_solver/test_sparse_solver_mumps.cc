@@ -54,7 +54,7 @@ int main(int argc, char * argv[]) {
   const UInt spatial_dimension = 1;
   const UInt nb_global_dof = 11;
   const auto & comm = Communicator::getWorldCommunicator();
-  // Int psize = comm.getNbProc();
+  Int psize = comm.getNbProc();
   Int prank = comm.whoAmI();
 
   Mesh mesh(spatial_dimension);
@@ -81,7 +81,8 @@ int main(int argc, char * argv[]) {
   Array<Real> x(nb_nodes);
   dof_manager.registerDOFs("x", x, _dst_nodal);
 
-  const auto & local_equation_number = dof_manager.getLocalEquationsNumbers("x");
+  const auto & local_equation_number =
+      dof_manager.getLocalEquationsNumbers("x");
 
   auto & A = dof_manager.getNewMatrix("A", _symmetric);
 

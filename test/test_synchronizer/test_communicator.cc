@@ -40,7 +40,7 @@ using namespace akantu;
 TEST(Communicator, Bcast) {
   auto r = 0xdeadbeef;
 
-  auto & c = Communicator::getStaticCommunicator();
+  auto & c = Communicator::getWorldCommunicator();
   c.broadcast(r);
 
   EXPECT_EQ(r, 0xdeadbeef);
@@ -52,7 +52,7 @@ TEST(Communicator, ReceiveAny) {
   std::uniform_int_distribution<> dis(1, 10);
   std::vector<CommunicationRequest> reqs;
 
-  auto & c = Communicator::getStaticCommunicator();
+  auto & c = Communicator::getWorldCommunicator();
   auto && rank = c.whoAmI();
   auto && size = c.getNbProc();
 
