@@ -153,13 +153,15 @@ void ElementGroup::fillFromNodeGroup() {
 
   std::set<Element> seen;
 
-  Array<UInt>::const_iterator<> itn = this->node_group.begin();
-  Array<UInt>::const_iterator<> endn = this->node_group.end();
-  for (; itn != endn; ++itn) {
-    CSR<Element>::iterator ite = node_to_elem.begin(*itn);
-    CSR<Element>::iterator ende = node_to_elem.end(*itn);
-    for (; ite != ende; ++ite) {
-      const Element & elem = *ite;
+  // Array<UInt>::const_iterator<> itn = this->node_group.begin();
+  // Array<UInt>::const_iterator<> endn = this->node_group.end();
+  // for (; itn != endn; ++itn) {
+  for (auto & node : this->node_group.getNodes()) {
+    // CSR<Element>::iterator ite = node_to_elem.begin(*itn);
+    // CSR<Element>::iterator ende = node_to_elem.end(*itn);
+    // for (; ite != ende; ++ite) {
+    for (auto & elem : node_to_elem.getRow(node)) {
+      // const Element & elem = *ite;
       if (this->dimension != _all_dimensions &&
           this->dimension != Mesh::getSpatialDimension(elem.type))
         continue;
