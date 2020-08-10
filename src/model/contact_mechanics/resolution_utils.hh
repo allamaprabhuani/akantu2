@@ -49,45 +49,52 @@ class ResolutionUtils {
 public:
   /// computes the first covariant metric tensor (@f$A_{\alpha\beta}@f$) where @f$\alpha,
   /// \beta@f$ are surface directions
-  static void computeMetricTensor(Matrix<Real> & metric_tensor,
-                                  const Matrix<Real> & tangents);
+  //static void computeMetricTensor(Matrix<Real> & ,
+  //                                const Matrix<Real> & );
 
   /// computes the second covariant metric tensor
   /// (@f$H_{\alpha\beta}@f$)
-  static void computeSecondMetricTensor(const ContactElement &, const Matrix<Real> &,
-					const Vector<Real> &, Matrix<Real> &);
-  
+  //static void computeSecondMetricTensor(const ContactElement &, const Matrix<Real> &,
+  //				const Vector<Real> &, Matrix<Real> &);
+
+  /// computes the shape function matric for the contact element (@f$A
+  /// @f$) where row is equal to spatial dimension and cols is equal
+  /// to spatial dimension times number of nodes in contact element
+  static void computeShapeFunctionMatric(const ContactElement &,
+					 const Vector<Real> &,
+					 Matrix<Real> &);
+   
   /// computes the first variation of normal gap
-  static void firstVariationNormalGap(const ContactElement & , const Vector<Real> &,
-				      const Vector<Real> &, Vector<Real> &);
+  //static void firstVariationNormalGap(const ContactElement & , const Vector<Real> &,
+  //				      const Vector<Real> &, Vector<Real> &);
 
   /// computes the seond variation of normal gap
-  static void secondVariationNormalGap(const ContactElement & , const Matrix<Real> & ,
-				       const Matrix<Real> &, const Vector<Real> &,
-				       const Vector<Real> &, Real &,
-				       Matrix<Real> & );
+  //static void secondVariationNormalGap(const ContactElement & , const Matrix<Real> & ,
+  //				       const Matrix<Real> &, const Vector<Real> &,
+  //				       const Vector<Real> &, Real &,
+  //				       Matrix<Real> & );
   
   /// computes (@f$N_{\alpha}@f$) where \alpha is surface dimension
   /// and it is shape derivatives times normal
-  static void computeNalpha(const ContactElement & , const Vector<Real> &,
-			    const Vector<Real> &, Array<Real> & );
+  //static void computeNalpha(const ContactElement & , const Vector<Real> &,
+  //			    const Vector<Real> &, Array<Real> & );
 
   /// computes (@f$T_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension and it is shape functions times the tangents
-  static void computeTalpha(const ContactElement &, const Matrix<Real> &,
-			    const Vector<Real> &, Array<Real> & );
+  //static void computeTalpha(const ContactElement &, const Matrix<Real> &,
+  //			    const Vector<Real> &, Array<Real> & );
 
   /// computes (@f$\nabla \xi_{\alpha}@f$) where @f$\alpha@f$ is surface
   /// dimension
-  static void firstVariationNaturalCoordinate(const ContactElement &, const Matrix<Real> &,
-					      const Vector<Real> &, const Vector<Real> &,
-					      const Real &, Array<Real> &);
+  //static void firstVariationNaturalCoordinate(const ContactElement &, const Matrix<Real> &,
+  //					      const Vector<Real> &, const Vector<Real> &,
+  //					      const Real &, Array<Real> &);
 
   ///computes second variation of surface parameter
-  static void secondvariationNaturalCoordinate(const Vector<Real> & projection,
-					       const Vector<Real> & previous_projection,
-					       const Element & element,
-					       const Element & previous_element);
+  //static void secondvariationNaturalCoordinate(const Vector<Real> & projection,
+  //					       const Vector<Real> & previous_projection,
+  ///					       const Element & element,
+  //					       const Element & previous_element);
   
   /// computes @f$T_{\alpha\beta} @f$ which is shape derivatives
   /// times the tangents
@@ -107,14 +114,6 @@ public:
   //                         Array<Real> & d_alpha, Matrix<Real> & phi,
   //                          ContactElement &);
 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
-  /* Class members                                                            */
-  /* ------------------------------------------------------------------------ */
-private:
 };
 
 } // namespace akantu

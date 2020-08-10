@@ -101,29 +101,6 @@ public:
     AKANTU_TO_IMPLEMENT();
   }
 
-protected:
-  /// local computation of trial tangential traction due to friction
-  virtual void computeTrialTangentialTraction(__attribute__((unused)) const ContactElement &,
-					      __attribute__((unused)) const Matrix<Real> &,
-					      __attribute__((unused)) Vector<Real> &) {
-    AKANTU_TO_IMPLEMENT();
-  }
-
-  /// local computation of tangential traction due to stick
-  virtual void computeStickTangentialTraction(__attribute__((unused)) const ContactElement &,
-					      __attribute__((unused)) Vector<Real> &,
-					      __attribute__((unused)) Vector<Real> &) {
-    AKANTU_TO_IMPLEMENT();
-  }
-  
-  /// local computation of tangential traction due to slip
-  virtual void computeSlipTangentialTraction(__attribute__((unused)) const ContactElement &,
-					     __attribute__((unused)) const Matrix<Real> &,
-					     __attribute__((unused)) Vector<Real> &,
-					     __attribute__((unused)) Vector<Real> &) {
-    AKANTU_TO_IMPLEMENT();
-  }
-
   /* ------------------------------------------------------------------------ */
   /* Functions that resolutions should reimplement for stiffness              */
   /* ------------------------------------------------------------------------ */

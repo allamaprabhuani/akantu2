@@ -57,6 +57,12 @@ protected:
   /// initialize the resolution
   void initialize();
 
+
+  /* ------------------------------------------------------------------------ */
+  /* Methods for stiffness computation                                        */
+  /* ------------------------------------------------------------------------ */
+protected:
+  
   /// local computaion of stiffness matrix due to stick state
   void computeStickModuli(const ContactElement &, Matrix<Real> &);
 
@@ -69,7 +75,6 @@ protected:
 public:
   /// local computation of tangent moduli due to normal traction
   void computeNormalModuli(const ContactElement &, Matrix<Real> &) override;
-
   
   /// local computation of tangent moduli due to tangential traction
   void computeTangentialModuli(const ContactElement &, Matrix<Real> &) override;
@@ -91,15 +96,15 @@ protected:
   
   /// local computation of trial tangential traction due to friction
   void computeTrialTangentialTraction(const ContactElement &, const Matrix<Real> &,
-				      Vector<Real> &) override;
+				      Vector<Real> &);
 
   /// local computation of tangential traction due to stick 
   void computeStickTangentialTraction(const ContactElement &, Vector<Real> &,
-				      Vector<Real> &) override;
+				      Vector<Real> &);
 
   /// local computation of tangential traction due to slip
   void computeSlipTangentialTraction(const ContactElement &, const Matrix<Real> &,
-				     Vector<Real> &, Vector<Real> &) override;
+				     Vector<Real> &, Vector<Real> &);
 
   /// local computation of tangential traction due to friction
   void computeTangentialTraction(const ContactElement &, const Matrix<Real> &,
