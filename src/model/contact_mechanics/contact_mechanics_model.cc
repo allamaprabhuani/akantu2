@@ -231,6 +231,10 @@ void ContactMechanicsModel::initSolver(
   auto surface_dimension = spatial_dimension - 1;
   this->allocNodalField(this->tangents, surface_dimension*spatial_dimension,
 			"tangents");
+  this->allocNodalField(this->projections, surface_dimension,
+			"projections");
+  this->allocNodalField(this->previous_projections, surface_dimension,
+			"previous_projections");
   this->allocNodalField(this->previous_tangents, surface_dimension*spatial_dimension,
 			"previous_tangents");
   this->allocNodalField(this->tangential_tractions, surface_dimension,
