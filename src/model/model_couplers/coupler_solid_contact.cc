@@ -281,8 +281,7 @@ void CouplerSolidContact::predictor() {
 
   auto & solid_model_solver =
     aka::as_type<ModelSolver>(*solid);
-  solid_model_solver.predictor();
-  
+  solid_model_solver.predictor(); 
     
   switch (method) {
   case _explicit_lumped_mass: {    
@@ -388,7 +387,7 @@ void CouplerSolidContact::assembleStiffnessMatrix() {
 
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
 
-  solid->assembleStiffnessMatrix();
+  solid->assembleStiffnessMatrix(true);
  
   switch (method) {
   case _static:

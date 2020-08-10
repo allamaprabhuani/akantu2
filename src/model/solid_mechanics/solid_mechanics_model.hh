@@ -118,7 +118,7 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// assembles the stiffness matrix,
-  virtual void assembleStiffnessMatrix();
+  virtual void assembleStiffnessMatrix(bool need_to_reassemble = false);
   /// assembles the internal forces in the array internal_forces
   virtual void assembleInternalForces();
 
