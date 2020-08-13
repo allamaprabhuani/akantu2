@@ -43,9 +43,7 @@ ResolutionPenaltyQuadratic::ResolutionPenaltyQuadratic(ContactMechanicsModel & m
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenaltyQuadratic::initialize() {
-  Parent::initialize();
-}
+void ResolutionPenaltyQuadratic::initialize() {}
 
 /* -------------------------------------------------------------------------- */
 Real ResolutionPenaltyQuadratic::computeNormalTraction(Real & gap) {
@@ -133,7 +131,7 @@ void ResolutionPenaltyQuadratic::computeTangentialForce(const ContactElement & e
   for (auto && values1 : enumerate(covariant_basis.transpose()) ) {
     auto & alpha = std::get<0>(values1);
     auto & tangent_alpha = std::get<1>(values1);
-    for (auto && values2 : enumerate(tangential_tractions)) {
+    for (auto && values2 : enumerate(tangential_traction)) {
       auto & beta = std::get<0>(values2);
       auto & traction_beta = std::get<1>(values2);
       Vector<Real> tmp(force.size());
@@ -818,7 +816,7 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(const ContactElement & elemen
 	  t_outer_t.mul<false, true>(mat_t_gamma, mat_t_theta);
 
 	  // eq 107b
-	  tmp.mul<false, true>(t_outer_t, A);
+	  tmp.mul<false, false>(t_outer_t, A);
 	  tmp1.mul<true, false>(A, tmp);
 
 	  tmp1 *= epsilon_t*mu*p_n*tangential_traction[alpha]*tangential_traction[beta];
@@ -828,7 +826,7 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(const ContactElement & elemen
 	  k_third += tmp1 * nodal_area;
 
 	  // eq 107c
-	  tmp.mul<false, true>(t_outer_t, Aj);
+	  tmp.mul<false, false>(t_outer_t, Aj);
 	  tmp1.mul<true, false>(A, tmp);
 	  tmp1 *= contravariant_metric_tensor(alpha, theta) * contravariant_metric_tensor(beta, gamma);
 	  tmp1 *= mu * p_n * tangential_traction[alpha];
@@ -837,7 +835,7 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(const ContactElement & elemen
 	  Matrix<Real> tmp2(spatial_dimension, spatial_dimension*nb_nodes_per_contact);
 	  Matrix<Real> tmp3(nb_nodes_per_contact*spatial_dimension,
 			spatial_dimension*nb_nodes_per_contact);
-	  tmp2.mul<false, true>(t_outer_t, A);
+	  tmp2.mul<false, false>(t_outer_t, A);
 	  tmp3.mul<true, false>(Aj, tmp2);
 	  tmp3 *= contravariant_metric_tensor(alpha, gamma) * contravariant_metric_tensor(beta, theta);
 	  tmp3 *= mu * p_n * tangential_traction[alpha];

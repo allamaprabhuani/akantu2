@@ -100,11 +100,9 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   this->n_iter = 0;
   this->converged = false;
 
-  //if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual and
-  //    this->non_linear_solver_type != NonLinearSolverType::_newton_raphson_contact) {
-
+  this->convergence_criteria_normalized = this->convergence_criteria;
+  
   if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual) {
-    
     this->converged = this->testConvergence(this->dof_manager.getResidual());
 
     if (this->converged)
@@ -113,10 +111,7 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
     this->convergence_criteria_normalized =
         this->error * this->convergence_criteria;
   }
-  else {
-    this->convergence_criteria_normalized = this->convergence_criteria;
-  }
-
+ 
   do {
     if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson or
 	this->non_linear_solver_type == NonLinearSolverType::_newton_raphson_contact)
@@ -204,7 +199,8 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
                       "Something went wrong in the solve phase");
 
   this->error = norm;
-
+  std::cout << error << "-----" << this->convergence_criteria_normalized << std::endl;
+  
   return (error < this->convergence_criteria_normalized);
 }
 
