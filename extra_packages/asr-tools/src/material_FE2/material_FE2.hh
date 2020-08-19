@@ -143,31 +143,15 @@ protected:
   /// number of gel pockets in each underlying RVE
   UInt nb_gel_pockets;
 
-  // /// pre-exponential factor of Arrhenius law
-  // Real k;
-
-  // /// activation energy of ASR in Arrhenius law
-  // Real activ_energy;
-
-  // /// universal gas constant;
-  // Real R;
-
-  // /// saturation constant for time dependent gel strain increase
-  // Real sat_const;
-
   /// parameters of sigmoidal expansion law (Larive, 1998)
   Real eps_inf, U_C, U_L, T_ref, time_lat_ref, time_ch_ref;
 
   /// current gelstrain due to ASR at each Gauss point
   InternalField<Real> gelstrain;
 
-  // /// percent of yet non-reacted gel (for time-dependent asr simulation)
-  // InternalField<Real> non_reacted_gel;
-
   /// ratio between area of damaged elements weighted by damage value
-  /// and the total area of RVE
+  /// and the materials' areas
   InternalField<Real> crack_volume_ratio;
-
   InternalField<Real> crack_volume_ratio_paste;
   InternalField<Real> crack_volume_ratio_agg;
 

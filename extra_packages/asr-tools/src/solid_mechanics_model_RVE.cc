@@ -241,15 +241,8 @@ void SolidMechanicsModelRVE::initMaterials() {
     instantiateMaterials();
 
   if (use_RVE_mat_selector) {
-    const Vector<Real> & lowerBounds = mesh.getLowerBounds();
-    const Vector<Real> & upperBounds = mesh.getUpperBounds();
-    Real bottom = lowerBounds(1);
-    Real top = upperBounds(1);
-    Real box_size = std::abs(top - bottom);
-    Real eps = box_size * 1e-6;
-
     auto tmp = std::make_shared<GelMaterialSelector>(
-        *this, box_size, "gel", this->nb_gel_pockets, "aggregate", eps);
+        *this, "gel", this->nb_gel_pockets, "aggregate");
     tmp->setFallback(material_selector);
     material_selector = tmp;
   }

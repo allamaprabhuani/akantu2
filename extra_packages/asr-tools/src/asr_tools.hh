@@ -55,7 +55,8 @@ namespace akantu {
 
 class ASRTools : public MeshEventHandler {
 public:
-  ASRTools(SolidMechanicsModel & model);
+  ASRTools(SolidMechanicsModel & model,
+           bool expanding_cohesive_elements = false);
 
   virtual ~ASRTools() = default;
 
@@ -105,6 +106,10 @@ public:
   /// days
   void computeAverageProperties(std::ofstream & file_output, Real time);
 
+  /// computes and writes only displacements and strains
+  void computeAveragePropertiesCohesiveModel(std::ofstream & file_output,
+                                             Real time);
+
   /// Averages strains & displacements + damage ratios in FE2 material
   void computeAveragePropertiesFe2Material(std::ofstream & file_output,
                                            Real time);
@@ -133,7 +138,7 @@ public:
   /// drain the gel in fully cracked elements
   void drainCracks(const ElementTypeMapReal & saved_damage);
 
-  template <UInt dim> Real computeSmallestElementSize();
+  Real computeSmallestElementSize();
 
   // /// apply homogeneous temperature on Solid Mechanics Model
   // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
@@ -162,15 +167,36 @@ public:
   void insertCohElemByLimits(const Matrix<Real> & insertion_limits,
                              std::string coh_mat_name);
 
-  /// insert multiple cohesive elements by the limiting box
+  /// insert multiple cohesive elements randomly
   void insertCohElemRandomly(const UInt & nb_coh_elem, std::string coh_mat_name,
                              std::string matrix_mat_name);
 
+  /// insert multiple facets (and cohesive elements if needed)
+  void insertFacetsRandomly(const UInt & nb_coh_elem,
+                            std::string matrix_mat_name,
+                            bool add_neighbors = true,
+                            bool only_double_facets = true);
+
   /// insert up to 3 facets pair based on the coord of the central one
-  const Array<Element>
-  insertCohElOrFacetsByCoord(const Vector<Real> & position,
-                             bool add_neighbors = true,
-                             bool only_double_facets = false);
+  void insertFacetsByCoords(const Matrix<Real> & positions, bool add_neighbors,
+                            bool only_double_facets);
+
+protected:
+  /// pick facets by passed coordinates
+  void pickFacetsByCoord(const Matrix<Real> & positions, bool add_neighbors);
+
+  /// pick facets by passed coordinates
+  void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name,
+                          bool add_neighbors);
+
+  /// pick two neighbors of a central facet
+  void pickFacetNeighbors(Element & cent_facet);
+
+  /// optimise doubled facets group, insert facets, update connectivities
+  void insertOppositeFacets(bool only_double_facets);
+
+  /// no cohesive elements in-between neighboring solid elements
+  void preventCohesiveInsertionInNeighbors();
 
   /// on elements added for asr-tools
   void onElementsAdded(const Array<Element> & elements,
@@ -178,6 +204,11 @@ public:
 
   void onNodesAdded(const Array<UInt> & new_nodes,
                     const NewNodesEvent & nodes_event);
+
+public:
+  /// update the element group in case connectivity changed after cohesive
+  /// elements insertion
+  void updateElementGroup(const std::string group_name);
 
   /// apply self-weight force
   void applyBodyForce();
@@ -277,9 +308,6 @@ public:
    */
 public:
   // Accessors
-  inline Array<std::tuple<UInt, UInt>> getNodePairs() const {
-    return node_pairs;
-  }
   bool isTensileHomogen() { return this->tensile_homogenization; };
 
   /// phase volumes
@@ -313,18 +341,15 @@ protected:
   /// left nodes
   std::unordered_set<UInt> left_nodes;
 
-  /// lower limit for stresses
-  Array<Real> stress_limit;
-
   /// dump counter
   UInt nb_dumps;
+
+  /// flag to activate ASR expansion through cohesive elements
+  bool expanding_cohesive_elements;
 
   /// booleans for applying delta u
   bool doubled_facets_ready;
   bool doubled_nodes_ready;
-
-  // array of tuples to store nodes pairs:1st- is the one on the upper facet
-  Array<std::tuple<UInt, UInt>> node_pairs;
 
   // arrays to store nodal values during virtual tests
   Array<Real> disp_stored;
@@ -345,15 +370,14 @@ protected:
  */
 class GelMaterialSelector : public MeshDataMaterialSelector<std::string> {
 public:
-  GelMaterialSelector(SolidMechanicsModel & model, const Real box_size,
-                      const std::string & gel_material,
+  GelMaterialSelector(SolidMechanicsModel & model, std::string gel_material,
                       const UInt nb_gel_pockets,
                       std::string aggregate_material = "aggregate",
-                      Real /*tolerance*/ = 0.)
+                      bool gel_pairs = false)
       : MeshDataMaterialSelector<std::string>("physical_names", model),
         model(model), gel_material(gel_material),
         nb_gel_pockets(nb_gel_pockets), nb_placed_gel_pockets(0),
-        box_size(box_size), aggregate_material(aggregate_material) {}
+        aggregate_material(aggregate_material), gel_pairs(gel_pairs) {}
 
   void initGelPocket() {
     aggregate_material_id = model.getMaterialIndex(aggregate_material);
@@ -383,9 +407,8 @@ public:
       /// generate the gel pockets
       srand(0.);
       Vector<Real> center(dim);
-      UInt placed_gel_pockets = 0;
       std::set<int> checked_baries;
-      while (placed_gel_pockets != nb_gel_pockets) {
+      while (nb_placed_gel_pockets != nb_gel_pockets) {
         /// get a random bary center
         UInt bary_id = rand() % nb_element;
         if (checked_baries.find(bary_id) != checked_baries.end())
@@ -395,17 +418,95 @@ public:
         if (MeshDataMaterialSelector<std::string>::operator()(el) ==
             aggregate_material_id) {
           gel_pockets.push_back(el);
-          placed_gel_pockets += 1;
+          nb_placed_gel_pockets += 1;
         }
       }
     }
     is_gel_initialized = true;
+    std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
+  }
+
+  void initGelPocketPairs() {
+    aggregate_material_id = model.getMaterialIndex(aggregate_material);
+
+    Mesh & mesh = this->model.getMesh();
+    auto & mesh_facets = mesh.getMeshFacets();
+    UInt dim = model.getSpatialDimension();
+    //    Element el{_triangle_3, 0, _not_ghost};
+    for (auto el_type : model.getMaterial(aggregate_material)
+                            .getElementFilter()
+                            .elementTypes(dim)) {
+
+      const auto & filter =
+          model.getMaterial(aggregate_material).getElementFilter()(el_type);
+      if (!filter.size() == 0)
+        AKANTU_EXCEPTION("Check the element type for aggregate material");
+
+      Element el{el_type, 0, _not_ghost};
+      UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
+      Array<Real> barycenter(nb_element, dim);
+
+      for (auto && data : enumerate(make_view(barycenter, dim))) {
+        el.element = std::get<0>(data);
+        auto & bary = std::get<1>(data);
+        mesh.getBarycenter(el, bary);
+      }
+
+      /// generate the gel pockets
+      srand(0.);
+      Vector<Real> center(dim);
+      std::set<int> checked_baries;
+      while (nb_placed_gel_pockets != nb_gel_pockets) {
+        /// get a random bary center
+        UInt bary_id = rand() % nb_element;
+        if (checked_baries.find(bary_id) != checked_baries.end())
+          continue;
+        checked_baries.insert(bary_id);
+        el.element = bary_id;
+        if (MeshDataMaterialSelector<std::string>::operator()(el) ==
+            aggregate_material_id) {
+          auto & sub_to_element =
+              mesh_facets.getSubelementToElement(el.type, el.ghost_type);
+          auto sub_to_el_it =
+              sub_to_element.begin(sub_to_element.getNbComponent());
+          const Vector<Element> & subelements_to_element =
+              sub_to_el_it[el.element];
+          bool successful_placement{false};
+          for (auto & subelement : subelements_to_element) {
+            auto && connected_elements = mesh_facets.getElementToSubelement(
+                subelement.type, subelement.ghost_type)(subelement.element);
+            for (auto & connected_element : connected_elements) {
+              if (connected_element.element == el.element)
+                continue;
+              if (MeshDataMaterialSelector<std::string>::operator()(
+                      connected_element) == aggregate_material_id) {
+                gel_pockets.push_back(el);
+                gel_pockets.push_back(connected_element);
+                nb_placed_gel_pockets += 1;
+                successful_placement = true;
+                break;
+              }
+            }
+            if (successful_placement)
+              break;
+          }
+        }
+      }
+    }
+    is_gel_initialized = true;
+    std::cout << nb_placed_gel_pockets << " ASR-pocket pairs placed"
+              << std::endl;
   }
 
   UInt operator()(const Element & elem) {
 
-    if (not is_gel_initialized)
-      initGelPocket();
+    if (not is_gel_initialized) {
+      if (this->gel_pairs) {
+        initGelPocketPairs();
+      } else {
+        initGelPocket();
+      }
+    }
 
     UInt temp_index = MeshDataMaterialSelector<std::string>::operator()(elem);
     if (temp_index != aggregate_material_id)
@@ -413,8 +514,6 @@ public:
     auto iit = gel_pockets.begin();
     auto eit = gel_pockets.end();
     if (std::find(iit, eit, elem) != eit) {
-      nb_placed_gel_pockets += 1;
-      std::cout << nb_placed_gel_pockets << " gelpockets placed" << std::endl;
       return model.getMaterialIndex(gel_material);
     }
     return temp_index;
@@ -426,23 +525,83 @@ protected:
   std::vector<Element> gel_pockets;
   UInt nb_gel_pockets;
   UInt nb_placed_gel_pockets;
-  Real box_size;
   std::string aggregate_material{"aggregate"};
   UInt aggregate_material_id{1};
   bool is_gel_initialized{false};
+  bool gel_pairs{false};
 };
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
+
+class GelMaterialCohesiveRulesSelector : public MaterialSelector {
+public:
+  GelMaterialCohesiveRulesSelector(SolidMechanicsModelCohesive & model,
+                                   const MaterialCohesiveRules & rules,
+                                   std::string gel_material,
+                                   const UInt nb_gel_pockets,
+                                   std::string aggregate_material = "aggregate",
+                                   bool gel_pairs = false)
+      : model(model), mesh_data_id("physical_names"), mesh(model.getMesh()),
+        mesh_facets(model.getMeshFacets()), dim(model.getSpatialDimension()),
+        rules(rules), gel_selector(model, gel_material, nb_gel_pockets,
+                                   aggregate_material, gel_pairs),
+        default_cohesive(model) {}
+
+  UInt operator()(const Element & element) {
+    if (mesh_facets.getSpatialDimension(element.type) == (dim - 1)) {
+      const std::vector<Element> & element_to_subelement =
+          mesh_facets.getElementToSubelement(element.type, element.ghost_type)(
+              element.element);
+      // Array<bool> & facets_check = model.getFacetsCheck();
+
+      const Element & el1 = element_to_subelement[0];
+      const Element & el2 = element_to_subelement[1];
+
+      ID id1 = model.getMaterial(gel_selector(el1)).getName();
+      ID id2 = id1;
+      if (el2 != ElementNull) {
+        id2 = model.getMaterial(gel_selector(el2)).getName();
+      }
+
+      auto rit = rules.find(std::make_pair(id1, id2));
+      if (rit == rules.end()) {
+        rit = rules.find(std::make_pair(id2, id1));
+      }
+
+      if (rit != rules.end()) {
+        return model.getMaterialIndex(rit->second);
+      }
+    }
+
+    if (Mesh::getKind(element.type) == _ek_cohesive) {
+      return default_cohesive(element);
+    }
+
+    return gel_selector(element);
+  }
+
+private:
+  SolidMechanicsModelCohesive & model;
+  ID mesh_data_id;
+  const Mesh & mesh;
+  const Mesh & mesh_facets;
+  UInt dim;
+  MaterialCohesiveRules rules;
+
+  GelMaterialSelector gel_selector;
+  DefaultMaterialCohesiveSelector default_cohesive;
+};
+
+/* ------------------------------------------------------------------------ */
 /* Boundary conditions functors */
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------*/
 
 class Pressure : public BC::Neumann::NeumannFunctor {
 public:
-  Pressure(SolidMechanicsModel & model,
-           const Array<akantu::Real> & pressure_on_qpoint,
-           const Array<akantu::Real> & quad_coords)
+  Pressure(SolidMechanicsModel & model, const Array<Real> & pressure_on_qpoint,
+           const Array<Real> & quad_coords)
       : model(model), pressure_on_qpoint(pressure_on_qpoint),
         quad_coords(quad_coords) {}
 
@@ -533,16 +692,183 @@ protected:
   const Array<Real> & quad_coords;
 };
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------ */
+class PressureSimple : public BC::Neumann::NeumannFunctor {
+public:
+  PressureSimple(SolidMechanicsModel & model, const Real pressure,
+                 const std::string group_name)
+      : model(model), pressure(pressure), group_name(group_name) {}
 
+  inline void operator()(const IntegrationPoint & quad_point,
+                         Vector<Real> & dual, const Vector<Real> & /*coord*/,
+                         const Vector<Real> & normal) const {
+
+    // get element types
+    auto && mesh = model.getMesh();
+    AKANTU_DEBUG_ASSERT(mesh.elementGroupExists(group_name),
+                        "Element group is not registered in the mesh");
+    const GhostType gt = akantu::_not_ghost;
+    const UInt facet_nb = quad_point.element;
+    const ElementType type_facet = quad_point.type;
+    auto && facet_conn = mesh.getConnectivity(type_facet, gt);
+    const UInt nb_nodes_facet = facet_conn.getNbComponent();
+    auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
+    auto & group = mesh.getElementGroup(group_name);
+    Array<UInt> element_ids = group.getElements(type_facet);
+    AKANTU_DEBUG_ASSERT(element_ids.size(),
+                        "Provided group doesn't contain this element type");
+    auto id = element_ids.find(facet_nb);
+    AKANTU_DEBUG_ASSERT(id != UInt(-1),
+                        "Quad point doesn't belong to this element group");
+
+    auto normal_corrected = normal;
+
+    if (id < element_ids.size() / 2)
+      normal_corrected *= -1;
+    else if (id >= element_ids.size())
+      AKANTU_EXCEPTION("Error in defining side of the cohesive element");
+    else
+      normal_corrected *= 1;
+
+    dual = pressure * normal_corrected;
+  }
+
+protected:
+  SolidMechanicsModel & model;
+  const Real pressure;
+  const std::string group_name;
+};
+
+/* ------------------------------------------------------------------------ */
+class PressureOpeningProportional : public BC::Neumann::NeumannFunctor {
+public:
+  PressureOpeningProportional(SolidMechanicsModel & model,
+                              const Real ASR_strain,
+                              const std::string group_name,
+                              const Real pressure_factor,
+                              const Real initial_area_factor)
+      : model(model), ASR_strain(ASR_strain), group_name(group_name),
+        pressure_factor(pressure_factor),
+        initial_area_factor(initial_area_factor) {}
+
+  inline void operator()(const IntegrationPoint & quad_point,
+                         Vector<Real> & dual, const Vector<Real> & /*coord*/,
+                         const Vector<Real> & normal) const {
+
+    // get element types
+    auto && mesh = model.getMesh();
+    AKANTU_DEBUG_ASSERT(mesh.elementGroupExists(group_name),
+                        "Element group is not registered in the mesh");
+    auto dim = mesh.getSpatialDimension();
+    const GhostType gt = akantu::_not_ghost;
+    const UInt facet_nb = quad_point.element;
+    const ElementType type_facet = quad_point.type;
+    auto && facet_conn = mesh.getConnectivity(type_facet, gt);
+    const UInt nb_nodes_facet = facet_conn.getNbComponent();
+    auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
+    auto & group = mesh.getElementGroup(group_name);
+    Array<UInt> element_ids = group.getElements(type_facet);
+    auto && pos = mesh.getNodes();
+    const auto pos_it = make_view(pos, dim).begin();
+    auto && disp = model.getDisplacement();
+    const auto disp_it = make_view(disp, dim).begin();
+
+    AKANTU_DEBUG_ASSERT(element_ids.size(),
+                        "Provided group doesn't contain this element type");
+    auto id = element_ids.find(facet_nb);
+    AKANTU_DEBUG_ASSERT(id != UInt(-1),
+                        "Quad point doesn't belong to this element group");
+
+    auto normal_corrected = normal;
+    Real pressure;
+    UInt opposite_facet_nb(-1);
+    if (id < element_ids.size() / 2) {
+      normal_corrected *= -1;
+      opposite_facet_nb = element_ids(id + element_ids.size() / 2);
+    } else if (id >= element_ids.size())
+      AKANTU_EXCEPTION("Error in defining side of the cohesive element");
+    else {
+      normal_corrected *= 1;
+      opposite_facet_nb = element_ids(id - element_ids.size() / 2);
+    }
+    /// compute default area of a gap
+    Vector<Real> AB;
+    auto facet_nodes = facet_nodes_it[facet_nb];
+    AB = Vector<Real>(pos_it[facet_nodes(0)]) -
+         Vector<Real>(pos_it[facet_nodes(1)]);
+    Real initial_area = AB.norm() * AB.norm() * this->initial_area_factor;
+
+    /// compute current area of a gap
+    Vector<UInt> first_facet_nodes = facet_nodes_it[facet_nb];
+    Vector<UInt> second_facet_nodes = facet_nodes_it[opposite_facet_nb];
+    /// corners of a quadrangle consequently
+    ///      A-------B
+    ///       \      |
+    ///        D-----C
+    UInt A, B, C, D;
+    A = first_facet_nodes(0);
+    B = first_facet_nodes(1);
+    for (auto & first_facet_node : first_facet_nodes) {
+      bool pair_found{false};
+      const Vector<Real> & first_facet_node_coord = pos_it[first_facet_node];
+      for (auto & second_facet_node : second_facet_nodes) {
+        const Vector<Real> & second_facet_node_coord =
+            pos_it[second_facet_node];
+        if (first_facet_node_coord == second_facet_node_coord) {
+          if (first_facet_node == A)
+            D = second_facet_node;
+          else
+            C = second_facet_node;
+          pair_found = true;
+        }
+      }
+      AKANTU_DEBUG_ASSERT(pair_found, "Node pair was not found");
+    }
+
+    /// quadrangle's area through diagonals
+    Vector<Real> AC, BD;
+    Vector<Real> A_pos = Vector<Real>(pos_it[A]) + Vector<Real>(disp_it[A]);
+    Vector<Real> B_pos = Vector<Real>(pos_it[B]) + Vector<Real>(disp_it[B]);
+    Vector<Real> C_pos = Vector<Real>(pos_it[C]) + Vector<Real>(disp_it[C]);
+    Vector<Real> D_pos = Vector<Real>(pos_it[D]) + Vector<Real>(disp_it[D]);
+
+    AC = C_pos - A_pos;
+    BD = D_pos - B_pos;
+    Real cos_alpha = AC.dot(BD) / AC.norm() / BD.norm();
+    cos_alpha = Math::are_float_equal(cos_alpha, 1.) ? 1. : cos_alpha;
+    cos_alpha = Math::are_float_equal(cos_alpha, -1.) ? -1. : cos_alpha;
+
+    /// angle between two diagonals
+    Real alpha = acos(cos_alpha);
+
+    Real current_area = 0.5 * AB.norm() * BD.norm() * sin(alpha);
+    current_area = Math::are_float_equal(current_area, 0.) ? 0 : current_area;
+    AKANTU_DEBUG_ASSERT(current_area >= 0,
+                        "Computed segment area is not a positive number");
+    if (current_area > initial_area)
+      pressure =
+          this->ASR_strain * pressure_factor / (current_area / initial_area);
+    else
+      pressure = this->ASR_strain * pressure_factor;
+
+    dual = pressure * normal_corrected;
+  }
+
+protected:
+  SolidMechanicsModel & model;
+  const Real ASR_strain;
+  const std::string group_name;
+  const Real pressure_factor;
+  const Real initial_area_factor;
+};
+
+/* ------------------------------------------------------------------------ */
 class DeltaU : public BC::Dirichlet::DirichletFunctor {
 public:
   DeltaU(const SolidMechanicsModel & model, const Real delta_u,
          const Array<std::tuple<UInt, UInt>> & node_pairs)
-      : model(model), delta_u(delta_u), node_pairs(node_pairs) {
-    displacement = model.getDisplacement();
-  }
+      : model(model), delta_u(delta_u), node_pairs(node_pairs),
+        displacement(model.getDisplacement()) {}
 
   inline void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal,
                          const Vector<Real> &) const {
