@@ -73,6 +73,9 @@ void ContactDetector::parseSection() {
   } else { 
     AKANTU_ERROR("Unknown detection type : " << type);
   }
+
+  this->projection_tolerance =
+    section.getParameterValue<Real>("projection_tolerance");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -262,7 +265,8 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
     Vector<Real> normal(normals.begin(spatial_dimension)[slave_node]);
     Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
     auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave, elements,
-						     gap, projection, normal, alpha);
+						     gap, projection, normal, alpha,
+						     this->projection_tolerance);
 
     // if not a valid projection is found on patch of elements index is -1
     if (index == UInt(-1)) 

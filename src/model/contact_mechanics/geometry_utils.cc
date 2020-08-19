@@ -207,7 +207,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 					 const Vector<Real> & slave,
 					 const Array<Element> & elements,
 					 Real & gap, Vector<Real> & natural_projection,
-					 Vector<Real> & normal, Real alpha) {
+					 Vector<Real> & normal, Real alpha, Real tolerance) {
 
   UInt index = UInt(-1);
   Real min_gap = std::numeric_limits<Real>::max();
@@ -226,7 +226,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     GeometryUtils::realProjection(mesh, positions, slave, element, normal_ele, master);
 
     Vector<Real> xi(natural_projection.size());
-    GeometryUtils::naturalProjection(mesh, positions, element, master, xi);
+    GeometryUtils::naturalProjection(mesh, positions, element, master, xi, tolerance);
 
     auto master_to_slave = slave - master;
     Real temp_gap = master_to_slave.norm();
@@ -311,7 +311,7 @@ void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positi
 void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & positions,
 				      const Element & element,
 				      Vector<Real> & real_projection,
-				      Vector<Real> & natural_projection) {
+				      Vector<Real> & natural_projection, Real tolerance) {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
   
@@ -326,7 +326,7 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
 
 #define GET_NATURAL_COORDINATE(type)                                           \
   ElementClass<type>::inverseMap(real_projection, nodes_coord,                 \
-                                 natural_projection)
+                                 natural_projection, tolerance)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
 #undef GET_NATURAL_COORDINATE
 }

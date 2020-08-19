@@ -54,12 +54,12 @@ public:
 				   const Vector<Real> & slave,
 				   const Array<Element> & elements,
 				   Real & gap, Vector<Real> & natural_projection,
-				   Vector<Real> & normal, Real alpha);
+				   Vector<Real> & normal, Real alpha, Real tolerance = 1e-10);
 
   /// computes the natural projection on an element
   static void naturalProjection(const Mesh & mesh, const Array<Real> & positions,
 				const Element & element, Vector<Real> & real_projection,
-				Vector<Real> & natural_projection);
+				Vector<Real> & natural_projection, Real tolerance = 1e-10);
   
   /// computes the real projection on an element
   static void realProjection(const Mesh & mesh, const Array<Real> & positions,
