@@ -686,8 +686,8 @@ void MeshUtils::doubleFacet(Mesh & mesh, Mesh & mesh_facets,
 
           /// update facet_to_subfacet array
           mesh_facets.getElementToSubelement(subfacet).push_back(new_facet);
-          new_facets.getList().push_back(new_facet);
         }
+        new_facets.getList().push_back(new_facet);
       }
 
       /// update facet_to_subfacet and _segment_3 facets if any
