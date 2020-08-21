@@ -2152,17 +2152,13 @@ void ASRTools::insertCohElemRandomly(const UInt & nb_coh_elem,
                    },
                    _spatial_dimension = dim - 1);
 
-  // // Will be used to obtain a seed for the random number engine
-  // std::random_device rd;
-  // // Standard mersenne_twister_engine seeded with rd()
-  // std::mt19937 random_generator(rd());
-  // std::uniform_int_distribution<> dis(
-  //     0, matrix_elements.getElements(type_facets).size() - 1);
-  srand(0.);
+  // Standard mersenne_twister_engine seeded with 0
   UInt nb_element = matrix_elements.getElements(type_facets).size();
+  std::mt19937 random_generator(0);
+  std::uniform_int_distribution<> dis(0, nb_element - 1);
+
   for (auto _[[gnu::unused]] : arange(nb_coh_elem)) {
-    // auto id = dis(random_generator);
-    auto id = rand() % nb_element;
+    auto id = dis(random_generator);
 
     Element facet;
     facet.type = type_facets;
@@ -2290,8 +2286,11 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
                    },
                    _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
 
-  srand(0.);
+
   UInt nb_element = matrix_elements.getElements(facet_type).size();
+  std::mt19937 random_generator(0);
+  std::uniform_int_distribution<> dis(0, nb_element - 1);
+
   if (not nb_element) {
     auto && comm = akantu::Communicator::getWorldCommunicator();
     auto prank = comm.whoAmI();
@@ -2301,7 +2300,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
   }
 
   for (UInt i = 0; i < nb_insertions; i++) {
-    auto id = rand() % nb_element;
+    auto id = dis(random_generator);
 
     Element cent_facet;
     cent_facet.type = facet_type;
