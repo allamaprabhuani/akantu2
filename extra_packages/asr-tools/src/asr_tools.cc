@@ -2223,9 +2223,14 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions,
   auto & mesh_facets = inserter.getMeshFacets();
   auto dim = mesh.getSpatialDimension();
   const GhostType gt = _not_ghost;
+  auto type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
+  auto facet_type = Mesh::getFacetType(type);
   auto & doubled_facets =
       mesh_facets.createElementGroup("doubled_facets", dim - 1);
   auto & doubled_nodes = mesh.createNodeGroup("doubled_nodes");
+  auto & facet_conn = mesh_facets.getConnectivity(facet_type, gt);
+  const UInt nb_nodes_facet = facet_conn.getNbComponent();
+  const auto facet_conn_it = make_view(facet_conn, nb_nodes_facet).begin();
   Vector<Real> bary_facet(dim);
 
   for (auto & position : positions) {
@@ -2241,13 +2246,26 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions,
                          cent_facet = facet;
                        }
                      },
-                     _spatial_dimension = dim - 1);
+                     _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
+
+    /// eliminate posibility of a ghost neighbor
+    bool ghost_neighbors{false};
+    Vector<UInt> facet_nodes = facet_conn_it[cent_facet.element];
+    for (auto node : facet_nodes) {
+      if (not mesh.isLocalNode(node))
+        ghost_neighbors = true;
+    }
+    if (ghost_neighbors) {
+      std::cout << "Facet at the position " << position(0) << "," << position(1)
+                << " is connected to a ghost element. Skipping this position"
+                << std::endl;
+      continue;
+    }
 
     doubled_facets.add(cent_facet);
 
-    // add corner nodes to the group
-    auto & facet_conn = mesh_facets.getConnectivity(cent_facet.type, gt);
-    for (auto node : arange(2))
+    // add all facet nodes to the group
+    for (auto node : arange(nb_nodes_facet))
       doubled_nodes.add(facet_conn(cent_facet.element, node));
 
     if (add_neighbors)
@@ -2308,7 +2326,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
     cent_facet.element = matrix_elements.getElements(facet_type)(id);
     cent_facet.ghost_type = gt;
 
-    /// eliminate posibility of a ghost neighbor and expanding neighbor
+    /// eliminate posibility of a ghost neighbor
     bool ghost_neighbors{false};
     Vector<UInt> facet_nodes = facet_conn_it[cent_facet.element];
     for (auto node : facet_nodes) {
