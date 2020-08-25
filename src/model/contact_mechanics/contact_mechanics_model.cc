@@ -379,13 +379,18 @@ void ContactMechanicsModel::search() {
   
   this->detector->search(contact_elements, *gaps,
 			 *normals, *projections);
+
+  // intepenetration value must be positive for contact mechanics
+  // model to work by default the gap value from detector is negative
+  std::for_each((*gaps).begin(), (*gaps).end(),
+		[](Real & gap){ gap *= -1.; });
   
-  for (auto & gap : *gaps) {
+  /*for (auto & gap : *gaps) {
     if (gap < 0)
       gap = std::abs(gap);
     else
       gap = -gap;
-  }
+  }*/
 
   if (contact_elements.size() != 0) {
      this->computeNodalAreas();
@@ -434,13 +439,6 @@ void ContactMechanicsModel::computeNodalAreas() {
   nodal_area->resize(nb_nodes, 0.);
   external_force->resize(nb_nodes, 0.);
   
-  /*auto & fem_boundary = this->getFEEngineBoundary("ContactMechanicsModel");
- 
-  
-  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
-  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);*/
-
-  
   auto & fem_boundary = getFEEngineClassBoundary<MyFEEngineType>("ContactMechanicsModel");
   
   fem_boundary.initShapeFunctions(getPositions(), _not_ghost);
@@ -448,27 +446,10 @@ void ContactMechanicsModel::computeNodalAreas() {
   
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
-
-  
-  /*auto & fem = getFEEngineClass<MyFEEngineType>("ContactFacetsFEEngine");
-  
-  fem.initShapeFunctions(getPositions(), _not_ghost);
-  fem.initShapeFunctions(getPositions(), _ghost);
-  
-  fem.computeNormalsOnIntegrationPoints(_not_ghost);
-  fem.computeNormalsOnIntegrationPoints(_ghost);*/
-
-  
-  /*auto & fem_boundary = this->getFEEngineBoundary("ContactFacetsFEEngine");
-  
-  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
-  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);*/
   
   switch (spatial_dimension) {
   case 1: {
-    for (auto && area : *nodal_area) {
-      area = 1.;
-    }
+    std::fill((*nodal_area).begin(), (*nodal_area).end(), 1.);
     break;
   }
   case 2:
@@ -479,20 +460,11 @@ void ContactMechanicsModel::computeNodalAreas() {
 
       for (auto && tuple :
 	     zip(*nodal_area,
-		 make_view(*external_force, spatial_dimension),
-		 make_view(*normals, spatial_dimension))) {
-	/*auto & area = std::get<0>(tuple);
-	auto & force = std::get<1>(tuple);
-	
-
-	for (auto & f : force)
-	  area += pow(f, 2);
-
-	  area = sqrt(area);*/
+		 make_view(*external_force, spatial_dimension))) {
+ 
 	auto & area = std::get<0>(tuple);
 	Vector<Real> force(std::get<1>(tuple));
-	Vector<Real> normal(std::get<2>(tuple));
-	area = abs(force.dot(normal));
+	area = force.norm();
       }
     break;
   }
