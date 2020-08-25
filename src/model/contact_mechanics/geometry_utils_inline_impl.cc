@@ -7,29 +7,42 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh, const Element & element) {
+inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
+					     const Element & subelement) {
 
   const auto & element_to_subelement =
-    mesh.getElementToSubelement(element.type)(element.element);
+    mesh.getElementToSubelement(subelement.type)(subelement.element);
 
-  // for regular boundary elements
+  // for regular boundary elements when surfaceselector is set to
+  // physical surfaces, the mesh contains only 1 element attached to a
+  // boundary subelement 
   if (element_to_subelement.size() == 1 and
       element_to_subelement[0].kind() == _ek_regular) {
     return true;
   }
 
-  // for cohesive boundary elements
-  UInt nb_subelements_regular = 0;
-  for (auto subelem : element_to_subelement) {
-    if (subelem == ElementNull)
+  // for cohesive interface elements when surfaceSelector is set
+  // either cohesive surface selector or all surface selector, in this
+  // case mesg passes is actually mesh_facet and for boundary or
+  // cohesive  interface 2 elements are associated to a subelement
+  // we want only one regular element attached to the subelement
+  
+  UInt nb_elements_regular = 0;
+  UInt nb_elements_cohesive = 0;
+
+  for (auto elem : element_to_subelement) {
+    if (elem == ElementNull)
       continue;
     
-    if (subelem.kind() == _ek_regular)
-      ++nb_subelements_regular;
+    if (elem.kind() == _ek_regular)
+      ++nb_elements_regular;
+
+    if (elem.kind() == _ek_cohesive)
+      ++nb_elements_cohesive;
   }
 
-  auto nb_subelements = element_to_subelement.size();
-  if (nb_subelements_regular < nb_subelements)
+  auto nb_elements = element_to_subelement.size();
+  if (nb_elements_regular  < nb_elements)
     return true;
      
   return false;

@@ -31,6 +31,7 @@
 /* -------------------------------------------------------------------------- */
 #include "surface_selector.hh"
 #include "model.hh"
+#include "geometry_utils.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -128,11 +129,13 @@ void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
 
 /* -------------------------------------------------------------------------- */
 void CohesiveSurfaceSelector::filterBoundaryElements(
-    Array<Element> & elements, Array<Element> & boundary_elements) {
+    Array<Element> & subelements, Array<Element> & boundary_elements) {
 
-  for (auto elem : elements) {
+  for (auto subelem : subelements) {
+    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
+      boundary_elements.push_back(subelem);
     
-    const auto & element_to_subelement =
+    /*const auto & element_to_subelement =
         mesh_facets.getElementToSubelement(elem.type)(elem.element);
 
     UInt nb_subelements_regular = 0;
@@ -149,7 +152,7 @@ void CohesiveSurfaceSelector::filterBoundaryElements(
 
     if (nb_subelements_regular < nb_subelements and nb_subelements != 1) {
       boundary_elements.push_back(elem);
-    }
+    }*/
   }
 }
 
@@ -187,6 +190,10 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
   group.append(mesh_facets.getElementGroup(slave));
 
   group.optimize();
+  
+  for(auto & node : group.getNodeGroup().getNodes())
+    new_nodes_list.push_back(node);
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -237,9 +244,14 @@ void AllSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
 
 /* -------------------------------------------------------------------------- */
 void AllSurfaceSelector::filterBoundaryElements(
-    Array<Element> & elements, Array<Element> & boundary_elements) {
+    Array<Element> & subelements, Array<Element> & boundary_elements) {
 
-  for (auto elem : elements) {
+  for (auto subelem : subelements) {
+    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
+      boundary_elements.push_back(subelem);
+  }
+  
+    /*for (auto elem : elements) {
 
     // to ensure that normal is always outwards from master surface
     const auto & element_to_subelement =
@@ -260,7 +272,7 @@ void AllSurfaceSelector::filterBoundaryElements(
     if (nb_subelements_regular < nb_subelements) {
       boundary_elements.push_back(elem);
     }
-  }
+    }*/
 }
 
 /* -------------------------------------------------------------------------- */
