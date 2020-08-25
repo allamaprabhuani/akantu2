@@ -434,15 +434,32 @@ void ContactMechanicsModel::computeNodalAreas() {
   nodal_area->resize(nb_nodes, 0.);
   external_force->resize(nb_nodes, 0.);
   
-  auto & fem_boundary = this->getFEEngineBoundary("ContactMechanicsModel");
+  /*auto & fem_boundary = this->getFEEngineBoundary("ContactMechanicsModel");
+ 
+  
+  fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
+  fem_boundary.computeNormalsOnIntegrationPoints(_ghost);*/
+
+  
+  auto & fem_boundary = getFEEngineClassBoundary<MyFEEngineType>("ContactMechanicsModel");
+  
+  fem_boundary.initShapeFunctions(getPositions(), _not_ghost);
+  fem_boundary.initShapeFunctions(getPositions(), _ghost);
   
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
-  
-  /*getFEEngine("ContactFacetsFEEngine").initShapeFunctions(getPositions(), _not_ghost);
-  getFEEngine("ContactFacetsFEEngine").initShapeFunctions(getPositions(), _ghost);
 
-  auto & fem_boundary = this->getFEEngineBoundary("ContactFacetsFEEngine");
+  
+  /*auto & fem = getFEEngineClass<MyFEEngineType>("ContactFacetsFEEngine");
+  
+  fem.initShapeFunctions(getPositions(), _not_ghost);
+  fem.initShapeFunctions(getPositions(), _ghost);
+  
+  fem.computeNormalsOnIntegrationPoints(_not_ghost);
+  fem.computeNormalsOnIntegrationPoints(_ghost);*/
+
+  
+  /*auto & fem_boundary = this->getFEEngineBoundary("ContactFacetsFEEngine");
   
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);*/
@@ -461,14 +478,21 @@ void ContactMechanicsModel::computeNodalAreas() {
       mesh.getElementGroup("contact_surface"));
 
       for (auto && tuple :
-	     zip(*nodal_area, make_view(*external_force, spatial_dimension))) {
-	auto & area = std::get<0>(tuple);
+	     zip(*nodal_area,
+		 make_view(*external_force, spatial_dimension),
+		 make_view(*normals, spatial_dimension))) {
+	/*auto & area = std::get<0>(tuple);
 	auto & force = std::get<1>(tuple);
+	
 
 	for (auto & f : force)
 	  area += pow(f, 2);
 
-	area = sqrt(area);
+	  area = sqrt(area);*/
+	auto & area = std::get<0>(tuple);
+	Vector<Real> force(std::get<1>(tuple));
+	Vector<Real> normal(std::get<2>(tuple));
+	area = abs(force.dot(normal));
       }
     break;
   }
