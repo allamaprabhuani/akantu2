@@ -268,11 +268,13 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
 						     gap, projection, normal, alpha,
 						     this->projection_tolerance);
 
-    // if not a valid projection is found on patch of elements index is -1
+    // if a valid projection is not found on the patch of elements
+    // index is -1
     if (index == UInt(-1)) 
       continue;
 
-    // if not a valid self contact 
+    // if not a valid self contact, although the gap and normal will
+    // still be reflected in the dumps
     if (!isValidSelfContact(slave_node, gap, normal)) 
       continue;
         

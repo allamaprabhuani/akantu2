@@ -133,7 +133,7 @@ void CohesiveSurfaceSelector::filterBoundaryElements(
 
   for (auto subelem : subelements) {
     if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
-      boundary_elements.push_back(subelem);
+    boundary_elements.push_back(subelem);
     
     /*const auto & element_to_subelement =
         mesh_facets.getElementToSubelement(elem.type)(elem.element);
@@ -152,7 +152,7 @@ void CohesiveSurfaceSelector::filterBoundaryElements(
 
     if (nb_subelements_regular < nb_subelements and nb_subelements != 1) {
       boundary_elements.push_back(elem);
-    }*/
+      }*/
   }
 }
 
@@ -209,19 +209,19 @@ void AllSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
   UInt nb_new_nodes = new_nodes.size();
   UInt nb_old_nodes = old_nodes.size();
 
-  auto & slave_group = mesh_facets.getElementGroup(slave).getNodeGroup();
-  auto & master_group = mesh_facets.getElementGroup(master).getNodeGroup();
+  // auto & slave_group = mesh_facets.getElementGroup(slave).getNodeGroup();
+  // auto & master_group = mesh_facets.getElementGroup(master).getNodeGroup();
 
   for (auto n : arange(nb_new_nodes)) {
     new_nodes_list.push_back(new_nodes(n));
-    slave_group.add(new_nodes(n));
-    master_group.add(new_nodes(n));
+    //   slave_group.add(new_nodes(n));
+    //  master_group.add(new_nodes(n));
   }
 
   for (auto n : arange(nb_old_nodes)) {
     new_nodes_list.push_back(old_nodes(n));
-    slave_group.add(old_nodes(n));
-    master_group.add(old_nodes(n));
+    // slave_group.add(old_nodes(n));
+    // master_group.add(old_nodes(n));
   }
 
   mesh_facets.fillNodesToElements(mesh.getSpatialDimension() - 1);

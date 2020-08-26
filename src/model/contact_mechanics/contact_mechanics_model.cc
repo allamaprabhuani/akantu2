@@ -383,7 +383,7 @@ void ContactMechanicsModel::search() {
   // intepenetration value must be positive for contact mechanics
   // model to work by default the gap value from detector is negative
   std::for_each((*gaps).begin(), (*gaps).end(),
-		[](Real & gap){ gap *= -1.; });
+  		[](Real & gap){ gap *= -1.; });
   
   /*for (auto & gap : *gaps) {
     if (gap < 0)
