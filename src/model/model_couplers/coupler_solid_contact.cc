@@ -279,10 +279,6 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::predictor() {
 
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(*solid);
-  solid_model_solver.predictor(); 
-    
   switch (method) {
   case _explicit_lumped_mass: {    
     auto & current_positions = contact->getContactDetector().getPositions();
@@ -293,6 +289,14 @@ void CouplerSolidContact::predictor() {
   default:
     break;
   }
+  
+  auto & solid_model_solver =
+    aka::as_type<ModelSolver>(*solid);
+  solid_model_solver.predictor(); 
+    
+
+
+  
 }
 
 /* -------------------------------------------------------------------------- */

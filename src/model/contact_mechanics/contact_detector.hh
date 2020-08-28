@@ -53,7 +53,8 @@ enum class Surface { master, slave };
 
 /* -------------------------------------------------------------------------- */
 
-class ContactDetector : private Memory, public Parsable {
+class ContactDetector : private Memory,
+			public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
@@ -88,7 +89,7 @@ public:
 			     Array<Real> & gaps, Array<Real> & normals,
 			     Array<Real> & projections);
   
-private:
+private:  
   /// reads the input file to get contact detection options
   void parseSection();
 

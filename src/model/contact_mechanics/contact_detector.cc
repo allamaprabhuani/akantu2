@@ -56,6 +56,7 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions,
   AKANTU_DEBUG_OUT();
 }
 
+  
 /* -------------------------------------------------------------------------- */
 void ContactDetector::parseSection() {
 
@@ -269,15 +270,14 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
 						     this->projection_tolerance);
 
     // if a valid projection is not found on the patch of elements
-    // index is -1
-    if (index == UInt(-1)) 
+    // index is -1 or if not a valid self contact, the contact element
+    // is not created
+    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) { 
+      gap *= 0;
+      normal *= 0;
       continue;
-
-    // if not a valid self contact, although the gap and normal will
-    // still be reflected in the dumps
-    if (!isValidSelfContact(slave_node, gap, normal)) 
-      continue;
-        
+    }
+    
     // create contact element
     contact_elements.push_back(ContactElement(slave_node, elements[index]));
   }

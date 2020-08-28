@@ -86,16 +86,6 @@ void ResolutionPenalty::computeNormalForce(const ContactElement & element,
 
   force.mul<true>(shape_matric, normal, p_n);
   
-  /*// compute first variation of gap
-  auto nb_nodes = element.getNbNodes();
-  Vector<Real> delta_gap(nb_nodes * spatial_dimension);
-  ResolutionUtils::firstVariationNormalGap(element, projection, normal, delta_gap);
-
-  // compute normal force
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
-  for (UInt i : arange(force.size())) 
-    force[i] += delta_gap[i] * p_n  * nodal_area[element.slave];*/
-  
 }
 
 /* -------------------------------------------------------------------------- */

@@ -213,8 +213,10 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   Real min_gap = std::numeric_limits<Real>::max();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
+
+  UInt nb_same_sides{0};
+  UInt counter{0};
   
-  UInt counter = 0;
   for (auto & element : elements) {
     if (!GeometryUtils::isBoundaryElement(mesh, element)) 
       continue;
@@ -228,15 +230,30 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     Vector<Real> xi(natural_projection.size());
     GeometryUtils::naturalProjection(mesh, positions, element, master, xi, tolerance);
 
+    // if gap between master projection and slave point is zero, then
+    // it means that slave point lies on the master element, hence the
+    // normal from master to slave cannot be computed in that case
+    
     auto master_to_slave = slave - master;
     Real temp_gap = master_to_slave.norm();
     
     if (temp_gap != 0) 
       master_to_slave /= temp_gap;
+    
+    // also the slave point should lie inside the master surface in
+    // case of explicit or outside in case of implicit, one way to
+    // check that is by checking the dot product of normal at each
+    // master element, if the values of all dot product is same then
+    // the slave point lies on the same side of each master element
+    
+    
+    // A alpha parameter is introduced which is 1 in case of explicit
+    // and -1 in case of implicit, therefor the variation (dot product
+    // + alpha) should be close to zero (withon tolerance) for both
+    // cases
 
     Real tolerance = 1e-8;
     auto product = master_to_slave.dot(normal_ele);
-
     auto variation = std::abs(product + alpha);
          
     if (variation <= tolerance and
@@ -250,10 +267,18 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
       normal = normal_ele;
       
     }
+
+    if(temp_gap == 0 or variation <= tolerance)
+      nb_same_sides++;
     
     counter++;
   }
 
+  // if point is not onthe same side of all elements than it si not
+  // consider even if the closet master element is found
+  if(nb_same_sides != elements.size())
+    index = UInt(-1);
+  
   return index;
 }
 

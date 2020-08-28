@@ -89,9 +89,8 @@ void ContactMechanicsModel::initFullImpl(const ModelOptions & options) {
   // initalize the resolutions
   if (this->parser.getLastParsedFile() != "") {
     this->instantiateResolutions();
+    this->initResolutions();
   }
-
-  this->initResolutions();
 
   this->initBC(*this, *displacement, *displacement_increment, *external_force);
 }
@@ -376,6 +375,8 @@ void ContactMechanicsModel::search() {
   resize_arrays(projections);
   resize_arrays(tangential_tractions);
   resize_arrays(contact_state);
+  resize_arrays(nodal_area);
+  resize_arrays(external_force);
   
   this->detector->search(contact_elements, *gaps,
 			 *normals, *projections);
@@ -385,13 +386,6 @@ void ContactMechanicsModel::search() {
   std::for_each((*gaps).begin(), (*gaps).end(),
   		[](Real & gap){ gap *= -1.; });
   
-  /*for (auto & gap : *gaps) {
-    if (gap < 0)
-      gap = std::abs(gap);
-    else
-      gap = -gap;
-  }*/
-
   if (contact_elements.size() != 0) {
      this->computeNodalAreas();
   }
@@ -440,7 +434,7 @@ void ContactMechanicsModel::computeNodalAreas() {
   external_force->resize(nb_nodes, 0.);
   
   auto & fem_boundary = getFEEngineClassBoundary<MyFEEngineType>("ContactMechanicsModel");
-  
+
   fem_boundary.initShapeFunctions(getPositions(), _not_ghost);
   fem_boundary.initShapeFunctions(getPositions(), _ghost);
   
