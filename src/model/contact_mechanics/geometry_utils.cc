@@ -207,7 +207,8 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 					 const Vector<Real> & slave,
 					 const Array<Element> & elements,
 					 Real & gap, Vector<Real> & natural_projection,
-					 Vector<Real> & normal, Real alpha, Real tolerance, 
+					 Vector<Real> & normal, Real alpha,
+					 Real projection_tolerance, 
 					 Real extension_tolerance) {
 
   UInt index = UInt(-1);
@@ -229,7 +230,8 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     GeometryUtils::realProjection(mesh, positions, slave, element, normal_ele, master);
 
     Vector<Real> xi(natural_projection.size());
-    GeometryUtils::naturalProjection(mesh, positions, element, master, xi, tolerance);
+    GeometryUtils::naturalProjection(mesh, positions, element, master, xi,
+				     projection_tolerance);
 
     // if gap between master projection and slave point is zero, then
     // it means that slave point lies on the master element, hence the
@@ -250,14 +252,14 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     
     // A alpha parameter is introduced which is 1 in case of explicit
     // and -1 in case of implicit, therefor the variation (dot product
-    // + alpha) should be close to zero (withon tolerance) for both
+    // + alpha) should be close to zero (within tolerance) for both
     // cases
 
-    Real tolerance = 1e-8;
+    Real direction_tolerance = 1e-8;
     auto product = master_to_slave.dot(normal_ele);
     auto variation = std::abs(product + alpha);
          
-    if (variation <= tolerance and
+    if (variation <= direction_tolerance and
 	temp_gap <= min_gap and
 	GeometryUtils::isValidProjection(xi, extension_tolerance)) {
 
@@ -269,13 +271,13 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
       
     }
 
-    if(temp_gap == 0 or variation <= tolerance)
+    if(temp_gap == 0 or variation <= direction_tolerance)
       nb_same_sides++;
     
     counter++;
   }
 
-  // if point is not onthe same side of all elements than it si not
+  // if point is not on the same side of all elements than it si not
   // consider even if the closet master element is found
   if(nb_same_sides != elements.size())
     index = UInt(-1);
@@ -337,7 +339,8 @@ void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positi
 void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & positions,
 				      const Element & element,
 				      Vector<Real> & real_projection,
-				      Vector<Real> & natural_projection, Real tolerance) {
+				      Vector<Real> & natural_projection,
+				      Real projection_tolerance) {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
   
@@ -352,7 +355,7 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
 
 #define GET_NATURAL_COORDINATE(type)                                           \
   ElementClass<type>::inverseMap(real_projection, nodes_coord,                 \
-                                 natural_projection, tolerance)
+                                 natural_projection, projection_tolerance)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
 #undef GET_NATURAL_COORDINATE
 }
