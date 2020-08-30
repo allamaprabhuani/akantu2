@@ -54,7 +54,8 @@ public:
 				   const Vector<Real> & slave,
 				   const Array<Element> & elements,
 				   Real & gap, Vector<Real> & natural_projection,
-				   Vector<Real> & normal, Real alpha, Real tolerance = 1e-10);
+				   Vector<Real> & normal, Real alpha, Real tolerance = 1e-10, 
+				   Real extension_tolerance = 1e-5);
 
   /// computes the natural projection on an element
   static void naturalProjection(const Mesh & mesh, const Array<Real> & positions,
@@ -105,7 +106,8 @@ public:
   inline static bool isBoundaryElement(const Mesh & mesh, const Element & element);
 
   /// checks if the natural projection is valid for not
-  inline static bool isValidProjection(const Vector<Real> & projection);
+  inline static bool isValidProjection(const Vector<Real> & projection, 
+				       Real extension_tolerance = 1e-5);
 
 
 };

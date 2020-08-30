@@ -184,6 +184,9 @@ private:
   /// tolerance for finding natural projection
   Real projection_tolerance;
 
+  /// tolerance for extending a master elements on all sides
+  Real extension_tolerance;
+
   /// Mesh
   Mesh & mesh;
 

@@ -77,6 +77,8 @@ void ContactDetector::parseSection() {
 
   this->projection_tolerance =
     section.getParameterValue<Real>("projection_tolerance");
+  this->extension_tolerance =
+    section.getParameterValue<Real>("extension_tolerance");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -267,7 +269,8 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
     Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
     auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave, elements,
 						     gap, projection, normal, alpha,
-						     this->projection_tolerance);
+						     this->projection_tolerance, 
+						     this->extension_tolerance);
 
     // if a valid projection is not found on the patch of elements
     // index is -1 or if not a valid self contact, the contact element

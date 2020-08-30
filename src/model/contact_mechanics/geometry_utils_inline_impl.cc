@@ -49,13 +49,13 @@ inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
 }
 
 /* -------------------------------------------------------------------------- */
-  inline bool GeometryUtils::isValidProjection(const Vector<Real> & projection) {
+  inline bool GeometryUtils::isValidProjection(const Vector<Real> & projection, 
+					       Real extension_tolerance) {
   
   UInt nb_xi_inside = 0;
-  Real tolerance = 1e-5;
 
   for (auto xi : projection) {
-    if (xi >= -1.0 - tolerance and xi <= 1.0 + tolerance)
+    if (xi >= -1.0 - extension_tolerance and xi <= 1.0 + extension_tolerance)
       nb_xi_inside++;
   }
 

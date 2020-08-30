@@ -207,7 +207,8 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 					 const Vector<Real> & slave,
 					 const Array<Element> & elements,
 					 Real & gap, Vector<Real> & natural_projection,
-					 Vector<Real> & normal, Real alpha, Real tolerance) {
+					 Vector<Real> & normal, Real alpha, Real tolerance, 
+					 Real extension_tolerance) {
 
   UInt index = UInt(-1);
   Real min_gap = std::numeric_limits<Real>::max();
@@ -258,7 +259,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
          
     if (variation <= tolerance and
 	temp_gap <= min_gap and
-	GeometryUtils::isValidProjection(xi)) {
+	GeometryUtils::isValidProjection(xi, extension_tolerance)) {
 
       gap     = -temp_gap;
       min_gap = temp_gap;
