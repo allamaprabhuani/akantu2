@@ -217,11 +217,14 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   UInt nb_same_sides{0};
+  UInt nb_boundary_elements{0};
+
   UInt counter{0};
-  
   for (auto & element : elements) {
-    if (!GeometryUtils::isBoundaryElement(mesh, element)) 
+    if (!GeometryUtils::isBoundaryElement(mesh, element))
       continue;
+
+    nb_boundary_elements++;
 
     Vector<Real> normal_ele(spatial_dimension);
     GeometryUtils::normal(mesh, positions, element, normal_ele);
@@ -277,9 +280,10 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     counter++;
   }
 
-  // if point is not on the same side of all elements than it si not
-  // consider even if the closet master element is found
-  if(nb_same_sides != elements.size())
+  // if point is not on the same side of all the boundary elements
+  // than it is not consider even if the closet master element is
+  // found
+  if(nb_same_sides != nb_boundary_elements)
     index = UInt(-1);
   
   return index;
