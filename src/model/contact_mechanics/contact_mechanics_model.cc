@@ -569,7 +569,8 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
   real_nodal_fields["gaps"]             = this->gaps;
   real_nodal_fields["areas"]            = this->nodal_area;
   real_nodal_fields["contact_state"]    = this->contact_state;
-
+  real_nodal_fields["tangential_traction"] = this->tangential_tractions;
+  
   std::shared_ptr<dumpers::Field> field;
   if (padding_flag) 
     field = this->mesh.createNodalField(real_nodal_fields[field_name],
