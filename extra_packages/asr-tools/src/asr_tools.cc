@@ -1294,10 +1294,10 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day,
   /// as temperatures are stored in C, conversion to K is done
 
   Real delta_strain = amount_reactive_particles * k *
-                      std::exp(-activ_energy / (R * (T + 273.15))) *
+                      std::exp(-activ_energy / (R * T )) *
                       delta_time_day;
 
-  amount_reactive_particles -= std::exp(-activ_energy / (R * (T + 273.15))) *
+  amount_reactive_particles -= std::exp(-activ_energy / (R * T )) *
                                delta_time_day / saturation_const;
 
   if (amount_reactive_particles < 0.)
@@ -2008,7 +2008,7 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
   crack_volume /= this->phase_volumes[material_name];
 }
 
-/* -------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------ */
 void ASRTools::dumpRve() {
   //  if (this->nb_dumps % 10 == 0) {
   model.dump();
@@ -2016,27 +2016,26 @@ void ASRTools::dumpRve() {
   // this->nb_dumps += 1;
 }
 
-/* --------------------------------------------------------------------------
- */
-void ASRTools::applyBodyForce() {
-  auto spatial_dimension = model.getSpatialDimension();
-  model.assembleMassLumped();
-  auto & mass = model.getMass();
-  auto & force = model.getExternalForce();
-  Vector<Real> gravity(spatial_dimension);
-  gravity(1) = -9.81;
+/* ------------------------------------------------------------------------ */
+// void ASRTools::applyBodyForce(const Real gravity = 9.81) {
+//   auto spatial_dimension = model.getSpatialDimension();
+//   model.assembleMassLumped();
+//   auto & mass = model.getMass();
+//   auto & force = model.getExternalForce();
+//   Vector<Real> gravity(spatial_dimension);
+//   gravity(1) = -gravity;
 
-  for (auto && data : zip(make_view(mass, spatial_dimension),
-                          make_view(force, spatial_dimension))) {
+//   for (auto && data : zip(make_view(mass, spatial_dimension),
+//                           make_view(force, spatial_dimension))) {
 
-    const auto & mass_vec = (std::get<0>(data));
-    auto & force_vec = (std::get<1>(data));
+//     const auto & mass_vec = (std::get<0>(data));
+//     AKANTU_DEBUG_ASSERT(mass_vec.norm(), "Mass vector components are zero");
+//     auto & force_vec = (std::get<1>(data));
 
-    force_vec += gravity * mass_vec;
-  }
-}
-/* -------------------------------------------------------------------------
- */
+//     force_vec += gravity * mass_vec;
+//   }
+// }
+/* ------------------------------------------------------------------------ */
 void ASRTools::insertCohElemByCoord(const Vector<Real> & position) {
   AKANTU_DEBUG_IN();
 
@@ -2303,7 +2302,6 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
                        matrix_elements.add(facet);
                    },
                    _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
-
 
   UInt nb_element = matrix_elements.getElements(facet_type).size();
   std::mt19937 random_generator(0);

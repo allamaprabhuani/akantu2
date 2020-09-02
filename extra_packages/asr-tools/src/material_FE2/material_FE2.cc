@@ -361,16 +361,18 @@ void MaterialFE2<spatial_dimension>::computeASRStrainLarive(
   AKANTU_DEBUG_IN();
 
   Real time_ch, time_lat, lambda, ksi, exp_ref;
-  Real T_K = T + 273.13;
   ksi = gelstrain(0, 0) / this->eps_inf;
-  time_ch =
-      this->time_ch_ref * std::exp(this->U_C * (1. / T_K - 1. / this->T_ref));
-  time_lat =
-      this->time_lat_ref * std::exp(this->U_L * (1. / T_K - 1. / this->T_ref));
-  exp_ref = std::exp(-time_lat / time_ch);
-  lambda = (1 + exp_ref) / (ksi + exp_ref);
-  ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
-
+  if (T == 0) {
+    ksi += 0;
+  } else {
+    time_ch =
+        this->time_ch_ref * std::exp(this->U_C * (1. / T - 1. / this->T_ref));
+    time_lat =
+        this->time_lat_ref * std::exp(this->U_L * (1. / T - 1. / this->T_ref));
+    exp_ref = std::exp(-time_lat / time_ch);
+    lambda = (1 + exp_ref) / (ksi + exp_ref);
+    ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
+  }
   for (UInt i = 0; i != spatial_dimension; ++i)
     gelstrain(i, i) = ksi * this->eps_inf;
 

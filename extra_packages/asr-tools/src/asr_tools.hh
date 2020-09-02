@@ -210,8 +210,8 @@ public:
   /// elements insertion
   void updateElementGroup(const std::string group_name);
 
-  /// apply self-weight force
-  void applyBodyForce();
+  // /// apply self-weight force
+  // void applyBodyForce();
 
   /// apply delta u on nodes
   void applyDeltaU(Real delta_u);
