@@ -426,7 +426,7 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::inverseMap(
     const Vector<Real> & real_coords, const Matrix<Real> & node_coords,
-    Vector<Real> & natural_coords, Real tolerance) {
+    Vector<Real> & natural_coords, UInt max_iterations,  Real tolerance) {
   UInt spatial_dimension = real_coords.size();
   UInt dimension = natural_coords.size();
 
@@ -495,7 +495,8 @@ inline void ElementClass<type, kind>::inverseMap(
   /* --------------------------- */
   /* iteration loop              */
   /* --------------------------- */
-  while (tolerance < inverse_map_error) {
+  UInt iterations{0};
+  while (tolerance < inverse_map_error and iterations < max_iterations) {
     // compute J^t
     interpolation_element::gradientOnNaturalCoordinates(natural_coords,
                                                         node_coords, Jt);
@@ -519,6 +520,7 @@ inline void ElementClass<type, kind>::inverseMap(
     natural_coords += Vector<Real>(dxi(0));
 
     inverse_map_error = update_f();
+    iterations++;
   }
   //  memcpy(natural_coords.storage(), natural_guess.storage(), sizeof(Real) *
   //  natural_coords.size());
@@ -528,12 +530,12 @@ inline void ElementClass<type, kind>::inverseMap(
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::inverseMap(
     const Matrix<Real> & real_coords, const Matrix<Real> & node_coords,
-    Matrix<Real> & natural_coords, Real tolerance) {
+    Matrix<Real> & natural_coords, UInt max_iterations, Real tolerance) {
   UInt nb_points = real_coords.cols();
   for (UInt p = 0; p < nb_points; ++p) {
     Vector<Real> X(real_coords(p));
     Vector<Real> ncoord_p(natural_coords(p));
-    inverseMap(X, node_coords, ncoord_p, tolerance);
+    inverseMap(X, node_coords, ncoord_p, max_iterations, tolerance);
   }
 }
 
