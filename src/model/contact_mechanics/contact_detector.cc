@@ -77,6 +77,8 @@ void ContactDetector::parseSection() {
 
   this->projection_tolerance =
     section.getParameterValue<Real>("projection_tolerance");
+  this->max_iterations =
+    section.getParameterValue<Real>("max_iterations");
   this->extension_tolerance =
     section.getParameterValue<Real>("extension_tolerance");
 }
@@ -269,6 +271,7 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
     Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
     auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave, elements,
 						     gap, projection, normal, alpha,
+						     this->max_iterations, 
 						     this->projection_tolerance, 
 						     this->extension_tolerance);
 

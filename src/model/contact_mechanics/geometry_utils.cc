@@ -208,6 +208,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 					 const Array<Element> & elements,
 					 Real & gap, Vector<Real> & natural_projection,
 					 Vector<Real> & normal, Real alpha,
+					 UInt max_iterations,
 					 Real projection_tolerance, 
 					 Real extension_tolerance) {
 
@@ -234,7 +235,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 
     Vector<Real> xi(natural_projection.size());
     GeometryUtils::naturalProjection(mesh, positions, element, master, xi,
-				     projection_tolerance);
+				     max_iterations, projection_tolerance);
 
     // if gap between master projection and slave point is zero, then
     // it means that slave point lies on the master element, hence the
@@ -344,6 +345,7 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
 				      const Element & element,
 				      Vector<Real> & real_projection,
 				      Vector<Real> & natural_projection,
+				      UInt max_iterations, 
 				      Real projection_tolerance) {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
@@ -359,7 +361,7 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
 
 #define GET_NATURAL_COORDINATE(type)                                           \
   ElementClass<type>::inverseMap(real_projection, nodes_coord,                 \
-                                 natural_projection, projection_tolerance)
+                                 natural_projection, max_iterations, projection_tolerance)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
 #undef GET_NATURAL_COORDINATE
 }

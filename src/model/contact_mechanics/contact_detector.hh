@@ -184,6 +184,9 @@ private:
   /// tolerance for finding natural projection
   Real projection_tolerance;
 
+  /// iterations for finding natural projection
+  UInt max_iterations;
+
   /// tolerance for extending a master elements on all sides
   Real extension_tolerance;
 
