@@ -62,16 +62,10 @@ TimeStepSolverDefault::TimeStepSolverDefault(
 }
 
 /* -------------------------------------------------------------------------- */
-void TimeStepSolverDefault::setIntegrationSchemeInternal(
+std::unique_ptr<IntegrationScheme>
+TimeStepSolverDefault::getIntegrationSchemeInternal(
     const ID & dof_id, const IntegrationSchemeType & type,
-    IntegrationScheme::SolutionType solution_type) {
-  if (this->integration_schemes.find(dof_id) !=
-      this->integration_schemes.end()) {
-    AKANTU_EXCEPTION("Their DOFs "
-                     << dof_id
-                     << "  have already an integration scheme associated");
-  }
-
+    IntegrationScheme::SolutionType /*solution_type*/) {
   std::unique_ptr<IntegrationScheme> integration_scheme;
   if (this->is_mass_lumped) {
     switch (type) {
@@ -140,6 +134,20 @@ void TimeStepSolverDefault::setIntegrationSchemeInternal(
 
   AKANTU_DEBUG_ASSERT(integration_scheme,
                       "No integration scheme was found for the provided types");
+
+  return integration_scheme;
+}
+
+/* -------------------------------------------------------------------------- */
+void TimeStepSolverDefault::setIntegrationSchemeInternal(
+    const ID & dof_id, std::unique_ptr<IntegrationScheme> & integration_scheme,
+    IntegrationScheme::SolutionType solution_type) {
+  if (this->integration_schemes.find(dof_id) !=
+      this->integration_schemes.end()) {
+    AKANTU_EXCEPTION("Their DOFs "
+                     << dof_id
+                     << "  have already an integration scheme associated");
+  }
 
   auto && matrices_names = integration_scheme->getNeededMatrixList();
   for (auto && name : matrices_names) {
@@ -217,9 +225,9 @@ void TimeStepSolverDefault::corrector() {
       }
     }
   }
- 
+
   TimeStepSolver::corrector();
-  
+
   AKANTU_DEBUG_OUT();
 }
 

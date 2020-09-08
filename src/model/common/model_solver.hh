@@ -106,7 +106,7 @@ public:
 
   /// set an externally instantiated integration scheme
   void setIntegrationScheme(const ID & solver_id, const ID & dof_id,
-                            IntegrationScheme & integration_scheme,
+                            std::unique_ptr<IntegrationScheme> & integration_scheme,
                             IntegrationScheme::SolutionType solution_type =
                                 IntegrationScheme::_not_defined);
 

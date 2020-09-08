@@ -346,6 +346,16 @@ void ModelSolver::setIntegrationScheme(
 }
 
 /* -------------------------------------------------------------------------- */
+  void ModelSolver::setIntegrationScheme(const ID & solver_id, const ID & dof_id,
+			  std::unique_ptr<IntegrationScheme> & integration_scheme,
+			  IntegrationScheme::SolutionType solution_type) {
+  TimeStepSolver & tss = this->dof_manager->getTimeStepSolver(solver_id);
+  
+  tss.setIntegrationScheme(dof_id, integration_scheme, solution_type);
+  }
+  
+
+/* -------------------------------------------------------------------------- */
 bool ModelSolver::hasDefaultSolver() const {
   return (this->default_solver_id != "");
 }

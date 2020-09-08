@@ -62,11 +62,15 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// registers an integration scheme for a given dof
-  void
-  setIntegrationSchemeInternal(const ID & dof_id,
+  std::unique_ptr<IntegrationScheme>
+  getIntegrationSchemeInternal(const ID & dof_id,
                                const IntegrationSchemeType & type,
                                IntegrationScheme::SolutionType solution_type =
                                    IntegrationScheme::_not_defined) override;
+
+  void setIntegrationSchemeInternal(
+    const ID & dof_id, std::unique_ptr<IntegrationScheme> & integration_scheme,
+    IntegrationScheme::SolutionType solution_type) override;
 
 public:
   bool hasIntegrationScheme(const ID & dof_id) const override;

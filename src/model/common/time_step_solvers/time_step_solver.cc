@@ -54,7 +54,15 @@ TimeStepSolver::~TimeStepSolver() = default;
 void TimeStepSolver::setIntegrationScheme(
     const ID & dof_id, const IntegrationSchemeType & type,
     IntegrationScheme::SolutionType solution_type) {
-  this->setIntegrationSchemeInternal(dof_id, type, solution_type);
+  auto scheme = this->getIntegrationSchemeInternal(dof_id, type, solution_type);
+  this->setIntegrationScheme(dof_id, scheme, solution_type);
+}
+
+/* -------------------------------------------------------------------------- */
+void TimeStepSolver::setIntegrationScheme(
+    const ID & dof_id, std::unique_ptr<IntegrationScheme> & scheme,
+    IntegrationScheme::SolutionType solution_type) {
+  this->setIntegrationSchemeInternal(dof_id, scheme, solution_type);
 
   for (auto & pair : needed_matrices) {
     auto & mat_type = pair.second;
