@@ -77,7 +77,9 @@ public:
   inline auto & getNodesFlags() { return this->_mesh.getNodesFlags(); }
 
   /// get a pointer to the nodes_type Array<Int> and create it if necessary
-  inline void setNodePrank(UInt node, Int prank) { this->_mesh.nodes_prank[node] = prank; }
+  inline void setNodePrank(UInt node, Int prank) {
+    this->_mesh.nodes_prank[node] = prank;
+  }
 
   /// get a pointer to the coordinates Array
   inline auto & getNodes() { return this->_mesh.getNodesPointer(); }
@@ -85,11 +87,19 @@ public:
   /// get a pointer to the coordinates Array
   inline auto getNodesSharedPtr() { return this->_mesh.nodes; }
 
-  /// get a pointer to the connectivity Array for the given type and create it
+  /// get the connectivities
+  inline auto & getConnectivities() { return this->_mesh.connectivities; }
+
+  /// get the connectivity Array for the given type and create it
   /// if necessary
   inline auto & getConnectivity(const ElementType & type,
                                 const GhostType & ghost_type = _not_ghost) {
     return this->_mesh.getConnectivityPointer(type, ghost_type);
+  }
+
+  /// get the connectivity for the given element
+  inline decltype(auto) getConnectivity(const Element & element) {
+    return this->_mesh.getConnectivityNC(element);
   }
 
   /// get the ghost element counter
@@ -98,7 +108,7 @@ public:
     return this->_mesh.getGhostsCounters(type, ghost_type);
   }
 
-  /// get a pointer to the element_to_subelement Array for the given type and
+  /// get the element_to_subelement Array for the given type and
   /// create it if necessary
   inline auto &
   getElementToSubelement(const ElementType & type,
@@ -106,12 +116,46 @@ public:
     return this->_mesh.getElementToSubelementPointer(type, ghost_type);
   }
 
-  /// get a pointer to the subelement_to_element Array for the given type and
+  inline decltype(auto)
+  getElementToSubelementNC(const ElementType & type,
+                         const GhostType & ghost_type = _not_ghost) {
+    return this->_mesh.getElementToSubelementNC(type, ghost_type);
+  }
+
+  /// get the subelement_to_element Array for the given type and
   /// create it if necessary
   inline auto &
   getSubelementToElement(const ElementType & type,
                          const GhostType & ghost_type = _not_ghost) {
     return this->_mesh.getSubelementToElementPointer(type, ghost_type);
+  }
+
+  inline decltype(auto)
+  getSubelementToElementNC(const ElementType & type,
+                           const GhostType & ghost_type = _not_ghost) {
+    return this->_mesh.getSubelementToElementNC(type, ghost_type);
+  }
+
+  /// get  the element_to_subelement, creates it if necessary
+  inline decltype(auto) getElementToSubelement() {
+    return this->_mesh.getElementToSubelementNC();
+  }
+
+  /// get subelement_to_element, creates it if necessary
+  inline decltype(auto) getSubelementToElement() {
+    return this->_mesh.getSubelementToElementNC();
+  }
+
+  /// get a pointer to the element_to_subelement Array for element and
+  /// create it if necessary
+  inline decltype(auto) getElementToSubelement(const Element & element) {
+    return this->_mesh.getElementToSubelementNC(element);
+  }
+
+  /// get a pointer to the subelement_to_element Array for the given element and
+  /// create it if necessary
+  inline decltype(auto) getSubelementToElement(const Element & element) {
+    return this->_mesh.getSubelementToElementNC(element);
   }
 
   template <typename T>
@@ -143,9 +187,7 @@ public:
   }
 
   /* ------------------------------------------------------------------------ */
-  void makeReady() {
-    this->_mesh.makeReady();
-  }
+  void makeReady() { this->_mesh.makeReady(); }
 
   /* ------------------------------------------------------------------------ */
   void addPeriodicSlave(UInt slave, UInt master) {
@@ -158,9 +200,7 @@ public:
     }
   }
 
-  void wipePeriodicInfo() {
-    this->_mesh.wipePeriodicInfo();
-  }
+  void wipePeriodicInfo() { this->_mesh.wipePeriodicInfo(); }
 
 private:
   Mesh & _mesh;

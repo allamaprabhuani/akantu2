@@ -2473,7 +2473,6 @@ void ASRTools::insertOppositeFacets(bool only_double_facets) {
 
   /// duplicate facets (and insert coh els if needed)
   inserter.insertElements(only_double_facets);
-  MeshUtils::resetFacetToDouble(mesh_facets);
 
   /// add facets connectivity to the mesh and the element group
   NewElementsEvent new_facets_event;

@@ -64,17 +64,20 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
 
   nodes_global_ids.resize(mesh.getNbNodes(), -1);
 
-  /// compute the number of global nodes based on the number of old nodes
+  auto && local_or_master_pred = [this](auto && n) {
+    return this->mesh.isLocalOrMasterNode(n);
+  };
+
   Vector<UInt> local_master_nodes(2, 0);
-  for (UInt n = 0; n < old_nb_nodes; ++n)
-    if (mesh.isLocalOrMasterNode(n))
-      ++local_master_nodes(0);
+  /// compute the number of global nodes based on the number of old nodes
+  auto range_old = arange(old_nb_nodes);
+  local_master_nodes(0) =
+      std::count_if(range_old.begin(), range_old.end(), local_or_master_pred);
 
   /// compute amount of local or master doubled nodes
-  for (UInt n = old_nb_nodes; n < mesh.getNbNodes(); ++n)
-    if (mesh.isLocalOrMasterNode(n))
-      ++local_master_nodes(1);
-
+  auto range_new = arange(old_nb_nodes, mesh.getNbNodes());
+  local_master_nodes(1) =
+      std::count_if(range_new.begin(), range_new.end(), local_or_master_pred);
 
   auto starting_index = local_master_nodes(1);
 
@@ -105,7 +108,8 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
 
 void GlobalIdsUpdater::synchronizeGlobalIDs() {
   this->reduce = true;
-  this->synchronizer.slaveReductionOnce(*this, SynchronizationTag::_giu_global_conn);
+  this->synchronizer.slaveReductionOnce(*this,
+                                        SynchronizationTag::_giu_global_conn);
 
 #ifndef AKANTU_NDEBUG
   for (auto node : nodes_flags) {
@@ -127,7 +131,8 @@ void GlobalIdsUpdater::synchronizeGlobalIDs() {
 #endif
 
   this->reduce = false;
-  this->synchronizer.synchronizeOnce(*this, SynchronizationTag::_giu_global_conn);
+  this->synchronizer.synchronizeOnce(*this,
+                                     SynchronizationTag::_giu_global_conn);
 }
 
-} // akantu
+} // namespace akantu
