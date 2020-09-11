@@ -53,6 +53,9 @@
 // small-deformation plasticity
 #include "material_linear_isotropic_hardening.hh"
 
+// Drucker-Prager plasticity
+#include "material_drucker_prager.hh"
+
 #endif
 
 #define AKANTU_CORE_MATERIAL_LIST                                              \
@@ -62,6 +65,7 @@
       (2, (sls_deviatoric, MaterialStandardLinearSolidDeviatoric)))(           \
       (2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))(           \
       (2, (plastic_linear_isotropic_hardening,                                 \
-           MaterialLinearIsotropicHardening)))
+           MaterialLinearIsotropicHardening)))(				       \
+      (2, (plastic_drucker_prager, MaterialDruckerPrager)))
 
 #endif /* __AKANTU_MATERIAL_CORE_INCLUDES_HH__ */
