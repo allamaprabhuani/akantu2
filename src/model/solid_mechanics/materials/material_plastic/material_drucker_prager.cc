@@ -63,6 +63,13 @@ void MaterialDruckerPrager<spatial_dimension>::initialize() {
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,
 		      "Compressive strength");
 
+  this->updateInternalParameters();
+}
+
+/* -------------------------------------------------------------------------- */
+template<UInt spatial_dimension>  
+void MaterialDruckerPrager<spatial_dimension>::updateInternalParameters() {
+
   // compute alpha and k parameters for Drucker-Prager
   this->alpha = (6.*sin(this->phi))/(3.-sin(this->phi));
   Real cohesion = this->fc * (1. - sin(this->phi))/(2.*cos(this->phi));

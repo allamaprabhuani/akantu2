@@ -101,6 +101,10 @@ protected:
   inline void computeDeviatoricStress(const Matrix<Real> & sigma,
 				      Matrix<Real> & sigma_dev);
 
+  /// rcompute the alpha and k parameters
+  void updateInternalParameters() override;
+
+
 public:
   // closet point projection method to compute stress state on the
   // yield surface
@@ -114,16 +118,16 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  // friction angle
+  // Internal friction angle of the material
   Real phi;
 
-  // compressive strength
+  // Compressive strength of the material
   Real fc;
 
-  //
+  // modified friction angle for Drucker-Prager
   Real alpha;
 
-  //
+  // modified compressive strength for Drucker-Prager
   Real k;
 };
   

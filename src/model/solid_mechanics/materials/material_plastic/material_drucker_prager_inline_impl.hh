@@ -282,7 +282,8 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
 
     // inelastic strain in voigt notation
     Vector<Real> delta_inelastic_strain_voigt(size, 0.);
-    
+
+    // compute using closet-point projection
     this->computeGradientAndPlasticMultplier(sigma_tr, dp, gradient_f,
 					     delta_inelastic_strain_voigt);
 
