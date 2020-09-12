@@ -178,6 +178,18 @@ ModelSolverOptions CouplerSolidContact::getDefaultSolverOptions(
 void CouplerSolidContact::assembleResidual() {
 
   // computes the internal forces
+  
+  switch (method) {
+  case _explicit_lumped_mass: {    
+    auto & current_positions = contact->getContactDetector().getPositions();
+    current_positions.copy(solid->getCurrentPosition());
+    contact->search();
+    break;
+  }
+  default:
+    break;
+  }
+
   this->assembleInternalForces();
 
   auto & internal_force = solid->getInternalForce();
@@ -185,33 +197,6 @@ void CouplerSolidContact::assembleResidual() {
 
   auto & contact_force = contact->getInternalForce();
 
-  /*auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
-    Vector<UInt> elem_conn(master_conn.size() + 1);
-
-    elem_conn[0] = slave;
-    for (UInt i = 1; i < elem_conn.size(); ++i) {
-      elem_conn[i] = master_conn[i - 1];
-    }
-    return elem_conn;
-  };
-
-  
-  switch(method) {
-  case _explicit_contact:
-  case _implicit_contact:  
-  case _explicit_dynamic_contact: {
-    for (auto & element : contact->getContactElements()) {
-      for (auto & conn : get_connectivity(element.slave, element.master)) {
-	for (auto dim : arange(spatial_dimension)) {
-	  external_force(conn, dim) = contact_force(conn, dim);
-	}
-      }
-    }
-  }
-  default:
-    break;
-  }*/
   
 
   /* ------------------------------------------------------------------------ */
@@ -229,33 +214,6 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   auto & internal_force = solid->getInternalForce();
   auto & external_force = solid->getExternalForce();
   auto & contact_force = contact->getInternalForce();
-
-  /*auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn(const_cast<const Mesh &>(mesh).getConnectivity(master));
-     Vector<UInt> elem_conn(master_conn.size() + 1);
-
-    elem_conn[0] = slave;
-    for (UInt i = 1; i < elem_conn.size(); ++i) {
-      elem_conn[i] = master_conn[i - 1];
-    }
-    return elem_conn;
-    };
-
-  
-  switch(method) {
-  case _explicit_dynamic_contact: {
-    for (auto & element : contact->getContactElements()) {
-      for (auto & conn : get_connectivity(element.slave, element.master)) {
-	for (auto dim : arange(spatial_dimension)) {
-	  external_force(conn, dim) = contact_force(conn, dim);
-	}
-      }
-    }
-  }
-  default:
-    break;
-    }*/
-
   
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", external_force, 1);
@@ -278,25 +236,11 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::predictor() {
-
-  switch (method) {
-  case _explicit_lumped_mass: {    
-    auto & current_positions = contact->getContactDetector().getPositions();
-    current_positions.copy(solid->getCurrentPosition());
-    contact->search();
-    break;
-  }
-  default:
-    break;
-  }
   
   auto & solid_model_solver =
     aka::as_type<ModelSolver>(*solid);
   solid_model_solver.predictor(); 
-    
-
-
-  
+      
 }
 
 /* -------------------------------------------------------------------------- */

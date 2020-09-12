@@ -452,14 +452,34 @@ void ContactMechanicsModel::computeNodalAreas() {
       BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
       mesh.getElementGroup("contact_surface"));
 
-      for (auto && tuple :
+      /*for (auto && tuple :
 	     zip(*nodal_area,
 		 make_view(*external_force, spatial_dimension))) {
  
 	auto & area = std::get<0>(tuple);
 	Vector<Real> force(std::get<1>(tuple));
 	area = force.norm();
+      }*/
+      
+      
+      for (auto && tuple :
+	     zip(*nodal_area,
+		 make_view(*external_force, spatial_dimension),
+		 make_view(*normals, spatial_dimension))) {
+	/*auto & area = std::get<0>(tuple);
+	auto & force = std::get<1>(tuple);
+	
+
+	for (auto & f : force)
+	  area += pow(f, 2);
+
+	  area = sqrt(area);*/
+	auto & area = std::get<0>(tuple);
+	Vector<Real> force(std::get<1>(tuple));
+	Vector<Real> normal(std::get<2>(tuple));
+	area = abs(force.dot(normal));
       }
+
     break;
   }
   default:
