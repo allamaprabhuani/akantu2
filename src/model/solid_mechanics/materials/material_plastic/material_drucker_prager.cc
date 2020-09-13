@@ -59,7 +59,7 @@ MaterialDruckerPrager<spatial_dimension>::
 template<UInt spatial_dimension>  
 void MaterialDruckerPrager<spatial_dimension>::initialize() {
   this->registerParam("phi", phi, Real(0.), _pat_parsable | _pat_modifiable,
-		      "Internal friction angle");
+		      "Internal friction angle in degrees");
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,
 		      "Compressive strength");
 
@@ -71,9 +71,10 @@ template<UInt spatial_dimension>
 void MaterialDruckerPrager<spatial_dimension>::updateInternalParameters() {
 
   // compute alpha and k parameters for Drucker-Prager
-  this->alpha = (6.*sin(this->phi))/(3.-sin(this->phi));
-  Real cohesion = this->fc * (1. - sin(this->phi))/(2.*cos(this->phi));
-  this->k = (6. * cohesion * cos(this->phi))/(3. - sin(this->phi));
+  Real phi_radian = this->phi * M_PI / 180.;
+  this->alpha = (6.*sin(phi_radian))/(3.-sin(phi_radian));
+  Real cohesion = this->fc * (1. - sin(phi_radian))/(2.*cos(phi_radian));
+  this->k = (6. * cohesion * cos(phi_radian))/(3. - sin(phi_radian));
 }
 
 /* -------------------------------------------------------------------------- */

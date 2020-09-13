@@ -264,7 +264,7 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
 
   // Compute the yielding function
   bool initial_yielding =
-    (this->computeYieldFunction(sigma_tr) < 0);
+    (this->computeYieldFunction(sigma_tr) > 0);
 
   // use closet point projection to compute the plastic multiplier and
   // gradient  and inealstic strain at the surface for the given trial stress state
@@ -287,6 +287,9 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
     this->computeGradientAndPlasticMultplier(sigma_tr, dp, gradient_f,
 					     delta_inelastic_strain_voigt);
 
+    for(auto i: arange(dim, size))
+      delta_inelastic_strain_voigt[i] /= 2.;
+    
     voigt_h::voigtToMatrix(delta_inelastic_strain_voigt,
 			   delta_inelastic_strain);
   }
