@@ -69,7 +69,8 @@ void MaterialDruckerPrager<spatial_dimension>::initialize() {
 /* -------------------------------------------------------------------------- */
 template<UInt spatial_dimension>  
 void MaterialDruckerPrager<spatial_dimension>::updateInternalParameters() {
-
+  MaterialElastic<spatial_dimension>::updateInternalParameters();
+  
   // compute alpha and k parameters for Drucker-Prager
   Real phi_radian = this->phi * M_PI / 180.;
   this->alpha = (6.*sin(phi_radian))/(3.-sin(phi_radian));
