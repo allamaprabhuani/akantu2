@@ -676,6 +676,7 @@ void DOFManager::resizeGlobalArrays() {
 
   for (auto & matrix : matrices) {
     matrix.second->clearProfile();
+    matrix.second->resize(this->system_size);
   }
 }
 
@@ -899,7 +900,7 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
   this->global_equation_number.resize(this->local_system_size, -1);
 
   // update per dof info
-  for (auto _ [[gnu::unused]] : arange(nb_new_local_dofs)) {
+  for (auto _[[gnu::unused]] : arange(nb_new_local_dofs)) {
     // update equation numbers
     this->dofs_flag(first_local_dof_id) = NodeFlag::_normal;
 

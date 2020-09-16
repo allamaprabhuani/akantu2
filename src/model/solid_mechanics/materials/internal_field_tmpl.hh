@@ -131,10 +131,14 @@ template <typename T> void InternalField<T>::resize() {
       } else {
         vect = &(this->alloc(nb_element * nb_quadrature_points, nb_component,
                              type, ghost));
+        old_size = vect->size();
       }
 
-      this->setArrayValues(vect->storage() + old_size * vect->getNbComponent(),
-                           vect->storage() + new_size * vect->getNbComponent());
+      if (new_size != old_size) {
+        this->setArrayValues(
+            vect->storage() + old_size * vect->getNbComponent(),
+            vect->storage() + new_size * vect->getNbComponent());
+      }
     }
 }
 
