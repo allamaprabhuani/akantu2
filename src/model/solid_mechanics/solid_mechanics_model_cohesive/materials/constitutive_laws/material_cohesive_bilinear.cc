@@ -8,7 +8,6 @@
  *
  * @brief  Bilinear cohesive constitutive law
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -81,29 +80,34 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
   if (!Math::are_float_equal(this->volume_s, 0.))
     scale_traction = true;
 
-  for (const auto & el : element_list) {
+
+  auto el_it = element_list.begin();
+  auto el_end = element_list.end();
+
+  for (auto & el: element_list) {
     // filter not ghost cohesive elements
-    if (el.ghost_type != _not_ghost || Mesh::getKind(el.type) != _ek_cohesive)
+    if (el.ghost_type != _not_ghost ||
+        Mesh::getKind(el.type) != _ek_cohesive)
       continue;
 
-    UInt index = el.element;
     ElementType type = el.type;
-    UInt nb_element = this->element_filter(type).size();
+    auto & elem_filter = this->element_filter(type, el.ghost_type);
+    auto filter_begin = elem_filter.begin();
+    auto filter_end = elem_filter.end();
+
+    UInt index = el.element;
+    if (std::find(filter_begin, filter_end, index) == filter_end)
+      continue;
 
     UInt nb_quad_per_element = this->fem_cohesive.getNbIntegrationPoints(type);
-
-    auto & sigma_c_eff = this->sigma_c_eff(type);
-
-    auto sigma_c_begin = sigma_c_eff.begin_reinterpret(
-        nb_quad_per_element, nb_element);
-    auto delta_c_begin = this->delta_c_eff(type).begin_reinterpret(
-        nb_quad_per_element, nb_element);
-
+    auto sigma_c_begin = make_view(this->sigma_c_eff(type), nb_quad_per_element).begin();
     Vector<Real> sigma_c_vec = sigma_c_begin[index];
+
+    auto delta_c_begin = make_view(this->delta_c_eff(type), nb_quad_per_element).begin();
     Vector<Real> delta_c_vec = delta_c_begin[index];
 
     if (scale_traction)
-      scaleTraction(el, sigma_c_vec);
+      scaleTraction(*el_it, sigma_c_vec);
 
     /**
      * Recompute sigma_c as
@@ -149,22 +153,26 @@ void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
   for (UInt f = 0; f < 2; ++f) {
     const Element & facet = coh_element_to_facet(f);
 
-    const auto & facet_to_element =
+    const Array<std::vector<Element>> & facet_to_element =
         mesh_facets.getElementToSubelement(facet.type, facet.ghost_type);
-    const auto & element_list = facet_to_element(facet.element);
+
+    const std::vector<Element> & element_list = facet_to_element(facet.element);
+
+    auto elem = element_list.begin();
+    auto elem_end = element_list.end();
 
     // loop over elements connected to each facet
-    for (const auto & elem : element_list) {
+    for (; elem != elem_end; ++elem) {
       // skip cohesive elements and dummy elements
-      if (elem == ElementNull || Mesh::getKind(elem.type) == _ek_cohesive)
+      if (*elem == ElementNull || Mesh::getKind(elem->type) == _ek_cohesive)
         continue;
 
       // unit vector for integration in order to obtain the volume
-      UInt nb_quadrature_points = fe_engine.getNbIntegrationPoints(elem.type);
+      UInt nb_quadrature_points = fe_engine.getNbIntegrationPoints(elem->type);
       Vector<Real> unit_vector(nb_quadrature_points, 1);
 
-      volume += fe_engine.integrate(unit_vector, elem.type, elem.element,
-                                    elem.ghost_type);
+      volume += fe_engine.integrate(unit_vector, elem->type, elem->element,
+                                    elem->ghost_type);
     }
   }
 
