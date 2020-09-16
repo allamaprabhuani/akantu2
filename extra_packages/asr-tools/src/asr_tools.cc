@@ -43,10 +43,9 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-ASRTools::ASRTools(SolidMechanicsModel & model,
-                   bool expanding_cohesive_elements)
+ASRTools::ASRTools(SolidMechanicsModel & model)
     : model(model), volume(0.), nb_dumps(0),
-      expanding_cohesive_elements(expanding_cohesive_elements),
+      cohesive_insertion(false),
       doubled_facets_ready(false), doubled_nodes_ready(false),
       disp_stored(0, model.getSpatialDimension()),
       ext_force_stored(0, model.getSpatialDimension()),
@@ -1266,20 +1265,27 @@ Real ASRTools::computeSmallestElementSize() {
 // }
 /* --------------------------------------------------------------------------
  */
-Real ASRTools::computeASRStrainLarive(
-    const Real & delta_time_day, const Real & T, const Real & ASRStrain,
+void ASRTools::computeASRStrainLarive(
+    const Real & delta_time_day, const Real & T, Real & ASRStrain,
     const Real & eps_inf, const Real & time_ch_ref, const Real & time_lat_ref,
     const Real & U_C, const Real & U_L, const Real & T_ref) {
+  AKANTU_DEBUG_IN();
 
   Real time_ch, time_lat, lambda, ksi, exp_ref;
   ksi = ASRStrain / eps_inf;
-  time_ch = time_ch_ref * std::exp(U_C * (1. / T - 1. / T_ref));
-  time_lat = time_lat_ref * std::exp(U_L * (1. / T - 1. / T_ref));
-  exp_ref = std::exp(-time_lat / time_ch);
-  lambda = (1 + exp_ref) / (ksi + exp_ref);
-  ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
+  if (T == 0) {
+    ksi += 0;
+  } else {
+    time_ch = time_ch_ref * std::exp(U_C * (1. / T - 1. / T_ref));
+    time_lat = time_lat_ref * std::exp(U_L * (1. / T - 1. / T_ref));
+    exp_ref = std::exp(-time_lat / time_ch);
+    lambda = (1 + exp_ref) / (ksi + exp_ref);
+    ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
+  }
 
-  return ksi * eps_inf;
+  ASRStrain = ksi * eps_inf;
+
+  AKANTU_DEBUG_OUT();
 }
 
 /* --------------------------------------------------------------------------
@@ -1294,11 +1300,10 @@ Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day,
   /// as temperatures are stored in C, conversion to K is done
 
   Real delta_strain = amount_reactive_particles * k *
-                      std::exp(-activ_energy / (R * T )) *
-                      delta_time_day;
+                      std::exp(-activ_energy / (R * T)) * delta_time_day;
 
-  amount_reactive_particles -= std::exp(-activ_energy / (R * T )) *
-                               delta_time_day / saturation_const;
+  amount_reactive_particles -=
+      std::exp(-activ_energy / (R * T)) * delta_time_day / saturation_const;
 
   if (amount_reactive_particles < 0.)
     amount_reactive_particles = 0.;
@@ -2036,7 +2041,7 @@ void ASRTools::dumpRve() {
 //   }
 // }
 /* ------------------------------------------------------------------------ */
-void ASRTools::insertCohElemByCoord(const Vector<Real> & position) {
+void ASRTools::insertCohElemByCoords(const Matrix<Real> & positions) {
   AKANTU_DEBUG_IN();
 
   auto & mesh = model.getMesh();
@@ -2049,22 +2054,27 @@ void ASRTools::insertCohElemByCoord(const Vector<Real> & position) {
   auto & insertion = inserter.getInsertionFacetsByElement();
   auto & mesh_facets = inserter.getMeshFacets();
   Vector<Real> bary_facet(dim);
+  auto & doubled_facets =
+      mesh_facets.createElementGroup("doubled_facets", dim - 1);
+  auto & doubled_nodes = mesh.createNodeGroup("doubled_nodes");
 
-  Real min_dist = std::numeric_limits<Real>::max();
-  Element source_facet;
-  for_each_element(mesh_facets,
-                   [&](auto && facet) {
-                     mesh_facets.getBarycenter(facet, bary_facet);
-                     auto dist = bary_facet.distance(position);
-                     if (dist < min_dist) {
-                       min_dist = dist;
-                       source_facet = facet;
-                     }
-                   },
-                   _spatial_dimension = dim - 1);
-  inserter.getCheckFacets(source_facet.type, gt)(source_facet.element) = false;
-  insertion(source_facet) = true;
-
+  for (auto & position : positions) {
+    Real min_dist = std::numeric_limits<Real>::max();
+    Element source_facet;
+    for_each_element(mesh_facets,
+                     [&](auto && facet) {
+                       mesh_facets.getBarycenter(facet, bary_facet);
+                       auto dist = bary_facet.distance(position);
+                       if (dist < min_dist) {
+                         min_dist = dist;
+                         source_facet = facet;
+                       }
+                     },
+                     _spatial_dimension = dim - 1);
+    inserter.getCheckFacets(source_facet.type, gt)(source_facet.element) =
+        false;
+    insertion(source_facet) = true;
+  }
   inserter.insertElements();
 
   AKANTU_DEBUG_OUT();
@@ -2517,7 +2527,7 @@ void ASRTools::onElementsAdded(const Array<Element> & elements,
                                const NewElementsEvent &) {
 
   /// function is activated only when expanding cohesive elements is on
-  if (not this->expanding_cohesive_elements)
+  if (not this->cohesive_insertion)
     return;
 
   if (this->doubled_facets_ready) {
@@ -2554,7 +2564,7 @@ void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
   if (new_nodes.size() == 0)
     return;
   /// function is activated only when expanding cohesive elements is on
-  if (not this->expanding_cohesive_elements)
+  if (not this->cohesive_insertion)
     return;
   if (this->doubled_nodes_ready)
     return;

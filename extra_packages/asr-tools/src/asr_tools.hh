@@ -55,8 +55,7 @@ namespace akantu {
 
 class ASRTools : public MeshEventHandler {
 public:
-  ASRTools(SolidMechanicsModel & model,
-           bool expanding_cohesive_elements = false);
+  ASRTools(SolidMechanicsModel & model);
 
   virtual ~ASRTools() = default;
 
@@ -144,8 +143,8 @@ public:
   // void applyTemperatureFieldToSolidmechanicsModel(const Real & temperature);
 
   /// compute ASR strain by a sigmoidal rule (Larive, 1998)
-  Real computeASRStrainLarive(const Real & delta_time_day, const Real & T,
-                              const Real & ASRStrain, const Real & eps_inf,
+  void computeASRStrainLarive(const Real & delta_time_day, const Real & T,
+                              Real & ASRStrain, const Real & eps_inf,
                               const Real & time_ch_ref,
                               const Real & time_lat_ref, const Real & U_C,
                               const Real & U_L, const Real & T_ref);
@@ -160,8 +159,8 @@ public:
   /// compute linear increase in gel strain
   Real computeDeltaGelStrainLinear(const Real delta_time, const Real k);
 
-  /// insert single cohesive element by the coordinate of its center
-  void insertCohElemByCoord(const Vector<Real> & position);
+  /// insert single cohesive element by the coordinates of their center
+  void insertCohElemByCoords(const Matrix<Real> & positions);
 
   /// insert multiple cohesive elements by the limiting box
   void insertCohElemByLimits(const Matrix<Real> & insertion_limits,
@@ -318,6 +317,9 @@ public:
     return this->phase_volumes.find(material_name)->second;
   };
 
+  /// set the value of the insertion flag
+  AKANTU_SET_MACRO(CohesiveInsertion, cohesive_insertion, bool);
+
   /* --------------------------------------------------------------------- */
   /* Members */
   /* --------------------------------------------------------------------- */
@@ -345,7 +347,7 @@ protected:
   UInt nb_dumps;
 
   /// flag to activate ASR expansion through cohesive elements
-  bool expanding_cohesive_elements;
+  bool cohesive_insertion;
 
   /// booleans for applying delta u
   bool doubled_facets_ready;
@@ -740,16 +742,13 @@ protected:
 };
 
 /* ------------------------------------------------------------------------ */
-class PressureOpeningProportional : public BC::Neumann::NeumannFunctor {
+class PressureVolumeDependent : public BC::Neumann::NeumannFunctor {
 public:
-  PressureOpeningProportional(SolidMechanicsModel & model,
-                              const Real ASR_strain,
-                              const std::string group_name,
-                              const Real pressure_factor,
-                              const Real initial_area_factor)
-      : model(model), ASR_strain(ASR_strain), group_name(group_name),
-        pressure_factor(pressure_factor),
-        initial_area_factor(initial_area_factor) {}
+  PressureVolumeDependent(SolidMechanicsModel & model, const Real ASR_volume,
+                          const std::string group_name,
+                          const Real compressibility)
+      : model(model), ASR_volume(ASR_volume), group_name(group_name),
+        compressibility(compressibility) {}
 
   inline void operator()(const IntegrationPoint & quad_point,
                          Vector<Real> & dual, const Vector<Real> & /*coord*/,
@@ -780,7 +779,6 @@ public:
                         "Quad point doesn't belong to this element group");
 
     auto normal_corrected = normal;
-    Real pressure;
     UInt opposite_facet_nb(-1);
     if (id < element_ids.size() / 2) {
       normal_corrected *= -1;
@@ -791,14 +789,9 @@ public:
       normal_corrected *= 1;
       opposite_facet_nb = element_ids(id - element_ids.size() / 2);
     }
-    /// compute default area of a gap
-    Vector<Real> AB;
-    auto facet_nodes = facet_nodes_it[facet_nb];
-    AB = Vector<Real>(pos_it[facet_nodes(0)]) -
-         Vector<Real>(pos_it[facet_nodes(1)]);
-    Real initial_area = AB.norm() * AB.norm() * this->initial_area_factor;
 
     /// compute current area of a gap
+    auto facet_nodes = facet_nodes_it[facet_nb];
     Vector<UInt> first_facet_nodes = facet_nodes_it[facet_nb];
     Vector<UInt> second_facet_nodes = facet_nodes_it[opposite_facet_nb];
     /// corners of a quadrangle consequently
@@ -838,28 +831,28 @@ public:
     cos_alpha = Math::are_float_equal(cos_alpha, 1.) ? 1. : cos_alpha;
     cos_alpha = Math::are_float_equal(cos_alpha, -1.) ? -1. : cos_alpha;
 
+    /// check if the element is warped by evaluating the angle between the
+    /// normal to AB and the vector AC.
+    Real normal_dot_AC = normal_corrected.dot(AC);
+    Real volume_multiplicator = (normal_dot_AC <= 0) * 2 - 1;
+
     /// angle between two diagonals
     Real alpha = acos(cos_alpha);
 
-    Real current_area = 0.5 * AB.norm() * BD.norm() * sin(alpha);
-    current_area = Math::are_float_equal(current_area, 0.) ? 0 : current_area;
-    AKANTU_DEBUG_ASSERT(current_area >= 0,
-                        "Computed segment area is not a positive number");
-    if (current_area > initial_area)
-      pressure =
-          this->ASR_strain * pressure_factor / (current_area / initial_area);
-    else
-      pressure = this->ASR_strain * pressure_factor;
-
-    dual = pressure * normal_corrected;
+    Real current_volume =
+        0.5 * AC.norm() * BD.norm() * sin(alpha) * volume_multiplicator;
+    current_volume =
+        Math::are_float_equal(current_volume, 0.) ? 0 : current_volume;
+    Real volume_change = current_volume - ASR_volume;
+    Real pressure_change = -volume_change / ASR_volume / this->compressibility;
+    dual = pressure_change * normal_corrected;
   }
 
 protected:
   SolidMechanicsModel & model;
-  const Real ASR_strain;
+  const Real ASR_volume;
   const std::string group_name;
-  const Real pressure_factor;
-  const Real initial_area_factor;
+  const Real compressibility;
 };
 
 /* ------------------------------------------------------------------------ */
