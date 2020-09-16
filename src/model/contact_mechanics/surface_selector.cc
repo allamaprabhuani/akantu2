@@ -88,13 +88,47 @@ CohesiveSurfaceSelector::CohesiveSurfaceSelector(Mesh & mesh)
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
+void CohesiveSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
+					      __attribute__((unused)) const NewElementsEvent & event) {
+    
+  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  auto & group = mesh_facets.createElementGroup("contact_surface",
+						surface_dimension, true);
+  
+ 
+
+  for(auto elem : element_list) {
+    if(elem.kind() != _ek_cohesive)
+      continue;
+
+    const auto & subelement_to_element =
+      mesh_facets.getSubelementToElement(elem.type);
+    
+    auto && facets = Vector<Element>(
+			   make_view(subelement_to_element,
+				     subelement_to_element.getNbComponent())
+			   .begin()[elem.element]);
+
+    
+    for(auto facet : facets) {
+      group.add(facet, true);
+    }
+  }
+
+  group.optimize();
+
+  for(auto & node : group.getNodeGroup().getNodes())
+    new_nodes_list.push_back(node);
+}
+  
+/* -------------------------------------------------------------------------- */
+void CohesiveSurfaceSelector::onNodesAdded(__attribute__((unused)) const Array<UInt> & new_nodes,
                                            const NewNodesEvent & event) {
 
   if (not aka::is_of_type<CohesiveNewNodesEvent>(event))
     return;
 
-  const auto & cohesive_event = aka::as_type<CohesiveNewNodesEvent>(event);
+  /*const auto & cohesive_event = aka::as_type<CohesiveNewNodesEvent>(event);
   const auto & old_nodes = cohesive_event.getOldNodesList();
 
   UInt nb_new_nodes = new_nodes.size();
@@ -106,11 +140,11 @@ void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
 
   for (auto n : arange(nb_old_nodes)) {
     new_nodes_list.push_back(old_nodes(n));
-  }
+    }*/
 
   mesh_facets.fillNodesToElements(mesh.getSpatialDimension() - 1);
 
-  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  /*UInt surface_dimension = mesh.getSpatialDimension() - 1;
   auto & group = mesh_facets.createElementGroup("contact_surface",
 						surface_dimension, true);
 
@@ -124,37 +158,20 @@ void CohesiveSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
     for (auto nb_elem : arange(mesh_facet_elements.size()))
       group.add(mesh_facet_elements[nb_elem], true);
   }
-  group.optimize();
+  group.optimize();*/
+
+ 
 }
 
 /* -------------------------------------------------------------------------- */
-void CohesiveSurfaceSelector::filterBoundaryElements(
-    Array<Element> & subelements, Array<Element> & boundary_elements) {
+//void CohesiveSurfaceSelector::filterBoundaryElements(
+//    Array<Element> & subelements, Array<Element> & boundary_elements) {
 
-  for (auto subelem : subelements) {
-    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
-    boundary_elements.push_back(subelem);
-    
-    /*const auto & element_to_subelement =
-        mesh_facets.getElementToSubelement(elem.type)(elem.element);
-
-    UInt nb_subelements_regular = 0;
-    for (auto subelem : element_to_subelement) {
-      if (subelem == ElementNull)
-        continue;
-
-      if (subelem.kind() == _ek_regular) {
-        ++nb_subelements_regular;
-      }
-    }
-
-    auto nb_subelements = element_to_subelement.size();
-
-    if (nb_subelements_regular < nb_subelements and nb_subelements != 1) {
-      boundary_elements.push_back(elem);
-      }*/
-  }
-}
+//  for (auto subelem : subelements) {
+//    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
+//    boundary_elements.push_back(subelem);
+//  }
+//}
 
 /* -------------------------------------------------------------------------- */
 Array<UInt> & CohesiveSurfaceSelector::getMasterList() {
@@ -197,36 +214,61 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
 }
 
 /* -------------------------------------------------------------------------- */
-void AllSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
-                                      const NewNodesEvent & event) {
+void AllSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
+					 __attribute__((unused)) const NewElementsEvent & event) {
+    
+  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  auto & group = mesh_facets.createElementGroup("contact_surface",
+						surface_dimension, true);
+  
+  for(auto elem : element_list) {
+    if(elem.kind() != _ek_cohesive)
+      continue;
+
+    const auto & subelement_to_element =
+      mesh_facets.getSubelementToElement(elem.type);
+    
+    auto && facets = Vector<Element>(
+			   make_view(subelement_to_element,
+				     subelement_to_element.getNbComponent())
+			   .begin()[elem.element]);
+
+    
+    for(auto facet : facets) {
+      group.add(facet, true);
+    }
+  }
+
+  group.optimize();
+
+  for(auto & node : group.getNodeGroup().getNodes())
+    new_nodes_list.push_back(node);
+}  
+
+/* -------------------------------------------------------------------------- */
+void AllSurfaceSelector::onNodesAdded(__attribute__((unused)) const Array<UInt> & new_nodes,
+					const NewNodesEvent & event) {
 
   if (not aka::is_of_type<CohesiveNewNodesEvent>(event))
     return;
 
-  const auto & cohesive_event = aka::as_type<CohesiveNewNodesEvent>(event);
+  /*const auto & cohesive_event = aka::as_type<CohesiveNewNodesEvent>(event);
   const auto & old_nodes = cohesive_event.getOldNodesList();
 
   UInt nb_new_nodes = new_nodes.size();
   UInt nb_old_nodes = old_nodes.size();
 
-  // auto & slave_group = mesh_facets.getElementGroup(slave).getNodeGroup();
-  // auto & master_group = mesh_facets.getElementGroup(master).getNodeGroup();
-
   for (auto n : arange(nb_new_nodes)) {
     new_nodes_list.push_back(new_nodes(n));
-    //   slave_group.add(new_nodes(n));
-    //  master_group.add(new_nodes(n));
   }
 
   for (auto n : arange(nb_old_nodes)) {
     new_nodes_list.push_back(old_nodes(n));
-    // slave_group.add(old_nodes(n));
-    // master_group.add(old_nodes(n));
-  }
+    }*/
 
   mesh_facets.fillNodesToElements(mesh.getSpatialDimension() - 1);
 
-  auto & group = mesh_facets.getElementGroup("contact_surface");
+  /*auto & group = mesh_facets.getElementGroup("contact_surface");
 
   for (auto node : new_nodes_list) {
     Array<Element> all_elements;
@@ -239,41 +281,18 @@ void AllSurfaceSelector::onNodesAdded(const Array<UInt> & new_nodes,
       group.add(mesh_facet_elements[nb_elem], true);
   }
 
-  group.optimize();
+  group.optimize();*/
 }
 
 /* -------------------------------------------------------------------------- */
-void AllSurfaceSelector::filterBoundaryElements(
-    Array<Element> & subelements, Array<Element> & boundary_elements) {
+//void AllSurfaceSelector::filterBoundaryElements(
+//    Array<Element> & subelements, Array<Element> & boundary_elements) {
 
-  for (auto subelem : subelements) {
-    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
-      boundary_elements.push_back(subelem);
-  }
-  
-    /*for (auto elem : elements) {
-
-    // to ensure that normal is always outwards from master surface
-    const auto & element_to_subelement =
-        mesh_facets.getElementToSubelement(elem.type)(elem.element);
-
-    UInt nb_subelements_regular = 0;
-    for (auto subelem : element_to_subelement) {
-      if (subelem == ElementNull)
-        continue;
-
-      if (subelem.kind() == _ek_regular) {
-        ++nb_subelements_regular;
-      }
-    }
-
-    auto nb_subelements = element_to_subelement.size();
-
-    if (nb_subelements_regular < nb_subelements) {
-      boundary_elements.push_back(elem);
-    }
-    }*/
-}
+//  for (auto subelem : subelements) {
+//    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
+//      boundary_elements.push_back(subelem);
+//  }
+//}
 
 /* -------------------------------------------------------------------------- */
 Array<UInt> & AllSurfaceSelector::getMasterList() {

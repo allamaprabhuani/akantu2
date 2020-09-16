@@ -44,10 +44,15 @@ class GeometryUtils {
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// computes the normal on an element
+  /// computes the normal on an element (assuming elements is flat)
   static void normal(const Mesh & mesh, const Array<Real> & positions,
 		     const Element & element, Vector<Real> & normal, bool outward=true);
 
+  
+  // computes normal at given covariant basis
+  static void normal(const Mesh & mesh, const Element & element, Matrix<Real> & covariant_basis,
+		     Vector<Real> & normal, bool outward=true);
+  
   /// computes the orthogonal projection on a set of elements and
   /// returns natural projection and normal gap and index of element
   static UInt orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
@@ -59,9 +64,25 @@ public:
 				   Real tolerance = 1e-10, 
 				   Real extension_tolerance = 1e-5);
 
+  /// computes the orthogonal projection on a set of elements and
+  /// returns natural projection and normal gap and index of element
+  static UInt orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
+				   const Vector<Real> & slave,
+				   const Array<Element> & elements,
+				   Real & gap, Vector<Real> & natural_projection,
+				   Vector<Real> & normal,
+				   Matrix<Real> & tangent,
+				   Real alpha,
+				   UInt max_iterations = 100,
+				   Real tolerance = 1e-10, 
+				   Real extension_tolerance = 1e-5);
+
+
   /// computes the natural projection on an element
   static void naturalProjection(const Mesh & mesh, const Array<Real> & positions,
-				const Element & element, Vector<Real> & real_projection,
+				const Element & element,
+				const Vector<Real> & slave_coords,
+				Vector<Real> & master_coords,
 				Vector<Real> & natural_projection,
 				UInt max_iterations = 100,
 				Real tolerance = 1e-10);
@@ -79,10 +100,16 @@ public:
   /// computes the covariant basis/ local surface basis/ tangents on projection
   /// point
   static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
+			     const Element & element,  Vector<Real> & natural_coord,
+			     Matrix<Real> & basis);
+
+  /// computes the covariant basis/ local surface basis/ tangents on projection
+  /// point
+  static void covariantBasis(const Mesh & mesh, const Array<Real> & positions,
 			     const Element & element,  const Vector<Real> & normal,
 			     Vector<Real> & natural_coord,
 			     Matrix<Real> & basis);
-
+  
   // computes the curvature on projection
   static void curvature(const Mesh & mesh, const Array<Real> & positions,
 			const Element & element, const Vector<Real> & natural_coord,

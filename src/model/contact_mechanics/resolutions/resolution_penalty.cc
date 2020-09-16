@@ -109,8 +109,8 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
   auto & tangents = model.getTangents();
   Matrix<Real> covariant_basis(tangents.begin(surface_dimension,
 					      spatial_dimension)[element.slave]);
-  GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
-				element.master, normal, projection, covariant_basis);
+  //GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
+  //				element.master, normal, projection, covariant_basis);
   
   // check for no-contact to contact condition
   auto & previous_master_elements = model.getPreviousMasterElements();
@@ -396,8 +396,9 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   auto & tangents = model.getTangents();
   Matrix<Real> covariant_basis(tangents.begin(surface_dimension,
 					      spatial_dimension)[element.slave]);
-  GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
-				element.master, normal, projection, covariant_basis);
+
+  //GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
+  //				element.master, normal, projection, covariant_basis);
 
   auto contravariant_metric_tensor =
     GeometryUtils::contravariantMetricTensor(covariant_basis);
@@ -866,7 +867,7 @@ void ResolutionPenalty::beforeSolveStep() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::afterSolveStep(bool converged) {
+void ResolutionPenalty::afterSolveStep(__attribute__((unused)) bool converged) {
 
   /*auto method = model.getAnalysisMethod();
   if (method == _explicit_lumped_mass) {

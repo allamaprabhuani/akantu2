@@ -460,19 +460,6 @@ void ContactMechanicsModel::computeNodalAreas() {
 	Vector<Real> force(std::get<1>(tuple));
 	area = force.norm();
       }
-      
-      
-      /*for (auto && tuple :
-	     zip(*nodal_area,
-		 make_view(*external_force, spatial_dimension),
-		 make_view(*normals, spatial_dimension))) {
-
-	auto & area = std::get<0>(tuple);
-	Vector<Real> force(std::get<1>(tuple));
-	Vector<Real> normal(std::get<2>(tuple));
-	area = abs(force.dot(normal));
-      }*/
-
     break;
   }
   default:

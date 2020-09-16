@@ -93,11 +93,11 @@ public:
   CohesiveSurfaceSelector(Mesh & mesh);
 
 protected:
+  void onElementsAdded(const Array<Element> & element_list,
+		       const NewElementsEvent & event) override;
+  
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
-
-  void filterBoundaryElements(Array<Element> & elements,
-                              Array<Element> & boundary_elements);
 
 public:
   Array<UInt> & getMasterList() override;
@@ -121,11 +121,11 @@ public:
   AllSurfaceSelector(Mesh & mesh);
 
 protected:
+  void onElementsAdded(const Array<Element> & element_list,
+		       const NewElementsEvent & event) override;
+  
   void onNodesAdded(const Array<UInt> & nodes_list,
                     const NewNodesEvent & event) override;
-
-  void filterBoundaryElements(Array<Element> & elements,
-                              Array<Element> & boundary_elements);
 
 public:
   Array<UInt> & getMasterList() override;

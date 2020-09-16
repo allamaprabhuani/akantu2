@@ -235,13 +235,9 @@ void SolidMechanicsModelCohesive::initFullImpl(const ModelOptions & options) {
 void SolidMechanicsModelCohesive::initMaterials() {
   AKANTU_DEBUG_IN();
 
-  UInt count{0};
-  
   // make sure the material are instantiated
   if (not are_materials_instantiated)
     instantiateMaterials();
-
-  std::cerr <<  "Msg initMaterial " << count++ << std::endl;
   
   /// find the first cohesive material
   UInt cohesive_index = UInt(-1);
@@ -256,19 +252,12 @@ void SolidMechanicsModelCohesive::initMaterials() {
   }
 
   
-  std::cerr <<  "Msg initMaterial " << count++ << std::endl;
-
-  
   if (cohesive_index == UInt(-1)) {
     AKANTU_EXCEPTION("No cohesive materials in the material input file");
   }
-
-  std::cerr << cohesive_index << std::endl;
   
   material_selector->setFallback(cohesive_index);
 
-  
-  std::cerr <<  "Msg initMaterial " << count++ << std::endl;
 
   
   // set the facet information in the material in case of dynamic insertion
@@ -280,15 +269,11 @@ void SolidMechanicsModelCohesive::initMaterials() {
       _with_nb_element = true,
       _default_value = material_selector->getFallbackValue());
 
-  
-  std::cerr <<  "Msg initMaterial " << count++ << std::endl;
-
   for_each_element(
       mesh_facets,
       [&](auto && element) {
         auto mat_index = (*material_selector)(element);
-	std::cerr << mat_index << std::endl;
-        auto & mat = aka::as_type<MaterialCohesive>(*materials[mat_index]);
+	auto & mat = aka::as_type<MaterialCohesive>(*materials[mat_index]);
         facet_material(element) = mat_index;
         if (is_extrinsic) {
           mat.addFacet(element);
@@ -297,14 +282,7 @@ void SolidMechanicsModelCohesive::initMaterials() {
       _spatial_dimension = spatial_dimension - 1, _ghost_type = _not_ghost);
 
   
-  std::cerr <<  "Msg initMaterial " << count++ << std::endl;
-
-  
   SolidMechanicsModel::initMaterials();
-
-  
-  std::cerr <<  "Msg initMaterial " << count++ << std::endl;
-
   
   if (is_extrinsic) {
     this->initAutomaticInsertion();

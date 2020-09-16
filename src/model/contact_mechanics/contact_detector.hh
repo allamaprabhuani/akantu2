@@ -76,6 +76,7 @@ public:
   /// performs all search steps
   void search(Array<ContactElement> & contact_map,
 	      Array<Real> & gaps, Array<Real> & normals,
+	      Array<Real> & tangents,
 	      Array<Real> & projections);
   
   /// performs global spatial search to construct spatial grids
@@ -87,7 +88,9 @@ public:
   /// create contact elements
   void createContactElements(Array<ContactElement> & elements,
 			     Array<Real> & gaps, Array<Real> & normals,
+			     Array<Real> & tangents, 
 			     Array<Real> & projections);
+
   
 private:  
   /// reads the input file to get contact detection options

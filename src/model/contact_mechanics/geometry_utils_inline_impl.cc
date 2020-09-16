@@ -23,7 +23,7 @@ inline bool GeometryUtils::isBoundaryElement(const Mesh & mesh,
 
   // for cohesive interface elements when surfaceSelector is set
   // either cohesive surface selector or all surface selector, in this
-  // case mesg passes is actually mesh_facet and for boundary or
+  // case mesh passed is actually mesh_facet and for boundary or
   // cohesive  interface 2 elements are associated to a subelement
   // we want only one regular element attached to the subelement
   

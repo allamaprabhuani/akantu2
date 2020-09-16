@@ -97,6 +97,95 @@ void GeometryUtils::normal(const Mesh & mesh, const Array<Real> & positions,
 }
 
 /* -------------------------------------------------------------------------- */
+void GeometryUtils::normal(const Mesh & mesh, const Element & element, Matrix<Real> & tangents,
+			   Vector<Real> & normal, bool outward) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+    
+  // to ensure that normal is always outwards from master surface we
+  // compute a direction vector form inside of element attached to the
+  // suurface element
+  
+  Vector<Real> inside_to_outside(spatial_dimension);
+  if (outward) {
+      
+   const auto & element_to_subelement =
+     mesh.getElementToSubelement(element.type)(element.element);
+
+   Vector<Real> outside(spatial_dimension);
+   mesh.getBarycenter(element, outside);
+
+   // check if mesh facets exists for cohesive elements contact
+   Vector<Real> inside(spatial_dimension);
+   if (mesh.isMeshFacets()) {
+     mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
+   } else {
+     mesh.getBarycenter(element_to_subelement[0], inside);
+   }
+
+   inside_to_outside = outside - inside;
+   //auto projection = inside_to_outside.dot(normal);
+
+   //if (projection < 0) {
+   //  normal *= -1.0;
+   //}
+  }
+  
+  // to ensure that direction of tangents are correct, cross product
+  // of tangents should give be in the same direction as of inside to outside
+  switch (spatial_dimension) {
+  case 2: {
+    /*Vector<Real> e_z(3);
+    e_z[0] = 0.;
+    e_z[1] = 0.;
+    e_z[2] = 1.;
+
+    Vector<Real> tangent(3);
+    tangent[0] = tangents(0, 0);
+    tangent[1] = tangents(0, 1);
+    tangent[2] = 0.;
+
+    normal = e_z.crossProduct(tangent);*/
+
+    normal[0] = -tangents(0, 1);
+    normal[1] =  tangents(0, 0);
+
+    auto ddot = inside_to_outside.dot(normal);
+    if (ddot < 0) {
+      tangents *= -1.0;
+      normal *= -1.0;
+    }
+
+    
+    break;
+  }
+  case 3: {
+    auto tang_trans = tangents.transpose();
+    auto tang1 = Vector<Real>(tang_trans(0));
+    auto tang2 = Vector<Real>(tang_trans(1));
+
+    auto tang1_cross_tang2 = tang1.crossProduct(tang2);
+    normal = tang1_cross_tang2 / tang1_cross_tang2.norm();
+
+    auto ddot = inside_to_outside.dot(normal);
+    if (ddot < 0) {
+      tang_trans(1) *= -1.0;
+      normal *= -1.0;
+    }
+
+    tangents = tang_trans.transpose();
+
+    break;
+  }
+  default:
+    break;
+  }
+  
+   
+}
+  
+  
+/* -------------------------------------------------------------------------- */
 void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positions,
 				   const Element & element, const Vector<Real> & normal,
 				   Vector<Real> & natural_coord,
@@ -175,6 +264,42 @@ void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positi
 }
 
 /* -------------------------------------------------------------------------- */
+void GeometryUtils::covariantBasis(const Mesh & mesh, const Array<Real> & positions,
+				   const Element & element, Vector<Real> & natural_coord,
+				   Matrix<Real> & tangents) {
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  
+  const ElementType & type = element.type;
+  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
+  UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
+  Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
+
+  mesh.extractNodalValuesFromElement(positions, nodes_coord.storage(),
+                                     elem_val + element.element * nb_nodes_per_element,
+                                     nb_nodes_per_element, spatial_dimension);
+
+  UInt surface_dimension = spatial_dimension - 1;
+  Matrix<Real> dnds(surface_dimension, nb_nodes_per_element);
+  
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)				\
+  ElementClass<type>::computeDNDS(natural_coord, dnds)
+  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_DERIVATIVES_NATURAL
+
+  tangents.mul<false, true>(dnds, nodes_coord);
+
+  auto temp_tangents = tangents.transpose();
+  for (UInt i = 0; i < spatial_dimension - 1; ++i) {
+    auto temp = Vector<Real>(temp_tangents(i));
+    temp_tangents(i) = temp.normalize();
+  }
+
+  tangents = temp_tangents.transpose();
+}
+
+
+/* -------------------------------------------------------------------------- */
 void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
 			      const Element & element, const Vector<Real> & natural_coord,
 			      Matrix<Real> & curvature) {
@@ -216,18 +341,36 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   Real min_gap = std::numeric_limits<Real>::max();
 
   UInt spatial_dimension = mesh.getSpatialDimension();
-
+  UInt surface_dimension = spatial_dimension - 1; 
+  
   UInt nb_same_sides{0};
   UInt nb_boundary_elements{0};
 
   UInt counter{0};
+
+  auto & contact_group = mesh.getElementGroup("contact_surface");
+ 
   for (auto & element : elements) {
-    if (!GeometryUtils::isBoundaryElement(mesh, element))
+    // filter out elements which are not there in the element group
+    // contact surface created by the surface selector and is stored
+    // in the mesh or mesh_facet, if a element is not there it
+    // returnas UInt(-1)
+ 
+    auto & elements_of_type = contact_group.getElements(element.type);
+    if(elements_of_type.find(element.element) == UInt(-1))
       continue;
+
+    
+    //if (!GeometryUtils::isBoundaryElement(mesh, element))
+    //  continue;
 
     nb_boundary_elements++;
 
-    Vector<Real> normal_ele(spatial_dimension);
+    // find the natural coordinate corresponding to the minimum gap
+    // between slave node and master element
+    
+    
+    /* Vector<Real> normal_ele(spatial_dimension);
     GeometryUtils::normal(mesh, positions, element, normal_ele);
     
     Vector<Real> master(spatial_dimension);
@@ -235,8 +378,25 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
 
     Vector<Real> xi(natural_projection.size());
     GeometryUtils::naturalProjection(mesh, positions, element, master, xi,
+				     max_iterations,
+    projection_tolerance);*/
+
+    Vector<Real> master(spatial_dimension);
+    
+    Vector<Real> xi(natural_projection.size());
+    GeometryUtils::naturalProjection(mesh, positions, element,
+				     slave, master, xi,
 				     max_iterations, projection_tolerance);
 
+    Matrix<Real> tangent_ele(surface_dimension, spatial_dimension);
+    GeometryUtils::covariantBasis(mesh, positions,  element, xi,
+				  tangent_ele);
+
+    Vector<Real> normal_ele(spatial_dimension);
+    GeometryUtils::normal(mesh, element, tangent_ele, normal_ele);
+
+
+    
     // if gap between master projection and slave point is zero, then
     // it means that slave point lies on the master element, hence the
     // normal from master to slave cannot be computed in that case
@@ -290,6 +450,132 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   return index;
 }
 
+
+/* -------------------------------------------------------------------------- */
+UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & positions,
+					 const Vector<Real> & slave,
+					 const Array<Element> & elements,
+					 Real & gap, Vector<Real> & natural_projection,
+					 Vector<Real> & normal,
+					 Matrix<Real> & tangent,
+					 Real alpha,
+					 UInt max_iterations,
+					 Real projection_tolerance, 
+					 Real extension_tolerance) {
+
+  UInt index = UInt(-1);
+  Real min_gap = std::numeric_limits<Real>::max();
+
+  UInt spatial_dimension = mesh.getSpatialDimension();
+  UInt surface_dimension = spatial_dimension - 1; 
+  
+  UInt nb_same_sides{0};
+  UInt nb_boundary_elements{0};
+
+  auto & contact_group = mesh.getElementGroup("contact_surface");
+
+  UInt counter{0};
+  for (auto & element : elements) {
+
+    // filter out elements which are not there in the element group
+    // contact surface created by the surface selector and is stored
+    // in the mesh or mesh_facet, if a element is not there it
+    // returnas UInt(-1)
+ 
+    auto & elements_of_type = contact_group.getElements(element.type);
+    if(elements_of_type.find(element.element) == UInt(-1))
+      continue;
+
+    
+    //if (!GeometryUtils::isBoundaryElement(mesh, element))
+    //  continue;
+
+    nb_boundary_elements++;
+
+    // find the natural coordinate corresponding to the minimum gap
+    // between slave node and master element
+    
+    
+    /* Vector<Real> normal_ele(spatial_dimension);
+    GeometryUtils::normal(mesh, positions, element, normal_ele);
+    
+    Vector<Real> master(spatial_dimension);
+    GeometryUtils::realProjection(mesh, positions, slave, element, normal_ele, master);
+
+    Vector<Real> xi(natural_projection.size());
+    GeometryUtils::naturalProjection(mesh, positions, element, master, xi,
+				     max_iterations,
+    projection_tolerance);*/
+
+    Vector<Real> master(spatial_dimension);
+    
+    Vector<Real> xi_ele(natural_projection.size());
+    GeometryUtils::naturalProjection(mesh, positions, element,
+				     slave, master, xi_ele,
+				     max_iterations, projection_tolerance);
+
+    Matrix<Real> tangent_ele(surface_dimension, spatial_dimension);
+    GeometryUtils::covariantBasis(mesh, positions,  element, xi_ele,
+				  tangent_ele);
+
+    Vector<Real> normal_ele(spatial_dimension);
+    GeometryUtils::normal(mesh, element, tangent_ele, normal_ele);
+    
+    // if gap between master projection and slave point is zero, then
+    // it means that slave point lies on the master element, hence the
+    // normal from master to slave cannot be computed in that case
+    
+    auto master_to_slave = slave - master;
+    Real temp_gap = master_to_slave.norm();
+    
+    if (temp_gap != 0) 
+      master_to_slave /= temp_gap;
+    
+    // also the slave point should lie inside the master surface in
+    // case of explicit or outside in case of implicit, one way to
+    // check that is by checking the dot product of normal at each
+    // master element, if the values of all dot product is same then
+    // the slave point lies on the same side of each master element
+    
+    
+    // A alpha parameter is introduced which is 1 in case of explicit
+    // and -1 in case of implicit, therefor the variation (dot product
+    // + alpha) should be close to zero (within tolerance) for both
+    // cases
+
+    Real direction_tolerance = 1e-8;
+    auto product = master_to_slave.dot(normal_ele);
+    auto variation = std::abs(product + alpha);
+         
+    if (variation <= direction_tolerance and
+	temp_gap <= min_gap and
+	GeometryUtils::isValidProjection(xi_ele, extension_tolerance)) {
+
+      gap     = -temp_gap;
+      min_gap = temp_gap;
+      index   = counter;
+      natural_projection = xi_ele;
+      normal = normal_ele;
+      tangent = tangent_ele;
+    }
+
+    if(temp_gap == 0 or variation <= direction_tolerance)
+      nb_same_sides++;
+    
+    counter++;
+  }
+
+  // if point is not on the same side of all the boundary elements
+  // than it is not consider even if the closet master element is
+  // found
+  if(nb_same_sides != nb_boundary_elements)
+    index = UInt(-1);
+  
+  return index;
+}
+
+
+  
 /* -------------------------------------------------------------------------- */
 void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positions,
 				   const Vector<Real> & slave, const Element & element,
@@ -343,12 +629,14 @@ void GeometryUtils::realProjection(const Mesh & mesh, const Array<Real> & positi
 /* -------------------------------------------------------------------------- */
 void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & positions,
 				      const Element & element,
-				      Vector<Real> & real_projection,
+				      const Vector<Real> & slave_coords,
+				      Vector<Real> & master_coords,
 				      Vector<Real> & natural_projection,
 				      UInt max_iterations, 
 				      Real projection_tolerance) {
 
   UInt spatial_dimension = mesh.getSpatialDimension();
+  UInt surface_dimension = spatial_dimension - 1;
   
   const ElementType & type = element.type;
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -359,11 +647,142 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
                                      elem_val + element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
+  // initial guess
+  natural_projection.clear();
+  
+  // obhjective function  computed on the natural_guess
+  Matrix<Real> f(surface_dimension, 1);
+
+  // jacobian matrix computed on the natural_guess
+  Matrix<Real> J(surface_dimension, surface_dimension);
+  
+  // Jinv = J^{-1}
+  Matrix<Real> Jinv(surface_dimension, surface_dimension);
+  
+  // dxi = \xi_{k+1} - \xi_{k} in the iterative process
+  Matrix<Real> dxi(surface_dimension, 1);
+
+  // gradient at natural projection
+  Matrix<Real> gradient(surface_dimension, spatial_dimension);
+  
+  // second derivative at natural peojection
+  Matrix<Real> double_gradient(surface_dimension, surface_dimension);
+
+  
+  // second derivative of shape function at natural projection
+  Matrix<Real> dn2ds2(surface_dimension * surface_dimension,
+		      nb_nodes_per_element);
+
+  auto compute_double_gradient = [&double_gradient, &dn2ds2,
+				  &nodes_coord, surface_dimension,
+				  spatial_dimension](UInt & alpha, UInt & beta) {
+
+    auto index = alpha * surface_dimension + beta;
+    Vector<Real> d_alpha_beta(spatial_dimension);
+
+    auto dn2ds2_transpose = dn2ds2.transpose();
+    Vector<Real> dn2ds2_alpha_beta(dn2ds2_transpose(index));
+
+    d_alpha_beta.mul<true>(nodes_coord, dn2ds2_alpha_beta);
+
+    return d_alpha_beta;
+  };
+  
+  /* --------------------------- */
+  /* init before iteration loop  */
+  /* --------------------------- */
+  // do interpolation
+  auto update_f = [&f, &master_coords, &natural_projection, &nodes_coord,
+		   &slave_coords, &gradient, surface_dimension, spatial_dimension,
+		   nb_nodes_per_element, type]() {
+  
+    // compute real coords on natural projection
+    Vector<Real> shapes(nb_nodes_per_element);  
+#define GET_SHAPE_NATURAL(type)		\
+    ElementClass<type>::computeShapes(natural_projection, shapes)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
+#undef GET_SHAPE_NATURAL
+
+    master_coords.mul<false>(nodes_coord, shapes);
+
+    auto distance = slave_coords - master_coords;
+
+    // first derivative of shape function at natural projection
+  Matrix<Real> dnds(surface_dimension, nb_nodes_per_element);
+    
+    // computing gradient at projection point    
+#define GET_SHAPE_DERIVATIVES_NATURAL(type)			\
+    ElementClass<type>::computeDNDS(natural_projection, dnds)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_DERIVATIVES_NATURAL
+
+    gradient.mul<false, true>(dnds, nodes_coord);
+
+    // gradient transpose at natural projection
+    Matrix<Real> gradient_transpose(surface_dimension, spatial_dimension);
+
+    gradient_transpose = gradient.transpose();
+    
+    // loop over surface dimensions
+    for(auto alpha : arange(surface_dimension)) {
+      Vector<Real> gradient_alpha(gradient_transpose(alpha));
+      f(alpha, 0) = -2.*gradient_alpha.dot(distance);
+    }
+   
+    // compute initial error
+    auto error = f.norm<L_2>();
+    return error;
+
+  };
+
+  
+  auto projection_error = update_f();
+  
+  /* --------------------------- */
+  /* iteration loop              */
+  /* --------------------------- */
+  UInt iterations{0};
+  while(projection_tolerance < projection_error and iterations < max_iterations) {
+
+    // compute covariant components of metric tensor
+    auto a = GeometryUtils::covariantMetricTensor(gradient);
+
+    // computing second derivative at natural projection
+#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)			\
+    ElementClass<type>::computeDN2DS2(natural_projection, dn2ds2)
+    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
+#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+
+    // real coord - physical guess
+    auto distance = slave_coords - master_coords;
+    
+    // computing Jacobian J
+    for(auto alpha : arange(surface_dimension)) {    
+      for(auto beta : arange(surface_dimension)) {
+	auto dgrad_alpha_beta = compute_double_gradient(alpha, beta); 
+	J(alpha, beta) = 2.*(a(alpha, beta) - dgrad_alpha_beta.dot(distance));
+      }
+    }
+
+    Jinv.inverse(J);
+    
+    // compute increment
+    dxi.mul<false, false>(Jinv, f, -1.0);
+
+    // update our guess
+    natural_projection += Vector<Real>(dxi(0));
+
+    projection_error = update_f();
+    iterations++;
+  }
+  
+  
+  /*  
 #define GET_NATURAL_COORDINATE(type)                                           \
-  ElementClass<type>::inverseMap(real_projection, nodes_coord,                 \
+  ElementClass<type>::inverseMap(slave_coords, nodes_coord,                 \
                                  natural_projection, max_iterations, projection_tolerance)
   AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
-#undef GET_NATURAL_COORDINATE
+  #undef GET_NATURAL_COORDINATE*/
 }
 
 
