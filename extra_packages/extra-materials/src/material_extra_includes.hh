@@ -25,9 +25,9 @@
 // damage materials
 #include "material_brittle.hh"
 #include "material_damage_explicit.hh"
-#include "material_damage_viscoelastic.hh"
 #include "material_damage_iterative.hh"
 #include "material_damage_linear.hh"
+#include "material_damage_viscoelastic.hh"
 #include "material_iterative_stiffness_reduction.hh"
 #include "material_orthotropic_damage_iterative.hh"
 #include "material_vreepeerlings.hh"
@@ -37,6 +37,9 @@
 
 // multi-scale simulations
 #include "material_FE2.hh"
+
+// cohesive materials
+#include "material_cohesive_linear_sequential.hh"
 
 #endif
 
@@ -70,7 +73,8 @@
       (2, (damage_viscoelastic, MaterialDamageViscoelastic)))(                 \
       (2, (vreepeerlings, MaterialVreePeerlings)))(                            \
       (2, (ve_stiffness_prop, MaterialStiffnessProportional)))(                \
-      (2, (visco_plastic, MaterialViscoPlastic)))(                             \
-      (2, (orthotropic_damage_iterative, MaterialOrthotropicDamageIterative)))
+      (2, (visco_plastic, MaterialViscoPlastic)))((                            \
+      2, (orthotropic_damage_iterative, MaterialOrthotropicDamageIterative)))( \
+      (2, (cohesive_linear_sequential, MaterialCohesiveLinearSequential)))
 
 #endif /* __AKANTU_MATERIAL_EXTRA_INCLUDES_HH__ */
