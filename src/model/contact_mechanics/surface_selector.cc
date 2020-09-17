@@ -117,9 +117,6 @@ void CohesiveSurfaceSelector::onElementsAdded(const Array<Element> & element_lis
   }
 
   group.optimize();
-
-  for(auto & node : group.getNodeGroup().getNodes())
-    new_nodes_list.push_back(node);
 }
   
 /* -------------------------------------------------------------------------- */
@@ -176,12 +173,12 @@ void CohesiveSurfaceSelector::onNodesAdded(__attribute__((unused)) const Array<U
 
 /* -------------------------------------------------------------------------- */
 Array<UInt> & CohesiveSurfaceSelector::getMasterList() {
-  return this->getNewNodesList();
+  return mesh_facets.getElementGroup("contact_surface").getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
 Array<UInt> & CohesiveSurfaceSelector::getSlaveList() {
-  return this->getNewNodesList();
+  return mesh_facets.getElementGroup("contact_surface").getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -208,10 +205,6 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
   group.append(mesh_facets.getElementGroup(slave));
 
   group.optimize();
-  
-  for(auto & node : group.getNodeGroup().getNodes())
-    new_nodes_list.push_back(node);
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -237,9 +230,6 @@ void AllSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
   }
 
   group.optimize();
-
-  for(auto & node : group.getNodeGroup().getNodes())
-    new_nodes_list.push_back(node);
 }  
 
 /* -------------------------------------------------------------------------- */
@@ -282,23 +272,13 @@ void AllSurfaceSelector::onNodesAdded(__attribute__((unused)) const Array<UInt> 
 }
 
 /* -------------------------------------------------------------------------- */
-//void AllSurfaceSelector::filterBoundaryElements(
-//    Array<Element> & subelements, Array<Element> & boundary_elements) {
-
-//  for (auto subelem : subelements) {
-//    if(GeometryUtils::isBoundaryElement(mesh_facets, subelem))
-//      boundary_elements.push_back(subelem);
-//  }
-//}
-
-/* -------------------------------------------------------------------------- */
 Array<UInt> & AllSurfaceSelector::getMasterList() {
-  return this->getNewNodesList();
+  return mesh_facets.getElementGroup("contact_surface").getNodeGroup().getNodes();
 }
 
 /* -------------------------------------------------------------------------- */
 Array<UInt> & AllSurfaceSelector::getSlaveList() {
-  return this->getNewNodesList();
+  return mesh_facets.getElementGroup("contact_surface").getNodeGroup().getNodes();
 }
 
 #endif
