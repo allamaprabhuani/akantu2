@@ -85,18 +85,19 @@ Array<UInt> & PhysicalSurfaceSelector::getSlaveList() {
 CohesiveSurfaceSelector::CohesiveSurfaceSelector(Mesh & mesh)
     : SurfaceSelector(mesh), mesh_facets(mesh.getMeshFacets()) {
   this->mesh.registerEventHandler(*this, _ehp_lowest);
+
+  UInt surface_dimension = mesh.getSpatialDimension() - 1;
+  mesh_facets.createElementGroup("contact_surface",
+				 surface_dimension, true);
+  
 }
 
 /* -------------------------------------------------------------------------- */
 void CohesiveSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
 					      __attribute__((unused)) const NewElementsEvent & event) {
     
-  UInt surface_dimension = mesh.getSpatialDimension() - 1;
-  auto & group = mesh_facets.createElementGroup("contact_surface",
-						surface_dimension, true);
-  
+  auto & group = mesh_facets.getElementGroup("contact_surface");
  
-
   for(auto elem : element_list) {
     if(elem.kind() != _ek_cohesive)
       continue;
@@ -217,10 +218,8 @@ AllSurfaceSelector::AllSurfaceSelector(Mesh & mesh)
 void AllSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
 					 __attribute__((unused)) const NewElementsEvent & event) {
     
-  UInt surface_dimension = mesh.getSpatialDimension() - 1;
-  auto & group = mesh_facets.createElementGroup("contact_surface",
-						surface_dimension, true);
-  
+  auto & group = mesh_facets.getElementGroup("contact_surface");
+
   for(auto elem : element_list) {
     if(elem.kind() != _ek_cohesive)
       continue;
@@ -230,9 +229,7 @@ void AllSurfaceSelector::onElementsAdded(const Array<Element> & element_list,
     
     auto && facets = Vector<Element>(
 			   make_view(subelement_to_element,
-				     subelement_to_element.getNbComponent())
-			   .begin()[elem.element]);
-
+				     subelement_to_element.getNbComponent()).begin()[elem.element]);
     
     for(auto facet : facets) {
       group.add(facet, true);

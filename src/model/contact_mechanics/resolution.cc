@@ -210,7 +210,7 @@ void Resolution::assembleLocalToGlobalMatrix(const ContactElement & element,
 void Resolution::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
-void Resolution::afterSolveStep(bool converged) {}
+void Resolution::afterSolveStep(__attribute__((unused)) bool converged) {}
   
 
 } // namespace akantu
