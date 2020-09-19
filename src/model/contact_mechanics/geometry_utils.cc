@@ -556,8 +556,8 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   // if point is not on the same side of all the boundary elements
   // than it is not consider even if the closet master element is
   // found
-  if(nb_same_sides != nb_boundary_elements)
-    index = UInt(-1);
+  //if(nb_same_sides != nb_boundary_elements)
+  //  index = UInt(-1);
   
   return index;
 }

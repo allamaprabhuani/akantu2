@@ -287,6 +287,8 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
     if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) { 
       gap *= 0;
       normal *= 0;
+      projection *= 0;
+      tangent *= 0;
       continue;
     }
     
