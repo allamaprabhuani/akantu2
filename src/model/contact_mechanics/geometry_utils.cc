@@ -135,18 +135,6 @@ void GeometryUtils::normal(const Mesh & mesh, const Element & element, Matrix<Re
   // of tangents should give be in the same direction as of inside to outside
   switch (spatial_dimension) {
   case 2: {
-    /*Vector<Real> e_z(3);
-    e_z[0] = 0.;
-    e_z[1] = 0.;
-    e_z[2] = 1.;
-
-    Vector<Real> tangent(3);
-    tangent[0] = tangents(0, 0);
-    tangent[1] = tangents(0, 1);
-    tangent[2] = 0.;
-
-    normal = e_z.crossProduct(tangent);*/
-
     normal[0] = -tangents(0, 1);
     normal[1] =  tangents(0, 0);
 
@@ -683,7 +671,7 @@ void GeometryUtils::naturalProjection(const Mesh & mesh, const Array<Real> & pos
     auto dn2ds2_transpose = dn2ds2.transpose();
     Vector<Real> dn2ds2_alpha_beta(dn2ds2_transpose(index));
 
-    d_alpha_beta.mul<true>(nodes_coord, dn2ds2_alpha_beta);
+    d_alpha_beta.mul<false>(nodes_coord, dn2ds2_alpha_beta);
 
     return d_alpha_beta;
   };

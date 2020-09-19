@@ -123,7 +123,7 @@ protected:
 public:
   void search();
 
-  void computeNodalAreas();
+  void computeNodalAreas(GhostType ghost_type = _not_ghost);
 
   /* ------------------------------------------------------------------------ */
   /* Contact Resolution                                                       */

@@ -423,7 +423,7 @@ void ContactMechanicsModel::savePreviousState() {
 
   
 /* -------------------------------------------------------------------------- */
-void ContactMechanicsModel::computeNodalAreas() {
+void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -441,7 +441,7 @@ void ContactMechanicsModel::computeNodalAreas() {
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
   
-  switch (spatial_dimension) {
+  /*switch (spatial_dimension) {
   case 1: {
     std::fill((*nodal_area).begin(), (*nodal_area).end(), 1.);
     break;
@@ -464,6 +464,102 @@ void ContactMechanicsModel::computeNodalAreas() {
   }
   default:
     break;
+  }
+  
+  this->external_force->clear();*/
+  
+  IntegrationPoint quad_point;
+  quad_point.ghost_type = ghost_type;
+  
+  auto & group = mesh.getElementGroup("contact_surface");
+  UInt nb_degree_of_freedom = external_force->getNbComponent();
+
+  for (auto && type : group.elementTypes(spatial_dimension - 1, ghost_type)) {
+    const auto & element_ids = group.getElements(type, ghost_type);
+    
+    UInt nb_quad_points =
+      fem_boundary.getNbIntegrationPoints(type, ghost_type);
+    UInt nb_elements = element_ids.size();
+    
+    UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);        
+
+    Array<Real> dual_before_integ(nb_elements * nb_quad_points,
+				  nb_degree_of_freedom, 0.);
+    Array<Real> quad_coords(nb_elements * nb_quad_points, spatial_dimension);
+
+    const auto & normals_on_quad =
+      fem_boundary.getNormalsOnIntegrationPoints(type, ghost_type);
+
+    auto normals_begin = normals_on_quad.begin(spatial_dimension);
+    decltype(normals_begin) normals_iter;
+    auto quad_coords_iter = quad_coords.begin(spatial_dimension);
+    auto dual_iter = dual_before_integ.begin(nb_degree_of_freedom);
+
+    quad_point.type = type;
+
+    Element subelement;
+    subelement.type = type;
+    subelement.ghost_type = ghost_type;
+    for (auto el : element_ids) {
+      subelement.element = el;
+      const auto & element_to_subelement =
+	mesh.getElementToSubelement(type)(el);
+
+      Vector<Real> outside(spatial_dimension);
+      mesh.getBarycenter(subelement, outside);
+
+      Vector<Real> inside(spatial_dimension);
+      if (mesh.isMeshFacets()) {
+	mesh.getMeshParent().getBarycenter(element_to_subelement[0], inside);
+      }
+      else {
+	mesh.getBarycenter(element_to_subelement[0], inside);
+      }
+
+      Vector<Real> inside_to_outside(spatial_dimension);
+      inside_to_outside = outside - inside;
+      
+      normals_iter = normals_begin + el * nb_quad_points;
+   
+      quad_point.element = el;
+      for (auto q : arange(nb_quad_points)) {
+          quad_point.num_point = q;
+	  auto ddot = inside_to_outside.dot(*normals_iter);
+	  Vector<Real> normal(*normals_iter);
+	  if (ddot < 0)
+	    normal *= -1.0;
+
+	  (*dual_iter).mul<false>(Matrix<Real>::eye(spatial_dimension, 1),
+				  normal);
+	  ++dual_iter;
+          ++quad_coords_iter;
+          ++normals_iter;
+      }
+    }
+
+    Array<Real> dual_by_shapes(nb_elements * nb_quad_points,
+			       nb_degree_of_freedom * nb_nodes_per_element);
+
+    fem_boundary.computeNtb(dual_before_integ, dual_by_shapes, type,
+			    ghost_type, element_ids);
+
+    Array<Real> dual_by_shapes_integ(nb_elements, nb_degree_of_freedom *
+				     nb_nodes_per_element);
+    fem_boundary.integrate(dual_by_shapes, dual_by_shapes_integ,
+			   nb_degree_of_freedom * nb_nodes_per_element, type,
+			   ghost_type, element_ids);
+
+    this->getDOFManager().assembleElementalArrayLocalArray(
+          dual_by_shapes_integ, *external_force, type, ghost_type, 1., element_ids);
+  }
+
+  for (auto && tuple :
+	 zip(*nodal_area,
+	     make_view(*external_force, spatial_dimension))) {
+    
+    auto & area = std::get<0>(tuple);
+    Vector<Real> force(std::get<1>(tuple));
+    area = force.norm();
   }
   
   this->external_force->clear();
