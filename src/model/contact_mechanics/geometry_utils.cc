@@ -478,7 +478,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     //if (!GeometryUtils::isBoundaryElement(mesh, element))
     //  continue;
 
-    nb_boundary_elements++;
+    //nb_boundary_elements++;
 
     // find the natural coordinate corresponding to the minimum gap
     // between slave node and master element
@@ -531,13 +531,15 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     // + alpha) should be close to zero (within tolerance) for both
     // cases
 
-    Real direction_tolerance = 1e-8;
+    Real direction_tolerance = 1e-1;
     auto product = master_to_slave.dot(normal_ele);
     auto variation = std::abs(product + alpha);
          
-    if (variation <= direction_tolerance and
-	temp_gap <= min_gap and
+    //if (variation <= direction_tolerance and
+    if (product < 0 and
+    	temp_gap <= min_gap and
 	GeometryUtils::isValidProjection(xi_ele, extension_tolerance)) {
+    
 
       gap     = -temp_gap;
       min_gap = temp_gap;
@@ -547,8 +549,8 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
       tangent = tangent_ele;
     }
 
-    if(temp_gap == 0 or variation <= direction_tolerance)
-      nb_same_sides++;
+    //if(temp_gap == 0 or variation <= direction_tolerance)
+    //  nb_same_sides++;
     
     counter++;
   }
