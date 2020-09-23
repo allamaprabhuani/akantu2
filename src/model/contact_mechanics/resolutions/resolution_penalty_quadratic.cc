@@ -101,13 +101,15 @@ void ResolutionPenaltyQuadratic::computeTangentialForce(const ContactElement & e
   auto & tangents = model.getTangents();
   Matrix<Real> covariant_basis(tangents.begin(surface_dimension,
 					      spatial_dimension)[element.slave]);
-  //GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
-  //				element.master, normal, projection, covariant_basis);
-  
-  // check for no-contact to contact condition
-  auto & previous_master_elements = model.getPreviousMasterElements();
-  auto & previous_element = previous_master_elements[element.slave];
 
+  // check for no-contact to contact condition
+  // need a better way to check if new node added is not presnt in the
+  // previous master elemets
+  auto & previous_master_elements = model.getPreviousMasterElements();
+  if(element.slave >= previous_master_elements.size())
+    return;
+  
+  auto & previous_element = previous_master_elements[element.slave];
   if (previous_element.type == _not_defined)
     return;
   

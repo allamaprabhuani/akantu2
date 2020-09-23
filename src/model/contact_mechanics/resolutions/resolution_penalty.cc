@@ -109,13 +109,15 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
   auto & tangents = model.getTangents();
   Matrix<Real> covariant_basis(tangents.begin(surface_dimension,
 					      spatial_dimension)[element.slave]);
-  //GeometryUtils::covariantBasis(model.getMesh(), model.getContactDetector().getPositions(),
-  //				element.master, normal, projection, covariant_basis);
-  
+    
   // check for no-contact to contact condition
+  // need a better way to check if new node added is not presnt in the
+  // previous master elemets
   auto & previous_master_elements = model.getPreviousMasterElements();
+  if(element.slave >= previous_master_elements.size())
+    return;
+  
   auto & previous_element = previous_master_elements[element.slave];
-
   if (previous_element.type == _not_defined)
     return;
   
@@ -148,25 +150,6 @@ void ResolutionPenalty::computeTangentialForce(const ContactElement & element,
       force += tmp;
     }
   }
-  
-  
-  // compute first variation of natural coordinate  
-  /*auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
-
-  auto nb_nodes  = element.getNbNodes();
-  Array<Real> delta_xi(nb_nodes * spatial_dimension, surface_dimension);
-  ResolutionUtils::firstVariationNaturalCoordinate(element, covariant_basis,
-						   projection, normal, gap, delta_xi);
-
-  // compute tangential force
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
-  for (auto && values : zip(tangential_traction,
-			    make_view(delta_xi, delta_xi.size()))) {
-    auto & traction_alpha = std::get<0>(values);
-    auto & delta_xi_alpha = std::get<1>(values);
-    force += delta_xi_alpha * traction_alpha * nodal_area[element.slave];
-    }*/
 }
 
 /* -------------------------------------------------------------------------- */

@@ -474,10 +474,6 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     if(elements_of_type.find(element.element) == UInt(-1))
       continue;
 
-    
-    //if (!GeometryUtils::isBoundaryElement(mesh, element))
-    //  continue;
-
     //nb_boundary_elements++;
 
     // find the natural coordinate corresponding to the minimum gap
@@ -538,8 +534,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     //if (variation <= direction_tolerance and
     if (product < 0 and
     	temp_gap <= min_gap and
-	GeometryUtils::isValidProjection(xi_ele, extension_tolerance)) {
-    
+	GeometryUtils::isValidProjection(xi_ele, extension_tolerance)) {    
 
       gap     = -temp_gap;
       min_gap = temp_gap;
