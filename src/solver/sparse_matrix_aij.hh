@@ -81,9 +81,6 @@ public:
   inline void addValues(const Vector<Int> & is, const Vector<Int> & js,
                         const Matrix<Real> & values, MatrixType values_type);
 
-  /// set the size of the matrix
-  void resize(UInt size) { this->size_ = size; }
-
   /// modify the matrix to "remove" the blocked dof
   void applyBoundary(Real block_val = 1.) override;
 

@@ -1374,10 +1374,11 @@ template <typename R>
 inline typename Array<T, is_scal>::template iterator<R>
 Array<T, is_scal>::erase(const iterator<R> & it) {
   T * curr = it.data();
+  auto offset = curr - this->values;
   UInt pos = (curr - this->values) / this->nb_component;
   erase(pos);
-  iterator<R> rit = it;
-  return --rit;
+  iterator<R> rit(this->values + offset);
+  return rit;
 }
 
 } // namespace akantu

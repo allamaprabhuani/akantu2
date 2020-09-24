@@ -61,14 +61,14 @@ inline NodeGroup::const_node_iterator NodeGroup::add(UInt node,
 /* -------------------------------------------------------------------------- */
 inline void NodeGroup::remove(UInt node) {
   Array<UInt>::iterator<> it = this->node_group.begin();
-  Array<UInt>::iterator<> end = this->node_group.end();
-  AKANTU_DEBUG_ASSERT(it != end, "The node group is empty!!");
-  for (; it != node_group.end(); ++it) {
+  AKANTU_DEBUG_ASSERT(it != node_group.end(), "The node group is empty!!");
+  while (it != node_group.end()) {
     if (*it == node) {
       it = node_group.erase(it);
+    } else {
+      ++it;
     }
   }
-  AKANTU_DEBUG_ASSERT(it != end, "The node was not found!");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -85,14 +85,16 @@ template <typename T> void NodeGroup::applyNodeFilter(T & filter) {
 
   Array<UInt>::iterator<> it = this->node_group.begin();
 
-  for (; it != node_group.end(); ++it) {
+  while (it != node_group.end()) {
     /// filter == true -> keep node
     if (!filter(*it)) {
       it = node_group.erase(it);
+    } else {
+      ++it;
     }
   }
 
   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu

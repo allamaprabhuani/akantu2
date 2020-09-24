@@ -68,9 +68,9 @@ public:
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
-  /// compute ASR strain according to the sigmoidal rule (Larive,1998)
-  void computeASRStrainLarive(const Real & delta_time_day, const Real & T,
-                              Matrix<Real> & gelstrain);
+  // /// compute ASR strain according to the sigmoidal rule (Larive,1998)
+  // void computeASRStrainLarive(const Real & delta_time_day, const Real & T,
+  //                             Matrix<Real> & gelstrain);
   // /// gel strain inrease linear with time, exponential with temperature
   // void computeNewGelStrain(Matrix<Real> & gelstrain,
   //                          const Real & delta_time_day, const Real &

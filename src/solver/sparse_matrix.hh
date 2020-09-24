@@ -64,6 +64,9 @@ public:
   /// remove the existing profile
   virtual void clearProfile();
 
+  /// resize the matrix 
+  virtual void resize(UInt size);
+
   /// set the matrix to 0
   virtual void clear() = 0;
 

@@ -173,10 +173,18 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
-  for (auto && data : zip(this->delta_T(this->el_type),
+  for (auto && data : zip(RVEs, this->delta_T(this->el_type),
                           make_view(this->gelstrain(this->el_type),
                                     spatial_dimension, spatial_dimension))) {
-    computeASRStrainLarive(dt_day, std::get<0>(data), std::get<1>(data));
+    auto & RVE = *(std::get<0>(data));
+    auto & strain_matrix = std::get<2>(data);
+    Real ASRStrain = strain_matrix(0, 0);
+    RVE.computeASRStrainLarive(
+        dt_day, std::get<1>(data), ASRStrain, this->eps_inf, this->time_ch_ref,
+        this->time_lat_ref, this->U_C, this->U_L, this->T_ref);
+
+    for (UInt i = 0; i != spatial_dimension; ++i)
+      strain_matrix(i, i) = ASRStrain;
   }
 }
 
@@ -355,27 +363,29 @@ void MaterialFE2<spatial_dimension>::computeTangentModuli(
 
 /* --------------------------------------------------------------------------
  */
-template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::computeASRStrainLarive(
-    const Real & delta_time_day, const Real & T, Matrix<Real> & gelstrain) {
-  AKANTU_DEBUG_IN();
+// template <UInt spatial_dimension>
+// void MaterialFE2<spatial_dimension>::computeASRStrainLarive(
+//     const Real & delta_time_day, const Real & T, Matrix<Real> & gelstrain) {
+//   AKANTU_DEBUG_IN();
 
-  Real time_ch, time_lat, lambda, ksi, exp_ref;
-  Real T_K = T + 273.13;
-  ksi = gelstrain(0, 0) / this->eps_inf;
-  time_ch =
-      this->time_ch_ref * std::exp(this->U_C * (1. / T_K - 1. / this->T_ref));
-  time_lat =
-      this->time_lat_ref * std::exp(this->U_L * (1. / T_K - 1. / this->T_ref));
-  exp_ref = std::exp(-time_lat / time_ch);
-  lambda = (1 + exp_ref) / (ksi + exp_ref);
-  ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
+//   Real time_ch, time_lat, lambda, ksi, exp_ref;
+//   ksi = gelstrain(0, 0) / this->eps_inf;
+//   if (T == 0) {
+//     ksi += 0;
+//   } else {
+//     time_ch =
+//         this->time_ch_ref * std::exp(this->U_C * (1. / T - 1. / this->T_ref));
+//     time_lat =
+//         this->time_lat_ref * std::exp(this->U_L * (1. / T - 1. / this->T_ref));
+//     exp_ref = std::exp(-time_lat / time_ch);
+//     lambda = (1 + exp_ref) / (ksi + exp_ref);
+//     ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
+//   }
+//   for (UInt i = 0; i != spatial_dimension; ++i)
+//     gelstrain(i, i) = ksi * this->eps_inf;
 
-  for (UInt i = 0; i != spatial_dimension; ++i)
-    gelstrain(i, i) = ksi * this->eps_inf;
-
-  AKANTU_DEBUG_OUT();
-}
+//   AKANTU_DEBUG_OUT();
+// }
 
 // /*--------------------------------------------------------------------------*/
 //     template <UInt spatial_dimension>
