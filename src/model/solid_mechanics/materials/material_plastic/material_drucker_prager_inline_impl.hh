@@ -114,6 +114,93 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   
   // yield function value at each iteration
   Real yield_function;
+
+  // if sigma is above the threshold value
+  auto above_threshold = [&sigma_guess, this]() {
+    Real I1 = sigma_guess.trace();
+
+    return I1 >= this->k/alpha;
+
+    //Matrix<Real> sigma_dev(dim, dim, 0);
+    //this->computeDeviatoricStress(sigma_guess, sigma_dev);
+  
+    //Real j2 = (1./ 2.) * sigma_dev.doubleDot(sigma_dev);
+    //Real sigma_dev_eff = std::sqrt(3. * j2);
+
+    //if(I1 < this->k/alpha)
+    //  return false;
+
+    //auto ang_radian = atan(sigma_dev_eff / (I1 - this->k/alpha));
+
+    //auto threshold_angle = M_PI/2. -  this->alpha;
+    //return ang_radian < threshold_angle;
+  };
+
+  
+  if(above_threshold()) {
+
+    auto update_first_obj = [&sigma_guess, this]() {
+      
+      const UInt dimension = sigma_guess.cols();
+
+      Matrix<Real> sigma_dev(dimension, dimension, 0);
+      this->computeDeviatoricStress(sigma_guess, sigma_dev);
+
+      auto error = (1./2) *sigma_dev.doubleDot(sigma_dev);
+      return error;
+    };
+
+    
+    auto update_sec_obj = [&sigma_guess, this]() {
+      auto error = this->alpha*sigma_guess.trace() - this->k;
+      return error;
+    };
+
+
+    
+    auto projection_error = update_first_obj();
+    
+    while(tolerance < projection_error) {
+
+      Matrix<Real> delta_sigma(dim, dim);
+
+      Matrix<Real> jacobian(dim, dim);
+      Matrix<Real> jacobian_inv(dim, dim);
+      
+      Matrix<Real> sigma_dev(dim, dim, 0);
+      this->computeDeviatoricStress(sigma_guess, sigma_dev);
+
+      jacobian_inv.inverse(sigma_dev);
+
+      delta_sigma = -projection_error * jacobian_inv;
+      sigma_guess += delta_sigma;
+      projection_error = update_first_obj();
+    }
+
+    projection_error = update_sec_obj();
+
+    while(tolerance < projection_error) {
+
+      Matrix<Real> delta_sigma(dim, dim);
+      Matrix<Real> jacobian(dim, dim);
+      Matrix<Real> jacobian_inv(dim, dim);
+
+      jacobian = this->alpha * Matrix<Real>::eye(dim, dim);
+      jacobian_inv.inverse(jacobian);
+
+      delta_sigma += -projection_error * jacobian_inv;
+      sigma_guess += delta_sigma;
+      projection_error = update_sec_obj();
+    }
+
+    auto delta_sigma_final = sigma_trial - sigma_guess;
+    auto delta_sigma_voigt = voigt_h::matrixToVoigt(delta_sigma_final);
+    
+    delta_inelastic_strain.mul<false>(Ce, delta_sigma_voigt);
+
+    return;
+  }
+  
     
   // lambda function to compute gradient of yield surface in voigt notation
   auto compute_gradient_f = [&sigma_guess, &scaling_matrix, &kronecker_delta,
