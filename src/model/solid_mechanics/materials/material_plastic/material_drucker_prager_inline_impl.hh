@@ -137,7 +137,7 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   };
 
   
-  if(above_threshold()) {
+  if(above_threshold() and this->alpha > 0) {
 
     auto update_first_obj = [&sigma_guess, this]() {
       
