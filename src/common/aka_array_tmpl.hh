@@ -90,8 +90,8 @@ ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-ArrayDataLayer<T, allocation_trait> & ArrayDataLayer<T, allocation_trait>::
-operator=(const ArrayDataLayer & other) {
+ArrayDataLayer<T, allocation_trait> &
+ArrayDataLayer<T, allocation_trait>::operator=(const ArrayDataLayer & other) {
   if (this != &other) {
     this->data_storage = other.data_storage;
     this->nb_component = other.nb_component;
@@ -108,8 +108,9 @@ ArrayDataLayer<T, allocation_trait>::ArrayDataLayer(ArrayDataLayer && other) =
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
-ArrayDataLayer<T, allocation_trait> & ArrayDataLayer<T, allocation_trait>::
-operator=(ArrayDataLayer && other) = default;
+ArrayDataLayer<T, allocation_trait> &
+ArrayDataLayer<T, allocation_trait>::operator=(ArrayDataLayer && other) =
+    default;
 
 /* -------------------------------------------------------------------------- */
 template <typename T, ArrayAllocationType allocation_trait>
@@ -335,6 +336,12 @@ public:
                                         ? allocated_size + AKANTU_MIN_ALLOCATION
                                         : allocated_size;
 
+      if (size_to_allocate ==
+          allocated_size) { // otherwhy the reserve + push_back might fail...
+        this->size_ = size;
+        return;
+      }
+
       auto * tmp_ptr = reinterpret_cast<T *>(realloc(
           this->values, size_to_allocate * this->nb_component * sizeof(T)));
       if (tmp_ptr == nullptr) {
@@ -530,8 +537,8 @@ template <class T, bool is_scal> inline void Array<T, is_scal>::erase(UInt i) {
  * @return reference to modified this
  */
 template <class T, bool is_scal>
-Array<T, is_scal> & Array<T, is_scal>::
-operator-=(const Array<T, is_scal> & vect) {
+Array<T, is_scal> &
+Array<T, is_scal>::operator-=(const Array<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((this->size_ == vect.size_) &&
                           (this->nb_component == vect.nb_component),
                       "The too array don't have the same sizes");
@@ -557,8 +564,8 @@ operator-=(const Array<T, is_scal> & vect) {
  * @return reference to modified this
  */
 template <class T, bool is_scal>
-Array<T, is_scal> & Array<T, is_scal>::
-operator+=(const Array<T, is_scal> & vect) {
+Array<T, is_scal> &
+Array<T, is_scal>::operator+=(const Array<T, is_scal> & vect) {
   AKANTU_DEBUG_ASSERT((this->size_ == vect.size()) &&
                           (this->nb_component == vect.nb_component),
                       "The too array don't have the same sizes");
@@ -672,8 +679,8 @@ Array<T, is_scal>::Array(const Array & vect, const ID & id)
 
 /* -------------------------------------------------------------------------- */
 template <class T, bool is_scal>
-Array<T, is_scal> & Array<T, is_scal>::
-operator=(const Array<T, is_scal> & other) {
+Array<T, is_scal> &
+Array<T, is_scal>::operator=(const Array<T, is_scal> & other) {
   AKANTU_DEBUG_WARNING("You are copying the array "
                        << this->id << " are you sure it is on purpose");
 

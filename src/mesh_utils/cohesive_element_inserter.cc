@@ -30,6 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "cohesive_element_inserter.hh"
+#include "cohesive_element_inserter_helper.hh"
 #include "communicator.hh"
 #include "element_group.hh"
 #include "global_ids_updater.hh"
@@ -56,8 +57,6 @@ CohesiveElementInserter::CohesiveElementInserter(Mesh & mesh, const ID & id)
                       "Global limit for insertion");
 
   UInt spatial_dimension = mesh.getSpatialDimension();
-
-  MeshUtils::resetFacetToDouble(mesh_facets);
 
   /// init insertion limits
   for (UInt dim = 0; dim < spatial_dimension; ++dim) {
@@ -141,7 +140,7 @@ void CohesiveElementInserter::limitCheckFacets(
   for_each_element(
       mesh_facets,
       [&](auto && facet) {
-        auto & need_check = check_facets(facet);
+        auto & need_check = check_facets(facet, 0);
         if (not need_check)
           return;
 
@@ -179,7 +178,7 @@ void CohesiveElementInserter::limitCheckFacets(
   // set the limits to the physical surfaces
   for_each_element(mesh_facets,
                    [&](auto && facet) {
-                     auto & need_check = check_facets(facet);
+                     auto & need_check = check_facets(facet, 0);
                      if (not need_check)
                        return;
 
@@ -199,23 +198,30 @@ UInt CohesiveElementInserter::insertElements(bool only_double_facets) {
   CohesiveNewNodesEvent node_event;
   NewElementsEvent element_event;
 
-  Array<UInt> new_pairs(0, 2);
-
   if (mesh_facets.isDistributed()) {
     mesh_facets.getElementSynchronizer().synchronizeOnce(
         *this, SynchronizationTag::_ce_groups);
   }
 
-  UInt nb_new_elements = MeshUtils::insertCohesiveElements(
-      mesh, mesh_facets, insertion_facets, new_pairs, element_event.getList(),
-      only_double_facets);
+  CohesiveElementInserterHelper cohesive_element_inserter_helper(mesh, insertion_facets);
 
-  UInt nb_new_nodes = new_pairs.size();
+  UInt nb_new_elements{0};
+  if (only_double_facets) {
+    nb_new_elements = cohesive_element_inserter_helper.insertFacetsOnly();
+  } else {
+    nb_new_elements = cohesive_element_inserter_helper.insertCohesiveElement();
+    element_event.getList().copy(cohesive_element_inserter_helper.getNewElements());
+  }
+
+  auto && doubled_nodes = cohesive_element_inserter_helper.getDoubledNodes();
+  auto nb_new_nodes = doubled_nodes.size();
+
   node_event.getList().reserve(nb_new_nodes);
   node_event.getOldNodesList().reserve(nb_new_nodes);
-  for (UInt n = 0; n < nb_new_nodes; ++n) {
-    node_event.getList().push_back(new_pairs(n, 1));
-    node_event.getOldNodesList().push_back(new_pairs(n, 0));
+  
+  for (auto && doubled_node : make_view(doubled_nodes, 2)) {
+    node_event.getList().push_back(doubled_node(1));
+    node_event.getOldNodesList().push_back(doubled_node(0));
   }
 
   if (nb_new_elements > 0) {

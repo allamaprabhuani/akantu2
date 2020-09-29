@@ -480,7 +480,7 @@ UInt GroupManager::createClusters(
     UInt element_dimension, std::string cluster_name_prefix,
     const GroupManager::ClusteringFilter & filter) {
   std::unique_ptr<Mesh> mesh_facets;
-  if (!mesh_facets && element_dimension > 0) {
+  if (element_dimension > 0) {
     MeshAccessor mesh_accessor(const_cast<Mesh &>(mesh));
     mesh_facets = std::make_unique<Mesh>(mesh.getSpatialDimension(),
                                          mesh_accessor.getNodesSharedPtr(),

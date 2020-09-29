@@ -110,8 +110,8 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacetsConnectivity() {
   FacetGlobalConnectivityAccessor data_accessor(mesh_facets);
 
   /// communicate
-  mesh_facets.getElementSynchronizer().synchronizeOnce(data_accessor,
-                                                       SynchronizationTag::_smmc_facets_conn);
+  mesh_facets.getElementSynchronizer().synchronizeOnce(
+      data_accessor, SynchronizationTag::_smmc_facets_conn);
 
   /// flip facets
   MeshUtils::flipFacets(mesh_facets, data_accessor.getGlobalConnectivity(),
@@ -121,11 +121,24 @@ void SolidMechanicsModelCohesive::synchronizeGhostFacetsConnectivity() {
 }
 
 /* -------------------------------------------------------------------------- */
-void SolidMechanicsModelCohesive::updateCohesiveSynchronizers() {
+void SolidMechanicsModelCohesive::updateCohesiveSynchronizers(
+    NewElementsEvent & elements_event) {
   /// update synchronizers if needed
 
   if (not mesh.isDistributed())
     return;
+
+  ElementTypeMap<Int> nb_new_cohesive_elements;
+  for (auto ghost_type : ghost_types) {
+    for(auto cohesive_type : mesh.elementTypes(spatial_dimension, ghost_type, _ek_cohesive)){
+      nb_new_cohesive_elements(cohesive_type, ghost_type) = 0;
+    }
+  }
+
+  for(auto & el : elements_event.getList()) {
+    if(el.kind() != _ek_cohesive) continue;
+    ++nb_new_cohesive_elements(el.type, el.ghost_type);
+  }
 
   auto & mesh_facets = inserter->getMeshFacets();
   auto & facet_synchronizer = mesh_facets.getElementSynchronizer();
@@ -149,9 +162,7 @@ void SolidMechanicsModelCohesive::updateCohesiveSynchronizers() {
       auto old_nb_cohesive_elements =
           mesh.getNbElement(cohesive_type, facet.ghost_type);
       old_nb_cohesive_elements -=
-          mesh_facets
-              .getData<UInt>("facet_to_double", facet.type, facet.ghost_type)
-              .size();
+          nb_new_cohesive_elements(cohesive_type, facet.ghost_type);
 
       if (cohesive_element.element >= old_nb_cohesive_elements) {
         scheme.push_back(cohesive_element);
@@ -259,7 +270,7 @@ void SolidMechanicsModelCohesive::packUnpackFacetStressDataHelper(
   Mesh & mesh_facets = inserter->getMeshFacets();
 
   Array<T> * vect = nullptr;
-  Array<std::vector<Element>> * element_to_facet = nullptr;
+  const Array<std::vector<Element>> * element_to_facet = nullptr;
 
   auto & fe_engine = this->getFEEngine("FacetsFEEngine");
   for (auto && el : elements) {
@@ -357,7 +368,9 @@ UInt SolidMechanicsModelCohesive::getNbData(
       break;
     }
 
-    default: { size += SolidMechanicsModel::getNbData(elements, tag); }
+    default: {
+      size += SolidMechanicsModel::getNbData(elements, tag);
+    }
     }
   }
   /// cohesive element case
@@ -384,7 +397,8 @@ UInt SolidMechanicsModelCohesive::getNbData(
       break;
     }
 
-    if (tag != SynchronizationTag::_material_id && tag != SynchronizationTag::_smmc_facets) {
+    if (tag != SynchronizationTag::_material_id &&
+        tag != SynchronizationTag::_smmc_facets) {
       splitByMaterial(elements, [&](auto && mat, auto && elements) {
         size += mat.getNbData(elements, tag);
       });
@@ -426,7 +440,9 @@ void SolidMechanicsModelCohesive::packData(
       SolidMechanicsModel::packData(buffer, elements, tag);
       break;
     }
-    default: { SolidMechanicsModel::packData(buffer, elements, tag); }
+    default: {
+      SolidMechanicsModel::packData(buffer, elements, tag);
+    }
     }
 
     AKANTU_DEBUG_OUT();
@@ -446,10 +462,12 @@ void SolidMechanicsModelCohesive::packData(
       packNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
       break;
     }
-    default: {}
+    default: {
+    }
     }
 
-    if (tag != SynchronizationTag::_material_id && tag != SynchronizationTag::_smmc_facets) {
+    if (tag != SynchronizationTag::_material_id &&
+        tag != SynchronizationTag::_smmc_facets) {
       splitByMaterial(elements, [&](auto && mat, auto && elements) {
         mat.packData(buffer, elements, tag);
       });
@@ -502,7 +520,9 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
       SolidMechanicsModel::unpackData(buffer, elements, tag);
       break;
     }
-    default: { SolidMechanicsModel::unpackData(buffer, elements, tag); }
+    default: {
+      SolidMechanicsModel::unpackData(buffer, elements, tag);
+    }
     }
 
     AKANTU_DEBUG_OUT();
@@ -532,10 +552,12 @@ void SolidMechanicsModelCohesive::unpackData(CommunicationBuffer & buffer,
       unpackNodalDataHelper(*blocked_dofs, buffer, elements, mesh);
       break;
     }
-    default: {}
+    default: {
+    }
     }
 
-    if (tag != SynchronizationTag::_material_id && tag != SynchronizationTag::_smmc_facets) {
+    if (tag != SynchronizationTag::_material_id &&
+        tag != SynchronizationTag::_smmc_facets) {
       splitByMaterial(elements, [&](auto && mat, auto && elements) {
         mat.unpackData(buffer, elements, tag);
       });
