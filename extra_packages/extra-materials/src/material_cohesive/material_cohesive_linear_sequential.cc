@@ -90,6 +90,7 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::checkInsertion(
     const auto & f_stress = this->model->getStressOnFacets(type_facet);
     const auto & sigma_limits = this->sigma_c(type_facet);
     auto & eff_stresses = effective_stresses(type_facet);
+    auto & facet_conn = mesh_facets.getConnectivity(type_facet);
 
     UInt nb_quad_facet = this->model->getFEEngine("FacetsFEEngine")
                              .getNbIntegrationPoints(type_facet);
@@ -117,7 +118,7 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::checkInsertion(
     std::vector<Real> new_sigmas;
     std::vector<Vector<Real>> new_normal_traction;
     std::vector<Real> new_delta_c;
-    Real max_eff_stress = std::numeric_limits<Real>::min();
+    std::vector<std::pair<UInt, Real>> facet_stress;
 
     // loop over each facet belonging to this material
     for (auto && data :
@@ -167,60 +168,105 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::checkInsertion(
 
       // normalize by the limit stress
       eff_stress = final_stress / sigma_limit;
-      max_eff_stress = std::max(max_eff_stress, eff_stress);
+      facet_stress.push_back(std::make_pair(facet, eff_stress));
     }
 
+    // sort facets by the value of effective stress
+    std::sort(facet_stress.begin(), facet_stress.end(),
+              [](const std::pair<UInt, Real> & lhs,
+                 const std::pair<UInt, Real> & rhs) {
+                return lhs.second > rhs.second;
+              });
+
     // continue to the next el type if no elements to insert
-    if (max_eff_stress <= 1.)
+    if (facet_stress[0].second <= 1.)
       continue;
 
     // second loop to activate certain portion of elements
-    for (auto && data :
-         zip(f_filter, sigma_limits, eff_stresses,
-             make_view(norm_stresses, nb_quad_facet),
-             make_view(norm_tractions, spatial_dimension, nb_quad_facet))) {
-      auto facet = std::get<0>(data);
-      auto & sigma_limit = std::get<1>(data);
-      auto & eff_stress = std::get<2>(data);
-      auto & stress_check = std::get<3>(data);
-      auto & normal_traction = std::get<4>(data);
+    const Mesh & mesh = this->model->getMesh();
+    CSR<UInt> nodes_to_elements;
+    MeshUtils::buildNode2ElementsElementTypeMap(mesh, nodes_to_elements,
+                                                _cohesive_2d_4, _not_ghost);
+
+    // for (auto && data :
+    //      zip(f_filter, sigma_limits, eff_stresses,
+    //          make_view(norm_stresses, nb_quad_facet),
+    //          make_view(norm_tractions, spatial_dimension, nb_quad_facet))) {
+    UInt nb_coh_inserted{0};
+    for (auto && pair : facet_stress) {
+      // allow insertion of only 1 cohesive element
+      if (nb_coh_inserted == 1)
+        break;
+
+      auto & facet = std::get<0>(pair);
+      // get facet's local id
+      auto local_id = f_filter.find(facet);
+      AKANTU_DEBUG_ASSERT(local_id != UInt(-1),
+                          "mismatch between global and local facet numbering");
 
       // skip facets where check shouldn't be realized
       if (!facets_check(facet))
         continue;
 
-      Real reduced_threshold =
-          max_eff_stress - (max_eff_stress - 1) * this->insertion_threshold;
+      auto & eff_stress = std::get<1>(pair);
+      // break when descending eff_stresses drop below 1
+      if (eff_stress < 1.)
+        break;
 
-      if (eff_stress > reduced_threshold) {
-        f_insertion(facet) = true;
+      auto & sigma_limit = sigma_limits(local_id);
+      Vector<Real> stress_check =
+          make_view(norm_stresses, nb_quad_facet).begin()[local_id];
+      Matrix<Real> normal_traction =
+          make_view(norm_tractions, spatial_dimension, nb_quad_facet)
+              .begin()[local_id];
 
-        if (check_only)
-          continue;
+      // Real reduced_threshold =
+      //     max_eff_stress - (max_eff_stress - 1) * this->insertion_threshold;
+      // reduced_threshold = std::max(reduced_threshold, 1.);
 
-        // store the new cohesive material parameters for each quadrature
-        // point
-        for (UInt q = 0; q < nb_quad_facet; ++q) {
-          Real new_sigma = stress_check(q);
-          Vector<Real> normal_traction_vec(normal_traction(q));
-
-          if (spatial_dimension != 3)
-            normal_traction_vec *= -1.;
-
-          new_sigmas.push_back(new_sigma);
-          new_normal_traction.push_back(normal_traction_vec);
-
-          Real new_delta;
-
-          // set delta_c in function of G_c or a given delta_c value
-          if (Math::are_float_equal(this->delta_c, 0.))
-            new_delta = 2 * this->G_c / new_sigma;
-          else
-            new_delta = sigma_limit / new_sigma * this->delta_c;
-
-          new_delta_c.push_back(new_delta);
+      // if (eff_stress >= reduced_threshold) {
+      // check if this facet is connected to a single cohesive else
+      std::set<UInt> coh_neighbors;
+      for (UInt i : arange(2)) {
+        const UInt facet_node = facet_conn(facet, i);
+        for (auto & elem : nodes_to_elements.getRow(facet_node)) {
+          // if (mesh.getKind(elem.type) == _ek_cohesive)
+          coh_neighbors.emplace(elem);
         }
       }
+      // if no or more than one coh neighbors - continue
+      if (coh_neighbors.size() != 1)
+        continue;
+
+      f_insertion(facet) = true;
+      nb_coh_inserted++;
+
+      if (check_only)
+        continue;
+
+      // store the new cohesive material parameters for each quadrature
+      // point
+      for (UInt q = 0; q < nb_quad_facet; ++q) {
+        Real new_sigma = stress_check(q);
+        Vector<Real> normal_traction_vec(normal_traction(q));
+
+        if (spatial_dimension != 3)
+          normal_traction_vec *= -1.;
+
+        new_sigmas.push_back(new_sigma);
+        new_normal_traction.push_back(normal_traction_vec);
+
+        Real new_delta;
+
+        // set delta_c in function of G_c or a given delta_c value
+        if (Math::are_float_equal(this->delta_c, 0.))
+          new_delta = 2 * this->G_c / new_sigma;
+        else
+          new_delta = sigma_limit / new_sigma * this->delta_c;
+
+        new_delta_c.push_back(new_delta);
+      }
+      // }
     }
 
     // update material data for the new elements
