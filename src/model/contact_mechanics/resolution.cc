@@ -134,16 +134,13 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
   
   UInt nb_dofs  = global.getNbComponent();
   UInt nb_nodes = is_master_deformable ? connectivity.size() : 1;
-
+  Real alpha = is_master_deformable ? 0.5: 1.;
+      
   for (UInt i : arange(nb_nodes)) { 
     UInt n = connectivity[i];
 
     auto slave_result = std::find(slave_list.begin(), slave_list.end(), n);
     auto master_result = std::find(master_list.begin(), master_list.end(), n);
-
-    Real alpha{1.0};
-    if(is_master_deformable)
-      alpha = 0.5;
     
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
