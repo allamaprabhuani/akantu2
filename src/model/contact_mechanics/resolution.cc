@@ -142,7 +142,7 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
     auto master_result = std::find(master_list.begin(), master_list.end(), n);
 
     Real alpha{1.0};
-    if(slave_result != std::end(slave_list) and master_result != std::end(master_list))
+    if(is_master_deformable)
       alpha = 0.5;
     
     for (UInt j : arange(nb_dofs)) {
