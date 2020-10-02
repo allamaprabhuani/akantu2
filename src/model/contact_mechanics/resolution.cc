@@ -126,6 +126,10 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
     return elem_conn;
   };
 
+  auto & surface_selector = model.getContactDetector().getSurfaceSelector();
+  auto & slave_list = surface_selector.getSlaveList();
+  auto & master_list = surface_selector.getMasterList();
+  
   auto connectivity = get_connectivity(element.slave, element.master);
   
   UInt nb_dofs  = global.getNbComponent();
@@ -133,9 +137,17 @@ void Resolution::assembleLocalToGlobalArray(const ContactElement & element,
 
   for (UInt i : arange(nb_nodes)) { 
     UInt n = connectivity[i];
+
+    auto slave_result = std::find(slave_list.begin(), slave_list.end(), n);
+    auto master_result = std::find(master_list.begin(), master_list.end(), n);
+
+    Real alpha{1.0};
+    if(slave_result != std::end(slave_list) and master_result != std::end(master_list))
+      alpha = 0.5;
+    
     for (UInt j : arange(nb_dofs)) {
       UInt offset_node = n * nb_dofs + j;
-      global[offset_node] += local[i * nb_dofs + j];
+      global[offset_node] += alpha*local[i * nb_dofs + j];
     }
   }
 }
