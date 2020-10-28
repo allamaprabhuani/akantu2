@@ -457,14 +457,12 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
   UInt spatial_dimension = mesh.getSpatialDimension();
   UInt surface_dimension = spatial_dimension - 1; 
   
-  UInt nb_same_sides{0};
-  UInt nb_boundary_elements{0};
-
   auto & contact_group = mesh.getElementGroup("contact_surface");
 
-  UInt counter{0};
-  for (auto & element : elements) {
+  for (auto && tuple : enumerate(elements)) {
 
+    auto & counter = std::get<0>(tuple);
+    auto & element = std::get<1>(tuple);
     // filter out elements which are not there in the element group
     // contact surface created by the surface selector and is stored
     // in the mesh or mesh_facet, if a element is not there it
@@ -473,23 +471,6 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     auto & elements_of_type = contact_group.getElements(element.type);
     if(elements_of_type.find(element.element) == UInt(-1))
       continue;
-
-    //nb_boundary_elements++;
-
-    // find the natural coordinate corresponding to the minimum gap
-    // between slave node and master element
-    
-    
-    /* Vector<Real> normal_ele(spatial_dimension);
-    GeometryUtils::normal(mesh, positions, element, normal_ele);
-    
-    Vector<Real> master(spatial_dimension);
-    GeometryUtils::realProjection(mesh, positions, slave, element, normal_ele, master);
-
-    Vector<Real> xi(natural_projection.size());
-    GeometryUtils::naturalProjection(mesh, positions, element, master, xi,
-				     max_iterations,
-    projection_tolerance);*/
 
     Vector<Real> master(spatial_dimension);
     
@@ -514,24 +495,14 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
     
     if (temp_gap != 0) 
       master_to_slave /= temp_gap;
-    
-    // also the slave point should lie inside the master surface in
-    // case of explicit or outside in case of implicit, one way to
-    // check that is by checking the dot product of normal at each
-    // master element, if the values of all dot product is same then
-    // the slave point lies on the same side of each master element
-    
-    
+        
     // A alpha parameter is introduced which is 1 in case of explicit
     // and -1 in case of implicit, therefor the variation (dot product
     // + alpha) should be close to zero (within tolerance) for both
     // cases
 
-    Real direction_tolerance = 1e-1;
     auto product = master_to_slave.dot(normal_ele);
-    auto variation = std::abs(product + alpha);
-         
-    //if (variation <= direction_tolerance and
+             
     if (product < 0 and
     	temp_gap <= min_gap and
 	GeometryUtils::isValidProjection(xi_ele, extension_tolerance)) {    
@@ -543,18 +514,7 @@ UInt GeometryUtils::orthogonalProjection(const Mesh & mesh, const Array<Real> & 
       normal = normal_ele;
       tangent = tangent_ele;
     }
-
-    //if(temp_gap == 0 or variation <= direction_tolerance)
-    //  nb_same_sides++;
-    
-    counter++;
   }
-
-  // if point is not on the same side of all the boundary elements
-  // than it is not consider even if the closet master element is
-  // found
-  //if(nb_same_sides != nb_boundary_elements)
-  //  index = UInt(-1);
   
   return index;
 }
