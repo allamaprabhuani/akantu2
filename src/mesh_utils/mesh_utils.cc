@@ -51,7 +51,8 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2Elements(const Mesh & mesh,
                                    CSR<Element> & node_to_elem,
-                                   UInt spatial_dimension) {
+                                   UInt spatial_dimension,
+                                   ElementKind el_kind) {
   AKANTU_DEBUG_IN();
   if (spatial_dimension == _all_dimensions)
     spatial_dimension = mesh.getSpatialDimension();
@@ -63,15 +64,15 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   node_to_elem.resizeRows(nb_nodes);
   node_to_elem.clearRows();
 
-  for_each_element(
-      mesh,
-      [&](auto && element) {
-        Vector<UInt> conn = mesh.getConnectivity(element);
-        for (auto && node : conn) {
-          ++node_to_elem.rowOffset(node);
-        }
-      },
-      _spatial_dimension = spatial_dimension, _element_kind = _ek_not_defined);
+  for_each_element(mesh,
+                   [&](auto && element) {
+                     Vector<UInt> conn = mesh.getConnectivity(element);
+                     for (auto && node : conn) {
+                       ++node_to_elem.rowOffset(node);
+                     }
+                   },
+                   _spatial_dimension = spatial_dimension,
+                   _element_kind = el_kind);
 
   node_to_elem.countToCSR();
   node_to_elem.resizeCols();
@@ -80,15 +81,15 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   // Element e;
   node_to_elem.beginInsertions();
 
-  for_each_element(
-      mesh,
-      [&](auto && element) {
-        Vector<UInt> conn = mesh.getConnectivity(element);
-        for (auto && node : conn) {
-          node_to_elem.insertInRow(node, element);
-        }
-      },
-      _spatial_dimension = spatial_dimension, _element_kind = _ek_not_defined);
+  for_each_element(mesh,
+                   [&](auto && element) {
+                     Vector<UInt> conn = mesh.getConnectivity(element);
+                     for (auto && node : conn) {
+                       node_to_elem.insertInRow(node, element);
+                     }
+                   },
+                   _spatial_dimension = spatial_dimension,
+                   _element_kind = el_kind);
 
   node_to_elem.endInsertions();
 

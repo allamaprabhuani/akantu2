@@ -54,7 +54,8 @@ public:
   /// build a CSR<Element> that contains for each node the list of connected
   /// elements of a given spatial dimension
   static void buildNode2Elements(const Mesh & mesh, CSR<Element> & node_to_elem,
-                                 UInt spatial_dimension = _all_dimensions);
+                                 UInt spatial_dimension = _all_dimensions,
+                                 ElementKind el_kind = _ek_not_defined);
 
   /// build a CSR<UInt> that contains for each node the number of
   /// the connected elements of a given ElementType
@@ -97,7 +98,6 @@ public:
   /// remove not connected nodes /!\ this functions renumbers the nodes.
   static void purifyMesh(Mesh & mesh);
 
-
   /// fill the subelement to element and the elements to subelements data
   static void fillElementToSubElementsData(Mesh & mesh);
 
@@ -128,7 +128,7 @@ public:
 private:
 };
 
-} // akantu
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
