@@ -54,16 +54,16 @@ namespace akantu {
 template <UInt spatial_dimension>
 class MaterialCohesiveLinearSequential
     : public MaterialCohesiveLinear<spatial_dimension> {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
+  /* -----------------------------------------------------------------------*/
+  /* Constructors/Destructors                                               */
+  /* -----------------------------------------------------------------------*/
 public:
   MaterialCohesiveLinearSequential(SolidMechanicsModel & model,
                                    const ID & id = "");
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
+  /* -----------------------------------------------------------------------*/
+  /* Methods                                                                */
+  /* -----------------------------------------------------------------------*/
 public:
   /// initialise material
   void initMaterial() override;
@@ -71,14 +71,24 @@ public:
   /// check stress for cohesive elements' insertion
   void checkInsertion(bool check_only = false) override;
 
-protected:
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
+  /// identify a facet with the highest tensile stress complying with
+  /// topological criterion
+  std::tuple<UInt, Real, Real>
+  findCriticalFacet(const ElementType & type_facet);
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /// duplicate single facet and insert cohesive if check_only!=false
+  void insertSingleCohesiveElement(const ElementType & type_facet,
+                                   UInt facet_nb, Real crack_nb,
+                                   bool check_only);
+
+protected:
+  /* -----------------------------------------------------------------------*/
+  /* Accessors                                                              */
+  /* -----------------------------------------------------------------------*/
+
+  /* -----------------------------------------------------------------------*/
+  /* Class Members                                                          */
+  /* -----------------------------------------------------------------------*/
 protected:
   /// portion of elements with the stress above their threshold to be inserted
   Real insertion_threshold;
@@ -91,11 +101,14 @@ protected:
 
   /// normal stresses normalized by the stress limit
   FacetInternalField<Real> effective_stresses;
+
+  /// crack number
+  CohesiveInternalField<Real> crack_number;
 };
 
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------*/
+/* inline functions                                                         */
+/* -------------------------------------------------------------------------*/
 
 } // namespace akantu
 

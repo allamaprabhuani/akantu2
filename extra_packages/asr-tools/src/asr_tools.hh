@@ -34,6 +34,7 @@
 #include <mesh_events.hh>
 #include <unordered_set>
 /* -------------------------------------------------------------------------- */
+#include "material_cohesive_linear_sequential.hh"
 #include "solid_mechanics_model.hh"
 #ifdef AKANTU_COHESIVE_ELEMENT
 #include "solid_mechanics_model_cohesive.hh"
@@ -172,30 +173,39 @@ public:
 
   /// insert multiple facets (and cohesive elements if needed)
   void insertFacetsRandomly(const UInt & nb_coh_elem,
-                            std::string matrix_mat_name,
-                            bool add_neighbors = true,
-                            bool only_double_facets = true);
+                            std::string matrix_mat_name, Real gap_ratio);
 
   /// insert up to 3 facets pair based on the coord of the central one
-  void insertFacetsByCoords(const Matrix<Real> & positions, bool add_neighbors,
-                            bool only_double_facets);
+  void insertFacetsByCoords(const Matrix<Real> & positions, Real gap_ratio = 0);
+
+  /// communicates crack numbers from not ghosts to ghosts cohesive elements
+  void communicateCrackNumbers();
 
 protected:
-  /// pick facets by passed coordinates
-  void pickFacetsByCoord(const Matrix<Real> & positions, bool add_neighbors);
+  /// put flags on all nodes who have a ghost counterpart
+  void communicateFlagsOnNodes();
 
   /// pick facets by passed coordinates
-  void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name,
-                          bool add_neighbors);
+  void pickFacetsByCoord(const Matrix<Real> & positions);
 
-  /// pick two neighbors of a central facet
-  void pickFacetNeighbors(Element & cent_facet);
+  /// pick facets by passed coordinates
+  void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name);
 
-  /// optimise doubled facets group, insert facets, update connectivities
-  void insertOppositeFacets(bool only_double_facets);
+  /// pick two neighbors of a central facet: returns true if success
+  bool pickFacetNeighbors(Element & cent_facet);
+
+  /// optimise doubled facets group, insert facets, and cohesive elements,
+  /// update connectivities
+  void insertOppositeFacets();
 
   /// no cohesive elements in-between neighboring solid elements
   void preventCohesiveInsertionInNeighbors();
+
+  /// assign crack tags to the clusters
+  void assignCrackNumbers();
+
+  /// change coordinates of central crack nodes to create an artificial gap
+  void insertGap(const Real gap_ratio);
 
   /// on elements added for asr-tools
   void onElementsAdded(const Array<Element> & elements,
@@ -208,6 +218,9 @@ public:
   /// update the element group in case connectivity changed after cohesive
   /// elements insertion
   void updateElementGroup(const std::string group_name);
+
+  /// works only for the MaterialCohesiveLinearSequential
+  template <UInt dim> UInt insertSingleCohesiveElementPerModel();
 
   // /// apply self-weight force
   // void applyBodyForce();
@@ -320,6 +333,9 @@ public:
   /// set the value of the insertion flag
   AKANTU_SET_MACRO(CohesiveInsertion, cohesive_insertion, bool);
 
+  /// get the corner nodes
+  AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
+
   /* --------------------------------------------------------------------- */
   /* Members */
   /* --------------------------------------------------------------------- */
@@ -363,6 +379,15 @@ protected:
 
   /// phase volumes
   std::map<std::string, Real> phase_volumes;
+
+  /// array to store flags on nodes position modification
+  Array<bool> modified_pos;
+
+  /// array to store flags on nodes that are synchronized between processors
+  Array<bool> border_nodes;
+
+  /// array to store flags on nodes where ASR elements are inserted
+  Array<bool> ASR_nodes;
 };
 
 /* --------------------------------------------------------------------------
@@ -744,11 +769,12 @@ protected:
 /* ------------------------------------------------------------------------ */
 class PressureVolumeDependent : public BC::Neumann::NeumannFunctor {
 public:
-  PressureVolumeDependent(SolidMechanicsModel & model, const Real ASR_volume,
+  PressureVolumeDependent(SolidMechanicsModel & model,
+                          const Real ASR_volume_ratio,
                           const std::string group_name,
                           const Real compressibility)
-      : model(model), ASR_volume(ASR_volume), group_name(group_name),
-        compressibility(compressibility) {}
+      : model(model), ASR_volume_ratio(ASR_volume_ratio),
+        group_name(group_name), compressibility(compressibility) {}
 
   inline void operator()(const IntegrationPoint & quad_point,
                          Vector<Real> & dual, const Vector<Real> & /*coord*/,
@@ -791,32 +817,17 @@ public:
     }
 
     /// compute current area of a gap
-    auto facet_nodes = facet_nodes_it[facet_nb];
     Vector<UInt> first_facet_nodes = facet_nodes_it[facet_nb];
     Vector<UInt> second_facet_nodes = facet_nodes_it[opposite_facet_nb];
     /// corners of a quadrangle consequently
-    ///      A-------B
+    ///      A---M---B
     ///       \      |
-    ///        D-----C
+    ///        D--N--C
     UInt A, B, C, D;
     A = first_facet_nodes(0);
     B = first_facet_nodes(1);
-    for (auto & first_facet_node : first_facet_nodes) {
-      bool pair_found{false};
-      const Vector<Real> & first_facet_node_coord = pos_it[first_facet_node];
-      for (auto & second_facet_node : second_facet_nodes) {
-        const Vector<Real> & second_facet_node_coord =
-            pos_it[second_facet_node];
-        if (first_facet_node_coord == second_facet_node_coord) {
-          if (first_facet_node == A)
-            D = second_facet_node;
-          else
-            C = second_facet_node;
-          pair_found = true;
-        }
-      }
-      AKANTU_DEBUG_ASSERT(pair_found, "Node pair was not found");
-    }
+    C = second_facet_nodes(0);
+    D = second_facet_nodes(1);
 
     /// quadrangle's area through diagonals
     Vector<Real> AC, BD;
@@ -824,33 +835,28 @@ public:
     Vector<Real> B_pos = Vector<Real>(pos_it[B]) + Vector<Real>(disp_it[B]);
     Vector<Real> C_pos = Vector<Real>(pos_it[C]) + Vector<Real>(disp_it[C]);
     Vector<Real> D_pos = Vector<Real>(pos_it[D]) + Vector<Real>(disp_it[D]);
+    Vector<Real> M_pos = (A_pos + B_pos) * 0.5;
+    Vector<Real> N_pos = (C_pos + D_pos) * 0.5;
+    Vector<Real> MN = M_pos - N_pos;
+    Vector<Real> AB = A_pos - B_pos;
+    Vector<Real> AB_0 = Vector<Real>(pos_it[A]) - Vector<Real>(pos_it[B]);
 
-    AC = C_pos - A_pos;
-    BD = D_pos - B_pos;
-    Real cos_alpha = AC.dot(BD) / AC.norm() / BD.norm();
-    cos_alpha = Math::are_float_equal(cos_alpha, 1.) ? 1. : cos_alpha;
-    cos_alpha = Math::are_float_equal(cos_alpha, -1.) ? -1. : cos_alpha;
-
-    /// check if the element is warped by evaluating the angle between the
-    /// normal to AB and the vector AC.
-    Real normal_dot_AC = normal_corrected.dot(AC);
-    Real volume_multiplicator = (normal_dot_AC <= 0) * 2 - 1;
-
-    /// angle between two diagonals
-    Real alpha = acos(cos_alpha);
-
-    Real current_volume =
-        0.5 * AC.norm() * BD.norm() * sin(alpha) * volume_multiplicator;
+    // ASR volume computed as AB * thickness (AB * ratio)
+    Real ASR_volume = AB_0.norm() * AB_0.norm() * ASR_volume_ratio;
+    Real current_volume = AB.norm() * MN.norm();
     current_volume =
         Math::are_float_equal(current_volume, 0.) ? 0 : current_volume;
     Real volume_change = current_volume - ASR_volume;
-    Real pressure_change = -volume_change / ASR_volume / this->compressibility;
+    Real pressure_change{0};
+    if (volume_change < 0) {
+      pressure_change = -volume_change / ASR_volume / this->compressibility;
+    }
     dual = pressure_change * normal_corrected;
   }
 
 protected:
   SolidMechanicsModel & model;
-  const Real ASR_volume;
+  const Real ASR_volume_ratio;
   const std::string group_name;
   const Real compressibility;
 };
