@@ -160,23 +160,13 @@ public:
   /// compute linear increase in gel strain
   Real computeDeltaGelStrainLinear(const Real delta_time, const Real k);
 
-  /// insert single cohesive element by the coordinates of their center
-  void insertCohElemByCoords(const Matrix<Real> & positions);
+  /// insert multiple blocks of cohesive elements
+  void insertASRCohesivesRandomly(const UInt & nb_coh_elem,
+                                  std::string matrix_mat_name, Real gap_ratio);
 
-  /// insert multiple cohesive elements by the limiting box
-  void insertCohElemByLimits(const Matrix<Real> & insertion_limits,
-                             std::string coh_mat_name);
-
-  /// insert multiple cohesive elements randomly
-  void insertCohElemRandomly(const UInt & nb_coh_elem, std::string coh_mat_name,
-                             std::string matrix_mat_name);
-
-  /// insert multiple facets (and cohesive elements if needed)
-  void insertFacetsRandomly(const UInt & nb_coh_elem,
-                            std::string matrix_mat_name, Real gap_ratio);
-
-  /// insert up to 3 facets pair based on the coord of the central one
-  void insertFacetsByCoords(const Matrix<Real> & positions, Real gap_ratio = 0);
+  /// insert block of cohesive elements based on the coord of the central
+  void insertASRCohesivesByCoords(const Matrix<Real> & positions,
+                                  Real gap_ratio = 0);
 
   /// communicates crack numbers from not ghosts to ghosts cohesive elements
   void communicateCrackNumbers();
@@ -194,9 +184,12 @@ protected:
   /// pick two neighbors of a central facet: returns true if success
   bool pickFacetNeighbors(Element & cent_facet);
 
+  /// version working for both 2d and 3d
+  bool pickFacetNeighbors3D(Element & cent_facet);
+
   /// optimise doubled facets group, insert facets, and cohesive elements,
   /// update connectivities
-  void insertOppositeFacets();
+  void insertOppositeFacetsAndCohesives();
 
   /// no cohesive elements in-between neighboring solid elements
   void preventCohesiveInsertionInNeighbors();
@@ -384,7 +377,7 @@ protected:
   Array<bool> modified_pos;
 
   /// array to store flags on nodes that are synchronized between processors
-  Array<bool> border_nodes;
+  Array<bool> partition_border_nodes;
 
   /// array to store flags on nodes where ASR elements are inserted
   Array<bool> ASR_nodes;
@@ -797,6 +790,8 @@ public:
     const auto pos_it = make_view(pos, dim).begin();
     auto && disp = model.getDisplacement();
     const auto disp_it = make_view(disp, dim).begin();
+    auto && fem_boundary = model.getFEEngineBoundary();
+    UInt nb_quad_points = fem_boundary.getNbIntegrationPoints(type_facet, gt);
 
     AKANTU_DEBUG_ASSERT(element_ids.size(),
                         "Provided group doesn't contain this element type");
@@ -804,7 +799,16 @@ public:
     AKANTU_DEBUG_ASSERT(id != UInt(-1),
                         "Quad point doesn't belong to this element group");
 
-    auto normal_corrected = normal;
+    // get normal to the current positions
+    const auto & current_pos = model.getCurrentPosition();
+    Array<Real> quad_normals(0, dim);
+    fem_boundary.computeNormalsOnIntegrationPoints(current_pos, quad_normals,
+                                                   type_facet, gt);
+    auto normals_it = quad_normals.begin(dim);
+    Vector<Real> normal_corrected(
+        normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
+
+    // auto normal_corrected = normal;
     UInt opposite_facet_nb(-1);
     if (id < element_ids.size() / 2) {
       normal_corrected *= -1;

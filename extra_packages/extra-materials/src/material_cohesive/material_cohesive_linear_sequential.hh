@@ -73,12 +73,12 @@ public:
 
   /// identify a facet with the highest tensile stress complying with
   /// topological criterion
-  std::tuple<UInt, Real, Real>
+  std::tuple<UInt, Real, UInt>
   findCriticalFacet(const ElementType & type_facet);
 
   /// duplicate single facet and insert cohesive if check_only!=false
   void insertSingleCohesiveElement(const ElementType & type_facet,
-                                   UInt facet_nb, Real crack_nb,
+                                   UInt facet_nb, UInt crack_nb,
                                    bool check_only);
 
 protected:
@@ -101,9 +101,6 @@ protected:
 
   /// normal stresses normalized by the stress limit
   FacetInternalField<Real> effective_stresses;
-
-  /// crack number
-  CohesiveInternalField<Real> crack_number;
 };
 
 /* -------------------------------------------------------------------------*/

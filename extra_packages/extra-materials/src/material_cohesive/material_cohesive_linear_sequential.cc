@@ -44,8 +44,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::
     : MaterialCohesiveLinear<spatial_dimension>(model, id),
       normal_stresses("normal_stresses", *this),
       normal_tractions("normal_tractions", *this),
-      effective_stresses("effective_stresses", *this),
-      crack_number("crack_number", *this) {
+      effective_stresses("effective_stresses", *this) {
   AKANTU_DEBUG_IN();
 
   this->registerParam(
@@ -65,7 +64,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::initMaterial() {
   normal_stresses.initialize(1);
   normal_tractions.initialize(spatial_dimension);
   effective_stresses.initialize(1);
-  crack_number.initialize(1);
   AKANTU_DEBUG_OUT();
 }
 
@@ -75,8 +73,7 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::checkInsertion(
     bool check_only) {
   AKANTU_DEBUG_IN();
 
-  Mesh & mesh_facets = this->model->getMeshFacets();
-  MeshUtils::fillElementToSubElementsData(mesh_facets);
+  const Mesh & mesh_facets = this->model->getMeshFacets();
 
   for (auto && type_facet : mesh_facets.elementTypes(spatial_dimension - 1)) {
 
@@ -109,14 +106,14 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::checkInsertion(
 
 /* -------------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-std::tuple<UInt, Real, Real>
+std::tuple<UInt, Real, UInt>
 MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
     const ElementType & type_facet) {
   AKANTU_DEBUG_IN();
 
   Mesh & mesh = this->model->getMesh();
-  Mesh & mesh_facets = this->model->getMeshFacets();
-  MeshUtils::fillElementToSubElementsData(mesh_facets);
+  const Mesh & mesh_facets = this->model->getMeshFacets();
+  // MeshUtils::fillElementToSubElementsData(mesh_facets);
   const auto & pos = mesh.getNodes();
   const auto pos_it = make_view(pos, spatial_dimension).begin();
   CohesiveElementInserter & inserter = this->model->getElementInserter();
@@ -210,10 +207,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
     bool sharp_angle{false};
     for (auto tip_node : single_tip_node) {
       auto coh_el = *coh_neighbors[tip_node].begin();
-      auto & crack_nbs = this->crack_number(coh_el.type, coh_el.ghost_type);
-      auto crack_nb_it = crack_nbs.begin();
-      auto crack_nb = crack_nb_it[coh_el.element * nb_quad_cohesive];
-      coh_crack_nb = crack_nb;
+      auto & crack_numbers =
+          mesh.getData<UInt>("crack_numbers", coh_el.type, coh_el.ghost_type);
+      coh_crack_nb = crack_numbers(coh_el.element);
 
       auto & sub_to_element =
           mesh_facets.getSubelementToElement(coh_el.type, coh_el.ghost_type);
@@ -309,18 +305,16 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
     }
   }
 
-  // if (local_max_stress == max_stress)
   return std::make_tuple(max_stress_facet, max_stress, potential_crack_nb);
-  // else
-  //   return std::make_tuple(-1, -1, -1);
 }
 
 /* -------------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialCohesiveLinearSequential<spatial_dimension>::
     insertSingleCohesiveElement(const ElementType & type_facet, UInt facet_nb,
-                                Real crack_nb, bool check_only) {
+                                UInt facet_crack_nb, bool check_only) {
 
+  Mesh & mesh = this->model->getMesh();
   CohesiveElementInserter & inserter = this->model->getElementInserter();
 
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
@@ -333,19 +327,19 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
   auto & del_c = this->delta_c_eff(type_cohesive);
   auto & ins_stress = this->insertion_stress(type_cohesive);
   auto & trac_old = this->tractions.previous(type_cohesive);
-  auto & crack_nbs_current_facet = this->crack_number(type_cohesive);
+  auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type_cohesive);
   UInt nb_quad_facet = this->model->getFEEngine("FacetsFEEngine")
                            .getNbIntegrationPoints(type_facet);
 
   Vector<Real> new_sigmas(nb_quad_facet);
   Array<Real> new_normal_traction(nb_quad_facet, spatial_dimension);
   Vector<Real> new_delta_c(nb_quad_facet);
-  Vector<Real> new_crack_nb(nb_quad_facet);
 
   // get facet's local id
   auto local_id = f_filter.find(facet_nb);
   AKANTU_DEBUG_ASSERT(local_id != UInt(-1),
-                      "mismatch between global and local facet numbering");
+                      "mismatch between global and local facet numbering"
+                          << facet_nb);
 
   // mark the insertion of the cohesive element
   f_insertion(facet_nb) = true;
@@ -369,7 +363,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
       normal_traction_vec *= -1.;
 
     new_sigmas(q) = new_sigma;
-    new_crack_nb(q) = crack_nb;
     for (UInt i : arange(spatial_dimension))
       new_normal_traction(q, i) = normal_traction_vec(i);
 
@@ -390,12 +383,11 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
   ins_stress.resize(old_nb_quad_points + nb_quad_facet);
   trac_old.resize(old_nb_quad_points + nb_quad_facet);
   del_c.resize(old_nb_quad_points + nb_quad_facet);
-  crack_nbs_current_facet.resize(old_nb_quad_points + nb_quad_facet);
+  crack_numbers.push_back(facet_crack_nb);
 
   for (UInt q = 0; q < nb_quad_facet; ++q) {
     sig_c_eff(old_nb_quad_points + q) = new_sigmas(q);
     del_c(old_nb_quad_points + q) = new_delta_c(q);
-    crack_nbs_current_facet(old_nb_quad_points + q) = new_crack_nb(q);
     for (UInt dim = 0; dim < spatial_dimension; ++dim) {
       ins_stress(old_nb_quad_points + q, dim) = new_normal_traction(q, dim);
       trac_old(old_nb_quad_points + q, dim) = new_normal_traction(q, dim);

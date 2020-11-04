@@ -17,15 +17,12 @@ CrackNumbersUpdater::getNbData(const Array<Element> & elements,
   UInt size = 0;
   if (tag == SynchronizationTag::_asr) {
     size += sizeof(int);
-    // size += 2 * sizeof(Real);
     auto & mesh = model.getMesh();
     for (auto elements_range : MeshElementsByTypes(elements)) {
       auto type = elements_range.getType();
       if (mesh.getKind(type) == _ek_cohesive) {
         UInt nb_elements = elements_range.getElements().size();
-        UInt nb_quad_cohesive =
-            model.getFEEngine("CohesiveFEEngine").getNbIntegrationPoints(type);
-        size += nb_elements * nb_quad_cohesive * sizeof(Real);
+        size += nb_elements * sizeof(UInt);
       }
     }
   }
@@ -48,19 +45,12 @@ CrackNumbersUpdater::packData(CommunicationBuffer & buffer,
     auto type = elements_range.getType();
     auto gt = elements_range.getGhostType();
     if ((mesh.getKind(type) == _ek_cohesive) and (gt == _not_ghost)) {
-      UInt nb_quad_cohesive =
-          model.getFEEngine("CohesiveFEEngine").getNbIntegrationPoints(type);
       auto & coh_el_ids = elements_range.getElements();
 
       for (UInt coh_el : coh_el_ids) {
-        const Array<UInt> & material_index_vec =
-            model.getMaterialByElement(type, gt);
-        Material & material = model.getMaterial(material_index_vec(coh_el));
-        auto & crack_nbs = material.getInternal<Real>("crack_number")(type, gt);
-        auto crack_nbs_it = crack_nbs.begin();
-        for (auto i : arange(nb_quad_cohesive)) {
-          buffer << crack_nbs_it[coh_el * nb_quad_cohesive + i];
-        }
+        auto & crack_numbers =
+            model.getMesh().getData<UInt>("crack_numbers", type);
+        buffer << crack_numbers(coh_el);
       }
     }
   }
@@ -81,21 +71,18 @@ inline void CrackNumbersUpdater::unpackData(CommunicationBuffer & buffer,
     auto type = elements_range.getType();
     auto gt = elements_range.getGhostType();
     if ((mesh.getKind(type) == _ek_cohesive) and (gt == _ghost)) {
-      UInt nb_quad_cohesive =
-          model.getFEEngine("CohesiveFEEngine").getNbIntegrationPoints(type);
+      if (not mesh.hasData<UInt>("crack_numbers", type, gt)) {
+        mesh.getDataPointer<UInt>("crack_numbers", type, gt);
+      }
+
+      auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type, gt);
+      // resize crack_nb array if size of ghost coh elements is >
       auto & ghost_coh_el_ids = elements_range.getElements();
+      if (crack_numbers.size() != ghost_coh_el_ids.size())
+        crack_numbers.resize(ghost_coh_el_ids.size());
+
       for (UInt ghost_coh_el : ghost_coh_el_ids) {
-        const Array<UInt> & material_index_vec =
-            model.getMaterialByElement(type, gt);
-        Material & material =
-            model.getMaterial(material_index_vec(ghost_coh_el));
-        auto & crack_nbs = material.getInternal<Real>("crack_number")(type, gt);
-        auto crack_nbs_it = crack_nbs.begin();
-        for (auto i : arange(nb_quad_cohesive)) {
-          Real unpacked_crack_nb;
-          buffer >> unpacked_crack_nb;
-          crack_nbs_it[ghost_coh_el * nb_quad_cohesive + i] = unpacked_crack_nb;
-        }
+        buffer >> crack_numbers(ghost_coh_el);
       }
     }
   }
