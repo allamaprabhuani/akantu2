@@ -76,7 +76,7 @@ public:
   static constexpr size_t dim =
       ElementClass<cohesive_type>::getSpatialDimension();
 
-  void SetUp() override {
+  void SetUp() {
     mesh = std::make_unique<Mesh>(this->dim);
     if (Communicator::getWorldCommunicator().whoAmI() == 0) {
       EXPECT_NO_THROW({ mesh->read(this->mesh_name); });
@@ -84,7 +84,7 @@ public:
     mesh->distribute();
   }
 
-  void TearDown() override {
+  void TearDown() {
     model.reset(nullptr);
     mesh.reset(nullptr);
   }
@@ -101,7 +101,7 @@ public:
       surface = 1;
       group_size = 1;
       return;
-     }
+    }
 
     auto facet_type = mesh->getFacetType(this->cohesive_type);
 
@@ -114,7 +114,7 @@ public:
     surface = fe_engine.integrate(ones, facet_type, _not_ghost, group);
     mesh->getCommunicator().allReduce(surface, SynchronizerOperation::_sum);
 
-    group_size = group.size();
+    group_size = group.size(_ghost_type = _not_ghost);
 
     mesh->getCommunicator().allReduce(group_size, SynchronizerOperation::_sum);
 
@@ -155,8 +155,9 @@ public:
     auto & damage =
         model->getMaterial("insertion").getArray<Real>("damage", cohesive_type);
     for (auto d : damage) {
-      if (d >= .99)
+      if (d >= .99) {
         ++nb_damaged;
+      }
     }
 
     return (nb_damaged == group_size);
@@ -165,11 +166,12 @@ public:
   void steps(const Matrix<Real> & strain) {
     StrainIncrement functor((1. / 300) * strain, this->dim == 1 ? _x : _y);
 
-    for (auto _[[gnu::unused]] : arange(nb_steps)) {
+    for (auto _ [[gnu::unused]] : arange(nb_steps)) {
       this->model->applyBC(functor, "loading");
       this->model->applyBC(functor, "fixed");
-      if (this->is_extrinsic)
+      if (this->is_extrinsic) {
         this->model->checkCohesiveStress();
+      }
 
       this->model->solveStep();
 #if debug_
@@ -200,9 +202,12 @@ public:
 
     auto speed = mat_el.getPushWaveSpeed(Element());
     auto direction = _y;
-    if(dim == 1) direction = _x;
-    auto length = mesh->getUpperBounds()(direction) - mesh->getLowerBounds()(direction);
-    nb_steps = length / 2. / speed / model->getTimeStep();
+    if (dim == 1) {
+      direction = _x;
+    }
+    auto length =
+        mesh->getUpperBounds()(direction) - mesh->getLowerBounds()(direction);
+    nb_steps = length / speed / model->getTimeStep();
 
     SCOPED_TRACE(std::to_string(this->dim) + "D - " + std::to_string(type_1) +
                  ":" + std::to_string(type_2));
@@ -234,14 +239,17 @@ public:
     auto & mat_el = this->model->getMaterial("body");
     Real speed;
     try {
-      speed = mat_el.getShearWaveSpeed(Element()); // the slowest speed if exists
-    } catch(...) {
+      speed =
+          mat_el.getShearWaveSpeed(Element()); // the slowest speed if exists
+    } catch (...) {
       speed = mat_el.getPushWaveSpeed(Element());
     }
 
     auto direction = _y;
-    if(dim == 1) direction = _x;
-    auto length = mesh->getUpperBounds()(direction) - mesh->getLowerBounds()(direction);
+    if (dim == 1)
+      direction = _x;
+    auto length =
+        mesh->getUpperBounds()(direction) - mesh->getLowerBounds()(direction);
     nb_steps = 2 * length / 2. / speed / model->getTimeStep();
 
     SCOPED_TRACE(std::to_string(this->dim) + "D - " + std::to_string(type_1) +
@@ -272,7 +280,7 @@ public:
     }
     strain *= 2 * beta * beta * sigma_c / E;
 
-    //nb_steps *= 5;
+    // nb_steps *= 5;
 
     this->setInitialCondition((1. - 1e-5) * strain);
     this->steps(0.005 * strain);
