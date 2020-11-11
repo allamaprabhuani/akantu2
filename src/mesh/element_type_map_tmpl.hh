@@ -687,7 +687,8 @@ template <typename... pack>
 void ElementTypeMapArray<T, SupportType>::initialize(const Mesh & mesh,
                                                      pack &&... _pack) {
   GhostType requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _casper);
-  bool all_ghost_types = requested_ghost_type == _casper;
+  bool all_ghost_types =
+      OPTIONAL_NAMED_ARG(all_ghost_types, requested_ghost_type == _casper);
 
   for (auto ghost_type : ghost_types) {
     if ((not(ghost_type == requested_ghost_type)) and (not all_ghost_types))
@@ -724,8 +725,9 @@ template <typename T, typename SupportType>
 template <typename... pack>
 void ElementTypeMapArray<T, SupportType>::initialize(const FEEngine & fe_engine,
                                                      pack &&... _pack) {
-  bool all_ghost_types = OPTIONAL_NAMED_ARG(all_ghost_types, true);
-  GhostType requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _not_ghost);
+  GhostType requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _casper);
+  bool all_ghost_types =
+      OPTIONAL_NAMED_ARG(all_ghost_types, requested_ghost_type == _casper);
 
   for (auto ghost_type : ghost_types) {
     if ((not(ghost_type == requested_ghost_type)) and (not all_ghost_types))
@@ -794,8 +796,9 @@ template <class T, typename SupportType>
 template <typename... pack>
 UInt ElementTypeMapArray<T, SupportType>::size(pack &&... _pack) const {
   UInt size = 0;
-  bool all_ghost_types = OPTIONAL_NAMED_ARG(all_ghost_types, true);
-  GhostType requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _not_ghost);
+  GhostType requested_ghost_type = OPTIONAL_NAMED_ARG(ghost_type, _casper);
+  bool all_ghost_types =
+      OPTIONAL_NAMED_ARG(all_ghost_types, requested_ghost_type == _casper);
 
   for (auto ghost_type : ghost_types) {
     if ((not(ghost_type == requested_ghost_type)) and (not all_ghost_types))
