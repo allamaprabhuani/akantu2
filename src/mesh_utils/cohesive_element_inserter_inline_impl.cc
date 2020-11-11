@@ -61,7 +61,7 @@ CohesiveElementInserter::packData(CommunicationBuffer & buffer,
   AKANTU_DEBUG_IN();
   if (tag == SynchronizationTag::_ce_groups) {
     for (const auto & el : elements) {
-      const bool & data = insertion_facets(el, 0);
+      const bool & data = insertion_facets(el);
       buffer << data;
     }
   }
@@ -77,7 +77,7 @@ CohesiveElementInserter::unpackData(CommunicationBuffer & buffer,
 
   if (tag == SynchronizationTag::_ce_groups) {
     for (const auto & el : elements) {
-      bool & data = insertion_facets(el, 0);
+      bool & data = insertion_facets(el);
       buffer >> data;
     }
   }

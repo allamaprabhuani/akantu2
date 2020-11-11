@@ -33,10 +33,10 @@
 #include "cohesive_element_inserter_helper.hh"
 #include "communicator.hh"
 #include "element_group.hh"
+#include "element_synchronizer.hh"
 #include "global_ids_updater.hh"
 #include "mesh_accessor.hh"
 #include "mesh_iterators.hh"
-#include "element_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
 #include <limits>
@@ -176,19 +176,20 @@ void CohesiveElementInserter::limitCheckFacets(
       mesh_facets.getData<std::string>("physical_names");
 
   // set the limits to the physical surfaces
-  for_each_element(mesh_facets,
-                   [&](auto && facet) {
-                     auto & need_check = check_facets(facet, 0);
-                     if (not need_check)
-                       return;
+  for_each_element(
+      mesh_facets,
+      [&](auto && facet) {
+        auto & need_check = check_facets(facet, 0);
+        if (not need_check)
+          return;
 
-                     const auto & physical_id = physical_ids(facet);
-                     auto it = find(physical_groups.begin(),
-                                    physical_groups.end(), physical_id);
+        const auto & physical_id = physical_ids(facet);
+        auto it =
+            find(physical_groups.begin(), physical_groups.end(), physical_id);
 
-                     need_check = (it != physical_groups.end());
-                   },
-                   _spatial_dimension = spatial_dimension - 1);
+        need_check = (it != physical_groups.end());
+      },
+      _spatial_dimension = spatial_dimension - 1);
 
   AKANTU_DEBUG_OUT();
 }
@@ -203,14 +204,16 @@ UInt CohesiveElementInserter::insertElements(bool only_double_facets) {
         *this, SynchronizationTag::_ce_groups);
   }
 
-  CohesiveElementInserterHelper cohesive_element_inserter_helper(mesh, insertion_facets);
+  CohesiveElementInserterHelper cohesive_element_inserter_helper(
+      mesh, insertion_facets);
 
   UInt nb_new_elements{0};
   if (only_double_facets) {
     nb_new_elements = cohesive_element_inserter_helper.insertFacetsOnly();
   } else {
     nb_new_elements = cohesive_element_inserter_helper.insertCohesiveElement();
-    element_event.getList().copy(cohesive_element_inserter_helper.getNewElements());
+    element_event.getList().copy(
+        cohesive_element_inserter_helper.getNewElements());
   }
 
   auto && doubled_nodes = cohesive_element_inserter_helper.getDoubledNodes();
@@ -218,7 +221,7 @@ UInt CohesiveElementInserter::insertElements(bool only_double_facets) {
 
   node_event.getList().reserve(nb_new_nodes);
   node_event.getOldNodesList().reserve(nb_new_nodes);
-  
+
   for (auto && doubled_node : make_view(doubled_nodes, 2)) {
     node_event.getList().push_back(doubled_node(1));
     node_event.getOldNodesList().push_back(doubled_node(0));
