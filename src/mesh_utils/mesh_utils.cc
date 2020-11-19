@@ -64,15 +64,18 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   node_to_elem.resizeRows(nb_nodes);
   node_to_elem.clearRows();
 
-  for_each_element(mesh,
-                   [&](auto && element) {
-                     Vector<UInt> conn = mesh.getConnectivity(element);
-                     for (auto && node : conn) {
-                       ++node_to_elem.rowOffset(node);
-                     }
-                   },
-                   _spatial_dimension = spatial_dimension,
-                   _element_kind = el_kind);
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        Vector<UInt> conn = mesh.getConnectivity(element);
+        std::set<UInt> unique_nodes;
+        for (auto && node : conn) {
+          auto ret = unique_nodes.emplace(node);
+          if (ret.second)
+            ++node_to_elem.rowOffset(node);
+        }
+      },
+      _spatial_dimension = spatial_dimension, _element_kind = el_kind);
 
   node_to_elem.countToCSR();
   node_to_elem.resizeCols();
@@ -81,15 +84,18 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
   // Element e;
   node_to_elem.beginInsertions();
 
-  for_each_element(mesh,
-                   [&](auto && element) {
-                     Vector<UInt> conn = mesh.getConnectivity(element);
-                     for (auto && node : conn) {
-                       node_to_elem.insertInRow(node, element);
-                     }
-                   },
-                   _spatial_dimension = spatial_dimension,
-                   _element_kind = el_kind);
+  for_each_element(
+      mesh,
+      [&](auto && element) {
+        Vector<UInt> conn = mesh.getConnectivity(element);
+        std::set<UInt> unique_nodes;
+        for (auto && node : conn) {
+          auto ret = unique_nodes.emplace(node);
+          if (ret.second)
+            node_to_elem.insertInRow(node, element);
+        }
+      },
+      _spatial_dimension = spatial_dimension, _element_kind = el_kind);
 
   node_to_elem.endInsertions();
 
