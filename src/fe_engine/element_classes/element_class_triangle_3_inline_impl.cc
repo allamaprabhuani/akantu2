@@ -116,8 +116,25 @@ InterpolationElement<_itp_lagrange_triangle_3>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
-  return 2. * Math::triangle_inradius(coord(0).storage(), coord(1).storage(),
-                                      coord(2).storage());
+  Real inradius;
+  auto dim = coord.rows();
+  switch (dim) {
+  case 2: {
+    inradius = Math::triangle_inradius_2D(
+        coord(0).storage(), coord(1).storage(), coord(2).storage());
+    break;
+  }
+  case 3: {
+    inradius = Math::triangle_inradius_3D(
+        coord(0).storage(), coord(1).storage(), coord(2).storage());
+    break;
+  }
+  default: {
+    AKANTU_EXCEPTION(
+        "Inradius calculation of triangle is possible only in dim 2 and 3");
+  }
+  }
+  return 2. * inradius;
 }
 
 /* -------------------------------------------------------------------------- */

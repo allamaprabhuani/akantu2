@@ -200,9 +200,14 @@ public:
   /// distance in 3D between x and y
   static inline Real distance_3d(const Real * x, const Real * y);
 
-  /// radius of the in-circle of a triangle
-  static inline Real triangle_inradius(const Real * coord1, const Real * coord2,
-                                       const Real * coord3);
+  /// radius of the in-circle of a triangle in a 2D mesh
+  static inline Real triangle_inradius_2D(const Real * coord1,
+                                          const Real * coord2,
+                                          const Real * coord3);
+  /// radius of the in-circle of a triangle in a 3D mesh
+  static inline Real triangle_inradius_3D(const Real * coord1,
+                                          const Real * coord2,
+                                          const Real * coord3);
 
   /// radius of the in-circle of a tetrahedron
   static inline Real tetrahedron_inradius(const Real * coord1,
@@ -286,6 +291,6 @@ private:
 
 #include "aka_math_tmpl.hh"
 
-} // akantu
+} // namespace akantu
 
 #endif /* __AKANTU_AKA_MATH_H__ */

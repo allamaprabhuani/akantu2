@@ -179,17 +179,36 @@ InterpolationElement<_itp_lagrange_triangle_6>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
-  UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
+  // UInt triangles[4][3] = {{0, 3, 5}, {3, 1, 4}, {3, 4, 5}, {5, 4, 2}};
 
-  Real inradius = std::numeric_limits<Real>::max();
-  for (UInt t = 0; t < 4; t++) {
-    Real ir = Math::triangle_inradius(coord(triangles[t][0]).storage(),
-                                      coord(triangles[t][1]).storage(),
-                                      coord(triangles[t][2]).storage());
-    inradius = std::min(ir, inradius);
+  // Real inradius = std::numeric_limits<Real>::max();
+  // for (UInt t = 0; t < 4; t++) {
+  //   Real ir = Math::triangle_inradius(coord(triangles[t][0]).storage(),
+  //                                     coord(triangles[t][1]).storage(),
+  //                                     coord(triangles[t][2]).storage());
+  //   inradius = std::min(ir, inradius);
+  // }
+
+  // I assume that the middle nodes are aligned with corners
+  Real inradius;
+  auto dim = coord.rows();
+  switch (dim) {
+  case 2: {
+    inradius = Math::triangle_inradius_2D(
+        coord(0).storage(), coord(1).storage(), coord(2).storage());
+    break;
   }
-
-  return 2.*inradius;
+  case 3: {
+    inradius = Math::triangle_inradius_3D(
+        coord(0).storage(), coord(1).storage(), coord(2).storage());
+    break;
+  }
+  default: {
+    AKANTU_EXCEPTION(
+        "Inradius calculation of triangle is possible only in dim 2 and 3");
+  }
+  }
+  return 2. * inradius;
 }
 
 /* -------------------------------------------------------------------------- */

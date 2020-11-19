@@ -567,8 +567,8 @@ inline Real Math::distance_2d(const Real * x, const Real * y) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline Real Math::triangle_inradius(const Real * coord1, const Real * coord2,
-                                    const Real * coord3) {
+inline Real Math::triangle_inradius_2D(const Real * coord1, const Real * coord2,
+                                       const Real * coord3) {
   /**
    * @f{eqnarray*}{
    * r &=& A / s \\
@@ -581,6 +581,27 @@ inline Real Math::triangle_inradius(const Real * coord1, const Real * coord2,
   a = distance_2d(coord1, coord2);
   b = distance_2d(coord2, coord3);
   c = distance_2d(coord1, coord3);
+
+  Real s;
+  s = (a + b + c) * 0.5;
+
+  return sqrt((s - a) * (s - b) * (s - c) / s);
+}
+/* -------------------------------------------------------------------------- */
+inline Real Math::triangle_inradius_3D(const Real * coord1, const Real * coord2,
+                                       const Real * coord3) {
+  /**
+   * @f{eqnarray*}{
+   * r &=& A / s \\
+   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
+   * s &=& \frac{a + b + c}{2}
+   * @f}
+   */
+
+  Real a, b, c;
+  a = distance_3d(coord1, coord2);
+  b = distance_3d(coord2, coord3);
+  c = distance_3d(coord1, coord3);
 
   Real s;
   s = (a + b + c) * 0.5;
@@ -741,7 +762,7 @@ inline bool Math::are_vector_equal(UInt n, Real * x, Real * y) {
 
 /* -------------------------------------------------------------------------- */
 inline bool Math::intersects(Real x_min, Real x_max, Real y_min, Real y_max) {
-  return not ((x_max < y_min) or (x_min > y_max));
+  return not((x_max < y_min) or (x_min > y_max));
 }
 
 /* -------------------------------------------------------------------------- */
