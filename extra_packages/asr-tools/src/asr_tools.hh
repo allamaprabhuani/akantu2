@@ -163,6 +163,10 @@ public:
   /// insert multiple blocks of cohesive elements
   void insertASRCohesivesRandomly(const UInt & nb_coh_elem,
                                   std::string matrix_mat_name, Real gap_ratio);
+  /// insert multiple blocks of cohesive elements
+  void insertASRCohesivesRandomly3D(const UInt & nb_coh_elem,
+                                    std::string matrix_mat_name,
+                                    Real gap_ratio);
 
   /// insert block of cohesive elements based on the coord of the central
   void insertASRCohesivesByCoords(const Matrix<Real> & positions,
@@ -181,11 +185,11 @@ protected:
   /// pick facets by passed coordinates
   void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name);
 
-  /// pick two neighbors of a central facet: returns true if success
-  bool pickFacetNeighbors(Element & cent_facet);
+  /// pick two neighbors of a central facet in 2D: returns true if success
+  bool pickFacetNeighborsOld(Element & cent_facet);
 
   /// version working for both 2d and 3d
-  bool pickFacetNeighbors3D(Element & cent_facet);
+  bool pickFacetNeighbors(Element & cent_facet);
 
   /// optimise doubled facets group, insert facets, and cohesive elements,
   /// update connectivities
@@ -199,6 +203,9 @@ protected:
 
   /// change coordinates of central crack nodes to create an artificial gap
   void insertGap(const Real gap_ratio);
+
+  /// same in 3D
+  void insertGap3D(const Real gap_ratio);
 
   /// on elements added for asr-tools
   void onElementsAdded(const Array<Element> & elements,
@@ -759,7 +766,7 @@ protected:
   const std::string group_name;
 };
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------- */
 class PressureVolumeDependent : public BC::Neumann::NeumannFunctor {
 public:
   PressureVolumeDependent(SolidMechanicsModel & model,
@@ -771,7 +778,7 @@ public:
 
   inline void operator()(const IntegrationPoint & quad_point,
                          Vector<Real> & dual, const Vector<Real> & /*coord*/,
-                         const Vector<Real> & normal) const {
+                         const Vector<Real> & /*normal*/) const {
 
     // get element types
     auto && mesh = model.getMesh();
@@ -823,10 +830,10 @@ public:
     /// compute current area of a gap
     Vector<UInt> first_facet_nodes = facet_nodes_it[facet_nb];
     Vector<UInt> second_facet_nodes = facet_nodes_it[opposite_facet_nb];
-    /// corners of a quadrangle consequently
-    ///      A---M---B
-    ///       \      |
-    ///        D--N--C
+    /* corners of a quadrangle consequently
+            A---M---B
+            \      |
+            D--N--C */
     UInt A, B, C, D;
     A = first_facet_nodes(0);
     B = first_facet_nodes(1);
@@ -856,6 +863,112 @@ public:
       pressure_change = -volume_change / ASR_volume / this->compressibility;
     }
     dual = pressure_change * normal_corrected;
+  }
+
+protected:
+  SolidMechanicsModel & model;
+  const Real ASR_volume_ratio;
+  const std::string group_name;
+  const Real compressibility;
+};
+/* ------------------------------------------------------------------- */
+class PressureVolumeDependent3D : public BC::Neumann::NeumannFunctor {
+public:
+  PressureVolumeDependent3D(SolidMechanicsModel & model,
+                            const Real ASR_volume_ratio,
+                            const std::string group_name,
+                            const Real compressibility)
+      : model(model), ASR_volume_ratio(ASR_volume_ratio),
+        group_name(group_name), compressibility(compressibility) {}
+
+  inline void operator()(const IntegrationPoint & quad_point,
+                         Vector<Real> & dual, const Vector<Real> & /*coord*/,
+                         const Vector<Real> & /*normal*/) const {
+
+    // get element types
+    auto && mesh = model.getMesh();
+    AKANTU_DEBUG_ASSERT(mesh.elementGroupExists(group_name),
+                        "Element group is not registered in the mesh");
+    auto dim = mesh.getSpatialDimension();
+    const GhostType gt = akantu::_not_ghost;
+    const UInt facet_nb = quad_point.element;
+    const ElementType type_facet = quad_point.type;
+    auto && facet_conn = mesh.getConnectivity(type_facet, gt);
+    const UInt nb_nodes_facet = facet_conn.getNbComponent();
+    auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
+    auto & group = mesh.getElementGroup(group_name);
+    Array<UInt> element_ids = group.getElements(type_facet);
+    auto && pos = mesh.getNodes();
+    const auto pos_it = make_view(pos, dim).begin();
+    auto && disp = model.getDisplacement();
+    const auto disp_it = make_view(disp, dim).begin();
+    auto && fem_boundary = model.getFEEngineBoundary();
+    UInt nb_quad_points = fem_boundary.getNbIntegrationPoints(type_facet, gt);
+
+    AKANTU_DEBUG_ASSERT(element_ids.size(),
+                        "Provided group doesn't contain this element type");
+    auto id = element_ids.find(facet_nb);
+    AKANTU_DEBUG_ASSERT(id != UInt(-1),
+                        "Quad point doesn't belong to this element group");
+
+    // get normal to the current positions
+    const auto & current_pos = model.getCurrentPosition();
+    Array<Real> quad_normals(0, dim);
+    fem_boundary.computeNormalsOnIntegrationPoints(current_pos, quad_normals,
+                                                   type_facet, gt);
+    auto normals_it = quad_normals.begin(dim);
+    Vector<Real> normal_corrected(
+        normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
+
+    // auto normal_corrected = normal;
+    UInt opposite_facet_nb(-1);
+    if (id < element_ids.size() / 2) {
+      normal_corrected *= -1;
+      opposite_facet_nb = element_ids(id + element_ids.size() / 2);
+    } else if (id >= element_ids.size())
+      AKANTU_EXCEPTION("Error in defining side of the cohesive element");
+    else {
+      normal_corrected *= 1;
+      opposite_facet_nb = element_ids(id - element_ids.size() / 2);
+    }
+
+    // /// compute current area of a gap
+    // Vector<UInt> first_facet_nodes = facet_nodes_it[facet_nb];
+    // Vector<UInt> second_facet_nodes = facet_nodes_it[opposite_facet_nb];
+    // /* corners of a quadrangle consequently
+    //         A---M---B
+    //         \      |
+    //         D--N--C */
+    // UInt A, B, C, D;
+    // A = first_facet_nodes(0);
+    // B = first_facet_nodes(1);
+    // C = second_facet_nodes(0);
+    // D = second_facet_nodes(1);
+
+    // /// quadrangle's area through diagonals
+    // Vector<Real> AC, BD;
+    // Vector<Real> A_pos = Vector<Real>(pos_it[A]) + Vector<Real>(disp_it[A]);
+    // Vector<Real> B_pos = Vector<Real>(pos_it[B]) + Vector<Real>(disp_it[B]);
+    // Vector<Real> C_pos = Vector<Real>(pos_it[C]) + Vector<Real>(disp_it[C]);
+    // Vector<Real> D_pos = Vector<Real>(pos_it[D]) + Vector<Real>(disp_it[D]);
+    // Vector<Real> M_pos = (A_pos + B_pos) * 0.5;
+    // Vector<Real> N_pos = (C_pos + D_pos) * 0.5;
+    // Vector<Real> MN = M_pos - N_pos;
+    // Vector<Real> AB = A_pos - B_pos;
+    // Vector<Real> AB_0 = Vector<Real>(pos_it[A]) - Vector<Real>(pos_it[B]);
+
+    // // ASR volume computed as AB * thickness (AB * ratio)
+    // Real ASR_volume = AB_0.norm() * AB_0.norm() * ASR_volume_ratio;
+    // Real current_volume = AB.norm() * MN.norm();
+    // current_volume =
+    //     Math::are_float_equal(current_volume, 0.) ? 0 : current_volume;
+    // Real volume_change = current_volume - ASR_volume;
+    // Real pressure_change{0};
+    // if (volume_change < 0) {
+    //   pressure_change = -volume_change / ASR_volume / this->compressibility;
+    // }
+    // dual = pressure_change * normal_corrected;
+    dual = 1e6 * normal_corrected;
   }
 
 protected:

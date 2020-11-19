@@ -1,4 +1,3 @@
-
 /**
  * @file   ASR_tools.cc
  * @author Aurelia Cuba Ramos <aurelia.cubaramos@epfl.ch>
@@ -43,6 +42,7 @@
 #include "solid_mechanics_model.hh"
 #include "solid_mechanics_model_RVE.hh"
 #include "solid_mechanics_model_cohesive.hh"
+#include <cmath>
 #include <mesh_events.hh>
 
 /* -------------------------------------------------------------------------- */
@@ -1239,8 +1239,6 @@ Real ASRTools::computeSmallestElementSize() {
     }
   }
 
-  /// find global Gauss point with highest stress
-  /// do not communicate if model is multi-scale
   if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
     auto && comm = akantu::Communicator::getWorldCommunicator();
     comm.allReduce(el_h_min, SynchronizerOperation::_min);
@@ -2051,8 +2049,7 @@ void ASRTools::dumpRve() { model.dump(); }
 //   }
 // }
 
-/* -------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------- */
 void ASRTools::insertASRCohesivesRandomly(const UInt & nb_insertions,
                                           std::string facet_mat_name,
                                           Real gap_ratio) {
@@ -2069,6 +2066,28 @@ void ASRTools::insertASRCohesivesRandomly(const UInt & nb_insertions,
   assignCrackNumbers();
 
   insertGap(gap_ratio);
+
+  preventCohesiveInsertionInNeighbors();
+
+  AKANTU_DEBUG_OUT();
+}
+/* ------------------------------------------------------------------- */
+void ASRTools::insertASRCohesivesRandomly3D(const UInt & nb_insertions,
+                                            std::string facet_mat_name,
+                                            Real /*gap_ratio*/) {
+  AKANTU_DEBUG_IN();
+
+  // fill in the partition_border_nodes array
+  communicateFlagsOnNodes();
+
+  /// pick central facets and neighbors
+  pickFacetsRandomly(nb_insertions, facet_mat_name);
+
+  insertOppositeFacetsAndCohesives();
+
+  assignCrackNumbers();
+
+  // insertGap3D(gap_ratio);
 
   preventCohesiveInsertionInNeighbors();
 
@@ -2145,18 +2164,19 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
     Real min_dist = std::numeric_limits<Real>::max();
     Element cent_facet;
     cent_facet.ghost_type = gt;
-    for_each_element(mesh_facets,
-                     [&](auto && facet) {
-                       if (check_facets(facet.element)) {
-                         mesh_facets.getBarycenter(facet, bary_facet);
-                         auto dist = std::abs(bary_facet.distance(position));
-                         if (dist < min_dist) {
-                           min_dist = dist;
-                           cent_facet = facet;
-                         }
-                       }
-                     },
-                     _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
+    for_each_element(
+        mesh_facets,
+        [&](auto && facet) {
+          if (check_facets(facet.element)) {
+            mesh_facets.getBarycenter(facet, bary_facet);
+            auto dist = std::abs(bary_facet.distance(position));
+            if (dist < min_dist) {
+              min_dist = dist;
+              cent_facet = facet;
+            }
+          }
+        },
+        _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
 
     /// communicate between processors for the element closest to the position
     auto local_min_dist = min_dist;
@@ -2238,17 +2258,18 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
     return;
 
   Vector<Real> bary_facet(dim);
-  for_each_element(mesh_facets,
-                   [&](auto && facet) {
-                     if (check_facets(facet.element)) {
-                       mesh_facets.getBarycenter(facet, bary_facet);
-                       auto & facet_material = coh_model.getFacetMaterial(
-                           facet.type, facet.ghost_type)(facet.element);
-                       if (facet_material == facet_material_id)
-                         matrix_elements.add(facet);
-                     }
-                   },
-                   _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
+  for_each_element(
+      mesh_facets,
+      [&](auto && facet) {
+        if (check_facets(facet.element)) {
+          mesh_facets.getBarycenter(facet, bary_facet);
+          auto & facet_material = coh_model.getFacetMaterial(
+              facet.type, facet.ghost_type)(facet.element);
+          if (facet_material == facet_material_id)
+            matrix_elements.add(facet);
+        }
+      },
+      _spatial_dimension = dim - 1, _ghost_type = _not_ghost);
 
   UInt nb_element = matrix_elements.getElements(facet_type).size();
   std::mt19937 random_generator(0);
@@ -2297,7 +2318,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
   }
 }
 /* ----------------------------------------------------------------------- */
-bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
+bool ASRTools::pickFacetNeighborsOld(Element & cent_facet) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
@@ -2313,8 +2334,7 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
   CSR<Element> nodes_to_segments;
   MeshUtils::buildNode2Elements(mesh_facets, nodes_to_segments, dim - 1);
   Array<Element> two_neighbors(2);
-  Element dummy{_not_defined, UInt(-1), _casper};
-  two_neighbors.set(dummy);
+  two_neighbors.set(ElementNull);
 
   for (auto node : arange(2)) {
     /// vector of the central facet
@@ -2377,7 +2397,7 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
   }
 
   // insert neighbors only if two of them were identified
-  if (two_neighbors.find(dummy) == UInt(-1)) {
+  if (two_neighbors.find(ElementNull) == UInt(-1)) {
     for (auto & neighbor : two_neighbors) {
       doubled_facets.add(neighbor);
       for (UInt node : arange(2)) {
@@ -2389,11 +2409,12 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
     return false;
 }
 /* ----------------------------------------------------------------------- */
-bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
+bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
   auto & mesh_facets = inserter.getMeshFacets();
+  const auto & pos = mesh.getNodes();
   auto dim = mesh.getSpatialDimension();
   auto facet_type = cent_facet.type;
   auto facet_gt = cent_facet.ghost_type;
@@ -2402,10 +2423,20 @@ bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
   UInt nb_quad_points =
       facets_fe_engine.getNbIntegrationPoints(facet_type, facet_gt);
   auto & doubled_facets = mesh_facets.getElementGroup("doubled_facets");
+  auto & doubled_nodes = mesh.getNodeGroup("doubled_nodes");
   auto & facet_conn = mesh_facets.getConnectivity(facet_type, facet_gt);
-  auto & facet_material =
+  auto & facet_material_index =
       coh_model.getFacetMaterial(facet_type, facet_gt)(facet_nb);
-  auto facet_material_id = model.getMaterial(facet_material);
+
+  // get inscribed diameter
+  auto nb_nodes_per_facet = mesh_facets.getNbNodesPerElement(facet_type);
+  Array<Real> coord(0, nb_nodes_per_facet * dim);
+  Array<UInt> dummy_list(1, 1, facet_nb);
+  facets_fe_engine.extractNodalToElementField(mesh_facets, pos, coord,
+                                              facet_type, facet_gt, dummy_list);
+  Array<Real>::matrix_iterator coord_el = coord.begin(dim, nb_nodes_per_facet);
+  Real facet_indiam =
+      facets_fe_engine.getElementInradius(*coord_el, facet_type);
 
   // get list of the subelements connected to the facet (nodes in 2D, segments
   // in 3D)
@@ -2416,20 +2447,18 @@ bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
 
   // normal to the central facet
   const auto & normals =
-      facets_fe_engine.getNormalsOnIntegrationPoints(type_facet);
+      facets_fe_engine.getNormalsOnIntegrationPoints(facet_type);
   auto normal_begin = normals.begin(dim);
   Vector<Real> cent_facet_normal(normal_begin[facet_nb * nb_quad_points]);
 
-  // CSR<Element> nodes_to_segments;
-  // MeshUtils::buildNode2Elements(mesh_facets, nodes_to_segments, dim - 1);
   Array<Element> neighbors(subelements_to_element.size());
-  Element dummy{_not_defined, UInt(-1), _casper};
-  neighbors.set(dummy);
-  // max dot product computed for each subelement iteration
-  Array<Real> max_dots(subelements_to_element.size());
+  neighbors.set(ElementNull);
+  // max weight parameter computed for each subelement iteration
+  // here this parameter = dot product between two normals
   // minimum 60 deg between normals -> 120 between dips
-  Real max_dot_threshold(0.5);
-  max_dots.set(max_dot_threshold);
+  Real weight_parameter_threshold(0.5);
+  std::vector<Real> max_weight_parameters(subelements_to_element.size(),
+                                          weight_parameter_threshold);
 
   // identify a facet's neighbor through each subelement
   for (UInt i : arange(subelements_to_element.size())) {
@@ -2443,10 +2472,10 @@ bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
         continue;
       if (connected_element.element == facet_nb)
         continue;
-      auto & candidate_facet_material = coh_model.getFacetMaterial(
+      auto & candidate_facet_material_index = coh_model.getFacetMaterial(
           connected_element.type,
-          connected_element.ghost_type)(connected_elemenet.element);
-      if (candidate_facet_material != facet_material_id)
+          connected_element.ghost_type)(connected_element.element);
+      if (candidate_facet_material_index != facet_material_index)
         continue;
       if (not inserter.getCheckFacets(connected_element.type,
                                       connected_element.ghost_type)(
@@ -2467,10 +2496,25 @@ bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
           normal_begin[connected_element.element * nb_quad_points]);
 
       // get abs of dot product between two normals
-      Real dot = abs(cent_facet_normal.dot(candidate_facet_normal));
-      if (dot > max_dots(i)) {
-        max_dots(i) = dot;
-        neighbors(i) = elem;
+      Real dot = cent_facet_normal.dot(candidate_facet_normal);
+      // dot = std::abs(dot);
+
+      // get distance between two barycenters
+      Vector<Real> cent_facet_bary(dim);
+      Vector<Real> candidate_facet_bary(dim);
+      mesh_facets.getBarycenter(cent_facet, cent_facet_bary);
+      mesh_facets.getBarycenter(connected_element, candidate_facet_bary);
+      auto dist = std::abs(candidate_facet_bary.distance(cent_facet_bary));
+
+      // ad-hoc rule on barycenters spacing
+      // it should discard all elements under sharp angle
+      if (dist < facet_indiam)
+        continue;
+
+      auto weight_parameter = dot;
+      if (weight_parameter > max_weight_parameters[i]) {
+        max_weight_parameters[i] = weight_parameter;
+        neighbors(i) = connected_element;
       }
     }
   }
@@ -2478,7 +2522,7 @@ bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
   // different insertion procedures for 2D and 3D cases
   switch (dim) {
   case 2: {
-    if (neighbors.find(dummy) == UInt(-1)) {
+    if (neighbors.find(ElementNull) == UInt(-1)) {
       for (auto & neighbor : neighbors) {
         doubled_facets.add(neighbor);
         for (UInt node : arange(2)) {
@@ -2490,20 +2534,23 @@ bool ASRTools::pickFacetNeighbors3D(Element & cent_facet) {
       return false;
   }
   case 3: {
-    auto max_el_pos = std::max_element(max_dots.begin(), max_dots.end());
-    if (*max_el_pos > max_dot_threshold) {
-      auto max_dot_index = std::distance(max_dots, max_el_pos);
-      auto & neigbor = neighbors(max_dot_index);
+    auto max_el_pos = std::max_element(max_weight_parameters.begin(),
+                                       max_weight_parameters.end());
+    if (*max_el_pos > weight_parameter_threshold) {
+      auto max_param_index =
+          std::distance(max_weight_parameters.begin(), max_el_pos);
+      auto & neighbor = neighbors(max_param_index);
       doubled_facets.add(neighbor);
       for (UInt node : arange(facet_conn.getNbComponent())) {
+        doubled_nodes.add(facet_conn(neighbor.element, node));
         this->ASR_nodes(facet_conn(neighbor.element, node)) = true;
       }
       return true;
     } else
-      return false
+      return false;
   }
   default:
-    AKANTU_EXCEPTION("Provided dimension is not supported")
+    AKANTU_EXCEPTION("Provided dimension is not supported");
   }
 }
 /* ----------------------------------------------------------------------- */
@@ -2538,7 +2585,6 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
   auto & mesh_facets = inserter.getMeshFacets();
   auto dim = mesh.getSpatialDimension();
   const GhostType gt = _not_ghost;
-  auto & crack_facets = mesh.createElementGroup("crack_facets");
   const auto & pos = mesh.getNodes();
   const auto pos_it = make_view(pos, dim).begin();
   auto & doubled_facets = mesh_facets.getElementGroup("doubled_facets");
@@ -2579,10 +2625,6 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
       Vector<UInt> facet_nodes = mesh_facet_conn_it[el];
       facet_conn.push_back(facet_nodes);
       Element new_facet{type, facet_conn.size() - 1, gt};
-      crack_facets.add(new_facet);
-      for (auto & facet_node : facet_nodes) {
-        crack_facets.addNode(facet_node, true);
-      }
       new_facets_event.getList().push_back(new_facet);
     }
   }
@@ -2609,15 +2651,11 @@ void ASRTools::assignCrackNumbers() {
 
   for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
     ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
-    // UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
-    //                             .getNbIntegrationPoints(type_cohesive);
     auto & crack_numbers =
         mesh.getDataPointer<UInt>("crack_numbers", type_cohesive);
     auto & coh_conn = mesh.getConnectivity(type_cohesive, gt);
     auto nb_coh_nodes = coh_conn.getNbComponent();
     auto coh_conn_it = coh_conn.begin(coh_conn.getNbComponent());
-    CSR<Element> nodes_to_elements;
-    MeshUtils::buildNode2Elements(mesh, nodes_to_elements, dim, _ek_cohesive);
 
     // initialize a graph
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS>
@@ -2626,7 +2664,7 @@ void ASRTools::assignCrackNumbers() {
 
     // build the graph based on the connectivity of cohesive elements
     for (UInt i = 0; i < coh_conn.size(); i++) {
-      for (UInt j = i; j < coh_conn.size(); j++) {
+      for (UInt j = i + 1; j < coh_conn.size(); j++) {
         auto nodes_1 = coh_conn_it[i];
         auto nodes_2 = coh_conn_it[j];
         std::vector<UInt> nod_1(nb_coh_nodes);
@@ -2641,13 +2679,26 @@ void ASRTools::assignCrackNumbers() {
         std::vector<UInt> common_nodes(nb_coh_nodes);
         std::vector<UInt>::iterator it;
 
+        // An iterator to the end of the constructed range.
         it = std::set_intersection(nod_1.begin(), nod_1.end(), nod_2.begin(),
                                    nod_2.end(), common_nodes.begin());
         common_nodes.resize(it - common_nodes.begin());
 
-        /// if any common nodes are found, add corresponding edge to the graph
-        if (common_nodes.size()) {
-          boost::add_edge(i, j, graph);
+        switch (dim) {
+        case 2: {
+          // 1 common node between 2 segments
+          if (common_nodes.size() == 1) {
+            boost::add_edge(i, j, graph);
+          }
+          break;
+        }
+        case 3: {
+          // 2 or 3 common nodes between 2 triangles
+          if (common_nodes.size() > 1) {
+            boost::add_edge(i, j, graph);
+          }
+          break;
+        }
         }
       }
     }
@@ -2666,24 +2717,11 @@ void ASRTools::assignCrackNumbers() {
 
     /// assign a corresponding crack flag
     for (UInt coh_el : arange(component.size())) {
-      // const Array<UInt> & material_index_vec =
-      //     model.getMaterialByElement(type_cohesive, gt);
-      // const Array<UInt> & material_local_numbering_vec =
-      //     model.getMaterialLocalNumbering(type_cohesive, gt);
-      // Material & material = model.getMaterial(material_index_vec(coh_el));
-      // auto & crack_nb =
-      //     material.getInternal<Real>("crack_number")(type_cohesive, gt);
-      // UInt material_local_num = material_local_numbering_vec(coh_el);
-      // auto crack_nb_it = crack_nb.begin();
       crack_numbers(coh_el) = component[coh_el];
-      // for (UInt i : arange(nb_quad_cohesive)) {
-      //   crack_nb_it[material_local_num * nb_quad_cohesive + i] =
-      //       Real(component[coh_el]);
-      // }
     }
   }
 }
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------- */
 void ASRTools::insertGap(const Real gap_ratio) {
   AKANTU_DEBUG_IN();
   if (gap_ratio == 0)
@@ -2695,16 +2733,16 @@ void ASRTools::insertGap(const Real gap_ratio) {
 
   auto dim = mesh.getSpatialDimension();
   const GhostType gt = _not_ghost;
-  auto && group = mesh.getElementGroup("doubled_nodes");
+  auto & el_group = mesh.getElementGroup("doubled_nodes");
   auto & pos = mesh.getNodes();
   auto pos_it = make_view(pos, dim).begin();
   auto pos2modify_it = make_view(pos2modify, dim).begin();
 
-  for (auto & type : group.elementTypes(dim - 1)) {
+  for (auto & type : el_group.elementTypes(dim - 1)) {
     auto & facet_conn = mesh.getConnectivity(type, gt);
     const UInt nb_nodes_facet = facet_conn.getNbComponent();
     auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
-    const auto element_ids = group.getElements(type, gt);
+    const auto element_ids = el_group.getElements(type, gt);
     auto && fe_engine = model.getFEEngineBoundary();
     auto nb_qpoints_per_facet = fe_engine.getNbIntegrationPoints(type, gt);
     const auto & normals_on_quad =
@@ -2728,6 +2766,134 @@ void ASRTools::insertGap(const Real gap_ratio) {
         node_pos += half_opening_vector;
         this->modified_pos(facet_nodes(j)) = true;
       }
+    }
+  }
+
+  /// update FEEngine & FEEngineBoundary with new elements
+  model.getFEEngine().initShapeFunctions(_not_ghost);
+  model.getFEEngine().initShapeFunctions(_ghost);
+  model.getFEEngineBoundary().initShapeFunctions(_not_ghost);
+  model.getFEEngineBoundary().initShapeFunctions(_ghost);
+  model.getFEEngineBoundary().computeNormalsOnIntegrationPoints(_not_ghost);
+  model.getFEEngineBoundary().computeNormalsOnIntegrationPoints(_ghost);
+
+  AKANTU_DEBUG_OUT();
+}
+/* ------------------------------------------------------------------- */
+void ASRTools::insertGap3D(const Real gap_ratio) {
+  AKANTU_DEBUG_IN();
+  if (gap_ratio == 0)
+    return;
+
+  auto & mesh = model.getMesh();
+  auto & mesh_facets = mesh.getMeshFacets();
+  MeshAccessor mesh_accessor(mesh);
+  auto & pos2modify = mesh_accessor.getNodes();
+
+  auto dim = mesh.getSpatialDimension();
+  const GhostType gt = _not_ghost;
+  auto & el_group = mesh_facets.getElementGroup("doubled_facets");
+  auto & pos = mesh.getNodes();
+  auto pos_it = make_view(pos, dim).begin();
+  auto pos2modify_it = make_view(pos2modify, dim).begin();
+
+  for (auto & type : el_group.elementTypes(dim - 1)) {
+    if ((dim == 3) and (type != _triangle_6))
+      AKANTU_EXCEPTION("The only facet type supported in 3D is _triangle_6");
+    const Array<UInt> element_ids = el_group.getElements(type, gt);
+    auto && fe_engine = model.getFEEngineBoundary();
+    auto nb_qpoints_per_facet = fe_engine.getNbIntegrationPoints(type, gt);
+
+    // identify pairs of facets
+    Array<UInt> facets_considered;
+    for (UInt i : arange(element_ids.size())) {
+      auto el_id = element_ids(i);
+
+      // if element was already considered -> skip
+      if (facets_considered.find(el_id) != UInt(-1))
+        continue;
+
+      Array<UInt> element_ids_half(element_ids.size() / 2);
+      UInt starting_pos;
+      if (i < element_ids.size() / 2) {
+        starting_pos = 0;
+      } else {
+        starting_pos = element_ids.size() / 2;
+      }
+      for (auto j : arange(element_ids_half.size())) {
+        element_ids_half(j) = element_ids(j + starting_pos);
+      }
+
+      // find a neighbor
+      auto & sub_to_element = mesh_facets.getSubelementToElement(type, gt);
+      auto sub_to_el_it = sub_to_element.begin(sub_to_element.getNbComponent());
+      const Vector<Element> & subelements_to_element = sub_to_el_it[el_id];
+      // identify a facet's neighbor through each subelement
+      Element neighbor(ElementNull);
+      Element border(ElementNull);
+      for (UInt i : arange(subelements_to_element.size())) {
+        auto & subel = subelements_to_element(i);
+        auto & connected_elements = mesh_facets.getElementToSubelement(
+            subel.type, subel.ghost_type)(subel.element);
+        for (auto & connected_element : connected_elements) {
+          // check all possible unsatisfactory conditions
+          if (connected_element.type != type)
+            continue;
+          if (connected_element.element == el_id)
+            continue;
+          // search for this neighbor in the doubled_nodes el group
+          UInt neighbor_pos_in_el_ids =
+              element_ids_half.find(connected_element.element);
+          if (neighbor_pos_in_el_ids == UInt(-1))
+            continue;
+
+          // if found -> subelement is the border
+          neighbor = connected_element;
+          border = subel;
+          facets_considered.push_back(el_id);
+          facets_considered.push_back(connected_element.element);
+          break;
+        }
+        if (neighbor != ElementNull)
+          break;
+      }
+      AKANTU_DEBUG_ASSERT(neighbor != ElementNull,
+                          "Neighbor for the facet was not identified for the "
+                          "purpose of the gap insertion");
+
+      // average the normal in between two neighbors
+      const auto & normals_on_quad =
+          fe_engine.getNormalsOnIntegrationPoints(type, gt);
+      auto normals_it = make_view(normals_on_quad, dim).begin();
+      Vector<Real> normal = normals_it[el_id * nb_qpoints_per_facet];
+      normal +=
+          Vector<Real>(normals_it[neighbor.element * nb_qpoints_per_facet]);
+      normal /= normal.norm();
+      // and correct it for the direction
+      if (i < element_ids.size() / 2) {
+        normal *= -1;
+      }
+
+      // compute segment length
+      AKANTU_DEBUG_ASSERT(
+          border.type == _segment_3,
+          "The only supported segment type in 3D is _segment_3");
+      auto & segment_conn =
+          mesh_facets.getConnectivity(border.type, border.ghost_type);
+      const UInt nb_nodes_segment = segment_conn.getNbComponent();
+      auto segment_nodes_it = make_view(segment_conn, nb_nodes_segment).begin();
+      auto segment_nodes = segment_nodes_it[border.element];
+      // 2 end nodes and the middle node
+      UInt A, B, middle_node;
+      A = segment_nodes(0);
+      B = segment_nodes(1);
+      middle_node = segment_nodes(2);
+      Vector<Real> AB = Vector<Real>(pos_it[B]) - Vector<Real>(pos_it[A]);
+      Real correction = AB.norm() * gap_ratio / 2;
+      Vector<Real> half_opening_vector = normal * correction;
+      Vector<Real> node_pos(pos2modify_it[middle_node]);
+      node_pos += half_opening_vector;
+      this->modified_pos(middle_node) = true;
     }
   }
 
@@ -2783,13 +2949,13 @@ void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
   AKANTU_DEBUG_IN();
   if (new_nodes.size() == 0)
     return;
-  /// increase the internal arrays by the number of new_nodes
+  // increase the internal arrays by the number of new_nodes
   UInt new_nb_nodes = this->modified_pos.size() + new_nodes.size();
   this->modified_pos.resize(new_nb_nodes);
   this->partition_border_nodes.resize(new_nb_nodes);
   this->ASR_nodes.resize(new_nb_nodes);
 
-  /// function is activated only when expanding cohesive elements is on
+  // function is activated only when expanding cohesive elements is on
   if (not this->cohesive_insertion)
     return;
   if (this->doubled_nodes_ready)
