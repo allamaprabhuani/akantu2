@@ -98,6 +98,8 @@ protected:
 
   inline Real computeYieldFunction(const Matrix<Real> & sigma);
 
+  inline Real computeYieldStress(const Matrix<Real> & sigma);
+
   inline void computeDeviatoricStress(const Matrix<Real> & sigma,
 				      Matrix<Real> & sigma_dev);
 

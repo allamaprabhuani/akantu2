@@ -44,6 +44,15 @@ inline void MaterialDruckerPrager<dim>::computeDeviatoricStress(const Matrix<Rea
   sigma_dev -= Matrix<Real>::eye(dim, sigma.trace() / dim);
 }
 
+/* -------------------------------------------------------------------------- */
+/// Yield Stress
+template<UInt dim>
+inline Real MaterialDruckerPrager<dim>::computeYieldStress(const Matrix<Real> &
+							     sigma) {
+  return this->alpha * sigma.trace() - this->k;
+}
+
+
 /* -------------------------------------------------------------------------- */  
 /// Yield function
 template<UInt dim>
@@ -56,7 +65,7 @@ inline Real MaterialDruckerPrager<dim>::computeYieldFunction(const Matrix<Real> 
   Real j2 = (1./ 2.) * sigma_dev.doubleDot(sigma_dev);
   Real sigma_dev_eff = std::sqrt(3. * j2);
 
-  Real modified_yield_stress = this->alpha * sigma.trace() - this->k;
+  Real modified_yield_stress = computeYieldStress(sigma);
 
   return sigma_dev_eff + modified_yield_stress;
 }
@@ -267,8 +276,6 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
     compute_gradient_f(alpha);
 
     // compute yield function
-    //yield_function = this->computeYieldFunction(sigma_guess);
-    //const UInt dimension = sigma_guess.cols();
     Matrix<Real> sigma_dev(dim, dim, 0);
 
     for (UInt i = 0; i < dim; ++i)
@@ -371,7 +378,17 @@ inline void MaterialDruckerPrager<dim>::computeStressOnQuad(
                                             delta_sigma_th);
   sigma_tr += previous_sigma;
 
-  // Compute the yielding function
+  // Compute the yielding sress
+  /*Real yield_stress = computeYieldStress(sigma_tr);
+  
+  Matrix<Real> sigma_tr_dev(dim, dim, 0);
+  this->computeDeviatoricStress(sigma_tr, sigma_tr_dev);
+  
+  Real j2 = (1./ 2.) * sigma_tr_dev.doubleDot(sigma_tr_dev);
+  Real sigma_tr_dev_eff = std::sqrt(3. * j2);
+  
+  bool initial_yielding = ((sigma_tr_dev_eff + yield_stress) > 0);*/
+  
   bool initial_yielding =
     (this->computeYieldFunction(sigma_tr) > 0);
 
