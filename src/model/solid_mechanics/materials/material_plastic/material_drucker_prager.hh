@@ -131,6 +131,9 @@ private:
 
   // modified compressive strength for Drucker-Prager
   Real k;
+
+  // radial return mapping
+  bool radial_return_mapping;
 };
   
 } // namespace akantu

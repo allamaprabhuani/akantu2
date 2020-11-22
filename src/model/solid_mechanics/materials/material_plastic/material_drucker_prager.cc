@@ -62,7 +62,11 @@ void MaterialDruckerPrager<spatial_dimension>::initialize() {
 		      "Internal friction angle in degrees");
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,
 		      "Compressive strength");
+  this->registerParam("radial_return", radial_return_mapping, bool(true),
+		      _pat_parsable | _pat_modifiable,
+		      "Radial return mapping");
 
+  
   this->updateInternalParameters();
 }
 
