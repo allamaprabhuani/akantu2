@@ -56,6 +56,10 @@
 // Drucker-Prager plasticity
 #include "material_drucker_prager.hh"
 
+// von-mises plasticity with damage
+#include "material_von_mises_mazars.hh"
+
+
 #endif
 
 #define AKANTU_CORE_MATERIAL_LIST                                              \
@@ -66,6 +70,7 @@
       (2, (marigo, MaterialMarigo)))((2, (mazars, MaterialMazars)))(           \
       (2, (plastic_linear_isotropic_hardening,                                 \
            MaterialLinearIsotropicHardening)))(				       \
-      (2, (plastic_drucker_prager, MaterialDruckerPrager)))
+      (2, (plastic_drucker_prager, MaterialDruckerPrager)))(                   \
+      (2, (plastic_mazars, MaterialVonMisesMazars)))						    
 
 #endif /* __AKANTU_MATERIAL_CORE_INCLUDES_HH__ */
