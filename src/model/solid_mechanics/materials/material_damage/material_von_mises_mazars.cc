@@ -5,30 +5,31 @@
 namespace akantu {
 
  /* -------------------------------------------------------------------------- */
-template <UInt dim>
-MaterialVonMisesMazars<dim>::MaterialVonMisesMazars(
+template <UInt dim, template <UInt> class Parent>
+MaterialVonMisesMazars<dim, Parent>::MaterialVonMisesMazars(
     SolidMechanicsModel & model, const ID & id)
-  : MaterialLinearIsotropicHardening<dim>(model, id),
-  MaterialMazars<dim>(model, id) {
+  : MaterialDamage<dim, Parent>(model, id), K0("K0", *this),
+      damage_in_compute_stress(true) {
   AKANTU_DEBUG_IN();
 
+  
+  this->registerParam("K0", K0, _pat_parsable, "K0");
+  this->registerParam("At", At, Real(0.8), _pat_parsable, "At");
+  this->registerParam("Ac", Ac, Real(1.4), _pat_parsable, "Ac");
+  this->registerParam("Bc", Bc, Real(1900.), _pat_parsable, "Bc");
+  this->registerParam("Bt", Bt, Real(12000.), _pat_parsable, "Bt");
+  this->registerParam("beta", beta, Real(1.06), _pat_parsable, "beta");
+
+  this->K0.initialize(1);
+
+  
   AKANTU_DEBUG_OUT();
 }
 
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-MaterialVonMisesMazars<spatial_dimension>::
-   MaterialVonMisesMazars(SolidMechanicsModel & model, UInt dim,
-			  const Mesh & mesh, FEEngine & fe_engine,
-			  const ID & id) 
-    : MaterialLinearIsotropicHardening<spatial_dimension>(model, id),
-     MaterialMazars<spatial_dimension>(model, id) {}
-
-
-/* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
+template <UInt spatial_dimension, template <UInt> class Parent>
+void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStress(
     ElementType el_type, GhostType ghost_type) {
 
   AKANTU_DEBUG_IN();
@@ -126,7 +127,9 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
     Matrix<Real> grad_u_elastic(grad_u);
     grad_u_elastic -= inelastic_strain_tensor;
     
-    MaterialMazars<spatial_dimension>::computeStressOnQuad(grad_u_elastic, sigma, *dam, Ehat);
+    
+    computeStressOnQuad(grad_u_elastic, sigma, *dam, Ehat);
+
     ++dam;
     
     ++sigma_th_it;
@@ -147,6 +150,6 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
 
 /* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(mazars, MaterialMazars);
+INSTANTIATE_MATERIAL(plastic_mazars, MaterialVonMisesMazars);
 
 }
