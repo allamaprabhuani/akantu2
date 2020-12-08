@@ -8,7 +8,6 @@
  *
  * @brief  Tests the intersection module with _tetrahedron_4 elements
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -70,7 +69,7 @@ int main(int argc, char * argv[]) {
 
   Vector<Real> bary(2), bary1(2), bary2(2);
 
-  Element test{ _segment_2, 0, _not_ghost};
+  Element test{_segment_2, 0, _not_ghost};
   interface_mesh.getBarycenter(test, bary1);
 
   test.element = 1;

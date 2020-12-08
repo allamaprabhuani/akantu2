@@ -11,7 +11,6 @@
  * implementation is taken from Méthodes  numériques en mécanique des solides by
  * Alain Curnier \note{ISBN: 2-88074-247-1}
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -233,7 +232,7 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
   }
 
   J.copyProfile(K);
-  //J.clear();
+  // J.zero();
 
   Real c = this->getAccelerationCoefficient(type, delta_t);
   Real e = this->getDisplacementCoefficient(type, delta_t);
@@ -258,4 +257,4 @@ void NewmarkBeta::assembleJacobian(const SolutionType & type, Real delta_t) {
 }
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

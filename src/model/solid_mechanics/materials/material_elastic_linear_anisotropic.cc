@@ -11,7 +11,6 @@
  *
  * @brief  Anisotropic elastic material
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -98,6 +97,7 @@ template <UInt dim> void MaterialElasticLinearAnisotropic<dim>::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
 void MaterialElasticLinearAnisotropic<dim>::updateInternalParameters() {
+
   Material::updateInternalParameters();
   if (this->symmetric) {
     for (UInt i = 0; i < voigt_h::size; ++i) {
@@ -136,19 +136,21 @@ template <UInt Dim> void MaterialElasticLinearAnisotropic<Dim>::rotateCprime() {
 
   // make sure the vectors form a right-handed base
   Vector<Real> test_axis(3);
-  Vector<Real> v1(3), v2(3), v3(3, 0.);
+  Vector<Real> v1(3);
+  Vector<Real> v2(3);
+  Vector<Real> v3(3, 0.);
 
   if (Dim == 2) {
     for (UInt i = 0; i < Dim; ++i) {
       v1[i] = this->rot_mat(0, i);
       v2[i] = this->rot_mat(1, i);
     }
-    
+
     v3.crossProduct(v1, v2);
     if (v3.norm() < 8 * std::numeric_limits<Real>::epsilon()) {
-       AKANTU_ERROR("The axis vectors parallel.");
+      AKANTU_ERROR("The axis vectors parallel.");
     }
-    
+
     v3.normalize();
   } else if (Dim == 3) {
     v1 = this->rot_mat(0);
@@ -210,7 +212,7 @@ void MaterialElasticLinearAnisotropic<dim>::computeStress(
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
 void MaterialElasticLinearAnisotropic<dim>::computeTangentModuli(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
+    ElementType el_type, Array<Real> & tangent_matrix,
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

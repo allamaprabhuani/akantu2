@@ -11,7 +11,6 @@
  * Méthodes  numériques en mécanique  des solides  by Alain  Curnier \note{ISBN:
  * 2-88074-247-1}
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_GENERALIZED_TRAPEZOIDAL_HH__
-#define __AKANTU_GENERALIZED_TRAPEZOIDAL_HH__
+#ifndef AKANTU_GENERALIZED_TRAPEZOIDAL_HH_
+#define AKANTU_GENERALIZED_TRAPEZOIDAL_HH_
 
 #include "integration_scheme_1st_order.hh"
 
@@ -42,33 +41,33 @@ namespace akantu {
 
 /**
  * The two differentiate equation (thermal and kinematic) are :
- * @f{eqnarray*}{
+ * \f{eqnarray*}{
  *  C\dot{u}_{n+1} + Ku_{n+1} = q_{n+1}\\
  *  u_{n+1} = u_{n} + (1-\alpha) \Delta t \dot{u}_{n} + \alpha \Delta t
  *\dot{u}_{n+1}
- * @f}
+ * \f}
  *
  * To solve it :
  * Predictor :
- * @f{eqnarray*}{
+ * \f{eqnarray*}{
  * u^0_{n+1} &=& u_{n} + (1-\alpha) \Delta t v_{n} \\
  * \dot{u}^0_{n+1} &=& \dot{u}_{n}
- * @f}
+ * \f}
  *
  * Solve :
- * @f[ (a C + b K^i_{n+1}) w = q_{n+1} - f^i_{n+1} - C \dot{u}^i_{n+1} @f]
+ * \f[ (a C + b K^i_{n+1}) w = q_{n+1} - f^i_{n+1} - C \dot{u}^i_{n+1} \f]
  *
  * Corrector :
- * @f{eqnarray*}{
+ * \f{eqnarray*}{
  * \dot{u}^{i+1}_{n+1} &=& \dot{u}^{i}_{n+1} + a w \\
  * u^{i+1}_{n+1} &=& u^{i}_{n+1} + b w
- * @f}
+ * \f}
  *
  * a and b depends on the resolution method : temperature (u) or temperature
- *rate (@f$\dot{u}@f$)
+ *rate (\f$\dot{u}\f$)
  *
- * For temperature : @f$ w = \delta u, a = 1 / (\alpha \Delta t) , b = 1 @f$ @n
- * For temperature rate : @f$ w = \delta \dot{u}, a = 1, b = \alpha \Delta t @f$
+ * For temperature : \f$ w = \delta u, a = 1 / (\alpha \Delta t) , b = 1 \f$ @n
+ * For temperature rate : \f$ w = \delta \dot{u}, a = 1, b = \alpha \Delta t \f$
  */
 class GeneralizedTrapezoidal : public IntegrationScheme1stOrder {
   /* ------------------------------------------------------------------------ */
@@ -89,14 +88,14 @@ public:
                  Array<Real> & u_dot, const Array<bool> & blocked_dofs,
                  const Array<Real> & delta) const override;
 
-  void assembleJacobian(const SolutionType & type, Real time_step) override;
+  void assembleJacobian(const SolutionType & type, Real delta_t) override;
 
 public:
-  /// the coeffichent @f{b@f} in the description
+  /// the coeffichent \f$ b \f$ in the description
   Real getTemperatureCoefficient(const SolutionType & type,
                                  Real delta_t) const override;
 
-  /// the coeffichent @f{a@f} in the description
+  /// the coeffichent \f$ a \f$ in the description
   Real getTemperatureRateCoefficient(const SolutionType & type,
                                      Real delta_t) const override;
 
@@ -116,7 +115,7 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// the @f$\alpha@f$ parameter
+  /// the \f$\alpha\f$ parameter
   Real alpha;
 
   /// last release of K matrix
@@ -159,4 +158,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AKANTU_GENERALIZED_TRAPEZOIDAL_HH__ */
+#endif /* AKANTU_GENERALIZED_TRAPEZOIDAL_HH_ */

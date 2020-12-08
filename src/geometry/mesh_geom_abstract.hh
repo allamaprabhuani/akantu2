@@ -9,7 +9,6 @@
  *
  * @brief  Class for constructing the CGAL primitives of a mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_GEOM_ABSTRACT_HH__
-#define __AKANTU_MESH_GEOM_ABSTRACT_HH__
+#ifndef AKANTU_MESH_GEOM_ABSTRACT_HH_
+#define AKANTU_MESH_GEOM_ABSTRACT_HH_
 
 #include "aka_common.hh"
 #include "mesh.hh"
@@ -48,9 +47,7 @@ public:
   /// Construct from mesh
   explicit MeshGeomAbstract(Mesh & mesh) : mesh(mesh){};
 
-  /// Destructor
-  virtual ~MeshGeomAbstract(){};
-
+  virtual ~MeshGeomAbstract() = default;
 public:
   /// Construct geometric data for computational geometry algorithms
   virtual void constructData(GhostType ghost_type = _not_ghost) = 0;
@@ -60,6 +57,6 @@ protected:
   Mesh & mesh;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif // __AKANTU_MESH_GEOM_ABSTRACT_HH__
+#endif // AKANTU_MESH_GEOM_ABSTRACT_HH_

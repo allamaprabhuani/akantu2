@@ -8,7 +8,6 @@
  *
  * @brief
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -61,14 +60,10 @@ Real integrateResidual(const std::string & sub_boundary_name,
 /* -------------------------------------------------------------------------- */
 void boundaryFix(Mesh & mesh,
                  const std::vector<std::string> & sub_boundary_names) {
-
-  std::vector<std::string>::const_iterator it = sub_boundary_names.begin();
-  std::vector<std::string>::const_iterator end = sub_boundary_names.end();
-
-  for (; it != end; ++it) {
-    if (mesh.element_group_find(*it) == mesh.element_group_end()) {
-      mesh.createElementGroup(*it, mesh.getSpatialDimension() -
-                                       1); // empty element group
+  for (auto && eg : sub_boundary_names) {
+    if (mesh.elementGroupExists(eg)) {
+      mesh.createElementGroup(eg, mesh.getSpatialDimension() -
+                                      1); // empty element group
     }
   }
 }

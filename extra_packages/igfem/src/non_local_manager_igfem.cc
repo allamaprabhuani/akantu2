@@ -5,7 +5,6 @@
  *
  * @brief  Implementation of non-local manager igfem
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,7 +29,7 @@
 #include "non_local_manager_igfem.hh"
 #include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 NonLocalManagerIGFEM::NonLocalManagerIGFEM(SolidMechanicsModelIGFEM & model,
@@ -112,8 +111,8 @@ void NonLocalManagerIGFEM::computeAllNonLocalStresses() {
 
   for (; non_local_variable_it != non_local_variable_end;
        ++non_local_variable_it) {
-    non_local_variable_it->second->local.clear();
-    non_local_variable_it->second->non_local.clear();
+    non_local_variable_it->second->local.zero();
+    non_local_variable_it->second->non_local.zero();
     for (UInt gt = _not_ghost; gt <= _ghost; ++gt) {
       GhostType ghost_type = (GhostType)gt;
       this->flattenInternal(non_local_variable_it->second->local, ghost_type,
@@ -123,7 +122,7 @@ void NonLocalManagerIGFEM::computeAllNonLocalStresses() {
     }
   }
 
-  this->volumes.clear();
+  this->volumes.zero();
   /// loop over all the neighborhoods and compute intiate the
   /// exchange of the non-local_variables
   std::set<ID>::const_iterator global_neighborhood_it =
@@ -200,7 +199,7 @@ void NonLocalManagerIGFEM::cleanupExtraGhostElements(
     ElementSet::const_iterator it = to_keep_per_neighborhood.begin();
     for (; it != to_keep_per_neighborhood.end(); ++it)
       relevant_ghost_elements.insert(*it);
-    to_keep_per_neighborhood.clear();
+    to_keep_per_neighborhood.zero();
   }
 
   /// remove all unneccessary ghosts from the mesh
@@ -303,6 +302,6 @@ void NonLocalManagerIGFEM::onElementsRemoved(
   NonLocalManager::onElementsRemoved(element_list, new_numbering, event);
 }
 
-__END_AKANTU__
+} // namespace akantu
 
 #endif /* AKANTU_DAMAGE_NON_LOCAL */

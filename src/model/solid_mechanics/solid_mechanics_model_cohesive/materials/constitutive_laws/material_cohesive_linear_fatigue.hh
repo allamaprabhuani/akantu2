@@ -9,7 +9,6 @@
  * @brief  Linear irreversible cohesive law with dissipative
  * unloading-reloading cycles
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include "material_cohesive_linear.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_FATIGUE_HH__
-#define __AKANTU_MATERIAL_COHESIVE_LINEAR_FATIGUE_HH__
+#ifndef AKANTU_MATERIAL_COHESIVE_LINEAR_FATIGUE_HH_
+#define AKANTU_MATERIAL_COHESIVE_LINEAR_FATIGUE_HH_
 
 /* -------------------------------------------------------------------------- */
 
@@ -127,6 +126,6 @@ private:
   Real fatigue_ratio;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_FATIGUE_HH__ */
+#endif /* AKANTU_MATERIAL_COHESIVE_LINEAR_FATIGUE_HH_ */

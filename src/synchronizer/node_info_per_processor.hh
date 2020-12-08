@@ -9,7 +9,6 @@
  * @brief  Helper classes to create the distributed synchronizer and distribute
  * a mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include "mesh_accessor.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_NODE_INFO_PER_PROCESSOR_HH__
-#define __AKANTU_NODE_INFO_PER_PROCESSOR_HH__
+#ifndef AKANTU_NODE_INFO_PER_PROCESSOR_HH_
+#define AKANTU_NODE_INFO_PER_PROCESSOR_HH_
 
 namespace akantu {
 class NodeSynchronizer;
@@ -58,16 +57,19 @@ protected:
   virtual void synchronizeGroups() = 0;
   virtual void synchronizePeriodicity() = 0;
   virtual void synchronizeTags() = 0;
+
 protected:
   template <class CommunicationBuffer>
   void fillNodeGroupsFromBuffer(CommunicationBuffer & buffer);
   void fillNodesType();
 
-  void fillCommunicationScheme(const Array<UInt> &);
-  void fillNodalData(DynamicCommunicationBuffer & buffer, std::string tag_name);
+  void fillCommunicationScheme(const Array<UInt> & /*master_info*/);
+  void fillNodalData(DynamicCommunicationBuffer & buffer,
+                     const std::string & tag_name);
 
-  void fillPeriodicPairs(const Array<UInt> &, std::vector<UInt> &);
-  void receiveMissingPeriodic(DynamicCommunicationBuffer &);
+  void fillPeriodicPairs(const Array<UInt> & /*global_pairs*/,
+                         std::vector<UInt> & /*missing_nodes*/);
+  void receiveMissingPeriodic(DynamicCommunicationBuffer & /*buffer*/);
 
 protected:
   NodeSynchronizer & synchronizer;
@@ -93,6 +95,7 @@ public:
   void synchronizeGroups() override;
   void synchronizePeriodicity() override;
   void synchronizeTags() override;
+
 private:
   void fillTagBuffers(std::vector<DynamicCommunicationBuffer> & buffers,
                       const std::string & tag_name);
@@ -116,9 +119,10 @@ public:
   void synchronizeGroups() override;
   void synchronizePeriodicity() override;
   void synchronizeTags() override;
+
 private:
 };
 
 } // namespace akantu
 
-#endif /* __AKANTU_NODE_INFO_PER_PROCESSOR_HH__ */
+#endif /* AKANTU_NODE_INFO_PER_PROCESSOR_HH_ */

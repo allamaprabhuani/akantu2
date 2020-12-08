@@ -13,7 +13,6 @@
  *
  * @brief  All mesh utils necessary for various tasks
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -41,8 +40,8 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_UTILS_HH__
-#define __AKANTU_MESH_UTILS_HH__
+#ifndef AKANTU_MESH_UTILS_HH_
+#define AKANTU_MESH_UTILS_HH_
 
 namespace akantu {
 
@@ -61,8 +60,8 @@ public:
   /// the connected elements of a given ElementType
   static void
   buildNode2ElementsElementTypeMap(const Mesh & mesh, CSR<UInt> & node_to_elem,
-                                   const ElementType & type,
-                                   const GhostType & ghost_type = _not_ghost);
+                                   ElementType type,
+                                   GhostType ghost_type = _not_ghost);
 
   /// build the facets elements on the boundaries of a mesh
   static void buildFacets(Mesh & mesh);
@@ -88,7 +87,7 @@ public:
                                 ElementType type, Array<UInt> & old_nodes);
 
   /// compute pbc pair for a given direction
-  static void computePBCMap(const Mesh & mymesh, const UInt dir,
+  static void computePBCMap(const Mesh & mymesh, UInt dir,
                             std::map<UInt, UInt> & pbc_pair);
   /// compute pbc pair for a surface pair
   static void computePBCMap(const Mesh & mymesh,
@@ -102,13 +101,14 @@ public:
   static void fillElementToSubElementsData(Mesh & mesh);
 
   /// flip facets based on global connectivity
-  static void flipFacets(Mesh & mesh_facets,
-                         const ElementTypeMapArray<UInt> & global_connectivity,
-                         GhostType gt_facet);
+  static void
+  flipFacets(Mesh & mesh_facets,
+             const ElementTypeMapArray<UInt> & remote_global_connectivities,
+             GhostType gt_facet);
 
 private:
   /// match pairs that are on the associated pbc's
-  static void matchPBCPairs(const Mesh & mymesh, const UInt dir,
+  static void matchPBCPairs(const Mesh & mymesh, UInt dir,
                             Array<UInt> & selected_left,
                             Array<UInt> & selected_right,
                             std::map<UInt, UInt> & pbc_pair);
@@ -133,6 +133,6 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "mesh_utils_inline_impl.cc"
+#include "mesh_utils_inline_impl.hh"
 
-#endif /* __AKANTU_MESH_UTILS_HH__ */
+#endif /* AKANTU_MESH_UTILS_HH_ */

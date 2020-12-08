@@ -8,7 +8,6 @@
  *
  * @brief  Default implementation of the dof manager
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include <unordered_map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_DOF_MANAGER_DEFAULT_HH__
-#define __AKANTU_DOF_MANAGER_DEFAULT_HH__
+#ifndef AKANTU_DOF_MANAGER_DEFAULT_HH_
+#define AKANTU_DOF_MANAGER_DEFAULT_HH_
 
 namespace akantu {
 class SparseMatrixAIJ;
@@ -84,8 +83,8 @@ public:
    **/
   void assembleElementalMatricesToMatrix(
       const ID & matrix_id, const ID & dof_id,
-      const Array<Real> & elementary_mat, const ElementType & type,
-      const GhostType & ghost_type, const MatrixType & elemental_matrix_type,
+      const Array<Real> & elementary_mat, ElementType type,
+      GhostType ghost_type, const MatrixType & elemental_matrix_type,
       const Array<UInt> & filter_elements) override;
 
   void assembleMatMulVectToArray(const ID & dof_id, const ID & A_id,
@@ -123,13 +122,12 @@ protected:
   void makeConsistentForPeriodicity(const ID & dof_id,
                                     SolverVector & array) override;
 
-
 public:
-   /// update the global dofs vector
+  /// update the global dofs vector
   void updateGlobalBlockedDofs() override;
 
-//   /// apply boundary conditions to jacobian matrix
-//   void applyBoundary(const ID & matrix_id = "J") override;
+  //   /// apply boundary conditions to jacobian matrix
+  //   void applyBoundary(const ID & matrix_id = "J") override;
 
 private:
   /// Add a symmetric matrices to a symmetric sparse matrix
@@ -150,7 +148,7 @@ private:
                                        UInt max_size);
 
   void addToProfile(const ID & matrix_id, const ID & dof_id,
-                    const ElementType & type, const GhostType & ghost_type);
+                    ElementType type, GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* MeshEventHandler interface                                               */
@@ -226,7 +224,7 @@ public:
 
   Array<bool> & getBlockedDOFs();
   const Array<bool> & getBlockedDOFs() const;
-  
+
 protected:
   std::unique_ptr<DOFData> getNewDOFData(const ID & dof_id) override;
 
@@ -252,6 +250,6 @@ protected:
 
 } // namespace akantu
 
-#include "dof_manager_default_inline_impl.cc"
+#include "dof_manager_default_inline_impl.hh"
 
-#endif /* __AKANTU_DOF_MANAGER_DEFAULT_HH__ */
+#endif /* AKANTU_DOF_MANAGER_DEFAULT_HH_ */

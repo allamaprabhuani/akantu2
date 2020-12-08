@@ -8,7 +8,6 @@
  *
  * @brief  Test the grid object
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -77,7 +76,6 @@ int main(int argc, char * argv[]) {
   Mesh mesh(spatial_dimension, "save");
   grid.saveAsMesh(mesh);
   mesh.write("grid.msh");
-
 
   akantu::finalize();
 

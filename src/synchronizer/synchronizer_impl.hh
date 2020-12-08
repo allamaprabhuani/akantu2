@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the generic part of synchronizers
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 #include "synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_IMPL_HH__
-#define __AKANTU_SYNCHRONIZER_IMPL_HH__
+#ifndef AKANTU_SYNCHRONIZER_IMPL_HH_
+#define AKANTU_SYNCHRONIZER_IMPL_HH_
 
 namespace akantu {
 
@@ -165,7 +164,7 @@ public:
   /* ------------------------------------------------------------------------ */
   virtual UInt sanityCheckDataSize(const Array<Entity> & elements,
                                    const SynchronizationTag & tag,
-                                   bool from_comm_desc = true) const;
+                                   bool is_comm_desc = true) const;
   virtual void
   packSanityCheckData(CommunicationDescriptor<Entity> & comm_desc) const;
   virtual void
@@ -214,4 +213,4 @@ protected:
 
 #include "synchronizer_impl_tmpl.hh"
 
-#endif /* __AKANTU_SYNCHRONIZER_IMPL_HH__ */
+#endif /* AKANTU_SYNCHRONIZER_IMPL_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  Tests the plastic material
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -39,9 +38,9 @@
 using namespace akantu;
 
 using mat_types = ::testing::Types<
-// Traits<MaterialLinearIsotropicHardening, 1>,
-// Traits<MaterialLinearIsotropicHardening, 2>,
-  Traits<MaterialLinearIsotropicHardening, 3>>;
+    // Traits<MaterialLinearIsotropicHardening, 1>,
+    // Traits<MaterialLinearIsotropicHardening, 2>,
+    Traits<MaterialLinearIsotropicHardening, 3>>;
 
 /* -------------------------------------------------------------------------- */
 
@@ -173,7 +172,7 @@ namespace {
 template <typename T>
 class TestPlasticMaterialFixture : public ::TestMaterialFixture<T> {};
 
-TYPED_TEST_SUITE(TestPlasticMaterialFixture, mat_types);
+TYPED_TEST_SUITE(TestPlasticMaterialFixture, mat_types, );
 
 TYPED_TEST(TestPlasticMaterialFixture, ComputeStress) {
   this->material->testComputeStress();
@@ -187,6 +186,6 @@ TYPED_TEST(TestPlasticMaterialFixture, DISABLED_ComputeTangentModuli) {
 TYPED_TEST(TestPlasticMaterialFixture, DISABLED_ComputeCelerity) {
   this->material->testCelerity();
 }
-}
+} // namespace
 
 /*****************************************************************/

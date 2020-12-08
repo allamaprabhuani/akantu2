@@ -8,7 +8,6 @@
  *
  * @brief  Material isotropic thermo-elastic
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_THERMAL_HH__
-#define __AKANTU_MATERIAL_THERMAL_HH__
+#ifndef AKANTU_MATERIAL_THERMAL_HH_
+#define AKANTU_MATERIAL_THERMAL_HH_
 
 namespace akantu {
 template <UInt spatial_dimension> class MaterialThermal : public Material {
@@ -64,9 +63,10 @@ public:
   inline void computeStressOnQuad(Real & sigma, const Real & deltaT);
 
   /// local computation of thermal stress
-  void computePotentialEnergy(ElementType el_type);
+  void computePotentialEnergy(ElementType el_type) override;
 
-/* -------------------------------------------------------------------------- */
+  /* --------------------------------------------------------------------------
+   */
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -107,6 +107,6 @@ inline void MaterialThermal<1>::computeStressOnQuad(Real & sigma,
   sigma = -this->E * this->alpha * deltaT;
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_THERMAL_HH__ */
+#endif /* AKANTU_MATERIAL_THERMAL_HH_ */

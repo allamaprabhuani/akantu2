@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 #include <algorithm>
 #include <string>
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_AKA_ENUM_MACROS_HH__
-#define __AKANTU_AKA_ENUM_MACROS_HH__
+#ifndef AKANTU_AKA_ENUM_MACROS_HH_
+#define AKANTU_AKA_ENUM_MACROS_HH_
 
 #define AKANTU_PP_ENUM(s, data, i, elem)                                       \
   BOOST_PP_TUPLE_REM()                                                         \
@@ -93,9 +92,10 @@
   }
 
 #define AKANTU_ENUM_INPUT_STREAM_(type_name, list, prefix)                     \
-  inline std::istream & operator>>(std::istream & stream, type_name & type) {  \
+  inline std::istream & operator>>(std::istream & stream,                      \
+                                   type_name & type) { /* NOLINT */            \
     std::string str;                                                           \
-    stream >> str;                                                             \
+    stream >> str; /* NOLINT */                                                \
     static std::unordered_map<std::string, type_name> convert{                 \
         BOOST_PP_SEQ_FOR_EACH_I(                                               \
             AKANTU_PP_ENUM, BOOST_PP_SEQ_SIZE(list),                           \
@@ -130,4 +130,4 @@
 #define AKANTU_ENUM_INPUT_STREAM(type_name, list)                              \
   AKANTU_ENUM_INPUT_STREAM_(type_name, list, )
 
-#endif /* __AKANTU_AKA_ENUM_MACROS_HH__ */
+#endif /* AKANTU_AKA_ENUM_MACROS_HH_ */

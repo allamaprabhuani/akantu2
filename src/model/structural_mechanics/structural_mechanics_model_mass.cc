@@ -10,7 +10,6 @@
  *
  * @brief  function handling mass computation
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -65,7 +64,7 @@ void StructuralMechanicsModel::assembleMass() {
 /* -------------------------------------------------------------------------- */
 void StructuralMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
-  MyFEEngineType & fem = getFEEngineClass<MyFEEngineType>();
+  auto & fem = getFEEngineClass<MyFEEngineType>();
   ComputeRhoFunctorStruct compute_rho(*this);
 
   for (auto type :
@@ -76,4 +75,4 @@ void StructuralMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu

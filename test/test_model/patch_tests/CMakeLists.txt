@@ -37,14 +37,26 @@ add_subdirectory(data)
 register_gtest_sources(SOURCES patch_test_linear_elastic_explicit.cc
   PACKAGE solid_mechanics
   FILES_TO_COPY data/material_check_stress_plane_strain.dat
-                data/material_check_stress_plane_stress.dat)
+                data/material_check_stress_plane_stress.dat
+                data/material_check_stress_plane_strain_finite_deformation.dat
+                data/material_check_stress_plane_stress_finite_deformation.dat)
 register_gtest_sources(SOURCES patch_test_linear_elastic_implicit.cc
   PACKAGE solid_mechanics implicit
   FILES_TO_COPY data/material_check_stress_plane_strain.dat
-                data/material_check_stress_plane_stress.dat)
+                data/material_check_stress_plane_stress.dat
+                data/material_check_stress_plane_strain_finite_deformation.dat
+                data/material_check_stress_plane_stress_finite_deformation.dat)
 
-register_gtest_sources(SOURCES patch_test_linear_anisotropic.cc
+register_gtest_sources(SOURCES patch_test_linear_anisotropic_explicit.cc
   PACKAGE solid_mechanics lapack
+  FILES_TO_COPY
+    data/material_anisotropic_1.dat
+    data/material_anisotropic_2.dat
+    data/material_anisotropic_3.dat
+  )
+
+register_gtest_sources(SOURCES patch_test_linear_anisotropic_implicit.cc
+  PACKAGE solid_mechanics lapack implicit
   FILES_TO_COPY
     data/material_anisotropic_1.dat
     data/material_anisotropic_2.dat

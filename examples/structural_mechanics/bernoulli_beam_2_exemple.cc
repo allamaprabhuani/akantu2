@@ -7,7 +7,6 @@
  *
  * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -112,8 +111,8 @@ int main(int argc, char * argv[]) {
 
   Array<UInt> & element_material = model.getElementMaterial(_bernoulli_beam_2);
 
-  forces.clear();
-  displacement.clear();
+  forces.zero();
+  displacement.zero();
 
   for (UInt i = 0; i < nb_nodes_2; ++i) {
     element_material(i + nb_nodes_1) = 1;

@@ -8,7 +8,6 @@
  *
  * @brief  Description of nodal fields
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -28,15 +27,15 @@
  *
  */
 
-#ifndef __AKANTU_DUMPER_NODAL_FIELD_HH__
-#define __AKANTU_DUMPER_NODAL_FIELD_HH__
+#ifndef AKANTU_DUMPER_NODAL_FIELD_HH_
+#define AKANTU_DUMPER_NODAL_FIELD_HH_
 
 #include "dumper_field.hh"
 #include <io_helper.hh>
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-__BEGIN_AKANTU_DUMPER__
+namespace dumpers {
 
 // This represents a iohelper compatible field
 template <typename T, bool filtered = false, class Container = Array<T>,
@@ -45,7 +44,7 @@ class NodalField;
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class Container, class Filter>
-class NodalField<T, false, Container, Filter> : public dumper::Field {
+class NodalField<T, false, Container, Filter> : public dumpers::Field {
 public:
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
@@ -80,8 +79,8 @@ public:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
   NodalField(const Container & field, UInt n = 0, UInt stride = 0,
-             [[gnu::unused]] const Filter * filter = nullptr) :
-        field(field), n(n), stride(stride), padding(0) {
+             [[gnu::unused]] const Filter * filter = nullptr)
+      : field(field), n(n), stride(stride), padding(0) {
     AKANTU_DEBUG_ASSERT(filter == nullptr,
                         "Filter passed to unfiltered NodalField!");
     if (n == 0) {
@@ -110,10 +109,11 @@ public:
   void checkHomogeneity() override { this->homogeneous = true; }
 
   virtual UInt getDim() {
-    if (this->padding)
+    if (this->padding) {
       return this->padding;
-    else
+    }
       return n;
+
   }
 
   void setPadding(UInt padding) { this->padding = padding; }
@@ -134,7 +134,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 template <typename T, class Container, class Filter>
-class NodalField<T, true, Container, Filter> : public dumper::Field {
+class NodalField<T, true, Container, Filter> : public dumpers::Field {
 
   /* ------------------------------------------------------------------------ */
   /* Typedefs                                                                 */
@@ -212,10 +212,11 @@ public:
   void checkHomogeneity() override { this->homogeneous = true; }
 
   virtual UInt getDim() {
-    if (this->padding)
+    if (this->padding) {
       return this->padding;
-    else
+    }
       return n;
+
   }
 
   void setPadding(UInt padding) { this->padding = padding; }
@@ -236,7 +237,7 @@ private:
   UInt padding;
 };
 
-__END_AKANTU_DUMPER__
+} // namespace dumpers
 } // namespace akantu
 /* -------------------------------------------------------------------------- */
-#endif /* __AKANTU_DUMPER_NODAL_FIELD_HH__ */
+#endif /* AKANTU_DUMPER_NODAL_FIELD_HH_ */

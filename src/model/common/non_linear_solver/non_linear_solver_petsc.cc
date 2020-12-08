@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -61,7 +60,7 @@ NonLinearSolverPETSc::NonLinearSolverPETSc(
 
   this->checkIfTypeIsSupported();
 
-  auto mpi_comm = dof_manager.getMPIComm();
+  auto && mpi_comm = dof_manager.getMPIComm();
 
   PETSc_call(SNESCreate, mpi_comm, &snes);
 
@@ -101,7 +100,7 @@ public:
   }
 
   void assembleJacobian() {
-    //corrector();
+    // corrector();
     callback->assembleMatrix("J");
   }
 
@@ -139,45 +138,62 @@ PetscErrorCode NonLinearSolverPETSc::FormJacobian(SNES /*snes*/, Vec /*dx*/,
 
 /* -------------------------------------------------------------------------- */
 void NonLinearSolverPETSc::solve(SolverCallback & callback) {
+  callback.beforeSolveStep();
   this->dof_manager.updateGlobalBlockedDofs();
 
   callback.assembleMatrix("J");
   auto & global_x = dof_manager.getSolution();
-  global_x.clear();
-  
+  global_x.zero();
+
   if (not x) {
     x = std::make_unique<SolverVectorPETSc>(global_x, "temporary_solution");
   }
 
   *x = global_x;
-  
+
   if (not ctx) {
     ctx = std::make_unique<NonLinearSolverPETScCallback>(dof_manager, *x);
   }
-  
+
   ctx->setCallback(callback);
   ctx->setInitialSolution(global_x);
- 
+
   auto & rhs = dof_manager.getResidual();
   auto & J = dof_manager.getMatrix("J");
-  
+
   PETSc_call(SNESSetFunction, snes, rhs, NonLinearSolverPETSc::FormFunction,
              ctx.get());
   PETSc_call(SNESSetJacobian, snes, J, J, NonLinearSolverPETSc::FormJacobian,
              ctx.get());
 
-  rhs.clear();
+  rhs.zero();
 
   callback.predictor();
   callback.assembleResidual();
 
   PETSc_call(SNESSolve, snes, nullptr, *x);
+  PETSc_call(SNESGetConvergedReason, snes, &reason);
+  PETSc_call(SNESGetIterationNumber, snes, &n_iter);
 
   PETSc_call(VecAXPY, global_x, -1.0, *x);
 
-  
   dof_manager.splitSolutionPerDOFs();
   callback.corrector();
+
+  bool converged = reason >= 0;
+  callback.afterSolveStep(converged);
+
+  if (not converged) {
+    PetscReal atol;
+    PetscReal rtol;
+    PetscReal stol;
+    PetscInt maxit;
+    PetscInt maxf;
+
+    PETSc_call(SNESGetTolerances, snes, &atol, &rtol, &stol, &maxit, &maxf);
+    AKANTU_CUSTOM_EXCEPTION(debug::SNESNotConvergedException(
+        this->reason, this->n_iter, stol, atol, rtol, maxit));
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -189,20 +205,20 @@ void NonLinearSolverPETSc::set_param(const ID & param,
   auto it = akantu_to_petsc_option.find(param);
   auto p = it == akantu_to_petsc_option.end() ? param : it->second;
 
-  PetscOptionsSetValue(NULL, p.c_str(), value.c_str());
+  PetscOptionsSetValue(nullptr, p.c_str(), value.c_str());
   SNESSetFromOptions(snes);
-  PetscOptionsClear(NULL);
+  PetscOptionsClear(nullptr);
 }
 
 /* -------------------------------------------------------------------------- */
 void NonLinearSolverPETSc::parseSection(const ParserSection & section) {
   auto parameters = section.getParameters();
   for (auto && param : range(parameters.first, parameters.second)) {
-    PetscOptionsSetValue(NULL, param.getName().c_str(),
+    PetscOptionsSetValue(nullptr, param.getName().c_str(),
                          param.getValue().c_str());
   }
   SNESSetFromOptions(snes);
-  PetscOptionsClear(NULL);
+  PetscOptionsClear(nullptr);
 }
 
 } // namespace akantu

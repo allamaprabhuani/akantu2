@@ -14,7 +14,6 @@
  * @brief  Specialization of the material class for isotropic finite deformation
  * linear hardening plasticity
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -64,7 +63,9 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
   MaterialThermal<spatial_dimension>::computeStress(el_type, ghost_type);
+
   // infinitesimal and finite deformation
   auto sigma_th_it = this->sigma_th(el_type, ghost_type).begin();
 
@@ -108,9 +109,9 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
     auto & previous_sigma = *previous_piola_kirchhoff_2_it;
 
     auto & green_strain = *green_strain_it;
-    this->template gradUToGreenStrain<spatial_dimension>(grad_u, green_strain);
+    this->template gradUToE<spatial_dimension>(grad_u, green_strain);
     Matrix<Real> previous_green_strain(spatial_dimension, spatial_dimension);
-    this->template gradUToGreenStrain<spatial_dimension>(previous_grad_u,
+    this->template gradUToE<spatial_dimension>(previous_grad_u,
                                                          previous_green_strain);
     Matrix<Real> F_tensor(spatial_dimension, spatial_dimension);
     this->template gradUToF<spatial_dimension>(grad_u, F_tensor);
@@ -166,7 +167,7 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeStress(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
+    ElementType el_type, Array<Real> & tangent_matrix,
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
@@ -199,4 +200,4 @@ void MaterialLinearIsotropicHardening<spatial_dimension>::computeTangentModuli(
 INSTANTIATE_MATERIAL(plastic_linear_isotropic_hardening,
                      MaterialLinearIsotropicHardening);
 
-} // akantu
+} // namespace akantu

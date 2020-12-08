@@ -8,7 +8,6 @@
  * @brief Material for multi-scale simulations. It stores an
  * underlying RVE on each integration point of the material.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -20,8 +19,8 @@
 #include "material_thermal.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_FE_2_HH__
-#define __AKANTU_MATERIAL_FE_2_HH__
+#ifndef AKANTU_MATERIAL_FE_2_HH_
+#define AKANTU_MATERIAL_FE_2_HH_
 
 namespace akantu {
 class SolidMechanicsModelRVE;
@@ -64,7 +63,7 @@ public:
                              GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
@@ -163,8 +162,8 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_FE2_inline_impl.cc"
+#include "material_FE2_inline_impl.hh"
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_FE_2_HH__ */
+#endif /* AKANTU_MATERIAL_FE_2_HH_ */

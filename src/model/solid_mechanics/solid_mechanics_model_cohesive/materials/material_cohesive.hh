@@ -10,7 +10,6 @@
  *
  * @brief  Specialization of the material class for cohesive elements
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include "cohesive_internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_COHESIVE_HH__
-#define __AKANTU_MATERIAL_COHESIVE_HH__
+#ifndef AKANTU_MATERIAL_COHESIVE_HH_
+#define AKANTU_MATERIAL_COHESIVE_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -89,7 +88,7 @@ public:
   UInt addFacet(const Element & element);
 
 protected:
-  virtual void computeTangentTraction(const ElementType & /*el_type*/,
+  virtual void computeTangentTraction(ElementType /*el_type*/,
                                       Array<Real> & /*tangent_matrix*/,
                                       const Array<Real> & /*normal*/,
                                       GhostType /*ghost_type*/ = _not_ghost) {
@@ -246,14 +245,12 @@ protected:
   CohesiveInternalField<Real> normals;
 };
 
+} // namespace akantu
+
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
-#include "material_cohesive_inline_impl.cc"
-
-} // namespace akantu
-
+#include "material_cohesive_inline_impl.hh"
 #include "cohesive_internal_field_tmpl.hh"
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_HH__ */
+#endif /* AKANTU_MATERIAL_COHESIVE_HH_ */

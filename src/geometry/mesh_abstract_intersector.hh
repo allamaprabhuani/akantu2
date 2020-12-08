@@ -10,7 +10,6 @@
  *
  * @brief  Abstract class for intersection computations
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_ABSTRACT_INTERSECTOR_HH__
-#define __AKANTU_MESH_ABSTRACT_INTERSECTOR_HH__
+#ifndef AKANTU_MESH_ABSTRACT_INTERSECTOR_HH_
+#define AKANTU_MESH_ABSTRACT_INTERSECTOR_HH_
 
 #include "aka_common.hh"
 #include "mesh_geom_abstract.hh"
@@ -53,7 +52,7 @@ public:
   explicit MeshAbstractIntersector(Mesh & mesh);
 
   /// Destructor
-  virtual ~MeshAbstractIntersector();
+  ~MeshAbstractIntersector() override = default;
 
 public:
   /* ------------------------------------------------------------------------ */
@@ -103,19 +102,19 @@ public:
 protected:
   /// new node per element (column 0: number of new nodes, then odd is the
   /// intersection node number and even the ID of the intersected segment)
-  Array<UInt> * new_node_per_elem;
+  Array<UInt> * new_node_per_elem{nullptr};
 
   /// intersection output: new intersection points
   /// (computeMeshQueryListIntersectionPoint)
-  Array<Real> * intersection_points;
+  Array<Real> * intersection_points{nullptr};
 
   /// number of segment in a considered element of the templated type of element
   /// specialized intersector
-  const UInt nb_seg_by_el;
+  const UInt nb_seg_by_el{0};
 };
 
-} // akantu
+} // namespace akantu
 
 #include "mesh_abstract_intersector_tmpl.hh"
 
-#endif // __AKANTU_MESH_ABSTRACT_INTERSECTOR_HH__
+#endif // AKANTU_MESH_ABSTRACT_INTERSECTOR_HH_

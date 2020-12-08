@@ -8,7 +8,6 @@
  *
  * @brief  common par for the shape lagrange
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,7 +35,7 @@
 namespace akantu {
 
 ShapeLagrangeBase::ShapeLagrangeBase(const Mesh & mesh, UInt spatial_dimension,
-                                     const ElementKind & kind, const ID & id,
+                                     ElementKind kind, const ID & id,
                                      const MemoryID & memory_id)
     : ShapeFunctions(mesh, spatial_dimension, id, memory_id), _kind(kind) {}
 
@@ -52,20 +51,23 @@ namespace shape_lagrange {
   namespace details {
     template <ElementKind kind> struct Helper {
       template <class S>
-      static void call(const S &, const Array<Real> &, const Matrix<Real> &,
-                       Array<Real> &, const ElementType &, const GhostType &,
-                       const Array<UInt> &) {
+      static void call(const S & /*unused*/, const Array<Real> & /*unused*/,
+                       const Matrix<Real> & /*unused*/,
+                       Array<Real> & /*unused*/, ElementType /*unused*/,
+                       GhostType /*unused*/,
+                       const Array<UInt> & /*unused*/) {
         AKANTU_TO_IMPLEMENT();
       }
     };
 
+#if !defined(DOXYGEN)
 #define AKANTU_COMPUTE_SHAPES_KIND(kind)                                       \
   template <> struct Helper<kind> {                                            \
     template <class S>                                                         \
     static void call(const S & _this, const Array<Real> & nodes,               \
                      const Matrix<Real> & integration_points,                  \
-                     Array<Real> & shapes, const ElementType & type,           \
-                     const GhostType & ghost_type,                             \
+                     Array<Real> & shapes, ElementType type,           \
+                     GhostType ghost_type,                             \
                      const Array<UInt> & filter_elements) {                    \
       AKANTU_BOOST_KIND_ELEMENT_SWITCH(AKANTU_COMPUTE_SHAPES, kind);           \
     }                                                                          \
@@ -76,12 +78,13 @@ namespace shape_lagrange {
 
   } // namespace details
 } // namespace shape_lagrange
+#endif
 
 /* -------------------------------------------------------------------------- */
 void ShapeLagrangeBase::computeShapesOnIntegrationPoints(
     const Array<Real> & nodes, const Matrix<Real> & integration_points,
-    Array<Real> & shapes, const ElementType & type,
-    const GhostType & ghost_type, const Array<UInt> & filter_elements) const {
+    Array<Real> & shapes, ElementType type,
+    GhostType ghost_type, const Array<UInt> & filter_elements) const {
 
   auto kind = Mesh::getKind(type);
 
@@ -108,13 +111,15 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
     auto type = elements_range.getType();
     auto ghost_type = elements_range.getGhostType();
 
-    if (mesh.getSpatialDimension(type) != _spatial_dimension)
+    if (mesh.getSpatialDimension(type) != _spatial_dimension) {
       continue;
+    }
 
-    if (mesh.getKind(type) != _kind)
+    if (mesh.getKind(type) != _kind) {
       continue;
+    }
 
-    auto & elements = elements_range.getElements();
+    const auto & elements = elements_range.getElements();
 
     auto itp_type = FEEngine::getInterpolationType(type);
 
@@ -128,8 +133,9 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
                                      shapes(itp_type, ghost_type), type,
                                      ghost_type, elements);
 
-    if (_spatial_dimension != mesh.getSpatialDimension())
+    if (_spatial_dimension != mesh.getSpatialDimension()) {
       continue;
+    }
 
     if (not this->shapes_derivatives.exists(itp_type, ghost_type)) {
       auto size_of_shapesd = this->getShapeDerivativesSize(type);
@@ -147,7 +153,8 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
 /* --------------------------------------------------------------------------
  */
 void ShapeLagrangeBase::onElementsRemoved(
-    const Array<Element> &, const ElementTypeMapArray<UInt> & new_numbering) {
+    const Array<Element> & /*unused*/,
+    const ElementTypeMapArray<UInt> & new_numbering) {
   this->shapes.onElementsRemoved(new_numbering);
   this->shapes_derivatives.onElementsRemoved(new_numbering);
 }

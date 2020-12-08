@@ -8,7 +8,6 @@
  *
  * @brief
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-MIIASYMContact::MIIASYMContact(SolidMechanicsModel & model,
-                               const ID & id, const MemoryID & memory_id)
+MIIASYMContact::MIIASYMContact(SolidMechanicsModel & model, const ID & id,
+                               const MemoryID & memory_id)
     : NTRFContact(model, id, memory_id) {
   AKANTU_DEBUG_IN();
 

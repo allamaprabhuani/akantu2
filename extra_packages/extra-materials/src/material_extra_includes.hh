@@ -6,7 +6,6 @@
  *
  * @brief  Extra list of materials
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -14,8 +13,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_EXTRA_INCLUDES_HH__
-#define __AKANTU_MATERIAL_EXTRA_INCLUDES_HH__
+#ifndef AKANTU_MATERIAL_EXTRA_INCLUDES_HH_
+#define AKANTU_MATERIAL_EXTRA_INCLUDES_HH_
 
 #ifndef AKANTU_CMAKE_LIST_MATERIALS
 
@@ -77,4 +76,4 @@
       2, (orthotropic_damage_iterative, MaterialOrthotropicDamageIterative)))( \
       (2, (cohesive_linear_sequential, MaterialCohesiveLinearSequential)))
 
-#endif /* __AKANTU_MATERIAL_EXTRA_INCLUDES_HH__ */
+#endif /* AKANTU_MATERIAL_EXTRA_INCLUDES_HH_ */

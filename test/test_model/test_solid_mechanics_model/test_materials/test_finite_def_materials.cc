@@ -8,7 +8,6 @@
  *
  * @brief
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,20 +26,22 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#include "material_neohookean.hh"
-#include "solid_mechanics_model.hh"
+#include "test_gtest_utils.hh"
 #include "test_material_fixtures.hh"
+/* -------------------------------------------------------------------------- */
+#include <material_neohookean.hh>
+#include <solid_mechanics_model.hh>
+/* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
 
-using mat_types = ::testing::Types<
-    Traits<MaterialNeohookean, 1>, Traits<MaterialNeohookean, 2>,
-    Traits<MaterialNeohookean, 3>>;
+using mat_types = ::testing::Types<Traits<MaterialNeohookean, 1>,
+                                   Traits<MaterialNeohookean, 2>,
+                                   Traits<MaterialNeohookean, 3>>;
 
 /*****************************************************************/
 
@@ -67,7 +68,7 @@ namespace {
 template <typename T>
 class TestFiniteDefMaterialFixture : public ::TestMaterialFixture<T> {};
 
-TYPED_TEST_SUITE(TestFiniteDefMaterialFixture, mat_types);
+TYPED_TEST_SUITE(TestFiniteDefMaterialFixture, mat_types, );
 
 TYPED_TEST(TestFiniteDefMaterialFixture, DISABLED_ComputeStress) {
   this->material->testComputeStress();
@@ -81,5 +82,5 @@ TYPED_TEST(TestFiniteDefMaterialFixture, DISABLED_ComputeTangentModuli) {
 TYPED_TEST(TestFiniteDefMaterialFixture, DISABLED_DefComputeCelerity) {
   this->material->testCelerity();
 }
-}
+} // namespace
 /*****************************************************************/

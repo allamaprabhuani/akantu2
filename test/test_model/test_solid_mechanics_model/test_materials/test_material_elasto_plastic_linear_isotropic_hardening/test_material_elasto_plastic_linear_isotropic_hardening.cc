@@ -10,7 +10,6 @@
  * @brief  test for material type elasto plastic linear isotropic hardening
  * using tension-compression test
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -75,7 +74,8 @@ int main(int argc, char * argv[]) {
     }
     Real strainxx = i * u_increment / 10.;
 
-    const Array<UInt> & edge_nodes = mesh.getElementGroup("right").getNodeGroup().getNodes();
+    const Array<UInt> & edge_nodes =
+        mesh.getElementGroup("right").getNodeGroup().getNodes();
     Array<Real> & residual = model.getInternalForce();
     Real reaction = 0;
 

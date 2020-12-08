@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the helper classes for the synchronizer
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "data_accessor.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COMMUNICATION_DESCRIPTOR_HH__
-#define __AKANTU_COMMUNICATION_DESCRIPTOR_HH__
+#ifndef AKANTU_COMMUNICATION_DESCRIPTOR_HH_
+#define AKANTU_COMMUNICATION_DESCRIPTOR_HH_
 
 namespace akantu {
 
@@ -151,4 +150,4 @@ protected:
 
 #include "communication_descriptor_tmpl.hh"
 
-#endif /* __AKANTU_COMMUNICATION_DESCRIPTOR_HH__ */
+#endif /* AKANTU_COMMUNICATION_DESCRIPTOR_HH_ */

@@ -10,7 +10,6 @@
  *
  * @brief  Implementation of the Dumpable class
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
  *
  */
 
-#ifndef __AKANTU_DUMPABLE_INLINE_IMPL_HH__
-#define __AKANTU_DUMPABLE_INLINE_IMPL_HH__
+#ifndef AKANTU_DUMPABLE_INLINE_IMPL_HH_
+#define AKANTU_DUMPABLE_INLINE_IMPL_HH_
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
@@ -52,13 +51,15 @@ inline void Dumpable::registerDumper(const std::string & dumper_name,
   }
 
   std::string name = file_name;
-  if (name == "")
+  if (name.empty()) {
     name = dumper_name;
+  }
 
-  this->dumpers[dumper_name] = new T(name);
+  this->dumpers[dumper_name] = std::make_shared<T>(name);
 
-  if (is_default)
+  if (is_default) {
     this->default_dumper = dumper_name;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -74,7 +75,7 @@ inline void
 Dumpable::addDumpFieldExternalToDumper(const std::string & dumper_name,
                                        const std::string & field_id,
                                        const Array<T> & field) {
-  auto field_cont = std::make_shared<dumper::NodalField<T>>(field);
+  auto field_cont = std::make_shared<dumpers::NodalField<T>>(field);
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerField(field_id, field_cont);
 }
@@ -84,8 +85,8 @@ template <typename T>
 inline void Dumpable::addDumpFieldExternal(const std::string & field_id,
                                            const ElementTypeMapArray<T> & field,
                                            UInt spatial_dimension,
-                                           const GhostType & ghost_type,
-                                           const ElementKind & element_kind) {
+                                           GhostType ghost_type,
+                                           ElementKind element_kind) {
   this->addDumpFieldExternalToDumper(this->default_dumper, field_id, field,
                                      spatial_dimension, ghost_type,
                                      element_kind);
@@ -96,16 +97,16 @@ template <typename T>
 inline void Dumpable::addDumpFieldExternalToDumper(
     const std::string & dumper_name, const std::string & field_id,
     const ElementTypeMapArray<T> & field, UInt spatial_dimension,
-    const GhostType & ghost_type, const ElementKind & element_kind) {
+    GhostType ghost_type, ElementKind element_kind) {
 
-  std::shared_ptr<dumper::Field> field_cont;
+  std::shared_ptr<dumpers::Field> field_cont;
 #if defined(AKANTU_IGFEM)
   if (element_kind == _ek_igfem) {
-    field_cont = std::make_shared<dumper::IGFEMElementalField<T>>(
+    field_cont = std::make_shared<dumpers::IGFEMElementalField<T>>(
         field, spatial_dimension, ghost_type, element_kind);
   } else
 #endif
-    field_cont = std::make_shared<dumper::ElementalField<T>>(
+    field_cont = std::make_shared<dumpers::ElementalField<T>>(
         field, spatial_dimension, ghost_type, element_kind);
   DumperIOHelper & dumper = this->getDumper(dumper_name);
   dumper.registerField(field_id, field_cont);
@@ -131,4 +132,4 @@ inline T & Dumpable::getDumper(const std::string & dumper_name) {
 
 #endif
 
-#endif /* __AKANTU_DUMPABLE_INLINE_IMPL_HH__ */
+#endif /* AKANTU_DUMPABLE_INLINE_IMPL_HH_ */

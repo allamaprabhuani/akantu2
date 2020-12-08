@@ -9,7 +9,6 @@
  *
  * @brief  Solid mechanics model for cohesive elements
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -37,8 +36,8 @@
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__
+#ifndef AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH_
+#define AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -94,8 +93,7 @@ public:
       FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_regular,
                        FacetsCohesiveIntegrationOrderFunctor>;
 
-  SolidMechanicsModelCohesive(Mesh & mesh,
-                              UInt spatial_dimension = _all_dimensions,
+  SolidMechanicsModelCohesive(Mesh & mesh, UInt dim = _all_dimensions,
                               const ID & id = "solid_mechanics_model_cohesive",
                               const MemoryID & memory_id = 0);
 
@@ -173,16 +171,16 @@ private:
   /* ------------------------------------------------------------------------ */
 
 protected:
-  void onNodesAdded(const Array<UInt> & nodes_list,
+  void onNodesAdded(const Array<UInt> & new_nodes,
                     const NewNodesEvent & event) override;
-  void onElementsAdded(const Array<Element> & nodes_list,
+  void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
 
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */
   /* ------------------------------------------------------------------------ */
 public:
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface                                                       */
@@ -193,7 +191,7 @@ public:
   void addDumpGroupFieldToDumper(const std::string & dumper_name,
                                  const std::string & field_id,
                                  const std::string & group_name,
-                                 const ElementKind & element_kind,
+                                 ElementKind element_kind,
                                  bool padding_flag) override;
 
 public:
@@ -204,7 +202,7 @@ public:
   //                bool extrinsic = false);
 
 protected:
-  void synchronizeGhostFacetsConnectivity();
+  //void synchronizeGhostFacetsConnectivity();
 
   void updateCohesiveSynchronizers(NewElementsEvent & elements_event);
   void updateFacetStressSynchronizer();
@@ -273,8 +271,8 @@ public:
   AKANTU_GET_MACRO(IsExtrinsic, is_extrinsic, bool);
 
   /// get cohesive elements synchronizer
-  AKANTU_GET_MACRO(CohesiveSynchronizer, *cohesive_synchronizer,
-                   const ElementSynchronizer &);
+  AKANTU_GET_MACRO_NOT_CONST(CohesiveSynchronizer, *cohesive_synchronizer,
+                   ElementSynchronizer &);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -305,6 +303,6 @@ private:
 
 } // namespace akantu
 
-#include "solid_mechanics_model_cohesive_inline_impl.cc"
+#include "solid_mechanics_model_cohesive_inline_impl.hh"
 
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH__ */
+#endif /* AKANTU_SOLID_MECHANICS_MODEL_COHESIVE_HH_ */

@@ -9,7 +9,6 @@
  *
  * @brief  description of field
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,15 +28,15 @@
  *
  */
 
-#ifndef __IOHELPER_FIELD_HH__
-#define __IOHELPER_FIELD_HH__
+#ifndef IOHELPER_FIELD_HH_
+#define IOHELPER_FIELD_HH_
 /* -------------------------------------------------------------------------- */
 #include "field_interface.hh"
 // #include "paraview_helper.hh"
 // #include "dumper_lammps.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 template <class Cont>
 class Field : public FieldInterface {
@@ -131,7 +130,7 @@ UInt Field<Cont>::size(){
 
 
 
-__END_IOHELPER__
+}
 
 
-#endif /* __IOHELPER_FIELD_HH__ */
+#endif /* IOHELPER_FIELD_HH_ */

@@ -9,7 +9,6 @@
  *
  * @brief  test for non-local averaging of strain
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -70,13 +69,14 @@ int main(int argc, char * argv[]) {
 
   /// apply constant strain field everywhere in the plate
   Matrix<Real> applied_strain(spatial_dimension, spatial_dimension);
-  applied_strain.clear();
+  applied_strain.zero();
   for (UInt i = 0; i < spatial_dimension; ++i)
     applied_strain(i, i) = 2.;
 
   /// apply constant grad_u field in all elements
   for (auto & mat : model.getMaterials()) {
-    auto & grad_us = mat.getInternal<Real>("eigen_grad_u")(element_type, ghost_type);
+    auto & grad_us =
+        mat.getInternal<Real>("eigen_grad_u")(element_type, ghost_type);
     for (auto & grad_u :
          make_view(grad_us, spatial_dimension, spatial_dimension)) {
       grad_u = -1. * applied_strain;

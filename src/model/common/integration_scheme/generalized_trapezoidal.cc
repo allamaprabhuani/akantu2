@@ -8,7 +8,6 @@
  *
  * @brief  implementation of inline functions
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -177,7 +176,7 @@ void GeneralizedTrapezoidal::assembleJacobian(const SolutionType & type,
   }
 
   J.copyProfile(K);
-  //J.clear();
+  // J.zero();
 
   Real e = this->getTemperatureCoefficient(type, delta_t);
   Real d = this->getTemperatureRateCoefficient(type, delta_t);
@@ -191,4 +190,4 @@ void GeneralizedTrapezoidal::assembleJacobian(const SolutionType & type,
   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu

@@ -8,7 +8,6 @@
  *
  * @brief  Class regrouping the common solve interface to the different models
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -38,8 +37,8 @@
 #include <set>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MODEL_SOLVER_HH__
-#define __AKANTU_MODEL_SOLVER_HH__
+#ifndef AKANTU_MODEL_SOLVER_HH_
+#define AKANTU_MODEL_SOLVER_HH_
 
 namespace akantu {
 class Mesh;
@@ -47,7 +46,7 @@ class DOFManager;
 class TimeStepSolver;
 class NonLinearSolver;
 struct ModelSolverOptions;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -91,7 +90,7 @@ public:
   /// non linear solver with a user defined callback instead of the
   /// model itself /!\ This can mess up everything
   virtual void solveStep(SolverCallback & callback, const ID & solver_id = "");
-  
+
   /// Initialize a time solver that can be used afterwards with its id
   void getNewSolver(
       const ID & solver_id, TimeStepSolverType time_step_solver_type,
@@ -194,6 +193,6 @@ struct ModelSolverOptions {
   std::map<ID, IntegrationScheme::SolutionType> solution_type;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MODEL_SOLVER_HH__ */
+#endif /* AKANTU_MODEL_SOLVER_HH_ */

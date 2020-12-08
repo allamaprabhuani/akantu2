@@ -9,7 +9,6 @@
  *
  * @brief  DOF synchronizing object implementation
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -73,11 +72,13 @@ DOFSynchronizer::~DOFSynchronizer() = default;
 
 /* -------------------------------------------------------------------------- */
 void DOFSynchronizer::registerDOFs(const ID & dof_id) {
-  if (this->nb_proc == 1)
+  if (this->nb_proc == 1) {
     return;
+  }
 
-  if (dof_manager.getSupportType(dof_id) != _dst_nodal)
+  if (dof_manager.getSupportType(dof_id) != _dst_nodal) {
     return;
+  }
 
   const auto & equation_numbers = dof_manager.getLocalEquationsNumbers(dof_id);
 
@@ -86,9 +87,8 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
   const auto & node_communications = node_synchronizer.getCommunications();
 
   auto transcode_node_to_global_dof_scheme =
-      [this, &associated_nodes,
-       &equation_numbers](auto && it, auto && end,
-                          const CommunicationSendRecv & sr) -> void {
+      [this, &associated_nodes, &equation_numbers](
+          auto && it, auto && end, const CommunicationSendRecv & sr) -> void {
     for (; it != end; ++it) {
       auto & scheme = communications.createScheme(it->first, sr);
 
@@ -121,12 +121,11 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
     }
   };
 
-  for (auto sr_it = send_recv_t::begin(); sr_it != send_recv_t::end();
-       ++sr_it) {
-    auto ncs_it = node_communications.begin_scheme(*sr_it);
-    auto ncs_end = node_communications.end_scheme(*sr_it);
+  for (auto sr : send_recv_t{}) {
+    auto ncs_it = node_communications.begin_scheme(sr);
+    auto ncs_end = node_communications.end_scheme(sr);
 
-    transcode_node_to_global_dof_scheme(ncs_it, ncs_end, *sr_it);
+    transcode_node_to_global_dof_scheme(ncs_it, ncs_end, sr);
   }
 
   entities_changed = true;
@@ -136,12 +135,13 @@ void DOFSynchronizer::registerDOFs(const ID & dof_id) {
 void DOFSynchronizer::fillEntityToSend(Array<UInt> & dofs_to_send) {
   UInt nb_dofs = dof_manager.getLocalSystemSize();
 
-  this->entities_from_root.clear();
+  this->entities_from_root.zero();
   dofs_to_send.resize(0);
 
   for (UInt d : arange(nb_dofs)) {
-    if (not dof_manager.isLocalOrMasterDOF(d))
+    if (not dof_manager.isLocalOrMasterDOF(d)) {
       continue;
+    }
 
     entities_from_root.push_back(d);
   }
@@ -163,12 +163,13 @@ void DOFSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/) {
     }
   }
 
-  for(auto & dof_id : dof_ids) {
+  for (auto & dof_id : dof_ids) {
     registerDOFs(dof_id);
   }
 
-  // const auto & node_synchronizer = dof_manager.getMesh().getNodeSynchronizer();
-  // const auto & node_communications = node_synchronizer.getCommunications();
+  // const auto & node_synchronizer =
+  // dof_manager.getMesh().getNodeSynchronizer(); const auto &
+  // node_communications = node_synchronizer.getCommunications();
 
   // std::map<UInt, std::vector<UInt>> nodes_per_proc[2];
 
@@ -184,8 +185,9 @@ void DOFSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/) {
 
   // std::map<UInt, std::vector<UInt>> dofs_per_proc[2];
   // for (auto & dof_id : dof_ids) {
-  //   const auto & associated_nodes = dof_manager.getDOFsAssociatedNodes(dof_id);
-  //   const auto & local_equation_numbers =
+  //   const auto & associated_nodes =
+  //   dof_manager.getDOFsAssociatedNodes(dof_id); const auto &
+  //   local_equation_numbers =
   //       dof_manager.getEquationsNumbers(dof_id);
 
   //   for (auto tuple : zip(associated_nodes, local_equation_numbers)) {

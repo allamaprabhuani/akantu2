@@ -8,7 +8,6 @@
  *
  * @brief  Parsable implementation
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -63,10 +62,10 @@ void Parsable::parseParam(const ParserParameter & in_param) {
                                                  << " registered in " << pid
                                                  << ".");
       return;
-    } else
-      AKANTU_EXCEPTION("No parameter named " << in_param.getName()
-                                             << " registered in " << pid
-                                             << ".");
+    }
+
+    AKANTU_EXCEPTION("No parameter named " << in_param.getName()
+                                           << " registered in " << pid << ".");
   }
   Parameter & param = *(it->second);
   param.setAuto(in_param);
@@ -74,11 +73,12 @@ void Parsable::parseParam(const ParserParameter & in_param) {
 
 /* -------------------------------------------------------------------------- */
 void Parsable::parseSection(const ParserSection & section) {
-  if (section_type != section.getType())
+  if (section_type != section.getType()) {
     AKANTU_EXCEPTION("The object "
                      << pid << " is meant to parse section of type "
                      << section_type << ", so it cannot parse section of type "
                      << section.getType());
+  }
 
   auto params = section.getParameters();
   auto it = params.first;
@@ -107,4 +107,4 @@ void Parsable::parseSubSection(const ParserSection & section) {
   }
 }
 
-} // akantu
+} // namespace akantu

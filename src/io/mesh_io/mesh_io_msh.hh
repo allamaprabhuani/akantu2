@@ -8,7 +8,6 @@
  *
  * @brief  Read/Write for MSH files
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_IO_MSH_HH__
-#define __AKANTU_MESH_IO_MSH_HH__
+#ifndef AKANTU_MESH_IO_MSH_HH_
+#define AKANTU_MESH_IO_MSH_HH_
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_io.hh"
@@ -113,4 +112,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AKANTU_MESH_IO_MSH_HH__ */
+#endif /* AKANTU_MESH_IO_MSH_HH_ */

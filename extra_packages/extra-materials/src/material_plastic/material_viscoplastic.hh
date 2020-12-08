@@ -8,7 +8,6 @@
  * MaterialLinearIsotropicHardening to include viscous effects (small
  * deformation)
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -21,8 +20,8 @@
 #include "material_plastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VISCOPLASTIC_HH__
-#define __AKANTU_MATERIAL_VISCOPLASTIC_HH__
+#ifndef AKANTU_MATERIAL_VISCOPLASTIC_HH_
+#define AKANTU_MATERIAL_VISCOPLASTIC_HH_
 
 namespace akantu {
 
@@ -55,7 +54,7 @@ public:
                              GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
@@ -93,8 +92,8 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "material_viscoplastic_inline_impl.cc"
+#include "material_viscoplastic_inline_impl.hh"
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_VISCOPLASTIC_HH__ */
+#endif /* AKANTU_MATERIAL_VISCOPLASTIC_HH_ */

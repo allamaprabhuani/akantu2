@@ -6,7 +6,6 @@
  * @brief Specialization of the material class for the orthotropic
  * damage material
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -82,10 +81,10 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::updateEnergies(
 
   this->computePotentialEnergy(el_type);
 
-  auto epsilon_p = this->gradu.previous(el_type)
-                       .begin(spatial_dimension, spatial_dimension);
-  auto sigma_p = this->stress.previous(el_type)
-                     .begin(spatial_dimension, spatial_dimension);
+  auto epsilon_p =
+      this->gradu.previous(el_type).begin(spatial_dimension, spatial_dimension);
+  auto sigma_p = this->stress.previous(el_type).begin(spatial_dimension,
+                                                      spatial_dimension);
 
   auto epot = this->potential_energy(el_type).begin();
 
@@ -117,7 +116,7 @@ void MaterialOrthotropicDamage<spatial_dimension, Parent>::updateEnergies(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class Parent>
 void MaterialOrthotropicDamage<spatial_dimension, Parent>::computeTangentModuli(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
+    ElementType el_type, Array<Real> & tangent_matrix,
     GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 

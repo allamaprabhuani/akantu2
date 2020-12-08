@@ -8,7 +8,6 @@
  *
  * @brief  Test the arry class
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,10 +26,11 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#include "aka_array.hh"
-#include "aka_types.hh"
+#include "test_gtest_utils.hh"
+/* -------------------------------------------------------------------------- */
+#include <aka_array.hh>
+#include <aka_types.hh>
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <memory>
@@ -90,7 +90,7 @@ protected:
   std::string type_str;
 };
 
-TYPED_TEST_SUITE(ArrayConstructor, TestTypes);
+TYPED_TEST_SUITE(ArrayConstructor, TestTypes, );
 
 TYPED_TEST(ArrayConstructor, ConstructDefault1) {
   auto array = this->construct();
@@ -153,7 +153,7 @@ protected:
   std::unique_ptr<Array<T>> array;
 };
 
-TYPED_TEST_SUITE(ArrayFixture, TestTypes);
+TYPED_TEST_SUITE(ArrayFixture, TestTypes, );
 
 TYPED_TEST(ArrayFixture, Copy) {
   Array<typename TestFixture::type> copy(*this->array);

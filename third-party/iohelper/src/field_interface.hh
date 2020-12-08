@@ -8,7 +8,6 @@
  *
  * @brief  header for the field interface
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -28,14 +27,14 @@
  *
  */
 
-#ifndef __IOHELPER_CONTAINER_INTERFACE_HH__
-#define __IOHELPER_CONTAINER_INTERFACE_HH__
+#ifndef IOHELPER_CONTAINER_INTERFACE_HH_
+#define IOHELPER_CONTAINER_INTERFACE_HH_
 /* -------------------------------------------------------------------------- */
 #include "visitor.hh"
 /* -------------------------------------------------------------------------- */
 
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 class FieldInterface {
   /* ------------------------------------------------------------------------ */
@@ -78,6 +77,6 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-__END_IOHELPER__
+}
 
-#endif /* __IOHELPER_CONTAINER_INTERFACE_HH__ */
+#endif /* IOHELPER_CONTAINER_INTERFACE_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  file to include to reactivate the previously deactivatied warnings
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -28,19 +27,28 @@
  *
  */
 
+// --- Intel -------------------------------------------------------------------
 #if defined(__INTEL_COMPILER)
 //#pragma warning ( disable : 383 )
+
+// --- Clang -------------------------------------------------------------------
 #elif defined(__clang__) // test clang to be sure that when we test for gnu it
-// is only gnu
-#pragma clang diagnostic pop
+                         // is only gnu
+#  pragma clang diagnostic pop
+
+// --- GCC ---------------------------------------------------------------------
 #elif defined(__GNUG__)
-#if GCC_VERSION > 40600
-#pragma GCC diagnostic pop
-#else
-#if defined(AKANTU_WARNING_IGNORE_UNUSED_PARAMETER)
-#pragma GCC diagnostic warning "-Wunused-parameter"
-#endif
-#endif
+#  if GCC_VERSION > 40600
+#    pragma GCC diagnostic pop
+#  else
+#    if defined(AKANTU_WARNING_IGNORE_UNUSED_PARAMETER)
+#      pragma GCC diagnostic warning "-Wunused-parameter"
+#    endif
+#    if defined(AKANTU_WARNING_IGNORE_VARIADIC_MACRO_ARGUMENTS)
+#      pragma GCC diagnostic ignored "-Wpedantic"
+#    endif
+#  endif
 #endif
 
 #undef AKANTU_WARNING_IGNORE_UNUSED_PARAMETER
+#undef AKANTU_WARNING_IGNORE_VARIADIC_MACRO_ARGUMENTS

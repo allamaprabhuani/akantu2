@@ -8,7 +8,6 @@
  *
  * @brief  Interface of the time integrator of first order
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 #include "integration_scheme.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
-#define __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__
+#ifndef AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH_
+#define AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH_
 
 namespace akantu {
 
@@ -85,10 +84,11 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
+  std::unique_ptr<Real> u_dot_store;
 };
 
-} // akantu
+} // namespace akantu
 
 #include "generalized_trapezoidal.hh"
 
-#endif /* __AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH__ */
+#endif /* AKANTU_INTEGRATION_SCHEME_1ST_ORDER_HH_ */

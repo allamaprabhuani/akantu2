@@ -9,7 +9,6 @@
  *
  * @brief  Common interface for fields
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,14 +28,14 @@
  *
  */
 
-#ifndef __AKANTU_DUMPER_FIELD_HH__
-#define __AKANTU_DUMPER_FIELD_HH__
+#ifndef AKANTU_DUMPER_FIELD_HH_
+#define AKANTU_DUMPER_FIELD_HH_
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-__BEGIN_AKANTU_DUMPER__
+namespace dumpers {
 /* -------------------------------------------------------------------------- */
 class FieldComputeProxy;
 class FieldComputeBaseInterface;
@@ -131,7 +130,7 @@ protected:
 
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU_DUMPER__
+} // namespace dumpers
 } // namespace akantu
 
-#endif /* __AKANTU_DUMPER_FIELD_HH__ */
+#endif /* AKANTU_DUMPER_FIELD_HH_ */

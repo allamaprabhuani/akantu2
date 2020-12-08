@@ -10,7 +10,6 @@
  *
  * @brief  Material isotropic elastic
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__
-#define __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__
+#ifndef AKANTU_LOCAL_MATERIAL_DAMAGE_HH_
+#define AKANTU_LOCAL_MATERIAL_DAMAGE_HH_
 
 namespace akantu {
 
@@ -64,7 +63,7 @@ public:
 
   /// compute tangent stiffness
   virtual void computeTangentStiffness(__attribute__((unused))
-                                       const ElementType & el_type,
+                                       ElementType el_type,
                                        __attribute__((unused))
                                        Array<Real> & tangent_matrix,
                                        __attribute__((unused))
@@ -119,8 +118,8 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "local_material_damage_inline_impl.cc"
+#include "local_material_damage_inline_impl.hh"
 
 } // namespace akantu
 
-#endif /* __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__ */
+#endif /* AKANTU_LOCAL_MATERIAL_DAMAGE_HH_ */

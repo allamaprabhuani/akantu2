@@ -8,7 +8,6 @@
  *
  * @brief  Test for cohesive elements
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -215,7 +214,7 @@ void Checker::updateDisplacement(const Vector<Real> & increment) {
   const auto & connectivity = mesh.getConnectivity(type);
   auto & displacement = model.getDisplacement();
   Array<bool> update(displacement.size());
-  update.clear();
+  update.zero();
 
   auto conn_it = connectivity.begin(connectivity.getNbComponent());
   auto conn_end = connectivity.begin(connectivity.getNbComponent());

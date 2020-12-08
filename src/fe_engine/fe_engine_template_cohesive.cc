@@ -9,7 +9,6 @@
  *
  * @brief  Specialization of the FEEngineTemplate for cohesive element
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -43,15 +42,16 @@ namespace akantu {
 template <>
 Real FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    integrate(const Array<Real> & f, const ElementType & type,
-              const GhostType & ghost_type,
+    integrate(const Array<Real> & f, ElementType type,
+              GhostType ghost_type,
               const Array<UInt> & filter_elements) const {
   AKANTU_DEBUG_IN();
 
 #ifndef AKANTU_NDEBUG
   UInt nb_element = mesh.getNbElement(type, ghost_type);
-  if (filter_elements != empty_filter)
+  if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
+  }
 
   UInt nb_quadrature_points = getNbIntegrationPoints(type);
 
@@ -81,14 +81,15 @@ template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
     integrate(const Array<Real> & f, Array<Real> & intf,
-              UInt nb_degree_of_freedom, const ElementType & type,
-              const GhostType & ghost_type,
+              UInt nb_degree_of_freedom, ElementType type,
+              GhostType ghost_type,
               const Array<UInt> & filter_elements) const {
 
 #ifndef AKANTU_NDEBUG
   UInt nb_element = mesh.getNbElement(type, ghost_type);
-  if (filter_elements != empty_filter)
+  if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
+  }
 
   UInt nb_quadrature_points = getNbIntegrationPoints(type);
 
@@ -121,12 +122,14 @@ void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
 template <>
 void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_cohesive,
                       DefaultIntegrationOrderFunctor>::
-    gradientOnIntegrationPoints(const Array<Real> &, Array<Real> &, const UInt,
-                                const ElementType &, const GhostType &,
-                                const Array<UInt> &) const {
+    gradientOnIntegrationPoints(
+        const Array<Real> & /* u */, Array<Real> & /*  nablauq */,
+        UInt /* nb_degree_of_freedom */, ElementType /* type  */,
+        GhostType /*  ghost_type */,
+        const Array<UInt> & /*  filter_elements */) const {
   AKANTU_TO_IMPLEMENT();
 }
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

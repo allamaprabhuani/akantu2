@@ -8,7 +8,6 @@
  *
  * @brief  Test default dof manager
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -91,7 +90,7 @@ int main(int argc, char * argv[]) {
 #if defined(DOF_MANAGER_TYPE)
   dof_manager_type = DOF_MANAGER_TYPE;
 #endif
-  
+
   if (prank == 0)
     genMesh(mesh, global_nb_nodes);
 
@@ -101,8 +100,8 @@ int main(int argc, char * argv[]) {
 
   MyModel model(F, mesh, _explicit, dof_manager_type);
 
-  model.forces.clear();
-  model.blocked.clear();
+  model.forces.zero();
+  model.blocked.zero();
 
   model.applyBC(Sinusoidal(model, A, pulse_width, 0.), "all");
   model.applyBC(BC::Dirichlet::FlagOnly(_x), "border");
@@ -135,7 +134,7 @@ int main(int argc, char * argv[]) {
   }
   Real wext = 0.;
 
-  model.getDOFManager().clearResidual();
+  model.getDOFManager().zeroResidual();
   model.assembleResidual();
 
   Real epot = 0; // model.getPotentialEnergy();
@@ -163,15 +162,16 @@ int main(int argc, char * argv[]) {
   solver.set("max_iterations", 20);
 #endif
 
-  auto * dumper = new DumperParaview("dynamic", "./paraview");
-  mesh.registerExternalDumper(*dumper, "dynamic", true);
+  auto && dumper = std::make_shared<DumperParaview>("dynamic", "./paraview");
+  mesh.registerExternalDumper(dumper, "dynamic", true);
   mesh.addDumpMesh(mesh);
 
   mesh.addDumpFieldExternalToDumper("dynamic", "displacement",
                                     model.displacement);
   mesh.addDumpFieldExternalToDumper("dynamic", "velocity", model.velocity);
   mesh.addDumpFieldExternalToDumper("dynamic", "forces", model.forces);
-  mesh.addDumpFieldExternalToDumper("dynamic", "internal_forces", model.internal_forces);
+  mesh.addDumpFieldExternalToDumper("dynamic", "internal_forces",
+                                    model.internal_forces);
   mesh.addDumpFieldExternalToDumper("dynamic", "acceleration",
                                     model.acceleration);
 

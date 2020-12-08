@@ -8,7 +8,6 @@
  *
  * @brief  Random internal material parameter
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include "internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RANDOM_INTERNAL_FIELD_HH__
-#define __AKANTU_RANDOM_INTERNAL_FIELD_HH__
+#ifndef AKANTU_RANDOM_INTERNAL_FIELD_HH_
+#define AKANTU_RANDOM_INTERNAL_FIELD_HH_
 
 namespace akantu {
 
@@ -60,7 +59,7 @@ public:
   RandomInternalField operator=(const RandomInternalField &) = delete;
 
 public:
-  AKANTU_GET_MACRO(RandomParameter, random_parameter, const RandomParameter<T>);
+  AKANTU_GET_MACRO(RandomParameter, random_parameter, const RandomParameter<T>&);
 
   /// initialize the field to a given number of component
   void initialize(UInt nb_component) override;
@@ -99,6 +98,6 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_RANDOM_INTERNAL_FIELD_HH__ */
+#endif /* AKANTU_RANDOM_INTERNAL_FIELD_HH_ */

@@ -9,7 +9,6 @@
  *
  * @brief  test to synchronize barycenters
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -80,7 +79,8 @@ TEST_F(TestElementSynchronizerFixture, Synchrone) {
 /* -------------------------------------------------------------------------- */
 TEST_F(TestElementSynchronizerFixture, Asynchrone) {
   auto & synchronizer = this->mesh->getElementSynchronizer();
-  synchronizer.asynchronousSynchronize(*this->test_accessor, SynchronizationTag::_test);
+  synchronizer.asynchronousSynchronize(*this->test_accessor,
+                                       SynchronizationTag::_test);
 
   std::random_device r;
   std::default_random_engine engine(r());
@@ -89,5 +89,6 @@ TEST_F(TestElementSynchronizerFixture, Asynchrone) {
 
   std::this_thread::sleep_for(delay);
 
-  synchronizer.waitEndSynchronize(*this->test_accessor, SynchronizationTag::_test);
+  synchronizer.waitEndSynchronize(*this->test_accessor,
+                                  SynchronizationTag::_test);
 }

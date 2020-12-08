@@ -10,7 +10,6 @@
  *
  * @brief  ShapeStructural implementation
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -40,9 +39,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <>
-ShapeStructural<_ek_structural>::ShapeStructural(Mesh & mesh, const ID & id,
+ShapeStructural<_ek_structural>::ShapeStructural(Mesh & mesh,
+                                                 UInt spatial_dimension,
+                                                 const ID & id,
                                                  const MemoryID & memory_id)
-    : ShapeFunctions(mesh, id, memory_id),
+    : ShapeFunctions(mesh, spatial_dimension, id, memory_id),
       rotation_matrices("rotation_matrices", id, memory_id) {}
 
 /* -------------------------------------------------------------------------- */

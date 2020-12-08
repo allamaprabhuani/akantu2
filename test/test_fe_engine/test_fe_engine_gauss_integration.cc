@@ -8,7 +8,6 @@
  *
  * @brief  test integration on elements, this test consider that mesh is a cube
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -144,11 +143,11 @@ REGISTER_TYPED_TEST_SUITE_P(TestGaussIntegrationFixture, ArbitraryOrder);
 using TestTypes = gtest_list_t<
     tuple_split_t<50, cross_product_t<TestElementTypes, TestDegreeTypes>>>;
 
-INSTANTIATE_TYPED_TEST_SUITE_P(Split1, TestGaussIntegrationFixture, TestTypes);
+INSTANTIATE_TYPED_TEST_SUITE_P(Split1, TestGaussIntegrationFixture, TestTypes, );
 
 using TestTypesTail = gtest_list_t<
     tuple_split_tail_t<50, cross_product_t<TestElementTypes, TestDegreeTypes>>>;
 
 INSTANTIATE_TYPED_TEST_SUITE_P(Split2, TestGaussIntegrationFixture,
-                              TestTypesTail);
-}
+                               TestTypesTail, );
+} // namespace

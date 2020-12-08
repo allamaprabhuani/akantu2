@@ -8,7 +8,6 @@
  *
  * @brief  Element helper class
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 #include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_HH__
-#define __AKANTU_ELEMENT_HH__
+#ifndef AKANTU_ELEMENT_HH_
+#define AKANTU_ELEMENT_HH_
 
 namespace akantu {
 
@@ -84,7 +83,7 @@ public:
 namespace {
   const Element ElementNull{_not_defined, UInt(-1), _casper};
   //      Element{_not_defined, 0, _casper, _ek_not_defined};
-}
+} // namespace
 
 /* -------------------------------------------------------------------------- */
 inline bool Element::operator<(const Element & rhs) const {
@@ -101,18 +100,28 @@ inline bool Element::operator<(const Element & rhs) const {
               std::tie(rhs.ghost_type, rhs.type, rhs.element));
 }
 
-/// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream, const Element & _this) {
-  if(_this == ElementNull) {
-    stream << "ElementNull";
-    return stream;
-  }
-
-  stream << "Element [" << _this.type << ", " << _this.element << ", "
-         << _this.ghost_type << "]";
-  return stream;
-}
-
 } // namespace akantu
 
-#endif /* __AKANTU_ELEMENT_HH__ */
+namespace std {
+inline string to_string(const akantu::Element & _this) {
+  if (_this == akantu::ElementNull) {
+    return "ElementNull";
+  }
+
+  string str = "Element [" + to_string(_this.type) + ", " +
+               to_string(_this.element) + ", " + to_string(_this.ghost_type) +
+               "]";
+  return str;
+}
+} // namespace std
+
+namespace akantu {
+
+/// standard output stream operator
+inline std::ostream & operator<<(std::ostream & stream, const Element & _this) {
+  stream << std::to_string(_this);
+  return stream;
+}
+} // namespace akantu
+
+#endif /* AKANTU_ELEMENT_HH_ */

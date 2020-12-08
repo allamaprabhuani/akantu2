@@ -8,28 +8,35 @@ pipeline {
 
   options {
     disableConcurrentBuilds()
+    //skipDefaultCheckout(true)
   }
 
   environment {
     PHABRICATOR_HOST = 'https://c4science.ch/api/'
     PYTHONPATH = sh returnStdout: true, script: 'echo ${WORKSPACE}/test/ci/script/'
     BLA_VENDOR = 'OpenBLAS'
-    OMPI_MCA_plm = 'isolated'
-    OMPI_MCA_btl = 'tcp,self'
   }
   
   agent {
     dockerfile {
       filename 'Dockerfile'
-      dir 'test/ci'
+      dir 'test/ci/phabricator'
       additionalBuildArgs '--tag akantu-environment'
     }
   }
   
-  stages {    
+  stages {
+    stage('Checkout proper commit') {
+      steps {
+        checkout scm:  [$class: 'GitSCM',
+          branches: [[name: "${COMMIT_ID}" ]]
+        ], changelog: true
+      }
+    }
+        
     stage('Lint') {
       steps {
-	sh """
+        sh """
            arc lint --output json --rev HEAD^ | jq . -srM | tee lint.json
            ./test/ci/scripts/hbm send-arc-lint -f lint.json
            """
@@ -45,29 +52,38 @@ pipeline {
            cmake -DAKANTU_COHESIVE_ELEMENT:BOOL=TRUE \
                  -DAKANTU_IMPLICIT:BOOL=TRUE \
                  -DAKANTU_PARALLEL:BOOL=TRUE \
+                 -DAKANTU_STRUCTURAL_MECHANICS:BOOL=TRUE \
+                 -DAKANTU_HEAT_TRANSFER:BOOL=TRUE \
+                 -DAKANTU_DAMAGE_NON_LOCAL:BOOL=TRUE \
                  -DAKANTU_PYTHON_INTERFACE:BOOL=TRUE \
-                 -DAKANTU_TESTS:BOOL=TRUE .. | tee configure.txt
+                 -DAKANTU_EXAMPLES:BOOL=TRUE \
+                 -DAKANTU_BUILD_ALL_EXAMPLES:BOOL=TRUE \
+                 -DAKANTU_TEST_EXAMPLES:BOOL=FALSE \
+                 -DAKANTU_TESTS:BOOL=TRUE \
+                 -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo .. | tee ../configure.txt
            """
       }
       post {
-	failure {
-	  uploadArtifact('configure.txt', 'Configure')
-	  deleteDir()
-	}
+	      failure {
+	        uploadArtifact('build/configure.txt', 'Configure')
+          sh """
+             rm -rf build
+             """
+	      }
       }
     }
     
     stage('Compile') {
       steps {
-	sh '''#!/bin/bash
+        sh '''#!/bin/bash
            set -o pipefail
-           make -C build/src | tee compilation.txt
+           make -C build/src | tee build/compilation.txt
            '''
       }
       post {
-	failure {
-	  uploadArtifact('compilation.txt', 'Compilation')
-	}
+        failure {
+          uploadArtifact('build/compilation.txt', 'Compilation')
+        }
       }
     }
 
@@ -82,13 +98,13 @@ pipeline {
         sh '''#!/bin/bash
            set -o pipefail
 
-           make -C build/python | tee compilation_python.txt
+           make -C build/python | tee build/compilation_python.txt
            '''
       }
       post {
-	failure {
-	  uploadArtifact('compilation_python.txt', 'Compilation_Python')
-	}
+        failure {
+          uploadArtifact('build/compilation_python.txt', 'Compilation_Python')
+        }
       }
     }
 
@@ -97,13 +113,13 @@ pipeline {
         sh '''#!/bin/bash
            set -o pipefail
 
-           make -C build/test | tee compilation_test.txt
+           make -C build/test | tee build/compilation_test.txt
            '''
       }
       post {
-	failure {
-	  uploadArtifact('compilation_test.txt', 'Compilation_Tests')
-	}
+        failure {
+          uploadArtifact('build/compilation_test.txt', 'Compilation_Tests')
+        }
       }
     }
 
@@ -117,29 +133,23 @@ pipeline {
           ctest -T test --no-compress-output || true
           tag=$(head -n 1 < Testing/TAG)
           if [ -e Testing/${tag}/Test.xml ]; then
-            cp Testing/${tag}/Test.xml ../CTestResults.xml
+            cp Testing/${tag}/Test.xml ./CTestResults.xml
           fi
         '''
       }
     }
-    post {
-      failure {
-	zip zipFile: 'build.zip',  dir: 'build/', archive: true
-      }
-    }
   }
-
   post {
     always {
-      createArtifact("./CTestResults.xml")
+      createArtifact("build/CTestResults.xml")
 
       step([$class: 'XUnitBuilder',
-	    thresholds: [
+      thresholds: [
           [$class: 'SkippedThreshold', failureThreshold: '0'],
           [$class: 'FailedThreshold', failureThreshold: '0']],
-	    tools: [
-	  [$class: 'CTestType', pattern: 'CTestResults.xml', skipNoTestFiles: true]
-	]])
+      tools: [
+        [$class: 'CTestType', pattern: 'build/CTestResults.xml', skipNoTestFiles: true]
+      ]])
     }
 
     success {

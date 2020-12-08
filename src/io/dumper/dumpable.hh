@@ -10,7 +10,6 @@
  *
  * @brief  Interface for object who wants to dump themselves
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_DUMPABLE_HH__
-#define __AKANTU_DUMPABLE_HH__
+#ifndef AKANTU_DUMPABLE_HH_
+#define AKANTU_DUMPABLE_HH_
 
 #ifdef AKANTU_USE_IOHELPER
 #include "dumpable_iohelper.hh"
@@ -44,4 +43,4 @@
 #include "dumpable_dummy.hh"
 #endif // AKANTU_USE_IOHELPER
 
-#endif /* __AKANTU_DUMPABLE_HH__ */
+#endif /* AKANTU_DUMPABLE_HH_ */

@@ -10,7 +10,6 @@
  *
  * @brief  interface for solvers
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include "parsable.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLVER_HH__
-#define __AKANTU_SOLVER_HH__
+#ifndef AKANTU_SOLVER_HH_
+#define AKANTU_SOLVER_HH_
 
 namespace akantu {
 enum SolverParallelMethod {
@@ -47,7 +46,7 @@ enum SolverParallelMethod {
 };
 
 class DOFManager;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -123,8 +122,8 @@ namespace debug {
         : Exception("Solver encountered singular matrix"), matrix(matrix) {}
     const SparseMatrix & matrix;
   };
-}
+} // namespace debug
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_SOLVER_HH__ */
+#endif /* AKANTU_SOLVER_HH_ */

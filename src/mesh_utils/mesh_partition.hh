@@ -9,7 +9,6 @@
  *
  * @brief  tools to partitionate a mesh
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -28,18 +27,14 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_MESH_PARTITION_HH__
-#define __AKANTU_MESH_PARTITION_HH__
-
 /* -------------------------------------------------------------------------- */
 #include "aka_csr.hh"
-#include "aka_memory.hh"
 #include "mesh.hh"
-
 /* -------------------------------------------------------------------------- */
+
+#ifndef AKANTU_MESH_PARTITION_HH_
+#define AKANTU_MESH_PARTITION_HH_
+
 
 namespace akantu {
 
@@ -48,7 +43,7 @@ class MeshPartition : protected Memory {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MeshPartition(const Mesh & mesh, UInt spatial_dimension,
+  MeshPartition(Mesh & mesh, UInt spatial_dimension,
                 const ID & id = "MeshPartitioner",
                 const MemoryID & memory_id = 0);
 
@@ -61,10 +56,11 @@ public:
   /// define a partition of the mesh
   virtual void partitionate(
       UInt nb_part,
-      std::function<Int(const Element &, const Element &)> edge_load_func =
-          [](auto &&, auto &&) { return 1; },
-      std::function<Int(const Element &)> vertex_load_func =
-          [](auto &&) { return 1; }) = 0;
+      const std::function<Int(const Element &, const Element &)> &
+          edge_load_func =
+              [](auto && /*unused*/, auto && /*unused*/) { return 1; },
+      const std::function<Int(const Element &)> & vertex_load_func =
+          [](auto && /*unused*/) { return 1; }) = 0;
 
   /// reorder the nodes to reduce the filling during the factorization of a
   /// matrix that has a profil based on the connectivity of the mesh
@@ -75,14 +71,16 @@ public:
                                 const Int * linearized_partitions);
 
   virtual void printself(std::ostream & stream, int indent = 0) const;
-  
+
 protected:
   /// build the dual graph of the mesh, for all element of spatial_dimension
-  void buildDualGraph(
-      Array<Int> & dxadj, Array<Int> & dadjncy, Array<Int> & edge_loads,
-      std::function<Int(const Element &, const Element &)> edge_load_func,
-      Array<Int> & vertex_loads,
-      std::function<Int(const Element &)> vertex_load_func);
+  void
+  buildDualGraph(Array<Int> & dxadj, Array<Int> & dadjncy,
+                 Array<Int> & edge_loads,
+                 const std::function<Int(const Element &, const Element &)> &
+                     edge_load_func,
+                 Array<Int> & vertex_loads,
+                 const std::function<Int(const Element &)> & vertex_load_func);
 
   /// tweak the mesh to handle the PBC pairs
   void tweakConnectivity();
@@ -93,7 +91,7 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  bool hasPartitions(const ElementType & type, const GhostType & ghost_type);
+  bool hasPartitions(ElementType type, GhostType ghost_type);
   AKANTU_GET_MACRO(Partitions, partitions, const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Partition, partitions, UInt);
 
@@ -114,7 +112,7 @@ protected:
   std::string id;
 
   /// the mesh to partition
-  const Mesh & mesh;
+  Mesh & mesh;
 
   /// dimension of the elements to consider in the mesh
   UInt spatial_dimension;
@@ -138,7 +136,8 @@ protected:
 };
 
 /// standard output stream operator
-inline std::ostream & operator<<(std::ostream & stream, const MeshPartition & _this) {
+inline std::ostream & operator<<(std::ostream & stream,
+                                 const MeshPartition & _this) {
   _this.printself(stream);
   return stream;
 }
@@ -149,4 +148,4 @@ inline std::ostream & operator<<(std::ostream & stream, const MeshPartition & _t
 #include "mesh_partition_scotch.hh"
 #endif
 
-#endif /* __AKANTU_MESH_PARTITION_HH__ */
+#endif /* AKANTU_MESH_PARTITION_HH_ */

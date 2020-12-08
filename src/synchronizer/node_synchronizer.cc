@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the node synchronizer
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -61,7 +60,7 @@ Int NodeSynchronizer::getRank(const UInt & node) const {
 
 /* -------------------------------------------------------------------------- */
 void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
-                                    const NewNodesEvent &) {
+                                    const NewNodesEvent & /*unused*/) {
   std::map<UInt, std::vector<UInt>> nodes_per_proc;
 
   // recreates fully the schemes due to changes of global ids
@@ -72,8 +71,9 @@ void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
   }
 
   for (auto && local_id : arange(mesh.getNbNodes())) {
-    if (not mesh.isSlaveNode(local_id))
+    if (not mesh.isSlaveNode(local_id)) {
       continue; // local, master or pure ghost
+    }
 
     auto global_id = mesh.getNodeGlobalId(local_id);
     auto proc = mesh.getNodePrank(local_id);
@@ -177,8 +177,10 @@ void NodeSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
                                              UInt proc, UInt rank) const {
   auto dim = mesh.getSpatialDimension();
 
+#ifndef AKANTU_NDEBUG
   auto periodic = [&](auto && flag) { return flag & NodeFlag::_periodic_mask; };
   auto distrib = [&](auto && flag) { return flag & NodeFlag::_shared_mask; };
+#endif
 
   for (auto && node : nodes) {
     if (tag != SynchronizationTag::_giu_global_conn) {
@@ -192,19 +194,18 @@ void NodeSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
 
     NodeFlag flag;
     buffer >> flag;
-    // AKANTU_DEBUG_ASSERT(
-    //     (periodic(flag) == periodic(mesh.getNodeFlag(node))) and
-    //         (((distrib(flag) == NodeFlag::_master) and
-    //           (distrib(mesh.getNodeFlag(node)) ==
-    //            NodeFlag::_slave)) or // master to slave
-    //          ((distrib(flag) == NodeFlag::_slave) and
-    //           (distrib(mesh.getNodeFlag(node)) ==
-    //            NodeFlag::_master)) or // reverse comm slave to master
-    //          (distrib(mesh.getNodeFlag(node)) ==
-    //               NodeFlag::_pure_ghost or // pure ghost nodes
-    //           distrib(flag) == NodeFlag::_pure_ghost)),
-    //     "The node flags: "
-    //     << flag << " and " << mesh.getNodeFlag(node));
+    AKANTU_DEBUG_ASSERT(
+        (periodic(flag) == periodic(mesh.getNodeFlag(node))) and
+            (((distrib(flag) == NodeFlag::_master) and
+              (distrib(mesh.getNodeFlag(node)) ==
+               NodeFlag::_slave)) or // master to slave
+             ((distrib(flag) == NodeFlag::_slave) and
+              (distrib(mesh.getNodeFlag(node)) ==
+               NodeFlag::_master)) or // reverse comm slave to master
+             (distrib(mesh.getNodeFlag(node)) ==
+                  NodeFlag::_pure_ghost or // pure ghost nodes
+              distrib(flag) == NodeFlag::_pure_ghost)),
+        "The node flags: " << flag << " and " << mesh.getNodeFlag(node));
 
     Vector<Real> pos_remote(dim);
     buffer >> pos_remote;
@@ -228,8 +229,9 @@ void NodeSynchronizer::fillEntityToSend(Array<UInt> & nodes_to_send) {
   nodes_to_send.resize(0);
 
   for (UInt n : arange(nb_nodes)) {
-    if (not mesh.isLocalOrMasterNode(n))
+    if (not mesh.isLocalOrMasterNode(n)) {
       continue;
+    }
 
     entities_from_root.push_back(n);
   }

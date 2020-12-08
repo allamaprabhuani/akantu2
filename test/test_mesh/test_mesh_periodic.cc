@@ -7,7 +7,6 @@
  *
  * @brief test makePeriodic
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -132,7 +131,8 @@ int main(int argc, char ** argv) {
 
   mesh.dump();
 
-  // SimpleUIntDataAccessor<Int> data_accessor(data, SynchronizationTag::_user_1);
+  // SimpleUIntDataAccessor<Int> data_accessor(data,
+  // SynchronizationTag::_user_1);
   // mesh.getPeriodicNodeSynchronizer().synchronizeOnce(data_accessor,
   //                                                    SynchronizationTag::_user_1);
   mesh.dump();

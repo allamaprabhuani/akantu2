@@ -8,7 +8,6 @@
  *
  * @brief  Fixture for material tests
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,10 +26,11 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#include "material_elastic.hh"
-#include "solid_mechanics_model.hh"
+#include "test_gtest_utils.hh"
+/* -------------------------------------------------------------------------- */
+#include <material_elastic.hh>
+#include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <random>
@@ -60,7 +60,7 @@ public:
     this->initMaterial();
   }
 
-  virtual void TearDown() { }
+  virtual void TearDown() {}
 
   inline Matrix<Real> getDeviatoricStrain(Real intensity);
   inline Matrix<Real> getHydrostaticStrain(Real intensity);
@@ -120,7 +120,7 @@ template <typename T> Vector<Real> FriendMaterial<T>::getRandomVector() {
   auto dim = this->spatial_dimension;
   std::uniform_real_distribution<Real> dis;
   Vector<Real> vector(dim, 0.);
-  while(vector.norm() < 1e-9) {
+  while (vector.norm() < 1e-9) {
     for (auto s : arange(dim))
       vector(s) = dis(gen);
   }
@@ -147,7 +147,7 @@ template <typename T> Matrix<Real> FriendMaterial<T>::getRandomRotation() {
 
   if (dim == 3) {
     auto v2 = getRandomVector();
-    v2  = (v2 - v2.dot(v1) * v1).normalize();
+    v2 = (v2 - v2.dot(v1) * v1).normalize();
 
     Vector<Real> v3(3);
     v3.crossProduct(v1, v2);

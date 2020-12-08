@@ -8,7 +8,6 @@
  *
  * @brief  Specialization of the material class for the thermal material
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -106,7 +105,7 @@ void MaterialThermal<dim>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 
 template <UInt dim>
-void MaterialThermal<dim>::computePotentialEnergy(ElementType) {
+void MaterialThermal<dim>::computePotentialEnergy(ElementType /*el_type*/) {
   AKANTU_DEBUG_IN();
   AKANTU_TO_IMPLEMENT();
   AKANTU_DEBUG_OUT();
@@ -114,7 +113,6 @@ void MaterialThermal<dim>::computePotentialEnergy(ElementType) {
 
 /* -------------------------------------------------------------------------- */
 
-
 INSTANTIATE_MATERIAL_ONLY(MaterialThermal);
 
-} // akantu
+} // namespace akantu

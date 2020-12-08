@@ -6,9 +6,8 @@
  *
  * @date creation: Mon Aug 17 2015
  *
- * @brief  Example of dumper::DumperIOHelper low-level methods.
+ * @brief  Example of dumpers::DumperIOHelper low-level methods.
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -84,10 +83,14 @@ int main(int argc, char * argv[]) {
   wheels_elements.append(mesh.getElementGroup("rwheel_1"));
   wheels_elements.append(mesh.getElementGroup("rwheel_2"));
 
-  const Array<UInt> & lnode_1 = (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
-  const Array<UInt> & lnode_2 = (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
-  const Array<UInt> & rnode_1 = (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
-  const Array<UInt> & rnode_2 = (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
+  const Array<UInt> & lnode_1 =
+      (mesh.getElementGroup("lwheel_1")).getNodeGroup().getNodes();
+  const Array<UInt> & lnode_2 =
+      (mesh.getElementGroup("lwheel_2")).getNodeGroup().getNodes();
+  const Array<UInt> & rnode_1 =
+      (mesh.getElementGroup("rwheel_1")).getNodeGroup().getNodes();
+  const Array<UInt> & rnode_2 =
+      (mesh.getElementGroup("rwheel_2")).getNodeGroup().getNodes();
 
   /* Note this Array is constructed with three components in order to warp train
      deformation on Paraview. A more appropriate way to do this is to set a
@@ -119,7 +122,7 @@ int main(int argc, char * argv[]) {
   wheels.dump();
 
   /* At this stage no fields are attached to the two dumpers.  To do so, a
-     dumper::Field object has to be created.  Several types of dumper::Field
+     dumpers::Field object has to be created.  Several types of dumpers::Field
      exist. In this example we present two of them.
 
      NodalField to describe nodal displacements of our train.
@@ -127,8 +130,8 @@ int main(int argc, char * argv[]) {
   */
 
   // NodalField are constructed with an Array.
-  auto displ_field = std::make_shared<dumper::NodalField<Real>>(displacement);
-  auto colour_field = std::make_shared<dumper::ElementalField<UInt>>(colour);
+  auto displ_field = std::make_shared<dumpers::NodalField<Real>>(displacement);
+  auto colour_field = std::make_shared<dumpers::ElementalField<UInt>>(colour);
 
   // Register the freshly created fields to our dumper.
   dumper.registerField("displacement", displ_field);
@@ -137,7 +140,7 @@ int main(int argc, char * argv[]) {
   // For the dumper wheels, fields have to be filtered at registration.
   // Filtered NodalField can be simply registered by adding an Array<UInt>
   // listing the nodes.
-  auto displ_field_wheel = std::make_shared<dumper::NodalField<Real, true>>(
+  auto displ_field_wheel = std::make_shared<dumpers::NodalField<Real, true>>(
       displacement, 0, 0, &(wheels_elements.getNodeGroup().getNodes()));
   wheels.registerField("displacement", displ_field_wheel);
 
@@ -146,7 +149,7 @@ int main(int argc, char * argv[]) {
       colour, wheels_elements.getElements());
 
   auto colour_field_wheel =
-      std::make_shared<dumper::ElementalField<UInt, Vector, true>>(
+      std::make_shared<dumpers::ElementalField<UInt, Vector, true>>(
           filtered_colour);
   wheels.registerField("colour", colour_field_wheel);
 
@@ -172,7 +175,7 @@ int main(int argc, char * argv[]) {
   }
 
   for (UInt i = 0; i < nb_steps; ++i) {
-    displacement.clear();
+    displacement.zero();
 
     Real angle = (Real)i / (Real)nb_steps * theta;
     applyRotation(l_center, angle, nodes, displacement, lnode_1);

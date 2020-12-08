@@ -35,7 +35,7 @@ package_declare(core NOT_OPTIONAL
                   cxx_deleted_functions cxx_auto_type cxx_decltype_auto
   FEATURES_PRIVATE cxx_lambdas cxx_nullptr cxx_range_for
 		   cxx_delegating_constructors
-  DEPENDS INTERFACE Boost)
+  DEPENDS INTERFACE akantu_iterators Boost)
 
 package_declare_sources(core
   common/aka_array.cc
@@ -45,12 +45,12 @@ package_declare_sources(core
   common/aka_bbox.hh
   common/aka_blas_lapack.hh
   common/aka_circular_array.hh
-  common/aka_circular_array_inline_impl.cc
+  common/aka_circular_array_inline_impl.hh
   common/aka_common.cc
   common/aka_common.hh
-  common/aka_common_inline_impl.cc
+  common/aka_common_inline_impl.hh
   common/aka_csr.hh
-  common/aka_element_classes_info_inline_impl.cc
+  common/aka_element_classes_info_inline_impl.hh
   common/aka_enum_macros.hh
   common/aka_error.cc
   common/aka_error.hh
@@ -64,13 +64,13 @@ package_declare_sources(core
   common/aka_math_tmpl.hh
   common/aka_memory.cc
   common/aka_memory.hh
-  common/aka_memory_inline_impl.cc
+  common/aka_memory_inline_impl.hh
   common/aka_named_argument.hh
   common/aka_random_generator.hh
   common/aka_safe_enum.hh
   common/aka_static_memory.cc
   common/aka_static_memory.hh
-  common/aka_static_memory_inline_impl.cc
+  common/aka_static_memory_inline_impl.hh
   common/aka_static_memory_tmpl.hh
   common/aka_typelist.hh
   common/aka_types.hh
@@ -80,30 +80,27 @@ package_declare_sources(core
   common/aka_voigthelper.cc
   common/aka_warning.hh
   common/aka_warning_restore.hh
-  common/aka_iterators.hh
-  common/aka_static_if.hh
-  common/aka_compatibilty_with_cpp_standard.hh
-
+  
   fe_engine/element_class.hh
   fe_engine/element_class_tmpl.hh
-  fe_engine/element_classes/element_class_hexahedron_8_inline_impl.cc
-  fe_engine/element_classes/element_class_hexahedron_20_inline_impl.cc
-  fe_engine/element_classes/element_class_pentahedron_6_inline_impl.cc
-  fe_engine/element_classes/element_class_pentahedron_15_inline_impl.cc
-  fe_engine/element_classes/element_class_point_1_inline_impl.cc
-  fe_engine/element_classes/element_class_quadrangle_4_inline_impl.cc
-  fe_engine/element_classes/element_class_quadrangle_8_inline_impl.cc
-  fe_engine/element_classes/element_class_segment_2_inline_impl.cc
-  fe_engine/element_classes/element_class_segment_3_inline_impl.cc
-  fe_engine/element_classes/element_class_tetrahedron_10_inline_impl.cc
-  fe_engine/element_classes/element_class_tetrahedron_4_inline_impl.cc
-  fe_engine/element_classes/element_class_triangle_3_inline_impl.cc
-  fe_engine/element_classes/element_class_triangle_6_inline_impl.cc
+  fe_engine/element_classes/element_class_hexahedron_8_inline_impl.hh
+  fe_engine/element_classes/element_class_hexahedron_20_inline_impl.hh
+  fe_engine/element_classes/element_class_pentahedron_6_inline_impl.hh
+  fe_engine/element_classes/element_class_pentahedron_15_inline_impl.hh
+  fe_engine/element_classes/element_class_point_1_inline_impl.hh
+  fe_engine/element_classes/element_class_quadrangle_4_inline_impl.hh
+  fe_engine/element_classes/element_class_quadrangle_8_inline_impl.hh
+  fe_engine/element_classes/element_class_segment_2_inline_impl.hh
+  fe_engine/element_classes/element_class_segment_3_inline_impl.hh
+  fe_engine/element_classes/element_class_tetrahedron_10_inline_impl.hh
+  fe_engine/element_classes/element_class_tetrahedron_4_inline_impl.hh
+  fe_engine/element_classes/element_class_triangle_3_inline_impl.hh
+  fe_engine/element_classes/element_class_triangle_6_inline_impl.hh
   fe_engine/element_type_conversion.hh
 
   fe_engine/fe_engine.cc
   fe_engine/fe_engine.hh
-  fe_engine/fe_engine_inline_impl.cc
+  fe_engine/fe_engine_inline_impl.hh
   fe_engine/fe_engine_template.hh
   fe_engine/fe_engine_template_tmpl_field.hh
   fe_engine/fe_engine_template_tmpl.hh
@@ -113,17 +110,17 @@ package_declare_sources(core
   fe_engine/gauss_integration_tmpl.hh
   fe_engine/integrator.hh
   fe_engine/integrator_gauss.hh
-  fe_engine/integrator_gauss_inline_impl.cc
+  fe_engine/integrator_gauss_inline_impl.hh
   fe_engine/interpolation_element_tmpl.hh
   fe_engine/integration_point.hh
   fe_engine/shape_functions.hh
   fe_engine/shape_functions.cc
-  fe_engine/shape_functions_inline_impl.cc
+  fe_engine/shape_functions_inline_impl.hh
   fe_engine/shape_lagrange_base.cc
   fe_engine/shape_lagrange_base.hh
-  fe_engine/shape_lagrange_base_inline_impl.cc
+  fe_engine/shape_lagrange_base_inline_impl.hh
   fe_engine/shape_lagrange.hh
-  fe_engine/shape_lagrange_inline_impl.cc
+  fe_engine/shape_lagrange_inline_impl.hh
   fe_engine/element.hh
 
   io/dumper/dumpable.hh
@@ -166,14 +163,14 @@ package_declare_sources(core
 
   mesh/element_group.cc
   mesh/element_group.hh
-  mesh/element_group_inline_impl.cc
+  mesh/element_group_inline_impl.hh
   mesh/element_type_map.cc
   mesh/element_type_map.hh
   mesh/element_type_map_tmpl.hh
   mesh/element_type_map_filter.hh
   mesh/group_manager.cc
   mesh/group_manager.hh
-  mesh/group_manager_inline_impl.cc
+  mesh/group_manager_inline_impl.hh
   mesh/mesh.cc
   mesh/mesh.hh
   mesh/mesh_periodic.cc
@@ -184,50 +181,49 @@ package_declare_sources(core
   mesh/mesh_data.cc
   mesh/mesh_data.hh
   mesh/mesh_data_tmpl.hh
-  mesh/mesh_inline_impl.cc
+  mesh/mesh_inline_impl.hh
   mesh/node_group.cc
   mesh/node_group.hh
-  mesh/node_group_inline_impl.cc
+  mesh/node_group_inline_impl.hh
   mesh/mesh_iterators.hh
 
+  mesh_utils/global_ids_updater.cc
+  mesh_utils/global_ids_updater.hh
+  mesh_utils/global_ids_updater_inline_impl.hh
   mesh_utils/mesh_partition.cc
   mesh_utils/mesh_partition.hh
   mesh_utils/mesh_partition/mesh_partition_mesh_data.cc
   mesh_utils/mesh_partition/mesh_partition_mesh_data.hh
   mesh_utils/mesh_partition/mesh_partition_scotch.hh
-  mesh_utils/mesh_utils_pbc.cc
   mesh_utils/mesh_utils.cc
   mesh_utils/mesh_utils.hh
   mesh_utils/mesh_utils_distribution.cc
   mesh_utils/mesh_utils_distribution.hh
-  mesh_utils/mesh_utils.hh
-  mesh_utils/mesh_utils_inline_impl.cc
-  mesh_utils/global_ids_updater.hh
-  mesh_utils/global_ids_updater.cc
-  mesh_utils/global_ids_updater_inline_impl.cc
+  mesh_utils/mesh_utils_inline_impl.hh
+  mesh_utils/mesh_utils_pbc.cc
 
   model/common/boundary_condition/boundary_condition.hh
   model/common/boundary_condition/boundary_condition_functor.hh
-  model/common/boundary_condition/boundary_condition_functor_inline_impl.cc
+  model/common/boundary_condition/boundary_condition_functor_inline_impl.hh
   model/common/boundary_condition/boundary_condition_tmpl.hh
 
   model/common/non_local_toolbox/neighborhood_base.hh
   model/common/non_local_toolbox/neighborhood_base.cc
-  model/common/non_local_toolbox/neighborhood_base_inline_impl.cc
+  model/common/non_local_toolbox/neighborhood_base_inline_impl.hh
   model/common/non_local_toolbox/neighborhoods_criterion_evaluation/neighborhood_max_criterion.hh
   model/common/non_local_toolbox/neighborhoods_criterion_evaluation/neighborhood_max_criterion.cc
-  model/common/non_local_toolbox/neighborhoods_criterion_evaluation/neighborhood_max_criterion_inline_impl.cc
+  model/common/non_local_toolbox/neighborhoods_criterion_evaluation/neighborhood_max_criterion_inline_impl.hh
   model/common/non_local_toolbox/non_local_manager.hh
   model/common/non_local_toolbox/non_local_manager.cc
-  model/common/non_local_toolbox/non_local_manager_inline_impl.cc
+  model/common/non_local_toolbox/non_local_manager_inline_impl.hh
   model/common/non_local_toolbox/non_local_manager_callback.hh
   model/common/non_local_toolbox/non_local_neighborhood_base.hh
   model/common/non_local_toolbox/non_local_neighborhood_base.cc
   model/common/non_local_toolbox/non_local_neighborhood.hh
   model/common/non_local_toolbox/non_local_neighborhood_tmpl.hh
-  model/common/non_local_toolbox/non_local_neighborhood_inline_impl.cc
+  model/common/non_local_toolbox/non_local_neighborhood_inline_impl.hh
   model/common/non_local_toolbox/base_weight_function.hh
-  model/common/non_local_toolbox/base_weight_function_inline_impl.cc
+  model/common/non_local_toolbox/base_weight_function_inline_impl.hh
 
   model/common/model_solver.cc
   model/common/model_solver.hh
@@ -238,8 +234,8 @@ package_declare_sources(core
   model/common/dof_manager/dof_manager.hh
   model/common/dof_manager/dof_manager_default.cc
   model/common/dof_manager/dof_manager_default.hh
-  model/common/dof_manager/dof_manager_default_inline_impl.cc
-  model/common/dof_manager/dof_manager_inline_impl.cc
+  model/common/dof_manager/dof_manager_default_inline_impl.hh
+  model/common/dof_manager/dof_manager_inline_impl.hh
 
   model/common/non_linear_solver/non_linear_solver.cc
   model/common/non_linear_solver/non_linear_solver.hh
@@ -268,7 +264,7 @@ package_declare_sources(core
 
   model/model.cc
   model/model.hh
-  model/model_inline_impl.cc
+  model/model_inline_impl.hh
   model/model_options.hh
 
   solver/solver_vector.hh
@@ -281,14 +277,14 @@ package_declare_sources(core
   solver/sparse_matrix.hh
   solver/sparse_matrix_aij.cc
   solver/sparse_matrix_aij.hh
-  solver/sparse_matrix_aij_inline_impl.cc
-  solver/sparse_matrix_inline_impl.cc
+  solver/sparse_matrix_aij_inline_impl.hh
+  solver/sparse_matrix_inline_impl.hh
   solver/sparse_solver.cc
   solver/sparse_solver.hh
-  solver/sparse_solver_inline_impl.cc
+  solver/sparse_solver_inline_impl.hh
   solver/terms_to_assemble.hh
 
-  synchronizer/communication_buffer_inline_impl.cc
+  synchronizer/communication_buffer_inline_impl.hh
   synchronizer/communication_descriptor.hh
   synchronizer/communication_descriptor_tmpl.hh
   synchronizer/communication_request.hh
@@ -297,14 +293,14 @@ package_declare_sources(core
   synchronizer/communications_tmpl.hh
   synchronizer/communicator.cc
   synchronizer/communicator.hh
-  synchronizer/communicator_dummy_inline_impl.cc
+  synchronizer/communicator_dummy_inline_impl.hh
   synchronizer/communicator_event_handler.hh
   synchronizer/communicator_inline_impl.hh
   synchronizer/data_accessor.cc
   synchronizer/data_accessor.hh
   synchronizer/dof_synchronizer.cc
   synchronizer/dof_synchronizer.hh
-  synchronizer/dof_synchronizer_inline_impl.cc
+  synchronizer/dof_synchronizer_inline_impl.hh
   synchronizer/element_info_per_processor.cc
   synchronizer/element_info_per_processor.hh
   synchronizer/element_info_per_processor_tmpl.hh
@@ -312,7 +308,7 @@ package_declare_sources(core
   synchronizer/element_synchronizer.hh
   synchronizer/facet_synchronizer.cc
   synchronizer/facet_synchronizer.hh
-  synchronizer/facet_synchronizer_inline_impl.cc
+  synchronizer/facet_synchronizer_inline_impl.hh
   synchronizer/grid_synchronizer.cc
   synchronizer/grid_synchronizer.hh
   synchronizer/grid_synchronizer_tmpl.hh
@@ -321,7 +317,7 @@ package_declare_sources(core
   synchronizer/node_info_per_processor.hh
   synchronizer/node_synchronizer.cc
   synchronizer/node_synchronizer.hh
-  synchronizer/node_synchronizer_inline_impl.cc
+  synchronizer/node_synchronizer_inline_impl.hh
   synchronizer/periodic_node_synchronizer.cc
   synchronizer/periodic_node_synchronizer.hh
   synchronizer/slave_element_info_per_processor.cc
@@ -411,6 +407,7 @@ package_declare_elements(core
   compute_shapes_derivatives
   get_shapes_derivatives
   lagrange_base
+  assemble_fields
   )
 
 package_declare_documentation_files(core

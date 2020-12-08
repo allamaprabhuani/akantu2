@@ -10,7 +10,6 @@
  * @brief  Declaration of the ElementClass main class and the
  * Integration and Interpolation elements
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_CLASS_HH__
-#define __AKANTU_ELEMENT_CLASS_HH__
+#ifndef AKANTU_ELEMENT_CLASS_HH_
+#define AKANTU_ELEMENT_CLASS_HH_
 
 namespace akantu {
 
@@ -51,6 +50,7 @@ template <ElementType element_type> struct ElementClassProperty {
   static const UInt polynomial_degree{0};
 };
 
+#if !defined(DOXYGEN)
 /// Macro to generate the element class structures for different element types
 #define AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(elem_type, geom_type,             \
                                              interp_type, elem_kind, sp,       \
@@ -63,6 +63,11 @@ template <ElementType element_type> struct ElementClassProperty {
     static const GaussIntegrationType gauss_integration_type{gauss_int_type};  \
     static const UInt polynomial_degree{min_int_order};                        \
   }
+#else
+#define AKANTU_DEFINE_ELEMENT_CLASS_PROPERTY(elem_type, geom_type,             \
+                                             interp_type, elem_kind, sp,       \
+                                             gauss_int_type, min_int_order)
+#endif
 
 /* -------------------------------------------------------------------------- */
 /* Geometry                                                                   */
@@ -79,6 +84,7 @@ template <GeometricalShapeType shape> struct GeometricalShapeContains {
   static inline bool contains(const vector_type & coord);
 };
 
+#if !defined(DOXYGEN)
 /// Macro to generate the GeometricalShape structures for different geometrical
 /// types
 #define AKANTU_DEFINE_SHAPE(geom_type, geom_shape)                             \
@@ -99,7 +105,7 @@ AKANTU_DEFINE_SHAPE(_gt_tetrahedron_10, _gst_triangle);
 AKANTU_DEFINE_SHAPE(_gt_tetrahedron_4, _gst_triangle);
 AKANTU_DEFINE_SHAPE(_gt_triangle_3, _gst_triangle);
 AKANTU_DEFINE_SHAPE(_gt_triangle_6, _gst_triangle);
-
+#endif
 /* -------------------------------------------------------------------------- */
 template <GeometricalType geometrical_type>
 struct GeometricalElementProperty {};
@@ -117,8 +123,7 @@ class GeometricalElement {
 
 public:
   /// compute the in-radius: \todo should be renamed for characteristic length
-  static inline Real getInradius(__attribute__((unused))
-                                 const Matrix<Real> & coord) {
+  static inline Real getInradius(const Matrix<Real> & /*coord*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -147,6 +152,7 @@ public:
 /// default InterpolationProperty structure
 template <InterpolationType interpolation_type> struct InterpolationProperty {};
 
+#if !defined(DOXYGEN)
 /// Macro to generate the InterpolationProperty structures for different
 /// interpolation types
 #define AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(itp_type, itp_kind,          \
@@ -156,7 +162,10 @@ template <InterpolationType interpolation_type> struct InterpolationProperty {};
     static constexpr UInt nb_nodes_per_element{nb_nodes};                      \
     static constexpr UInt natural_space_dimension{ndim};                       \
   }
-
+#else
+#define AKANTU_DEFINE_INTERPOLATION_TYPE_PROPERTY(itp_type, itp_kind,          \
+                                                  nb_nodes, ndim)
+#endif
 /* -------------------------------------------------------------------------- */
 /// Generic (templated by the enum InterpolationType which specifies the order
 /// and the dimension of the interpolation) class handling the elemental
@@ -174,7 +183,8 @@ public:
 
   /// compute the shape values for a given point in natural coordinates
   template <class vector_type>
-  static inline void computeShapes(const vector_type &, vector_type &) {
+  static inline void computeShapes(const vector_type & /*unused*/,
+                                   vector_type & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -192,13 +202,15 @@ public:
    * coordinates
    */
   template <class vector_type, class matrix_type>
-  static inline void computeDNDS(const vector_type &, matrix_type &) {
+  static inline void computeDNDS(const vector_type & /*unused*/,
+                                 matrix_type & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
-  static inline void computeSpecialJacobian(const Matrix<Real> &, Real &) {
+  static inline void computeSpecialJacobian(const Matrix<Real> & /*unused*/,
+                                            Real & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -256,8 +268,8 @@ template <ElementType type,
 class GaussIntegrationElement {
 public:
   static UInt getNbQuadraturePoints();
-  static const Matrix<Real> getQuadraturePoints();
-  static const Vector<Real> getWeights();
+  static Matrix<Real> getQuadraturePoints();
+  static Vector<Real> getWeights();
 };
 
 /* -------------------------------------------------------------------------- */
@@ -367,22 +379,20 @@ public:
 /* -------------------------------------------------------------------------- */
 #include "element_class_tmpl.hh"
 /* -------------------------------------------------------------------------- */
-namespace akantu {
-#include "element_class_pentahedron_6_inline_impl.cc"
+#include "element_class_hexahedron_8_inline_impl.hh"
+#include "element_class_pentahedron_6_inline_impl.hh"
 /* keep order */
-#include "element_class_hexahedron_8_inline_impl.cc"
-#include "element_class_hexahedron_20_inline_impl.cc"
-#include "element_class_pentahedron_15_inline_impl.cc"
-#include "element_class_point_1_inline_impl.cc"
-#include "element_class_quadrangle_4_inline_impl.cc"
-#include "element_class_quadrangle_8_inline_impl.cc"
-#include "element_class_segment_2_inline_impl.cc"
-#include "element_class_segment_3_inline_impl.cc"
-#include "element_class_tetrahedron_10_inline_impl.cc"
-#include "element_class_tetrahedron_4_inline_impl.cc"
-#include "element_class_triangle_3_inline_impl.cc"
-#include "element_class_triangle_6_inline_impl.cc"
-} // namespace akantu
+#include "element_class_hexahedron_20_inline_impl.hh"
+#include "element_class_pentahedron_15_inline_impl.hh"
+#include "element_class_point_1_inline_impl.hh"
+#include "element_class_quadrangle_4_inline_impl.hh"
+#include "element_class_quadrangle_8_inline_impl.hh"
+#include "element_class_segment_2_inline_impl.hh"
+#include "element_class_segment_3_inline_impl.hh"
+#include "element_class_tetrahedron_10_inline_impl.hh"
+#include "element_class_tetrahedron_4_inline_impl.hh"
+#include "element_class_triangle_3_inline_impl.hh"
+#include "element_class_triangle_6_inline_impl.hh"
 
 /* -------------------------------------------------------------------------- */
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
@@ -397,4 +407,4 @@ namespace akantu {
 #include "element_class_igfem.hh"
 #endif
 
-#endif /* __AKANTU_ELEMENT_CLASS_HH__ */
+#endif /* AKANTU_ELEMENT_CLASS_HH_ */

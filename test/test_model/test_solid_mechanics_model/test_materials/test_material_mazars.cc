@@ -9,7 +9,6 @@
  *
  * @brief  test for material mazars, dissymmetric
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "solid_mechanics_model.hh"
 #include "mesh_accessor.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <fstream>
 /* -------------------------------------------------------------------------- */

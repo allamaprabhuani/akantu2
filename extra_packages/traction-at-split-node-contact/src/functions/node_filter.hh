@@ -8,7 +8,6 @@
  *
  * @brief  to filter nodes with functors
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AST_NODE_FILTER_HH__
-#define __AST_NODE_FILTER_HH__
+#ifndef AST_NODE_FILTER_HH_
+#define AST_NODE_FILTER_HH_
 
 /* -------------------------------------------------------------------------- */
 // akantu
@@ -110,4 +109,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AST_NODE_FILTER_HH__ */
+#endif /* AST_NODE_FILTER_HH_ */

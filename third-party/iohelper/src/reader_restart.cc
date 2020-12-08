@@ -8,7 +8,6 @@
  *
  * @brief  implementation for the restart reader
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,7 +34,7 @@
 #include "file_manager.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 void ReaderRestart::Read(){
 
@@ -129,7 +128,4 @@ void ReaderRestart::Read(){
 
 
 
-__END_IOHELPER__
-
-
-
+}

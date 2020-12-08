@@ -8,7 +8,6 @@
  *
  * @brief  A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -59,4 +58,4 @@ BOOST_PP_SEQ_FOR_EACH(AKANTU_INSTANTIATE_TYPES, _,
                       AKANTU_ek_cohesive_ELEMENT_TYPE)
 #endif
 
-} // akantu
+} // namespace akantu

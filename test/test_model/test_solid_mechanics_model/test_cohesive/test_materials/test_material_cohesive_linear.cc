@@ -7,7 +7,6 @@
  *
  * @brief  Test material cohesive linear
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -150,7 +149,7 @@ using TestMaterialCohesiveLinearFixture =
 
 using coh_types = gtest_list_t<TestAllDimensions>;
 
-TYPED_TEST_SUITE(TestMaterialCohesiveLinearFixture, coh_types);
+TYPED_TEST_SUITE(TestMaterialCohesiveLinearFixture, coh_types, );
 
 TYPED_TEST(TestMaterialCohesiveLinearFixture, ModeI) {
   this->checkModeI(this->material->delta_c_, this->material->get("G_c"));
@@ -162,7 +161,7 @@ TYPED_TEST(TestMaterialCohesiveLinearFixture, ModeI) {
 TYPED_TEST(TestMaterialCohesiveLinearFixture, ModeII) {
   this->checkModeII(this->material->delta_c_);
 
-  if(this->dim != 1) {
+  if (this->dim != 1) {
     Real G_c = this->material->get("G_c");
     Real beta = this->material->get("beta");
     Real dis = beta * G_c;

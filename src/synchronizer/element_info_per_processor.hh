@@ -9,7 +9,6 @@
  * @brief  Helper classes to create the distributed synchronizer and distribute
  * a mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,14 +35,14 @@
 #include "mesh_accessor.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_INFO_PER_PROCESSOR_HH__
-#define __AKANTU_ELEMENT_INFO_PER_PROCESSOR_HH__
+#ifndef AKANTU_ELEMENT_INFO_PER_PROCESSOR_HH_
+#define AKANTU_ELEMENT_INFO_PER_PROCESSOR_HH_
 
 namespace akantu {
 class ElementSynchronizer;
 class Communicator;
 class MeshPartition;
-}
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -103,12 +102,14 @@ public:
   MasterElementInfoPerProc(ElementSynchronizer & synchronizer, UInt message_cnt,
                            UInt root, ElementType type,
                            const MeshPartition & partition);
+
 protected:
   void synchronizeConnectivities() override;
   void synchronizePartitions() override;
   void synchronizeTags() override;
   void synchronizeGroups() override;
   bool needSynchronize() override { return type != _not_defined; }
+
 protected:
   template <typename T>
   void fillTagBufferTemplated(std::vector<DynamicCommunicationBuffer> & buffers,
@@ -142,8 +143,8 @@ private:
   UInt nb_element_to_receive{0};
 };
 
-} // akantu
+} // namespace akantu
 
 #include "element_info_per_processor_tmpl.hh"
 
-#endif /* __AKANTU_ELEMENT_INFO_PER_PROCESSOR_HH__ */
+#endif /* AKANTU_ELEMENT_INFO_PER_PROCESSOR_HH_ */

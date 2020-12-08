@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the default NonLinearSolver
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -57,13 +56,13 @@ NonLinearSolverLumped::~NonLinearSolverLumped() = default;
 
 /* ------------------------------------------------------------------------ */
 void NonLinearSolverLumped::solve(SolverCallback & solver_callback) {
+  solver_callback.beforeSolveStep();
   this->dof_manager.updateGlobalBlockedDofs();
   solver_callback.predictor();
 
   solver_callback.assembleResidual();
-  
-  auto & x =
-      aka::as_type<SolverVectorDefault>(this->dof_manager.getSolution());
+
+  auto & x = aka::as_type<SolverVectorDefault>(this->dof_manager.getSolution());
   const auto & b = this->dof_manager.getResidual();
 
   x.resize();
@@ -74,11 +73,12 @@ void NonLinearSolverLumped::solve(SolverCallback & solver_callback) {
   // alpha is the conversion factor from from force/mass to acceleration needed
   // in model coupled with atomistic \todo find a way to define alpha per dof
   // type
-  this->solveLumped(A, x, b, alpha, blocked_dofs);
+  NonLinearSolverLumped::solveLumped(A, x, b, alpha, blocked_dofs);
 
   this->dof_manager.splitSolutionPerDOFs();
 
   solver_callback.corrector();
+  solver_callback.afterSolveStep(true);
 }
 
 /* -------------------------------------------------------------------------- */

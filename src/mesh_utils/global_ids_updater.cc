@@ -8,7 +8,6 @@
  *
  * @brief  Functions of the GlobalIdsUpdater
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -40,8 +39,9 @@
 namespace akantu {
 
 UInt GlobalIdsUpdater::updateGlobalIDs(UInt local_nb_new_nodes) {
-  if (mesh.getCommunicator().getNbProc() == 1)
+  if (mesh.getCommunicator().getNbProc() == 1) {
     return local_nb_new_nodes;
+  }
 
   UInt total_nb_new_nodes = this->updateGlobalIDsLocally(local_nb_new_nodes);
 
@@ -54,8 +54,9 @@ UInt GlobalIdsUpdater::updateGlobalIDs(UInt local_nb_new_nodes) {
 UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
   const auto & comm = mesh.getCommunicator();
   Int nb_proc = comm.getNbProc();
-  if (nb_proc == 1)
+  if (nb_proc == 1) {
     return local_nb_new_nodes;
+  }
 
   /// resize global ids array
   MeshAccessor mesh_accessor(mesh);
@@ -86,19 +87,18 @@ UInt GlobalIdsUpdater::updateGlobalIDsLocally(UInt local_nb_new_nodes) {
   UInt old_global_nodes = local_master_nodes(0);
   UInt total_nb_new_nodes = local_master_nodes(1);
 
-  if (total_nb_new_nodes == 0)
+  if (total_nb_new_nodes == 0) {
     return 0;
+  }
 
   /// set global ids of local and master nodes
   comm.exclusiveScan(starting_index);
   starting_index += old_global_nodes;
 
-  for (UInt n = old_nb_nodes; n < mesh.getNbNodes(); ++n) {
+  for (auto n : range_new) {
     if (mesh.isLocalOrMasterNode(n)) {
       nodes_global_ids(n) = starting_index;
       ++starting_index;
-    } else {
-      nodes_global_ids(n) = -1;
     }
   }
 
@@ -114,13 +114,15 @@ void GlobalIdsUpdater::synchronizeGlobalIDs() {
 #ifndef AKANTU_NDEBUG
   for (auto node : nodes_flags) {
     auto node_flag = mesh.getNodeFlag(node.first);
-    if (node_flag != NodeFlag::_pure_ghost)
+    if (node_flag != NodeFlag::_pure_ghost) {
       continue;
-    auto n = 0u;
+    }
+    auto n = 0U;
 
     for (auto & pair : node.second) {
-      if (std::get<1>(pair) == NodeFlag::_pure_ghost)
+      if (std::get<1>(pair) == NodeFlag::_pure_ghost) {
         ++n;
+      }
     }
 
     if (n == node.second.size()) {

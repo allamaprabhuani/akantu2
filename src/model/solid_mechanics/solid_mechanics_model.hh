@@ -10,7 +10,6 @@
  *
  * @brief  Model of Solid Mechanics
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -39,8 +38,8 @@
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_HH__
+#ifndef AKANTU_SOLID_MECHANICS_MODEL_HH_
+#define AKANTU_SOLID_MECHANICS_MODEL_HH_
 
 namespace akantu {
 class Material;
@@ -84,9 +83,9 @@ protected:
 
 public:
   SolidMechanicsModel(
-      Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+      Mesh & mesh, UInt dim = _all_dimensions,
       const ID & id = "solid_mechanics_model", const MemoryID & memory_id = 0,
-      const ModelType model_type = ModelType::_solid_mechanics_model);
+      ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~SolidMechanicsModel() override;
 
@@ -98,9 +97,11 @@ protected:
   void initFullImpl(
       const ModelOptions & options = SolidMechanicsModelOptions()) override;
 
+public:
   /// initialize all internal arrays for materials
   virtual void initMaterials();
 
+protected:
   /// initialize the model
   void initModel() override;
 
@@ -145,7 +146,7 @@ protected:
   /// callback for the solver, this is called at beginning of solve
   void beforeSolveStep() override;
   /// callback for the solver, this is called at end of solve
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   /// Callback for the model to instantiate the matricees when needed
   void initSolver(TimeStepSolverType time_step_solver_type,
@@ -182,7 +183,7 @@ public:
   /// apply a constant eigen_grad_u on all quadrature points of a given material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
                                const ID & material_name,
-                               const GhostType ghost_type = _not_ghost);
+                               GhostType ghost_type = _not_ghost);
 
 protected:
   /// register a material in the dynamic database
@@ -217,7 +218,7 @@ protected:
 
   /// compute the kinetic energy
   Real getKineticEnergy();
-  Real getKineticEnergy(const ElementType & type, UInt index);
+  Real getKineticEnergy(ElementType type, UInt index);
 
   /// compute the external work (for impose displacement, the velocity should be
   /// given too)
@@ -231,20 +232,20 @@ protected:
 
   void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion) override;
 
-  void computeNonLocalStresses(const GhostType & ghost_type) override;
+  void computeNonLocalStresses(GhostType ghost_type) override;
 
   void
-  insertIntegrationPointsInNeighborhoods(const GhostType & ghost_type) override;
+  insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
 
   /// update the values of the non local internal
   void updateLocalInternal(ElementTypeMapReal & internal_flat,
-                           const GhostType & ghost_type,
-                           const ElementKind & kind) override;
+                           GhostType ghost_type,
+                           ElementKind kind) override;
 
   /// copy the results of the averaging in the materials
   void updateNonLocalInternal(ElementTypeMapReal & internal_flat,
-                              const GhostType & ghost_type,
-                              const ElementKind & kind) override;
+                              GhostType ghost_type,
+                              ElementKind kind) override;
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -286,14 +287,15 @@ protected:
   void onNodesRemoved(const Array<UInt> & element_list,
                       const Array<UInt> & new_numbering,
                       const RemovedNodesEvent & event) override;
-  void onElementsAdded(const Array<Element> & nodes_list,
+  void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
   void onElementsRemoved(const Array<Element> & element_list,
                          const ElementTypeMapArray<UInt> & new_numbering,
                          const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> &, const Array<Element> &,
-                         const ElementTypeMapArray<UInt> &,
-                         const ChangedElementsEvent &) override{};
+  void onElementsChanged(const Array<Element> & /*unused*/,
+                         const Array<Element> & /*unused*/,
+                         const ElementTypeMapArray<UInt> & /*unused*/,
+                         const ChangedElementsEvent & /*unused*/) override{};
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
@@ -303,34 +305,34 @@ public:
 
   //! decide wether a field is a material internal or not
   bool isInternal(const std::string & field_name,
-                  const ElementKind & element_kind);
+                  ElementKind element_kind);
   //! give the amount of data per element
   virtual ElementTypeMap<UInt>
   getInternalDataPerElem(const std::string & field_name,
-                         const ElementKind & kind);
+                         ElementKind kind);
 
   //! flatten a given material internal field
   ElementTypeMapArray<Real> &
-  flattenInternal(const std::string & field_name, const ElementKind & kind,
-                  const GhostType ghost_type = _not_ghost);
+  flattenInternal(const std::string & field_name, ElementKind kind,
+                  GhostType ghost_type = _not_ghost);
   //! flatten all the registered material internals
-  void flattenAllRegisteredInternals(const ElementKind & kind);
+  void flattenAllRegisteredInternals(ElementKind kind);
 
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
 
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
 
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       const UInt & spatial_dimension,
-                       const ElementKind & kind) override;
+                       UInt spatial_dimension,
+                       ElementKind kind) override;
 
   virtual void dump(const std::string & dumper_name);
 
@@ -360,44 +362,55 @@ public:
   /// set the value of the conversion from forces/ mass to acceleration
   AKANTU_SET_MACRO(F_M2A, f_m2a, Real);
 
-  /// get the SolidMechanicsModel::displacement vector
-  AKANTU_GET_MACRO(Displacement, *displacement, Array<Real> &);
+  /// get the SolidMechanicsModel::displacement array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Displacement, displacement);
+  /// get the SolidMechanicsModel::displacement array
+  AKANTU_GET_MACRO_DEREF_PTR(Displacement, displacement);
 
-  /// get the SolidMechanicsModel::previous_displacement vector
-  AKANTU_GET_MACRO(PreviousDisplacement, *previous_displacement, Array<Real> &);
+  /// get the SolidMechanicsModel::previous_displacement array
+  AKANTU_GET_MACRO_DEREF_PTR(PreviousDisplacement, previous_displacement);
 
-  /// get the SolidMechanicsModel::current_position vector \warn only consistent
-  /// after a call to SolidMechanicsModel::updateCurrentPosition
+  /// get the SolidMechanicsModel::current_position array
   const Array<Real> & getCurrentPosition();
 
-  /// get  the SolidMechanicsModel::increment  vector \warn  only  consistent if
-  AKANTU_GET_MACRO(Increment, *displacement_increment, Array<Real> &);
+  /// get  the SolidMechanicsModel::displacement_increment  array
+  AKANTU_GET_MACRO_DEREF_PTR(Increment, displacement_increment);
+  /// get  the SolidMechanicsModel::displacement_increment  array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Increment, displacement_increment);
 
-  /// get the lumped SolidMechanicsModel::mass vector
-  AKANTU_GET_MACRO(Mass, *mass, Array<Real> &);
+  /// get the lumped SolidMechanicsModel::mass array
+  AKANTU_GET_MACRO_DEREF_PTR(Mass, mass);
 
-  /// get the SolidMechanicsModel::velocity vector
-  AKANTU_GET_MACRO(Velocity, *velocity, Array<Real> &);
+  /// get the SolidMechanicsModel::velocity array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Velocity, velocity);
+  /// get the SolidMechanicsModel::velocity array
+  AKANTU_GET_MACRO_DEREF_PTR(Velocity, velocity);
 
-  /// get    the    SolidMechanicsModel::acceleration    vector,   updated    by
-  /// SolidMechanicsModel::updateAcceleration
-  AKANTU_GET_MACRO(Acceleration, *acceleration, Array<Real> &);
+  /// get    the    SolidMechanicsModel::acceleration   array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(Acceleration, acceleration);
+  /// get    the    SolidMechanicsModel::acceleration   array
+  AKANTU_GET_MACRO_DEREF_PTR(Acceleration, acceleration);
 
-  /// get the SolidMechanicsModel::external_force vector (external forces)
-  AKANTU_GET_MACRO(ExternalForce, *external_force, Array<Real> &);
+  /// get the SolidMechanicsModel::external_force array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(ExternalForce, external_force);
+  /// get the SolidMechanicsModel::external_force array
+  AKANTU_GET_MACRO_DEREF_PTR(ExternalForce, external_force);
 
-  /// get the SolidMechanicsModel::force vector (external forces)
-  Array<Real> & getForce() {
-    AKANTU_DEBUG_WARNING("getForce was maintained for backward compatibility, "
-                         "use getExternalForce instead");
-    return *external_force;
+  /// get the SolidMechanicsModel::force array (external forces)
+  [[deprecated("Use getExternalForce instead of this function")]] Array<Real> &
+  getForce() {
+    return getExternalForce();
   }
 
-  /// get the SolidMechanicsModel::internal_force vector (internal forces)
-  AKANTU_GET_MACRO(InternalForce, *internal_force, Array<Real> &);
+  /// get the SolidMechanicsModel::internal_force array (internal forces)
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(InternalForce, internal_force);
+  /// get the SolidMechanicsModel::internal_force array (internal forces)
+  AKANTU_GET_MACRO_DEREF_PTR(InternalForce, internal_force);
 
-  /// get the SolidMechanicsModel::blocked_dofs vector
-  AKANTU_GET_MACRO(BlockedDOFs, *blocked_dofs, Array<bool> &);
+  /// get the SolidMechanicsModel::blocked_dofs array
+  AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(BlockedDOFs, blocked_dofs);
+  /// get the SolidMechanicsModel::blocked_dofs array
+  AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 
   /// get an iterable on the materials
   inline decltype(auto) getMaterials();
@@ -405,10 +418,10 @@ public:
   /// get an iterable on the materials
   inline decltype(auto) getMaterials() const;
 
-  /// get a particular material (by material index)
+  /// get a particular material (by numerical material index)
   inline Material & getMaterial(UInt mat_index);
 
-  /// get a particular material (by material index)
+  /// get a particular material (by numerical material index)
   inline const Material & getMaterial(UInt mat_index) const;
 
   /// get a particular material (by material name)
@@ -433,7 +446,7 @@ public:
   Real getEnergy(const std::string & energy_id);
 
   /// compute the energy for energy
-  Real getEnergy(const std::string & energy_id, const ElementType & type,
+  Real getEnergy(const std::string & energy_id, ElementType type,
                  UInt index);
 
   AKANTU_GET_MACRO(MaterialByElement, material_index,
@@ -453,8 +466,9 @@ public:
 
   AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, *material_selector,
                              MaterialSelector &);
-  AKANTU_SET_MACRO(MaterialSelector, material_selector,
-                   std::shared_ptr<MaterialSelector>);
+  void setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
+    this->material_selector = std::move(material_selector);
+  }
 
   AKANTU_GET_MACRO_NOT_CONST(DisplacementRelease, displacement_release,
                              Int);
@@ -466,58 +480,60 @@ public:
   FEEngine & getFEEngineBoundary(const ID & name = "") override;
 
 protected:
-  friend class Material;
-
-protected:
   /// compute the stable time step
-  Real getStableTimeStep(const GhostType & ghost_type);
+  Real getStableTimeStep(GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-  /// conversion coefficient form force/mass to acceleration
-  Real f_m2a;
-
-  /// displacements array
-  Array<Real> * displacement;
+private:
+  /// release version of the displacement array
   UInt displacement_release{0};
 
-  /// displacements array at the previous time step (used in finite deformation)
-  Array<Real> * previous_displacement{nullptr};
-
-  /// increment of displacement
-  Array<Real> * displacement_increment{nullptr};
-
-  /// lumped mass array
-  Array<Real> * mass{nullptr};
+  /// release version of the current_position array
+  UInt current_position_release{0};
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
   /// Check if materials need to recompute the mass matrix
   bool need_to_reassemble_mass{true};
 
+  /// mapping between material name and material internal id
+  std::map<std::string, UInt> materials_names_to_id;
+
+protected:
+  /// conversion coefficient form force/mass to acceleration
+  Real f_m2a{1.0};
+
+  /// displacements array
+  std::unique_ptr<Array<Real>> displacement;
+
+  /// displacements array at the previous time step (used in finite deformation)
+  std::unique_ptr<Array<Real>> previous_displacement;
+
+  /// increment of displacement
+  std::unique_ptr<Array<Real>> displacement_increment;
+
+  /// lumped mass array
+  std::unique_ptr<Array<Real>> mass;
+
   /// velocities array
-  Array<Real> * velocity{nullptr};
+  std::unique_ptr<Array<Real>> velocity;
 
   /// accelerations array
-  Array<Real> * acceleration{nullptr};
-
-  /// accelerations array
-  // Array<Real> * increment_acceleration;
+  std::unique_ptr<Array<Real>> acceleration;
 
   /// external forces array
-  Array<Real> * external_force{nullptr};
+  std::unique_ptr<Array<Real>> external_force;
 
   /// internal forces array
-  Array<Real> * internal_force{nullptr};
+  std::unique_ptr<Array<Real>> internal_force;
 
   /// array specifing if a degree of freedom is blocked or not
-  Array<bool> * blocked_dofs{nullptr};
+  std::unique_ptr<Array<bool>> blocked_dofs;
 
   /// array of current position used during update residual
-  Array<Real> * current_position{nullptr};
-  UInt current_position_release{0};
+  std::unique_ptr<Array<Real>> current_position;
 
   /// Arrays containing the material index for each element
   ElementTypeMapArray<UInt> material_index;
@@ -529,23 +545,21 @@ protected:
   /// list of used materials
   std::vector<std::unique_ptr<Material>> materials;
 
-  /// mapping between material name and material internal id
-  std::map<std::string, UInt> materials_names_to_id;
-
   /// class defining of to choose a material
   std::shared_ptr<MaterialSelector> material_selector;
 
-  /// tells if the material are instantiated
-  bool are_materials_instantiated;
-
-  using flatten_internal_map = std::map<std::pair<std::string, ElementKind>,
-                                        ElementTypeMapArray<Real> *>;
+  using flatten_internal_map =
+      std::map<std::pair<std::string, ElementKind>,
+               std::unique_ptr<ElementTypeMapArray<Real>>>;
 
   /// map a registered internals to be flattened for dump purposes
   flatten_internal_map registered_internals;
 
   /// non local manager
   std::unique_ptr<NonLocalManager> non_local_manager;
+
+  /// tells if the material are instantiated
+  bool are_materials_instantiated{false};
 };
 
 /* -------------------------------------------------------------------------- */
@@ -564,8 +578,8 @@ namespace BC {
 #include "material.hh"
 #include "parser.hh"
 
-#include "solid_mechanics_model_inline_impl.cc"
+#include "solid_mechanics_model_inline_impl.hh"
 #include "solid_mechanics_model_tmpl.hh"
 /* -------------------------------------------------------------------------- */
 
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_HH__ */
+#endif /* AKANTU_SOLID_MECHANICS_MODEL_HH_ */

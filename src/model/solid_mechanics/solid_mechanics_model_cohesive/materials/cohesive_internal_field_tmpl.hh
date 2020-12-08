@@ -9,7 +9,6 @@
  *
  * @brief  implementation of the cohesive internal field
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH__
-#define __AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH__
+#ifndef AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH_
+#define AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH_
 
 namespace akantu {
 
@@ -90,6 +89,6 @@ ParameterTyped<RandomInternalField<Real, CohesiveInternalField>>::setAuto(
   param.setRandomDistribution(r);
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH__ */
+#endif /* AKANTU_COHESIVE_INTERNAL_FIELD_TMPL_HH_ */

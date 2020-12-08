@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,14 +31,14 @@
 #include <petscsnes.h>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_NON_LINEAR_SOLVER_PETSC_HH__
-#define __AKANTU_NON_LINEAR_SOLVER_PETSC_HH__
+#ifndef AKANTU_NON_LINEAR_SOLVER_PETSC_HH_
+#define AKANTU_NON_LINEAR_SOLVER_PETSC_HH_
 
 namespace akantu {
 class DOFManagerPETSc;
 class NonLinearSolverPETScCallback;
 class SolverVectorPETSc;
-} // namespace akanatu
+} // namespace akantu
 
 namespace akantu {
 
@@ -69,26 +68,41 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  static PetscErrorCode FormFunction(SNES snes, Vec dx, Vec f,
+  static PetscErrorCode FormFunction(SNES snes, Vec dx, Vec f, void * ctx);
+  static PetscErrorCode FormJacobian(SNES snes, Vec dx, Mat J, Mat P,
                                      void * ctx);
-  static PetscErrorCode FormJacobian(SNES snes, Vec dx, Mat J,
-                                     Mat P, void * ctx);  
-  
+
   void set_param(const ID & param, const std::string & value) override;
-   
+
   DOFManagerPETSc & dof_manager;
 
   /// PETSc non linear solver
   SNES snes;
+  SNESConvergedReason reason;
 
   SolverCallback * callback{nullptr};
 
   std::unique_ptr<SolverVectorPETSc> x;
   std::unique_ptr<NonLinearSolverPETScCallback> ctx;
-  
+
   Int n_iter{0};
 };
 
-} // namepsace akantu
+namespace debug {
+  class SNESNotConvergedException : public NLSNotConvergedException {
+  public:
+    SNESNotConvergedException(SNESConvergedReason reason, UInt niter,
+                              Real error, Real absolute_tolerance,
+                              Real relative_tolerance, UInt max_iterations)
+        : NLSNotConvergedException(relative_tolerance, niter, error),
+          reason(reason), absolute_tolerance(absolute_tolerance),
+          max_iterations(max_iterations) {}
+    SNESConvergedReason reason;
+    Real absolute_tolerance;
+    UInt max_iterations;
+  };
+} // namespace debug
 
-#endif /* __AKANTU_NON_LINEAR_SOLVER_PETSC_HH__ */
+} // namespace akantu
+
+#endif /* AKANTU_NON_LINEAR_SOLVER_PETSC_HH_ */

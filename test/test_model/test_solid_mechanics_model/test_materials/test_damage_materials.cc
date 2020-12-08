@@ -8,7 +8,6 @@
  *
  * @brief  Tests for damage materials
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,21 +28,19 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "py_aka_array.hh"
 #include "test_material_fixtures.hh"
-
-#include "material_marigo.hh"
-#include "material_mazars.hh"
-#include "solid_mechanics_model.hh"
-
+/* -------------------------------------------------------------------------- */
+#include <material_marigo.hh>
+#include <material_mazars.hh>
+#include <py_aka_array.hh>
+#include <solid_mechanics_model.hh>
+/* -------------------------------------------------------------------------- */
 #include <fstream>
 #include <gtest/gtest.h>
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
-
 #include <type_traits>
-
 /* -------------------------------------------------------------------------- */
 
 using namespace akantu;
@@ -228,7 +225,7 @@ namespace {
 template <typename T>
 class TestDamageMaterialFixture : public ::TestMaterialFixture<T> {};
 
-TYPED_TEST_SUITE(TestDamageMaterialFixture, mat_types);
+TYPED_TEST_SUITE(TestDamageMaterialFixture, mat_types, );
 
 TYPED_TEST(TestDamageMaterialFixture, ComputeStress) {
   this->material->testComputeStress();

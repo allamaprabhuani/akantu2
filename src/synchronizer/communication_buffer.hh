@@ -9,7 +9,6 @@
  *
  * @brief  Buffer for packing and unpacking data
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,9 +32,12 @@
 #include "aka_array.hh"
 #include "aka_common.hh"
 #include "element.hh"
+/* -------------------------------------------------------------------------- */
+#include <array>
+/* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COMMUNICATION_BUFFER_HH__
-#define __AKANTU_COMMUNICATION_BUFFER_HH__
+#ifndef AKANTU_COMMUNICATION_BUFFER_HH_
+#define AKANTU_COMMUNICATION_BUFFER_HH_
 
 namespace akantu {
 
@@ -44,20 +46,20 @@ template <bool is_static = true> class CommunicationBufferTemplated {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit CommunicationBufferTemplated(UInt size)
-      : buffer(size, 1, char()) {
+  explicit CommunicationBufferTemplated(UInt size) : buffer(size, 1, char()) {
     ptr_pack = buffer.storage();
     ptr_unpack = buffer.storage();
   };
 
   CommunicationBufferTemplated() : CommunicationBufferTemplated(0) {}
 
-  CommunicationBufferTemplated(const CommunicationBufferTemplated & other) = delete;
+  CommunicationBufferTemplated(const CommunicationBufferTemplated & other) =
+      delete;
   CommunicationBufferTemplated &
   operator=(const CommunicationBufferTemplated & other) = delete;
 
-
-  CommunicationBufferTemplated(CommunicationBufferTemplated && other) = default;
+  CommunicationBufferTemplated(CommunicationBufferTemplated && other) noexcept =
+      default;
 
   virtual ~CommunicationBufferTemplated() = default;
 
@@ -75,7 +77,7 @@ public:
   inline void reserve(UInt size);
 
   /// clear buffer context
-  inline void clear();
+  inline void zero();
 
 private:
   inline void packResize(UInt size);
@@ -91,7 +93,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// printing tool
-  template <typename T> inline std::string extractStream(UInt packet_size);
+  template <typename T> inline std::string extractStream(UInt block_size);
 
   /// packing data
   template <typename T>
@@ -125,7 +127,7 @@ public:
 
 private:
   template <typename T> inline void packIterable(T & to_pack);
-  template <typename T> inline void unpackIterable(T & to_pack);
+  template <typename T> inline void unpackIterable(T & to_unpack);
 
   /* ------------------------------------------------------------------------ */
   /* Accessor                                                                 */
@@ -166,17 +168,14 @@ private:
   Array<char> buffer;
 };
 
-/* -------------------------------------------------------------------------- */
-/* inline functions                                                           */
-/* -------------------------------------------------------------------------- */
-
-#if defined(AKANTU_INCLUDE_INLINE_IMPL)
-#include "communication_buffer_inline_impl.cc"
-#endif
-
 using CommunicationBuffer = CommunicationBufferTemplated<true>;
 using DynamicCommunicationBuffer = CommunicationBufferTemplated<false>;
 
 } // namespace akantu
 
-#endif /* __AKANTU_COMMUNICATION_BUFFER_HH__ */
+/* -------------------------------------------------------------------------- */
+/* inline functions                                                           */
+/* -------------------------------------------------------------------------- */
+#include "communication_buffer_inline_impl.hh"
+
+#endif /* AKANTU_COMMUNICATION_BUFFER_HH_ */

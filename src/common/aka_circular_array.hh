@@ -8,7 +8,6 @@
  *
  * @brief  class of circular array
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,20 +26,15 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_AKA_CIRCULAR_ARRAY_HH__
-#define __AKANTU_AKA_CIRCULAR_ARRAY_HH__
-
-/* -------------------------------------------------------------------------- */
-#include <typeinfo>
-
 /* -------------------------------------------------------------------------- */
 #include "aka_array.hh"
-#include "aka_common.hh"
+/* -------------------------------------------------------------------------- */
+#include <typeinfo>
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
+#ifndef AKANTU_AKA_CIRCULAR_ARRAY_HH_
+#define AKANTU_AKA_CIRCULAR_ARRAY_HH_
 
 namespace akantu {
 
@@ -111,11 +105,6 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
-#if defined(AKANTU_INCLUDE_INLINE_IMPL)
-#include "aka_circular_array_inline_impl.cc"
-#endif
-
 /// standard output stream operator
 template <typename T>
 inline std::ostream & operator<<(std::ostream & stream,
@@ -124,6 +113,8 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_AKA_CIRCULAR_ARRAY_HH__ */
+#include "aka_circular_array_inline_impl.hh"
+
+#endif /* AKANTU_AKA_CIRCULAR_ARRAY_HH_ */

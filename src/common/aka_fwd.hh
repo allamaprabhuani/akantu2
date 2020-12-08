@@ -11,7 +11,6 @@
  * This file helps if circular #include would be needed because two classes
  * refer both to each other. This file usually does not need any modification.
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,10 +29,9 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_FWD_HH__
-#define __AKANTU_FWD_HH__
+#ifndef AKANTU_FWD_HH_
+#define AKANTU_FWD_HH_
 
 namespace cppargparse {
 class ArgumentParser;
@@ -61,12 +59,12 @@ extern const Array<UInt> empty_filter;
 class Parser;
 class ParserSection;
 
-extern Parser static_parser;
+extern Parser static_parser; // NOLINT
 
-extern cppargparse::ArgumentParser static_argparser;
+extern cppargparse::ArgumentParser static_argparser; // NOLINT
 
 class Mesh;
 class SparseMatrix;
 } // namespace akantu
 
-#endif /* __AKANTU_FWD_HH__ */
+#endif /* AKANTU_FWD_HH_ */

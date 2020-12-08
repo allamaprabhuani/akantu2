@@ -8,7 +8,6 @@
  *
  * @brief  Solver class implementation for the mumps solver
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,13 +33,13 @@
 #include <dmumps_c.h>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLVER_MUMPS_HH__
-#define __AKANTU_SOLVER_MUMPS_HH__
+#ifndef AKANTU_SOLVER_MUMPS_HH_
+#define AKANTU_SOLVER_MUMPS_HH_
 
 namespace akantu {
 class DOFManagerDefault;
 class SparseMatrixAIJ;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -152,6 +151,6 @@ private:
   };
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_SOLVER_MUMPS_HH__ */
+#endif /* AKANTU_SOLVER_MUMPS_HH_ */

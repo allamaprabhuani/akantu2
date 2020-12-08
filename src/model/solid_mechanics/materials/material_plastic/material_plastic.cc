@@ -10,7 +10,6 @@
  *
  * @brief  Implemantation of the akantu::MaterialPlastic class
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -94,12 +93,10 @@ void MaterialPlastic<spatial_dimension>::initialize() {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 Real MaterialPlastic<spatial_dimension>::getEnergy(const std::string & type) {
-  if (type == "plastic")
+  if (type == "plastic") {
     return getPlasticEnergy();
-  else
-    return MaterialElastic<spatial_dimension>::getEnergy(type);
-
-  return 0.;
+  }
+  return MaterialElastic<spatial_dimension>::getEnergy(type);
 }
 
 /* -------------------------------------------------------------------------- */

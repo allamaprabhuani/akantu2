@@ -8,7 +8,6 @@
  *
  * @brief  header for restart reader
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __IOHLPER_READER_RESTART_H__
-#define __IOHLPER_READER_RESTART_H__
+#ifndef IOHELPER_READER_RESTART_H_
+#define IOHELPER_READER_RESTART_H_
 /* -------------------------------------------------------------------------- */
 #include <map>
 #include <string>
@@ -38,7 +37,7 @@
 				    //#include "field.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 /** Class ReadRestart
  * Implementation of a read to restart
@@ -75,8 +74,6 @@ private:
 
 
 
-__END_IOHELPER__
+}
 
-#endif /* __IOHLPER_READER_RESTART_H__ */
-
-
+#endif /* IOHELPER_READER_RESTART_H_ */

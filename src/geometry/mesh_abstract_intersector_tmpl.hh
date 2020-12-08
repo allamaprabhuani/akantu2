@@ -10,7 +10,6 @@
  *
  * @brief  General class for intersection computations
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_ABSTRACT_INTERSECTOR_TMPL_HH__
-#define __AKANTU_MESH_ABSTRACT_INTERSECTOR_TMPL_HH__
+#ifndef AKANTU_MESH_ABSTRACT_INTERSECTOR_TMPL_HH_
+#define AKANTU_MESH_ABSTRACT_INTERSECTOR_TMPL_HH_
 
 #include "aka_common.hh"
 #include "mesh_abstract_intersector.hh"
@@ -42,19 +41,15 @@ namespace akantu {
 
 template <class Query>
 MeshAbstractIntersector<Query>::MeshAbstractIntersector(Mesh & mesh)
-    : MeshGeomAbstract(mesh), new_node_per_elem(NULL),
-      intersection_points(NULL), nb_seg_by_el(0) {}
-
-template <class Query>
-MeshAbstractIntersector<Query>::~MeshAbstractIntersector() {}
+    : MeshGeomAbstract(mesh) {}
 
 template <class Query>
 void MeshAbstractIntersector<Query>::computeIntersectionQueryList(
     const std::list<Query> & query_list) {
   AKANTU_DEBUG_IN();
 
-  typename std::list<Query>::const_iterator query_it = query_list.begin(),
-                                            query_end = query_list.end();
+  auto query_it = query_list.begin();
+  auto query_end = query_list.end();
 
   for (; query_it != query_end; ++query_it) {
     computeIntersectionQuery(*query_it);
@@ -68,8 +63,8 @@ void MeshAbstractIntersector<Query>::computeMeshQueryListIntersectionPoint(
     const std::list<Query> & query_list, UInt nb_old_nodes) {
   AKANTU_DEBUG_IN();
 
-  typename std::list<Query>::const_iterator query_it = query_list.begin(),
-                                            query_end = query_list.end();
+  auto query_it = query_list.begin();
+  auto query_end = query_list.end();
 
   for (; query_it != query_end; ++query_it) {
     computeMeshQueryIntersectionPoint(*query_it, nb_old_nodes);
@@ -78,6 +73,6 @@ void MeshAbstractIntersector<Query>::computeMeshQueryListIntersectionPoint(
   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu
 
-#endif // __AKANTU_MESH_ABSTRACT_INTERSECTOR_TMPL_HH__
+#endif // AKANTU_MESH_ABSTRACT_INTERSECTOR_TMPL_HH_

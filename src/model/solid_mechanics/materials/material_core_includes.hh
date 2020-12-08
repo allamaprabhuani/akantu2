@@ -8,7 +8,6 @@
  *
  * @brief  List of materials for core package
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_CORE_INCLUDES_HH__
-#define __AKANTU_MATERIAL_CORE_INCLUDES_HH__
+#ifndef AKANTU_MATERIAL_CORE_INCLUDES_HH_
+#define AKANTU_MATERIAL_CORE_INCLUDES_HH_
 
 /* -------------------------------------------------------------------------- */
 /* Material list                                                              */
@@ -65,4 +64,4 @@
       (2, (plastic_linear_isotropic_hardening,                                 \
            MaterialLinearIsotropicHardening)))
 
-#endif /* __AKANTU_MATERIAL_CORE_INCLUDES_HH__ */
+#endif /* AKANTU_MATERIAL_CORE_INCLUDES_HH_ */

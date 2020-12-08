@@ -8,7 +8,6 @@
  *
  * @brief  Helper class to distribute a mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -48,8 +47,7 @@ ElementInfoPerProc::ElementInfoPerProc(ElementSynchronizer & synchronizer,
       rank(synchronizer.getCommunicator().whoAmI()),
       nb_proc(synchronizer.getCommunicator().getNbProc()), root(root),
       type(type), message_count(message_cnt), mesh(synchronizer.getMesh()),
-      comm(synchronizer.getCommunicator()) {
-}
+      comm(synchronizer.getCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
 bool ElementInfoPerProc::synchronize() {
@@ -93,8 +91,9 @@ void ElementInfoPerProc::fillCommunicationScheme(
   }
 
   for (auto & send_schemes : send_array_per_proc) {
-    if (send_schemes.second.size() == 0)
+    if (send_schemes.second.empty()) {
       continue;
+    }
     auto & scheme = communications.createSendScheme(send_schemes.first);
     scheme.append(send_schemes.second);
   }
@@ -111,8 +110,9 @@ void ElementInfoPerProc::fillCommunicationScheme(
   }
 
   for (auto & recv_schemes : recv_array_per_proc) {
-    if (recv_schemes.second.size() == 0)
+    if (recv_schemes.second.empty()) {
       continue;
+    }
     auto & scheme = communications.createRecvScheme(recv_schemes.first);
     scheme.append(recv_schemes.second);
   }

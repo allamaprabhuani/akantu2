@@ -8,7 +8,6 @@
  *
  * @brief  error management and internal exceptions
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,15 +28,16 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include <set>
 #include <sstream>
 #include <typeinfo>
 #include <utility>
-#include <set>
+#include <vector>
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_ERROR_HH__
-#define __AKANTU_ERROR_HH__
+#ifndef AKANTU_ERROR_HH_
+#define AKANTU_ERROR_HH_
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
@@ -75,7 +75,9 @@ enum DebugLevel {
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_LOCATION                                                        \
-  "(" << __func__ << "(): " << __FILE__ << ":" << __LINE__ << ")"
+  "(" << std::string(__func__) << "(): " << std::string(__FILE__) << ":"       \
+      << std::to_string(__LINE__)                                              \
+      << ")" // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 /* -------------------------------------------------------------------------- */
 namespace debug {
@@ -84,8 +86,18 @@ namespace debug {
 
   void initSignalHandler();
   std::string demangle(const char * symbol);
-  std::string exec(const std::string & cmd);
-  void printBacktrace(int sig);
+  template <class T> std::string demangle() {
+    return demangle(typeid(T).name());
+  }
+
+  template <class T> std::string demangle(const T & t) {
+    return demangle(typeid(t).name());
+  }
+
+  auto exec(const std::string & cmd) -> std::string;
+  auto getBacktrace() -> std::vector<std::string>;
+  void
+  printBacktrace(const std::vector<std::string> & backtrace = getBacktrace());
 
   void exit(int status) __attribute__((noreturn));
   /* ------------------------------------------------------------------------ */
@@ -95,16 +107,12 @@ namespace debug {
     /* Constructors/Destructors                                               */
     /* ---------------------------------------------------------------------- */
   protected:
-    explicit Exception(std::string info = "")
-        : _info(std::move(info)), _file("") {}
+    explicit Exception(std::string info = "") : _info(std::move(info)) {}
 
   public:
     //! full constructor
     Exception(std::string info, std::string file, unsigned int line)
         : _info(std::move(info)), _file(std::move(file)), _line(line) {}
-
-    //! destructor
-    ~Exception() noexcept override = default;
 
     /* ---------------------------------------------------------------------- */
     /*  Methods */
@@ -112,7 +120,7 @@ namespace debug {
   public:
     const char * what() const noexcept override { return _info.c_str(); }
 
-    virtual const std::string info() const noexcept {
+    virtual std::string info() const noexcept {
       std::stringstream stream;
       stream << debug::demangle(typeid(*this).name()) << " : " << _info << " ["
              << _file << ":" << _line << "]";
@@ -123,6 +131,13 @@ namespace debug {
     void setInfo(const std::string & info) { _info = info; }
     void setFile(const std::string & file) { _file = file; }
     void setLine(unsigned int line) { _line = line; }
+    void setModule(const std::string & module) { _module = module; }
+
+    void setBacktrace(const std::vector<std::string> & backtrace) {
+      backtrace_ = backtrace;
+    }
+
+    decltype(auto) backtrace() const { return backtrace_; }
     /* ---------------------------------------------------------------------- */
     /* Class Members                                                          */
     /* ---------------------------------------------------------------------- */
@@ -134,8 +149,13 @@ namespace debug {
     /// file it is thrown from
     std::string _file;
 
-    /// ligne it is thrown from
+    /// line it is thrown from
     unsigned int _line{0};
+
+    /// module in which exception was raised
+    std::string _module{"core"};
+
+    std::vector<std::string> backtrace_;
   };
 
   class CriticalError : public Exception {};
@@ -153,30 +173,37 @@ namespace debug {
    */
   class Debugger {
   public:
-    Debugger();
+    Debugger() noexcept;
     virtual ~Debugger();
     Debugger(const Debugger &) = default;
     Debugger & operator=(const Debugger &) = default;
+    Debugger(Debugger &&) noexcept = default;
+    Debugger & operator=(Debugger &&) noexcept = default;
 
-    void exit(int status) __attribute__((noreturn));
+    static void exit(int status) __attribute__((noreturn));
 
     void throwException(const std::string & info, const std::string & file,
-                        unsigned int line, bool, const std::string &) const
-        noexcept(false) __attribute__((noreturn));
+                        unsigned int line, bool /*silent*/,
+                        const std::string & /*location*/,
+                        const std::string & module) const noexcept(false)
+        __attribute__((noreturn));
 
     /*----------------------------------------------------------------------- */
     template <class Except>
-    void throwCustomException(const Except & ex, const std::string & info,
-                              const std::string & file, unsigned int line) const
-        noexcept(false) __attribute__((noreturn));
+    void throwCustomException(Except ex, const std::string & info,
+                              const std::string & file, unsigned int line,
+                              const std::string & module) const noexcept(false)
+        __attribute__((noreturn));
     /*----------------------------------------------------------------------- */
     template <class Except>
-    void throwCustomException(const Except & ex, const std::string & file,
-                              unsigned int line) const noexcept(false)
+    void throwCustomException(Except ex, const std::string & file,
+                              unsigned int line,
+                              const std::string & module_) const noexcept(false)
         __attribute__((noreturn));
 
     void printMessage(const std::string & prefix, const DebugLevel & level,
-                      const std::string & info) const;
+                      const std::string & info,
+                      const std::string & module_) const;
 
     void setOutStream(std::ostream & out) { cout = &out; }
     std::ostream & getOutStream() { return *cout; }
@@ -194,22 +221,30 @@ namespace debug {
                           const std::string & module = "core") const {
       auto level_reached = (this->level >= (level));
       auto correct_module =
-          (level <= dblCritical) or (modules_to_debug.size() == 0) or
+          (level <= dblCritical) or (modules_to_debug.empty()) or
           (modules_to_debug.find(module) != modules_to_debug.end());
       return level_reached and correct_module;
     }
 
     void printBacktrace(bool on_off) { this->print_backtrace = on_off; }
-    bool printBacktrace() { return this->print_backtrace; }
+    bool printBacktrace() const { return this->print_backtrace; }
 
     void addModuleToDebug(const std::string & id) {
       modules_to_debug.insert(id);
     }
     void removeModuleToDebug(const std::string & id) {
       auto it = modules_to_debug.find(id);
-      if(it != modules_to_debug.end())
+      if (it != modules_to_debug.end()) {
         modules_to_debug.erase(it);
+      }
     }
+
+    void listModules() {
+      for (const auto & module_ : modules_to_debug) {
+        (*cout) << module_ << std::endl;
+      }
+    }
+
   private:
     std::string parallel_context;
     std::ostream * cout;
@@ -219,19 +254,21 @@ namespace debug {
     std::set<std::string> modules_to_debug;
   };
 
-  extern Debugger debugger;
+  extern Debugger debugger; // NOLINT
 } // namespace debug
 
 /* -------------------------------------------------------------------------- */
 #define AKANTU_STRINGIZE_(str) #str
 #define AKANTU_STRINGIZE(str) AKANTU_STRINGIZE_(str)
 /* -------------------------------------------------------------------------- */
+#define AKANTU_DEBUG_MODULE AKANTU_STRINGIZE(AKANTU_MODULE)
+/* -------------------------------------------------------------------------- */
 #define AKANTU_STRINGSTREAM_IN(_str, _sstr)                                    \
   ;                                                                            \
   do {                                                                         \
     std::stringstream _dbg_s_info;                                             \
-    _dbg_s_info << _sstr;                                                      \
-    _str = _dbg_s_info.str();                                                  \
+    _dbg_s_info << _sstr; /* NOLINT */                                         \
+    (_str) = _dbg_s_info.str();                                                \
   } while (false)
 
 /* -------------------------------------------------------------------------- */
@@ -242,31 +279,33 @@ namespace debug {
 #define AKANTU_EXCEPTION_(info, silent)                                        \
   do {                                                                         \
     std::stringstream _dbg_str;                                                \
-    _dbg_str << info;                                                          \
+    _dbg_str << info; /* NOLINT */                                             \
     std::stringstream _dbg_loc;                                                \
     _dbg_loc << AKANTU_LOCATION;                                               \
-    ::akantu::debug::debugger.throwException(                                  \
-        _dbg_str.str(), __FILE__, __LINE__, silent, _dbg_loc.str());           \
+    ::akantu::debug::debugger.throwException(_dbg_str.str(), __FILE__,         \
+                                             __LINE__, silent, _dbg_loc.str(), \
+                                             AKANTU_DEBUG_MODULE);             \
   } while (false)
 
 #define AKANTU_CUSTOM_EXCEPTION_INFO(ex, info)                                 \
   do {                                                                         \
     std::stringstream _dbg_str;                                                \
-    _dbg_str << info;                                                          \
-    ::akantu::debug::debugger.throwCustomException(ex, _dbg_str.str(),         \
-                                                   __FILE__, __LINE__);        \
+    _dbg_str << info; /* NOLINT */                                             \
+    ::akantu::debug::debugger.throwCustomException(                            \
+        ex, _dbg_str.str(), __FILE__, __LINE__, AKANTU_DEBUG_MODULE);          \
   } while (false)
 
 #define AKANTU_CUSTOM_EXCEPTION(ex)                                            \
   do {                                                                         \
-    ::akantu::debug::debugger.throwCustomException(ex, __FILE__, __LINE__);    \
+    ::akantu::debug::debugger.throwCustomException(ex, __FILE__, __LINE__,     \
+                                                   AKANTU_DEBUG_MODULE);       \
   } while (false)
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_NDEBUG
 #define AKANTU_DEBUG_TEST(level) (false)
 #define AKANTU_DEBUG_LEVEL_IS_TEST()                                           \
-  (::akantu::debug::debugger.testLevel(dblTest, AKANTU_STRINGIZE(AKANTU_MODULE)))
+  (::akantu::debug::debugger.testLevel(dblTest, AKANTU_DEBUG_MODULE))
 #define AKANTU_DEBUG(level, info)
 #define AKANTU_DEBUG_(pref, level, info)
 #define AKANTU_DEBUG_IN()
@@ -284,21 +323,31 @@ namespace debug {
 #define AKANTU_DEBUG_(pref, level, info)                                       \
   do {                                                                         \
     std::string _dbg_str;                                                      \
-    AKANTU_STRINGSTREAM_IN(_dbg_str, info << " " << AKANTU_LOCATION);          \
-    ::akantu::debug::debugger.printMessage(pref, level, _dbg_str);             \
+    AKANTU_STRINGSTREAM_IN(_dbg_str,                                           \
+                           info << " " << AKANTU_LOCATION); /* NOLINT */       \
+    ::akantu::debug::debugger.printMessage(pref, level, _dbg_str,              \
+                                           AKANTU_DEBUG_MODULE);               \
   } while (false)
 
 #define AKANTU_DEBUG_TEST(level)                                               \
-  (::akantu::debug::debugger.testLevel(level, AKANTU_STRINGIZE(AKANTU_MODULE)))
+  (::akantu::debug::debugger.testLevel(level, AKANTU_DEBUG_MODULE))
 
 #define AKANTU_DEBUG_LEVEL_IS_TEST()                                           \
   (::akantu::debug::debugger.testLevel(dblTest))
 
 #define AKANTU_DEBUG_IN()                                                      \
-  AKANTU_DEBUG_("==>", ::akantu::dblIn, __func__ << "()")
+  AKANTU_DEBUG_(                                                               \
+      "==>", ::akantu::dblIn,                                                  \
+      __func__                                                                 \
+          << "()") // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+                   // bugprone-lambda-function-name)
 
 #define AKANTU_DEBUG_OUT()                                                     \
-  AKANTU_DEBUG_("<==", ::akantu::dblOut, __func__ << "()")
+  AKANTU_DEBUG_(                                                               \
+      "<==", ::akantu::dblOut,                                                 \
+      __func__                                                                 \
+          << "()") // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+                   // bugprone-lambda-function-name)
 
 #define AKANTU_DEBUG_INFO(info) AKANTU_DEBUG_("---", ::akantu::dblInfo, info)
 
@@ -311,46 +360,59 @@ namespace debug {
   do {                                                                         \
     if (not(test))                                                             \
       AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::AssertException(),         \
-                                   "assert [" << #test << "] " << info);       \
+                                   "assert [" << #test << "] "                 \
+                                              << info); /* NOLINT */           \
   } while (false)
 
 #define AKANTU_ERROR(info)                                                     \
   do {                                                                         \
     AKANTU_DEBUG_("!!! ", ::akantu::dblError, info);                           \
-    AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::CriticalError(), info);      \
+    AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::CriticalError(),             \
+                                 info); /* NOLINT */                           \
   } while (false)
 #endif // AKANTU_NDEBUG
 
 #define AKANTU_TO_IMPLEMENT()                                                  \
-  AKANTU_CUSTOM_EXCEPTION_INFO(::akantu::debug::NotImplementedException(),     \
-                               __func__ << " : not implemented yet !")
+  AKANTU_CUSTOM_EXCEPTION_INFO(                                                \
+      ::akantu::debug::NotImplementedException(),                              \
+      __func__                                                                 \
+          << " : not implemented yet !") // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+                                         // bugprone-lambda-function-name)
 
 /* -------------------------------------------------------------------------- */
 
 namespace debug {
   /* ------------------------------------------------------------------------ */
   template <class Except>
-  void Debugger::throwCustomException(const Except & ex,
-                                      const std::string & info,
-                                      const std::string & file,
-                                      unsigned int line) const noexcept(false) {
-    auto & nc_ex = const_cast<Except &>(ex);
-    nc_ex.setInfo(info);
-    nc_ex.setFile(file);
-    nc_ex.setLine(line);
+  void
+  Debugger::throwCustomException(Except ex, const std::string & info,
+                                 const std::string & file, unsigned int line,
+                                 const std::string & module_) const
+      noexcept(false) {
+    ex.setInfo(info);
+    ex.setFile(file);
+    ex.setLine(line);
+    ex.setModule(module_);
+    if (::akantu::debug::debugger.printBacktrace()) {
+      ex.setBacktrace(::akantu::debug::getBacktrace());
+    }
     throw ex;
   }
   /* ------------------------------------------------------------------------ */
   template <class Except>
-  void Debugger::throwCustomException(const Except & ex,
-                                      const std::string & file,
-                                      unsigned int line) const noexcept(false) {
-    auto & nc_ex = const_cast<Except &>(ex);
-    nc_ex.setFile(file);
-    nc_ex.setLine(line);
+  void Debugger::throwCustomException(Except ex, const std::string & file,
+                                      unsigned int line,
+                                      const std::string & module_) const
+      noexcept(false) {
+    ex.setFile(file);
+    ex.setLine(line);
+    ex.setModule(module_);
+    if (::akantu::debug::debugger.printBacktrace()) {
+      ex.setBacktrace(::akantu::debug::getBacktrace());
+    }
     throw ex;
   }
 } // namespace debug
 } // namespace akantu
 
-#endif /* __AKANTU_ERROR_HH__ */
+#endif /* AKANTU_ERROR_HH_ */

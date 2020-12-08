@@ -8,7 +8,6 @@
  *
  * @brief  A compresed sparse row structure based on akantu Arrays
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_CSR_HH__
-#define __AKANTU_AKA_CSR_HH__
+#ifndef AKANTU_AKA_CSR_HH_
+#define AKANTU_AKA_CSR_HH_
 
 namespace akantu {
 
@@ -53,7 +52,7 @@ public:
   explicit CSR(UInt nb_rows = 0)
       : nb_rows(nb_rows), rows_offsets(nb_rows + 1, 1, "rows_offsets"),
         rows(0, 1, "rows") {
-    rows_offsets.clear();
+    rows_offsets.zero();
   };
 
   virtual ~CSR() = default;
@@ -87,28 +86,31 @@ public:
   }
 
   inline void endInsertions() {
-    for (UInt i = nb_rows; i > 0; --i)
+    for (UInt i = nb_rows; i > 0; --i) {
       rows_offsets(i) = rows_offsets(i - 1);
+    }
     rows_offsets(0) = 0;
   }
 
   inline void countToCSR() {
-    for (UInt i = 1; i < nb_rows; ++i)
+    for (UInt i = 1; i < nb_rows; ++i) {
       rows_offsets(i) += rows_offsets(i - 1);
-    for (UInt i = nb_rows; i >= 1; --i)
+    }
+    for (UInt i = nb_rows; i >= 1; --i) {
       rows_offsets(i) = rows_offsets(i - 1);
+    }
     rows_offsets(0) = 0;
   }
 
   inline void clearRows() {
-    rows_offsets.clear();
+    rows_offsets.zero();
     rows.resize(0);
   };
 
   inline void resizeRows(UInt nb_rows) {
     this->nb_rows = nb_rows;
     rows_offsets.resize(nb_rows + 1);
-    rows_offsets.clear();
+    rows_offsets.zero();
   }
 
   inline void resizeCols() { rows.resize(rows_offsets(nb_rows)); }
@@ -209,7 +211,9 @@ private:
   }
 
 public:
-  inline decltype(auto) getRow(UInt row) { return make_row(begin(row), end(row)); }
+  inline decltype(auto) getRow(UInt row) {
+    return make_row(begin(row), end(row));
+  }
   inline decltype(auto) getRow(UInt row) const {
     return make_row(begin(row), end(row));
   }
@@ -267,7 +271,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "aka_csr_inline_impl.cc"
+//#include "aka_csr_inline_impl.hh"
 
 /// standard output stream operator
 // inline std::ostream & operator <<(std::ostream & stream, const CSR & _this)
@@ -278,4 +282,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_AKA_CSR_HH__ */
+#endif /* AKANTU_AKA_CSR_HH_ */

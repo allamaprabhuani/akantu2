@@ -10,7 +10,6 @@
  *
  * @brief  Exponential irreversible cohesive law of mixed mode loading
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH__
-#define __AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH__
+#ifndef AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH_
+#define AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH_
 
 /* -------------------------------------------------------------------------- */
 
@@ -72,7 +71,7 @@ protected:
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentTraction(const ElementType & el_type,
+  void computeTangentTraction(ElementType el_type,
                               Array<Real> & tangent_matrix,
                               const Array<Real> & normal,
                               GhostType ghost_type = _not_ghost) override;
@@ -115,8 +114,8 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-// #include "material_cohesive_exponential_inline_impl.cc"
+// #include "material_cohesive_exponential_inline_impl.hh"
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH__ */
+#endif /* AKANTU_MATERIAL_COHESIVE_EXPONENTIAL_HH_ */

@@ -11,7 +11,6 @@
  * inserted in the mesh. The functions in this class must be called
  * after updating the node types
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,15 +31,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_GLOBAL_IDS_UPDATER_HH__
-#define __AKANTU_GLOBAL_IDS_UPDATER_HH__
+#ifndef AKANTU_GLOBAL_IDS_UPDATER_HH_
+#define AKANTU_GLOBAL_IDS_UPDATER_HH_
 
 /* -------------------------------------------------------------------------- */
 #include "data_accessor.hh"
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 class ElementSynchronizer;
-} // akantu
+} // namespace akantu
 
 namespace akantu {
 
@@ -100,8 +99,8 @@ private:
   std::unordered_map<UInt, std::vector<std::pair<UInt, NodeFlag>>> nodes_flags;
 };
 
-} // akantu
+} // namespace akantu
 
-#include "global_ids_updater_inline_impl.cc"
+#include "global_ids_updater_inline_impl.hh"
 
-#endif /* __AKANTU_GLOBAL_IDS_UPDATER_HH__ */
+#endif /* AKANTU_GLOBAL_IDS_UPDATER_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  Class defining the interface for non_linear_solver callbacks
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 #include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLVER_CALLBACK_HH__
-#define __AKANTU_SOLVER_CALLBACK_HH__
+#ifndef AKANTU_SOLVER_CALLBACK_HH_
+#define AKANTU_SOLVER_CALLBACK_HH_
 
 namespace akantu {
 class DOFManager;
@@ -89,7 +88,7 @@ public:
   /* management callbacks                                                     */
   /* ------------------------------------------------------------------------ */
   virtual void beforeSolveStep(){};
-  virtual void afterSolveStep(){};
+  virtual void afterSolveStep(bool /*converged*/ = true){};
 
 protected:
   /// DOFManager prefixed to avoid collision in multiple inheritance cases
@@ -102,8 +101,8 @@ namespace debug {
     SolverCallbackResidualPartUnknown(const ID & residual_part)
         : Exception(residual_part + " is not known here.") {}
   };
-}
+} // namespace debug
 
 } // namespace akantu
 
-#endif /* __AKANTU_SOLVER_CALLBACK_HH__ */
+#endif /* AKANTU_SOLVER_CALLBACK_HH_ */

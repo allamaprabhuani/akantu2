@@ -11,7 +11,6 @@
  *
  * @brief  implementation of DumperIOHelper
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -51,17 +50,18 @@ DumperIOHelper::DumperIOHelper()
     : communicator(&Communicator::getSelfCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
-DumperIOHelper::~DumperIOHelper() {}
+DumperIOHelper::~DumperIOHelper() = default;
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::setParallelContext(bool is_parallel) {
   UInt whoami = communicator->whoAmI();
   UInt nb_proc = communicator->getNbProc();
 
-  if (is_parallel)
+  if (is_parallel) {
     dumper->setParallelContext(whoami, nb_proc);
-  else
+  } else {
     dumper->setParallelContext(0, 1);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -77,10 +77,11 @@ void DumperIOHelper::setBaseName(const std::string & basename) {
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::setTimeStep(Real time_step) {
-  if (!time_activated)
+  if (!time_activated) {
     this->dumper->activateTimeDescFiles(time_step);
-  else
+  } else {
     this->dumper->setTimeStep(time_step);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -109,33 +110,33 @@ void DumperIOHelper::dump(Real current_time, UInt step) {
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerMesh(const Mesh & mesh, UInt spatial_dimension,
-                                  const GhostType & ghost_type,
-                                  const ElementKind & element_kind) {
+                                  GhostType ghost_type,
+                                  ElementKind element_kind) {
   communicator = &mesh.getCommunicator();
   setParallelContext(mesh.isDistributed());
 
 #if defined(AKANTU_IGFEM)
   if (element_kind == _ek_igfem) {
     registerField("connectivities",
-                  new dumper::IGFEMConnectivityField(
+                  new dumpers::IGFEMConnectivityField(
                       mesh.getConnectivities(), spatial_dimension, ghost_type));
   } else
 #endif
 
     registerField("connectivities",
-                  std::make_shared<dumper::ElementalField<UInt>>(
+                  std::make_shared<dumpers::ElementalField<UInt>>(
                       mesh.getConnectivities(), spatial_dimension, ghost_type,
                       element_kind));
 
   registerField("positions",
-                std::make_shared<dumper::NodalField<Real>>(mesh.getNodes()));
+                std::make_shared<dumpers::NodalField<Real>>(mesh.getNodes()));
 }
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerFilteredMesh(
     const Mesh & mesh, const ElementTypeMapArray<UInt> & elements_filter,
     const Array<UInt> & nodes_filter, UInt spatial_dimension,
-    const GhostType & ghost_type, const ElementKind & element_kind) {
+    GhostType ghost_type, ElementKind element_kind) {
   communicator = &mesh.getCommunicator();
   setParallelContext(mesh.isDistributed());
 
@@ -143,18 +144,21 @@ void DumperIOHelper::registerFilteredMesh(
       mesh.getConnectivities(), elements_filter);
 
   this->registerField("connectivities",
-                      std::make_shared<dumper::FilteredConnectivityField>(
+                      std::make_shared<dumpers::FilteredConnectivityField>(
                           *f_connectivities, nodes_filter, spatial_dimension,
                           ghost_type, element_kind));
 
   this->registerField("positions",
-                      std::make_shared<dumper::NodalField<Real, true>>(
+                      std::make_shared<dumpers::NodalField<Real, true>>(
                           mesh.getNodes(), 0, 0, &nodes_filter));
 }
 
 /* -------------------------------------------------------------------------- */
-void DumperIOHelper::registerField(const std::string & field_id,
-                                   std::shared_ptr<dumper::Field> field) {
+void DumperIOHelper::registerField(
+    const std::string & field_id,
+    std::shared_ptr<dumpers::Field>
+        field) // NOLINT(performance-unnecessary-value-param)
+{
   auto it = fields.find(field_id);
   if (it != fields.end()) {
     AKANTU_DEBUG_WARNING(
@@ -183,7 +187,9 @@ void DumperIOHelper::unRegisterField(const std::string & field_id) {
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::registerVariable(
     const std::string & variable_id,
-    std::shared_ptr<dumper::VariableBase> variable) {
+    std::shared_ptr<dumpers::VariableBase>
+        variable) // NOLINT(performance-unnecessary-value-param)
+{
   auto it = variables.find(variable_id);
 
   if (it != variables.end()) {
@@ -196,7 +202,7 @@ void DumperIOHelper::registerVariable(
 
   variables[variable_id] = variable;
   variable->registerToDumper(variable_id, *dumper);
-}
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 void DumperIOHelper::unRegisterVariable(const std::string & variable_id) {

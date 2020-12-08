@@ -9,7 +9,6 @@
  * @brief  Helper classes to create the distributed synchronizer and distribute
  * a mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "mesh.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_INFO_PER_PROCESSOR_TMPL_HH__
-#define __AKANTU_ELEMENT_INFO_PER_PROCESSOR_TMPL_HH__
+#ifndef AKANTU_ELEMENT_INFO_PER_PROCESSOR_TMPL_HH_
+#define AKANTU_ELEMENT_INFO_PER_PROCESSOR_TMPL_HH_
 
 namespace akantu {
 
@@ -93,7 +92,7 @@ void ElementInfoPerProc::fillMeshData(BufferType & buffer,
                                       const MeshDataTypeCode & type_code,
                                       UInt nb_component) {
 #define AKANTU_DISTRIBUTED_SYNHRONIZER_TAG_DATA(r, extra_param, elem)          \
-  case MeshDataTypeCode::BOOST_PP_TUPLE_ELEM(2, 0, elem): {             \
+  case MeshDataTypeCode::BOOST_PP_TUPLE_ELEM(2, 0, elem): {                    \
     fillMeshDataTemplated<BOOST_PP_TUPLE_ELEM(2, 1, elem)>(buffer, tag_name,   \
                                                            nb_component);      \
     break;                                                                     \
@@ -131,8 +130,8 @@ void ElementInfoPerProc::fillElementGroupsFromBuffer(
       AKANTU_DEBUG_ASSERT(e < mesh.getNbElement(type, ghost_type),
                           "The mesh does not have the element " << e);
 
-      for (auto && element : element_to_group) {
-        mesh.getElementGroup(element).add(el, false, false);
+      for (auto && group : element_to_group) {
+        mesh.getElementGroup(group).add(el, false, false);
       }
     }
   }
@@ -142,6 +141,6 @@ void ElementInfoPerProc::fillElementGroupsFromBuffer(
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_ELEMENT_INFO_PER_PROCESSOR_TMPL_HH__ */
+#endif /* AKANTU_ELEMENT_INFO_PER_PROCESSOR_TMPL_HH_ */

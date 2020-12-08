@@ -7,7 +7,6 @@
  *
  * @brief interface for the global data updater
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,8 +26,8 @@
  *
  */
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MESH_GLOBAL_DATA_UPDATER_HH__
-#define __AKANTU_MESH_GLOBAL_DATA_UPDATER_HH__
+#ifndef AKANTU_MESH_GLOBAL_DATA_UPDATER_HH_
+#define AKANTU_MESH_GLOBAL_DATA_UPDATER_HH_
 
 namespace akantu {
 
@@ -41,9 +40,11 @@ public:
 
   virtual std::tuple<UInt, UInt>
   updateData(NewNodesEvent & /*nodes_event*/,
-             NewElementsEvent & /*elements_event*/) { return std::make_tuple(0,0); }
+             NewElementsEvent & /*elements_event*/) {
+    return std::make_tuple(0, 0);
+  }
 };
 
 } // namespace akantu
 
-#endif /* __AKANTU_MESH_GLOBAL_DATA_UPDATER_HH__ */
+#endif /* AKANTU_MESH_GLOBAL_DATA_UPDATER_HH_ */

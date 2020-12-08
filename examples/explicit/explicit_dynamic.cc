@@ -8,7 +8,6 @@
  *
  * @brief  This code refers to the explicit dynamic example from the user manual
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -50,12 +49,6 @@ int main(int argc, char * argv[]) {
 
   if(Communicator::getWorldCommunicator().whoAmI() == 0)
     mesh.read("bar.msh");
-
-  mesh.distribute();
-
-  mesh.makePeriodic(_x);
-  mesh.makePeriodic(_y);
-  mesh.makePeriodic(_z);
 
   SolidMechanicsModel model(mesh);
 

@@ -9,7 +9,6 @@
  *
  * @brief  Initialization of global variables
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -40,8 +39,8 @@
 
 #include "communication_tag.hh"
 /* -------------------------------------------------------------------------- */
-#include <ctime>
 #include <cmath>
+#include <ctime>
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -91,21 +90,23 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
   static_argparser.parse(argc, argv, cppargparse::_remove_parsed);
 
   std::string infile = static_argparser["aka_input_file"];
-  if (infile == "")
+  if (infile.empty()) {
     infile = input_file;
+  }
   debug::debugger.printBacktrace(static_argparser["aka_print_backtrace"]);
 
-  if ("" != infile) {
+  if (not infile.empty()) {
     readInputFile(infile);
   }
 
   long int seed;
-  if(static_argparser.has("aka_seed")) {
+  if (static_argparser.has("aka_seed")) {
     seed = static_argparser["aka_seed"];
   } else {
-    seed = static_parser.getParameter("seed", time(nullptr), _ppsc_current_scope);
+    seed =
+        static_parser.getParameter("seed", time(nullptr), _ppsc_current_scope);
   }
-  
+
   seed *= (comm.whoAmI() + 1);
   RandomGenerator<UInt>::seed(seed);
 
@@ -156,7 +157,7 @@ const ParserSection & getUserParser() {
 
 std::ostream & operator<<(std::ostream & stream, NodeFlag flag) {
   using under = std::underlying_type_t<NodeFlag>;
-  int digits = std::log(std::numeric_limits<under>::max() + 1)/std::log(16);
+  auto digits = static_cast<int>(std::log(std::numeric_limits<under>::max() + 1) / std::log(16));
   std::ios_base::fmtflags ff;
   ff = stream.flags();
   auto value = static_cast<std::common_type_t<under, unsigned int>>(flag);

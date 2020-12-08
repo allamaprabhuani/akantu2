@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,18 +30,20 @@
 #include "solver_vector_default.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH__
-#define __AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH__
+#ifndef AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH_
+#define AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH_
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-inline SolverVectorArray::SolverVectorArray(DOFManagerDefault & dof_manager, const ID & id)
+inline SolverVectorArray::SolverVectorArray(DOFManagerDefault & dof_manager,
+                                            const ID & id)
     : SolverVector(dof_manager, id) {}
 
 /* -------------------------------------------------------------------------- */
-inline SolverVectorArray::SolverVectorArray(const SolverVectorArray & vector, const ID & id)
-      : SolverVector(vector, id) {}
+inline SolverVectorArray::SolverVectorArray(const SolverVectorArray & vector,
+                                            const ID & id)
+    : SolverVector(vector, id) {}
 
 /* -------------------------------------------------------------------------- */
 template <class Array_>
@@ -72,10 +73,11 @@ template <class Array_> inline Int SolverVectorArrayTmpl<Array_>::size() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Array_> inline Int SolverVectorArrayTmpl<Array_>::localSize() const {
+template <class Array_>
+inline Int SolverVectorArrayTmpl<Array_>::localSize() const {
   return dof_manager.getLocalSystemSize();
 }
 
 } // namespace akantu
 
-#endif /* __AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH__ */
+#endif /* AKANTU_SOLVER_VECTOR_DEFAULT_TMPL_HH_ */

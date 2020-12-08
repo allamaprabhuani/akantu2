@@ -5,7 +5,6 @@
  *
  * @brief  Implementation of igfem material iterative stiffness reduction
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,7 +28,7 @@
 #include "material_igfem_iterative_stiffness_reduction.hh"
 #include <math.h>
 
-__BEGIN_AKANTU__
+namespace akantu {
 template <UInt spatial_dimension>
 
 /* -------------------------------------------------------------------------- */
@@ -100,7 +99,7 @@ void MaterialIGFEMIterativeStiffnessReduction<spatial_dimension>::
   /// loop over all the quadrature points and compute the equivalent stress
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
     /// compute the stress
-    sigma.clear();
+    sigma.zero();
     MaterialIGFEMElastic<spatial_dimension>::computeStressOnQuad(
         *grad_u_it, sigma, *lambda_ptr, *mu_ptr);
     MaterialIGFEMSawToothDamage<
@@ -286,4 +285,4 @@ void MaterialIGFEMIterativeStiffnessReduction<
 
 INSTANTIATE_MATERIAL(MaterialIGFEMIterativeStiffnessReduction);
 
-__END_AKANTU__
+} // namespace akantu

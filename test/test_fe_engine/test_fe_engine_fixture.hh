@@ -8,7 +8,6 @@
  *
  * @brief  Fixture for feengine tests
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,19 +26,19 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#include "element_class.hh"
-#include "fe_engine.hh"
-#include "integrator_gauss.hh"
-#include "shape_lagrange.hh"
 #include "test_gtest_utils.hh"
+/* -------------------------------------------------------------------------- */
+#include <element_class.hh>
+#include <fe_engine.hh>
+#include <integrator_gauss.hh>
+#include <shape_lagrange.hh>
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TEST_FE_ENGINE_FIXTURE_HH__
-#define __AKANTU_TEST_FE_ENGINE_FIXTURE_HH__
+#ifndef AKANTU_TEST_FE_ENGINE_FIXTURE_HH_
+#define AKANTU_TEST_FE_ENGINE_FIXTURE_HH_
 
 using namespace akantu;
 
@@ -107,6 +106,6 @@ using TestFEMFixture = TestFEMBaseFixture<type_, ShapeLagrange, _ek_regular>;
 
 using fe_engine_types = gtest_list_t<TestElementTypes>;
 
-TYPED_TEST_SUITE(TestFEMFixture, fe_engine_types);
+TYPED_TEST_SUITE(TestFEMFixture, fe_engine_types, );
 
-#endif /* __AKANTU_TEST_FE_ENGINE_FIXTURE_HH__ */
+#endif /* AKANTU_TEST_FE_ENGINE_FIXTURE_HH_ */

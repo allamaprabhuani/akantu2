@@ -10,7 +10,6 @@
  * library
  * is there to do the job
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,14 +33,14 @@
 #include "non_linear_solver.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_NON_LINEAR_SOLVER_NEWTON_RAPHSON_HH__
-#define __AKANTU_NON_LINEAR_SOLVER_NEWTON_RAPHSON_HH__
+#ifndef AKANTU_NON_LINEAR_SOLVER_NEWTON_RAPHSON_HH_
+#define AKANTU_NON_LINEAR_SOLVER_NEWTON_RAPHSON_HH_
 
 namespace akantu {
 class DOFManagerDefault;
 class SparseSolverMumps;
 class SolverVector;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -69,7 +68,7 @@ public:
 
 protected:
   /// test the convergence compare norm of array to convergence_criteria
-  bool testConvergence(const SolverVector & array);
+  bool testConvergence(const SolverVector & solver_vector);
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -85,6 +84,9 @@ private:
 
   /// convergence threshold
   Real convergence_criteria;
+
+  /// convergence threshold
+  Real convergence_criteria_normalized;
 
   /// Max number of iterations
   int max_iterations;
@@ -102,6 +104,6 @@ private:
   bool force_linear_recompute{true};
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_NON_LINEAR_SOLVER_NEWTON_RAPHSON_HH__ */
+#endif /* AKANTU_NON_LINEAR_SOLVER_NEWTON_RAPHSON_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  paraview helper header
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -28,8 +27,8 @@
  *
  */
 
-#ifndef __IOHELPER_PARAVIEW_HELPER_H__
-#define __IOHELPER_PARAVIEW_HELPER_H__
+#ifndef IOHELPER_PARAVIEW_HELPER_H_
+#define IOHELPER_PARAVIEW_HELPER_H_
 /* -------------------------------------------------------------------------- */
 #include "base64.hh"
 #include <iomanip>
@@ -38,7 +37,7 @@
 #include "field_interface.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 // Taken from vtkCellType.h
 enum VTKCellType {
@@ -195,7 +194,7 @@ private:
 
   void setMode(int mode);
 
-  std::string dataTypeToStr(DataType data_type);
+  static std::string dataTypeToStr(DataType data_type);
 
   /* ------------------------------------------------------------------------ */
   /* Methods for writing control sequences in the paraview files              */
@@ -252,8 +251,8 @@ protected:
 
 
 
-__END_IOHELPER__
+}
 
 
 
-#endif /* __IOHELPER_PARAVIEW_HELPER_H__ */
+#endif /* IOHELPER_PARAVIEW_HELPER_H_ */

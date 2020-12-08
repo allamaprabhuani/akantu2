@@ -9,7 +9,6 @@
  * @brief  AIJ implementation of the SparseMatrix (this the format used by
  * Mumps)
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -37,8 +36,8 @@
 #include <unordered_map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SPARSE_MATRIX_AIJ_HH__
-#define __AKANTU_SPARSE_MATRIX_AIJ_HH__
+#ifndef AKANTU_SPARSE_MATRIX_AIJ_HH_
+#define AKANTU_SPARSE_MATRIX_AIJ_HH_
 
 namespace akantu {
 class DOFManagerDefault;
@@ -72,7 +71,7 @@ public:
   inline UInt add(UInt i, UInt j) override;
 
   /// set the matrix to 0
-  void clear() override;
+  void set(Real val) override;
 
   /// assemble a local matrix in the sparse one
   inline void add(UInt i, UInt j, Real value) override;
@@ -96,9 +95,6 @@ public:
   /// multiply the matrix by a scalar
   void mul(Real alpha) override;
 
-  /// add matrix *this += B
-  // virtual void add(const SparseMatrix & matrix, Real alpha);
-
   /// Equivalent of *gemv in blas
   void matVecMul(const SolverVector & x, SolverVector & y, Real alpha = 1.,
                  Real beta = 0.) const override;
@@ -118,7 +114,6 @@ public:
   inline Real & operator()(UInt i, UInt j) override;
 
 protected:
-  /// This is the revert of add B += \alpha * *this;
   void addMeTo(SparseMatrix & B, Real alpha) const override;
 
   inline void addSymmetricValuesToSymmetric(const Vector<Int> & is,
@@ -159,8 +154,9 @@ protected:
 
   /// get the pair corresponding to (i, j)
   inline KeyCOO key(UInt i, UInt j) const {
-    if (this->matrix_type == _symmetric && (i > j))
+    if (this->matrix_type == _symmetric && (i > j)) {
       return std::make_pair(j, i);
+    }
     return std::make_pair(i, j);
   }
 
@@ -194,6 +190,6 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "sparse_matrix_aij_inline_impl.cc"
+#include "sparse_matrix_aij_inline_impl.hh"
 
-#endif /* __AKANTU_SPARSE_MATRIX_AIJ_HH__ */
+#endif /* AKANTU_SPARSE_MATRIX_AIJ_HH_ */

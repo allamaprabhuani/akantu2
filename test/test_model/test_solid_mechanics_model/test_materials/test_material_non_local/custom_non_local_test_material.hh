@@ -9,7 +9,6 @@
  *
  * @brief  Custom material to test the non local implementation
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __CUSTOM_NON_LOCAL_TEST_MATERIAL_HH__
-#define __CUSTOM_NON_LOCAL_TEST_MATERIAL_HH__
+#ifndef CUSTOM_NON_LOCAL_TEST_MATERIAL_HH_
+#define CUSTOM_NON_LOCAL_TEST_MATERIAL_HH_
 
 namespace akantu {
 
@@ -57,7 +56,7 @@ protected:
   void registerNonLocalVariables() override;
 
   /* ------------------------------------------------------------------------ */
-  void computeNonLocalStresses(GhostType ghost_type) {
+  void computeNonLocalStresses(GhostType ghost_type) override {
     AKANTU_DEBUG_IN();
 
     for (auto & type : this->element_filter.elementTypes(dim, ghost_type)) {
@@ -77,4 +76,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __CUSTOM_NON_LOCAL_TEST_MATERIAL_HH__ */
+#endif /* CUSTOM_NON_LOCAL_TEST_MATERIAL_HH_ */

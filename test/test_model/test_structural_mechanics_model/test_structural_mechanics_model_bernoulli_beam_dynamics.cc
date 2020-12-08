@@ -8,7 +8,6 @@
  *
  * @brief  Test for _bernouilli_beam in dynamic
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -128,9 +127,9 @@ int main(int argc, char * argv[]) {
 
   UInt node_to_print = -1;
 
-  forces.clear();
-  displacement.clear();
-  //  boundary.clear();
+  forces.zero();
+  displacement.zero();
+  //  boundary.zero();
   // model.getElementMaterial(type)(i,0) = 0;
   // model.getElementMaterial(type)(i,0) = 1;
   for (UInt i = 0; i < nb_element; ++i) {
@@ -183,7 +182,8 @@ int main(int argc, char * argv[]) {
   /// time loop
   for (UInt s = 1; time < 0.64; ++s) {
 
-    model.solveStep<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(1e-12, 1000);
+    model.solveStep<_scm_newton_raphson_tangent,
+                    SolveConvergenceCriteria::_increment>(1e-12, 1000);
 
     pos << s << "," << time << "," << displacement(node_to_print, 1) << ","
         << analytical_solution(s * time_step, total_length, mat1.rho, mat1.E,

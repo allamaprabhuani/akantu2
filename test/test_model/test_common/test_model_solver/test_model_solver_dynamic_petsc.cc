@@ -8,7 +8,6 @@
  *
  * @brief  Test default dof manager
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -339,7 +338,7 @@ public:
   void assembleStiffness() {
     std::cout << "assembleStiffness" << std::endl;
     // SparseMatrix & K = this->getDOFManager().getMatrix("K");
-    // K.clear();
+    // K.zero();
     ierr = MatZeroEntries(K);
     CHECK_ERR_CXX("MatZeroEntries", ierr);
 
@@ -454,7 +453,7 @@ public:
     VecAXPY(rhs, 1., f_int);
 
     for (auto && data : enumerate(blocked)) {
-      if(std::get<1>(data)) {
+      if (std::get<1>(data)) {
         VecSetValueLocal(rhs, std::get<0>(data), 0., INSERT_VALUES);
       }
     }
@@ -464,7 +463,7 @@ public:
     VecView(rhs, PETSC_VIEWER_STDOUT_WORLD);
   }
 
-  void assembleResidual(const GhostType & ghost_type) {
+  void assembleResidual(GhostType ghost_type) {
     std::cout << "assembleResidual" << std::endl;
     VecZeroEntries(f_int);
 
@@ -681,7 +680,7 @@ int main(int argc, char * argv[]) {
   Mesh mesh(1);
   Real F = -9.81;
   bool _explicit = EXPLICIT;
-  //const Real pulse_width = 0.2;
+  // const Real pulse_width = 0.2;
   const Real A = 0.01;
 
   if (prank == 0)
@@ -693,8 +692,8 @@ int main(int argc, char * argv[]) {
 
   MyModel model(F, mesh, _explicit);
 
-  //  model.forces.clear();
-  //  model.blocked.clear();
+  //  model.forces.zero();
+  //  model.blocked.zero();
 
   // model.applyBC(Sinusoidal(model, A, pulse_width, 0.), "all");
   // model.applyBC(BC::Dirichlet::FlagOnly(_x), "border");
@@ -809,14 +808,14 @@ void genMesh(Mesh & mesh, UInt nb_nodes) {
 
   nodes.resize(nb_nodes);
 
-  //auto & all = mesh.createNodeGroup("all_nodes");
+  // auto & all = mesh.createNodeGroup("all_nodes");
 
   for (UInt n = 0; n < nb_nodes; ++n) {
     nodes(n, _x) = n * (1. / (nb_nodes - 1));
-    //all.add(n);
+    // all.add(n);
   }
 
-  //mesh.createElementGroupFromNodeGroup("all", "all_nodes");
+  // mesh.createElementGroupFromNodeGroup("all", "all_nodes");
 
   conn.resize(nb_nodes - 1);
   for (UInt n = 0; n < nb_nodes - 1; ++n) {

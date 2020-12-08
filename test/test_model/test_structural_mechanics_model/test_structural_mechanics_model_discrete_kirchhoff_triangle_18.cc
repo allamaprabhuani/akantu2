@@ -9,7 +9,6 @@
  *
  * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -62,7 +61,7 @@ public:
     auto center_node = this->model->getBlockedDOFs().end(parent::ndof) - 1;
     *center_node = {false, false, false, false, false, true};
 
-    this->model->getDisplacement().clear();
+    this->model->getDisplacement().zero();
     auto disp = ++this->model->getDisplacement().begin(parent::ndof);
 
     // Displacement field from Batoz Vol. 2 p. 392

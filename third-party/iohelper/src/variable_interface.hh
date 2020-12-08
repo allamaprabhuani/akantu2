@@ -8,7 +8,6 @@
  *
  * @brief  variable interface
  *
- * @section LICENSE
  *
  * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,14 +28,14 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __IOHELPER_VARIABLE_INTERFACE_HH__
-#define __IOHELPER_VARIABLE_INTERFACE_HH__
+#ifndef IOHELPER_VARIABLE_INTERFACE_HH_
+#define IOHELPER_VARIABLE_INTERFACE_HH_
 
 /* -------------------------------------------------------------------------- */
 #include "visitor.hh"
 
 /* -------------------------------------------------------------------------- */
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 class VariableInterface {
   /* ------------------------------------------------------------------------ */
@@ -74,6 +73,6 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-__END_IOHELPER__
+}
 
-#endif /* __IOHELPER_VARIABLE_INTERFACE_HH__ */
+#endif /* IOHELPER_VARIABLE_INTERFACE_HH_ */

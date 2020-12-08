@@ -13,7 +13,6 @@
  * @brief  Stores information relevent to the notion of element and nodes
  * groups.
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_GROUP_MANAGER_HH__
-#define __AKANTU_GROUP_MANAGER_HH__
+#ifndef AKANTU_GROUP_MANAGER_HH_
+#define AKANTU_GROUP_MANAGER_HH_
 
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
@@ -53,7 +52,7 @@ class Mesh;
 class Element;
 class ElementSynchronizer;
 template <bool> class CommunicationBufferTemplated;
-namespace dumper {
+namespace dumpers {
   class Field;
 }
 } // namespace akantu
@@ -73,8 +72,8 @@ private:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  GroupManager(const Mesh & mesh, const ID & id = "group_manager",
-               const MemoryID & memory_id = 0);
+  GroupManager(Mesh & mesh, const ID & id = "group_manager",
+               const MemoryID & mem_id = 0);
   virtual ~GroupManager();
 
   /* ------------------------------------------------------------------------ */
@@ -87,20 +86,22 @@ public:
   using const_node_group_iterator = NodeGroups::const_iterator;
   using const_element_group_iterator = ElementGroups::const_iterator;
 
-#define AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION(group_type, function,    \
-                                                      param_in, param_out)     \
+#define AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION(group_type, function,        \
+                                                      param_in, param_out)         \
   [[deprecated(                                                                    \
       "use iterate(Element|Node)Groups or "                                        \
-      "(element|node)GroupExists")]] inline BOOST_PP_CAT(BOOST_PP_CAT(const_, group_type), _iterator)             \
-      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const {    \
-    return BOOST_PP_CAT(group_type, s).function(param_out);                    \
-  };                                                                           \
-                                                                               \
-  [[deprecated(                                                                    \
-      "use iterate(Element|Node)Groups or "                                        \
-      "(element|node)GroupExists")]] inline BOOST_PP_CAT(group_type, _iterator)                                   \
-      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {          \
-    return BOOST_PP_CAT(group_type, s).function(param_out);                    \
+      "(element|node)GroupExists")]] inline BOOST_PP_CAT(BOOST_PP_CAT(const_,      \
+                                                                      group_type), \
+                                                         _iterator)                \
+      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) const {        \
+    return BOOST_PP_CAT(group_type, s).function(param_out);                        \
+  };                                                                               \
+                                                                                   \
+  [[deprecated("use iterate(Element|Node)Groups or "                               \
+               "(element|node)GroupExists")]] inline BOOST_PP_CAT(group_type,      \
+                                                                  _iterator)       \
+      BOOST_PP_CAT(BOOST_PP_CAT(group_type, _), function)(param_in) {              \
+    return BOOST_PP_CAT(group_type, s).function(param_out);                        \
   }
 
 #define AKANTU_GROUP_MANAGER_DEFINE_ITERATOR_FUNCTION_NP(group_type, function) \
@@ -137,7 +138,7 @@ public:
 public:
   class ClusteringFilter {
   public:
-    virtual bool operator()(const Element &) const { return true; }
+    virtual bool operator()(const Element & /*unused*/) const { return true; }
   };
 
   /* ------------------------------------------------------------------------ */
@@ -203,12 +204,12 @@ public:
 
   /// create element clusters for a given dimension
   UInt createClusters(UInt element_dimension, Mesh & mesh_facets,
-                      std::string cluster_name_prefix = "cluster",
+                      const std::string & cluster_name_prefix = "cluster",
                       const ClusteringFilter & filter = ClusteringFilter());
 
   /// create element clusters for a given dimension
   UInt createClusters(UInt element_dimension,
-                      std::string cluster_name_prefix = "cluster",
+                      const std::string & cluster_name_prefix = "cluster",
                       const ClusteringFilter & filter = ClusteringFilter());
 
 private:
@@ -232,18 +233,18 @@ public:
   /// register an elemental field to the given group name (overloading for
   /// ElementalPartionField)
   template <typename T, template <bool> class dump_type>
-  std::shared_ptr<dumper::Field> createElementalField(
+  std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      UInt spatial_dimension, const ElementKind & kind,
+      UInt spatial_dimension, ElementKind kind,
       ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
 
   /// register an elemental field to the given group name (overloading for
   /// ElementalField)
   template <typename T, template <class> class ret_type,
             template <class, template <class> class, bool> class dump_type>
-  std::shared_ptr<dumper::Field> createElementalField(
+  std::shared_ptr<dumpers::Field> createElementalField(
       const ElementTypeMapArray<T> & field, const std::string & group_name,
-      UInt spatial_dimension, const ElementKind & kind,
+      UInt spatial_dimension, ElementKind kind,
       ElementTypeMap<UInt> nb_data_per_elem = ElementTypeMap<UInt>());
 
   /// register an elemental field to the given group name (overloading for
@@ -251,19 +252,19 @@ public:
   template <typename T,
             /// type of InternalMaterialField
             template <typename, bool filtered> class dump_type>
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createElementalField(const ElementTypeMapArray<T> & field,
                        const std::string & group_name, UInt spatial_dimension,
-                       const ElementKind & kind,
+                       ElementKind kind,
                        ElementTypeMap<UInt> nb_data_per_elem);
 
   template <typename type, bool flag, template <class, bool> class ftype>
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalField(const ftype<type, flag> * field,
                    const std::string & group_name, UInt padding_size = 0);
 
   template <typename type, bool flag, template <class, bool> class ftype>
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createStridedNodalField(const ftype<type, flag> * field,
                           const std::string & group_name, UInt size,
                           UInt stride, UInt padding_size);
@@ -278,17 +279,17 @@ protected:
 
   /// register an elemental field to the given group name
   template <class dump_type, typename field_type>
-  inline std::shared_ptr<dumper::Field>
+  inline std::shared_ptr<dumpers::Field>
   createElementalField(const field_type & field, const std::string & group_name,
-                       UInt spatial_dimension, const ElementKind & kind,
+                       UInt spatial_dimension, ElementKind kind,
                        const ElementTypeMap<UInt> & nb_data_per_elem);
 
   /// register an elemental field to the given group name
   template <class dump_type, typename field_type>
-  inline std::shared_ptr<dumper::Field>
+  inline std::shared_ptr<dumpers::Field>
   createElementalFilteredField(const field_type & field,
                                const std::string & group_name,
-                               UInt spatial_dimension, const ElementKind & kind,
+                               UInt spatial_dimension, ElementKind kind,
                                ElementTypeMap<UInt> nb_data_per_elem);
 
   /* ------------------------------------------------------------------------ */
@@ -335,7 +336,7 @@ protected:
   ElementGroups element_groups;
 
   /// Mesh to which the element belongs
-  const Mesh & mesh;
+  Mesh & mesh;
 };
 
 /// standard output stream operator
@@ -347,4 +348,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AKANTU_GROUP_MANAGER_HH__ */
+#endif /* AKANTU_GROUP_MANAGER_HH_ */

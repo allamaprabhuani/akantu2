@@ -8,7 +8,6 @@
  *
  * @brief  container array header
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,12 +26,15 @@
  * along with IOHelper. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef __IOHELPER_CONTAINER_ARRAY_HH__
-#define __IOHELPER_CONTAINER_ARRAY_HH__
+/* -------------------------------------------------------------------------- */
+#include "iohelper_common.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+#ifndef IOHELPER_CONTAINER_ARRAY_HH_
+#define IOHELPER_CONTAINER_ARRAY_HH_
+/* -------------------------------------------------------------------------- */
+
+namespace iohelper {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
@@ -54,18 +56,21 @@ public:
       this->el_type = el_type;
     };
 
-    bool operator!=(const iterator & it) const {
+    bool operator!=(const iterator & it) const override {
       return it.ptr != this->ptr;
     };
 
-    iterator & operator++() { ptr += increment; return *this; };
-
-    IOHelperVector<T> operator*(){
-       return IOHelperVector<T>(ptr, increment);
+    iterator & operator++() override {
+      ptr += increment;
+      return *this;
     };
 
-    virtual ElemType element_type() { return el_type; }
-    
+    IOHelperVector<T> operator*() override {
+      return IOHelperVector<T>(ptr, increment);
+    };
+
+    ElemType element_type() override { return el_type; }
+
   private:
 
     T * ptr;
@@ -83,8 +88,11 @@ public:
   ContainerArray(T * data, UInt dimension, UInt size, UInt stride=1,ElemType el_type = MAX_ELEM_TYPE){
     this->data = data;
     this->dimension = dimension;
-    if (this->data == NULL) this->_size = 0;
-    else this->_size = size;
+    if (this->data == NULL) {
+      this->_size = 0;
+    } else {
+      this->_size = size;
+    }
     this->stride = stride;
     this->el_type = el_type;
   };
@@ -133,6 +141,6 @@ private:
 /* -------------------------------------------------------------------------- */
 
 
-__END_IOHELPER__
+}
 
-#endif /* __IOHELPER_ITERATOR_ARRAY_HH__ */
+#endif /* IOHELPER_ITERATOR_ARRAY_HH_ */

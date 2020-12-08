@@ -8,7 +8,6 @@
  *
  * @brief  for dump of global variables
  *
- * @section LICENSE
  *
  * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,13 +28,13 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __IOHELPER_VARIABLE_HH__
-#define __IOHELPER_VARIABLE_HH__
+#ifndef IOHELPER_VARIABLE_HH_
+#define IOHELPER_VARIABLE_HH_
 /* -------------------------------------------------------------------------- */
 #include "variable_interface.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 template <class Cont>
 class Variable : public VariableInterface {
@@ -81,6 +80,6 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-__END_IOHELPER__
+}
 
-#endif /* __IOHELPER_VARIABLE_HH__ */
+#endif /* IOHELPER_VARIABLE_HH_ */

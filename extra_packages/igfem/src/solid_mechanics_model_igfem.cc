@@ -6,7 +6,6 @@
  *
  * @brief  solid mechanics model for IGFEM analysis
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -16,7 +15,7 @@
 /* -------------------------------------------------------------------------- */
 #include "solid_mechanics_model_igfem.hh"
 #include "dumpable_inline_impl.hh"
-#include "group_manager_inline_impl.cc"
+#include "group_manager_inline_impl.hh"
 #include "igfem_helper.hh"
 #include "material_igfem.hh"
 #ifdef AKANTU_USE_IOHELPER
@@ -29,7 +28,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 const SolidMechanicsModelIGFEMOptions
     default_solid_mechanics_model_igfem_options(_static, false);
@@ -199,7 +198,7 @@ void SolidMechanicsModelIGFEM::onElementsAdded(const Array<Element> & elements,
       dynamic_cast<const NewIGFEMElementsEvent *>(&event);
   /// insert the new and old elements in the map
   if (igfem_event != NULL) {
-    this->element_map.clear();
+    this->element_map.zero();
     const Array<Element> & old_elements = igfem_event->getOldElementsList();
     for (UInt e = 0; e < elements.getSize(); ++e) {
       this->element_map[elements(e)] = old_elements(e);
@@ -310,7 +309,7 @@ void SolidMechanicsModelIGFEM::onNodesRemoved(const Array<UInt> & nodes_list,
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModelIGFEM::addDumpGroupFieldToDumper(
     const std::string & dumper_name, const std::string & field_id,
-    const std::string & group_name, const ElementKind & element_kind,
+    const std::string & group_name, ElementKind element_kind,
     bool padding_flag) {
   AKANTU_DEBUG_IN();
 
@@ -335,12 +334,12 @@ void SolidMechanicsModelIGFEM::onDump() {
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 
-dumper::Field * SolidMechanicsModelIGFEM::createElementalField(
+dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, const UInt & spatial_dimension,
-    const ElementKind & kind) {
+    ElementKind kind) {
 
-  dumper::Field * field = NULL;
+  dumpers::Field * field = NULL;
 
   if (kind != _ek_igfem)
     field = SolidMechanicsModel::createElementalField(
@@ -350,11 +349,11 @@ dumper::Field * SolidMechanicsModelIGFEM::createElementalField(
 
     if (field_name == "partitions")
       field =
-          mesh.createElementalField<UInt, dumper::IGFEMElementPartitionField>(
+          mesh.createElementalField<UInt, dumpers::IGFEMElementPartitionField>(
               mesh.getConnectivities(), group_name, spatial_dimension, kind);
     else if (field_name == "material_index")
       field =
-          mesh.createElementalField<UInt, Vector, dumper::IGFEMElementalField>(
+          mesh.createElementalField<UInt, Vector, dumpers::IGFEMElementalField>(
               material_index, group_name, spatial_dimension, kind);
     else {
       // this copy of field_name is used to compute derivated data such as
@@ -376,54 +375,54 @@ dumper::Field * SolidMechanicsModelIGFEM::createElementalField(
         ElementTypeMapArray<Real> & internal_flat =
             this->flattenInternal(field_name_copy, kind);
         field =
-            mesh.createElementalField<Real, dumper::IGFEMInternalMaterialField>(
+            mesh.createElementalField<Real, dumpers::IGFEMInternalMaterialField>(
                 internal_flat, group_name, spatial_dimension, kind,
                 nb_data_per_elem);
         if (field_name == "strain") {
-          dumper::ComputeStrain<false> * foo =
-              new dumper::ComputeStrain<false>(*this);
-          field = dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+          dumpers::ComputeStrain<false> * foo =
+              new dumpers::ComputeStrain<false>(*this);
+          field = dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
         } else if (field_name == "Von Mises stress") {
-          dumper::ComputeVonMisesStress * foo =
-              new dumper::ComputeVonMisesStress(*this);
-          field = dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+          dumpers::ComputeVonMisesStress * foo =
+              new dumpers::ComputeVonMisesStress(*this);
+          field = dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
         } else if (field_name == "Green strain") {
-          dumper::ComputeStrain<true> * foo =
-              new dumper::ComputeStrain<true>(*this);
-          field = dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+          dumpers::ComputeStrain<true> * foo =
+              new dumpers::ComputeStrain<true>(*this);
+          field = dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
         } else if (field_name == "principal strain") {
-          dumper::ComputePrincipalStrain<false> * foo =
-              new dumper::ComputePrincipalStrain<false>(*this);
-          field = dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+          dumpers::ComputePrincipalStrain<false> * foo =
+              new dumpers::ComputePrincipalStrain<false>(*this);
+          field = dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
         } else if (field_name == "principal Green strain") {
-          dumper::ComputePrincipalStrain<true> * foo =
-              new dumper::ComputePrincipalStrain<true>(*this);
-          field = dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+          dumpers::ComputePrincipalStrain<true> * foo =
+              new dumpers::ComputePrincipalStrain<true>(*this);
+          field = dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
         }
 
         /// treat the paddings
         if (padding_flag) {
           if (field_name == "stress") {
             if (spatial_dimension == 2) {
-              dumper::StressPadder<2> * foo =
-                  new dumper::StressPadder<2>(*this);
+              dumpers::StressPadder<2> * foo =
+                  new dumpers::StressPadder<2>(*this);
               field =
-                  dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+                  dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
             }
           } else if (field_name == "strain" || field_name == "Green strain") {
             if (spatial_dimension == 2) {
-              dumper::StrainPadder<2> * foo =
-                  new dumper::StrainPadder<2>(*this);
+              dumpers::StrainPadder<2> * foo =
+                  new dumpers::StrainPadder<2>(*this);
               field =
-                  dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+                  dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
             }
           }
         }
         // homogenize the field
-        dumper::ComputeFunctorInterface * foo =
-            dumper::HomogenizerProxy::createHomogenizer(*field);
+        dumpers::ComputeFunctorInterface * foo =
+            dumpers::HomogenizerProxy::createHomogenizer(*field);
 
-        field = dumper::FieldComputeProxy::createFieldCompute(field, *foo);
+        field = dumpers::FieldComputeProxy::createFieldCompute(field, *foo);
       }
     }
   }
@@ -433,7 +432,7 @@ dumper::Field * SolidMechanicsModelIGFEM::createElementalField(
 
 /* -------------------------------------------------------------------------- */
 
-dumper::Field *
+dumpers::Field *
 SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
                                                const std::string & group_name,
                                                bool padding_flag) {
@@ -441,7 +440,7 @@ SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
   std::map<std::string, Array<Real> *> real_nodal_fields;
   real_nodal_fields["real_displacement"] = real_displacement;
 
-  dumper::Field * field = NULL;
+  dumpers::Field * field = NULL;
   if (padding_flag)
     field = mesh.createNodalField(real_nodal_fields[field_name], group_name, 3);
   else
@@ -456,16 +455,16 @@ SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
 
 #else
 /* -------------------------------------------------------------------------- */
-dumper::Field * SolidMechanicsModelIGFEM::createElementalField(
+dumpers::Field * SolidMechanicsModelIGFEM::createElementalField(
     const std::string & field_name, const std::string & group_name,
     bool padding_flag, const UInt & spatial_dimension,
-    const ElementKind & kind) {
+    ElementKind kind) {
   return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 
-dumper::Field *
+dumpers::Field *
 SolidMechanicsModelIGFEM::createNodalFieldReal(const std::string & field_name,
                                                const std::string & group_name,
                                                bool padding_flag) {
@@ -584,4 +583,4 @@ void SolidMechanicsModelIGFEM::applyEigenGradU(
   }
 }
 
-__END_AKANTU__
+} // namespace akantu

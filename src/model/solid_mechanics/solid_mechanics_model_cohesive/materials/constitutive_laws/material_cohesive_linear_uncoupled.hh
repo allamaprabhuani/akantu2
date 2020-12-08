@@ -9,7 +9,6 @@
  * @brief  Linear irreversible cohesive law of mixed mode loading with
  * random stress definition for extrinsic type
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include "material_cohesive_linear.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH__
-#define __AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH__
+#ifndef AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH_
+#define AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH_
 
 /* -------------------------------------------------------------------------- */
 
@@ -72,7 +71,7 @@ protected:
                        GhostType ghost_type = _not_ghost) override;
 
   /// compute tangent stiffness matrix
-  void computeTangentTraction(const ElementType & el_type,
+  void computeTangentTraction(ElementType el_type,
                               Array<Real> & tangent_matrix,
                               const Array<Real> & normal,
                               GhostType ghost_type) override;
@@ -97,6 +96,6 @@ protected:
   CohesiveInternalField<Real> damage_t;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH__ */
+#endif /* AKANTU_MATERIAL_COHESIVE_LINEAR_UNCOUPLED_HH_ */

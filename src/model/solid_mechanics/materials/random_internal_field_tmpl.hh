@@ -8,7 +8,6 @@
  *
  * @brief  Random internal material parameter implementation
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH__
-#define __AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH__
+#ifndef AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH_
+#define AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH_
 
 namespace akantu {
 
@@ -82,7 +81,7 @@ void RandomInternalField<T, BaseField, Generator>::setRandomDistribution(
 template <typename T, template <typename> class BaseField,
           template <typename> class Generator>
 void RandomInternalField<T, BaseField, Generator>::printself(
-    std::ostream & stream, int indent[[gnu::unused]]) const {
+    std::ostream & stream, int indent [[gnu::unused]]) const {
   stream << "RandomInternalField [ ";
   random_parameter.printself(stream);
   stream << " ]";
@@ -120,6 +119,6 @@ inline void ParameterTyped<RandomInternalField<Real>>::setAuto(
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH__ */
+#endif /* AKANTU_RANDOM_INTERNAL_FIELD_TMPL_HH_ */

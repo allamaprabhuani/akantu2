@@ -8,7 +8,6 @@
  *
  * @brief  algebraic_parser definition of the grammar
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -37,8 +36,8 @@
 #include <boost/spirit/include/qi.hpp>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ALGEBRAIC_PARSER_HH__
-#define __AKANTU_ALGEBRAIC_PARSER_HH__
+#ifndef AKANTU_ALGEBRAIC_PARSER_HH_
+#define AKANTU_ALGEBRAIC_PARSER_HH_
 
 namespace spirit = boost::spirit;
 namespace qi = boost::spirit::qi;
@@ -248,8 +247,9 @@ namespace parser {
     operator Vector<Real>() {
       Vector<Real> tmp(_cells.size());
       auto it = _cells.begin();
-      for (UInt i = 0; it != _cells.end(); ++it, ++i)
+      for (UInt i = 0; it != _cells.end(); ++it, ++i) {
         tmp(i) = *it;
+      }
       return tmp;
     }
 
@@ -262,8 +262,9 @@ namespace parser {
     auto it = pv._cells.begin();
     if (it != pv._cells.end()) {
       stream << *it;
-      for (++it; it != pv._cells.end(); ++it)
+      for (++it; it != pv._cells.end(); ++it) {
         stream << ", " << *it;
+      }
     }
     stream << "]";
     return stream;
@@ -273,8 +274,9 @@ namespace parser {
     operator Matrix<Real>() {
       size_t cols = 0;
       auto it_rows = _cells.begin();
-      for (; it_rows != _cells.end(); ++it_rows)
+      for (; it_rows != _cells.end(); ++it_rows) {
         cols = std::max(cols, it_rows->_cells.size());
+      }
 
       Matrix<Real> tmp(_cells.size(), _cells[0]._cells.size(), 0.);
 
@@ -297,8 +299,9 @@ namespace parser {
     auto it = pm._cells.begin();
     if (it != pm._cells.end()) {
       stream << *it;
-      for (++it; it != pm._cells.end(); ++it)
+      for (++it; it != pm._cells.end(); ++it) {
         stream << ", " << *it;
+      }
     }
     stream << "]";
     return stream;
@@ -325,7 +328,7 @@ namespace parser {
            *(',' >> number[phx::bind(&cont_add<parsable_vector, Real>, lbs::_a,
                                      lbs::_1)]))[lbs::_val = lbs::_a];
 
-#if !defined(AKANTU_NDEBUG) && defined(AKANTU_CORE_CXX_11)
+#if !defined(AKANTU_NDEBUG)
       phx::function<algebraic_error_handler_> const error_handler =
           algebraic_error_handler_();
       qi::on_error<qi::fail>(start, error_handler(lbs::_4, lbs::_3, lbs::_2));
@@ -386,7 +389,7 @@ namespace parser {
             *qi::char_("a-zA-Z_0-9") // coming from the InputFileGrammar
           ;
 
-#if !defined(AKANTU_NDEBUG) && defined(AKANTU_CORE_CXX_11)
+#if !defined(AKANTU_NDEBUG)
       phx::function<algebraic_error_handler_> const error_handler =
           algebraic_error_handler_();
       qi::on_error<qi::fail>(start, error_handler(lbs::_4, lbs::_3, lbs::_2));
@@ -475,7 +478,7 @@ namespace parser {
           AKANTU_RANDOM_DISTRIBUTION_TYPES);
 #undef AKANTU_RANDOM_DISTRIBUTION_TYPE_ADD
 
-#if !defined(AKANTU_NDEBUG) && defined(AKANTU_CORE_CXX_11)
+#if !defined(AKANTU_NDEBUG)
       phx::function<algebraic_error_handler_> const error_handler =
           algebraic_error_handler_();
       qi::on_error<qi::fail>(start, error_handler(lbs::_4, lbs::_3, lbs::_2));
@@ -506,7 +509,7 @@ namespace parser {
     AlgebraicGrammar<Iterator, Skipper> number;
     qi::symbols<char, RandomDistributionType> generator_type;
   };
-}
-}
+} // namespace parser
+} // namespace akantu
 
-#endif /* __AKANTU_ALGEBRAIC_PARSER_HH__ */
+#endif /* AKANTU_ALGEBRAIC_PARSER_HH_ */

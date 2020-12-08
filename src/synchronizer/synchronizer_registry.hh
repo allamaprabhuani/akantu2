@@ -9,7 +9,6 @@
  *
  * @brief  Registry of synchronizers
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,13 +34,13 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_REGISTRY_HH__
-#define __AKANTU_SYNCHRONIZER_REGISTRY_HH__
+#ifndef AKANTU_SYNCHRONIZER_REGISTRY_HH_
+#define AKANTU_SYNCHRONIZER_REGISTRY_HH_
 
 namespace akantu {
 class DataAccessorBase;
 class Synchronizer;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -85,6 +84,6 @@ private:
   DataAccessorBase * data_accessor{nullptr};
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_SYNCHRONIZER_REGISTRY_HH__ */
+#endif /* AKANTU_SYNCHRONIZER_REGISTRY_HH_ */

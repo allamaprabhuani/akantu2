@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_HH__
-#define __AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_HH__
+#ifndef AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_HH_
+#define AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_HH_
 
 namespace akantu {
 
@@ -50,7 +49,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void computeStress(ElementType el_type, GhostType ghost_type);
+  void computeStress(ElementType el_type, GhostType ghost_type) override;
 
 private:
   void damageStress(Matrix<double> & sigma, const Matrix<double> & sigma_el,
@@ -85,4 +84,4 @@ private:
 
 #include "material_anisotropic_damage_tmpl.hh"
 
-#endif /* __AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_HH__ */
+#endif /* AKANTU_MATERIAL_ANISOTROPIC_DAMAGE_HH_ */

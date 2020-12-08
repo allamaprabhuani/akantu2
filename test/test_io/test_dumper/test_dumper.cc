@@ -8,7 +8,6 @@
  *
  * @brief  test dumper
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -90,13 +89,14 @@ int main(int argc, char * argv[]) {
       prvdumper.unRegisterField("positions");
       prvdumper.unRegisterField("displacement");
     }
-    prvdumper.registerFilteredMesh(mesh,
-                                   mesh.getElementGroup("Bottom").getElements(),
-                                   mesh.getElementGroup("Bottom").getNodeGroup().getNodes());
-    prvdumper.registerField("displacement",
-                            std::make_shared<dumper::NodalField<Real, true>>(
-                                model.getDisplacement(), 0, 0,
-                                &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
+    prvdumper.registerFilteredMesh(
+        mesh, mesh.getElementGroup("Bottom").getElements(),
+        mesh.getElementGroup("Bottom").getNodeGroup().getNodes());
+    prvdumper.registerField(
+        "displacement",
+        std::make_shared<dumpers::NodalField<Real, true>>(
+            model.getDisplacement(), 0, 0,
+            &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
     prvdumper.dump(0);
   }
 
@@ -104,25 +104,27 @@ int main(int argc, char * argv[]) {
   txtdumper.setDirectory("paraview");
   txtdumper.setPrecision(8);
   txtdumper.setTimeStep(time_step);
-  txtdumper.registerFilteredMesh(mesh,
-                                 mesh.getElementGroup("Bottom").getElements(),
-                                 mesh.getElementGroup("Bottom").getNodeGroup().getNodes());
-  txtdumper.registerField("displacement",
-                          std::make_shared<dumper::NodalField<Real, true>>(
-                              model.getDisplacement(), 0, 0,
-                              &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
-  txtdumper.registerField("blocked_dofs",
-                          std::make_shared<dumper::NodalField<bool, true>>(
-                              model.getBlockedDOFs(), 0, 0,
-                              &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
+  txtdumper.registerFilteredMesh(
+      mesh, mesh.getElementGroup("Bottom").getElements(),
+      mesh.getElementGroup("Bottom").getNodeGroup().getNodes());
+  txtdumper.registerField(
+      "displacement",
+      std::make_shared<dumpers::NodalField<Real, true>>(
+          model.getDisplacement(), 0, 0,
+          &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
+  txtdumper.registerField(
+      "blocked_dofs",
+      std::make_shared<dumpers::NodalField<bool, true>>(
+          model.getBlockedDOFs(), 0, 0,
+          &(mesh.getElementGroup("Bottom").getNodeGroup().getNodes())));
 
   Real pot_energy = 1.2345567891;
   Vector<Real> gforces(2, 1.);
   txtdumper.registerVariable(
-      "potential_energy", std::make_shared<dumper::Variable<Real>>(pot_energy));
+      "potential_energy", std::make_shared<dumpers::Variable<Real>>(pot_energy));
   txtdumper.registerVariable(
       "global_forces",
-      std::make_shared<dumper::Variable<Vector<Real>>>(gforces));
+      std::make_shared<dumpers::Variable<Vector<Real>>>(gforces));
 
   // dump a first time before the main loop
   model.dumpGroup("Bottom");

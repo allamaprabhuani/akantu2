@@ -11,7 +11,6 @@
  *
  * @brief  Specialization of the element classes for structural elements
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_CLASS_STRUCTURAL_HH__
-#define __AKANTU_ELEMENT_CLASS_STRUCTURAL_HH__
+#ifndef AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_
+#define AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_
 
 namespace akantu {
 
@@ -245,10 +244,10 @@ public:
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-#include "element_class_hermite_inline_impl.cc"
+#include "element_class_hermite_inline_impl.hh"
 /* keep order */
-#include "element_class_bernoulli_beam_inline_impl.cc"
-#include "element_class_kirchhoff_shell_inline_impl.cc"
+#include "element_class_bernoulli_beam_inline_impl.hh"
+#include "element_class_kirchhoff_shell_inline_impl.hh"
 /* -------------------------------------------------------------------------- */
 
-#endif /* __AKANTU_ELEMENT_CLASS_STRUCTURAL_HH__ */
+#endif /* AKANTU_ELEMENT_CLASS_STRUCTURAL_HH_ */

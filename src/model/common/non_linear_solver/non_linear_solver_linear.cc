@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the default NonLinearSolver
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -54,6 +53,7 @@ NonLinearSolverLinear::~NonLinearSolverLinear() = default;
 
 /* ------------------------------------------------------------------------ */
 void NonLinearSolverLinear::solve(SolverCallback & solver_callback) {
+  solver_callback.beforeSolveStep();
   this->dof_manager.updateGlobalBlockedDofs();
 
   solver_callback.predictor();
@@ -67,8 +67,9 @@ void NonLinearSolverLinear::solve(SolverCallback & solver_callback) {
   this->solver.solve();
 
   solver_callback.corrector();
+  solver_callback.afterSolveStep(true);
 }
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

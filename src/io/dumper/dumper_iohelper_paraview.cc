@@ -9,7 +9,6 @@
  *
  * @brief  implementations of DumperParaview
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -41,7 +40,7 @@ namespace akantu {
 
 DumperParaview::DumperParaview(const std::string & filename,
                                const std::string & directory, bool parallel)
-    : DumperIOHelper() {
+     {
   dumper = std::make_unique<iohelper::DumperParaview>();
   setBaseName(filename);
 

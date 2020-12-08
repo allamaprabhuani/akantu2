@@ -8,7 +8,6 @@
  *
  * @brief  description of the "simple" types
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_error.hh"
-#include "aka_fwd.hh"
+#include "aka_common.hh"
 #include "aka_math.hh"
 /* -------------------------------------------------------------------------- */
 #include <initializer_list>
@@ -38,8 +36,8 @@
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_TYPES_HH__
-#define __AKANTU_AKA_TYPES_HH__
+#ifndef AKANTU_AKA_TYPES_HH_
+#define AKANTU_AKA_TYPES_HH_
 
 namespace akantu {
 
@@ -52,21 +50,22 @@ enum NormType { L_1 = 1, L_2 = 2, L_inf = UInt(-1) };
  * @tparam dim
  */
 template <UInt dim> struct DimHelper {
-  static inline void setDims(UInt m, UInt n, UInt p, UInt dims[dim]);
+  static inline void setDims(UInt m, UInt n, UInt p,
+                             std::array<UInt, dim> & dims);
 };
 
 /* -------------------------------------------------------------------------- */
 template <> struct DimHelper<1> {
-  static inline void setDims(UInt m, __attribute__((unused)) UInt n,
-                             __attribute__((unused)) UInt p, UInt dims[1]) {
+  static inline void setDims(UInt m, UInt /*n*/, UInt /*p*/,
+                             std::array<UInt, 1> & dims) {
     dims[0] = m;
   }
 };
 
 /* -------------------------------------------------------------------------- */
 template <> struct DimHelper<2> {
-  static inline void setDims(UInt m, UInt n, __attribute__((unused)) UInt p,
-                             UInt dims[2]) {
+  static inline void setDims(UInt m, UInt n, UInt /*p*/,
+                             std::array<UInt, 2> & dims) {
     dims[0] = m;
     dims[1] = n;
   }
@@ -74,7 +73,8 @@ template <> struct DimHelper<2> {
 
 /* -------------------------------------------------------------------------- */
 template <> struct DimHelper<3> {
-  static inline void setDims(UInt m, UInt n, UInt p, UInt dims[3]) {
+  static inline void setDims(UInt m, UInt n, UInt p,
+                             std::array<UInt, 3> & dims) {
     dims[0] = m;
     dims[1] = n;
     dims[2] = p;
@@ -105,424 +105,6 @@ namespace tensors {
   };
 
 } // namespace tensors
-
-/**
- * @class TensorProxy aka_types.hh
- * @desc The TensorProxy class is a proxy class to the TensorStorage it handles
- * the
- * wrapped case. That is to say if an accessor should give access to a Tensor
- * wrapped on some data, like the Array<T>::iterator they can return a
- * TensorProxy that will be automatically transformed as a TensorStorage wrapped
- * on the same data
- * @tparam T stored type
- * @tparam ndim order of the tensor
- * @tparam RetType real derived type
- */
-template <typename T, UInt ndim, class _RetType> class TensorProxy {
-protected:
-  using RetTypeProxy = typename _RetType::proxy;
-
-  constexpr TensorProxy(T * data, UInt m, UInt n, UInt p) {
-    DimHelper<ndim>::setDims(m, n, p, this->n);
-    this->values = data;
-  }
-
-  template <class Other, typename = std::enable_if_t<
-                             tensors::is_copyable<TensorProxy, Other>::value>>
-  explicit TensorProxy(const Other & other) {
-    this->values = other.storage();
-    for (UInt i = 0; i < ndim; ++i)
-      this->n[i] = other.size(i);
-  }
-
-public:
-  using RetType = _RetType;
-
-  UInt size(UInt i) const {
-    AKANTU_DEBUG_ASSERT(i < ndim, "This tensor has only " << ndim
-                                                          << " dimensions, not "
-                                                          << (i + 1));
-    return n[i];
-  }
-
-  inline UInt size() const {
-    UInt _size = 1;
-    for (UInt d = 0; d < ndim; ++d)
-      _size *= this->n[d];
-    return _size;
-  }
-
-  T * storage() const { return values; }
-
-  template <class Other, typename = std::enable_if_t<
-                             tensors::is_copyable<TensorProxy, Other>::value>>
-  inline TensorProxy & operator=(const Other & other) {
-    AKANTU_DEBUG_ASSERT(
-        other.size() == this->size(),
-        "You are trying to copy two tensors with different sizes");
-    memcpy(this->values, other.storage(), this->size() * sizeof(T));
-    return *this;
-  }
-  // template <class Other, typename = std::enable_if_t<
-  //                          tensors::is_copyable<TensorProxy, Other>::value>>
-  // inline TensorProxy & operator=(const Other && other) {
-  //   AKANTU_DEBUG_ASSERT(
-  //       other.size() == this->size(),
-  //       "You are trying to copy two tensors with different sizes");
-  //   memcpy(this->values, other.storage(), this->size() * sizeof(T));
-  //   return *this;
-  // }
-
-  template <typename O> inline RetTypeProxy & operator*=(const O & o) {
-    RetType(*this) *= o;
-    return static_cast<RetTypeProxy &>(*this);
-  }
-
-  template <typename O> inline RetTypeProxy & operator/=(const O & o) {
-    RetType(*this) /= o;
-    return static_cast<RetTypeProxy &>(*this);
-  }
-
-protected:
-  T * values;
-  UInt n[ndim];
-};
-
-/* -------------------------------------------------------------------------- */
-template <typename T> class VectorProxy : public TensorProxy<T, 1, Vector<T>> {
-  using parent = TensorProxy<T, 1, Vector<T>>;
-  using type = Vector<T>;
-
-public:
-  constexpr VectorProxy(T * data, UInt n) : parent(data, n, 0, 0) {}
-  template <class Other> explicit VectorProxy(Other & src) : parent(src) {}
-
-  /* ---------------------------------------------------------------------- */
-  template <class Other>
-  inline VectorProxy<T> & operator=(const Other & other) {
-    parent::operator=(other);
-    return *this;
-  }
-
-  // inline VectorProxy<T> & operator=(const VectorProxy && other) {
-  //   parent::operator=(other);
-  //   return *this;
-  // }
-
-  /* ------------------------------------------------------------------------ */
-  T & operator()(UInt index) { return this->values[index]; };
-  const T & operator()(UInt index) const { return this->values[index]; };
-};
-
-template <typename T> class MatrixProxy : public TensorProxy<T, 2, Matrix<T>> {
-  using parent = TensorProxy<T, 2, Matrix<T>>;
-  using type = Matrix<T>;
-
-public:
-  MatrixProxy(T * data, UInt m, UInt n) : parent(data, m, n, 0) {}
-  template <class Other> explicit MatrixProxy(Other & src) : parent(src) {}
-
-  /* ---------------------------------------------------------------------- */
-  template <class Other>
-  inline MatrixProxy<T> & operator=(const Other & other) {
-    parent::operator=(other);
-    return *this;
-  }
-};
-
-template <typename T>
-class Tensor3Proxy : public TensorProxy<T, 3, Tensor3<T>> {
-  using parent = TensorProxy<T, 3, Tensor3<T>>;
-  using type = Tensor3<T>;
-
-public:
-  Tensor3Proxy(const T * data, UInt m, UInt n, UInt k)
-      : parent(data, m, n, k) {}
-  Tensor3Proxy(const Tensor3Proxy & src) : parent(src) {}
-  Tensor3Proxy(const Tensor3<T> & src) : parent(src) {}
-
-  /* ---------------------------------------------------------------------- */
-  template <class Other>
-  inline Tensor3Proxy<T> & operator=(const Other & other) {
-    parent::operator=(other);
-    return *this;
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-/* Tensor base class                                                          */
-/* -------------------------------------------------------------------------- */
-template <typename T, UInt ndim, class RetType>
-class TensorStorage : public TensorTrait {
-public:
-  using value_type = T;
-
-  friend class Array<T>;
-
-protected:
-  template <class TensorType> void copySize(const TensorType & src) {
-    for (UInt d = 0; d < ndim; ++d)
-      this->n[d] = src.size(d);
-    this->_size = src.size();
-  }
-
-  TensorStorage() : values(nullptr) {
-    for (UInt d = 0; d < ndim; ++d)
-      this->n[d] = 0;
-    _size = 0;
-  }
-
-  TensorStorage(const TensorProxy<T, ndim, RetType> & proxy) {
-    this->copySize(proxy);
-    this->values = proxy.storage();
-    this->wrapped = true;
-  }
-
-public:
-  TensorStorage(const TensorStorage & src) = delete;
-
-  TensorStorage(const TensorStorage & src, bool deep_copy) : values(nullptr) {
-    if (deep_copy)
-      this->deepCopy(src);
-    else
-      this->shallowCopy(src);
-  }
-
-protected:
-  TensorStorage(UInt m, UInt n, UInt p, const T & def) {
-    static_assert(std::is_trivially_constructible<T>{},
-                  "Cannot create a tensor on non trivial types");
-    DimHelper<ndim>::setDims(m, n, p, this->n);
-
-    this->computeSize();
-    this->values = new T[this->_size];
-    this->set(def);
-    this->wrapped = false;
-  }
-
-  TensorStorage(T * data, UInt m, UInt n, UInt p) {
-    DimHelper<ndim>::setDims(m, n, p, this->n);
-
-    this->computeSize();
-    this->values = data;
-    this->wrapped = true;
-  }
-
-public:
-  /* ------------------------------------------------------------------------ */
-  template <class TensorType> inline void shallowCopy(const TensorType & src) {
-    this->copySize(src);
-    if (!this->wrapped)
-      delete[] this->values;
-    this->values = src.storage();
-    this->wrapped = true;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <class TensorType> inline void deepCopy(const TensorType & src) {
-    this->copySize(src);
-
-    if (!this->wrapped)
-      delete[] this->values;
-
-    static_assert(std::is_trivially_constructible<T>{},
-                  "Cannot create a tensor on non trivial types");
-    this->values = new T[this->_size];
-
-    static_assert(std::is_trivially_copyable<T>{},
-                  "Cannot copy a tensor on non trivial types");
-    memcpy((void *)this->values, (void *)src.storage(),
-           this->_size * sizeof(T));
-
-    this->wrapped = false;
-  }
-
-  virtual ~TensorStorage() {
-    if (!this->wrapped)
-      delete[] this->values;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline TensorStorage & operator=(const TensorStorage & src) {
-    return this->operator=(aka::as_type<RetType>(src));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline TensorStorage & operator=(const RetType & src) {
-    if (this != &src) {
-      if (this->wrapped) {
-        static_assert(std::is_trivially_copyable<T>{},
-                      "Cannot copy a tensor on non trivial types");
-        // this test is not sufficient for Tensor of order higher than 1
-        AKANTU_DEBUG_ASSERT(this->_size == src.size(),
-                            "Tensors of different size ("
-                                << this->_size << " != " << src.size() << ")");
-        memcpy((void *)this->values, (void *)src.storage(),
-               this->_size * sizeof(T));
-      } else {
-        deepCopy(src);
-      }
-    }
-    return *this;
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <class R>
-  inline RetType & operator+=(const TensorStorage<T, ndim, R> & other) {
-    T * a = this->storage();
-    T * b = other.storage();
-    AKANTU_DEBUG_ASSERT(
-        _size == other.size(),
-        "The two tensors do not have the same size, they cannot be subtracted");
-    for (UInt i = 0; i < _size; ++i)
-      *(a++) += *(b++);
-    return *(static_cast<RetType *>(this));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  template <class R>
-  inline RetType & operator-=(const TensorStorage<T, ndim, R> & other) {
-    T * a = this->storage();
-    T * b = other.storage();
-    AKANTU_DEBUG_ASSERT(
-        _size == other.size(),
-        "The two tensors do not have the same size, they cannot be subtracted");
-    for (UInt i = 0; i < _size; ++i)
-      *(a++) -= *(b++);
-    return *(static_cast<RetType *>(this));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline RetType & operator+=(const T & x) {
-    T * a = this->values;
-    for (UInt i = 0; i < _size; ++i)
-      *(a++) += x;
-    return *(static_cast<RetType *>(this));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline RetType & operator-=(const T & x) {
-    T * a = this->values;
-    for (UInt i = 0; i < _size; ++i)
-      *(a++) -= x;
-    return *(static_cast<RetType *>(this));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  inline RetType & operator*=(const T & x) {
-    T * a = this->storage();
-    for (UInt i = 0; i < _size; ++i)
-      *(a++) *= x;
-    return *(static_cast<RetType *>(this));
-  }
-
-  /* ---------------------------------------------------------------------- */
-  inline RetType & operator/=(const T & x) {
-    T * a = this->values;
-    for (UInt i = 0; i < _size; ++i)
-      *(a++) /= x;
-    return *(static_cast<RetType *>(this));
-  }
-
-  /// Y = \alpha X + Y
-  inline RetType & aXplusY(const TensorStorage & other, const T & alpha = 1.) {
-    AKANTU_DEBUG_ASSERT(
-        _size == other.size(),
-        "The two tensors do not have the same size, they cannot be subtracted");
-
-    Math::aXplusY(this->_size, alpha, other.storage(), this->storage());
-    return *(static_cast<RetType *>(this));
-  }
-
-  /* ------------------------------------------------------------------------ */
-  T * storage() const { return values; }
-  UInt size() const { return _size; }
-  UInt size(UInt i) const {
-    AKANTU_DEBUG_ASSERT(i < ndim, "This tensor has only " << ndim
-                                                          << " dimensions, not "
-                                                          << (i + 1));
-    return n[i];
-  };
-  /* ------------------------------------------------------------------------ */
-  inline void clear() { memset(values, 0, _size * sizeof(T)); };
-  inline void set(const T & t) { std::fill_n(values, _size, t); };
-
-  template <class TensorType> inline void copy(const TensorType & other) {
-    AKANTU_DEBUG_ASSERT(
-        _size == other.size(),
-        "The two tensors do not have the same size, they cannot be copied");
-    memcpy(values, other.storage(), _size * sizeof(T));
-  }
-
-  bool isWrapped() const { return this->wrapped; }
-
-protected:
-  inline void computeSize() {
-    _size = 1;
-    for (UInt d = 0; d < ndim; ++d)
-      _size *= this->n[d];
-  }
-
-protected:
-  template <typename R, NormType norm_type> struct NormHelper {
-    template <class Ten> static R norm(const Ten & ten) {
-      R _norm = 0.;
-      R * it = ten.storage();
-      R * end = ten.storage() + ten.size();
-      for (; it < end; ++it)
-        _norm += std::pow(std::abs(*it), norm_type);
-      return std::pow(_norm, 1. / norm_type);
-    }
-  };
-
-  template <typename R> struct NormHelper<R, L_1> {
-    template <class Ten> static R norm(const Ten & ten) {
-      R _norm = 0.;
-      R * it = ten.storage();
-      R * end = ten.storage() + ten.size();
-      for (; it < end; ++it)
-        _norm += std::abs(*it);
-      return _norm;
-    }
-  };
-
-  template <typename R> struct NormHelper<R, L_2> {
-    template <class Ten> static R norm(const Ten & ten) {
-      R _norm = 0.;
-      R * it = ten.storage();
-      R * end = ten.storage() + ten.size();
-      for (; it < end; ++it)
-        _norm += *it * *it;
-      return sqrt(_norm);
-    }
-  };
-
-  template <typename R> struct NormHelper<R, L_inf> {
-    template <class Ten> static R norm(const Ten & ten) {
-      R _norm = 0.;
-      R * it = ten.storage();
-      R * end = ten.storage() + ten.size();
-      for (; it < end; ++it)
-        _norm = std::max(std::abs(*it), _norm);
-      return _norm;
-    }
-  };
-
-public:
-  /*----------------------------------------------------------------------- */
-  /// "Entrywise" norm norm<L_p> @f[ \|\boldsymbol{T}\|_p = \left(
-  /// \sum_i^{n[0]}\sum_j^{n[1]}\sum_k^{n[2]} |T_{ijk}|^p \right)^{\frac{1}{p}}
-  /// @f]
-  template <NormType norm_type> inline T norm() const {
-    return NormHelper<T, norm_type>::norm(*this);
-  }
-
-protected:
-  UInt n[ndim];
-  UInt _size;
-  T * values;
-  bool wrapped{false};
-};
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
@@ -581,6 +163,458 @@ namespace types {
     };
   } // namespace details
 } // namespace types
+
+/**
+ * @class TensorProxy aka_types.hh
+ * The TensorProxy class is a proxy class to the
+ * TensorStorage it handles the wrapped case. That is to say if an accessor
+ * should give access to a Tensor wrapped on some data, like the
+ * Array<T>::iterator they can return a TensorProxy that will be automatically
+ * transformed as a TensorStorage wrapped on the same data
+ * @tparam T stored type
+ * @tparam ndim order of the tensor
+ * @tparam _RetType real derived type
+ */
+template <typename T, UInt ndim, class RetType_>
+class TensorProxy : public TensorProxyTrait {
+protected:
+  using RetTypeProxy = typename RetType_::proxy;
+
+  constexpr TensorProxy(T * data, UInt m, UInt n, UInt p) {
+    DimHelper<ndim>::setDims(m, n, p, this->n);
+    this->values = data;
+  }
+
+  template <class Other, typename = std::enable_if_t<
+                             tensors::is_copyable<TensorProxy, Other>::value>>
+  explicit TensorProxy(const Other & other) {
+    this->values = other.storage();
+    for (UInt i = 0; i < ndim; ++i) {
+      this->n[i] = other.size(i);
+    }
+  }
+
+public:
+  using RetType = RetType_;
+
+  UInt size(UInt i) const {
+    AKANTU_DEBUG_ASSERT(i < ndim, "This tensor has only " << ndim
+                                                          << " dimensions, not "
+                                                          << (i + 1));
+    return n[i];
+  }
+
+  inline UInt size() const {
+    UInt _size = 1;
+    for (UInt d = 0; d < ndim; ++d) {
+      _size *= this->n[d];
+    }
+    return _size;
+  }
+
+  T * storage() const { return values; }
+
+  template <class Other, typename = std::enable_if_t<
+                             tensors::is_copyable<TensorProxy, Other>::value>>
+  inline TensorProxy & operator=(const Other & other) {
+    AKANTU_DEBUG_ASSERT(
+        other.size() == this->size(),
+        "You are trying to copy two tensors with different sizes");
+    std::copy_n(other.storage(), this->size(), this->values);
+    return *this;
+  }
+  // template <class Other, typename = std::enable_if_t<
+  //                          tensors::is_copyable<TensorProxy, Other>::value>>
+  // inline TensorProxy & operator=(const Other && other) {
+  //   AKANTU_DEBUG_ASSERT(
+  //       other.size() == this->size(),
+  //       "You are trying to copy two tensors with different sizes");
+  //   memcpy(this->values, other.storage(), this->size() * sizeof(T));
+  //   return *this;
+  // }
+
+  template <typename O> inline RetTypeProxy & operator*=(const O & o) {
+    RetType(*this) *= o;
+    return static_cast<RetTypeProxy &>(*this);
+  }
+
+  template <typename O> inline RetTypeProxy & operator/=(const O & o) {
+    RetType(*this) /= o;
+    return static_cast<RetTypeProxy &>(*this);
+  }
+
+protected:
+  T * values;
+  std::array<UInt, ndim> n;
+};
+
+/* -------------------------------------------------------------------------- */
+template <typename T> class VectorProxy : public TensorProxy<T, 1, Vector<T>> {
+  using parent = TensorProxy<T, 1, Vector<T>>;
+  using type = Vector<T>;
+
+public:
+  constexpr VectorProxy(T * data, UInt n) : parent(data, n, 0, 0) {}
+  template <class Other> explicit VectorProxy(Other & src) : parent(src) {}
+
+  /* ---------------------------------------------------------------------- */
+  template <class Other>
+  inline VectorProxy<T> & operator=(const Other & other) {
+    parent::operator=(other);
+    return *this;
+  }
+
+  // inline VectorProxy<T> & operator=(const VectorProxy && other) {
+  //   parent::operator=(other);
+  //   return *this;
+  // }
+  using iterator = types::details::vector_iterator<T &>;
+  using const_iterator = types::details::vector_iterator<const T &>;
+
+  iterator begin() { return iterator(this->storage()); }
+  iterator end() { return iterator(this->storage() + this->size()); }
+
+  const_iterator begin() const { return const_iterator(this->storage()); }
+  const_iterator end() const {
+    return const_iterator(this->storage() + this->size());
+  }
+
+  /* ------------------------------------------------------------------------ */
+  T & operator()(UInt index) { return this->values[index]; };
+  const T & operator()(UInt index) const { return this->values[index]; };
+};
+
+template <typename T> class MatrixProxy : public TensorProxy<T, 2, Matrix<T>> {
+  using parent = TensorProxy<T, 2, Matrix<T>>;
+  using type = Matrix<T>;
+
+public:
+  MatrixProxy(T * data, UInt m, UInt n) : parent(data, m, n, 0) {}
+  template <class Other> explicit MatrixProxy(Other & src) : parent(src) {}
+
+  /* ---------------------------------------------------------------------- */
+  template <class Other>
+  inline MatrixProxy<T> & operator=(const Other & other) {
+    parent::operator=(other);
+    return *this;
+  }
+};
+
+template <typename T>
+class Tensor3Proxy : public TensorProxy<T, 3, Tensor3<T>> {
+  using parent = TensorProxy<T, 3, Tensor3<T>>;
+  using type = Tensor3<T>;
+
+public:
+  Tensor3Proxy(const T * data, UInt m, UInt n, UInt k)
+      : parent(data, m, n, k) {}
+  Tensor3Proxy(const Tensor3Proxy & src) : parent(src) {}
+  Tensor3Proxy(const Tensor3<T> & src) : parent(src) {}
+
+  /* ---------------------------------------------------------------------- */
+  template <class Other>
+  inline Tensor3Proxy<T> & operator=(const Other & other) {
+    parent::operator=(other);
+    return *this;
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+/* Tensor base class                                                          */
+/* -------------------------------------------------------------------------- */
+template <typename T, UInt ndim, class RetType>
+class TensorStorage : public TensorTrait {
+public:
+  using value_type = T;
+
+  friend class Array<T>;
+
+protected:
+  template <class TensorType> void copySize(const TensorType & src) {
+    for (UInt d = 0; d < ndim; ++d) {
+      this->n[d] = src.size(d); // NOLINT
+    }
+    this->_size = src.size();
+  }
+
+  TensorStorage() = default;
+  TensorStorage(const TensorProxy<T, ndim, RetType> & proxy) {
+    this->copySize(proxy);
+    this->values = proxy.storage();
+    this->wrapped = true;
+  }
+
+public:
+  TensorStorage(const TensorStorage & src) = delete;
+
+  TensorStorage(const TensorStorage & src, bool deep_copy) : values(nullptr) {
+    if (deep_copy) {
+      this->deepCopy(src);
+    } else {
+      this->shallowCopy(src);
+    }
+  }
+
+protected:
+  TensorStorage(UInt m, UInt n, UInt p, const T & def) {
+    static_assert(std::is_trivially_constructible<T>{},
+                  "Cannot create a tensor on non trivial types");
+    DimHelper<ndim>::setDims(m, n, p, this->n);
+
+    this->computeSize();
+    this->values = new T[this->_size]; // NOLINT
+    this->set(def);
+    this->wrapped = false;
+  }
+
+  TensorStorage(T * data, UInt m, UInt n, UInt p) {
+    DimHelper<ndim>::setDims(m, n, p, this->n);
+
+    this->computeSize();
+    this->values = data;
+    this->wrapped = true;
+  }
+
+public:
+  /* ------------------------------------------------------------------------ */
+  template <class TensorType> inline void shallowCopy(const TensorType & src) {
+    this->copySize(src);
+    if (!this->wrapped) {
+      delete[] this->values;
+    }
+    this->values = src.storage();
+    this->wrapped = true;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <class TensorType> inline void deepCopy(const TensorType & src) {
+    this->copySize(src);
+
+    if (!this->wrapped) {
+      delete[] this->values;
+    }
+
+    static_assert(std::is_trivially_constructible<T>{},
+                  "Cannot create a tensor on non trivial types");
+    this->values = new T[this->_size]; // NOLINT
+
+    static_assert(std::is_trivially_copyable<T>{},
+                  "Cannot copy a tensor on non trivial types");
+    std::copy_n(src.storage(), this->_size, this->values);
+
+    this->wrapped = false;
+  }
+
+  virtual ~TensorStorage() {
+    if (!this->wrapped) {
+      delete[] this->values;
+    }
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline TensorStorage & operator=(const TensorStorage & other) {
+    if (this == &other) {
+      return *this;
+    }
+    this->operator=(aka::as_type<RetType>(other));
+    return *this;
+  }
+
+  // inline TensorStorage & operator=(TensorStorage && other) noexcept {
+  //   std::swap(n, other.n);
+  //   std::swap(_size, other._size);
+  //   std::swap(values, other.values);
+  //   std::swap(wrapped, other.wrapped);
+  //   return *this;
+  // }
+
+  /* ------------------------------------------------------------------------ */
+  inline TensorStorage & operator=(const RetType & src) {
+    if (this != &src) {
+      if (this->wrapped) {
+        static_assert(std::is_trivially_copyable<T>{},
+                      "Cannot copy a tensor on non trivial types");
+        // this test is not sufficient for Tensor of order higher than 1
+        AKANTU_DEBUG_ASSERT(this->_size == src.size(),
+                            "Tensors of different size ("
+                                << this->_size << " != " << src.size() << ")");
+        std::copy_n(src.storage(), this->_size, this->values);
+      } else {
+        deepCopy(src);
+      }
+    }
+    return *this;
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <class R>
+  inline RetType & operator+=(const TensorStorage<T, ndim, R> & other) {
+    T * a = this->storage();
+    T * b = other.storage();
+    AKANTU_DEBUG_ASSERT(
+        _size == other.size(),
+        "The two tensors do not have the same size, they cannot be subtracted");
+    for (UInt i = 0; i < _size; ++i) {
+      *(a++) += *(b++);
+    }
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ------------------------------------------------------------------------ */
+  template <class R>
+  inline RetType & operator-=(const TensorStorage<T, ndim, R> & other) {
+    T * a = this->storage();
+    T * b = other.storage();
+    AKANTU_DEBUG_ASSERT(
+        _size == other.size(),
+        "The two tensors do not have the same size, they cannot be subtracted");
+    for (UInt i = 0; i < _size; ++i) {
+      *(a++) -= *(b++);
+    }
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline RetType & operator+=(const T & x) {
+    T * a = this->values;
+    for (UInt i = 0; i < _size; ++i) {
+      *(a++) += x;
+    }
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline RetType & operator-=(const T & x) {
+    T * a = this->values;
+    for (UInt i = 0; i < _size; ++i) {
+      *(a++) -= x;
+    }
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ------------------------------------------------------------------------ */
+  inline RetType & operator*=(const T & x) {
+    T * a = this->storage();
+    for (UInt i = 0; i < _size; ++i) {
+      *(a++) *= x;
+    }
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ---------------------------------------------------------------------- */
+  inline RetType & operator/=(const T & x) {
+    T * a = this->values;
+    for (UInt i = 0; i < _size; ++i) {
+      *(a++) /= x;
+    }
+    return *(static_cast<RetType *>(this));
+  }
+
+  /// \f[Y = \alpha X + Y\f]
+  inline RetType & aXplusY(const TensorStorage & other, const T & alpha = 1.) {
+    AKANTU_DEBUG_ASSERT(
+        _size == other.size(),
+        "The two tensors do not have the same size, they cannot be subtracted");
+
+    Math::aXplusY(this->_size, alpha, other.storage(), this->storage());
+    return *(static_cast<RetType *>(this));
+  }
+
+  /* ------------------------------------------------------------------------ */
+  T * storage() const { return values; }
+  UInt size() const { return _size; }
+  UInt size(UInt i) const {
+    AKANTU_DEBUG_ASSERT(i < ndim, "This tensor has only " << ndim
+                                                          << " dimensions, not "
+                                                          << (i + 1));
+    return n[i];
+  };
+  /* ------------------------------------------------------------------------ */
+  inline void set(const T & t) { std::fill_n(values, _size, t); };
+  inline void zero() { this->set(0.); };
+
+  template <class TensorType> inline void copy(const TensorType & other) {
+    AKANTU_DEBUG_ASSERT(
+        _size == other.size(),
+        "The two tensors do not have the same size, they cannot be copied");
+    std::copy_n(other.storage(), _size, values);
+  }
+
+  bool isWrapped() const { return this->wrapped; }
+
+protected:
+  inline void computeSize() {
+    _size = 1;
+    for (UInt d = 0; d < ndim; ++d) {
+      _size *= this->n[d];
+    }
+  }
+
+protected:
+  template <typename R, NormType norm_type> struct NormHelper {
+    template <class Ten> static R norm(const Ten & ten) {
+      R _norm = 0.;
+      R * it = ten.storage();
+      R * end = ten.storage() + ten.size();
+      for (; it < end; ++it) {
+        _norm += std::pow(std::abs(*it), norm_type);
+      }
+      return std::pow(_norm, 1. / norm_type);
+    }
+  }; // namespace akantu
+
+  template <typename R> struct NormHelper<R, L_1> {
+    template <class Ten> static R norm(const Ten & ten) {
+      R _norm = 0.;
+      R * it = ten.storage();
+      R * end = ten.storage() + ten.size();
+      for (; it < end; ++it) {
+        _norm += std::abs(*it);
+      }
+      return _norm;
+    }
+  };
+
+  template <typename R> struct NormHelper<R, L_2> {
+    template <class Ten> static R norm(const Ten & ten) {
+      R _norm = 0.;
+      R * it = ten.storage();
+      R * end = ten.storage() + ten.size();
+      for (; it < end; ++it) {
+        _norm += *it * *it;
+      }
+      return sqrt(_norm);
+    }
+  };
+
+  template <typename R> struct NormHelper<R, L_inf> {
+    template <class Ten> static R norm(const Ten & ten) {
+      R _norm = 0.;
+      R * it = ten.storage();
+      R * end = ten.storage() + ten.size();
+      for (; it < end; ++it) {
+        _norm = std::max(std::abs(*it), _norm);
+      }
+      return _norm;
+    }
+  };
+
+public:
+  /*----------------------------------------------------------------------- */
+  /// "Entrywise" norm norm<L_p> @f[ \|\boldsymbol{T}\|_p = \left(
+  /// \sum_i^{n[0]}\sum_j^{n[1]}\sum_k^{n[2]} |T_{ijk}|^p \right)^{\frac{1}{p}}
+  /// @f]
+  template <NormType norm_type> inline T norm() const {
+    return NormHelper<T, norm_type>::norm(*this);
+  }
+
+protected:
+  std::array<UInt, ndim> n{};
+  UInt _size{0};
+  T * values{nullptr};
+  bool wrapped{false};
+};
+
 /* -------------------------------------------------------------------------- */
 /* Vector                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -626,6 +660,8 @@ public:
     return *this;
   }
 
+  inline Vector & operator=(Vector && src) noexcept = default;
+
   /* ------------------------------------------------------------------------ */
   inline T & operator()(UInt i) {
     AKANTU_DEBUG_ASSERT((i < this->n[0]),
@@ -657,8 +693,9 @@ public:
                         "The vectors have non matching sizes");
     T * a = this->storage();
     T * b = vect.storage();
-    for (UInt i = 0; i < this->_size; ++i)
+    for (UInt i = 0; i < this->_size; ++i) {
       *(a++) *= *(b++);
+    }
     return *this;
   }
 
@@ -671,8 +708,9 @@ public:
   inline Real mean() const {
     Real mean = 0;
     T * a = this->storage();
-    for (UInt i = 0; i < this->_size; ++i)
+    for (UInt i = 0; i < this->_size; ++i) {
       mean += *(a++);
+    }
     return mean / this->_size;
   }
 
@@ -707,7 +745,7 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <bool tr_A>
-  inline void mul(const Matrix<T> & A, const Vector<T> & x, Real alpha = 1.0);
+  inline void mul(const Matrix<T> & A, const Vector<T> & x, T alpha = T(1));
   /* ------------------------------------------------------------------------ */
   inline Real norm() const { return parent::template norm<L_2>(); }
 
@@ -728,8 +766,9 @@ public:
     Real * vx = this->values;
     Real * vy = y.storage();
     Real sum_2 = 0;
-    for (UInt i = 0; i < this->_size; ++i, ++vx, ++vy)
+    for (UInt i = 0; i < this->_size; ++i, ++vx, ++vy) { // NOLINT
       sum_2 += (*vx - *vy) * (*vx - *vy);
+    }
     return sqrt(sum_2);
   }
 
@@ -739,8 +778,9 @@ public:
     T * a = this->storage();
     T * b = v.storage();
     UInt i = 0;
-    while (i < this->_size && (std::abs(*(a++) - *(b++)) < tolerance))
+    while (i < this->_size && (std::abs(*(a++) - *(b++)) < tolerance)) {
       ++i;
+    }
     return i == this->_size;
   }
 
@@ -750,8 +790,9 @@ public:
     T * a = this->storage();
     T * b = v.storage();
     for (UInt i(0); i < this->_size; ++i, ++a, ++b) {
-      if (std::abs(*a - *b) > tolerance)
+      if (std::abs(*a - *b) > tolerance) {
         return (((*a - *b) > tolerance) ? 1 : -1);
+      }
     }
     return 0;
   }
@@ -791,13 +832,15 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
     std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
       ;
+    }
 
     stream << "[";
     for (UInt i = 0; i < this->_size; ++i) {
-      if (i != 0)
+      if (i != 0) {
         stream << ", ";
+      }
       stream << this->values[i];
     }
     stream << "]";
@@ -820,8 +863,9 @@ inline bool Vector<UInt>::equal(const Vector<UInt> & v,
   UInt * a = this->storage();
   UInt * b = v.storage();
   UInt i = 0;
-  while (i < this->_size && (*(a++) == *(b++)))
+  while (i < this->_size && (*(a++) == *(b++))) {
     ++i;
+  }
   return i == this->_size;
 }
 
@@ -894,7 +938,8 @@ public:
     this->values = new T[this->_size];
     this->set(0);
 
-    UInt i = 0, j = 0;
+    UInt i{0};
+    UInt j{0};
     for (auto & row : list) {
       for (auto & val : row) {
         at(i, j++) = val;
@@ -910,6 +955,8 @@ public:
     parent::operator=(src);
     return *this;
   }
+
+  inline Matrix & operator=(Matrix && src) noexcept = default;
 
 public:
   /* ---------------------------------------------------------------------- */
@@ -949,7 +996,7 @@ public:
     return VectorProxy<T>(this->values + j * this->n[0], this->n[0]);
   }
 
-  inline const VectorProxy<T> operator()(UInt j) const {
+  inline VectorProxy<T> operator()(UInt j) const {
     AKANTU_DEBUG_ASSERT(j < this->n[1],
                         "Access out of the matrix! "
                             << "You are trying to access the column vector "
@@ -980,9 +1027,11 @@ public:
                         "The block size or position are not correct");
     AKANTU_DEBUG_ASSERT(pos_i + block.cols() <= cols(),
                         "The block size or position are not correct");
-    for (UInt i = 0; i < block.rows(); ++i)
-      for (UInt j = 0; j < block.cols(); ++j)
+    for (UInt i = 0; i < block.rows(); ++i) {
+      for (UInt j = 0; j < block.cols(); ++j) {
         this->at(i + pos_i, j + pos_j) = block(i, j);
+      }
+    }
   }
 
   inline Matrix block(UInt pos_i, UInt pos_j, UInt block_rows,
@@ -992,9 +1041,11 @@ public:
     AKANTU_DEBUG_ASSERT(pos_i + block_cols <= cols(),
                         "The block size or position are not correct");
     Matrix block(block_rows, block_cols);
-    for (UInt i = 0; i < block_rows; ++i)
-      for (UInt j = 0; j < block_cols; ++j)
+    for (UInt i = 0; i < block_rows; ++i) {
+      for (UInt j = 0; j < block_cols; ++j) {
         block(i, j) = this->at(i + pos_i, j + pos_j);
+      }
+    }
     return block;
   }
 
@@ -1002,7 +1053,7 @@ public:
   inline const T & operator[](UInt idx) const { return *(this->values + idx); };
 
   /* ---------------------------------------------------------------------- */
-  inline Matrix operator*(const Matrix & B) {
+  inline Matrix operator*(const Matrix & B) const {
     Matrix C(this->rows(), B.cols());
     C.mul<false, false>(*this, B);
     return C;
@@ -1021,8 +1072,9 @@ public:
   template <bool tr_A, bool tr_B>
   inline void mul(const Matrix & A, const Matrix & B, T alpha = 1.0) {
     UInt k = A.cols();
-    if (tr_A)
+    if (tr_A) {
       k = A.rows();
+    }
 
 #ifndef AKANTU_NDEBUG
     if (tr_B) {
@@ -1084,11 +1136,12 @@ public:
                         "eigenvalues should be of size " << this->cols()
                                                          << ".");
 #ifndef AKANTU_NDEBUG
-    if (eigenvectors.storage() != nullptr)
+    if (eigenvectors.storage() != nullptr) {
       AKANTU_DEBUG_ASSERT((eigenvectors.rows() == eigenvectors.cols()) &&
                               (eigenvectors.rows() == this->cols()),
                           "Eigenvectors needs to be a square matrix of size "
                               << this->cols() << " x " << this->cols() << ".");
+    }
 #endif
 
     Matrix<T> tmp = *this;
@@ -1139,7 +1192,7 @@ public:
   inline void eye(T alpha = 1.) {
     AKANTU_DEBUG_ASSERT(this->cols() == this->rows(),
                         "eye is not a valid operation on a rectangular matrix");
-    this->clear();
+    this->zero();
     for (UInt i = 0; i < this->cols(); ++i) {
       this->values[i + i * this->rows()] = alpha;
     }
@@ -1182,14 +1235,15 @@ public:
     AKANTU_DEBUG_ASSERT(this->cols() == A.cols(),
                         "the matrix should have the same size as its inverse");
 
-    if (this->cols() == 1)
+    if (this->cols() == 1) {
       *this->values = 1. / *A.storage();
-    else if (this->cols() == 2)
+    } else if (this->cols() == 2) {
       Math::inv2(A.storage(), this->values);
-    else if (this->cols() == 3)
+    } else if (this->cols() == 3) {
       Math::inv3(A.storage(), this->values);
-    else
+    } else {
       Math::inv(this->cols(), A.storage(), this->values);
+    }
   }
 
   inline Matrix inverse() {
@@ -1202,14 +1256,16 @@ public:
   inline T det() const {
     AKANTU_DEBUG_ASSERT(this->cols() == this->rows(),
                         "inv is not a valid operation on a rectangular matrix");
-    if (this->cols() == 1)
+    if (this->cols() == 1) {
       return *(this->values);
-    else if (this->cols() == 2)
+    }
+    if (this->cols() == 2) {
       return Math::det2(this->values);
-    else if (this->cols() == 3)
+    }
+    if (this->cols() == 3) {
       return Math::det3(this->values);
-    else
-      return Math::det(this->cols(), this->values);
+    }
+    return Math::det(this->cols(), this->values);
   }
 
   /* --------------------------------------------------------------------- */
@@ -1217,33 +1273,38 @@ public:
     AKANTU_DEBUG_ASSERT(
         this->cols() == this->rows(),
         "doubleDot is not a valid operation on a rectangular matrix");
-    if (this->cols() == 1)
+    if (this->cols() == 1) {
       return *(this->values) * *(other.storage());
-    else if (this->cols() == 2)
+    }
+    if (this->cols() == 2) {
       return Math::matrixDoubleDot22(this->values, other.storage());
-    else if (this->cols() == 3)
+    }
+    if (this->cols() == 3) {
       return Math::matrixDoubleDot33(this->values, other.storage());
-    else
-      AKANTU_ERROR("doubleDot is not defined for other spatial dimensions"
-                   << " than 1, 2 or 3.");
-    return T();
+    }
+
+    AKANTU_ERROR("doubleDot is not defined for other spatial dimensions"
+                 << " than 1, 2 or 3.");
   }
 
   /* ---------------------------------------------------------------------- */
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
     std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
       ;
+    }
 
     stream << "[";
     for (UInt i = 0; i < this->n[0]; ++i) {
-      if (i != 0)
+      if (i != 0) {
         stream << ", ";
+      }
       stream << "[";
       for (UInt j = 0; j < this->n[1]; ++j) {
-        if (j != 0)
+        if (j != 0) {
           stream << ", ";
+        }
         stream << operator()(i, j);
       }
       stream << "]";
@@ -1255,8 +1316,7 @@ public:
 /* ------------------------------------------------------------------------ */
 template <typename T>
 template <bool tr_A>
-inline void Vector<T>::mul(const Matrix<T> & A, const Vector<T> & x,
-                           Real alpha) {
+inline void Vector<T>::mul(const Matrix<T> & A, const Vector<T> & x, T alpha) {
 #ifndef AKANTU_NDEBUG
   UInt n = x.size();
   if (tr_A) {
@@ -1354,7 +1414,7 @@ public:
                           this->n[0], this->n[1]);
   }
 
-  inline const MatrixProxy<T> operator()(UInt k) const {
+  inline MatrixProxy<T> operator()(UInt k) const {
     AKANTU_DEBUG_ASSERT((k < this->n[2]),
                         "Access out of the tensor3! "
                             << "You are trying to access the slice " << k
@@ -1369,7 +1429,7 @@ public:
                           this->n[0], this->n[1]);
   }
 
-  inline const MatrixProxy<T> operator[](UInt k) const {
+  inline MatrixProxy<T> operator[](UInt k) const {
     return MatrixProxy<T>(this->values + k * this->n[0] * this->n[1],
                           this->n[0], this->n[1]);
   }
@@ -1499,4 +1559,4 @@ public:
 
 } // namespace std
 
-#endif /* __AKANTU_AKA_TYPES_HH__ */
+#endif /* AKANTU_AKA_TYPES_HH_ */

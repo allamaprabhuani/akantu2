@@ -28,11 +28,8 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-package_is_activated(python_interface _python_act)
-if(_python_act)
-  akantu_pybind11_add_module(py11_akantu_test_common MODULE test_common.cc)
-  target_link_libraries(py11_akantu_test_common PRIVATE pyakantu)
-endif()
+
+akantu_pybind11_add_module(py11_akantu_test_common MODULE test_common.cc)
 
 add_mesh(mesh_dcb_2d mesh_dcb_2d.geo 2 2)
 

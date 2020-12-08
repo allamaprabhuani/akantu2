@@ -8,7 +8,6 @@
  *
  * @brief  Test the mesh distribution on creation of a distributed synchonizer
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -43,7 +42,7 @@ TEST_F(TestSynchronizerFixture, DataDistribution) {
   auto & gids = this->mesh->getNodalData<UInt>("gid");
   gids.resize(this->mesh->getNbNodes());
 
-  for(auto && data : enumerate(gids)) {
+  for (auto && data : enumerate(gids)) {
     std::get<1>(data) = std::get<0>(data);
   }
 
@@ -68,7 +67,7 @@ TEST_F(TestSynchronizerFixture, DataDistribution) {
   }
 
   if (psize > 1) {
-    for(auto && data : zip(gids, this->mesh->getGlobalNodesIds())) {
+    for (auto && data : zip(gids, this->mesh->getGlobalNodesIds())) {
       EXPECT_EQ(std::get<0>(data), std::get<1>(data));
     }
   }

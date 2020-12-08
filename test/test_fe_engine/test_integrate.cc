@@ -10,7 +10,6 @@
  *
  * @brief  test of the fem class
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -71,4 +70,3 @@ TYPED_TEST(TestFEMFixture, IntegrateConstant) {
   auto diff = (value - sum).template norm<L_inf>();
   EXPECT_NEAR(0, diff, 1e-14);
 }
-

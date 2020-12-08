@@ -8,7 +8,6 @@
  *
  * @brief  Test to build fragments in parallel
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -365,7 +364,7 @@ void displaceElements(SolidMechanicsModelCohesive & model, const Real lim,
   Mesh & mesh = model.getMesh();
   UInt nb_nodes = mesh.getNbNodes();
   Array<bool> displaced(nb_nodes);
-  displaced.clear();
+  displaced.zero();
   Vector<Real> barycenter(spatial_dimension);
 
   for (ghost_type_t::iterator gt = ghost_type_t::begin();

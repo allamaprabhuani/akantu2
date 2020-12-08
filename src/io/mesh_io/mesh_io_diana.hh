@@ -11,7 +11,6 @@
  *
  * @brief  diana mesh reader description
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_IO_DIANA_HH__
-#define __AKANTU_MESH_IO_DIANA_HH__
+#ifndef AKANTU_MESH_IO_DIANA_HH_
+#define AKANTU_MESH_IO_DIANA_HH_
 
 /* -------------------------------------------------------------------------- */
 #include "mesh_io.hh"
@@ -103,6 +102,6 @@ private:
   std::map<Element, UInt> akantu_number_to_diana_number;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MESH_IO_DIANA_HH__ */
+#endif /* AKANTU_MESH_IO_DIANA_HH_ */

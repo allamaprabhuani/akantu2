@@ -8,7 +8,6 @@
  *
  * @brief  implementation of the Variable class
  *
- * @section LICENSE
  *
  * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,7 +31,7 @@
 #include "variable.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 /* -------------------------------------------------------------------------- */
 template <>
@@ -60,4 +59,4 @@ VarType Variable<Int>::getVarDataType(){
 
 /* -------------------------------------------------------------------------- */
 
-__END_IOHELPER__
+}

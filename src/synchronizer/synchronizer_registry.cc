@@ -9,7 +9,6 @@
  *
  * @brief  Registry of synchronizers
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -117,4 +116,4 @@ void SynchronizerRegistry::registerSynchronizer(Synchronizer & synchronizer,
   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu

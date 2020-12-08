@@ -7,7 +7,6 @@
  *
  * @brief test the dof managers
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,6 +26,8 @@
  *
  */
 /* -------------------------------------------------------------------------- */
+#include "test_gtest_utils.hh"
+/* -------------------------------------------------------------------------- */
 #include <dof_manager.hh>
 #include <mesh_partition_scotch.hh>
 #include <mesh_utils.hh>
@@ -37,8 +38,12 @@
 #include <string>
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
-
+namespace akantu {
 enum DOFManagerType { _dmt_default, _dmt_petsc };
+}
+AKANTU_ENUM_HASH(DOFManagerType)
+
+using namespace akantu;
 
 // defined as struct to get there names in gtest outputs
 struct _dof_manager_default
@@ -120,7 +125,7 @@ public:
 
   decltype(auto) alloc() {
     std::unordered_map<DOFManagerType, std::string> types{
-        {_dmt_default, "default"}, {_dmt_petsc, "petsc"}};
+      {_dmt_default, "default"}, {_dmt_petsc, "petsc"}};
 
     return DOFManagerTester(DOFManagerFactory::getInstance().allocate(
         types[T::value], *mesh, "dof_manager", 0));
@@ -155,7 +160,7 @@ protected:
 template <class T> constexpr DOFManagerType DOFManagerFixture<T>::type;
 template <class T> constexpr UInt DOFManagerFixture<T>::dim;
 
-TYPED_TEST_SUITE(DOFManagerFixture, dof_manager_types);
+TYPED_TEST_SUITE(DOFManagerFixture, dof_manager_types, );
 
 /* -------------------------------------------------------------------------- */
 TYPED_TEST(DOFManagerFixture, Construction) {
@@ -206,7 +211,7 @@ TYPED_TEST(DOFManagerFixture, RegisterMixedDOF) {
 TYPED_TEST(DOFManagerFixture, AssembleVector) {
   auto dof_manager = this->registerDOFs(_dst_nodal, _dst_generic);
 
-  dof_manager.residual().clear();
+  dof_manager.residual().zero();
 
   for (auto && data :
        enumerate(make_view(*this->dof1, this->dof1->getNbComponent()))) {
@@ -245,7 +250,7 @@ TYPED_TEST(DOFManagerFixture, AssembleMatrixNodal) {
   auto dof_manager = this->registerDOFs(_dst_nodal, _dst_nodal);
 
   auto && K = dof_manager->getNewMatrix("K", _symmetric);
-  K.clear();
+  K.zero();
 
   auto && elemental_matrix = std::make_unique<Array<Real>>(
       this->mesh->getNbElement(this->dim), 8 * 3 * 8 * 3);
@@ -270,11 +275,11 @@ TYPED_TEST(DOFManagerFixture, AssembleMatrixNodal) {
   CSR<Element> node_to_elem;
   MeshUtils::buildNode2Elements(*this->mesh, node_to_elem, this->dim);
 
-  dof_manager.residual().clear();
+  dof_manager.residual().zero();
 
   for (auto && data :
-           enumerate(zip(make_view(*this->dof1, this->dof1->getNbComponent()),
-                         make_view(*this->dof2, this->dof2->getNbComponent())))) {
+       enumerate(zip(make_view(*this->dof1, this->dof1->getNbComponent()),
+                     make_view(*this->dof2, this->dof2->getNbComponent())))) {
     auto n = std::get<0>(data);
     auto & l1 = std::get<0>(std::get<1>(data));
     auto & l2 = std::get<1>(std::get<1>(data));
@@ -285,11 +290,9 @@ TYPED_TEST(DOFManagerFixture, AssembleMatrixNodal) {
 
   dof_manager->assembleToResidual("dofs1", *this->dof1);
   dof_manager->assembleToResidual("dofs2", *this->dof2);
-  
-  
+
   for (auto && n : arange(this->nb_nodes)) {
     if (not this->mesh->isLocalOrMasterNode(n)) {
-      
     }
   }
 }

@@ -8,7 +8,6 @@
  *
  * @brief  Interface of the parameter registry
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PARAMETER_REGISTRY_HH__
-#define __AKANTU_PARAMETER_REGISTRY_HH__
+#ifndef AKANTU_PARAMETER_REGISTRY_HH_
+#define AKANTU_PARAMETER_REGISTRY_HH_
 
 namespace akantu {
 class ParserParameter;
@@ -121,12 +120,12 @@ private:
  */
 template <typename T> class ParameterTyped : public Parameter {
 public:
-  ParameterTyped(std::string name, std::string description,
+  ParameterTyped(const std::string & name, const std::string & description,
                  ParameterAccessType param_type, T & param);
 
   /* ------------------------------------------------------------------------ */
   template <typename V> void setTyped(const V & value);
-  void setAuto(const ParserParameter & param) override;
+  void setAuto(const ParserParameter & value) override;
   T & getTyped();
   const T & getTyped() const;
 
@@ -153,12 +152,12 @@ public:
   /* ------------------------------------------------------------------------ */
   /// Add parameter to the params map
   template <typename T>
-  void registerParam(std::string name, T & variable, ParameterAccessType type,
+  void registerParam(const std::string & name, T & variable, ParameterAccessType type,
                      const std::string & description = "");
 
   /// Add parameter to the params map (with default value)
   template <typename T>
-  void registerParam(std::string name, T & variable, const T & default_value,
+  void registerParam(const std::string &name, T & variable, const T & default_value,
                      ParameterAccessType type,
                      const std::string & description = "");
 
@@ -183,15 +182,17 @@ public:
 
   std::vector<ID> listParameters() const {
     std::vector<ID> params;
-    for (auto & pair : this->params)
+    for (const auto & pair : this->params) {
       params.push_back(pair.first);
+    }
     return params;
   }
 
   std::vector<ID> listSubRegisteries() const {
     std::vector<ID> subs;
-    for (auto & pair : this->sub_registries)
+    for (const auto & pair : this->sub_registries) {
       subs.push_back(pair.first);
+    }
     return subs;
   }
 
@@ -217,8 +218,8 @@ protected:
   bool consisder_sub{true};
 };
 
-} // akantu
+} // namespace akantu
 
 #include "parameter_registry_tmpl.hh"
 
-#endif /* __AKANTU_PARAMETER_REGISTRY_HH__ */
+#endif /* AKANTU_PARAMETER_REGISTRY_HH_ */

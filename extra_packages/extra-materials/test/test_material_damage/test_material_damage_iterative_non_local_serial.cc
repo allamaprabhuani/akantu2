@@ -5,7 +5,6 @@
  *
  * @brief  test the material damage iterative non local in serial
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -88,8 +87,8 @@ int main(int argc, char * argv[]) {
 
   /// solve the system
   converged =
-      model.solveStep<_scm_newton_raphson_tangent_modified, SolveConvergenceCriteria::_increment>(
-          1e-4, error, 2);
+      model.solveStep<_scm_newton_raphson_tangent_modified,
+                      SolveConvergenceCriteria::_increment>(1e-4, error, 2);
 
   if (converged == false) {
     std::cout << "The error is: " << error << std::endl;
@@ -137,7 +136,7 @@ int main(int argc, char * argv[]) {
   Array<Real>::const_matrix_iterator grad_u_end =
       grad_u.end(spatial_dimension, spatial_dimension);
   diff = 0.;
-  diff_matrix.clear();
+  diff_matrix.zero();
 
   UInt counter = 0;
   for (; grad_u_it != grad_u_end; ++grad_u_it) {
@@ -159,7 +158,7 @@ int main(int argc, char * argv[]) {
 
   /// check that the non-local grad_u
   diff = 0.;
-  diff_matrix.clear();
+  diff_matrix.zero();
   Real nl_radius = 1.0; /// same values as in material file
   grad_u_nl_it = grad_u_nl.begin(spatial_dimension, spatial_dimension);
   ElementTypeMapReal quad_coords("quad_coords");

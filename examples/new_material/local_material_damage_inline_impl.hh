@@ -1,5 +1,5 @@
 /**
- * @file   local_material_damage_inline_impl.cc
+ * @file   local_material_damage_inline_impl.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Marion Estelle Chambart <marion.chambart@epfl.ch>
@@ -10,7 +10,6 @@
  *
  * @brief  Implementation of the inline functions of the material damage
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH__
-#define __AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH__
+#ifndef AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH_
+#define AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH_
 
 namespace akantu {
 
@@ -86,6 +85,6 @@ inline Real LocalMaterialDamage::getCelerity(__attribute__((unused))
   return (std::sqrt((2 * mu + lambda) / rho));
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH__ */
+#endif /* AKANTU_LOCAL_MATERIAL_DAMAGE_INLINE_IMPL_HH_ */

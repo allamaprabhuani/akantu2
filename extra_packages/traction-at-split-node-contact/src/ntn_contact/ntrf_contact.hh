@@ -8,7 +8,6 @@
  *
  * @brief  contact for node to rigid flat interface
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AST_NTRF_CONTACT_HH__
-#define __AST_NTRF_CONTACT_HH__
+#ifndef AST_NTRF_CONTACT_HH_
+#define AST_NTRF_CONTACT_HH_
 
 /* -------------------------------------------------------------------------- */
 // simtools
@@ -112,7 +111,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "ntrf_contact_inline_impl.cc"
+//#include "ntrf_contact_inline_impl.hh"
 
 /// standard output stream operator
 inline std::ostream & operator<<(std::ostream & stream,
@@ -123,4 +122,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AST_NTRF_CONTACT_HH__ */
+#endif /* AST_NTRF_CONTACT_HH_ */

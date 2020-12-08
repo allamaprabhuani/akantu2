@@ -9,7 +9,6 @@
  *
  * @brief  Helper functions for the computational geometry algorithms
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef _AKANTU_GEOM_HELPER_FUNCTIONS_HH__
-#define _AKANTU_GEOM_HELPER_FUNCTIONS_HH__
+#ifndef AKANTU_GEOM_HELPER_FUNCTIONS_HH_
+#define AKANTU_GEOM_HELPER_FUNCTIONS_HH_
 
 #include "aka_common.hh"
 #include "aka_math.hh"
@@ -82,8 +81,10 @@ struct segmentPairsLess {
   inline bool
   operator()(const std::pair<cgal::Cartesian::Segment_3, UInt> & a,
              const std::pair<cgal::Cartesian::Segment_3, UInt> & b) {
-    return CGAL::compare_lexicographically(a.first.min(), b.first.min()) ||
-           CGAL::compare_lexicographically(a.first.max(), b.first.max());
+    return static_cast<bool>(
+               CGAL::compare_lexicographically(a.first.min(), b.first.min())) or
+           static_cast<bool>(
+               CGAL::compare_lexicographically(a.first.max(), b.first.max()));
   }
 };
 
@@ -107,6 +108,6 @@ protected:
   const cgal::Cartesian::Segment_3 segment;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif // _AKANTU_GEOM_HELPER_FUNCTIONS_HH__
+#endif // AKANTU_GEOM_HELPER_FUNCTIONS_HH_

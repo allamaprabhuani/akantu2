@@ -9,7 +9,6 @@
  *
  * @brief  Tools to implement the plane stress behavior in a material
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,13 +32,13 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PLANE_STRESS_TOOLBOX_HH__
-#define __AKANTU_PLANE_STRESS_TOOLBOX_HH__
+#ifndef AKANTU_PLANE_STRESS_TOOLBOX_HH_
+#define AKANTU_PLANE_STRESS_TOOLBOX_HH_
 
 namespace akantu {
 class SolidMechanicsModel;
 class FEEngine;
-} // akantu
+} // namespace akantu
 
 namespace akantu {
 
@@ -81,7 +80,8 @@ public:
     AKANTU_DEBUG_OUT();
   }
 
-  virtual void computeThirdAxisDeformation(ElementType, GhostType) {}
+  virtual void computeThirdAxisDeformation(ElementType /*unused*/,
+                                           GhostType /*unused*/) {}
 
 protected:
   bool initialize_third_axis_deformation{false};
@@ -100,4 +100,4 @@ AKANTU_PLANE_STRESS_TOOL_SPEC(3)
 
 #include "plane_stress_toolbox_tmpl.hh"
 
-#endif /* __AKANTU_PLANE_STRESS_TOOLBOX_HH__ */
+#endif /* AKANTU_PLANE_STRESS_TOOLBOX_HH_ */

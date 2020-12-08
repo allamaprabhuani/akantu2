@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the common part of 2nd order integration schemes
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -98,7 +97,7 @@ void IntegrationScheme2ndOrder::assembleResidual(bool is_lumped) {
     this->dof_manager.assembleLumpedMatMulVectToResidual(this->dof_id, "M",
                                                          second_derivative, -1);
   }
-  
+
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */

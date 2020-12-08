@@ -8,7 +8,6 @@
  *
  * @brief  static memory wrapper
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -52,7 +51,7 @@ Memory::~Memory() {
       AKANTU_DEBUG(dblAccessory, "Deleting the vector " << *it);
       static_memory.sfree(memory_id, *it);
     }
-    static_memory.destroy();
+    StaticMemory::destroy();
   }
 
   handeld_vectors_id.clear();
@@ -60,4 +59,4 @@ Memory::~Memory() {
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

@@ -7,7 +7,6 @@
  *
  * @brief  Brittle damage law
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -20,8 +19,8 @@
 #include "material_damage.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_BRITTLE_HH__
-#define __AKANTU_MATERIAL_BRITTLE_HH__
+#ifndef AKANTU_MATERIAL_BRITTLE_HH_
+#define AKANTU_MATERIAL_BRITTLE_HH_
 
 namespace akantu {
 
@@ -47,12 +46,12 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial();
+  void initMaterial() override;
 
-  virtual void updateInternalParameters();
+  void updateInternalParameters() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost) override;
 
 protected:
   /// constitutive law for a given quadrature point
@@ -104,8 +103,8 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_brittle_inline_impl.cc"
+#include "material_brittle_inline_impl.hh"
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_brittle_HH__ */
+#endif /* AKANTU_MATERIAL_brittle_HH_ */

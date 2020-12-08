@@ -5,7 +5,6 @@
  *
  * @brief  interface for non local orthotropic damage material
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 #include "material_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_NON_LOCAL_HH__
-#define __AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_NON_LOCAL_HH__
+#ifndef AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_NON_LOCAL_HH_
+#define AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_NON_LOCAL_HH_
 
 namespace akantu {
 
@@ -101,4 +100,4 @@ public:
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_NON_LOCAL_HH__ */
+#endif /* AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_NON_LOCAL_HH_ */

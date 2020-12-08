@@ -9,7 +9,6 @@
  * point at a time and propagate damage in a linear way. Max principal stress
  * criterion is used as a failure criterion.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -105,7 +104,7 @@ void MaterialOrthotropicDamageIterative<spatial_dimension>::
 
   for (; grad_u_it != grad_u_end;
        ++Sc_it, ++equivalent_stress_it, ++stress_dir_it, ++grad_u_it) {
-    sigma.clear();
+    sigma.zero();
     MaterialOrthotropicDamage<spatial_dimension>::computeStressOnQuad(
         *grad_u_it, sigma, 0.);
 

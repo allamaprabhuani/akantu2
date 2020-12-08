@@ -8,7 +8,6 @@
  *
  * @brief  base class for ntn and ntrf friction
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AST_NTN_BASE_FRICTION_HH__
-#define __AST_NTN_BASE_FRICTION_HH__
+#ifndef AST_NTN_BASE_FRICTION_HH_
+#define AST_NTN_BASE_FRICTION_HH_
 
 /* -------------------------------------------------------------------------- */
 // akantu
@@ -42,11 +41,10 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-
 /* -------------------------------------------------------------------------- */
 template <>
-inline void
-ParameterTyped<akantu::SynchronizedArray<Real>>::setAuto(const ParserParameter & in_param) {
+inline void ParameterTyped<akantu::SynchronizedArray<Real>>::setAuto(
+    const ParserParameter & in_param) {
   Parameter::setAuto(in_param);
   Real r = in_param;
   param.setAndChangeDefault(r);
@@ -165,7 +163,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "ntn_base_friction_inline_impl.cc"
+//#include "ntn_base_friction_inline_impl.hh"
 
 /// standard output stream operator
 inline std::ostream & operator<<(std::ostream & stream,
@@ -176,4 +174,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AST_NTN_BASE_FRICTION_HH__ */
+#endif /* AST_NTN_BASE_FRICTION_HH_ */

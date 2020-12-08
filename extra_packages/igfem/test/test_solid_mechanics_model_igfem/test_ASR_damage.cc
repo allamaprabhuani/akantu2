@@ -6,7 +6,6 @@
  *
  * @brief  test the solidmechancis model for IGFEM analysis
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -148,7 +147,8 @@ int main(int argc, char * argv[]) {
   Array<Real>::const_matrix_iterator stress_it =
       stress.begin(spatial_dimension, spatial_dimension);
   do {
-    converged = model.solveStep<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+    converged = model.solveStep<_scm_newton_raphson_tangent,
+                                SolveConvergenceCriteria::_increment>(
         1e-6, error, 2, factorize);
 
     /// compute damage
@@ -192,8 +192,8 @@ void applyBoundaryConditions(SolidMechanicsModelIGFEM & model) {
   Array<Real> & disp = model.getDisplacement();
   Array<bool> & boun = model.getBlockedDOFs();
 
-  disp.clear();
-  boun.clear();
+  disp.zero();
+  boun.zero();
   /// free expansion
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
 

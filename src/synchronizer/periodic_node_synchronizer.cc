@@ -7,7 +7,6 @@
  *
  * @brief Implementation of the periodic node synchronizer
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -65,8 +64,9 @@ void PeriodicNodeSynchronizer::update() {
     }
   }
 
-  if (not mesh.isDistributed())
+  if (not mesh.isDistributed() or nb_proc == 1) {
     return;
+  }
 
   std::map<Int, Array<UInt>> buffers;
   for (auto node : masters_to_receive) {
@@ -77,7 +77,7 @@ void PeriodicNodeSynchronizer::update() {
     buffers[proc].push_back(mesh.getNodeGlobalId(node));
   }
 
-  auto tag = Tag::genTag(0, count, Tag::_MODIFY_SCHEME);
+  auto tag = Tag::genTag(0, count, Tag::_modify_scheme);
   std::vector<CommunicationRequest> requests;
   for (auto && data : buffers) {
     auto proc = std::get<0>(data);

@@ -6,7 +6,6 @@
  *
  * @brief  IGFEM internal field
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -15,10 +14,10 @@
 
 #include "internal_field.hh"
 
-#ifndef __AKANTU_IGFEM_INTERNAL_FIELD_HH__
-#define __AKANTU_IGFEM_INTERNAL_FIELD_HH__
+#ifndef AKANTU_IGFEM_INTERNAL_FIELD_HH_
+#define AKANTU_IGFEM_INTERNAL_FIELD_HH_
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 template <typename T> class IGFEMInternalField : public InternalField<T> {
 public:
@@ -26,6 +25,6 @@ public:
   virtual ~IGFEMInternalField();
 };
 
-__END_AKANTU__
+} // namespace akantu
 
-#endif /* __AKANTU_IGFEM_INTERNAL_FIELD_HH__ */
+#endif /* AKANTU_IGFEM_INTERNAL_FIELD_HH_ */

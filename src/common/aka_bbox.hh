@@ -7,7 +7,6 @@
  *
  * @brief A simple bounding box class
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_BBOX_HH__
-#define __AKANTU_AKA_BBOX_HH__
+#ifndef AKANTU_AKA_BBOX_HH_
+#define AKANTU_AKA_BBOX_HH_
 
 namespace akantu {
 
@@ -88,8 +87,9 @@ public:
   }
 
   inline bool intersects(const BBox & other) const {
-    if (this->empty or other.empty)
+    if (this->empty or other.empty) {
       return false;
+    }
 
     bool intersects_ = true;
     for (auto s : arange(this->dim)) {
@@ -107,8 +107,9 @@ public:
     BBox intersection_(this->dim);
     intersection_.empty = not this->intersects(other);
 
-    if (intersection_.empty)
+    if (intersection_.empty) {
       return intersection_;
+    }
 
     for (auto s : arange(this->dim)) {
       // is lower point in range ?
@@ -220,14 +221,14 @@ public:
       auto * base = bboxes_data.storage() + p * (2 * dim + 1);
       bbox.lower_bounds = Vector<Real>(base + dim * 0, dim);
       bbox.upper_bounds = Vector<Real>(base + dim * 1, dim);
-      bbox.empty = base[dim * 2] == 1. ? true : false;
+      bbox.empty = (base[dim * 2] == 1.);
     }
 
     return bboxes;
   }
 
   std::map<UInt, BBox> intersection(const BBox & other,
-                                    const Communicator & communicator) {
+                                    const Communicator & communicator) const {
     // todo: change for a custom reduction algorithm
     auto other_bboxes = other.allGather(communicator);
     std::map<UInt, BBox> intersections;
@@ -260,6 +261,6 @@ inline std::ostream & operator<<(std::ostream & stream, const BBox & bbox) {
   return stream;
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_AKA_BBOX_HH__ */
+#endif /* AKANTU_AKA_BBOX_HH_ */

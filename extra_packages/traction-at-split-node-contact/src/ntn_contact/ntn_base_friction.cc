@@ -8,7 +8,6 @@
  *
  * @brief  implementation of ntn base friction
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -61,7 +60,7 @@ NTNBaseFriction::NTNBaseFriction(NTNBaseContact & contact, const ID & id,
   this->contact.registerSynchronizedArray(this->cumulative_slip);
   this->contact.registerSynchronizedArray(this->slip_velocity);
 
-  this->registerExternalDumper(contact.getDumper(),
+  this->registerExternalDumper(contact.getDumper().shared_from_this(),
                                contact.getDefaultDumperName(), true);
 
   AKANTU_DEBUG_OUT();
@@ -75,11 +74,12 @@ void NTNBaseFriction::updateSlip() {
   UInt dim = model.getSpatialDimension();
 
   // synchronize increment
-  this->contact.getSynchronizerRegistry().synchronize(SynchronizationTag::_cf_incr);
+  this->contact.getSynchronizerRegistry().synchronize(
+      SynchronizationTag::_cf_incr);
 
   Array<Real> rel_tan_incr(0, dim);
   this->contact.computeRelativeTangentialField(model.getIncrement(),
-                                                rel_tan_incr);
+                                               rel_tan_incr);
   Array<Real>::const_iterator<Vector<Real>> it = rel_tan_incr.begin(dim);
 
   UInt nb_nodes = this->contact.getNbContactNodes();
@@ -114,7 +114,7 @@ void NTNBaseFriction::computeFrictionTraction() {
       const_cast<Array<Real> &>(this->friction_traction.getArray());
   Array<Real>::iterator<Vector<Real>> it_fric_trac = traction.begin(dim);
 
-  this->is_sticking.clear(); // set to not sticking
+  this->is_sticking.zero(); // set to not sticking
 
   UInt nb_contact_nodes = this->contact.getNbContactNodes();
   for (UInt n = 0; n < nb_contact_nodes; ++n) {
@@ -156,17 +156,8 @@ void NTNBaseFriction::computeStickTraction() {
   const SynchronizedArray<bool> & is_in_contact =
       this->contact.getIsInContact();
 
-  auto && dof_manager =
-      dynamic_cast<DOFManagerDefault &>(model.getDOFManager());
-  const auto & b = dof_manager.getResidual();
-  Array<Real> acceleration(b.size(), dim);
-  const auto & blocked_dofs = dof_manager.getGlobalBlockedDOFs();
-  const auto & A = dof_manager.getLumpedMatrix("M");
-
-  // pre-compute the acceleration
-  // (not increment acceleration, because residual is still Kf)
-  NonLinearSolverLumped::solveLumped(A, acceleration, b, blocked_dofs,
-                                     model.getF_M2A());
+  Array<Real> acceleration(0, dim);
+  this->contact.computeAcceleration(acceleration);
 
   // compute relative normal fields of velocity and acceleration
   Array<Real> r_velo(0, dim);
@@ -175,7 +166,7 @@ void NTNBaseFriction::computeStickTraction() {
   this->contact.computeRelativeTangentialField(model.getVelocity(), r_velo);
   this->contact.computeRelativeTangentialField(acceleration, r_acce);
   this->contact.computeRelativeTangentialField(model.getAcceleration(),
-                                                r_old_acce);
+                                               r_old_acce);
 
   AKANTU_DEBUG_ASSERT(r_velo.size() == nb_contact_nodes,
                       "computeRelativeNormalField does not give back arrays "
@@ -203,7 +194,7 @@ void NTNBaseFriction::computeStickTraction() {
     Vector<Real> fric_trac = it_fric_trac[n];
     // node pair is NOT in contact
     if (!is_in_contact(n)) {
-      fric_trac.clear(); // set to zero
+      fric_trac.zero(); // set to zero
     }
 
     // node pair is in contact
@@ -283,7 +274,8 @@ void NTNBaseFriction::setParam(const std::string & name, UInt node,
                                Real value) {
   AKANTU_DEBUG_IN();
 
-  SynchronizedArray<Real> & array = this->get(name).get<SynchronizedArray<Real>>();
+  SynchronizedArray<Real> & array =
+      this->get(name).get<SynchronizedArray<Real>>();
   Int index = this->contact.getNodeIndex(node);
   if (index < 0) {
     AKANTU_DEBUG_WARNING("Node "
@@ -350,27 +342,32 @@ void NTNBaseFriction::addDumpFieldToDumper(const std::string & dumper_name,
   if (field_id == "is_sticking") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
-        new dumper::NodalField<bool>(this->is_sticking.getArray()));
+        std::make_unique<dumpers::NodalField<bool>>(
+            this->is_sticking.getArray()));
   } else if (field_id == "frictional_strength") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
-        new dumper::NodalField<Real>(this->frictional_strength.getArray()));
+        std::make_unique<dumpers::NodalField<Real>>(
+            this->frictional_strength.getArray()));
   } else if (field_id == "friction_traction") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
-        new dumper::NodalField<Real>(this->friction_traction.getArray()));
+        std::make_unique<dumpers::NodalField<Real>>(
+            this->friction_traction.getArray()));
   } else if (field_id == "slip") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
-        new dumper::NodalField<Real>(this->slip.getArray()));
+        std::make_unique<dumpers::NodalField<Real>>(this->slip.getArray()));
   } else if (field_id == "cumulative_slip") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
-        new dumper::NodalField<Real>(this->cumulative_slip.getArray()));
+        std::make_unique<dumpers::NodalField<Real>>(
+            this->cumulative_slip.getArray()));
   } else if (field_id == "slip_velocity") {
     this->internalAddDumpFieldToDumper(
         dumper_name, field_id,
-        new dumper::NodalField<Real>(this->slip_velocity.getArray()));
+        std::make_unique<dumpers::NodalField<Real>>(
+            this->slip_velocity.getArray()));
   } else {
     this->contact.addDumpFieldToDumper(dumper_name, field_id);
   }

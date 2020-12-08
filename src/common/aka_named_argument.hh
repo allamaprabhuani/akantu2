@@ -1,6 +1,7 @@
 /**
  * @file   aka_named_argument.hh
  *
+ * @author Marco Arena
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jun 16 2017
@@ -8,36 +9,6 @@
  *
  * @brief  tool to use named arguments in functions
  *
- * @section LICENSE
- *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
- *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
- * Software Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- * details.
- *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-/**
- * @file   aka_named_argument.hh
- *
- * @author Marco Arena
- *
- * @date creation  Fri Jun 16 2017
- *
- * @brief A Documented file.
- *
- * @section LICENSE
  *
  * Public Domain ? https://gist.github.com/ilpropheta/7576dce4c3249df89f85
  *
@@ -49,8 +20,8 @@
 #include <type_traits>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_NAMED_ARGUMENT_HH__
-#define __AKANTU_AKA_NAMED_ARGUMENT_HH__
+#ifndef AKANTU_AKA_NAMED_ARGUMENT_HH_
+#define AKANTU_AKA_NAMED_ARGUMENT_HH_
 
 namespace akantu {
 
@@ -64,7 +35,8 @@ namespace named_argument {
     using _type = type;
 
     template <typename T>
-    explicit param_t(T && value) : _value(std::forward<T>(value)) {}
+    explicit param_t(T && value) // NOLINT
+        : _value(std::forward<T>(value)) {}
 
     type _value;
   };
@@ -120,7 +92,7 @@ namespace named_argument {
     static_assert(pos >= 0, "Required parameter");
 
     template <typename head, typename... tail>
-    static decltype(auto) get(head &&, tail &&... t) {
+    static decltype(auto) get(head && /*unused*/, tail &&... t) {
       return get_at<pos, curr + 1>::get(std::forward<tail>(t)...);
     }
   };
@@ -129,7 +101,7 @@ namespace named_argument {
     static_assert(pos >= 0, "Required parameter");
 
     template <typename head, typename... tail>
-    static decltype(auto) get(head && h, tail &&...) {
+    static decltype(auto) get(head && h, tail &&... /*unused*/) {
       return std::forward<decltype(h._value)>(h._value);
     }
   };
@@ -137,14 +109,14 @@ namespace named_argument {
   // Optional version
   template <int pos, int curr> struct get_optional {
     template <typename T, typename... pack>
-    static decltype(auto) get(T &&, pack &&... _pack) {
+    static decltype(auto) get(T && /*unused*/, pack &&... _pack) {
       return get_at<pos, curr>::get(std::forward<pack>(_pack)...);
     }
   };
 
   template <int curr> struct get_optional<-1, curr> {
     template <typename T, typename... pack>
-    static decltype(auto) get(T && _default, pack &&...) {
+    static decltype(auto) get(T && _default, pack &&... /*unused*/) {
       return std::forward<T>(_default);
     }
   };
@@ -191,4 +163,4 @@ using are_named_argument =
 
 } // namespace akantu
 
-#endif /* __AKANTU_AKA_NAMED_ARGUMENT_HH__ */
+#endif /* AKANTU_AKA_NAMED_ARGUMENT_HH_ */

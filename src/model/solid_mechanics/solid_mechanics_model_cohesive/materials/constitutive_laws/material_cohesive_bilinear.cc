@@ -77,18 +77,16 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
   bool scale_traction = false;
 
   // don't scale sigma_c if volume_s hasn't been specified by the user
-  if (!Math::are_float_equal(this->volume_s, 0.))
+  if (!Math::are_float_equal(this->volume_s, 0.)) {
     scale_traction = true;
-
-
-  auto el_it = element_list.begin();
-  auto el_end = element_list.end();
+  }
 
   for (auto & el: element_list) {
     // filter not ghost cohesive elements
     if (el.ghost_type != _not_ghost ||
-        Mesh::getKind(el.type) != _ek_cohesive)
+        Mesh::getKind(el.type) != _ek_cohesive) {
       continue;
+    }
 
     ElementType type = el.type;
     auto & elem_filter = this->element_filter(type, el.ghost_type);
@@ -96,8 +94,9 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
     auto filter_end = elem_filter.end();
 
     UInt index = el.element;
-    if (std::find(filter_begin, filter_end, index) == filter_end)
+    if (std::find(filter_begin, filter_end, index) == filter_end) {
       continue;
+    }
 
     UInt nb_quad_per_element = this->fem_cohesive.getNbIntegrationPoints(type);
     auto sigma_c_begin = make_view(this->sigma_c_eff(type), nb_quad_per_element).begin();
@@ -106,8 +105,9 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
     auto delta_c_begin = make_view(this->delta_c_eff(type), nb_quad_per_element).begin();
     Vector<Real> delta_c_vec = delta_c_begin[index];
 
-    if (scale_traction)
-      scaleTraction(*el_it, sigma_c_vec);
+    if (scale_traction) {
+      scaleTraction(el, sigma_c_vec);
+    }
 
     /**
      * Recompute sigma_c as
@@ -118,10 +118,11 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
     for (UInt q = 0; q < nb_quad_per_element; ++q) {
       delta_c_vec(q) = 2 * this->G_c / sigma_c_vec(q);
 
-      if (delta_c_vec(q) - delta_0 < Math::getTolerance())
+      if (delta_c_vec(q) - delta_0 < Math::getTolerance()) {
         AKANTU_ERROR("delta_0 = " << delta_0 << " must be lower than delta_c = "
                                   << delta_c_vec(q)
                                   << ", modify your material file");
+      }
 
       sigma_c_vec(q) *= delta_c_vec(q) / (delta_c_vec(q) - delta_0);
     }
@@ -164,8 +165,9 @@ void MaterialCohesiveBilinear<spatial_dimension>::scaleTraction(
     // loop over elements connected to each facet
     for (; elem != elem_end; ++elem) {
       // skip cohesive elements and dummy elements
-      if (*elem == ElementNull || Mesh::getKind(elem->type) == _ek_cohesive)
+      if (*elem == ElementNull || Mesh::getKind(elem->type) == _ek_cohesive) {
         continue;
+      }
 
       // unit vector for integration in order to obtain the volume
       UInt nb_quadrature_points = fe_engine.getNbIntegrationPoints(elem->type);

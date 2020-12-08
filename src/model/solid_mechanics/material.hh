@@ -10,7 +10,6 @@
  *
  * @brief  Mother class for all materials
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -45,8 +44,8 @@
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_HH__
-#define __AKANTU_MATERIAL_HH__
+#ifndef AKANTU_MATERIAL_HH_
+#define AKANTU_MATERIAL_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
@@ -72,7 +71,7 @@ using MaterialFactory =
  *  virtual void computeStress(ElementType el_type,
  *                             GhostType ghost_type = _not_ghost);
  *
- *  virtual void computeTangentStiffness(const ElementType & el_type,
+ *  virtual void computeTangentStiffness(ElementType el_type,
  *                                       Array<Real> & tangent_matrix,
  *                                       GhostType ghost_type = _not_ghost);
  * \endcode
@@ -87,10 +86,8 @@ class Material : public Memory,
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-#if __cplusplus > 199711L
   Material(const Material & mat) = delete;
   Material & operator=(const Material & mat) = delete;
-#endif
 
   /// Initialize material with defaults
   Material(SolidMechanicsModel & model, const ID & id = "");
@@ -109,23 +106,19 @@ protected:
   /* Function that materials can/should reimplement                           */
   /* ------------------------------------------------------------------------ */
 protected:
-  void computeGradU(const ElementType &type,
-                    const GhostType &ghost_type = _not_ghost);
+  void computeGradU(ElementType type,
+                    GhostType ghost_type = _not_ghost);
 
   /// constitutive law
-  virtual void computeStress(__attribute__((unused)) ElementType el_type,
-                             __attribute__((unused))
-                             GhostType ghost_type = _not_ghost) {
+  virtual void computeStress(ElementType /* el_type */,
+                             GhostType /* ghost_type */ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the tangent stiffness matrix
-  virtual void computeTangentModuli(__attribute__((unused))
-                                    const ElementType & el_type,
-                                    __attribute__((unused))
-                                    Array<Real> & tangent_matrix,
-                                    __attribute__((unused))
-                                    GhostType ghost_type = _not_ghost) {
+  virtual void computeTangentModuli(ElementType /*el_type*/,
+                                    Array<Real> & /*tangent_matrix*/,
+                                    GhostType /*ghost_type*/ = _not_ghost) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -134,23 +127,19 @@ protected:
 
   /// compute the potential energy for an element
   virtual void
-  computePotentialEnergyByElement(__attribute__((unused)) ElementType type,
-                                  __attribute__((unused)) UInt index,
-                                  __attribute__((unused))
-                                  Vector<Real> & epot_on_quad_points) {
+  computePotentialEnergyByElement(ElementType /*type*/, UInt /*index*/,
+                                  Vector<Real> & /*epot_on_quad_points*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  virtual void updateEnergies(__attribute__((unused)) ElementType el_type) {}
+  virtual void updateEnergies(ElementType /*el_type*/) {}
 
-  virtual void updateEnergiesAfterDamage(__attribute__((unused))
-                                         ElementType el_type) {}
+  virtual void updateEnergiesAfterDamage(ElementType /*el_type*/) {}
 
   /// set the material to steady state (to be implemented for materials that
   /// need it)
-  virtual void setToSteadyState(__attribute__((unused)) ElementType el_type,
-                                __attribute__((unused))
-                                GhostType ghost_type = _not_ghost) {}
+  virtual void setToSteadyState(ElementType /*el_type*/,
+                                GhostType /*ghost_type*/ = _not_ghost) {}
 
   /// function called to update the internal parameters when the modifiable
   /// parameters are modified
@@ -163,14 +152,12 @@ public:
                                    Matrix<Real> & extrapolated);
 
   /// compute the p-wave speed in the material
-  virtual Real getPushWaveSpeed(__attribute__((unused))
-                                const Element & element) const {
+  virtual Real getPushWaveSpeed(const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// compute the s-wave speed in the material
-  virtual Real getShearWaveSpeed(__attribute__((unused))
-                                 const Element & element) const {
+  virtual Real getShearWaveSpeed(const Element & /*element*/) const {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -184,13 +171,11 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T>
-  void registerInternal(__attribute__((unused)) InternalField<T> & vect) {
+  template <typename T> void registerInternal(InternalField<T> & /*vect*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  template <typename T>
-  void unregisterInternal(__attribute__((unused)) InternalField<T> & vect) {
+  template <typename T> void unregisterInternal(InternalField<T> & /*vect*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -225,8 +210,7 @@ public:
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
 
   /// add an element to the local mesh filter
-  inline UInt addElement(const ElementType & type, UInt element,
-                         const GhostType & ghost_type);
+  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
   inline UInt addElement(const Element & element);
 
   /// add many elements at once
@@ -243,7 +227,7 @@ public:
    * of a geometrical interpolation on quadrature points
    */
   void interpolateStress(ElementTypeMapArray<Real> & result,
-                         const GhostType ghost_type = _not_ghost);
+                         GhostType ghost_type = _not_ghost);
 
   /**
    * interpolate stress on given positions for each element by means
@@ -252,7 +236,7 @@ public:
    */
   void interpolateStressOnFacets(ElementTypeMapArray<Real> & result,
                                  ElementTypeMapArray<Real> & by_elem_result,
-                                 const GhostType ghost_type = _not_ghost);
+                                 GhostType ghost_type = _not_ghost);
 
   /**
    * function to initialize the elemental field interpolation
@@ -266,7 +250,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /* ------------------------------------------------------------------------ */
-  inline UInt getTangentStiffnessVoigtSize(UInt spatial_dimension) const;
+  static inline UInt getTangentStiffnessVoigtSize(UInt dim);
 
   /// compute the potential energy by element
   void computePotentialEnergyByElements();
@@ -284,57 +268,70 @@ protected:
   /// assemble the residual
   template <UInt dim> void assembleInternalForces(GhostType ghost_type);
 
-  /// Computation of Cauchy stress tensor in the case of finite deformation from
-  /// the 2nd Piola-Kirchhoff for a given element type
   template <UInt dim>
-  void computeCauchyStress(ElementType el_type,
-                           GhostType ghost_type = _not_ghost);
-
-  /// Computation the Cauchy stress the 2nd Piola-Kirchhoff and the deformation
-  /// gradient
-  template <UInt dim>
-  inline void computeCauchyStressOnQuad(const Matrix<Real> & F,
-                                        const Matrix<Real> & S,
-                                        Matrix<Real> & cauchy,
-                                        const Real & C33 = 1.0) const;
-
-  template <UInt dim>
-  void computeAllStressesFromTangentModuli(const ElementType & type,
+  void computeAllStressesFromTangentModuli(ElementType type,
                                            GhostType ghost_type);
 
   template <UInt dim>
-  void assembleStiffnessMatrix(const ElementType & type, GhostType ghost_type);
+  void assembleStiffnessMatrix(ElementType type, GhostType ghost_type);
 
   /// assembling in finite deformation
   template <UInt dim>
-  void assembleStiffnessMatrixNL(const ElementType & type,
-                                 GhostType ghost_type);
+  void assembleStiffnessMatrixNL(ElementType type, GhostType ghost_type);
 
   template <UInt dim>
-  void assembleStiffnessMatrixL2(const ElementType & type,
-                                 GhostType ghost_type);
-
-  /// Size of the Stress matrix for the case of finite deformation see: Bathe et
-  /// al, IJNME, Vol 9, 353-386, 1975
-  inline UInt getCauchyStressMatrixSize(UInt spatial_dimension) const;
-
-  /// Sets the stress matrix according to Bathe et al, IJNME, Vol 9, 353-386,
-  /// 1975
-  template <UInt dim>
-  inline void setCauchyStressMatrix(const Matrix<Real> & S_t,
-                                    Matrix<Real> & sigma);
-
-  /// write the stress tensor in the Voigt notation.
-  template <UInt dim>
-  inline void setCauchyStressArray(const Matrix<Real> & S_t,
-                                   Matrix<Real> & sigma_voight);
+  void assembleStiffnessMatrixL2(ElementType type, GhostType ghost_type);
 
   /* ------------------------------------------------------------------------ */
   /* Conversion functions                                                     */
   /* ------------------------------------------------------------------------ */
 public:
+  /// Size of the Stress matrix for the case of finite deformation see: Bathe et
+  /// al, IJNME, Vol 9, 353-386, 1975
+  static inline UInt getCauchyStressMatrixSize(UInt dim);
+
+  /// Sets the stress matrix according to Bathe et al, IJNME, Vol 9, 353-386,
+  /// 1975
+  template <UInt dim>
+  static inline void setCauchyStressMatrix(const Matrix<Real> & S_t,
+                                           Matrix<Real> & sigma);
+
+  /// write the stress tensor in the Voigt notation.
+  template <UInt dim>
+  static inline decltype(auto) stressToVoigt(const Matrix<Real> & stress) {
+    return VoigtHelper<dim>::matrixToVoigt(stress);
+  }
+
+  /// write the strain tensor in the Voigt notation.
+  template <UInt dim>
+  static inline decltype(auto) strainToVoigt(const Matrix<Real> & strain) {
+    return VoigtHelper<dim>::matrixToVoigtWithFactors(strain);
+  }
+
+  /// write a voigt vector to stress
+  template <UInt dim>
+  static inline void voigtToStress(const Vector<Real> & voigt,
+                                   Matrix<Real> & stress) {
+    VoigtHelper<dim>::voigtToMatrix(voigt, stress);
+  }
+
+  /// Computation of Cauchy stress tensor in the case of finite deformation from
+  /// the 2nd Piola-Kirchhoff for a given element type
+  template <UInt dim>
+  void StoCauchy(ElementType el_type, GhostType ghost_type = _not_ghost);
+
+  /// Computation the Cauchy stress the 2nd Piola-Kirchhoff and the deformation
+  /// gradient
+  template <UInt dim>
+  inline void StoCauchy(const Matrix<Real> & F, const Matrix<Real> & S,
+                        Matrix<Real> & sigma, const Real & C33 = 1.0) const;
+
   template <UInt dim>
   static inline void gradUToF(const Matrix<Real> & grad_u, Matrix<Real> & F);
+
+  template <UInt dim>
+  static inline decltype(auto) gradUToF(const Matrix<Real> & grad_u);
+
   static inline void rightCauchy(const Matrix<Real> & F, Matrix<Real> & C);
   static inline void leftCauchy(const Matrix<Real> & F, Matrix<Real> & B);
 
@@ -342,8 +339,14 @@ public:
   static inline void gradUToEpsilon(const Matrix<Real> & grad_u,
                                     Matrix<Real> & epsilon);
   template <UInt dim>
-  static inline void gradUToGreenStrain(const Matrix<Real> & grad_u,
-                                        Matrix<Real> & epsilon);
+  static inline decltype(auto) gradUToEpsilon(const Matrix<Real> & grad_u);
+
+  template <UInt dim>
+  static inline void gradUToE(const Matrix<Real> & grad_u,
+                              Matrix<Real> & epsilon);
+
+  template <UInt dim>
+  static inline decltype(auto) gradUToE(const Matrix<Real> & grad_u);
 
   static inline Real stressToVonMises(const Matrix<Real> & stress);
 
@@ -392,24 +395,27 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  void onNodesAdded(const Array<UInt> &, const NewNodesEvent &) override{};
-  void onNodesRemoved(const Array<UInt> &, const Array<UInt> &,
-                      const RemovedNodesEvent &) override{};
+  void onNodesAdded(const Array<UInt> & /*unused*/,
+                    const NewNodesEvent & /*unused*/) override{};
+  void onNodesRemoved(const Array<UInt> & /*unused*/,
+                      const Array<UInt> & /*unused*/,
+                      const RemovedNodesEvent & /*unused*/) override{};
   void onElementsAdded(const Array<Element> & element_list,
                        const NewElementsEvent & event) override;
   void onElementsRemoved(const Array<Element> & element_list,
                          const ElementTypeMapArray<UInt> & new_numbering,
                          const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> &, const Array<Element> &,
-                         const ElementTypeMapArray<UInt> &,
-                         const ChangedElementsEvent &) override{};
+  void onElementsChanged(const Array<Element> & /*unused*/,
+                         const Array<Element> & /*unused*/,
+                         const ElementTypeMapArray<UInt> & /*unused*/,
+                         const ChangedElementsEvent & /*unused*/) override{};
 
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */
   /* ------------------------------------------------------------------------ */
 public:
   virtual void beforeSolveStep();
-  virtual void afterSolveStep();
+  virtual void afterSolveStep(bool converged = true);
 
   void onDamageIteration() override;
   void onDamageUpdate() override;
@@ -437,7 +443,7 @@ public:
 
   /// return the energy (identified by id) for the subset of elements contained
   /// by the material
-  virtual Real getEnergy(const std::string & energy_id);
+  virtual Real getEnergy(const std::string & type);
   /// return the energy (identified by id) for the provided element
   virtual Real getEnergy(const std::string & energy_id, ElementType type,
                          UInt index);
@@ -456,22 +462,22 @@ public:
   bool isNonLocal() const { return is_non_local; }
 
   template <typename T>
-  const Array<T> & getArray(const ID & id, const ElementType & type,
-                            const GhostType & ghost_type = _not_ghost) const;
+  const Array<T> & getArray(const ID & id, ElementType type,
+                            GhostType ghost_type = _not_ghost) const;
   template <typename T>
-  Array<T> & getArray(const ID & id, const ElementType & type,
-                      const GhostType & ghost_type = _not_ghost);
+  Array<T> & getArray(const ID & id, ElementType type,
+                      GhostType ghost_type = _not_ghost);
 
   template <typename T>
   const InternalField<T> & getInternal(const ID & id) const;
   template <typename T> InternalField<T> & getInternal(const ID & id);
 
   template <typename T>
-  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+  inline bool isInternal(const ID & id, ElementKind element_kind) const;
 
   template <typename T>
-  ElementTypeMap<UInt>
-  getInternalDataPerElem(const ID & id, const ElementKind & element_kind) const;
+  ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
+                                              ElementKind element_kind) const;
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
@@ -482,15 +488,39 @@ public:
   template <typename T>
   void flattenInternal(const std::string & field_id,
                        ElementTypeMapArray<T> & internal_flat,
-                       const GhostType ghost_type = _not_ghost,
+                       GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
   /// apply a constant eigengrad_u everywhere in the material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
-                               const GhostType = _not_ghost);
+                               GhostType /*ghost_type*/ = _not_ghost);
+
+  bool hasMatrixChanged(const ID & id) {
+    if (id == "K") {
+      return hasStiffnessMatrixChanged() or finite_deformation;
+    }
+
+    return true;
+  }
+
+  MatrixType getMatrixType(const ID & id) {
+    if (id == "K") {
+      return getTangentType();
+    }
+
+    if (id == "M") {
+      return _symmetric;
+    }
+
+    return _mt_not_defined;
+  }
 
   /// specify if the matrix need to be recomputed for this material
   virtual bool hasStiffnessMatrixChanged() { return true; }
+
+  /// specify the type of matrix, if not overloaded the material is not valid
+  /// for static or implicit computations
+  virtual MatrixType getTangentType() { return _mt_not_defined; }
 
   /// static method to reteive the material factory
   static MaterialFactory & getFactory();
@@ -574,6 +604,10 @@ protected:
 
   Int last_displacement_release{-1};
   Int gradu_release{0};
+
+private:
+  /// eigen_grad_u for the parser
+  Matrix<Real> eigen_grad_u;
 };
 
 /// standard output stream operator
@@ -585,7 +619,7 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#include "material_inline_impl.cc"
+#include "material_inline_impl.hh"
 
 #include "internal_field_tmpl.hh"
 #include "random_internal_field_tmpl.hh"
@@ -644,31 +678,38 @@ inline std::ostream & operator<<(std::ostream & stream,
 /* -------------------------------------------------------------------------- */
 
 #define INSTANTIATE_MATERIAL_ONLY(mat_name)                                    \
-  template class mat_name<1>;                                                  \
-  template class mat_name<2>;                                                  \
-  template class mat_name<3>
+  template class mat_name<1>; /* NOLINT */                                     \
+  template class mat_name<2>; /* NOLINT */                                     \
+  template class mat_name<3>  /* NOLINT */
 
 #define MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name)                       \
   [](UInt dim, const ID &, SolidMechanicsModel & model,                        \
-     const ID & id) -> std::unique_ptr<Material> {                             \
-    switch (dim) {                                                             \
-    case 1:                                                                    \
-      return std::make_unique<mat_name<1>>(model, id);                         \
-    case 2:                                                                    \
-      return std::make_unique<mat_name<2>>(model, id);                         \
-    case 3:                                                                    \
-      return std::make_unique<mat_name<3>>(model, id);                         \
-    default:                                                                   \
-      AKANTU_EXCEPTION("The dimension "                                        \
-                       << dim << "is not a valid dimension for the material "  \
-                       << #id);                                                \
-    }                                                                          \
+     const ID & id) /* NOLINT */                                               \
+      -> std::unique_ptr<                                                      \
+          Material> { /* NOLINT */                                             \
+                      switch (dim) {                                           \
+                      case 1:                                                  \
+                        return std::make_unique<mat_name<1>>(/* NOLINT */      \
+                                                             model, id);       \
+                      case 2:                                                  \
+                        return std::make_unique<mat_name<2>>(/* NOLINT */      \
+                                                             model, id);       \
+                      case 3:                                                  \
+                        return std::make_unique<mat_name<3>>(/* NOLINT */      \
+                                                             model, id);       \
+                      default:                                                 \
+                        AKANTU_EXCEPTION(                                      \
+                            "The dimension "                                   \
+                            << dim                                             \
+                            << "is not a valid dimension for the material "    \
+                            << #id);                                           \
+                      }                                                        \
   }
 
 #define INSTANTIATE_MATERIAL(id, mat_name)                                     \
   INSTANTIATE_MATERIAL_ONLY(mat_name);                                         \
-  static bool material_is_alocated_##id[[gnu::unused]] =                       \
+  static bool material_is_alocated_##id [[gnu::unused]] =                      \
       MaterialFactory::getInstance().registerAllocator(                        \
           #id, MATERIAL_DEFAULT_PER_DIM_ALLOCATOR(id, mat_name))
 
-#endif /* __AKANTU_MATERIAL_HH__ */
+#endif /* AKANTU_MATERIAL_HH_ */

@@ -6,22 +6,21 @@
  *
  * @brief  description of IGFEM elemental fields
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  */
 
-#ifndef __AKANTU_DUMPER_IGFEM_ELEMENTAL_FIELD_HH__
-#define __AKANTU_DUMPER_IGFEM_ELEMENTAL_FIELD_HH__
+#ifndef AKANTU_DUMPER_IGFEM_ELEMENTAL_FIELD_HH_
+#define AKANTU_DUMPER_IGFEM_ELEMENTAL_FIELD_HH_
 /* -------------------------------------------------------------------------- */
 #include "dumper_field.hh"
 #include "dumper_igfem_generic_elemental_field.hh"
 #include "static_communicator.hh"
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
-__BEGIN_AKANTU_DUMPER__
+namespace akantu {
+namespace dumpers {
 /* -------------------------------------------------------------------------- */
 
 template <typename T, template <class> class ret = Vector,
@@ -51,7 +50,7 @@ public:
             field, spatial_dimension, ghost_type, element_kind) {}
 };
 
-__END_AKANTU_DUMPER__
-__END_AKANTU__
+} // namespace dumpers
+} // namespace akantu
 
-#endif /* __AKANTU_DUMPER_IGFEM_ELEMENTAL_FIELD_HH__ */
+#endif /* AKANTU_DUMPER_IGFEM_ELEMENTAL_FIELD_HH_ */

@@ -11,7 +11,6 @@
  * @brief  Generates the cohesive element structres (defined in
  * element_class.hh)
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COHESIVE_ELEMENT_HH__
-#define __AKANTU_COHESIVE_ELEMENT_HH__
+#ifndef AKANTU_COHESIVE_ELEMENT_HH_
+#define AKANTU_COHESIVE_ELEMENT_HH_
 
 namespace akantu {
 
@@ -87,4 +86,4 @@ AKANTU_DEFINE_COHESIVE_FACET_PROPERTY(_quadrangle_8, _cohesive_3d_16);
 
 } // namespace akantu
 
-#endif /* __AKANTU_COHESIVE_ELEMENT_HH__ */
+#endif /* AKANTU_COHESIVE_ELEMENT_HH_ */

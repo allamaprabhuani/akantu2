@@ -9,7 +9,6 @@
  *
  * @brief  storage class by element type
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include "element.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_TYPE_MAP_HH__
-#define __AKANTU_ELEMENT_TYPE_MAP_HH__
+#ifndef AKANTU_ELEMENT_TYPE_MAP_HH_
+#define AKANTU_ELEMENT_TYPE_MAP_HH_
 
 namespace akantu {
 class FEEngine;
@@ -81,16 +80,16 @@ public:
   ElementTypeMap();
   ~ElementTypeMap() override;
 
-  inline static std::string printType(const SupportType & type,
-                                      const GhostType & ghost_type);
+  inline static std::string printType(SupportType type,
+                                      GhostType ghost_type);
 
   /*! Tests whether a type is present in the object
    *  @param type the type to check for
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return true if the type is present. */
-  inline bool exists(const SupportType & type,
-                     const GhostType & ghost_type = _not_ghost) const;
+  inline bool exists(SupportType type,
+                     GhostType ghost_type = _not_ghost) const;
 
   /*! get the stored data corresponding to a type
    *  @param type the type to check for
@@ -98,16 +97,16 @@ public:
    *         elements is searched
    *  @return stored data corresponding to type. */
   inline const Stored &
-  operator()(const SupportType & type,
-             const GhostType & ghost_type = _not_ghost) const;
+  operator()(SupportType type,
+             GhostType ghost_type = _not_ghost) const;
 
   /*! get the stored data corresponding to a type
    *  @param type the type to check for
    *  @param ghost_type optional: by default, the data map for non-ghost
    *         elements is searched
    *  @return stored data corresponding to type. */
-  inline Stored & operator()(const SupportType & type,
-                             const GhostType & ghost_type = _not_ghost);
+  inline Stored & operator()(SupportType type,
+                             GhostType ghost_type = _not_ghost);
 
   /*! insert data of a new type (not yet present) into the map. THIS METHOD IS
    *  NOT ARRAY SAFE, when using ElementTypeMapArray, use setArray instead
@@ -118,8 +117,8 @@ public:
    *         elements is searched
    *  @return stored data corresponding to type. */
   template <typename U>
-  inline Stored & operator()(U && insertee, const SupportType & type,
-                             const GhostType & ghost_type = _not_ghost);
+  inline Stored & operator()(U && insertee, SupportType type,
+                             GhostType ghost_type = _not_ghost);
 
 public:
   /// print helper
@@ -157,7 +156,7 @@ public:
     type_iterator operator++(int);
     inline bool operator==(const type_iterator & other) const;
     inline bool operator!=(const type_iterator & other) const;
-    type_iterator & operator=(const type_iterator & other);
+    type_iterator & operator=(const type_iterator & it);
 
   private:
     DataMapIterator list_begin;
@@ -178,8 +177,8 @@ public:
           kind(kind) {}
 
     template <typename... pack>
-    ElementTypesIteratorHelper(const Container & container, use_named_args_t,
-                               pack &&... _pack)
+    ElementTypesIteratorHelper(const Container & container,
+                               use_named_args_t /*unused*/, pack &&... _pack)
         : ElementTypesIteratorHelper(
               container, OPTIONAL_NAMED_ARG(spatial_dimension, _all_dimensions),
               OPTIONAL_NAMED_ARG(ghost_type, _not_ghost),
@@ -189,7 +188,7 @@ public:
     ElementTypesIteratorHelper &
     operator=(const ElementTypesIteratorHelper &) = default;
     ElementTypesIteratorHelper &
-    operator=(ElementTypesIteratorHelper &&) = default;
+    operator=(ElementTypesIteratorHelper &&) noexcept = default;
 
     iterator begin();
     iterator end();
@@ -213,10 +212,14 @@ private:
 
 public:
   /*!
-   * \param _spatial_dimension optional: filter for elements of given spatial
+   * \param _pack
+   * \parblock
+   *  represent optional parameters:
+   * \li \c _spatial_dimension filter for elements of given spatial
    * dimension
-   * \param _ghost_type optional: filter for a certain ghost_type
-   * \param _element_kind optional: filter for elements of given kind
+   * \li \c _ghost_type filter for a certain ghost_type
+   * \li \c _element_kind filter for elements of given kind
+   * \endparblock
    */
   template <typename... pack>
   std::enable_if_t<are_named_argument<pack...>::value,
@@ -298,7 +301,7 @@ public:
 
   /// standard assigment (copy) operator
   void operator=(const ElementTypeMapArray &) = delete;
-  ElementTypeMapArray(const ElementTypeMapArray &);
+  ElementTypeMapArray(const ElementTypeMapArray & /*other*/);
 
   /// explicit copy
   void copy(const ElementTypeMapArray & other);
@@ -320,17 +323,20 @@ public:
    *  @param type the type under which the array is indexed in the map
    *  @param ghost_type whether to add the field to the data map or the
    *         ghost_data map
+   *  @param default_value the default value to use to fill the array
    *  @return a reference to the allocated array */
   inline Array<T> & alloc(UInt size, UInt nb_component,
-                          const SupportType & type,
-                          const GhostType & ghost_type,
+                          SupportType type,
+                          GhostType ghost_type,
                           const T & default_value = T());
 
   /*! allocate memory for a new array in both the data and the ghost_data map
    *  @param size number of tuples of the new array
    *  @param nb_component tuple size
-   *  @param type the type under which the array is indexed in the map*/
-  inline void alloc(UInt size, UInt nb_component, const SupportType & type,
+   *  @param type the type under which the array is indexed in the map
+   *  @param default_value the default value to use to fill the array
+   */
+  inline void alloc(UInt size, UInt nb_component, SupportType type,
                     const T & default_value = T());
 
   /* get a reference to the array of certain type
@@ -338,8 +344,8 @@ public:
    * @param ghost_type optional: by default the non-ghost map is searched
    * @return a reference to the array */
   inline const Array<T> &
-  operator()(const SupportType & type,
-             const GhostType & ghost_type = _not_ghost) const;
+  operator()(SupportType type,
+             GhostType ghost_type = _not_ghost) const;
 
   /// access the data of an element, this combine the map and array accessor
   inline const T & operator()(const Element & element,
@@ -356,8 +362,8 @@ public:
    * @param type data filed under type is returned
    * @param ghost_type optional: by default the non-ghost map is searched
    * @return a const reference to the array */
-  inline Array<T> & operator()(const SupportType & type,
-                               const GhostType & ghost_type = _not_ghost);
+  inline Array<T> & operator()(SupportType type,
+                               GhostType ghost_type = _not_ghost);
 
   /*! insert data of a new type (not yet present) into the map.
    *  @param type type of data (if this type is already present in the map,
@@ -366,16 +372,22 @@ public:
    *         elements is searched
    *  @param vect the vector to include into the map
    *  @return stored data corresponding to type. */
-  inline void setArray(const SupportType & type, const GhostType & ghost_type,
+  inline void setArray(SupportType type, GhostType ghost_type,
                        const Array<T> & vect);
   /*! frees all memory related to the data*/
   inline void free();
 
-  /*! set all values in the ElementTypeMap to zero*/
   inline void clear();
 
+  inline bool empty() const __attribute__((warn_unused_result));
+
+  /*! set all values in the ElementTypeMap to zero*/
+  inline void zero() { this->set(T()); }
+
   /*! set all values in the ElementTypeMap to value */
-  template <typename ST> inline void set(const ST & value);
+  template<typename ST>
+  inline void set(const ST & value);
+
 
   /*! deletes and reorders entries in the stored arrays
    *  @param new_numbering a ElementTypeMapArray of new indices. UInt(-1)
@@ -436,21 +448,25 @@ public:
 
   /**
    * get the size of the ElementTypeMapArray<T>
-   * @param[in] _spatial_dimension the dimension to consider (default:
+   * @param[in] _pack
+   * \parblock
+   * optional arguments can be any of:
+   * \li \c _spatial_dimension the dimension to consider (default:
    * _all_dimensions)
-   * @param[in] _ghost_type  (default: _not_ghost)
-   * @param[in] _element_kind (default: _ek_not_defined)
-   * @param[in] _all_ghost_types (default: false)
+   * \li \c _ghost_type  (default: _not_ghost)
+   * \li \c _element_kind (default: _ek_not_defined)
+   * \li \c _all_ghost_types (default: false)
+   * \endparblock
    **/
-  template <typename... pack>
-  UInt size(pack &&... _pack) const;
-  
+  template <typename... pack> UInt size(pack &&... _pack) const;
+
   bool isNodal() const { return is_nodal; }
   void isNodal(bool is_nodal) { this->is_nodal = is_nodal; }
 
 private:
-  UInt sizeImpl(UInt spatial_dimension, const GhostType & ghost_type, const ElementKind & kind) const;
-  
+  UInt sizeImpl(UInt spatial_dimension, GhostType ghost_type,
+                ElementKind kind) const;
+
 protected:
   /// name of the element type map: e.g. connectivity, grad_u
   ID name;
@@ -472,4 +488,4 @@ using ElementTypeMapUIntDataMap = ElementTypeMap<UIntDataMap, ElementType>;
 
 } // namespace akantu
 
-#endif /* __AKANTU_ELEMENT_TYPE_MAP_HH__ */
+#endif /* AKANTU_ELEMENT_TYPE_MAP_HH_ */

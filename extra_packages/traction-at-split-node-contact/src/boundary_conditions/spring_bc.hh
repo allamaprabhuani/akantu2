@@ -9,7 +9,6 @@
  *
  * @brief  spring boundary condition
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AST_SPRING_BC_HH__
-#define __AST_SPRING_BC_HH__
+#ifndef AST_SPRING_BC_HH_
+#define AST_SPRING_BC_HH_
 
 // simtools
 #include "force_based_dirichlet.hh"
@@ -139,4 +138,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AST_SPRING_BC_HH__ */
+#endif /* AST_SPRING_BC_HH_ */

@@ -9,7 +9,6 @@
  *
  * @brief  Removed damaged weight function for non local materials
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 /* -------------------------------------------------------------------------- */
 #include "base_weight_function.hh"
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH__
-#define __AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH__
+#ifndef AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_
+#define AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_
 
 namespace akantu {
 
@@ -91,6 +90,6 @@ private:
 
 } // namespace akantu
 
-#include "remove_damaged_weight_function_inline_impl.cc"
+#include "remove_damaged_weight_function_inline_impl.hh"
 
-#endif /* __AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH__ */
+#endif /* AKANTU_REMOVE_DAMAGED_WEIGHT_FUNCTION_HH_ */

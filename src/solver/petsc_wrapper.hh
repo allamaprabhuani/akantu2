@@ -10,7 +10,6 @@
  *
  * @brief  Wrapper of PETSc structures
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PETSC_WRAPPER_HH__
-#define __AKANTU_PETSC_WRAPPER_HH__
+#ifndef AKANTU_PETSC_WRAPPER_HH_
+#define AKANTU_PETSC_WRAPPER_HH_
 
 /* -------------------------------------------------------------------------- */
 #include <mpi.h>
@@ -75,6 +74,6 @@ extern int aka_PETScError(int ierr);
   } while (0)
 #endif
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_PETSC_WRAPPER_HH__ */
+#endif /* AKANTU_PETSC_WRAPPER_HH_ */

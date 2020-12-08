@@ -9,7 +9,6 @@
  * @brief  Implementation of the common functions for 1st order time
  * integrations
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -80,17 +79,19 @@ void IntegrationScheme1stOrder::assembleResidual(bool is_lumped) {
   const Array<Real> & first_derivative =
       dof_manager.getDOFsDerivatives(this->dof_id, 1);
   if (not is_lumped) {
-    if (this->dof_manager.hasMatrix("M"))
+    if (this->dof_manager.hasMatrix("M")) {
       this->dof_manager.assembleMatMulVectToResidual(this->dof_id, "M",
                                                      first_derivative, -1);
+    }
   } else {
-    if (this->dof_manager.hasLumpedMatrix("M"))
+    if (this->dof_manager.hasLumpedMatrix("M")) {
       this->dof_manager.assembleLumpedMatMulVectToResidual(
           this->dof_id, "M", first_derivative, -1);
+    }
   }
 
   AKANTU_DEBUG_OUT();
 }
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu
