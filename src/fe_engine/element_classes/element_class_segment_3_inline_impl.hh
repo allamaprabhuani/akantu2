@@ -99,23 +99,9 @@ InterpolationElement<_itp_lagrange_segment_3>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_segment_3>::getInradius(const Matrix<Real> & coord) {
-  auto dim = coord.rows();
-  Real inrad;
-  switch (dim) {
-  case 2: {
-    inrad = Math::distance_2d(coord(0).storage(), coord(1).storage());
-    break;
-  }
-  case 3: {
-    inrad = Math::distance_3d(coord(0).storage(), coord(1).storage());
-    break;
-  }
-  default: {
-    Real dist1 = std::abs(coord(0, 0) - coord(0, 1));
-    Real dist2 = std::abs(coord(0, 1) - coord(0, 2));
-    inrad = std::min(dist1, dist2);
-  }
-  }
-  return inrad;
+  Vector<Real> coord1 = coord(0);
+  Vector<Real> coord2 = coord(1);
+  Vector<Real> coord3 = coord(2);
+  return std::min(coord3.distance(coord1), coord3.distance(coord2));
 }
 } // namespace akantu

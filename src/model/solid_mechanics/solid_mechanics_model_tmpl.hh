@@ -46,14 +46,8 @@ namespace akantu {
 template <typename Operation>
 void SolidMechanicsModel::splitByMaterial(const Array<Element> & elements,
                                           Operation && op) const {
-  std::vector<Array<Element>> elements_per_mat;
-  for (auto elements_range : MeshElementsByTypes(elements)) {
-    auto type = elements_range.getType();
-    auto ghost_type = elements_range.getGhostType();
-
-    auto & elements = elements_range.getElements();
-    this->splitElementByMaterial(elements, type, ghost_type, elements_per_mat);
-  }
+  std::vector<Array<Element>> elements_per_mat(materials.size());
+  this->splitElementByMaterial(elements, elements_per_mat);
 
   for (auto && mat : zip(materials, elements_per_mat)) {
     FWD(op)(FWD(*std::get<0>(mat)), FWD(std::get<1>(mat)));

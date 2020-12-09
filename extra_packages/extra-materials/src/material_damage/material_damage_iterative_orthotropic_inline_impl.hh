@@ -81,8 +81,9 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
       "nb_iterations");
 
-  if (not(nb_iter > 0 and this->loading_test))
+  if (not(nb_iter > 0 and this->loading_test)) {
     computeC(el_type, ghost_type);
+  }
 
   auto C_it =
       this->C_field(el_type, ghost_type).begin(voigt_h::size, voigt_h::size);
@@ -206,8 +207,9 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
 
     Vector<Real> normal_to_crack(spatial_dimension);
     /// normals are stored row-wise
-    for (auto i : arange(spatial_dimension))
+    for (auto i : arange(spatial_dimension)) {
       normal_to_crack(i) = _dir_vecs(0, i);
+    }
     auto def_on_crack = strain * normal_to_crack;
     auto def_normal_to_crack = normal_to_crack.dot(def_on_crack);
     // auto traction_on_crack = sigma * normal_to_crack;
@@ -307,7 +309,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
  */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeOrthotropic<
-    spatial_dimension>::computeTangentModuli(const ElementType & el_type,
+    spatial_dimension>::computeTangentModuli(ElementType el_type,
                                              Array<Real> & tangent_matrix,
                                              GhostType ghost_type) {
   AKANTU_DEBUG_IN();

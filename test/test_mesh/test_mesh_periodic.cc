@@ -45,7 +45,7 @@ int main(int argc, char ** argv) {
   constexpr UInt dim = 3;
 
   auto prank = Communicator::getWorldCommunicator().whoAmI();
-  auto psize = Communicator::getWorldCommunicator().getNbProc();
+  // auto psize = Communicator::getWorldCommunicator().getNbProc();
 
   Mesh mesh(dim);
   if (prank == 0) {

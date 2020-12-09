@@ -921,15 +921,14 @@ public:
         normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
 
     // auto normal_corrected = normal;
-    UInt opposite_facet_nb(-1);
     if (id < element_ids.size() / 2) {
       normal_corrected *= -1;
-      opposite_facet_nb = element_ids(id + element_ids.size() / 2);
-    } else if (id >= element_ids.size())
+      // opposite_facet_nb = element_ids(id + element_ids.size() / 2);
+    } else if (id >= element_ids.size()) {
       AKANTU_EXCEPTION("Error in defining side of the cohesive element");
-    else {
+    } else {
       normal_corrected *= 1;
-      opposite_facet_nb = element_ids(id - element_ids.size() / 2);
+      // opposite_facet_nb = element_ids(id - element_ids.size() / 2);
     }
 
     // /// compute current area of a gap

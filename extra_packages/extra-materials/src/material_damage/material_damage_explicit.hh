@@ -133,6 +133,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "material_damage_explicit_inline_impl.cc"
+#include "material_damage_explicit_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_EXPLICIT_HH__ */

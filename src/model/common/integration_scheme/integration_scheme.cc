@@ -68,8 +68,7 @@ std::istream & operator>>(std::istream & stream,
   return stream;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 void IntegrationScheme::store() {
   for (auto data : enumerate(u_store)) {
     auto o = std::get<0>(data);
@@ -84,8 +83,7 @@ void IntegrationScheme::store() {
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 void IntegrationScheme::restore() {
   for (auto o : arange(order)) {
     auto & u_o = dof_manager.getDOFsDerivatives(dof_id, o);

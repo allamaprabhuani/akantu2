@@ -271,8 +271,7 @@ public:
 
 protected:
   void
-  splitElementByMaterial(const Array<UInt> & elements, const ElementType & type,
-                         const GhostType & ghost_type,
+  splitElementByMaterial(const Array<Element> & elements,
                          std::vector<Array<Element>> & elements_per_mat) const;
 
   template <typename Operation>
@@ -470,8 +469,7 @@ public:
     this->material_selector = std::move(material_selector);
   }
 
-  AKANTU_GET_MACRO_NOT_CONST(DisplacementRelease, displacement_release,
-                             Int);
+  AKANTU_GET_MACRO(DisplacementRelease, displacement_release, Int);
 
   /// Access the non_local_manager interface
   AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);

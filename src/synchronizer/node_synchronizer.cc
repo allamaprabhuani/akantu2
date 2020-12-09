@@ -129,8 +129,8 @@ void NodeSynchronizer::onNodesAdded(const Array<UInt> & /*nodes_list*/,
   //     Tag::genTag(rank, count, 0xcafe));
   // ++count;
 
-  communicator.waitAll(send_requests);
-  communicator.freeCommunicationRequest(send_requests);
+  Communicator::waitAll(send_requests);
+  Communicator::freeCommunicationRequest(send_requests);
 
   this->entities_changed = true;
 }

@@ -162,15 +162,6 @@ Communicator::Communicator(const private_member & comm)
           dynamic_cast<const MPIPrivateMember &>(comm).mpi_comm)) {
 }
 
-/* -------------------------------------------------------------------------- */
-void Communicator::initialize() {
-  //MPICommunicatorData::initialize();
-}
-
-/* -------------------------------------------------------------------------- */
-void Communicator::finalize() {
-  //MPICommunicatorData::finalize();
-}
 
 /* -------------------------------------------------------------------------- */
 template <typename T>

@@ -39,10 +39,6 @@ namespace akantu {
 
 Communicator::Communicator(const private_member & /*unused*/) {}
 
-void Communicator::initialize() { }
-
-void Communicator::finalize() { }
-
 Communicator::Communicator(const private_member & /*unused*/) {}
 
 template <typename T>

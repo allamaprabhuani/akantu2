@@ -725,7 +725,6 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
       _element_kind = _ek_not_defined, _with_nb_element = true,
       _default_value = UInt(-1));
 
-
   ElementTypeMapArray<UInt> filter("new_element_filter", this->getID(),
                                    this->getMemoryID());
 
@@ -973,24 +972,16 @@ FEEngine & SolidMechanicsModel::getFEEngineBoundary(const ID & name) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::splitElementByMaterial(
-    const Array<UInt> & elements, const ElementType & type,
-    const GhostType & ghost_type,
+    const Array<Element> & elements,
     std::vector<Array<Element>> & elements_per_mat) const {
-
-  elements_per_mat.resize(materials.size());
-
-  auto && material_local_numbering =
-      this->material_local_numbering(type, ghost_type);
-  auto && material_index = this->material_index(type, ghost_type);
   for (const auto & el : elements) {
-    Element mat_el = {type, el, ghost_type};
-    mat_el.element = material_local_numbering(el);
-    elements_per_mat[material_index[el]].push_back(mat_el);
+    Element mat_el = el;
+    mat_el.element = this->material_local_numbering(el);
+    elements_per_mat[this->material_index(el)].push_back(mat_el);
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 UInt SolidMechanicsModel::getNbData(const Array<Element> & elements,
                                     const SynchronizationTag & tag) const {
   AKANTU_DEBUG_IN();

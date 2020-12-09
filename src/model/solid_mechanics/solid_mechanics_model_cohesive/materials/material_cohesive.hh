@@ -140,14 +140,15 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(EigenOpening, eigen_opening, Real);
 
   /// get the contact opening
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(ContactOpening, contact_opening, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ContactOpening, contact_opening,
+                                         Real);
 
   /// get the normal opening
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(NormalOpeningNorm, normal_opening_norm,
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalOpeningNorm, normal_opening_norm,
                                    Real);
 
   /// get the eigen opening
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(DeltaMax, delta_max, Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(DeltaMax, delta_max, Real);
 
   /// get the normals
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Normals, normals, Real);

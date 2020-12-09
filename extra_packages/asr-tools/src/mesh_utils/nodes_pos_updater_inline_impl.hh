@@ -1,5 +1,5 @@
 /**
- * @file   global_ids_updater_inline_impl.cc
+ * @file   global_ids_updater_inline_impl.hh
  *
  * @author Marco Vocialta <marco.vocialta@epfl.ch>
  *

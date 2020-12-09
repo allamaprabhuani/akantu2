@@ -74,8 +74,8 @@ public:
   /// update internal field damage
   UInt updateDamage() override;
 
-  UInt updateDamage(UInt quad_index, Real eq_stress,
-                    ElementType el_type, GhostType ghost_type);
+  UInt updateDamage(UInt quad_index, Real eq_stress, ElementType el_type,
+                    GhostType ghost_type);
 
   /// update energies after damage has been updated
   void updateEnergiesAfterDamage(ElementType el_type) override;
@@ -102,12 +102,12 @@ protected:
   inline Real computeSmoothingFactor(const Real & eps, const Real & sigma_prime,
                                      const Real & dam, const Real & delta0);
 
-  /* ------------------------------------------------------------------------
-   */
-  /* DataAccessor inherited members */
-  /* ------------------------------------------------------------------------
-   */
+  inline UInt updateDamageOnQuad(UInt quad_index, Real /*eq_stress*/,
+                                 ElementType el_type, GhostType ghost_type);
 
+  /* ------------------------------------------------------------------------ */
+  /* DataAccessor inherited members                                           */
+  /* ------------------------------------------------------------------------ */
   inline UInt getNbData(const Array<Element> & elements,
                         const SynchronizationTag & tag) const override;
 
@@ -119,11 +119,9 @@ protected:
                          const Array<Element> & elements,
                          const SynchronizationTag & tag) override;
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Class Members */
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
 protected:
   /// resistance to damage
   RandomInternalField<Real> Sc;

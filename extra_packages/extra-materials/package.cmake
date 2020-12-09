@@ -30,26 +30,26 @@ package_declare_sources(extra_materials
 
   material_damage/material_damage_iterative_isotropic.cc
   material_damage/material_damage_iterative_isotropic.hh
-  material_damage/material_damage_iterative_isotropic_inline_impl.cc
+  material_damage/material_damage_iterative_isotropic_inline_impl.hh
 
   material_damage/material_damage_iterative_orthotropic.cc
   material_damage/material_damage_iterative_orthotropic.hh
-  material_damage/material_damage_iterative_orthotropic_inline_impl.cc
+  material_damage/material_damage_iterative_orthotropic_inline_impl.hh
 
   material_damage/material_iterative_stiffness_reduction.cc
   material_damage/material_iterative_stiffness_reduction.hh
-  material_damage/material_iterative_stiffness_reduction_inline_impl.cc
+  material_damage/material_iterative_stiffness_reduction_inline_impl.hh
 
   material_damage/material_iterative_stiffness_reduction_orthotropic.cc
   material_damage/material_iterative_stiffness_reduction_orthotropic.hh
 
   material_damage/material_damage_iterative_viscoelastic.cc
   material_damage/material_damage_iterative_viscoelastic.hh
-  material_damage/material_damage_iterative_viscoelastic_inline_impl.cc
+  material_damage/material_damage_iterative_viscoelastic_inline_impl.hh
 
   material_damage/material_damage_explicit.cc
   material_damage/material_damage_explicit.hh
-  material_damage/material_damage_explicit_inline_impl.cc
+  material_damage/material_damage_explicit_inline_impl.hh
 
   material_damage/material_damage_viscoelastic.cc
   material_damage/material_damage_viscoelastic.hh

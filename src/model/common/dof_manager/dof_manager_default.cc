@@ -142,7 +142,6 @@ void DOFManagerDefault::assembleToGlobalArray(
       global_array(equ_num) += scale_factor * (arr);
     }
   }
-  // }
   AKANTU_DEBUG_OUT();
 }
 

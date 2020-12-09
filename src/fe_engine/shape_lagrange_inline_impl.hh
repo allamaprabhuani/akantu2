@@ -59,8 +59,7 @@ inline void ShapeLagrange<kind>::initShapeFunctions(
 
 #undef INIT_SHAPE_FUNCTIONS
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
@@ -83,8 +82,7 @@ inline void ShapeLagrange<kind>::computeShapeDerivativesOnCPointsByElement(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
@@ -109,8 +107,7 @@ void ShapeLagrange<kind>::inverseMap(const Vector<Real> & real_coords,
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 bool ShapeLagrange<kind>::contains(const Vector<Real> & real_coords, UInt elem,
@@ -123,8 +120,7 @@ bool ShapeLagrange<kind>::contains(const Vector<Real> & real_coords, UInt elem,
   return ElementClass<type>::contains(natural_coords);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::interpolate(const Vector<Real> & real_coords,
@@ -138,8 +134,7 @@ void ShapeLagrange<kind>::interpolate(const Vector<Real> & real_coords,
   ElementClass<type>::interpolate(nodal_values, shapes, interpolated);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeShapes(const Vector<Real> & real_coords,
@@ -157,8 +152,7 @@ void ShapeLagrange<kind>::computeShapes(const Vector<Real> & real_coords,
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeShapeDerivatives(
@@ -201,15 +195,13 @@ void ShapeLagrange<kind>::computeShapeDerivatives(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 ShapeLagrange<kind>::ShapeLagrange(const Mesh & mesh, UInt spatial_dimension,
                                    const ID & id, const MemoryID & memory_id)
     : ShapeLagrangeBase(mesh, spatial_dimension, kind, id, memory_id) {}
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
@@ -346,8 +338,7 @@ void ShapeLagrange<kind>::computeShapeDerivativesOnIntegrationPoints(
 #undef AKANTU_COMPUTE_SHAPES
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::precomputeShapesOnIntegrationPoints(
@@ -366,8 +357,7 @@ void ShapeLagrange<kind>::precomputeShapesOnIntegrationPoints(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::precomputeShapeDerivativesOnIntegrationPoints(
@@ -392,10 +382,8 @@ void ShapeLagrange<kind>::precomputeShapeDerivativesOnIntegrationPoints(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
@@ -417,8 +405,7 @@ void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
@@ -438,8 +425,7 @@ void ShapeLagrange<kind>::interpolateOnIntegrationPoints(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::gradientOnIntegrationPoints(
@@ -468,8 +454,7 @@ void ShapeLagrange<kind>::gradientOnIntegrationPoints(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeBtD(
@@ -514,8 +499,7 @@ void ShapeLagrange<kind>::computeBtD(
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeBtDB(
@@ -584,8 +568,7 @@ inline void ShapeLagrange<_ek_regular>::computeBtDB<_point_1>(
   AKANTU_TO_IMPLEMENT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <ElementKind kind>
 template <ElementType type>
 void ShapeLagrange<kind>::computeNtb(

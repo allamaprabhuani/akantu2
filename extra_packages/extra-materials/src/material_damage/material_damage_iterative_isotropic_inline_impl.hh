@@ -76,7 +76,7 @@ inline void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
  */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 void MaterialDamageIterativeIsotropic<spatial_dimension, ElasticParent>::
-    computeTangentModuli(const ElementType & el_type,
+    computeTangentModuli(ElementType el_type,
                          Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   ElasticParent<spatial_dimension>::computeTangentModuli(

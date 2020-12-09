@@ -1335,8 +1335,7 @@ inline void Vector<T>::mul(const Matrix<T> & A, const Vector<T> & x, T alpha) {
                          0., this->storage());
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <typename T>
 inline std::ostream & operator<<(std::ostream & stream,
                                  const Matrix<T> & _this) {
@@ -1344,8 +1343,7 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <typename T>
 inline std::ostream & operator<<(std::ostream & stream,
                                  const Vector<T> & _this) {
@@ -1376,8 +1374,7 @@ public:
   Tensor3(const proxy & src) : parent(src) {}
 
 public:
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   inline Tensor3 & operator=(const Tensor3 & src) {
     parent::operator=(src);
     return *this;
@@ -1435,11 +1432,9 @@ public:
   }
 };
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------- */
 // support operations for the creation of other vectors
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------- */
 template <typename T>
 Vector<T> operator*(const T & scalar, const Vector<T> & a) {
   Vector<T> r(a);
@@ -1489,8 +1484,7 @@ Vector<T> operator*(const Matrix<T> & A, const Vector<T> & b) {
   return r;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------- */
 template <typename T>
 Matrix<T> operator*(const T & scalar, const Matrix<T> & a) {
   Matrix<T> r(a);

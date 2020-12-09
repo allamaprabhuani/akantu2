@@ -95,9 +95,6 @@ public:
   Communicator(const private_member & /*unused*/);
   ~Communicator() override;
 
-  static void initialize();
-  static void finalize();
-
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */

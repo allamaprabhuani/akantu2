@@ -71,10 +71,10 @@ public:
 
   /// update the internal variables and compute energies dissipated due to
   /// damage and viscoelasticity
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
@@ -136,6 +136,6 @@ protected:
 
 } // namespace akantu
 
-// #include "material_damage_iterative_viscoelastic_inline_impl.cc"
+// #include "material_damage_iterative_viscoelastic_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_ITERATIVE_VISCOELASTIC_HH__ */

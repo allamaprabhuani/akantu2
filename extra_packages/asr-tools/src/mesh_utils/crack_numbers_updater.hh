@@ -49,6 +49,6 @@ private:
 
 } // namespace akantu
 
-#include "crack_numbers_updater_inline_impl.cc"
+#include "crack_numbers_updater_inline_impl.hh"
 
 #endif /* __AKANTU_CRACK_NUMBERS_UPDATER_HH__ */

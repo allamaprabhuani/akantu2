@@ -100,6 +100,6 @@ using MaterialIterativeStiffnessReductionIsotropic = MaterialIterativeStiffnessR
 
 } // namespace akantu
 
-#include "material_iterative_stiffness_reduction_inline_impl.cc"
+#include "material_iterative_stiffness_reduction_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__ */

@@ -65,7 +65,7 @@ public:
 
   void computeStress(const ElementType el_type, GhostType ghost_type) override;
 
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type) override;
 
@@ -135,6 +135,6 @@ protected:
 
 } // namespace akantu
 
-#include "material_damage_iterative_orthotropic_inline_impl.cc"
+#include "material_damage_iterative_orthotropic_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_ITERATIVE__HH__ */

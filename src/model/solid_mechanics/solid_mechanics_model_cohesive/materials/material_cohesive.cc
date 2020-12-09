@@ -93,10 +93,10 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->contact_opening.initialize(spatial_dimension);
 
   this->normal_opening_norm.initialize(1);
-  this->normal_opening_norm.initializeHistory();
+  //this->normal_opening_norm.initializeHistory();
 
   this->opening.initialize(spatial_dimension);
-  this->opening.initializeHistory();
+  //this->opening.initializeHistory();
 
   this->normals.initialize(spatial_dimension);
 
@@ -283,10 +283,6 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
         nb_element * nb_quadrature_points,
         spatial_dimension * spatial_dimension, "tangent_stiffness_matrix");
 
-    //    Array<Real> * normal = new Array<Real>(nb_element *
-    //    nb_quadrature_points, spatial_dimension, "normal");
-    // normal.resize(nb_quadrature_points);
-
     computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
                   ghost_type);
 
@@ -391,11 +387,6 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     if (nb_element == 0) {
       continue;
     }
-
-    // UInt nb_quadrature_points =
-    //     nb_element * fem_cohesive.getNbIntegrationPoints(type, ghost_type);
-
-    // normal.resize(nb_quadrature_points);
 
     /// compute normals @f$\mathbf{n}@f$
     computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,

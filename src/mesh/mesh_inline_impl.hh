@@ -638,12 +638,7 @@ inline UInt Mesh::getNbNodesPerElementList(const Array<Element> & elements) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline bool Mesh::hasMeshFacets() {
-  if (this->mesh_facets)
-    return true;
-  else
-    return false;
-}
+inline bool Mesh::hasMeshFacets() { return (this->mesh_facets != nullptr); }
 
 /* -------------------------------------------------------------------------- */
 inline Mesh & Mesh::getMeshFacets() {

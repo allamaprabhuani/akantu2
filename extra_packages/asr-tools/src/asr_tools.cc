@@ -1721,12 +1721,12 @@ void ASRTools::homogenizeStiffness(Matrix<Real> & C_macro, bool tensile_test) {
   performVirtualTesting(H, stresses, strains, 0);
 
   /// virtual test 2:
-  H.clear();
+  H.zero();
   H(1, 1) = 0.001 * (2 * tensile_test - 1);
   performVirtualTesting(H, stresses, strains, 1);
 
   /// virtual test 3:
-  H.clear();
+  H.zero();
   H(0, 1) = 0.001;
   H(1, 0) = 0.001;
   performVirtualTesting(H, stresses, strains, 2);
@@ -2160,7 +2160,7 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
   auto prank = comm.whoAmI();
   Vector<Real> bary_facet(dim);
 
-  for (auto & position : positions) {
+  for (const auto & position : positions) {
     Real min_dist = std::numeric_limits<Real>::max();
     Element cent_facet;
     cent_facet.ghost_type = gt;

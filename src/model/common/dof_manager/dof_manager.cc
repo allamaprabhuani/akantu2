@@ -45,8 +45,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(const ID & id, const MemoryID & memory_id)
-    : Memory(id, memory_id),
-      communicator(Communicator::getWorldCommunicator()) {}
+    : Memory(id, memory_id), dofs_flag(0, 1, std::string(id + ":dofs_type")),
+      global_equation_number(0, 1, "global_equation_number"),
+      communicator(Communicator::getSelfCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
 DOFManager::DOFManager(Mesh & mesh, const ID & id, const MemoryID & memory_id)

@@ -596,8 +596,8 @@ inline void SynchronizerImpl<UInt>::initScatterGatherCommunicationScheme() {
   }
 
   entities_changed = false;
-  communicator.waitAll(requests);
-  communicator.freeCommunicationRequest(requests);
+  Communicator::waitAll(requests);
+  Communicator::freeCommunicationRequest(requests);
 
   AKANTU_DEBUG_OUT();
 }

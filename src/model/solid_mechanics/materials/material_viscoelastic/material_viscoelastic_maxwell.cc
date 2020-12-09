@@ -211,8 +211,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u, Matrix<Real> & sigma,
-    Tensor3<Real> & sigma_v, Real & sigma_th, Real dam) {
+    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
+    Matrix<Real> & sigma, Tensor3<Real> & sigma_v, Real sigma_th, Real dam) {
 
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
@@ -258,7 +258,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateSigmaViscOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u,
+    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Tensor3<Real> & sigma_v, Real dam) {
 
   Matrix<Real> grad_delta_u(grad_u);

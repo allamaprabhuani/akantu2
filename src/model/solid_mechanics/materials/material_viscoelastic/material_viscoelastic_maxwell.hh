@@ -150,19 +150,14 @@ protected:
                                     Real & dis_energy, Real & integral,
                                     Real & mech_work, Real pot_energy);
 
-  // /// compute stresses on a quadrature point
-  // void computeStressOnQuad(const Matrix<Real> & grad_u,
-  //                          const Matrix<Real> & previous_grad_u,
-  //                          Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
-  //                          const Real & sigma_th);
   /// compute stresses on a quadrature point
-  void computeStressOnQuad(Matrix<Real> & grad_u,
-                           Matrix<Real> & previous_grad_u, Matrix<Real> & sigma,
-                           Tensor3<Real> & sigma_v, Real & sigma_th,
-                           Real dam = 0);
+  void computeStressOnQuad(const Matrix<Real> & grad_u,
+                           const Matrix<Real> & previous_grad_u,
+                           Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
+                           Real sigma_th, Real dam = 0);
   /// update internal variables accounting for damage level
   void
-  updateSigmaViscOnQuad(Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u,
+  updateSigmaViscOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
                         Tensor3<Real> & sigma_v, /*Tensor3<Real> & epsilon_v,*/
                         Real dam = 0);
 

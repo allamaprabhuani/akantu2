@@ -178,8 +178,9 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::updateDamage() {
         if (equivalent_stress >=
             (1 - dam_tolerance) * norm_max_equivalent_stress) {
           /// check if this element can still be damaged
-          if (reduction == this->max_reductions)
+          if (reduction == this->max_reductions) {
             continue;
+          }
           reduction += 1;
           if (reduction == this->max_reductions) {
             dam = max_damage;
@@ -211,9 +212,9 @@ void MaterialDamageIterative<spatial_dimension, ElasticParent>::
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, template <UInt> class ElasticParent>
 UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::
-    updateDamageOnQuad(UInt quad_index, const Real /*eq_stress*/,
-                       const ElementType & el_type,
-                       const GhostType & ghost_type) {
+    updateDamageOnQuad(UInt quad_index, Real /*eq_stress*/,
+                       ElementType el_type,
+                       GhostType ghost_type) {
   AKANTU_DEBUG_ASSERT(prescribed_dam > 0.,
                       "Your prescribed damage must be greater than zero");
 
@@ -223,10 +224,11 @@ UInt MaterialDamageIterative<spatial_dimension, ElasticParent>::
   /// check if damage occurs
   if (equivalent_stress(el_type, ghost_type)(quad_index) >=
       (1 - dam_tolerance) * norm_max_equivalent_stress) {
-    if (dam_on_quad < dam_threshold)
+    if (dam_on_quad < dam_threshold) {
       dam_on_quad += prescribed_dam;
-    else
+    } else {
       dam_on_quad = max_damage;
+    }
     return 1;
   }
 

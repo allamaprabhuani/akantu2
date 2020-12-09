@@ -1396,8 +1396,9 @@ inline void FEEngineTemplate<I, S, kind, IntegrationOrderFunctor>::
   const auto & connectivity = mesh.getConnectivity(type, ghost_type);
   auto nb_element = connectivity.size();
 
-  if (filter_elements != empty_filter)
+  if (filter_elements != empty_filter) {
     nb_element = filter_elements.size();
+  }
 
   normal.resize(nb_element * nb_points);
   const auto & segments = mesh.getElementToSubelement(type, ghost_type);

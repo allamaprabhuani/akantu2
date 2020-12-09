@@ -217,7 +217,7 @@ FacetSynchronizer::FacetSynchronizer(
         },
         Tag::genTag(rank, type, tag_cnt));
 
-    communicator.waitAll(send_requests);
+    Communicator::waitAll(send_requests);
     send_requests.clear();
   }
 }

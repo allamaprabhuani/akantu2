@@ -1,5 +1,5 @@
 /**
- * @file   material_damage_explicit_inline_impl.cc
+ * @file   material_damage_explicit_inline_impl.hh
  * @author Emil Gallyamov <emil.gallyamov@epfl.ch>
  * @date   Tue Feb 12 2019
  *

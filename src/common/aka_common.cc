@@ -58,10 +58,8 @@ void initialize(int & argc, char **& argv) {
 void initialize(const std::string & input_file, int & argc, char **& argv) {
   AKANTU_DEBUG_IN();
   StaticMemory::getStaticMemory();
-
-  Communicator::initialize();
-
   Communicator & comm = Communicator::getWorldCommunicator();
+
   Tag::setMaxTag(comm.getMaxTag());
 
   debug::debugger.setParallelContext(comm.whoAmI(), comm.getNbProc());
@@ -123,12 +121,6 @@ void initialize(const std::string & input_file, int & argc, char **& argv) {
 /* -------------------------------------------------------------------------- */
 void finalize() {
   AKANTU_DEBUG_IN();
-
-  // if (StaticCommunicator::isInstantiated()) {
-  //   StaticCommunicator & comm = StaticCommunicator::getWorldCommunicator();
-  //   delete &comm;
-  // }
-  Communicator::finalize();
 
   if (StaticMemory::isInstantiated()) {
     delete &(StaticMemory::getStaticMemory());

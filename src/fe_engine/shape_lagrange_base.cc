@@ -150,8 +150,7 @@ void ShapeLagrangeBase::onElementsAdded(const Array<Element> & new_elements) {
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------- */
 void ShapeLagrangeBase::onElementsRemoved(
     const Array<Element> & /*unused*/,
     const ElementTypeMapArray<UInt> & new_numbering) {
@@ -159,8 +158,7 @@ void ShapeLagrangeBase::onElementsRemoved(
   this->shapes_derivatives.onElementsRemoved(new_numbering);
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------------- */
 void ShapeLagrangeBase::printself(std::ostream & stream, int indent) const {
   std::string space(indent, AKANTU_INDENT);
 
