@@ -318,7 +318,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (cf_nodal)                                    \
   (cf_incr)                                     \
   (solver_solution)                             \
-  (asr)
+  (crack_nb)                                    \
+  (border_nodes)
 // clang-format on
 AKANTU_CLASS_ENUM_DECLARE(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(SynchronizationTag, AKANTU_SYNCHRONIZATION_TAG)
@@ -357,7 +358,7 @@ enum class SynchronizationTag {
   _ce_groups, ///< synchronization of cohesive element insertion depending
               /// on facet groups
   _ce_insertion_order, ///< synchronization of the order of insertion of
-                       ///cohesive elements
+                       /// cohesive elements
 
   // --- GroupManager tags ---
   _gm_clusters, ///< synchronization of clusters
@@ -398,7 +399,8 @@ enum class SynchronizationTag {
                     /// PETSc solver
 
   // --- ASRTools tags ---
-  _asr ///< synchronization for asr (nodes, node flags)
+  _crack_nb         ///< synchronization for crack numbers in asr tools
+      _border_nodes ///< synchronization for the nodes at the partition border
 };
 #endif
 

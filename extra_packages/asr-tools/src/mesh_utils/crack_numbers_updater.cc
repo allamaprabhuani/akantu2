@@ -12,7 +12,7 @@ namespace akantu {
 void CrackNumbersUpdater::communicateCrackNumbers() {
   if (model.getMesh().getCommunicator().getNbProc() == 1)
     return;
-  this->synchronizer.synchronizeOnce(*this, SynchronizationTag::_asr);
+  this->synchronizer.synchronizeOnce(*this, SynchronizationTag::_crack_nb);
 }
 
 } // namespace akantu

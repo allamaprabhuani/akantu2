@@ -24,9 +24,6 @@ package_declare_sources(asr_tools
   material_FE2/material_FE2_inline_impl.hh
   solid_mechanics_model_RVE.hh
   solid_mechanics_model_RVE.cc
-  mesh_utils/nodes_pos_updater.hh
-  mesh_utils/nodes_pos_updater.cc
-  mesh_utils/nodes_pos_updater_inline_impl.hh
   mesh_utils/nodes_flag_updater.hh
   mesh_utils/nodes_flag_updater.cc
   mesh_utils/nodes_flag_updater_inline_impl.hh

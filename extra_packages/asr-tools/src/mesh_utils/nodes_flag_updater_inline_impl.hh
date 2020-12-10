@@ -14,7 +14,7 @@ namespace akantu {
 inline UInt NodesFlagUpdater::getNbData(const Array<Element> & elements,
                                         const SynchronizationTag & tag) const {
   UInt size = 0;
-  if (tag == SynchronizationTag::_asr) {
+  if (tag == SynchronizationTag::_border_nodes) {
     size +=
         Mesh::getNbNodesPerElementList(elements) * sizeof(bool) + sizeof(int);
   }
@@ -25,7 +25,7 @@ inline UInt NodesFlagUpdater::getNbData(const Array<Element> & elements,
 inline void NodesFlagUpdater::packData(CommunicationBuffer & buffer,
                                        const Array<Element> & elements,
                                        const SynchronizationTag & tag) const {
-  if (tag != SynchronizationTag::_asr) {
+  if (tag != SynchronizationTag::_border_nodes) {
     return;
   }
 
@@ -48,7 +48,7 @@ inline void NodesFlagUpdater::packData(CommunicationBuffer & buffer,
 inline void NodesFlagUpdater::unpackData(CommunicationBuffer & buffer,
                                          const Array<Element> & elements,
                                          const SynchronizationTag & tag) {
-  if (tag != SynchronizationTag::_asr) {
+  if (tag != SynchronizationTag::_border_nodes) {
     return;
   }
 

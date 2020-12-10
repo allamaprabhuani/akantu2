@@ -12,7 +12,8 @@ namespace akantu {
 void NodesFlagUpdater::fillPreventInsertion() {
   if (mesh.getCommunicator().getNbProc() == 1)
     return;
-  this->synchronizer.slaveReductionOnce(*this, SynchronizationTag::_asr);
+  this->synchronizer.slaveReductionOnce(*this,
+                                        SynchronizationTag::_border_nodes);
 }
 
 } // namespace akantu
