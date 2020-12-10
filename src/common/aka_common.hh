@@ -303,7 +303,7 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (gm_clusters)                                 \
   (htm_temperature)                             \
   (htm_gradient_temperature)                    \
-  (htm_pressure)                                \
+  (fdm_pressure)                                \
   (htm_gradient_pressure)                       \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
