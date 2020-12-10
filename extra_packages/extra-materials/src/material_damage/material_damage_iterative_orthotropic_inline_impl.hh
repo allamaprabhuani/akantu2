@@ -257,15 +257,16 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
 template <UInt spatial_dimension>
 inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
-    Matrix<Real> & sigma, Real & dam, Real & _E1, Real & _E2, Real & /*_E3*/,
+    Matrix<Real> & sigma, Real & dam, Real & E1, Real & E2, Real & /*_E3*/,
     Real & _nu12, Real & _nu13, Real & _nu23, Real & /*_G12*/, Real & /*_G13*/,
     Real & /*_G23*/, Matrix<Real> & _dir_vecs, Real & nb_flicks) {
 
   /// detect compression in the normal to crack plane direction
   Vector<Real> normal_to_crack(spatial_dimension);
   /// normals are stored row-wise
-  for (auto i : arange(spatial_dimension))
+  for (auto i : arange(spatial_dimension)) {
     normal_to_crack(i) = _dir_vecs(0, i);
+  }
   auto traction_on_crack = sigma * normal_to_crack;
   auto stress_normal_to_crack = normal_to_crack.dot(traction_on_crack);
 
@@ -281,7 +282,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
     /// recover stiffness only when compressive stress is considerable
     if (this->contact && std::abs(stress_normal_to_crack) > this->E / 1e9 &&
         stress_normal_to_crack < 0) {
-      _E1 = this->E1;
+      E1 = this->E1;
       _nu12 = this->nu12;
       _nu13 = this->nu13;
       // _G12 = this->G12;

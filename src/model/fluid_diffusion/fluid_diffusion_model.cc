@@ -56,20 +56,21 @@ namespace fluid_diffusion {
       ComputeRhoFunctor(const FluidDiffusionModel & model) : model(model){};
 
       void operator()(Matrix<Real> & rho, const Element & element) const {
-        auto & type = element.type;
-        auto & gt = element.ghost_type;
-        auto & aperture = model.getApertureOnQpoints(type, gt);
+        const auto & type = element.type;
+        const auto & gt = element.ghost_type;
+        const auto & aperture = model.getApertureOnQpoints(type, gt);
         auto nb_quad_points = aperture.getNbComponent();
         Real aperture_av = 0.;
         for (auto q : arange(nb_quad_points)) {
           aperture_av += aperture(element.element, q);
         }
         aperture_av /= nb_quad_points;
-        if (model.isModelVelocityDependent())
+        if (model.isModelVelocityDependent()) {
           rho.set(model.getCompressibility() * aperture_av);
-        else
+        } else {
           rho.set((model.getCompressibility() + model.getPushability()) *
                   aperture_av);
+        }
       }
 
     private:
@@ -88,11 +89,20 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
       permeability_on_qpoints("permeability_on_qpoints", id),
       aperture_on_qpoints("aperture_on_qpoints", id),
       prev_aperture_on_qpoints("prev_aperture_on_qpoints", id),
-      k_gradp_on_qpoints("k_gradp_on_qpoints", id), viscosity(0.),
-      compressibility(0.), default_aperture(0.), use_aperture_speed(false),
-      pushability(0.), insertion_damage(0.) {
+      k_gradp_on_qpoints("k_gradp_on_qpoints", id) {
   AKANTU_DEBUG_IN();
 
+  int i = 0;
+  unsigned int b(10);
+
+  std::vector<int> vi{10};
+  std::vector<int> v(10, 0);
+
+  if (i == int(b)) {
+    std::cout << "";
+  }
+
+  
   // mesh.registerEventHandler(*this, akantu::_ehp_lowest);
 
   this->spatial_dimension = std::max(1, int(mesh.getSpatialDimension()) - 1);
@@ -103,9 +113,9 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_htm_pressure);
+    this->registerSynchronizer(synchronizer, SynchronizationTag::_fdm_pressure);
     this->registerSynchronizer(synchronizer,
-                               SynchronizationTag::_htm_gradient_pressure);
+                               SynchronizationTag::_fdm_gradient_pressure);
   }
 
   registerFEEngineObject<FEEngineType>(id + ":fem", mesh, spatial_dimension);
@@ -137,8 +147,9 @@ void FluidDiffusionModel::initModel() {
   pressure_gradient.initialize(fem, _nb_component = 1);
   permeability_on_qpoints.initialize(fem, _nb_component = 1);
   aperture_on_qpoints.initialize(fem, _nb_component = 1);
-  if (use_aperture_speed)
+  if (use_aperture_speed) {
     prev_aperture_on_qpoints.initialize(fem, _nb_component = 1);
+  }
   k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
 }
 
@@ -169,7 +180,7 @@ void FluidDiffusionModel::assembleCapacityLumped(const GhostType & ghost_type) {
   auto & fem = getFEEngineClass<FEEngineType>();
   fluid_diffusion::details::ComputeRhoFunctor compute_rho(*this);
 
-  for (auto & type :
+  for (const auto & type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     fem.assembleFieldLumped(compute_rho, "M", "pressure", this->getDOFManager(),
                             type, ghost_type);
@@ -261,7 +272,7 @@ void FluidDiffusionModel::assembleCapacityLumped() {
 
 /* -------------------------------------------------------------------------- */
 void FluidDiffusionModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                     NonLinearSolverType) {
+                                     NonLinearSolverType /*non_linear_solver_type*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
   this->allocNodalField(this->pressure, "pressure");
@@ -417,11 +428,12 @@ void FluidDiffusionModel::computePermeabilityOnQuadPoints(
   // if already computed once check if need to compute
   if (not initial_permeability[ghost_type]) {
     // if aperture did not change, permeability will not vary
-    if (solution_release == permeability_release[ghost_type])
+    if (solution_release == permeability_release[ghost_type]) {
       return;
+    }
   }
 
-  for (auto & type :
+  for (const auto & type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
 
     // auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -452,7 +464,7 @@ void FluidDiffusionModel::computePermeabilityOnQuadPoints(
 void FluidDiffusionModel::computeKgradP(const GhostType & ghost_type) {
   computePermeabilityOnQuadPoints(ghost_type);
 
-  for (auto & type :
+  for (const auto & type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & gradient = pressure_gradient(type, ghost_type);
     this->getFEEngine().gradientOnIntegrationPoints(*pressure, gradient, 1,
@@ -477,7 +489,7 @@ void FluidDiffusionModel::assembleInternalFlux() {
 
   this->internal_flux->clear();
 
-  this->synchronize(SynchronizationTag::_htm_pressure);
+  this->synchronize(SynchronizationTag::_fdm_pressure);
   auto & fem = this->getFEEngine();
 
   for (auto ghost_type : ghost_types) {
@@ -524,7 +536,7 @@ Real FluidDiffusionModel::getStableTimeStep() {
   Real min_el_size = std::numeric_limits<Real>::max();
   Real max_aper_on_qpoint = std::numeric_limits<Real>::min();
 
-  for (auto & type :
+  for (const auto & type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
     auto nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -666,27 +678,28 @@ void FluidDiffusionModel::resizeFields() {
   pressure_gradient.initialize(fem, _nb_component = 1);
   permeability_on_qpoints.initialize(fem, _nb_component = 1);
   aperture_on_qpoints.initialize(fem, _nb_component = 1);
-  if (use_aperture_speed)
+  if (use_aperture_speed) {
     prev_aperture_on_qpoints.initialize(fem, _nb_component = 1);
+  }
   k_gradp_on_qpoints.initialize(fem, _nb_component = 1);
 
   /// nodal fields
   UInt nb_nodes = mesh.getNbNodes();
 
-  if (pressure) {
+  if (pressure != nullptr) {
     pressure->resize(nb_nodes, 0.);
     ++solution_release;
   }
-  if (external_flux) {
+  if (external_flux != nullptr) {
     external_flux->resize(nb_nodes, 0.);
   }
-  if (internal_flux) {
+  if (internal_flux != nullptr) {
     internal_flux->resize(nb_nodes, 0.);
   }
-  if (blocked_dofs) {
-    blocked_dofs->resize(nb_nodes, 0.);
+  if (blocked_dofs != nullptr) {
+    blocked_dofs->resize(nb_nodes, false);
   }
-  if (pressure_rate) {
+  if (pressure_rate != nullptr) {
     pressure_rate->resize(nb_nodes, 0.);
   }
   need_to_reassemble_capacity_lumped = true;
@@ -722,8 +735,9 @@ void FluidDiffusionModel::getApertureOnQpointsFromCohesive(
   //                     "and fluid elements");
 
   // save previous aperture
-  if (not first_time && use_aperture_speed)
+  if (not first_time and use_aperture_speed) {
     prev_aperture_on_qpoints.copy(aperture_on_qpoints);
+  }
 
   // AKANTU_DEBUG_ASSERT(nb_coh_elem == nb_fluid_elem,
   //                     "Different number of cohesive and fluid elements");
@@ -807,8 +821,9 @@ void FluidDiffusionModel::updateFluidElementsFromCohesive(
   const auto nb_fluid_elem = mesh.getNbElement(type_fluid);
 
   // check if there is need to add more fluid elements
-  if (nb_coh_elem == nb_fluid_elem)
+  if (nb_coh_elem == nb_fluid_elem) {
     return;
+  }
 
   NewElementsEvent new_facets;
   NewNodesEvent new_nodes;
@@ -822,8 +837,9 @@ void FluidDiffusionModel::updateFluidElementsFromCohesive(
         mesh.getData<Element>("cohesive_elements", type_facets, gt);
     Element coh_element = {typecoh, coh_el, gt};
     auto it = existing_coh_elements.find(coh_element);
-    if (it != UInt(-1))
+    if (it != UInt(-1)) {
       continue;
+    }
 
     // check damage at the cohesive element
     // Element element{type_fluid, element_nb, gt};
@@ -840,8 +856,9 @@ void FluidDiffusionModel::updateFluidElementsFromCohesive(
     }
     damage_av /= nb_quad_coh_elem;
 
-    if (damage_av < this->insertion_damage)
+    if (damage_av < this->insertion_damage) {
       continue;
+    }
 
     // add fluid element to connectivity and corresponding nodes
     Array<UInt> & nodes_added = new_nodes.getList();
@@ -903,11 +920,11 @@ void FluidDiffusionModel::updateFluidElementsFromCohesive(
 
 /* -------------------------------------------------------------------------- */
 void FluidDiffusionModel::applyExternalFluxAtElementGroup(
-    const Real & rate, const ElementGroup & group, GhostType ghost_type) {
+    const Real & rate, const ElementGroup & source_facets, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
-  for (auto && type : group.elementTypes(spatial_dimension, ghost_type)) {
-    const auto & element_ids = group.getElements(type, ghost_type);
+  for (auto && type : source_facets.elementTypes(spatial_dimension, ghost_type)) {
+    const auto & element_ids = source_facets.getElements(type, ghost_type);
 
     const auto nb_fluid_elem = mesh.getNbElement(type);
     const auto type_size = element_ids.size();
@@ -928,7 +945,7 @@ void FluidDiffusionModel::applyExternalFluxAtElementGroup(
                           "maximum number of flow elements");
 
       const Vector<UInt> fluid_conn = fluid_conn_it[el];
-      for (auto & node : fluid_conn) {
+      for (const auto & node : fluid_conn) {
         source(node) += rate / (fluid_conn.size() * element_ids.size());
       }
     }
@@ -1105,7 +1122,7 @@ FluidDiffusionModel::getNbData(const Array<UInt> & indexes,
   UInt nb_nodes = indexes.size();
 
   switch (tag) {
-  case SynchronizationTag::_htm_pressure: {
+  case SynchronizationTag::_fdm_pressure: {
     size += nb_nodes * sizeof(Real);
     break;
   }
@@ -1125,7 +1142,7 @@ FluidDiffusionModel::packData(CommunicationBuffer & buffer,
 
   for (auto index : indexes) {
     switch (tag) {
-    case SynchronizationTag::_htm_pressure: {
+    case SynchronizationTag::_fdm_pressure: {
       buffer << (*pressure)(index);
       break;
     }
@@ -1143,7 +1160,7 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
 
   for (auto index : indexes) {
     switch (tag) {
-    case SynchronizationTag::_htm_pressure: {
+    case SynchronizationTag::_fdm_pressure: {
       buffer >> (*pressure)(index);
       break;
     }
@@ -1170,11 +1187,11 @@ FluidDiffusionModel::getNbData(const Array<Element> & elements,
   }
 
   switch (tag) {
-  case SynchronizationTag::_htm_pressure: {
+  case SynchronizationTag::_fdm_pressure: {
     size += nb_nodes_per_element * sizeof(Real); // pressure
     break;
   }
-  case SynchronizationTag::_htm_gradient_pressure: {
+  case SynchronizationTag::_fdm_gradient_pressure: {
     // pressure gradient
     size += getNbIntegrationPoints(elements) * sizeof(Real);
     size += nb_nodes_per_element * sizeof(Real); // nodal pressures
@@ -1193,11 +1210,11 @@ FluidDiffusionModel::packData(CommunicationBuffer & buffer,
                               const Array<Element> & elements,
                               const SynchronizationTag & tag) const {
   switch (tag) {
-  case SynchronizationTag::_htm_pressure: {
+  case SynchronizationTag::_fdm_pressure: {
     packNodalDataHelper(*pressure, buffer, elements, mesh);
     break;
   }
-  case SynchronizationTag::_htm_gradient_pressure: {
+  case SynchronizationTag::_fdm_gradient_pressure: {
     packElementalDataHelper(pressure_gradient, buffer, elements, true,
                             getFEEngine());
     packNodalDataHelper(*pressure, buffer, elements, mesh);
@@ -1212,11 +1229,11 @@ inline void FluidDiffusionModel::unpackData(CommunicationBuffer & buffer,
                                             const Array<Element> & elements,
                                             const SynchronizationTag & tag) {
   switch (tag) {
-  case SynchronizationTag::_htm_pressure: {
+  case SynchronizationTag::_fdm_pressure: {
     unpackNodalDataHelper(*pressure, buffer, elements, mesh);
     break;
   }
-  case SynchronizationTag::_htm_gradient_pressure: {
+  case SynchronizationTag::_fdm_gradient_pressure: {
     unpackElementalDataHelper(pressure_gradient, buffer, elements, true,
                               getFEEngine());
     unpackNodalDataHelper(*pressure, buffer, elements, mesh);
