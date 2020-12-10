@@ -36,7 +36,7 @@ package_declare(fluid_diffusion
 package_declare_sources(fluid_diffusion
   model/fluid_diffusion/fluid_diffusion_model.cc
   model/fluid_diffusion/fluid_diffusion_model.hh
-  model/fluid_diffusion/fluid_diffusion_model_inline_impl.cc
+  model/fluid_diffusion/fluid_diffusion_model_inline_impl.hh
   model/fluid_diffusion/fluid_diffusion_model_event_handler.hh
   )
 
