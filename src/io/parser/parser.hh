@@ -8,7 +8,6 @@
  *
  * @brief  File parser interface
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,11 +34,12 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PARSER_HH__
-#define __AKANTU_PARSER_HH__
+#ifndef AKANTU_PARSER_HH_
+#define AKANTU_PARSER_HH_
 
 namespace akantu {
 
+#if !defined(DOXYGEN)
 // clang-format off
 #define AKANTU_SECTION_TYPES                                            \
   (cohesive_inserter)                                                   \
@@ -69,6 +69,7 @@ namespace akantu {
 AKANTU_CLASS_ENUM_DECLARE(ParserType, AKANTU_SECTION_TYPES)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(ParserType, AKANTU_SECTION_TYPES)
 AKANTU_CLASS_ENUM_INPUT_STREAM(ParserType, AKANTU_SECTION_TYPES)
+#endif
 
 /// Defines the possible search contexts/scopes (for parameter search)
 enum ParserParameterSearchCxt {
@@ -213,18 +214,23 @@ public:
       }
       return *this;
     }
+
     const ParserParameter & operator*() const { return it->second; }
     const ParserParameter * operator->() { return &(it->second); };
+
     bool operator==(const const_parameter_iterator & other) const {
       return it == other.it;
     }
+
     bool operator!=(const const_parameter_iterator & other) const {
       return it != other.it;
     }
+
     const_parameter_iterator & operator++() {
       ++it;
       return *this;
     }
+
     const_parameter_iterator operator++(int) {
       const_parameter_iterator tmp = *this;
       operator++();
@@ -239,7 +245,7 @@ public:
   ParserSection() : name(std::string()) {}
 
   ParserSection(const std::string & name, ParserType type)
-      : parent_section(nullptr), name(name), type(type) {}
+      : name(name), type(type) {}
 
   ParserSection(const std::string & name, ParserType type,
                 const std::string & option,
@@ -288,11 +294,13 @@ protected:
 
 private:
   void setChldrenPointers() {
-    for (auto && param_pair : this->parameters)
+    for (auto && param_pair : this->parameters) {
       param_pair.second.setParent(*this);
+    }
 
-    for (auto && sub_sect_pair : this->sub_sections_by_type)
+    for (auto && sub_sect_pair : this->sub_sections_by_type) {
       sub_sect_pair.second.setParent(*this);
+    }
   }
 
   /* ---------------------------------------------------------------------- */
@@ -315,19 +323,17 @@ public:
     if (type != ParserType::_not_defined) {
       auto range = sub_sections_by_type.equal_range(type);
       return SubSectionsRange(range.first, range.second);
-    } else {
-      return SubSectionsRange(sub_sections_by_type.begin(),
-                              sub_sections_by_type.end());
     }
+    return SubSectionsRange(sub_sections_by_type.begin(),
+                            sub_sections_by_type.end());
   }
 
   /// Get number of subsections of certain type
   UInt getNbSubSections(ParserType type = ParserType::_not_defined) const {
     if (type != ParserType::_not_defined) {
       return this->sub_sections_by_type.count(type);
-    } else {
-      return this->sub_sections_by_type.size();
     }
+    return this->sub_sections_by_type.size();
   }
 
   /// Get begin and end iterators on parameters
@@ -341,17 +347,19 @@ public:
       const std::string & name,
       ParserParameterSearchCxt search_ctx = _ppsc_current_scope) const {
     Parameters::const_iterator it;
-    if (search_ctx & _ppsc_current_scope)
+    if ((search_ctx & _ppsc_current_scope) != 0) {
       it = parameters.find(name);
+    }
 
     if (it == parameters.end()) {
-      if ((search_ctx & _ppsc_parent_scope) && parent_section)
+      if ((search_ctx & _ppsc_parent_scope) != 0 and
+          parent_section != nullptr) {
         return parent_section->getParameter(name, search_ctx);
-      else {
-        AKANTU_SILENT_EXCEPTION(
-            "The parameter " << name
-                             << " has not been found in the specified context");
       }
+
+      AKANTU_SILENT_EXCEPTION(
+          "The parameter " << name
+                           << " has not been found in the specified context");
     }
     return it->second;
   }
@@ -360,7 +368,7 @@ public:
   /// Get parameter within specified context, with a default value in case the
   /// parameter does not exists
   template <class T>
-  const T getParameter(
+  T getParameter(
       const std::string & name, const T & default_value,
       ParserParameterSearchCxt search_ctx = _ppsc_current_scope) const {
     try {
@@ -378,15 +386,16 @@ public:
       ParserParameterSearchCxt search_ctx = _ppsc_current_scope) const {
 
     Parameters::const_iterator it;
-    if (search_ctx & _ppsc_current_scope)
+    if ((search_ctx & _ppsc_current_scope) != 0) {
       it = parameters.find(name);
+    }
 
     if (it == parameters.end()) {
-      if ((search_ctx & _ppsc_parent_scope) && parent_section)
+      if ((search_ctx & _ppsc_parent_scope) != 0 and
+          parent_section != nullptr) {
         return parent_section->hasParameter(name, search_ctx);
-      else {
-        return false;
       }
+      return false;
     }
     return true;
   }
@@ -406,12 +415,12 @@ public:
   /* --------------------------------------------------------------------------
    */
   /// Get section name
-  const std::string getName() const { return name; }
+  std::string getName() const { return name; }
   /// Get section type
   ParserType getType() const { return type; }
   /// Get section option
-  const std::string getOption(const std::string & def = "") const {
-    return option != "" ? option : def;
+  std::string getOption(const std::string & def = "") const {
+    return (not option.empty()) ? option : def;
   }
 
 protected:
@@ -463,6 +472,7 @@ public:
   static RandomParameter<Real>
   parseRandomParameter(const std::string & value,
                        const ParserSection & section);
+
 protected:
   /// General parse function
   template <class T, class Grammar>
@@ -500,4 +510,4 @@ template <> struct iterator_traits<::akantu::Parser::const_section_iterator> {
 
 #include "parser_tmpl.hh"
 
-#endif /* __AKANTU_PARSER_HH__ */
+#endif /* AKANTU_PARSER_HH_ */

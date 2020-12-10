@@ -9,7 +9,6 @@
  *
  * @brief  Generic interface for elemental fields
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  *
  */
 
-#ifndef __AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH__
-#define __AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH__
+#ifndef AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH_
+#define AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH_
 /* -------------------------------------------------------------------------- */
 #include "dumper_element_iterator.hh"
 #include "dumper_field.hh"
@@ -38,7 +37,7 @@
 #include "element_type_map_filter.hh"
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-__BEGIN_AKANTU_DUMPER__
+namespace dumpers {
 /* -------------------------------------------------------------------------- */
 
 template <class _types, template <class> class iterator_type>
@@ -94,10 +93,11 @@ public:
 
 protected:
   /// return the number of entries per element
-  UInt getNbDataPerElem(const ElementType & type,
-                        const GhostType & ghost_type = _not_ghost) const {
-    if (!nb_data_per_elem.exists(type, ghost_type))
+  UInt getNbDataPerElem(ElementType type,
+                        GhostType ghost_type = _not_ghost) const {
+    if (!nb_data_per_elem.exists(type, ghost_type)) {
       return field(type, ghost_type).getNbComponent();
+    }
 
     return nb_data_per_elem(type, this->ghost_type);
   }
@@ -130,14 +130,15 @@ public:
     auto end = types.end();
 
     /// skip all types without data
-    for (; tit != end && this->field(*tit, this->ghost_type).size() == 0;
+    for (; tit != end and this->field(*tit, this->ghost_type).empty();
          ++tit) {
     }
 
     auto type = *tit;
 
-    if (tit == end)
+    if (tit == end) {
       return this->end();
+    }
 
     /// getting information for the field of the given type
     const auto & vect = this->field(type, this->ghost_type);
@@ -161,8 +162,9 @@ public:
     auto end = types.end();
 
     auto type = *tit;
-    for (; tit != end; ++tit)
+    for (; tit != end; ++tit) {
       type = *tit;
+    }
 
     const array_type & vect = this->field(type, this->ghost_type);
     UInt nb_data = this->getNbDataPerElem(type);
@@ -208,11 +210,11 @@ protected:
   ElementTypeMap<UInt> nb_data_per_elem;
 };
 
+} // namespace dumpers
+} // namespace akantu
+
 /* -------------------------------------------------------------------------- */
 #include "dumper_generic_elemental_field_tmpl.hh"
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU_DUMPER__
-} // namespace akantu
-
-#endif /* __AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH__ */
+#endif /* AKANTU_DUMPER_GENERIC_ELEMENTAL_FIELD_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  Test default dof manager
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -62,7 +61,7 @@ public:
       return;
 
     auto & K = dynamic_cast<SparseMatrixAIJ &>(dof_manager.getMatrix("K"));
-    K.clear();
+    K.zero();
 
     for (UInt i = 1; i < nb_dofs - 1; ++i)
       K.add(i, i, 2.);
@@ -104,8 +103,8 @@ int main(int argc, char * argv[]) {
 
   NonLinearSolver & nls =
       dof_manager.getNewNonLinearSolver("my_nls", NonLinearSolverType::_linear);
-  TimeStepSolver & tss =
-      dof_manager.getNewTimeStepSolver("my_tss", TimeStepSolverType::_static, nls, callback);
+  TimeStepSolver & tss = dof_manager.getNewTimeStepSolver(
+      "my_tss", TimeStepSolverType::_static, nls, callback);
   tss.setIntegrationScheme("disp", IntegrationSchemeType::_pseudo_time);
   tss.solveStep(callback);
 

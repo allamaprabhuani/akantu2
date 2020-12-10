@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of a really simple integration scheme
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -44,10 +43,10 @@ PseudoTime::PseudoTime(DOFManager & dof_manager, const ID & dof_id)
 std::vector<std::string> PseudoTime::getNeededMatrixList() { return {"K"}; }
 
 /* -------------------------------------------------------------------------- */
-void PseudoTime::predictor(Real) {}
+void PseudoTime::predictor(Real /*delta_t*/) {}
 
 /* -------------------------------------------------------------------------- */
-void PseudoTime::corrector(const SolutionType &, Real) {
+void PseudoTime::corrector(const SolutionType & /*type*/, Real /*delta_t*/) {
   auto & us = this->dof_manager.getDOFs(this->dof_id);
   const auto & deltas = this->dof_manager.getSolution(this->dof_id);
   const auto & blocked_dofs = this->dof_manager.getBlockedDOFs(this->dof_id);
@@ -56,28 +55,31 @@ void PseudoTime::corrector(const SolutionType &, Real) {
     auto & u = std::get<0>(tuple);
     const auto & delta = std::get<1>(tuple);
     const auto & bld = std::get<2>(tuple);
-    if (not bld)
+    if (not bld) {
       u += delta;
+    }
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void PseudoTime::assembleJacobian(const SolutionType &, Real) {
+void PseudoTime::assembleJacobian(const SolutionType & /*type*/,
+                                  Real /*delta_t*/) {
   SparseMatrix & J = this->dof_manager.getMatrix("J");
   const SparseMatrix & K = this->dof_manager.getMatrix("K");
 
-  if (K.getRelease() == k_release)
+  if (K.getRelease() == k_release) {
     return;
+  }
 
   J.copyProfile(K);
-  //J.clear();
+  // J.zero();
   J.add(K);
 
   k_release = K.getRelease();
 }
 
 /* -------------------------------------------------------------------------- */
-void PseudoTime::assembleResidual(bool) {}
+void PseudoTime::assembleResidual(bool /*is_lumped*/) {}
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

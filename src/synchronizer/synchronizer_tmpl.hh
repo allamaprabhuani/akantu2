@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the helper classes for the synchronizer
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "synchronizer_impl.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_TMPL_HH__
-#define __AKANTU_SYNCHRONIZER_TMPL_HH__
+#ifndef AKANTU_SYNCHRONIZER_TMPL_HH_
+#define AKANTU_SYNCHRONIZER_TMPL_HH_
 
 namespace akantu {
 
@@ -132,6 +131,6 @@ void Synchronizer::computeBufferSize(const DataAccessorT & data_accessor,
   }
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_SYNCHRONIZER_TMPL_HH__ */
+#endif /* AKANTU_SYNCHRONIZER_TMPL_HH_ */

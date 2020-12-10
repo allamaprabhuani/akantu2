@@ -8,7 +8,6 @@
  *
  * @brief  implementation of the SparseMatrix class
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -60,8 +59,8 @@ SparseMatrix::SparseMatrix(const SparseMatrix & matrix, const ID & id)
 /* -------------------------------------------------------------------------- */
 SparseMatrix::~SparseMatrix() = default;
 
-// /* -------------------------------------------------------------------------- */
-// Array<Real> & operator*=(SolverVector & vect, const SparseMatrix & mat) {
+// /* --------------------------------------------------------------------------
+// */ Array<Real> & operator*=(SolverVector & vect, const SparseMatrix & mat) {
 //   Array<Real> tmp(vect.size(), vect.getNbComponent(), 0.);
 //   mat.matVecMul(vect, tmp);
 
@@ -76,4 +75,4 @@ void SparseMatrix::add(const SparseMatrix & B, Real alpha) {
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

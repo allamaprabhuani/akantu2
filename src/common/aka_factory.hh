@@ -8,7 +8,6 @@
  *
  * @brief  This is a generic factory
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -37,8 +36,8 @@
 #include <string>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_FACTORY_HH__
-#define __AKANTU_AKA_FACTORY_HH__
+#ifndef AKANTU_AKA_FACTORY_HH_
+#define AKANTU_AKA_FACTORY_HH_
 
 namespace akantu {
 
@@ -58,20 +57,22 @@ public:
   }
   /* ------------------------------------------------------------------------ */
   bool registerAllocator(const T & id, const allocator_t & allocator) {
-    if (allocators.find(id) != allocators.end())
-      AKANTU_EXCEPTION("The id " << id << " is already registered in the "
-                                 << debug::demangle(typeid(Base).name())
-                                 << " factory");
+    if (allocators.find(id) != allocators.end()) {
+      AKANTU_EXCEPTION("The id "
+                       << " is already registered in the "
+                       << debug::demangle(typeid(Base).name()) << " factory");
+    }
     allocators[id] = allocator;
     return true;
   }
 
   template <typename... AArgs>
   std::unique_ptr<Base> allocate(const T & id, AArgs &&... args) const {
-    if (allocators.find(id) == allocators.end())
-      AKANTU_EXCEPTION("The id  " << id << " is not registered in the "
-                                  << debug::demangle(typeid(Base).name())
-                                  << " factory.");
+    if (allocators.find(id) == allocators.end()) {
+      AKANTU_EXCEPTION("The id "
+                       << " is not registered in the "
+                       << debug::demangle(typeid(Base).name()) << " factory.");
+    }
     return std::forward<std::unique_ptr<Base>>(
         allocators.at(id)(std::forward<AArgs>(args)...));
   }
@@ -82,4 +83,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_AKA_FACTORY_HH__ */
+#endif /* AKANTU_AKA_FACTORY_HH_ */

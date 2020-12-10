@@ -8,7 +8,6 @@
  *
  * @brief  Node group definition
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include "mesh_filter.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_NODE_GROUP_HH__
-#define __AKANTU_NODE_GROUP_HH__
+#ifndef AKANTU_NODE_GROUP_HH_
+#define AKANTU_NODE_GROUP_HH_
 
 namespace akantu {
 
@@ -58,7 +57,11 @@ public:
   using const_node_iterator = Array<UInt>::const_iterator<UInt>;
 
   /// empty the node group
-  void empty();
+  void clear();
+
+  /// returns treu if the group is empty \warning this changed beahavior if you
+  /// want to empty the group use clear
+  bool empty() const __attribute__((warn_unused_result));
 
   /// iterator to the beginning of the node group
   inline const_node_iterator begin() const;
@@ -96,7 +99,7 @@ public:
   /// give the number of nodes in the current group
   inline UInt size() const;
 
-  //UInt * storage() { return node_group.storage(); };
+  // UInt * storage() { return node_group.storage(); };
 
   friend class GroupManager;
   /* ------------------------------------------------------------------------ */
@@ -120,12 +123,12 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-} // akantu
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "node_group_inline_impl.cc"
+#include "node_group_inline_impl.hh"
 
-#endif /* __AKANTU_NODE_GROUP_HH__ */
+#endif /* AKANTU_NODE_GROUP_HH_ */

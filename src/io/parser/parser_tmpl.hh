@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the parser templated methods
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -39,12 +38,14 @@ template <typename T> inline ParserParameter::operator T() const {
   T t;
   std::stringstream sstr(value);
   sstr >> t;
-  if (sstr.bad())
+  if (sstr.bad()) {
     AKANTU_EXCEPTION("No known conversion of a ParserParameter \""
                      << name << "\" to the type " << typeid(T).name());
+  }
   return t;
 }
 
+#if !defined(DOXYGEN)
 /* -------------------------------------------------------------------------- */
 template <> inline ParserParameter::operator const char *() const {
   return value.c_str();
@@ -81,14 +82,25 @@ template <> inline ParserParameter::operator std::vector<std::string>() const {
   return tmp;
 }
 
-/* --------------------------------------------------------- -----------------
- */
+/* -------------------------------------------------------------------------- */
+template <> inline ParserParameter::operator std::set<std::string>() const {
+  std::set<std::string> tmp;
+  auto string =
+      std::regex_replace(value, std::regex("[[:space:]]|\\[|\\]"), "");
+  std::smatch sm;
+  while (std::regex_search(string, sm, std::regex("[^,]+"))) {
+    tmp.emplace(sm.str());
+    string = sm.suffix();
+  }
+  return tmp;
+}
+
+/* -------------------------------------------------------------------------- */
 template <> inline ParserParameter::operator Vector<Real>() const {
   return Parser::parseVector(value, *parent_section);
 }
 
-/* --------------------------------------------------------- -----------------
- */
+/* --------------------------------------------------------- ---------------- */
 template <> inline ParserParameter::operator Vector<UInt>() const {
   Vector<Real> tmp = Parser::parseVector(value, *parent_section);
   Vector<UInt> tmp_uint(tmp.size());
@@ -98,8 +110,7 @@ template <> inline ParserParameter::operator Vector<UInt>() const {
   return tmp_uint;
 }
 
-/* --------------------------------------------------------- -----------------
- */
+/* --------------------------------------------------------- ---------------- */
 template <> inline ParserParameter::operator Matrix<Real>() const {
   return Parser::parseMatrix(value, *parent_section);
 }
@@ -108,5 +119,5 @@ template <> inline ParserParameter::operator Matrix<Real>() const {
 template <> inline ParserParameter::operator RandomParameter<Real>() const {
   return Parser::parseRandomParameter(value, *parent_section);
 }
-
-} // akantu
+#endif
+} // namespace akantu

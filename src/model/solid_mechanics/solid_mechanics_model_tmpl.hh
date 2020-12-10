@@ -10,7 +10,6 @@
  *
  * @brief  template part of solid mechanics model
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_TMPL_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_TMPL_HH__
+#ifndef AKANTU_SOLID_MECHANICS_MODEL_TMPL_HH_
+#define AKANTU_SOLID_MECHANICS_MODEL_TMPL_HH_
 
 namespace akantu {
 
@@ -47,14 +46,8 @@ namespace akantu {
 template <typename Operation>
 void SolidMechanicsModel::splitByMaterial(const Array<Element> & elements,
                                           Operation && op) const {
-  std::vector<Array<Element>> elements_per_mat;
-  for (auto elements_range : MeshElementsByTypes(elements)) {
-    auto type = elements_range.getType();
-    auto ghost_type = elements_range.getGhostType();
-
-    auto & elements = elements_range.getElements();
-    this->splitElementByMaterial(elements, type, ghost_type, elements_per_mat);
-  }
+  std::vector<Array<Element>> elements_per_mat(materials.size());
+  this->splitElementByMaterial(elements, elements_per_mat);
 
   for (auto && mat : zip(materials, elements_per_mat)) {
     FWD(op)(FWD(*std::get<0>(mat)), FWD(std::get<1>(mat)));
@@ -66,4 +59,4 @@ void SolidMechanicsModel::splitByMaterial(const Array<Element> & elements,
 
 } // namespace akantu
 
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_TMPL_HH__ */
+#endif /* AKANTU_SOLID_MECHANICS_MODEL_TMPL_HH_ */

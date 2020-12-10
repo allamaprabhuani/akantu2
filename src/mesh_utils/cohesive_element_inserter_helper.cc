@@ -410,7 +410,7 @@ UInt CohesiveElementInserterHelper::insertCohesiveElement() {
 UInt CohesiveElementInserterHelper::insertFacetsOnly() {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  if (facets_to_double_by_dim[spatial_dimension - 1]->size() == 0) {
+  if (facets_to_double_by_dim[spatial_dimension - 1]->empty()) {
     return 0;
   }
 

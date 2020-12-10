@@ -8,7 +8,6 @@
  *
  * @brief  Fixture for linear patch tests
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -38,8 +37,8 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH__
-#define __AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH__
+#ifndef AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_
+#define AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_
 
 //#define DEBUG_TEST
 
@@ -124,7 +123,7 @@ public:
     }
   }
 
-  template <typename presult_func_t, typename Result, typename DOFs> 
+  template <typename presult_func_t, typename Result, typename DOFs>
   void checkResults(presult_func_t && presult_func, const Result & results,
                     const DOFs & dofs) {
     auto presult = presult_func(prescribed_gradient(dofs));
@@ -180,4 +179,4 @@ constexpr ElementType TestPatchTestLinear<type_, M>::type;
 template <typename tuple_, typename M>
 constexpr size_t TestPatchTestLinear<tuple_, M>::dim;
 
-#endif /* __AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH__ */
+#endif /* AKANTU_PATCH_TEST_LINEAR_FIXTURE_HH_ */

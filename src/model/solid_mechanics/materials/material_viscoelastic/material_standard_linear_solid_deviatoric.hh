@@ -13,7 +13,6 @@
  * [] J.C.  Simo, T.J.R. Hughes, "Computational  Inelasticity", Springer (1998),
  * see Sections 10.2 and 10.3
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -38,8 +37,8 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__
-#define __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__
+#ifndef AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH_
+#define AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH_
 
 namespace akantu {
 
@@ -134,4 +133,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH__ */
+#endif /* AKANTU_MATERIAL_STANDARD_LINEAR_SOLID_DEVIATORIC_HH_ */

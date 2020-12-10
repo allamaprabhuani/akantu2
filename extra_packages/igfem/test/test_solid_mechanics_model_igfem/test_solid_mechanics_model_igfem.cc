@@ -6,7 +6,6 @@
  *
  * @brief  test the solidmechancis model for IGFEM analysis
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -87,7 +86,7 @@ void growGel(std::list<SK::Sphere_3> & query_list, Real new_radius) {
     SK::Sphere_3 sphere(query_it->center(), new_radius * new_radius);
     sphere_list.push_back(sphere);
   }
-  query_list.clear();
+  query_list.zero();
   query_list = sphere_list;
 }
 
@@ -126,8 +125,8 @@ void applyBoundaryConditions(SolidMechanicsModelIGFEM & model,
   Real radius = 0;
   Real phi = 0;
 
-  disp.clear();
-  boun.clear();
+  disp.zero();
+  boun.zero();
   /// absolute confinement
   for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
 
@@ -317,7 +316,8 @@ int main(int argc, char * argv[]) {
   bool factorize = false;
   bool converged = false;
   Real error;
-  converged = model.solveStep<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+  converged = model.solveStep<_scm_newton_raphson_tangent,
+                              SolveConvergenceCriteria::_increment>(
       1e-12, error, 2, factorize);
   if (!converged) {
     std::cout << "Solving step did not yield a converged solution, error: "

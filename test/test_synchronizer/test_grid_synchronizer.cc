@@ -8,7 +8,6 @@
  *
  * @brief  test the GridSynchronizer object
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -293,7 +292,8 @@ int main(int argc, char * argv[]) {
 
   synch_registry.registerSynchronizer(*dist, SynchronizationTag::_smm_mass);
 
-  synch_registry.registerSynchronizer(*grid_communicator, SynchronizationTag::_test);
+  synch_registry.registerSynchronizer(*grid_communicator,
+                                      SynchronizationTag::_test);
 
   AKANTU_DEBUG_INFO("Synchronizing tag on Dist");
   synch_registry.synchronize(SynchronizationTag::_smm_mass);

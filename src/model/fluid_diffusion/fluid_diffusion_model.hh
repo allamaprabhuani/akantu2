@@ -63,11 +63,11 @@ class FluidDiffusionModel
 public:
   using FEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
-  FluidDiffusionModel(Mesh & mesh, UInt spatial_dimension = _all_dimensions,
+  FluidDiffusionModel(Mesh & mesh, UInt dim = _all_dimensions,
                       const ID & id = "fluid_diffusion_model",
                       const MemoryID & memory_id = 0);
 
-  virtual ~FluidDiffusionModel();
+    ~FluidDiffusionModel() override;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -88,7 +88,7 @@ protected:
   void predictor() override;
 
   /// callback for the solver, this is called at end of solve
-  void afterSolveStep() override;
+  void afterSolveStep(bool is_converged = false) override;
 
   /// compute the heat flux
   void assembleResidual() override;
@@ -106,7 +106,7 @@ protected:
   getDefaultSolverID(const AnalysisMethod & method) override;
 
   ModelSolverOptions
-  getDefaultSolverOptions(const TimeStepSolverType & type) const;
+  getDefaultSolverOptions(const TimeStepSolverType & type) const override;
 
   /// resize all fields on nodes added event
   void resizeFields();
@@ -139,7 +139,7 @@ public:
   Real getStableTimeStep();
 
   /// set the stable timestep
-  void setTimeStep(Real time_step, const ID & solver_id = "") override;
+  void setTimeStep(Real dt, const ID & solver_id = "") override;
 
   // temporary protection to prevent bad usage: should check for bug
 protected:
@@ -213,26 +213,23 @@ public:
   /* Dumpable interface                                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalFieldReal(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
 
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
 
-  std::shared_ptr<dumper::Field>
+  std::shared_ptr<dumpers::Field>
   createElementalField(const std::string & field_name,
                        const std::string & group_name, bool padding_flag,
-                       const UInt & spatial_dimension,
-                       const ElementKind & kind) override;
+                       UInt spatial_dimension, ElementKind kind) override;
 
   virtual void dump(const std::string & dumper_name);
-
   virtual void dump(const std::string & dumper_name, UInt step);
-
   virtual void dump(const std::string & dumper_name, Real time, UInt step);
 
   void dump() override;
@@ -356,19 +353,20 @@ private:
   Array<bool> * blocked_dofs{nullptr};
 
   // viscosity
-  Real viscosity;
+  Real viscosity{0.};
 
   /// compressibility Cf = 1/pho drho/dP
-  Real compressibility;
+  Real compressibility{0.};
 
   // default value of aperture on a newly added nodesynchronizer
-  Real default_aperture;
+  Real default_aperture{0.};
 
   bool need_to_reassemble_capacity{true};
   bool need_to_reassemble_capacity_lumped{true};
   UInt pressure_release{0};
   UInt solution_release{0};
   UInt permeability_matrix_release{0};
+
   std::unordered_map<GhostType, bool> initial_permeability{{_not_ghost, true},
                                                            {_ghost, true}};
   std::unordered_map<GhostType, UInt> permeability_release{{_not_ghost, 0},
@@ -376,10 +374,10 @@ private:
   bool use_aperture_speed{false};
 
   // pushability Ch = 1/h dh/dP
-  Real pushability;
+  Real pushability{0.};
 
   // damage at which cohesive element will be duplicated in fluid mesh
-  Real insertion_damage;
+  Real insertion_damage{0.};
 };
 
 } // namespace akantu
@@ -387,6 +385,6 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "fluid_diffusion_model_inline_impl.cc"
+#include "fluid_diffusion_model_inline_impl.hh"
 
 #endif /* __AKANTU_FLUID_DIFFUSION_MODEL_HH__ */

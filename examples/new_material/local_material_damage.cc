@@ -9,7 +9,6 @@
  *
  * @brief  Specialization of the material class for the damage material
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -85,15 +84,12 @@ void LocalMaterialDamage::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-void LocalMaterialDamage::computePotentialEnergy(ElementType el_type,
-                                                 GhostType ghost_type) {
+void LocalMaterialDamage::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  if (ghost_type != _not_ghost)
-    return;
   Real * epot = potential_energy(el_type).storage();
 
-  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
+  MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
   computePotentialEnergyOnQuad(grad_u, sigma, *epot);
   epot++;
   MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
@@ -102,9 +98,11 @@ void LocalMaterialDamage::computePotentialEnergy(ElementType el_type,
 }
 
 static bool material_is_alocated_local_damage [[gnu::unused]] =
-      MaterialFactory::getInstance().registerAllocator(
-          "local_damage", [](UInt, const ID &, SolidMechanicsModel & model, const ID & id) -> std::unique_ptr<Material> {
-	return std::make_unique<LocalMaterialDamage>(model, id);
-       });
+    MaterialFactory::getInstance().registerAllocator(
+        "local_damage",
+        [](UInt, const ID &, SolidMechanicsModel & model,
+           const ID & id) -> std::unique_ptr<Material> {
+          return std::make_unique<LocalMaterialDamage>(model, id);
+        });
 
-} // akantu
+} // namespace akantu

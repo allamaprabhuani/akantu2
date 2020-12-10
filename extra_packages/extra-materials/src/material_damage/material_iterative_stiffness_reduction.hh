@@ -5,7 +5,6 @@
  *
  * @brief  Damage material with constant stiffness reduction
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
 #include "material_damage_iterative_isotropic.hh"
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__
-#define __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__
+#ifndef AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH_
+#define AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH_
 
 namespace akantu {
 
@@ -101,6 +100,6 @@ using MaterialIterativeStiffnessReductionIsotropic = MaterialIterativeStiffnessR
 
 } // namespace akantu
 
-#include "material_iterative_stiffness_reduction_inline_impl.cc"
+#include "material_iterative_stiffness_reduction_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_ITERATIVE_STIFFNESS_REDUCTION_HH__ */

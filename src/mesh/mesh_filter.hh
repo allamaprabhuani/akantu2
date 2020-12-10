@@ -8,7 +8,6 @@
  *
  * @brief  the class representing the meshes
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_MESH_FILTER_HH__
-#define __AKANTU_MESH_FILTER_HH__
+#ifndef AKANTU_MESH_FILTER_HH_
+#define AKANTU_MESH_FILTER_HH_
 
 /* -------------------------------------------------------------------------- */
 #include "element.hh"
@@ -67,6 +66,6 @@ public:
   static const Type type = _element_filter_functor;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MESH_FILTER_HH__ */
+#endif /* AKANTU_MESH_FILTER_HH_ */

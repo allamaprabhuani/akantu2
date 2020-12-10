@@ -10,7 +10,6 @@
  *
  * @brief  Orthotropic elastic material
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -37,8 +36,8 @@
 #include "material_elastic_linear_anisotropic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH__
-#define __AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH__
+#ifndef AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH_
+#define AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH_
 
 namespace akantu {
 
@@ -104,33 +103,33 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// the n1 young modulus
-  Real E1;
+  Real E1{0.};
 
   /// the n2 young modulus
-  Real E2;
+  Real E2{0.};
 
   /// the n3 young modulus
-  Real E3;
+  Real E3{0.};
 
   /// 12 Poisson coefficient
-  Real nu12;
+  Real nu12{0.};
 
   /// 13 Poisson coefficient
-  Real nu13;
+  Real nu13{0.};
 
   /// 23 Poisson coefficient
-  Real nu23;
+  Real nu23{0.};
 
   /// 12 shear modulus
-  Real G12;
+  Real G12{0.};
 
   /// 13 shear modulus
-  Real G13;
+  Real G13{0.};
 
   /// 23 shear modulus
-  Real G23;
+  Real G23{0.};
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH__ */
+#endif /* AKANTU_MATERIAL_ELASTIC_ORTHOTROPIC_HH_ */

@@ -6,21 +6,20 @@
  *
  * @brief  Iterators for IGFEM elemental fields
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  */
 
-#ifndef __AKANTU_DUMPER_IGFEM_ELEMENT_ITERATOR_HH__
-#define __AKANTU_DUMPER_IGFEM_ELEMENT_ITERATOR_HH__
+#ifndef AKANTU_DUMPER_IGFEM_ELEMENT_ITERATOR_HH_
+#define AKANTU_DUMPER_IGFEM_ELEMENT_ITERATOR_HH_
 /* -------------------------------------------------------------------------- */
 #include "element.hh"
 #include "igfem_helper.hh"
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
-__BEGIN_AKANTU_DUMPER__
+namespace akantu {
+namespace dumpers {
 /* -------------------------------------------------------------------------- */
 
 template <class types, template <class> class final_iterator>
@@ -97,7 +96,7 @@ public:
     return Element(*tit, array_it.getCurrentIndex());
   }
 
-  UInt getNbDataPerElem(const ElementType & type) const {
+  UInt getNbDataPerElem(ElementType type) const {
     /// nb of data per parent element!
     if (!nb_data_per_elem.exists(type, ghost_type))
       return field(type, ghost_type).getNbComponent();
@@ -145,7 +144,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   typedef igfem_element_iterator<
-      types, ::akantu::dumper::igfem_elemental_field_iterator>
+      types, ::akantu::dumpers::igfem_elemental_field_iterator>
       parent;
   typedef typename types::it_type it_type;
   typedef typename types::return_type return_type;
@@ -175,8 +174,8 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-__END_AKANTU_DUMPER__
-__END_AKANTU__
+} // namespace dumpers
+} // namespace akantu
 /* -------------------------------------------------------------------------- */
 
-#endif /* __AKANTU_DUMPER_IGFEM_ELEMENT_ITERATOR_HH__ */
+#endif /* AKANTU_DUMPER_IGFEM_ELEMENT_ITERATOR_HH_ */

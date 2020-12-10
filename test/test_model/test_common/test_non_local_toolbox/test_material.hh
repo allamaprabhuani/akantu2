@@ -8,7 +8,6 @@
  *
  * @brief  test material for the non-local neighborhood base test
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 #include "material_damage.hh"
 #include "material_damage_non_local.hh"
 
-#ifndef __TEST_MATERIAL_HH__
-#define __TEST_MATERIAL_HH__
+#ifndef TEST_MATERIAL_HH_
+#define TEST_MATERIAL_HH_
 
 using namespace akantu;
 
@@ -69,4 +68,4 @@ private:
   InternalField<Real> grad_u_nl;
 };
 
-#endif /* __TEST_MATERIAL_HH__ */
+#endif /* TEST_MATERIAL_HH_ */

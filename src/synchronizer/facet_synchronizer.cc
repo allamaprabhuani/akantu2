@@ -9,7 +9,6 @@
  *
  * @brief  Facet synchronizer for parallel simulations with cohesive elments
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,6 +31,14 @@
 /* -------------------------------------------------------------------------- */
 #include "facet_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
+
+#if defined(AKANTU_MODULE)
+#define AKANTU_MODULE_SAVE_ AKANTU_MODULE
+#undef AKANTU_MODULE
+#endif
+
+#define AKANTU_MODULE facet_synchronizer
+
 
 namespace akantu {
 
@@ -61,15 +68,18 @@ FacetSynchronizer::FacetSynchronizer(
 
       for (UInt f = 0; f < facets.size(); ++f) {
         const auto & facet = facets(f);
-        if (facet == ElementNull)
+        if (facet == ElementNull) {
           continue;
+        }
 
-        if (facet.ghost_type == _not_ghost)
+        if (facet.ghost_type == _not_ghost) {
           continue;
+        }
 
         auto & facet_rank = element_to_prank(facet);
-        if ((proc < UInt(facet_rank)) || (UInt(facet_rank) == rank))
+        if ((proc < UInt(facet_rank)) || (UInt(facet_rank) == rank)) {
           facet_rank = proc;
+        }
       }
     }
   }
@@ -130,22 +140,26 @@ FacetSynchronizer::FacetSynchronizer(
         auto & facet = facets(f);
 
         // exclude no valid facets
-        if (facet == ElementNull)
+        if (facet == ElementNull) {
           continue;
+        }
 
         // exclude _ghost facet from send scheme and _not_ghost from receive
-        if (facet.ghost_type != _ghost)
+        if (facet.ghost_type != _ghost) {
           continue;
+        }
 
         // exclude facet from other processors then the one of current
         // interest in case of receive scheme
-        if (UInt(element_to_prank(facet)) != proc)
+        if (UInt(element_to_prank(facet)) != proc) {
           continue;
+        }
 
         auto & checked = facet_checked(facet);
         // skip already checked facets
-        if (checked)
+        if (checked) {
           continue;
+        }
 
         checked = true;
 
@@ -203,9 +217,15 @@ FacetSynchronizer::FacetSynchronizer(
         },
         Tag::genTag(rank, type, tag_cnt));
 
-    communicator.waitAll(send_requests);
+    Communicator::waitAll(send_requests);
     send_requests.clear();
   }
 }
 
 } // namespace akantu
+
+#if defined(AKANTU_MODULE_SAVE_)
+#undef AKANTU_MODULE
+#define AKANTU_MODULE AKANTU_MODULE_SAVE_
+#undef AKANTU_MODULE_SAVE_
+#endif

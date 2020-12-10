@@ -7,7 +7,6 @@
  *
  * @brief  Material isotropic elastic for IGFEM
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -20,10 +19,10 @@
 #include "plane_stress_toolbox.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_IGFEM_ELASTIC_HH__
-#define __AKANTU_MATERIAL_IGFEM_ELASTIC_HH__
+#ifndef AKANTU_MATERIAL_IGFEM_ELASTIC_HH_
+#define AKANTU_MATERIAL_IGFEM_ELASTIC_HH_
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /**
  * Material elastic isotropic
@@ -62,7 +61,7 @@ public:
                              GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  virtual void computeTangentModuli(const ElementType & el_type,
+  virtual void computeTangentModuli(ElementType el_type,
                                     Array<Real> & tangent_matrix,
                                     GhostType ghost_type = _not_ghost);
 
@@ -123,8 +122,8 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_igfem_elastic_inline_impl.cc"
+#include "material_igfem_elastic_inline_impl.hh"
 
-__END_AKANTU__
+} // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_IGFEM_ELASTIC_HH__ */
+#endif /* AKANTU_MATERIAL_IGFEM_ELASTIC_HH_ */

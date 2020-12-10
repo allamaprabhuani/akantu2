@@ -8,7 +8,6 @@
  *
  * @brief  handling of errors
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,16 +31,20 @@
 #include "aka_error.hh"
 #include "aka_common.hh"
 #include "aka_config.hh"
+#include "aka_iterators.hh"
+#include "aka_random_generator.hh"
 /* -------------------------------------------------------------------------- */
 #include <csignal>
 #include <iostream>
+#include <vector>
 
 #if (defined(READLINK_COMMAND) || defined(ADDR2LINE_COMMAND)) &&               \
-    (not defined(_WIN32))
+    (!defined(_WIN32))
 #include <execinfo.h>
 #include <sys/wait.h>
 #endif
 
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <cxxabi.h>
@@ -50,14 +53,6 @@
 #include <map>
 #include <sys/types.h>
 #include <unistd.h>
-
-#if defined(AKANTU_CORE_CXX11)
-#include <chrono>
-#elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
 
 #ifdef AKANTU_USE_MPI
 #include <mpi.h>
@@ -68,13 +63,13 @@
 namespace akantu {
 namespace debug {
 
-  static void printBacktraceAndExit(int) { std::terminate(); }
+  // static void printBacktraceAndExit(int) { std::terminate(); }
+
+  // /* ------------------------------------------------------------------------ */
+  // void initSignalHandler() { std::signal(SIGSEGV, &printBacktraceAndExit); }
 
   /* ------------------------------------------------------------------------ */
-  void initSignalHandler() { std::signal(SIGSEGV, &printBacktraceAndExit); }
-
-  /* ------------------------------------------------------------------------ */
-  std::string demangle(const char * symbol) {
+std::string demangle(const char * symbol) {
     int status;
     std::string result;
     char * demangled_name;
@@ -92,16 +87,18 @@ namespace debug {
 
 /* ------------------------------------------------------------------------ */
 #if (defined(READLINK_COMMAND) || defined(ADDR2LINK_COMMAND)) &&               \
-    (not defined(_WIN32))
+    (!defined(_WIN32))
   std::string exec(const std::string & cmd) {
     FILE * pipe = popen(cmd.c_str(), "r");
-    if (!pipe)
+    if (pipe == nullptr) {
       return "";
+    }
     char buffer[1024];
-    std::string result = "";
-    while (!feof(pipe)) {
-      if (fgets(buffer, 128, pipe) != nullptr)
+    std::string result;
+    while (feof(pipe) == 0) {
+      if (fgets(buffer, 128, pipe) != nullptr) {
         result += buffer;
+      }
     }
 
     result = result.substr(0, result.size() - 1);
@@ -110,19 +107,18 @@ namespace debug {
   }
 #endif
 
-  /* ------------------------------------------------------------------------ */
-  void printBacktrace(__attribute__((unused)) int sig) {
-    AKANTU_DEBUG_INFO("Caught  signal " << sig << "!");
-
+  auto getBacktrace() -> std::vector<std::string> {
+    std::vector<std::string> backtrace_lines;
 #if not defined(_WIN32)
 #if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
-    std::string me = "";
+    std::string me;
     char buf[1024];
     /* The manpage says it won't null terminate.  Let's zero the buffer. */
     memset(buf, 0, sizeof(buf));
     /* Note we use sizeof(buf)-1 since we may need an extra char for NUL. */
-    if (readlink("/proc/self/exe", buf, sizeof(buf) - 1))
+    if (readlink("/proc/self/exe", buf, sizeof(buf) - 1) != 0) {
       me = std::string(buf);
+    }
 
     std::ifstream inmaps;
     inmaps.open("/proc/self/maps");
@@ -144,13 +140,14 @@ namespace debug {
       sstr >> lib;
       sstr >> lib;
       sstr >> lib;
-      if (lib != "" && addr_map.find(lib) == addr_map.end()) {
+      if (not lib.empty() and (addr_map.find(lib) == addr_map.end())) {
         addr_map[lib] = addr;
       }
     }
 
-    if (me != "")
+    if (not me.empty()) {
       addr_map[me] = 0;
+    }
 #endif
 
     /// \todo for windows this part could be coded using CaptureStackBackTrace
@@ -164,15 +161,11 @@ namespace debug {
     stack_depth = backtrace(stack_addrs, max_depth);
     stack_strings = backtrace_symbols(stack_addrs, stack_depth);
 
-    std::cerr << "BACKTRACE :  " << stack_depth << " stack frames."
-              << std::endl;
-    auto w = size_t(std::floor(log(double(stack_depth)) / std::log(10.)) + 1);
-
     /// -1 to remove the call to the printBacktrace function
     for (i = 1; i < stack_depth; i++) {
-      std::cerr << std::dec << "  [" << std::setw(w) << i << "] ";
       std::string bt_line(stack_strings[i]);
-      size_t first, second;
+      size_t first;
+      size_t second;
 
       if ((first = bt_line.find('(')) != std::string::npos &&
           (second = bt_line.find('+')) != std::string::npos) {
@@ -191,9 +184,7 @@ namespace debug {
         std::stringstream sstra(address);
         size_t addr;
         sstra >> std::hex >> addr;
-
-        std::cerr << location << " [" << call << "]";
-
+        std::string trace = location + " [" + call + "]";
 #if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
         auto it = addr_map.find(location);
         if (it != addr_map.end()) {
@@ -201,58 +192,81 @@ namespace debug {
           syscom << BOOST_PP_STRINGIZE(ADDR2LINE_COMMAND) << " 0x" << std::hex
                  << (addr - it->second) << " -i -e " << location;
           std::string line = exec(syscom.str());
-          std::cerr << " (" << line << ")" << std::endl;
+          trace += " (" + line + ")";
         } else {
 #endif
-          std::cerr << " (0x" << std::hex << addr << ")" << std::endl;
+          std::stringstream sstr_addr;
+          sstr_addr << std::hex << addr;
+          trace += " (0x" + sstr_addr.str() + ")";
 #if defined(READLINK_COMMAND) && defined(ADDR2LINE_COMMAND)
         }
 #endif
+        backtrace_lines.push_back(trace);
       } else {
-        std::cerr << bt_line << std::endl;
+        backtrace_lines.push_back(bt_line);
       }
     }
 
     free(stack_strings);
 
-    std::cerr << "END BACKTRACE" << std::endl;
 #endif
+    return backtrace_lines;
+  }
+  /* ------------------------------------------------------------------------ */
+  void printBacktrace(const std::vector<std::string> & backtrace) {
+    auto w = size_t(std::floor(std::log10(double(backtrace.size()))) + 1);
+    std::cerr << "BACKTRACE :  " << backtrace.size() << " stack frames.\n";
+    for (auto && data : enumerate(backtrace))
+      std::cerr << "  [" << std::setw(w) << (std::get<0>(data) + 1) << "] "
+                << std::get<1>(data) << "\n";
+    std::cerr << "END BACKTRACE" << std::endl;
   }
 
   /* ------------------------------------------------------------------------ */
   namespace {
     void terminate_handler() {
       auto eptr = std::current_exception();
-      auto t = abi::__cxa_current_exception_type();
-      auto name = t ? demangle(t->name()) : std::string("unknown");
+      auto *t = abi::__cxa_current_exception_type();
+      auto name = (t != nullptr) ? demangle(t->name()) : std::string("unknown");
       try {
-        if (eptr)
+        if (eptr) {
           std::rethrow_exception(eptr);
-        else
-          std::cerr << AKANTU_LOCATION << "!! Execution terminated for unknown reasons !!"
+        } else {
+          printBacktrace();
+          std::cerr << AKANTU_LOCATION
+                    << "!! Execution terminated for unknown reasons !!"
                     << std::endl;
+        }
+      } catch (Exception & e) {
+        printBacktrace(e.backtrace());
+        std::cerr << "!! Uncaught akantu::Exception of type " << name
+                  << " !!\nwhat(): \"" << e.what() << "\"" << std::endl;
       } catch (std::exception & e) {
-        std::cerr << AKANTU_LOCATION << "!! Uncaught exception of type " << name
+        std::cerr << "!! Uncaught exception of type " << name
                   << " !!\nwhat(): \"" << e.what() << "\"" << std::endl;
       } catch (...) {
-        std::cerr << AKANTU_LOCATION << "!! Something strange of type \"" << name
+        std::cerr << "!! Something strange of type \"" << name
                   << "\" was thrown.... !!" << std::endl;
       }
 
-      if (debugger.printBacktrace())
-        printBacktrace(15);
+      if (debugger.printBacktrace()) {
+        std::cerr << "Random generator seed: " << RandomGenerator<UInt>::seed()
+                  << std::endl;
+        printBacktrace();
+      }
     }
   } // namespace
+
   /* ------------------------------------------------------------------------ */
   /* ------------------------------------------------------------------------ */
-  Debugger::Debugger() {
+  Debugger::Debugger() noexcept {
     cout = &std::cerr;
     level = dblWarning;
     parallel_context = "";
     file_open = false;
     print_backtrace = false;
 
-    initSignalHandler();
+    //initSignalHandler();
     std::set_terminate(terminate_handler);
   }
 
@@ -266,8 +280,9 @@ namespace debug {
 
   /* ------------------------------------------------------------------------ */
   void Debugger::exit(int status) {
-    if (status != 0)
+    if (status != 0) {
       std::terminate();
+    }
 
     std::exit(0);
   }
@@ -277,38 +292,32 @@ namespace debug {
                                 const std::string & file, unsigned int line,
                                 __attribute__((unused)) bool silent,
                                 __attribute__((unused))
-                                const std::string & location) const
+                                const std::string & location,
+                                const std::string & module) const
       noexcept(false) {
 
 #if !defined(AKANTU_NDEBUG)
-    if (!silent) {
-      printMessage("###", dblWarning, info + " " + location);
+    if (not silent) {
+      printMessage("###", dblWarning, info + " " + location, module);
     }
 #endif
 
     debug::Exception ex(info, file, line);
+    ex.setModule(module);
     throw ex;
   }
 
   /* ------------------------------------------------------------------------ */
   void Debugger::printMessage(const std::string & prefix,
                               const DebugLevel & level,
-                              const std::string & info) const {
-    if (this->level >= level) {
-#if defined(AKANTU_CORE_CXX11)
+                              const std::string & info,
+                              const std::string & module) const {
+    if (testLevel(level, module)) {
       double timestamp =
           std::chrono::duration_cast<std::chrono::duration<double, std::micro>>(
               std::chrono::system_clock::now().time_since_epoch())
               .count();
-#elif defined(AKANTU_USE_OBSOLETE_GETTIMEOFDAY)
-      struct timeval time;
-      gettimeofday(&time, NULL);
-      double timestamp = time.tv_sec * 1e6 + time.tv_usec; /*in us*/
-#else
-      struct timespec time;
-      clock_gettime(CLOCK_REALTIME_COARSE, &time);
-      double timestamp = time.tv_sec * 1e6 + time.tv_nsec * 1e-3; /*in us*/
-#endif
+
       *(cout) << parallel_context << "{" << (size_t)timestamp << "} " << prefix
               << " " << info << std::endl;
     }
@@ -351,9 +360,8 @@ namespace debug {
 
   const DebugLevel & getDebugLevel() { return debugger.getDebugLevel(); }
 
-  /* --------------------------------------------------------------------------
-   */
-  void exit(int status) { debugger.exit(status); }
+  /* ------------------------------------------------------------------------ */
+  void exit(int status) { Debugger::exit(status); }
 
 } // namespace debug
 } // namespace akantu

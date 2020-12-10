@@ -11,7 +11,6 @@
  *
  * @brief  class handling meshes
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,7 +34,7 @@
 #include "aka_config.hh"
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
-#include "group_manager_inline_impl.cc"
+#include "group_manager_inline_impl.hh"
 #include "mesh.hh"
 #include "mesh_global_data_updater.hh"
 #include "mesh_io.hh"
@@ -49,6 +48,9 @@
 #include "node_synchronizer.hh"
 #include "periodic_node_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
+#include <algorithm>
+/* -------------------------------------------------------------------------- */
+
 #ifdef AKANTU_USE_IOHELPER
 #include "dumper_field.hh"
 #include "dumper_internal_material_field.hh"
@@ -113,14 +115,65 @@ Mesh::Mesh(UInt spatial_dimension, const std::shared_ptr<Array<Real>> & nodes,
 }
 
 /* -------------------------------------------------------------------------- */
-void Mesh::getBarycenters(Array<Real> & barycenter, const ElementType & type,
-                          const GhostType & ghost_type) const {
+void Mesh::getBarycenters(Array<Real> & barycenter, ElementType type,
+                          GhostType ghost_type) const {
   barycenter.resize(getNbElement(type, ghost_type));
   for (auto && data : enumerate(make_view(barycenter, spatial_dimension))) {
     getBarycenter(Element{type, UInt(std::get<0>(data)), ghost_type},
                   std::get<1>(data));
   }
 }
+
+class FacetGlobalConnectivityAccessor : public DataAccessor<Element> {
+public:
+  FacetGlobalConnectivityAccessor(Mesh & mesh)
+      : global_connectivity("global_connectivity",
+                            "facet_connectivity_synchronizer") {
+    global_connectivity.initialize(
+        mesh, _spatial_dimension = _all_dimensions, _with_nb_element = true,
+        _with_nb_nodes_per_element = true, _element_kind = _ek_regular);
+    mesh.getGlobalConnectivity(global_connectivity);
+  }
+
+  UInt getNbData(const Array<Element> & elements,
+                 const SynchronizationTag & tag) const override {
+    UInt size = 0;
+    if (tag == SynchronizationTag::_smmc_facets_conn) {
+      UInt nb_nodes = Mesh::getNbNodesPerElementList(elements);
+      size += nb_nodes * sizeof(UInt);
+    }
+    return size;
+  }
+
+  void packData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                const SynchronizationTag & tag) const override {
+    if (tag == SynchronizationTag::_smmc_facets_conn) {
+      for (const auto & element : elements) {
+        const auto & conns = global_connectivity(element.type, element.ghost_type);
+        for (auto n : arange(conns.getNbComponent())) {
+          buffer << conns(element.element, n);
+        }
+      }
+    }
+  }
+
+  void unpackData(CommunicationBuffer & buffer, const Array<Element> & elements,
+                  const SynchronizationTag & tag) override {
+    if (tag == SynchronizationTag::_smmc_facets_conn) {
+      for (const auto & element : elements) {
+        auto & conns = global_connectivity(element.type, element.ghost_type);
+        for (auto n : arange(conns.getNbComponent())) {
+          buffer >> conns(element.element, n);
+        }
+      }
+    }
+  }
+
+  AKANTU_GET_MACRO(GlobalConnectivity, (global_connectivity), decltype(auto));
+
+protected:
+  ElementTypeMapArray<UInt> global_connectivity;
+};
 
 /* -------------------------------------------------------------------------- */
 Mesh & Mesh::initMeshFacets(const ID & id) {
@@ -146,6 +199,15 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
     mesh_facets->is_distributed = true;
     mesh_facets->element_synchronizer = std::make_unique<FacetSynchronizer>(
         *mesh_facets, mesh.getElementSynchronizer());
+
+    FacetGlobalConnectivityAccessor data_accessor(*mesh_facets);
+    /// communicate
+    mesh_facets->element_synchronizer->synchronizeOnce(
+        data_accessor, SynchronizationTag::_smmc_facets_conn);
+
+    /// flip facets
+    MeshUtils::flipFacets(*mesh_facets, data_accessor.getGlobalConnectivity(),
+                          _ghost);
   }
 
   /// transfers the the mesh physical names to the mesh facets
@@ -179,8 +241,9 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         mesh.getBarycenter(element, barycenter);
         auto norm_barycenter = barycenter.norm();
         auto tolerance = Math::getTolerance();
-        if (norm_barycenter > tolerance)
+        if (norm_barycenter > tolerance) {
           tolerance *= norm_barycenter;
+        }
 
         const auto & element_to_facet = mesh_facets->getElementToSubelement(
             element.type, element.ghost_type);
@@ -196,8 +259,9 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         auto facet =
             std::find_if(range.begin(), range.end(), [&](auto && data) {
               auto facet = std::get<0>(data);
-              if (element_to_facet(facet)[1] == ElementNull)
+              if (element_to_facet(facet)[1] == ElementNull) {
                 return false;
+              }
 
               auto norm_distance = barycenter.distance(std::get<1>(data));
 #ifndef AKANTU_NDEBUG
@@ -217,8 +281,9 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         }
 
         // set physical name
-        phys_data(Element{element.type, UInt(std::get<0>(*facet)),
-                          element.ghost_type}) = mesh_phys_data(element);
+        auto && facet_element = Element{element.type, UInt(std::get<0>(*facet)),
+              element.ghost_type};
+        phys_data(facet_element) = mesh_phys_data(element);
       },
       _spatial_dimension = spatial_dimension - 1);
 
@@ -247,18 +312,18 @@ void Mesh::read(const std::string & filename, const MeshIOType & mesh_io_type) {
   AKANTU_DEBUG_ASSERT(not is_distributed,
                       "You cannot read a mesh that is already distributed");
 
-  MeshIO mesh_io;
-  mesh_io.read(filename, *this, mesh_io_type);
+  MeshIO::read(filename, *this, mesh_io_type);
 
   auto types =
       this->elementTypes(spatial_dimension, _not_ghost, _ek_not_defined);
   auto it = types.begin();
   auto last = types.end();
-  if (it == last)
+  if (it == last) {
     AKANTU_DEBUG_WARNING(
         "The mesh contained in the file "
         << filename << " does not seem to be of the good dimension."
-        << " No element of dimension " << spatial_dimension << " where read.");
+        << " No element of dimension " << spatial_dimension << " were read.");
+  }
 
   this->makeReady();
 }
@@ -266,8 +331,7 @@ void Mesh::read(const std::string & filename, const MeshIOType & mesh_io_type) {
 /* -------------------------------------------------------------------------- */
 void Mesh::write(const std::string & filename,
                  const MeshIOType & mesh_io_type) {
-  MeshIO mesh_io;
-  mesh_io.write(filename, *this, mesh_io_type);
+  MeshIO::write(filename, *this, mesh_io_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -337,8 +401,9 @@ void Mesh::getGlobalConnectivity(
     for (auto type :
          global_connectivity.elementTypes(_spatial_dimension = _all_dimensions,
          _element_kind = _ek_not_defined, _ghost_type = ghost_type)) {
-      if (not connectivities.exists(type, ghost_type))
+      if (not connectivities.exists(type, ghost_type)) {
         continue;
+      }
 
       auto & local_conn = connectivities(type, ghost_type);
       auto & g_connectivity = global_connectivity(type, ghost_type);
@@ -358,10 +423,10 @@ void Mesh::getGlobalConnectivity(
 /* -------------------------------------------------------------------------- */
 DumperIOHelper & Mesh::getGroupDumper(const std::string & dumper_name,
                                       const std::string & group_name) {
-  if (group_name == "all")
+  if (group_name == "all") {
     return this->getDumper(dumper_name);
-  else
-    return element_groups[group_name]->getDumper(dumper_name);
+  }
+  return element_groups[group_name]->getDumper(dumper_name);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -390,12 +455,12 @@ Mesh::getNbDataPerElem(ElementTypeMapArray<UInt> & array);
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_IOHELPER
 template <typename T>
-std::shared_ptr<dumper::Field>
+std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData(const std::string & field_id,
                                   const std::string & group_name,
-                                  const ElementKind & element_kind) {
+                                  ElementKind element_kind) {
 
-  std::shared_ptr<dumper::Field> field;
+  std::shared_ptr<dumpers::Field> field;
   ElementTypeMapArray<T> * internal = nullptr;
   try {
     internal = &(this->getData<T>(field_id));
@@ -405,29 +470,31 @@ Mesh::createFieldFromAttachedData(const std::string & field_id,
 
   ElementTypeMap<UInt> nb_data_per_elem = this->getNbDataPerElem(*internal);
 
-  field = this->createElementalField<T, dumper::InternalMaterialField>(
+  field = this->createElementalField<T, dumpers::InternalMaterialField>(
       *internal, group_name, this->spatial_dimension, element_kind,
       nb_data_per_elem);
 
   return field;
 }
 
-template std::shared_ptr<dumper::Field>
+template std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData<Real>(const std::string & field_id,
                                         const std::string & group_name,
-                                        const ElementKind & element_kind);
+                                        ElementKind element_kind);
 
-template std::shared_ptr<dumper::Field>
+template std::shared_ptr<dumpers::Field>
 Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
                                         const std::string & group_name,
-                                        const ElementKind & element_kind);
+                                        ElementKind element_kind);
 #endif
 
 /* -------------------------------------------------------------------------- */
 void Mesh::distributeImpl(
     Communicator & communicator,
-    std::function<Int(const Element &, const Element &)> edge_weight_function [[gnu::unused]],
-    std::function<Int(const Element &)> vertex_weight_function [[gnu::unused]]) {
+    const std::function<Int(const Element &, const Element &)> &
+        edge_weight_function [[gnu::unused]],
+    const std::function<Int(const Element &)> & vertex_weight_function
+    [[gnu::unused]]) {
   AKANTU_DEBUG_ASSERT(is_distributed == false,
                       "This mesh is already distribute");
   this->communicator = &communicator;
@@ -469,9 +536,11 @@ void Mesh::distributeImpl(
 /* -------------------------------------------------------------------------- */
 void Mesh::getAssociatedElements(const Array<UInt> & node_list,
                                  Array<Element> & elements) {
-  for (const auto & node : node_list)
-    for (const auto & element : *nodes_to_elements[node])
+  for (const auto & node : node_list) {
+    for (const auto & element : *nodes_to_elements[node]) {
       elements.push_back(element);
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -480,10 +549,11 @@ void Mesh::fillNodesToElements() {
 
   UInt nb_nodes = nodes->size();
   for (UInt n = 0; n < nb_nodes; ++n) {
-    if (this->nodes_to_elements[n])
+    if (this->nodes_to_elements[n]) {
       this->nodes_to_elements[n]->clear();
-    else
+    } else {
       this->nodes_to_elements[n] = std::make_unique<std::set<Element>>();
+    }
   }
 
   for (auto ghost_type : ghost_types) {
@@ -500,8 +570,9 @@ void Mesh::fillNodesToElements() {
       for (UInt el = 0; el < nb_element; ++el, ++conn_it) {
         e.element = el;
         const Vector<UInt> & conn = *conn_it;
-        for (UInt n = 0; n < conn.size(); ++n)
+        for (UInt n = 0; n < conn.size(); ++n) {
           nodes_to_elements[conn(n)]->insert(e);
+        }
       }
     }
   }
@@ -511,12 +582,11 @@ void Mesh::fillNodesToElements() {
 std::tuple<UInt, UInt>
 Mesh::updateGlobalData(NewNodesEvent & nodes_event,
                        NewElementsEvent & elements_event) {
-  if (global_data_updater)
+  if (global_data_updater) {
     return this->global_data_updater->updateData(nodes_event, elements_event);
-  else {
-    return std::make_tuple(nodes_event.getList().size(),
-                           elements_event.getList().size());
   }
+  return std::make_tuple(nodes_event.getList().size(),
+                         elements_event.getList().size());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -529,7 +599,7 @@ void Mesh::registerGlobalDataUpdater(
 void Mesh::eraseElements(const Array<Element> & elements) {
   ElementTypeMap<UInt> last_element;
 
-  RemovedElementsEvent event(*this);
+  RemovedElementsEvent event(*this, "new_numbering", AKANTU_CURRENT_FUNCTION);
   auto & remove_list = event.getList();
   auto & new_numbering = event.getNewNumbering();
 
@@ -537,14 +607,14 @@ void Mesh::eraseElements(const Array<Element> & elements) {
     if (el.ghost_type != _not_ghost) {
       auto & count = ghosts_counters(el);
       --count;
-      if (count > 0)
+      if (count > 0) {
         continue;
+      }
     }
 
     remove_list.push_back(el);
-    if (not last_element.exists(el.type, el.ghost_type)) {
-      UInt nb_element = mesh.getNbElement(el.type, el.ghost_type);
-      last_element(nb_element - 1, el.type, el.ghost_type);
+    if (not new_numbering.exists(el.type, el.ghost_type)) {
+      auto nb_element = mesh.getNbElement(el.type, el.ghost_type);
       auto & numbering =
           new_numbering.alloc(nb_element, 1, el.type, el.ghost_type);
       for (auto && pair : enumerate(numbering)) {
@@ -552,14 +622,42 @@ void Mesh::eraseElements(const Array<Element> & elements) {
       }
     }
 
-    UInt & pos = last_element(el.type, el.ghost_type);
-    auto & numbering = new_numbering(el.type, el.ghost_type);
-
-    numbering(el.element) = UInt(-1);
-    numbering(pos) = el.element;
-    --pos;
+    new_numbering(el) = UInt(-1);
   }
 
+  auto find_last_not_deleted = [](auto && array, Int start) -> Int {
+    do {
+      --start;
+    } while (start >= 0 and array[start] == UInt(-1));
+
+    return start;
+  };
+
+  auto find_first_deleted = [](auto && array, Int start) -> Int {
+    auto begin = array.begin();
+    auto it = std::find_if(begin + start, array.end(),
+                           [](auto & el) { return el == UInt(-1); });
+    return Int(it - begin);
+  };
+
+  for (auto ghost_type : ghost_types) {
+    for (auto type : new_numbering.elementTypes(_ghost_type = ghost_type)) {
+      auto & numbering = new_numbering(type, ghost_type);
+      auto last_not_delete = find_last_not_deleted(numbering, numbering.size());
+
+      if (last_not_delete < 0) {
+        continue;
+      }
+
+      auto pos = find_first_deleted(numbering, 0);
+
+      while (pos < last_not_delete) {
+        std::swap(numbering[pos], numbering[last_not_delete]);
+        last_not_delete = find_last_not_deleted(numbering, last_not_delete);
+        pos = find_first_deleted(numbering, pos + 1);
+      }
+    }
+  }
   this->sendEvent(event);
 }
 

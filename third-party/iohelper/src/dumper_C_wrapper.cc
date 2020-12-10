@@ -8,7 +8,6 @@
  *
  * @brief  dumper C api implementation
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -39,7 +38,7 @@ extern "C" {
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 extern "C" DumpHelper * getNewDumperHandle(int dumper_style){
   DumpHelper * box;
@@ -128,5 +127,4 @@ extern "C" void DumperSetDumpStep(DumpHelper * pH,int step){
 
 
 
-__END_IOHELPER__
-
+}

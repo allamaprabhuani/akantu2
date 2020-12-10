@@ -10,7 +10,6 @@
  *
  * @brief  Common interface for plastic materials
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_PLASTIC_HH__
-#define __AKANTU_MATERIAL_PLASTIC_HH__
+#ifndef AKANTU_MATERIAL_PLASTIC_HH_
+#define AKANTU_MATERIAL_PLASTIC_HH_
 
 namespace akantu {
 
@@ -75,13 +74,14 @@ protected:
   inline void computeStressAndInelasticStrainOnQuad(
       const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
       Matrix<Real> & sigma, const Matrix<Real> & previous_sigma,
-      Matrix<Real> & inelas_strain, const Matrix<Real> & previous_inelas_strain,
+      Matrix<Real> & inelastic_strain,
+      const Matrix<Real> & previous_inelastic_strain,
       const Matrix<Real> & delta_inelastic_strain) const;
 
   inline void computeStressAndInelasticStrainOnQuad(
       const Matrix<Real> & delta_grad_u, Matrix<Real> & sigma,
-      const Matrix<Real> & previous_sigma, Matrix<Real> & inelas_strain,
-      const Matrix<Real> & previous_inelas_strain,
+      const Matrix<Real> & previous_sigma, Matrix<Real> & inelastic_strain,
+      const Matrix<Real> & previous_inelastic_strain,
       const Matrix<Real> & delta_inelastic_strain) const;
 
   /// get the plastic energy for the time step
@@ -124,5 +124,5 @@ protected:
 
 } // namespace akantu
 
-#include "material_plastic_inline_impl.cc"
-#endif /* __AKANTU_MATERIAL_PLASTIC_HH__ */
+#include "material_plastic_inline_impl.hh"
+#endif /* AKANTU_MATERIAL_PLASTIC_HH_ */

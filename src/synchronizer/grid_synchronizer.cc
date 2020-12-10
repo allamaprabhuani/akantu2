@@ -9,7 +9,6 @@
  *
  * @brief  implementation of the grid synchronizer
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -52,8 +51,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
   UInt nb_proc = comm.getNbProc();
   UInt my_rank = comm.whoAmI();
 
-  if (nb_proc == 1)
+  if (nb_proc == 1) {
     return;
+  }
 
   UInt spatial_dimension = this->mesh.getSpatialDimension();
 
@@ -81,8 +81,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
   // check the overlapping between my box and the one from other processors
   for (UInt p = 0; p < nb_proc; ++p) {
-    if (p == my_rank)
+    if (p == my_rank) {
       continue;
+    }
 
     const auto & proc_bounding_box = bboxes[p];
     auto intersection = my_bounding_box.intersection(proc_bounding_box);
@@ -92,7 +93,7 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
     intersects_proc[p] = intersection;
 
-    if(intersects_proc[p]) {
+    if (intersects_proc[p]) {
       for (UInt s = 0; s < spatial_dimension; ++s) {
         first_cell_p(s) = grid.getCellID(intersection.getLowerBounds()(s), s);
         last_cell_p(s) = grid.getCellID(intersection.getUpperBounds()(s), s);
@@ -160,8 +161,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
         // /!\ this part must be slow due to the access in the
         // ElementTypeMapArray<UInt>
-        if (!elempproc.exists(type, _not_ghost))
+        if (!elempproc.exists(type, _not_ghost)) {
           elempproc.alloc(0, nb_nodes_per_element, type, _not_ghost);
+        }
 
         Vector<UInt> global_connect(nb_nodes_per_element);
         Vector<UInt> local_connect = mesh.getConnectivity(type).begin(
@@ -192,11 +194,13 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
   Tensor3<UInt> space(2, _max_element_type, nb_proc);
 
   for (UInt p = 0; p < nb_proc; ++p) {
-    if (p == my_rank)
+    if (p == my_rank) {
       continue;
+    }
 
-    if (not intersects_proc[p])
+    if (not intersects_proc[p]) {
       continue;
+    }
 
     Matrix<UInt> info_proc = space(p);
     auto & elempproc = element_per_proc[p];
@@ -217,9 +221,10 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
       isend_requests.push_back(
           comm.asyncSend(info, p, Tag::genTag(my_rank, count, SIZE_TAG)));
 
-      if (info[1] != 0)
+      if (info[1] != 0) {
         isend_requests.push_back(comm.asyncSend<UInt>(
             conn, p, Tag::genTag(my_rank, count, DATA_TAG)));
+      }
 
       ++count;
     }
@@ -251,11 +256,13 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
   for (UInt p = 0; p < nb_proc; ++p) {
     nb_nodes_to_recv(p) = 0;
-    if (p == my_rank)
+    if (p == my_rank) {
       continue;
+    }
 
-    if (!intersects_proc[p])
+    if (!intersects_proc[p]) {
       continue;
+    }
 
     auto & scheme = this->getCommunications().createRecvScheme(p);
 
@@ -273,16 +280,18 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
       type = (ElementType)info[0];
 
-      if (type == _not_defined)
+      if (type == _not_defined) {
         break;
+      }
 
       UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
       UInt nb_element = info[1] / nb_nodes_per_element;
 
       Array<UInt> tmp_conn(nb_element, nb_nodes_per_element);
-      tmp_conn.clear();
-      if (info[1] != 0)
+      tmp_conn.zero();
+      if (info[1] != 0) {
         comm.receive<UInt>(tmp_conn, p, Tag::genTag(p, count, DATA_TAG));
+      }
 
       AKANTU_DEBUG_INFO("I will receive "
                         << nb_element << " elements of type "
@@ -360,8 +369,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
     nb_total_nodes_to_recv += nb_nodes_to_recv(p);
   }
 
-  comm.waitAll(isend_requests);
-  comm.freeCommunicationRequest(isend_requests);
+  Communicator::waitAll(isend_requests);
+  Communicator::freeCommunicationRequest(isend_requests);
 
   /**
    * Sends requested nodes to proc
@@ -372,8 +381,9 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
   std::vector<CommunicationRequest> isend_coordinates_requests;
   std::map<UInt, Array<Real>> nodes_to_send_per_proc;
   for (UInt p = 0; p < nb_proc; ++p) {
-    if (p == my_rank || !intersects_proc[p])
+    if (p == my_rank || !intersects_proc[p]) {
       continue;
+    }
 
     Array<UInt> asked_nodes;
     CommunicationStatus status;
@@ -408,10 +418,10 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 
     for (UInt n = 0; n < nb_nodes_to_send; ++n) {
       UInt ln = global_nodes_ids.find(asked_nodes(n));
-      AKANTU_DEBUG_ASSERT(ln != UInt(-1),
-                          "The node [" << asked_nodes(n)
-                                       << "] requested by proc " << p
-                                       << " was not found locally!");
+      AKANTU_DEBUG_ASSERT(ln != UInt(-1), "The node ["
+                                              << asked_nodes(n)
+                                              << "] requested by proc " << p
+                                              << " was not found locally!");
       nodes_to_send.push_back(node_it + ln);
     }
 
@@ -431,8 +441,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 #endif
   }
 
-  comm.waitAll(isend_nodes_requests);
-  comm.freeCommunicationRequest(isend_nodes_requests);
+  Communicator::waitAll(isend_nodes_requests);
+  Communicator::freeCommunicationRequest(isend_nodes_requests);
 
   nodes.resize(nb_total_nodes_to_recv + nb_nodes);
   for (UInt p = 0; p < nb_proc; ++p) {
@@ -456,8 +466,8 @@ void GridSynchronizer::createGridSynchronizer(const SpatialGrid<E> & grid) {
 #endif
   }
 
-  comm.waitAll(isend_coordinates_requests);
-  comm.freeCommunicationRequest(isend_coordinates_requests);
+  Communicator::waitAll(isend_coordinates_requests);
+  Communicator::freeCommunicationRequest(isend_coordinates_requests);
 
   mesh.sendEvent(new_nodes);
   mesh.sendEvent(new_elements);

@@ -10,7 +10,6 @@
  *
  * @brief  test of the class SolidMechanicsModel
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -94,7 +93,7 @@ int main(int argc, char * argv[]) {
       std::cout << s << " " << epot << " " << ekin << " " << epot + ekin
                 << std::endl;
 
-    if (s % 100 == 0)
+    if (s % 1000 == 0)
       model.dump();
   }
 

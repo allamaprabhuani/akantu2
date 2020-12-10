@@ -8,7 +8,6 @@
  *
  * @brief  regularisation that does nothing
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AST_NTN_FRICREG_NO_REGULARISATION_HH__
-#define __AST_NTN_FRICREG_NO_REGULARISATION_HH__
+#ifndef AST_NTN_FRICREG_NO_REGULARISATION_HH_
+#define AST_NTN_FRICREG_NO_REGULARISATION_HH_
 
 /* -------------------------------------------------------------------------- */
 // simtools
@@ -120,7 +119,7 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "ntn_fricreg_no_regularisation_inline_impl.cc"
+//#include "ntn_fricreg_no_regularisation_inline_impl.hh"
 
 /// standard output stream operator
 inline std::ostream & operator<<(std::ostream & stream,
@@ -131,4 +130,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AST_NTN_FRICREG_NO_REGULARISATION_HH__ */
+#endif /* AST_NTN_FRICREG_NO_REGULARISATION_HH_ */

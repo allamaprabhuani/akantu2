@@ -10,7 +10,6 @@
  * element
  *        types.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2015 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,15 +32,15 @@
 /* -------------------------------------------------------------------------- */
 
 //#if 0
-#ifndef __AKANTU_MESH_IGFEM_SPHERICAL_GROWING_GEL_HH__
-#define __AKANTU_MESH_IGFEM_SPHERICAL_GROWING_GEL_HH__
+#ifndef AKANTU_MESH_IGFEM_SPHERICAL_GROWING_GEL_HH_
+#define AKANTU_MESH_IGFEM_SPHERICAL_GROWING_GEL_HH_
 
 #include "aka_common.hh"
 #include "mesh_sphere_intersector.hh"
 #include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /* classes for new igfem elements mesh events */
@@ -212,10 +211,10 @@ protected:
   DistributedSynchronizer * synchronizer;
 };
 
-__END_AKANTU__
+} // namespace akantu
 
 #include "mesh_igfem_spherical_growing_gel_tmpl.hh"
 
-#endif // __AKANTU_MESH_IGFEM_SPHERICAL_GROWING_GEL_HH__
+#endif // AKANTU_MESH_IGFEM_SPHERICAL_GROWING_GEL_HH_
 
 //#endif //

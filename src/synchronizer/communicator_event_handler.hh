@@ -8,7 +8,6 @@
  *
  * @brief  Event handler of the communicator
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COMMUNICATOR_EVENT_HANDLER_HH__
-#define __AKANTU_COMMUNICATOR_EVENT_HANDLER_HH__
+#ifndef AKANTU_COMMUNICATOR_EVENT_HANDLER_HH_
+#define AKANTU_COMMUNICATOR_EVENT_HANDLER_HH_
 
 namespace akantu {
 
@@ -49,13 +48,13 @@ public:
   virtual void onCommunicatorFinalize() = 0;
 
 private:
-  inline void sendEvent(const FinalizeCommunicatorEvent &) {
+  inline void sendEvent(const FinalizeCommunicatorEvent & /*unused*/) {
     this->onCommunicatorFinalize();
   }
 
   template <class EventHandler> friend class EventHandlerManager;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_COMMUNICATOR_EVENT_HANDLER_HH__ */
+#endif /* AKANTU_COMMUNICATOR_EVENT_HANDLER_HH_ */

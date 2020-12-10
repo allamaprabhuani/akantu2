@@ -31,6 +31,8 @@
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
+#include <iostream>
+/* -------------------------------------------------------------------------- */
 
 namespace py = pybind11;
 
@@ -49,7 +51,7 @@ void register_all(pybind11::module & mod) {
   register_mesh(mod);
 
   register_fe_engine(mod);
-    
+
   register_boundary_conditions(mod);
   register_model(mod);
 #if defined(AKANTU_HEAT_TRANSFER)
@@ -72,18 +74,30 @@ void register_all(pybind11::module & mod) {
 PYBIND11_MODULE(py11_akantu, mod) {
   mod.doc() = "Akantu python interface";
 
-  static py::exception<akantu::debug::Exception> akantu_exception(mod,
-                                                                  "Exception");
-  py::register_exception_translator([](std::exception_ptr p) {
+  static py::exception<akantu::debug::Exception>
+      akantu_exception(mod, "Exception");
+
+  py::register_exception_translator([](std::exception_ptr ptr) {
     try {
-      if (p)
-        std::rethrow_exception(p);
+      if (ptr) {
+        std::rethrow_exception(ptr);
+      }
     } catch (akantu::debug::Exception & e) {
-      if (akantu::debug::debugger.printBacktrace())
-        akantu::debug::printBacktrace(15);
+      if (akantu::debug::debugger.printBacktrace()) {
+        akantu::debug::printBacktrace();
+      }
       akantu_exception(e.info().c_str());
     }
   });
 
   akantu::register_all(mod);
+
+  mod.def("has_mpi", []() {
+#if defined(AKANTU_USE_MPI)
+    return true;
+#else
+    return false;
+#endif
+  });
+
 } // Module akantu

@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the default DOFManager
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -91,11 +90,13 @@ DOFManagerDefault::~DOFManagerDefault() = default;
 void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
                                                      SolverVector & array) {
   auto & dof_data = this->getDOFDataTyped<DOFDataDefault>(dof_id);
-  if (dof_data.support_type != _dst_nodal)
+  if (dof_data.support_type != _dst_nodal) {
     return;
+  }
 
-  if (not mesh->isPeriodic())
+  if (not mesh->isPeriodic()) {
     return;
+  }
 
   this->mesh->getPeriodicNodeSynchronizer()
       .reduceSynchronizeWithPBCSlaves<AddOperation>(
@@ -116,24 +117,31 @@ void DOFManagerDefault::assembleToGlobalArray(
                       "The array to assemble does not have a correct size."
                           << " (" << array_to_assemble.getID() << ")");
 
-  // if (dof_data.support_type == _dst_nodal and mesh->isPeriodic()) {
-  //   for (auto && data :
-  //        zip(dof_data.local_equation_number, dof_data.associated_nodes,
-  //            make_view(array_to_assemble))) {
-  //     auto && equ_num = std::get<0>(data);
-  //     auto && node = std::get<1>(data);
-  //     auto && arr = std::get<2>(data);
-  //     global_array(equ_num) +=
-  //         scale_factor * (arr) * (not this->mesh->isPeriodicSlave(node));
-  //   }
-  // } else {
-  for (auto && data :
-       zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
-    auto && equ_num = std::get<0>(data);
-    auto && arr = std::get<1>(data);
-    global_array(equ_num) += scale_factor * (arr);
+  if (dof_data.support_type == _dst_nodal and mesh->isPeriodic()) {
+    for (auto && data :
+         zip(dof_data.local_equation_number, dof_data.associated_nodes,
+             make_view(array_to_assemble))) {
+      auto && equ_num = std::get<0>(data);
+      // auto && node = std::get<1>(data);
+      auto && arr = std::get<2>(data);
+
+      // Guillaume to Nico:
+      // This filter of periodic slave should not be.
+      // Indeed you want to get the contribution even
+      // from periodic slaves and cumulate to the right
+      // equation number.
+
+      global_array(equ_num) += scale_factor * (arr);
+      // scale_factor * (arr) * (not this->mesh->isPeriodicSlave(node));
+    }
+  } else {
+    for (auto && data :
+         zip(dof_data.local_equation_number, make_view(array_to_assemble))) {
+      auto && equ_num = std::get<0>(data);
+      auto && arr = std::get<1>(data);
+      global_array(equ_num) += scale_factor * (arr);
+    }
   }
-  // }
   AKANTU_DEBUG_OUT();
 }
 
@@ -165,8 +173,9 @@ DOFManagerDefault::registerDOFsInternal(const ID & dof_id,
   auto ret = DOFManager::registerDOFsInternal(dof_id, dofs_array);
 
   // update the synchronizer if needed
-  if (this->synchronizer)
+  if (this->synchronizer) {
     this->synchronizer->registerDOFs(dof_id);
+  }
 
   return ret;
 }
@@ -199,7 +208,7 @@ NonLinearSolver &
 DOFManagerDefault::getNewNonLinearSolver(const ID & id,
                                          const NonLinearSolverType & type) {
   switch (type) {
-#if defined(AKANTU_IMPLICIT)
+#if defined(AKANTU_USE_MUMPS)
   case NonLinearSolverType::_newton_raphson:
     /* FALLTHRU */
     /* [[fallthrough]]; un-comment when compiler will get it */
@@ -268,7 +277,7 @@ void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
   const Array<Real> & A = this->getLumpedMatrix(A_id);
   auto & cache = aka::as_type<SolverVectorArray>(*this->data_cache);
 
-  cache.clear();
+  cache.zero();
   this->assembleToGlobalArray(dof_id, x, cache.getVector(), scale_factor);
 
   for (auto && data : zip(make_view(A), make_view(cache.getVector()),
@@ -283,7 +292,7 @@ void DOFManagerDefault::assembleLumpedMatMulVectToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::assembleElementalMatricesToMatrix(
     const ID & matrix_id, const ID & dof_id, const Array<Real> & elementary_mat,
-    const ElementType & type, const GhostType & ghost_type,
+    ElementType type, GhostType ghost_type,
     const MatrixType & elemental_matrix_type,
     const Array<UInt> & filter_elements) {
   this->addToProfile(matrix_id, dof_id, type, ghost_type);
@@ -318,14 +327,14 @@ void DOFManagerDefault::assembleMatMulVectToArray(const ID & dof_id,
 
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
-                                     const ElementType & type,
-                                     const GhostType & ghost_type) {
+                                     ElementType type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   const auto & dof_data = this->getDOFData(dof_id);
 
-  if (dof_data.support_type != _dst_nodal)
+  if (dof_data.support_type != _dst_nodal) {
     return;
+  }
 
   auto mat_dof = std::make_pair(matrix_id, dof_id);
   auto type_pair = std::make_pair(type, ghost_type);
@@ -333,14 +342,16 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
   auto prof_it = this->matrix_profiled_dofs.find(mat_dof);
   if (prof_it != this->matrix_profiled_dofs.end() &&
       std::find(prof_it->second.begin(), prof_it->second.end(), type_pair) !=
-          prof_it->second.end())
+          prof_it->second.end()) {
     return;
+  }
 
   auto nb_degree_of_freedom_per_node = dof_data.dof->getNbComponent();
 
   const auto & equation_number = this->getLocalEquationsNumbers(dof_id);
 
   auto & A = this->getMatrix(matrix_id);
+  A.resize(system_size);
   auto size = A.size();
 
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -363,8 +374,9 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
   Vector<Int> element_eq_nb(size_mat);
 
   for (UInt e = 0; e < nb_elements; ++e) {
-    if (ge_it)
+    if (ge_it != nullptr) {
       cit = cbegin + *ge_it;
+    }
 
     this->extractElementEquationNumber(
         equation_number, *cit, nb_degree_of_freedom_per_node, element_eq_nb);
@@ -373,10 +385,11 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
         element_eq_nb.storage(),
         [&](auto & local) { return this->localToGlobalEquationNumber(local); });
 
-    if (ge_it)
+    if (ge_it != nullptr) {
       ++ge_it;
-    else
+    } else {
       ++cit;
+    }
 
     for (UInt i = 0; i < size_mat; ++i) {
       UInt c_irn = element_eq_nb(i);
@@ -416,16 +429,17 @@ void DOFManagerDefault::onNodesAdded(const Array<UInt> & nodes_list,
                                      const NewNodesEvent & event) {
   DOFManager::onNodesAdded(nodes_list, event);
 
-  if (this->synchronizer)
+  if (this->synchronizer) {
     this->synchronizer->onNodesAdded(nodes_list);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 void DOFManagerDefault::resizeGlobalArrays() {
   DOFManager::resizeGlobalArrays();
 
-  this->global_blocked_dofs.resize(this->local_system_size, true);
-  this->previous_global_blocked_dofs.resize(this->local_system_size, true);
+  this->global_blocked_dofs.resize(this->local_system_size, 1);
+  this->previous_global_blocked_dofs.resize(this->local_system_size, 1);
 
   matrix_profiled_dofs.clear();
 }
@@ -435,8 +449,9 @@ void DOFManagerDefault::updateGlobalBlockedDofs() {
   DOFManager::updateGlobalBlockedDofs();
 
   if (this->global_blocked_dofs_release ==
-      this->previous_global_blocked_dofs_release)
+      this->previous_global_blocked_dofs_release) {
     return;
+  }
 
   global_blocked_dofs_uint.resize(local_system_size);
   global_blocked_dofs_uint.set(false);

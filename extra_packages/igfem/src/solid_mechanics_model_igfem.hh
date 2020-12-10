@@ -6,7 +6,6 @@
  *
  * @brief  solid mechanics model for IGFEM analysis
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -14,15 +13,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_IGFEM_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_IGFEM_HH__
+#ifndef AKANTU_SOLID_MECHANICS_MODEL_IGFEM_HH_
+#define AKANTU_SOLID_MECHANICS_MODEL_IGFEM_HH_
 #include "global_ids_updater.hh"
 #include "igfem_enrichment.hh"
 #include "solid_mechanics_model.hh"
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 struct SolidMechanicsModelIGFEMOptions : public SolidMechanicsModelOptions {
@@ -86,7 +85,7 @@ public:
 
   /// compute the barycenter for a sub-element
   inline void getSubElementBarycenter(UInt element, UInt sub_element,
-                                      const ElementType & type,
+                                      ElementType type,
                                       Vector<Real> & barycenter,
                                       GhostType ghost_type) const;
 
@@ -125,16 +124,16 @@ public:
   virtual void addDumpGroupFieldToDumper(const std::string & dumper_name,
                                          const std::string & field_id,
                                          const std::string & group_name,
-                                         const ElementKind & element_kind,
+                                         ElementKind element_kind,
                                          bool padding_flag);
 
-  virtual dumper::Field * createElementalField(const std::string & field_name,
+  virtual dumpers::Field * createElementalField(const std::string & field_name,
                                                const std::string & group_name,
                                                bool padding_flag,
                                                const UInt & spatial_dimension,
-                                               const ElementKind & kind);
+                                               ElementKind kind);
 
-  virtual dumper::Field * createNodalFieldReal(const std::string & field_name,
+  virtual dumpers::Field * createNodalFieldReal(const std::string & field_name,
                                                const std::string & group_name,
                                                bool padding_flag);
 
@@ -189,10 +188,10 @@ protected:
   UInt fallback_value_igfem;
 };
 
-__END_AKANTU__
+} // namespace akantu
 
 #if defined(AKANTU_INCLUDE_INLINE_IMPL)
-#include "solid_mechanics_model_igfem_inline_impl.cc"
+#include "solid_mechanics_model_igfem_inline_impl.hh"
 #endif
 
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_IGFEM_HH__ */
+#endif /* AKANTU_SOLID_MECHANICS_MODEL_IGFEM_HH_ */

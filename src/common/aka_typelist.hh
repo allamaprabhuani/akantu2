@@ -8,7 +8,6 @@
  *
  * @brief  Objects that support the visitor design pattern
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TYPELIST_HH__
-#define __AKANTU_TYPELIST_HH__
+#ifndef AKANTU_TYPELIST_HH_
+#define AKANTU_TYPELIST_HH_
 
 #include "aka_common.hh"
 
@@ -150,6 +149,6 @@ public:
   enum { value = (temp == -1 ? -1 : 1 + temp) };
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_TYPELIST_HH__ */
+#endif /* AKANTU_TYPELIST_HH_ */

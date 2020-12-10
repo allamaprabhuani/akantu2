@@ -8,7 +8,6 @@
  *
  * @brief  Class handling the parallel communications
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -37,8 +36,8 @@
 #include "communicator_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_STATIC_COMMUNICATOR_HH__
-#define __AKANTU_STATIC_COMMUNICATOR_HH__
+#ifndef AKANTU_STATIC_COMMUNICATOR_HH_
+#define AKANTU_STATIC_COMMUNICATOR_HH_
 
 namespace akantu {
 
@@ -93,11 +92,8 @@ public:
     virtual ~private_member() = default;
   };
 
-  Communicator(const private_member &);
+  Communicator(const private_member & /*unused*/);
   ~Communicator() override;
-
-  static void initialize();
-  static void finalize();
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
@@ -127,7 +123,8 @@ public:
   template <typename Tensor>
   inline void
   receive(Tensor & values, Int sender, Int tag,
-          std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+          std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+              nullptr) const {
     return this->receiveImpl(values.storage(), values.size(), sender, tag);
   }
 
@@ -147,7 +144,8 @@ public:
   template <typename T>
   inline void
   receive(T & values, Int sender, Int tag,
-          std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+          std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+              nullptr) const {
     return this->receiveImpl(&values, 1, sender, tag);
   }
   /* ------------------------------------------------------------------------ */
@@ -171,7 +169,8 @@ public:
   inline void
   send(const Tensor & values, Int receiver, Int tag,
        const CommunicationMode & mode = CommunicationMode::_auto,
-       std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+       std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+           nullptr) const {
     return this->sendImpl(values.storage(), values.size(), receiver, tag, mode);
   }
 
@@ -183,10 +182,10 @@ public:
     return this->sendImpl(values.storage(), values.size(), receiver, tag, mode);
   }
   template <typename T>
-  inline void
-  send(const T & values, Int receiver, Int tag,
-       const CommunicationMode & mode = CommunicationMode::_auto,
-       std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+  inline void send(const T & values, Int receiver, Int tag,
+                   const CommunicationMode & mode = CommunicationMode::_auto,
+                   std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+                       nullptr) const {
     return this->sendImpl(&values, 1, receiver, tag, mode);
   }
 
@@ -211,7 +210,8 @@ public:
   inline CommunicationRequest
   asyncSend(const Tensor & values, Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto,
-            std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+            std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+                nullptr) const {
     return this->asyncSendImpl(values.storage(), values.size(), receiver, tag,
                                mode);
   }
@@ -227,7 +227,8 @@ public:
   inline CommunicationRequest
   asyncSend(const T & values, Int receiver, Int tag,
             const CommunicationMode & mode = CommunicationMode::_auto,
-            std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+            std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+                nullptr) const {
     return this->asyncSendImpl(&values, 1, receiver, tag, mode);
   }
 
@@ -272,14 +273,16 @@ public:
   inline void
   allReduce(Tensor & values,
             SynchronizerOperation op = SynchronizerOperation::_sum,
-            std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+            std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+                nullptr) const {
     this->allReduceImpl(values.storage(), values.size(), op);
   }
 
   template <typename T>
   inline void
   allReduce(T & values, SynchronizerOperation op = SynchronizerOperation::_sum,
-            std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+            std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+                nullptr) const {
     this->allReduceImpl(&values, 1, op);
   }
 
@@ -294,14 +297,16 @@ public:
   template <typename Tensor>
   inline void
   scan(Tensor & values, SynchronizerOperation op,
-       std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+       std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+           nullptr) const {
     this->scanImpl(values.storage(), values.storage(), values.size(), op);
   }
 
   template <typename T>
-  inline void
-  scan(T & values, SynchronizerOperation op = SynchronizerOperation::_sum,
-       std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+  inline void scan(T & values,
+                   SynchronizerOperation op = SynchronizerOperation::_sum,
+                   std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+                       nullptr) const {
     this->scanImpl(&values, &values, 1, op);
   }
 
@@ -314,31 +319,36 @@ public:
   }
 
   template <typename Tensor>
-  inline void exclusiveScan(
-      Tensor & values, SynchronizerOperation op = SynchronizerOperation::_sum,
-      std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+  inline void
+  exclusiveScan(Tensor & values,
+                SynchronizerOperation op = SynchronizerOperation::_sum,
+                std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+                    nullptr) const {
     this->exclusiveScanImpl(values.storage(), values.storage(), values.size(),
                             op);
   }
 
   template <typename T>
-  inline void exclusiveScan(
-      T & values, SynchronizerOperation op = SynchronizerOperation::_sum,
-      std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+  inline void
+  exclusiveScan(T & values,
+                SynchronizerOperation op = SynchronizerOperation::_sum,
+                std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+                    nullptr) const {
     this->exclusiveScanImpl(&values, &values, 1, op);
   }
 
   template <typename T>
-  inline void exclusiveScan(
-      T & values, T & result,
-      SynchronizerOperation op = SynchronizerOperation::_sum,
-      std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+  inline void
+  exclusiveScan(T & values, T & result,
+                SynchronizerOperation op = SynchronizerOperation::_sum,
+                std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+                    nullptr) const {
     this->exclusiveScanImpl(&values, &result, 1, op);
   }
 
   /* ------------------------------------------------------------------------ */
   template <typename T> inline void allGather(Array<T> & values) const {
-    AKANTU_DEBUG_ASSERT(UInt(psize) == values.size(),
+    AKANTU_DEBUG_ASSERT(UInt(getNbProc()) == values.size(),
                         "The array size is not correct");
     this->allGatherImpl(values.storage(), values.getNbComponent());
   }
@@ -346,9 +356,9 @@ public:
   template <typename Tensor,
             typename = std::enable_if_t<aka::is_tensor<Tensor>::value>>
   inline void allGather(Tensor & values) const {
-    AKANTU_DEBUG_ASSERT(values.size() / UInt(psize) > 0,
+    AKANTU_DEBUG_ASSERT(values.size() / getNbProc() > 0,
                         "The vector size is not correct");
-    this->allGatherImpl(values.storage(), values.size() / UInt(psize));
+    this->allGatherImpl(values.storage(), values.size() / getNbProc());
   }
 
   /* ------------------------------------------------------------------------ */
@@ -369,23 +379,26 @@ public:
   template <typename Tensor>
   inline void
   gather(Tensor & values, int root = 0,
-         std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+         std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+             nullptr) const {
     this->gatherImpl(values.storage(), values.getNbComponent(), root);
   }
   template <typename T>
   inline void
   gather(T values, int root = 0,
-         std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+         std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+             nullptr) const {
     this->gatherImpl(&values, 1, root);
   }
   /* ------------------------------------------------------------------------ */
   template <typename Tensor, typename T>
   inline void
   gather(Tensor & values, Array<T> & gathered,
-         std::enable_if_t<aka::is_tensor<Tensor>::value> * = nullptr) const {
+         std::enable_if_t<aka::is_tensor<Tensor>::value> * /*unused*/ =
+             nullptr) const {
     AKANTU_DEBUG_ASSERT(values.size() == gathered.getNbComponent(),
                         "The array size is not correct");
-    gathered.resize(psize);
+    gathered.resize(getNbProc());
     this->gatherImpl(values.data(), values.size(), gathered.storage(),
                      gathered.getNbComponent());
   }
@@ -393,7 +406,8 @@ public:
   template <typename T>
   inline void
   gather(T values, Array<T> & gathered,
-         std::enable_if_t<std::is_arithmetic<T>::value> * = nullptr) const {
+         std::enable_if_t<std::is_arithmetic<T>::value> * /*unused*/ =
+             nullptr) const {
     this->gatherImpl(&values, 1, gathered.storage(), 1);
   }
 
@@ -425,11 +439,13 @@ public:
                         int root = 0) const {
     UInt buffer_size = buffer.size();
     this->broadcastImpl(&buffer_size, 1, root);
-    if (prank != root)
+    if (whoAmI() != root) {
       buffer.reserve(buffer_size);
+    }
 
-    if (buffer_size == 0)
+    if (buffer_size == 0) {
       return;
+    }
     this->broadcastImpl(buffer.storage(), buffer.size(), root);
   }
 
@@ -444,14 +460,14 @@ public:
   /* ------------------------------------------------------------------------ */
   /* Request handling                                                         */
   /* ------------------------------------------------------------------------ */
-  bool test(CommunicationRequest & request) const;
-  bool testAll(std::vector<CommunicationRequest> & request) const;
-  void wait(CommunicationRequest & request) const;
-  void waitAll(std::vector<CommunicationRequest> & requests) const;
-  UInt waitAny(std::vector<CommunicationRequest> & requests) const;
-  inline void freeCommunicationRequest(CommunicationRequest & request) const;
-  inline void
-  freeCommunicationRequest(std::vector<CommunicationRequest> & requests) const;
+  static bool test(CommunicationRequest & request);
+  static bool testAll(std::vector<CommunicationRequest> & request);
+  static void wait(CommunicationRequest & request);
+  static void waitAll(std::vector<CommunicationRequest> & requests);
+  static UInt waitAny(std::vector<CommunicationRequest> & requests);
+  static inline void freeCommunicationRequest(CommunicationRequest & request);
+  static inline void
+  freeCommunicationRequest(std::vector<CommunicationRequest> & requests);
 
   template <typename T, typename MsgProcessor>
   inline void
@@ -510,11 +526,11 @@ protected:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  Int getNbProc() const { return psize; };
-  Int whoAmI() const { return prank; };
+  Int getNbProc() const;
+  Int whoAmI() const;
 
-  static Communicator & getStaticCommunicator() __attribute__((deprecated(
-      "Use getWorldCommunicator or getSelfCommunicator instead")));
+  static Communicator & getStaticCommunicator() __attribute__((
+      deprecated("Use getWorldCommunicator or getSelfCommunicator instead")));
   // static Communicator & getWorldCommunicator(int & argc, char **& argv);
 
   // get a reference to the WorldCommunicator, with MPI this would be
@@ -538,8 +554,6 @@ private:
   static std::unique_ptr<Communicator> self_communicator;
 
 protected:
-  Int prank{0};
-  Int psize{1};
   std::unique_ptr<CommunicatorInternalData> communicator_data;
 };
 
@@ -553,4 +567,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 #include "communicator_inline_impl.hh"
 
-#endif /* __AKANTU_STATIC_COMMUNICATOR_HH__ */
+#endif /* AKANTU_STATIC_COMMUNICATOR_HH_ */

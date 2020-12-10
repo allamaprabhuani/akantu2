@@ -8,7 +8,6 @@
  *
  * @brief  Default implementation for the time stepper
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include <set>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TIME_STEP_SOLVER_DEFAULT_HH__
-#define __AKANTU_TIME_STEP_SOLVER_DEFAULT_HH__
+#ifndef AKANTU_TIME_STEP_SOLVER_DEFAULT_HH_
+#define AKANTU_TIME_STEP_SOLVER_DEFAULT_HH_
 
 namespace akantu {
 class DOFManager;
@@ -84,8 +83,22 @@ public:
   void assembleResidual() override;
   void assembleResidual(const ID & residual_part) override;
 
+  void beforeSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
+
   /// implementation of the generic TimeStepSolver::solveStep()
   void solveStep(SolverCallback & solver_callback) override;
+
+private:
+
+  template<class Func>
+  void for_each_integrator(Func && function) {
+    for (auto & pair : this->integration_schemes) {
+      const auto & dof_id = pair.first;
+      auto & integration_scheme = pair.second;
+      function(dof_id, *integration_scheme);
+    }
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -113,4 +126,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_TIME_STEP_SOLVER_DEFAULT_HH__ */
+#endif /* AKANTU_TIME_STEP_SOLVER_DEFAULT_HH_ */

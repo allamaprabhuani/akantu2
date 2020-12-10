@@ -1,3 +1,4 @@
+
 #===============================================================================
 # @file   CMakeLists.txt
 #
@@ -70,17 +71,16 @@ if (_is_activated)
     )
 endif()
 
-add_library(pyakantu STATIC ${PYAKANTU_SRCS})
-target_link_libraries(pyakantu PUBLIC  akantu pybind11)
-target_include_directories(pyakantu INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(pyakantu PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
-
-#pybind11_add_module(py11_akantu $<TARGET_OBJECTS:pyakantu>)
-#target_link_libraries(py11_akantu PRIVATE pyakantu)
-#set_target_properties(py11_akantu PROPERTIES DEBUG_POSTFIX "")
-
 pybind11_add_module(py11_akantu ${PYAKANTU_SRCS})
-target_link_libraries(py11_akantu PRIVATE akantu pybind11)
-target_include_directories(py11_akantu INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
+target_link_libraries(py11_akantu PUBLIC akantu)
 set_target_properties(py11_akantu PROPERTIES DEBUG_POSTFIX "")
+
+set(_python_install_dir
+  ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages)
+
+install(TARGETS py11_akantu
+  LIBRARY DESTINATION ${_python_install_dir})
+
+install(DIRECTORY akantu
+  DESTINATION ${_python_install_dir}
+  FILES_MATCHING PATTERN "*.py")

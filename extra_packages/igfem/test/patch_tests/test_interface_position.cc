@@ -6,7 +6,6 @@
  *
  * @brief  patch test for interface close to standard nodes
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -139,7 +138,8 @@ int main(int argc, char * argv[]) {
   bool converged = false;
   bool factorize = false;
 
-  converged = model.solveStep<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+  converged = model.solveStep<_scm_newton_raphson_tangent,
+                              SolveConvergenceCriteria::_increment>(
       1e-12, error, 2, factorize);
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error
@@ -204,7 +204,8 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  converged = model.solveStep<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+  converged = model.solveStep<_scm_newton_raphson_tangent,
+                              SolveConvergenceCriteria::_increment>(
       1e-12, error, 2, factorize);
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error
@@ -252,7 +253,8 @@ int main(int argc, char * argv[]) {
     return EXIT_FAILURE;
   }
 
-  converged = model.solveStep<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+  converged = model.solveStep<_scm_newton_raphson_tangent,
+                              SolveConvergenceCriteria::_increment>(
       1e-12, error, 2, factorize);
   if (!converged) {
     std::cout << "The solver did not converge!!! The error is: " << error

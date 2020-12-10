@@ -9,7 +9,6 @@
  * @brief  implementation of the templated part of ParsableParam Parsable and
  * ParsableParamTyped
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -75,8 +74,8 @@ namespace parser {
   template <class Iterator> struct Skipper {
     using type = qi::rule<Iterator, void()>;
   };
-}
+} // namespace parser
 
-} // akantu
+} // namespace akantu
 
 #endif // AKANTU_PARSER_GRAMMAR_TMPL_HH

@@ -8,7 +8,6 @@
  *
  * @brief  header for dumper text
  *
- * @section LICENSE
  *
  * Copyright (©) 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __IOHLPER_DUMPER_TEXT_H__
-#define __IOHLPER_DUMPER_TEXT_H__
+#ifndef IOHELPER_DUMPER_TEXT_H_
+#define IOHELPER_DUMPER_TEXT_H_
 /* -------------------------------------------------------------------------- */
 #include <map>
 #include <string>
@@ -38,7 +37,7 @@
 #include "file_manager.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 /** Class DumperText
  * Implementation of a dumper to text file
@@ -62,12 +61,12 @@ public:
   /* ------------------------------------------------------------------------ */
 
   void dump(const std::string & name, UInt count) override;
-  void setEmbeddedValue(__attribute__((unused)) const std::string & name,
-			__attribute__((unused)) int value) {};
+  void setEmbeddedValue(const std::string & /*name*/,
+                        int /*value*/) {};
 
-  void dumpDescription(const char descr_sep = ' ') override;
-  virtual void dumpFieldDescription(const char descr_sep = ' ');
-  virtual void dumpTimeDescription(const char descr_sep = ' ');
+  void dumpDescription(char descr_sep = ' ') override;
+  virtual void dumpFieldDescription(char descr_sep = ' ');
+  virtual void dumpTimeDescription(char descr_sep = ' ');
   
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -140,8 +139,9 @@ void DumperText::visitField(T & visited) {
   
   for (; it != end; ++it) {
     for (UInt i=0; i<dim; ++i) {
-      if (i != 0) 
-	file << this->separator;
+      if (i != 0) {
+        file << this->separator;
+      }
       file << (*it)[i];
     }
     file << std::endl;
@@ -156,8 +156,9 @@ template <typename T>
 void DumperText::visitVariable(T & visited) {
 
   // only root rank dumps variables
-  if (this->my_rank != this->root_rank)
+  if (this->my_rank != this->root_rank) {
     return;
+  }
 
   const std::string & name = visited.getName();
 
@@ -182,8 +183,9 @@ void DumperText::visitVariable(T & visited) {
   
   //  File file = it->second;
   for (UInt i=0; i<dim; ++i) {
-    if (i != 0) 
+    if (i != 0) {
       (*file) << this->separator;
+    }
     (*file) << (*visited)[i];
   }
   (*file) << std::endl;
@@ -191,6 +193,6 @@ void DumperText::visitVariable(T & visited) {
 }
 
 /* -------------------------------------------------------------------------- */
-__END_IOHELPER__
+}
 
-#endif /* __IOHLPER_DUMPER_TEXT_H__ */
+#endif /* IOHELPER_DUMPER_TEXT_H_ */

@@ -8,7 +8,6 @@
  *
  * @brief  implementation of linear slip weakening
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -59,9 +58,8 @@ void NTNFricLawLinearSlipWeakeningNoHealing<
       this->mu(n) = this->mu_k(n);
     } else {
       // mu = mu_k + (1 - slip / Dc) * (mu_s - mu_k)
-      this->mu(n) =
-          this->mu_k(n) +
-          (1 - (slip(n) / this->d_c(n))) * (this->mu_s(n) - this->mu_k(n));
+      this->mu(n) = this->mu_k(n) + (1 - (slip(n) / this->d_c(n))) *
+                                        (this->mu_s(n) - this->mu_k(n));
     }
   }
 

@@ -5,7 +5,6 @@
  *
  * @brief  Material for orthotropic damage
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH__
-#define __AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH__
+#ifndef AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH_
+#define AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH_
 
 namespace akantu {
 template <UInt spatial_dimension,
@@ -49,12 +48,12 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void initMaterial();
+  void initMaterial() override;
 
   /// compute the tangent stiffness matrix for an element type
-  virtual void computeTangentModuli(const ElementType & el_type,
-                                    Array<Real> & tangent_matrix,
-                                    GhostType ghost_type = _not_ghost);
+  void computeTangentModuli(ElementType el_type,
+                            Array<Real> & tangent_matrix,
+                            GhostType ghost_type = _not_ghost) override;
 
 protected:
   /// update the dissipated energy, must be called after the stress have been
@@ -144,4 +143,4 @@ protected:
 
 #include "material_orthotropic_damage_tmpl.hh"
 
-#endif /* __AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH__ */
+#endif /* AKANTU_MATERIAL_ORTHOTROPIC_DAMAGE_HH_ */

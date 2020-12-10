@@ -7,7 +7,6 @@
  *
  * @brief  This code refers to the implicit dynamic example from the user manual
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -92,7 +91,8 @@ int main(int argc, char * argv[]) {
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "blocked");
   model.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "roller");
 
-  const Array<UInt> & trac_nodes = mesh.getElementGroup("traction").getNodeGroup().getNodes();
+  const Array<UInt> & trac_nodes =
+      mesh.getElementGroup("traction").getNodeGroup().getNodes();
 
   bool dump_node = false;
   if (trac_nodes.size() > 0 && mesh.isLocalOrMasterNode(trac_nodes(0))) {

@@ -8,7 +8,6 @@
  *
  * @brief  functions for boundaries
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_BOUNDARY_FUNCTIONS_HH__
-#define __AKANTU_BOUNDARY_FUNCTIONS_HH__
+#ifndef AKANTU_BOUNDARY_FUNCTIONS_HH_
+#define AKANTU_BOUNDARY_FUNCTIONS_HH_
 
 namespace akantu {
 class SolidMechanicsModel;
@@ -52,4 +51,4 @@ void boundaryFix(Mesh & mesh,
 
 } // namespace akantu
 
-#endif /* __AKANTU_BOUNDARY_FUNCTIONS_HH__ */
+#endif /* AKANTU_BOUNDARY_FUNCTIONS_HH_ */

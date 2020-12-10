@@ -8,7 +8,6 @@
  *
  * @brief  Test the thermal material
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -97,9 +96,9 @@ namespace {
 template <typename T>
 class TestMaterialThermalFixture : public ::TestMaterialFixture<T> {};
 
-TYPED_TEST_SUITE(TestMaterialThermalFixture, mat_types);
+TYPED_TEST_SUITE(TestMaterialThermalFixture, mat_types, );
 
 TYPED_TEST(TestMaterialThermalFixture, ThermalComputeStress) {
   this->material->testComputeStress();
 }
-}
+} // namespace

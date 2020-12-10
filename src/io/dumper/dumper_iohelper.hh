@@ -11,7 +11,6 @@
  *
  * @brief  Define the akantu dumper interface for IOhelper dumpers
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,11 +35,12 @@
 #include "aka_common.hh"
 #include "aka_types.hh"
 #include "element_type_map.hh"
-
+/* -------------------------------------------------------------------------- */
+#include <memory>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_DUMPER_IOHELPER_HH__
-#define __AKANTU_DUMPER_IOHELPER_HH__
+#ifndef AKANTU_DUMPER_IOHELPER_HH_
+#define AKANTU_DUMPER_IOHELPER_HH_
 /* -------------------------------------------------------------------------- */
 
 namespace iohelper {
@@ -55,14 +55,14 @@ namespace akantu {
 
 UInt getIOHelperType(ElementType type);
 
-namespace dumper {
+namespace dumpers {
   class Field;
   class VariableBase;
 } // namespace dumper
 
 class Mesh;
 
-class DumperIOHelper {
+class DumperIOHelper : public std::enable_shared_from_this<DumperIOHelper> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -77,8 +77,8 @@ public:
   /// register a given Mesh for the current dumper
   virtual void registerMesh(const Mesh & mesh,
                             UInt spatial_dimension = _all_dimensions,
-                            const GhostType & ghost_type = _not_ghost,
-                            const ElementKind & element_kind = _ek_not_defined);
+                            GhostType ghost_type = _not_ghost,
+                            ElementKind element_kind = _ek_not_defined);
 
   /// register a filtered Mesh (provided filter lists) for the current dumper
   virtual void
@@ -86,17 +86,17 @@ public:
                        const ElementTypeMapArray<UInt> & elements_filter,
                        const Array<UInt> & nodes_filter,
                        UInt spatial_dimension = _all_dimensions,
-                       const GhostType & ghost_type = _not_ghost,
-                       const ElementKind & element_kind = _ek_not_defined);
+                       GhostType ghost_type = _not_ghost,
+                       ElementKind element_kind = _ek_not_defined);
 
   /// register a Field object identified by name and provided by pointer
   void registerField(const std::string & field_id,
-                     std::shared_ptr<dumper::Field> field);
+                     std::shared_ptr<dumpers::Field> field);
   /// remove the Field identified by name from managed fields
   void unRegisterField(const std::string & field_id);
   /// register a VariableBase object identified by name and provided by pointer
   void registerVariable(const std::string & variable_id,
-                        std::shared_ptr<dumper::VariableBase> variable);
+                        std::shared_ptr<dumpers::VariableBase> variable);
   /// remove a VariableBase identified by name from managed fields
   void unRegisterVariable(const std::string & variable_id);
 
@@ -138,9 +138,9 @@ protected:
   /// internal iohelper::Dumper
   std::unique_ptr<iohelper::Dumper> dumper;
 
-  using Fields = std::map<std::string, std::shared_ptr<dumper::Field>>;
+  using Fields = std::map<std::string, std::shared_ptr<dumpers::Field>>;
   using Variables =
-      std::map<std::string, std::shared_ptr<dumper::VariableBase>>;
+      std::map<std::string, std::shared_ptr<dumpers::VariableBase>>;
 
   /// list of registered fields to dump
   Fields fields;
@@ -164,4 +164,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AKANTU_DUMPER_IOHELPER_HH__ */
+#endif /* AKANTU_DUMPER_IOHELPER_HH_ */

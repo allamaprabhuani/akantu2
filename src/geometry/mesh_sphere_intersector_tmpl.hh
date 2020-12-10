@@ -11,7 +11,6 @@
  *
  * @brief  Computation of mesh intersection with spheres
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MESH_SPHERE_INTERSECTOR_TMPL_HH__
-#define __AKANTU_MESH_SPHERE_INTERSECTOR_TMPL_HH__
+#ifndef AKANTU_MESH_SPHERE_INTERSECTOR_TMPL_HH_
+#define AKANTU_MESH_SPHERE_INTERSECTOR_TMPL_HH_
 
 #include "aka_common.hh"
 #include "mesh_geom_common.hh"
@@ -210,6 +209,6 @@ void MeshSphereIntersector<dim, type>::computeMeshQueryIntersectionPoint(
   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu
 
-#endif // __AKANTU_MESH_SPHERE_INTERSECTOR_TMPL_HH__
+#endif // AKANTU_MESH_SPHERE_INTERSECTOR_TMPL_HH_

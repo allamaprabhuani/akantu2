@@ -9,7 +9,6 @@
  *
  * @brief  test the lumping of the mass matrix
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -77,7 +76,7 @@ template <typename T> constexpr size_t TestLumpedMassesFixture<T>::dim;
 
 using mass_types = gtest_list_t<TestElementTypes>;
 
-TYPED_TEST_SUITE(TestLumpedMassesFixture, mass_types);
+TYPED_TEST_SUITE(TestLumpedMassesFixture, mass_types, );
 
 TYPED_TEST(TestLumpedMassesFixture, TestLumpedMass) {
   this->model->assembleMassLumped();

@@ -9,7 +9,6 @@
  *
  * @brief  Common file for MeshGeom module
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  *
  */
 
-#ifndef __AKANTU_MESH_GEOM_COMMON_HH__
-#define __AKANTU_MESH_GEOM_COMMON_HH__
+#ifndef AKANTU_MESH_GEOM_COMMON_HH_
+#define AKANTU_MESH_GEOM_COMMON_HH_
 
 #include "aka_common.hh"
 
@@ -50,8 +49,8 @@ namespace cgal {
   using Spherical = CGAL::Spherical_kernel_3<
       CGAL::Simple_cartesian<CGAL::Quotient<CGAL::MP_Float>>,
       CGAL::Algebraic_kernel_for_spheres_2_3<CGAL::Quotient<CGAL::MP_Float>>>;
-} // cgal
+} // namespace cgal
 
-} // akantu
+} // namespace akantu
 
-#endif // __AKANTU_MESH_GEOM_COMMON_HH__
+#endif // AKANTU_MESH_GEOM_COMMON_HH_

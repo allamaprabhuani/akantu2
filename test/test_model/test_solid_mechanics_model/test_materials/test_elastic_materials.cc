@@ -10,7 +10,6 @@
  *
  * @brief  Tests the Elastic materials
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,12 +28,13 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
 /* -------------------------------------------------------------------------- */
-#include "material_elastic.hh"
-#include "material_elastic_orthotropic.hh"
-#include "solid_mechanics_model.hh"
+#include "test_gtest_utils.hh"
 #include "test_material_fixtures.hh"
+/* -------------------------------------------------------------------------- */
+#include <material_elastic.hh>
+#include <material_elastic_orthotropic.hh>
+#include <solid_mechanics_model.hh>
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -632,7 +632,9 @@ template <> void FriendMaterial<MaterialElasticOrthotropic<3>>::testCelerity() {
 template <>
 void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::setParams() {
   Matrix<Real> C = {
-      {1.0, 0.3, 0.4}, {0.3, 2.0, 0.1}, {0.4, 0.1, 1.5},
+      {1.0, 0.3, 0.4},
+      {0.3, 2.0, 0.1},
+      {0.4, 0.1, 1.5},
   };
 
   for (auto i = 0u; i < C.rows(); ++i)
@@ -657,7 +659,9 @@ void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::setParams() {
 template <>
 void FriendMaterial<MaterialElasticLinearAnisotropic<2>>::testComputeStress() {
   Matrix<Real> C = {
-      {1.0, 0.3, 0.4}, {0.3, 2.0, 0.1}, {0.4, 0.1, 1.5},
+      {1.0, 0.3, 0.4},
+      {0.3, 2.0, 0.1},
+      {0.4, 0.1, 1.5},
   };
 
   Matrix<Real> rotation_matrix(2, 2);
@@ -859,7 +863,7 @@ namespace {
 template <typename T>
 class TestElasticMaterialFixture : public ::TestMaterialFixture<T> {};
 
-TYPED_TEST_SUITE(TestElasticMaterialFixture, mat_types);
+TYPED_TEST_SUITE(TestElasticMaterialFixture, mat_types, );
 
 TYPED_TEST(TestElasticMaterialFixture, ComputeStress) {
   this->material->testComputeStress();

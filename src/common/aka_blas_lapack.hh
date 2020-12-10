@@ -8,7 +8,6 @@
  *
  * @brief  Interface of the Fortran BLAS/LAPACK libraries
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,11 +26,12 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+/* -------------------------------------------------------------------------- */
+#include "aka_error.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_BLAS_LAPACK_HH__
-#define __AKANTU_AKA_BLAS_LAPACK_HH__
+#ifndef AKANTU_AKA_BLAS_LAPACK_HH_
+#define AKANTU_AKA_BLAS_LAPACK_HH_
 
 /* -------------------------------------------------------------------------- */
 #ifdef AKANTU_USE_BLAS
@@ -181,7 +181,7 @@ inline void aka_gemm<float>(char * transa, char * transb, int * m, int * n,
 
 #endif
 
-} // akantu
+} // namespace akantu
 
 #ifdef AKANTU_USE_LAPACK
 #include "aka_fortran_mangling.hh"
@@ -338,6 +338,6 @@ inline void aka_getrs<float>(char * trans, int * n, int * nrhs, float * A,
 }
 #endif
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_AKA_BLAS_LAPACK_HH__ */
+#endif /* AKANTU_AKA_BLAS_LAPACK_HH_ */

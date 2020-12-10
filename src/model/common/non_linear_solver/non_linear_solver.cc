@@ -8,7 +8,6 @@
  *
  * @brief  Implementation of the base class NonLinearSolver
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -67,7 +66,7 @@ void NonLinearSolver::checkIfTypeIsSupported() {
 void NonLinearSolver::assembleResidual(SolverCallback & solver_callback) {
   if (solver_callback.canSplitResidual() and
       non_linear_solver_type == NonLinearSolverType::_linear) {
-    this->_dof_manager.clearResidual();
+    this->_dof_manager.zeroResidual();
     solver_callback.assembleResidual("external");
     this->_dof_manager.assembleMatMulDOFsToResidual("K", -1.);
     solver_callback.assembleResidual("inertial");

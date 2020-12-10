@@ -8,7 +8,6 @@
  *
  * @brief  test the matrix vector product in parallel
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -64,7 +63,8 @@ int main(int argc, char * argv[]) {
   if (prank == 0)
     std::cout << "Creating a SparseMatrix" << std::endl;
 
-  auto & A = dynamic_cast<SparseMatrixAIJ &>(dof_manager.getNewMatrix("A", _symmetric));
+  auto & A = dynamic_cast<SparseMatrixAIJ &>(
+      dof_manager.getNewMatrix("A", _symmetric));
 
   Array<Real> dof_vector(nb_nodes, nb_dof, "vector");
 

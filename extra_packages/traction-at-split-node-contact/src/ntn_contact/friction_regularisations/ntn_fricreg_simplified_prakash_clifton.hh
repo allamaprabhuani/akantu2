@@ -9,7 +9,6 @@
  * @brief  regularisation that regularizes the frictional strength with one
  * parameter
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AST_NTN_FRICREG_SIMPLIFIED_PRAKASH_CLIFTON_HH__
-#define __AST_NTN_FRICREG_SIMPLIFIED_PRAKASH_CLIFTON_HH__
+#ifndef AST_NTN_FRICREG_SIMPLIFIED_PRAKASH_CLIFTON_HH_
+#define AST_NTN_FRICREG_SIMPLIFIED_PRAKASH_CLIFTON_HH_
 
 /* -------------------------------------------------------------------------- */
 // simtools
@@ -46,8 +45,7 @@ class NTNFricRegSimplifiedPrakashClifton : public NTNFricRegNoRegularisation {
   /* ------------------------------------------------------------------------ */
 public:
   NTNFricRegSimplifiedPrakashClifton(
-      NTNBaseContact & contact,
-      const ID & id = "simplified_prakash_clifton",
+      NTNBaseContact & contact, const ID & id = "simplified_prakash_clifton",
       const MemoryID & memory_id = 0);
   virtual ~NTNFricRegSimplifiedPrakashClifton(){};
 
@@ -99,7 +97,7 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "ntn_fricreg_simplified_prakash_clifton_inline_impl.cc"
+//#include "ntn_fricreg_simplified_prakash_clifton_inline_impl.hh"
 
 /// standard output stream operator
 inline std::ostream &
@@ -111,4 +109,4 @@ operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AST_NTN_FRICREG_SIMPLIFIED_PRAKASH_CLIFTON_HH__ */
+#endif /* AST_NTN_FRICREG_SIMPLIFIED_PRAKASH_CLIFTON_HH_ */

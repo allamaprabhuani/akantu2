@@ -8,7 +8,6 @@
  *
  * @brief  Coehsive element test fixture
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TEST_COHESIVE_FIXTURE_HH__
-#define __AKANTU_TEST_COHESIVE_FIXTURE_HH__
+#ifndef AKANTU_TEST_COHESIVE_FIXTURE_HH_
+#define AKANTU_TEST_COHESIVE_FIXTURE_HH_
 
 using namespace akantu;
 
@@ -106,15 +105,17 @@ public:
     auto facet_type = mesh->getFacetType(this->cohesive_type);
 
     auto & fe_engine = model->getFEEngineBoundary();
-    auto & group = mesh->getElementGroup("insertion").getElements(facet_type);
+    const auto & group = mesh->getElementGroup("insertion");
+    group_size = group.size(_ghost_type = _not_ghost);
+    const auto & elements = group.getElements(facet_type);
     Array<Real> ones(fe_engine.getNbIntegrationPoints(facet_type) *
-                     group.size());
+                     group_size);
     ones.set(1.);
 
-    surface = fe_engine.integrate(ones, facet_type, _not_ghost, group);
+    surface = fe_engine.integrate(ones, facet_type, _not_ghost, elements);
     mesh->getCommunicator().allReduce(surface, SynchronizerOperation::_sum);
 
-    group_size = group.size(_ghost_type = _not_ghost);
+
 
     mesh->getCommunicator().allReduce(group_size, SynchronizerOperation::_sum);
 
@@ -231,7 +232,7 @@ public:
     strain *= sigma_c / E;
 
     this->setInitialCondition((1 - 1e-5) * strain);
-    this->steps(1e-2 * strain);
+    this->steps(2e-2 * strain);
   }
 
   void testModeII() {
@@ -341,6 +342,6 @@ using coh_types = gtest_list_t<std::tuple<
     std::tuple<_element_type_cohesive_3d_16, _element_type_hexahedron_20,
                _element_type_hexahedron_20>*/>>;
 
-TYPED_TEST_SUITE(TestSMMCFixture, coh_types);
+TYPED_TEST_SUITE(TestSMMCFixture, coh_types, );
 
-#endif /* __AKANTU_TEST_COHESIVE_FIXTURE_HH__ */
+#endif /* AKANTU_TEST_COHESIVE_FIXTURE_HH_ */

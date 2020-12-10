@@ -8,7 +8,6 @@
  *
  * @brief  test the PETSc solver interface
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -41,8 +40,8 @@
 #include "mesh.hh"
 #include "mesh_io.hh"
 #include "mesh_utils.hh"
-#include "sparse_matrix_petsc.hh"
 #include "solver_petsc.hh"
+#include "sparse_matrix_petsc.hh"
 
 #include "mesh_partition_scotch.hh"
 

@@ -8,7 +8,6 @@
  *
  * @brief  implementation of lammps dumper
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -40,7 +39,7 @@
 #endif //defined(__INTEL_COMPILER)
 
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 template<LammpsAtomStyle style>
 DumperLammps<style>::DumperLammps(Real * bounds, const std::string & prefix)
@@ -73,10 +72,18 @@ void DumperLammps<style>::dumpHead(Real * bounds) {
 
   if (!this->lammps_dump_file.good()) {
     std::cerr << "hach" << std::endl;
-    if (this->lammps_dump_file.rdstate() & std::fstream::eofbit)     std::cerr << " 1 " << std::endl;
-    if (this->lammps_dump_file.rdstate() & std::fstream::failbit)     std::cerr << " 2 " << std::endl;
-    if (this->lammps_dump_file.rdstate() & std::fstream::badbit)     std::cerr << " 3 " << std::endl;
-    if (this->lammps_dump_file.rdstate() & std::fstream::goodbit)     std::cerr << " 4 " << std::endl;
+    if (this->lammps_dump_file.rdstate() & std::fstream::eofbit) {
+      std::cerr << " 1 " << std::endl;
+    }
+    if (this->lammps_dump_file.rdstate() & std::fstream::failbit) {
+      std::cerr << " 2 " << std::endl;
+    }
+    if (this->lammps_dump_file.rdstate() & std::fstream::badbit) {
+      std::cerr << " 3 " << std::endl;
+    }
+    if (this->lammps_dump_file.rdstate() & std::fstream::goodbit) {
+      std::cerr << " 4 " << std::endl;
+    }
     exit(-1);
   }
 
@@ -126,4 +133,4 @@ void DumperLammps<style>::dumpFinalize(){
 template class DumperLammps<atomic>;
 template class DumperLammps<bond>;
 
-__END_IOHELPER__
+}

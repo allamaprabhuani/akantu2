@@ -13,6 +13,8 @@ namespace py = pybind11;
 
 namespace akantu {
 
+std::vector<detail::ArrayProxy<Real>> tmp_array;
+
 void register_dumpable(py::module & mod) {
   /* ------------------------------------------------------------------------ */
   py::class_<Dumpable>(mod, "Dumpable")
@@ -29,20 +31,31 @@ void register_dumpable(py::module & mod) {
       .def("addDumpField", &Dumpable::addDumpField, py::arg("field_id"))
       .def("addDumpFieldToDumper", &Dumpable::addDumpFieldToDumper,
            py::arg("dumper_name"), py::arg("field_id"))
-      .def("addDumpFieldExternal",
-           [](Dumpable & _this, const std::string & field_id,
-              std::shared_ptr<dumper::Field> field) {
-             return _this.addDumpFieldExternal(field_id, field);
-           },
-           py::arg("field_id"), py::arg("field"))
-      .def("addDumpFieldExternalToDumper",
-           [](Dumpable & _this, const std::string & dumper_name,
-              const std::string & field_id,
-              std::shared_ptr<dumper::Field> field) {
-             return _this.addDumpFieldExternalToDumper(dumper_name, field_id,
-                                                       field);
-           },
-           py::arg("dumper_name"), py::arg("field_id"), py::arg("field"))
+      .def(
+          "addDumpFieldExternal",
+          [](Dumpable & _this, const std::string & field_id,
+             std::shared_ptr<dumpers::Field> field) {
+            return _this.addDumpFieldExternal(field_id, field);
+          },
+          py::arg("field_id"), py::arg("field"))
+      .def(
+          "addDumpFieldExternal",
+          [](Dumpable & _this, const std::string & field_id,
+             Array<Real> & field) {
+            auto & tmp = dynamic_cast<detail::ArrayProxy<Real> &>(field);
+            tmp_array.push_back(tmp);
+            return _this.addDumpFieldExternal(field_id, tmp_array.back());
+          },
+          py::arg("field_id"), py::arg("field"))
+      .def(
+          "addDumpFieldExternalToDumper",
+          [](Dumpable & _this, const std::string & dumper_name,
+             const std::string & field_id,
+             std::shared_ptr<dumpers::Field> field) {
+            return _this.addDumpFieldExternalToDumper(dumper_name, field_id,
+                                                      field);
+          },
+          py::arg("dumper_name"), py::arg("field_id"), py::arg("field"))
 
       .def("dump", py::overload_cast<>(&Dumpable::dump))
       .def("dump", py::overload_cast<Real, UInt>(&Dumpable::dump),
@@ -56,21 +69,21 @@ void register_dumpable(py::module & mod) {
            py::arg("dumper_name"), py::arg("time"), py::arg("step"))
       .def("dump", py::overload_cast<const std::string &>(&Dumpable::dump),
            py::arg("dumper_name"));
+}
+
+/* -------------------------------------------------------------------------- */
+PYBIND11_MODULE(dumper_module, mod) {
+  mod.attr("__name__") = "py11_akantu.dumper";
 
   /* ------------------------------------------------------------------------ */
-  py::module dumper_module("dumper");
-  mod.attr("dumper") = dumper_module;
+  py::class_<dumpers::Field, std::shared_ptr<dumpers::Field>>(mod, "Field");
 
   /* ------------------------------------------------------------------------ */
-  py::class_<dumper::Field, std::shared_ptr<dumper::Field>>(dumper_module,
-                                                            "Field");
-
-  /* ------------------------------------------------------------------------ */
-  py::class_<dumper::ElementalField<UInt>, dumper::Field,
-             std::shared_ptr<dumper::ElementalField<UInt>>>(
-      dumper_module, "ElementalFieldUInt", py::multiple_inheritance())
-      .def(py::init<dumper::ElementalField<UInt>::field_type &, UInt, GhostType,
-                    ElementKind>(),
+  py::class_<dumpers::ElementalField<UInt>, dumpers::Field,
+             std::shared_ptr<dumpers::ElementalField<UInt>>>(
+      mod, "ElementalFieldUInt", py::multiple_inheritance())
+      .def(py::init<dumpers::ElementalField<UInt>::field_type &, UInt,
+                    GhostType, ElementKind>(),
            py::arg("field"), py::arg("spatial_dimension") = _all_dimensions,
            py::arg("ghost_type") = _not_ghost,
            py::arg("element_kind") = _ek_not_defined);

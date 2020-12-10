@@ -10,7 +10,6 @@
  *
  * @brief  Cohesive element inserter
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -38,13 +37,14 @@
 #include <numeric>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COHESIVE_ELEMENT_INSERTER_HH__
-#define __AKANTU_COHESIVE_ELEMENT_INSERTER_HH__
+#ifndef AKANTU_COHESIVE_ELEMENT_INSERTER_HH_
+#define AKANTU_COHESIVE_ELEMENT_INSERTER_HH_
 
 namespace akantu {
 class GlobalIdsUpdater;
 class FacetSynchronizer;
-} // akantu
+class SolidMechanicsModeslCohesivel;
+} // namespace akantu
 
 namespace akantu {
 
@@ -66,7 +66,7 @@ public:
   void setLimit(SpatialDirection axis, Real first_limit, Real second_limit);
 
   /// insert intrinsic cohesive elements in a predefined range
-  UInt insertIntrinsicElements();
+  auto insertIntrinsicElements() -> UInt;
 
   /// insert extrinsic cohesive elements (returns the number of new
   /// cohesive elements)
@@ -118,7 +118,6 @@ public:
 
 public:
   friend class SolidMechanicsModelCohesive;
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -139,7 +138,10 @@ private:
   Matrix<Real> insertion_limits;
 
   /// list of groups to consider for insertion, ignored if empty
-  std::vector<ID> physical_groups;
+  std::set<ID> physical_surfaces;
+
+  /// list of groups in between which an inside which element are insterted
+  std::set<ID> physical_zones;
 
   /// vector containing facets in which extrinsic cohesive elements can be
   /// inserted
@@ -154,7 +156,7 @@ private:
 
 class CohesiveNewNodesEvent : public NewNodesEvent {
 public:
-  CohesiveNewNodesEvent() = default;
+  CohesiveNewNodesEvent(const std::string & origin) : NewNodesEvent(origin) {}
   ~CohesiveNewNodesEvent() override = default;
 
   AKANTU_GET_MACRO_NOT_CONST(OldNodesList, old_nodes, Array<UInt> &);
@@ -164,8 +166,8 @@ private:
   Array<UInt> old_nodes;
 };
 
-} // akantu
+} // namespace akantu
 
-#include "cohesive_element_inserter_inline_impl.cc"
+#include "cohesive_element_inserter_inline_impl.hh"
 
-#endif /* __AKANTU_COHESIVE_ELEMENT_INSERTER_HH__ */
+#endif /* AKANTU_COHESIVE_ELEMENT_INSERTER_HH_ */

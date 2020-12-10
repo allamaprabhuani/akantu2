@@ -9,7 +9,6 @@
  *
  * @brief  Iterators for elemental fields
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,13 +28,13 @@
  *
  */
 
-#ifndef __AKANTU_DUMPER_ELEMENT_ITERATOR_HH__
-#define __AKANTU_DUMPER_ELEMENT_ITERATOR_HH__
+#ifndef AKANTU_DUMPER_ELEMENT_ITERATOR_HH_
+#define AKANTU_DUMPER_ELEMENT_ITERATOR_HH_
 /* -------------------------------------------------------------------------- */
 #include "element.hh"
 /* -------------------------------------------------------------------------- */
 namespace akantu {
-__BEGIN_AKANTU_DUMPER__
+namespace dumpers {
 /* -------------------------------------------------------------------------- */
 
 template <class types, template <class> class final_iterator>
@@ -100,9 +99,10 @@ public:
     return Element{*tit, array_it.getCurrentIndex(), _not_ghost};
   }
 
-  UInt getNbDataPerElem(const ElementType & type) const {
-    if (!nb_data_per_elem.exists(type, ghost_type))
+  UInt getNbDataPerElem(ElementType type) const {
+    if (!nb_data_per_elem.exists(type, ghost_type)) {
       return field(type, ghost_type).getNbComponent();
+    }
 
     return nb_data_per_elem(type, ghost_type);
   }
@@ -142,7 +142,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   using parent =
-      element_iterator<types, ::akantu::dumper::elemental_field_iterator>;
+      element_iterator<types, ::akantu::dumpers::elemental_field_iterator>;
   using it_type = typename types::it_type;
   using return_type = typename types::return_type;
   using field_type = typename types::field_type;
@@ -171,8 +171,8 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-__END_AKANTU_DUMPER__
-} // akantu
+} // namespace dumpers
+} // namespace akantu
 /* -------------------------------------------------------------------------- */
 
-#endif /* __AKANTU_DUMPER_ELEMENT_ITERATOR_HH__ */
+#endif /* AKANTU_DUMPER_ELEMENT_ITERATOR_HH_ */

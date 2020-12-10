@@ -8,7 +8,6 @@
  *
  * @brief  test the default node synchronizer present in the mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -143,14 +142,16 @@ TEST_F(TestNodeSynchronizerFixture, SynchroneOnce) {
 /* -------------------------------------------------------------------------- */
 TEST_F(TestNodeSynchronizerFixture, Synchrone) {
   auto & node_synchronizer = this->mesh->getNodeSynchronizer();
-  node_synchronizer.synchronize(*this->data_accessor, SynchronizationTag::_test);
+  node_synchronizer.synchronize(*this->data_accessor,
+                                SynchronizationTag::_test);
   this->checkData();
 }
 
 /* -------------------------------------------------------------------------- */
 TEST_F(TestNodeSynchronizerFixture, Asynchrone) {
   auto & synchronizer = this->mesh->getNodeSynchronizer();
-  synchronizer.asynchronousSynchronize(*this->data_accessor, SynchronizationTag::_test);
+  synchronizer.asynchronousSynchronize(*this->data_accessor,
+                                       SynchronizationTag::_test);
 
   std::random_device r;
   std::default_random_engine engine(r());
@@ -159,7 +160,8 @@ TEST_F(TestNodeSynchronizerFixture, Asynchrone) {
 
   std::this_thread::sleep_for(delay);
 
-  synchronizer.waitEndSynchronize(*this->data_accessor, SynchronizationTag::_test);
+  synchronizer.waitEndSynchronize(*this->data_accessor,
+                                  SynchronizationTag::_test);
   this->checkData();
 }
 

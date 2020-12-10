@@ -42,13 +42,30 @@
 #===============================================================================
 # CMake Project
 #===============================================================================
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 3.5.1)
 
 # add this options before PROJECT keyword
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-project(Akantu)
+if(CMAKE_VERSION VERSION_GREATER 3.12)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+set(AKANTU_MAJOR_VERSION 4)
+set(AKANTU_MINOR_VERSION 0)
+set(AKANTU_PATCH_VERSION 0)
+set(AKANTU_COPYRIGHT "2010-2020, EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)")
+set(AKANTU_MAINTAINER "Nicolas Richart")
+set(AKANTU_HOMEPAGE_URL "htpps://akantu.ch")
+
+if(CMAKE_VERSION VERSION_GREATER 3.12)
+  project(Akantu
+    HOMEPAGE_URL "htpps://akantu.ch")
+else()
+  project(Akantu)
+endif()
+  
 enable_language(CXX)
 
 #===============================================================================
@@ -78,13 +95,16 @@ include(AkantuCleaning)
 
 #cmake_activate_debug_message()
 
+include(GNUInstallDirs)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 #===============================================================================
 # Version Number
 #===============================================================================
 # AKANTU version number.  An even minor number corresponds to releases.
-set(AKANTU_MAJOR_VERSION 3)
-set(AKANTU_MINOR_VERSION 1)
-set(AKANTU_PATCH_VERSION 0)
 define_project_version()
 
 #===============================================================================
@@ -101,6 +121,16 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT} -ggdb3"
     CACHE STRING "Flags used by the compiler during debug builds" FORCE)
+
+  option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." FALSE)
+  mark_as_advanced(FORCE_COLORED_OUTPUT)
+  if(FORCE_COLORED_OUTPUT)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      add_flags(cxx "-fcolor-diagnostics")
+    else()
+      add_flags(cxx "-fdiagnostics-color=always")
+    endif()
+  endif()
 else()
   add_flags(cxx "-Wall")
 endif()
@@ -108,8 +138,9 @@ endif()
 option(AKANTU_EXAMPLES "Activate examples" OFF)
 option(AKANTU_TESTS "Activate tests" OFF)
 
+option(AKANTU_RUN_IN_DOCKER "Set the approriate flage tu run in docker" OFF)
 set(AKANTU_PREFERRED_PYTHON_VERSION 3 CACHE STRING "Preferred version for python related things")
-mark_as_advanced(AKANTU_PREFERRED_PYTHON_VERSION)
+mark_as_advanced(AKANTU_PREFERRED_PYTHON_VERSION AKANTU_RUN_IN_DOCKER)
 
 include(AkantuExtraCompilationProfiles)
 #===============================================================================
@@ -143,7 +174,7 @@ add_subdirectory(src)
 #===============================================================================
 # Documentation
 #===============================================================================
-if(AKANTU_DOCUMENTATION_DOXYGEN OR AKANTU_DOCUMENTATION_MANUAL)
+if(AKANTU_DOCUMENTATION_DEVELOPER_MANUAL OR AKANTU_DOCUMENTATION_USER_MANUAL)
   add_subdirectory(doc)
 else()
   set(AKANTU_DOC_EXCLUDE_FILES "${PROJECT_SOURCE_DIR}/doc/manual" CACHE INTERNAL "")
@@ -173,13 +204,16 @@ if(AKANTU_TESTS)
   find_package(GMSH REQUIRED)
 endif()
 
+# tests
+add_test_tree(test)
+
 if(AKANTU_EXAMPLES)
+  if(AKANTU_TESTS)
+    option(AKANTU_TEST_EXAMPLES "Run the examples" ON)
+  endif()
   find_package(GMSH REQUIRED)
   add_subdirectory(examples)
 endif()
-
-# tests
-add_test_tree(test)
 
 #===============================================================================
 # Install and Packaging

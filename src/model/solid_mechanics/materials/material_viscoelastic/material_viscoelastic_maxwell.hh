@@ -13,7 +13,6 @@
  * as well as
  * [] Manual of DIANA FEA Theory manual v.10.2 Section 37.6
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -39,8 +38,8 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_VISCOELASTIC_MAXWELL_HH__
-#define __AKANTU_MATERIAL_VISCOELASTIC_MAXWELL_HH__
+#ifndef AKANTU_MATERIAL_VISCOELASTIC_MAXWELL_HH_
+#define AKANTU_MATERIAL_VISCOELASTIC_MAXWELL_HH_
 
 namespace akantu {
 
@@ -100,7 +99,7 @@ public:
   void updateInternalParameters() override;
 
   /// update internal variable on a converged Newton
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged) override;
 
   // /// update internal variable based on previous and current strain values
   // void updateIntVariables();
@@ -116,8 +115,7 @@ public:
                      GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
   // /// save previous stress and strain values into "previous" arrays
@@ -145,31 +143,28 @@ protected:
   /// computed
   void updateDissipatedEnergy(ElementType el_type);
 
-  void updateDissipatedEnergyOnQuad(const Matrix<Real> grad_u,
-                                    const Matrix<Real> previous_grad_u,
-                                    const Matrix<Real> sigma,
-                                    const Matrix<Real> previous_sigma,
+  void updateDissipatedEnergyOnQuad(const Matrix<Real> & grad_u,
+                                    const Matrix<Real> & previous_grad_u,
+                                    const Matrix<Real> & sigma,
+                                    const Matrix<Real> & previous_sigma,
                                     Real & dis_energy, Real & integral,
-                                    Real & mech_work, const Real & pot_energy);
+                                    Real & mech_work, Real pot_energy);
 
-  // /// compute stresses on a quadrature point
-  // void computeStressOnQuad(const Matrix<Real> & grad_u,
-  //                          const Matrix<Real> & previous_grad_u,
-  //                          Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
-  //                          const Real & sigma_th);
   /// compute stresses on a quadrature point
-  void computeStressOnQuad(Matrix<Real> & grad_u,
-                           Matrix<Real> & previous_grad_u, Matrix<Real> & sigma,
-                           Tensor3<Real> & sigma_v, Real & sigma_th,
-                           Real dam = 0);
+  void computeStressOnQuad(const Matrix<Real> & grad_u,
+                           const Matrix<Real> & previous_grad_u,
+                           Matrix<Real> & sigma, Tensor3<Real> & sigma_v,
+                           Real sigma_th, Real dam = 0);
   /// update internal variables accounting for damage level
   void
-  updateSigmaViscOnQuad(Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u,
+  updateSigmaViscOnQuad(const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
                         Tensor3<Real> & sigma_v, /*Tensor3<Real> & epsilon_v,*/
                         Real dam = 0);
 
   /// compute tangent moduli on a quadrature point
   void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real dam = 0);
+
+  MatrixType getTangentType() override { return _symmetric; }
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -232,4 +227,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_VISCOELASTIC_MAXWELL_HH__ */
+#endif /* AKANTU_MATERIAL_VISCOELASTIC_MAXWELL_HH_ */

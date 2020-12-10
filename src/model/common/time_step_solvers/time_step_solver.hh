@@ -8,7 +8,6 @@
  *
  * @brief  This corresponding to the time step evolution solver
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include "solver_callback.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TIME_STEP_SOLVER_HH__
-#define __AKANTU_TIME_STEP_SOLVER_HH__
+#ifndef AKANTU_TIME_STEP_SOLVER_HH_
+#define AKANTU_TIME_STEP_SOLVER_HH_
 
 namespace akantu {
 class DOFManager;
@@ -88,7 +87,9 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// implementation of the SolverCallback::getMatrixType()
-  MatrixType getMatrixType(const ID &) final { return _mt_not_defined; }
+  MatrixType getMatrixType(const ID & /*unused*/) final {
+    return _mt_not_defined;
+  }
   /// implementation of the SolverCallback::predictor()
   void predictor() override;
   /// implementation of the SolverCallback::corrector()
@@ -103,7 +104,7 @@ public:
   void assembleResidual(const ID & residual_part) override;
 
   void beforeSolveStep() override;
-  void afterSolveStep() override;
+  void afterSolveStep(bool converged = true) override;
 
   bool canSplitResidual() override {
     return solver_callback->canSplitResidual();
@@ -151,4 +152,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AKANTU_TIME_STEP_SOLVER_HH__ */
+#endif /* AKANTU_TIME_STEP_SOLVER_HH_ */

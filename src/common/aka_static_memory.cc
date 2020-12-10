@@ -8,7 +8,6 @@
  *
  * @brief  Memory management
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,7 +34,6 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_static_memory.hh"
 #include "aka_array.hh"
-
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
@@ -45,7 +43,7 @@ UInt StaticMemory::nb_reference = 0;
 
 /* -------------------------------------------------------------------------- */
 StaticMemory & StaticMemory::getStaticMemory() {
-  if (!single_static_memory) {
+  if (single_static_memory == nullptr) {
     single_static_memory = new StaticMemory();
     is_instantiated = true;
   }
@@ -113,9 +111,7 @@ void StaticMemory::sfree(const MemoryID & memory_id, const ID & name) {
 
 /* -------------------------------------------------------------------------- */
 void StaticMemory::printself(std::ostream & stream, int indent) const {
-  std::string space = "";
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(indent, AKANTU_INDENT);
 
   std::streamsize prec = stream.precision();
   stream.precision(2);
@@ -158,4 +154,4 @@ void StaticMemory::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 
-} // akantu
+} // namespace akantu

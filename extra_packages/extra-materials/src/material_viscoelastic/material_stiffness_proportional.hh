@@ -8,7 +8,6 @@
  * @brief  Material isotropic visco-elastic with viscosity proportional to the
  * stiffness
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -21,8 +20,8 @@
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH__
-#define __AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH__
+#ifndef AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH_
+#define AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH_
 
 namespace akantu {
 
@@ -58,14 +57,13 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial();
+  void initMaterial() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost) override;
 
   /// compute the potential energy for all elements
-  virtual void computePotentialEnergy(ElementType el_type,
-                                      GhostType ghost_type = _not_ghost);
+  void computePotentialEnergy(ElementType el_type) override;
 
 protected:
   /// constitutive law for a given quadrature point
@@ -93,8 +91,8 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-//#include "material_elastic_caughey_inline_impl.cc"
+//#include "material_elastic_caughey_inline_impl.hh"
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH__ */
+#endif /* AKANTU_MATERIAL_STIFFNESS_PROPORTIONAL_HH_ */

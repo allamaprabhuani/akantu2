@@ -8,7 +8,6 @@
  *
  * @brief  Group manager to handle fragments
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 #include "group_manager.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_FRAGMENT_MANAGER_HH__
-#define __AKANTU_FRAGMENT_MANAGER_HH__
+#ifndef AKANTU_FRAGMENT_MANAGER_HH_
+#define AKANTU_FRAGMENT_MANAGER_HH_
 
 namespace akantu {
 class SolidMechanicsModelCohesive;
@@ -164,6 +163,6 @@ private:
   bool dump_data;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_FRAGMENT_MANAGER_HH__ */
+#endif /* AKANTU_FRAGMENT_MANAGER_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  Model of Solid Mechanics with embedded interfaces
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_EMBEDDED_INTERFACE_MODEL_HH__
-#define __AKANTU_EMBEDDED_INTERFACE_MODEL_HH__
+#ifndef AKANTU_EMBEDDED_INTERFACE_MODEL_HH_
+#define AKANTU_EMBEDDED_INTERFACE_MODEL_HH_
 
 #include "aka_common.hh"
 
@@ -72,6 +71,9 @@ public:
    *
    * @param mesh main mesh (concrete)
    * @param primitive_mesh mesh of the embedded reinforcement
+   * @param spatial_dimension the spatial dimension to be considered by this model
+   * @param id the id of the model
+   * @param memory_id the id of the memory manager to use
    */
   EmbeddedInterfaceModel(Mesh & mesh, Mesh & primitive_mesh,
                          UInt spatial_dimension = _all_dimensions,
@@ -100,12 +102,12 @@ public:
   void addDumpGroupFieldToDumper(const std::string & dumper_name,
                                  const std::string & field_id,
                                  const std::string & group_name,
-                                 const ElementKind & element_kind,
+                                 ElementKind element_kind,
                                  bool padding_flag) override;
 
   // virtual ElementTypeMap<UInt> getInternalDataPerElem(const std::string &
   // field_name,
-  //                                                     const ElementKind &
+  //                                                     ElementKind
   //                                                     kind);
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -148,6 +150,6 @@ public:
             model.getInterfaceMesh().getData<T>(name), model, first_index) {}
 };
 
-} // akantu
+} // namespace akantu
 
-#endif // __AKANTU_EMBEDDED_INTERFACE_MODEL_HH__
+#endif // AKANTU_EMBEDDED_INTERFACE_MODEL_HH_

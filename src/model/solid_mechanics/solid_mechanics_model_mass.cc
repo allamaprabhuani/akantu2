@@ -8,7 +8,6 @@
  *
  * @brief  function handling mass computation
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -43,7 +42,7 @@ public:
   explicit ComputeRhoFunctor(const SolidMechanicsModel & model)
       : model(model){};
 
-  void operator()(Matrix<Real> & rho, const Element & element) const {
+  void operator()(Matrix<Real> & rho, const Element & element) {
     const Array<UInt> & mat_indexes =
         model.getMaterialByElement(element.type, element.ghost_type);
     Real mat_rho =
@@ -59,17 +58,18 @@ private:
 void SolidMechanicsModel::assembleMassLumped() {
   AKANTU_DEBUG_IN();
 
-  if (not need_to_reassemble_lumped_mass)
+  if (not need_to_reassemble_lumped_mass) {
     return;
+  }
 
   this->allocNodalField(this->mass, spatial_dimension, "mass");
-  mass->clear();
+  mass->zero();
 
   if (!this->getDOFManager().hasLumpedMatrix("M")) {
     this->getDOFManager().getNewLumpedMatrix("M");
   }
 
-  this->getDOFManager().clearLumpedMatrix("M");
+  this->getDOFManager().zeroLumpedMatrix("M");
 
   assembleMassLumped(_not_ghost);
   assembleMassLumped(_ghost);
@@ -90,9 +90,10 @@ void SolidMechanicsModel::assembleMassLumped() {
     }
   }
 
-  if (has_unconnected_nodes)
+  if (has_unconnected_nodes) {
     AKANTU_DEBUG_WARNING("There are nodes that seem to not be connected to any "
                          "elements, beware that they have lumped mass of 0.");
+  }
 #endif
 
   this->synchronize(SynchronizationTag::_smm_mass);
@@ -106,10 +107,11 @@ void SolidMechanicsModel::assembleMassLumped() {
 void SolidMechanicsModel::assembleMass() {
   AKANTU_DEBUG_IN();
 
-  if (not need_to_reassemble_mass)
+  if (not need_to_reassemble_mass) {
     return;
+  }
 
-  this->getDOFManager().clearMatrix("M");
+  this->getDOFManager().zeroMatrix("M");
   assembleMass(_not_ghost);
 
   need_to_reassemble_mass = false;
@@ -124,7 +126,8 @@ void SolidMechanicsModel::assembleMassLumped(GhostType ghost_type) {
   auto & fem = getFEEngineClass<MyFEEngineType>();
   ComputeRhoFunctor compute_rho(*this);
 
-  for (auto type : mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
+  for (auto type :
+       mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
     fem.assembleFieldLumped(compute_rho, "M", "displacement",
                             this->getDOFManager(), type, ghost_type);
   }
@@ -139,7 +142,8 @@ void SolidMechanicsModel::assembleMass(GhostType ghost_type) {
   auto & fem = getFEEngineClass<MyFEEngineType>();
   ComputeRhoFunctor compute_rho(*this);
 
-  for (auto type : mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
+  for (auto type :
+       mesh.elementTypes(Model::spatial_dimension, ghost_type, _ek_regular)) {
     fem.assembleFieldMatrix(compute_rho, "M", "displacement",
                             this->getDOFManager(), type, ghost_type);
   }

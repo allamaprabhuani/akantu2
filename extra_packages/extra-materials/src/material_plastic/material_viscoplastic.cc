@@ -7,7 +7,6 @@
  * @brief  Specialization of the material class for isotropic viscoplastic
  * (small deformation)
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -75,7 +74,7 @@ void MaterialViscoPlastic<dim>::computeStress(ElementType el_type,
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
 void MaterialViscoPlastic<dim>::computeTangentModuli(
-    __attribute__((unused)) const ElementType & el_type,
+    __attribute__((unused)) ElementType el_type,
     Array<Real> & tangent_matrix,
     __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();

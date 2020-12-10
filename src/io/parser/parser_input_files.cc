@@ -8,7 +8,6 @@
  *
  * @brief  implementation of the parser
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -104,7 +103,7 @@ void Parser::parse(const std::string & filename) {
   input.close();
 }
 
-} // akantu
+} // namespace akantu
 
 #if defined(__INTEL_COMPILER)
 //#pragma warning ( disable : 383 )

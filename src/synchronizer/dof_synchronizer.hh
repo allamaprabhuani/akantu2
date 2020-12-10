@@ -9,7 +9,6 @@
  *
  * @brief  Synchronize Array of DOFs
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -38,10 +37,10 @@
 namespace akantu {
 class Mesh;
 class DOFManagerDefault;
-}
+} // namespace akantu
 
-#ifndef __AKANTU_DOF_SYNCHRONIZER_HH__
-#define __AKANTU_DOF_SYNCHRONIZER_HH__
+#ifndef AKANTU_DOF_SYNCHRONIZER_HH_
+#define AKANTU_DOF_SYNCHRONIZER_HH_
 
 namespace akantu {
 
@@ -79,6 +78,6 @@ private:
 
 } // namespace akantu
 
-#include "dof_synchronizer_inline_impl.cc"
+#include "dof_synchronizer_inline_impl.hh"
 
-#endif /* __AKANTU_DOF_SYNCHRONIZER_HH__ */
+#endif /* AKANTU_DOF_SYNCHRONIZER_HH_ */

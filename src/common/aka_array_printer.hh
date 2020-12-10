@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 #include "aka_array.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_AKA_ARRAY_PRINTER_HH__
-#define __AKANTU_AKA_ARRAY_PRINTER_HH__
+#ifndef AKANTU_AKA_ARRAY_PRINTER_HH_
+#define AKANTU_AKA_ARRAY_PRINTER_HH_
 
 namespace akantu {
 
@@ -49,8 +48,9 @@ public:
       if (i != this->cont.size() - 1)
         stream << ", ";
     }
-    stream << "}" << std::endl;
+    stream << "}";
   }
+
 private:
   const container & cont;
 };
@@ -75,7 +75,7 @@ public:
       if (i != this->cont.size() - 1)
         stream << ", ";
     }
-    stream << "}" << std::endl;
+    stream << "}";
   }
 
 private:
@@ -97,4 +97,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AKANTU_AKA_ARRAY_PRINTER_HH__ */
+#endif /* AKANTU_AKA_ARRAY_PRINTER_HH_ */

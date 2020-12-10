@@ -10,7 +10,6 @@
  *
  * @brief  Voigt indices
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -65,4 +64,4 @@ template <> const Real VoigtHelper<3>::factors[] = {1., 1., 1.,
                                                     2., 2., 2.};
 
 /* clang-format on */
-} // akantu
+} // namespace akantu

@@ -8,7 +8,6 @@
  *
  * @brief  Reinforcement material
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_REINFORCEMENT_HH__
-#define __AKANTU_MATERIAL_REINFORCEMENT_HH__
+#ifndef AKANTU_MATERIAL_REINFORCEMENT_HH_
+#define AKANTU_MATERIAL_REINFORCEMENT_HH_
 
 #include "aka_common.hh"
 
@@ -105,49 +104,49 @@ protected:
   void allocBackgroundShapeDerivatives();
 
   /// Compute the directing cosines matrix for one element type
-  void computeDirectingCosines(const ElementType & type, GhostType ghost_type);
+  void computeDirectingCosines(ElementType type, GhostType ghost_type);
 
   /// Compute the directing cosines matrix on quadrature points.
   inline void computeDirectingCosinesOnQuad(const Matrix<Real> & nodes,
                                             Matrix<Real> & cosines);
 
   /// Add the prestress to the computed stress
-  void addPrestress(const ElementType & type, GhostType ghost_type);
+  void addPrestress(ElementType type, GhostType ghost_type);
 
   /// Compute displacement gradient in reinforcement
-  void computeGradU(const ElementType & interface_type, GhostType ghost_type);
+  void computeGradU(ElementType interface_type, GhostType ghost_type);
 
   /// Assemble the stiffness matrix for an element type (typically _segment_2)
-  void assembleStiffnessMatrix(const ElementType & type, GhostType ghost_type);
+  void assembleStiffnessMatrix(ElementType type, GhostType ghost_type);
 
   /// Assemble the stiffness matrix for background & interface types
-  void assembleStiffnessMatrixInterface(const ElementType & interface_type,
-                                        const ElementType & background_type,
+  void assembleStiffnessMatrixInterface(ElementType interface_type,
+                                        ElementType background_type,
                                         GhostType ghost_type);
 
   /// Compute the background shape derivatives for a type
-  void computeBackgroundShapeDerivatives(const ElementType & type,
+  void computeBackgroundShapeDerivatives(ElementType type,
                                          GhostType ghost_type);
 
   /// Compute the background shape derivatives for a type pair
-  void computeBackgroundShapeDerivatives(const ElementType & interface_type,
-                                         const ElementType & bg_type,
+  void computeBackgroundShapeDerivatives(ElementType interface_type,
+                                         ElementType bg_type,
                                          GhostType ghost_type,
                                          const Array<UInt> & filter);
 
   /// Filter elements crossed by interface of a type
   void filterInterfaceBackgroundElements(Array<UInt> & foreground,
                                          Array<UInt> & background,
-                                         const ElementType & type,
-                                         const ElementType & interface_type,
+                                         ElementType type,
+                                         ElementType interface_type,
                                          GhostType ghost_type);
 
   /// Assemble the residual of one type of element (typically _segment_2)
-  void assembleInternalForces(const ElementType & type, GhostType ghost_type);
+  void assembleInternalForces(ElementType type, GhostType ghost_type);
 
   /// Assemble the residual for a pair of elements
-  void assembleInternalForcesInterface(const ElementType & interface_type,
-                                       const ElementType & background_type,
+  void assembleInternalForcesInterface(ElementType interface_type,
+                                       ElementType background_type,
                                        GhostType ghost_type);
 
   // TODO figure out why voigt size is 4 in 2D
@@ -157,15 +156,15 @@ protected:
                                         Vector<Real> & vector);
 
   /// Get background filter
-  Array<UInt> & getBackgroundFilter(const ElementType & fg_type,
-                                    const ElementType & bg_type,
+  Array<UInt> & getBackgroundFilter(ElementType fg_type,
+                                    ElementType bg_type,
                                     GhostType ghost_type) {
     return (*background_filter(fg_type, ghost_type))(bg_type, ghost_type);
   }
 
   /// Get foreground filter
-  Array<UInt> & getForegroundFilter(const ElementType & fg_type,
-                                    const ElementType & bg_type,
+  Array<UInt> & getForegroundFilter(ElementType fg_type,
+                                    ElementType bg_type,
                                     GhostType ghost_type) {
     return (*foreground_filter(fg_type, ghost_type))(bg_type, ghost_type);
   }
@@ -202,8 +201,8 @@ protected:
   CrossMap<UInt> background_filter;
 };
 
-} // akantu
+} // namespace akantu
 
 #include "material_reinforcement_tmpl.hh"
 
-#endif // __AKANTU_MATERIAL_REINFORCEMENT_HH__
+#endif // AKANTU_MATERIAL_REINFORCEMENT_HH_

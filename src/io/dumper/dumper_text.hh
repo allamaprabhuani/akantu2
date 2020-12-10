@@ -8,7 +8,6 @@
  *
  * @brief  to dump into a text file
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
 /* -------------------------------------------------------------------------- */
 #include "dumper_iohelper.hh"
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_DUMPER_TEXT_HH__
-#define __AKANTU_DUMPER_TEXT_HH__
+#ifndef AKANTU_DUMPER_TEXT_HH_
+#define AKANTU_DUMPER_TEXT_HH_
 /* -------------------------------------------------------------------------- */
 #include <io_helper.hh>
 /* -------------------------------------------------------------------------- */
@@ -55,15 +54,15 @@ public:
 public:
   void
   registerMesh(const Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-               const GhostType & ghost_type = _not_ghost,
-               const ElementKind & element_kind = _ek_not_defined) override;
+               GhostType ghost_type = _not_ghost,
+               ElementKind element_kind = _ek_not_defined) override;
 
   void registerFilteredMesh(
       const Mesh & mesh, const ElementTypeMapArray<UInt> & elements_filter,
       const Array<UInt> & nodes_filter,
       UInt spatial_dimension = _all_dimensions,
-      const GhostType & ghost_type = _not_ghost,
-      const ElementKind & element_kind = _ek_not_defined) override;
+      GhostType ghost_type = _not_ghost,
+      ElementKind element_kind = _ek_not_defined) override;
 
   void setBaseName(const std::string & basename) override;
 
@@ -82,6 +81,6 @@ public:
 private:
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_DUMPER_TEXT_HH__ */
+#endif /* AKANTU_DUMPER_TEXT_HH_ */

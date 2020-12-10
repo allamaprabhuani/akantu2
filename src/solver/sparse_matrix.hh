@@ -9,7 +9,6 @@
  * @brief  sparse matrix storage class (distributed assembled matrix)
  * This is a COO format (Coordinate List)
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,15 +32,15 @@
 #include "aka_common.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SPARSE_MATRIX_HH__
-#define __AKANTU_SPARSE_MATRIX_HH__
+#ifndef AKANTU_SPARSE_MATRIX_HH_
+#define AKANTU_SPARSE_MATRIX_HH_
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 class DOFManager;
 class TermsToAssemble;
 class SolverVector;
-}
+} // namespace akantu
 
 namespace akantu {
 
@@ -68,7 +67,9 @@ public:
   virtual void resize(UInt size);
 
   /// set the matrix to 0
-  virtual void clear() = 0;
+  virtual void set(Real val) = 0;
+
+  virtual void zero() { this->set(0); }
 
   /// add a non-zero element to the profile
   virtual UInt add(UInt i, UInt j) = 0;
@@ -77,12 +78,12 @@ public:
   virtual void add(UInt i, UInt j, Real value) = 0;
 
   /// save the profil in a file using the MatrixMarket file format
-  virtual void saveProfile(__attribute__((unused)) const std::string &) const {
+  virtual void saveProfile(const std::string & /* filename */) const {
     AKANTU_TO_IMPLEMENT();
   }
 
   /// save the matrix in a file using the MatrixMarket file format
-  virtual void saveMatrix(__attribute__((unused)) const std::string &) const {
+  virtual void saveMatrix(const std::string & /* filename */) const {
     AKANTU_TO_IMPLEMENT();
   };
 
@@ -90,7 +91,7 @@ public:
   virtual void mul(Real alpha) = 0;
 
   /// add matrices
-  virtual void add(const SparseMatrix & matrix, Real alpha = 1.);
+  virtual void add(const SparseMatrix & B, Real alpha = 1.);
 
   /// Equivalent of *gemv in blas
   virtual void matVecMul(const SolverVector & x, SolverVector & y,
@@ -101,7 +102,7 @@ public:
 
   /// copy the profile of another matrix
   virtual void copyProfile(const SparseMatrix & other) = 0;
-  
+
   /// operator *=
   SparseMatrix & operator*=(Real alpha) {
     this->mul(alpha);
@@ -109,7 +110,7 @@ public:
   }
 
 protected:
-  /// This is the revert of add B += \alpha * *this;
+  /// This is the revert of add \f[B += \alpha * *this\f];
   virtual void addMeTo(SparseMatrix & B, Real alpha) const = 0;
 
   /* ------------------------------------------------------------------------ */
@@ -117,13 +118,11 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   /// return the values at potition i, j
-  virtual inline Real operator()(__attribute__((unused)) UInt i,
-                                 __attribute__((unused)) UInt j) const {
+  virtual inline Real operator()(UInt /*i*/, UInt /*j*/) const {
     AKANTU_TO_IMPLEMENT();
   }
   /// return the values at potition i, j
-  virtual inline Real & operator()(__attribute__((unused)) UInt i,
-                                   __attribute__((unused)) UInt j) {
+  virtual inline Real & operator()(UInt /*i*/, UInt /*j*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -157,13 +156,13 @@ protected:
   UInt nb_non_zero;
 };
 
-//Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat);
+// Array<Real> & operator*=(Array<Real> & vect, const SparseMatrix & mat);
 
-} // akantu
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "sparse_matrix_inline_impl.cc"
+#include "sparse_matrix_inline_impl.hh"
 
-#endif /* __AKANTU_SPARSE_MATRIX_HH__ */
+#endif /* AKANTU_SPARSE_MATRIX_HH_ */

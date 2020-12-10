@@ -10,7 +10,6 @@
  *
  * @brief  Material isotropic elastic
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__
-#define __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__
+#ifndef AKANTU_LOCAL_MATERIAL_DAMAGE_HH_
+#define AKANTU_LOCAL_MATERIAL_DAMAGE_HH_
 namespace akantu {
 
 class LocalMaterialDamage : public Material {
@@ -52,26 +51,19 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  void initMaterial();
+  void initMaterial() override;
 
   /// constitutive law for all element of a type
-  void computeStress(ElementType el_type, GhostType ghost_type = _not_ghost);
+  void computeStress(ElementType el_type,
+                     GhostType ghost_type = _not_ghost) override;
 
+  /// compute the potential energy for all elements
+  void computePotentialEnergy(ElementType el_type) override;
+
+protected:
   /// constitutive law for a given quadrature point
   inline void computeStressOnQuad(Matrix<Real> & grad_u, Matrix<Real> & sigma,
                                   Real & damage);
-
-  /// compute tangent stiffness
-  virtual void computeTangentStiffness(__attribute__((unused))
-                                       const ElementType & el_type,
-                                       __attribute__((unused))
-                                       Array<Real> & tangent_matrix,
-                                       __attribute__((unused))
-                                       GhostType ghost_type = _not_ghost){};
-
-  /// compute the potential energy for all elements
-  void computePotentialEnergy(ElementType el_type,
-                              GhostType ghost_type = _not_ghost);
 
   /// compute the potential energy for on element
   inline void computePotentialEnergyOnQuad(Matrix<Real> & grad_u,
@@ -82,12 +74,12 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// compute the celerity of the fastest wave in the material
-  inline Real getCelerity(const Element & element) const;
+  inline Real getCelerity(const Element & element) const override;
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-
+public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Damage, damage, Real);
 
 private:
@@ -116,10 +108,10 @@ private:
   InternalField<Real> damage;
 };
 
-} // akantu
+} // namespace akantu
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 #include "local_material_damage_inline_impl.hh"
 
-#endif /* __AKANTU_LOCAL_MATERIAL_DAMAGE_HH__ */
+#endif /* AKANTU_LOCAL_MATERIAL_DAMAGE_HH_ */

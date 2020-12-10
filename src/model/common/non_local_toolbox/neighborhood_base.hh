@@ -9,7 +9,6 @@
  *
  * @brief  Generic neighborhood of quadrature points
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_NEIGHBORHOOD_BASE_HH__
-#define __AKANTU_NEIGHBORHOOD_BASE_HH__
+#ifndef AKANTU_NEIGHBORHOOD_BASE_HH_
+#define AKANTU_NEIGHBORHOOD_BASE_HH_
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
 #include "aka_memory.hh"
@@ -109,7 +108,9 @@ public:
   AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
   AKANTU_GET_MACRO(Model, model, const Model &);
   /// return the object handling synchronizers
-  AKANTU_GET_MACRO(PairLists, pair_list, const PairList *);
+  const PairList & getPairLists(GhostType type) {
+    return pair_list[type == _not_ghost ? 0 : 1];
+  }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -127,7 +128,7 @@ protected:
    * 0: not ghost to not ghost
    * 1: not ghost to ghost
    */
-  PairList pair_list[2];
+  std::array<PairList, 2> pair_list;
 
   /// the regular grid to construct/update the pair lists
   std::unique_ptr<SpatialGrid<IntegrationPoint>> spatial_grid;
@@ -146,6 +147,6 @@ protected:
 
 } // namespace akantu
 
-#include "neighborhood_base_inline_impl.cc"
+#include "neighborhood_base_inline_impl.hh"
 
-#endif /* __AKANTU_NEIGHBORHOOD_BASE_HH__ */
+#endif /* AKANTU_NEIGHBORHOOD_BASE_HH_ */

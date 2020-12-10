@@ -9,7 +9,6 @@
  *
  * @brief  test the internal field prestrain
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -113,7 +112,8 @@ int main(int argc, char * argv[]) {
   /// model initialization
   model.initFull(_analysis_method = _static);
 
-  //model.getNewSolver("static", TimeStepSolverType::_static, NonLinearSolverType::_newton_raphson_modified);
+  // model.getNewSolver("static", TimeStepSolverType::_static,
+  // NonLinearSolverType::_newton_raphson_modified);
   auto & solver = model.getNonLinearSolver("static");
   solver.set("threshold", 2e-4);
   solver.set("max_iterations", 2);

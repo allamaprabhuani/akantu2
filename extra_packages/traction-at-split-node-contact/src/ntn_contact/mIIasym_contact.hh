@@ -8,7 +8,6 @@
  *
  * @brief  contact for mode II anti-symmetric simulations
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AST_MIIASYM_CONTACT_HH__
-#define __AST_MIIASYM_CONTACT_HH__
+#ifndef AST_MIIASYM_CONTACT_HH_
+#define AST_MIIASYM_CONTACT_HH_
 
 /* -------------------------------------------------------------------------- */
 // simtools
@@ -88,4 +87,4 @@ inline std::ostream & operator<<(std::ostream & stream,
 
 } // namespace akantu
 
-#endif /* __AST_MIIASYM_CONTACT_HH__ */
+#endif /* AST_MIIASYM_CONTACT_HH_ */

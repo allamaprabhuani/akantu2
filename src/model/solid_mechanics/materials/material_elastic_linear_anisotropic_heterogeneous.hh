@@ -78,7 +78,7 @@ public:
                      GhostType ghost_type = _not_ghost) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
@@ -88,7 +88,7 @@ public:
   void updateInternalParameters() override;
 
   bool hasStiffnessMatrixChanged() override {
-    return (!was_stiffness_assembled);
+    return (not was_stiffness_assembled);
   }
 
 protected:

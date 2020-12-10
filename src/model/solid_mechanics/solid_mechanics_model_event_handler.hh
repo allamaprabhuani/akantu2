@@ -9,7 +9,6 @@
  *
  * @brief  EventHandler implementation for SolidMechanicsEvents
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH__
-#define __AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH__
+#ifndef AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH_
+#define AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH_
 
 namespace akantu {
 
@@ -55,7 +54,7 @@ namespace SolidMechanicsModelEvent {
   struct AfterDamageEvent {
     AfterDamageEvent() = default;
   };
-}
+} // namespace SolidMechanicsModelEvent
 
 /// akantu::SolidMechanicsModelEvent
 class SolidMechanicsModelEventHandler {
@@ -121,6 +120,6 @@ public:
   virtual void onDamageUpdate() {}
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH__ */
+#endif /* AKANTU_SOLID_MECHANICS_MODEL_EVENT_HANDLER_HH_ */

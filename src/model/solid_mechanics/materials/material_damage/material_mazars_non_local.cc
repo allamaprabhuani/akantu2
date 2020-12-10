@@ -10,7 +10,6 @@
  * @brief  Specialization of the material class for the non-local mazars
  * material
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -59,10 +58,11 @@ MaterialMazarsNonLocal<spatial_dimension>::MaterialMazarsNonLocal(
 template <UInt spatial_dimension>
 void MaterialMazarsNonLocal<spatial_dimension>::registerNonLocalVariables() {
   ID local;
-  if (this->damage_in_compute_stress)
+  if (this->damage_in_compute_stress) {
     local = this->damage.getName();
-  else
+  } else {
     local = this->Ehat.getName();
+  }
 
   this->model.getNonLocalManager().registerNonLocalVariable(
       local, non_local_variable.getName(), 1);

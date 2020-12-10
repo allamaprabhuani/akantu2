@@ -6,7 +6,6 @@
  *
  * @brief  MaterialDamageIterativeNonLocal header for non-local damage
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -19,8 +18,8 @@
 #include "material_damage_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_DAMAGE_ITERATIVE_NON_LOCAL_HH__
-#define __AKANTU_MATERIAL_DAMAGE_ITERATIVE_NON_LOCAL_HH__
+#ifndef AKANTU_MATERIAL_DAMAGE_ITERATIVE_NON_LOCAL_HH_
+#define AKANTU_MATERIAL_DAMAGE_ITERATIVE_NON_LOCAL_HH_
 
 namespace akantu {
 
@@ -74,8 +73,8 @@ private:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "material_damage_iterative_non_local_inline_impl.cc"
+#include "material_damage_iterative_non_local_inline_impl.hh"
 
 } // namespace akantu
 
-#endif /* __AKANTU_MATERIAL_DAMAGE_ITERATIVE_NON_LOCAL_HH__ */
+#endif /* AKANTU_MATERIAL_DAMAGE_ITERATIVE_NON_LOCAL_HH_ */

@@ -1,12 +1,11 @@
 /**
- * @file   shape_igfem_inline_impl.cc
+ * @file   shape_igfem_inline_impl.hh
  *
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
  *
  * @brief  ShapeIGFEM inline implementation
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -21,7 +20,7 @@
 
 #if defined(AKANTU_IGFEM)
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ShapeLagrange<_ek_igfem>::ShapeLagrange(const Mesh & mesh, const ID & id,
@@ -39,12 +38,12 @@ ShapeLagrange<_ek_igfem>::ShapeLagrange(const Mesh & mesh, const ID & id,
 /*-------------------------------------------------------------------------- */
 void ShapeLagrange<_ek_igfem>::extractValuesAtStandardNodes(
     const Array<Real> & nodal_values, Array<Real> & extracted_values,
-    const GhostType & ghost_type) const {
+    GhostType ghost_type) const {
 
   AKANTU_DEBUG_ASSERT(nodal_values.getNbComponent() ==
                           extracted_values.getNbComponent(),
                       "The arrays are not of the same size!!!!!");
-  extracted_values.clear();
+  extracted_values.zero();
   UInt spatial_dimension = mesh.getSpatialDimension();
   Mesh::type_iterator it =
       mesh.firstType(spatial_dimension, ghost_type, _ek_igfem);
@@ -92,6 +91,6 @@ void ShapeLagrange<_ek_igfem>::printself(std::ostream & stream,
   shapes_derivatives.printself(stream, indent + 1);
   stream << space << "]" << std::endl;
 }
-__END_AKANTU__
+} // namespace akantu
 
 #endif

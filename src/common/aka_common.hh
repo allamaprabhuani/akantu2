@@ -9,7 +9,6 @@
  *
  * @brief  common type descriptions for akantu
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -27,22 +26,15 @@
  * You should  have received  a copy  of the GNU  Lesser General  Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * @section DESCRIPTION
- *
- * All common things to be included in the projects files
- *
  */
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_COMMON_HH__
-#define __AKANTU_COMMON_HH__
+#ifndef AKANTU_COMMON_HH_
+#define AKANTU_COMMON_HH_
 
 #include "aka_compatibilty_with_cpp_standard.hh"
 
-/* -------------------------------------------------------------------------- */
-#define __BEGIN_AKANTU_DUMPER__ namespace dumper {
-#define __END_AKANTU_DUMPER__ }
 /* -------------------------------------------------------------------------- */
 #if defined(WIN32)
 #define __attribute__(x)
@@ -68,12 +60,12 @@ namespace akantu {
 /* Constants                                                                  */
 /* -------------------------------------------------------------------------- */
 namespace {
-  __attribute__((unused)) constexpr UInt _all_dimensions{
+  [[gnu::unused]] constexpr UInt _all_dimensions{
       std::numeric_limits<UInt>::max()};
 #ifdef AKANTU_NDEBUG
-  __attribute__((unused)) constexpr Real REAL_INIT_VALUE{0.};
+  [[gnu::unused]] constexpr Real REAL_INIT_VALUE{0.};
 #else
-  __attribute__((unused)) constexpr Real REAL_INIT_VALUE{
+  [[gnu::unused]] constexpr Real REAL_INIT_VALUE{
       std::numeric_limits<Real>::quiet_NaN()};
 #endif
 } // namespace
@@ -89,6 +81,7 @@ using MemoryID = UInt;
 #include "aka_enum_macros.hh"
 /* -------------------------------------------------------------------------- */
 #include "aka_element_classes_info.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
@@ -121,6 +114,7 @@ enum EventHandlerPriority {
   _ehp_lowest = 100
 };
 
+#if !defined(DOXYGEN)
 // clang-format off
 #define AKANTU_MODEL_TYPES                                              \
   (model)                                                               \
@@ -136,7 +130,16 @@ enum EventHandlerPriority {
 AKANTU_CLASS_ENUM_DECLARE(ModelType, AKANTU_MODEL_TYPES)
 AKANTU_CLASS_ENUM_OUTPUT_STREAM(ModelType, AKANTU_MODEL_TYPES)
 AKANTU_CLASS_ENUM_INPUT_STREAM(ModelType, AKANTU_MODEL_TYPES)
-
+#else
+enum class ModelType {
+  model,
+  solid_mechanics_model,
+  solid_mechanics_model_cohesive,
+  heat_transfer_model,
+  structural_mechanics_model,
+  embedded_model,
+};
+#endif
 /// enum AnalysisMethod type of solving method used to solve the equation of
 /// motion
 enum AnalysisMethod {
@@ -267,7 +270,7 @@ enum class SolveConvergenceCriteria {
 /// enum CohesiveMethod type of insertion of cohesive elements
 enum CohesiveMethod { _intrinsic, _extrinsic };
 
-/// @enum SparseMatrixType type of sparse matrix used
+/// @enum MatrixType type of sparse matrix used
 enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 
 /* -------------------------------------------------------------------------- */
@@ -300,8 +303,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (gm_clusters)                                 \
   (htm_temperature)                             \
   (htm_gradient_temperature)                    \
-  (htm_pressure)                                \
-  (htm_gradient_pressure)                       \
+  (fdm_pressure)                                \
+  (fdm_gradient_pressure)                       \
   (htm_phi)                                     \
   (htm_gradient_phi)                            \
   (mnl_for_average)                             \
@@ -354,7 +357,7 @@ enum class SynchronizationTag {
   _ce_groups, ///< synchronization of cohesive element insertion depending
               /// on facet groups
   _ce_insertion_order, ///< synchronization of the order of insertion of
-                       /// cohesive elements
+                       ///cohesive elements
 
   // --- GroupManager tags ---
   _gm_clusters, ///< synchronization of clusters
@@ -461,10 +464,12 @@ struct GhostType_def {
 };
 
 using ghost_type_t = safe_enum<GhostType_def>;
-extern ghost_type_t ghost_types;
+namespace {
+  constexpr ghost_type_t ghost_types{_casper};
+}
 
 /// standard output stream operator for GhostType
-inline std::ostream & operator<<(std::ostream & stream, GhostType type);
+// inline std::ostream & operator<<(std::ostream & stream, GhostType type);
 
 /* -------------------------------------------------------------------------- */
 /* Global defines                                                             */
@@ -484,12 +489,28 @@ inline std::ostream & operator<<(std::ostream & stream, GhostType type);
 #define AKANTU_GET_MACRO_NOT_CONST(name, variable, type)                       \
   inline type get##name() { return variable; }
 
-#define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
-  inline con Array<type> & get##name(                                          \
-      const support & el_type, const GhostType & ghost_type = _not_ghost)      \
-      con {                                                                    \
-    return variable(el_type, ghost_type);                                      \
+#define AKANTU_GET_MACRO_DEREF_PTR(name, ptr)                                  \
+  inline const auto & get##name() const {                                      \
+    if (not(ptr)) {                                                            \
+      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
+    }                                                                          \
+    return (*(ptr));                                                           \
   }
+
+#define AKANTU_GET_MACRO_DEREF_PTR_NOT_CONST(name, ptr)                        \
+  inline auto & get##name() {                                                  \
+    if (not(ptr)) {                                                            \
+      AKANTU_EXCEPTION("The member " << #ptr << " is not initialized");        \
+    }                                                                          \
+    return (*(ptr));                                                           \
+  }
+
+#define AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, support, con)   \
+  inline con Array<type> & get##name(const support & el_type,                  \
+                                     GhostType ghost_type = _not_ghost)        \
+      con { /* NOLINT */                                                       \
+    return variable(el_type, ghost_type);                                      \
+  } // NOLINT
 
 #define AKANTU_GET_MACRO_BY_ELEMENT_TYPE(name, variable, type)                 \
   AKANTU_GET_MACRO_BY_SUPPORT_TYPE(name, variable, type, ElementType, )
@@ -529,6 +550,8 @@ template <typename T> std::string printMemorySize(UInt size);
 /* -------------------------------------------------------------------------- */
 
 struct TensorTrait {};
+struct TensorProxyTrait {};
+
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
@@ -538,6 +561,8 @@ namespace aka {
 
 /* ------------------------------------------------------------------------ */
 template <typename T> using is_tensor = std::is_base_of<akantu::TensorTrait, T>;
+template <typename T>
+using is_tensor_proxy = std::is_base_of<akantu::TensorProxyTrait, T>;
 /* ------------------------------------------------------------------------ */
 template <typename T> using is_scalar = std::is_arithmetic<T>;
 /* ------------------------------------------------------------------------ */
@@ -588,6 +613,8 @@ decltype(auto) as_type(const std::shared_ptr<T> & t) {
 
 } // namespace aka
 
+#include "aka_common_inline_impl.hh"
+
 #include "aka_fwd.hh"
 
 namespace akantu {
@@ -600,9 +627,10 @@ Parser & getStaticParser();
 /// get access to the user part of the internal input file parser
 const ParserSection & getUserParser();
 
-} // namespace akantu
+#define AKANTU_CURRENT_FUNCTION                                                \
+  (std::string(__func__) + "():" + std::to_string(__LINE__))
 
-#include "aka_common_inline_impl.cc"
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 #if AKANTU_INTEGER_SIZE == 4
@@ -634,4 +662,4 @@ private:
 
 } // namespace std
 
-#endif /* __AKANTU_COMMON_HH__ */
+#endif // AKANTU_COMMON_HH_

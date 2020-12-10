@@ -8,7 +8,6 @@
  *
  * @brief  Wrapper on MPI types to have a better separation between libraries
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -58,8 +57,8 @@
 #include <unordered_map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MPI_TYPE_WRAPPER_HH__
-#define __AKANTU_MPI_TYPE_WRAPPER_HH__
+#ifndef AKANTU_MPI_TYPE_WRAPPER_HH_
+#define AKANTU_MPI_TYPE_WRAPPER_HH_
 
 namespace akantu {
 
@@ -70,13 +69,12 @@ public:
       MPI_Initialized(&is_externaly_initialized);
     }
 
-    if (not is_externaly_initialized and mpi_communicator_instances == 0) {
+    if ((is_externaly_initialized == 0) and (mpi_communicator_instances == 0)) {
       MPI_Init(nullptr, nullptr); // valid according to the spec
     }
 
     MPI_Comm_create_errhandler(MPICommunicatorData::errorHandler,
                                &error_handler);
-    MPI_Comm_set_errhandler(comm, error_handler);
     setMPICommunicator(comm);
     ++mpi_communicator_instances;
   }
@@ -84,7 +82,7 @@ public:
   ~MPICommunicatorData() override {
     int finalized{0};
     MPI_Finalized(&finalized);
-    if (not is_externaly_initialized and not finalized) {
+    if ((is_externaly_initialized == 0) and (finalized == 0)) {
       MPI_Comm_set_errhandler(communicator, saved_error_handler);
       MPI_Errhandler_free(&error_handler);
       --mpi_communicator_instances;
@@ -114,9 +112,10 @@ public:
   }
 
   inline MPI_Comm getMPICommunicator() const { return communicator; }
-  inline int getMaxTag() const {
+  static int getMaxTag() {
     int flag;
     int * value;
+    // not defined on derived intra-communicator
     MPI_Comm_get_attr(MPI_COMM_WORLD, MPI_TAG_UB, &value, &flag);
     AKANTU_DEBUG_ASSERT(flag, "No attribute MPI_TAG_UB.");
     return *value;
@@ -130,7 +129,10 @@ private:
   /* ------------------------------------------------------------------------ */
   MPI_Errhandler error_handler;
 
-  static void errorHandler(MPI_Comm * /*comm*/, int * error_code, ...) {
+  static void
+  errorHandler(MPI_Comm * /*comm*/,
+               int * error_code, // NOLINT(readability-non-const-parameter)
+               ...) {
     char error_string[MPI_MAX_ERROR_STRING];
     int str_len;
     MPI_Error_string(*error_code, error_string, &str_len);
@@ -143,4 +145,4 @@ private:
 
 } // namespace akantu
 
-#endif /* __AKANTU_MPI_TYPE_WRAPPER_HH__ */
+#endif /* AKANTU_MPI_TYPE_WRAPPER_HH_ */

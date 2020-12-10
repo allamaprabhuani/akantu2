@@ -58,7 +58,7 @@ public:
 public:
   void computeStress(ElementType el_type, GhostType ghost_type) override;
 
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type) override;
 
@@ -67,25 +67,10 @@ protected:
   inline void computeDamageAndStressOnQuad(Matrix<Real> & sigma, Real & dam);
   // simple multiplication by the (1 - damage)
   inline void computeTangentModuliOnQuad(Matrix<Real> & tangent, Real & dam);
-
-  /* ------------------------------------------------------------------------ */
-  /* DataAccessor inherited members                                           */
-  /* ------------------------------------------------------------------------ */
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
-protected:
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
 };
 
 } // namespace akantu
 
-#include "material_damage_iterative_isotropic_inline_impl.cc"
+#include "material_damage_iterative_isotropic_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_DAMAGE_ITERATIVE_ISOTROPIC_HH__ */

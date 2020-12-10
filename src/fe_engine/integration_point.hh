@@ -8,7 +8,6 @@
  *
  * @brief  definition of the class IntegrationPoint
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -133,8 +132,9 @@ public:
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const {
     std::string space;
-    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
+    for (Int i = 0; i < indent; i++, space += AKANTU_INDENT) {
       ;
+    }
     stream << space << "IntegrationPoint [";
     stream << *static_cast<const Element *>(this);
     stream << ", " << num_point << "(" << global_num << ")"
@@ -165,6 +165,6 @@ inline std::ostream & operator<<(std::ostream & stream,
   return stream;
 }
 
-} // akantu
+} // namespace akantu
 
 #endif /* AKANTU_QUADRATURE_POINT_H */

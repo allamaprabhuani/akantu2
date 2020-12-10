@@ -9,7 +9,6 @@
  *
  * @brief  Implementation of material non-local
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -50,7 +49,7 @@ MaterialNonLocal<dim, LocalParent>::MaterialNonLocal(
 /* -------------------------------------------------------------------------- */
 template <UInt dim, class LocalParent>
 void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
-    const GhostType & ghost_type,
+    GhostType ghost_type,
     const ElementTypeMapReal & quadrature_points_coordinates) {
 
   IntegrationPoint q;
@@ -65,7 +64,7 @@ void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
     const auto & elem_filter = this->element_filter(type, ghost_type);
     UInt nb_element = elem_filter.size();
 
-    if (nb_element) {
+    if (nb_element != 0U) {
       UInt nb_quad =
           this->getFEEngine().getNbIntegrationPoints(type, ghost_type);
 
@@ -91,7 +90,7 @@ void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
 template <UInt dim, class LocalParent>
 void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
     ElementTypeMapReal & non_local_flattened, const ID & field_id,
-    const GhostType & ghost_type, const ElementKind & kind) {
+    GhostType ghost_type, ElementKind kind) {
 
   /// loop over all types in the material
   for (auto & el_type :

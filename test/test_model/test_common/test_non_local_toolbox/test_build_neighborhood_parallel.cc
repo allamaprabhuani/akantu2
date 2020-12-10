@@ -9,7 +9,6 @@
  *
  * @brief  test in parallel for the class NonLocalNeighborhood
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -88,7 +87,7 @@ int main(int argc, char * argv[]) {
 
   /// apply constant strain field everywhere in the plate
   Matrix<Real> applied_strain(spatial_dimension, spatial_dimension);
-  applied_strain.clear();
+  applied_strain.zero();
   for (UInt i = 0; i < spatial_dimension; ++i)
     applied_strain(i, i) = 2.;
 
@@ -116,7 +115,8 @@ int main(int argc, char * argv[]) {
   Vector<Real> center(spatial_dimension, 0.);
   Real min_distance = 2;
   IntegrationPoint q_min;
-  for (auto type : mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
+  for (auto type :
+       mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
     UInt nb_elements = mesh.getNbElement(type, _not_ghost);
     UInt nb_quads = model.getFEEngine().getNbIntegrationPoints(type);
     Array<Real> & coords = quad_coords(type, _not_ghost);

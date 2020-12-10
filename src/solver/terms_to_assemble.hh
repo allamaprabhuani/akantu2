@@ -8,7 +8,6 @@
  *
  * @brief  List of terms to assemble to a matrix
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,8 +33,8 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TERMS_TO_ASSEMBLE_HH__
-#define __AKANTU_TERMS_TO_ASSEMBLE_HH__
+#ifndef AKANTU_TERMS_TO_ASSEMBLE_HH_
+#define AKANTU_TERMS_TO_ASSEMBLE_HH_
 
 namespace akantu {
 
@@ -95,6 +94,6 @@ private:
   TermsContainer terms;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_TERMS_TO_ASSEMBLE_HH__ */
+#endif /* AKANTU_TERMS_TO_ASSEMBLE_HH_ */

@@ -7,7 +7,6 @@
  *
  * @brief PeriodicNodeSynchronizer definition
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 #include "node_synchronizer.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PERIODIC_NODE_SYNCHRONIZER_HH__
-#define __AKANTU_PERIODIC_NODE_SYNCHRONIZER_HH__
+#ifndef AKANTU_PERIODIC_NODE_SYNCHRONIZER_HH_
+#define AKANTU_PERIODIC_NODE_SYNCHRONIZER_HH_
 
 namespace akantu {
 
@@ -39,7 +38,7 @@ class PeriodicNodeSynchronizer : public NodeSynchronizer {
 public:
   PeriodicNodeSynchronizer(
       Mesh & mesh, const ID & id = "periodic_node_synchronizer",
-      MemoryID memory_id = 0, const bool register_to_event_manager = true,
+      MemoryID memory_id = 0, bool register_to_event_manager = true,
       EventHandlerPriority event_priority = _ehp_synchronizer);
 
   /* ------------------------------------------------------------------------ */
@@ -77,8 +76,10 @@ private:
 template <template <class> class Op, typename T>
 void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
     Array<T> & array) const {
-  ReduceDataAccessor<UInt, Op, T> data_accessor(array, SynchronizationTag::_whatever);
-  auto size = data_accessor.getNbData(slaves_list, SynchronizationTag::_whatever);
+  ReduceDataAccessor<UInt, Op, T> data_accessor(array,
+                                                SynchronizationTag::_whatever);
+  auto size =
+      data_accessor.getNbData(slaves_list, SynchronizationTag::_whatever);
   CommunicationBuffer buffer(size);
 
   data_accessor.packData(buffer, slaves_list, SynchronizationTag::_whatever);
@@ -87,6 +88,6 @@ void PeriodicNodeSynchronizer::reduceSynchronizeWithPBCSlaves(
   this->reduceSynchronizeArray<Op>(array);
 }
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_PERIODIC_NODE_SYNCHRONIZER_HH__ */
+#endif /* AKANTU_PERIODIC_NODE_SYNCHRONIZER_HH_ */

@@ -8,7 +8,6 @@
  *
  * @brief  implementation of friction for node to node contact
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AST_NTN_FRICTION_HH__
-#define __AST_NTN_FRICTION_HH__
+#ifndef AST_NTN_FRICTION_HH_
+#define AST_NTN_FRICTION_HH_
 
 /* -------------------------------------------------------------------------- */
 // simtools
@@ -97,4 +96,4 @@ operator<<(std::ostream & stream,
 
 #include "ntn_friction_tmpl.hh"
 
-#endif /* __AST_NTN_FRICTION_HH__ */
+#endif /* AST_NTN_FRICTION_HH_ */

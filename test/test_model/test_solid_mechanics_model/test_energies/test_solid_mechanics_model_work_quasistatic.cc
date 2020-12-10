@@ -8,7 +8,6 @@
  *
  * @brief  test work in quasistatic
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -55,7 +54,6 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
                           "work_material.dat");
 
   /// model initialization
-  MeshUtils::buildFacets(*this->mesh);
   this->model->initFull(_analysis_method = _static);
 
   /// Create a node group for Neumann BCs.
@@ -101,7 +99,7 @@ TYPED_TEST(TestSMMFixture, WorkQuasistatic) {
     Real Epot;
     static const UInt N = 100;
     for (UInt i = 0; i <= N; ++i) {
-      this->model->getExternalForce().clear(); // reset external forces to zero
+      this->model->getExternalForce().zero(); // reset external forces to zero
 
       surface_traction(_x) = (1.0 * i) / N;
 

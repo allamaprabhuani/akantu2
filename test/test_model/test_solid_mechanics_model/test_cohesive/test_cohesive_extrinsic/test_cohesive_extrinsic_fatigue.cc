@@ -8,7 +8,6 @@
  *
  * @brief  Test for the linear fatigue cohesive law
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -201,7 +200,7 @@ void imposeOpening(SolidMechanicsModelCohesive & model, Real opening) {
   UInt nb_nodes = mesh.getNbNodes();
 
   Array<bool> update(nb_nodes);
-  update.clear();
+  update.zero();
 
   Mesh::type_iterator it = mesh.firstType(spatial_dimension);
   Mesh::type_iterator end = mesh.lastType(spatial_dimension);

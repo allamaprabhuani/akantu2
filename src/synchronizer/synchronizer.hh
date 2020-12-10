@@ -10,7 +10,6 @@
  *
  * @brief  Common interface for synchronizers
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,8 +35,8 @@
 #include <map>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SYNCHRONIZER_HH__
-#define __AKANTU_SYNCHRONIZER_HH__
+#ifndef AKANTU_SYNCHRONIZER_HH_
+#define AKANTU_SYNCHRONIZER_HH_
 
 namespace akantu {
 class Communicator;
@@ -127,4 +126,4 @@ protected:
 
 #include "synchronizer_tmpl.hh"
 
-#endif /* __AKANTU_SYNCHRONIZER_HH__ */
+#endif /* AKANTU_SYNCHRONIZER_HH_ */

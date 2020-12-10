@@ -5,7 +5,6 @@
  *
  * @brief test the material iterative stiffness reduction in parallel
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -193,8 +192,8 @@ int main(int argc, char * argv[]) {
   UInt s = 0;
   do {
     converged =
-        model.solveStep<_scm_newton_raphson_tangent_modified, SolveConvergenceCriteria::_increment>(
-            1e-12, error, 2);
+        model.solveStep<_scm_newton_raphson_tangent_modified,
+                        SolveConvergenceCriteria::_increment>(1e-12, error, 2);
 
     if (converged == false) {
       std::cout << "The error is: " << error << std::endl;

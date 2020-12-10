@@ -8,7 +8,6 @@
  *
  * @brief  Synchronizer based on spatial grid
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_GRID_SYNCHRONIZER_HH__
-#define __AKANTU_GRID_SYNCHRONIZER_HH__
+#ifndef AKANTU_GRID_SYNCHRONIZER_HH_
+#define AKANTU_GRID_SYNCHRONIZER_HH_
 
 namespace akantu {
 
@@ -51,7 +50,7 @@ public:
   template <typename E>
   GridSynchronizer(Mesh & mesh, const SpatialGrid<E> & grid,
                    const ID & id = "grid_synchronizer", MemoryID memory_id = 0,
-                   const bool register_to_event_manager = true,
+                   bool register_to_event_manager = true,
                    EventHandlerPriority event_priority = _ehp_synchronizer);
 
   template <typename E>
@@ -59,7 +58,7 @@ public:
                    SynchronizerRegistry & synchronizer_registry,
                    const std::set<SynchronizationTag> & tags_to_register,
                    const ID & id = "grid_synchronizer", MemoryID memory_id = 0,
-                   const bool register_to_event_manager = true,
+                   bool register_to_event_manager = true,
                    EventHandlerPriority event_priority = _ehp_synchronizer);
 
   ~GridSynchronizer() override = default;
@@ -99,4 +98,4 @@ private:
 
 #include "grid_synchronizer_tmpl.hh"
 
-#endif /* __AKANTU_GRID_SYNCHRONIZER_HH__ */
+#endif /* AKANTU_GRID_SYNCHRONIZER_HH_ */

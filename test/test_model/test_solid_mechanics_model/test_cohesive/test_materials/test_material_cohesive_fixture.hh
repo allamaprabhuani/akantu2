@@ -7,7 +7,6 @@
  *
  * @brief  Test the traction separations laws for cohesive elements
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -76,8 +75,8 @@ public:
     openings->resize(1);
     tractions->resize(1);
 
-    openings->clear();
-    tractions->clear();
+    openings->zero();
+    tractions->zero();
   }
 
   /* ------------------------------------------------------------------------ */
@@ -241,7 +240,8 @@ public:
 #endif
 
     beta = this->material->get("beta");
-    this->material->insertion_stress_ = beta * this->material->sigma_c_ * direction;
+    this->material->insertion_stress_ =
+        beta * this->material->sigma_c_ * direction;
 
     addOpening(direction, 0., max_opening, 100);
 

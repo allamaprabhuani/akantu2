@@ -6,7 +6,6 @@
  *
  * @brief  test to test the transfer of internals such as damage
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -186,7 +185,7 @@ int main(int argc, char * argv[]) {
   new_gel_pocket_list.push_back(sphere_6);
   new_gel_pocket_list.push_back(sphere_4);
 
-  gel_pocket_list.clear();
+  gel_pocket_list.zero();
   gel_pocket_list = new_gel_pocket_list;
   model.update("mat_1");
 

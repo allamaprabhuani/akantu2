@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 #include "aka_array.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLVER_VECTOR_HH__
-#define __AKANTU_SOLVER_VECTOR_HH__
+#ifndef AKANTU_SOLVER_VECTOR_HH_
+#define AKANTU_SOLVER_VECTOR_HH_
 
 namespace akantu {
 class DOFManager;
@@ -53,7 +52,8 @@ public:
   virtual void resize() = 0;
 
   // clear the vector
-  virtual void clear() = 0;
+  virtual void set(Real val) = 0;
+  void zero() { this->set({}); }
 
   virtual operator const Array<Real> &() const = 0;
 
@@ -62,12 +62,12 @@ public:
 
   virtual SolverVector & operator+(const SolverVector & y) = 0;
   virtual SolverVector & operator=(const SolverVector & y) = 0;
-  
+
   UInt & release() { return release_; }
   UInt release() const { return release_; }
 
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
-  
+
 protected:
   ID id;
 
@@ -84,4 +84,4 @@ inline std::ostream & operator<<(std::ostream & stream, SolverVector & _this) {
 
 } // namespace akantu
 
-#endif /* __AKANTU_SOLVER_VECTOR_HH__ */
+#endif /* AKANTU_SOLVER_VECTOR_HH_ */

@@ -10,7 +10,6 @@
  * @brief  Stores information relevent to the notion of domain boundary and
  * surfaces.
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -40,8 +39,8 @@
 #include <set>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_GROUP_HH__
-#define __AKANTU_ELEMENT_GROUP_HH__
+#ifndef AKANTU_ELEMENT_GROUP_HH_
+#define AKANTU_ELEMENT_GROUP_HH_
 
 namespace akantu {
 class Mesh;
@@ -60,9 +59,9 @@ public:
   ElementGroup(const std::string & name, const Mesh & mesh,
                NodeGroup & node_group, UInt dimension = _all_dimensions,
                const std::string & id = "element_group",
-               const MemoryID & memory_id = 0);
+               const MemoryID & mem_id = 0);
 
-  ElementGroup(const ElementGroup &);
+  ElementGroup(const ElementGroup & /*unused*/);
 
   /* ------------------------------------------------------------------------ */
   /* Type definitions                                                         */
@@ -77,14 +76,12 @@ public:
 
   using type_iterator = ElementList::type_iterator;
   [[deprecated("Use elementTypes instead")]] inline type_iterator
-  firstType(UInt dim = _all_dimensions,
-            const GhostType & ghost_type = _not_ghost,
-            const ElementKind & kind = _ek_regular) const;
+  firstType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+            ElementKind kind = _ek_regular) const;
 
   [[deprecated("Use elementTypes instead")]] inline type_iterator
-  lastType(UInt dim = _all_dimensions,
-           const GhostType & ghost_type = _not_ghost,
-           const ElementKind & kind = _ek_regular) const;
+  lastType(UInt dim = _all_dimensions, GhostType ghost_type = _not_ghost,
+           ElementKind kind = _ek_regular) const;
 
   template <typename... pack>
   inline decltype(auto) elementTypes(pack &&... _pack) const {
@@ -93,19 +90,20 @@ public:
 
   using const_element_iterator = Array<UInt>::const_iterator<UInt>;
 
-  inline const_element_iterator
-  begin(const ElementType & type,
-        const GhostType & ghost_type = _not_ghost) const;
-  inline const_element_iterator
-  end(const ElementType & type,
-      const GhostType & ghost_type = _not_ghost) const;
+  inline const_element_iterator begin(ElementType type,
+                                      GhostType ghost_type = _not_ghost) const;
+  inline const_element_iterator end(ElementType type,
+                                    GhostType ghost_type = _not_ghost) const;
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
   /// empty the element group
-  void empty();
+  void clear();
+  void clear(ElementType type, GhostType ghost_type = _not_ghost);
+
+  bool empty() const __attribute__((warn_unused_result));
 
   /// append another group to this group
   /// BE CAREFUL: it doesn't conserve the element order
@@ -118,9 +116,9 @@ public:
 
   /// \todo fix the default for add_nodes : make it coherent with the other
   /// method
-  inline void add(const ElementType & type, UInt element,
-                  const GhostType & ghost_type = _not_ghost,
-                  bool add_nodes = true, bool check_for_duplicate = true);
+  inline void add(ElementType type, UInt element,
+                  GhostType ghost_type = _not_ghost, bool add_nodes = true,
+                  bool check_for_duplicate = true);
 
   inline void addNode(UInt node_id, bool check_for_duplicate = true);
 
@@ -139,8 +137,8 @@ public:
   void addDimension(UInt dimension);
 
 private:
-  inline void addElement(const ElementType & elem_type, UInt elem_id,
-                         const GhostType & ghost_type);
+  inline void addElement(ElementType elem_type, UInt elem_id,
+                         GhostType ghost_type);
 
   friend class GroupManager;
 
@@ -148,9 +146,8 @@ private:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  const Array<UInt> &
-  getElements(const ElementType & type,
-              const GhostType & ghost_type = _not_ghost) const;
+  const Array<UInt> & getElements(ElementType type,
+                                  GhostType ghost_type = _not_ghost) const;
   AKANTU_GET_MACRO(Elements, elements, const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO_NOT_CONST(Elements, elements, ElementTypeMapArray<UInt> &);
 
@@ -184,7 +181,7 @@ private:
   NodeGroup & node_group;
 
   /// group dimension
-  UInt dimension;
+  UInt dimension{_all_dimensions};
 
   /// empty arry for the iterator to work when an element type not present
   Array<UInt> empty_elements;
@@ -200,6 +197,6 @@ inline std::ostream & operator<<(std::ostream & stream,
 } // namespace akantu
 
 #include "element.hh"
-#include "element_group_inline_impl.cc"
+#include "element_group_inline_impl.hh"
 
-#endif /* __AKANTU_ELEMENT_GROUP_HH__ */
+#endif /* AKANTU_ELEMENT_GROUP_HH_ */

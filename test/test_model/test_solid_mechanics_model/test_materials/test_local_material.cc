@@ -12,7 +12,6 @@
  * @brief  test of the class SolidMechanicsModel with custom local damage on a
  * notched plate
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -51,8 +50,9 @@ int main(int argc, char * argv[]) {
 
   /// model initialization
   MaterialFactory::getInstance().registerAllocator(
-      "local_damage", [](UInt, const ID &, SolidMechanicsModel & model,
-                         const ID & id) -> std::unique_ptr<Material> {
+      "local_damage",
+      [](UInt, const ID &, SolidMechanicsModel & model,
+         const ID & id) -> std::unique_ptr<Material> {
         return std::make_unique<LocalMaterialDamage>(model, id);
       });
 
@@ -86,7 +86,8 @@ int main(int argc, char * argv[]) {
   model.dump();
 
   // This should throw a bad_cast if not the proper material
-  auto & mat  = dynamic_cast<LocalMaterialDamage &>(model.getMaterial("concrete"));
+  auto & mat =
+      dynamic_cast<LocalMaterialDamage &>(model.getMaterial("concrete"));
   const auto & filter = mat.getElementFilter();
   for (auto & type : filter.elementTypes(spatial_dimension)) {
     std::cout << mat.getDamage(type) << std::endl;
@@ -94,7 +95,7 @@ int main(int argc, char * argv[]) {
 
   // This part of the test is to mesh dependent and as nothing to do with the
   // fact that we can create a user defined material or not
-  
+
   // const auto & lower_bounds = mesh.getLowerBounds();
   // const auto & upper_bounds = mesh.getUpperBounds();
   // Real L = upper_bounds(_x) - lower_bounds(_x);
@@ -117,13 +118,14 @@ int main(int argc, char * argv[]) {
   //       if (material_damage_array(cpt, 0) < 0.9) {
   //         std::terminate();
   //       } else {
-  //         std::cout << "element " << nel << " is correctly broken" << std::endl;
+  //         std::cout << "element " << nel << " is correctly broken" <<
+  //         std::endl;
   //       }
   //     }
 
   //     cpt += nb_gp;
   //   }
-  // } 
+  // }
 
   akantu::finalize();
   return 0;

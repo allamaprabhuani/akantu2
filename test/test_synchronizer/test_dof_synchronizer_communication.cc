@@ -9,7 +9,6 @@
  *
  * @brief  test to synchronize global equation numbers
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -96,7 +95,8 @@ int main(int argc, char * argv[]) {
   TestDOFAccessor test_dof_accessor(
       dof_synchronizer.getGlobalDOFEquationNumbers());
   SynchronizerRegistry synch_registry(test_dof_accessor);
-  synch_registry.registerSynchronizer(dof_synchronizer, SynchronizationTag::_test);
+  synch_registry.registerSynchronizer(dof_synchronizer,
+                                      SynchronizationTag::_test);
 
   AKANTU_DEBUG_INFO("Synchronizing tag");
   synch_registry.synchronize(SynchronizationTag::_test);

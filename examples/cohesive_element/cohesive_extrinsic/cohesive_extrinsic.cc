@@ -8,7 +8,6 @@
  *
  * @brief  Test for cohesive elements
  *
- * @section LICENSE
  *
  * Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
  * (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -48,9 +47,8 @@ int main(int argc, char * argv[]) {
   SolidMechanicsModelCohesive model(mesh);
 
   /// model initialization
-  model.initFull(
-      _analysis_method = _explicit_lumped_mass,
-      _is_extrinsic = true);
+  model.initFull(_analysis_method = _explicit_lumped_mass,
+                 _is_extrinsic = true);
 
   Real time_step = model.getStableTimeStep() * 0.05;
   model.setTimeStep(time_step);

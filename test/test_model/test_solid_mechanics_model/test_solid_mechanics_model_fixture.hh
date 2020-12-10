@@ -8,7 +8,6 @@
  *
  * @brief  Main solif mechanics test file
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,13 +31,14 @@
 #include "communicator.hh"
 #include "solid_mechanics_model.hh"
 #include "test_gtest_utils.hh"
+#include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */
 #include <gtest/gtest.h>
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TEST_SOLID_MECHANICS_MODEL_FIXTURE_HH__
-#define __AKANTU_TEST_SOLID_MECHANICS_MODEL_FIXTURE_HH__
+#ifndef AKANTU_TEST_SOLID_MECHANICS_MODEL_FIXTURE_HH_
+#define AKANTU_TEST_SOLID_MECHANICS_MODEL_FIXTURE_HH_
 
 using namespace akantu;
 
@@ -54,6 +54,9 @@ public:
 
     if (Communicator::getWorldCommunicator().whoAmI() == 0) {
       this->mesh->read(this->mesh_file);
+      if(spatial_dimension > 1 and mesh->getNbElement(spatial_dimension - 1) == 0) {
+        MeshUtils::buildFacets(*this->mesh);
+      }
     }
 
     mesh->distribute();
@@ -121,6 +124,6 @@ using TestElementTypesFiltered =
 // using gtest_element_types = gtest_list_t<TestElementTypesFiltered>;
 using gtest_element_types = gtest_list_t<TestElementTypes>;
 
-TYPED_TEST_SUITE(TestSMMFixture, gtest_element_types);
+TYPED_TEST_SUITE(TestSMMFixture, gtest_element_types, );
 
-#endif /* __AKANTU_TEST_SOLID_MECHANICS_MODEL_FIXTURE_HH__ */
+#endif /* AKANTU_TEST_SOLID_MECHANICS_MODEL_FIXTURE_HH_ */

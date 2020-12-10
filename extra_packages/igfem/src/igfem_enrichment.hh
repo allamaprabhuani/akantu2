@@ -7,7 +7,6 @@
  * @brief  IGFEM enrichment: handles geometries of interfaces and advancement
  * with time
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -15,15 +14,15 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_IGFEM_ENRICHMENT_HH__
-#define __AKANTU_IGFEM_ENRICHMENT_HH__
+#ifndef AKANTU_IGFEM_ENRICHMENT_HH_
+#define AKANTU_IGFEM_ENRICHMENT_HH_
 
 #include "mesh_igfem_spherical_growing_gel.hh"
 #include "mesh_sphere_intersector.hh"
 
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 class IGFEMEnrichment {
 
@@ -94,9 +93,9 @@ protected:
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 
-#include "igfem_enrichment_inline_impl.cc"
+#include "igfem_enrichment_inline_impl.hh"
 
-__END_AKANTU__
+} // namespace akantu
 /* -------------------------------------------------------------------------- */
 
-#endif /* __AKANTU_IGFEM_ENRICHMENT_HH__ */
+#endif /* AKANTU_IGFEM_ENRICHMENT_HH_ */

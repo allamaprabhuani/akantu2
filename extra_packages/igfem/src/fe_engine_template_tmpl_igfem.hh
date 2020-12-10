@@ -1,11 +1,10 @@
 /**
- * @file   shape_igfem_inline_impl.cc
+ * @file   shape_igfem_inline_impl.hh
  *
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  *
  * @brief  ShapeIGFEM inline implementation
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -17,10 +16,10 @@
 #include "shape_igfem.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_FE_ENGINE_TEMPLATE_TMPL_IGFEM_HH__
-#define __AKANTU_FE_ENGINE_TEMPLATE_TMPL_IGFEM_HH__
+#ifndef AKANTU_FE_ENGINE_TEMPLATE_TMPL_IGFEM_HH_
+#define AKANTU_FE_ENGINE_TEMPLATE_TMPL_IGFEM_HH_
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 /* compatibility functions */
@@ -30,7 +29,7 @@ template <>
 inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
     initShapeFunctions(const Array<Real> & nodes,
-                       const GhostType & ghost_type) {
+                       GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Mesh::type_iterator it =
@@ -65,8 +64,8 @@ template <>
 inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                              DefaultIntegrationOrderFunctor>::
     computeIntegrationPointsCoordinates(
-        Array<Real> & quadrature_points_coordinates, const ElementType & type,
-        const GhostType & ghost_type,
+        Array<Real> & quadrature_points_coordinates, ElementType type,
+        GhostType ghost_type,
         const Array<UInt> & filter_elements) const {
 
   const Array<Real> & nodes_coordinates = mesh.getNodes();
@@ -113,5 +112,6 @@ inline void FEEngineTemplate<IntegratorGauss, ShapeLagrange, _ek_igfem,
                                  filter_elements);
 }
 
-__END_AKANTU__
-#endif /* __AKANTU_FE_ENGINE_TEMPLATE_TMPL_IGFEM_HH__ */
+} // namespace akantu
+
+#endif /* AKANTU_FE_ENGINE_TEMPLATE_TMPL_IGFEM_HH_ */

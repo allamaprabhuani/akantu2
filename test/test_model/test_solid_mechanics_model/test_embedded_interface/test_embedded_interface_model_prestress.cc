@@ -8,7 +8,6 @@
  *
  * @brief  Embedded model test for prestressing (bases on stress norm)
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -62,7 +61,7 @@ struct StressSolution : public BC::Neumann::FromHigherDim {
       AKANTU_ERROR("Solution not valid for 1D");
 
     Matrix<Real> stress(dim, dim);
-    stress.clear();
+    stress.zero();
     stress(0, 0) = this->stress(coord(1));
     dual.mul<false>(stress, normals);
   }
@@ -143,7 +142,7 @@ int main(int argc, char * argv[]) {
   Array<Real> analytical_residual(mesh.getNbNodes(), dim,
                                   "analytical_residual");
   analytical_residual.copy(model.getExternalForce());
-  model.getExternalForce().clear();
+  model.getExternalForce().zero();
 
   delete concrete_stress;
   delete steel_stress;

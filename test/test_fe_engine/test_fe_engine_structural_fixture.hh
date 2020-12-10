@@ -8,7 +8,6 @@
  *
  * @brief  test of the fem class
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 #include <gtest/gtest.h>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_TEST_FE_ENGINE_STRUCTURAL_FIXTURE_HH__
-#define __AKANTU_TEST_FE_ENGINE_STRUCTURAL_FIXTURE_HH__
+#ifndef AKANTU_TEST_FE_ENGINE_STRUCTURAL_FIXTURE_HH_
+#define AKANTU_TEST_FE_ENGINE_STRUCTURAL_FIXTURE_HH_
 
 using namespace akantu;
 
@@ -61,4 +60,4 @@ template <typename type_> const UInt TestFEMStructuralFixture<type_>::ndof;
 
 // TYPED_TEST_SUITE(TestFEMFixture, types);
 
-#endif /* __AKANTU_TEST_FE_ENGINE_STRUCTURAL_FIXTURE_HH__ */
+#endif /* AKANTU_TEST_FE_ENGINE_STRUCTURAL_FIXTURE_HH_ */

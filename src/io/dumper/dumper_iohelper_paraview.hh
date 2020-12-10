@@ -8,7 +8,6 @@
  *
  * @brief  Dumper Paraview using IOHelper
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_DUMPER_PARAVIEW_HH__
-#define __AKANTU_DUMPER_PARAVIEW_HH__
+#ifndef AKANTU_DUMPER_PARAVIEW_HH_
+#define AKANTU_DUMPER_PARAVIEW_HH_
 
 #include "dumper_iohelper.hh"
 /* -------------------------------------------------------------------------- */
@@ -66,6 +65,6 @@ public:
 private:
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_DUMPER_PARAVIEW_HH__ */
+#endif /* AKANTU_DUMPER_PARAVIEW_HH_ */

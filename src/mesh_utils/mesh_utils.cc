@@ -13,7 +13,6 @@
  *
  * @brief  All mesh utils necessary for various tasks
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -34,11 +33,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "mesh_utils.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine.hh"
 #include "mesh_accessor.hh"
 #include "mesh_iterators.hh"
+#include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <numeric>
@@ -54,8 +53,9 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
                                    UInt spatial_dimension,
                                    ElementKind el_kind) {
   AKANTU_DEBUG_IN();
-  if (spatial_dimension == _all_dimensions)
+  if (spatial_dimension == _all_dimensions) {
     spatial_dimension = mesh.getSpatialDimension();
+  }
 
   /// count number of occurrence of each node
   UInt nb_nodes = mesh.getNbNodes();
@@ -71,8 +71,9 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
         std::set<UInt> unique_nodes;
         for (auto && node : conn) {
           auto ret = unique_nodes.emplace(node);
-          if (ret.second)
+          if (ret.second) {
             ++node_to_elem.rowOffset(node);
+          }
         }
       },
       _spatial_dimension = spatial_dimension, _element_kind = el_kind);
@@ -91,8 +92,9 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
         std::set<UInt> unique_nodes;
         for (auto && node : conn) {
           auto ret = unique_nodes.emplace(node);
-          if (ret.second)
+          if (ret.second) {
             node_to_elem.insertInRow(node, element);
+          }
         }
       },
       _spatial_dimension = spatial_dimension, _element_kind = el_kind);
@@ -105,8 +107,8 @@ void MeshUtils::buildNode2Elements(const Mesh & mesh,
 /* -------------------------------------------------------------------------- */
 void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
                                                  CSR<UInt> & node_to_elem,
-                                                 const ElementType & type,
-                                                 const GhostType & ghost_type) {
+                                                 ElementType type,
+                                                 GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   UInt nb_nodes = mesh.getNbNodes();
 
@@ -122,8 +124,9 @@ void MeshUtils::buildNode2ElementsElementTypeMap(const Mesh & mesh,
   /// count number of occurrence of each node
   for (UInt el = 0; el < nb_elements; ++el) {
     UInt el_offset = el * nb_nodes_per_element;
-    for (UInt n = 0; n < nb_nodes_per_element; ++n)
+    for (UInt n = 0; n < nb_nodes_per_element; ++n) {
       ++node_to_elem.rowOffset(conn_val[el_offset + n]);
+    }
   }
 
   /// convert the occurrence array in a csr one
@@ -152,7 +155,8 @@ void MeshUtils::buildFacets(Mesh & mesh) {
   UInt spatial_dimension = mesh.getSpatialDimension();
 
   for (auto ghost_type : ghost_types) {
-    for (auto & type : mesh.elementTypes(spatial_dimension - 1, ghost_type)) {
+    for (const auto & type :
+         mesh.elementTypes(spatial_dimension - 1, ghost_type)) {
       mesh.getConnectivity(type, ghost_type).resize(0);
       // \todo inform the mesh event handler
     }
@@ -178,6 +182,8 @@ void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
 void MeshUtils::buildAllFacets(const Mesh & mesh, Mesh & mesh_facets,
                                UInt from_dimension, UInt to_dimension) {
   AKANTU_DEBUG_IN();
+
+  to_dimension = std::max(to_dimension, UInt(0));
 
   AKANTU_DEBUG_ASSERT(
       mesh_facets.isMeshFacets(),
@@ -223,6 +229,8 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
   Array<UInt> counter;
   std::vector<Element> connected_elements;
 
+  NewElementsEvent event(AKANTU_CURRENT_FUNCTION);
+
   // init the SubelementToElement data to improve performance
   for (auto && ghost_type : ghost_types) {
     for (auto && type : mesh.elementTypes(dimension, ghost_type)) {
@@ -264,41 +272,32 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
         auto && connectivity_facets =
             &mesh_accessor.getConnectivity(facet_type, ghost_type);
 
-        auto nb_facet_per_element = mesh.getNbFacetsPerElement(type, ft);
-        const auto & element_connectivity =
-            mesh.getConnectivity(type, ghost_type);
-        Matrix<const UInt> facet_local_connectivity(
-            mesh.getFacetLocalConnectivity(type, ft));
-
         auto nb_nodes_per_facet = connectivity_facets->getNbComponent();
-        Vector<UInt> facet(nb_nodes_per_facet);
+        // Vector<UInt> facet(nb_nodes_per_facet);
 
         for (UInt el = 0; el < nb_element; ++el) {
           current_element.element = el;
 
-          for (UInt f = 0; f < nb_facet_per_element; ++f) {
-            for (UInt n = 0; n < nb_nodes_per_facet; ++n)
-              facet(n) =
-                  element_connectivity(el, facet_local_connectivity(f, n));
+          auto && facets =
+              mesh.getFacetConnectivity(current_element, ft).transpose();
+
+          for (auto facet : facets) {
+            // facet = facets(f);
 
             UInt first_node_nb_elements = node_to_elem.getNbCols(facet(0));
             counter.resize(first_node_nb_elements);
-            counter.clear();
+            counter.zero();
 
             // loop over the other nodes to search intersecting elements,
             // which are the elements that share another node with the
             // starting element after first_node
-            UInt local_el = 0;
-            auto first_node_elements = node_to_elem.begin(facet(0));
-            auto first_node_elements_end = node_to_elem.end(facet(0));
-            for (; first_node_elements != first_node_elements_end;
-                 ++first_node_elements, ++local_el) {
-              for (UInt n = 1; n < nb_nodes_per_facet; ++n) {
-                auto node_elements_begin = node_to_elem.begin(facet(n));
-                auto node_elements_end = node_to_elem.end(facet(n));
-                counter(local_el) +=
-                    std::count(node_elements_begin, node_elements_end,
-                               *first_node_elements);
+            for (auto && data : enumerate(node_to_elem.getRow(facet(0)))) {
+              auto && local_el = std::get<0>(data);
+              auto && first_node = std::get<1>(data);
+              for (auto n : arange(1, nb_nodes_per_facet)) {
+                auto && node_elements = node_to_elem.getRow(facet(n));
+                counter(local_el) += std::count(
+                    node_elements.begin(), node_elements.end(), first_node);
               }
             }
 
@@ -308,45 +307,54 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
             UInt nb_element_connected_to_facet = 0;
             Element minimum_el = ElementNull;
             connected_elements.clear();
-            for (UInt el_f = 0; el_f < first_node_nb_elements; el_f++) {
-              Element real_el = node_to_elem(facet(0), el_f);
-              if (not(counter(el_f) == nb_nodes_per_facet - 1))
+            for (auto && data : enumerate(node_to_elem.getRow(facet(0)))) {
+
+              if (not(counter(std::get<0>(data)) == nb_nodes_per_facet - 1)) {
                 continue;
+              }
+
+              auto && real_el = std::get<1>(data);
 
               ++nb_element_connected_to_facet;
               minimum_el = std::min(minimum_el, real_el);
               connected_elements.push_back(real_el);
             }
 
-            if (minimum_el != current_element)
+            if (minimum_el != current_element) {
               continue;
+            }
 
             bool full_ghost_facet = false;
 
             UInt n = 0;
-            while (n < nb_nodes_per_facet && mesh.isPureGhostNode(facet(n)))
+            while (n < nb_nodes_per_facet and mesh.isPureGhostNode(facet(n))) {
               ++n;
-            if (n == nb_nodes_per_facet)
+            }
+            if (n == nb_nodes_per_facet) {
               full_ghost_facet = true;
+            }
 
-            if (full_ghost_facet)
+            if (full_ghost_facet) {
               continue;
+            }
 
-            if (boundary_only and nb_element_connected_to_facet != 1)
+            if (boundary_only and nb_element_connected_to_facet != 1) {
               continue;
+            }
 
             std::vector<Element> elements;
 
             // build elements_on_facets: linearized_el must come first
             // in order to store the facet in the correct direction
             // and avoid to invert the sign in the normal computation
-            elements.push_back(current_element);
+            elements.reserve(elements.size() + connected_elements.size());
+            for (auto && connected_element : connected_elements) {
+              elements.push_back(connected_element);
+            }
 
             if (nb_element_connected_to_facet == 1) { /// boundary facet
               elements.push_back(ElementNull);
             } else if (nb_element_connected_to_facet == 2) { /// internal facet
-              elements.push_back(connected_elements[1]);
-
               /// check if facet is in between ghost and normal
               /// elements: if it's the case, the facet is either
               /// ghost or not ghost. The criterion to decide this
@@ -357,8 +365,9 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
               /// it's ghost
               GhostType gt[2] = {_not_ghost, _not_ghost};
 
-              for (UInt el = 0; el < connected_elements.size(); ++el)
+              for (UInt el = 0; el < connected_elements.size(); ++el) {
                 gt[el] = connected_elements[el].ghost_type;
+              }
 
               if ((gt[0] == _not_ghost) xor (gt[1] == _not_ghost)) {
                 UInt prank[2];
@@ -368,19 +377,16 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
 
                 // ugly trick from Marco detected :P
                 bool ghost_one = (gt[0] != _ghost);
-                if (prank[ghost_one] > prank[!ghost_one])
+                if (prank[ghost_one] > prank[!ghost_one]) {
                   facet_ghost_type = _not_ghost;
-                else
+                } else {
                   facet_ghost_type = _ghost;
+                }
 
                 connectivity_facets = &mesh_accessor.getConnectivity(
                     facet_type, facet_ghost_type);
                 element_to_subelement = &mesh_accessor.getElementToSubelementNC(
                     facet_type, facet_ghost_type);
-              }
-            } else { /// facet of facet
-              for (UInt i = 1; i < nb_element_connected_to_facet; ++i) {
-                elements.push_back(connected_elements[i]);
               }
             }
 
@@ -389,30 +395,25 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
 
             /// current facet index
             UInt current_facet = connectivity_facets->size() - 1;
-
+            Element facet_element{facet_type, current_facet, facet_ghost_type};
+            event.getList().push_back(facet_element);
             /// loop on every element connected to current facet and
             /// insert current facet in the first free spot of the
             /// subelement_to_element vector
-            for (UInt elem = 0; elem < elements.size(); ++elem) {
-              Element loc_el = elements[elem];
-
-              if (loc_el.type == _not_defined)
+            for (auto & loc_el : elements) {
+              if (loc_el == ElementNull) {
                 continue;
+              }
 
-              auto & subelement_to_element =
-                  mesh_accessor.getSubelementToElementNC(loc_el.type,
-                                                         loc_el.ghost_type);
-              auto nb_facet_per_loc_element =
-                  subelement_to_element.getNbComponent();
+              auto && subelements =
+                  mesh_accessor.getSubelementToElement(loc_el);
 
-              for (UInt f_in = 0; f_in < nb_facet_per_loc_element; ++f_in) {
-                auto & el = subelement_to_element(loc_el.element, f_in);
-                if (el.type != _not_defined)
+              for (auto & el : subelements) {
+                if (el != ElementNull) {
                   continue;
+                }
 
-                el.type = facet_type;
-                el.element = current_facet;
-                el.ghost_type = facet_ghost_type;
+                el = facet_element;
                 break;
               }
             }
@@ -432,9 +433,12 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
     }
   }
 
+  mesh_facets.sendEvent(event);
+
   // restore the parent of mesh_facet
-  if (mesh_facets_parent)
+  if (mesh_facets_parent != nullptr) {
     mesh_facets.defineMeshParent(*mesh_facets_parent);
+  }
 
   AKANTU_DEBUG_OUT();
 }
@@ -523,7 +527,7 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
 
   std::map<UInt, UInt> renumbering_map;
 
-  RemovedNodesEvent remove_nodes(mesh);
+  RemovedNodesEvent remove_nodes(mesh, AKANTU_CURRENT_FUNCTION);
   Array<UInt> & nodes_removed = remove_nodes.getList();
 
   for (auto ghost_type : ghost_types) {
@@ -547,8 +551,9 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
   }
 
   for (UInt i = 0; i < new_numbering.size(); ++i) {
-    if (new_numbering(i) == UInt(-1))
+    if (new_numbering(i) == UInt(-1)) {
       nodes_removed.push_back(i);
+    }
   }
 
   mesh.sendEvent(remove_nodes);
@@ -609,44 +614,63 @@ void MeshUtils::flipFacets(
       const auto & remote_gconn = std::get<2>(data);
 
       /// skip facet if connectivities are the same
-      if (local_gconn == remote_gconn)
+      if (local_gconn == remote_gconn) {
         continue;
+      }
 
       /// re-arrange connectivity
       auto conn_tmp = conn;
       auto begin = local_gconn.begin();
       auto end = local_gconn.end();
 
-      std::transform(remote_gconn.begin(), remote_gconn.end(), conn.begin(),
-                     [&](auto && gnode) {
-                       auto it = std::find(begin, end, gnode);
-                       AKANTU_DEBUG_ASSERT(it != end, "Node not found");
-                       return conn_tmp(it - begin);
-                     });
+      AKANTU_DEBUG_ASSERT(std::is_permutation(begin, end, remote_gconn.begin()),
+                          "This facets are not just permutation of each other, "
+                              << local_gconn << " and " << remote_gconn);
+
+      for (auto && data : enumerate(remote_gconn)) {
+        auto it = std::find(begin, end, std::get<1>(data));
+        AKANTU_DEBUG_ASSERT(it != end, "Node not found");
+        UInt new_position = it - begin;
+        conn(new_position) = conn_tmp(std::get<0>(data));
+        ;
+      }
+      // std::transform(remote_gconn.begin(), remote_gconn.end(), conn.begin(),
+      //                [&](auto && gnode) {
+      //                  auto it = std::find(begin, end, gnode);
+      //                  AKANTU_DEBUG_ASSERT(it != end, "Node not found");
+      //                  return conn_tmp(it - begin);
+      //                });
 
       /// if 3D, check if facets are just rotated
       if (spatial_dimension == 3) {
-        auto begin = remote_gconn.storage();
+        auto begin = remote_gconn.begin();
         /// find first node
-        auto it = std::find(begin, begin + remote_gconn.size(), local_gconn(0));
+        auto it = std::find(begin, remote_gconn.end(), local_gconn(0));
 
-        UInt n, start = it - begin;
+        UInt n;
+        UInt start = it - begin;
         /// count how many nodes in the received connectivity follow
         /// the same order of those in the local connectivity
         for (n = 1; n < nb_nodes_per_P1_facet &&
                     local_gconn(n) ==
                         remote_gconn((start + n) % nb_nodes_per_P1_facet);
-             ++n)
+             ++n) {
           ;
+        }
 
         /// skip the facet inversion if facet is just rotated
-        if (n == nb_nodes_per_P1_facet)
+        if (n == nb_nodes_per_P1_facet) {
           continue;
+        }
       }
 
       /// update data to invert facet
       auto & element_per_facet = std::get<4>(data);
-      std::swap(element_per_facet[0], element_per_facet[1]);
+      if (element_per_facet[1] !=
+          ElementNull) { // by convention the first facet
+                         // cannot be a ElementNull
+        std::swap(element_per_facet[0], element_per_facet[1]);
+      }
 
       auto & subfacets_of_facet = std::get<3>(data);
       std::swap(subfacets_of_facet(0), subfacets_of_facet(1));
@@ -775,13 +799,11 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
                                         mesh.getMemoryID());
   barycenters.initialize(mesh, _nb_component = spatial_dimension,
                          _spatial_dimension = _all_dimensions);
-  // mesh.initElementTypeMapArray(barycenters, spatial_dimension,
-  // _all_dimensions);
 
   Element element;
   for (auto ghost_type : ghost_types) {
     element.ghost_type = ghost_type;
-    for (auto & type : mesh.elementTypes(_all_dimensions, ghost_type)) {
+    for (const auto & type : mesh.elementTypes(_all_dimensions, ghost_type)) {
       element.type = type;
 
       UInt nb_element = mesh.getNbElement(type, ghost_type);
@@ -799,8 +821,9 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
 
   MeshAccessor mesh_accessor(mesh);
   for (Int sp(spatial_dimension); sp >= 1; --sp) {
-    if (mesh.getNbElement(sp) == 0)
+    if (mesh.getNbElement(sp) == 0) {
       continue;
+    }
 
     for (auto ghost_type : ghost_types) {
       for (auto & type : mesh.elementTypes(sp, ghost_type)) {
@@ -825,7 +848,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
 
     for (auto ghost_type : ghost_types) {
       facet_element.ghost_type = ghost_type;
-      for (auto & type : mesh.elementTypes(sp - 1, ghost_type)) {
+      for (const auto & type : mesh.elementTypes(sp - 1, ghost_type)) {
         facet_element.type = type;
 
         auto & element_to_subelement =
@@ -843,8 +866,8 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
           auto nb_nodes_per_facet =
               mesh.getNbNodesPerElement(Mesh::getP1ElementType(type));
 
-          // count the number of node in common between the facet and the other
-          // element connected to the nodes of the facet
+          // count the number of node in common between the facet and the
+          // other element connected to the nodes of the facet
           for (auto node : arange(nb_nodes_per_facet)) {
             for (auto & elem : nodes_to_elements.getRow(facet(node))) {
               auto cit = element_seen_counter.find(elem);
@@ -859,8 +882,9 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
           // check which are the connected elements
           std::vector<Element> connected_elements;
           for (auto && cit : element_seen_counter) {
-            if (cit.second >= nb_nodes_per_facet)
+            if (cit.second == nb_nodes_per_facet) {
               connected_elements.push_back(cit.first);
+            }
           }
 
           // add the connected elements as sub-elements

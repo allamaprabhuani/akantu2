@@ -8,7 +8,6 @@
  *
  * @brief  header for dumper restart
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -29,8 +28,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __IOHLPER_DUMPER_RESTART_H__
-#define __IOHLPER_DUMPER_RESTART_H__
+#ifndef IOHELPER_DUMPER_RESTART_H_
+#define IOHELPER_DUMPER_RESTART_H_
 /* -------------------------------------------------------------------------- */
 #include <map>
 #include <string>
@@ -39,7 +38,7 @@
 #include "file_manager.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 
 /** Class DumperRestart
@@ -117,10 +116,7 @@ void DumperRestart::visit(T & visited){
 /* -------------------------------------------------------------------------- */
 
 
-__END_IOHELPER__
+}
 
 
-#endif /* __IOHLPER_DUMPER_RESTART_H__ */
-
-
-
+#endif /* IOHELPER_DUMPER_RESTART_H_ */

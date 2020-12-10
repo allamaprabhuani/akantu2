@@ -6,7 +6,6 @@
  *
  * @brief  Specializaton of material class for the igfem elastic material
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -16,7 +15,7 @@
 #include "material_igfem_elastic.hh"
 #include "material_elastic.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
@@ -87,8 +86,7 @@ void MaterialIGFEMElastic<spatial_dimension>::updateElasticInternals(
         this->template setSubMaterial<_igfem_triangle_5>(element_list,
                                                          ghost_type);
       else
-        AKANTU_ERROR(
-            "There is currently no other IGFEM type implemented");
+        AKANTU_ERROR("There is currently no other IGFEM type implemented");
 
       UInt nb_element = this->element_filter(el_type, ghost_type).getSize();
       UInt nb_quads = this->fem->getNbIntegrationPoints(el_type);
@@ -135,7 +133,7 @@ void MaterialIGFEMElastic<spatial_dimension>::computeStress(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialIGFEMElastic<spatial_dimension>::computeTangentModuli(
-    __attribute__((unused)) const ElementType & el_type,
+    __attribute__((unused)) ElementType el_type,
     Array<Real> & tangent_matrix,
     __attribute__((unused)) GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -240,4 +238,4 @@ void MaterialIGFEMElastic<spatial_dimension>::onElementsAdded(
 
 INSTANTIATE_MATERIAL(MaterialIGFEMElastic);
 
-__END_AKANTU__
+} // namespace akantu

@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,8 +32,8 @@
 #include <petscvec.h>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_SOLVER_VECTOR_PETSC_HH__
-#define __AKANTU_SOLVER_VECTOR_PETSC_HH__
+#ifndef AKANTU_SOLVER_VECTOR_PETSC_HH_
+#define AKANTU_SOLVER_VECTOR_PETSC_HH_
 
 namespace akantu {
 class DOFManagerPETSc;
@@ -49,9 +48,9 @@ namespace internal {
   public:
     virtual ~PETScVector() = default;
 
-    operator Vec&() { return x; }
-    operator const Vec&() const { return x; }
-    
+    operator Vec &() { return x; }
+    operator const Vec &() const { return x; }
+
     Int size() const {
       PetscInt n;
       PETSc_call(VecGetSize, x, &n);
@@ -82,21 +81,21 @@ public:
   SolverVectorPETSc(const SolverVectorPETSc & vector,
                     const ID & id = "solver_vector_petsc");
 
-  SolverVectorPETSc(Vec vec, DOFManagerPETSc & dof_manager,
+  SolverVectorPETSc(Vec x, DOFManagerPETSc & dof_manager,
                     const ID & id = "solver_vector_petsc");
 
   ~SolverVectorPETSc() override;
 
   // resize the vector to the size of the problem
   void resize() override;
-  void clear() override;
+  void set(Real val) override;
 
   operator const Array<Real> &() const override;
-  
+
   SolverVector & operator+(const SolverVector & y) override;
   SolverVector & operator=(const SolverVector & y) override;
   SolverVectorPETSc & operator=(const SolverVectorPETSc & y);
-  
+
   /// get values using processors global indexes
   void getValues(const Array<Int> & idx, Array<Real> & values) const;
 
@@ -115,7 +114,7 @@ public:
   Int localSize() const override { return internal::PETScVector::local_size(); }
 
   void printself(std::ostream & stream, int indent = 0) const override;
-  
+
 protected:
   void applyModifications();
   void updateGhost();
@@ -137,7 +136,7 @@ namespace internal {
                  array.storage(), &x);
     }
 
-    ~PETScWrapedVector() { PETSc_call(VecDestroy, &x); }
+    ~PETScWrapedVector() override { PETSc_call(VecDestroy, &x); }
 
   private:
     Array array;
@@ -151,7 +150,7 @@ namespace internal {
     }
     PETScLocalVector(const SolverVectorPETSc & g)
         : PETScLocalVector(g.getVec()) {}
-    ~PETScLocalVector() {
+    ~PETScLocalVector() override {
       PETSc_call(VecRestoreLocalVectorRead, g, x);
       PETSc_call(VecDestroy, &x);
     }
@@ -166,7 +165,7 @@ namespace internal {
       PETSc_call(VecGetLocalVectorRead, g, x);
     }
     PETScLocalVector(SolverVectorPETSc & g) : PETScLocalVector(g.getVec()) {}
-    ~PETScLocalVector() {
+    ~PETScLocalVector() override {
       PETSc_call(VecRestoreLocalVectorRead, g, x);
       PETSc_call(VecDestroy, &x);
     }
@@ -202,4 +201,4 @@ namespace internal {
 
 } // namespace akantu
 
-#endif /* __AKANTU_SOLVER_VECTOR_PETSC_HH__ */
+#endif /* AKANTU_SOLVER_VECTOR_PETSC_HH_ */

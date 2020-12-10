@@ -162,7 +162,7 @@ void MaterialCohesiveBilinearFriction<spatial_dimension>::computeTraction(
       *res_sliding_it =
           tangential_opening_norm - (std::abs(tau) / friction_penalty);
     } else {
-      friction_force_it->clear();
+      friction_force_it->zero();
     }
 
     *traction_it += *friction_force_it;
@@ -173,9 +173,12 @@ void MaterialCohesiveBilinearFriction<spatial_dimension>::computeTraction(
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialCohesiveBilinearFriction<spatial_dimension>::computeTangentTraction(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
-    __attribute__((unused)) const Array<Real> & normal, GhostType ghost_type) {
+void MaterialCohesiveBilinearFriction<
+    spatial_dimension>::computeTangentTraction(ElementType el_type,
+                                               Array<Real> & tangent_matrix,
+                                               __attribute__((unused))
+                                               const Array<Real> & normal,
+                                               GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   /// define iterators
@@ -273,6 +276,7 @@ void MaterialCohesiveBilinearFriction<spatial_dimension>::computeTangentTraction
 }
 /* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(cohesive_bilinear_friction, MaterialCohesiveBilinearFriction);
+INSTANTIATE_MATERIAL(cohesive_bilinear_friction,
+                     MaterialCohesiveBilinearFriction);
 
-} // akantu
+} // namespace akantu

@@ -8,7 +8,6 @@
  *
  * @brief  Internal field for cohesive elements
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
 /* -------------------------------------------------------------------------- */
 #include "internal_field.hh"
 
-#ifndef __AKANTU_COHESIVE_INTERNAL_FIELD_HH__
-#define __AKANTU_COHESIVE_INTERNAL_FIELD_HH__
+#ifndef AKANTU_COHESIVE_INTERNAL_FIELD_HH_
+#define AKANTU_COHESIVE_INTERNAL_FIELD_HH_
 
 namespace akantu {
 
@@ -62,6 +61,6 @@ public:
   void initialize(UInt nb_component) override;
 };
 
-} // akantu
+} // namespace akantu
 
-#endif /* __AKANTU_COHESIVE_INTERNAL_FIELD_HH__ */
+#endif /* AKANTU_COHESIVE_INTERNAL_FIELD_HH_ */

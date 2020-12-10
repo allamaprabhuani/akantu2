@@ -7,7 +7,6 @@
  *
  * @brief A Documented file.
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -56,7 +55,7 @@ TEST(Communicator, ReceiveAny) {
   auto && rank = c.whoAmI();
   auto && size = c.getNbProc();
 
-  for (auto n : arange(100)) {
+  for (auto n [[gnu::unused]] : arange(100)) {
     AKANTU_DEBUG_INFO("ROUND " << n);
     auto tag = Tag::genTag(0, 1, 0);
 
@@ -72,12 +71,12 @@ TEST(Communicator, ReceiveAny) {
         for (auto s : enumerate(sends)) {
           if (std::get<0>(s) != 0)
             msgs += ", ";
-          msgs += std::to_string(std::get<0>(s) + 1) + ": "
-                  + std::to_string(std::get<1>(s));
+          msgs += std::to_string(std::get<0>(s) + 1) + ": " +
+                  std::to_string(std::get<1>(s));
         }
         return msgs;
       }());
-      
+
       int nb_recvs = 0;
       for (auto && data : enumerate(sends)) {
         auto & send = std::get<1>(data);
@@ -110,8 +109,8 @@ TEST(Communicator, ReceiveAny) {
         for (auto s : enumerate(recv)) {
           if (std::get<0>(s) != 0)
             msgs += ", ";
-          msgs += std::to_string(std::get<0>(s) + 1) + ": "
-                  + std::to_string(std::get<1>(s));
+          msgs += std::to_string(std::get<0>(s) + 1) + ": " +
+                  std::to_string(std::get<1>(s));
         }
         return msgs;
       }());

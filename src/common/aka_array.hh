@@ -11,7 +11,6 @@
  * This container differs from the std::vector from the fact it as 2 dimensions
  * a main dimension and the size stored per entries
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,35 +29,36 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-/* -------------------------------------------------------------------------- */
-
-#ifndef __AKANTU_VECTOR_HH__
-#define __AKANTU_VECTOR_HH__
-
 /* -------------------------------------------------------------------------- */
 #include "aka_common.hh"
+#include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 #include <typeinfo>
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+#ifndef AKANTU_ARRAY_HH_
+#define AKANTU_ARRAY_HH_
+
+
 namespace akantu {
 
 /// class that afford to store vectors in static memory
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 class ArrayBase {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  explicit ArrayBase(ID id = "") : id(std::move(id)) {}
+  explicit ArrayBase(const ID &id = "") : id(id) {}
   ArrayBase(const ArrayBase & other, const ID & id = "") {
-    this->id = (id == "") ? other.id : id;
+    this->id = (id.empty()) ? other.id : id;
   }
 
   ArrayBase(ArrayBase && other) = default;
   ArrayBase & operator=(const ArrayBase & other) = default;
-  // ArrayBase & operator=(ArrayBase && other) = default;
+  ArrayBase & operator=(ArrayBase && other) noexcept = default;
 
   virtual ~ArrayBase() = default;
 
@@ -69,8 +69,10 @@ public:
   /// get the amount of space allocated in bytes
   virtual UInt getMemorySize() const = 0;
 
-  /// set the size to zero without freeing the allocated space
-  inline void empty();
+  // changed empty to match std::vector empty
+  inline bool empty() const __attribute__((warn_unused_result)) {
+    return size_ == 0;
+  }
 
   /// function to print the containt of the class
   virtual void printself(std::ostream & stream, int indent = 0) const = 0;
@@ -93,7 +95,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// id of the vector
-  ID id{""};
+  ID id;
 
   /// the size used
   UInt size_{0};
@@ -145,7 +147,7 @@ public:
   using const_reference = const value_type &;
 
 public:
-  virtual ~ArrayDataLayer() = default;
+   ~ArrayDataLayer() override = default;
 
   /// Allocation of a new vector
   explicit ArrayDataLayer(UInt size = 0, UInt nb_component = 1,
@@ -165,10 +167,10 @@ public:
   ArrayDataLayer & operator=(const ArrayDataLayer & other);
 
   // move constructor
-  ArrayDataLayer(ArrayDataLayer && other);
+  ArrayDataLayer(ArrayDataLayer && other) noexcept = default;
 
   // move assign
-  ArrayDataLayer & operator=(ArrayDataLayer && other);
+  ArrayDataLayer & operator=(ArrayDataLayer && other) noexcept = default;
 
 protected:
   // deallocate the memory
@@ -188,7 +190,8 @@ public:
 
   /// append a Vector or a Matrix
   template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
   inline void push_back(const C<T> & new_elem);
 
   /// changes the allocated size but not the size, if new_size = 0, the size is
@@ -235,16 +238,16 @@ public:
 
   ~Array() override;
 
-  Array() : Array(0) {};
-  
+  Array() : Array(0){};
+
   /// Allocation of a new vector
   explicit Array(UInt size, UInt nb_component = 1, const ID & id = "");
 
   /// Allocation of a new vector with a default value
   explicit Array(UInt size, UInt nb_component, const_reference value,
-        const ID & id = "");
+                 const ID & id = "");
 
-  /// Copy constructor (deep copy if deep=true)
+  /// Copy constructor
   Array(const Array & vect, const ID & id = "");
 
   /// Copy constructor (deep copy)
@@ -254,10 +257,10 @@ public:
   Array & operator=(const Array & other);
 
   // move constructor
-  Array(Array && other) = default;
+  Array(Array && other) noexcept = default;
 
   // move assign
-  Array & operator=(Array && other) = default;
+  Array & operator=(Array && other)  noexcept = default;
 
   /* ------------------------------------------------------------------------ */
   /* Iterator                                                                 */
@@ -327,13 +330,14 @@ public:
   UInt find(const_reference elem) const;
 
   /// @see Array::find(const_reference elem) const
-  UInt find(T elem[]) const;
+//  UInt find(T elem[]) const;
 
   inline void push_back(const_reference value) { parent::push_back(value); }
 
   /// append a Vector or a Matrix
   template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
   inline void push_back(const C<T> & new_elem) {
     parent::push_back(new_elem);
   }
@@ -349,7 +353,8 @@ public:
 
   /// @see Array::find(const_reference elem) const
   template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
   inline UInt find(const C<T> & elem);
 
   /// set all entries of the array to the value t
@@ -358,13 +363,16 @@ public:
     std::fill_n(this->values, this->size_ * this->nb_component, t);
   }
 
-  /// set all entries of the array to 0
-  inline void clear() { set(T()); }
+  inline void zero() { this->set({}); }
+
+  /// resize the array to 0
+  inline void clear() { this->resize(0); }
 
   /// set all tuples of the array to a given vector or matrix
   /// @param vm Matrix or Vector to fill the array with
   template <template <typename> class C,
-            typename = std::enable_if_t<aka::is_tensor<C<T>>::value>>
+            typename = std::enable_if_t<aka::is_tensor<C<T>>::value or
+                                        aka::is_tensor_proxy<C<T>>::value>>
   inline void set(const C<T> & vm);
 
   /// Append the content of the other array to the current one
@@ -427,6 +435,5 @@ inline std::ostream & operator<<(std::ostream & stream,
 } // namespace akantu
 
 #include "aka_array_tmpl.hh"
-#include "aka_types.hh"
 
-#endif /* __AKANTU_VECTOR_HH__ */
+#endif /* AKANTU_ARRAY_HH_ */

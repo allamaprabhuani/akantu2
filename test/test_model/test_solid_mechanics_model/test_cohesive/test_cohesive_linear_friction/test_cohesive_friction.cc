@@ -9,7 +9,6 @@
  * @brief  testing the correct behavior of the friction law included in
  * the cohesive linear law, in implicit
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -104,7 +103,8 @@ int main(int argc, char * argv[]) {
         disp(n, 1) += increment;
     }
 
-    model.solveStepCohesive<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+    model.solveStepCohesive<_scm_newton_raphson_tangent,
+                            SolveConvergenceCriteria::_increment>(
         tolerance, error, 25, load_reduction, tol_increase_factor);
 
     if (error > tolerance) {
@@ -124,7 +124,8 @@ int main(int argc, char * argv[]) {
         disp(n, 1) -= increment;
     }
 
-    model.solveStepCohesive<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+    model.solveStepCohesive<_scm_newton_raphson_tangent,
+                            SolveConvergenceCriteria::_increment>(
         tolerance, error, 25, load_reduction, tol_increase_factor);
 
     if (error > tolerance) {
@@ -146,7 +147,8 @@ int main(int argc, char * argv[]) {
         disp(n, 0) += increment;
     }
 
-    model.solveStepCohesive<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+    model.solveStepCohesive<_scm_newton_raphson_tangent,
+                            SolveConvergenceCriteria::_increment>(
         tolerance, error, 25, load_reduction, tol_increase_factor);
 
     if (error > tolerance) {
@@ -186,7 +188,8 @@ int main(int argc, char * argv[]) {
         disp(n, 0) -= increment;
     }
 
-    model.solveStepCohesive<_scm_newton_raphson_tangent, SolveConvergenceCriteria::_increment>(
+    model.solveStepCohesive<_scm_newton_raphson_tangent,
+                            SolveConvergenceCriteria::_increment>(
         tolerance, error, 25, load_reduction, tol_increase_factor);
 
     if (error > tolerance) {

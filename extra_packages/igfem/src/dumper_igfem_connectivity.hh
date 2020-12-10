@@ -6,21 +6,20 @@
  *
  * @brief  Iterator for the IGFEM connectivity
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  */
 
-#ifndef __AKANTU_DUMPER_IGFEM_CONNECTIVITY_HH__
-#define __AKANTU_DUMPER_IGFEM_CONNECTIVITY_HH__
+#ifndef AKANTU_DUMPER_IGFEM_CONNECTIVITY_HH_
+#define AKANTU_DUMPER_IGFEM_CONNECTIVITY_HH_
 /* -------------------------------------------------------------------------- */
 #include "dumper_igfem_element_iterator.hh"
 #include "dumper_igfem_generic_elemental_field.hh"
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
-__BEGIN_AKANTU_DUMPER__
+namespace akantu {
+namespace dumpers {
 /* -------------------------------------------------------------------------- */
 
 template <class types>
@@ -33,7 +32,7 @@ public:
   /* ------------------------------------------------------------------------ */
 
   typedef igfem_element_iterator<types,
-                                 dumper::igfem_connectivity_field_iterator>
+                                 dumpers::igfem_connectivity_field_iterator>
       parent;
   typedef typename types::return_type return_type;
   typedef typename types::field_type field_type;
@@ -110,8 +109,8 @@ public:
 
 /* -------------------------------------------------------------------------- */
 
-__END_AKANTU_DUMPER__
-__END_AKANTU__
+} // namespace dumpers
+} // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-#endif /*__AKANTU_DUMPER_IGFEM_CONNECTIVITY_HH__ */
+#endif /*AKANTU_DUMPER_IGFEM_CONNECTIVITY_HH_ */

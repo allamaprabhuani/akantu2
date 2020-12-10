@@ -13,7 +13,6 @@
  * as well as
  * [] Manual of DIANA FEA Theory manual v.10.2 Section 37.6
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -184,6 +183,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
   MaterialThermal<spatial_dimension>::computeStress(el_type, ghost_type);
 
   auto sigma_th_it = this->sigma_th(el_type, ghost_type).begin();
@@ -211,8 +211,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStress(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u, Matrix<Real> & sigma,
-    Tensor3<Real> & sigma_v, Real & sigma_th, Real dam) {
+    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
+    Matrix<Real> & sigma, Tensor3<Real> & sigma_v, Real sigma_th, Real dam) {
 
   // Wikipedia convention:
   // 2*eps_ij (i!=j) = voigt_eps_I
@@ -250,14 +250,15 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeStressOnQuad(
     UInt i = voigt_h::vec[I][0];
     UInt j = voigt_h::vec[I][1];
 
-    sigma(i, j) = sigma(j, i) = voigt_stress(I) + (i == j) * sigma_th;
+    sigma(i, j) = sigma(j, i) =
+        voigt_stress(I) + Math::kronecker(i, j) * sigma_th;
   }
 }
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::updateSigmaViscOnQuad(
-    Matrix<Real> & grad_u, Matrix<Real> & previous_grad_u,
+    const Matrix<Real> & grad_u, const Matrix<Real> & previous_grad_u,
     Tensor3<Real> & sigma_v, Real dam) {
 
   Matrix<Real> grad_delta_u(grad_u);
@@ -308,7 +309,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computePotentialEnergy(
     ElementType el_type) {
   AKANTU_DEBUG_IN();
 
-  // MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type);
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
+  MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type);
 
   auto epot = this->potential_energy(el_type).begin();
   auto sigma_v_it = this->sigma_v(el_type).begin(
@@ -362,9 +364,14 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep() {
+void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep(
+    bool converged) {
 
-  Material::afterSolveStep();
+  Material::afterSolveStep(converged);
+
+  if (not converged) {
+    return;
+  }
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
@@ -396,8 +403,7 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::afterSolveStep() {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuli(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
@@ -417,7 +423,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeTangentModuliOnQuad(
   Real E_ef = this->Einf * (1 - dam);
 
   for (UInt k = 0; k < this->Eta.size(); ++k) {
-    Real E_ef_v, exp_dt_lambda;
+    Real E_ef_v;
+    Real exp_dt_lambda;
     this->computeEffectiveModulus(k, E_ef_v, exp_dt_lambda, dam);
     E_ef += E_ef_v;
   }
@@ -467,12 +474,12 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::updateDissipatedEnergy(
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialViscoelasticMaxwell<spatial_dimension>::
-    updateDissipatedEnergyOnQuad(const Matrix<Real> grad_u,
-                                 const Matrix<Real> previous_grad_u,
-                                 const Matrix<Real> sigma,
-                                 const Matrix<Real> previous_sigma,
+    updateDissipatedEnergyOnQuad(const Matrix<Real> & grad_u,
+                                 const Matrix<Real> & previous_grad_u,
+                                 const Matrix<Real> & sigma,
+                                 const Matrix<Real> & previous_sigma,
                                  Real & dis_energy, Real & integral,
-                                 Real & mech_work, const Real & pot_energy) {
+                                 Real & mech_work, Real pot_energy) {
 
   Real dt = this->model.getTimeStep();
 
@@ -599,29 +606,32 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy(
 template <UInt spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
     const std::string & type) {
-  if (type == "dissipated")
+  if (type == "dissipated") {
     return getDissipatedEnergy();
-  else if (type == "potential")
+  }
+  if (type == "potential") {
     return getPotentialEnergy();
-  else if (type == "work")
+  }
+  if (type == "work") {
     return getMechanicalWork();
-  else
-    return MaterialElastic<spatial_dimension>::getEnergy(type);
+  }
+  return MaterialElastic<spatial_dimension>::getEnergy(type);
 }
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getEnergy(
     const std::string & energy_id, ElementType type, UInt index) {
-  if (energy_id == "dissipated")
+  if (energy_id == "dissipated") {
     return getDissipatedEnergy(type, index);
-  else if (energy_id == "potential")
+  }
+  if (energy_id == "potential") {
     return getPotentialEnergy(type, index);
-  else if (energy_id == "work")
+  }
+  if (energy_id == "work") {
     return getMechanicalWork(type, index);
-  else
-    return MaterialElastic<spatial_dimension>::getEnergy(energy_id, type,
-                                                         index);
+  }
+  return MaterialElastic<spatial_dimension>::getEnergy(energy_id, type, index);
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
@@ -633,8 +643,8 @@ void MaterialViscoelasticMaxwell<spatial_dimension>::computeEffectiveModulus(
 
   if (Math::are_float_equal(exp_dt_lambda, 1)) {
     E_ef_v = (1 - dam) * this->Ev(visc_nb);
-  // } else if (Math::are_float_equal(exp_dt_lambda, 0)) {
-  //   E_ef_v = 0.;
+    // } else if (Math::are_float_equal(exp_dt_lambda, 0)) {
+    //   E_ef_v = 0.;
   } else {
     E_ef_v = std::min((1 - exp_dt_lambda) * (1 - dam) * this->Ev(visc_nb) *
                           lambda / dt,

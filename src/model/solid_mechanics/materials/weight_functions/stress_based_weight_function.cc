@@ -8,7 +8,6 @@
  *
  * @brief  implementation of the stres based weight function classes
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -120,4 +119,4 @@ void StressBasedWeightFunction::updatePrincipalStress(__attribute__((unused))
   //   AKANTU_DEBUG_OUT();
 }
 
-} // akantu
+} // namespace akantu

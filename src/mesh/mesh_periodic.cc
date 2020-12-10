@@ -1,5 +1,5 @@
 /**
- * @file   mesh_pbc.cc
+ * @file   mesh_periodic.cc
  *
  * @author Nicolas Richart
  *
@@ -7,7 +7,6 @@
  *
  * @brief Implementation of the perdiodicity capabilities in the mesh
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2011 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -82,7 +81,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction, const ID & list_1,
 
 namespace {
   struct NodeInfo {
-    NodeInfo() {}
+    NodeInfo() = default;
     NodeInfo(UInt spatial_dimension) : position(spatial_dimension) {}
     NodeInfo(UInt node, const Vector<Real> & position,
              const SpatialDirection & direction)
@@ -91,15 +90,16 @@ namespace {
       this->position(direction) = 0.;
     }
 
-    NodeInfo(const NodeInfo & other)
-        : node(other.node), position(other.position),
-          direction_position(other.direction_position) {}
+    NodeInfo(const NodeInfo & other) = default;
+    NodeInfo(NodeInfo && other) noexcept = default;
+    NodeInfo & operator=(const NodeInfo & other) = default;
+    NodeInfo & operator=(NodeInfo && other)  = default;
 
     UInt node{0};
     Vector<Real> position;
     Real direction_position{0.};
   };
-}
+} // namespace
 
 /* -------------------------------------------------------------------------- */
 // left is for lower values on direction and right for highest values
@@ -129,7 +129,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
     }
     auto && info = NodeInfo(node, pos, direction);
     bbox += info.position;
-    return info;
+    return std::move(info);
   };
 
   std::transform(list_left.begin(), list_left.end(), nodes_left.begin(),
@@ -143,15 +143,15 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
   std::vector<UInt> new_nodes;
   if (is_distributed) {
-    NewNodesEvent event;
+    NewNodesEvent event(AKANTU_CURRENT_FUNCTION);
 
     /* ---------------------------------------------------------------------- */
     // function to send nodes in bboxes intersections
     auto extract_and_send_nodes = [&](const auto & bbox, const auto & node_list,
                                       auto & buffers, auto proc, auto cnt) {
-
-      buffers.resize(buffers.size() + 1);
-      auto & buffer = buffers.back();
+      // buffers.resize(buffers.size() + 1);
+      buffers.push_back(std::make_unique<DynamicCommunicationBuffer>());
+      auto & buffer = *buffers.back();
 
       // std::cout << "Sending to " << proc << std::endl;
       for (auto & info : node_list) {
@@ -192,8 +192,9 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
         }
       }
 
-      auto tag = Tag::genTag(prank, 10 * direction + cnt, Tag::_PERIODIC_NODES);
-      // std::cout << "SBuffer size " << buffer.size() << " " << tag << std::endl;
+      auto tag = Tag::genTag(prank, 10 * direction + cnt, Tag::_periodic_nodes);
+      // std::cout << "SBuffer size " << buffer.size() << " " << tag <<
+      // std::endl;
       return communicator->asyncSend(buffer, proc, tag);
     };
 
@@ -202,10 +203,10 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
     auto recv_and_extract_nodes = [&](auto & node_list, const auto proc,
                                       auto cnt) {
       DynamicCommunicationBuffer buffer;
-      auto tag = Tag::genTag(proc, 10 * direction + cnt, Tag::_PERIODIC_NODES);
+      auto tag = Tag::genTag(proc, 10 * direction + cnt, Tag::_periodic_nodes);
       communicator->receive(buffer, proc, tag);
-      // std::cout << "RBuffer size " << buffer.size() << " " << tag << std::endl;
-      // std::cout << "Receiving from " << proc << std::endl;
+      // std::cout << "RBuffer size " << buffer.size() << " " << tag <<
+      // std::endl; std::cout << "Receiving from " << proc << std::endl;
 
       while (not buffer.empty()) {
         Vector<Real> pos(spatial_dimension);
@@ -233,7 +234,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
           UInt nb_slaves;
           buffer >> nb_slaves;
           // std::cout << " master of " << nb_slaves << " nodes : [";
-          for (auto ns[[gnu::unused]] : arange(nb_slaves)) {
+          for (auto ns [[gnu::unused]] : arange(nb_slaves)) {
             UInt gslave_node;
             buffer >> gslave_node;
             // std::cout << (ns == 0 ? "" : ", ") << gslave_node;
@@ -245,8 +246,9 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
           // std::cout << "]";
         }
         // std::cout << std::endl;
-        if (local_node != UInt(-1))
+        if (local_node != UInt(-1)) {
           continue;
+        }
 
         local_node = nodes->size();
 
@@ -269,7 +271,7 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
         bbox_right.intersection(bbox_left, *communicator);
 
     std::vector<CommunicationRequest> send_requests;
-    std::vector<DynamicCommunicationBuffer> send_buffers;
+    std::vector<std::unique_ptr<DynamicCommunicationBuffer>> send_buffers;
 
     // sending nodes in the common zones
     auto send_intersections = [&](auto & intersections, auto send_count) {
@@ -302,15 +304,14 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
       }
     };
 
-
     send_intersections(intersections_with_left, 0);
     send_intersections(intersections_with_right, 1);
 
     recv_intersections(intersections_with_right, 0);
     recv_intersections(intersections_with_right, 1);
 
-    communicator->waitAll(send_requests);
-    communicator->freeCommunicationRequest(send_requests);
+    Communicator::waitAll(send_requests);
+    Communicator::freeCommunicationRequest(send_requests);
 
     this->sendEvent(event);
   } // end distributed work
@@ -325,8 +326,9 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
   // function to change the master of nodes
   auto updating_master = [&](auto & old_master, auto & new_master) {
-    if (old_master == new_master)
+    if (old_master == new_master) {
       return;
+    }
 
     auto slaves = periodic_master_slave.equal_range(old_master);
     AKANTU_DEBUG_ASSERT(
@@ -397,23 +399,29 @@ void Mesh::makePeriodic(const SpatialDirection & direction,
 
   // matching the nodes from 2 lists
   auto match_pairs = [&](auto & nodes_1, auto & nodes_2) {
-    auto it = nodes_2.begin();
+    // Guillaume to Nico: It seems that the list of nodes is not sorted
+    // as it was: therefore the loop cannot be truncated anymore.
+    // Otherwise many pairs are missing.
+    // I replaced (temporarily?) for the N^2 loop so as not to miss
+    // any pbc pair.
+    //
 
+    // auto it = nodes_2.begin();
     // for every nodes in 1st list
     for (auto && info1 : nodes_1) {
       auto & pos1 = info1.position;
-      auto it_cur = it;
+      // auto it_cur = it;
 
       // try to find a match in 2nd list
-      for (; it_cur != nodes_2.end(); ++it_cur) {
-        auto & info2 = *it_cur;
+      for (auto && info2 : nodes_2) {
+        // auto & info2 = *it_cur;
         auto & pos2 = info2.position;
 
         auto dist = pos1.distance(pos2) / length;
         if (dist < tolerance) {
           // handles the found matches
           match_found(info1, info2);
-          it = it_cur;
+          // it = it_cur;
           break;
         }
       }
@@ -452,4 +460,4 @@ void Mesh::updatePeriodicSynchronizer() {
   this->periodic_node_synchronizer->update();
 }
 
-} // akantu
+} // namespace akantu

@@ -8,7 +8,6 @@
  *
  * @brief  2D specialization of the akantu::PlaneStressToolbox class
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -30,8 +29,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH__
-#define __AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH__
+#ifndef AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH_
+#define AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH_
 
 namespace akantu {
 
@@ -74,12 +73,14 @@ public:
   /* ------------------------------------------------------------------------ */
   void computeStress(ElementType el_type, GhostType ghost_type) override {
     ParentMaterial::computeStress(el_type, ghost_type);
-    if (this->plane_stress)
+    if (this->plane_stress) {
       computeThirdAxisDeformation(el_type, ghost_type);
+    }
   }
 
   /* ------------------------------------------------------------------------ */
-  virtual void computeThirdAxisDeformation(ElementType, GhostType) {}
+  virtual void computeThirdAxisDeformation(ElementType /*unused*/,
+                                           GhostType /*unused*/) {}
 
   /// Computation of Cauchy stress tensor in the case of finite deformation
   void computeAllCauchyStresses(GhostType ghost_type = _not_ghost) override {
@@ -119,7 +120,7 @@ protected:
   /// Plane stress or plane strain
   bool plane_stress;
 
-  /// For non linear materials, the \epsilon_{zz} might be required
+  /// For non linear materials, the \f[\epsilon_{zz}\f] might be required
   bool initialize_third_axis_deformation;
 };
 
@@ -161,4 +162,4 @@ inline PlaneStressToolbox<2, Material>::PlaneStressToolbox(
 
 } // namespace akantu
 
-#endif /* __AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH__ */
+#endif /* AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH_ */

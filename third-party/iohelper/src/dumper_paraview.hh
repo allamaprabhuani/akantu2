@@ -8,7 +8,6 @@
  *
  * @brief  header for paraview dumper
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -28,8 +27,8 @@
  *
  */
 
-#ifndef __IOHELPER_DUMPER_PARAVIEW_H__
-#define __IOHELPER_DUMPER_PARAVIEW_H__
+#ifndef IOHELPER_DUMPER_PARAVIEW_H_
+#define IOHELPER_DUMPER_PARAVIEW_H_
 /* -------------------------------------------------------------------------- */
 #include <map>
 #include <string>
@@ -38,7 +37,7 @@
 #include "paraview_helper.hh"
 /* -------------------------------------------------------------------------- */
 
-__BEGIN_IOHELPER__
+namespace iohelper {
 
 /** Class DumperParaview
  * Implementation of a dumper to paraview vtu files
@@ -101,8 +100,8 @@ private:
 
 /* -------------------------------------------------------------------------- */
 
-__END_IOHELPER__
+}
 
 
 
-#endif /* __IOHELPER_DUMPER_PARAVIEW_H__ */
+#endif /* IOHELPER_DUMPER_PARAVIEW_H_ */

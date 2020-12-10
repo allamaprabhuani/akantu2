@@ -8,7 +8,6 @@
  *
  * @brief  template of variable
  *
- * @section LICENSE
  *
  * Copyright (©) 2014-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -33,12 +32,12 @@
 #include <type_traits>
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH__
-#define __AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH__
+#ifndef AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH_
+#define AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH_
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
-namespace dumper {
+namespace dumpers {
   /* --------------------------------------------------------------------------
    */
 
@@ -117,4 +116,4 @@ namespace dumper {
 } // namespace dumper
 } // namespace akantu
 
-#endif /* __AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH__ */
+#endif /* AKANTU_DUMPER_IOHELPER_TMPL_VARIABLE_HH_ */

@@ -7,7 +7,6 @@
  *
  * @brief  SolidMechanics patch tests fixture
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,8 +31,8 @@
 #include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PATCH_TEST_LINEAR_SOLID_MECHANICS_FIXTURE_HH__
-#define __AKANTU_PATCH_TEST_LINEAR_SOLID_MECHANICS_FIXTURE_HH__
+#ifndef AKANTU_PATCH_TEST_LINEAR_SOLID_MECHANICS_FIXTURE_HH_
+#define AKANTU_PATCH_TEST_LINEAR_SOLID_MECHANICS_FIXTURE_HH_
 
 /* -------------------------------------------------------------------------- */
 template <typename tuple_>
@@ -50,6 +49,46 @@ public:
     parent::applyBC();
     auto & displacement = this->model->getDisplacement();
     this->applyBConDOFs(displacement);
+  }
+
+  void checkForces() {
+    auto & mat = this->model->getMaterial(0);
+    auto & internal_forces = this->model->getInternalForce();
+    auto & external_forces = this->model->getExternalForce();
+    auto dim = this->dim;
+
+    Matrix<Real> sigma =
+        make_view(mat.getStress(this->type), dim, dim).begin()[0];
+
+    external_forces.zero();
+    if (dim > 1) {
+      for (auto & eg : this->mesh->iterateElementGroups()) {
+        this->model->applyBC(BC::Neumann::FromHigherDim(sigma), eg.getName());
+      }
+    } else {
+      external_forces(0) = -sigma(0, 0);
+      external_forces(1) = sigma(0, 0);
+    }
+
+    Real force_norm_inf = -std::numeric_limits<Real>::max();
+
+    Vector<Real> total_force(dim);
+    total_force.zero();
+
+    for (auto && f : make_view(internal_forces, dim)) {
+      total_force += f;
+      force_norm_inf = std::max(force_norm_inf, f.template norm<L_inf>());
+    }
+
+    EXPECT_NEAR(0, total_force.template norm<L_inf>() / force_norm_inf, 1e-9);
+
+    for (auto && tuple : zip(make_view(internal_forces, dim),
+                             make_view(external_forces, dim))) {
+      auto && f_int = std::get<0>(tuple);
+      auto && f_ext = std::get<1>(tuple);
+      auto f = f_int + f_ext;
+      EXPECT_NEAR(0, f.template norm<L_inf>() / force_norm_inf, 1e-9);
+    }
   }
 
   void checkAll() {
@@ -87,6 +126,7 @@ public:
           return stress;
         },
         mat.getStress(this->type), displacement);
+    this->checkForces();
   }
 };
 
@@ -108,6 +148,6 @@ template <typename T> using valid_types = aka::negation<invalid_plan_stress<T>>;
 using model_types = gtest_list_t<
     tuple_filter_t<valid_types, cross_product_t<TestElementTypes, true_false>>>;
 
-TYPED_TEST_SUITE(TestPatchTestSMMLinear, model_types);
+TYPED_TEST_SUITE(TestPatchTestSMMLinear, model_types, );
 
-#endif /* __AKANTU_PATCH_TEST_LINEAR_SOLID_MECHANICS_FIXTURE_HH__ */
+#endif /* AKANTU_PATCH_TEST_LINEAR_SOLID_MECHANICS_FIXTURE_HH_ */

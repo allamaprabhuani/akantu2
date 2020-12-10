@@ -6,7 +6,6 @@
  *
  * @brief  Implementation of IGFEM enrichment
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -15,7 +14,7 @@
 /* -------------------------------------------------------------------------- */
 #include "igfem_enrichment.hh"
 
-__BEGIN_AKANTU__
+namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 IGFEMEnrichment::IGFEMEnrichment(Mesh & mesh) : intersector_sphere(mesh) {}
@@ -35,9 +34,9 @@ void IGFEMEnrichment::update(ID domain) {
 void IGFEMEnrichment::unRegisterGeometryObject(const ID & domain) {
 
   GeometryMap::iterator it = geometries.find(domain);
-  AKANTU_DEBUG_ASSERT(it != geometries.end(),
-                      "Geometry object with domain " << domain
-                                                     << " was not found");
+  AKANTU_DEBUG_ASSERT(it != geometries.end(), "Geometry object with domain "
+                                                  << domain
+                                                  << " was not found");
   geometries.erase(it);
   if (!geometries.empty())
     default_geometry = (*geometries.begin()).first;
@@ -51,9 +50,9 @@ void IGFEMEnrichment::registerGeometryObject(Geometry & geometry,
 
 #ifndef AKANTU_NDEBUG
   GeometryMap::iterator it = geometries.find(domain);
-  AKANTU_DEBUG_ASSERT(it == geometries.end(),
-                      "Geometry object with domain " << domain
-                                                     << " was already created");
+  AKANTU_DEBUG_ASSERT(it == geometries.end(), "Geometry object with domain "
+                                                  << domain
+                                                  << " was already created");
 #endif
 
   std::stringstream sstr;
@@ -92,10 +91,10 @@ void IGFEMEnrichment::moveInterface(Real new_position, ID domain) {
     SK::Sphere_3 sphere(query_it->center(), new_position * new_position);
     sphere_list.push_back(sphere);
   }
-  geometry.clear();
+  geometry.zero();
   geometry = sphere_list;
 
   this->update(domain);
 }
 
-__END_AKANTU__
+} // namespace akantu

@@ -8,7 +8,6 @@
  *
  * @brief  Material isotropic elastic
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -35,8 +34,8 @@
 
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_MATERIAL_NEOHOOKEAN_HH__
-#define __AKANTU_MATERIAL_NEOHOOKEAN_HH__
+#ifndef AKANTU_MATERIAL_NEOHOOKEAN_HH_
+#define AKANTU_MATERIAL_NEOHOOKEAN_HH_
 
 namespace akantu {
 
@@ -84,7 +83,7 @@ public:
   void computePotentialEnergy(ElementType el_type) override;
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(const ElementType & el_type,
+  void computeTangentModuli(ElementType el_type,
                             Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override;
 
@@ -93,6 +92,10 @@ public:
 
   /// compute the s-wave speed in the material
   Real getShearWaveSpeed(const Element & element) const override;
+
+  MatrixType getTangentType() override {
+    return _symmetric;
+  }
 
 protected:
   /// constitutive law for a given quadrature point
@@ -156,12 +159,11 @@ protected:
   Real kpa;
 };
 
+} // namespace akantu
+
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
+#include "material_neohookean_inline_impl.hh"
 
-#include "material_neohookean_inline_impl.cc"
-
-} // namespace akantu
-
-#endif /* __AKANTU_MATERIAL_NEOHOOKEAN_HH__ */
+#endif /* AKANTU_MATERIAL_NEOHOOKEAN_HH_ */

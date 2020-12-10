@@ -8,7 +8,6 @@
  *
  * @brief  initiation ntn and ntrf friction
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -36,10 +35,12 @@
 
 namespace akantu {
 
-std::unique_ptr<NTNBaseFriction> initializeNTNFriction(NTNBaseContact & contact);
+std::unique_ptr<NTNBaseFriction>
+initializeNTNFriction(NTNBaseContact & contact);
 
-std::unique_ptr<NTNBaseFriction> initializeNTNFriction(NTNBaseContact & contact,
-                                        const std::string & friction_law,
-                                        const std::string & friction_reg);
+std::unique_ptr<NTNBaseFriction>
+initializeNTNFriction(NTNBaseContact & contact,
+                      const std::string & friction_law,
+                      const std::string & friction_reg);
 
 } // namespace akantu

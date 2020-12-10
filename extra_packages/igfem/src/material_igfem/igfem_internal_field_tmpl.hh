@@ -6,17 +6,16 @@
  *
  * @brief  Implementation of IGFEM internal field
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  */
 
-#ifndef __AKANTU_IGFEM_INTERNAL_FIELD_TMPL_HH__
-#define __AKANTU_IGFEM_INTERNAL_FIELD_TMPL_HH__
+#ifndef AKANTU_IGFEM_INTERNAL_FIELD_TMPL_HH_
+#define AKANTU_IGFEM_INTERNAL_FIELD_TMPL_HH_
 
-__BEGIN_AKANTU__
+namespace akantu {
 /* -------------------------------------------------------------------------- */
 template <typename T>
 IGFEMInternalField<T>::IGFEMInternalField(const ID & id, Material & material)
@@ -29,6 +28,6 @@ IGFEMInternalField<T>::IGFEMInternalField(const ID & id, Material & material)
 /* -------------------------------------------------------------------------- */
 template <typename T> IGFEMInternalField<T>::~IGFEMInternalField(){};
 
-__END_AKANTU__
+} // namespace akantu
 
-#endif /* __AKANTU_IGFEM_INTERNAL_FIELD_TMPL_HH__ */
+#endif /* AKANTU_IGFEM_INTERNAL_FIELD_TMPL_HH_ */

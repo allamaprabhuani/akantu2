@@ -11,7 +11,6 @@
  *
  * @brief  Specialization of the material class for the elastic material
  *
- * @section LICENSE
  *
  * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -51,7 +50,7 @@ MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
 /* -------------------------------------------------------------------------- */
 template <UInt dim>
 MaterialElastic<dim>::MaterialElastic(SolidMechanicsModel & model,
-                                      __attribute__((unused)) UInt a_dim,
+                                      UInt /*a_dim*/,
                                       const Mesh & mesh, FEEngine & fe_engine,
                                       const ID & id)
     : Parent(model, dim, mesh, fe_engine, id), was_stiffness_assembled(false) {
@@ -73,8 +72,9 @@ template <UInt dim> void MaterialElastic<dim>::initMaterial() {
   AKANTU_DEBUG_IN();
   Parent::initMaterial();
 
-  if (dim == 1)
+  if (dim == 1) {
     this->nu = 0.;
+  }
 
   this->updateInternalParameters();
   AKANTU_DEBUG_OUT();
@@ -99,8 +99,9 @@ template <> void MaterialElastic<2>::updateInternalParameters() {
   this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - 2 * this->nu));
   this->mu = this->E / (2 * (1 + this->nu));
 
-  if (this->plane_stress)
+  if (this->plane_stress) {
     this->lambda = this->nu * this->E / ((1 + this->nu) * (1 - this->nu));
+  }
 
   this->kpa = this->lambda + 2. / 3. * this->mu;
 
@@ -108,9 +109,9 @@ template <> void MaterialElastic<2>::updateInternalParameters() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type,
-                                                       GhostType ghost_type) {
+template <UInt dim>
+void MaterialElastic<dim>::computeStress(ElementType el_type,
+                                         GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Parent::computeStress(el_type, ghost_type);
@@ -126,12 +127,12 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type,
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   } else {
     /// finite gradus
-    Matrix<Real> E(spatial_dimension, spatial_dimension);
+    Matrix<Real> E(dim, dim);
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, ghost_type);
 
     /// compute E
-    this->template gradUToGreenStrain<spatial_dimension>(grad_u, E);
+    this->template gradUToE<dim>(grad_u, E);
 
     const Real & sigma_th = *sigma_th_it;
 
@@ -146,10 +147,10 @@ void MaterialElastic<spatial_dimension>::computeStress(ElementType el_type,
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computeTangentModuli(
-    const ElementType & el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+template <UInt dim>
+void MaterialElastic<dim>::computeTangentModuli(ElementType el_type,
+                                                Array<Real> & tangent_matrix,
+                                                GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   MATERIAL_TANGENT_QUADRATURE_POINT_LOOP_BEGIN(tangent_matrix);
@@ -162,28 +163,25 @@ void MaterialElastic<spatial_dimension>::computeTangentModuli(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getPushWaveSpeed(
-    const Element &) const {
+template <UInt dim>
+Real MaterialElastic<dim>::getPushWaveSpeed(const Element & /*unused*/) const {
   return sqrt((lambda + 2 * mu) / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-Real MaterialElastic<spatial_dimension>::getShearWaveSpeed(
-    const Element &) const {
+template <UInt dim>
+Real MaterialElastic<dim>::getShearWaveSpeed(const Element & /*unused*/) const {
   return sqrt(mu / this->rho);
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computePotentialEnergy(
-    ElementType el_type) {
+template <UInt dim>
+void MaterialElastic<dim>::computePotentialEnergy(ElementType el_type) {
   AKANTU_DEBUG_IN();
 
   // MaterialThermal<dim>::computePotentialEnergy(ElementType)
   // needs to be implemented
-  // MaterialThermal<spatial_dimension>::computePotentialEnergy(el_type);
+  // MaterialThermal<dim>::computePotentialEnergy(el_type);
 
   auto epot = this->potential_energy(el_type, _not_ghost).begin();
 
@@ -195,10 +193,9 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergy(
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   } else {
-    Matrix<Real> E(spatial_dimension, spatial_dimension);
 
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_BEGIN(el_type, _not_ghost);
-    this->template gradUToGreenStrain<spatial_dimension>(grad_u, E);
+    auto E = this->template gradUToE<dim>(grad_u);
 
     this->computePotentialEnergyOnQuad(E, sigma, *epot);
     ++epot;
@@ -210,18 +207,16 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergy(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt spatial_dimension>
-void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(
+template <UInt dim>
+void MaterialElastic<dim>::computePotentialEnergyByElement(
     ElementType type, UInt index, Vector<Real> & epot_on_quad_points) {
-  auto gradu_it = this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  auto gradu_end =
-      this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  auto stress_it =
-      this->stress(type).begin(spatial_dimension, spatial_dimension);
+  auto gradu_it = this->gradu(type).begin(dim, dim);
+  auto gradu_end = this->gradu(type).begin(dim, dim);
+  auto stress_it = this->stress(type).begin(dim, dim);
 
-  if (this->finite_deformation)
-    stress_it = this->piola_kirchhoff_2(type).begin(spatial_dimension,
-                                                    spatial_dimension);
+  if (this->finite_deformation) {
+    stress_it = this->piola_kirchhoff_2(type).begin(dim, dim);
+  }
 
   UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
 
@@ -231,16 +226,17 @@ void MaterialElastic<spatial_dimension>::computePotentialEnergyByElement(
 
   Real * epot_quad = epot_on_quad_points.storage();
 
-  Matrix<Real> grad_u(spatial_dimension, spatial_dimension);
+  Matrix<Real> grad_u(dim, dim);
 
-  for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
-
-    if (this->finite_deformation)
-      this->template gradUToGreenStrain<spatial_dimension>(*gradu_it, grad_u);
-    else
-      grad_u.copy(*gradu_it);
-
-    this->computePotentialEnergyOnQuad(grad_u, *stress_it, *epot_quad);
+  if (this->finite_deformation) {
+    for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
+      auto E = this->template gradUToE<dim>(*gradu_it);
+      this->computePotentialEnergyOnQuad(E, *stress_it, *epot_quad);
+    }
+  } else {
+    for (; gradu_it != gradu_end; ++gradu_it, ++stress_it, ++epot_quad) {
+      this->computePotentialEnergyOnQuad(*gradu_it, *stress_it, *epot_quad);
+    }
   }
 }
 
@@ -258,4 +254,4 @@ Real MaterialElastic<1>::getShearWaveSpeed(const Element & /*element*/) const {
 
 INSTANTIATE_MATERIAL(elastic, MaterialElastic);
 
-} // akantu
+} // namespace akantu

@@ -9,7 +9,6 @@
  * @brief  implementation of the templated part of ParameterRegistry class and
  * the derivated ones
  *
- * @section LICENSE
  *
  * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -32,16 +31,17 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_error.hh"
 #include "aka_iterators.hh"
-#include "parameter_registry.hh"
+//#include "parameter_registry.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
 #include <algorithm>
+#include <set>
 #include <string>
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_PARAMETER_REGISTRY_TMPL_HH__
-#define __AKANTU_PARAMETER_REGISTRY_TMPL_HH__
+#ifndef AKANTU_PARAMETER_REGISTRY_TMPL_HH_
+#define AKANTU_PARAMETER_REGISTRY_TMPL_HH_
 
 namespace akantu {
 
@@ -115,26 +115,28 @@ template <typename T> ParameterTyped<T> & Parameter::getParameterTyped() {
 
 /* ------------------------------------------------------------------------ */
 template <typename T, typename V> void Parameter::set(const V & value) {
-  if (!(isWritable()))
+  if (not isWritable()) {
     AKANTU_CUSTOM_EXCEPTION(
         debug::ParameterAccessRightException(name, "writable"));
+  }
   ParameterTyped<T> & typed_param = getParameterTyped<T>();
   typed_param.setTyped(value);
 }
 
 /* ------------------------------------------------------------------------ */
-inline void Parameter::setAuto(__attribute__((unused))
-                               const ParserParameter & value) {
-  if (!(isParsable()))
+inline void Parameter::setAuto(const ParserParameter & /*value*/) {
+  if (not isParsable()) {
     AKANTU_CUSTOM_EXCEPTION(
         debug::ParameterAccessRightException(name, "parsable"));
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T> const T & Parameter::get() const {
-  if (!(isReadable()))
+  if (not isReadable()) {
     AKANTU_CUSTOM_EXCEPTION(
         debug::ParameterAccessRightException(name, "readable"));
+  }
   const ParameterTyped<T> & typed_param = getParameterTyped<T>();
   return typed_param.getTyped();
 }
@@ -142,9 +144,10 @@ template <typename T> const T & Parameter::get() const {
 /* -------------------------------------------------------------------------- */
 template <typename T> T & Parameter::get() {
   ParameterTyped<T> & typed_param = getParameterTyped<T>();
-  if (!(isReadable()) || !(this->isWritable()))
+  if (not isReadable() or not this->isWritable()) {
     AKANTU_CUSTOM_EXCEPTION(
         debug::ParameterAccessRightException(name, "accessible"));
+  }
   return typed_param.getTyped();
 }
 
@@ -155,7 +158,8 @@ template <typename T> inline Parameter::operator T() const {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-ParameterTyped<T>::ParameterTyped(std::string name, std::string description,
+ParameterTyped<T>::ParameterTyped(const std::string & name,
+                                  const std::string & description,
                                   ParameterAccessType param_type, T & param)
     : Parameter(name, description, param_type), param(param) {}
 
@@ -230,15 +234,16 @@ inline void ParameterTyped<T>::printself(std::ostream & stream) const {
 /* -------------------------------------------------------------------------- */
 template <typename T> class ParameterTyped<std::vector<T>> : public Parameter {
 public:
-  ParameterTyped(std::string name, std::string description,
+  ParameterTyped(const std::string & name, const std::string & description,
                  ParameterAccessType param_type, std::vector<T> & param)
       : Parameter(name, description, param_type), param(param) {}
 
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   template <typename V> void setTyped(const V & value) { param = value; }
   void setAuto(const ParserParameter & value) override {
     Parameter::setAuto(value);
-    param.clear();
+    param.zero();
     const std::vector<T> & tmp = value;
     for (auto && z : tmp) {
       param.emplace_back(z);
@@ -251,8 +256,9 @@ public:
   void printself(std::ostream & stream) const override {
     Parameter::printself(stream);
     stream << "[ ";
-    for (auto && v : param)
+    for (auto && v : param) {
       stream << v << " ";
+    }
     stream << "]\n";
   }
 
@@ -265,8 +271,47 @@ private:
   std::vector<T> & param;
 };
 
-/* ------o--------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
+template <typename T> class ParameterTyped<std::set<T>> : public Parameter {
+public:
+  ParameterTyped(const std::string & name, const std::string & description,
+                 ParameterAccessType param_type, std::set<T> & param)
+      : Parameter(name, description, param_type), param(param) {}
+
+  /* ------------------------------------------------------------------------
+   */
+  template <typename V> void setTyped(const V & value) { param = value; }
+  void setAuto(const ParserParameter & value) override {
+    Parameter::setAuto(value);
+    param.clear();
+    const std::set<T> & tmp = value;
+    for (auto && z : tmp) {
+      param.emplace(z);
+    }
+  }
+
+  std::set<T> & getTyped() { return param; }
+  const std::set<T> & getTyped() const { return param; }
+
+  void printself(std::ostream & stream) const override {
+    Parameter::printself(stream);
+    stream << "[ ";
+    for (auto && v : param) {
+      stream << v << " ";
+    }
+    stream << "]\n";
+  }
+
+  inline const std::type_info & type() const override {
+    return typeid(std::set<T>);
+  }
+
+private:
+  /// Value of parameter
+  std::set<T> & param;
+};
+
+/* -------------------------------------------------------------------------- */
 template <>
 inline void ParameterTyped<bool>::printself(std::ostream & stream) const {
   Parameter::printself(stream);
@@ -275,20 +320,21 @@ inline void ParameterTyped<bool>::printself(std::ostream & stream) const {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void ParameterRegistry::registerParam(std::string name, T & variable,
+void ParameterRegistry::registerParam(const std::string & name, T & variable,
                                       ParameterAccessType type,
                                       const std::string & description) {
   auto it = params.find(name);
-  if (it != params.end())
+  if (it != params.end()) {
     AKANTU_CUSTOM_EXCEPTION(debug::ParameterException(
         name, "Parameter named " + name + " already registered."));
+  }
   auto * param = new ParameterTyped<T>(name, description, type, variable);
   params[name] = param;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-void ParameterRegistry::registerParam(std::string name, T & variable,
+void ParameterRegistry::registerParam(const std::string & name, T & variable,
                                       const T & default_value,
                                       ParameterAccessType type,
                                       const std::string & description) {
@@ -387,7 +433,7 @@ Parameter & ParameterRegistry::get(const std::string & name) {
 namespace {
   namespace details {
     template <class T, class R, class Enable = void> struct CastHelper {
-      static R convert(const T &) { throw std::bad_cast(); }
+      static R convert(const T & /*unused*/) { throw std::bad_cast(); }
     };
 
     template <class T, class R>
@@ -399,12 +445,13 @@ namespace {
 } // namespace
 
 template <typename T> inline ParameterTyped<T>::operator Real() const {
-  if (not isReadable())
+  if (not isReadable()) {
     AKANTU_CUSTOM_EXCEPTION(
         debug::ParameterAccessRightException(name, "accessible"));
+  }
   return details::CastHelper<T, Real>::convert(param);
 }
 
 } // namespace akantu
 
-#endif /* __AKANTU_PARAMETER_REGISTRY_TMPL_HH__ */
+#endif /* AKANTU_PARAMETER_REGISTRY_TMPL_HH_ */

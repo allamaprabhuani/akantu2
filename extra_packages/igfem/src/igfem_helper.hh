@@ -6,19 +6,18 @@
  *
  * @brief  Helper class to return sub element information
  *
- * @section LICENSE
  *
  * Copyright (©) 2010-2012, 2014 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
  */
 
-#ifndef __AKANTU_IGFEM_HELPER_HH__
-#define __AKANTU_IGFEM_HELPER_HH__
+#ifndef AKANTU_IGFEM_HELPER_HH_
+#define AKANTU_IGFEM_HELPER_HH_
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */
-__BEGIN_AKANTU__
+namespace akantu {
 
 class FEEngine;
 
@@ -36,7 +35,7 @@ struct IGFEMHelper {
   }
 
   /// get the number of nodes for a given sub-element
-  static UInt getNbNodesPerSubElement(const ElementType & type,
+  static UInt getNbNodesPerSubElement(ElementType type,
                                       const UInt sub_element) {
     UInt nb_nodes_per_sub_element = 0;
 #define GET_NB_NODES_PER_SUB_ELEMENT(type)                                     \
@@ -58,7 +57,7 @@ struct IGFEMHelper {
   }
 
   /// get the connectivity for a given sub-element
-  static UInt * getSubElementConnectivity(const ElementType & type,
+  static UInt * getSubElementConnectivity(ElementType type,
                                           const UInt sub_element) {
     UInt * sub_element_connectivity = NULL;
 #define GET_SUB_ELEMENT_CONNECTIVITY(type)                                     \
@@ -70,7 +69,7 @@ struct IGFEMHelper {
   }
 
   /// get the sub-element type
-  static ElementType getSubElementType(const ElementType & type,
+  static ElementType getSubElementType(ElementType type,
                                        const UInt sub_element) {
     ElementType sub_type = _not_defined;
 #define GET_SUB_ELEMENT_TYPE(type)                                             \
@@ -88,7 +87,7 @@ struct IGFEMHelper {
   }
 
   /// get the nb of quads for one sub element type
-  static UInt getNbQuadraturePoints(const ElementType & type,
+  static UInt getNbQuadraturePoints(ElementType type,
                                     const UInt sub_element) {
     UInt nb_quad_points = 0;
 #define GET_NB_QUADS(type)                                                     \
@@ -108,7 +107,7 @@ struct IGFEMHelper {
   }
 
   /// get the nb of parent nodes of a given igfem element type
-  static UInt getNbParentNodes(const ElementType & type) {
+  static UInt getNbParentNodes(ElementType type) {
     UInt nb_parent_nodes = 0;
 #define GET_NB_PARENT_NODES(type)                                              \
   nb_parent_nodes =                                                            \
@@ -121,7 +120,7 @@ struct IGFEMHelper {
   }
 
   /// get the nb of parent nodes of a given igfem element type
-  static UInt getNbEnrichedNodes(const ElementType & type) {
+  static UInt getNbEnrichedNodes(ElementType type) {
     UInt nb_enriched_nodes = 0;
 #define GET_NB_ENRICHED_NODES(type)                                            \
   nb_enriched_nodes = ElementClass<type>::getNbEnrichments();
@@ -132,7 +131,7 @@ struct IGFEMHelper {
   }
 
   /// get the nb of quads for one sub element type
-  static UInt getElementOrientation(const ElementType & type,
+  static UInt getElementOrientation(ElementType type,
                                     const Vector<bool> & is_inside) {
     UInt orientation = 0;
 
@@ -145,5 +144,5 @@ struct IGFEMHelper {
   }
 };
 
-__END_AKANTU__
-#endif /* __AKANTU_IGFEM_HELPER_HH__ */
+} // namespace akantu
+#endif /* AKANTU_IGFEM_HELPER_HH_ */

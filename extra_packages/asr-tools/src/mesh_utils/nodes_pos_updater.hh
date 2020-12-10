@@ -92,6 +92,6 @@ private:
 
 } // namespace akantu
 
-#include "nodes_pos_updater_inline_impl.cc"
+#include "nodes_pos_updater_inline_impl.hh"
 
 #endif /* __AKANTU_NODES_POS_UPDATER_HH__ */

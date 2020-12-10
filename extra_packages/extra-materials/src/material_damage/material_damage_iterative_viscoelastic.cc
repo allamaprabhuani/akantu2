@@ -63,7 +63,7 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::initMaterial() {
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialDamageIterativeViscoelastic<
-    spatial_dimension>::computeTangentModuli(const ElementType & el_type,
+    spatial_dimension>::computeTangentModuli(ElementType el_type,
                                              Array<Real> & tangent_matrix,
                                              GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -144,7 +144,11 @@ void MaterialDamageIterativeViscoelastic<spatial_dimension>::computeStress(
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep() {
+void MaterialDamageIterativeViscoelastic<spatial_dimension>::afterSolveStep(bool converged) {
+
+  if (not converged) {
+    return;
+  }
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {

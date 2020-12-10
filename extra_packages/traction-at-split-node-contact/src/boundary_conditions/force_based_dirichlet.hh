@@ -10,7 +10,6 @@
  * @brief  dirichlet boundary condition that tries
  * to keep the force at a given value
  *
- * @section LICENSE
  *
  * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
@@ -31,8 +30,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#ifndef __AST_FORCE_BASED_DIRICHLET_HH__
-#define __AST_FORCE_BASED_DIRICHLET_HH__
+#ifndef AST_FORCE_BASED_DIRICHLET_HH_
+#define AST_FORCE_BASED_DIRICHLET_HH_
 
 // akantu
 #include "aka_common.hh"
@@ -64,7 +63,8 @@ public:
   void updateTotalResidual() {
     this->total_residual = 0.;
     for (auto && subboundary : this->subboundaries) {
-      this->total_residual += integrateResidual(subboundary, this->model, this->axis);
+      this->total_residual +=
+          integrateResidual(subboundary, this->model, this->axis);
     }
   }
 
@@ -125,4 +125,4 @@ protected:
 
 } // namespace akantu
 
-#endif /* __AST_FORCE_BASED_DIRICHLET_HH__ */
+#endif /* AST_FORCE_BASED_DIRICHLET_HH_ */
