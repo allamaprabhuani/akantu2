@@ -168,6 +168,10 @@ public:
                                     std::string matrix_mat_name,
                                     Real gap_ratio);
 
+  /// ASR insertion for 1st order 3D elements
+  void insertASRCohesiveLoops3D(const UInt & nb_insertions,
+                                std::string facet_mat_name, Real gap_ratio);
+
   /// insert block of cohesive elements based on the coord of the central
   void insertASRCohesivesByCoords(const Matrix<Real> & positions,
                                   Real gap_ratio = 0);
@@ -182,8 +186,18 @@ protected:
   /// pick facets by passed coordinates
   void pickFacetsByCoord(const Matrix<Real> & positions);
 
-  /// pick facets by passed coordinates
+  /// pick facets randomly within specified material
   void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name);
+
+  /// build closed facets loop around random point of specified material
+  void closedFacetsLoopAroundPoint(UInt nb_insertions, std::string mat_name);
+
+  /// check if the cohesive can be inserted and nodes are not on the partition
+  /// border and ASR nodes
+  bool isFacetAndNodesGood(Element & facet, UInt material_id);
+
+  /// check if the node is surrounded by the material
+  bool isNodeWithinMaterial(Element & node, UInt material_id);
 
   /// pick two neighbors of a central facet in 2D: returns true if success
   bool pickFacetNeighborsOld(Element & cent_facet);
@@ -220,7 +234,7 @@ public:
   void updateElementGroup(const std::string group_name);
 
   /// works only for the MaterialCohesiveLinearSequential
-  template <UInt dim> UInt insertSingleCohesiveElementPerModel();
+  template <UInt dim> UInt insertCohesiveElementsSelectively();
 
   // /// apply self-weight force
   // void applyBodyForce();
@@ -877,9 +891,10 @@ public:
   PressureVolumeDependent3D(SolidMechanicsModel & model,
                             const Real ASR_volume_ratio,
                             const std::string group_name,
-                            const Real compressibility)
+                            const Real compressibility, const Real multiplier)
       : model(model), ASR_volume_ratio(ASR_volume_ratio),
-        group_name(group_name), compressibility(compressibility) {}
+        group_name(group_name), compressibility(compressibility),
+        multiplier(multiplier) {}
 
   inline void operator()(const IntegrationPoint & quad_point,
                          Vector<Real> & dual, const Vector<Real> & /*coord*/,
@@ -921,15 +936,15 @@ public:
         normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
 
     // auto normal_corrected = normal;
-    UInt opposite_facet_nb(-1);
+    // UInt opposite_facet_nb(-1);
     if (id < element_ids.size() / 2) {
       normal_corrected *= -1;
-      opposite_facet_nb = element_ids(id + element_ids.size() / 2);
+      // opposite_facet_nb = element_ids(id + element_ids.size() / 2);
     } else if (id >= element_ids.size())
       AKANTU_EXCEPTION("Error in defining side of the cohesive element");
     else {
       normal_corrected *= 1;
-      opposite_facet_nb = element_ids(id - element_ids.size() / 2);
+      // opposite_facet_nb = element_ids(id - element_ids.size() / 2);
     }
 
     // /// compute current area of a gap
@@ -968,7 +983,7 @@ public:
     //   pressure_change = -volume_change / ASR_volume / this->compressibility;
     // }
     // dual = pressure_change * normal_corrected;
-    dual = 1e6 * normal_corrected;
+    dual = multiplier * normal_corrected;
   }
 
 protected:
@@ -976,6 +991,7 @@ protected:
   const Real ASR_volume_ratio;
   const std::string group_name;
   const Real compressibility;
+  const Real multiplier;
 };
 
 /* ------------------------------------------------------------------------ */

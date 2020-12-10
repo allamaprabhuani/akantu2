@@ -36,6 +36,7 @@
 #include "material_FE2.hh"
 #include "material_damage_iterative_orthotropic.hh"
 #include "material_iterative_stiffness_reduction.hh"
+#include "mesh_utils.hh"
 #include "node_synchronizer.hh"
 #include "nodes_flag_updater.hh"
 #include "non_linear_solver.hh"
@@ -1051,8 +1052,7 @@ bool ASRTools::loadState(UInt & current_step) {
   return restart;
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 Real ASRTools::computePhaseVolume(const ID & mat_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -2094,6 +2094,29 @@ void ASRTools::insertASRCohesivesRandomly3D(const UInt & nb_insertions,
   AKANTU_DEBUG_OUT();
 }
 
+/* ------------------------------------------------------------------- */
+void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
+                                        std::string facet_mat_name,
+                                        Real /*gap_ratio*/) {
+  AKANTU_DEBUG_IN();
+
+  // fill in the partition_border_nodes array
+  communicateFlagsOnNodes();
+
+  /// pick central facets and neighbors
+  closedFacetsLoopAroundPoint(nb_insertions, facet_mat_name);
+
+  insertOppositeFacetsAndCohesives();
+
+  assignCrackNumbers();
+
+  // insertGap3D(gap_ratio);
+
+  preventCohesiveInsertionInNeighbors();
+
+  AKANTU_DEBUG_OUT();
+}
+
 /* -------------------------------------------------------------------------
  */
 void ASRTools::insertASRCohesivesByCoords(const Matrix<Real> & positions,
@@ -2230,7 +2253,7 @@ void ASRTools::pickFacetsByCoord(const Matrix<Real> & positions) {
     }
   }
 }
-/* ----------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 void ASRTools::pickFacetsRandomly(UInt nb_insertions,
                                   std::string facet_mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -2317,7 +2340,244 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
     }
   }
 }
-/* ----------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
+void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
+                                           std::string mat_name) {
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & mesh = model.getMesh();
+  auto & mesh_facets = inserter.getMeshFacets();
+  auto dim = mesh.getSpatialDimension();
+  const GhostType gt = _not_ghost;
+  auto element_type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
+  auto facet_type = Mesh::getFacetType(element_type);
+  auto node_type = _point_1;
+  auto & doubled_facets =
+      mesh_facets.createElementGroup("doubled_facets", dim - 1);
+  auto & doubled_nodes = mesh.createNodeGroup("doubled_nodes");
+  auto & matrix_nodes = mesh_facets.createElementGroup("matrix_nodes", 0);
+  auto material_id = model.getMaterialIndex(mat_name);
+  auto & facet_conn = mesh_facets.getConnectivity(facet_type, gt);
+  const UInt nb_nodes_facet = facet_conn.getNbComponent();
+  const auto facet_conn_it = make_view(facet_conn, nb_nodes_facet).begin();
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+
+  if (not nb_insertions)
+    return;
+
+  CSR<Element> nodes_to_facets;
+  MeshUtils::buildNode2Elements(mesh_facets, nodes_to_facets, dim - 1);
+
+  for_each_element(
+      mesh_facets,
+      [&](auto && node) {
+        bool good_node{true};
+        for (auto & facet : nodes_to_facets.getRow(node.element)) {
+          auto & facet_material = coh_model.getFacetMaterial(
+              facet.type, facet.ghost_type)(facet.element);
+          if (facet_material != material_id) {
+            good_node = false;
+            break;
+          }
+        }
+        if (good_node)
+          matrix_nodes.add(node);
+      },
+      _spatial_dimension = 0, _ghost_type = _not_ghost);
+
+  UInt nb_element = matrix_nodes.getElements(node_type).size();
+  std::mt19937 random_generator(0);
+  std::uniform_int_distribution<> dis(0, nb_element - 1);
+
+  if (not nb_element) {
+    std::cout << "Proc " << prank << " couldn't place " << nb_insertions
+              << " ASR sites" << std::endl;
+    return;
+  }
+
+  UInt already_inserted = 0;
+  while (already_inserted < nb_insertions) {
+    auto id = dis(random_generator);
+
+    Element cent_node;
+    cent_node.type = node_type;
+    cent_node.element = matrix_nodes.getElements(node_type)(id);
+    cent_node.ghost_type = gt;
+
+    // not on the partition border or touching other cracks
+    if (this->partition_border_nodes(cent_node.element) or
+        this->ASR_nodes(cent_node.element))
+      continue;
+
+    // поехали
+    auto & segments_to_point = mesh_facets.getElementToSubelement(cent_node);
+    // pick the first segment in the list
+    auto starting_segment = segments_to_point[0];
+    auto & facets_to_segment =
+        mesh_facets.getElementToSubelement(starting_segment);
+    // pick the first facet in the list
+    auto starting_facet = facets_to_segment[0];
+    // check if the facet and its nodes are ok
+    if (not isFacetAndNodesGood(starting_facet, material_id))
+      continue;
+
+    // loop through facets to arrive to the starting segment
+    bool loop_closed{false};
+    auto current_facet(starting_facet);
+    auto current_segment(starting_segment);
+    Array<Element> facets_in_loop;
+    Array<Element> segments_in_loop;
+    while (not loop_closed) {
+      facets_in_loop.push_back(current_facet);
+      segments_in_loop.push_back(current_segment);
+      const Vector<Element> current_segments =
+          mesh_facets.getSubelementToElement(current_facet);
+      // identify the border segment
+      Element border_segment(ElementNull);
+      for (auto & segment : current_segments) {
+        if (segment == current_segment)
+          continue;
+        // check if the segment includes the central node
+        const Vector<Element> nodes_to_segment =
+            mesh_facets.getSubelementToElement(segment);
+        bool includes_cent_node{false};
+        for (auto & node : nodes_to_segment) {
+          if (node == cent_node) {
+            includes_cent_node = true;
+            break;
+          }
+        }
+        if (not includes_cent_node)
+          continue;
+
+        // check if the segment was previously added
+        if (segments_in_loop.find(segment) != UInt(-1))
+          continue;
+
+        border_segment = segment;
+        segments_in_loop.push_back(border_segment);
+        break;
+      }
+      if (border_segment == ElementNull)
+        AKANTU_EXCEPTION("Border segment could not be identified");
+
+      // loop through all the neighboring facets and pick the prettiest
+      Element next_facet(ElementNull);
+      Real max_dot(std ::numeric_limits<Real>::min());
+      Real current_facet_indiam =
+          MeshUtils::getInscribedCircleDiameter(model, current_facet);
+
+      auto neighbor_facets = mesh_facets.getElementToSubelement(border_segment);
+      for (auto neighbor_facet : neighbor_facets) {
+        if (neighbor_facet == current_facet)
+          continue;
+        if (not isFacetAndNodesGood(neighbor_facet, material_id))
+          continue;
+        // first check if it has the starting segment -> loop closed
+        const Vector<Element> neighbors_segments =
+            mesh_facets.getSubelementToElement(neighbor_facet);
+        for (auto neighbors_segment : neighbors_segments) {
+          if (neighbors_segment == starting_segment) {
+            next_facet = neighbor_facet;
+            facets_in_loop.push_back(neighbor_facet);
+            loop_closed = true;
+            break;
+          }
+        }
+
+        // conditions on the angle between facets
+        auto dist = MeshUtils::distanceBetween2Barycenters(
+            mesh_facets, mesh_facets, current_facet, neighbor_facet);
+        if (dist < 0.9 * current_facet_indiam)
+          continue;
+
+        // get abs of dot product between two normals
+        Real dot = MeshUtils::cosSharpAngleBetween2Facets(model, current_facet,
+                                                          neighbor_facet);
+        if (dot > max_dot) {
+          max_dot = dot;
+          next_facet = neighbor_facet;
+        }
+      }
+      if (next_facet == ElementNull) {
+        std::cout << "Could not close the loop, switching to the next node"
+                  << std::endl;
+        break;
+      }
+      if (loop_closed)
+        break;
+
+      // otherwise make this facet a current one
+      current_facet = next_facet;
+      current_segment = border_segment;
+    }
+    // loop broke -> try another point
+    if (not loop_closed)
+      continue;
+
+    // otherwise champaigne
+    for (auto & facet : facets_in_loop) {
+      doubled_facets.add(facet);
+      /// add all facet nodes to the group
+      for (auto node : arange(nb_nodes_facet)) {
+        doubled_nodes.add(facet_conn(facet.element, node));
+        this->ASR_nodes(facet_conn(facet.element, node)) = true;
+      }
+    }
+    already_inserted++;
+    std::cout << "Proc " << prank << " placed 1 ASR site" << std::endl;
+  }
+}
+/* ------------------------------------------------------------------- */
+bool ASRTools::isFacetAndNodesGood(Element & facet, UInt material_id) {
+
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto facet_type = facet.type;
+  auto gt = facet.ghost_type;
+  auto & mesh_facets = inserter.getMeshFacets();
+  Vector<UInt> facet_nodes = mesh_facets.getConnectivity(facet);
+  auto & check_facets = inserter.getCheckFacets(facet_type, gt);
+
+  // check if the facet is allowed to be inserted
+  if (check_facets(facet.element) == false)
+    return false;
+  // check if the facet's nodes are not on the partition or other ASR zones
+  for (auto & facet_node : facet_nodes) {
+    if (this->partition_border_nodes(facet_node) or this->ASR_nodes(facet_node))
+      return false;
+  }
+  // check if the facet material is good
+  const auto & facet_material =
+      coh_model.getFacetMaterial(facet_type, gt)(facet.element);
+  if (facet_material != material_id)
+    return false;
+
+  return true;
+}
+/* ------------------------------------------------------------------- */
+bool ASRTools::isNodeWithinMaterial(Element & node, UInt material_id) {
+
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & mesh_facets = inserter.getMeshFacets();
+  auto dim = coh_model.getSpatialDimension();
+
+  CSR<Element> nodes_to_facets;
+  MeshUtils::buildNode2Elements(mesh_facets, nodes_to_facets, dim - 1);
+
+  for (auto & facet : nodes_to_facets.getRow(node.element)) {
+    auto & facet_material =
+        coh_model.getFacetMaterial(facet.type, facet.ghost_type)(facet.element);
+    if (facet_material != material_id)
+      return false;
+  }
+
+  return true;
+}
+
+/* ------------------------------------------------------------------- */
 bool ASRTools::pickFacetNeighborsOld(Element & cent_facet) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2414,42 +2674,20 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
   auto & inserter = coh_model.getElementInserter();
   auto & mesh = model.getMesh();
   auto & mesh_facets = inserter.getMeshFacets();
-  const auto & pos = mesh.getNodes();
   auto dim = mesh.getSpatialDimension();
   auto facet_type = cent_facet.type;
   auto facet_gt = cent_facet.ghost_type;
   auto facet_nb = cent_facet.element;
-  auto & facets_fe_engine = model.getFEEngine("FacetsFEEngine");
-  UInt nb_quad_points =
-      facets_fe_engine.getNbIntegrationPoints(facet_type, facet_gt);
   auto & doubled_facets = mesh_facets.getElementGroup("doubled_facets");
   auto & doubled_nodes = mesh.getNodeGroup("doubled_nodes");
   auto & facet_conn = mesh_facets.getConnectivity(facet_type, facet_gt);
   auto & facet_material_index =
       coh_model.getFacetMaterial(facet_type, facet_gt)(facet_nb);
 
-  // get inscribed diameter
-  auto nb_nodes_per_facet = mesh_facets.getNbNodesPerElement(facet_type);
-  Array<Real> coord(0, nb_nodes_per_facet * dim);
-  Array<UInt> dummy_list(1, 1, facet_nb);
-  facets_fe_engine.extractNodalToElementField(mesh_facets, pos, coord,
-                                              facet_type, facet_gt, dummy_list);
-  Array<Real>::matrix_iterator coord_el = coord.begin(dim, nb_nodes_per_facet);
-  Real facet_indiam =
-      facets_fe_engine.getElementInradius(*coord_el, facet_type);
-
-  // get list of the subelements connected to the facet (nodes in 2D, segments
+  // get list of the subel connected to the facet (nodes in 2D, segments
   // in 3D)
-  auto & sub_to_element =
-      mesh_facets.getSubelementToElement(facet_type, facet_gt);
-  auto sub_to_el_it = sub_to_element.begin(sub_to_element.getNbComponent());
-  const Vector<Element> & subelements_to_element = sub_to_el_it[facet_nb];
-
-  // normal to the central facet
-  const auto & normals =
-      facets_fe_engine.getNormalsOnIntegrationPoints(facet_type);
-  auto normal_begin = normals.begin(dim);
-  Vector<Real> cent_facet_normal(normal_begin[facet_nb * nb_quad_points]);
+  const Vector<Element> & subelements_to_element =
+      mesh_facets.getSubelementToElement(cent_facet);
 
   Array<Element> neighbors(subelements_to_element.size());
   neighbors.set(ElementNull);
@@ -2491,25 +2729,22 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
       if (ASR_node)
         continue;
 
-      // compute normal on the facetsFEEngine
-      Vector<Real> candidate_facet_normal(
-          normal_begin[connected_element.element * nb_quad_points]);
-
-      // get abs of dot product between two normals
-      Real dot = cent_facet_normal.dot(candidate_facet_normal);
-      // dot = std::abs(dot);
+      // get inscribed diameter
+      Real facet_indiam =
+          MeshUtils::getInscribedCircleDiameter(model, cent_facet);
 
       // get distance between two barycenters
-      Vector<Real> cent_facet_bary(dim);
-      Vector<Real> candidate_facet_bary(dim);
-      mesh_facets.getBarycenter(cent_facet, cent_facet_bary);
-      mesh_facets.getBarycenter(connected_element, candidate_facet_bary);
-      auto dist = std::abs(candidate_facet_bary.distance(cent_facet_bary));
+      auto dist = MeshUtils::distanceBetween2Barycenters(
+          mesh_facets, mesh_facets, cent_facet, connected_element);
 
       // ad-hoc rule on barycenters spacing
       // it should discard all elements under sharp angle
       if (dist < facet_indiam)
         continue;
+
+      // get abs of dot product between two normals
+      Real dot = MeshUtils::cosSharpAngleBetween2Facets(model, cent_facet,
+                                                        connected_element);
 
       auto weight_parameter = dot;
       if (weight_parameter > max_weight_parameters[i]) {
@@ -2553,7 +2788,7 @@ bool ASRTools::pickFacetNeighbors(Element & cent_facet) {
     AKANTU_EXCEPTION("Provided dimension is not supported");
   }
 }
-/* ----------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
 void ASRTools::preventCohesiveInsertionInNeighbors() {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2563,20 +2798,58 @@ void ASRTools::preventCohesiveInsertionInNeighbors() {
   const GhostType gt = _not_ghost;
   auto el_type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
   auto facet_type = Mesh::getFacetType(el_type);
-  auto & doubled_nodes = mesh.getNodeGroup("doubled_nodes");
+  // auto subfacet_type = Mesh::getFacetType(facet_type);
 
-  CSR<Element> nodes_to_elements;
-  MeshUtils::buildNode2Elements(mesh_facets, nodes_to_elements, dim - 1);
-  for (auto node : doubled_nodes.getNodes()) {
-    for (auto & elem : nodes_to_elements.getRow(node)) {
-      if (elem.type != facet_type)
-        continue;
-      inserter.getCheckFacets(elem.type, gt)(elem.element) = false;
+  // auto & facet_conn = mesh.getConnectivity(facet_type, gt);
+  // auto facet_conn_it = facet_conn.begin(facet_conn.getNbComponent());
+  auto & subfacets_to_facets =
+      mesh_facets.getSubelementToElement(facet_type, gt);
+  auto nb_subfacet = subfacets_to_facets.getNbComponent();
+  auto subf_to_fac_it = subfacets_to_facets.begin(nb_subfacet);
+  // auto & doubled_nodes = mesh.getNodeGroup("doubled_nodes");
+
+  // CSR<Element> nodes_to_elements;
+  // MeshUtils::buildNode2Elements(mesh_facets, nodes_to_elements, dim - 1);
+  // for (auto node : doubled_nodes.getNodes()) {
+  //   for (auto & elem : nodes_to_elements.getRow(node)) {
+  //     if (elem.type != facet_type)
+  //       continue;
+  //     inserter.getCheckFacets(elem.type, gt)(elem.element) = false;
+  //   }
+  // }
+
+  auto & el_group = mesh_facets.getElementGroup("doubled_facets");
+  Array<UInt> element_ids = el_group.getElements(facet_type);
+  for (UInt i : arange(element_ids.size() / 2)) {
+    auto facet1 = element_ids(i);
+    auto facet2 = element_ids(i + element_ids.size() / 2);
+    std::vector<Element> subfacets1(nb_subfacet);
+    std::vector<Element> subfacets2(nb_subfacet);
+    for (UInt i : arange(nb_subfacet)) {
+      subfacets1[i] = subf_to_fac_it[facet1](i);
+      subfacets2[i] = subf_to_fac_it[facet2](i);
+    }
+    std::sort(subfacets1.begin(), subfacets1.end());
+    std::sort(subfacets2.begin(), subfacets2.end());
+    std::vector<Element> dif_subfacets(2 * nb_subfacet);
+    std::vector<Element>::iterator it;
+    // identify subfacets not shared by two facets
+    it = std::set_difference(subfacets1.begin(), subfacets1.end(),
+                             subfacets2.begin(), subfacets2.end(),
+                             dif_subfacets.begin());
+    dif_subfacets.resize(it - dif_subfacets.begin());
+
+    // prevent insertion of cohesives in the facets including these subf
+    for (auto & subfacet : dif_subfacets) {
+      auto neighbor_facets = mesh_facets.getElementToSubelement(subfacet);
+      for (auto & neighbor_facet : neighbor_facets) {
+        inserter.getCheckFacets(facet_type, gt)(neighbor_facet.element) = false;
+      }
     }
   }
 }
 
-/* ----------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 void ASRTools::insertOppositeFacetsAndCohesives() {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2684,22 +2957,22 @@ void ASRTools::assignCrackNumbers() {
                                    nod_2.end(), common_nodes.begin());
         common_nodes.resize(it - common_nodes.begin());
 
-        switch (dim) {
-        case 2: {
-          // 1 common node between 2 segments
-          if (common_nodes.size() == 1) {
-            boost::add_edge(i, j, graph);
-          }
-          break;
+        // switch (dim) {
+        // case 2: {
+        //   // 1 common node between 2 segments
+        //   if (common_nodes.size() == 1) {
+        //     boost::add_edge(i, j, graph);
+        //   }
+        //   break;
+        // }
+        // case 3: {
+        // 2 or 3 common nodes between 2 triangles
+        if (common_nodes.size() > 1) {
+          boost::add_edge(i, j, graph);
         }
-        case 3: {
-          // 2 or 3 common nodes between 2 triangles
-          if (common_nodes.size() > 1) {
-            boost::add_edge(i, j, graph);
-          }
-          break;
-        }
-        }
+        //   break;
+        // }
+        // }
       }
     }
 
@@ -2808,6 +3081,7 @@ void ASRTools::insertGap3D(const Real gap_ratio) {
     Array<UInt> facets_considered;
     for (UInt i : arange(element_ids.size())) {
       auto el_id = element_ids(i);
+      Element element{type, el_id, gt};
 
       // if element was already considered -> skip
       if (facets_considered.find(el_id) != UInt(-1))
@@ -2825,16 +3099,14 @@ void ASRTools::insertGap3D(const Real gap_ratio) {
       }
 
       // find a neighbor
-      auto & sub_to_element = mesh_facets.getSubelementToElement(type, gt);
-      auto sub_to_el_it = sub_to_element.begin(sub_to_element.getNbComponent());
-      const Vector<Element> & subelements_to_element = sub_to_el_it[el_id];
+      const Vector<Element> & subelements_to_element =
+          mesh_facets.getSubelementToElement(element);
       // identify a facet's neighbor through each subelement
       Element neighbor(ElementNull);
       Element border(ElementNull);
       for (UInt i : arange(subelements_to_element.size())) {
         auto & subel = subelements_to_element(i);
-        auto & connected_elements = mesh_facets.getElementToSubelement(
-            subel.type, subel.ghost_type)(subel.element);
+        auto & connected_elements = mesh_facets.getElementToSubelement(subel);
         for (auto & connected_element : connected_elements) {
           // check all possible unsatisfactory conditions
           if (connected_element.type != type)
@@ -3122,8 +3394,7 @@ void ASRTools::storeASREigenStrain(Array<Real> & stored_eig) {
   }
   AKANTU_DEBUG_OUT();
 }
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 void ASRTools::restoreASREigenStrain(Array<Real> & stored_eig) {
   AKANTU_DEBUG_IN();
   const auto & mesh = model.getMesh();
@@ -3142,8 +3413,9 @@ void ASRTools::restoreASREigenStrain(Array<Real> & stored_eig) {
   }
   AKANTU_DEBUG_OUT();
 }
-/* ------------------------------------------------------------------------ */
-template <UInt dim> UInt ASRTools::insertSingleCohesiveElementPerModel() {
+
+/* ------------------------------------------------------------------- */
+template <UInt dim> UInt ASRTools::insertCohesiveElementsSelectively() {
   AKANTU_DEBUG_IN();
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -3162,6 +3434,7 @@ template <UInt dim> UInt ASRTools::insertSingleCohesiveElementPerModel() {
   // MeshUtils::fillElementToSubElementsData(mesh_facets);
   UInt nb_new_elements(0);
 
+  // identify the most stressed finite element
   for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
 
     Real max_stress = std::numeric_limits<Real>::min();
@@ -3182,7 +3455,7 @@ template <UInt dim> UInt ASRTools::insertSingleCohesiveElementPerModel() {
 
       // check which material has the non ghost facet with the highest stress
       // which complies with the topological criteria
-      auto max_stress_data = mat_coh->findCriticalFacet(type_facet);
+      auto max_stress_data = mat_coh->findCriticalFacetNonLocal(type_facet);
       auto max_stress_mat = std::get<1>(max_stress_data);
       auto max_stress_facet_mat = std::get<0>(max_stress_data);
       auto crack_nb_mat = std::get<2>(max_stress_data);
@@ -3212,17 +3485,35 @@ template <UInt dim> UInt ASRTools::insertSingleCohesiveElementPerModel() {
     auto & mat = coh_model.getMaterial(max_stress_mat_name);
     auto * mat_coh =
         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
-
-    mat_coh->insertSingleCohesiveElement(type_facet, max_stress_facet, crack_nb,
-                                         false);
+    Array<std::pair<UInt, UInt>> facet_nb_crack_nb;
+    facet_nb_crack_nb.push_back(std::make_pair(max_stress_facet, crack_nb));
+    mat_coh->insertCohesiveElements(facet_nb_crack_nb, type_facet, false);
   }
 
-  // insert cohesive elements
+  // insert the most stressed cohesive element
   nb_new_elements = inserter.insertElements();
+
+  // fill in the holes in all materials
+  for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
+    for (auto && mat : model.getMaterials()) {
+
+      auto * mat_coh =
+          dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+
+      if (mat_coh == nullptr)
+        continue;
+
+      mat_coh->fillInHoles(type_facet, false);
+    }
+  }
+
+  nb_new_elements += inserter.insertElements();
+
   AKANTU_DEBUG_OUT();
   return nb_new_elements;
 }
 
-template UInt ASRTools::insertSingleCohesiveElementPerModel<2>();
-template UInt ASRTools::insertSingleCohesiveElementPerModel<3>();
+template UInt ASRTools::insertCohesiveElementsSelectively<2>();
+template UInt ASRTools::insertCohesiveElementsSelectively<3>();
+
 } // namespace akantu

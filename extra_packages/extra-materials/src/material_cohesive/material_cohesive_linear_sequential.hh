@@ -31,9 +31,9 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
 #include "material_cohesive_linear.hh"
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------ */
 
 #ifndef __AKANTU_MATERIAL_COHESIVE_LINEAR_SEQUENTIAL_HH__
 #define __AKANTU_MATERIAL_COHESIVE_LINEAR_SEQUENTIAL_HH__
@@ -54,16 +54,16 @@ namespace akantu {
 template <UInt spatial_dimension>
 class MaterialCohesiveLinearSequential
     : public MaterialCohesiveLinear<spatial_dimension> {
-  /* -----------------------------------------------------------------------*/
-  /* Constructors/Destructors                                               */
-  /* -----------------------------------------------------------------------*/
+  /* ---------------------------------------------------------------- */
+  /* Constructors/Destructors                                         */
+  /* ---------------------------------------------------------------- */
 public:
   MaterialCohesiveLinearSequential(SolidMechanicsModel & model,
                                    const ID & id = "");
 
-  /* -----------------------------------------------------------------------*/
-  /* Methods                                                                */
-  /* -----------------------------------------------------------------------*/
+  /* ---------------------------------------------------------------- */
+  /* Methods                                                          */
+  /* ---------------------------------------------------------------- */
 public:
   /// initialise material
   void initMaterial() override;
@@ -76,19 +76,31 @@ public:
   std::tuple<UInt, Real, UInt>
   findCriticalFacet(const ElementType & type_facet);
 
+  /// use normals of neighboring cohesives for angle computation
+  std::tuple<UInt, Real, UInt>
+  findCriticalFacetNonLocal(const ElementType & type_facet);
+
   /// duplicate single facet and insert cohesive if check_only!=false
   void insertSingleCohesiveElement(const ElementType & type_facet,
                                    UInt facet_nb, UInt crack_nb,
                                    bool check_only);
 
-protected:
-  /* -----------------------------------------------------------------------*/
-  /* Accessors                                                              */
-  /* -----------------------------------------------------------------------*/
+  /// insert a row of cohesives according to provided numbers
+  void
+  insertCohesiveElements(Array<std::pair<UInt, UInt>> & facet_nbs_crack_nbs,
+                         ElementType facet_type, bool check_only);
 
-  /* -----------------------------------------------------------------------*/
-  /* Class Members                                                          */
-  /* -----------------------------------------------------------------------*/
+  /// insert facets having 2 or more cohesive neighbors
+  bool fillInHoles(ElementType facet_type, bool check_only);
+
+protected:
+  /* ---------------------------------------------------------------- */
+  /* Accessors                                                        */
+  /* ---------------------------------------------------------------- */
+
+  /* ---------------------------------------------------------------- */
+  /* Class Members                                                    */
+  /* ---------------------------------------------------------------- */
 protected:
   /// portion of elements with the stress above their threshold to be inserted
   Real insertion_threshold;
@@ -103,9 +115,9 @@ protected:
   FacetInternalField<Real> effective_stresses;
 };
 
-/* -------------------------------------------------------------------------*/
-/* inline functions                                                         */
-/* -------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------ */
+/* inline functions                                                   */
+/* ------------------------------------------------------------------ */
 
 } // namespace akantu
 
