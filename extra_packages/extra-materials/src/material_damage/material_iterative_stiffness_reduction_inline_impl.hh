@@ -129,7 +129,8 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
 
         for (UInt k = 0; k < Eta.size(); ++k) {
           E_sum += Ev(k);
-          Real E_ef, exp_dt_lambda;
+          Real E_ef;
+          Real exp_dt_lambda;
           dynamic_cast<MaterialViscoelasticMaxwell<spatial_dimension> &>(*this)
               .computeEffectiveModulus(k, E_ef, exp_dt_lambda);
           E_ef_sum += E_ef;
@@ -152,15 +153,16 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
             (1 - this->dam_tolerance) * this->norm_max_equivalent_stress) {
 
           /// check if this element can still be damaged
-          if (*reduction_it == this->max_reductions)
+          if (*reduction_it == this->max_reductions) {
             continue;
+          }
 
           /// increment the counter of stiffness reduction steps
           *reduction_it += 1;
 
-          if (*reduction_it == this->max_reductions)
+          if (*reduction_it == this->max_reductions) {
             *dam_it = this->max_damage;
-          else {
+          } else {
             /// update the damage on this quad
             *dam_it =
                 1. - (1. / std::pow(this->reduction_constant, *reduction_it));

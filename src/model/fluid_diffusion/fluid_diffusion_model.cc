@@ -92,17 +92,6 @@ FluidDiffusionModel::FluidDiffusionModel(Mesh & mesh, UInt dim, const ID & id,
       k_gradp_on_qpoints("k_gradp_on_qpoints", id) {
   AKANTU_DEBUG_IN();
 
-  int i = 0;
-  unsigned int b(10);
-
-  std::vector<int> vi{10};
-  std::vector<int> v(10, 0);
-
-  if (i == int(b)) {
-    std::cout << "";
-  }
-
-  
   // mesh.registerEventHandler(*this, akantu::_ehp_lowest);
 
   this->spatial_dimension = std::max(1, int(mesh.getSpatialDimension()) - 1);

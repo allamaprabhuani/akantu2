@@ -25,13 +25,14 @@ inline UInt NodesFlagUpdater::getNbData(const Array<Element> & elements,
 inline void NodesFlagUpdater::packData(CommunicationBuffer & buffer,
                                        const Array<Element> & elements,
                                        const SynchronizationTag & tag) const {
-  if (tag != SynchronizationTag::_asr)
+  if (tag != SynchronizationTag::_asr) {
     return;
+  }
 
   int prank = mesh.getCommunicator().whoAmI();
   buffer << prank;
 
-  for (auto & element : elements) {
+  for (const auto & element : elements) {
     /// get element connectivity
     const Vector<UInt> current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
@@ -47,8 +48,9 @@ inline void NodesFlagUpdater::packData(CommunicationBuffer & buffer,
 inline void NodesFlagUpdater::unpackData(CommunicationBuffer & buffer,
                                          const Array<Element> & elements,
                                          const SynchronizationTag & tag) {
-  if (tag != SynchronizationTag::_asr)
+  if (tag != SynchronizationTag::_asr) {
     return;
+  }
 
   MeshAccessor mesh_accessor(mesh);
   auto dim = mesh.getSpatialDimension();
@@ -58,7 +60,7 @@ inline void NodesFlagUpdater::unpackData(CommunicationBuffer & buffer,
   int proc;
   buffer >> proc;
 
-  for (auto & element : elements) {
+  for (const auto & element : elements) {
     /// get element connectivity
     Vector<UInt> current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);

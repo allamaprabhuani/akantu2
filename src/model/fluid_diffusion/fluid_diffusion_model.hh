@@ -385,6 +385,6 @@ private:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "fluid_diffusion_model_inline_impl.cc"
+#include "fluid_diffusion_model_inline_impl.hh"
 
 #endif /* __AKANTU_FLUID_DIFFUSION_MODEL_HH__ */

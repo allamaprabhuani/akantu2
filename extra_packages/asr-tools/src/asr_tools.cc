@@ -62,8 +62,9 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
   auto & mesh = model.getMesh();
   // auto const dim = model.getSpatialDimension();
   mesh.registerEventHandler(*this, _ehp_lowest);
-  if (mesh.hasMeshFacets())
+  if (mesh.hasMeshFacets()) {
     mesh.getMeshFacets().registerEventHandler(*this, _ehp_lowest);
+  }
 
   /// find four corner nodes of the RVE
   findCornerNodes();
@@ -83,8 +84,9 @@ void ASRTools::computePhaseVolumes() {
   for (auto && mat : model.getMaterials()) {
     this->phase_volumes[mat.getName()] = computePhaseVolume(mat.getName());
     auto it = this->phase_volumes.find(mat.getName());
-    if (it == this->phase_volumes.end())
+    if (it == this->phase_volumes.end()) {
       this->phase_volumes.erase(mat.getName());
+    }
   }
 }
 /* -------------------------------------------------------------------------- */
@@ -246,33 +248,37 @@ void ASRTools::fillNodeGroup(NodeGroup & node_group, bool multi_axial) {
   Real right = upperBounds(0);
   Real bottom = lowerBounds(1);
   Real front;
-  if (dim == 3)
+  if (dim == 3) {
     front = upperBounds(2);
+  }
   Real eps = std::abs((top - bottom) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
   if (multi_axial) {
     /// fill the NodeGroup with the nodes on the left, bottom and back
     /// surface
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 0) - right) < eps)
+      if (std::abs(pos(i, 0) - right) < eps) {
         node_group.add(i);
-      if (std::abs(pos(i, 1) - top) < eps)
+      }
+      if (std::abs(pos(i, 1) - top) < eps) {
         node_group.add(i);
-      if (dim == 3 && std::abs(pos(i, 2) - front) < eps)
+      }
+      if (dim == 3 && std::abs(pos(i, 2) - front) < eps) {
         node_group.add(i);
+      }
     }
   }
   /// fill the NodeGroup with the nodes on the bottom surface
   else {
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
-      if (std::abs(pos(i, 1) - top) < eps)
+      if (std::abs(pos(i, 1) - top) < eps) {
         node_group.add(i);
+      }
     }
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
 
   Real av_displ = 0;
@@ -284,8 +290,9 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
   Real left = lowerBounds(0);
   Real top = upperBounds(1);
   Real front;
-  if (dim == 3)
+  if (dim == 3) {
     front = upperBounds(2);
+  }
   Real eps = std::abs((right - left) * 1e-6);
   const Array<Real> & pos = mesh.getNodes();
   const Array<Real> & disp = model.getDisplacement();
@@ -318,10 +325,9 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
         ++nb_nodes;
       }
     }
-  }
-
-  else
+  } else {
     AKANTU_EXCEPTION("The parameter for the testing direction is wrong!!!");
+  }
 
   /// do not communicate if model is multi-scale
   if (not aka::is_of_type<SolidMechanicsModelRVE>(model)) {
@@ -336,32 +342,32 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
 /* --------------------------------------------------------------------------
  */
 Real ASRTools::computeVolumetricExpansion(SpatialDirection direction) {
-
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
   UInt tensor_component = 0;
   if (dim == 2) {
-    if (direction == _x)
+    if (direction == _x) {
       tensor_component = 0;
-    else if (direction == _y)
+    } else if (direction == _y) {
       tensor_component = 3;
-    else
+    } else {
       AKANTU_EXCEPTION("The parameter for the testing direction is wrong!!!");
+    }
   }
 
   else if (dim == 3) {
-    if (direction == _x)
+    if (direction == _x) {
       tensor_component = 0;
-    else if (direction == _y)
+    } else if (direction == _y) {
       tensor_component = 4;
-    else if (direction == _z)
+    } else if (direction == _z) {
       tensor_component = 8;
-    else
+    } else {
       AKANTU_EXCEPTION("The parameter for the testing direction is wrong!!!");
-  }
-
-  else
+    }
+  } else {
     AKANTU_EXCEPTION("This example does not work for 1D!!!");
+  }
 
   Real gradu_tot = 0;
   Real tot_volume = 0;
@@ -372,12 +378,14 @@ Real ASRTools::computeVolumetricExpansion(SpatialDirection direction) {
     for (UInt m = 0; m < model.getNbMaterials(); ++m) {
       const ElementTypeMapUInt & element_filter_map =
           model.getMaterial(m).getElementFilter();
-      if (!element_filter_map.exists(element_type, gt))
+      if (!element_filter_map.exists(element_type, gt)) {
         continue;
+      }
       const Array<UInt> & elem_filter =
           model.getMaterial(m).getElementFilter(element_type);
-      if (!elem_filter.size())
+      if (elem_filter.empty()) {
         continue;
+      }
       // const Array<Real> & gradu_vec =
       // model.getMaterial(m).getGradU(element_type);
       Array<Real> gradu_vec(elem_filter.size() *
@@ -426,11 +434,13 @@ Real ASRTools::computeDamagedVolume(const ID & mat_name) {
   for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
     const FEEngine & fe_engine = model.getFEEngine();
     const ElementTypeMapUInt & element_filter_map = mat.getElementFilter();
-    if (!element_filter_map.exists(element_type, gt))
+    if (!element_filter_map.exists(element_type, gt)) {
       continue;
+    }
     const Array<UInt> & elem_filter = mat.getElementFilter(element_type);
-    if (!elem_filter.size())
+    if (elem_filter.empty()) {
       continue;
+    }
     const Array<Real> & damage = mat.getInternal<Real>("damage")(element_type);
 
     total_damage += fe_engine.integrate(damage, element_type, gt, elem_filter);
@@ -469,23 +479,24 @@ void ASRTools::computeStiffnessReduction(std::ofstream & file_output, Real time,
     // } catch (...) {
     // }
 
-    if (prank == 0)
+    if (prank == 0) {
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << std::endl;
-  }
-
-  else {
+    }
+  } else {
     Real int_residual_x = performLoadingTest(_x, tension);
     Real int_residual_y = performLoadingTest(_y, tension);
     Real int_residual_z = performLoadingTest(_z, tension);
-    if (prank == 0)
+    if (prank == 0) {
       file_output << time << "," << int_residual_x << "," << int_residual_y
                   << "," << int_residual_z << std::endl;
+    }
   }
 
   /// return the nodal values
   restoreNodalFields();
 }
+
 /* -------------------------------------------------------------------------- */
 void ASRTools::storeNodalFields() {
   auto & disp = this->model.getDisplacement();
@@ -495,6 +506,7 @@ void ASRTools::storeNodalFields() {
   this->boun_stored.copy(boun);
   this->ext_force_stored.copy(ext_force);
 }
+
 /* -------------------------------------------------------------------------- */
 void ASRTools::restoreNodalFields() {
   auto & disp = this->model.getDisplacement();
@@ -537,7 +549,7 @@ void ASRTools::storeDamageField() {
     Material & mat = model.getMaterial(m);
     if (mat.isInternal<Real>("damage_stored", _ek_regular) &&
         mat.isInternal<UInt>("reduction_step_stored", _ek_regular)) {
-      for (auto & el_type : mat.getElementFilter().elementTypes(
+      for (const auto & el_type : mat.getElementFilter().elementTypes(
                _all_dimensions, _not_ghost, _ek_not_defined)) {
         auto & red_stored =
             mat.getInternal<UInt>("reduction_step_stored")(el_type, _not_ghost);
@@ -560,7 +572,7 @@ void ASRTools::restoreDamageField() {
     Material & mat = model.getMaterial(m);
     if (mat.isInternal<Real>("damage_stored", _ek_regular) &&
         mat.isInternal<UInt>("reduction_step_stored", _ek_regular)) {
-      for (auto & el_type : mat.getElementFilter().elementTypes(
+      for (const auto & el_type : mat.getElementFilter().elementTypes(
                _all_dimensions, _not_ghost, _ek_not_defined)) {
         auto & red_stored =
             mat.getInternal<UInt>("reduction_step_stored")(el_type, _not_ghost);
@@ -577,15 +589,17 @@ void ASRTools::restoreDamageField() {
     }
   }
 }
-/* --------------------------------------------------------------------------
- */
+
+/* -------------------------------------------------------------------------- */
 Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   UInt dir;
 
-  if (direction == _x)
+  if (direction == _x) {
     dir = 0;
-  if (direction == _y)
+  }
+  if (direction == _y) {
     dir = 1;
+  }
   if (direction == _z) {
     AKANTU_DEBUG_ASSERT(model.getSpatialDimension() == 3,
                         "Error in problem dimension!!!");
@@ -612,8 +626,9 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   Real left = lowerBounds(0);
   Real back;
 
-  if (dim == 3)
+  if (dim == 3) {
     back = lowerBounds(2);
+  }
 
   Real eps = std::abs((top - bottom) * 1e-6);
   Real imposed_displacement = std::abs(lowerBounds(dir) - upperBounds(dir));

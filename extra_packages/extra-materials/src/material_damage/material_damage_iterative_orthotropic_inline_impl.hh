@@ -101,7 +101,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeStress(
   /// compute volumetric strain in record it into extra_volume array
   if (*dam_it) {
     *vol_strain_it = grad_u.trace();
-    *vol_strain_it *= *vol_strain_it > 0;
+    *vol_strain_it *= int(*vol_strain_it > 0);
   }
 
   ++C_it;
@@ -192,15 +192,15 @@ inline void MaterialDamageIterativeOrthotropic<spatial_dimension>::computeC(
 template <UInt spatial_dimension>
 inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
-    Matrix<Real> & /*sigma*/, Matrix<Real> & grad_u, Real & dam, Real & _E1,
-    Real & /*_E2*/, Real & /*_E3*/, Real & _nu12, Real & _nu13,
-    Real & /*_nu23*/, Real & _G12, Real & _G13, Real & /*_G23*/,
-    Matrix<Real> & _dir_vecs, Real & nb_flicks, bool & in_tension) {
+    Matrix<Real> & /*sigma*/, Matrix<Real> & grad_u, Real & dam, Real & E1,
+    Real & /*E2*/, Real & /*E3*/, Real & nu12, Real & nu13,
+    Real & /*nu23*/, Real & G12, Real & G13, Real & /*G23*/,
+    Matrix<Real> & dir_vecs, Real & nb_flicks, bool & in_tension) {
 
-  if (not dam) {
-    _E1 = this->E1;
-    _nu12 = this->nu12;
-    _nu13 = this->nu13;
+  if (dam > 0.) {
+    E1 = this->E1;
+    nu12 = this->nu12;
+    nu13 = this->nu13;
   } else {
     Matrix<Real> strain(spatial_dimension, spatial_dimension);
     strain = 0.5 * (grad_u + grad_u.transpose());
@@ -208,7 +208,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
     Vector<Real> normal_to_crack(spatial_dimension);
     /// normals are stored row-wise
     for (auto i : arange(spatial_dimension)) {
-      normal_to_crack(i) = _dir_vecs(0, i);
+      normal_to_crack(i) = dir_vecs(0, i);
     }
     auto def_on_crack = strain * normal_to_crack;
     auto def_normal_to_crack = normal_to_crack.dot(def_on_crack);
@@ -229,11 +229,11 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
         ++nb_flicks;
       }
       in_tension = true;
-      _E1 = this->E1 * (1 - dam);
-      _nu12 = this->nu12 * (1 - dam);
-      _nu13 = this->nu13 * (1 - dam);
-      _G12 = this->G12 * (1 - dam);
-      _G13 = this->G13 * (1 - dam);
+      E1 = this->E1 * (1 - dam);
+      nu12 = this->nu12 * (1 - dam);
+      nu13 = this->nu13 * (1 - dam);
+      G12 = this->G12 * (1 - dam);
+      G13 = this->G13 * (1 - dam);
     } else {
       if (in_tension) {
         ++nb_flicks;
@@ -243,9 +243,9 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
       //                this->E1);
       // _nu12 = std::min(this->nu12 * _E1 / this->E1, this->nu12);
       // _nu13 = std::min(this->nu13 * _E1 / this->E1, this->nu13);
-      _E1 = this->E1;
-      _nu12 = this->nu12;
-      _nu13 = this->nu13;
+      E1 = this->E1;
+      nu12 = this->nu12;
+      nu13 = this->nu13;
       // _G12 = this->G12;
       // _G13 = this->G13;
     }
@@ -257,15 +257,15 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
 template <UInt spatial_dimension>
 inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
-    Matrix<Real> & sigma, Real & dam, Real & E1, Real & E2, Real & /*_E3*/,
-    Real & _nu12, Real & _nu13, Real & _nu23, Real & /*_G12*/, Real & /*_G13*/,
-    Real & /*_G23*/, Matrix<Real> & _dir_vecs, Real & nb_flicks) {
+    Matrix<Real> & sigma, Real & dam, Real & E1, Real & E2, Real & /*E3*/,
+    Real & nu12, Real & nu13, Real & nu23, Real & /*G12*/, Real & /*G13*/,
+    Real & /*G23*/, Matrix<Real> & dir_vecs, Real & nb_flicks) {
 
   /// detect compression in the normal to crack plane direction
   Vector<Real> normal_to_crack(spatial_dimension);
   /// normals are stored row-wise
   for (auto i : arange(spatial_dimension)) {
-    normal_to_crack(i) = _dir_vecs(0, i);
+    normal_to_crack(i) = dir_vecs(0, i);
   }
   auto traction_on_crack = sigma * normal_to_crack;
   auto stress_normal_to_crack = normal_to_crack.dot(traction_on_crack);
@@ -273,33 +273,33 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
   /// elements who exceed max allowed number of state changes get the average
   /// elastic properties
   if (nb_flicks == this->max_state_changes_allowed) {
-    _E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
-    _nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
-    _nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
-    // _G12 = std::sqrt(this->G12 * this->G12 * (1 - dam));
-    // _G13 = std::sqrt(this->G13 * this->G13 * (1 - dam));
+    E1 = std::sqrt(this->E1 * this->E1 * (1 - dam));
+    nu12 = std::sqrt(this->nu12 * this->nu12 * (1 - dam));
+    nu13 = std::sqrt(this->nu13 * this->nu13 * (1 - dam));
+    // G12 = std::sqrt(this->G12 * this->G12 * (1 - dam));
+    // G13 = std::sqrt(this->G13 * this->G13 * (1 - dam));
   } else {
     /// recover stiffness only when compressive stress is considerable
     if (this->contact && std::abs(stress_normal_to_crack) > this->E / 1e9 &&
         stress_normal_to_crack < 0) {
       E1 = this->E1;
-      _nu12 = this->nu12;
-      _nu13 = this->nu13;
-      // _G12 = this->G12;
-      // _G13 = this->G13;
+      nu12 = this->nu12;
+      nu13 = this->nu13;
+      // G12 = this->G12;
+      // G13 = this->G13;
       ++nb_flicks;
     } else {
-      _E1 = this->E1 * (1 - dam);
-      _nu12 = this->nu12 * (1 - dam);
-      _nu13 = this->nu13 * (1 - dam);
+      E1 = this->E1 * (1 - dam);
+      nu12 = this->nu12 * (1 - dam);
+      nu13 = this->nu13 * (1 - dam);
       // _G12 = this->G12 * (1 - dam);
       // _G13 = this->G13 * (1 - dam);
       // _G12 = std::sqrt(this->G12 * this->G12 * (1 - dam));
       // _G13 = std::sqrt(this->G13 * this->G13 * (1 - dam));
 
       if (this->iso_damage) {
-        _E2 = this->E2 * (1 - dam);
-        _nu23 = this->nu23 * (1 - dam);
+        E2 = this->E2 * (1 - dam);
+        nu23 = this->nu23 * (1 - dam);
       }
       /// update shear moduli (Stable orthotropic materials (Li & Barbic))
       // _G12 = std::sqrt(_E1 * _E2) / 2 / (1 + std::sqrt(_nu12 *
@@ -322,8 +322,9 @@ void MaterialDamageIterativeOrthotropic<
     /// if in loading test stop updating stiffness after 1st iteration
     Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
         "nb_iterations");
-    if (not(nb_iter > 0 and this->loading_test))
+    if (not(nb_iter > 0 and this->loading_test)) {
       computeC(el_type, ghost_type);
+    }
   }
   OrthotropicParent::computeTangentModuli(el_type, tangent_matrix, ghost_type);
   AKANTU_DEBUG_OUT();
