@@ -225,8 +225,9 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
     //   std::cout << "Max number of state changes" << std::endl;
     // } else {
     if (def_normal_to_crack >= 0) {
-      if (not in_tension)
+      if (not in_tension) {
         ++nb_flicks;
+      }
       in_tension = true;
       _E1 = this->E1 * (1 - dam);
       _nu12 = this->nu12 * (1 - dam);
@@ -234,8 +235,9 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
       _G12 = this->G12 * (1 - dam);
       _G13 = this->G13 * (1 - dam);
     } else {
-      if (in_tension)
+      if (in_tension) {
         ++nb_flicks;
+      }
       in_tension = false;
       // _E1 = std::min(-def_normal_to_crack * 1e13 + this->E1 * (1 - dam),
       //                this->E1);
