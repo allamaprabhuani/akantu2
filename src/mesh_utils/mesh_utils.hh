@@ -37,6 +37,7 @@
 #include "aka_common.hh"
 #include "aka_csr.hh"
 #include "mesh.hh"
+#include "solid_mechanics_model.hh"
 /* -------------------------------------------------------------------------- */
 #include <vector>
 /* -------------------------------------------------------------------------- */
@@ -105,6 +106,26 @@ public:
   static void flipFacets(Mesh & mesh_facets,
                          const ElementTypeMapArray<UInt> & global_connectivity,
                          GhostType gt_facet);
+
+  /// cosine of sharp angle between two facets
+  static Real cosSharpAngleBetween2Facets(SolidMechanicsModel & model,
+                                          const Element & facet1,
+                                          const Element & facet2);
+
+  /// compute distance between barycenters of two facets
+  static Real distanceBetween2Barycenters(const Mesh & mesh_facet1,
+                                          const Mesh & mesh_facet2,
+                                          const Element & facet1,
+                                          const Element & facet2);
+
+  /// get inscribed circle diameter directly by the element
+  static Real getInscribedCircleDiameter(SolidMechanicsModel & model,
+                                         const Element & el);
+
+  /// check if two facets are connected and by which subfacets
+  static std::pair<bool, Array<Element>>
+  areFacetsConnected(const Mesh & mesh_facets, const Element & facet1,
+                     const Element & facet2);
 
 private:
   /// match pairs that are on the associated pbc's

@@ -656,7 +656,111 @@ void MeshUtils::flipFacets(
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/*-------------------------------------------------------------------- */
+Real MeshUtils::cosSharpAngleBetween2Facets(SolidMechanicsModel & model,
+                                            const Element & facet1,
+                                            const Element & facet2) {
+  AKANTU_DEBUG_IN();
+
+  auto & facets_fe_engine = model.getFEEngine("FacetsFEEngine");
+  auto dim = model.getSpatialDimension();
+
+  // normal to the first facet
+  UInt nb_quad_points1 =
+      facets_fe_engine.getNbIntegrationPoints(facet1.type, facet1.ghost_type);
+  const auto & normals1 =
+      facets_fe_engine.getNormalsOnIntegrationPoints(facet1.type);
+  auto normal1_begin = normals1.begin(dim);
+  Vector<Real> facet1_normal(normal1_begin[facet1.element * nb_quad_points1]);
+
+  // normal to the second facet
+  UInt nb_quad_points2 =
+      facets_fe_engine.getNbIntegrationPoints(facet2.type, facet2.ghost_type);
+  const auto & normals2 =
+      facets_fe_engine.getNormalsOnIntegrationPoints(facet2.type);
+  auto normal2_begin = normals2.begin(dim);
+  Vector<Real> facet2_normal(normal2_begin[facet2.element * nb_quad_points2]);
+
+  // get abs of dot product between two normals
+  Real dot = facet1_normal.dot(facet2_normal);
+  dot = std::abs(dot);
+
+  AKANTU_DEBUG_OUT();
+  return dot;
+}
+
+/*-------------------------------------------------------------------- */
+Real MeshUtils::distanceBetween2Barycenters(const Mesh & mesh_facet1,
+                                            const Mesh & mesh_facet2,
+                                            const Element & facet1,
+                                            const Element & facet2) {
+  AKANTU_DEBUG_IN();
+  auto dim = mesh_facet1.getSpatialDimension();
+  dim = std::max(mesh_facet2.getSpatialDimension(), dim);
+
+  Vector<Real> facet1_bary(dim);
+  Vector<Real> facet2_bary(dim);
+  mesh_facet1.getBarycenter(facet1, facet1_bary);
+  mesh_facet2.getBarycenter(facet2, facet2_bary);
+  auto dist = std::abs(facet1_bary.distance(facet2_bary));
+
+  AKANTU_DEBUG_OUT();
+  return dist;
+}
+/*-------------------------------------------------------------------- */
+Real MeshUtils::getInscribedCircleDiameter(SolidMechanicsModel & model,
+                                           const Element & el) {
+  AKANTU_DEBUG_IN();
+  auto & mesh = model.getMesh();
+  auto & mesh_facets = mesh.getMeshFacets();
+  auto & facets_fe_engine = model.getFEEngine("FacetsFEEngine");
+  auto dim = mesh.getSpatialDimension();
+  const auto & pos = mesh.getNodes();
+
+  auto nb_nodes_per_facet = mesh_facets.getNbNodesPerElement(el.type);
+  Array<Real> coord(0, nb_nodes_per_facet * dim);
+  Array<UInt> dummy_list(1, 1, el.element);
+  facets_fe_engine.extractNodalToElementField(mesh_facets, pos, coord, el.type,
+                                              el.ghost_type, dummy_list);
+  Array<Real>::matrix_iterator coord_el = coord.begin(dim, nb_nodes_per_facet);
+  Real facet_indiam = facets_fe_engine.getElementInradius(*coord_el, el.type);
+
+  AKANTU_DEBUG_OUT();
+  return facet_indiam;
+}
+/*-------------------------------------------------------------------- */
+std::pair<bool, Array<Element>>
+MeshUtils::areFacetsConnected(const Mesh & mesh_facets, const Element & facet1,
+                              const Element & facet2) {
+  AKANTU_DEBUG_IN();
+  AKANTU_DEBUG_ASSERT(
+      facet1.type == facet2.type,
+      "Different facet types are entered in areFacetsConnected function");
+
+  Array<Element> shared_subs;
+  bool facets_connected{false};
+
+  const Vector<Element> & sub_to_facet1 =
+      mesh_facets.getSubelementToElement(facet1);
+  const Vector<Element> & sub_to_facet2 =
+      mesh_facets.getSubelementToElement(facet2);
+  Vector<Element> common_subfacets;
+
+  for (UInt i : arange(sub_to_facet1.size())) {
+    for (UInt j : arange(i, sub_to_facet2.size())) {
+      auto sub1 = sub_to_facet1(i);
+      auto sub2 = sub_to_facet2(j);
+      if (sub1 == sub2) {
+        shared_subs.push_back(sub1);
+        facets_connected = true;
+      }
+    }
+  }
+
+  AKANTU_DEBUG_OUT();
+  return std::make_pair(facets_connected, shared_subs);
+}
+/*-------------------------------------------------------------------- */
 void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
   AKANTU_DEBUG_IN();
 
@@ -728,7 +832,7 @@ void MeshUtils::fillElementToSubElementsData(Mesh & mesh) {
             mesh_accessor.getElementToSubelement(type, ghost_type);
 
         const auto & connectivity = mesh.getConnectivity(type, ghost_type);
-        //element_to_subelement.resize(connectivity.size());
+        // element_to_subelement.resize(connectivity.size());
 
         for (auto && data : enumerate(
                  make_view(connectivity, mesh.getNbNodesPerElement(type)))) {
