@@ -549,8 +549,6 @@ void MeshUtils::purifyMesh(Mesh & mesh) {
 
   mesh.sendEvent(remove_nodes);
 
-  mesh_facets.sendEvent(event);
-  
   AKANTU_DEBUG_OUT();
 }
 

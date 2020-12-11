@@ -33,10 +33,10 @@
 
 namespace akantu {
 
-template<UInt spatial_dimension>
+template <UInt spatial_dimension>
 MaterialDruckerPrager<spatial_dimension>::MaterialDruckerPrager(
     SolidMechanicsModel & model, const ID & id)
-  : MaterialPlastic<spatial_dimension>(model, id) {
+    : MaterialPlastic<spatial_dimension>(model, id) {
 
   AKANTU_DEBUG_IN();
   this->initialize();
@@ -44,10 +44,9 @@ MaterialDruckerPrager<spatial_dimension>::MaterialDruckerPrager(
 }
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-MaterialDruckerPrager<spatial_dimension>::
-    MaterialDruckerPrager(SolidMechanicsModel & model, UInt dim,
-			  const Mesh & mesh, FEEngine & fe_engine,
-			  const ID & id)
+MaterialDruckerPrager<spatial_dimension>::MaterialDruckerPrager(
+    SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
+    FEEngine & fe_engine, const ID & id)
     : MaterialPlastic<spatial_dimension>(model, dim, mesh, fe_engine, id) {
 
   AKANTU_DEBUG_IN();
@@ -56,40 +55,37 @@ MaterialDruckerPrager<spatial_dimension>::
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>  
+template <UInt spatial_dimension>
 void MaterialDruckerPrager<spatial_dimension>::initialize() {
   this->registerParam("phi", phi, Real(0.), _pat_parsable | _pat_modifiable,
-		      "Internal friction angle in degrees");
+                      "Internal friction angle in degrees");
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,
-		      "Compressive strength");
+                      "Compressive strength");
   this->registerParam("radial_return", radial_return_mapping, bool(true),
-		      _pat_parsable | _pat_modifiable,
-		      "Radial return mapping");
+                      _pat_parsable | _pat_modifiable, "Radial return mapping");
 
-  
   this->updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>  
+template <UInt spatial_dimension>
 void MaterialDruckerPrager<spatial_dimension>::updateInternalParameters() {
   MaterialElastic<spatial_dimension>::updateInternalParameters();
-  
+
   // compute alpha and k parameters for Drucker-Prager
   Real phi_radian = this->phi * M_PI / 180.;
-  this->alpha = (6.*sin(phi_radian))/(3.-sin(phi_radian));
-  Real cohesion = this->fc * (1. - sin(phi_radian))/(2.*cos(phi_radian));
-  this->k = (6. * cohesion * cos(phi_radian))/(3. - sin(phi_radian));
+  this->alpha = (6. * sin(phi_radian)) / (3. - sin(phi_radian));
+  Real cohesion = this->fc * (1. - sin(phi_radian)) / (2. * cos(phi_radian));
+  this->k = (6. * cohesion * cos(phi_radian)) / (3. - sin(phi_radian));
 }
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>
+template <UInt spatial_dimension>
 void MaterialDruckerPrager<spatial_dimension>::computeStress(
     ElementType el_type, GhostType ghost_type) {
-  
+
   AKANTU_DEBUG_IN();
 
-  
   MaterialThermal<spatial_dimension>::computeStress(el_type, ghost_type);
   // infinitesimal and finite deformation
   auto sigma_th_it = this->sigma_th(el_type, ghost_type).begin();
@@ -132,7 +128,7 @@ void MaterialDruckerPrager<spatial_dimension>::computeStress(
     this->template gradUToE<spatial_dimension>(grad_u, green_strain);
     Matrix<Real> previous_green_strain(spatial_dimension, spatial_dimension);
     this->template gradUToE<spatial_dimension>(previous_grad_u,
-                                                         previous_green_strain);
+                                               previous_green_strain);
     Matrix<Real> F_tensor(spatial_dimension, spatial_dimension);
     this->template gradUToF<spatial_dimension>(grad_u, F_tensor);
 
@@ -171,35 +167,27 @@ void MaterialDruckerPrager<spatial_dimension>::computeStress(
     ++previous_stress_it;
     ++previous_gradu_it;
     ++previous_inelastic_strain_it;
-  
+
     MATERIAL_STRESS_QUADRATURE_POINT_LOOP_END;
   }
 
   AKANTU_DEBUG_OUT();
-  
 
   AKANTU_DEBUG_OUT();
 }
-
 
 /* -------------------------------------------------------------------------- */
-template<UInt spatial_dimension>  
+template <UInt spatial_dimension>
 void MaterialDruckerPrager<spatial_dimension>::computeTangentModuli(
-    __attribute__((unused)) const ElementType & el_type,
-    __attribute__((unused)) Array<Real> & tangent_matrix,
-    __attribute__((unused)) GhostType ghost_type) {
-
+    ElementType /*el_type*/, Array<Real> & /*tangent_matrix*/,
+    GhostType /*ghost_type*/) {
   AKANTU_DEBUG_IN();
-
 
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */  
+/* -------------------------------------------------------------------------- */
 
-INSTANTIATE_MATERIAL(plastic_drucker_prager,
-		     MaterialDruckerPrager);
+INSTANTIATE_MATERIAL(plastic_drucker_prager, MaterialDruckerPrager);
 
-  
 } // namespace akantu
-

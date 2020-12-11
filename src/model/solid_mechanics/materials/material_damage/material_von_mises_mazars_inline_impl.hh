@@ -4,12 +4,13 @@
 
 namespace akantu {
 /* -------------------------------------------------------------------------- */
-  template <UInt spatial_dimension, template <UInt> class Parent>
-  inline void MaterialVonMisesMazars<spatial_dimension, Parent>::computeStressOnQuad(
+template <UInt spatial_dimension, template <UInt> class Parent>
+inline void
+MaterialVonMisesMazars<spatial_dimension, Parent>::computeStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
   Matrix<Real> epsilon(3, 3);
-  epsilon.clear();
+  epsilon.zero();
 
   for (UInt i = 0; i < spatial_dimension; ++i)
     for (UInt j = 0; j < spatial_dimension; ++j)
@@ -25,7 +26,7 @@ namespace akantu {
   }
   Ehat = sqrt(Ehat);
 
-  //MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
+  // MaterialElastic<spatial_dimension>::computeStressOnQuad(grad_u, sigma);
 
   if (damage_in_compute_stress) {
     computeDamageOnQuad(Ehat, sigma, Fdiag, dam);
@@ -37,16 +38,17 @@ namespace akantu {
 }
 
 /* -------------------------------------------------------------------------- */
-  template <UInt spatial_dimension, template <UInt> class Parent>
-  inline void MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageAndStressOnQuad(
+template <UInt spatial_dimension, template <UInt> class Parent>
+inline void
+MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageAndStressOnQuad(
     const Matrix<Real> & grad_u, Matrix<Real> & sigma, Real & dam,
     Real & Ehat) {
   if (!damage_in_compute_stress) {
     Vector<Real> Fdiag(3);
-    Fdiag.clear();
+    Fdiag.zero();
 
     Matrix<Real> epsilon(3, 3);
-    epsilon.clear();
+    epsilon.zero();
     for (UInt i = 0; i < spatial_dimension; ++i)
       for (UInt j = 0; j < spatial_dimension; ++j)
         epsilon(i, j) = .5 * (grad_u(i, j) + grad_u(j, i));
@@ -60,8 +62,9 @@ namespace akantu {
 }
 
 /* -------------------------------------------------------------------------- */
-  template <UInt spatial_dimension, template <UInt> class Parent>
-  inline void MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageOnQuad(
+template <UInt spatial_dimension, template <UInt> class Parent>
+inline void
+MaterialVonMisesMazars<spatial_dimension, Parent>::computeDamageOnQuad(
     const Real & epsilon_equ,
     __attribute__((unused)) const Matrix<Real> & sigma,
     const Vector<Real> & epsilon_princ, Real & dam) {

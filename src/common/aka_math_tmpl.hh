@@ -620,63 +620,50 @@ namespace Math {
                      (y[1] - x[1]) * (y[1] - x[1]));
   }
 
+  /* ------------------------------------------------------------------------ */
+  inline Real triangle_inradius_2d(const Real * coord1, const Real * coord2,
+                                   const Real * coord3) {
+    /**
+     * @f{eqnarray*}{
+     * r &=& A / s \\
+     * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)}
+     * \\ s &=& \frac{a + b + c}{2}
+     * @f}
+     */
 
-/* -------------------------------------------------------------------------- */
-inline Real Math::triangle_inradius_2d(const Real * coord1, const Real * coord2,
-				       const Real * coord3) {
-  /**
-   * @f{eqnarray*}{
-   * r &=& A / s \\
-   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
-   * s &=& \frac{a + b + c}{2}
-   * @f}
-   */
-  
-  Real a, b, c;
-  
-  a = distance_2d(coord1, coord2);
-  b = distance_2d(coord2, coord3);
-  c = distance_2d(coord1, coord3);
+    Real a, b, c;
 
-  Real s;
-  s = (a + b + c) * 0.5;
+    a = distance_2d(coord1, coord2);
+    b = distance_2d(coord2, coord3);
+    c = distance_2d(coord1, coord3);
 
-  return sqrt((s - a) * (s - b) * (s - c) / s);
-}
+    Real s;
+    s = (a + b + c) * 0.5;
 
-  
-/* -------------------------------------------------------------------------- */
-inline Real Math::triangle_inradius_3d(const Real * coord1, const Real * coord2,
-				       const Real * coord3) {
-  /**
-   * @f{eqnarray*}{
-   * r &=& A / s \\
-   * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)} \\
-   * s &=& \frac{a + b + c}{2}
-   * @f}
-   */
-  
-  Real a, b, c;
-  
-  a = distance_3d(coord1, coord2);
-  b = distance_3d(coord2, coord3);
-  c = distance_3d(coord1, coord3);
+    return sqrt((s - a) * (s - b) * (s - c) / s);
+  }
 
-  Real s;
-  s = (a + b + c) * 0.5;
+  /* ------------------------------------------------------------------------ */
+  inline Real triangle_inradius_3d(const Real * coord1, const Real * coord2,
+                                   const Real * coord3) {
+    /**
+     * @f{eqnarray*}{
+     * r &=& A / s \\
+     * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)}
+     * \\ s &=& \frac{a + b + c}{2}
+     * @f}
+     */
 
-  return sqrt((s - a) * (s - b) * (s - c) / s);
-}
+    Real a, b, c;
 
-/* -------------------------------------------------------------------------- */
-inline Real Math::distance_3d(const Real * x, const Real * y) {
-  return sqrt((y[0] - x[0]) * (y[0] - x[0]) + (y[1] - x[1]) * (y[1] - x[1]) +
-              (y[2] - x[2]) * (y[2] - x[2]));
-}
+    a = distance_3d(coord1, coord2);
+    b = distance_3d(coord2, coord3);
+    c = distance_3d(coord1, coord3);
 
-    auto s = (a + b + c) * 0.5;
+    Real s;
+    s = (a + b + c) * 0.5;
 
-    return std::sqrt((s - a) * (s - b) * (s - c) / s);
+    return sqrt((s - a) * (s - b) * (s - c) / s);
   }
 
   /* ------------------------------------------------------------------------ */

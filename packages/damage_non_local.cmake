@@ -28,7 +28,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 package_declare(damage_non_local
   DESCRIPTION "Package for Non-local damage constitutives laws Akantu"
   DEPENDS lapack)

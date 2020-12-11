@@ -291,7 +291,7 @@ public:
       for (UInt i = 0; i < dimension; ++i) {
         Real posl = center(i) + cell_id.getID(i) * spacing(i);
         Real posu = posl + spacing(i);
-        if (posl <= lower(i))
+        if (posl <= lower(i)) {
           lower(i) = posl;
         }
         if (posu > upper(i)) {
