@@ -13,7 +13,7 @@ material elastic [
 ]
 
 contact_detector [
-  type = explicit		 			
+  type = implicit		 			
   master = contact_top
   slave = contact_bottom
 ]

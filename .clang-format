@@ -1,7 +1,7 @@
 ---
 Language:                            Cpp
 BasedOnStyle:                        LLVM
-Standard:                            Latest
+Standard:                            Cpp11
 TabWidth:                            4
 PointerAlignment:                    Middle
 NamespaceIndentation:                Inner

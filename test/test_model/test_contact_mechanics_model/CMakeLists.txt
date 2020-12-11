@@ -22,16 +22,4 @@
 #
 #===============================================================================
 
-add_akantu_test(test_detector "detection_test")
-add_akantu_test(test_resolution "resolution_test")
-add_akantu_test(test_coupler "coupler_test")
-
-add_mesh (hertz_2d hertz_2d.geo 2 1)
-
-register_test(test_hertz_2d
-  SOURCES test_hertz_2d.cc
-  DEPENDS hertz_2d
-  FILES_TO_COPY material.dat
-  PACKAGE contact_mechanics
-  )
-
+add_akantu_test(test_selector "selector_test")

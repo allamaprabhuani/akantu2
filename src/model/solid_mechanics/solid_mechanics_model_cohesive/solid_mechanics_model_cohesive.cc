@@ -279,7 +279,6 @@ void SolidMechanicsModelCohesive::initMaterials() {
         }
       },
       _spatial_dimension = spatial_dimension - 1, _ghost_type = _not_ghost);
-
   
   SolidMechanicsModel::initMaterials();
   

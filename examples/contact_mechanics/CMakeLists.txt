@@ -37,3 +37,9 @@ register_example(contact_explicit_dynamic
   DEPENDS hertz
   FILES_TO_COPY material.dat
   )
+
+register_example(contact_explicit_static
+  SOURCES contact_explicit_staticcc
+  DEPENDS hertz
+  FILES_TO_COPY material.dat
+  )

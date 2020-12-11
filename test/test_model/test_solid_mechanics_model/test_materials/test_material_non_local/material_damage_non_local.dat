@@ -10,9 +10,9 @@ material marigo_non_local [
 ]
 
 non_local concrete remove_wf [
-	  radius       = 0.15
+	  radius       = 0.01
 	  weight_function weight_parameter [
 	  		  damage_limit = 0.99
-	  		  update_rate  = 10	       
+			  	  		  update_rate  = 10	       
 	  ]	  
 ]

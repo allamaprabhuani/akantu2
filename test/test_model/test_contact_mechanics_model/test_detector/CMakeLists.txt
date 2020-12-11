@@ -22,20 +22,37 @@
 #
 #===============================================================================
 
-add_mesh (node node.geo 2 1)
-add_mesh (hertz_explicit hertz_explicit.geo 2 1)
+set(_meshes)
 
-register_test(test_node_selector
-  SOURCES test_node_selector.cc
-  DEPENDS node
-  FILES_TO_COPY options.dat
-  PACKAGE contact_mechanics
-  )
+add_mesh(detection_seg data/cohesive_1D.geo
+  DIM 2 ORDER 1
+  OUTPUT _detection_segment_2.msh)
+list(APPEND _meshes detection_seg)
 
-register_test(test_explicit_detection
-  SOURCES test_explicit_detection.cc
-  DEPENDS hertz_explicit
-  FILES_TO_COPY options_explicit.dat
+add_mesh(detection_tri data/cohesive_strait_2D.geo
+  DIM 2 ORDER 1
+  OUTPUT _detection_triangle_3.msh)
+list(APPEND _meshes detection_tri)
+
+add_mesh(detection_quad data/cohesive_strait_2D_structured.geo
+  DIM 2 ORDER 1
+  OUTPUT _detection_quadrangle_4.msh)
+list(APPEND _meshes detection_quad)
+
+add_mesh(detection_tri_quad data/cohesive_strait_2D_mixte.geo
+  DIM 2 ORDER 1
+  OUTPUT _detection_triangle_3_quadrangle_4.msh)
+list(APPEND _meshes detection_tri_quad)
+
+add_mesh(detection_tet data/cohesive_strait_3D.geo
+  DIM 3 ORDER 1
+  OUTPUT _detection_tetrahedron_4.msh)
+list(APPEND _meshes detection_tet)
+
+register_gtest_sources(
+  SOURCES test_detection.cc
   PACKAGE contact_mechanics
+  DEPENDS ${_meshes}
+  FILES_TO_COPY material_0.dat material_1.dat
   )
 
