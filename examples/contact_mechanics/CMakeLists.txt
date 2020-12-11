@@ -29,7 +29,6 @@
 # @section DESCRIPTION
 #
 #===============================================================================
-
 add_mesh(hertz hertz.geo 2 1)
 
 register_example(contact_explicit_dynamic
@@ -39,7 +38,7 @@ register_example(contact_explicit_dynamic
   )
 
 register_example(contact_explicit_static
-  SOURCES contact_explicit_staticcc
+  SOURCES contact_explicit_static.cc
   DEPENDS hertz
   FILES_TO_COPY material.dat
   )
