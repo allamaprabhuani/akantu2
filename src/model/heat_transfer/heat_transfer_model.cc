@@ -61,7 +61,7 @@ namespace heat_transfer {
     public:
       ComputeRhoFunctor(const HeatTransferModel & model) : model(model){};
 
-      void operator()(Matrix<Real> & rho, const Element &) {
+      void operator()(Matrix<Real> & rho, const Element & /*unused*/) {
         rho.set(model.getCapacity() * model.getDensity());
       }
 
@@ -145,13 +145,13 @@ void HeatTransferModel::allocNodalField(Array<T> *& array, const ID & name) {
 HeatTransferModel::~HeatTransferModel() = default;
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::assembleCapacityLumped(const GhostType & ghost_type) {
+void HeatTransferModel::assembleCapacityLumped(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   auto & fem = getFEEngineClass<FEEngineType>();
   heat_transfer::details::ComputeRhoFunctor compute_rho(*this);
 
-  for (auto & type :
+  for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     fem.assembleFieldLumped(compute_rho, "M", "temperature",
                             this->getDOFManager(), type, ghost_type);
@@ -210,7 +210,7 @@ void HeatTransferModel::assembleCapacityLumped() {
     this->getDOFManager().getNewLumpedMatrix("M");
   }
 
-  this->getDOFManager().clearLumpedMatrix("M");
+  this->getDOFManager().zeroLumpedMatrix("M");
 
   assembleCapacityLumped(_not_ghost);
   assembleCapacityLumped(_ghost);
@@ -222,7 +222,7 @@ void HeatTransferModel::assembleCapacityLumped() {
 
 /* -------------------------------------------------------------------------- */
 void HeatTransferModel::initSolver(TimeStepSolverType time_step_solver_type,
-                                   NonLinearSolverType) {
+                                   NonLinearSolverType /*unused*/) {
   DOFManager & dof_manager = this->getDOFManager();
 
   this->allocNodalField(this->temperature, "temperature");
@@ -312,14 +312,15 @@ void HeatTransferModel::assembleConductivityMatrix() {
   AKANTU_DEBUG_IN();
 
   this->computeConductivityOnQuadPoints(_not_ghost);
-  
-  if (conductivity_release[_not_ghost] == conductivity_matrix_release)
+
+  if (conductivity_release[_not_ghost] == conductivity_matrix_release) {
     return;
+  }
 
   AKANTU_DEBUG_ASSERT(this->getDOFManager().hasMatrix("K"),
                       "The K matrix has not been initialized yet.");
 
-  this->getDOFManager().clearMatrix("K");
+  this->getDOFManager().zeroMatrix("K");
 
   auto & fem = this->getFEEngine();
 
@@ -351,20 +352,20 @@ void HeatTransferModel::assembleConductivityMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::computeConductivityOnQuadPoints(
-    const GhostType & ghost_type) {
+void HeatTransferModel::computeConductivityOnQuadPoints(GhostType ghost_type) {
   // if already computed once check if need to compute
   if (not initial_conductivity[ghost_type]) {
     // if temperature did not change, conductivity will not vary
-    if (temperature_release == conductivity_release[ghost_type])
+    if (temperature_release == conductivity_release[ghost_type]) {
       return;
-
+    }
     // if conductivity_variation is 0 no need to recompute
-    if (conductivity_variation == 0.)
+    if (conductivity_variation == 0.) {
       return;
+    }
   }
 
-  for (auto & type :
+  for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & temperature_interpolated = temperature_on_qpoints(type, ghost_type);
 
@@ -394,10 +395,10 @@ void HeatTransferModel::computeConductivityOnQuadPoints(
 }
 
 /* -------------------------------------------------------------------------- */
-void HeatTransferModel::computeKgradT(const GhostType & ghost_type) {
+void HeatTransferModel::computeKgradT(GhostType ghost_type) {
   computeConductivityOnQuadPoints(ghost_type);
 
-  for (auto & type :
+  for (auto && type :
        mesh.elementTypes(spatial_dimension, ghost_type, _ek_regular)) {
     auto & gradient = temperature_gradient(type, ghost_type);
     this->getFEEngine().gradientOnIntegrationPoints(*temperature, gradient, 1,
@@ -424,7 +425,7 @@ void HeatTransferModel::computeKgradT(const GhostType & ghost_type) {
 void HeatTransferModel::assembleInternalHeatRate() {
   AKANTU_DEBUG_IN();
 
-  this->internal_heat_rate->clear();
+  this->internal_heat_rate->zero();
 
   this->synchronize(SynchronizationTag::_htm_temperature);
   auto & fem = this->getFEEngine();
@@ -465,11 +466,12 @@ Real HeatTransferModel::getStableTimeStep() {
   Real conductivitymax = conductivity(0, 0);
 
   // get the biggest parameter from k11 until k33//
-  for (UInt i = 0; i < spatial_dimension; i++)
-    for (UInt j = 0; j < spatial_dimension; j++)
+  for (UInt i = 0; i < spatial_dimension; i++) {
+    for (UInt j = 0; j < spatial_dimension; j++) {
       conductivitymax = std::max(conductivity(i, j), conductivitymax);
-
-  for (auto & type :
+    }
+  }
+  for (auto && type :
        mesh.elementTypes(spatial_dimension, _not_ghost, _ek_regular)) {
 
     UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
@@ -534,7 +536,7 @@ void HeatTransferModel::assembleCapacity() {
   AKANTU_DEBUG_IN();
   auto ghost_type = _not_ghost;
 
-  this->getDOFManager().clearMatrix("M");
+  this->getDOFManager().zeroMatrix("M");
 
   auto & fem = getFEEngineClass<FEEngineType>();
 
@@ -590,8 +592,9 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
     bool count_node = is_local_node;
 
     for (UInt i = 0; i < heat_rate.size(); ++i) {
-      if (count_node)
+      if (count_node) {
         heat += heat_rate[i] * time_step;
+      }
     }
     ethermal += heat;
   }
@@ -606,14 +609,14 @@ Real HeatTransferModel::computeThermalEnergyByNode() {
 template <class iterator>
 void HeatTransferModel::getThermalEnergy(
     iterator Eth, Array<Real>::const_iterator<Real> T_it,
-    Array<Real>::const_iterator<Real> T_end) const {
+    const Array<Real>::const_iterator<Real> & T_end) const {
   for (; T_it != T_end; ++T_it, ++Eth) {
     *Eth = capacity * density * *T_it;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getThermalEnergy(const ElementType & type, UInt index) {
+Real HeatTransferModel::getThermalEnergy(ElementType type, UInt index) {
   AKANTU_DEBUG_IN();
 
   UInt nb_quadrature_points = getFEEngine().getNbIntegrationPoints(type);
@@ -662,9 +665,9 @@ Real HeatTransferModel::getEnergy(const std::string & id) {
   AKANTU_DEBUG_IN();
   Real energy = 0;
 
-  if (id == "thermal")
+  if (id == "thermal") {
     energy = getThermalEnergy();
-
+  }
   // reduction sum over all processors
   mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
 
@@ -673,14 +676,15 @@ Real HeatTransferModel::getEnergy(const std::string & id) {
 }
 
 /* -------------------------------------------------------------------------- */
-Real HeatTransferModel::getEnergy(const std::string & id,
-                                  const ElementType & type, UInt index) {
+Real HeatTransferModel::getEnergy(const std::string & id, ElementType type,
+                                  UInt index) {
   AKANTU_DEBUG_IN();
 
   Real energy = 0.;
 
-  if (id == "thermal")
+  if (id == "thermal") {
     energy = getThermalEnergy(type, index);
+  }
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -728,17 +732,16 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createNodalFieldReal(
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    __attribute__((unused)) bool padding_flag,
-    __attribute__((unused)) const UInt & spatial_dimension,
-    const ElementKind & element_kind) {
+    bool /*padding_flag*/, UInt /*spatial_dimension*/,
+    ElementKind element_kind) {
 
   std::shared_ptr<dumpers::Field> field;
 
-  if (field_name == "partitions")
+  if (field_name == "partitions") {
     field = mesh.createElementalField<UInt, dumpers::ElementPartitionField>(
         mesh.getConnectivities(), group_name, this->spatial_dimension,
         element_kind);
-  else if (field_name == "temperature_gradient") {
+  } else if (field_name == "temperature_gradient") {
     ElementTypeMap<UInt> nb_data_per_elem =
         this->mesh.getNbDataPerElem(temperature_gradient);
 
@@ -764,7 +767,7 @@ std::shared_ptr<dumpers::Field> HeatTransferModel::createElementalField(
     __attribute__((unused)) const std::string & field_name,
     __attribute__((unused)) const std::string & group_name,
     __attribute__((unused)) bool padding_flag,
-    __attribute__((unused)) const ElementKind & element_kind) {
+    __attribute__((unused)) ElementKind element_kind) {
   return nullptr;
 }
 
@@ -823,7 +826,9 @@ inline UInt HeatTransferModel::getNbData(const Array<UInt> & indexes,
     size += nb_nodes * sizeof(Real);
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 
   AKANTU_DEBUG_OUT();
@@ -842,7 +847,9 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
       buffer << (*temperature)(index);
       break;
     }
-    default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+    default: {
+      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    }
     }
   }
   AKANTU_DEBUG_OUT();
@@ -860,7 +867,9 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
       buffer >> (*temperature)(index);
       break;
     }
-    default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+    default: {
+      AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+    }
     }
   }
 
@@ -892,7 +901,9 @@ inline UInt HeatTransferModel::getNbData(const Array<Element> & elements,
     size += nb_nodes_per_element * sizeof(Real); // nodal temperatures
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 
   AKANTU_DEBUG_OUT();
@@ -914,7 +925,9 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
     packNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 
@@ -934,7 +947,9 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
 
     break;
   }
-  default: { AKANTU_ERROR("Unknown ghost synchronization tag : " << tag); }
+  default: {
+    AKANTU_ERROR("Unknown ghost synchronization tag : " << tag);
+  }
   }
 }
 

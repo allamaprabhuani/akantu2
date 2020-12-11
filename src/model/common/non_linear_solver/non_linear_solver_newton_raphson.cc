@@ -28,9 +28,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "non_linear_solver_newton_raphson.hh"
 #include "communicator.hh"
 #include "dof_manager_default.hh"
+#include "non_linear_solver_newton_raphson.hh"
 #include "solver_callback.hh"
 #include "solver_vector.hh"
 #include "sparse_solver_mumps.hh"
@@ -84,8 +84,9 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   solver_callback.predictor();
 
   if (non_linear_solver_type == NonLinearSolverType::_linear and
-      solver_callback.canSplitResidual())
+      solver_callback.canSplitResidual()) {
     solver_callback.assembleMatrix("K");
+  }
 
   this->assembleResidual(solver_callback);
 
@@ -101,73 +102,74 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
   this->converged = false;
 
   this->convergence_criteria_normalized = this->convergence_criteria;
-  
+
   if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual) {
     this->converged = this->testConvergence(this->dof_manager.getResidual());
 
-    if (this->converged)
+    if (this->converged) {
       return;
+    }
 
     this->convergence_criteria_normalized =
         this->error * this->convergence_criteria;
   }
- 
+
   do {
     if (this->non_linear_solver_type == NonLinearSolverType::_newton_raphson or
-	this->non_linear_solver_type == NonLinearSolverType::_newton_raphson_contact)
+        this->non_linear_solver_type ==
+            NonLinearSolverType::_newton_raphson_contact)
       solver_callback.assembleMatrix("J");
-
-    this->solver->solve();
-
-    solver_callback.corrector();
-
-    // EventManager::sendEvent(NonLinearSolver::AfterSparseSolve(method));
-
-    if (this->convergence_criteria_type ==
-        SolveConvergenceCriteria::_residual) {
-      this->assembleResidual(solver_callback);
-      this->converged = this->testConvergence(this->dof_manager.getResidual());
-    }
-    else {
-      this->converged = this->testConvergence(this->dof_manager.getSolution());
-    }
-
-    if (this->convergence_criteria_type ==
-	SolveConvergenceCriteria::_solution and
-	not this->converged) 
-      this->assembleResidual(solver_callback);
-
-    this->n_iter++;
-    AKANTU_DEBUG_INFO(
-        "[" << this->convergence_criteria_type << "] Convergence iteration "
-            << std::setw(std::log10(this->max_iterations)) << this->n_iter
-            << ": error " << this->error << (this->converged ? " < " : " > ")
-            << this->convergence_criteria);
-
-  } while (not this->converged and this->n_iter <= this->max_iterations);
-
-  // this makes sure that you have correct strains and stresses after the
-  // solveStep function (e.g., for dumping)
-  if (this->convergence_criteria_type == SolveConvergenceCriteria::_solution)
-    this->assembleResidual(solver_callback);
-
-  this->converged =
-      this->converged  and not (this->n_iter > this->max_iterations);
-
-  solver_callback.afterSolveStep(this->converged);
-
-  if (not this->converged) {
-    AKANTU_CUSTOM_EXCEPTION(debug::NLSNotConvergedException(
-        this->convergence_criteria, this->n_iter, this->error));
-
-    AKANTU_DEBUG_WARNING("[" << this->convergence_criteria_type
-                             << "] Convergence not reached after "
-                             << std::setw(std::log10(this->max_iterations))
-                             << this->n_iter << " iteration"
-                             << (this->n_iter == 1 ? "" : "s") << "!");
   }
 
-  return;
+  this->solver->solve();
+
+  solver_callback.corrector();
+
+  // EventManager::sendEvent(NonLinearSolver::AfterSparseSolve(method));
+
+  if (this->convergence_criteria_type == SolveConvergenceCriteria::_residual) {
+    this->assembleResidual(solver_callback);
+    this->converged = this->testConvergence(this->dof_manager.getResidual());
+  } else {
+    this->converged = this->testConvergence(this->dof_manager.getSolution());
+  }
+
+  if (this->convergence_criteria_type == SolveConvergenceCriteria::_solution and
+      not this->converged) {
+    this->assembleResidual(solver_callback);
+  }
+
+  this->n_iter++;
+  AKANTU_DEBUG_INFO(
+      "[" << this->convergence_criteria_type << "] Convergence iteration "
+          << std::setw(std::log10(this->max_iterations)) << this->n_iter
+          << ": error " << this->error << (this->converged ? " < " : " > ")
+          << this->convergence_criteria);
+}
+while (not this->converged and this->n_iter <= this->max_iterations)
+  ;
+
+// this makes sure that you have correct strains and stresses after the
+// solveStep function (e.g., for dumping)
+if (this->convergence_criteria_type == SolveConvergenceCriteria::_solution) {
+  this->assembleResidual(solver_callback);
+}
+
+this->converged = this->converged and not(this->n_iter > this->max_iterations);
+
+solver_callback.afterSolveStep(this->converged);
+
+if (not this->converged) {
+  AKANTU_CUSTOM_EXCEPTION(debug::NLSNotConvergedException(
+      this->convergence_criteria, this->n_iter, this->error));
+
+  AKANTU_DEBUG_WARNING("[" << this->convergence_criteria_type
+                           << "] Convergence not reached after "
+                           << std::setw(std::log10(this->max_iterations))
+                           << this->n_iter << " iteration"
+                           << (this->n_iter == 1 ? "" : "s") << "!");
+}
+
 }
 
 /* -------------------------------------------------------------------------- */
@@ -199,8 +201,9 @@ bool NonLinearSolverNewtonRaphson::testConvergence(
                       "Something went wrong in the solve phase");
 
   this->error = norm;
-  std::cout << error << "-----" << this->convergence_criteria_normalized << std::endl;
-  
+  std::cout << error << "-----" << this->convergence_criteria_normalized
+            << std::endl;
+
   return (error < this->convergence_criteria_normalized);
 }
 

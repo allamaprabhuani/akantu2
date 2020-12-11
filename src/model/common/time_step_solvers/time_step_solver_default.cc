@@ -198,7 +198,7 @@ void TimeStepSolverDefault::corrector() {
   AKANTU_DEBUG_IN();
 
   for (auto & pair : this->integration_schemes) {
-    auto & dof_id = pair.first;
+    const auto & dof_id = pair.first;
     auto & integration_scheme = pair.second;
 
     const auto & solution_type = this->solution_types[dof_id];
@@ -237,8 +237,9 @@ void TimeStepSolverDefault::assembleMatrix(const ID & matrix_id) {
 
   TimeStepSolver::assembleMatrix(matrix_id);
 
-  if (matrix_id != "J")
+  if (matrix_id != "J") {
     return;
+  }
 
   for_each_integrator([&](auto && dof_id, auto && integration_scheme) {
     const auto & solution_type = this->solution_types[dof_id];
@@ -286,7 +287,7 @@ void TimeStepSolverDefault::assembleResidual() {
 
   TimeStepSolver::assembleResidual();
 
-  for_each_integrator([&](auto &&, auto && integration_scheme) {
+  for_each_integrator([&](auto && /*unused*/, auto && integration_scheme) {
     integration_scheme.assembleResidual(this->is_mass_lumped);
   });
 }
@@ -308,7 +309,7 @@ void TimeStepSolverDefault::assembleResidual(const ID & residual_part) {
   }
 
   if (residual_part == "inertial") {
-    for_each_integrator([&](auto &&, auto && integration_scheme) {
+    for_each_integrator([&](auto && /*unused*/, auto && integration_scheme) {
       integration_scheme.assembleResidual(this->is_mass_lumped);
     });
   }
@@ -319,14 +320,15 @@ void TimeStepSolverDefault::assembleResidual(const ID & residual_part) {
 /* -------------------------------------------------------------------------- */
 void TimeStepSolverDefault::beforeSolveStep() {
   TimeStepSolver::beforeSolveStep();
-  for_each_integrator(
-      [&](auto &&, auto && integration_scheme) { integration_scheme.store(); });
+  for_each_integrator([&](auto && /*unused*/, auto && integration_scheme) {
+    integration_scheme.store();
+  });
 }
 
 /* -------------------------------------------------------------------------- */
 void TimeStepSolverDefault::afterSolveStep(bool converged) {
   if (not converged) {
-    for_each_integrator([&](auto &&, auto && integration_scheme) {
+    for_each_integrator([&](auto && /*unused*/, auto && integration_scheme) {
       integration_scheme.restore();
     });
   }

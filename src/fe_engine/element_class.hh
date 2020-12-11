@@ -34,8 +34,8 @@
 #include "aka_types.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_ELEMENT_CLASS_HH__
-#define __AKANTU_ELEMENT_CLASS_HH__
+#ifndef AKANTU_ELEMENT_CLASS_HH_
+#define AKANTU_ELEMENT_CLASS_HH_
 
 namespace akantu {
 
@@ -183,7 +183,8 @@ public:
 
   /// compute the shape values for a given point in natural coordinates
   template <class vector_type>
-  static inline void computeShapes(const vector_type &, vector_type &) {
+  static inline void computeShapes(const vector_type & /*unused*/,
+                                   vector_type & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -201,7 +202,8 @@ public:
    * coordinates
    */
   template <class vector_type, class matrix_type>
-  static inline void computeDNDS(const vector_type &, matrix_type &) {
+  static inline void computeDNDS(const vector_type & /*unused*/,
+                                 matrix_type & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -227,7 +229,8 @@ public:
 
   /// compute jacobian (or integration variable change factor) for a given point
   /// in the case of spatial_dimension != natural_space_dimension
-  static inline void computeSpecialJacobian(const Matrix<Real> &, Real &) {
+  static inline void computeSpecialJacobian(const Matrix<Real> & /*unused*/,
+                                            Real & /*unused*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -285,8 +288,8 @@ template <ElementType type,
 class GaussIntegrationElement {
 public:
   static UInt getNbQuadraturePoints();
-  static const Matrix<Real> getQuadraturePoints();
-  static const Vector<Real> getWeights();
+  static Matrix<Real> getQuadraturePoints();
+  static Vector<Real> getWeights();
 };
 
 /* -------------------------------------------------------------------------- */
@@ -426,4 +429,4 @@ public:
 #include "element_class_igfem.hh"
 #endif
 
-#endif /* __AKANTU_ELEMENT_CLASS_HH__ */
+#endif /* AKANTU_ELEMENT_CLASS_HH_ */

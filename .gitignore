@@ -21,3 +21,5 @@ paraview/*
 *.pvtu
 *.vtk
 compile_commands.json
+.clangd
+.iwyu.imp
