@@ -1,0 +1,5 @@
+contact_detector [
+  type = implicit		 			
+  master = master
+  slave = master
+]
