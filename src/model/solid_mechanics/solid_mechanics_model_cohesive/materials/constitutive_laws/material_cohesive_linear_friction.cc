@@ -136,8 +136,8 @@ void MaterialCohesiveLinearFriction<spatial_dimension>::computeTraction(
 
       /// the definition of tau_max refers to the opening
       /// (penetration) of the previous incremental step
-      Real normal_opening_prev_norm =
-          std::min(previous_opening_it->dot(*normal_it), Real(0.));
+      //Real normal_opening_prev_norm =
+      //    std::min(previous_opening_it->dot(*normal_it), Real(0.));
 
       //      Vector<Real> normal_opening_prev = (*normal_it);
       //      normal_opening_prev *= normal_opening_prev_norm;

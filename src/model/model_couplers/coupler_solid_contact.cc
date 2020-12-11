@@ -81,8 +81,8 @@ void CouplerSolidContact::initFullImpl(const ModelOptions & options) {
 
   this->initBC(*this, *displacement, *displacement_increment, *external_force);
 
-  solid->initFull(  _analysis_method  = this->method); 
-  contact->initFull(_analysis_method  = this->method);
+  solid->initFull(_analysis_method = this->method);
+  contact->initFull(_analysis_method = this->method);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -99,15 +99,15 @@ FEEngine & CouplerSolidContact::getFEEngineBoundary(const ID & name) {
 }
 
 /* -------------------------------------------------------------------------- */
-void CouplerSolidContact::initSolver(TimeStepSolverType time_step_solver_type,
-				     NonLinearSolverType non_linear_solver_type) {
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(*solid);
-  solid_model_solver.initSolver(time_step_solver_type,  non_linear_solver_type);
+void CouplerSolidContact::initSolver(
+    TimeStepSolverType time_step_solver_type,
+    NonLinearSolverType non_linear_solver_type) {
+  auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
+  solid_model_solver.initSolver(time_step_solver_type, non_linear_solver_type);
 
-  auto & contact_model_solver =
-    aka::as_type<ModelSolver>(*contact);
-  contact_model_solver.initSolver(time_step_solver_type,  non_linear_solver_type);
+  auto & contact_model_solver = aka::as_type<ModelSolver>(*contact);
+  contact_model_solver.initSolver(time_step_solver_type,
+                                  non_linear_solver_type);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -130,7 +130,7 @@ CouplerSolidContact::getDefaultSolverID(const AnalysisMethod & method) {
   }
   default:
     return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
-  }  
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -178,9 +178,9 @@ ModelSolverOptions CouplerSolidContact::getDefaultSolverOptions(
 void CouplerSolidContact::assembleResidual() {
 
   // computes the internal forces
-  
+
   switch (method) {
-  case _explicit_lumped_mass: {    
+  case _explicit_lumped_mass: {
     auto & current_positions = contact->getContactDetector().getPositions();
     current_positions.copy(solid->getCurrentPosition());
     contact->search();
@@ -197,8 +197,6 @@ void CouplerSolidContact::assembleResidual() {
 
   auto & contact_force = contact->getInternalForce();
 
-  
-
   /* ------------------------------------------------------------------------ */
   this->getDOFManager().assembleToResidual("displacement", external_force, 1);
   this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
@@ -209,12 +207,12 @@ void CouplerSolidContact::assembleResidual() {
 void CouplerSolidContact::assembleResidual(const ID & residual_part) {
   AKANTU_DEBUG_IN();
 
-  //contact->assembleInternalForces();
-  
+  // contact->assembleInternalForces();
+
   auto & internal_force = solid->getInternalForce();
   auto & external_force = solid->getExternalForce();
   auto & contact_force = contact->getInternalForce();
-  
+
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", external_force, 1);
     this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
@@ -236,23 +234,20 @@ void CouplerSolidContact::assembleResidual(const ID & residual_part) {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::predictor() {
-  
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(*solid);
-  solid_model_solver.predictor(); 
-      
+
+  auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
+  solid_model_solver.predictor();
 }
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::corrector() {
 
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(*solid);
+  auto & solid_model_solver = aka::as_type<ModelSolver>(*solid);
   solid_model_solver.corrector();
-  
+
   switch (method) {
   case _static:
-  case _implicit_dynamic:  {
+  case _implicit_dynamic: {
     auto & current_positions = contact->getContactDetector().getPositions();
     current_positions.copy(solid->getCurrentPosition());
     contact->search();
@@ -261,7 +256,6 @@ void CouplerSolidContact::corrector() {
   default:
     break;
   }
-
 }
 
 /* -------------------------------------------------------------------------- */
@@ -294,28 +288,22 @@ void CouplerSolidContact::assembleLumpedMatrix(const ID & matrix_id) {
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::beforeSolveStep() {
-  auto & solid_solver_callback =
-    aka::as_type<SolverCallback>(*solid);
+  auto & solid_solver_callback = aka::as_type<SolverCallback>(*solid);
   solid_solver_callback.beforeSolveStep();
-  
-  auto & contact_solver_callback =
-    aka::as_type<SolverCallback>(*contact);
+
+  auto & contact_solver_callback = aka::as_type<SolverCallback>(*contact);
   contact_solver_callback.beforeSolveStep();
 }
 
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::afterSolveStep(bool converged) {
-  auto & solid_solver_callback =
-    aka::as_type<SolverCallback>(*solid);
+  auto & solid_solver_callback = aka::as_type<SolverCallback>(*solid);
   solid_solver_callback.afterSolveStep(converged);
-  
-  auto & contact_solver_callback =
-    aka::as_type<SolverCallback>(*contact);
+
+  auto & contact_solver_callback = aka::as_type<SolverCallback>(*contact);
   contact_solver_callback.afterSolveStep(converged);
 }
 
-
-  
 /* -------------------------------------------------------------------------- */
 void CouplerSolidContact::assembleInternalForces() {
   AKANTU_DEBUG_IN();
@@ -335,11 +323,11 @@ void CouplerSolidContact::assembleStiffnessMatrix() {
   AKANTU_DEBUG_INFO("Assemble the new stiffness matrix");
 
   solid->assembleStiffnessMatrix(true);
- 
+
   switch (method) {
   case _static:
   case _implicit_dynamic: {
-    contact->assembleStiffnessMatrix();    
+    contact->assembleStiffnessMatrix();
     break;
   }
   default:
@@ -371,13 +359,12 @@ void CouplerSolidContact::assembleMass(GhostType ghost_type) {
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> CouplerSolidContact::createElementalField(
     const std::string & field_name, const std::string & group_name,
-    bool padding_flag, const UInt & spatial_dimension,
-    const ElementKind & kind) {
+    bool padding_flag, UInt spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
   field = solid->createElementalField(field_name, group_name, padding_flag,
-                                     spatial_dimension, kind);
- 
+                                      spatial_dimension, kind);
+
   return field;
 }
 
@@ -390,10 +377,10 @@ CouplerSolidContact::createNodalFieldReal(const std::string & field_name,
   std::shared_ptr<dumpers::Field> field;
   if (field_name == "contact_force" or field_name == "normals" or
       field_name == "normal_force" or field_name == "tangential_force" or
-      field_name == "contact_state" or
-      field_name == "gaps" or field_name == "previous_gaps" or
-      field_name == "areas" or field_name == "tangents") {
-    field =  contact->createNodalFieldReal(field_name, group_name, padding_flag);
+      field_name == "contact_state" or field_name == "gaps" or
+      field_name == "previous_gaps" or field_name == "areas" or
+      field_name == "tangents") {
+    field = contact->createNodalFieldReal(field_name, group_name, padding_flag);
   } else {
     field = solid->createNodalFieldReal(field_name, group_name, padding_flag);
   }
@@ -407,7 +394,6 @@ CouplerSolidContact::createNodalFieldBool(const std::string & field_name,
                                           const std::string & group_name,
                                           bool padding_flag) {
 
-  
   std::shared_ptr<dumpers::Field> field;
   field = solid->createNodalFieldBool(field_name, group_name, padding_flag);
   return field;

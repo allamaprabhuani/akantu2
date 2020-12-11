@@ -442,7 +442,7 @@ inline UInt Mesh::getNaturalSpaceDimension(const ElementType & type) {
 }
 
 /* -------------------------------------------------------------------------- */
-inline UInt Mesh::getNbFacetTypes(ElementType & type, UInt /*t*/) {
+inline UInt Mesh::getNbFacetTypes(ElementType type, UInt /*t*/) {
   UInt nb = 0;
 #define GET_NB_FACET_TYPE(type) nb = ElementClass<type>::getNbFacetTypes()
 

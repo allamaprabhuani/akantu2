@@ -809,6 +809,8 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     return;
   }
 
+  NewElementsEvent new_facets_event;
+
   auto & facets_to_double = *facets_to_double_by_dim[spatial_dimension - 1];
   auto & element_to_facet = mesh_facets.getElementToSubelement();
   auto & position = mesh.getNodes();
@@ -846,7 +848,10 @@ void CohesiveElementInserterHelper::doublePointFacet() {
     *it = new_node;
 
     doubled_nodes.push_back(Vector<UInt>{old_node, new_node});
+    new_facets_event.getList().push_back(new_facet);
   }
+
+  mesh_facets.sendEvent(new_facets_event);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -855,6 +860,8 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
   if (spatial_dimension == 1) {
     return;
   }
+
+  NewElementsEvent new_facets_event;
 
   std::vector<UInt> nodes_to_double;
   MeshAccessor mesh_accessor(mesh_facets);
@@ -907,6 +914,8 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
     // auto & old_facet = std::get<0>(data)[0];
     auto & new_facet = std::get<0>(data)[1];
 
+    new_facets_event.getList().push_back(new_facet);
+
     auto & nodes = std::get<1>(data);
     auto old_node = nodes(0);
     auto new_node = nodes(1);
@@ -931,6 +940,8 @@ void CohesiveElementInserterHelper::doubleSubfacet() {
 
   updateSubelementToElement(0, spatial_dimension == 2);
   updateElementToSubelement(0, spatial_dimension == 2);
+
+  mesh_facets.sendEvent(new_facets_event);
 }
 
 } // namespace akantu

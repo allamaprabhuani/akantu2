@@ -87,10 +87,10 @@ inline void MaterialDruckerPrager<dim>::computeGradientAndPlasticMultplier(
   plastic_multiplier_guess = 0.;
   
   // gradient of yield surface in voigt notation
-  gradient_f.clear();
+  gradient_f.zero();
   
   // plastic strain increment at each iteration 
-  delta_inelastic_strain.clear();
+  delta_inelastic_strain.zero();
   
   // variation in sigma at each iteration
   Vector<Real> delta_sigma(size, 0.);

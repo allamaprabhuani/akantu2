@@ -28,8 +28,8 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-
 package_declare(contact_mechanics
+  DEPENDS model_couplers
   DESCRIPTION "Use Contact Mechanics package of Akantu")
 
 package_declare_sources(contact_mechanics
