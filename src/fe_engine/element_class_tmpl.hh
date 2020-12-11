@@ -428,7 +428,7 @@ inline void ElementClass<type, kind>::computeNormalsOnNaturalCoordinates(
 template <ElementType type, ElementKind kind>
 inline void ElementClass<type, kind>::inverseMap(
     const Vector<Real> & real_coords, const Matrix<Real> & node_coords,
-    Vector<Real> & natural_coords, UInt max_iterations,  Real tolerance) {
+    Vector<Real> & natural_coords, UInt max_iterations, Real tolerance) {
   UInt spatial_dimension = real_coords.size();
   UInt dimension = natural_coords.size();
 
@@ -441,7 +441,9 @@ inline void ElementClass<type, kind>::inverseMap(
 
   // real space coordinates provided by initial guess
   Matrix<Real> physical_guess(spatial_dimension /*changed from
-						  dimension */, 1);
+                          dimension */
+                              ,
+                              1);
 
   // objective function f = real_coords - physical_guess
   Matrix<Real> f(spatial_dimension /*changed from dimension */, 1);
@@ -456,7 +458,6 @@ inline void ElementClass<type, kind>::inverseMap(
   // J^t
   Matrix<Real> Jt(spatial_dimension, dimension);
 
-  
   // G = J^t * J
   Matrix<Real> G(dimension, dimension);
 
@@ -470,16 +471,14 @@ inline void ElementClass<type, kind>::inverseMap(
   Matrix<Real> dxi(dimension, 1);
 
   Matrix<Real> dxit(1, dimension);
- 
 
   /* --------------------------- */
   /* init before iteration loop  */
   /* --------------------------- */
   // do interpolation
   auto update_f = [&f, &physical_guess, &natural_coords, &node_coords,
-                   &mreal_coords, dimension, spatial_dimension]() {
-    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension /* changes
-										 from dimension */);
+                   &mreal_coords, spatial_dimension]() {
+    Vector<Real> physical_guess_v(physical_guess.storage(), spatial_dimension);
     interpolation_element::interpolateOnNaturalCoordinates(
         natural_coords, node_coords, physical_guess_v);
 
@@ -493,7 +492,6 @@ inline void ElementClass<type, kind>::inverseMap(
   };
 
   auto inverse_map_error = update_f();
-
   /* --------------------------- */
   /* iteration loop              */
   /* --------------------------- */
@@ -503,7 +501,7 @@ inline void ElementClass<type, kind>::inverseMap(
     interpolation_element::gradientOnNaturalCoordinates(natural_coords,
                                                         node_coords, Jt);
     J = Jt.transpose();
-    
+
     // compute G
     G.mul<false, true>(J, J);
 
@@ -517,15 +515,13 @@ inline void ElementClass<type, kind>::inverseMap(
     dxit.mul<true, false>(f, F);
 
     dxi = dxit.transpose();
-    
+
     // update our guess
     natural_coords += Vector<Real>(dxi(0));
 
     inverse_map_error = update_f();
     iterations++;
   }
-  //  memcpy(natural_coords.storage(), natural_guess.storage(), sizeof(Real) *
-  //  natural_coords.size());
 }
 
 /* -------------------------------------------------------------------------- */

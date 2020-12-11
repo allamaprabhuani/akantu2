@@ -56,7 +56,6 @@ ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions,
   AKANTU_DEBUG_OUT();
 }
 
-  
 /* -------------------------------------------------------------------------- */
 void ContactDetector::parseSection() {
 
@@ -71,23 +70,22 @@ void ContactDetector::parseSection() {
     this->detection_type = _implicit;
   } else if (type == "explicit") {
     this->detection_type = _explicit;
-  } else { 
+  } else {
     AKANTU_ERROR("Unknown detection type : " << type);
   }
 
   this->projection_tolerance =
-    section.getParameterValue<Real>("projection_tolerance");
-  this->max_iterations =
-    section.getParameterValue<Real>("max_iterations");
+      section.getParameterValue<Real>("projection_tolerance");
+  this->max_iterations = section.getParameterValue<Real>("max_iterations");
   this->extension_tolerance =
-    section.getParameterValue<Real>("extension_tolerance");
+      section.getParameterValue<Real>("extension_tolerance");
 }
 
 /* -------------------------------------------------------------------------- */
 void ContactDetector::search(Array<ContactElement> & elements,
-			     Array<Real> & gaps, Array<Real> & normals,
-			     Array<Real> & tangents,
-			     Array<Real> & projections) {
+                             Array<Real> & gaps, Array<Real> & normals,
+                             Array<Real> & tangents,
+                             Array<Real> & projections) {
 
   UInt surface_dimension = spatial_dimension - 1;
 
@@ -104,10 +102,8 @@ void ContactDetector::search(Array<ContactElement> & elements,
   this->localSearch(slave_grid, master_grid);
 
   this->createContactElements(elements, gaps, normals, tangents, projections);
-
 }
 
-  
 /* -------------------------------------------------------------------------- */
 void ContactDetector::globalSearch(SpatialGrid<UInt> & slave_grid,
                                    SpatialGrid<UInt> & master_grid) {
@@ -193,7 +189,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
           if (slave_node == master_node)
             continue;
 
-	  bool is_valid = true;
+          bool is_valid = true;
           Array<Element> elements;
           this->mesh.getAssociatedElements(slave_node, elements);
 
@@ -208,7 +204,7 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
                                        master_node);
             if (node_iter != connectivity.end()) {
               is_valid = false;
-	      break;
+              break;
             }
           }
 
@@ -232,15 +228,13 @@ void ContactDetector::localSearch(SpatialGrid<UInt> & slave_grid,
   }
 }
 
-
-  
 /* -------------------------------------------------------------------------- */
-void ContactDetector::createContactElements(Array<ContactElement> & contact_elements,
-					    Array<Real> & gaps, Array<Real> & normals,
-					    Array<Real> & tangents, Array<Real> & projections) {
+void ContactDetector::createContactElements(
+    Array<ContactElement> & contact_elements, Array<Real> & gaps,
+    Array<Real> & normals, Array<Real> & tangents, Array<Real> & projections) {
 
   auto surface_dimension = spatial_dimension - 1;
- 
+
   Real alpha;
   switch (detection_type) {
   case _explicit: {
@@ -250,12 +244,13 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
   case _implicit: {
     alpha = -1.0;
     break;
-  }  
+  }
   default:
-    AKANTU_EXCEPTION(detection_type << " is not a valid contact detection type");
+    AKANTU_EXCEPTION(detection_type
+                     << " is not a valid contact detection type");
     break;
   }
-      
+
   for (auto & pairs : contact_pairs) {
 
     const auto & slave_node = pairs.first;
@@ -271,27 +266,24 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
     auto & gap = gaps.begin()[slave_node];
     Vector<Real> normal(normals.begin(spatial_dimension)[slave_node]);
     Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
-    Matrix<Real> tangent(tangents.begin(surface_dimension,
-					spatial_dimension)[slave_node]);
-    auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave, elements,
-						     gap, projection, normal,
-						     tangent,
-						     alpha,
-						     this->max_iterations, 
-						     this->projection_tolerance, 
-						     this->extension_tolerance);
+    Matrix<Real> tangent(
+        tangents.begin(surface_dimension, spatial_dimension)[slave_node]);
+    auto index = GeometryUtils::orthogonalProjection(
+        mesh, positions, slave, elements, gap, projection, normal, tangent,
+        alpha, this->max_iterations, this->projection_tolerance,
+        this->extension_tolerance);
 
     // if a valid projection is not found on the patch of elements
     // index is -1 or if not a valid self contact, the contact element
     // is not created
-    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) { 
+    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) {
       gap *= 0;
       normal *= 0;
       projection *= 0;
       tangent *= 0;
       continue;
     }
-    
+
     // create contact element
     contact_elements.push_back(ContactElement(slave_node, elements[index]));
   }
@@ -300,12 +292,12 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
 }
 
 /* -------------------------------------------------------------------------- */
-/*void ContactDetector::createContactElements(Array<ContactElement> & contact_elements,
-					    Array<Real> & gaps, Array<Real> & normals,
-					    Array<Real> & projections) {
+/*void ContactDetector::createContactElements(Array<ContactElement> &
+  contact_elements, Array<Real> & gaps, Array<Real> & normals, Array<Real> &
+  projections) {
 
   auto surface_dimension = spatial_dimension - 1;
- 
+
   Real alpha;
   switch (detection_type) {
   case _explicit: {
@@ -315,12 +307,12 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
   case _implicit: {
     alpha = -1.0;
     break;
-  }  
-  default:
-    AKANTU_EXCEPTION(detection_type << " is not a valid contact detection type");
-    break;
   }
-      
+  default:
+    AKANTU_EXCEPTION(detection_type << " is not a valid contact detection
+  type"); break;
+  }
+
   for (auto & pairs : contact_pairs) {
 
     const auto & slave_node = pairs.first;
@@ -333,25 +325,24 @@ void ContactDetector::createContactElements(Array<ContactElement> & contact_elem
     Array<Element> elements;
     this->mesh.getAssociatedElements(master_node, elements);
 
-    
+
     auto & gap = gaps.begin()[slave_node];
     Vector<Real> normal(normals.begin(spatial_dimension)[slave_node]);
     Vector<Real> projection(projections.begin(surface_dimension)[slave_node]);
-    auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave, elements,
-						     gap, projection, normal, alpha,
-						     this->max_iterations, 
-						     this->projection_tolerance, 
-						     this->extension_tolerance);
+    auto index = GeometryUtils::orthogonalProjection(mesh, positions, slave,
+  elements, gap, projection, normal, alpha, this->max_iterations,
+                             this->projection_tolerance,
+                             this->extension_tolerance);
 
     // if a valid projection is not found on the patch of elements
     // index is -1 or if not a valid self contact, the contact element
     // is not created
-    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) { 
+    if (index == UInt(-1) or !isValidSelfContact(slave_node, gap, normal)) {
       gap *= 0;
       normal *= 0;
       continue;
     }
-    
+
     // create contact element
     contact_elements.push_back(ContactElement(slave_node, elements[index]));
   }

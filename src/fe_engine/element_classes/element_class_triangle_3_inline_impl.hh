@@ -102,19 +102,11 @@ inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDNDS(
 }
 
 /* -------------------------------------------------------------------------- */
-template<>
+template <>
 template <class vector_type, class matrix_type>
-inline void InterpolationElement<_itp_lagrange_triangle_3>::computeDN2DS2(
-    __attribute__((unused)) const vector_type & natural_coords, matrix_type & dn2ds2) {
-
-  /**
-   * @f[
-   * dn2ds2 = \left(
-   *            \begin{array}{}
-   * @f]
-   */
-  
-  dn2ds2 *= 0;
+inline void InterpolationElement<_itp_lagrange_triangle_3>::computeD2NDS2(
+    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+  d2nds2.zero();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -133,11 +125,11 @@ template <>
 inline Real
 GeometricalElement<_gt_triangle_3>::getInradius(const Matrix<Real> & coord) {
   if (coord.rows() == 2) {
-    return 2. * Math::triangle_inradius_2d(coord(0).storage(), coord(1).storage(),
-					   coord(2).storage());
+    return 2. * Math::triangle_inradius_2d(
+                    coord(0).storage(), coord(1).storage(), coord(2).storage());
   }
   return 2. * Math::triangle_inradius_3d(coord(0).storage(), coord(1).storage(),
-					 coord(2).storage());
+                                         coord(2).storage());
 }
 
 /* -------------------------------------------------------------------------- */

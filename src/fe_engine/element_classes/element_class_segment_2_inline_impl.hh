@@ -81,17 +81,9 @@ inline void InterpolationElement<_itp_lagrange_segment_2>::computeDNDS(
 /* -------------------------------------------------------------------------- */
 template<>
 template <class vector_type, class matrix_type>
-inline void InterpolationElement<_itp_lagrange_segment_2>::computeDN2DS2(
-    __attribute__((unused)) const vector_type & natural_coords, matrix_type & dn2ds2) {
-
-  /**
-   * @f[
-   * dn2ds2 = \left(
-   *            \begin{array}{}
-   * @f]
-   */
-  
-  dn2ds2 *= 0;
+inline void InterpolationElement<_itp_lagrange_segment_2>::computeD2NDS2(
+    const vector_type & /*natural_coords*/, matrix_type & d2nds2) {
+  d2nds2.zero();
 }
 
 /* -------------------------------------------------------------------------- */

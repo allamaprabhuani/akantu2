@@ -211,8 +211,8 @@ public:
    * compute @f$ @f$
    
    **/
-  static inline void computeDN2DS2(const Matrix<Real> & natural_coord,
-				   Tensor3<Real> & dn2ds2);
+  static inline void computeD2NDS2(const Matrix<Real> & natural_coord,
+				   Tensor3<Real> & d2nds2);
 
   /**
    * compute @f$ B_{ij} = \frac{\partial N_j}{\partial S_i} @f$ the
@@ -222,7 +222,7 @@ public:
    * coordinates
    */
   template <class vector_type, class matrix_type>
-  static inline void computeDN2DS2(const vector_type &, matrix_type &) {
+  static inline void computeD2NDS2(const vector_type &, matrix_type &) {
     AKANTU_TO_IMPLEMENT();
   }
 

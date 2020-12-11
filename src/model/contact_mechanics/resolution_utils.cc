@@ -30,6 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "resolution_utils.hh"
+#include "element_class_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -53,12 +54,8 @@ void ResolutionUtils::computeShapeFunctionMatric(
                               shape_matric.cols(),
                       "Shape Matric dimensions are not correct");
 
-  Vector<Real> shapes(nb_nodes_per_element);
-
-#define GET_SHAPE_NATURAL(type)                                                \
-  ElementClass<type>::computeShapes(projection, shapes)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
-#undef GET_SHAPE_NATURAL
+  auto && shapes =
+      ElementClassHelper<_ek_regular>::getN(projection, type);
 
   for (auto i : arange(nb_nodes_per_contact)) {
     for (auto j : arange(spatial_dimension)) {

@@ -82,6 +82,7 @@ package_declare_sources(core
   common/aka_warning_restore.hh
   
   fe_engine/element_class.hh
+  fe_engine/element_class_helper.hh
   fe_engine/element_class_tmpl.hh
   fe_engine/element_classes/element_class_hexahedron_8_inline_impl.hh
   fe_engine/element_classes/element_class_hexahedron_20_inline_impl.hh
@@ -406,6 +407,10 @@ package_declare_elements(core
   contains
   compute_shapes
   compute_shapes_derivatives
+  get_N
+  compute_dnds
+  compute_d2nds2
+  compute_jmat
   get_shapes_derivatives
   lagrange_base
   assemble_fields

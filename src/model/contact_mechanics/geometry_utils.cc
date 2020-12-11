@@ -30,6 +30,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "geometry_utils.hh"
+#include "element_class_helper.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
@@ -183,7 +184,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
 
   UInt spatial_dimension = mesh.getSpatialDimension();
 
-  const ElementType & type = element.type;
+  const ElementType type = element.type;
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
@@ -193,14 +194,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
-  UInt surface_dimension = spatial_dimension - 1;
-  Matrix<Real> dnds(surface_dimension, nb_nodes_per_element);
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(natural_coord, dnds)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
-
+  auto && dnds = ElementClassHelper<_ek_regular>::getDNDS(natural_coord, type);
   tangents.mul<false, true>(dnds, nodes_coord);
 
   auto temp_tangents = tangents.transpose();
@@ -273,14 +267,7 @@ void GeometryUtils::covariantBasis(const Mesh & mesh,
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
-  UInt surface_dimension = spatial_dimension - 1;
-  Matrix<Real> dnds(surface_dimension, nb_nodes_per_element);
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(natural_coord, dnds)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
-
+  auto && dnds = ElementClassHelper<_ek_regular>::getDNDS(natural_coord, type);
   tangents.mul<false, true>(dnds, nodes_coord);
 
   auto temp_tangents = tangents.transpose();
@@ -298,19 +285,13 @@ void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
                               const Vector<Real> & natural_coord,
                               Matrix<Real> & curvature) {
   UInt spatial_dimension = mesh.getSpatialDimension();
-  auto surface_dimension = spatial_dimension - 1;
-
   const ElementType & type = element.type;
+
   UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
 
-  Matrix<Real> dn2ds2(surface_dimension * surface_dimension,
-                      Mesh::getNbNodesPerElement(type));
-
-#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)                             \
-  ElementClass<type>::computeDN2DS2(natural_coord, dn2ds2)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+  auto && d2nds2 =
+      ElementClassHelper<_ek_regular>::getD2NDS2(natural_coord, type);
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   mesh.extractNodalValuesFromElement(positions, coords.storage(),
@@ -318,7 +299,7 @@ void GeometryUtils::curvature(const Mesh & mesh, const Array<Real> & positions,
                                          element.element * nb_nodes_per_element,
                                      nb_nodes_per_element, spatial_dimension);
 
-  curvature.mul<false, true>(coords, dn2ds2);
+  curvature.mul<false, true>(coords, d2nds2);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -546,13 +527,9 @@ void GeometryUtils::realProjection(const Mesh & mesh,
 
   const ElementType & type = element.type;
 
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(element.type);
-
-  Vector<Real> shapes(nb_nodes_per_element);
-#define GET_SHAPE_NATURAL(type)                                                \
-  ElementClass<type>::computeShapes(natural_coord, shapes)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
-#undef GET_SHAPE_NATURAL
+  auto nb_nodes_per_element = Mesh::getNbNodesPerElement(element.type);
+  auto shapes =
+      ElementClassHelper<_ek_regular>::getN(natural_coord, element.type);
 
   Matrix<Real> nodes_coord(spatial_dimension, nb_nodes_per_element);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
@@ -606,19 +583,19 @@ void GeometryUtils::naturalProjection(
   Matrix<Real> double_gradient(surface_dimension, surface_dimension);
 
   // second derivative of shape function at natural projection
-  Matrix<Real> dn2ds2(surface_dimension * surface_dimension,
+  Matrix<Real> d2nds2(surface_dimension * surface_dimension,
                       nb_nodes_per_element);
 
   auto compute_double_gradient =
-      [&double_gradient, &dn2ds2, &nodes_coord, surface_dimension,
+      [&double_gradient, &d2nds2, &nodes_coord, surface_dimension,
        spatial_dimension](UInt & alpha, UInt & beta) {
         auto index = alpha * surface_dimension + beta;
         Vector<Real> d_alpha_beta(spatial_dimension);
 
-        auto dn2ds2_transpose = dn2ds2.transpose();
-        Vector<Real> dn2ds2_alpha_beta(dn2ds2_transpose(index));
+        auto d2nds2_transpose = d2nds2.transpose();
+        Vector<Real> d2nds2_alpha_beta(d2nds2_transpose(index));
 
-        d_alpha_beta.mul<false>(nodes_coord, dn2ds2_alpha_beta);
+        d_alpha_beta.mul<false>(nodes_coord, d2nds2_alpha_beta);
 
         return d_alpha_beta;
       };
@@ -631,25 +608,16 @@ void GeometryUtils::naturalProjection(
                    &slave_coords, &gradient, surface_dimension,
                    spatial_dimension, nb_nodes_per_element, type]() {
     // compute real coords on natural projection
-    Vector<Real> shapes(nb_nodes_per_element);
-#define GET_SHAPE_NATURAL(type)                                                \
-  ElementClass<type>::computeShapes(natural_projection, shapes)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
-#undef GET_SHAPE_NATURAL
+    auto && shapes =
+        ElementClassHelper<_ek_regular>::getN(natural_projection, type);
 
     master_coords.mul<false>(nodes_coord, shapes);
 
     auto distance = slave_coords - master_coords;
 
     // first derivative of shape function at natural projection
-    Matrix<Real> dnds(surface_dimension, nb_nodes_per_element);
-
-    // computing gradient at projection point
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(natural_projection, dnds)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
-
+    auto && dnds =
+        ElementClassHelper<_ek_regular>::getDNDS(natural_projection, type);
     gradient.mul<false, true>(dnds, nodes_coord);
 
     // gradient transpose at natural projection
@@ -681,10 +649,7 @@ void GeometryUtils::naturalProjection(
     auto a = GeometryUtils::covariantMetricTensor(gradient);
 
     // computing second derivative at natural projection
-#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)                             \
-  ElementClass<type>::computeDN2DS2(natural_projection, dn2ds2)
-    AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+    d2nds2 = ElementClassHelper<_ek_regular>::getD2NDS2(natural_projection, type);
 
     // real coord - physical guess
     auto distance = slave_coords - master_coords;
@@ -755,13 +720,8 @@ Matrix<Real> GeometryUtils::covariantCurvatureTensor(
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt * elem_val = mesh.getConnectivity(type, _not_ghost).storage();
 
-  Matrix<Real> dn2ds2(surface_dimension * surface_dimension,
-                      nb_nodes_per_element);
-
-#define GET_SHAPE_SECOND_DERIVATIVES_NATURAL(type)                             \
-  ElementClass<type>::computeDN2DS2(natural_coord, dn2ds2)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_SECOND_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_SECOND_DERIVATIVES_NATURAL
+  auto && d2nds2 =
+      ElementClassHelper<_ek_regular>::getD2NDS2(natural_coord, type);
 
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   mesh.extractNodalValuesFromElement(positions, coords.storage(),
@@ -771,7 +731,7 @@ Matrix<Real> GeometryUtils::covariantCurvatureTensor(
 
   Matrix<Real> curvature(spatial_dimension,
                          surface_dimension * surface_dimension);
-  curvature.mul<false, true>(coords, dn2ds2);
+  curvature.mul<false, true>(coords, d2nds2);
 
   Matrix<Real> H(surface_dimension, surface_dimension);
 

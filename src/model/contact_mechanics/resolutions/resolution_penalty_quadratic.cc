@@ -31,6 +31,8 @@
 
 /* -------------------------------------------------------------------------- */
 #include "resolution_penalty_quadratic.hh"
+#include "element_class_helper.hh"
+/* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -356,19 +358,12 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
   auto & normals = model.getNormals();
   Vector<Real> normal(normals.begin(spatial_dimension)[element.slave]);
 
-  auto & mesh = model.getMesh();
-
   // method from Schweizerhof and A. Konyukhov, K. Schweizerhof
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
   const ElementType & type = element.master.type;
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  Vector<Real> shapes(nb_nodes_per_element);
-#define GET_SHAPE_NATURAL(type)                                                \
-  ElementClass<type>::computeShapes(projection, shapes)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
-#undef GET_SHAPE_NATURAL
+  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
   Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
@@ -406,13 +401,8 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
   // computing shape derivatives
-  Matrix<Real> shape_derivatives(surface_dimension,
-                                 Mesh::getNbNodesPerElement(type));
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(projection, shape_derivatives)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
+  auto && shape_derivatives =
+      ElementClassHelper<_ek_regular>::getDNDS(projection, type);
 
   // consists of 2 rotational parts
   Matrix<Real> k_rot1(nb_nodes_per_contact * spatial_dimension,
@@ -511,20 +501,12 @@ void ResolutionPenaltyQuadratic::computeStickModuli(
   auto & nodal_areas = model.getNodalArea();
   auto & nodal_area = nodal_areas.begin()[element.slave];
 
-  auto & mesh = model.getMesh();
-
   // method from Schweizerhof and A. Konyukhov, K. Schweizerhof
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
   // construct A matrix
   const ElementType & type = element.master.type;
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  Vector<Real> shapes(nb_nodes_per_element);
-
-#define GET_SHAPE_NATURAL(type)                                                \
-  ElementClass<type>::computeShapes(projection, shapes)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
-#undef GET_SHAPE_NATURAL
+  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
   Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
@@ -540,13 +522,8 @@ void ResolutionPenaltyQuadratic::computeStickModuli(
   }
 
   // computing shape derivatives
-  Matrix<Real> shape_derivatives(surface_dimension,
-                                 Mesh::getNbNodesPerElement(type));
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(projection, shape_derivatives)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
+  auto && shape_derivatives =
+      ElementClassHelper<_ek_regular>::getDNDS(projection, type);
 
   Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
 
@@ -696,13 +673,7 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(
 
   // construct A matrix
   const ElementType & type = element.master.type;
-  UInt nb_nodes_per_element = mesh.getNbNodesPerElement(type);
-  Vector<Real> shapes(nb_nodes_per_element);
-
-#define GET_SHAPE_NATURAL(type)                                                \
-  ElementClass<type>::computeShapes(projection, shapes)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_NATURAL);
-#undef GET_SHAPE_NATURAL
+  auto && shapes = ElementClassHelper<_ek_regular>::getN(projection, type);
 
   UInt nb_nodes_per_contact = element.getNbNodes();
   Matrix<Real> A(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
@@ -718,13 +689,8 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(
   }
 
   // computing shape derivatives
-  Matrix<Real> shape_derivatives(surface_dimension,
-                                 Mesh::getNbNodesPerElement(type));
-
-#define GET_SHAPE_DERIVATIVES_NATURAL(type)                                    \
-  ElementClass<type>::computeDNDS(projection, shape_derivatives)
-  AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_SHAPE_DERIVATIVES_NATURAL);
-#undef GET_SHAPE_DERIVATIVES_NATURAL
+  auto && shape_derivatives =
+      ElementClassHelper<_ek_regular>::getDNDS(projection, type);
 
   Matrix<Real> Aj(spatial_dimension, spatial_dimension * nb_nodes_per_contact);
 
