@@ -56,7 +56,8 @@ namespace akantu {
 StructuralMechanicsModel::StructuralMechanicsModel(Mesh & mesh, UInt dim,
                                                    const ID & id,
                                                    const MemoryID & memory_id)
-    : Model(mesh, ModelType::_structural_mechanics_model, dim, id, memory_id),
+    : Model(mesh, ModelType::_structural_mechanics_model, nullptr, dim, id,
+            memory_id),
       time_step(NAN), f_m2a(1.0), stress("stress", id, memory_id),
       element_material("element_material", id, memory_id),
       set_ID("beam sets", id, memory_id),
@@ -346,8 +347,8 @@ StructuralMechanicsModel::createNodalFieldReal(const std::string & field_name,
 
 /* -------------------------------------------------------------------------- */
 std::shared_ptr<dumpers::Field> StructuralMechanicsModel::createElementalField(
-    const std::string & field_name, const std::string & group_name, bool /*unused*/,
-    UInt spatial_dimension, ElementKind kind) {
+    const std::string & field_name, const std::string & group_name,
+    bool /*unused*/, UInt spatial_dimension, ElementKind kind) {
 
   std::shared_ptr<dumpers::Field> field;
 

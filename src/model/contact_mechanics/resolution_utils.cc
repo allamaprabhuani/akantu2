@@ -47,7 +47,6 @@ void ResolutionUtils::computeShapeFunctionMatric(
   auto surface_dimension = Mesh::getSpatialDimension(type);
   auto spatial_dimension = surface_dimension + 1;
   UInt nb_nodes_per_contact = element.getNbNodes();
-  UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
   AKANTU_DEBUG_ASSERT(spatial_dimension == shape_matric.rows() &&
                           spatial_dimension * nb_nodes_per_contact ==

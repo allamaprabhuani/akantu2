@@ -42,7 +42,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Model::Model(Mesh & mesh, const ModelType & type,
-             std::shared_ptr<DOFManager> & dof_manager, UInt dim, const ID & id,
+             std::shared_ptr<DOFManager> dof_manager, UInt dim, const ID & id,
              const MemoryID & memory_id)
     : Memory(id, memory_id),
       ModelSolver(mesh, type, id, memory_id, dof_manager), mesh(mesh),

@@ -60,7 +60,7 @@ class Model : public Memory, public ModelSolver, public MeshEventHandler {
   /* ------------------------------------------------------------------------ */
 public:
   Model(Mesh & mesh, const ModelType & type,
-        std::shared_ptr<DOFManager> & dof_manager, UInt dim = _all_dimensions,
+        std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
         const ID & id = "model", const MemoryID & memory_id = 0);
 
   ~Model() override;

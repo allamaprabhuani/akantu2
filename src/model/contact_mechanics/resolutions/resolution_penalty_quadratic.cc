@@ -666,8 +666,6 @@ void ResolutionPenaltyQuadratic::computeSlipModuli(
   // restructure normal as a matrix for an outer product
   Matrix<Real> mat_n(normal.storage(), normal.size(), 1.);
 
-  auto & mesh = model.getMesh();
-
   // method from Schweizerhof and A. Konyukhov, K. Schweizerhof
   // DOI 10.1007/s00466-004-0616-7 and DOI 10.1007/s00466-003-0515-3
 
