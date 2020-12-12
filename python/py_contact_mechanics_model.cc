@@ -2,8 +2,9 @@
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <contact_mechanics_model.hh>
-#include <surface_selector.hh>
+#include <geometry_utils.hh>
 #include <non_linear_solver.hh>
+#include <surface_selector.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
@@ -16,7 +17,8 @@ namespace akantu {
   def(func_name, [](py::args, py::kwargs) { AKANTU_ERROR(mesg); })
 
 #define def_function_nocopy(func_name)                                         \
-  def(#func_name,                                                              \
+  def(                                                                         \
+      #func_name,                                                              \
       [](ContactMechanicsModel & self) -> decltype(auto) {                     \
         return self.func_name();                                               \
       },                                                                       \
@@ -41,18 +43,20 @@ void register_contact_mechanics_model(py::module & mod) {
            py::arg("id") = "contact_mechanics_model", py::arg("memory_id") = 0,
            py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_contact_mechanics_model)
-      .def("initFull",
-           [](ContactMechanicsModel & self,
-              const ContactMechanicsModelOptions & options) {
-             self.initFull(options);
-           },
-           py::arg("_analysis_method") = ContactMechanicsModelOptions())
-      .def("initFull",
-           [](ContactMechanicsModel & self,
-              const AnalysisMethod & analysis_method) {
-             self.initFull(_analysis_method = analysis_method);
-           },
-           py::arg("_analysis_method"))
+      .def(
+          "initFull",
+          [](ContactMechanicsModel & self,
+             const ContactMechanicsModelOptions & options) {
+            self.initFull(options);
+          },
+          py::arg("_analysis_method") = ContactMechanicsModelOptions())
+      .def(
+          "initFull",
+          [](ContactMechanicsModel & self,
+             const AnalysisMethod & analysis_method) {
+            self.initFull(_analysis_method = analysis_method);
+          },
+          py::arg("_analysis_method"))
       .def_function(search)
       .def_function(assembleStiffnessMatrix)
       .def_function(assembleInternalForces)
@@ -70,27 +74,37 @@ void register_contact_mechanics_model(py::module & mod) {
                        &ContactMechanicsModel::dump))
       .def("dump", py::overload_cast<const std::string &, Real, UInt>(
                        &ContactMechanicsModel::dump));
-  
-  py::class_<ContactElement>(mod, "ContactElement")
-    .def(py::init<>());
+
+  py::class_<ContactElement>(mod, "ContactElement").def(py::init<>());
 
   py::class_<GeometryUtils>(mod, "GeometryUtils")
-    .def_static("normal", &GeometryUtils::normal, py::arg("mesh"), py::arg("positions"),
-		py::arg("element"), py::arg("normal"), py::arg("outward") = true)
-    .def_static("covariantBasis", &GeometryUtils::covariantBasis, py::arg("mesh"),
-		py::arg("positions"), py::arg("element"), py::arg("normal"),
-		py::arg("natural_projection"), py::arg("basis"))
-    .def_static("curvature", &GeometryUtils::curvature)
-    .def_static("contravariantBasis", &GeometryUtils::contravariantBasis,
-		py::arg("covariant_basis"), py::arg("basis"))
-    .def_static("realProjection", &GeometryUtils::realProjection, py::arg("mesh"),
-		py::arg("positions"), py::arg("slave"), py::arg("element"),
-		py::arg("normal"), py::arg("projection"))
-    .def_static("naturalProjection", &GeometryUtils::naturalProjection, py::arg("mesh"),
-		py::arg("positions"), py::arg("element"), py::arg("real_projection"),
-		py::arg("projection"))
-    .def_static("isBoundaryElement", &GeometryUtils::isBoundaryElement);
-    
+      .def_static(
+          "normal",
+          py::overload_cast<const Mesh &, const Array<Real> &, const Element &,
+                            Vector<Real> &, bool>(&GeometryUtils::normal),
+          py::arg("mesh"), py::arg("positions"), py::arg("element"),
+          py::arg("normal"), py::arg("outward") = true)
+      .def_static(
+          "covariantBasis",
+          py::overload_cast<const Mesh &, const Array<Real> &, const Element &,
+                            const Vector<Real> &, Vector<Real> &,
+                            Matrix<Real> &>(&GeometryUtils::covariantBasis),
+          py::arg("mesh"), py::arg("positions"), py::arg("element"),
+          py::arg("normal"), py::arg("natural_projection"), py::arg("basis"))
+      .def_static("curvature", &GeometryUtils::curvature)
+      .def_static("contravariantBasis", &GeometryUtils::contravariantBasis,
+                  py::arg("covariant_basis"), py::arg("basis"))
+      .def_static("realProjection",
+                  py::overload_cast<const Mesh &, const Array<Real> &,
+                                    const Vector<Real> &, const Element &,
+                                    const Vector<Real> &, Vector<Real> &>(
+                      &GeometryUtils::realProjection),
+                  py::arg("mesh"), py::arg("positions"), py::arg("slave"),
+                  py::arg("element"), py::arg("normal"), py::arg("projection"))
+      // .def_static("naturalProjection", &GeometryUtils::naturalProjection,
+      //             py::arg("mesh"), py::arg("positions"), py::arg("element"),
+      //             py::arg("real_projection"), py::arg("projection"))
+      .def_static("isBoundaryElement", &GeometryUtils::isBoundaryElement);
 }
 
 } // namespace akantu
