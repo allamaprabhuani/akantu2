@@ -57,6 +57,11 @@ Model::Model(Mesh & mesh, const ModelType & type,
 }
 
 /* -------------------------------------------------------------------------- */
+Model::Model(Mesh & mesh, const ModelType & type, UInt dim, const ID & id,
+             const MemoryID & memory_id)
+    : Model(mesh, type, nullptr, dim, id, memory_id) {}
+
+/* -------------------------------------------------------------------------- */
 Model::~Model() = default;
 
 /* -------------------------------------------------------------------------- */

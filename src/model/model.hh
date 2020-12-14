@@ -59,6 +59,12 @@ class Model : public Memory, public ModelSolver, public MeshEventHandler {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  /// Normal constructor where the DOFManager is created internally
+  Model(Mesh & mesh, const ModelType & type, UInt dim = _all_dimensions,
+        const ID & id = "model", const MemoryID & memory_id = 0);
+
+  /// Model constructor the the dof manager is created externally, for example
+  /// in a ModelCoupler
   Model(Mesh & mesh, const ModelType & type,
         std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
         const ID & id = "model", const MemoryID & memory_id = 0);
