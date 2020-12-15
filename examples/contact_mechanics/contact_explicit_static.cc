@@ -81,8 +81,10 @@ int main(int argc, char *argv[]) {
   coupler.addDumpField("blocked_dofs");
   coupler.addDumpField("grad_u");
   coupler.addDumpField("stress");
- 
-  for (auto i : arange(max_steps)) {
+
+  auto max_steps = 100u;
+
+  for (auto _ [[gnu::unused]] : arange(max_steps)) {
 
     auto increment = 1e-4;
     solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top"); 
