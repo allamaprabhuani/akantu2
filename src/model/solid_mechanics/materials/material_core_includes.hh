@@ -59,7 +59,6 @@
 // von-mises plasticity with damage
 #include "material_von_mises_mazars.hh"
 
-
 #endif
 
 #define AKANTU_CORE_MATERIAL_LIST                                              \
