@@ -752,18 +752,18 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
   UInt nb_quad_facet = this->model->getFEEngine("FacetsFEEngine")
                            .getNbIntegrationPoints(type_facet);
 
-#ifndef AKANTU_NDEBUG
   UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
                               .getNbIntegrationPoints(type_cohesive);
 
   AKANTU_DEBUG_ASSERT(nb_quad_cohesive == nb_quad_facet,
                       "The cohesive element and the corresponding facet do "
                       "not have the same numbers of integration points");
-#endif
+
   // skip if no facets of this type are present
   UInt nb_facet = f_filter.size();
-  if (nb_facet == 0)
+  if (nb_facet == 0) {
     return output;
+  }
 
   Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
   UInt sp2 = spatial_dimension * spatial_dimension;
@@ -789,8 +789,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
     auto & normal_traction = std::get<4>(data);
 
     // skip facets where check shouldn't be inserted (or already inserted)
-    if (!facets_check(facet_nb))
+    if (not facets_check(facet_nb)) {
       continue;
+    }
 
     // compute the effective norm on each quadrature point of the facet
     for (UInt q : arange(nb_quad_facet)) {
@@ -822,8 +823,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
 
     // normalize by the limit stress and skip non-stressed facets
     eff_stress = final_stress / sigma_limit;
-    if (eff_stress < 1)
+    if (eff_stress < 1) {
       continue;
+    }
 
     // check to how many cohesive elements this facet is connected
     const Vector<Element> & sub_to_facet =
@@ -831,20 +833,22 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
     std::vector<std::set<Element>> coh_neighbors(sub_to_facet.size());
     std::set<UInt> cohesive_nodes;
     for (auto && data : enumerate(sub_to_facet)) {
-      auto & subel = std::get<1>(data);
+      const auto & subel = std::get<1>(data);
       auto & i = std::get<0>(data);
-      auto & connected_elements_dim_min_1 =
+      const auto & connected_elements_dim_min_1 =
           mesh_facets.getElementToSubelement(subel);
-      for (auto & connected_element_dim_min_1 : connected_elements_dim_min_1) {
-        auto & connected_elements_dim =
+      for (const auto & connected_element_dim_min_1 :
+           connected_elements_dim_min_1) {
+        const auto & connected_elements_dim =
             mesh_facets.getElementToSubelement(connected_element_dim_min_1);
-        for (auto & connected_element_dim : connected_elements_dim) {
+        for (const auto & connected_element_dim : connected_elements_dim) {
           if (mesh.getKind(connected_element_dim.type) == _ek_cohesive) {
             coh_neighbors[i].emplace(connected_element_dim);
             Vector<UInt> coh_nodes =
                 mesh.getConnectivity(connected_element_dim);
-            for (auto & node : coh_nodes)
+            for (auto & node : coh_nodes) {
               cohesive_nodes.emplace(node);
+            }
             crack_contour.insert(subel);
           }
         }
@@ -865,15 +869,17 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
     Vector<Real> ref_vector(spatial_dimension);
     for (auto node : cohesive_nodes) {
       for (auto & near_cohesive : nodes_to_cohesives.getRow(node)) {
-        if (not visited_cohesives.size())
+        if (visited_cohesives.empty()) {
           ref_vector = coh_normals_it[near_cohesive.element * nb_quad_cohesive];
+        }
         auto ret = visited_cohesives.emplace(near_cohesive);
         if (ret.second) {
           Vector<Real> coh_normal =
               coh_normals_it[near_cohesive.element * nb_quad_cohesive];
           Real test_dot = ref_vector.dot(coh_normal);
-          if (test_dot < 0)
+          if (test_dot < 0) {
             coh_normal *= -1;
+          }
 
           final_normal += coh_normal;
         }
@@ -885,9 +891,10 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
     Real dot = facet_normal.dot(final_normal);
     dot = std::abs(dot);
 
-    if (dot < 0.8)
+    if (dot < 0.8) {
       goto endloop;
-
+    }
+    
     // see if a single tip crack is present
     for (UInt i : arange(sub_to_facet.size())) {
       if (coh_neighbors[i].size() == 1) {
@@ -899,8 +906,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
     }
 
     // if no coh els are connected - skip facet
-    if (not single_tip_subs.size())
+    if (single_tip_subs.empty()) {
       goto endloop;
+    }
 
     // compute distances between barycenters and sharp angles between
     // facets; condition distance and angle
@@ -921,8 +929,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
 
       // ad-hoc rule on barycenters spacing
       // it should discard all elements under sharp angle
-      if (dist < 0.8 * facet_indiam)
-        goto endloop;
+      if (dist < 0.8 * facet_indiam) {
+          goto endloop;
+      }
     }
 
     // add a candidate facet into a pool
@@ -935,8 +944,9 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacetNonLocal(
 
   endloop:;
   }
-  if (not candidate_facets.size())
+  if (candidate_facets.empty()) {
     return output;
+  }
 
   // insert element with the highest stress
   std::map<Real, UInt> stress_map;
