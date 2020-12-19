@@ -57,7 +57,7 @@ int main(int argc, char * argv[]) {
   Mesh mesh(dim);
   mesh.read("test_material_standard_linear_solid_deviatoric_relaxation.msh");
 
-  const ElementType element_type = _quadrangle_4;
+  const auto element_type = _quadrangle_4;
   SolidMechanicsModel model(mesh);
 
   /* ------------------------------------------------------------------------ */
@@ -78,8 +78,6 @@ int main(int argc, char * argv[]) {
 
   Material & mat = model.getMaterial(0);
 
-  const Array<Real> & stress = mat.getStress(element_type);
-
   Real Eta = mat.get("Eta");
   Real EV = mat.get("Ev");
   Real Einf = mat.get("Einf");
@@ -92,8 +90,8 @@ int main(int argc, char * argv[]) {
   Real gammainf = Ginf / G0;
 
   UInt nb_nodes = mesh.getNbNodes();
-  const Array<Real> & coordinate = mesh.getNodes();
-  Array<Real> & displacement = model.getDisplacement();
+  const auto & coordinate = mesh.getNodes();
+  auto & displacement = model.getDisplacement();
 
   /// Setting time step
   Real time_step = model.getStableTimeStep() * time_factor;
@@ -110,8 +108,9 @@ int main(int argc, char * argv[]) {
   /* ------------------------------------------------------------------------ */
   for (UInt s = 0; s <= max_steps; ++s) {
 
-    if (s % 1000 == 0)
+    if (s % 1000 == 0) {
       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
+    }
 
     time = s * time_step;
     // impose displacement
@@ -121,10 +120,12 @@ int main(int argc, char * argv[]) {
     } else {
       epsilon = eps;
     }
+
     for (UInt n = 0; n < nb_nodes; ++n) {
       displacement(n, 0) = epsilon * coordinate(n, 1);
       displacement(n, 1) = epsilon * coordinate(n, 0);
     }
+    ++model.getDisplacementRelease();
 
     // compute stress
     model.assembleInternalForces();
@@ -144,14 +145,13 @@ int main(int argc, char * argv[]) {
       output_data << s * time_step << " " << solution;
 
       // data output
-      Array<Real>::const_matrix_iterator stress_it = stress.begin(dim, dim);
-      Array<Real>::const_matrix_iterator stress_end = stress.end(dim, dim);
-      for (; stress_it != stress_end; ++stress_it) {
-        output_data << " " << (*stress_it)(0, 1) << " " << (*stress_it)(1, 0);
+      for (auto && stress : make_view(mat.getStress(element_type), dim, dim)) {
+        output_data << " " << stress(0, 1) << " " << stress(1, 0);
 
         // test error
-        Real rel_error_1 = std::abs(((*stress_it)(0, 1) - solution) / solution);
-        Real rel_error_2 = std::abs(((*stress_it)(1, 0) - solution) / solution);
+        Real rel_error_1 = std::abs((stress(0, 1) - solution) / solution);
+        Real rel_error_2 = std::abs((stress(1, 0) - solution) / solution);
+
         if (rel_error_1 > tolerance || rel_error_2 > tolerance) {
           std::cerr << "Relative error: " << rel_error_1 << " " << rel_error_2
                     << std::endl;

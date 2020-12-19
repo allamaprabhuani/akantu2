@@ -113,10 +113,8 @@ public:
     ones.set(1.);
 
     surface = fe_engine.integrate(ones, facet_type, _not_ghost, elements);
+
     mesh->getCommunicator().allReduce(surface, SynchronizerOperation::_sum);
-
-
-
     mesh->getCommunicator().allReduce(group_size, SynchronizerOperation::_sum);
 
 #define debug_ 0
@@ -149,6 +147,7 @@ public:
       auto & disp = std::get<1>(data);
       disp = strain * pos;
     }
+    ++model->getDisplacementRelease();
   }
 
   bool checkDamaged() {

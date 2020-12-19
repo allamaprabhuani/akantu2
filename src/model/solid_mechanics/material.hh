@@ -602,8 +602,8 @@ protected:
   /// be transferred when material interfaces move
   std::vector<ID> internals_to_transfer;
 
-  Int last_displacement_release{-1};
-  Int gradu_release{0};
+  /// release of grad u stored per type
+  ElementTypeMap<Int> gradu_release;
 
 private:
   /// eigen_grad_u for the parser

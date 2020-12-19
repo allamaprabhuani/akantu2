@@ -153,6 +153,15 @@ void Material::initMaterial() {
     }
   }
 
+
+  for(auto && ghost_type : ghost_types) {
+    for (const auto & type :
+             element_filter.elementTypes(_element_kind = _ek_regular,
+                                         _ghost_type = ghost_type)) {
+      gradu_release(type, ghost_type) = -1;
+    }
+  }
+
   is_init = true;
 
   updateInternalParameters();
@@ -281,7 +290,7 @@ void Material::assembleInternalForces(GhostType ghost_type) {
 void Material::computeGradU(ElementType type,
                             GhostType ghost_type) {
   auto release = model.getDisplacementRelease();
-  if (release == last_displacement_release) {
+  if (release == gradu_release(type, ghost_type)) {
       return;
   }
 
@@ -295,8 +304,8 @@ void Material::computeGradU(ElementType type,
                                   elem_filter);
 
   gradu_vect -= eigengradu(type, ghost_type);
-  ++gradu_release;
-  last_displacement_release = release;
+
+  gradu_release(type, ghost_type) = release;
 }
 
 /* -------------------------------------------------------------------------- */

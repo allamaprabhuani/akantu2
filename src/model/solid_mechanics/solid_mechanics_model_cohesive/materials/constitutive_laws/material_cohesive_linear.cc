@@ -369,8 +369,9 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
   for (; traction_it != traction_end;
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,
        ++delta_c_it, ++damage_it, ++contact_traction_it, ++insertion_stress_it,
-       ++contact_opening_it, ++normal_opening_norm_it) {
-    Real tangential_opening_norm{0};
+           ++contact_opening_it, ++normal_opening_norm_it) {
+    *normal_opening_norm_it = 0.;
+    Real tangential_opening_norm{0.};
     bool penetration{false};
     this->computeTractionOnQuad(
         *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,

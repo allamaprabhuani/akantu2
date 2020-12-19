@@ -327,11 +327,6 @@ inline void ShapeFunctions::interpolateElementalFieldOnIntegrationPoints(
     const Array<Real> & u_el, Array<Real> & uq, GhostType ghost_type,
     const Array<Real> & shapes, const Array<UInt> & filter_elements) const {
   auto nb_element = mesh.getNbElement(type, ghost_type);
-  if (nb_element == 0) {
-    uq.resize(0);
-    return;
-  }
-
   auto nb_nodes_per_element = ElementClass<type>::getShapeSize();
   auto nb_points = shapes.size() / mesh.getNbElement(type, ghost_type);
   auto nb_degree_of_freedom = u_el.getNbComponent() / nb_nodes_per_element;

@@ -743,9 +743,9 @@ void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
   // and initFull \todo: to debug...
   this->assignMaterialToElements(&filter);
 
-  for (auto & material : materials) {
-    material->onElementsAdded(element_list, event);
-  }
+  splitByMaterial(element_list, [&event](auto && mat, auto && elements) {
+    mat.onElementsAdded(elements, event);
+  });
 
   AKANTU_DEBUG_OUT();
 }
@@ -975,6 +975,9 @@ void SolidMechanicsModel::splitElementByMaterial(
     const Array<Element> & elements,
     std::vector<Array<Element>> & elements_per_mat) const {
   for (const auto & el : elements) {
+    if(Mesh::getSpatialDimension(el.type) != spatial_dimension) {
+      continue;
+    }
     Element mat_el = el;
     mat_el.element = this->material_local_numbering(el);
     elements_per_mat[this->material_index(el)].push_back(mat_el);

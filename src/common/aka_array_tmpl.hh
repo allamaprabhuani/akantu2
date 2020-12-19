@@ -319,11 +319,6 @@ public:
       }
 
       Int diff = size - allocated_size;
-      if (diff == 0) {
-        this->size_ = size;
-        return;
-      }
-
       UInt size_to_allocate = (std::abs(diff) > AKANTU_MIN_ALLOCATION)
                                   ? size
                                   : (diff > 0)

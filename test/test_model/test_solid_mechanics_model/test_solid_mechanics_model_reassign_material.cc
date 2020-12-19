@@ -155,8 +155,9 @@ int main(int argc, char * argv[]) {
 
   Mesh mesh(spatial_dimension);
 
-  if (prank == 0)
+  if (prank == 0) {
     mesh.read("cube_two_materials.msh");
+  }
   mesh.distribute();
 
   /// model creation
@@ -194,8 +195,9 @@ int main(int argc, char * argv[]) {
 
   finalize();
 
-  if (prank == 0)
+  if (prank == 0) {
     std::cout << "OK: test passed!" << std::endl;
+  }
 
   return EXIT_SUCCESS;
 }

@@ -71,8 +71,6 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->element_filter.initialize(this->model->getMesh(),
                                   _spatial_dimension = spatial_dimension,
                                   _element_kind = _ek_cohesive);
-  // this->model->getMesh().initElementTypeMapArray(
-  //     this->element_filter, 1, spatial_dimension, false, _ek_cohesive);
 
   if (this->model->getIsExtrinsic()) {
     this->facet_filter.initialize(this->model->getMeshFacets(),
@@ -93,10 +91,10 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->contact_opening.initialize(spatial_dimension);
 
   this->normal_opening_norm.initialize(1);
-  //this->normal_opening_norm.initializeHistory();
+  // this->normal_opening_norm.initializeHistory();
 
   this->opening.initialize(spatial_dimension);
-  //this->opening.initializeHistory();
+  this->opening.initializeHistory(); // always needed for dissipated energy
 
   this->normals.initialize(spatial_dimension);
 
@@ -123,10 +121,12 @@ void MaterialCohesive::initMaterial() {
   if (this->use_previous_delta_max) {
     this->delta_max.initializeHistory();
   }
+
   if (this->use_previous_opening) {
-    this->opening.initializeHistory();
+    // this->opening.initializeHistory();
     this->normal_opening_norm.initializeHistory();
   }
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -456,33 +456,27 @@ void MaterialCohesive::updateEnergies(ElementType type) {
     return;
   }
 
-  Vector<Real> b(spatial_dimension);
-  Vector<Real> h(spatial_dimension);
-  auto erev = reversible_energy(type).begin();
-  auto etot = total_energy(type).begin();
-  auto traction_it = tractions(type).begin(spatial_dimension);
-  auto traction_old_it = tractions.previous(type).begin(spatial_dimension);
-  auto opening_it = opening(type).begin(spatial_dimension);
-  auto opening_old_it = opening.previous(type).begin(spatial_dimension);
-
-  auto traction_end = tractions(type).end(spatial_dimension);
-
   /// loop on each quadrature point
-  for (; traction_it != traction_end; ++traction_it, ++traction_old_it,
-                                      ++opening_it, ++opening_old_it, ++erev,
-                                      ++etot) {
+  for (auto && data :
+       zip(make_view(tractions(type), spatial_dimension),
+           make_view(tractions.previous(type), spatial_dimension),
+           make_view(opening(type), spatial_dimension),
+           make_view(opening.previous(type), spatial_dimension),
+           reversible_energy(type), total_energy(type))) {
+    auto & traction = std::get<0>(data);
+    auto & opening = std::get<2>(data);
+    auto & prev_opening = std::get<3>(data);
+
+    auto & erev = std::get<4>(data);
+    auto & etot = std::get<5>(data);
+
     /// trapezoidal integration
-    b = *opening_it;
-    b -= *opening_old_it;
+    auto h = traction + std::get<1>(data);
+    auto b = opening - prev_opening;
+    etot +=  b.dot(h) / 2.;
 
-    h = *traction_old_it;
-    h += *traction_it;
-
-    *etot += .5 * b.dot(h);
-    *erev = .5 * traction_it->dot(*opening_it);
+    erev = 1. / 2. * traction.dot(opening);
   }
-
-  /// update old values
 
   AKANTU_DEBUG_OUT();
 }
