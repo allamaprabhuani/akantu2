@@ -72,7 +72,7 @@ namespace akantu {
 SolidMechanicsModel::SolidMechanicsModel(
     Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id, memory_id),
+    : Model(mesh, model_type, std::move(dof_manager), dim, id, memory_id),
       BoundaryCondition<SolidMechanicsModel>(),
       material_index("material index", id, memory_id),
       material_local_numbering("material local numbering", id, memory_id) {

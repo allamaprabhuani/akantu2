@@ -45,21 +45,23 @@ Model::Model(Mesh & mesh, const ModelType & type,
              std::shared_ptr<DOFManager> dof_manager, UInt dim, const ID & id,
              const MemoryID & memory_id)
     : Memory(id, memory_id),
-      ModelSolver(mesh, type, id, memory_id, dof_manager), mesh(mesh),
+      ModelSolver(mesh, type, id, memory_id, std::move(dof_manager)),
+      mesh(mesh),
       spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
                                                : dim),
       parser(getStaticParser()) {
-  AKANTU_DEBUG_IN();
-
   this->mesh.registerEventHandler(*this, _ehp_model);
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 Model::Model(Mesh & mesh, const ModelType & type, UInt dim, const ID & id,
              const MemoryID & memory_id)
-    : Model(mesh, type, nullptr, dim, id, memory_id) {}
+    : Memory(id, memory_id), ModelSolver(mesh, type, id, memory_id), mesh(mesh),
+      spatial_dimension(dim == _all_dimensions ? mesh.getSpatialDimension()
+                                               : dim),
+      parser(getStaticParser()) {
+  this->mesh.registerEventHandler(*this, _ehp_model);
+}
 
 /* -------------------------------------------------------------------------- */
 Model::~Model() = default;
