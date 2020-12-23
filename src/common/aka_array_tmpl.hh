@@ -340,6 +340,8 @@ public:
         throw std::bad_alloc();
       }
 
+      this->values = tmp_ptr;
+      this->allocated_size = size_to_allocate;
     }
 
     this->size_ = size;
@@ -907,7 +909,6 @@ class Array<T, is_scal>::iterator_internal<R, daughter, IR, true> {
 public:
   using value_type = R;
   using pointer = R *;
-  using pointer_type = typename Array<T, is_scal>::pointer_type;
   using reference = R &;
   using proxy = typename R::proxy;
   using const_proxy = const typename R::proxy;
@@ -916,6 +917,7 @@ public:
   using internal_pointer = IR *;
   using difference_type = std::ptrdiff_t;
   using iterator_category = std::random_access_iterator_tag;
+  using pointer_type = typename Array<T, is_scal>::pointer_type;
 
 public:
   iterator_internal() = default;

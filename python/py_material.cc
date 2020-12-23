@@ -30,14 +30,13 @@ public:
   ~PyMaterial() override = default;
 
   void initMaterial() override {
-      PYBIND11_OVERRIDE(void, _Material, initMaterial, ); // NOLINT
+    PYBIND11_OVERRIDE(void, _Material, initMaterial, ); // NOLINT
   };
   void computeStress(ElementType el_type,
                      GhostType ghost_type = _not_ghost) override {
     PYBIND11_OVERRIDE_PURE(void, _Material, computeStress, el_type, ghost_type);
   }
-  void computeTangentModuli(ElementType el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost) override {
     PYBIND11_OVERRIDE(void, _Material, computeTangentModuli, el_type,
                       tangent_matrix, ghost_type);
@@ -186,7 +185,25 @@ void register_material(py::module & mod) {
   register_element_type_map_array<UInt>(mod, "UInt");
 
   define_material<Material>(mod, "Material");
+}
 
+/* -------------------------------------------------------------------------- */
+template <typename T>
+void register_data_material_selector(py::module & mod,
+                                     const std::string & name) {
+  py::class_<ElementDataMaterialSelector<T>, MaterialSelector,
+             std::shared_ptr<ElementDataMaterialSelector<T>>>(
+      mod, ("ElementDataMaterialSelector" + name).c_str());
+
+  py::class_<MeshDataMaterialSelector<T>, ElementDataMaterialSelector<T>,
+             std::shared_ptr<MeshDataMaterialSelector<T>>>(
+      mod, ("MeshDataMaterialSelector" + name).c_str())
+      .def(py::init<const std::string &, SolidMechanicsModel &, UInt>(),
+           py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
+}
+
+/* -------------------------------------------------------------------------- */
+void register_material_selector(py::module & mod) {
   py::class_<MaterialSelector, std::shared_ptr<MaterialSelector>>(
       mod, "MaterialSelector")
       .def("setFallback",
@@ -200,12 +217,6 @@ void register_material(py::module & mod) {
            [](MaterialSelector & self, MaterialSelector & fallback_selector) {
              self.setFallback(fallback_selector);
            });
-
-  py::class_<MeshDataMaterialSelector<std::string>, MaterialSelector,
-             std::shared_ptr<MeshDataMaterialSelector<std::string>>>(
-      mod, "MeshDataMaterialSelectorString")
-      .def(py::init<const std::string &, const SolidMechanicsModel &, UInt>(),
-           py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
   py::class_<DefaultMaterialCohesiveSelector, MaterialSelector,
@@ -226,27 +237,6 @@ void register_material(py::module & mod) {
            py::arg("model"), py::arg("rules"),
            py::arg("mesh_data_id") = "physical_names");
 #endif
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-void register_data_material_selector(py::module & mod,
-                                          const std::string & name) {
-  py::class_<ElementDataMaterialSelector<T>, MaterialSelector,
-             std::shared_ptr<ElementDataMaterialSelector<T>>>(
-      mod, ("ElementDataMaterialSelector" + name).c_str());
-
-  py::class_<MeshDataMaterialSelector<T>, ElementDataMaterialSelector<T>,
-             std::shared_ptr<MeshDataMaterialSelector<T>>>(
-      mod, ("MeshDataMaterialSelector" + name).c_str())
-      .def(py::init<const std::string &, SolidMechanicsModel &, UInt>(),
-           py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
-}
-
-/* -------------------------------------------------------------------------- */
-void register_material_selector(py::module & mod) {
-  py::class_<MaterialSelector, std::shared_ptr<MaterialSelector>>(
-      mod, "MaterialSelector");
 
   register_data_material_selector<std::string>(mod, "String");
 }
@@ -254,4 +244,3 @@ void register_material_selector(py::module & mod) {
 /* -------------------------------------------------------------------------- */
 
 } // namespace akantu
-

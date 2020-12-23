@@ -58,17 +58,21 @@ class ModelSolver : public Parsable,
   /* ------------------------------------------------------------------------ */
 public:
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-              UInt memory_id, std::shared_ptr<DOFManager> dof_manager=nullptr);
+              UInt memory_id);
+  ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
+              UInt memory_id,
+              std::shared_ptr<DOFManager> dof_manager);
   ~ModelSolver() override;
 
   /// initialize the dof manager based on solver type passed in the input file
-  void initDOFManager();
+  std::shared_ptr<DOFManager> initDOFManager();
   /// initialize the dof manager based on the used chosen solver type
-  void initDOFManager(const ID & solver_type);
+  std::shared_ptr<DOFManager> initDOFManager(const ID & solver_type);
 
 protected:
   /// initialize the dof manager based on the used chosen solver type
-  void initDOFManager(const ParserSection & section, const ID & solver_type);
+  std::shared_ptr<DOFManager> initDOFManager(const ParserSection & section,
+                                             const ID & solver_type);
 
 public:
   /// Callback for the model to instantiate the matricees when needed
@@ -105,10 +109,11 @@ public:
                            IntegrationScheme::_not_defined);
 
   /// set an externally instantiated integration scheme
-  void setIntegrationScheme(const ID & solver_id, const ID & dof_id,
-                            std::unique_ptr<IntegrationScheme> & integration_scheme,
-                            IntegrationScheme::SolutionType solution_type =
-                                IntegrationScheme::_not_defined);
+  void
+  setIntegrationScheme(const ID & solver_id, const ID & dof_id,
+                       std::unique_ptr<IntegrationScheme> & integration_scheme,
+                       IntegrationScheme::SolutionType solution_type =
+                           IntegrationScheme::_not_defined);
 
   /* ------------------------------------------------------------------------ */
   /* SolverCallback interface                                                 */

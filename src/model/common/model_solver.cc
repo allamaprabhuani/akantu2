@@ -54,12 +54,18 @@ template <typename T> static T getOptionToType(const std::string & opt_str) {
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-                         UInt memory_id,
-                         std::shared_ptr<DOFManager> dof_manager)
+                         UInt memory_id)
     : Parsable(ParserType::_model, id), SolverCallback(), model_type(type),
       parent_id(id), parent_memory_id(memory_id), mesh(mesh) {
+}
+
+/* -------------------------------------------------------------------------- */
+ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
+                         UInt memory_id,
+                         std::shared_ptr<DOFManager> dof_manager)
+    : ModelSolver(mesh, type, id, memory_id) {
   if (not dof_manager) {
-    initDOFManager();
+    this->initDOFManager();
   } else {
     this->dof_manager = dof_manager;
     this->setDOFManager(*this->dof_manager);
@@ -89,7 +95,7 @@ std::tuple<ParserSection, bool> ModelSolver::getParserSection() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::initDOFManager() {
+std::shared_ptr<DOFManager> ModelSolver::initDOFManager() {
   // default without external solver activated at compilation same as mumps that
   // is the historical solver but with only the lumped solver
   ID solver_type = "default";
@@ -106,14 +112,15 @@ void ModelSolver::initDOFManager() {
 
   if (not is_empty) {
     solver_type = section.getOption(solver_type);
-    this->initDOFManager(section, solver_type);
+    return this->initDOFManager(section, solver_type);
   } else {
-    this->initDOFManager(solver_type);
+    return this->initDOFManager(solver_type);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::initDOFManager(const ID & solver_type) {
+std::shared_ptr<DOFManager>
+ModelSolver::initDOFManager(const ID & solver_type) {
   if (dof_manager) {
     AKANTU_EXCEPTION("The DOF manager for this model is already initialized !");
   }
@@ -130,11 +137,13 @@ void ModelSolver::initDOFManager(const ID & solver_type) {
   }
 
   this->setDOFManager(*this->dof_manager);
+  return this->dof_manager;
 }
 
 /* -------------------------------------------------------------------------- */
-void ModelSolver::initDOFManager(const ParserSection & section,
-                                 const ID & solver_type) {
+std::shared_ptr<DOFManager>
+ModelSolver::initDOFManager(const ParserSection & section,
+                            const ID & solver_type) {
   this->initDOFManager(solver_type);
   auto sub_sections = section.getSubSections(ParserType::_time_step_solver);
 
@@ -210,6 +219,8 @@ void ModelSolver::initDOFManager(const ParserSection & section,
           << "\" was not created, it cannot be set as default solver");
     }
   }
+
+  return this->dof_manager;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -351,14 +362,14 @@ void ModelSolver::setIntegrationScheme(
 }
 
 /* -------------------------------------------------------------------------- */
-  void ModelSolver::setIntegrationScheme(const ID & solver_id, const ID & dof_id,
-			  std::unique_ptr<IntegrationScheme> & integration_scheme,
-			  IntegrationScheme::SolutionType solution_type) {
+void ModelSolver::setIntegrationScheme(
+    const ID & solver_id, const ID & dof_id,
+    std::unique_ptr<IntegrationScheme> & integration_scheme,
+    IntegrationScheme::SolutionType solution_type) {
   TimeStepSolver & tss = this->dof_manager->getTimeStepSolver(solver_id);
-  
+
   tss.setIntegrationScheme(dof_id, integration_scheme, solution_type);
-  }
-  
+}
 
 /* -------------------------------------------------------------------------- */
 bool ModelSolver::hasDefaultSolver() const {
