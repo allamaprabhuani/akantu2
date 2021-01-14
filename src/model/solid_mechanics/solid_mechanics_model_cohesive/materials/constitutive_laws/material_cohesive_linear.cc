@@ -352,6 +352,8 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
       contact_opening(el_type, ghost_type).begin(spatial_dimension);
   auto normal_opening_norm_it =
       normal_opening_norm(el_type, ghost_type).begin();
+  auto tangential_opening_norm_it =
+      tangential_opening_norm(el_type, ghost_type).begin();
 
   auto normal_it = normal.begin(spatial_dimension);
   auto traction_end = tractions(el_type, ghost_type).end(spatial_dimension);
@@ -369,13 +371,13 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
   for (; traction_it != traction_end;
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,
        ++delta_c_it, ++damage_it, ++contact_traction_it, ++insertion_stress_it,
-       ++contact_opening_it, ++normal_opening_norm_it) {
-    Real tangential_opening_norm{0};
+       ++contact_opening_it, ++normal_opening_norm_it,
+       ++tangential_opening_norm_it) {
     bool penetration{false};
     this->computeTractionOnQuad(
         *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
         *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
-        *normal_opening_norm_it, tangential_opening_norm, *damage_it,
+        *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
         penetration, *contact_traction_it, *contact_opening_it);
   }
 
@@ -397,6 +399,10 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTangentTraction(
   auto normal_it = normal.begin(spatial_dimension);
 
   auto opening_it = opening(el_type, ghost_type).begin(spatial_dimension);
+  auto normal_opening_norm_it =
+      normal_opening_norm(el_type, ghost_type).begin();
+  auto tangential_opening_norm_it =
+      tangential_opening_norm(el_type, ghost_type).begin();
 
   /// NB: delta_max_it points on delta_max_previous, i.e. the
   /// delta_max related to the solution of the previous incremental
@@ -411,16 +417,18 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTangentTraction(
   Vector<Real> normal_opening(spatial_dimension);
   Vector<Real> tangential_opening(spatial_dimension);
 
-  for (; tangent_it != tangent_end; ++tangent_it, ++normal_it, ++opening_it,
-                                    ++delta_max_it, ++sigma_c_it, ++delta_c_it,
-                                    ++damage_it, ++contact_opening_it) {
-    Real normal_opening_norm{0};
-    Real tangential_opening_norm{0};
+  for (; tangent_it != tangent_end;
+       ++tangent_it, ++normal_it, ++opening_it, ++delta_max_it, ++sigma_c_it,
+       ++delta_c_it, ++damage_it, ++contact_opening_it,
+       ++normal_opening_norm_it, ++tangential_opening_norm_it) {
+    // Real normal_opening_norm{0};
+    // Real tangential_opening_norm{0};
     bool penetration{false};
     this->computeTangentTractionOnQuad(
         *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *opening_it,
-        *normal_it, normal_opening, tangential_opening, normal_opening_norm,
-        tangential_opening_norm, *damage_it, penetration, *contact_opening_it);
+        *normal_it, normal_opening, tangential_opening, *normal_opening_norm_it,
+        *tangential_opening_norm_it, *damage_it, penetration,
+        *contact_opening_it);
   }
 
   AKANTU_DEBUG_OUT();

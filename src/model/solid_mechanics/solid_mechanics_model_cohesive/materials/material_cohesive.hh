@@ -140,12 +140,11 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE(EigenOpening, eigen_opening, Real);
 
   /// get the contact opening
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ContactOpening, contact_opening,
-                                         Real);
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ContactOpening, contact_opening, Real);
 
   /// get the normal opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(NormalOpeningNorm, normal_opening_norm,
-                                   Real);
+                                         Real);
 
   /// get the eigen opening
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(DeltaMax, delta_max, Real);
@@ -221,6 +220,9 @@ protected:
   /// normal openings
   CohesiveInternalField<Real> normal_opening_norm;
 
+  /// tangential openings
+  CohesiveInternalField<Real> tangential_opening_norm;
+
   /// maximum displacement
   CohesiveInternalField<Real> delta_max;
 
@@ -251,7 +253,7 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-#include "material_cohesive_inline_impl.hh"
 #include "cohesive_internal_field_tmpl.hh"
+#include "material_cohesive_inline_impl.hh"
 
 #endif /* AKANTU_MATERIAL_COHESIVE_HH_ */

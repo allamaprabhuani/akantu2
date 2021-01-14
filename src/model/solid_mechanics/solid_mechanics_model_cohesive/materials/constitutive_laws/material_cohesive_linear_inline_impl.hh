@@ -102,8 +102,7 @@ inline void MaterialCohesiveLinear<dim>::computeTractionOnQuad(
 
   penetration = normal_opening_norm / delta_c < -Math::getTolerance();
   // penetration = normal_opening_norm < 0.;
-  if (not this->contact_after_breaking and
-      Math::are_float_equal(damage, 1.)) {
+  if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
     penetration = false;
   }
 
@@ -185,8 +184,7 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
 
   penetration = normal_opening_norm < 0.0;
-  if (not this->contact_after_breaking and
-      Math::are_float_equal(damage, 1.)) {
+  if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
     penetration = false;
   }
 
@@ -266,4 +264,4 @@ inline void MaterialCohesiveLinear<dim>::computeTangentTractionOnQuad(
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
-#endif //AKANTU_MATERIAL_COHESIVE_LINEAR_INLINE_IMPL_HH_
+#endif // AKANTU_MATERIAL_COHESIVE_LINEAR_INLINE_IMPL_HH_

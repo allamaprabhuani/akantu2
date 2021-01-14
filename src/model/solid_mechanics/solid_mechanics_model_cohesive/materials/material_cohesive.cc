@@ -55,6 +55,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       contact_tractions("contact_tractions", *this),
       contact_opening("contact_opening", *this),
       normal_opening_norm("normal_opening_norm", *this),
+      tangential_opening_norm("tangential_opening_norm", *this),
       delta_max("delta max", *this), use_previous_delta_max(false),
       use_previous_opening(false), damage("damage", *this),
       sigma_c("sigma_c", *this), normals("normals", *this) {
@@ -93,10 +94,12 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->contact_opening.initialize(spatial_dimension);
 
   this->normal_opening_norm.initialize(1);
-  //this->normal_opening_norm.initializeHistory();
+  // this->normal_opening_norm.initializeHistory();
+
+  this->tangential_opening_norm.initialize(1);
 
   this->opening.initialize(spatial_dimension);
-  //this->opening.initializeHistory();
+  this->opening.initializeHistory();
 
   this->normals.initialize(spatial_dimension);
 
@@ -126,6 +129,7 @@ void MaterialCohesive::initMaterial() {
   if (this->use_previous_opening) {
     this->opening.initializeHistory();
     this->normal_opening_norm.initializeHistory();
+    this->tangential_opening_norm.initializeHistory();
   }
   AKANTU_DEBUG_OUT();
 }
