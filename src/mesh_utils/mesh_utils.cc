@@ -33,11 +33,11 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "mesh_utils.hh"
 #include "element_synchronizer.hh"
 #include "fe_engine.hh"
 #include "mesh_accessor.hh"
 #include "mesh_iterators.hh"
-#include "mesh_utils.hh"
 /* -------------------------------------------------------------------------- */
 #include <limits>
 #include <numeric>
@@ -692,16 +692,16 @@ Real MeshUtils::cosSharpAngleBetween2Facets(SolidMechanicsModel & model,
   // normal to the first facet
   UInt nb_quad_points1 =
       facets_fe_engine.getNbIntegrationPoints(facet1.type, facet1.ghost_type);
-  const auto & normals1 =
-      facets_fe_engine.getNormalsOnIntegrationPoints(facet1.type);
+  const auto & normals1 = facets_fe_engine.getNormalsOnIntegrationPoints(
+      facet1.type, facet1.ghost_type);
   auto normal1_begin = normals1.begin(dim);
   Vector<Real> facet1_normal(normal1_begin[facet1.element * nb_quad_points1]);
 
   // normal to the second facet
   UInt nb_quad_points2 =
       facets_fe_engine.getNbIntegrationPoints(facet2.type, facet2.ghost_type);
-  const auto & normals2 =
-      facets_fe_engine.getNormalsOnIntegrationPoints(facet2.type);
+  const auto & normals2 = facets_fe_engine.getNormalsOnIntegrationPoints(
+      facet2.type, facet2.ghost_type);
   auto normal2_begin = normals2.begin(dim);
   Vector<Real> facet2_normal(normal2_begin[facet2.element * nb_quad_points2]);
 
@@ -731,6 +731,66 @@ Real MeshUtils::distanceBetween2Barycenters(const Mesh & mesh_facet1,
   AKANTU_DEBUG_OUT();
   return dist;
 }
+
+/*-------------------------------------------------------------------- */
+Real MeshUtils::distanceBetweenBarycentersCorrected(const Mesh & mesh_facets,
+                                                    const Element & facet1,
+                                                    const Element & facet2) {
+  AKANTU_DEBUG_IN();
+  auto dim = mesh_facets.getSpatialDimension();
+  AKANTU_DEBUG_ASSERT(dim == 3,
+                      "DistanceBetweenBarycentersCorrected works only in 3D");
+
+  const Vector<Element> & subfacet_to_el1 =
+      mesh_facets.getSubelementToElement(facet1);
+  const Vector<Element> && subfacet_to_el2 =
+      mesh_facets.getSubelementToElement(facet2);
+  std::set<Element> intersection;
+
+  for (auto & subfacet1 : subfacet_to_el1) {
+    for (auto & subfacet2 : subfacet_to_el2) {
+      if (subfacet1 == subfacet2) {
+        intersection.emplace(subfacet1);
+      }
+    }
+  }
+
+  // verify if facets share 1 subfacet == connected but not coincide
+  auto nb_shared_subfacets = intersection.size();
+  AKANTU_DEBUG_ASSERT(
+      nb_shared_subfacets == 1,
+      "Facets " << facet1 << " and " << facet2
+                << " are either not connected or coincide. Outputing zero");
+  auto common_subfacet = *intersection.begin();
+  auto & pos = mesh_facets.getNodes();
+  const auto pos_it = pos.begin(dim);
+  // auto subfacet_conn = mesh_facets.getConnectivity(common_subfacet.type,
+  //                                                  common_subfacet.ghost_type);
+  // auto nb_nodes_subfacet = subfacet_conn.getNbComponent();
+  // const auto subfacet_nodes_it =
+  //     make_view(subfacet_conn, nb_nodes_subfacet).begin();
+  Vector<UInt> subfacet_nodes = mesh_facets.getConnectivity(common_subfacet);
+  Vector<Real> A(dim);
+  Vector<Real> AB(dim);
+  A = Vector<Real>(pos_it[subfacet_nodes(0)]);
+  AB = Vector<Real>(pos_it[subfacet_nodes(1)]) -
+       Vector<Real>(pos_it[subfacet_nodes(0)]);
+
+  Vector<Real> facet1_bary(dim);
+  Vector<Real> facet2_bary(dim);
+  mesh_facets.getBarycenter(facet1, facet1_bary);
+  mesh_facets.getBarycenter(facet2, facet2_bary);
+
+  Vector<Real> ABary1 = facet1_bary - A;
+  Vector<Real> ABary2 = facet2_bary - A;
+  Vector<Real> dif = (ABary1.norm() - ABary2.norm()) * AB / AB.norm();
+  Vector<Real> facet2_bary_corrected = facet2_bary + dif;
+
+  auto dist = std::abs(facet1_bary.distance(facet2_bary_corrected));
+
+  AKANTU_DEBUG_OUT();
+  return dist;
+} // namespace akantu
 /*-------------------------------------------------------------------- */
 Real MeshUtils::getInscribedCircleDiameter(SolidMechanicsModel & model,
                                            const Element & el) {

@@ -118,6 +118,11 @@ public:
                                           const Element & facet1,
                                           const Element & facet2);
 
+  /// compute distance between barycenters of alligned facets
+  static Real distanceBetweenBarycentersCorrected(const Mesh & mesh_facet,
+                                                  const Element & facet1,
+                                                  const Element & facet2);
+
   /// get inscribed circle diameter directly by the element
   static Real getInscribedCircleDiameter(SolidMechanicsModel & model,
                                          const Element & el);
