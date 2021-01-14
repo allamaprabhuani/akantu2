@@ -76,22 +76,28 @@ public:
   std::tuple<UInt, Real, UInt>
   findCriticalFacet(const ElementType & type_facet);
 
-  /// use normals of neighboring cohesives for angle computation
-  std::tuple<UInt, Real, UInt>
-  findCriticalFacetNonLocal(const ElementType & type_facet);
+  /// determine the crack contour_subfacet_coh_el, surface_subfacets_crac_nb,
+  /// surface nodes and contour_nodes within this specific material
+  std::tuple<std::map<Element, Element>, std::map<Element, UInt>,
+             std::set<UInt>, std::set<UInt>>
+  determineCrackSurface();
 
-  /// duplicate single facet and insert cohesive if check_only!=false
-  void insertSingleCohesiveElement(const ElementType & type_facet,
-                                   UInt facet_nb, UInt crack_nb,
-                                   bool check_only);
+  /// searches for the "stressed" facets connected to contour segments
+  std::map<UInt, UInt> findCriticalFacetsOnContour(
+      const std::map<Element, Element> & contour_subfacets_coh_el,
+      const std::map<Element, UInt> & surface_subfacets_crack_nb,
+      const std::set<UInt> & contour_nodes,
+      const std::set<UInt> & surface_nodes);
 
   /// insert a row of cohesives according to provided numbers
-  void
-  insertCohesiveElements(Array<std::pair<UInt, UInt>> & facet_nbs_crack_nbs,
-                         ElementType facet_type, bool check_only);
+  void insertCohesiveElements(std::map<UInt, UInt> & facet_nbs_crack_nbs,
+                              ElementType facet_type, bool check_only);
 
   /// insert facets having 2 or more cohesive neighbors
-  bool fillInHoles(ElementType facet_type, bool check_only);
+  std::map<UInt, UInt>
+  findHolesOnContour(std::map<Element, Element> & contour_subfacets_coh_el,
+                     const std::map<Element, UInt> & surface_subfacets_crack_nb,
+                     const std::set<UInt> & surface_nodes);
 
 protected:
   /* ---------------------------------------------------------------- */

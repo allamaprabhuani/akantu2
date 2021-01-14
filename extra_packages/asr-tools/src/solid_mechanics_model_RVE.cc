@@ -215,8 +215,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
           (mat_paste.updateDamage() + mat_aggregate.updateDamage());
 
     /// mark the flag to update stiffness if elements were damaged
-    if (nb_damaged_elements)
+    if (nb_damaged_elements) {
       this->stiffness_changed = true;
+    }
 
     std::cout << "Proc " << prank << " the number of damaged elements is "
               << nb_damaged_elements << std::endl;

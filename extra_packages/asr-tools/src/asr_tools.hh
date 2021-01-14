@@ -236,6 +236,12 @@ public:
   /// works only for the MaterialCohesiveLinearSequential
   template <UInt dim> UInt insertCohesiveElementsSelectively();
 
+  /// insert multiple cohesives on contour
+  template <UInt dim> UInt insertCohesiveElementsOnContour();
+
+  /// apply eigen opening at all cohesives (including ghosts)
+  template <UInt dim> void applyEigenOpening(Real eigen_strain);
+
   // /// apply self-weight force
   // void applyBodyForce();
 
@@ -244,14 +250,16 @@ public:
 
   /// apply eigenstrain on gel material
   void applyGelStrain(const Matrix<Real> & prestrain);
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
   /// RVE part
 
   /// apply boundary contions based on macroscopic deformation gradient
   virtual void
   applyBoundaryConditionsRve(const Matrix<Real> & displacement_gradient);
 
-  /// apply homogeneous temperature field from the macroscale level to the RVEs
+  /// apply homogeneous temperature field from the macroscale level to the
+  /// RVEs
   virtual void applyHomogeneousTemperature(const Real & temperature);
 
   /// remove temperature from RVE on the end of ASR advancement
@@ -572,8 +580,10 @@ protected:
   bool gel_pairs{false};
 };
 
-/* -------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------
+ */
+/* --------------------------------------------------------------------------
+ */
 using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
 
 class GelMaterialCohesiveRulesSelector : public MaterialSelector {
@@ -961,14 +971,13 @@ public:
 
     // /// quadrangle's area through diagonals
     // Vector<Real> AC, BD;
-    // Vector<Real> A_pos = Vector<Real>(pos_it[A]) + Vector<Real>(disp_it[A]);
-    // Vector<Real> B_pos = Vector<Real>(pos_it[B]) + Vector<Real>(disp_it[B]);
-    // Vector<Real> C_pos = Vector<Real>(pos_it[C]) + Vector<Real>(disp_it[C]);
-    // Vector<Real> D_pos = Vector<Real>(pos_it[D]) + Vector<Real>(disp_it[D]);
-    // Vector<Real> M_pos = (A_pos + B_pos) * 0.5;
-    // Vector<Real> N_pos = (C_pos + D_pos) * 0.5;
-    // Vector<Real> MN = M_pos - N_pos;
-    // Vector<Real> AB = A_pos - B_pos;
+    // Vector<Real> A_pos = Vector<Real>(pos_it[A]) +
+    // Vector<Real>(disp_it[A]); Vector<Real> B_pos = Vector<Real>(pos_it[B])
+    // + Vector<Real>(disp_it[B]); Vector<Real> C_pos =
+    // Vector<Real>(pos_it[C]) + Vector<Real>(disp_it[C]); Vector<Real> D_pos
+    // = Vector<Real>(pos_it[D]) + Vector<Real>(disp_it[D]); Vector<Real>
+    // M_pos = (A_pos + B_pos) * 0.5; Vector<Real> N_pos = (C_pos + D_pos) *
+    // 0.5; Vector<Real> MN = M_pos - N_pos; Vector<Real> AB = A_pos - B_pos;
     // Vector<Real> AB_0 = Vector<Real>(pos_it[A]) - Vector<Real>(pos_it[B]);
 
     // // ASR volume computed as AB * thickness (AB * ratio)
@@ -979,7 +988,8 @@ public:
     // Real volume_change = current_volume - ASR_volume;
     // Real pressure_change{0};
     // if (volume_change < 0) {
-    //   pressure_change = -volume_change / ASR_volume / this->compressibility;
+    //   pressure_change = -volume_change / ASR_volume /
+    //   this->compressibility;
     // }
     // dual = pressure_change * normal_corrected;
     dual = multiplier * normal_corrected;
