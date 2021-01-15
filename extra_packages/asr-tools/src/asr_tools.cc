@@ -2424,8 +2424,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     matrix_nodes.erase(it);
 
     // not on the partition border or touching other cracks
-    if (/*this->partition_border_nodes(cent_node) or */ this->ASR_nodes(
-        cent_node))
+    if (this->partition_border_nodes(cent_node) or this->ASR_nodes(cent_node))
       continue;
 
     // поехали
@@ -2588,8 +2587,7 @@ bool ASRTools::isFacetAndNodesGood(Element & facet, UInt material_id) {
     return false;
   // check if the facet's nodes are not on the partition or other ASR zones
   for (auto & facet_node : facet_nodes) {
-    if (/*this->partition_border_nodes(facet_node) or */ this->ASR_nodes(
-        facet_node))
+    if (this->partition_border_nodes(facet_node) or this->ASR_nodes(facet_node))
       return false;
   }
   // check if the facet material is good
