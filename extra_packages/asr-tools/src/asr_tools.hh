@@ -242,6 +242,12 @@ public:
   /// apply eigen opening at all cohesives (including ghosts)
   template <UInt dim> void applyEigenOpening(Real eigen_strain);
 
+  /// outputs crack area, volume into a file
+  void outputCrackData(std::ofstream & file_output, Real time);
+
+  /// computes crack area and volume per material
+  std::tuple<Real, Real> computeCrackData(const ID & material_name);
+
   // /// apply self-weight force
   // void applyBodyForce();
 

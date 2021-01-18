@@ -315,9 +315,7 @@ Real ASRTools::computeAverageDisplacement(SpatialDirection direction) {
         ++nb_nodes;
       }
     }
-  }
-
-  else if ((direction == _z) && (model.getSpatialDimension() == 3)) {
+  } else if ((direction == _z) && (model.getSpatialDimension() == 3)) {
     AKANTU_DEBUG_ASSERT(model.getSpatialDimension() == 3,
                         "no z-direction in 2D problem");
     for (UInt i = 0; i < mesh.getNbNodes(); ++i) {
@@ -2403,6 +2401,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
 
   UInt nb_nodes = matrix_nodes.size();
   std::mt19937 random_generator(0);
+  std::uniform_int_distribution<> dis(0, nb_nodes - 1);
 
   if (not nb_nodes) {
     std::cout << "Proc " << prank << " couldn't place " << nb_insertions
@@ -2415,13 +2414,12 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     nb_nodes = matrix_nodes.size();
     AKANTU_DEBUG_ASSERT(nb_nodes,
                         "No more nodes left for the initial ASR insertion");
-    std::uniform_int_distribution<> dis(0, nb_nodes - 1);
     auto id = dis(random_generator);
     auto it = matrix_nodes.begin();
     std::advance(it, id);
 
     UInt cent_node(*it);
-    matrix_nodes.erase(it);
+    // matrix_nodes.erase(it);
 
     // not on the partition border or touching other cracks
     if (this->partition_border_nodes(cent_node) or this->ASR_nodes(cent_node))
@@ -2436,7 +2434,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
       segments_list.push_back(segment);
     }
 
-    // pick the first segment in the list
+    // pick the random segment in the list
     std::uniform_int_distribution<> dis1(0, segments_list.size() - 1);
     auto starting_segment = segments_list[dis1(random_generator)];
     auto & facets_to_segment =
@@ -3716,4 +3714,68 @@ template <UInt dim> void ASRTools::applyEigenOpening(Real eigen_strain) {
 
 template void ASRTools::applyEigenOpening<2>(Real eig);
 template void ASRTools::applyEigenOpening<3>(Real eig);
+
+/* --------------------------------------------------------------- */
+void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
+
+  auto data_agg = computeCrackData("agg-agg");
+  auto data_agg_mor = computeCrackData("agg-mor");
+  auto data_mor = computeCrackData("mor-mor");
+  auto area_agg = std::get<0>(data_agg);
+  auto vol_agg = std::get<1>(data_agg);
+  auto area_agg_mor = std::get<0>(data_agg_mor);
+  auto vol_agg_mor = std::get<1>(data_agg_mor);
+  auto area_mor = std::get<0>(data_mor);
+  auto vol_mor = std::get<1>(data_mor);
+  Real total_area = area_agg + area_agg_mor + area_mor;
+  Real total_volume = vol_agg + vol_agg_mor + vol_mor;
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+
+  if (prank == 0)
+    file_output << time << "," << area_agg << "," << area_agg_mor << ","
+                << area_mor << "," << vol_agg << "," << vol_agg_mor << ","
+                << vol_mor << "," << total_area << "," << total_volume
+                << std::endl;
+}
+
+/* --------------------------------------------------------------- */
+std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
+  const auto & mesh = model.getMesh();
+  const auto dim = mesh.getSpatialDimension();
+  GhostType gt = _not_ghost;
+  Material & mat = model.getMaterial(material_name);
+  const ElementTypeMapArray<UInt> & filter_map = mat.getElementFilter();
+  const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
+  Real crack_volume{0};
+  Real crack_area{0};
+
+  // Loop over the boundary element types
+  for (auto & element_type : filter_map.elementTypes(dim, gt, _ek_cohesive)) {
+    const Array<UInt> & filter = filter_map(element_type);
+    if (!filter_map.exists(element_type, gt))
+      continue;
+    if (filter.size() == 0)
+      continue;
+
+    auto & opening_norm_array =
+        mat.getInternal<Real>("normal_opening_norm")(element_type);
+
+    crack_volume +=
+        fe_engine.integrate(opening_norm_array, element_type, gt, filter);
+
+    Array<Real> area(
+        filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
+    crack_area = fe_engine.integrate(area, element_type, gt, filter);
+  }
+
+  /// do not communicate if model is multi-scale
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  comm.allReduce(crack_area, SynchronizerOperation::_sum);
+
+  return std::make_tuple(crack_area, crack_volume);
+}
+
 } // namespace akantu
