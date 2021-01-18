@@ -2410,9 +2410,10 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
   }
 
   UInt already_inserted = 0;
+  std::set<UInt> left_nodes = matrix_nodes;
   while (already_inserted < nb_insertions) {
 
-    if (not matrix_nodes.size()) {
+    if (not left_nodes.size()) {
       std::cout << "Proc " << prank << " inserted " << already_inserted
                 << " ASR sites out of " << nb_insertions << std::endl;
       return;
@@ -2422,7 +2423,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     std::advance(it, id);
 
     UInt cent_node(*it);
-    matrix_nodes.erase(it);
+    left_nodes.erase(*it);
 
     // not on the partition border or touching other cracks
     if (this->partition_border_nodes(cent_node) or this->ASR_nodes(cent_node))
