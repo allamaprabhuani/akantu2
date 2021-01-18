@@ -2411,15 +2411,18 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
 
   UInt already_inserted = 0;
   while (already_inserted < nb_insertions) {
-    nb_nodes = matrix_nodes.size();
-    AKANTU_DEBUG_ASSERT(nb_nodes,
-                        "No more nodes left for the initial ASR insertion");
+
+    if (not matrix_nodes.size()) {
+      std::cout << "Proc " << prank << " inserted " << already_inserted
+                << " ASR sites out of " << nb_insertions << std::endl;
+      return;
+    }
     auto id = dis(random_generator);
     auto it = matrix_nodes.begin();
     std::advance(it, id);
 
     UInt cent_node(*it);
-    // matrix_nodes.erase(it);
+    matrix_nodes.erase(it);
 
     // not on the partition border or touching other cracks
     if (this->partition_border_nodes(cent_node) or this->ASR_nodes(cent_node))
