@@ -690,16 +690,14 @@ Real MeshUtils::cosSharpAngleBetween2Facets(SolidMechanicsModel & model,
   auto dim = model.getSpatialDimension();
 
   // normal to the first facet
-  UInt nb_quad_points1 =
-      facets_fe_engine.getNbIntegrationPoints(facet1.type, facet1.ghost_type);
+  UInt nb_quad_points1 = facets_fe_engine.getNbIntegrationPoints(facet1.type);
   const auto & normals1 = facets_fe_engine.getNormalsOnIntegrationPoints(
       facet1.type, facet1.ghost_type);
   auto normal1_begin = normals1.begin(dim);
   Vector<Real> facet1_normal(normal1_begin[facet1.element * nb_quad_points1]);
 
   // normal to the second facet
-  UInt nb_quad_points2 =
-      facets_fe_engine.getNbIntegrationPoints(facet2.type, facet2.ghost_type);
+  UInt nb_quad_points2 = facets_fe_engine.getNbIntegrationPoints(facet2.type);
   const auto & normals2 = facets_fe_engine.getNormalsOnIntegrationPoints(
       facet2.type, facet2.ghost_type);
   auto normal2_begin = normals2.begin(dim);

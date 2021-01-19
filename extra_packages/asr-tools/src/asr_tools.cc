@@ -2441,9 +2441,23 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
       segments_list.push_back(segment);
     }
 
-    // pick the random segment in the list
-    std::uniform_int_distribution<> dis1(0, segments_list.size() - 1);
-    auto starting_segment = segments_list[dis1(random_generator)];
+    // pick the first non-ghost segment in the list
+    Element starting_segment;
+    for (auto segment : segments_list) {
+      if (segment.ghost_type == _not_ghost) {
+        starting_segment = segment;
+        break;
+      }
+    }
+
+    // go to next node if starting segment could not be picked
+    if (starting_segment == ElementNull) {
+      std::cout
+          << "Could not pick the starting segment, switching to the next node"
+          << std::endl;
+      continue;
+    }
+
     auto & facets_to_segment =
         mesh_facets.getElementToSubelement(starting_segment);
     // pick the first good facet in the list
