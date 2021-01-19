@@ -194,7 +194,7 @@ protected:
 
   /// check if the cohesive can be inserted and nodes are not on the partition
   /// border and ASR nodes
-  bool isFacetAndNodesGood(Element & facet, UInt material_id);
+  bool isFacetAndNodesGood(const Element & facet, UInt material_id);
 
   /// check if the node is surrounded by the material
   bool isNodeWithinMaterial(Element & node, UInt material_id);

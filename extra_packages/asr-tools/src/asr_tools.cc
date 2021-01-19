@@ -2387,6 +2387,9 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
   for_each_element(
       mesh_facets,
       [&](auto && node) {
+        // discard ghost nodes
+        if (mesh.isPureGhostNode(node.element))
+          goto nextnode;
         for (auto & facet : nodes_to_facets.getRow(node.element)) {
           auto & facet_material = coh_model.getFacetMaterial(
               facet.type, facet.ghost_type)(facet.element);
@@ -2425,9 +2428,8 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     UInt cent_node(*it);
     left_nodes.erase(*it);
 
-    // not on the ghost nodes or touching other cracks
-    if (model.getMesh().isPureGhostNode(cent_node) or
-        this->ASR_nodes(cent_node))
+    // not touching other cracks
+    if (this->ASR_nodes(cent_node))
       continue;
 
     // поехали
@@ -2444,12 +2446,23 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     auto starting_segment = segments_list[dis1(random_generator)];
     auto & facets_to_segment =
         mesh_facets.getElementToSubelement(starting_segment);
-    // pick the first facet in the list
-    auto starting_facet = facets_to_segment[0];
-    // check if the facet and its nodes are ok
-    if (not isFacetAndNodesGood(starting_facet, material_id))
-      continue;
+    // pick the first good facet in the list
+    Element starting_facet;
+    for (const auto & facet : facets_to_segment) {
+      // check if the facet and its nodes are ok
+      if (isFacetAndNodesGood(facet, material_id)) {
+        starting_facet = facet;
+        break;
+      }
+    }
 
+    // go to next node if starting facet could not be picked
+    if (starting_facet == ElementNull) {
+      std::cout
+          << "Could not pick the starting facet, switching to the next node"
+          << std::endl;
+      continue;
+    }
     // loop through facets to arrive to the starting segment
     bool loop_closed{false};
     auto current_facet(starting_facet);
@@ -2501,8 +2514,6 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
       bool almost_closed{false};
       auto neighbor_facets = mesh_facets.getElementToSubelement(border_segment);
       for (auto neighbor_facet : neighbor_facets) {
-        if (neighbor_facet.ghost_type == _ghost)
-          continue;
         if (neighbor_facet == current_facet)
           continue;
         if (not isFacetAndNodesGood(neighbor_facet, material_id))
@@ -2575,7 +2586,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
             << std::endl;
 }
 /* ------------------------------------------------------------------- */
-bool ASRTools::isFacetAndNodesGood(Element & facet, UInt material_id) {
+bool ASRTools::isFacetAndNodesGood(const Element & facet, UInt material_id) {
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2585,6 +2596,9 @@ bool ASRTools::isFacetAndNodesGood(Element & facet, UInt material_id) {
   Vector<UInt> facet_nodes = mesh_facets.getConnectivity(facet);
   auto & check_facets = inserter.getCheckFacets(facet_type, gt);
 
+  // check if the facet is ghost
+  if (gt == _ghost)
+    return false;
   // check if the facet is allowed to be inserted
   if (check_facets(facet.element) == false)
     return false;
