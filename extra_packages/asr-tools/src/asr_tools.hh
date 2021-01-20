@@ -189,8 +189,9 @@ protected:
   /// pick facets randomly within specified material
   void pickFacetsRandomly(UInt nb_insertions, std::string facet_mat_name);
 
-  /// build closed facets loop around random point of specified material
-  void closedFacetsLoopAroundPoint(UInt nb_insertions, std::string mat_name);
+  /// build closed facets loop around random point of specified material and
+  /// returns number of successfully inserted ASR sites
+  UInt closedFacetsLoopAroundPoint(UInt nb_insertions, std::string mat_name);
 
   /// check if the cohesive can be inserted and nodes are not on the partition
   /// border and ASR nodes

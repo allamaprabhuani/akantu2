@@ -2117,7 +2117,11 @@ void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
   communicateFlagsOnNodes();
 
   /// pick central facets and neighbors
-  closedFacetsLoopAroundPoint(nb_insertions, facet_mat_name);
+  auto inserted = closedFacetsLoopAroundPoint(nb_insertions, facet_mat_name);
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(inserted, SynchronizerOperation::_sum);
+  AKANTU_DEBUG_ASSERT(inserted, "No ASR sites were inserted across the domain");
 
   insertOppositeFacetsAndCohesives();
 
@@ -2356,7 +2360,7 @@ void ASRTools::pickFacetsRandomly(UInt nb_insertions,
   }
 }
 /* ------------------------------------------------------------------- */
-void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
+UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
                                            std::string mat_name) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & inserter = coh_model.getElementInserter();
@@ -2377,7 +2381,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
   auto prank = comm.whoAmI();
 
   if (not nb_insertions)
-    return;
+    return 0;
 
   CSR<Element> nodes_to_facets;
   MeshUtils::buildNode2Elements(mesh_facets, nodes_to_facets, dim - 1);
@@ -2409,7 +2413,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
   if (not nb_nodes) {
     std::cout << "Proc " << prank << " couldn't place " << nb_insertions
               << " ASR sites" << std::endl;
-    return;
+    return 0;
   }
 
   UInt already_inserted = 0;
@@ -2419,7 +2423,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     if (not left_nodes.size()) {
       std::cout << "Proc " << prank << " inserted " << already_inserted
                 << " ASR sites out of " << nb_insertions << std::endl;
-      return;
+      return already_inserted;
     }
     auto id = dis(random_generator);
     auto it = matrix_nodes.begin();
@@ -2598,6 +2602,7 @@ void ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
   }
   std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
             << std::endl;
+  return already_inserted;
 }
 /* ------------------------------------------------------------------- */
 bool ASRTools::isFacetAndNodesGood(const Element & facet, UInt material_id) {

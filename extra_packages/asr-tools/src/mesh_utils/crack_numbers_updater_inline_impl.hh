@@ -76,12 +76,16 @@ inline void CrackNumbersUpdater::unpackData(CommunicationBuffer & buffer,
       }
 
       auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type, gt);
-      // resize crack_nb array if size of ghost coh elements is >
-      auto & ghost_coh_el_ids = elements_range.getElements();
-      if (crack_numbers.size() != ghost_coh_el_ids.size())
-        crack_numbers.resize(ghost_coh_el_ids.size());
+      // // resize crack_nb array if size of ghost coh elements is >
+      // if (crack_numbers.size() != ghost_coh_el_ids.size())
+      //   crack_numbers.resize(ghost_coh_el_ids.size());
 
+      auto & ghost_coh_el_ids = elements_range.getElements();
       for (UInt ghost_coh_el : ghost_coh_el_ids) {
+        // resize crack_nb array on each iteration
+        if (crack_numbers.size() <= ghost_coh_el)
+          crack_numbers.resize(ghost_coh_el + 1);
+
         buffer >> crack_numbers(ghost_coh_el);
       }
     }
