@@ -2392,7 +2392,8 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
       mesh_facets,
       [&](auto && node) {
         // discard ghost nodes
-        if (not mesh.isLocalOrMasterNode(node.element))
+        // if (not mesh.isLocalOrMasterNode(node.element))
+        if (mesh.isPureGhostNode(node.element))
           goto nextnode;
         for (auto & facet : nodes_to_facets.getRow(node.element)) {
           auto & facet_material = coh_model.getFacetMaterial(
@@ -2623,8 +2624,9 @@ bool ASRTools::isFacetAndNodesGood(const Element & facet, UInt material_id) {
     return false;
   // check if the facet's nodes are not on the partition or other ASR zones
   for (auto & facet_node : facet_nodes) {
-    if (not model.getMesh().isLocalOrMasterNode(facet_node) or
-        this->ASR_nodes(facet_node))
+    if (model.getMesh().isPureGhostNode(
+            facet_node) /*model.getMesh().isLocalOrMasterNode(facet_node)*/
+        or this->ASR_nodes(facet_node))
       return false;
   }
   // check if the facet material is good
