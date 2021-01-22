@@ -3617,7 +3617,7 @@ template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
   UInt nb_new_elements(0);
   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
 
-  // find crack topoloty within specific material and insert cohesives
+  // find crack topology within specific material and insert cohesives
   for (auto && mat : model.getMaterials()) {
     auto * mat_coh =
         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
@@ -3643,6 +3643,12 @@ template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
 
   // insert the most stressed cohesive element
   nb_new_elements = inserter.insertElements();
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+  std::cout << "Proc " << prank << " " << nb_new_elements
+            << " stressed facets inserted\n"
+            << std::flush;
 
   // communicate crack numbers
   communicateCrackNumbers();
@@ -3675,7 +3681,11 @@ template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
 
     mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
   }
-  nb_new_elements += inserter.insertElements();
+  auto nb_new_holes = inserter.insertElements();
+  nb_new_elements += nb_new_holes;
+
+  std::cout << "Proc " << prank << " " << nb_new_holes << " holes inserted\n"
+            << std::flush;
 
   // communicate crack numbers
   communicateCrackNumbers();
