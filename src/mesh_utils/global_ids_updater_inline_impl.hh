@@ -45,7 +45,7 @@ inline UInt GlobalIdsUpdater::getNbData(const Array<Element> & elements,
   UInt size = 0;
   if (tag == SynchronizationTag::_giu_global_conn) {
     size +=
-        Mesh::getNbNodesPerElementList(elements) * sizeof(UInt) + sizeof(int);
+      Mesh::getNbNodesPerElementList(elements) * (sizeof(UInt) + sizeof(int)) + sizeof(int);
 #ifndef AKANTU_NDEBUG
     size += sizeof(NodeFlag) * Mesh::getNbNodesPerElementList(elements);
 #endif
@@ -71,14 +71,20 @@ inline void GlobalIdsUpdater::packData(CommunicationBuffer & buffer,
     const Vector<UInt> current_conn =
         const_cast<const Mesh &>(mesh).getConnectivity(element);
 
-    /// loop on all connectivity nodes
+     /// loop on all connectivity nodes
     for (auto node : current_conn) {
       UInt index = -1;
-      if ((this->reduce and mesh.isLocalOrMasterNode(node)) or
+      auto local_or_master = mesh.isLocalOrMasterNode(node);
+      if ((this->reduce and local_or_master) or
           (not this->reduce and not mesh.isPureGhostNode(node))) {
         index = global_nodes_ids(node);
       }
       buffer << index;
+      if (local_or_master) {
+	buffer << prank;
+      } else {
+	buffer << mesh.getNodePrank(node);
+      }
 #ifndef AKANTU_NDEBUG
       buffer << mesh.getNodeFlag(node);
 #endif
@@ -109,6 +115,10 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
     for (auto node : current_conn) {
       UInt index;
       buffer >> index;
+
+      int prank;
+      buffer >> prank;
+
 #ifndef AKANTU_NDEBUG
       NodeFlag node_flag;
       buffer >> node_flag;
@@ -123,12 +133,15 @@ inline void GlobalIdsUpdater::unpackData(CommunicationBuffer & buffer,
 
       if (mesh.isSlaveNode(node)) {
         auto & gid = global_nodes_ids(node);
-        AKANTU_DEBUG_ASSERT(gid == UInt(-1) or gid == index,
+#ifndef AKANTU_NDEBUG
+	auto old_prank = mesh.getNodePrank(node);
+        AKANTU_DEBUG_ASSERT(gid == UInt(-1) or ((gid == index) and (old_prank == prank)),
                             "The node already has a global id, from proc "
                                 << proc << ", different from the one received "
                                 << gid << " " << index);
+#endif
         gid = index;
-        mesh_accessor.setNodePrank(node, proc);
+        mesh_accessor.setNodePrank(node, prank);
       }
     }
   }
