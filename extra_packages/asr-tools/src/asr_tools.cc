@@ -3646,12 +3646,6 @@ template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
   // insert the most stressed cohesive element
   nb_new_elements = inserter.insertElements();
 
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  auto prank = comm.whoAmI();
-  std::cout << "Proc " << prank << " " << nb_new_elements
-            << " stressed facets inserted\n"
-            << std::flush;
-
   // communicate crack numbers
   communicateCrackNumbers();
 
@@ -3685,9 +3679,6 @@ template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
   }
   auto nb_new_holes = inserter.insertElements();
   nb_new_elements += nb_new_holes;
-
-  std::cout << "Proc " << prank << " " << nb_new_holes << " holes inserted\n"
-            << std::flush;
 
   // communicate crack numbers
   communicateCrackNumbers();
