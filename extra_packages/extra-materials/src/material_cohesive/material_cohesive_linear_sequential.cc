@@ -44,18 +44,9 @@ template <UInt spatial_dimension>
 MaterialCohesiveLinearSequential<spatial_dimension>::
     MaterialCohesiveLinearSequential(SolidMechanicsModel & model, const ID & id)
     : MaterialCohesiveLinear<spatial_dimension>(model, id),
-      normal_stresses("normal_stresses", *this),
+      scalar_tractions("scalar_tractions", *this),
       normal_tractions("normal_tractions", *this),
-      effective_stresses("effective_stresses", *this) {
-  AKANTU_DEBUG_IN();
-
-  this->registerParam(
-      "insertion_threshold", insertion_threshold, Real(0.0),
-      _pat_parsable | _pat_readable,
-      "Portion of elements below the highest stress to be inserted");
-
-  AKANTU_DEBUG_OUT();
-}
+      effective_stresses("effective_stresses", *this) {}
 /* ------------------------------------------------------------------ */
 template <UInt spatial_dimension>
 void MaterialCohesiveLinearSequential<spatial_dimension>::initMaterial() {
@@ -63,7 +54,7 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::initMaterial() {
 
   MaterialCohesiveLinear<spatial_dimension>::initMaterial();
 
-  normal_stresses.initialize(1);
+  scalar_tractions.initialize(1);
   normal_tractions.initialize(spatial_dimension);
   effective_stresses.initialize(1);
   AKANTU_DEBUG_OUT();
@@ -132,7 +123,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
   const auto & facets_check = inserter.getCheckFacets(type_facet);
   auto & f_filter = this->facet_filter(type_facet);
-  auto & norm_stresses = normal_stresses(type_facet);
+  auto & scal_tractions = scalar_tractions(type_facet);
   auto & norm_tractions = normal_tractions(type_facet);
   const auto & f_stress = this->model->getStressOnFacets(type_facet);
   const auto & sigma_limits = this->sigma_c(type_facet);
@@ -168,7 +159,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
   // loop over each facet belonging to this material
   for (auto && data :
        zip(f_filter, sigma_limits, eff_stresses,
-           make_view(norm_stresses, nb_quad_facet),
+           make_view(scal_tractions, nb_quad_facet),
            make_view(norm_tractions, spatial_dimension, nb_quad_facet))) {
     auto facet_nb = std::get<0>(data);
     Element facet{type_facet, facet_nb, _not_ghost};
@@ -327,6 +318,7 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
   // up)
   std::map<UInt, UInt> facet_nbs_crack_nbs;
   std::set<UInt> facet_nbs;
+  std::set<Element> visited_facets;
 
   // TODO : make iteration on multiple facet types
   auto type_facet = *mesh_facets.elementTypes(spatial_dimension - 1).begin();
@@ -349,7 +341,7 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
 #endif
   CohesiveElementInserter & inserter = this->model->getElementInserter();
   const auto & facets_check = inserter.getCheckFacets(type_facet);
-  auto & norm_stresses = normal_stresses(type_facet);
+  auto & scal_tractions = scalar_tractions(type_facet);
   auto & norm_tractions = normal_tractions(type_facet);
   const auto & f_stress = this->model->getStressOnFacets(type_facet);
   const auto & sigma_limits = this->sigma_c(type_facet);
@@ -357,8 +349,8 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
   const auto & tangents = this->model->getTangents(type_facet);
   const auto & normals = this->model->getFEEngine("FacetsFEEngine")
                              .getNormalsOnIntegrationPoints(type_facet);
-  auto norm_stresses_it =
-      norm_stresses.begin_reinterpret(nb_quad_facet, f_filter.size());
+  auto scal_tractions_it =
+      scal_tractions.begin_reinterpret(nb_quad_facet, f_filter.size());
   auto norm_tractions_it = norm_tractions.begin_reinterpret(
       spatial_dimension, nb_quad_facet, f_filter.size());
   auto normal_it = normals.begin(spatial_dimension);
@@ -397,6 +389,10 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
 
     // proceed to identifying the potential insertion facet
     for (auto & facet : facets_to_contour) {
+      // check if the facet was already visited
+      auto ret = visited_facets.emplace(facet);
+      if (not ret.second)
+        continue;
 
       // skip ghost facets
       if (facet.ghost_type == _ghost) {
@@ -531,7 +527,7 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
       auto facet_local_nb = f_filter.find(facet.element);
       auto & sigma_limit = sigma_limits(facet_local_nb);
       auto & eff_stress = eff_stresses(facet_local_nb);
-      Vector<Real> stress_check(norm_stresses_it[facet_local_nb]);
+      Vector<Real> stress_check(scal_tractions_it[facet_local_nb]);
       Matrix<Real> normal_traction(norm_tractions_it[facet_local_nb]);
 
       // compute the effective norm on each quadrature point of the facet
@@ -609,7 +605,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
                            .getNbIntegrationPoints(type_facet);
   const auto & facets_check = inserter.getCheckFacets(type_facet);
   auto & f_filter = this->facet_filter(type_facet);
-  auto & norm_stresses = normal_stresses(type_facet);
+  auto & scal_tractions = scalar_tractions(type_facet);
   auto & norm_tractions = normal_tractions(type_facet);
   const auto & f_stress = this->model->getStressOnFacets(type_facet);
   const auto & sigma_limits = this->sigma_c(type_facet);
@@ -618,8 +614,8 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
   const auto & normals = this->model->getFEEngine("FacetsFEEngine")
                              .getNormalsOnIntegrationPoints(type_facet);
   auto normal_it = normals.begin(spatial_dimension);
-  auto norm_stresses_it =
-      norm_stresses.begin_reinterpret(nb_quad_facet, f_filter.size());
+  auto scal_tractions_it =
+      scal_tractions.begin_reinterpret(nb_quad_facet, f_filter.size());
   auto norm_tractions_it = norm_tractions.begin_reinterpret(
       spatial_dimension, nb_quad_facet, f_filter.size());
   auto tangent_it = tangents.begin(tangents.getNbComponent());
@@ -713,166 +709,76 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
         continue;
       }
 
-      // discard not stressed or compressed facets
-      auto facet_local_nb = f_filter.find(facet.element);
-      auto & sigma_limit = sigma_limits(facet_local_nb);
-      auto & eff_stress = eff_stresses(facet_local_nb);
-      Vector<Real> stress_check(norm_stresses_it[facet_local_nb]);
-      Matrix<Real> normal_traction(norm_tractions_it[facet_local_nb]);
-
-      // compute the effective norm on each quadrature point of the facet
-      for (UInt q : arange(nb_quad_facet)) {
-        UInt current_quad = facet.element * nb_quad_facet + q;
-        const Vector<Real> & normal = normal_it[current_quad];
-        const Vector<Real> & tangent = tangent_it[current_quad];
-        const Matrix<Real> & facet_stress = facet_stress_it[current_quad];
-        // compute average stress on the current quadrature point
-        Matrix<Real> stress_1(facet_stress.storage(), spatial_dimension,
-                              spatial_dimension);
-
-        Matrix<Real> stress_2(facet_stress.storage() + sp2, spatial_dimension,
-                              spatial_dimension);
-        stress_tmp.copy(stress_1);
-        stress_tmp += stress_2;
-        stress_tmp /= 2.;
-
-        Vector<Real> normal_traction_vec(normal_traction(q));
-        // compute normal and effective stress
-        stress_check(q) = this->computeEffectiveNorm(
-            stress_tmp, normal, tangent, normal_traction_vec);
-      }
-
-      // verify if the effective stress overcomes the threshold
-      Real final_stress = stress_check.mean();
-
-      // normalize by the limit stress and skip non-stressed facets
-      eff_stress = final_stress / sigma_limit;
-      if (eff_stress <= 0)
+      // avoid facets under sharp angles with their cohesives
+      Real dot = MeshUtils::cosSharpAngleBetween2Facets(*(this->model), facet,
+                                                        coh_facets[0]);
+      if (dot < 0.8)
         continue;
+
+      // // discard not stressed or compressed facets
+      // auto facet_local_nb = f_filter.find(facet.element);
+      // auto & sigma_limit = sigma_limits(facet_local_nb);
+      // auto & eff_stress = eff_stresses(facet_local_nb);
+      // Vector<Real> stress_check(scal_tractions_it[facet_local_nb]);
+      // Matrix<Real> normal_traction(norm_tractions_it[facet_local_nb]);
+
+      // // compute the effective norm on each quadrature point of the facet
+      // for (UInt q : arange(nb_quad_facet)) {
+      //   UInt current_quad = facet.element * nb_quad_facet + q;
+      //   const Vector<Real> & normal = normal_it[current_quad];
+      //   const Vector<Real> & tangent = tangent_it[current_quad];
+      //   const Matrix<Real> & facet_stress = facet_stress_it[current_quad];
+      //   // compute average stress on the current quadrature point
+      //   Matrix<Real> stress_1(facet_stress.storage(), spatial_dimension,
+      //                         spatial_dimension);
+
+      //   Matrix<Real> stress_2(facet_stress.storage() + sp2,
+      //   spatial_dimension,
+      //                         spatial_dimension);
+      //   stress_tmp.copy(stress_1);
+      //   stress_tmp += stress_2;
+      //   stress_tmp /= 2.;
+
+      //   Vector<Real> normal_traction_vec(normal_traction(q));
+      //   // compute normal and effective stress
+      //   stress_check(q) = this->computeEffectiveNorm(
+      //       stress_tmp, normal, tangent, normal_traction_vec);
+      // }
+
+      // // verify if the effective stress overcomes the threshold
+      // Real final_stress = stress_check.mean();
+
+      // // normalize by the limit stress and skip non-stressed facets
+      // eff_stress = final_stress / sigma_limit;
+      // if (eff_stress <= 0)
+      //   continue;
 
       // add facet into the map
       facet_contour_subfacets[facet.element].emplace(contour_el);
       facet_crack_nb[facet.element] = crack_nb;
+      // add all passed facets into the pool
+      facet_pool.emplace(facet);
     }
   }
 
   // get all facets having more than 1 connection to the contour
+  // and clean facet_pool from the facets connected to these contours
   for (auto it = facet_contour_subfacets.begin();
        it != facet_contour_subfacets.end(); it++) {
     if (it->second.size() > 1) {
       facet_nbs_crack_nbs[it->first] = facet_crack_nb[it->first];
-      // add inserted facets into the pool
+
+      // delete facets connected to above subfacets from the pool
       Element facet{type_facet, it->first, _not_ghost};
-      facet_pool.emplace(facet);
-
-      // delete contour els that were used
       for (auto & contour_subf : it->second) {
-        contour_subfacets_coh_el.erase(contour_subf);
+        auto & facets_to_taken_contour =
+            mesh_facets.getElementToSubelement(contour_subf);
+        for (auto & facet_to_taken_contour : facets_to_taken_contour) {
+          if (facet_to_taken_contour == facet)
+            continue;
+          facet_pool.erase(facet_to_taken_contour);
+        }
       }
-    }
-  }
-
-  // redo the first loop with reduced contour
-  for (auto && pair : contour_subfacets_coh_el) {
-    auto & contour_el = pair.first;
-    auto & coh_el = pair.second;
-    auto & facets_to_contour = mesh_facets.getElementToSubelement(contour_el);
-    // identify the crack number and cohesive nodes
-    UInt crack_nb = mesh.getData<UInt>("crack_numbers", coh_el.type,
-                                       coh_el.ghost_type)(coh_el.element);
-    auto && coh_facets_vec = mesh_facets.getSubelementToElement(coh_el);
-    Array<Element> coh_facets;
-    for (auto coh_facet : coh_facets_vec) {
-      auto && subfacets = mesh_facets.getSubelementToElement(coh_facet);
-      auto ret = std::find(subfacets.storage(),
-                           subfacets.storage() + subfacets.size(), contour_el);
-      if (ret == subfacets.storage() + subfacets.size())
-        continue;
-      coh_facets.push_back(coh_facet);
-    }
-    AKANTU_DEBUG_ASSERT(coh_facets.size(),
-                        "Cohesive element on countour not identified");
-
-    // proceed to identifying the potential insertion facet
-    for (auto & facet : facets_to_contour) {
-
-      // skip ghost facets
-      if (facet.ghost_type == _ghost) {
-        continue;
-      }
-
-      // skip cohesive facets
-      if (coh_facets.find(facet) != UInt(-1)) {
-        continue;
-      }
-
-      // check if the facet belongs to this material
-      auto & facet_mat_index = this->model->getFacetMaterial(
-          facet.type, facet.ghost_type)(facet.element);
-      if (facet_mat_index != current_mat_index) {
-        continue;
-      }
-      // check check_facets
-      if (not facets_check(facet.element)) {
-        continue;
-      }
-
-      // discard facets under sharp angle with crack
-      Real facet_indiam =
-          MeshUtils::getInscribedCircleDiameter(*(this->model), facet);
-      auto dist = MeshUtils::distanceBetweenBarycentersCorrected(
-          mesh_facets, facet, coh_facets[0]);
-      // ad-hoc rule on barycenters spacing
-      // it should discard all elements under sharp angle
-      if (dist < 0.8 * facet_indiam) {
-        continue;
-      }
-
-      // discard not stressed or compressed facets
-      auto facet_local_nb = f_filter.find(facet.element);
-      auto & sigma_limit = sigma_limits(facet_local_nb);
-      auto & eff_stress = eff_stresses(facet_local_nb);
-      Vector<Real> stress_check(norm_stresses_it[facet_local_nb]);
-      Matrix<Real> normal_traction(norm_tractions_it[facet_local_nb]);
-
-      // compute the effective norm on each quadrature point of the facet
-      for (UInt q : arange(nb_quad_facet)) {
-        UInt current_quad = facet.element * nb_quad_facet + q;
-        const Vector<Real> & normal = normal_it[current_quad];
-        const Vector<Real> & tangent = tangent_it[current_quad];
-        const Matrix<Real> & facet_stress = facet_stress_it[current_quad];
-        // compute average stress on the current quadrature point
-        Matrix<Real> stress_1(facet_stress.storage(), spatial_dimension,
-                              spatial_dimension);
-
-        Matrix<Real> stress_2(facet_stress.storage() + sp2, spatial_dimension,
-                              spatial_dimension);
-        stress_tmp.copy(stress_1);
-        stress_tmp += stress_2;
-        stress_tmp /= 2.;
-
-        Vector<Real> normal_traction_vec(normal_traction(q));
-        // compute normal and effective stress
-        stress_check(q) = this->computeEffectiveNorm(
-            stress_tmp, normal, tangent, normal_traction_vec);
-      }
-      // verify if the effective stress overcomes the threshold
-      Real final_stress = stress_check.mean();
-      // normalize by the limit stress and skip non-stressed facets
-      eff_stress = final_stress / sigma_limit;
-      if (eff_stress <= 0)
-        continue;
-
-      // extra check for the INTERCONNECTED holes insertion
-      Real dot = MeshUtils::cosSharpAngleBetween2Facets(*(this->model), facet,
-                                                        coh_facets[0]);
-      if (dot < 0.8) {
-        continue;
-      }
-
-      // if ok add this facet to the pool
-      facet_pool.emplace(facet);
-      facet_crack_nb[facet.element] = crack_nb;
     }
   }
 
@@ -1072,19 +978,26 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
   auto & f_filter = this->facet_filter(type_facet);
   auto & f_insertion = inserter.getInsertionFacets(type_facet);
-  auto & norm_stresses = normal_stresses(type_facet);
+  auto & scal_tractions = scalar_tractions(type_facet);
   auto & norm_tractions = normal_tractions(type_facet);
   const auto & sigma_limits = this->sigma_c(type_facet);
   auto & sig_c_eff = this->sigma_c_eff(type_cohesive);
   auto & del_c = this->delta_c_eff(type_cohesive);
+  auto & del_max = this->delta_max(type_cohesive);
   auto & ins_stress = this->insertion_stress(type_cohesive);
   auto & trac_old = this->tractions.previous(type_cohesive);
   auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type_cohesive);
+  const auto & normals = this->model->getFEEngine("FacetsFEEngine")
+                             .getNormalsOnIntegrationPoints(type_facet);
+  auto normal_begin = normals.begin(spatial_dimension);
+
   UInt nb_quad_facet = this->model->getFEEngine("FacetsFEEngine")
                            .getNbIntegrationPoints(type_facet);
   std::vector<Real> new_sigmas;
   std::vector<Vector<Real>> new_normal_traction;
   std::vector<Real> new_delta_c;
+  std::vector<Real> new_delta_max;
+  UInt nb_understressed{0};
 
   for (auto && pair : facet_nbs_crack_nbs) {
     auto & facet_nb = pair.first;
@@ -1103,21 +1016,33 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
 
     auto & sigma_limit = sigma_limits(local_id);
     Vector<Real> stress_check =
-        make_view(norm_stresses, nb_quad_facet).begin()[local_id];
+        make_view(scal_tractions, nb_quad_facet).begin()[local_id];
     Matrix<Real> normal_traction =
         make_view(norm_tractions, spatial_dimension, nb_quad_facet)
             .begin()[local_id];
 
     // store the new cohesive material parameters for each quad point
     for (UInt q = 0; q < nb_quad_facet; ++q) {
+      UInt current_quad = facet_nb * nb_quad_facet + q;
       Real new_sigma = stress_check(q);
+      Real new_del_max{0};
       Vector<Real> normal_traction_vec(normal_traction(q));
+      const Vector<Real> & normal = normal_begin[current_quad];
+
+      // workaround to insert understressed cohesives
+      if (new_sigma < sigma_limit) {
+        new_sigma = sigma_limit;
+        normal_traction_vec = normal * sigma_limit;
+        new_del_max = 2 * this->G_c / new_sigma / 100;
+        nb_understressed++;
+      }
 
       if (spatial_dimension != 3)
         normal_traction_vec *= -1.;
 
       new_sigmas.push_back(new_sigma);
       new_normal_traction.push_back(normal_traction_vec);
+      new_delta_max.push_back(new_del_max);
 
       Real new_delta;
 
@@ -1141,10 +1066,12 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
   ins_stress.resize(old_nb_quad_points + new_nb_quad_points);
   trac_old.resize(old_nb_quad_points + new_nb_quad_points);
   del_c.resize(old_nb_quad_points + new_nb_quad_points);
+  del_max.resize(old_nb_quad_points + new_nb_quad_points);
 
   for (UInt q = 0; q < new_nb_quad_points; ++q) {
     sig_c_eff(old_nb_quad_points + q) = new_sigmas[q];
     del_c(old_nb_quad_points + q) = new_delta_c[q];
+    del_max(old_nb_quad_points + q) = new_delta_max[q];
     for (UInt dim = 0; dim < spatial_dimension; ++dim) {
       ins_stress(old_nb_quad_points + q, dim) = new_normal_traction[q](dim);
       trac_old(old_nb_quad_points + q, dim) = new_normal_traction[q](dim);

@@ -108,13 +108,10 @@ protected:
   /* Class Members                                                    */
   /* ---------------------------------------------------------------- */
 protected:
-  /// portion of elements with the stress above their threshold to be inserted
-  Real insertion_threshold;
+  /// scalar tractions = combination of normal and tangential norms
+  FacetInternalField<Real> scalar_tractions;
 
-  /// normal stresses on facets
-  FacetInternalField<Real> normal_stresses;
-
-  /// normal stresses on facets
+  /// traction acting on a facet plane
   FacetInternalField<Real> normal_tractions;
 
   /// normal stresses normalized by the stress limit

@@ -97,7 +97,7 @@ void ASRTools::computeModelVolume() {
   auto & fem = model.getFEEngine("SolidMechanicsFEEngine");
   GhostType gt = _not_ghost;
   this->volume = 0;
-  for (auto element_type : mesh.elementTypes(dim, gt, _ek_not_defined)) {
+  for (auto element_type : mesh.elementTypes(dim, gt, _ek_regular)) {
     Array<Real> Volume(mesh.getNbElement(element_type) *
                            fem.getNbIntegrationPoints(element_type),
                        1, 1.);
@@ -2599,6 +2599,8 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
         this->ASR_nodes(facet_conn(facet.element, node)) = true;
       }
     }
+    // store the asr facets
+    this->ASR_facets_from_mesh_facets.push_back(facets_in_loop);
     already_inserted++;
   }
   std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
@@ -2986,11 +2988,35 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
   MeshUtils::fillElementToSubElementsData(mesh);
   mesh.sendEvent(new_facets_event);
 
-  /// create an element group with nodes to apply Dirichlet
+  // fill up ASR facets vector
+  this->ASR_facets_from_mesh.resize(this->ASR_facets_from_mesh_facets.size());
+  for (UInt i = 0; i != this->ASR_facets_from_mesh_facets.size(); i++) {
+    auto single_site_facets = this->ASR_facets_from_mesh_facets(i);
+    for (auto & facet : single_site_facets) {
+      Element cohesive{ElementNull};
+      auto & connected_els = mesh_facets.getElementToSubelement(facet);
+      for (auto & connected_el : connected_els) {
+        if (mesh.getKind(connected_el.type) == _ek_cohesive) {
+          cohesive = connected_el;
+          break;
+        }
+      }
+      AKANTU_DEBUG_ASSERT(cohesive != ElementNull,
+                          "Connected cohesive element not identified");
+      auto && connected_subels = mesh.getSubelementToElement(cohesive);
+      for (auto & connected_subel : connected_subels) {
+        if (connected_subel.type != facet.type)
+          continue;
+        this->ASR_facets_from_mesh(i).emplace(connected_subel);
+      }
+    }
+  }
+
+  // create an element group with nodes to apply Dirichlet
   model.getMesh().createElementGroupFromNodeGroup("doubled_nodes",
                                                   "doubled_nodes", dim - 1);
 
-  /// update FEEngineBoundary with new elements
+  // update FEEngineBoundary with new elements
   model.getFEEngineBoundary().initShapeFunctions(_not_ghost);
   model.getFEEngineBoundary().initShapeFunctions(_ghost);
   model.getFEEngineBoundary().computeNormalsOnIntegrationPoints(_not_ghost);
@@ -3692,7 +3718,7 @@ template UInt ASRTools::insertCohesiveElementsOnContour<2>();
 template UInt ASRTools::insertCohesiveElementsOnContour<3>();
 
 /* --------------------------------------------------------------- */
-template <UInt dim> void ASRTools::applyEigenOpening(Real eigen_strain) {
+void ASRTools::applyEigenOpening(Real eigen_strain) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
 
   if (not coh_model.getIsExtrinsic()) {
@@ -3701,11 +3727,10 @@ template <UInt dim> void ASRTools::applyEigenOpening(Real eigen_strain) {
   }
 
   const Mesh & mesh_facets = coh_model.getMeshFacets();
+  const UInt dim = model.getSpatialDimension();
 
-  // find crack topoloty within specific material and insert cohesives
   for (auto && mat : model.getMaterials()) {
-    auto * mat_coh =
-        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+    auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
 
     if (mat_coh == nullptr)
       continue;
@@ -3754,9 +3779,74 @@ template <UInt dim> void ASRTools::applyEigenOpening(Real eigen_strain) {
   }
 }
 
-template void ASRTools::applyEigenOpening<2>(Real eig);
-template void ASRTools::applyEigenOpening<3>(Real eig);
+/* --------------------------------------------------------------- */
+void ASRTools::applyEigenOpeningGelVolumeBased(Real gel_volume_ratio) {
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
 
+  if (not coh_model.getIsExtrinsic()) {
+    AKANTU_EXCEPTION(
+        "This function can only be used for extrinsic cohesive elements");
+  }
+
+  const Mesh & mesh_facets = coh_model.getMeshFacets();
+  const UInt dim = model.getSpatialDimension();
+  // compute total asr gel volume
+  if (!this->volume)
+    computeModelVolume();
+  Real gel_volume = this->volume * gel_volume_ratio;
+
+  // compute total area of existing cracks
+  auto data_agg = computeCrackData("agg-agg");
+  auto data_agg_mor = computeCrackData("agg-mor");
+  auto data_mor = computeCrackData("mor-mor");
+  auto area_agg = std::get<0>(data_agg);
+  auto area_agg_mor = std::get<0>(data_agg_mor);
+  auto area_mor = std::get<0>(data_mor);
+  Real total_area = area_agg + area_agg_mor + area_mor;
+
+  // compute necessary opening to cover fit gel volume by crack area
+  Real average_opening = gel_volume / total_area;
+
+  for (auto && mat : model.getMaterials()) {
+    auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+
+    if (mat_coh == nullptr)
+      continue;
+
+    for (auto gt : ghost_types) {
+      for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
+        ElementType type_cohesive =
+            FEEngine::getCohesiveElementType(type_facet);
+        UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+                                    .getNbIntegrationPoints(type_cohesive);
+        if (not model.getMesh().getNbElement(type_cohesive, gt))
+          continue;
+
+        const Array<UInt> & elem_filter =
+            mat_coh->getElementFilter(type_cohesive, gt);
+
+        if (not elem_filter.size()) {
+          continue;
+        }
+
+        // access openings of cohesive elements
+        auto & eig_opening = mat_coh->getEigenOpening(type_cohesive, gt);
+        auto & normals = mat_coh->getNormals(type_cohesive, gt);
+        auto eig_op_it = eig_opening.begin(dim);
+        auto normals_it = normals.begin(dim);
+
+        // apply average opening directly as eigen
+        for (auto el_order : arange(elem_filter.size())) {
+          Vector<Real> normal(normals_it[el_order * nb_quad_cohesive]);
+          for (UInt i : arange(nb_quad_cohesive)) {
+            auto eig_op = eig_op_it[el_order * nb_quad_cohesive + i];
+            eig_op = normal * average_opening;
+          }
+        }
+      }
+    }
+  }
+}
 /* --------------------------------------------------------------- */
 void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
 
@@ -3809,7 +3899,7 @@ std::tuple<Real, Real> ASRTools::computeCrackData(const ID & material_name) {
 
     Array<Real> area(
         filter.size() * fe_engine.getNbIntegrationPoints(element_type), 1, 1.);
-    crack_area = fe_engine.integrate(area, element_type, gt, filter);
+    crack_area += fe_engine.integrate(area, element_type, gt, filter);
   }
 
   /// do not communicate if model is multi-scale

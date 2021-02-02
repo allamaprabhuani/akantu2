@@ -241,7 +241,10 @@ public:
   template <UInt dim> UInt insertCohesiveElementsOnContour();
 
   /// apply eigen opening at all cohesives (including ghosts)
-  template <UInt dim> void applyEigenOpening(Real eigen_strain);
+  void applyEigenOpening(Real eigen_strain);
+
+  /// distribute total ASR gel volume along existing crack surface
+  void applyEigenOpeningGelVolumeBased(Real gel_volume_ratio);
 
   /// outputs crack area, volume into a file
   void outputCrackData(std::ofstream & file_output, Real time);
@@ -365,6 +368,11 @@ public:
   /// get the corner nodes
   AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
 
+  AKANTU_GET_MACRO(ASRFacetsFromMeshFacets, ASR_facets_from_mesh_facets,
+                   const Array<Array<Element>> &);
+  AKANTU_GET_MACRO(ASRFacetsFromMesh, ASR_facets_from_mesh,
+                   const Array<std::set<Element>> &);
+
   /* --------------------------------------------------------------------- */
   /* Members */
   /* --------------------------------------------------------------------- */
@@ -417,13 +425,15 @@ protected:
 
   /// array to store flags on nodes where ASR elements are inserted
   Array<bool> ASR_nodes;
+
+  /// Vector to store the initially inserted facets per asr site
+  Array<Array<Element>> ASR_facets_from_mesh_facets;
+  Array<std::set<Element>> ASR_facets_from_mesh;
 };
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 /* ASR material selector */
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 class GelMaterialSelector : public MeshDataMaterialSelector<std::string> {
 public:
   GelMaterialSelector(SolidMechanicsModel & model, std::string gel_material,
@@ -905,13 +915,13 @@ protected:
 /* ------------------------------------------------------------------- */
 class PressureVolumeDependent3D : public BC::Neumann::NeumannFunctor {
 public:
-  PressureVolumeDependent3D(SolidMechanicsModel & model,
+  PressureVolumeDependent3D(SolidMechanicsModelCohesive & model,
                             const Real ASR_volume_ratio,
-                            const std::string group_name,
-                            const Real compressibility, const Real multiplier)
+                            const Real compressibility,
+                            const Array<std::set<Element>> ASR_facets_from_mesh)
       : model(model), ASR_volume_ratio(ASR_volume_ratio),
-        group_name(group_name), compressibility(compressibility),
-        multiplier(multiplier) {}
+        compressibility(compressibility),
+        ASR_facets_from_mesh(ASR_facets_from_mesh) {}
 
   inline void operator()(const IntegrationPoint & quad_point,
                          Vector<Real> & dual, const Vector<Real> & /*coord*/,
@@ -919,95 +929,115 @@ public:
 
     // get element types
     auto && mesh = model.getMesh();
-    AKANTU_DEBUG_ASSERT(mesh.elementGroupExists(group_name),
-                        "Element group is not registered in the mesh");
+    const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
     auto dim = mesh.getSpatialDimension();
-    const GhostType gt = akantu::_not_ghost;
-    const UInt facet_nb = quad_point.element;
-    const ElementType type_facet = quad_point.type;
-    auto && facet_conn = mesh.getConnectivity(type_facet, gt);
+    Element facet{quad_point.type, quad_point.element, quad_point.ghost_type};
+    ElementType type_cohesive = FEEngine::getCohesiveElementType(facet.type);
+    auto nb_quad_coh = fe_engine.getNbIntegrationPoints(type_cohesive);
+    auto && facet_conn = mesh.getConnectivity(facet.type, facet.ghost_type);
     const UInt nb_nodes_facet = facet_conn.getNbComponent();
     auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
-    auto & group = mesh.getElementGroup(group_name);
-    Array<UInt> element_ids = group.getElements(type_facet);
     auto && pos = mesh.getNodes();
     const auto pos_it = make_view(pos, dim).begin();
     auto && disp = model.getDisplacement();
     const auto disp_it = make_view(disp, dim).begin();
     auto && fem_boundary = model.getFEEngineBoundary();
-    UInt nb_quad_points = fem_boundary.getNbIntegrationPoints(type_facet, gt);
-
-    AKANTU_DEBUG_ASSERT(element_ids.size(),
-                        "Provided group doesn't contain this element type");
-    auto id = element_ids.find(facet_nb);
-    AKANTU_DEBUG_ASSERT(id != UInt(-1),
-                        "Quad point doesn't belong to this element group");
+    UInt nb_quad_points =
+        fem_boundary.getNbIntegrationPoints(facet.type, facet.ghost_type);
 
     // get normal to the current positions
     const auto & current_pos = model.getCurrentPosition();
     Array<Real> quad_normals(0, dim);
-    fem_boundary.computeNormalsOnIntegrationPoints(current_pos, quad_normals,
-                                                   type_facet, gt);
+    fem_boundary.computeNormalsOnIntegrationPoints(
+        current_pos, quad_normals, facet.type, facet.ghost_type);
     auto normals_it = quad_normals.begin(dim);
     Vector<Real> normal_corrected(
         normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
 
-    // auto normal_corrected = normal;
-    if (id < element_ids.size() / 2) {
+    // search for this facet in the ASR facets array
+    UInt ASR_site_nb(-1);
+    UInt id_in_array(-1);
+    for (auto && data : enumerate(this->ASR_facets_from_mesh)) {
+      auto & one_site_facets = std::get<1>(data);
+      auto id = one_site_facets.find(facet);
+      if (id != one_site_facets.end()) {
+        ASR_site_nb = std::get<0>(data);
+        id_in_array = std::distance(one_site_facets.begin(), id);
+        break;
+      }
+    }
+    AKANTU_DEBUG_ASSERT(ASR_site_nb != UInt(-1),
+                        "Quad point doesn't belong to the ASR facets");
+
+    // correct normal depending on the facet side with respect to coh
+    if (id_in_array < this->ASR_facets_from_mesh(ASR_site_nb).size() / 2) {
       normal_corrected *= -1;
-      // opposite_facet_nb = element_ids(id + element_ids.size() / 2);
-    } else if (id >= element_ids.size()) {
-      AKANTU_EXCEPTION("Error in defining side of the cohesive element");
-    } else {
-      normal_corrected *= 1;
-      // opposite_facet_nb = element_ids(id - element_ids.size() / 2);
     }
 
-    // /// compute current area of a gap
-    // Vector<UInt> first_facet_nodes = facet_nodes_it[facet_nb];
-    // Vector<UInt> second_facet_nodes = facet_nodes_it[opposite_facet_nb];
-    // /* corners of a quadrangle consequently
-    //         A---M---B
-    //         \      |
-    //         D--N--C */
-    // UInt A, B, C, D;
-    // A = first_facet_nodes(0);
-    // B = first_facet_nodes(1);
-    // C = second_facet_nodes(0);
-    // D = second_facet_nodes(1);
+    // compute volume (area * normal_opening) of current ASR site
+    // form cohesive element filter from the 1st half of facet filter
+    std::set<Element> site_cohesives;
+    for (auto & ASR_facet : this->ASR_facets_from_mesh(ASR_site_nb)) {
+      if (ASR_facet.type == facet.type and
+          ASR_facet.ghost_type == facet.ghost_type) {
+        // find connected cohesive
+        auto & connected_els = mesh.getElementToSubelement(ASR_facet);
+        for (auto & connected_el : connected_els) {
+          if (connected_el.type == type_cohesive) {
+            site_cohesives.emplace(connected_el);
+            break;
+          }
+        }
+      }
+    }
+    // integrate normal opening over identified element filter
+    Real site_volume{0};
+    Real site_area{0};
+    const Array<UInt> & material_index_vec =
+        model.getMaterialByElement(type_cohesive, facet.ghost_type);
+    const Array<UInt> & material_local_numbering_vec =
+        model.getMaterialLocalNumbering(type_cohesive, facet.ghost_type);
+    for (auto & coh_el : site_cohesives) {
+      Material & material =
+          model.getMaterial(material_index_vec(coh_el.element));
+      UInt material_local_num = material_local_numbering_vec(coh_el.element);
+      Array<UInt> single_el_array;
+      single_el_array.push_back(coh_el.element);
+      auto & opening_norm_array = material.getInternal<Real>(
+          "normal_opening_norm")(coh_el.type, coh_el.ghost_type);
+      Array<Real> opening_norm_el;
+      for (UInt i = 0; i != nb_quad_coh; i++) {
+        auto & opening_per_quad =
+            opening_norm_array(material_local_num * nb_quad_coh + i);
+        opening_norm_el.push_back(opening_per_quad);
+      }
 
-    // /// quadrangle's area through diagonals
-    // Vector<Real> AC, BD;
-    // Vector<Real> A_pos = Vector<Real>(pos_it[A]) +
-    // Vector<Real>(disp_it[A]); Vector<Real> B_pos = Vector<Real>(pos_it[B])
-    // + Vector<Real>(disp_it[B]); Vector<Real> C_pos =
-    // Vector<Real>(pos_it[C]) + Vector<Real>(disp_it[C]); Vector<Real> D_pos
-    // = Vector<Real>(pos_it[D]) + Vector<Real>(disp_it[D]); Vector<Real>
-    // M_pos = (A_pos + B_pos) * 0.5; Vector<Real> N_pos = (C_pos + D_pos) *
-    // 0.5; Vector<Real> MN = M_pos - N_pos; Vector<Real> AB = A_pos - B_pos;
-    // Vector<Real> AB_0 = Vector<Real>(pos_it[A]) - Vector<Real>(pos_it[B]);
+      site_volume += fe_engine.integrate(opening_norm_el, coh_el.type,
+                                         coh_el.ghost_type, single_el_array);
+      Array<Real> area(fe_engine.getNbIntegrationPoints(type_cohesive), 1, 1.);
+      site_area += fe_engine.integrate(area, coh_el.type, coh_el.ghost_type,
+                                       single_el_array);
+    }
 
-    // // ASR volume computed as AB * thickness (AB * ratio)
-    // Real ASR_volume = AB_0.norm() * AB_0.norm() * ASR_volume_ratio;
-    // Real current_volume = AB.norm() * MN.norm();
-    // current_volume =
-    //     Math::are_float_equal(current_volume, 0.) ? 0 : current_volume;
-    // Real volume_change = current_volume - ASR_volume;
-    // Real pressure_change{0};
-    // if (volume_change < 0) {
-    //   pressure_change = -volume_change / ASR_volume /
-    //   this->compressibility;
-    // }
-    // dual = pressure_change * normal_corrected;
-    dual = multiplier * normal_corrected;
+    Real ASR_volume = site_area * ASR_volume_ratio;
+    Real volume_change = site_volume - ASR_volume;
+
+    Real pressure_change{0};
+    if (volume_change < 0) {
+      pressure_change = -volume_change / ASR_volume / this->compressibility;
+    }
+    std::cout << "ASR volume = " << site_area << " x " << ASR_volume_ratio
+              << " = " << ASR_volume << " site volume " << site_volume
+              << " volume change " << volume_change << " pressure delta "
+              << pressure_change << std::endl;
+    dual = pressure_change * normal_corrected;
   }
 
 protected:
-  SolidMechanicsModel & model;
+  SolidMechanicsModelCohesive & model;
   const Real ASR_volume_ratio;
-  const std::string group_name;
   const Real compressibility;
-  const Real multiplier;
+  const Array<std::set<Element>> ASR_facets_from_mesh;
 };
 
 /* ------------------------------------------------------------------------ */
