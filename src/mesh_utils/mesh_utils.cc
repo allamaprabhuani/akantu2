@@ -731,9 +731,9 @@ Real MeshUtils::distanceBetween2Barycenters(const Mesh & mesh_facet1,
 }
 
 /*-------------------------------------------------------------------- */
-Real MeshUtils::distanceBetweenBarycentersCorrected(const Mesh & mesh_facets,
-                                                    const Element & facet1,
-                                                    const Element & facet2) {
+Real MeshUtils::distanceBetweenIncentersCorrected(const Mesh & mesh_facets,
+                                                  const Element & facet1,
+                                                  const Element & facet2) {
   AKANTU_DEBUG_IN();
   auto dim = mesh_facets.getSpatialDimension();
   AKANTU_DEBUG_ASSERT(dim == 3,
@@ -774,21 +774,39 @@ Real MeshUtils::distanceBetweenBarycentersCorrected(const Mesh & mesh_facets,
   AB = Vector<Real>(pos_it[subfacet_nodes(1)]) -
        Vector<Real>(pos_it[subfacet_nodes(0)]);
 
-  Vector<Real> facet1_bary(dim);
-  Vector<Real> facet2_bary(dim);
-  mesh_facets.getBarycenter(facet1, facet1_bary);
-  mesh_facets.getBarycenter(facet2, facet2_bary);
+  Vector<Real> facet1_inc(dim);
+  Vector<Real> facet2_inc(dim);
+  mesh_facets.getIncenter(facet1, facet1_inc);
+  mesh_facets.getIncenter(facet2, facet2_inc);
 
-  Vector<Real> ABary1 = facet1_bary - A;
-  Vector<Real> ABary2 = facet2_bary - A;
-  Vector<Real> dif = (ABary1.norm() - ABary2.norm()) * AB / AB.norm();
-  Vector<Real> facet2_bary_corrected = facet2_bary + dif;
+  Vector<Real> AInc1 = facet1_inc - A;
+  Vector<Real> AInc2 = facet2_inc - A;
+  Vector<Real> dif = (AInc1.norm() - AInc2.norm()) * AB / AB.norm();
+  Vector<Real> facet2_inc_corrected = facet2_inc + dif;
 
-  auto dist = std::abs(facet1_bary.distance(facet2_bary_corrected));
+  auto dist = std::abs(facet1_inc.distance(facet2_inc_corrected));
 
   AKANTU_DEBUG_OUT();
   return dist;
-} // namespace akantu
+}
+/*-------------------------------------------------------------------- */
+Real MeshUtils::distanceBetweenIncenters(const Mesh & mesh_facets,
+                                         const Element & facet1,
+                                         const Element & facet2) {
+  AKANTU_DEBUG_IN();
+  auto dim = mesh_facets.getSpatialDimension();
+  AKANTU_DEBUG_ASSERT(dim == 3, "DistanceBetweenIncenters works only in 3D");
+
+  Vector<Real> facet1_inc(dim);
+  Vector<Real> facet2_inc(dim);
+  mesh_facets.getIncenter(facet1, facet1_inc);
+  mesh_facets.getIncenter(facet2, facet2_inc);
+
+  auto dist = std::abs(facet1_inc.distance(facet2_inc));
+
+  AKANTU_DEBUG_OUT();
+  return dist;
+}
 /*-------------------------------------------------------------------- */
 Real MeshUtils::getInscribedCircleDiameter(SolidMechanicsModel & model,
                                            const Element & el) {
@@ -809,6 +827,28 @@ Real MeshUtils::getInscribedCircleDiameter(SolidMechanicsModel & model,
 
   AKANTU_DEBUG_OUT();
   return facet_indiam;
+}
+/*-------------------------------------------------------------------- */
+Real MeshUtils::getFacetArea(SolidMechanicsModel & model, const Element & el) {
+  AKANTU_DEBUG_IN();
+
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  AKANTU_DEBUG_ASSERT(Mesh::getSpatialDimension(el.type) == dim - 1,
+                      "Element has a wrong dimension");
+  AKANTU_DEBUG_ASSERT(Mesh::getKind(el.type) == _ek_regular,
+                      "Element has a wrong kind: " << Mesh::getKind(el.type));
+
+  auto & fe_engine = model.getFEEngine("FacetsFEEngine");
+  Array<UInt> single_el_array;
+  single_el_array.push_back(el.element);
+
+  Array<Real> dummy(fe_engine.getNbIntegrationPoints(el.type), 1, 1.);
+  Real el_area =
+      fe_engine.integrate(dummy, el.type, el.ghost_type, single_el_array);
+
+  AKANTU_DEBUG_OUT();
+  return el_area;
 }
 /*-------------------------------------------------------------------- */
 std::pair<bool, Array<Element>>

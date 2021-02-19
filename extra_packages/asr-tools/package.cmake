@@ -27,6 +27,9 @@ package_declare_sources(asr_tools
   mesh_utils/nodes_flag_updater.hh
   mesh_utils/nodes_flag_updater.cc
   mesh_utils/nodes_flag_updater_inline_impl.hh
+  mesh_utils/nodes_eff_stress_updater.hh
+  mesh_utils/nodes_eff_stress_updater.cc
+  mesh_utils/nodes_eff_stress_updater_inline_impl.hh
   mesh_utils/crack_numbers_updater.hh
   mesh_utils/crack_numbers_updater.cc
   mesh_utils/crack_numbers_updater_inline_impl.hh

@@ -390,6 +390,40 @@ inline void Mesh::getBarycenter(const Element & element,
 }
 
 /* -------------------------------------------------------------------------- */
+inline void Mesh::getIncenter(const Element & element,
+                              Vector<Real> & incenter) const {
+  auto p1_el_type = Mesh::getP1ElementType(element.type);
+  AKANTU_DEBUG_ASSERT(p1_el_type == _triangle_3,
+                      "Incenter can be computed only for triangle elements");
+  auto nb_nodes_per_facet = getNbNodesPerElement(p1_el_type);
+
+  Vector<UInt> conn = getConnectivity(element);
+  Matrix<Real> local_coord(spatial_dimension, nb_nodes_per_facet);
+  Vector<Real> op_side_length(nb_nodes_per_facet);
+  auto node_begin = make_view(*nodes, spatial_dimension).begin();
+
+  for (UInt i : arange(nb_nodes_per_facet)) {
+    local_coord(i) = Vector<Real>(node_begin[conn(i)]);
+  }
+
+  Real perimeter{0};
+  for (UInt i : arange(nb_nodes_per_facet)) {
+    UInt j = (i + 1) % nb_nodes_per_facet;
+    UInt k = (i + 2) % nb_nodes_per_facet;
+    auto vector = Vector<Real>(local_coord(j)) - Vector<Real>(local_coord(k));
+    op_side_length(i) = vector.norm();
+    perimeter += op_side_length(i);
+  }
+
+  for (UInt i : arange(spatial_dimension)) {
+    for (UInt j : arange(nb_nodes_per_facet)) {
+      incenter(i) += op_side_length(j) * local_coord(i, j);
+    }
+    incenter(i) /= perimeter;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 inline UInt Mesh::getNbNodesPerElement(ElementType type) {
   UInt nb_nodes_per_element = 0;
 #define GET_NB_NODES_PER_ELEMENT(type)                                         \

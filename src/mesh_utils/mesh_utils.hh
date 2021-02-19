@@ -118,14 +118,22 @@ public:
                                           const Element & facet1,
                                           const Element & facet2);
 
-  /// compute distance between barycenters of alligned facets
-  static Real distanceBetweenBarycentersCorrected(const Mesh & mesh_facet,
-                                                  const Element & facet1,
-                                                  const Element & facet2);
+  /// compute distance between incenters of alligned facets
+  static Real distanceBetweenIncentersCorrected(const Mesh & mesh_facet,
+                                                const Element & facet1,
+                                                const Element & facet2);
+
+  /// compute distance between incenters of 2 random facets
+  static Real distanceBetweenIncenters(const Mesh & mesh_facet,
+                                       const Element & facet1,
+                                       const Element & facet2);
 
   /// get inscribed circle diameter directly by the element
   static Real getInscribedCircleDiameter(SolidMechanicsModel & model,
                                          const Element & el);
+
+  /// get facets area
+  static Real getFacetArea(SolidMechanicsModel & model, const Element & el);
 
   /// check if two facets are connected and by which subfacets
   static std::pair<bool, Array<Element>>

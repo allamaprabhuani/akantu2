@@ -257,7 +257,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findCriticalFacet(
 
       // get distance between two barycenters
       auto facet_to_coh_el = mesh_facets.getSubelementToElement(coh_el)(0);
-      auto dist = MeshUtils::distanceBetweenBarycentersCorrected(
+      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
           mesh_facets, facet, facet_to_coh_el);
 
       // ad-hoc rule on barycenters spacing
@@ -460,7 +460,7 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
       // discard facets under sharp angle with crack
       Real facet_indiam =
           MeshUtils::getInscribedCircleDiameter(*(this->model), facet);
-      auto dist = MeshUtils::distanceBetweenBarycentersCorrected(
+      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
           mesh_facets, facet, coh_facets[0]);
       // ad-hoc rule on barycenters spacing
       // it should discard all elements under sharp angle
@@ -582,6 +582,96 @@ std::map<UInt, UInt> MaterialCohesiveLinearSequential<spatial_dimension>::
 
 /* ----------------------------------------------------------------- */
 template <UInt spatial_dimension>
+void MaterialCohesiveLinearSequential<
+    spatial_dimension>::computeEffectiveStresses() {
+
+  AKANTU_DEBUG_IN();
+
+  const Mesh & mesh_facets = this->model->getMeshFacets();
+
+  for (auto && type_facet : mesh_facets.elementTypes(spatial_dimension - 1)) {
+
+    ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+    auto & f_filter = this->facet_filter(type_facet);
+    // skip if no facets of this type are present
+    if (not f_filter.size()) {
+      return;
+    }
+
+    UInt nb_quad_facet = this->model->getFEEngine("FacetsFEEngine")
+                             .getNbIntegrationPoints(type_facet);
+#ifndef AKANTU_NDEBUG
+    UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
+                                .getNbIntegrationPoints(type_cohesive);
+
+    AKANTU_DEBUG_ASSERT(nb_quad_cohesive == nb_quad_facet,
+                        "The cohesive element and the corresponding facet do "
+                        "not have the same numbers of integration points");
+#endif
+    auto & scal_tractions = scalar_tractions(type_facet);
+    auto & norm_tractions = normal_tractions(type_facet);
+    const auto & f_stress = this->model->getStressOnFacets(type_facet);
+    const auto & sigma_limits = this->sigma_c(type_facet);
+    auto & eff_stresses = effective_stresses(type_facet);
+    const auto & tangents = this->model->getTangents(type_facet);
+    const auto & normals = this->model->getFEEngine("FacetsFEEngine")
+                               .getNormalsOnIntegrationPoints(type_facet);
+    auto scal_tractions_it =
+        scal_tractions.begin_reinterpret(nb_quad_facet, f_filter.size());
+    auto norm_tractions_it = norm_tractions.begin_reinterpret(
+        spatial_dimension, nb_quad_facet, f_filter.size());
+    auto normal_it = normals.begin(spatial_dimension);
+    auto tangent_it = tangents.begin(tangents.getNbComponent());
+    auto facet_stress_it =
+        f_stress.begin(spatial_dimension, spatial_dimension * 2);
+
+    Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
+    UInt sp2 = spatial_dimension * spatial_dimension;
+
+    for (auto && data : enumerate(f_filter)) {
+      auto facet_local_nb = std::get<0>(data);
+      auto facet_global_nb = std::get<1>(data);
+      auto & sigma_limit = sigma_limits(facet_local_nb);
+      auto & eff_stress = eff_stresses(facet_local_nb);
+      Vector<Real> stress_check(scal_tractions_it[facet_local_nb]);
+      Matrix<Real> normal_traction(norm_tractions_it[facet_local_nb]);
+
+      // compute the effective norm on each quadrature point of the facet
+      for (UInt q : arange(nb_quad_facet)) {
+        UInt current_quad = facet_global_nb * nb_quad_facet + q;
+        const Vector<Real> & normal = normal_it[current_quad];
+        const Vector<Real> & tangent = tangent_it[current_quad];
+        const Matrix<Real> & facet_stress = facet_stress_it[current_quad];
+
+        // compute average stress on the current quadrature point
+        Matrix<Real> stress_1(facet_stress.storage(), spatial_dimension,
+                              spatial_dimension);
+
+        Matrix<Real> stress_2(facet_stress.storage() + sp2, spatial_dimension,
+                              spatial_dimension);
+
+        stress_tmp.copy(stress_1);
+        stress_tmp += stress_2;
+        stress_tmp /= 2.;
+
+        Vector<Real> normal_traction_vec(normal_traction(q));
+
+        // compute normal and effective stress
+        stress_check(q) = this->computeEffectiveNorm(
+            stress_tmp, normal, tangent, normal_traction_vec);
+      }
+
+      // verify if the effective stress overcomes the threshold
+      Real final_stress = stress_check.mean();
+
+      // normalize by the limit stress and skip non-stressed facets
+      eff_stress = final_stress / sigma_limit;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------- */
+template <UInt spatial_dimension>
 std::map<UInt, UInt>
 MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
     std::map<Element, Element> & contour_subfacets_coh_el,
@@ -605,25 +695,25 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
                            .getNbIntegrationPoints(type_facet);
   const auto & facets_check = inserter.getCheckFacets(type_facet);
   auto & f_filter = this->facet_filter(type_facet);
-  auto & scal_tractions = scalar_tractions(type_facet);
-  auto & norm_tractions = normal_tractions(type_facet);
-  const auto & f_stress = this->model->getStressOnFacets(type_facet);
-  const auto & sigma_limits = this->sigma_c(type_facet);
-  auto & eff_stresses = effective_stresses(type_facet);
-  const auto & tangents = this->model->getTangents(type_facet);
-  const auto & normals = this->model->getFEEngine("FacetsFEEngine")
-                             .getNormalsOnIntegrationPoints(type_facet);
-  auto normal_it = normals.begin(spatial_dimension);
-  auto scal_tractions_it =
-      scal_tractions.begin_reinterpret(nb_quad_facet, f_filter.size());
-  auto norm_tractions_it = norm_tractions.begin_reinterpret(
-      spatial_dimension, nb_quad_facet, f_filter.size());
-  auto tangent_it = tangents.begin(tangents.getNbComponent());
-  auto facet_stress_it =
-      f_stress.begin(spatial_dimension, spatial_dimension * 2);
+  // auto & scal_tractions = scalar_tractions(type_facet);
+  // auto & norm_tractions = normal_tractions(type_facet);
+  // const auto & f_stress = this->model->getStressOnFacets(type_facet);
+  // const auto & sigma_limits = this->sigma_c(type_facet);
+  // auto & eff_stresses = effective_stresses(type_facet);
+  // const auto & tangents = this->model->getTangents(type_facet);
+  // const auto & normals = this->model->getFEEngine("FacetsFEEngine")
+  //                            .getNormalsOnIntegrationPoints(type_facet);
+  // auto normal_it = normals.begin(spatial_dimension);
+  // auto scal_tractions_it =
+  //     scal_tractions.begin_reinterpret(nb_quad_facet, f_filter.size());
+  // auto norm_tractions_it = norm_tractions.begin_reinterpret(
+  //     spatial_dimension, nb_quad_facet, f_filter.size());
+  // auto tangent_it = tangents.begin(tangents.getNbComponent());
+  // auto facet_stress_it =
+  //     f_stress.begin(spatial_dimension, spatial_dimension * 2);
 
-  Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
-  UInt sp2 = spatial_dimension * spatial_dimension;
+  // Matrix<Real> stress_tmp(spatial_dimension, spatial_dimension);
+  // UInt sp2 = spatial_dimension * spatial_dimension;
 
 #ifndef AKANTU_NDEBUG
   UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
@@ -701,7 +791,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::findHolesOnContour(
       // discard facets under sharp angle with crack
       Real facet_indiam =
           MeshUtils::getInscribedCircleDiameter(*(this->model), facet);
-      auto dist = MeshUtils::distanceBetweenBarycentersCorrected(
+      auto dist = MeshUtils::distanceBetweenIncentersCorrected(
           mesh_facets, facet, coh_facets[0]);
       // ad-hoc rule on barycenters spacing
       // it should discard all elements under sharp angle

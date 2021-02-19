@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------ */
-#include "nodes_flag_updater.hh"
+#include "nodes_eff_stress_updater.hh"
 #include "element_synchronizer.hh"
 #include "mesh_accessor.hh"
 #include "mesh_utils.hh"
@@ -9,9 +9,10 @@
 
 namespace akantu {
 
-void NodesFlagUpdater::fillPreventInsertion() {
+void NodesEffStressUpdater::updateMaxEffStressAtNodes() {
   if (mesh.getCommunicator().getNbProc() == 1)
     return;
+  this->synchronizer.synchronizeOnce(*this, SynchronizationTag::_border_nodes);
   this->synchronizer.slaveReductionOnce(*this,
                                         SynchronizationTag::_border_nodes);
 }

@@ -183,6 +183,10 @@ protected:
   /// put flags on all nodes who have a ghost counterpart
   void communicateFlagsOnNodes();
 
+  /// on master or slave nodes with potential facet loops around
+  /// put 0 eff stress for the smallest value
+  void communicateEffStressesOnNodes();
+
   /// pick facets by passed coordinates
   void pickFacetsByCoord(const Matrix<Real> & positions);
 
@@ -193,9 +197,44 @@ protected:
   /// returns number of successfully inserted ASR sites
   UInt closedFacetsLoopAroundPoint(UInt nb_insertions, std::string mat_name);
 
+  /// builds a facet loop around a point from starting to ending segm-s
+  Array<Element> findFacetsLoopFromSegment2Segment(
+      Element starting_facet, Element starting_segment, Element ending_segment,
+      UInt cent_node, Real max_dot, UInt material_id, bool check_asr_facets);
+
+  /// builds a facet loop around a point from starting to ending segment using
+  /// the Dijkstra shortest path algorithm in boost library
+  /// uses sum of distances to 2 incenters as weight
+  Array<Element>
+  findFacetsLoopByGraphByDist(const Array<Element> & limit_facets,
+                              const Array<Element> & limit_segments,
+                              const UInt & cent_node);
+
+  /// use area as a weight
+  Array<Element>
+  findFacetsLoopByGraphByArea(const Array<Element> & limit_facets,
+                              const Array<Element> & limit_segments,
+                              const Array<Element> & preinserted_facets,
+                              const UInt & cent_node);
+
+  /// include only facets that have eff_stress >= 1
+  Array<Element>
+  findStressedFacetLoopAroundNode(const Array<Element> & limit_facets,
+                                  const Array<Element> & limit_segments,
+                                  const UInt & cent_node, Real min_dot);
+
+  /// insert single facets before searching for the long loops
+  Array<Element> findSingleFacetLoop(const Array<Element> & limit_facets,
+                                     const Array<Element> & limit_segments,
+                                     const UInt & cent_node);
+
   /// check if the cohesive can be inserted and nodes are not on the partition
   /// border and ASR nodes
-  bool isFacetAndNodesGood(const Element & facet, UInt material_id);
+  bool isFacetAndNodesGood(const Element & facet, UInt material_id = UInt(-1),
+                           bool check_asr_facets = false);
+
+  /// check if 2 facets are bounding a common solid element
+  bool belong2SameElement(const Element & facet1, const Element & facet2);
 
   /// check if the node is surrounded by the material
   bool isNodeWithinMaterial(Element & node, UInt material_id);
@@ -240,17 +279,65 @@ public:
   /// insert multiple cohesives on contour
   template <UInt dim> UInt insertCohesiveElementsOnContour();
 
+  /// insert multiple cohesives on contour by looping on contour nodes
+  template <UInt dim>
+  UInt insertCohesiveElementsOnContourByNodes(Real av_stress_threshold);
+
+  /// insert cohesives on closed loops of stressed facets
+  template <UInt dim> UInt insertLoopsOfStressedCohesives(Real min_dot);
+
+  /// find critical facets by looping on contour nodes
+  template <UInt dim>
+  std::map<UInt, std::map<UInt, UInt>> findCriticalFacetsOnContourByNodes(
+      const std::map<Element, Element> & contour_subfacets_coh_el,
+      const std::map<Element, UInt> & surface_subfacets_crack_nb,
+      const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
+      const std::set<UInt> & surface_nodes, Real av_stress_threshold);
+
+  /// find critical facets by looping on contour nodes
+  std::map<UInt, std::map<UInt, UInt>> findStressedFacetsLoops(
+      const std::map<Element, Element> & contour_subfacets_coh_el,
+      const std::map<Element, UInt> & surface_subfacets_crack_nb,
+      const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
+      const std::set<UInt> & surface_nodes, Real min_dot);
+
+  /// average integrated eff stress over the area of the loop
+  Real averageEffectiveStressInMultipleFacets(Array<Element> & facet_loop);
+
+  void decomposeFacetLoopPerMaterial(
+      const Array<Element> & facet_loop, UInt crack_nb,
+      std::map<UInt, std::map<UInt, UInt>> & mat_index_facet_nbs_crack_nbs);
+
   /// apply eigen opening at all cohesives (including ghosts)
   void applyEigenOpening(Real eigen_strain);
 
   /// distribute total ASR gel volume along existing crack surface
   void applyEigenOpeningGelVolumeBased(Real gel_volume_ratio);
 
+  /// distribute total ASR gel volume along initial crack surface
+  void applyEigenOpeningToInitialCrack(
+      Real gel_volume_ratio,
+      const Array<std::set<Element>> ASR_facets_from_mesh);
+
   /// outputs crack area, volume into a file
   void outputCrackData(std::ofstream & file_output, Real time);
 
-  /// computes crack area and volume per material
-  std::tuple<Real, Real> computeCrackData(const ID & material_name);
+  /// computes crack area and volume per material and ASR volume
+  std::tuple<Real, Real, Real> computeCrackData(const ID & material_name);
+
+  /// compute crack contour segments, surface segments, contour nodes and
+  /// surface nodes
+  std::tuple<std::map<Element, Element>, std::map<Element, UInt>,
+             std::set<UInt>, std::map<UInt, std::set<Element>>>
+  determineCrackSurface();
+
+  /// search for crack contour,etc. in a single facet
+  void searchCrackSurfaceInSingleFacet(
+      Element & facet, std::map<Element, Element> & contour_subfacets_coh_el,
+      std::map<Element, UInt> & surface_subfacets_crack_nb,
+      std::set<UInt> & surface_nodes,
+      std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
+      std::set<Element> & visited_subfacets);
 
   // /// apply self-weight force
   // void applyBodyForce();
@@ -365,6 +452,7 @@ public:
   /// set the value of the insertion flag
   AKANTU_SET_MACRO(CohesiveInsertion, cohesive_insertion, bool);
 
+  AKANTU_GET_MACRO(NodesEffStress, nodes_eff_stress, const Array<Real> &);
   /// get the corner nodes
   AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
 
@@ -422,6 +510,9 @@ protected:
 
   /// array to store flags on nodes that are synchronized between processors
   Array<bool> partition_border_nodes;
+
+  /// average eff stress on facet loops around a node
+  Array<Real> nodes_eff_stress;
 
   /// array to store flags on nodes where ASR elements are inserted
   Array<bool> ASR_nodes;

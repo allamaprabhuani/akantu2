@@ -9,7 +9,7 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 class ElementSynchronizer;
-} // namespace akantu
+}
 
 namespace akantu {
 

@@ -372,6 +372,10 @@ public:
   void getBarycenters(Array<Real> & barycenter, ElementType type,
                       GhostType ghost_type) const;
 
+  /// compute the center of an inscribed circle of a triangular element
+  inline void getIncenter(const Element & element,
+                          Vector<Real> & incenter) const;
+
   /// get the element connected to a subelement (element of lower dimension)
   const auto & getElementToSubelement() const;
 

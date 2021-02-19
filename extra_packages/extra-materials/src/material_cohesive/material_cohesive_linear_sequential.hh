@@ -89,6 +89,10 @@ public:
       const std::set<UInt> & contour_nodes,
       const std::set<UInt> & surface_nodes);
 
+  /// update effective stresses, scalar and normal tractions on
+  /// all facets of material
+  void computeEffectiveStresses();
+
   /// insert a row of cohesives according to provided numbers
   void insertCohesiveElements(std::map<UInt, UInt> & facet_nbs_crack_nbs,
                               ElementType facet_type, bool check_only);
@@ -103,6 +107,10 @@ protected:
   /* ---------------------------------------------------------------- */
   /* Accessors                                                        */
   /* ---------------------------------------------------------------- */
+public:
+  /// get the effective stresses
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(EffectiveStress, effective_stresses,
+                                         Real);
 
   /* ---------------------------------------------------------------- */
   /* Class Members                                                    */

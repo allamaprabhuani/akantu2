@@ -237,7 +237,7 @@ void ElementSynchronizer::unpackSanityCheckData(CommunicationBuffer & buffer,
 
   std::set<SynchronizationTag> skip_conn_tags{
       SynchronizationTag::_smmc_facets_conn,
-      SynchronizationTag::_giu_global_conn};
+      SynchronizationTag::_giu_global_conn, SynchronizationTag::_border_nodes};
 
   bool is_skip_tag_conn = skip_conn_tags.find(tag) != skip_conn_tags.end();
 

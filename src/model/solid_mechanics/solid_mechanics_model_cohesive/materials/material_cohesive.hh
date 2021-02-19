@@ -205,7 +205,7 @@ protected:
   /// opening in all elements and quadrature points
   CohesiveInternalField<Real> opening;
 
-  /// eigen opening (fix value removed from the computed opening)
+  /// eigen opening in all elements and quadrature points
   CohesiveInternalField<Real> eigen_opening;
 
   /// traction in all elements and quadrature points
