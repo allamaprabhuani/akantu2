@@ -85,7 +85,6 @@ if(_is_activated)
     )
 endif()
 
-
 pybind11_add_module(py11_akantu ${PYAKANTU_SRCS})
 target_link_libraries(py11_akantu PUBLIC akantu)
 set_target_properties(py11_akantu PROPERTIES DEBUG_POSTFIX "")
