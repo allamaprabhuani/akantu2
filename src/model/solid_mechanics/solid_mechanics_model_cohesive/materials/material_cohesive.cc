@@ -56,7 +56,7 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
       contact_opening("contact_opening", *this),
       normal_opening_norm("normal_opening_norm", *this),
       tangential_opening_norm("tangential_opening_norm", *this),
-      delta_max("delta max", *this), use_previous_delta_max(false),
+      delta_max("delta_max", *this), use_previous_delta_max(false),
       use_previous_opening(false), damage("damage", *this),
       sigma_c("sigma_c", *this), normals("normals", *this) {
 
