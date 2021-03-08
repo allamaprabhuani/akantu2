@@ -266,7 +266,7 @@ MaterialCohesiveLinearSequential<spatial_dimension>::computeMaxDeltaMaxExcess(
   auto damage_it = this->damage(el_type, ghost_type).begin();
   auto && element_filter = this->element_filter(el_type, ghost_type);
 
-  Real max_delta_max_excess = std::numeric_limits<Real>::min();
+  Real max_delta_max_excess{0};
   /// loop on each quadrature point
   Element critical_coh_el{ElementNull};
   for (UInt i = 0; normal_opening_norm_it != normal_opening_norm_end;

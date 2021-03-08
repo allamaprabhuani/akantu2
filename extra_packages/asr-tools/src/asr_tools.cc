@@ -5700,7 +5700,7 @@ template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
   coh_model.interpolateStress();
   coh_model.assembleInternalForces();
 
-  Real proc_max_delta_max_excess = std::numeric_limits<Real>::min();
+  Real proc_max_delta_max_excess{0};
   Element critical_coh_el{ElementNull};
   for (auto && mat : model.getMaterials()) {
     auto * mat_coh =
@@ -5713,8 +5713,7 @@ template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
       auto data = mat_coh->computeMaxDeltaMaxExcess(type, _not_ghost);
       auto mat_max_delta_max_excess = std::get<0>(data);
       if (mat_max_delta_max_excess > proc_max_delta_max_excess) {
-        proc_max_delta_max_excess =
-            std::max(proc_max_delta_max_excess, mat_max_delta_max_excess);
+        proc_max_delta_max_excess = mat_max_delta_max_excess;
         critical_coh_el = std::get<1>(data);
       }
     }
