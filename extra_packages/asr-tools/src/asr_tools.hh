@@ -172,6 +172,10 @@ public:
   void insertASRCohesiveLoops3D(const UInt & nb_insertions,
                                 std::string facet_mat_name, Real gap_ratio);
 
+  /// no facets are added into the mesh
+  template <UInt dim>
+  void insertPreCracks(const UInt & nb_insertions, std::string facet_mat_name);
+
   /// insert block of cohesive elements based on the coord of the central
   void insertASRCohesivesByCoords(const Matrix<Real> & positions,
                                   Real gap_ratio = 0);
@@ -196,6 +200,10 @@ protected:
   /// build closed facets loop around random point of specified material and
   /// returns number of successfully inserted ASR sites
   UInt closedFacetsLoopAroundPoint(UInt nb_insertions, std::string mat_name);
+
+  /// finds facet loops around a point and insert cohesives
+  template <UInt dim>
+  UInt insertCohesiveLoops(UInt nb_insertions, std::string mat_name);
 
   /// builds a facet loop around a point from starting to ending segm-s
   Array<Element> findFacetsLoopFromSegment2Segment(
@@ -261,9 +269,9 @@ protected:
   /// same in 3D
   void insertGap3D(const Real gap_ratio);
 
-  /// on elements added for asr-tools
-  void onElementsAdded(const Array<Element> & elements,
-                       const NewElementsEvent & element_event);
+  // /// on elements added for asr-tools
+  // void onElementsAdded(const Array<Element> & elements,
+  //                      const NewElementsEvent & element_event);
 
   void onNodesAdded(const Array<UInt> & new_nodes,
                     const NewNodesEvent & nodes_event);
@@ -287,7 +295,6 @@ public:
   template <UInt dim> UInt insertLoopsOfStressedCohesives(Real min_dot);
 
   /// find critical facets by looping on contour nodes
-  template <UInt dim>
   std::map<UInt, std::map<UInt, UInt>> findCriticalFacetsOnContourByNodes(
       const std::map<Element, Element> & contour_subfacets_coh_el,
       const std::map<Element, UInt> & surface_subfacets_crack_nb,
@@ -315,9 +322,9 @@ public:
   void applyEigenOpeningGelVolumeBased(Real gel_volume_ratio);
 
   /// distribute total ASR gel volume along initial crack surface
-  void applyEigenOpeningToInitialCrack(
-      Real gel_volume_ratio,
-      const Array<std::set<Element>> ASR_facets_from_mesh);
+  void
+  applyEigenOpeningToInitialCrack(Real gel_volume_ratio,
+                                  const Array<Array<Element>> & ASR_facets);
 
   /// outputs crack area, volume into a file
   void outputCrackData(std::ofstream & file_output, Real time);
@@ -339,6 +346,12 @@ public:
       std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
       std::set<Element> & visited_subfacets);
 
+  /// update delta_max values in all sequential cohesive mats
+  template <UInt dim> UInt updateDeltaMax();
+
+  /// max ratio traction norm over max possible traction (SLA)
+  template <UInt dim> std::pair<Real, Element> getMaxDeltaMaxExcess();
+
   // /// apply self-weight force
   // void applyBodyForce();
 
@@ -347,8 +360,8 @@ public:
 
   /// apply eigenstrain on gel material
   void applyGelStrain(const Matrix<Real> & prestrain);
-  /* ------------------------------------------------------------------------
-   */
+  /* ----------------------------------------------------------------- */
+
   /// RVE part
 
   /// apply boundary contions based on macroscopic deformation gradient
@@ -435,8 +448,7 @@ public:
 
   /// restore eigenstrain in ASR sites from previously stored values
   void restoreASREigenStrain(Array<Real> & stored_eig);
-  /* ------------------------------------------------------------------------
-   */
+  /* ----------------------------------------------------------------  */
 public:
   // Accessors
   bool isTensileHomogen() { return this->tensile_homogenization; };
@@ -456,10 +468,10 @@ public:
   /// get the corner nodes
   AKANTU_GET_MACRO(CornerNodes, corner_nodes, const Array<UInt> &);
 
-  AKANTU_GET_MACRO(ASRFacetsFromMeshFacets, ASR_facets_from_mesh_facets,
-                   const Array<Array<Element>> &);
+  AKANTU_GET_MACRO(ASRFacets, asr_facets, const Array<Array<Element>> &);
   AKANTU_GET_MACRO(ASRFacetsFromMesh, ASR_facets_from_mesh,
-                   const Array<std::set<Element>> &);
+                   const Array<Array<Element>> &);
+  AKANTU_GET_MACRO(ASRCentralNodes, asr_central_nodes, const Array<UInt> &);
 
   /* --------------------------------------------------------------------- */
   /* Members */
@@ -518,8 +530,9 @@ protected:
   Array<bool> ASR_nodes;
 
   /// Vector to store the initially inserted facets per asr site
-  Array<Array<Element>> ASR_facets_from_mesh_facets;
-  Array<std::set<Element>> ASR_facets_from_mesh;
+  Array<Array<Element>> asr_facets;
+  Array<Array<Element>> ASR_facets_from_mesh;
+  Array<UInt> asr_central_nodes;
 };
 
 /* ------------------------------------------------------------------ */
@@ -687,11 +700,7 @@ protected:
   bool is_gel_initialized{false};
   bool gel_pairs{false};
 };
-
-/* --------------------------------------------------------------------------
- */
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
 
 class GelMaterialCohesiveRulesSelector : public MaterialSelector {
@@ -1009,7 +1018,7 @@ public:
   PressureVolumeDependent3D(SolidMechanicsModelCohesive & model,
                             const Real ASR_volume_ratio,
                             const Real compressibility,
-                            const Array<std::set<Element>> ASR_facets_from_mesh)
+                            const Array<Array<Element>> ASR_facets_from_mesh)
       : model(model), ASR_volume_ratio(ASR_volume_ratio),
         compressibility(compressibility),
         ASR_facets_from_mesh(ASR_facets_from_mesh) {}
@@ -1025,13 +1034,7 @@ public:
     Element facet{quad_point.type, quad_point.element, quad_point.ghost_type};
     ElementType type_cohesive = FEEngine::getCohesiveElementType(facet.type);
     auto nb_quad_coh = fe_engine.getNbIntegrationPoints(type_cohesive);
-    auto && facet_conn = mesh.getConnectivity(facet.type, facet.ghost_type);
-    const UInt nb_nodes_facet = facet_conn.getNbComponent();
-    auto facet_nodes_it = make_view(facet_conn, nb_nodes_facet).begin();
-    auto && pos = mesh.getNodes();
-    const auto pos_it = make_view(pos, dim).begin();
-    auto && disp = model.getDisplacement();
-    const auto disp_it = make_view(disp, dim).begin();
+    auto && facet_nodes = mesh.getConnectivity(facet);
     auto && fem_boundary = model.getFEEngineBoundary();
     UInt nb_quad_points =
         fem_boundary.getNbIntegrationPoints(facet.type, facet.ghost_type);
@@ -1042,27 +1045,57 @@ public:
     fem_boundary.computeNormalsOnIntegrationPoints(
         current_pos, quad_normals, facet.type, facet.ghost_type);
     auto normals_it = quad_normals.begin(dim);
-    Vector<Real> normal_corrected(
+    Vector<Real> normal(
         normals_it[quad_point.element * nb_quad_points + quad_point.num_point]);
-
     // search for this facet in the ASR facets array
     UInt ASR_site_nb(-1);
     UInt id_in_array(-1);
     for (auto && data : enumerate(this->ASR_facets_from_mesh)) {
       auto & one_site_facets = std::get<1>(data);
-      auto id = one_site_facets.find(facet);
-      if (id != one_site_facets.end()) {
+      id_in_array = one_site_facets.find(facet);
+      if (id_in_array != UInt(-1)) {
         ASR_site_nb = std::get<0>(data);
-        id_in_array = std::distance(one_site_facets.begin(), id);
         break;
       }
     }
     AKANTU_DEBUG_ASSERT(ASR_site_nb != UInt(-1),
                         "Quad point doesn't belong to the ASR facets");
 
-    // correct normal depending on the facet side with respect to coh
-    if (id_in_array < this->ASR_facets_from_mesh(ASR_site_nb).size() / 2) {
-      normal_corrected *= -1;
+    // find connected solid element
+    auto && facet_neighbors = mesh.getElementToSubelement(facet);
+    Element solid_el{ElementNull};
+    for (auto && neighbor : facet_neighbors) {
+      if (mesh.getKind(neighbor.type) == _ek_regular) {
+        solid_el = neighbor;
+        break;
+      }
+    }
+    AKANTU_DEBUG_ASSERT(solid_el != ElementNull,
+                        "Couldn't identify neighboring solid el");
+
+    // find the out-of-plane solid node
+    auto && solid_nodes = mesh.getConnectivity(solid_el);
+
+    UInt out_node(-1);
+    for (auto && solid_node : solid_nodes) {
+      auto ret = std::find(facet_nodes.begin(), facet_nodes.end(), solid_node);
+      if (ret == facet_nodes.end()) {
+        out_node = solid_node;
+        break;
+      }
+    }
+    AKANTU_DEBUG_ASSERT(out_node != UInt(-1),
+                        "Couldn't identify out-of-plane node");
+
+    // build the reference vector
+    Vector<Real> ref_vector(dim);
+    mesh.getBarycenter(facet, ref_vector);
+    Vector<Real> pos(mesh.getNodes().begin(dim)[out_node]);
+    ref_vector = pos - ref_vector;
+
+    // check if ref vector and the normal are in the same half space
+    if (ref_vector.dot(normal) < 0) {
+      normal *= -1;
     }
 
     // compute volume (area * normal_opening) of current ASR site
@@ -1121,14 +1154,14 @@ public:
               << " = " << ASR_volume << " site volume " << site_volume
               << " volume change " << volume_change << " pressure delta "
               << pressure_change << std::endl;
-    dual = pressure_change * normal_corrected;
+    dual = pressure_change * normal;
   }
 
 protected:
   SolidMechanicsModelCohesive & model;
   const Real ASR_volume_ratio;
   const Real compressibility;
-  const Array<std::set<Element>> ASR_facets_from_mesh;
+  const Array<Array<Element>> ASR_facets_from_mesh;
 };
 
 /* ------------------------------------------------------------------------ */

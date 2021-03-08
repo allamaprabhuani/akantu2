@@ -71,6 +71,9 @@ public:
   /// check stress for cohesive elements' insertion
   void checkInsertion(bool check_only = false) override;
 
+  /// updates delta_max and damage (SLA functionality)
+  UInt updateDeltaMax(ElementType el_type, GhostType ghost_type);
+
   /// identify a facet with the highest tensile stress complying with
   /// topological criterion
   std::tuple<UInt, Real, UInt>
@@ -103,7 +106,47 @@ public:
                      const std::map<Element, UInt> & surface_subfacets_crack_nb,
                      const std::set<UInt> & surface_nodes);
 
+  std::pair<Real, Element>
+  computeMaxDeltaMaxExcess(ElementType el_type,
+                           GhostType ghost_type = _not_ghost);
+
 protected:
+  void computeTraction(const Array<Real> & normal, ElementType el_type,
+                       GhostType ghost_type = _not_ghost) override;
+
+  void computeTangentTraction(ElementType el_type, Array<Real> & tangent_matrix,
+                              const Array<Real> & normal,
+                              GhostType ghost_type) override;
+
+  /// compute the traction based on a fixed stiffness (SLA style)
+  inline void computeTractionOnQuad(
+      Vector<Real> & traction, Vector<Real> & opening,
+      const Vector<Real> & normal, Real & delta_max, const Real & delta_c,
+      const Vector<Real> & insertion_stress, const Real & sigma_c,
+      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
+      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
+      bool & penetration, Vector<Real> & contact_traction,
+      Vector<Real> & contact_opening);
+
+  /// compute the stiffness dependent only on previous delta max (SLA)
+  inline void computeTangentTractionOnQuad(
+      Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
+      const Real & sigma_c, Vector<Real> & opening, const Vector<Real> & normal,
+      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
+      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
+      bool & penetration, Vector<Real> & contact_opening);
+
+  inline bool updateDeltaMaxOnQuad(const Real & normal_opening_norm,
+                                   const Real & tangential_opening_norm,
+                                   Real & damage, Real & delta_max,
+                                   const Real & delta_c);
+
+  inline Real computeDeltaMaxExcessOnQuad(const Real & normal_opening_norm,
+                                          const Real & tangential_opening_norm,
+                                          const Real & damage,
+                                          const Real & delta_max,
+                                          const Real & delta_c);
+
   /* ---------------------------------------------------------------- */
   /* Accessors                                                        */
   /* ---------------------------------------------------------------- */
@@ -131,5 +174,7 @@ protected:
 /* ------------------------------------------------------------------ */
 
 } // namespace akantu
+
+#include "material_cohesive_linear_sequential_inline_impl.hh"
 
 #endif /* __AKANTU_MATERIAL_COHESIVE_LINEAR_SEQUENTIAL_HH__ */

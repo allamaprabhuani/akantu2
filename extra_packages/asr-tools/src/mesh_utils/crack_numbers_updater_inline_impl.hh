@@ -37,10 +37,11 @@ CrackNumbersUpdater::packData(CommunicationBuffer & buffer,
   if (tag != SynchronizationTag::_crack_nb)
     return;
 
-  int prank = model.getMesh().getCommunicator().whoAmI();
+  auto & mesh = this->model.getMesh();
+  auto && comm = mesh.getCommunicator();
+  int prank = comm.whoAmI();
   buffer << prank;
 
-  auto & mesh = model.getMesh();
   for (auto elements_range : MeshElementsByTypes(elements)) {
     auto type = elements_range.getType();
     auto gt = elements_range.getGhostType();

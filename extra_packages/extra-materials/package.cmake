@@ -78,6 +78,7 @@ package_declare_sources(extra_materials
 
   material_cohesive/material_cohesive_linear_sequential.hh
   material_cohesive/material_cohesive_linear_sequential.cc
+  material_cohesive/material_cohesive_linear_sequential_inline_impl.hh
 )
 
 package_declare_material_infos(extra_materials

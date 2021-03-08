@@ -367,6 +367,11 @@ void MaterialCohesiveLinear<spatial_dimension>::computeTraction(
   Vector<Real> normal_opening(spatial_dimension);
   Vector<Real> tangential_opening(spatial_dimension);
 
+  if (not this->model->isDefaultSolverExplicit()) {
+    this->delta_max(el_type, ghost_type)
+        .copy(this->delta_max.previous(el_type, ghost_type));
+  }
+
   /// loop on each quadrature point
   for (; traction_it != traction_end;
        ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,

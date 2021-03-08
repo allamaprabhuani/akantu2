@@ -94,9 +94,10 @@ MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
   this->contact_opening.initialize(spatial_dimension);
 
   this->normal_opening_norm.initialize(1);
-  // this->normal_opening_norm.initializeHistory();
+  this->normal_opening_norm.initializeHistory();
 
   this->tangential_opening_norm.initialize(1);
+  this->tangential_opening_norm.initializeHistory();
 
   this->opening.initialize(spatial_dimension);
   this->opening.initializeHistory();

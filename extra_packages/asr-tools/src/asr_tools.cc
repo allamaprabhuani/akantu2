@@ -2144,6 +2144,31 @@ void ASRTools::insertASRCohesiveLoops3D(const UInt & nb_insertions,
   AKANTU_DEBUG_OUT();
 }
 
+/* ------------------------------------------------------------------- */
+template <UInt dim>
+void ASRTools::insertPreCracks(const UInt & nb_insertions,
+                               std::string facet_mat_name) {
+  AKANTU_DEBUG_IN();
+
+  // fill in the partition_border_nodes array
+  communicateFlagsOnNodes();
+
+  /// pick central facets and neighbors
+  auto inserted = insertCohesiveLoops<dim>(nb_insertions, facet_mat_name);
+
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(inserted, SynchronizerOperation::_sum);
+  AKANTU_DEBUG_ASSERT(inserted, "No ASR sites were inserted across the domain");
+
+  communicateCrackNumbers();
+
+  AKANTU_DEBUG_OUT();
+}
+
+template void ASRTools::insertPreCracks<2>(const UInt & nb_insertions,
+                                           std::string mat_name);
+template void ASRTools::insertPreCracks<3>(const UInt & nb_insertions,
+                                           std::string mat_name);
 /* -------------------------------------------------------------------------
  */
 void ASRTools::insertASRCohesivesByCoords(const Matrix<Real> & positions,
@@ -2485,7 +2510,7 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
     auto & facets_to_segment =
         mesh_facets.getElementToSubelement(starting_segment);
     // pick the first good facet in the list
-    Element starting_facet;
+    Element starting_facet{ElementNull};
     for (const auto & facet : facets_to_segment) {
       // check if the facet and its nodes are ok
       if (isFacetAndNodesGood(facet, material_id, true)) {
@@ -2523,14 +2548,225 @@ UInt ASRTools::closedFacetsLoopAroundPoint(UInt nb_insertions,
         this->ASR_nodes(facet_conn(facet.element, node)) = true;
       }
     }
+    this->asr_central_nodes.push_back(cent_node);
+
     // store the asr facets
-    this->ASR_facets_from_mesh_facets.push_back(facets_in_loop);
+    // this->ASR_facets_from_mesh_facets.push_back(facets_in_loop);
     already_inserted++;
   }
   std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
             << std::endl;
   return already_inserted;
 }
+/* ------------------------------------------------------------------- */
+template <UInt dim>
+UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & mesh = model.getMesh();
+  auto & mesh_facets = inserter.getMeshFacets();
+  const GhostType gt = _not_ghost;
+  auto element_type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
+  auto facet_type = Mesh::getFacetType(element_type);
+  auto material_id = model.getMaterialIndex(mat_name);
+  auto & facet_conn = mesh_facets.getConnectivity(facet_type, gt);
+  const UInt nb_nodes_facet = facet_conn.getNbComponent();
+  const auto facet_conn_it = make_view(facet_conn, nb_nodes_facet).begin();
+  auto & node_conn = mesh_facets.getConnectivity(_point_1, gt);
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  auto prank = comm.whoAmI();
+
+  const Real max_dot{0.7};
+
+  if (not nb_insertions)
+    return 0;
+
+  // instantiate crack_numbers array
+  for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
+    ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+
+    mesh.getDataPointer<UInt>("crack_numbers", type_cohesive);
+  }
+
+  CSR<Element> nodes_to_facets;
+  MeshUtils::buildNode2Elements(mesh_facets, nodes_to_facets, dim - 1);
+
+  std::set<UInt> matrix_nodes;
+
+  for_each_element(
+      mesh_facets,
+      [&](auto && point_el) {
+        // get the node number
+        auto node = node_conn(point_el.element);
+        // discard ghost nodes
+        if (mesh.isPureGhostNode(node))
+          goto nextnode;
+        for (auto & facet : nodes_to_facets.getRow(node)) {
+          auto & facet_material = coh_model.getFacetMaterial(
+              facet.type, facet.ghost_type)(facet.element);
+          if (facet_material != material_id) {
+            goto nextnode;
+          }
+        }
+        matrix_nodes.emplace(node);
+      nextnode:;
+      },
+      _spatial_dimension = 0, _ghost_type = _not_ghost);
+
+  UInt nb_nodes = matrix_nodes.size();
+  std::mt19937 random_generator(0);
+  std::uniform_int_distribution<> dis(0, nb_nodes - 1);
+
+  if (not nb_nodes) {
+    std::cout << "Proc " << prank << " couldn't place " << nb_insertions
+              << " ASR sites" << std::endl;
+    return 0;
+  }
+
+  UInt already_inserted = 0;
+  std::set<UInt> left_nodes = matrix_nodes;
+  Array<Array<Element>> loops;
+  while (already_inserted < nb_insertions) {
+
+    if (not left_nodes.size()) {
+      std::cout << "Proc " << prank << " inserted " << already_inserted
+                << " ASR sites out of " << nb_insertions << std::endl;
+      return already_inserted;
+    }
+    auto id = dis(random_generator);
+    auto it = matrix_nodes.begin();
+    std::advance(it, id);
+
+    UInt cent_node(*it);
+    left_nodes.erase(*it);
+
+    // not touching other cracks
+    if (this->ASR_nodes(cent_node))
+      continue;
+
+    // поехали
+    CSR<Element> segments_to_nodes;
+    MeshUtils::buildNode2Elements(mesh_facets, segments_to_nodes, dim - 2);
+    auto && segments_to_node = segments_to_nodes.getRow(cent_node);
+    Array<Element> segments_list;
+    for (auto && segment : segments_to_node) {
+      segments_list.push_back(segment);
+    }
+
+    // pick the first non-ghost segment in the list
+    Element starting_segment;
+    for (auto segment : segments_list) {
+      if (segment.ghost_type == _not_ghost) {
+        starting_segment = segment;
+        break;
+      }
+    }
+
+    // go to next node if starting segment could not be picked
+    if (starting_segment == ElementNull) {
+      std::cout
+          << "Could not pick the starting segment, switching to the next node"
+          << std::endl;
+      continue;
+    }
+
+    auto & facets_to_segment =
+        mesh_facets.getElementToSubelement(starting_segment);
+    // pick the first good facet in the list
+    Element starting_facet{ElementNull};
+    for (const auto & facet : facets_to_segment) {
+      // check if the facet and its nodes are ok
+      if (isFacetAndNodesGood(facet, material_id, true)) {
+        starting_facet = facet;
+        break;
+      }
+    }
+
+    // go to next node if starting facet could not be picked
+    if (starting_facet == ElementNull) {
+      std::cout
+          << "Could not pick the starting facet, switching to the next node"
+          << std::endl;
+      continue;
+    }
+
+    // call the actual function that build the bridge
+    auto facets_in_loop = findFacetsLoopFromSegment2Segment(
+        starting_facet, starting_segment, starting_segment, cent_node, max_dot,
+        material_id, true);
+
+    // loop broke -> try another point
+    if (not facets_in_loop.size()) {
+      std::cout << "Couldn't close the facet loop, taking the next node"
+                << std::endl;
+      continue;
+    }
+
+    // otherwise champaigne
+    loops.push_back(facets_in_loop);
+    for (auto & facet : facets_in_loop) {
+      /// add all facet nodes to the group
+      for (auto node : arange(nb_nodes_facet)) {
+        this->ASR_nodes(facet_conn(facet.element, node)) = true;
+      }
+    }
+    this->asr_central_nodes.push_back(cent_node);
+
+    already_inserted++;
+  }
+
+  // convert loops into a map
+  std::map<UInt, UInt> facet_nbs_crack_nbs;
+  for (auto && data : enumerate(loops)) {
+    auto crack_nb = std::get<0>(data);
+    auto && facet_loop = std::get<1>(data);
+    for (auto && facet : facet_loop) {
+      facet_nbs_crack_nbs[facet.element] = crack_nb;
+    }
+  }
+
+  // insert cohesives in a corresponding material
+  auto & mat = model.getMaterial(material_id);
+  auto * mat_coh = dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+  AKANTU_DEBUG_ASSERT(mat_coh != nullptr,
+                      "Chosen material is not linear sequential");
+  mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, facet_type, false);
+  inserter.insertElements();
+
+  // fill up ASR facets vector
+  this->asr_facets.resize(loops.size());
+  for (auto && data : zip(loops, this->asr_facets)) {
+    auto && facet_loop = std::get<0>(data);
+    auto && asr_facet_loop = std::get<1>(data);
+    for (auto & facet : facet_loop) {
+      Element cohesive{ElementNull};
+      auto & connected_els = mesh_facets.getElementToSubelement(facet);
+      for (auto & connected_el : connected_els) {
+        if (mesh.getKind(connected_el.type) == _ek_cohesive) {
+          cohesive = connected_el;
+          break;
+        }
+      }
+      AKANTU_DEBUG_ASSERT(cohesive != ElementNull,
+                          "Connected cohesive element not identified");
+      auto && connected_subels = mesh_facets.getSubelementToElement(cohesive);
+      for (auto & connected_subel : connected_subels) {
+        if (connected_subel.type != facet.type)
+          continue;
+        asr_facet_loop.push_back(connected_subel);
+      }
+    }
+  }
+
+  std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
+            << std::endl;
+  return already_inserted;
+}
+
+template UInt ASRTools::insertCohesiveLoops<2>(UInt nb_insertions,
+                                               std::string mat_name);
+template UInt ASRTools::insertCohesiveLoops<3>(UInt nb_insertions,
+                                               std::string mat_name);
 /* ------------------------------------------------------------------- */
 Array<Element> ASRTools::findFacetsLoopFromSegment2Segment(
     Element directional_facet, Element starting_segment, Element ending_segment,
@@ -3146,8 +3382,6 @@ Array<Element> ASRTools::findStressedFacetLoopAroundNode(
     const Array<Element> & limit_facets, const Array<Element> & limit_segments,
     const UInt & cent_node, Real min_dot) {
 
-  // auto && comm = akantu::Communicator::getWorldCommunicator();
-  // auto prank = comm.whoAmI();
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   auto & mesh = model.getMesh();
   auto & mesh_facets = mesh.getMeshFacets();
@@ -3252,8 +3486,11 @@ Array<Element> ASRTools::findStressedFacetLoopAroundNode(
     UInt facet_local_num = mat_facet_filter.find(facet.element);
     AKANTU_DEBUG_ASSERT(facet_local_num != UInt(-1),
                         "Local facet number was not identified");
+    if (not mat_coh->isInternal<Real>("effective_stresses", _ek_regular))
+      continue;
     auto & eff_stress_array = mat.getInternal<Real>("effective_stresses")(
         facet.type, facet.ghost_type);
+    // eff stress is always non-negative
     auto eff_stress = eff_stress_array(facet_local_num);
     if (eff_stress == 0)
       eff_stress = 1e-3;
@@ -3958,9 +4195,9 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
   mesh.sendEvent(new_facets_event);
 
   // fill up ASR facets vector
-  this->ASR_facets_from_mesh.resize(this->ASR_facets_from_mesh_facets.size());
-  for (UInt i = 0; i != this->ASR_facets_from_mesh_facets.size(); i++) {
-    auto single_site_facets = this->ASR_facets_from_mesh_facets(i);
+  this->ASR_facets_from_mesh.resize(this->asr_facets.size());
+  for (UInt i = 0; i != this->asr_facets.size(); i++) {
+    auto single_site_facets = this->asr_facets(i);
     for (auto & facet : single_site_facets) {
       Element cohesive{ElementNull};
       auto & connected_els = mesh_facets.getElementToSubelement(facet);
@@ -3976,7 +4213,7 @@ void ASRTools::insertOppositeFacetsAndCohesives() {
       for (auto & connected_subel : connected_subels) {
         if (connected_subel.type != facet.type)
           continue;
-        this->ASR_facets_from_mesh(i).emplace(connected_subel);
+        this->ASR_facets_from_mesh(i).push_back(connected_subel);
       }
     }
   }
@@ -4256,40 +4493,40 @@ void ASRTools::insertGap3D(const Real gap_ratio) {
   AKANTU_DEBUG_OUT();
 }
 /* ----------------------------------------------------------------------- */
-void ASRTools::onElementsAdded(const Array<Element> & elements,
-                               const NewElementsEvent &) {
+// void ASRTools::onElementsAdded(const Array<Element> & elements,
+//                                const NewElementsEvent &) {
 
-  // function is activated only when expanding cohesive elements is on
-  if (not this->cohesive_insertion)
-    return;
+//   // function is activated only when expanding cohesive elements is on
+//   if (not this->cohesive_insertion)
+//     return;
 
-  if (this->doubled_facets_ready) {
-    return;
-  }
+//   if (this->doubled_facets_ready) {
+//     return;
+//   }
 
-  auto & mesh = model.getMesh();
-  auto & mesh_facets = mesh.getMeshFacets();
-  auto & doubled_facets = mesh_facets.getElementGroup("doubled_facets");
+//   auto & mesh = model.getMesh();
+//   auto & mesh_facets = mesh.getMeshFacets();
+//   // auto & doubled_facets = mesh_facets.getElementGroup("doubled_facets");
 
-  for (auto elements_range : akantu::MeshElementsByTypes(elements)) {
-    auto type = elements_range.getType();
-    auto ghost_type = elements_range.getGhostType();
+//   for (auto elements_range : akantu::MeshElementsByTypes(elements)) {
+//     auto type = elements_range.getType();
+//     auto ghost_type = elements_range.getGhostType();
 
-    if (mesh.getKind(type) != _ek_regular)
-      continue;
+//     if (mesh.getKind(type) != _ek_regular)
+//       continue;
 
-    if (ghost_type != _not_ghost)
-      continue;
+//     if (ghost_type != _not_ghost)
+//       continue;
 
-    /// add new facets into the doubled_facets group
-    auto & element_ids = elements_range.getElements();
-    for (auto && el : element_ids) {
-      Element new_facet{type, el, ghost_type};
-      doubled_facets.add(new_facet);
-    }
-    this->doubled_facets_ready = true;
-  }
-}
+//     /// add new facets into the doubled_facets group
+//     auto & element_ids = elements_range.getElements();
+//     for (auto && el : element_ids) {
+//       Element new_facet{type, el, ghost_type};
+//       doubled_facets.add(new_facet);
+//     }
+//     this->doubled_facets_ready = true;
+//   }
+// }
 /* --------------------------------------------------------------------------
  */
 void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
@@ -4310,16 +4547,19 @@ void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
   if (this->doubled_nodes_ready)
     return;
   auto & mesh = model.getMesh();
-  auto & node_group = mesh.getNodeGroup("doubled_nodes");
-  auto & central_nodes = node_group.getNodes();
+  // auto & node_group = mesh.getNodeGroup("doubled_nodes");
+  // auto & central_nodes = node_group.getNodes();
   auto pos_it = make_view(mesh.getNodes(), mesh.getSpatialDimension()).begin();
 
   for (auto & new_node : new_nodes) {
     const Vector<Real> & new_node_coord = pos_it[new_node];
+    auto central_nodes = this->asr_central_nodes;
     for (auto & central_node : central_nodes) {
       const Vector<Real> & central_node_coord = pos_it[central_node];
-      if (new_node_coord == central_node_coord)
-        node_group.add(new_node);
+      if (new_node_coord == central_node_coord) {
+        // node_group.add(new_node);
+        this->asr_central_nodes.push_back(new_node);
+      }
     }
   }
   this->doubled_nodes_ready = true;
@@ -4621,7 +4861,7 @@ UInt ASRTools::insertCohesiveElementsOnContourByNodes(
 
   // identify facets on contour where cohesives should be inserted
   std::map<UInt, std::map<UInt, UInt>> mat_index_facet_nbs_crack_nbs =
-      findCriticalFacetsOnContourByNodes<dim>(
+      findCriticalFacetsOnContourByNodes(
           contour_subfacets_coh_el, surface_subfacets_crack_nb,
           contour_nodes_subfacets, surface_nodes, av_stress_threshold);
 
@@ -4724,7 +4964,6 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
 template UInt ASRTools::insertLoopsOfStressedCohesives<2>(Real min_dot);
 template UInt ASRTools::insertLoopsOfStressedCohesives<3>(Real min_dot);
 /* --------------------------------------------------------------- */
-template <UInt dim>
 std::map<UInt, std::map<UInt, UInt>>
 ASRTools::findCriticalFacetsOnContourByNodes(
     const std::map<Element, Element> & contour_subfacets_coh_el,
@@ -4735,7 +4974,7 @@ ASRTools::findCriticalFacetsOnContourByNodes(
 
   const Mesh & mesh = model.getMesh();
   const Mesh & mesh_facets = mesh.getMeshFacets();
-
+  auto dim = mesh.getSpatialDimension();
   std::map<UInt, std::map<UInt, UInt>> mat_index_facet_nbs_crack_nbs;
   std::map<Element, Element> contour_to_single_facet_map;
 
@@ -4863,20 +5102,6 @@ ASRTools::findCriticalFacetsOnContourByNodes(
   }
   return mat_index_facet_nbs_crack_nbs;
 }
-
-template std::map<UInt, std::map<UInt, UInt>>
-ASRTools::findCriticalFacetsOnContourByNodes<2>(
-    const std::map<Element, Element> & contour_subfacets_coh_el,
-    const std::map<Element, UInt> & surface_subfacets_crack_nb,
-    const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
-    const std::set<UInt> & surface_nodes, Real av_stress_threshold);
-
-template std::map<UInt, std::map<UInt, UInt>>
-ASRTools::findCriticalFacetsOnContourByNodes<3>(
-    const std::map<Element, Element> & contour_subfacets_coh_el,
-    const std::map<Element, UInt> & surface_subfacets_crack_nb,
-    const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
-    const std::set<UInt> & surface_nodes, Real av_stress_threshold);
 
 /* --------------------------------------------------------------- */
 std::map<UInt, std::map<UInt, UInt>> ASRTools::findStressedFacetsLoops(
@@ -5153,12 +5378,10 @@ void ASRTools::applyEigenOpeningGelVolumeBased(Real gel_volume_ratio) {
 }
 /* --------------------------------------------------------------- */
 void ASRTools::applyEigenOpeningToInitialCrack(
-    Real gel_volume_ratio,
-    const Array<std::set<Element>> ASR_facets_from_mesh) {
+    Real gel_volume_ratio, const Array<Array<Element>> & asr_facets) {
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
   const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
   const UInt dim = model.getSpatialDimension();
-  const Mesh & mesh = model.getMesh();
   const Mesh & mesh_facets = coh_model.getMeshFacets();
   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
@@ -5173,16 +5396,16 @@ void ASRTools::applyEigenOpeningToInitialCrack(
   if (!this->volume)
     computeModelVolume();
   Real gel_volume = this->volume * gel_volume_ratio;
-  Real gel_volume_per_crack = gel_volume / ASR_facets_from_mesh.size();
+  Real gel_volume_per_crack = gel_volume / asr_facets.size();
 
   // iterate through each crack
-  for (auto & single_site_facets : ASR_facets_from_mesh) {
+  for (auto & single_site_facets : asr_facets) {
     // compute area of current ASR site
     // form cohesive element filter
     std::set<Element> site_cohesives;
-    for (auto & ASR_facet : single_site_facets) {
+    for (auto & asr_facet : single_site_facets) {
       // find connected cohesive
-      auto & connected_els = mesh.getElementToSubelement(ASR_facet);
+      auto & connected_els = mesh_facets.getElementToSubelement(asr_facet);
       for (auto & connected_el : connected_els) {
         if (connected_el.type == type_cohesive) {
           site_cohesives.emplace(connected_el);
@@ -5419,7 +5642,7 @@ void ASRTools::searchCrackSurfaceInSingleFacet(
     if (not ret.second)
       continue;
 
-    std::set<Element> connected_cohesives;
+    std::map<Element, UInt> connected_cohesives;
     auto && facets_to_subfacet = mesh_facets.getElementToSubelement(subfacet);
     for (auto & neighbor_facet : facets_to_subfacet) {
       auto & connected_to_facet =
@@ -5428,20 +5651,21 @@ void ASRTools::searchCrackSurfaceInSingleFacet(
         if (connected_el.type == _not_defined)
           goto nextfacet;
         if (mesh.getKind(connected_el.type) == _ek_cohesive) {
-          connected_cohesives.emplace(connected_el);
+          connected_cohesives[connected_el]++;
         }
       }
     nextfacet:;
     }
-    if (connected_cohesives.size() == 1) {
-      contour_subfacets_coh_el[subfacet] = *connected_cohesives.begin();
+    if (connected_cohesives.size() == 1 and
+        connected_cohesives.begin()->second == 2) {
+      contour_subfacets_coh_el[subfacet] = connected_cohesives.begin()->first;
       Vector<UInt> contour_subfacet_nodes =
           mesh_facets.getConnectivity(subfacet);
       for (auto & contour_subfacet_node : contour_subfacet_nodes) {
         contour_nodes_subfacets[contour_subfacet_node].emplace(subfacet);
       }
     } else if (connected_cohesives.size() > 1) {
-      auto coh_element = *connected_cohesives.begin();
+      auto coh_element = connected_cohesives.begin()->first;
       UInt crack_nb =
           mesh.getData<UInt>("crack_numbers", coh_element.type,
                              coh_element.ghost_type)(coh_element.element);
@@ -5452,4 +5676,78 @@ void ASRTools::searchCrackSurfaceInSingleFacet(
     }
   }
 }
+/* ------------------------------------------------------------------- */
+template <UInt dim> UInt ASRTools::updateDeltaMax() {
+  AKANTU_DEBUG_IN();
+
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+
+  if (not coh_model.getIsExtrinsic()) {
+    AKANTU_EXCEPTION(
+        "This function can only be used for extrinsic cohesive elements");
+  }
+
+  UInt nb_updated_quads(0);
+  for (auto && mat : model.getMaterials()) {
+    auto * mat_coh =
+        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+
+    if (mat_coh == nullptr)
+      continue;
+    for (auto type : mat_coh->getElementFilter().elementTypes(dim, _not_ghost,
+                                                              _ek_cohesive)) {
+
+      nb_updated_quads += mat_coh->updateDeltaMax(type, _not_ghost);
+    }
+  }
+  // summ all updated quads
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(nb_updated_quads, SynchronizerOperation::_sum);
+
+  AKANTU_DEBUG_OUT();
+  return nb_updated_quads;
+}
+
+template UInt ASRTools::updateDeltaMax<2>();
+template UInt ASRTools::updateDeltaMax<3>();
+
+/* ------------------------------------------------------------------- */
+template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
+  AKANTU_DEBUG_IN();
+
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  coh_model.interpolateStress();
+  coh_model.assembleInternalForces();
+
+  Real proc_max_delta_max_excess = std::numeric_limits<Real>::min();
+  Element critical_coh_el{ElementNull};
+  for (auto && mat : model.getMaterials()) {
+    auto * mat_coh =
+        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+
+    if (mat_coh == nullptr)
+      continue;
+    for (auto type : mat_coh->getElementFilter().elementTypes(dim, _not_ghost,
+                                                              _ek_cohesive)) {
+      auto data = mat_coh->computeMaxDeltaMaxExcess(type, _not_ghost);
+      auto mat_max_delta_max_excess = std::get<0>(data);
+      if (mat_max_delta_max_excess > proc_max_delta_max_excess) {
+        proc_max_delta_max_excess =
+            std::max(proc_max_delta_max_excess, mat_max_delta_max_excess);
+        critical_coh_el = std::get<1>(data);
+      }
+    }
+  }
+  // communicate the highest excess over different processors
+  auto global_max_delta_max = proc_max_delta_max_excess;
+  auto && comm = akantu::Communicator::getWorldCommunicator();
+  comm.allReduce(global_max_delta_max, SynchronizerOperation::_max);
+
+  AKANTU_DEBUG_OUT();
+  return std::make_pair(global_max_delta_max, critical_coh_el);
+}
+
+template std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess<2>();
+template std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess<3>();
+
 } // namespace akantu
