@@ -131,10 +131,9 @@ protected:
   /// compute the stiffness dependent only on previous delta max (SLA)
   inline void computeTangentTractionOnQuad(
       Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
-      const Real & sigma_c, Vector<Real> & opening, const Vector<Real> & normal,
-      Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-      Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-      bool & penetration, Vector<Real> & contact_opening);
+      const Real & sigma_c, const Vector<Real> & normal,
+      const Real & normal_opening_norm, const Real & tangential_opening_norm,
+      const Real & damage);
 
   inline bool updateDeltaMaxOnQuad(const Real & normal_opening_norm,
                                    const Real & tangential_opening_norm,

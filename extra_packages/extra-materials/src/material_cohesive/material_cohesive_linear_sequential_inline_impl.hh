@@ -125,32 +125,14 @@ inline void MaterialCohesiveLinearSequential<dim>::computeTractionOnQuad(
 template <UInt dim>
 inline void MaterialCohesiveLinearSequential<dim>::computeTangentTractionOnQuad(
     Matrix<Real> & tangent, Real & delta_max, const Real & delta_c,
-    const Real & sigma_c, Vector<Real> & opening, const Vector<Real> & normal,
-    Vector<Real> & normal_opening, Vector<Real> & tangential_opening,
-    Real & normal_opening_norm, Real & tangential_opening_norm, Real & damage,
-    bool & penetration, Vector<Real> & contact_opening) {
-
-  /**
-   * During the update of the residual the interpenetrations are
-   * stored in the array "contact_opening", therefore, in the case
-   * of penetration, in the array "opening" there are only the
-   * tangential components.
-   */
-  opening += contact_opening;
-
-  /// compute normal and tangential opening vectors
-  normal_opening_norm = opening.dot(normal);
-  normal_opening = normal;
-  normal_opening *= normal_opening_norm;
-
-  tangential_opening = opening;
-  tangential_opening -= normal_opening;
-  tangential_opening_norm = tangential_opening.norm();
+    const Real & sigma_c, const Vector<Real> & normal,
+    const Real & normal_opening_norm, const Real & tangential_opening_norm,
+    const Real & damage) {
 
   Real delta =
       tangential_opening_norm * tangential_opening_norm * this->beta2_kappa2;
 
-  penetration = normal_opening_norm < 0.0;
+  auto penetration = normal_opening_norm / delta_c < -Math::getTolerance();
   if (not this->contact_after_breaking and Math::are_float_equal(damage, 1.)) {
     penetration = false;
   }
@@ -164,11 +146,6 @@ inline void MaterialCohesiveLinearSequential<dim>::computeTangentTractionOnQuad(
     /// stiffness in compression given by the penalty parameter
     tangent += n_outer_n;
     tangent *= this->penalty;
-
-    opening = tangential_opening;
-    normal_opening_norm = opening.dot(normal);
-    normal_opening = normal;
-    normal_opening *= normal_opening_norm;
   } else {
     delta += normal_opening_norm * normal_opening_norm;
   }

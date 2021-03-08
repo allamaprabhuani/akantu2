@@ -166,7 +166,6 @@ void MaterialCohesiveLinearSequential<
 
   auto normal_it = normal.begin(spatial_dimension);
 
-  auto opening_it = this->opening(el_type, ghost_type).begin(spatial_dimension);
   auto normal_opening_norm_it =
       this->normal_opening_norm(el_type, ghost_type).begin();
   auto tangential_opening_norm_it =
@@ -179,24 +178,14 @@ void MaterialCohesiveLinearSequential<
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_c_it = this->delta_c_eff(el_type, ghost_type).begin();
   auto damage_it = this->damage(el_type, ghost_type).begin();
-  auto contact_opening_it =
-      this->contact_opening(el_type, ghost_type).begin(spatial_dimension);
-
-  Vector<Real> normal_opening(spatial_dimension);
-  Vector<Real> tangential_opening(spatial_dimension);
 
   for (; tangent_it != tangent_end;
-       ++tangent_it, ++normal_it, ++opening_it, ++delta_max_it, ++sigma_c_it,
-       ++delta_c_it, ++damage_it, ++contact_opening_it,
-       ++normal_opening_norm_it, ++tangential_opening_norm_it) {
-    // Real normal_opening_norm{0};
-    // Real tangential_opening_norm{0};
-    bool penetration{false};
+       ++tangent_it, ++normal_it, ++delta_max_it, ++sigma_c_it, ++delta_c_it,
+       ++damage_it, ++normal_opening_norm_it, ++tangential_opening_norm_it) {
+
     this->computeTangentTractionOnQuad(
-        *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *opening_it,
-        *normal_it, normal_opening, tangential_opening, *normal_opening_norm_it,
-        *tangential_opening_norm_it, *damage_it, penetration,
-        *contact_opening_it);
+        *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *normal_it,
+        *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it);
   }
 
   AKANTU_DEBUG_OUT();
