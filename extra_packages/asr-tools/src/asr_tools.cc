@@ -2578,9 +2578,6 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
 
   const Real max_dot{0.7};
 
-  if (not nb_insertions)
-    return 0;
-
   // instantiate crack_numbers array
   for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
     ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
@@ -2617,22 +2614,11 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
   std::mt19937 random_generator(0);
   std::uniform_int_distribution<> dis(0, nb_nodes - 1);
 
-  if (not nb_nodes) {
-    std::cout << "Proc " << prank << " couldn't place " << nb_insertions
-              << " ASR sites" << std::endl;
-    return 0;
-  }
-
   UInt already_inserted = 0;
   std::set<UInt> left_nodes = matrix_nodes;
   Array<Array<Element>> loops;
-  while (already_inserted < nb_insertions) {
+  while (already_inserted < nb_insertions and nb_nodes and left_nodes.size()) {
 
-    if (not left_nodes.size()) {
-      std::cout << "Proc " << prank << " inserted " << already_inserted
-                << " ASR sites out of " << nb_insertions << std::endl;
-      return already_inserted;
-    }
     auto id = dis(random_generator);
     auto it = matrix_nodes.begin();
     std::advance(it, id);
@@ -2819,7 +2805,7 @@ Array<Element> ASRTools::findFacetsLoopFromSegment2Segment(
   auto border_segment(starting_segment);
   Array<Element> facets_in_loop;
   Array<Element> segments_in_loop;
-  while (not loop_closed) {
+  while (not loop_closed and facets_in_loop.size() < 10) {
 
     // loop through all the neighboring facets and pick the prettiest
     Element next_facet(ElementNull);
