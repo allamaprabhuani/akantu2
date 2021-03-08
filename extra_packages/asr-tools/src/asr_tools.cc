@@ -5112,53 +5112,48 @@ std::map<UInt, std::map<UInt, UInt>> ASRTools::findStressedFacetsLoops(
   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
   auto nb_facets = mesh.getNbElement(type_facet);
   // skip if no facets of this type are present
-  if (not nb_facets) {
-    return mat_index_facet_nbs_crack_nbs;
-  }
-  // skip if contour is empty
-  if (not contour_nodes_subfacets.size()) {
-    return mat_index_facet_nbs_crack_nbs;
-  }
+  if (nb_facets) {
+    for (auto && pair : contour_nodes_subfacets) {
+      auto cent_node = pair.first;
+      auto subfacets = pair.second;
+      if (subfacets.size() != 2) {
+        // std::cout << "Number of contour segments connected to the node "
+        //           << cent_node << " is not equal to 2. Skipping" <<
+        //           std::endl;
+        continue;
+      }
+      auto it = subfacets.begin();
+      auto starting_segment(*it);
+      std::advance(it, 1);
+      auto ending_segment(*it);
+      auto starting_coh_el = contour_subfacets_coh_el.at(starting_segment);
+      auto ending_coh_el = contour_subfacets_coh_el.at(ending_segment);
+      auto & crack_numbers = mesh.getData<UInt>(
+          "crack_numbers", starting_coh_el.type, starting_coh_el.ghost_type);
+      auto crack_nb = crack_numbers(starting_coh_el.element);
 
-  for (auto && pair : contour_nodes_subfacets) {
-    auto cent_node = pair.first;
-    auto subfacets = pair.second;
-    if (subfacets.size() != 2) {
-      // std::cout << "Number of contour segments connected to the node "
-      //           << cent_node << " is not equal to 2. Skipping" << std::endl;
-      continue;
+      auto starting_facet =
+          mesh_facets.getSubelementToElement(starting_coh_el)(0);
+      auto ending_facet = mesh_facets.getSubelementToElement(ending_coh_el)(0);
+
+      Array<Element> limit_facets, limit_segments;
+      limit_facets.push_back(starting_facet);
+      limit_facets.push_back(ending_facet);
+      limit_segments.push_back(starting_segment);
+      limit_segments.push_back(ending_segment);
+
+      auto facet_loop = findStressedFacetLoopAroundNode(
+          limit_facets, limit_segments, cent_node, min_dot);
+      // store the facet loop in the map
+      node_to_crack_nb_facet_loop[cent_node] =
+          std::make_pair(crack_nb, facet_loop);
+
+      // evaluate average effective stress over facets of the loop
+      auto av_eff_stress = averageEffectiveStressInMultipleFacets(facet_loop);
+
+      // assign stress value to the node
+      this->nodes_eff_stress(cent_node) = av_eff_stress;
     }
-    auto it = subfacets.begin();
-    auto starting_segment(*it);
-    std::advance(it, 1);
-    auto ending_segment(*it);
-    auto starting_coh_el = contour_subfacets_coh_el.at(starting_segment);
-    auto ending_coh_el = contour_subfacets_coh_el.at(ending_segment);
-    auto & crack_numbers = mesh.getData<UInt>(
-        "crack_numbers", starting_coh_el.type, starting_coh_el.ghost_type);
-    auto crack_nb = crack_numbers(starting_coh_el.element);
-
-    auto starting_facet =
-        mesh_facets.getSubelementToElement(starting_coh_el)(0);
-    auto ending_facet = mesh_facets.getSubelementToElement(ending_coh_el)(0);
-
-    Array<Element> limit_facets, limit_segments;
-    limit_facets.push_back(starting_facet);
-    limit_facets.push_back(ending_facet);
-    limit_segments.push_back(starting_segment);
-    limit_segments.push_back(ending_segment);
-
-    auto facet_loop = findStressedFacetLoopAroundNode(
-        limit_facets, limit_segments, cent_node, min_dot);
-    // store the facet loop in the map
-    node_to_crack_nb_facet_loop[cent_node] =
-        std::make_pair(crack_nb, facet_loop);
-
-    // evaluate average effective stress over facets of the loop
-    auto av_eff_stress = averageEffectiveStressInMultipleFacets(facet_loop);
-
-    // assign stress value to the node
-    this->nodes_eff_stress(cent_node) = av_eff_stress;
   }
 
   // communicate effective stresses by erasing the lowest values
