@@ -102,6 +102,8 @@ template <UInt spatial_dimension>
 void MaterialCohesiveLinearSequential<spatial_dimension>::computeTraction(
     const Array<Real> & normal, ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+  UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
+                              .getNbIntegrationPoints(el_type);
 
   /// define iterators
   auto traction_it =
@@ -125,21 +127,24 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::computeTraction(
   auto damage_it = this->damage(el_type, ghost_type).begin();
   auto insertion_stress_it =
       this->insertion_stress(el_type, ghost_type).begin(spatial_dimension);
+  auto && element_filter = this->element_filter(el_type, ghost_type);
 
   Vector<Real> normal_opening(spatial_dimension);
   Vector<Real> tangential_opening(spatial_dimension);
 
-  if (not this->model->isDefaultSolverExplicit())
-    this->delta_max(el_type, ghost_type)
-        .copy(this->delta_max.previous(el_type, ghost_type));
+  // if (not this->model->isDefaultSolverExplicit())
+  //   this->delta_max(el_type, ghost_type)
+  //       .copy(this->delta_max.previous(el_type, ghost_type));
 
   /// loop on each quadrature point
-  for (; traction_it != traction_end;
-       ++traction_it, ++opening_it, ++normal_it, ++sigma_c_it, ++delta_max_it,
-       ++delta_c_it, ++damage_it, ++contact_traction_it, ++insertion_stress_it,
-       ++contact_opening_it, ++normal_opening_norm_it,
-       ++tangential_opening_norm_it) {
+  for (UInt i = 0; traction_it != traction_end; ++traction_it, ++opening_it,
+            ++normal_it, ++sigma_c_it, ++delta_max_it, ++delta_c_it,
+            ++damage_it, ++contact_traction_it, ++insertion_stress_it,
+            ++contact_opening_it, ++normal_opening_norm_it,
+            ++tangential_opening_norm_it, ++i) {
     bool penetration{false};
+    UInt el_nb = floor(i / nb_quad_cohesive);
+    __attribute__((unused)) auto critical_coh_el = element_filter(el_nb);
     this->computeTractionOnQuad(
         *traction_it, *opening_it, *normal_it, *delta_max_it, *delta_c_it,
         *insertion_stress_it, *sigma_c_it, normal_opening, tangential_opening,
@@ -158,6 +163,8 @@ void MaterialCohesiveLinearSequential<
                                                const Array<Real> & normal,
                                                GhostType ghost_type) {
   AKANTU_DEBUG_IN();
+  UInt nb_quad_cohesive = this->model->getFEEngine("CohesiveFEEngine")
+                              .getNbIntegrationPoints(el_type);
 
   /// define iterators
   auto tangent_it = tangent_matrix.begin(spatial_dimension, spatial_dimension);
@@ -174,14 +181,17 @@ void MaterialCohesiveLinearSequential<
   /// NB: delta_max_it points on delta_max_previous, i.e. the
   /// delta_max related to the solution of the previous incremental
   /// step
-  auto delta_max_it = this->delta_max.previous(el_type, ghost_type).begin();
+  auto delta_max_it = this->delta_max(el_type, ghost_type).begin();
   auto sigma_c_it = this->sigma_c_eff(el_type, ghost_type).begin();
   auto delta_c_it = this->delta_c_eff(el_type, ghost_type).begin();
   auto damage_it = this->damage(el_type, ghost_type).begin();
+  auto && element_filter = this->element_filter(el_type, ghost_type);
 
-  for (; tangent_it != tangent_end;
-       ++tangent_it, ++normal_it, ++delta_max_it, ++sigma_c_it, ++delta_c_it,
-       ++damage_it, ++normal_opening_norm_it, ++tangential_opening_norm_it) {
+  for (UInt i = 0; tangent_it != tangent_end; ++tangent_it, ++normal_it,
+            ++delta_max_it, ++sigma_c_it, ++delta_c_it, ++damage_it,
+            ++normal_opening_norm_it, ++tangential_opening_norm_it, ++i) {
+    UInt el_nb = floor(i / nb_quad_cohesive);
+    __attribute__((unused)) auto critical_coh_el = element_filter(el_nb);
 
     this->computeTangentTractionOnQuad(
         *tangent_it, *delta_max_it, *delta_c_it, *sigma_c_it, *normal_it,
@@ -234,7 +244,7 @@ UInt MaterialCohesiveLinearSequential<spatial_dimension>::updateDeltaMax(
 
 /* ------------------------------------------------------------------- */
 template <UInt spatial_dimension>
-std::pair<Real, Element>
+std::tuple<Real, Element, UInt>
 MaterialCohesiveLinearSequential<spatial_dimension>::computeMaxDeltaMaxExcess(
     ElementType el_type, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
@@ -258,23 +268,28 @@ MaterialCohesiveLinearSequential<spatial_dimension>::computeMaxDeltaMaxExcess(
   Real max_delta_max_excess{0};
   /// loop on each quadrature point
   Element critical_coh_el{ElementNull};
+  UInt nb_penetr_quads{0};
   for (UInt i = 0; normal_opening_norm_it != normal_opening_norm_end;
        ++normal_opening_norm_it, ++tangential_opening_norm_it, ++damage_it,
             ++delta_max_it, ++delta_c_it, ++i) {
     UInt el_nb = floor(i / nb_quad_cohesive);
+    bool penetration{false};
     auto delta_max_excess = this->computeDeltaMaxExcessOnQuad(
         *normal_opening_norm_it, *tangential_opening_norm_it, *damage_it,
-        *delta_max_it, *delta_c_it);
+        *delta_max_it, *delta_c_it, penetration);
     if (delta_max_excess > max_delta_max_excess) {
       max_delta_max_excess = delta_max_excess;
       critical_coh_el.element = element_filter(el_nb);
       critical_coh_el.type = el_type;
       critical_coh_el.ghost_type = ghost_type;
     }
+    if (penetration)
+      nb_penetr_quads++;
   }
 
   AKANTU_DEBUG_OUT();
-  return std::make_pair(max_delta_max_excess, critical_coh_el);
+  return std::make_tuple(max_delta_max_excess, critical_coh_el,
+                         nb_penetr_quads);
 }
 /* ----------------------------------------------------------------- */
 template <UInt spatial_dimension>

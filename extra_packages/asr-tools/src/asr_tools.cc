@@ -5693,7 +5693,8 @@ template UInt ASRTools::updateDeltaMax<2>();
 template UInt ASRTools::updateDeltaMax<3>();
 
 /* ------------------------------------------------------------------- */
-template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
+template <UInt dim>
+std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
   AKANTU_DEBUG_IN();
 
   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
@@ -5702,6 +5703,7 @@ template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
 
   Real proc_max_delta_max_excess{0};
   Element critical_coh_el{ElementNull};
+  UInt global_nb_penetr_quads{0};
   for (auto && mat : model.getMaterials()) {
     auto * mat_coh =
         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
@@ -5712,6 +5714,7 @@ template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
                                                               _ek_cohesive)) {
       auto data = mat_coh->computeMaxDeltaMaxExcess(type, _not_ghost);
       auto mat_max_delta_max_excess = std::get<0>(data);
+      global_nb_penetr_quads += std::get<2>(data);
       if (mat_max_delta_max_excess > proc_max_delta_max_excess) {
         proc_max_delta_max_excess = mat_max_delta_max_excess;
         critical_coh_el = std::get<1>(data);
@@ -5722,12 +5725,21 @@ template <UInt dim> std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess() {
   auto global_max_delta_max = proc_max_delta_max_excess;
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(global_max_delta_max, SynchronizerOperation::_max);
+  comm.allReduce(global_nb_penetr_quads, SynchronizerOperation::_sum);
+
+  // find the critical coh between processors
+  UInt coh_nb = critical_coh_el.element;
+  if (proc_max_delta_max_excess != global_max_delta_max)
+    coh_nb = 0;
+  comm.allReduce(coh_nb, SynchronizerOperation::_max);
+  critical_coh_el.element = coh_nb;
 
   AKANTU_DEBUG_OUT();
-  return std::make_pair(global_max_delta_max, critical_coh_el);
+  return std::make_tuple(global_max_delta_max, critical_coh_el,
+                         global_nb_penetr_quads);
 }
 
-template std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess<2>();
-template std::pair<Real, Element> ASRTools::getMaxDeltaMaxExcess<3>();
+template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<2>();
+template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<3>();
 
 } // namespace akantu

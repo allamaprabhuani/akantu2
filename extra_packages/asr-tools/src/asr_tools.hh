@@ -350,7 +350,7 @@ public:
   template <UInt dim> UInt updateDeltaMax();
 
   /// max ratio traction norm over max possible traction (SLA)
-  template <UInt dim> std::pair<Real, Element> getMaxDeltaMaxExcess();
+  template <UInt dim> std::tuple<Real, Element, UInt> getMaxDeltaMaxExcess();
 
   // /// apply self-weight force
   // void applyBodyForce();

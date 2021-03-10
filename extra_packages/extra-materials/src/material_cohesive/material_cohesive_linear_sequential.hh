@@ -106,7 +106,7 @@ public:
                      const std::map<Element, UInt> & surface_subfacets_crack_nb,
                      const std::set<UInt> & surface_nodes);
 
-  std::pair<Real, Element>
+  std::tuple<Real, Element, UInt>
   computeMaxDeltaMaxExcess(ElementType el_type,
                            GhostType ghost_type = _not_ghost);
 
@@ -144,7 +144,8 @@ protected:
                                           const Real & tangential_opening_norm,
                                           const Real & damage,
                                           const Real & delta_max,
-                                          const Real & delta_c);
+                                          const Real & delta_c,
+                                          bool & penetration);
 
   /* ---------------------------------------------------------------- */
   /* Accessors                                                        */
