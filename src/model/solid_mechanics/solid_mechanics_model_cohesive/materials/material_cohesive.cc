@@ -288,8 +288,11 @@ void MaterialCohesive::assembleStiffnessMatrix(GhostType ghost_type) {
         nb_element * nb_quadrature_points,
         spatial_dimension * spatial_dimension, "tangent_stiffness_matrix");
 
-    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+    computeNormal(model->getMesh().getNodes(), normals(type, ghost_type), type,
                   ghost_type);
+    // computeNormal(model->getCurrentPosition(), normals(type, ghost_type),
+    // type,
+    //               ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
     // computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
@@ -394,8 +397,11 @@ void MaterialCohesive::computeTraction(GhostType ghost_type) {
     }
 
     /// compute normals @f$\mathbf{n}@f$
-    computeNormal(model->getCurrentPosition(), normals(type, ghost_type), type,
+    computeNormal(model->getMesh().getNodes(), normals(type, ghost_type), type,
                   ghost_type);
+    // computeNormal(model->getCurrentPosition(), normals(type, ghost_type),
+    // type,
+    //               ghost_type);
 
     /// compute openings @f$\mathbf{\delta}@f$
     computeOpening(model->getDisplacement(), opening(type, ghost_type), type,
