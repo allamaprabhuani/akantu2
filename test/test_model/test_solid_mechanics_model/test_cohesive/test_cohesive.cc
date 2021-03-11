@@ -130,3 +130,44 @@ TYPED_TEST(TestSMMCFixture, IntrinsicModeII) {
   // if (this->dim != 3)
   this->checkDissipated(G_c);
 }
+
+
+
+TYPED_TEST(TestSMMCFixture, ExtrinsicBilinearModeI) {
+  if (this->mesh->getCommunicator().getNbProc() > 1 and this->dim == 1) {
+    SUCCEED();
+    return;
+  }
+  getStaticParser().parse("material_2.dat");
+  this->is_extrinsic = true;
+  this->analysis_method = _explicit_lumped_mass;
+
+  this->testModeI();
+  this->checkInsertion();
+
+  auto & mat_co = this->model->getMaterial("insertion");
+  Real G_c = mat_co.get("G_c");
+
+  //  if (this->dim != 3)
+  this->checkDissipated(G_c);
+}
+
+
+TYPED_TEST(TestSMMCFixture, ExtrinsicBilinearModeII) {
+  if (this->mesh->getCommunicator().getNbProc() > 1 and this->dim == 1) {
+    SUCCEED();
+    return;
+  }
+  getStaticParser().parse("material_2.dat");
+  this->is_extrinsic = true;
+  this->analysis_method = _explicit_lumped_mass;
+
+  this->testModeII();
+  this->checkInsertion();
+
+  auto & mat_co = this->model->getMaterial("insertion");
+  Real G_c = mat_co.get("G_c");
+
+  //  if (this->dim != 3)
+  this->checkDissipated(G_c);
+}

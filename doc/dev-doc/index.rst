@@ -12,6 +12,7 @@ Akantu: a FEM library
 
    ./manual/getting_started.rst
    ./manual/fe_engine.rst
+   ./manual/new_material.rst
 
 .. toctree::
    :maxdepth: 2
