@@ -199,6 +199,10 @@ public:
     }
   }
 
+  void updatePeriodicSynchronizer() {
+    this->_mesh.updatePeriodicSynchronizer();
+  }
+
   void wipePeriodicInfo() { this->_mesh.wipePeriodicInfo(); }
 
 private:

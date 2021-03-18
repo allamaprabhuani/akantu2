@@ -812,6 +812,18 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
 
   std::unordered_map<std::pair<UInt, UInt>, UInt> masters_dofs;
 
+  // fill in masters_dofs in case masters are already existing nodes
+  for (auto d : arange(first_dof_pos)) {
+    auto node = dof_data.associated_nodes(d);
+    auto is_periodic_master = this->mesh->isPeriodicMaster(node);
+    if (is_periodic_master) {
+      auto dof = d % dof_data.dof->getNbComponent();
+      auto local_eq_num = dof_data.local_equation_number(d);
+      masters_dofs.insert(
+          std::make_pair(std::make_pair(node, dof), local_eq_num));
+    }
+  }
+
   // update per dof info
   UInt local_eq_num;
   UInt first_global_dof_id;
@@ -865,7 +877,7 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
       auto master_node = this->mesh->getPeriodicMaster(node);
       auto dof = d % dof_data.dof->getNbComponent();
       dof_data.local_equation_number(first_dof_pos + d) =
-          masters_dofs[std::make_pair(master_node, dof)];
+          masters_dofs.at(std::make_pair(master_node, dof));
     }
   }
 

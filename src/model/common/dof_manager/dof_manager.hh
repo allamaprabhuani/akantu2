@@ -249,6 +249,9 @@ public:
   /// Get the location type of a given dof
   inline bool isLocalOrMasterDOF(UInt local_dof_num);
 
+  /// Is dof periodic (master or slave)
+  inline bool isPeriodicDOF(UInt local_dof_num);
+
   /// Answer to the question is a dof a slave dof ?
   inline bool isSlaveDOF(UInt local_dof_num);
 

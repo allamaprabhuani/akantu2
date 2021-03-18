@@ -176,6 +176,12 @@ inline bool DOFManager::isLocalOrMasterDOF(UInt dof_num) {
 }
 
 /* -------------------------------------------------------------------------- */
+inline bool DOFManager::isPeriodicDOF(UInt dof_num) {
+  auto dof_flag = this->dofs_flag(dof_num);
+  return (dof_flag & NodeFlag::_periodic_mask) == NodeFlag::_periodic;
+}
+
+/* -------------------------------------------------------------------------- */
 inline bool DOFManager::isSlaveDOF(UInt dof_num) {
   auto dof_flag = this->dofs_flag(dof_num);
   return (dof_flag & NodeFlag::_shared_mask) == NodeFlag::_slave;

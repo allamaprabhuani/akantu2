@@ -560,6 +560,7 @@ public:
   AKANTU_GET_MACRO(Communicator, *communicator, const auto &);
   AKANTU_GET_MACRO_NOT_CONST(Communicator, *communicator, auto &);
   AKANTU_GET_MACRO(PeriodicMasterSlaves, periodic_master_slave, const auto &);
+  AKANTU_GET_MACRO(PeriodicSlaveMaster, periodic_slave_master, const auto &);
 
   /* ------------------------------------------------------------------------ */
   /* Private methods for friends                                              */
