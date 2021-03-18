@@ -326,11 +326,19 @@ public:
   applyEigenOpeningToInitialCrack(Real gel_volume_ratio,
                                   const Array<Array<Element>> & ASR_facets);
 
+  void applyPointForceToAsrCentralNodes(Real force_norm);
+
   /// outputs crack area, volume into a file
   void outputCrackData(std::ofstream & file_output, Real time);
 
   /// computes crack area and volume per material and ASR volume
   std::tuple<Real, Real, Real> computeCrackData(const ID & material_name);
+
+  /// computes normal openings between asr central nodes and outputs them
+  void outputCrackOpenings(std::ofstream & file_output, Real time);
+
+  /// splits asr central nodes into pairs and computes averaged normals
+  void identifyASRCentralNodePairsAndNormals();
 
   /// compute crack contour segments, surface segments, contour nodes and
   /// surface nodes
@@ -472,6 +480,8 @@ public:
   AKANTU_GET_MACRO(ASRFacetsFromMesh, ASR_facets_from_mesh,
                    const Array<Array<Element>> &);
   AKANTU_GET_MACRO(ASRCentralNodes, asr_central_nodes, const Array<UInt> &);
+  AKANTU_GET_MACRO(ASRCentralNodePairs, asr_central_node_pairs, const auto &);
+  AKANTU_GET_MACRO(ASRNormalsPairs, asr_normals_pairs, const auto &);
 
   /* --------------------------------------------------------------------- */
   /* Members */
@@ -504,7 +514,7 @@ protected:
 
   /// booleans for applying delta u
   bool doubled_facets_ready;
-  bool doubled_nodes_ready;
+  bool asr_central_nodes_ready;
 
   // arrays to store nodal values during virtual tests
   Array<Real> disp_stored;
@@ -532,7 +542,12 @@ protected:
   /// Vector to store the initially inserted facets per asr site
   Array<Array<Element>> asr_facets;
   Array<Array<Element>> ASR_facets_from_mesh;
+  /// duplicated nodes. first 1/2 - initialnodes, second - duplicated
   Array<UInt> asr_central_nodes;
+  /// asr central nodes devided into pairs
+  Array<std::pair<UInt, UInt>> asr_central_node_pairs;
+  /// normals per node averaged per asr_facets of each site
+  Array<std::pair<Vector<Real>, Vector<Real>>> asr_normals_pairs;
 };
 
 /* ------------------------------------------------------------------ */
@@ -1247,6 +1262,67 @@ protected:
   const Array<std::tuple<UInt, UInt>> node_pairs;
   Array<Real> displacement;
 };
+
+/* ------------------------------------------------------------------ */
+/* solid mechanics model cohesive + delta d at the ASR nodes */
+/* ------------------------------------------------------------------ */
+class SolidMechanicsModelCohesiveDelta : public SolidMechanicsModelCohesive {
+public:
+  SolidMechanicsModelCohesiveDelta(Mesh & mesh)
+      : SolidMechanicsModelCohesive(mesh), mesh(mesh), delta_u(0.) {}
+
+  /* ------------------------------------------------------------------*/
+  void assembleInternalForces() {
+    // displacement correction
+    applyDisplacementDifference();
+
+    SolidMechanicsModelCohesive::assembleInternalForces();
+  }
+  /* ----------------------------------------------------------------- */
+  void applyDisplacementDifference() {
+    auto dim = this->mesh.getSpatialDimension();
+    auto & disp = this->getDisplacement();
+    auto & boun = this->getBlockedDOFs();
+
+    // get normal to the initial positions
+    auto it_disp = make_view(disp, dim).begin();
+    auto it_boun = make_view(boun, dim).begin();
+
+    for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+      auto && node_pair = std::get<0>(data);
+      auto && normals_pair = std::get<1>(data);
+
+      auto node1 = node_pair.first;
+      auto node2 = node_pair.second;
+      auto normal1 = normals_pair.first;
+      auto normal2 = normals_pair.second;
+      Vector<Real> displ1 = it_disp[node1];
+      Vector<Real> displ2 = it_disp[node2];
+      if (mesh.isPeriodicSlave(node1)) {
+        displ1.copy(displ2);
+      } else {
+        displ2.copy(displ1);
+      }
+      displ1 += normal1 * this->delta_u / 2.;
+      displ2 += normal2 * this->delta_u / 2.;
+      // Vector<bool> dof = it_boun[node];
+      // dof.set(true);
+    }
+  }
+  /* ------------------------------------------------------------------*/
+public:
+  // Acessors
+  AKANTU_GET_MACRO_NOT_CONST(DeltaU, delta_u, Real &);
+  AKANTU_SET_MACRO(ASRNodePairs, asr_central_node_pairs, auto);
+  AKANTU_SET_MACRO(ASRNormalsPairs, asr_normals_pairs, auto);
+
+protected:
+  Mesh & mesh;
+  Real delta_u;
+  Array<std::pair<UInt, UInt>> asr_central_node_pairs;
+  Array<std::pair<Vector<Real>, Vector<Real>>> asr_normals_pairs;
+};
+/* ------------------------------------------------------------------ */
 
 } // namespace akantu
 

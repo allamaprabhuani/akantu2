@@ -34,8 +34,9 @@ inline void
 CrackNumbersUpdater::packData(CommunicationBuffer & buffer,
                               const Array<Element> & elements,
                               const SynchronizationTag & tag) const {
-  if (tag != SynchronizationTag::_crack_nb)
+  if (tag != SynchronizationTag::_crack_nb) {
     return;
+  }
 
   auto & mesh = this->model.getMesh();
   auto && comm = mesh.getCommunicator();
@@ -61,8 +62,9 @@ CrackNumbersUpdater::packData(CommunicationBuffer & buffer,
 inline void CrackNumbersUpdater::unpackData(CommunicationBuffer & buffer,
                                             const Array<Element> & elements,
                                             const SynchronizationTag & tag) {
-  if (tag != SynchronizationTag::_crack_nb)
+  if (tag != SynchronizationTag::_crack_nb) {
     return;
+  }
 
   int proc;
   buffer >> proc;
@@ -84,8 +86,9 @@ inline void CrackNumbersUpdater::unpackData(CommunicationBuffer & buffer,
       auto & ghost_coh_el_ids = elements_range.getElements();
       for (UInt ghost_coh_el : ghost_coh_el_ids) {
         // resize crack_nb array on each iteration
-        if (crack_numbers.size() <= ghost_coh_el)
+        if (crack_numbers.size() <= ghost_coh_el) {
           crack_numbers.resize(ghost_coh_el + 1);
+        }
 
         buffer >> crack_numbers(ghost_coh_el);
       }

@@ -169,8 +169,9 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     auto prestrain_end =
         prestrain_vect.end(spatial_dimension, spatial_dimension);
 
-    for (; prestrain_it != prestrain_end; ++prestrain_it)
+    for (; prestrain_it != prestrain_end; ++prestrain_it) {
       (*prestrain_it) = prestrain;
+    }
   }
 
   /// advance the damage
@@ -206,14 +207,14 @@ void SolidMechanicsModelRVE::advanceASR(const Matrix<Real> & prestrain) {
     max_eq_stress_paste = mat_paste.getNormMaxEquivalentStress();
 
     nb_damaged_elements = 0;
-    if (max_eq_stress_aggregate > max_eq_stress_paste)
+    if (max_eq_stress_aggregate > max_eq_stress_paste) {
       nb_damaged_elements = mat_aggregate.updateDamage();
-    else if (max_eq_stress_aggregate < max_eq_stress_paste)
+    } else if (max_eq_stress_aggregate < max_eq_stress_paste) {
       nb_damaged_elements = mat_paste.updateDamage();
-    else
+    } else {
       nb_damaged_elements =
           (mat_paste.updateDamage() + mat_aggregate.updateDamage());
-
+    }
     /// mark the flag to update stiffness if elements were damaged
     if (nb_damaged_elements) {
       this->stiffness_changed = true;
@@ -238,8 +239,9 @@ void SolidMechanicsModelRVE::initMaterials() {
   AKANTU_DEBUG_IN();
 
   // make sure the material are instantiated
-  if (!are_materials_instantiated)
+  if (!are_materials_instantiated) {
     instantiateMaterials();
+  }
 
   if (use_RVE_mat_selector) {
     auto tmp = std::make_shared<GelMaterialSelector>(

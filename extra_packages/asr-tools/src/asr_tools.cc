@@ -58,7 +58,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 ASRTools::ASRTools(SolidMechanicsModel & model)
     : model(model), volume(0.), nb_dumps(0), cohesive_insertion(false),
-      doubled_facets_ready(false), doubled_nodes_ready(false),
+      doubled_facets_ready(false), asr_central_nodes_ready(false),
       disp_stored(0, model.getSpatialDimension()),
       ext_force_stored(0, model.getSpatialDimension()),
       boun_stored(0, model.getSpatialDimension()),
@@ -67,10 +67,11 @@ ASRTools::ASRTools(SolidMechanicsModel & model)
 
   // register event handler for asr tools
   auto & mesh = model.getMesh();
-  // auto const dim = model.getSpatialDimension();
-  mesh.registerEventHandler(*this, _ehp_lowest);
+  mesh.registerEventHandler(*this, _ehp_synchronizer);
+  // mesh.registerEventHandler(*this, _ehp_lowest);
   if (mesh.hasMeshFacets()) {
-    mesh.getMeshFacets().registerEventHandler(*this, _ehp_lowest);
+    mesh.getMeshFacets().registerEventHandler(*this, _ehp_synchronizer);
+    // mesh.getMeshFacets().registerEventHandler(*this, _ehp_lowest);
   }
 
   /// find four corner nodes of the RVE
@@ -2701,10 +2702,14 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
     already_inserted++;
   }
 
+  /// shift crack numbers by the number of cracks on lower processors
+  auto num_cracks = loops.size();
+  comm.exclusiveScan(num_cracks);
+
   // convert loops into a map
   std::map<UInt, UInt> facet_nbs_crack_nbs;
   for (auto && data : enumerate(loops)) {
-    auto crack_nb = std::get<0>(data);
+    auto crack_nb = std::get<0>(data) + num_cracks;
     auto && facet_loop = std::get<1>(data);
     for (auto && facet : facet_loop) {
       facet_nbs_crack_nbs[facet.element] = crack_nb;
@@ -2743,6 +2748,9 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
       }
     }
   }
+
+  // split nodes into pairs and compute averaged normals
+  identifyASRCentralNodePairsAndNormals();
 
   std::cout << "Proc " << prank << " placed " << already_inserted << " ASR site"
             << std::endl;
@@ -4530,9 +4538,10 @@ void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
   // function is activated only when expanding cohesive elements is on
   if (not this->cohesive_insertion)
     return;
-  if (this->doubled_nodes_ready)
+  if (this->asr_central_nodes_ready)
     return;
   auto & mesh = model.getMesh();
+
   // auto & node_group = mesh.getNodeGroup("doubled_nodes");
   // auto & central_nodes = node_group.getNodes();
   auto pos_it = make_view(mesh.getNodes(), mesh.getSpatialDimension()).begin();
@@ -4545,10 +4554,12 @@ void ASRTools::onNodesAdded(const Array<UInt> & new_nodes,
       if (new_node_coord == central_node_coord) {
         // node_group.add(new_node);
         this->asr_central_nodes.push_back(new_node);
+        break;
       }
     }
   }
-  this->doubled_nodes_ready = true;
+
+  this->asr_central_nodes_ready = true;
   AKANTU_DEBUG_OUT();
 }
 
@@ -5433,6 +5444,28 @@ void ASRTools::applyEigenOpeningToInitialCrack(
   }
 }
 /* --------------------------------------------------------------- */
+void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & forces = model.getExternalForce();
+  auto & pos = mesh.getNodes();
+  auto it_force = make_view(forces, dim).begin();
+  auto it_pos = make_view(pos, dim).begin();
+
+  for (auto && data : zip(asr_central_node_pairs, asr_normals_pairs)) {
+    auto && node_pair = std::get<0>(data);
+    auto && normals_pair = std::get<1>(data);
+    auto node1 = node_pair.first;
+    auto node2 = node_pair.second;
+    auto normal1 = normals_pair.first;
+    auto normal2 = normals_pair.second;
+    Vector<Real> force1 = it_force[node1];
+    Vector<Real> force2 = it_force[node2];
+    force1 = normal1 * force_norm / 2.;
+    force2 = normal2 * force_norm / 2.;
+  }
+}
+/* --------------------------------------------------------------- */
 void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
 
   auto data_agg = computeCrackData("agg-agg");
@@ -5454,11 +5487,12 @@ void ASRTools::outputCrackData(std::ofstream & file_output, Real time) {
   auto && comm = akantu::Communicator::getWorldCommunicator();
   auto prank = comm.whoAmI();
 
-  if (prank == 0)
+  if (prank == 0) {
     file_output << time << "," << asr_volume << "," << area_agg << ","
                 << area_agg_mor << "," << area_mor << "," << vol_agg << ","
                 << vol_agg_mor << "," << vol_mor << "," << total_area << ","
                 << total_volume << std::endl;
+  }
 }
 
 /* --------------------------------------------------------------- */
@@ -5529,6 +5563,170 @@ ASRTools::computeCrackData(const ID & material_name) {
 
   return std::make_tuple(crack_area, crack_volume, ASR_volume);
 }
+/* --------------------------------------------------------------- */
+void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
+  const Communicator & comm = Communicator::getWorldCommunicator();
+  UInt prank = comm.whoAmI();
+  UInt nb_proc = comm.getNbProc();
+  Real global_nb_openings(asr_central_node_pairs.size());
+  comm.allReduce(global_nb_openings, SynchronizerOperation::_sum);
+  /// shift crack numbers by the number of cracks on lower processors
+  UInt nb_cracks{asr_central_node_pairs.size()};
+  comm.exclusiveScan(nb_cracks);
+  UInt max_nb_cracks{asr_central_node_pairs.size()};
+  comm.allReduce(max_nb_cracks, SynchronizerOperation::_max);
+  Array<Real> openings(nb_proc, max_nb_cracks, -1.);
+
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & disp = model.getDisplacement();
+  auto & pos = mesh.getNodes();
+  auto it_disp = make_view(disp, dim).begin();
+  auto it_pos = make_view(pos, dim).begin();
+  auto it_open = make_view(openings, max_nb_cracks).begin();
+  auto open_end = make_view(openings, max_nb_cracks).end();
+
+  for (UInt i = 0; i < asr_central_node_pairs.size(); i++) {
+    auto && node_pair = asr_central_node_pairs(i);
+    auto && normals_pair = asr_normals_pairs(i);
+
+    auto node1 = node_pair.first;
+    auto node2 = node_pair.second;
+    auto normal1 = normals_pair.first;
+    Vector<Real> disp1 = it_disp[node1];
+    Vector<Real> disp2 = it_disp[node2];
+    Vector<Real> rel_disp = disp1 - disp2;
+    Real norm_opening = rel_disp.dot(normal1);
+    openings(prank, i) = norm_opening;
+  }
+  comm.allGather(openings);
+  if (prank == 0) {
+    file_output << time;
+    for (; it_open != open_end; ++it_open) {
+      Vector<Real> openings_per_proc = *it_open;
+      for (auto && opening : openings_per_proc) {
+        if (opening != -1.) {
+          file_output << "," << opening;
+        }
+      }
+    }
+    file_output << std::endl;
+  }
+}
+
+/* --------------------------------------------------------------- */
+void ASRTools::identifyASRCentralNodePairsAndNormals() {
+  auto && mesh = model.getMesh();
+  auto && mesh_facets = mesh.getMeshFacets();
+  auto dim = mesh.getSpatialDimension();
+  auto & forces = model.getExternalForce();
+  auto & pos = mesh.getNodes();
+  auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+  auto && fe_engine = model.getFEEngine("FacetsFEEngine");
+  UInt nb_quad_points = fe_engine.getNbIntegrationPoints(type_facet);
+
+  // get normal to the initial positions
+  const auto & init_pos = mesh.getNodes();
+  Array<Real> quad_normals(0, dim);
+  fe_engine.computeNormalsOnIntegrationPoints(init_pos, quad_normals,
+                                              type_facet);
+  auto normals_it = quad_normals.begin(dim);
+  auto it_force = make_view(forces, dim).begin();
+  auto it_pos = make_view(pos, dim).begin();
+
+  this->asr_central_node_pairs.resize(asr_facets.size());
+  this->asr_normals_pairs.resize(asr_facets.size());
+  for (auto && data :
+       zip(asr_facets, asr_central_node_pairs, asr_normals_pairs)) {
+    auto && facets_per_site = std::get<0>(data);
+    auto & node_pair = std::get<1>(data);
+    node_pair = std::make_pair(UInt(-1), UInt(-1));
+    auto & asr_normals_pair = std::get<2>(data);
+
+    // find first node
+    auto && facet_conn = mesh_facets.getConnectivity(facets_per_site(0));
+    for (auto && node : facet_conn) {
+      auto ret = asr_central_nodes.find(node);
+      if (ret != UInt(-1)) {
+        node_pair.first = node;
+        break;
+      }
+    }
+    AKANTU_DEBUG_ASSERT(node_pair.first != UInt(-1),
+                        "First node was not identified");
+    // compute first normal
+    Vector<Real> normal(dim, 0);
+    for (auto && facet : facets_per_site) {
+      // skip out opposite side facets
+      auto && facet_nodes = mesh_facets.getConnectivity(facet);
+      auto ret =
+          std::find(facet_nodes.begin(), facet_nodes.end(), node_pair.first);
+      if (ret == facet_nodes.end()) {
+        continue;
+      }
+
+      // find connected solid element
+      auto && facet_neighbors = mesh_facets.getElementToSubelement(facet);
+      Element solid_el{ElementNull};
+      for (auto && neighbor : facet_neighbors) {
+        if (mesh.getKind(neighbor.type) == _ek_regular) {
+          solid_el = neighbor;
+          break;
+        }
+      }
+      AKANTU_DEBUG_ASSERT(solid_el != ElementNull,
+                          "Couldn't identify neighboring solid el");
+
+      // find the out-of-plane solid node
+      auto && solid_nodes = mesh.getConnectivity(solid_el);
+      auto it =
+          std::find(solid_nodes.begin(), solid_nodes.end(), node_pair.first);
+      AKANTU_DEBUG_ASSERT(it != solid_nodes.end(),
+                          "Solid el does not contain central node");
+
+      UInt out_node(-1);
+      for (auto && solid_node : solid_nodes) {
+        auto ret =
+            std::find(facet_nodes.begin(), facet_nodes.end(), solid_node);
+        if (ret == facet_nodes.end()) {
+          out_node = solid_node;
+          break;
+        }
+      }
+      AKANTU_DEBUG_ASSERT(out_node != UInt(-1),
+                          "Couldn't identify out-of-plane node");
+
+      // build the reference vector
+      Vector<Real> ref_vector(dim);
+      mesh_facets.getBarycenter(facet, ref_vector);
+      Vector<Real> pos(mesh.getNodes().begin(dim)[out_node]);
+      ref_vector = pos - ref_vector;
+
+      // check if ref vector and the normal are in the same half space
+      Vector<Real> facet_normal = normals_it[facet.element * nb_quad_points];
+      if (ref_vector.dot(facet_normal) < 0) {
+        facet_normal *= -1;
+      }
+      normal += facet_normal;
+    }
+    asr_normals_pair.first = normal / normal.norm();
+    asr_normals_pair.second = normal / normal.norm() * (-1.);
+
+    // find the second one
+    Vector<Real> first_node_pos = it_pos[node_pair.first];
+    for (auto && asr_central_node : asr_central_nodes) {
+      Vector<Real> node_pos = it_pos[asr_central_node];
+      if ((first_node_pos == node_pos) &&
+          (asr_central_node != node_pair.first)) {
+        node_pair.second = asr_central_node;
+        break;
+      }
+    }
+    AKANTU_DEBUG_ASSERT(node_pair.second != UInt(-1),
+                        "Second node was not identified");
+  }
+}
+
 /* ----------------------------------------------------------------- */
 std::tuple<std::map<Element, Element>, std::map<Element, UInt>, std::set<UInt>,
            std::map<UInt, std::set<Element>>>
