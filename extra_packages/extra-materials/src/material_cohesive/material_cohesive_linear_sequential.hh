@@ -147,6 +147,8 @@ protected:
                                           const Real & delta_c,
                                           bool & penetration);
 
+  bool hasStiffnessMatrixChanged() override { return (update_stiffness); }
+
   /* ---------------------------------------------------------------- */
   /* Accessors                                                        */
   /* ---------------------------------------------------------------- */
@@ -155,6 +157,7 @@ public:
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(EffectiveStress, effective_stresses,
                                          Real);
 
+  AKANTU_SET_MACRO(UpdateStiffness, update_stiffness, bool);
   /* ---------------------------------------------------------------- */
   /* Class Members                                                    */
   /* ---------------------------------------------------------------- */
@@ -167,6 +170,9 @@ protected:
 
   /// normal stresses normalized by the stress limit
   FacetInternalField<Real> effective_stresses;
+
+  /// bool to fix stiffness if not converging due to stiffness jumps
+  bool update_stiffness{true};
 };
 
 /* ------------------------------------------------------------------ */

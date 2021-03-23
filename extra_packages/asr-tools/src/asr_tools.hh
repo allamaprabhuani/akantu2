@@ -368,6 +368,9 @@ public:
 
   /// apply eigenstrain on gel material
   void applyGelStrain(const Matrix<Real> & prestrain);
+
+  /// set update stiffness in all linear sequential cohesives
+  template <UInt dim> void setUpdateStiffness(bool update_stiffness);
   /* ----------------------------------------------------------------- */
 
   /// RVE part
@@ -1313,8 +1316,10 @@ public:
 public:
   // Acessors
   AKANTU_GET_MACRO_NOT_CONST(DeltaU, delta_u, Real &);
-  AKANTU_SET_MACRO(ASRNodePairs, asr_central_node_pairs, auto);
-  AKANTU_SET_MACRO(ASRNormalsPairs, asr_normals_pairs, auto);
+  using NodePairsArray = Array<std::pair<UInt, UInt>>;
+  AKANTU_SET_MACRO(ASRNodePairs, asr_central_node_pairs, NodePairsArray);
+  using NormalPairsArray = Array<std::pair<Vector<Real>, Vector<Real>>>;
+  AKANTU_SET_MACRO(ASRNormalsPairs, asr_normals_pairs, NormalPairsArray);
 
 protected:
   Mesh & mesh;

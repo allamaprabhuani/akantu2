@@ -5781,9 +5781,9 @@ ASRTools::determineCrackSurface() {
   }
 
   // remove external nodes from the surface nodes list
-  for (auto & pair : contour_nodes_subfacets) {
-    surface_nodes.erase(pair.first);
-  }
+  // for (auto & pair : contour_nodes_subfacets) {
+  //   surface_nodes.erase(pair.first);
+  // }
 
   return std::make_tuple(contour_subfacets_coh_el, surface_subfacets_crack_nb,
                          surface_nodes, contour_nodes_subfacets);
@@ -5791,8 +5791,8 @@ ASRTools::determineCrackSurface() {
 /* ----------------------------------------------------------------- */
 void ASRTools::searchCrackSurfaceInSingleFacet(
     Element & facet, std::map<Element, Element> & contour_subfacets_coh_el,
-    std::map<Element, UInt> & surface_subfacets_crack_nb,
-    std::set<UInt> & surface_nodes,
+    std::map<Element, UInt> & /*surface_subfacets_crack_nb*/,
+    std::set<UInt> & /*surface_nodes*/,
     std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
     std::set<Element> & visited_subfacets) {
 
@@ -5843,16 +5843,17 @@ void ASRTools::searchCrackSurfaceInSingleFacet(
       for (auto & contour_subfacet_node : contour_subfacet_nodes) {
         contour_nodes_subfacets[contour_subfacet_node].emplace(subfacet);
       }
-    } else if (connected_cohesives.size() > 1) {
-      auto coh_element = connected_cohesives.begin()->first;
-      UInt crack_nb =
-          mesh.getData<UInt>("crack_numbers", coh_element.type,
-                             coh_element.ghost_type)(coh_element.element);
-      surface_subfacets_crack_nb[subfacet] = crack_nb;
-      // add subfacet nodes to the set
-      for (auto & subfacet_node : mesh_facets.getConnectivity(subfacet))
-        surface_nodes.emplace(subfacet_node);
     }
+    // else if (connected_cohesives.size() > 1) {
+    //   auto coh_element = connected_cohesives.begin()->first;
+    //   UInt crack_nb =
+    //       mesh.getData<UInt>("crack_numbers", coh_element.type,
+    //                          coh_element.ghost_type)(coh_element.element);
+    //   surface_subfacets_crack_nb[subfacet] = crack_nb;
+    //   // add subfacet nodes to the set
+    //   for (auto & subfacet_node : mesh_facets.getConnectivity(subfacet))
+    //     surface_nodes.emplace(subfacet_node);
+    // }
   }
 }
 /* ------------------------------------------------------------------- */
@@ -5939,5 +5940,85 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
 
 template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<2>();
 template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<3>();
+/* ------------------------------------------------------------------ */
+
+// void ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name)
+// {
+//   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+//   auto & inserter = coh_model.getElementInserter();
+//   auto & mesh = model.getMesh();
+//   auto & mesh_facets = inserter.getMeshFacets();
+//   auto dim = mesh.getSpatialDimension();
+//   const GhostType gt = _not_ghost;
+//   auto el_type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
+//   auto facet_type = Mesh::getFacetType(el_type);
+//   auto facet_material_id = model.getMaterialIndex(facet_mat_name);
+
+//   auto & mat = model.getMaterial(facet_material_id);
+//   auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+//   AKANTU_DEBUG_ASSERT(mat_coh != nullptr, "Chosen material is not cohesive");
+
+//   auto && facets = mat_coh->getFacetFilter();
+
+//   // CSR<Element> nodes_to_elements;
+//   // MeshUtils::buildNode2Elements(mesh_facets, nodes_to_elements, dim - 1);
+//   // for (auto node : doubled_nodes.getNodes()) {
+//   //   for (auto & elem : nodes_to_elements.getRow(node)) {
+//   //     if (elem.type != facet_type)
+//   //       continue;
+//   //     inserter.getCheckFacets(elem.type, gt)(elem.element) = false;
+//   //   }
+//   // }
+
+//   auto & el_group = mesh_facets.getElementGroup("doubled_facets");
+//   Array<UInt> element_ids = el_group.getElements(facet_type);
+//   for (UInt i : arange(element_ids.size() / 2)) {
+//     auto facet1 = element_ids(i);
+//     auto facet2 = element_ids(i + element_ids.size() / 2);
+//     std::vector<Element> subfacets1(nb_subfacet);
+//     std::vector<Element> subfacets2(nb_subfacet);
+//     for (UInt i : arange(nb_subfacet)) {
+//       subfacets1[i] = subf_to_fac_it[facet1](i);
+//       subfacets2[i] = subf_to_fac_it[facet2](i);
+//     }
+//     std::sort(subfacets1.begin(), subfacets1.end());
+//     std::sort(subfacets2.begin(), subfacets2.end());
+//     std::vector<Element> dif_subfacets(2 * nb_subfacet);
+//     std::vector<Element>::iterator it;
+//     // identify subfacets not shared by two facets
+//     it = std::set_difference(subfacets1.begin(), subfacets1.end(),
+//                              subfacets2.begin(), subfacets2.end(),
+//                              dif_subfacets.begin());
+//     dif_subfacets.resize(it - dif_subfacets.begin());
+
+//     // prevent insertion of cohesives in the facets including these subf
+//     for (auto & subfacet : dif_subfacets) {
+//       auto neighbor_facets = mesh_facets.getElementToSubelement(subfacet);
+//       for (auto & neighbor_facet : neighbor_facets) {
+//         inserter.getCheckFacets(facet_type, gt)(neighbor_facet.element) =
+//         false;
+//       }
+//     }
+//   }
+// }
+/* ------------------------------------------------------------------- */
+template <UInt dim> void ASRTools::setUpdateStiffness(bool update_stiffness) {
+  AKANTU_DEBUG_IN();
+
+  for (auto && mat : model.getMaterials()) {
+    auto * mat_coh =
+        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+
+    if (mat_coh == nullptr)
+      continue;
+
+    mat_coh->setUpdateStiffness(update_stiffness);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+template void ASRTools::setUpdateStiffness<2>(bool update_stiffness);
+template void ASRTools::setUpdateStiffness<3>(bool update_stiffness);
 
 } // namespace akantu
