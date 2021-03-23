@@ -5940,67 +5940,30 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
 
 template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<2>();
 template std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess<3>();
+
 /* ------------------------------------------------------------------ */
+void ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name) {
+  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+  auto & inserter = coh_model.getElementInserter();
+  auto & mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  const GhostType gt = _not_ghost;
+  auto facet_material_id = model.getMaterialIndex(facet_mat_name);
 
-// void ASRTools::preventCohesiveInsertionInMaterial(std::string facet_mat_name)
-// {
-//   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
-//   auto & inserter = coh_model.getElementInserter();
-//   auto & mesh = model.getMesh();
-//   auto & mesh_facets = inserter.getMeshFacets();
-//   auto dim = mesh.getSpatialDimension();
-//   const GhostType gt = _not_ghost;
-//   auto el_type = *mesh.elementTypes(dim, gt, _ek_regular).begin();
-//   auto facet_type = Mesh::getFacetType(el_type);
-//   auto facet_material_id = model.getMaterialIndex(facet_mat_name);
+  auto & mat = model.getMaterial(facet_material_id);
+  auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+  AKANTU_DEBUG_ASSERT(mat_coh != nullptr, "Chosen material is not cohesive");
 
-//   auto & mat = model.getMaterial(facet_material_id);
-//   auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
-//   AKANTU_DEBUG_ASSERT(mat_coh != nullptr, "Chosen material is not cohesive");
+  auto && facets = mat_coh->getFacetFilter();
 
-//   auto && facets = mat_coh->getFacetFilter();
+  for (const auto & el_type : facets.elementTypes(dim - 1, gt, _ek_regular)) {
+    auto && element_ids = facets(el_type, gt);
+    for (auto && el_id : element_ids) {
+      inserter.getCheckFacets(el_type, gt)(el_id) = false;
+    }
+  }
+}
 
-//   // CSR<Element> nodes_to_elements;
-//   // MeshUtils::buildNode2Elements(mesh_facets, nodes_to_elements, dim - 1);
-//   // for (auto node : doubled_nodes.getNodes()) {
-//   //   for (auto & elem : nodes_to_elements.getRow(node)) {
-//   //     if (elem.type != facet_type)
-//   //       continue;
-//   //     inserter.getCheckFacets(elem.type, gt)(elem.element) = false;
-//   //   }
-//   // }
-
-//   auto & el_group = mesh_facets.getElementGroup("doubled_facets");
-//   Array<UInt> element_ids = el_group.getElements(facet_type);
-//   for (UInt i : arange(element_ids.size() / 2)) {
-//     auto facet1 = element_ids(i);
-//     auto facet2 = element_ids(i + element_ids.size() / 2);
-//     std::vector<Element> subfacets1(nb_subfacet);
-//     std::vector<Element> subfacets2(nb_subfacet);
-//     for (UInt i : arange(nb_subfacet)) {
-//       subfacets1[i] = subf_to_fac_it[facet1](i);
-//       subfacets2[i] = subf_to_fac_it[facet2](i);
-//     }
-//     std::sort(subfacets1.begin(), subfacets1.end());
-//     std::sort(subfacets2.begin(), subfacets2.end());
-//     std::vector<Element> dif_subfacets(2 * nb_subfacet);
-//     std::vector<Element>::iterator it;
-//     // identify subfacets not shared by two facets
-//     it = std::set_difference(subfacets1.begin(), subfacets1.end(),
-//                              subfacets2.begin(), subfacets2.end(),
-//                              dif_subfacets.begin());
-//     dif_subfacets.resize(it - dif_subfacets.begin());
-
-//     // prevent insertion of cohesives in the facets including these subf
-//     for (auto & subfacet : dif_subfacets) {
-//       auto neighbor_facets = mesh_facets.getElementToSubelement(subfacet);
-//       for (auto & neighbor_facet : neighbor_facets) {
-//         inserter.getCheckFacets(facet_type, gt)(neighbor_facet.element) =
-//         false;
-//       }
-//     }
-//   }
-// }
 /* ------------------------------------------------------------------- */
 template <UInt dim> void ASRTools::setUpdateStiffness(bool update_stiffness) {
   AKANTU_DEBUG_IN();

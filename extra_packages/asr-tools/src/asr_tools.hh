@@ -369,6 +369,10 @@ public:
   /// apply eigenstrain on gel material
   void applyGelStrain(const Matrix<Real> & prestrain);
 
+  /// sets all facets within specified material to not be considered for
+  /// insertion
+  void preventCohesiveInsertionInMaterial(std::string facet_mat_name);
+
   /// set update stiffness in all linear sequential cohesives
   template <UInt dim> void setUpdateStiffness(bool update_stiffness);
   /* ----------------------------------------------------------------- */
