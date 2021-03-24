@@ -1256,7 +1256,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
     return;
   }
 
-  Mesh & mesh = this->model->getMesh();
   CohesiveElementInserter & inserter = this->model->getElementInserter();
   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
   auto & f_filter = this->facet_filter(type_facet);
@@ -1269,7 +1268,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
   auto & del_max = this->delta_max(type_cohesive);
   auto & ins_stress = this->insertion_stress(type_cohesive);
   auto & trac_old = this->tractions.previous(type_cohesive);
-  auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type_cohesive);
   const auto & normals = this->model->getFEEngine("FacetsFEEngine")
                              .getNormalsOnIntegrationPoints(type_facet);
   auto normal_begin = normals.begin(spatial_dimension);
@@ -1284,7 +1282,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
 
   for (auto && pair : facet_nbs_crack_nbs) {
     auto & facet_nb = pair.first;
-    auto & crack_nb = pair.second;
     // get facet's local id
     auto local_id = f_filter.find(facet_nb);
     AKANTU_DEBUG_ASSERT(local_id != UInt(-1),
@@ -1337,9 +1334,6 @@ void MaterialCohesiveLinearSequential<spatial_dimension>::
       new_delta_max.push_back(new_del_max);
       new_delta_c.push_back(new_delta);
     }
-
-    // insert a corresponding crack number
-    crack_numbers.push_back(crack_nb);
   }
 
   // update material data for the new elements

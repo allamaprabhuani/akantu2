@@ -2585,6 +2585,8 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
 
     mesh.getDataPointer<UInt>("crack_numbers", type_cohesive);
   }
+  ElementType type_cohesive = FEEngine::getCohesiveElementType(facet_type);
+  auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type_cohesive);
 
   CSR<Element> nodes_to_facets;
   MeshUtils::buildNode2Elements(mesh_facets, nodes_to_facets, dim - 1);
@@ -2722,6 +2724,12 @@ UInt ASRTools::insertCohesiveLoops(UInt nb_insertions, std::string mat_name) {
   AKANTU_DEBUG_ASSERT(mat_coh != nullptr,
                       "Chosen material is not linear sequential");
   mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, facet_type, false);
+  // extend crack numbers array
+  for (auto && pair : facet_nbs_crack_nbs) {
+    auto && crack_nb = pair.second;
+    crack_numbers.push_back(crack_nb);
+  }
+
   inserter.insertElements();
 
   // fill up ASR facets vector
@@ -4917,9 +4925,12 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
     mat_coh->computeEffectiveStresses();
   }
 
+  auto && mesh = coh_model.getMesh();
   const Mesh & mesh_facets = coh_model.getMeshFacets();
   UInt nb_new_elements(0);
   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+  ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+  auto & crack_numbers = mesh.getData<UInt>("crack_numbers", type_cohesive);
 
   // find global crack topology
   auto data = determineCrackSurface();
@@ -4935,6 +4946,7 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
                               contour_nodes_subfacets, surface_nodes, min_dot);
 
   // insert cohesives depending on a material
+  std::map<UInt, UInt> facet_nbs_crack_nbs_global;
   for (auto & pair : mat_index_facet_nbs_crack_nbs) {
     auto mat_index = pair.first;
     auto & facet_nbs_crack_nbs = pair.second;
@@ -4946,6 +4958,15 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
       continue;
 
     mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
+
+    facet_nbs_crack_nbs_global.insert(facet_nbs_crack_nbs.begin(),
+                                      facet_nbs_crack_nbs.end());
+  }
+
+  // extend crack numbers array
+  for (auto && pair : facet_nbs_crack_nbs_global) {
+    auto && crack_nb = pair.second;
+    crack_numbers.push_back(crack_nb);
   }
 
   // insert the most stressed cohesive element
