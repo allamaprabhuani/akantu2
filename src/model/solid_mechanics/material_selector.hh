@@ -45,69 +45,7 @@ namespace akantu {
 
 class SolidMechanicsModel;
 
-/**
- * main class to assign same or different materials for different
- * elements
- */
-class MaterialSelector {
-public:
-  MaterialSelector() = default;
-  virtual ~MaterialSelector() = default;
-  virtual inline UInt operator()(const Element & element) {
-    if (fallback_selector) {
-      return (*fallback_selector)(element);
-    }
-
-    return fallback_value;
-  }
-
-  inline void setFallback(UInt f) { fallback_value = f; }
-  inline void
-  setFallback(const std::shared_ptr<MaterialSelector> & fallback_selector) {
-    this->fallback_selector = fallback_selector;
-  }
-
-  inline std::shared_ptr<MaterialSelector> & getFallbackSelector() {
-    return this->fallback_selector;
-  }
-
-  inline UInt getFallbackValue() const { return this->fallback_value; }
-
-protected:
-  UInt fallback_value{0};
-  std::shared_ptr<MaterialSelector> fallback_selector;
-};
-
-/* -------------------------------------------------------------------------- */
-/**
- * class that assigns the first material to regular elements by default
- */
-class DefaultMaterialSelector : public MaterialSelector {
-public:
-  explicit DefaultMaterialSelector(
-      const ElementTypeMapArray<UInt> & material_index)
-      : material_index(material_index) {}
-
-  UInt operator()(const Element & element) override {
-    if (not material_index.exists(element.type, element.ghost_type)) {
-      return MaterialSelector::operator()(element);
-    }
-
-    const auto & mat_indexes = material_index(element.type, element.ghost_type);
-    if (element.element < mat_indexes.size()) {
-      auto && tmp_mat = mat_indexes(element.element);
-      if (tmp_mat != UInt(-1)) {
-        return tmp_mat;
-      }
-    }
-
-    return MaterialSelector::operator()(element);
-  }
-
-private:
-  const ElementTypeMapArray<UInt> & material_index;
-};
-
+using DefaultMaterialSelector = DedfaultConstitutiveLawSelector;
 /* -------------------------------------------------------------------------- */
 /**
  * Use elemental data to assign materials

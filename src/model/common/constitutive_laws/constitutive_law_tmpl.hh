@@ -31,11 +31,12 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "constitutive_law.hh"
 #include "constitutive_laws_handler.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef AKANTU_CONSTITUTIVE_TMPL_HH__
-#define AKANTU_CONSTITUTIVE_TMPL_HH__
+#ifndef AKANTU_CONSTITUTIVE_LAW_TMPL_HH
+#define AKANTU_CONSTITUTIVE_LAW_TMPL_HH
 
 namespace akantu {
 template <class ConstitutiveLawsHandler_>
@@ -43,9 +44,6 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
     ConstitutiveLawsHandler_ & handler, const ID & id, ElementKind element_kind)
     : Parsable(ParserType::_constitutive_law, id), handler(handler), id(id),
       element_filter("element_filter", id) {
-
-  AKANTU_DEBUG_IN();
-
   /// for each connectivity types allocate the element filer array of the
   /// constitutive law
   element_filter.initialize(handler.getMesh(),
@@ -53,8 +51,6 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
                             _element_kind = element_kind);
 
   this->initialize();
-
-  AKANU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,10 +62,9 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::initialize() {
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::initConstitutiveLaw() {
-
   this->resizeInternals();
 
-  updateInternalParmaters();
+  this->updateInternalParmaters();
 
   is_init = true;
 }
@@ -77,36 +72,26 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::initConstitutiveLaw() {
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::savePreviousState() {
-  AKANTU_DEBUG_IN();
-
   for (auto pair : internal_vectors_real) {
     if (pair.second->hasHistory()) {
       pair.second->saveCurrentValues();
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::restorePreviousState() {
-  AKANTU_DEBUG_IN();
-
   for (auto pair : internal_vectors_real) {
     if (pair.second->hasHistory()) {
       pair.second->restorePreviousValues();
     }
   }
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::resizeInternals() {
-
-  AKANTU_DEBUG_IN();
   for (auto it = internal_vectors_real.begin();
        it != internal_vectors_real.end(); ++it) {
     it->second->resize();
@@ -121,7 +106,6 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::resizeInternals() {
        it != internal_vectors_bool.end(); ++it) {
     it->second->resize();
   }
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -144,7 +128,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::addElements(
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-void ConstitutiveLaw::removeElements(
+void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
     const Array<Element> & elements_to_remove) {
   AKANTU_DEBUG_IN();
 
@@ -238,7 +222,7 @@ template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     const Array<Element> & element_list,
     const ElementTypeMapArray<UInt> & new_numbering,
-    [[gnu::unused]] const RemovedElementsEvent & event) {
+    const RemovedElementsEvent & /*event*/) {
 
   UInt my_num = handler.getInternalIndexFromID(getID());
 
@@ -316,6 +300,8 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
   }
 }
 
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 inline UInt ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(
     ElementType type, UInt element, GhostType ghost_type) {
   Array<UInt> & el_filter = this->element_filter(type, ghost_type);
@@ -324,12 +310,14 @@ inline UInt ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(
 }
 
 /* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 inline UInt
 ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(const Element & element) {
   return this->addElement(element.type, element.element, element.ghost_type);
 }
 
 /* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 inline const Parameter &
 ConstitutiveLaw<ConstitutiveLawsHandler_>::getParam(const ID & param) const {
   try {
@@ -341,6 +329,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::getParam(const ID & param) const {
 }
 
 /* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 template <typename T>
 inline void
 ConstitutiveLaw<ConstitutiveLawsHandler_>::setParam(const ID & param, T value) {
@@ -401,15 +390,15 @@ inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<bool>(
 template <class ConstitutiveLawsHandler_>
 template <typename T>
 const InternalField<T> & ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
-    [[gnu::unused]] const ID & int_id) const {
+    const ID & /*int_id*/) const {
   AKANTU_TO_IMPLEMENT();
   return NULL;
 }
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-InternalField<T> & ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
-    [[gnu::unused]] const ID & int_id) {
+InternalField<T> &
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(const ID & /*int_id*/) {
   AKANTU_TO_IMPLEMENT();
   return NULL;
 }
@@ -479,6 +468,7 @@ inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal(
   AKANTU_TO_IMPLEMENT();
 }
 
+/* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 template <>
 inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<Real>(
@@ -572,4 +562,4 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
 
 } // namespace akantu
 
-#endif
+#endif // AKANTU_CONSTITUTIVE_LAW_TMPL_HH

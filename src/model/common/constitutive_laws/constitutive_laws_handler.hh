@@ -29,6 +29,7 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "constitutive_law.hh"
+#include "constitutive_law_selector.hh"
 #include "mesh.hh"
 #include "mesh_events.hh"
 #include "non_local_manager_callback.hh"
@@ -38,14 +39,13 @@
 #define AKANTU_CONSTITUTIVE_LAWS_HANDLER_HH
 
 namespace akantu {
-template <class ConstitutiveLawsHandler> class ConstitutiveLawSelector;
 class NonLocalManager;
 } // namespace akantu
 
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-template <class ConsistutiveLawsType>
+template <class ConstitutiveLawType>
 class ConstitutiveLawsHandler : public NonLocalManagerCallback {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -53,9 +53,9 @@ class ConstitutiveLawsHandler : public NonLocalManagerCallback {
 public:
   ConstitutiveLawsHandler(const Mesh & mesh, UInt spatial_dimension,
                           const ID & parent_id)
-      : constitutive_law_index("constitutive_law index", id),
+      : constitutive_law_index("constitutive_law index", parent_id),
         constitutive_law_local_numbering("constitutive_law local numbering",
-                                         id) {
+                                         parent_id) {
     constitutive_law_selector =
         std::make_shared<DefaultConstitutiveLawSelector>(
             constitutive_law_index);
@@ -266,7 +266,7 @@ private:
   ElementTypeMapArray<UInt> constitutive_law_local_numbering;
 
   /// list of used constitutive_laws
-  std::vector<std::unique_ptr<ConstitutiveLaw>> constitutive_laws;
+  std::vector<std::unique_ptr<ConstitutiveLawType>> constitutive_laws;
 
   /// class defining of to choose a constitutive_law
   std::shared_ptr<ConstitutiveLawSelector> constitutive_law_selector;

@@ -333,22 +333,34 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 
   /// get an iterable on the materials
-  inline decltype(auto) getMaterials();
+  inline decltype(auto) getMaterials()  {
+    this->getConstitutiveLaws();
+  }
 
   /// get an iterable on the materials
-  inline decltype(auto) getMaterials() const;
+  inline decltype(auto) getMaterials() const {
+    this->getConstitutiveLaws();
+  }
 
   /// get a particular material (by numerical material index)
-  inline Material & getMaterial(UInt mat_index);
+  inline Material & getMaterial(UInt mat_index) {
+    this->getConstitutiveLaw(mat_index);
+  }
 
   /// get a particular material (by numerical material index)
-  inline const Material & getMaterial(UInt mat_index) const;
+  inline const Material & getMaterial(UInt mat_index) const {
+    this->getConstitutiveLaw(mat_index);
+  }
 
   /// get a particular material (by material name)
-  inline Material & getMaterial(const std::string & name);
+  inline Material & getMaterial(const std::string & name)  {
+    this->getConstitutiveLaw(name);
+  }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const std::string & name) const;
+  inline const Material & getMaterial(const std::string & name) const  {
+    this->getConstitutiveLaw(name);
+  }
 
   /// get a particular material (by material name)
   inline const Material & getMaterial(const Element & element) const;
