@@ -38,6 +38,7 @@
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
 #include "aka_voigthelper.hh"
+#include "constitutive_law.hh"
 #include "data_accessor.hh"
 #include "integration_point.hh"
 #include "parsable.hh"
@@ -83,10 +84,11 @@ using MaterialFactory =
  * \endcode
  *
  */
-class Material : public DataAccessor<Element>,
-                 public Parsable,
-                 public MeshEventHandler,
-                 protected SolidMechanicsModelEventHandler {
+class Material
+    : public ConstitutiveLaw<SolidMechanicsModel> public DataAccessor<Element>,
+      public Parsable,
+      public MeshEventHandler,
+      protected SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -143,9 +145,9 @@ protected:
   virtual void setToSteadyState(ElementType /*el_type*/,
                                 GhostType /*ghost_type*/ = _not_ghost) {}
 
-  /// function called to update the internal parameters when the modifiable
-  /// parameters are modified
-  virtual void updateInternalParameters() {}
+  /// function called to update the internal parameters when the
+  /// modifiable parameters are modified
+  virtual void updateInternalParameters();
 
 public:
   /// extrapolate internal values
@@ -173,14 +175,6 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T> void registerInternal(InternalField<T> & /*vect*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
-
-  template <typename T> void unregisterInternal(InternalField<T> & /*vect*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
-
   /// initialize the material computed parameter
   virtual void initMaterial();
 
@@ -189,12 +183,6 @@ public:
 
   /// assemble the residual for this material
   virtual void assembleInternalForces(GhostType ghost_type);
-
-  /// save the stress in the previous_stress if needed
-  virtual void savePreviousState();
-
-  /// restore the stress from previous_stress if needed
-  virtual void restorePreviousState();
 
   /// compute the stresses for this material
   virtual void computeAllStresses(GhostType ghost_type = _not_ghost);
@@ -207,16 +195,6 @@ public:
 
   /// compute the stiffness matrix
   virtual void assembleStiffnessMatrix(GhostType ghost_type);
-
-  /// add an element to the local mesh filter
-  inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
-  inline UInt addElement(const Element & element);
-
-  /// add many elements at once
-  void addElements(const Array<Element> & elements_to_add);
-
-  /// remove many element at once
-  void removeElements(const Array<Element> & elements_to_remove);
 
   /// function to print the contain of the class
   void printself(std::ostream & stream, int indent = 0) const override;
@@ -253,9 +231,6 @@ protected:
 
   /// compute the potential energy by element
   void computePotentialEnergyByElements();
-
-  /// resize the intenals arrays
-  virtual void resizeInternals();
 
   /* ------------------------------------------------------------------------ */
   /* Finite deformation functions                                             */
@@ -349,19 +324,6 @@ public:
 
   static inline Real stressToVonMises(const Matrix<Real> & stress);
 
-protected:
-  /// converts global element to local element
-  inline Element convertToLocalElement(const Element & global_element) const;
-  /// converts local element to global element
-  inline Element convertToGlobalElement(const Element & local_element) const;
-
-  /// converts global quadrature point to local quadrature point
-  inline IntegrationPoint
-  convertToLocalPoint(const IntegrationPoint & global_point) const;
-  /// converts local quadrature point to global quadrature point
-  inline IntegrationPoint
-  convertToGlobalPoint(const IntegrationPoint & local_point) const;
-
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
@@ -424,12 +386,8 @@ public:
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
-  AKANTU_GET_MACRO(Name, name, const std::string &);
-  AKANTU_SET_MACRO(Name, name, const std::string &);
-
   AKANTU_GET_MACRO(Model, model, const SolidMechanicsModel &)
 
-  AKANTU_GET_MACRO(ID, id, const ID &);
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
 
@@ -448,7 +406,6 @@ public:
   virtual Real getEnergy(const std::string & energy_id, ElementType type,
                          UInt index);
 
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(GradU, gradu, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(Stress, stress, Real);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(PotentialEnergy, potential_energy,
@@ -468,28 +425,8 @@ public:
   Array<T> & getArray(const ID & id, ElementType type,
                       GhostType ghost_type = _not_ghost);
 
-  template <typename T>
-  const InternalField<T> & getInternal(const ID & id) const;
-  template <typename T> InternalField<T> & getInternal(const ID & id);
-
-  template <typename T>
-  inline bool isInternal(const ID & id, ElementKind element_kind) const;
-
-  template <typename T>
-  ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
-                                              ElementKind element_kind) const;
-
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
-
-  template <typename T> inline void setParam(const ID & param, T value);
-  inline const Parameter & getParam(const ID & param) const;
-
-  template <typename T>
-  void flattenInternal(const std::string & field_id,
-                       ElementTypeMapArray<T> & internal_flat,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined) const;
 
   template <typename T>
   void inflateInternal(const std::string & field_id,
@@ -531,23 +468,11 @@ public:
   /// static method to reteive the material factory
   static MaterialFactory & getFactory();
 
-protected:
-  bool isInit() const { return is_init; }
-
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
-protected:
-  /// boolean to know if the material has been initialized
-  bool is_init{false};
-
-  std::map<ID, InternalField<Real> *> internal_vectors_real;
-  std::map<ID, InternalField<UInt> *> internal_vectors_uint;
-  std::map<ID, InternalField<bool> *> internal_vectors_bool;
 
 protected:
-  ID id;
-
   /// Link to the fem object in the model
   FEEngine & fem;
 
@@ -557,9 +482,6 @@ protected:
   /// Finite deformation
   bool inelastic_deformation{false};
 
-  /// material name
-  std::string name;
-
   /// The model to witch the material belong
   SolidMechanicsModel & model;
 
@@ -568,9 +490,6 @@ protected:
 
   /// spatial dimension
   UInt spatial_dimension;
-
-  /// list of element handled by the material
-  ElementTypeMapArray<UInt> element_filter;
 
   /// stresses arrays ordered by element types
   InternalField<Real> stress;
@@ -605,10 +524,6 @@ protected:
 
   /// elemental field interpolation points
   InternalField<Real> interpolation_points_matrices;
-
-  /// vector that contains the names of all the internals that need to
-  /// be transferred when material interfaces move
-  std::vector<ID> internals_to_transfer;
 
 private:
   /// eigen_grad_u for the parser

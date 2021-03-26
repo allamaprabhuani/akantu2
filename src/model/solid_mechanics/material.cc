@@ -45,11 +45,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const ID & id)
-    : Parsable(ParserType::_material, id), id(id), fem(model.getFEEngine()),
-      model(model), spatial_dimension(this->model.getSpatialDimension()),
-      element_filter("element_filter", id), stress("stress", *this),
-      eigengradu("eigen_grad_u", *this), gradu("grad_u", *this),
-      green_strain("green_strain", *this),
+    : ConstitutiveLaw<SolidMechanicsModel>(model, id, _ek_regular),
+      fem(model.getFEEngine()), model(model),
+      spatial_dimension(this->model.getSpatialDimension()),
+      stress("stress", *this), eigengradu("eigen_grad_u", *this),
+      gradu("grad_u", *this), green_strain("green_strain", *this),
       piola_kirchhoff_2("piola_kirchhoff_2", *this),
       potential_energy("potential_energy", *this),
       interpolation_inverse_coordinates("interpolation inverse coordinates",
@@ -62,11 +62,6 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
   this->registerParam("eigen_grad_u", eigen_grad_u, _pat_parsable,
                       "EigenGradU");
 
-  /// for each connectivity types allocate the element filer array of the
-  /// material
-  element_filter.initialize(model.getMesh(),
-                            _spatial_dimension = spatial_dimension,
-                            _element_kind = _ek_regular);
   this->initialize();
 
   AKANTU_DEBUG_OUT();
@@ -75,8 +70,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
                    FEEngine & fe_engine, const ID & id)
-    : Parsable(ParserType::_material, id), id(id), fem(fe_engine), model(model),
-      spatial_dimension(dim), element_filter("element_filter", id),
+    : ConstitutiveLaw<SolidMechanicsModel>(model, id, _ek_regular),
+      fem(fe_engine), model(model), spatial_dimension(dim),
       stress("stress", *this, dim, fe_engine, this->element_filter),
       eigengradu("eigen_grad_u", *this, dim, fe_engine, this->element_filter),
       gradu("gradu", *this, dim, fe_engine, this->element_filter),
@@ -94,10 +89,8 @@ Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
 
   AKANTU_DEBUG_IN();
 
-  element_filter.initialize(mesh, _spatial_dimension = spatial_dimension,
-                            _element_kind = _ek_regular);
-
   this->initialize();
+
   AKANTU_DEBUG_OUT();
 }
 
@@ -143,47 +136,23 @@ void Material::initMaterial() {
     this->gradu.initializeHistory();
   }
 
-  this->resizeInternals();
+  Parent::initConstitutiveLaw();
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* -------------------------------------------------------------------------- */
+void Material::updateInternalParameters() {
 
   auto dim = spatial_dimension;
   for (const auto & type :
        element_filter.elementTypes(_element_kind = _ek_regular)) {
-    for (auto & eigen_gradu : make_view(eigengradu(type), dim, dim)) {
+    for (auto eigen_gradu : make_view(eigengradu(type), dim, dim)) {
       eigen_gradu = eigen_grad_u;
     }
   }
 
-  is_init = true;
-
-  updateInternalParameters();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void Material::savePreviousState() {
-  AKANTU_DEBUG_IN();
-
-  for (auto pair : internal_vectors_real) {
-    if (pair.second->hasHistory()) {
-      pair.second->saveCurrentValues();
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
-void Material::restorePreviousState() {
-  AKANTU_DEBUG_IN();
-
-  for (auto pair : internal_vectors_real) {
-    if (pair.second->hasHistory()) {
-      pair.second->restorePreviousValues();
-    }
-  }
-
-  AKANTU_DEBUG_OUT();
+  Parent::updateInternalParameters();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -899,102 +868,44 @@ void Material::interpolateStressOnFacets(
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::addElements(const Array<Element> & elements_to_add) {
-  AKANTU_DEBUG_IN();
-
-  UInt mat_id = model.getMaterialIndex(name);
-  for (const auto & element : elements_to_add) {
-    auto index = this->addElement(element);
-    model.material_index(element) = mat_id;
-    model.material_local_numbering(element) = index;
+template <typename T>
+const Array<T> & Material::getArray(const ID & vect_id, ElementType type,
+                                    GhostType ghost_type) const {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
   }
-
-  this->resizeInternals();
-
-  AKANTU_DEBUG_OUT();
 }
 
 /* -------------------------------------------------------------------------- */
-void Material::removeElements(const Array<Element> & elements_to_remove) {
-  AKANTU_DEBUG_IN();
-
-  auto el_begin = elements_to_remove.begin();
-  auto el_end = elements_to_remove.end();
-
-  if (elements_to_remove.empty()) {
-    return;
+template <typename T>
+Array<T> & Material::getArray(const ID & vect_id, ElementType type,
+                              GhostType ghost_type) {
+  try {
+    return this->template getInternal<T>(vect_id)(type, ghost_type);
+  } catch (debug::Exception & e) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain a vector "
+                                            << vect_id << " [" << e << "]");
   }
-
-  auto & mesh = this->model.getMesh();
-
-  ElementTypeMapArray<UInt> material_local_new_numbering(
-      "remove mat filter elem", id);
-
-  material_local_new_numbering.initialize(
-      mesh, _element_filter = &element_filter, _element_kind = _ek_not_defined,
-      _with_nb_element = true);
-
-  ElementTypeMapArray<UInt> element_filter_tmp("element_filter_tmp", id);
-
-  element_filter_tmp.initialize(mesh, _element_filter = &element_filter,
-                                _element_kind = _ek_not_defined);
-
-  ElementTypeMap<UInt> new_ids, element_ids;
-
-  for_each_element(
-      mesh,
-      [&](auto && el) {
-        if (not new_ids(el.type, el.ghost_type)) {
-          element_ids(el.type, el.ghost_type) = 0;
-        }
-
-        auto & element_id = element_ids(el.type, el.ghost_type);
-        auto l_el = Element{el.type, element_id, el.ghost_type};
-        if (std::find(el_begin, el_end, el) != el_end) {
-          material_local_new_numbering(l_el) = UInt(-1);
-          return;
-        }
-
-        element_filter_tmp(el.type, el.ghost_type).push_back(el.element);
-        if (not new_ids(el.type, el.ghost_type)) {
-          new_ids(el.type, el.ghost_type) = 0;
-        }
-
-        auto & new_id = new_ids(el.type, el.ghost_type);
-
-        material_local_new_numbering(l_el) = new_id;
-        model.material_local_numbering(el) = new_id;
-
-        ++new_id;
-        ++element_id;
-      },
-      _element_filter = &element_filter, _element_kind = _ek_not_defined);
-
-  for (auto ghost_type : ghost_types) {
-    for (const auto & type : element_filter.elementTypes(
-             _ghost_type = ghost_type, _element_kind = _ek_not_defined)) {
-      element_filter(type, ghost_type)
-          .copy(element_filter_tmp(type, ghost_type));
-    }
-  }
-
-  for (auto it = internal_vectors_real.begin();
-       it != internal_vectors_real.end(); ++it) {
-    it->second->removeIntegrationPoints(material_local_new_numbering);
-  }
-
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
-    it->second->removeIntegrationPoints(material_local_new_numbering);
-  }
-
-  for (auto it = internal_vectors_bool.begin();
-       it != internal_vectors_bool.end(); ++it) {
-    it->second->removeIntegrationPoints(material_local_new_numbering);
-  }
-
-  AKANTU_DEBUG_OUT();
 }
+
+template const Array<Real> & Material::getArray(const ID & vect_id,
+                                                ElementType type,
+                                                GhostType ghost_type) const;
+/* -------------------------------------------------------------------------- */
+template Array<Real> & Material::getArray(const ID & vect_id, ElementType type,
+                                          GhostType ghost_type);
+/* -------------------------------------------------------------------------- */
+template const Array<UInt> & Material::getArray(const ID & vect_id,
+                                                ElementType type,
+                                                GhostType ghost_type) const;
+/* -------------------------------------------------------------------------- */
+template Array<UInt> & Material::getArray(const ID & vect_id, ElementType type,
+                                          GhostType ghost_type);
 
 /* -------------------------------------------------------------------------- */
 void Material::resizeInternals() {
