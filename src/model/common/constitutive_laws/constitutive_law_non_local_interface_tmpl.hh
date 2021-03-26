@@ -1,5 +1,5 @@
 /**
- * @file   material_non_local_tmpl.hh
+ * @file   constitutive_law_non_local_tmpl.hh
  *
  * @author Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
@@ -7,7 +7,7 @@
  * @date creation: Thu Jul 06 2017
  * @date last modification: Fri Mar 26 2021
  *
- * @brief  Implementation of material non-local
+ * @brief  Implementation of constitutive_law non-local
  *
  *
  * @section LICENSE
@@ -31,28 +31,27 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material.hh"
-#include "material_non_local.hh"
+#include "constitutive_law.hh"
+#include "constitutive_law_non_local_interface.hh"
 #include "non_local_neighborhood.hh"
 /* -------------------------------------------------------------------------- */
 
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class LocalParent>
-MaterialNonLocal<dim, LocalParent>::MaterialNonLocal(
-    SolidMechanicsModel & model, const ID & id)
-    : LocalParent(model, id) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
+template <UInt dim, class ConstitutiveLawParent>
+ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::ConstitutiveLawNonLocal(
+    typename ConstitutiveLawParent::ConstitutiveLawsHandler & handler,
+    const ID & id)
+    : ConstitutiveLawParent(handler, id) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class LocalParent>
-void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
-    GhostType ghost_type,
-    const ElementTypeMapReal & quadrature_points_coordinates) {
+template <UInt dim, class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::
+    insertIntegrationPointsInNeighborhoods(
+        GhostType ghost_type,
+        const ElementTypeMapReal & quadrature_points_coordinates) {
 
   IntegrationPoint q;
   q.ghost_type = ghost_type;
@@ -89,12 +88,12 @@ void MaterialNonLocal<dim, LocalParent>::insertIntegrationPointsInNeighborhoods(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class LocalParent>
-void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
+template <UInt dim, class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::updateNonLocalInternals(
     ElementTypeMapReal & non_local_flattened, const ID & field_id,
     GhostType ghost_type, ElementKind kind) {
 
-  /// loop over all types in the material
+  /// loop over all types in the constitutive_law
   for (auto & el_type :
        this->element_filter.elementTypes(dim, ghost_type, kind)) {
     Array<Real> & internal =
@@ -120,10 +119,10 @@ void MaterialNonLocal<dim, LocalParent>::updateNonLocalInternals(
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class LocalParent>
-void MaterialNonLocal<dim, LocalParent>::registerNeighborhood() {
+template <UInt dim, class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::registerNeighborhood() {
   ID name = this->getNeighborhoodName();
-  this->model.getNonLocalManager().registerNeighborhood(name, name);
+  this->handler.getNonLocalManager().registerNeighborhood(name, name);
 }
 
 } // namespace akantu

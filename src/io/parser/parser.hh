@@ -52,7 +52,8 @@ namespace akantu {
   (heat)                                                                \
   (integration_scheme)                                                  \
   (material)                                                            \
-  (phasefield)								\
+  (phasefield)                                                          \
+  (constitutive_law)                                                    \
   (mesh)                                                                \
   (model)                                                               \
   (model_solver)                                                        \

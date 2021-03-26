@@ -140,8 +140,6 @@ package_declare_sources(core
   io/mesh_io/mesh_io_diana.hh
   io/mesh_io/mesh_io_msh.cc
   io/mesh_io/mesh_io_msh.hh
-  #io/model_io.cc
-  #io/model_io.hh
 
   io/parser/algebraic_parser.hh
   io/parser/input_file_parser.hh
@@ -209,6 +207,15 @@ package_declare_sources(core
   model/common/boundary_condition/boundary_condition_functor.hh
   model/common/boundary_condition/boundary_condition_functor_inline_impl.hh
   model/common/boundary_condition/boundary_condition_tmpl.hh
+
+  model/common/constitutive_laws/constitutive_law_non_local_interface.hh
+  model/common/constitutive_laws/constitutive_law_non_local_interface_tmpl.hh
+  model/common/constitutive_laws/constitutive_laws_handler.hh
+  model/common/constitutive_laws/constitutive_laws_handler_tmpl.hh
+  model/common/constitutive_laws/internal_field.hh
+  model/common/constitutive_laws/internal_field_tmpl.hh
+  model/common/constitutive_laws/random_internal_field.hh
+  model/common/constitutive_laws/random_internal_field_tmpl.hh
 
   model/common/non_local_toolbox/neighborhood_base.hh
   model/common/non_local_toolbox/neighborhood_base.cc

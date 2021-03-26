@@ -42,17 +42,10 @@ package_declare_sources(solid_mechanics
   model/solid_mechanics/material_inline_impl.hh
   model/solid_mechanics/material_selector.hh
   model/solid_mechanics/material_selector_tmpl.hh
-  model/solid_mechanics/materials/internal_field.hh
-  model/solid_mechanics/materials/internal_field_tmpl.hh
-  model/solid_mechanics/materials/random_internal_field.hh
-  model/solid_mechanics/materials/random_internal_field_tmpl.hh
   model/solid_mechanics/solid_mechanics_model.cc
   model/solid_mechanics/solid_mechanics_model.hh
-  model/solid_mechanics/solid_mechanics_model_inline_impl.hh
   model/solid_mechanics/solid_mechanics_model_io.cc
   model/solid_mechanics/solid_mechanics_model_mass.cc
-  model/solid_mechanics/solid_mechanics_model_material.cc
-  model/solid_mechanics/solid_mechanics_model_tmpl.hh
   model/solid_mechanics/solid_mechanics_model_event_handler.hh
   model/solid_mechanics/materials/plane_stress_toolbox.hh
   model/solid_mechanics/materials/plane_stress_toolbox_tmpl.hh
@@ -103,7 +96,6 @@ package_declare_sources(solid_mechanics
   model/solid_mechanics/materials/material_viscoelastic/material_viscoelastic_maxwell.hh
 
   model/solid_mechanics/materials/material_non_local.hh
-  model/solid_mechanics/materials/material_non_local_tmpl.hh
   model/solid_mechanics/materials/material_non_local_includes.hh
   )
 

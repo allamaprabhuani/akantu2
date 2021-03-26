@@ -32,7 +32,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material.hh"
+#include "constitutive_law_non_local.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MATERIAL_NON_LOCAL_HH_
@@ -41,79 +41,19 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-class MaterialNonLocalInterface {
+class MaterialNonLocalInterface : public ConstitutiveLawNonLocalInterface {
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// initialize the material the non local parts of the material
-  void initMaterialNonLocal() {
-    this->registerNeighborhood();
-    this->registerNonLocalVariables();
-  };
-
-  /// insert the quadrature points in the neighborhoods of the non-local manager
-  virtual void insertIntegrationPointsInNeighborhoods(
-      GhostType ghost_type,
-      const ElementTypeMapReal & quadrature_points_coordinates) = 0;
-
-  /// update the values in the non-local internal fields
-  virtual void updateNonLocalInternals(ElementTypeMapReal & non_local_flattened,
-                                       const ID & field_id,
-                                       GhostType ghost_type,
-                                       ElementKind kind) = 0;
   /// constitutive law
   virtual void computeNonLocalStresses(GhostType ghost_type = _not_ghost) = 0;
-
-protected:
-  /// get the name of the neighborhood for this material
-  virtual ID getNeighborhoodName() = 0;
-
-  /// register the neighborhoods for the material
-  virtual void registerNeighborhood() = 0;
-
-  /// register the non local internal variable
-  virtual void registerNonLocalVariables() = 0;
-
-  virtual inline void onElementsAdded(const Array<Element> & /*unused*/,
-                                      const NewElementsEvent & /*unused*/) {}
 };
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 template <UInt dim, class LocalParent>
-class MaterialNonLocal : public MaterialNonLocalInterface, public LocalParent {
-  /* ------------------------------------------------------------------------ */
-  /* Constructors/Destructors                                                 */
-  /* ------------------------------------------------------------------------ */
-public:
-  explicit MaterialNonLocal(SolidMechanicsModel & model, const ID & id);
-
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
-  /// insert the quadrature points in the neighborhoods of the non-local manager
-  void insertIntegrationPointsInNeighborhoods(
-      GhostType ghost_type,
-      const ElementTypeMapReal & quadrature_points_coordinates) override;
-
-  /// update the values in the non-local internal fields
-  void updateNonLocalInternals(ElementTypeMapReal & non_local_flattened,
-                               const ID & field_id, GhostType ghost_type,
-                               ElementKind kind) override;
-
-  /// register the neighborhoods for the material
-  void registerNeighborhood() override;
-
-protected:
-  /// get the name of the neighborhood for this material
-  ID getNeighborhoodName() override { return this->name; }
-};
-
-} // namespace akantu
-
-/* -------------------------------------------------------------------------- */
-#include "material_non_local_tmpl.hh"
+using MaterialNonLocal =
+    ConstitutiveLawNonLocal<dim, MaterialNonLocalInterface, LocalParent>;
 
 #endif /* AKANTU_MATERIAL_NON_LOCAL_HH_ */
