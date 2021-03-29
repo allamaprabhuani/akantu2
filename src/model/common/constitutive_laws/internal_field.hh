@@ -34,6 +34,8 @@
 #include "aka_common.hh"
 #include "element_type_map.hh"
 /* -------------------------------------------------------------------------- */
+#include <memory>
+/* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_INTERNAL_FIELD_HH_
 #define AKANTU_INTERNAL_FIELD_HH_
@@ -43,12 +45,35 @@ namespace akantu {
 class ConstitutiveLaw;
 class FEEngine;
 
+class InternalFieldBase
+    : public std::enable_shared_from_this<InternalFieldBase> {
+public:
+  /// activate the history of this field
+  virtual void initializeHistory() = 0;
+
+  /// resize the arrays and set the new element to 0
+  virtual void resize() = 0;
+
+  /// save the current values in the history
+  virtual void saveCurrentValues() = 0;
+
+  /// restore the previous values from the history
+  virtual void restorePreviousValues() = 0;
+
+  /// remove the quadrature points corresponding to suppressed elements
+  virtual void
+  removeIntegrationPoints(const ElementTypeMapArray<UInt> & new_numbering) = 0;
+
+  virtual bool hasHistory() const = 0;
+};
+
 /**
  * class for the internal fields of constitutive law
  * to store values for each quadrature
  */
 template <class ConstitutiveLaw_, typename T>
-class InternalFieldTmpl : public ElementTypeMapArray<T> {
+class InternalFieldTmpl : public InternalFieldBase,
+                          public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -87,10 +112,10 @@ public:
   virtual void initialize(UInt nb_component);
 
   /// activate the history of this field
-  virtual void initializeHistory();
+  void initializeHistory() override;
 
   /// resize the arrays and set the new element to 0
-  virtual void resize();
+  void resize() override;
 
   /// set the field to a given value v
   virtual void setDefaultValue(const T & v);
@@ -99,14 +124,14 @@ public:
   virtual void reset();
 
   /// save the current values in the history
-  virtual void saveCurrentValues();
+  void saveCurrentValues() override;
 
   /// restore the previous values from the history
-  virtual void restorePreviousValues();
+  void restorePreviousValues() override;
 
   /// remove the quadrature points corresponding to suppressed elements
-  virtual void
-  removeIntegrationPoints(const ElementTypeMapArray<UInt> & new_numbering);
+  void removeIntegrationPoints(
+      const ElementTypeMapArray<UInt> & new_numbering) override;
 
   /// print the content
   void printself(std::ostream & stream, int /*indent*/ = 0) const override;
@@ -191,7 +216,7 @@ public:
   }
 
   /// check if the history is used or not
-  bool hasHistory() const { return (previous_values != nullptr); }
+  bool hasHistory() const override { return (previous_values != nullptr); }
 
   /// get the kind treated by the internal
   ElementKind getElementKind() const { return element_kind; }

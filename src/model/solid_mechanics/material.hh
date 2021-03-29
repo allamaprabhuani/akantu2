@@ -84,10 +84,9 @@ using MaterialFactory =
  * \endcode
  *
  */
-class Material
-    : public ConstitutiveLaw<SolidMechanicsModel> public DataAccessor<Element>,
-      public Parsable,
-      protected SolidMechanicsModelEventHandler {
+class Material : public ConstitutiveLaw<SolidMechanicsModel>,
+                 public MeshEventHandler,
+                 protected SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

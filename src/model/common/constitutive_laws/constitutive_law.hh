@@ -73,15 +73,10 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T, int fps = 0>
-  void registerInternal(InternalField<T> & /*vect*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
+  template <typename T>
+  inline void registerInternal(std::shared_ptr<InternalField<T>> & vect);
 
-  template <typename T, int fps = 0>
-  void unregisterInternal(InternalField<T> & /*vect*/) {
-    AKANTU_TO_IMPLEMENT();
-  }
+  inline void unregisterInternal(const ID & id);
 
   /// initialize the constitutive law computed parameter
   virtual void initConstitutiveLaw();
@@ -163,23 +158,50 @@ public:
                     const RemovedElementsEvent & event);
 
 public:
-  template <typename T, int fps = 0>
-  const InternalField<T> & getInternal(const ID & /*id*/) const {
-    AKANTU_TO_IMPLEMENT();
-    return NULL;
+  template <typename T>
+  const InternalField<T> & getInternal(const ID & id) const {
+    auto it = internal_vectors.find(getID() + ":" + id);
+    if (it != internal_vectors.end() and
+        aka::is_of_type<InternalField<T>>(*it->second)) {
+      return aka::as_type<InternalField<T>>(*it->second);
+    }
+
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << id << " ("
+                                            << (getID() + ":" + id) << ")");
   }
 
-  template <typename T, int fps = 0>
-  InternalField<T> & getInternal(const ID & /*id*/) {
-    AKANTU_TO_IMPLEMENT();
-    return NULL;
+  template <typename T> InternalField<T> & getInternal(const ID & id) {
+    auto it = internal_vectors.find(getID() + ":" + id);
+    if (it != internal_vectors.end() and
+        aka::is_of_type<InternalField<T>>(*it->second)) {
+      return aka::as_type<InternalField<T>>(*it->second);
+    }
+
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << id << " ("
+                                            << (getID() + ":" + id) << ")");
   }
 
-  template <typename T, int fps = 0>
-  inline bool isInternal(const ID & /*id*/,
-                         const ElementKind & /*element_kind*/) const {
-    return false;
+  template <typename T>
+  inline bool isInternal(const ID & id,
+                         const ElementKind & element_kind) const {
+    auto it = internal_vectors.find(this->getID() + ":" + id);
+
+    return (it != internal_vectors.end() and
+            aka::is_of_type<InternalField<T>>(*it->second) and
+            aka::as_type<InternalField<T>>(*it->second).getElementKind() !=
+                element_kind);
   }
+
+  template <typename T>
+  const Array<T> & getArray(const ID & id, ElementType type,
+                            GhostType ghost_type = _not_ghost) const;
+  template <typename T>
+  Array<T> & getArray(const ID & id, ElementType type,
+                      GhostType ghost_type = _not_ghost);
 
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
@@ -190,9 +212,11 @@ public:
                        const GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
-  /* ------------------------------------------------------------------------ */
-  /* Accessors                                                                */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Accessors */
+  /* ------------------------------------------------------------------------
+   */
 public:
   AKANTU_GET_MACRO(Name, name, const std::string &);
 
@@ -207,16 +231,16 @@ public:
 protected:
   bool isInit() const { return is_init; }
 
-  /* ------------------------------------------------------------------------ */
-  /* Class Members                                                            */
-  /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
+  /* Class Members */
+  /* ------------------------------------------------------------------------
+   */
 private:
   /// boolean to know if the constitutive law has been initialized
   bool is_init{false};
 
-  std::map<ID, InternalField<Real> *> internal_vectors_real;
-  std::map<ID, InternalField<UInt> *> internal_vectors_uint;
-  std::map<ID, InternalField<bool> *> internal_vectors_bool;
+  std::map<ID, std::shared_ptr<InternalFieldBase>> internal_vectors;
 
 protected:
   ID id;

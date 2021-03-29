@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "constitutive_law.hh"
 #include "constitutive_laws_handler.hh"
+#include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_CONSTITUTIVE_LAW_TMPL_HH
@@ -72,7 +73,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::initConstitutiveLaw() {
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::savePreviousState() {
-  for (auto pair : internal_vectors_real) {
+  for (auto pair : internal_vectors) {
     if (pair.second->hasHistory()) {
       pair.second->saveCurrentValues();
     }
@@ -82,7 +83,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::savePreviousState() {
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::restorePreviousState() {
-  for (auto pair : internal_vectors_real) {
+  for (auto pair : internal_vectors) {
     if (pair.second->hasHistory()) {
       pair.second->restorePreviousValues();
     }
@@ -92,19 +93,8 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::restorePreviousState() {
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::resizeInternals() {
-  for (auto it = internal_vectors_real.begin();
-       it != internal_vectors_real.end(); ++it) {
-    it->second->resize();
-  }
-
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
-    it->second->resize();
-  }
-
-  for (auto it = internal_vectors_bool.begin();
-       it != internal_vectors_bool.end(); ++it) {
-    it->second->resize();
+  for (auto && pair : internal_vectors) {
+    pair.second->resize();
   }
 }
 
@@ -192,19 +182,8 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
     }
   }
 
-  for (auto it = internal_vectors_real.begin();
-       it != internal_vectors_real.end(); ++it) {
-    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
-  }
-
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
-    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
-  }
-
-  for (auto it = internal_vectors_bool.begin();
-       it != internal_vectors_bool.end(); ++it) {
-    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
+  for (auto && pair : internal_vectors) {
+    pair.second->removeIntegrationPoints(constitutive_law_local_new_numbering);
   }
 
   AKANTU_DEBUG_OUT();
@@ -284,22 +263,10 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     }
   }
 
-  for (auto it = internal_vectors_real.begin();
-       it != internal_vectors_real.end(); ++it) {
-    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
-  }
-
-  for (auto it = internal_vectors_uint.begin();
-       it != internal_vectors_uint.end(); ++it) {
-    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
-  }
-
-  for (auto it = internal_vectors_bool.begin();
-       it != internal_vectors_bool.end(); ++it) {
-    it->second->removeIntegrationPoints(constitutive_law_local_new_numbering);
+  for (auto pair : internal_vectors) {
+    pair.second->removeIntegrationPoints(constitutive_law_local_new_numbering);
   }
 }
-
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
@@ -319,13 +286,12 @@ inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::unpackElementDataHelper(
     const Array<Element> & elements, const ID & fem_id) {
   DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements,
                                              true, handler.getFEEngine(fem_id));
-}  
-
+}
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-inline Element
-ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToLocalElement(const Element & global_element) const {
+inline Element ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToLocalElement(
+    const Element & global_element) const {
   UInt ge = global_element.element;
 #ifndef AKANTU_NDEBUG
   UInt model_law_index = handler.getConstitutiveLawByElement(
@@ -347,7 +313,8 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToLocalElement(const Element &
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 inline Element
-ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(const Element & local_element) const {
+ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(
+    const Element & local_element) const {
   UInt le = local_element.element;
   UInt ge =
       this->element_filter(local_element.type, local_element.ghost_type)(le);
@@ -355,8 +322,6 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(const Element 
   Element tmp_quad{local_element.type, ge, local_element.ghost_type};
   return tmp_quad;
 }
-  
-  
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
@@ -402,196 +367,32 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::setParam(const ID & param, T value) {
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-template <int fps>
+template <typename T>
+inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal(
+    std::shared_ptr<InternalField<T>> & vect) {
+  internal_vectors[vect.getID()] = vect;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 inline void
-ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<Real, fps>(
-    InternalField<Real> & vect) {
-  internal_vectors_real[vect.getID()] = &vect;
-}
-
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline void
-ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<UInt, fps>(
-    InternalField<UInt> & vect) {
-  internal_vectors_uint[vect.getID()] = &vect;
-}
-
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline void
-ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<bool, fps>(
-    InternalField<bool> & vect) {
-  internal_vectors_bool[vect.getID()] = &vect;
+ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal(const ID & id) {
+  internal_vectors.erase(id);
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline void
-ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<Real, fps>(
-    InternalField<Real> & vect) {
-  internal_vectors_real.erase(vect.getID());
-}
-
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline void
-ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<UInt, fps>(
-    InternalField<UInt> & vect) {
-  internal_vectors_uint.erase(vect.getID());
-}
-
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline void
-ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<bool, fps>(
-    InternalField<bool> & vect) {
-  internal_vectors_bool.erase(vect.getID());
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-const InternalField<Real> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<Real, fps>(
-    const ID & int_id) const {
-  auto it = internal_vectors_real.find(getID() + ":" + int_id);
-  if (it == internal_vectors_real.end()) {
-    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
-  }
-  return *it->second;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <>
-InternalField<Real, fps> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<Real, fps>(
-    const ID & int_id) {
-  auto it = internal_vectors_real.find(getID() + ":" + int_id);
-  if (it == internal_vectors_real.end()) {
-    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
-  }
-  return *it->second;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-const InternalField<UInt> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<UInt, fps>(
-    const ID & int_id) const {
-  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
-  if (it == internal_vectors_uint.end()) {
-    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
-  }
-  return *it->second;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-InternalField<UInt> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<UInt, fps>(
-    const ID & int_id) {
-  auto it = internal_vectors_uint.find(getID() + ":" + int_id);
-  if (it == internal_vectors_uint.end()) {
-    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
-  }
-  return *it->second;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-const InternalField<bool> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<bool, fps>(
-    const ID & int_id) const {
-  auto it = internal_vectors_bool.find(getID() + ":" + int_id);
-  if (it == internal_vectors_bool.end()) {
-    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
-  }
-  return *it->second;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-InternalField<bool> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<bool, fps>(
-    const ID & int_id) {
-  auto it = internal_vectors_bool.find(getID() + ":" + int_id);
-  if (it == internal_vectors_bool.end()) {
-    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << int_id << " ("
-                                            << (getID() + ":" + int_id) << ")");
-  }
-  return *it->second;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<Real, fps>(
-    const ID & id, ElementKind element_kind) const {
-  auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
-
-  return not(internal_array == internal_vectors_real.end() ||
-             internal_array->second->getElementKind() != element_kind);
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<UInt, fps>(
-    const ID & id, ElementKind element_kind) const {
-  auto internal_array = internal_vectors_uint.find(this->getID() + ":" + id);
-
-  return not(internal_array == internal_vectors_uint.end() ||
-             internal_array->second->getElementKind() != element_kind);
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
-template <int fps>
-inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<bool, fps>(
-    const ID & id, ElementKind element_kind) const {
-  auto internal_array = internal_vectors_bool.find(this->getID() + ":" + id);
-
-  return not(internal_array == internal_vectors_bool.end() ||
-             internal_array->second->getElementKind() != element_kind);
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawsHandler_>
+template <typename T>
 inline ElementTypeMap<UInt>
 ConstitutiveLaw<ConstitutiveLawsHandler_>::getInternalDataPerElem(
     const ID & field_id, ElementKind element_kind) const {
 
-  if (!this->template isInternal<T>(field_id, element_kind)) {
+  if (not this->template isInternal<T>(field_id, element_kind)) {
     AKANTU_EXCEPTION("Cannot find internal field "
                      << id << " in the constitutive law " << this->name);
   }
 
-  const InternalField<T> & internal_field =
-      this->template getInternal<T>(field_id);
+  const auto & internal_field = this->template getInternal<T>(field_id);
   const FEEngine & fe_engine = internal_field.getFEEngine();
   UInt nb_data_per_quad = internal_field.getNbComponent();
 
@@ -609,6 +410,7 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::getInternalDataPerElem(
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
+template <typename T>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
     const std::string & field_id, ElementTypeMapArray<T> & internal_flat,
     const GhostType ghost_type, ElementKind element_kind) const {
@@ -659,7 +461,6 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
     }
   }
 }
-
 
 } // namespace akantu
 
