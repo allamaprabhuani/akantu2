@@ -287,6 +287,8 @@ private:
 
   template <class ConstitutiveLawsHandler> friend class ConstitutiveLaw;
 };
-
+  
 } // namespace akantu
+
+#include "constitutive_laws_handler_tmpl.hh"
 #endif /* AKANTU_CONSTITUTIVE_LAWS_HANDLER_HH */

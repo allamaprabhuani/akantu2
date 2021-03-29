@@ -46,7 +46,8 @@ namespace akantu {
 
 class ConstitutiveLawInternalHandler {
 public:
-  ConstitutiveLawInternalHandler(const ID & id) : id(id) {}
+  ConstitutiveLawInternalHandler(const ID & id, UInt dim) :
+    id(id), spatial_dimension(dim) {}
 
   template <typename T>
   inline void registerInternal(std::shared_ptr<InternalField<T>> & vect);
@@ -79,16 +80,23 @@ public:
                       GhostType ghost_type = _not_ghost);
 
 public:
-  virtual FEEngine & getFEEngine() = 0;
-  virtual UInt getSpatialDimension() = 0;
+  virtual const FEEngine & getFEEngine(const ID & id = "") const = 0;
+  virtual FEEngine & getFEEngine(const ID & id = "") = 0;
+  UInt getSpatialDimension() {return spatial_dimension; }
+  virtual const ElementTypeMapArray<UInt> & getElementFilter() const = 0;
   AKANTU_GET_MACRO(Name, name, const std::string &);
   AKANTU_GET_MACRO(ID, id, const ID &);
+
+  
 
 private:
   std::map<ID, std::shared_ptr<InternalFieldBase>> internal_vectors;
 
 protected:
   ID id;
+
+  // spatial dimension for constitutive law
+  UInt spatial_dimension;
 
   /// constitutive law name
   std::string name;
@@ -112,7 +120,7 @@ public:
 
   /// Initialize constitutive law with defaults
   ConstitutiveLaw(ConstitutiveLawsHandler & handler, const ID & id = "",
-                  ElementKind element_kind = _ek_regular);
+		  UInt spatial_dimension = _all_dimensions, ElementKind element_kind = _ek_regular);
 
   /// Destructor
   ~ConstitutiveLaw() override;
@@ -206,8 +214,10 @@ public:
   /* ------------------------------------------------------------------------
    */
 public:
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
-
+  const FEEngine & getFEEngine(const ID & id = "") const override {return handler.getFEEngine(); }
+  FEEngine & getFEEngine(const ID & id = "") override  {return handler.getFEEngine(); }
+  const ElementTypeMapArray<UInt> & getElementFilter() const override {return element_filter;}
+  
   template <typename T>
   ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
                                               ElementKind element_kind) const;
@@ -225,6 +235,7 @@ private:
   bool is_init{false};
 
 protected:
+  
   /// list of element handled by the constitutive law
   ElementTypeMapArray<UInt> element_filter;
 

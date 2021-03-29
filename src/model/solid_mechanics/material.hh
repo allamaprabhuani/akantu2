@@ -356,8 +356,6 @@ public:
   AKANTU_GET_MACRO(Rho, rho, Real);
   AKANTU_SET_MACRO(Rho, rho, Real);
 
-  AKANTU_GET_MACRO(SpatialDimension, spatial_dimension, UInt);
-
   /// return the potential energy for the subset of elements contained by the
   /// material
   Real getPotentialEnergy();

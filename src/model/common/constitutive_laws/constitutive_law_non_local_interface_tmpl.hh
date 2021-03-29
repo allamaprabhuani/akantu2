@@ -39,16 +39,16 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawParent>
-ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::ConstitutiveLawNonLocal(
+template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
+ConstitutiveLawNonLocal<dim,ConstitutiveLawNonLocalInterface,ConstitutiveLawParent>::ConstitutiveLawNonLocal(
     typename ConstitutiveLawParent::ConstitutiveLawsHandler & handler,
     const ID & id)
     : ConstitutiveLawParent(handler, id) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawParent>
-void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::
+template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, ConstitutiveLawParent>::
     insertIntegrationPointsInNeighborhoods(
         GhostType ghost_type,
         const ElementTypeMapReal & quadrature_points_coordinates) {
@@ -88,8 +88,8 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawParent>
-void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::updateNonLocalInternals(
+template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, ConstitutiveLawParent>::updateNonLocalInternals(
     ElementTypeMapReal & non_local_flattened, const ID & field_id,
     GhostType ghost_type, ElementKind kind) {
 
@@ -119,8 +119,8 @@ void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::updateNonLocalInternal
 }
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim, class ConstitutiveLawParent>
-void ConstitutiveLawNonLocal<dim, ConstitutiveLawParent>::registerNeighborhood() {
+template <UInt dim, class ConstitutiveLawNonLocalInterface, class ConstitutiveLawParent>
+void ConstitutiveLawNonLocal<dim, ConstitutiveLawNonLocalInterface, ConstitutiveLawParent>::registerNeighborhood() {
   ID name = this->getNeighborhoodName();
   this->handler.getNonLocalManager().registerNeighborhood(name, name);
 }

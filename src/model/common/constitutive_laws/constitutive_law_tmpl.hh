@@ -125,8 +125,9 @@ inline bool ConstitutiveLawInternalHandler::isInternal(
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
-    ConstitutiveLawsHandler_ & handler, const ID & id, ElementKind element_kind)
-    : ConstitutiveLawInternalHandler(id),
+	       ConstitutiveLawsHandler_ & handler, const ID & id, UInt spatial_dimension,
+	       ElementKind element_kind)
+  : ConstitutiveLawInternalHandler(id, spatial_dimension),
       Parsable(ParserType::_constitutive_law, id), handler(handler),
       element_filter("element_filter", id) {
   /// for each connectivity types allocate the element filer array of the

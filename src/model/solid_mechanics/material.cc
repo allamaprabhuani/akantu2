@@ -45,11 +45,11 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, const ID & id)
-    : ConstitutiveLaw<SolidMechanicsModel>(model, id, _ek_regular),
-      fem(model.getFEEngine()), model(model),
-      spatial_dimension(this->model.getSpatialDimension()),
-      stress("stress", *this), eigengradu("eigen_grad_u", *this),
-      gradu("grad_u", *this), green_strain("green_strain", *this),
+    : ConstitutiveLaw<SolidMechanicsModel>(
+          model, id, this->model.getSpatialDimension(), _ek_regular),
+      fem(model.getFEEngine()), model(model), stress("stress", *this),
+      eigengradu("eigen_grad_u", *this), gradu("grad_u", *this),
+      green_strain("green_strain", *this),
       piola_kirchhoff_2("piola_kirchhoff_2", *this),
       potential_energy("potential_energy", *this),
       interpolation_inverse_coordinates("interpolation inverse coordinates",
@@ -70,8 +70,8 @@ Material::Material(SolidMechanicsModel & model, const ID & id)
 /* -------------------------------------------------------------------------- */
 Material::Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
                    FEEngine & fe_engine, const ID & id)
-    : ConstitutiveLaw<SolidMechanicsModel>(model, id, _ek_regular),
-      fem(fe_engine), model(model), spatial_dimension(dim),
+    : ConstitutiveLaw<SolidMechanicsModel>(model, id, dim, _ek_regular),
+      fem(fe_engine), model(model),
       stress("stress", *this, dim, fe_engine, this->element_filter),
       eigengradu("eigen_grad_u", *this, dim, fe_engine, this->element_filter),
       gradu("gradu", *this, dim, fe_engine, this->element_filter),
