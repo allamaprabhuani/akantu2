@@ -7,7 +7,7 @@
  * @date creation: Wed Nov 13 2013
  * @date last modification: Fri Apr 02 2021
  *
- * @brief  Material internal properties
+ * @brief  Constitutive law internal properties
  *
  *
  * @section LICENSE
@@ -31,7 +31,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "material.hh"
+#include "constitutive_law.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_INTERNAL_FIELD_TMPL_HH_
@@ -40,37 +40,40 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(const ID & id,
-                                                  Material & material)
-    : ElementTypeMapArray<T>(id, material.getID()), material(material),
-      fem(&(material.getModel().getFEEngine())),
-      element_filter(material.getElementFilter()),
-      spatial_dimension(material.getModel().getSpatialDimension()) {}
+template <class ConstitutiveLaw_, typename T>
+InternalFieldTmpl<ConstitutiveLaw_, T>::InternalField(
+    const ID & id, ConstitutiveLaw_ & constitutive_law)
+    : ElementTypeMapArray<T>(id, constitutive_law.getID()),
+      constitutive_law(constitutive_law),
+      fem(&(constitutive_law.getHandler().getFEEngine())),
+      element_filter(constitutive_law.getElementFilter()),
+      spatial_dimension(constitutive_law.getHandler().getSpatialDimension()) {}
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, Material & material, FEEngine & fem,
+template <class ConstitutiveLaw_, typename T>
+InternalField<ConstitutiveLaw_, T>::InternalField(
+    const ID & id, ConstitutiveLaw_ & constitutive_law, FEEngine & fem,
     const ElementTypeMapArray<UInt> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()), material(material),
-      fem(&fem), element_filter(element_filter),
-      spatial_dimension(material.getSpatialDimension()) {}
+    : ElementTypeMapArray<T>(id, constitutive_law.getID()),
+      constitutive_law(constitutive_law), fem(&fem),
+      element_filter(element_filter),
+      spatial_dimension(constitutive_law.getSpatialDimension()) {}
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, Material & material, UInt dim, FEEngine & fem,
-    const ElementTypeMapArray<UInt> & element_filter)
-    : ElementTypeMapArray<T>(id, material.getID()), material(material),
-      fem(&fem), element_filter(element_filter), spatial_dimension(dim) {}
+template <class ConstitutiveLaw_, typename T>
+InternalField<ConstitutiveLaw_, T>::InternalField(
+    const ID & id, ConstitutiveLaw_ & constitutive_law, UInt dim,
+    FEEngine & fem, const ElementTypeMapArray<UInt> & element_filter)
+    : ElementTypeMapArray<T>(id, constitutive_law.getID()),
+      constitutive_law(constitutive_law), fem(&fem),
+      element_filter(element_filter), spatial_dimension(dim) {}
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::InternalFieldTmpl(
-    const ID & id, const InternalFieldTmpl<Material, T> & other)
-    : ElementTypeMapArray<T>(id, other.material.getID()),
-      material(other.material), fem(other.fem),
+template <class ConstitutiveLaw_, typename T>
+InternalField<ConstitutiveLaw_, T>::InternalField(
+    const ID & id, const InternalField<T> & other)
+    : ElementTypeMapArray<T>(id, other.constitutive_law.getID()),
+      constitutive_law(other.constitutive_law), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
       spatial_dimension(other.spatial_dimension),
       element_kind(other.element_kind), nb_component(other.nb_component) {
@@ -81,43 +84,44 @@ InternalFieldTmpl<Material, T>::InternalFieldTmpl(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-InternalFieldTmpl<Material, T>::~InternalFieldTmpl() {
+template <class ConstitutiveLaw_, typename T>
+InternalFieldTmpl<ConstitutiveLaw_, T>::~InternalFieldTmpl() {
   if (this->is_init) {
-    this->material.unregisterInternal(*this);
+    this->constitutive_law.unregisterInternal(*this);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setFEEngine(FEEngine & fe_engine) {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::setFEEngine(FEEngine & fe_engine) {
   this->fem = &fe_engine;
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setElementKind(ElementKind element_kind) {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::setElementKind(
+    ElementKind element_kind) {
   this->element_kind = element_kind;
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::initialize(UInt nb_component) {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::initialize(UInt nb_component) {
   internalInitialize(nb_component);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::initializeHistory() {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::initializeHistory() {
   if (!previous_values) {
-    previous_values = std::make_unique<InternalFieldTmpl<Material, T>>(
+    previous_values = std::make_unique<InternalFieldTmpl<ConstitutiveLaw_, T>>(
         "previous_" + this->getID(), *this);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::resize() {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::resize() {
   if (!this->is_init) {
     return;
   }
@@ -149,15 +153,15 @@ void InternalFieldTmpl<Material, T>::resize() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setDefaultValue(const T & value) {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::setDefaultValue(const T & value) {
   this->default_value = value;
   this->reset();
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::reset() {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::reset() {
   for (auto ghost_type : ghost_types) {
     for (const auto & type : this->elementTypes(ghost_type)) {
       Array<T> & vect = (*this)(type, ghost_type);
@@ -169,8 +173,9 @@ void InternalFieldTmpl<Material, T>::reset() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::internalInitialize(UInt nb_component) {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::internalInitialize(
+    UInt nb_component) {
   if (!this->is_init) {
     this->nb_component = nb_component;
 
@@ -189,7 +194,7 @@ void InternalFieldTmpl<Material, T>::internalInitialize(UInt nb_component) {
       }
     }
 
-    this->material.registerInternal(*this);
+    this->constitutive_law.registerInternal(*this);
     this->is_init = true;
   }
   this->reset();
@@ -200,16 +205,17 @@ void InternalFieldTmpl<Material, T>::internalInitialize(UInt nb_component) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::setArrayValues(T * begin, T * end) {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::setArrayValues(T * begin,
+                                                            T * end) {
   for (; begin < end; ++begin) {
     *begin = this->default_value;
   }
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::saveCurrentValues() {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::saveCurrentValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
@@ -227,8 +233,8 @@ void InternalFieldTmpl<Material, T>::saveCurrentValues() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::restorePreviousValues() {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::restorePreviousValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
@@ -246,8 +252,8 @@ void InternalFieldTmpl<Material, T>::restorePreviousValues() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::removeIntegrationPoints(
     const ElementTypeMapArray<UInt> & new_numbering) {
   for (auto ghost_type : ghost_types) {
     for (auto type : new_numbering.elementTypes(_all_dimensions, ghost_type,
@@ -296,9 +302,10 @@ void InternalFieldTmpl<Material, T>::removeIntegrationPoints(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-void InternalFieldTmpl<Material, T>::printself(std::ostream & stream, int indent
-                                               [[gnu::unused]]) const {
+template <class ConstitutiveLaw_, typename T>
+void InternalFieldTmpl<ConstitutiveLaw_, T>::printself(std::ostream & stream,
+                                                       int indent
+                                                       [[gnu::unused]]) const {
   stream << "InternalField [ " << this->getID();
 #if !defined(AKANTU_NDEBUG)
   if (AKANTU_DEBUG_TEST(dblDump)) {
@@ -325,8 +332,8 @@ ParameterTyped<InternalField<Real>>::setAuto(const ParserParameter & in_param) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class Material, typename T>
-inline InternalFieldTmpl<Material, T>::operator T() const {
+template <class ConstitutiveLaw_, typename T>
+inline InternalFieldTmpl<ConstitutiveLaw_, T>::operator T() const {
   return default_value;
 }
 

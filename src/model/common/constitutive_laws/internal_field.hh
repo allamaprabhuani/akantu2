@@ -7,7 +7,7 @@
  * @date creation: Fri Jun 18 2010
  * @date last modification: Fri Mar 26 2021
  *
- * @brief  Material internal properties
+ * @brief  Constitutive law internal properties
  *
  *
  * @section LICENSE
@@ -40,35 +40,36 @@
 
 namespace akantu {
 
-class Material;
+class ConstitutiveLaw;
 class FEEngine;
 
 /**
- * class for the internal fields of materials
+ * class for the internal fields of constitutive law
  * to store values for each quadrature
  */
-template <class Material_, typename T>
+template <class ConstitutiveLaw_, typename T>
 class InternalFieldTmpl : public ElementTypeMapArray<T> {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  using Material = Material_;
+  using ConstitutiveLaw = ConstitutiveLaw_;
 
-  InternalFieldTmpl(const ID & id, Material & material);
+  InternalFieldTmpl(const ID & id, ConstitutiveLaw & constitutive_law);
   ~InternalFieldTmpl() override;
 
   /// This constructor is only here to let cohesive elements compile
-  InternalFieldTmpl(const ID & id, Material & material, FEEngine & fem,
+  InternalFieldTmpl(const ID & id, ConstitutiveLaw & constitutive_law,
+                    FEEngine & fem,
                     const ElementTypeMapArray<UInt> & element_filter);
 
   /// More general constructor
-  InternalFieldTmpl(const ID & id, Material & material, UInt dim,
+  InternalFieldTmpl(const ID & id, ConstitutiveLaw & constitutive_law, UInt dim,
                     FEEngine & fem,
                     const ElementTypeMapArray<UInt> & element_filter);
 
   InternalFieldTmpl(const ID & id,
-                    const InternalFieldTmpl<Material, T> & other);
+                    const InternalFieldTmpl<ConstitutiveLaw_, T> & other);
 
   InternalFieldTmpl operator=(const InternalFieldTmpl &) = delete;
 
@@ -76,7 +77,7 @@ public:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  /// function to reset the FEEngine for the internal field
+  /// function to reset the FEEngine for the internal fieldx
   virtual void setFEEngine(FEEngine & fe_engine);
 
   /// function to reset the element kind for the internal
@@ -175,14 +176,14 @@ public:
     return this->previous_values->operator()(type, ghost_type);
   }
 
-  virtual InternalFieldTmpl<Material, T> & previous() {
+  virtual InternalFieldTmpl<ConstitutiveLaw_, T> & previous() {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
     return *(this->previous_values);
   }
 
-  virtual const InternalFieldTmpl<Material, T> & previous() const {
+  virtual const InternalFieldTmpl<ConstitutiveLaw_, T> & previous() const {
     AKANTU_DEBUG_ASSERT(previous_values != nullptr,
                         "The history of the internal "
                             << this->getID() << " has not been activated");
@@ -207,7 +208,7 @@ public:
   /* ------------------------------------------------------------------------ */
 protected:
   /// the material for which this is an internal parameter
-  Material & material;
+  ConstitutiveLaw & material;
 
   /// the fem containing the mesh and the element informations
   FEEngine * fem{nullptr};
@@ -231,18 +232,20 @@ protected:
   bool is_init{false};
 
   /// previous values
-  std::unique_ptr<InternalFieldTmpl<Material, T>> previous_values;
+  std::unique_ptr<InternalFieldTmpl<ConstitutiveLaw_, T>> previous_values;
 };
 
 /// standard output stream operator
-template <class Material, typename T>
-inline std::ostream & operator<<(std::ostream & stream,
-                                 const InternalFieldTmpl<Material, T> & _this) {
+template <class ConstitutiveLaw_, typename T>
+inline std::ostream &
+operator<<(std::ostream & stream,
+           const InternalFieldTmpl<ConstitutiveLaw_, T> & _this) {
   _this.printself(stream);
   return stream;
 }
 
-template <typename T> using InternalField = InternalFieldTmpl<Material, T>;
+template <typename T>
+using InternalField = InternalFieldTmpl<ConstitutiveLaw_, T>;
 
 } // namespace akantu
 

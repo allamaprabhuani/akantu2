@@ -87,7 +87,6 @@ using MaterialFactory =
 class Material
     : public ConstitutiveLaw<SolidMechanicsModel> public DataAccessor<Element>,
       public Parsable,
-      public MeshEventHandler,
       protected SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -350,26 +349,6 @@ public:
                                       CommunicationBuffer & buffer,
                                       const Array<Element> & elements,
                                       const ID & fem_id = ID());
-
-  /* ------------------------------------------------------------------------ */
-  /* MeshEventHandler inherited members                                       */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
-  void onNodesAdded(const Array<UInt> & /*unused*/,
-                    const NewNodesEvent & /*unused*/) override{};
-  void onNodesRemoved(const Array<UInt> & /*unused*/,
-                      const Array<UInt> & /*unused*/,
-                      const RemovedNodesEvent & /*unused*/) override{};
-  void onElementsAdded(const Array<Element> & element_list,
-                       const NewElementsEvent & event) override;
-  void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
-                         const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> & /*unused*/,
-                         const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
-                         const ChangedElementsEvent & /*unused*/) override{};
 
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */

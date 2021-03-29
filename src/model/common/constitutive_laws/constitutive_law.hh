@@ -45,7 +45,9 @@
 namespace akantu {
 
 template <class ConstitutiveLawsHandler_>
-class ConstitutiveLaw : public DataAccessor<Element>, public Parsable {
+class ConstitutiveLaw : public DataAccessor<Element>,
+			public MeshEventHandler,
+			public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -111,8 +113,32 @@ protected:
   /// modifiable parameters are modified
   virtual void updateInternalParameters() {}
 
+  /// converts global element to local element
+  inline Element convertToLocalElement(const Element & global_element) const;
+  /// converts local element to global element
+  inline Element convertToGlobalElement(const Element & local_element) const;
+
+
+  /* ------------------------------------------------------------------------ */
+  /* MeshEventHandler inherited members                                       */
+  /* ------------------------------------------------------------------------ */
 public:
-  virtual void onElementsAdded(const Array<Element> & /*unused*/,
+  /* ------------------------------------------------------------------------ */
+  virtual void
+  onNodesAdded(const Array<UInt> & /*unused*/,
+			    const NewNodesEvent & /*unused*/) override{};
+  virtual void
+  onNodesRemoved(const Array<UInt> & /*unused*/,
+			      const Array<UInt> & /*unused*/,
+			      const RemovedNodesEvent & /*unused*/) override{};
+  virtual void
+  onElementsChanged(const Array<Element> & /*unused*/,
+				 const Array<Element> & /*unused*/,
+				 const ElementTypeMapArray<UInt> & /*unused*/,
+				 const ChangedElementsEvent & /*unused*/) override{};
+  
+  virtual void
+  onElementsAdded(const Array<Element> & /*unused*/,
                                const NewElementsEvent & /*unused*/);
 
   virtual void

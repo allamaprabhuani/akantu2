@@ -302,6 +302,42 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
+inline Element
+ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToLocalElement(const Element & global_element) const {
+  UInt ge = global_element.element;
+#ifndef AKANTU_NDEBUG
+  UInt model_law_index = handler.getConstitutiveLawByElement(
+      global_element.type, global_element.ghost_type)(ge);
+
+  UInt law_index = handler.getConstitutiveLawIndex(this->name);
+  AKANTU_DEBUG_ASSERT(model_law_index == law_index,
+                      "Conversion of a global  element in a local element for "
+                      "the wrong constitutive law "
+                          << this->name << std::endl);
+#endif
+  UInt le = handler.getConstitutiveLawLocalNumbering(
+      global_element.type, global_element.ghost_type)(ge);
+
+  Element tmp_quad{global_element.type, le, global_element.ghost_type};
+  return tmp_quad;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+inline Element
+ConstitutiveLaw<ConstitutiveLawsHandler_>::convertToGlobalElement(const Element & local_element) const {
+  UInt le = local_element.element;
+  UInt ge =
+      this->element_filter(local_element.type, local_element.ghost_type)(le);
+
+  Element tmp_quad{local_element.type, ge, local_element.ghost_type};
+  return tmp_quad;
+}
+  
+  
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 inline UInt ConstitutiveLaw<ConstitutiveLawsHandler_>::addElement(
     ElementType type, UInt element, GhostType ghost_type) {
   Array<UInt> & el_filter = this->element_filter(type, ghost_type);
