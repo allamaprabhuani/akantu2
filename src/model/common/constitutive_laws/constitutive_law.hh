@@ -30,9 +30,9 @@
  */
 /* -------------------------------------------------------------------------- */
 #include "data_accessor.hh"
+#include "mesh_events.hh"
 #include "parsable.hh"
 #include "parser.hh"
-#include "mesh_events.hh"
 /* -------------------------------------------------------------------------- */
 #include "internal_field.hh"
 #include "random_internal_field.hh"
@@ -71,11 +71,13 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T> void registerInternal(InternalField<T> & /*vect*/) {
+  template <typename T, int fps = 0>
+  void registerInternal(InternalField<T> & /*vect*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
-  template <typename T> void unregisterInternal(InternalField<T> & /*vect*/) {
+  template <typename T, int fps = 0>
+  void unregisterInternal(InternalField<T> & /*vect*/) {
     AKANTU_TO_IMPLEMENT();
   }
 
@@ -113,17 +115,29 @@ public:
   virtual void onElementsAdded(const Array<Element> & /*unused*/,
                                const NewElementsEvent & /*unused*/);
 
-  virtual void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
-                         const RemovedElementsEvent & event);
+  virtual void
+  onElementsRemoved(const Array<Element> & element_list,
+                    const ElementTypeMapArray<UInt> & new_numbering,
+                    const RemovedElementsEvent & event);
 
 public:
-  template <typename T>
-  const InternalField<T> & getInternal(const ID & id) const;
-  template <typename T> InternalField<T> & getInternal(const ID & id);
+  template <typename T, int fps = 0>
+  const InternalField<T> & getInternal(const ID & /*id*/) const {
+    AKANTU_TO_IMPLEMENT();
+    return NULL;
+  }
 
-  template <typename T>
-  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+  template <typename T, int fps = 0>
+  InternalField<T> & getInternal(const ID & /*id*/) {
+    AKANTU_TO_IMPLEMENT();
+    return NULL;
+  }
+
+  template <typename T, int fps = 0>
+  inline bool isInternal(const ID & /*id*/,
+                         const ElementKind & /*element_kind*/) const {
+    return false;
+  }
 
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;

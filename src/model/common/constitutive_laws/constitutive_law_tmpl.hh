@@ -344,69 +344,59 @@ ConstitutiveLaw<ConstitutiveLawsHandler_>::setParam(const ID & param, T value) {
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-template <>
-inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<Real>(
+template <int fps>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<Real, fps>(
     InternalField<Real> & vect) {
   internal_vectors_real[vect.getID()] = &vect;
 }
 
 template <class ConstitutiveLawsHandler_>
-template <>
-inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<UInt>(
+template <int fps>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<UInt, fps>(
     InternalField<UInt> & vect) {
   internal_vectors_uint[vect.getID()] = &vect;
 }
 
 template <class ConstitutiveLawsHandler_>
-template <>
-inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<bool>(
+template <int fps>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::registerInternal<bool, fps>(
     InternalField<bool> & vect) {
   internal_vectors_bool[vect.getID()] = &vect;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-template <>
-inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<Real>(
+template <int fps>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<Real, fps>(
     InternalField<Real> & vect) {
   internal_vectors_real.erase(vect.getID());
 }
 
 template <class ConstitutiveLawsHandler_>
-template <>
-inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<UInt>(
+template <int fps>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<UInt, fps>(
     InternalField<UInt> & vect) {
   internal_vectors_uint.erase(vect.getID());
 }
 
 template <class ConstitutiveLawsHandler_>
-template <>
-inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<bool>(
+template <int fps>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::unregisterInternal<bool, fps>(
     InternalField<bool> & vect) {
   internal_vectors_bool.erase(vect.getID());
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-template <typename T>
-const InternalField<T> & ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
-    const ID & /*int_id*/) const {
-  AKANTU_TO_IMPLEMENT();
-  return NULL;
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-InternalField<T> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(const ID & /*int_id*/) {
-  AKANTU_TO_IMPLEMENT();
-  return NULL;
-}
-
-/* -------------------------------------------------------------------------- */
-template <>
+template <int fps>
 const InternalField<Real> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<Real, fps>(
     const ID & int_id) const {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
@@ -419,9 +409,11 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
 }
 
 /* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
 template <>
-InternalField<Real> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(const ID & int_id) {
+InternalField<Real, fps> &
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<Real, fps>(
+    const ID & int_id) {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
@@ -433,9 +425,10 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(const ID & int_id) {
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
+template <class ConstitutiveLawsHandler_>
+template <int fps>
 const InternalField<UInt> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<UInt, fps>(
     const ID & int_id) const {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
@@ -448,9 +441,11 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <>
+template <class ConstitutiveLawsHandler_>
+template <int fps>
 InternalField<UInt> &
-ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(const ID & int_id) {
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<UInt, fps>(
+    const ID & int_id) {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
     AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
@@ -463,19 +458,66 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal(const ID & int_id) {
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal(
-    const ID & /*id*/, ElementKind /*element_kind*/) const {
-  AKANTU_TO_IMPLEMENT();
+template <int fps>
+const InternalField<bool> &
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<bool, fps>(
+    const ID & int_id) const {
+  auto it = internal_vectors_bool.find(getID() + ":" + int_id);
+  if (it == internal_vectors_bool.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
 }
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
-template <>
-inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<Real>(
+template <int fps>
+InternalField<bool> &
+ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<bool, fps>(
+    const ID & int_id) {
+  auto it = internal_vectors_bool.find(getID() + ":" + int_id);
+  if (it == internal_vectors_bool.end()) {
+    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+                                            << ") does not contain an internal "
+                                            << int_id << " ("
+                                            << (getID() + ":" + int_id) << ")");
+  }
+  return *it->second;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <int fps>
+inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<Real, fps>(
     const ID & id, ElementKind element_kind) const {
   auto internal_array = internal_vectors_real.find(this->getID() + ":" + id);
 
   return not(internal_array == internal_vectors_real.end() ||
+             internal_array->second->getElementKind() != element_kind);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <int fps>
+inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<UInt, fps>(
+    const ID & id, ElementKind element_kind) const {
+  auto internal_array = internal_vectors_uint.find(this->getID() + ":" + id);
+
+  return not(internal_array == internal_vectors_uint.end() ||
+             internal_array->second->getElementKind() != element_kind);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <int fps>
+inline bool ConstitutiveLaw<ConstitutiveLawsHandler_>::isInternal<bool, fps>(
+    const ID & id, ElementKind element_kind) const {
+  auto internal_array = internal_vectors_bool.find(this->getID() + ":" + id);
+
+  return not(internal_array == internal_vectors_bool.end() ||
              internal_array->second->getElementKind() != element_kind);
 }
 

@@ -333,43 +333,43 @@ public:
   AKANTU_GET_MACRO_DEREF_PTR(BlockedDOFs, blocked_dofs);
 
   /// get an iterable on the materials
-  inline decltype(auto) getMaterials()  {
-    this->getConstitutiveLaws();
-  }
+  inline decltype(auto) getMaterials() { return this->getConstitutiveLaws(); }
 
   /// get an iterable on the materials
   inline decltype(auto) getMaterials() const {
-    this->getConstitutiveLaws();
+    return this->getConstitutiveLaws();
   }
 
   /// get a particular material (by numerical material index)
   inline Material & getMaterial(UInt mat_index) {
-    this->getConstitutiveLaw(mat_index);
+    return this->getConstitutiveLaw(mat_index);
   }
 
   /// get a particular material (by numerical material index)
   inline const Material & getMaterial(UInt mat_index) const {
-    this->getConstitutiveLaw(mat_index);
+    return this->getConstitutiveLaw(mat_index);
   }
 
   /// get a particular material (by material name)
-  inline Material & getMaterial(const std::string & name)  {
-    this->getConstitutiveLaw(name);
+  inline Material & getMaterial(const std::string & name) {
+    return this->getConstitutiveLaw(name);
   }
 
   /// get a particular material (by material name)
-  inline const Material & getMaterial(const std::string & name) const  {
-    this->getConstitutiveLaw(name);
+  inline const Material & getMaterial(const std::string & name) const {
+    return this->getConstitutiveLaw(name);
   }
 
   /// get a particular material (by material name)
   inline const Material & getMaterial(const Element & element) const;
 
   /// get a particular material id from is name
-  inline UInt getMaterialIndex(const std::string & name) const;
+  inline UInt getMaterialIndex(const std::string & name) const {
+    return this->getConstitutiveLawIndex(name);
+  }
 
   /// give the number of materials
-  inline UInt getNbMaterials() const { return getNbConstitutiveLaws(); }
+  inline UInt getNbMaterials() const { return this->getNbConstitutiveLaws(); }
 
   /// compute the stable time step
   Real getStableTimeStep();

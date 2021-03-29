@@ -418,13 +418,6 @@ public:
 
   bool isNonLocal() const { return is_non_local; }
 
-  template <typename T>
-  const Array<T> & getArray(const ID & id, ElementType type,
-                            GhostType ghost_type = _not_ghost) const;
-  template <typename T>
-  Array<T> & getArray(const ID & id, ElementType type,
-                      GhostType ghost_type = _not_ghost);
-
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
 
