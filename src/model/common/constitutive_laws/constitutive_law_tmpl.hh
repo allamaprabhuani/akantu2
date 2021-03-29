@@ -300,6 +300,28 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
   }
 }
 
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <typename T>
+inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::packElementDataHelper(
+    const ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
+    const Array<Element> & elements, const ID & fem_id) const {
+  DataAccessor::packElementalDataHelper<T>(data_to_pack, buffer, elements, true,
+                                           handler.getFEEngine(fem_id));
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <typename T>
+inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::unpackElementDataHelper(
+    ElementTypeMapArray<T> & data_to_unpack, CommunicationBuffer & buffer,
+    const Array<Element> & elements, const ID & fem_id) {
+  DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements,
+                                             true, handler.getFEEngine(fem_id));
+}  
+
+
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 inline Element
@@ -436,7 +458,7 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<Real, fps>(
     const ID & int_id) const {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
                                             << (getID() + ":" + int_id) << ")");
@@ -452,7 +474,7 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<Real, fps>(
     const ID & int_id) {
   auto it = internal_vectors_real.find(getID() + ":" + int_id);
   if (it == internal_vectors_real.end()) {
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
                                             << (getID() + ":" + int_id) << ")");
@@ -468,7 +490,7 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<UInt, fps>(
     const ID & int_id) const {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
                                             << (getID() + ":" + int_id) << ")");
@@ -484,7 +506,7 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<UInt, fps>(
     const ID & int_id) {
   auto it = internal_vectors_uint.find(getID() + ":" + int_id);
   if (it == internal_vectors_uint.end()) {
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
                                             << (getID() + ":" + int_id) << ")");
@@ -500,7 +522,7 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<bool, fps>(
     const ID & int_id) const {
   auto it = internal_vectors_bool.find(getID() + ":" + int_id);
   if (it == internal_vectors_bool.end()) {
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
                                             << (getID() + ":" + int_id) << ")");
@@ -516,7 +538,7 @@ ConstituitveLaw<ConstitutiveLawsHandler_>::getInternal<bool, fps>(
     const ID & int_id) {
   auto it = internal_vectors_bool.find(getID() + ":" + int_id);
   if (it == internal_vectors_bool.end()) {
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
+    AKANTU_SILENT_EXCEPTION("The constitutive law " << name << "(" << getID()
                                             << ") does not contain an internal "
                                             << int_id << " ("
                                             << (getID() + ":" + int_id) << ")");
@@ -637,6 +659,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::flattenInternal(
     }
   }
 }
+
 
 } // namespace akantu
 

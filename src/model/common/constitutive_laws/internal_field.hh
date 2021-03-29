@@ -207,8 +207,8 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  /// the material for which this is an internal parameter
-  ConstitutiveLaw & material;
+  /// the constitutive_law for which this is an internal parameter
+  ConstitutiveLaw & constitutive_law;
 
   /// the fem containing the mesh and the element informations
   FEEngine * fem{nullptr};

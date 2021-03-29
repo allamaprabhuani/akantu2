@@ -33,6 +33,7 @@
 /* -------------------------------------------------------------------------- */
 #include "element.hh"
 #include "mesh.hh"
+#include "constitutive_law_selector.hh"
 /* -------------------------------------------------------------------------- */
 #include <memory>
 /* -------------------------------------------------------------------------- */
@@ -45,7 +46,7 @@ namespace akantu {
 
 class SolidMechanicsModel;
 
-using DefaultMaterialSelector = DedfaultConstitutiveLawSelector;
+using DefaultMaterialSelector = DefaultConstitutiveLawSelector;
 /* -------------------------------------------------------------------------- */
 /**
  * Use elemental data to assign materials

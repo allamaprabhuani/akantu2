@@ -215,24 +215,6 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-inline void Material::packElementDataHelper(
-    const ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & elements, const ID & fem_id) const {
-  DataAccessor::packElementalDataHelper<T>(data_to_pack, buffer, elements, true,
-                                           model.getFEEngine(fem_id));
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
-inline void Material::unpackElementDataHelper(
-    ElementTypeMapArray<T> & data_to_unpack, CommunicationBuffer & buffer,
-    const Array<Element> & elements, const ID & fem_id) {
-  DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements,
-                                             true, model.getFEEngine(fem_id));
-}
-
-/* -------------------------------------------------------------------------- */
-template <typename T>
 void Material::inflateInternal(const std::string & field_id,
                                const ElementTypeMapArray<T> & field,
                                GhostType ghost_type, ElementKind element_kind) {

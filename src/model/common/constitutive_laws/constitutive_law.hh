@@ -120,10 +120,26 @@ protected:
 
 
   /* ------------------------------------------------------------------------ */
+  /* DataAccessor inherited members                                           */
+  /* ------------------------------------------------------------------------ */
+public:  
+  template <typename T>
+  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
+                                    CommunicationBuffer & buffer,
+                                    const Array<Element> & elements,
+                                    const ID & fem_id = ID()) const;
+
+  template <typename T>
+  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
+                                      CommunicationBuffer & buffer,
+                                      const Array<Element> & elements,
+                                      const ID & fem_id = ID());
+
+
+  /* ------------------------------------------------------------------------ */
   /* MeshEventHandler inherited members                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  /* ------------------------------------------------------------------------ */
   virtual void
   onNodesAdded(const Array<UInt> & /*unused*/,
 			    const NewNodesEvent & /*unused*/) override{};

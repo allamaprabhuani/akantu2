@@ -338,18 +338,6 @@ public:
                          const Array<Element> & elements,
                          const SynchronizationTag & tag) override;
 
-  template <typename T>
-  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
-                                    CommunicationBuffer & buffer,
-                                    const Array<Element> & elements,
-                                    const ID & fem_id = ID()) const;
-
-  template <typename T>
-  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
-                                      CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      const ID & fem_id = ID());
-
   /* ------------------------------------------------------------------------ */
   /* SolidMechanicsModelEventHandler inherited members                        */
   /* ------------------------------------------------------------------------ */
