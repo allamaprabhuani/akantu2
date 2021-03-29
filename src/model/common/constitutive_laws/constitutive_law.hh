@@ -44,10 +44,61 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
+class ConstitutiveLawInternalHandler {
+public:
+  ConstitutiveLawInternalHandler(const ID & id) : id(id) {}
+
+  template <typename T>
+  inline void registerInternal(std::shared_ptr<InternalField<T>> & vect);
+
+  inline void unregisterInternal(const ID & id);
+
+  /// resize the internals arrrays
+  virtual void resizeInternals();
+
+public:
+  /// save the internals in the previous_state if needed
+  virtual void savePreviousState();
+
+  /// restore the internals from previous_state if needed
+  virtual void restorePreviousState();
+
+  template <typename T>
+  const InternalField<T> & getInternal(const ID & id) const;
+
+  template <typename T> InternalField<T> & getInternal(const ID & id);
+
+  template <typename T>
+  inline bool isInternal(const ID & id, const ElementKind & element_kind) const;
+
+  template <typename T>
+  const Array<T> & getArray(const ID & id, ElementType type,
+                            GhostType ghost_type = _not_ghost) const;
+  template <typename T>
+  Array<T> & getArray(const ID & id, ElementType type,
+                      GhostType ghost_type = _not_ghost);
+
+public:
+  virtual FEEngine & getFEEngine() = 0;
+  virtual UInt getSpatialDimension() = 0;
+  AKANTU_GET_MACRO(Name, name, const std::string &);
+  AKANTU_GET_MACRO(ID, id, const ID &);
+
+private:
+  std::map<ID, std::shared_ptr<InternalFieldBase>> internal_vectors;
+
+protected:
+  ID id;
+
+  /// constitutive law name
+  std::string name;
+};
+
 template <class ConstitutiveLawsHandler_>
-class ConstitutiveLaw : public DataAccessor<Element>,
-			public MeshEventHandler,
-			public Parsable {
+class ConstitutiveLaw : public ConstitutiveLawInternalHandler,
+                        public DataAccessor<Element>,
+                        public MeshEventHandler,
+                        public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -73,19 +124,8 @@ protected:
   /* Methods                                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  template <typename T>
-  inline void registerInternal(std::shared_ptr<InternalField<T>> & vect);
-
-  inline void unregisterInternal(const ID & id);
-
   /// initialize the constitutive law computed parameter
   virtual void initConstitutiveLaw();
-
-  /// save the internals in the previous_state if needed
-  virtual void savePreviousState();
-
-  /// restore the internals from previous_state if needed
-  virtual void restorePreviousState();
 
   /// add an element to the local mesh filter
   inline UInt addElement(ElementType type, UInt element, GhostType ghost_type);
@@ -101,9 +141,6 @@ public:
   void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
-  /// resize the internals arrrays
-  virtual void resizeInternals();
-
   /// function called to update the internal parameters when the
   /// modifiable parameters are modified
   virtual void updateInternalParameters() {}
@@ -113,11 +150,10 @@ protected:
   /// converts local element to global element
   inline Element convertToGlobalElement(const Element & local_element) const;
 
-
   /* ------------------------------------------------------------------------ */
   /* DataAccessor inherited members                                           */
   /* ------------------------------------------------------------------------ */
-public:  
+public:
   template <typename T>
   inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
                                     CommunicationBuffer & buffer,
@@ -130,26 +166,23 @@ public:
                                       const Array<Element> & elements,
                                       const ID & fem_id = ID());
 
-
   /* ------------------------------------------------------------------------ */
   /* MeshEventHandler inherited members                                       */
   /* ------------------------------------------------------------------------ */
 public:
-  virtual void
-  onNodesAdded(const Array<UInt> & /*unused*/,
-			    const NewNodesEvent & /*unused*/) override{};
-  virtual void
-  onNodesRemoved(const Array<UInt> & /*unused*/,
-			      const Array<UInt> & /*unused*/,
-			      const RemovedNodesEvent & /*unused*/) override{};
+  /* ------------------------------------------------------------------------ */
+  virtual void onNodesAdded(const Array<UInt> & /*unused*/,
+                            const NewNodesEvent & /*unused*/) override{};
+  virtual void onNodesRemoved(const Array<UInt> & /*unused*/,
+                              const Array<UInt> & /*unused*/,
+                              const RemovedNodesEvent & /*unused*/) override{};
   virtual void
   onElementsChanged(const Array<Element> & /*unused*/,
-				 const Array<Element> & /*unused*/,
-				 const ElementTypeMapArray<UInt> & /*unused*/,
-				 const ChangedElementsEvent & /*unused*/) override{};
-  
-  virtual void
-  onElementsAdded(const Array<Element> & /*unused*/,
+                    const Array<Element> & /*unused*/,
+                    const ElementTypeMapArray<UInt> & /*unused*/,
+                    const ChangedElementsEvent & /*unused*/) override{};
+
+  virtual void onElementsAdded(const Array<Element> & /*unused*/,
                                const NewElementsEvent & /*unused*/);
 
   virtual void
@@ -158,51 +191,6 @@ public:
                     const RemovedElementsEvent & event);
 
 public:
-  template <typename T>
-  const InternalField<T> & getInternal(const ID & id) const {
-    auto it = internal_vectors.find(getID() + ":" + id);
-    if (it != internal_vectors.end() and
-        aka::is_of_type<InternalField<T>>(*it->second)) {
-      return aka::as_type<InternalField<T>>(*it->second);
-    }
-
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << id << " ("
-                                            << (getID() + ":" + id) << ")");
-  }
-
-  template <typename T> InternalField<T> & getInternal(const ID & id) {
-    auto it = internal_vectors.find(getID() + ":" + id);
-    if (it != internal_vectors.end() and
-        aka::is_of_type<InternalField<T>>(*it->second)) {
-      return aka::as_type<InternalField<T>>(*it->second);
-    }
-
-    AKANTU_SILENT_EXCEPTION("The material " << name << "(" << getID()
-                                            << ") does not contain an internal "
-                                            << id << " ("
-                                            << (getID() + ":" + id) << ")");
-  }
-
-  template <typename T>
-  inline bool isInternal(const ID & id,
-                         const ElementKind & element_kind) const {
-    auto it = internal_vectors.find(this->getID() + ":" + id);
-
-    return (it != internal_vectors.end() and
-            aka::is_of_type<InternalField<T>>(*it->second) and
-            aka::as_type<InternalField<T>>(*it->second).getElementKind() !=
-                element_kind);
-  }
-
-  template <typename T>
-  const Array<T> & getArray(const ID & id, ElementType type,
-                            GhostType ghost_type = _not_ghost) const;
-  template <typename T>
-  Array<T> & getArray(const ID & id, ElementType type,
-                      GhostType ghost_type = _not_ghost);
-
   template <typename T> inline void setParam(const ID & param, T value);
   inline const Parameter & getParam(const ID & param) const;
 
@@ -218,10 +206,6 @@ public:
   /* ------------------------------------------------------------------------
    */
 public:
-  AKANTU_GET_MACRO(Name, name, const std::string &);
-
-  AKANTU_GET_MACRO(ID, id, const ID &);
-
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
 
   template <typename T>
@@ -240,14 +224,7 @@ private:
   /// boolean to know if the constitutive law has been initialized
   bool is_init{false};
 
-  std::map<ID, std::shared_ptr<InternalFieldBase>> internal_vectors;
-
 protected:
-  ID id;
-
-  /// constitutive law name
-  std::string name;
-
   /// list of element handled by the constitutive law
   ElementTypeMapArray<UInt> element_filter;
 

@@ -45,7 +45,7 @@ InternalFieldTmpl<ConstitutiveLaw_, T>::InternalField(
     const ID & id, ConstitutiveLaw_ & constitutive_law)
     : ElementTypeMapArray<T>(id, constitutive_law.getID()),
       constitutive_law(constitutive_law),
-      fem(&(constitutive_law.getHandler().getFEEngine())),
+      fem(&(constitutive_law.getFEEngine())),
       element_filter(constitutive_law.getElementFilter()),
       spatial_dimension(constitutive_law.getHandler().getSpatialDimension()) {}
 
@@ -87,7 +87,7 @@ InternalField<ConstitutiveLaw_, T>::InternalField(
 template <class ConstitutiveLaw_, typename T>
 InternalFieldTmpl<ConstitutiveLaw_, T>::~InternalFieldTmpl() {
   if (this->is_init) {
-    this->constitutive_law.unregisterInternal(*this);
+    this->constitutive_law.unregisterInternal(this->getID());
   }
 }
 
@@ -194,7 +194,7 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::internalInitialize(
       }
     }
 
-    this->constitutive_law.registerInternal(*this);
+    this->constitutive_law.registerInternal(this->shared_from_this());
     this->is_init = true;
   }
   this->reset();

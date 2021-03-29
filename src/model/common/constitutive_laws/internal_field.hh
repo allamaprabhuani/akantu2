@@ -41,9 +41,11 @@
 #define AKANTU_INTERNAL_FIELD_HH_
 
 namespace akantu {
-
-class ConstitutiveLaw;
+class ConstitutiveLawInternalHandler;
 class FEEngine;
+} // namespace akantu
+
+namespace akantu {
 
 class InternalFieldBase
     : public std::enable_shared_from_this<InternalFieldBase> {

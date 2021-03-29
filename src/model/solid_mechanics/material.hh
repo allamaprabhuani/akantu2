@@ -85,7 +85,6 @@ using MaterialFactory =
  *
  */
 class Material : public ConstitutiveLaw<SolidMechanicsModel>,
-                 public MeshEventHandler,
                  protected SolidMechanicsModelEventHandler {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
