@@ -58,7 +58,6 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 class SolidMechanicsModel
     : public Model,
-      public DataAccessor<Element>,
       public DataAccessor<UInt>,
       public BoundaryCondition<SolidMechanicsModel>,
       public ConstitutiveLawsHandler<Material>,

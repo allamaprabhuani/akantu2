@@ -146,7 +146,8 @@ void NonLinearSolverNewtonRaphson::solve(SolverCallback & solver_callback) {
         "[" << this->convergence_criteria_type << "] Convergence iteration "
             << std::setw(std::log10(this->max_iterations)) << this->n_iter
             << ": error " << this->error << (this->converged ? " < " : " > ")
-            << this->convergence_criteria);
+            << this->convergence_criteria_normalized);
+
   } while (not this->converged and this->n_iter <= this->max_iterations);
 
   // this makes sure that you have correct strains and stresses after the

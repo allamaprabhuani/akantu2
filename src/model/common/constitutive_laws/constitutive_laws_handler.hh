@@ -46,7 +46,8 @@ class NonLocalManager;
 namespace akantu {
 
 template <class ConstitutiveLawType>
-class ConstitutiveLawsHandler : public NonLocalManagerCallback {
+class ConstitutiveLawsHandler : public DataAccessor<Element>,
+                                public NonLocalManagerCallback {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
