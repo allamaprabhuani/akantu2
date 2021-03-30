@@ -57,6 +57,7 @@ class ModelSolver : public Parsable,
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  ModelSolver(const ModelType & type, const ID & id);
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
   ~ModelSolver() override;
 
@@ -177,6 +178,8 @@ private:
 
   /// Underlying mesh
   Mesh & mesh;
+
+  Mesh * mesh_{nullptr};
 
   /// Underlying dof_manager (the brain...)
   std::unique_ptr<DOFManager> dof_manager;

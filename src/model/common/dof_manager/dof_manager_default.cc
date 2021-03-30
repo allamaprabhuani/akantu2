@@ -470,6 +470,7 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
+  
 static bool dof_manager_is_registered [[gnu::unused]] =
     DOFManagerFactory::getInstance().registerAllocator(
         "default",
