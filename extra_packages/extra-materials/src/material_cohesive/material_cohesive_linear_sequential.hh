@@ -173,6 +173,10 @@ protected:
 
   /// bool to fix stiffness if not converging due to stiffness jumps
   bool update_stiffness{true};
+
+  /// defines deviation from the exact value of the most stressed element to be
+  /// damaged by formula delta < (1 + delta_deviation) * delta_max
+  Real delta_deviation{0};
 };
 
 /* ------------------------------------------------------------------ */

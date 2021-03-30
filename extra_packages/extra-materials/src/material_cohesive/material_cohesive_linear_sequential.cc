@@ -46,7 +46,10 @@ MaterialCohesiveLinearSequential<spatial_dimension>::
     : MaterialCohesiveLinear<spatial_dimension>(model, id),
       scalar_tractions("scalar_tractions", *this),
       normal_tractions("normal_tractions", *this),
-      effective_stresses("effective_stresses", *this) {}
+      effective_stresses("effective_stresses", *this) {
+  this->registerParam("delta_deviation", delta_deviation, 0., _pat_parsmod,
+                      "Range within which quad points will be damaged");
+}
 /* ------------------------------------------------------------------ */
 template <UInt spatial_dimension>
 void MaterialCohesiveLinearSequential<spatial_dimension>::initMaterial() {

@@ -4736,168 +4736,169 @@ void ASRTools::restoreASREigenStrain(Array<Real> & stored_eig) {
   AKANTU_DEBUG_OUT();
 }
 
-/* ------------------------------------------------------------------- */
-template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
-  AKANTU_DEBUG_IN();
+// /* ------------------------------------------------------------------- */
+// template <UInt dim> UInt ASRTools::insertCohesiveElementsOnContour() {
+//   AKANTU_DEBUG_IN();
 
-  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
-  CohesiveElementInserter & inserter = coh_model.getElementInserter();
+//   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+//   CohesiveElementInserter & inserter = coh_model.getElementInserter();
 
-  if (not coh_model.getIsExtrinsic()) {
-    AKANTU_EXCEPTION(
-        "This function can only be used for extrinsic cohesive elements");
-  }
+//   if (not coh_model.getIsExtrinsic()) {
+//     AKANTU_EXCEPTION(
+//         "This function can only be used for extrinsic cohesive elements");
+//   }
 
-  coh_model.interpolateStress();
+//   coh_model.interpolateStress();
 
-  const Mesh & mesh_facets = coh_model.getMeshFacets();
-  UInt nb_new_elements(0);
-  auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+//   const Mesh & mesh_facets = coh_model.getMeshFacets();
+//   UInt nb_new_elements(0);
+//   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
 
-  // find crack topology within specific material and insert cohesives
-  for (auto && mat : model.getMaterials()) {
-    auto * mat_coh =
-        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+//   // find crack topology within specific material and insert cohesives
+//   for (auto && mat : model.getMaterials()) {
+//     auto * mat_coh =
+//         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
 
-    if (mat_coh == nullptr)
-      continue;
+//     if (mat_coh == nullptr)
+//       continue;
 
-    auto data = mat_coh->determineCrackSurface();
-    auto & contour_subfacets_coh_el = std::get<0>(data);
-    auto & surface_subfacets_crack_nb = std::get<1>(data);
-    auto & surface_nodes = std::get<2>(data);
-    auto & contour_nodes = std::get<3>(data);
+//     auto data = mat_coh->determineCrackSurface();
+//     auto & contour_subfacets_coh_el = std::get<0>(data);
+//     auto & surface_subfacets_crack_nb = std::get<1>(data);
+//     auto & surface_nodes = std::get<2>(data);
+//     auto & contour_nodes = std::get<3>(data);
 
-    if (not contour_subfacets_coh_el.size()) {
-      continue;
-    }
-    std::map<UInt, UInt> facet_nbs_crack_nbs =
-        mat_coh->findCriticalFacetsOnContour(contour_subfacets_coh_el,
-                                             surface_subfacets_crack_nb,
-                                             contour_nodes, surface_nodes);
-    mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
-  }
+//     if (not contour_subfacets_coh_el.size()) {
+//       continue;
+//     }
+//     std::map<UInt, UInt> facet_nbs_crack_nbs =
+//         mat_coh->findCriticalFacetsOnContour(contour_subfacets_coh_el,
+//                                              surface_subfacets_crack_nb,
+//                                              contour_nodes, surface_nodes);
+//     mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
+//   }
 
-  // insert the most stressed cohesive element
-  nb_new_elements = inserter.insertElements();
+//   // insert the most stressed cohesive element
+//   nb_new_elements = inserter.insertElements();
 
-  // communicate crack numbers
-  communicateCrackNumbers();
+//   // communicate crack numbers
+//   communicateCrackNumbers();
 
-  // // loop until no more holes are present
-  // bool new_holes_filled{true};
-  // while (new_holes_filled) {
-  //   new_holes_filled = false;
-  // fill in holes
-  for (auto && mat : model.getMaterials()) {
-    auto * mat_coh =
-        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+//   // // loop until no more holes are present
+//   // bool new_holes_filled{true};
+//   // while (new_holes_filled) {
+//   //   new_holes_filled = false;
+//   // fill in holes
+//   for (auto && mat : model.getMaterials()) {
+//     auto * mat_coh =
+//         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
 
-    if (mat_coh == nullptr)
-      continue;
+//     if (mat_coh == nullptr)
+//       continue;
 
-    auto data = mat_coh->determineCrackSurface();
-    auto & contour_subfacets_coh_el = std::get<0>(data);
-    auto & surface_subfacets_crack_nb = std::get<1>(data);
-    auto & surface_nodes = std::get<2>(data);
-    // auto & contour_nodes = std::get<3>(data);
+//     auto data = mat_coh->determineCrackSurface();
+//     auto & contour_subfacets_coh_el = std::get<0>(data);
+//     auto & surface_subfacets_crack_nb = std::get<1>(data);
+//     auto & surface_nodes = std::get<2>(data);
+//     // auto & contour_nodes = std::get<3>(data);
 
-    if (not contour_subfacets_coh_el.size()) {
-      continue;
-    }
-    std::map<UInt, UInt> facet_nbs_crack_nbs = mat_coh->findHolesOnContour(
-        contour_subfacets_coh_el, surface_subfacets_crack_nb, surface_nodes);
-    // new_holes_filled = facet_nbs_crack_nbs.size();
-    // comm.allReduce(new_holes_filled, SynchronizerOperation::_lor);
+//     if (not contour_subfacets_coh_el.size()) {
+//       continue;
+//     }
+//     std::map<UInt, UInt> facet_nbs_crack_nbs = mat_coh->findHolesOnContour(
+//         contour_subfacets_coh_el, surface_subfacets_crack_nb, surface_nodes);
+//     // new_holes_filled = facet_nbs_crack_nbs.size();
+//     // comm.allReduce(new_holes_filled, SynchronizerOperation::_lor);
 
-    mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
-  }
-  auto nb_new_holes = inserter.insertElements();
-  nb_new_elements += nb_new_holes;
+//     mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
+//   }
+//   auto nb_new_holes = inserter.insertElements();
+//   nb_new_elements += nb_new_holes;
 
-  // communicate crack numbers
-  communicateCrackNumbers();
+//   // communicate crack numbers
+//   communicateCrackNumbers();
 
-  // }
-  AKANTU_DEBUG_OUT();
-  return nb_new_elements;
-}
+//   // }
+//   AKANTU_DEBUG_OUT();
+//   return nb_new_elements;
+// }
 
-template UInt ASRTools::insertCohesiveElementsOnContour<2>();
-template UInt ASRTools::insertCohesiveElementsOnContour<3>();
+// template UInt ASRTools::insertCohesiveElementsOnContour<2>();
+// template UInt ASRTools::insertCohesiveElementsOnContour<3>();
 
-/* ------------------------------------------------------------------- */
-template <UInt dim>
-UInt ASRTools::insertCohesiveElementsOnContourByNodes(
-    Real av_stress_threshold) {
-  AKANTU_DEBUG_IN();
+// /* ------------------------------------------------------------------- */
+// template <UInt dim>
+// UInt ASRTools::insertCohesiveElementsOnContourByNodes(
+//     Real av_stress_threshold) {
+//   AKANTU_DEBUG_IN();
 
-  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
-  CohesiveElementInserter & inserter = coh_model.getElementInserter();
+//   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+//   CohesiveElementInserter & inserter = coh_model.getElementInserter();
 
-  if (not coh_model.getIsExtrinsic()) {
-    AKANTU_EXCEPTION(
-        "This function can only be used for extrinsic cohesive elements");
-  }
+//   if (not coh_model.getIsExtrinsic()) {
+//     AKANTU_EXCEPTION(
+//         "This function can only be used for extrinsic cohesive elements");
+//   }
 
-  coh_model.interpolateStress();
+//   coh_model.interpolateStress();
 
-  const Mesh & mesh_facets = coh_model.getMeshFacets();
-  UInt nb_new_elements(0);
-  auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+//   const Mesh & mesh_facets = coh_model.getMeshFacets();
+//   UInt nb_new_elements(0);
+//   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
 
-  // find global crack topology
-  auto data = determineCrackSurface();
-  auto & contour_subfacets_coh_el = std::get<0>(data);
-  auto & surface_subfacets_crack_nb = std::get<1>(data);
-  auto & surface_nodes = std::get<2>(data);
-  auto & contour_nodes_subfacets = std::get<3>(data);
+//   // find global crack topology
+//   auto data = determineCrackSurface();
+//   auto & contour_subfacets_coh_el = std::get<0>(data);
+//   auto & surface_subfacets_crack_nb = std::get<1>(data);
+//   auto & surface_nodes = std::get<2>(data);
+//   auto & contour_nodes_subfacets = std::get<3>(data);
 
-  // compute effective stress in all cohesive material linear sequent.
-  for (auto && mat : model.getMaterials()) {
-    auto * mat_coh =
-        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+//   // compute effective stress in all cohesive material linear sequent.
+//   for (auto && mat : model.getMaterials()) {
+//     auto * mat_coh =
+//         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
 
-    if (mat_coh == nullptr)
-      continue;
+//     if (mat_coh == nullptr)
+//       continue;
 
-    mat_coh->computeEffectiveStresses();
-  }
+//     mat_coh->computeEffectiveStresses();
+//   }
 
-  // identify facets on contour where cohesives should be inserted
-  std::map<UInt, std::map<UInt, UInt>> mat_index_facet_nbs_crack_nbs =
-      findCriticalFacetsOnContourByNodes(
-          contour_subfacets_coh_el, surface_subfacets_crack_nb,
-          contour_nodes_subfacets, surface_nodes, av_stress_threshold);
+//   // identify facets on contour where cohesives should be inserted
+//   std::map<UInt, std::map<UInt, UInt>> mat_index_facet_nbs_crack_nbs =
+//       findCriticalFacetsOnContourByNodes(
+//           contour_subfacets_coh_el, surface_subfacets_crack_nb,
+//           contour_nodes_subfacets, surface_nodes, av_stress_threshold);
 
-  // insert cohesives depending on a material
-  for (auto & pair : mat_index_facet_nbs_crack_nbs) {
-    auto mat_index = pair.first;
-    auto & facet_nbs_crack_nbs = pair.second;
-    auto & mat = model.getMaterial(mat_index);
-    auto * mat_coh =
-        dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
+//   // insert cohesives depending on a material
+//   for (auto & pair : mat_index_facet_nbs_crack_nbs) {
+//     auto mat_index = pair.first;
+//     auto & facet_nbs_crack_nbs = pair.second;
+//     auto & mat = model.getMaterial(mat_index);
+//     auto * mat_coh =
+//         dynamic_cast<MaterialCohesiveLinearSequential<dim> *>(&mat);
 
-    if (mat_coh == nullptr)
-      continue;
+//     if (mat_coh == nullptr)
+//       continue;
 
-    mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
-  }
+//     mat_coh->insertCohesiveElements(facet_nbs_crack_nbs, type_facet, false);
+//   }
 
-  // insert the most stressed cohesive element
-  nb_new_elements = inserter.insertElements();
+//   // insert the most stressed cohesive element
+//   nb_new_elements = inserter.insertElements();
 
-  // communicate crack numbers
-  communicateCrackNumbers();
+//   // communicate crack numbers
+//   communicateCrackNumbers();
 
-  AKANTU_DEBUG_OUT();
-  return nb_new_elements;
-}
+//   AKANTU_DEBUG_OUT();
+//   return nb_new_elements;
+// }
 
-template UInt
-ASRTools::insertCohesiveElementsOnContourByNodes<2>(Real av_stress_threshold);
-template UInt
-ASRTools::insertCohesiveElementsOnContourByNodes<3>(Real av_stress_threshold);
+// template UInt
+// ASRTools::insertCohesiveElementsOnContourByNodes<2>(Real
+// av_stress_threshold); template UInt
+// ASRTools::insertCohesiveElementsOnContourByNodes<3>(Real
+// av_stress_threshold);
 
 /* ------------------------------------------------------------------- */
 template <UInt dim>
@@ -4981,145 +4982,145 @@ UInt ASRTools::insertLoopsOfStressedCohesives(Real min_dot) {
 
 template UInt ASRTools::insertLoopsOfStressedCohesives<2>(Real min_dot);
 template UInt ASRTools::insertLoopsOfStressedCohesives<3>(Real min_dot);
-/* --------------------------------------------------------------- */
-std::map<UInt, std::map<UInt, UInt>>
-ASRTools::findCriticalFacetsOnContourByNodes(
-    const std::map<Element, Element> & contour_subfacets_coh_el,
-    const std::map<Element, UInt> & /*surface_subfacets_crack_nb*/,
-    const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
-    const std::set<UInt> & /*surface_nodes*/, Real av_stress_threshold) {
-  AKANTU_DEBUG_IN();
+// /* --------------------------------------------------------------- */
+// std::map<UInt, std::map<UInt, UInt>>
+// ASRTools::findCriticalFacetsOnContourByNodes(
+//     const std::map<Element, Element> & contour_subfacets_coh_el,
+//     const std::map<Element, UInt> & /*surface_subfacets_crack_nb*/,
+//     const std::map<UInt, std::set<Element>> & contour_nodes_subfacets,
+//     const std::set<UInt> & /*surface_nodes*/, Real av_stress_threshold) {
+//   AKANTU_DEBUG_IN();
 
-  const Mesh & mesh = model.getMesh();
-  const Mesh & mesh_facets = mesh.getMeshFacets();
-  auto dim = mesh.getSpatialDimension();
-  std::map<UInt, std::map<UInt, UInt>> mat_index_facet_nbs_crack_nbs;
-  std::map<Element, Element> contour_to_single_facet_map;
+//   const Mesh & mesh = model.getMesh();
+//   const Mesh & mesh_facets = mesh.getMeshFacets();
+//   auto dim = mesh.getSpatialDimension();
+//   std::map<UInt, std::map<UInt, UInt>> mat_index_facet_nbs_crack_nbs;
+//   std::map<Element, Element> contour_to_single_facet_map;
 
-  // TODO : make iteration on multiple facet types
-  auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
-  auto nb_facets = mesh.getNbElement(type_facet);
-  // skip if no facets of this type are present
-  if (not nb_facets) {
-    return mat_index_facet_nbs_crack_nbs;
-  }
+//   // TODO : make iteration on multiple facet types
+//   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+//   auto nb_facets = mesh.getNbElement(type_facet);
+//   // skip if no facets of this type are present
+//   if (not nb_facets) {
+//     return mat_index_facet_nbs_crack_nbs;
+//   }
 
-  // create a copy to remove nodes where single facets were inserted
-  auto contour_nodes_subfacets_copy = contour_nodes_subfacets;
-  // first loop for single elements
-  for (auto && pair : contour_nodes_subfacets) {
-    auto cent_node = pair.first;
-    auto subfacets = pair.second;
-    if (subfacets.size() != 2) {
-      std::cout << "Number of contour segments connected to the node "
-                << cent_node << " is not equal to 2. Skipping" << std::endl;
-      continue;
-    }
-    auto it = subfacets.begin();
-    auto starting_segment(*it);
-    std::advance(it, 1);
-    auto ending_segment(*it);
-    auto starting_coh_el = contour_subfacets_coh_el.at(starting_segment);
-    auto ending_coh_el = contour_subfacets_coh_el.at(ending_segment);
-    auto & crack_numbers = mesh.getData<UInt>(
-        "crack_numbers", starting_coh_el.type, starting_coh_el.ghost_type);
-    auto crack_nb = crack_numbers(starting_coh_el.element);
+//   // create a copy to remove nodes where single facets were inserted
+//   auto contour_nodes_subfacets_copy = contour_nodes_subfacets;
+//   // first loop for single elements
+//   for (auto && pair : contour_nodes_subfacets) {
+//     auto cent_node = pair.first;
+//     auto subfacets = pair.second;
+//     if (subfacets.size() != 2) {
+//       std::cout << "Number of contour segments connected to the node "
+//                 << cent_node << " is not equal to 2. Skipping" << std::endl;
+//       continue;
+//     }
+//     auto it = subfacets.begin();
+//     auto starting_segment(*it);
+//     std::advance(it, 1);
+//     auto ending_segment(*it);
+//     auto starting_coh_el = contour_subfacets_coh_el.at(starting_segment);
+//     auto ending_coh_el = contour_subfacets_coh_el.at(ending_segment);
+//     auto & crack_numbers = mesh.getData<UInt>(
+//         "crack_numbers", starting_coh_el.type, starting_coh_el.ghost_type);
+//     auto crack_nb = crack_numbers(starting_coh_el.element);
 
-    auto starting_facet =
-        mesh_facets.getSubelementToElement(starting_coh_el)(0);
-    auto ending_facet = mesh_facets.getSubelementToElement(ending_coh_el)(0);
+//     auto starting_facet =
+//         mesh_facets.getSubelementToElement(starting_coh_el)(0);
+//     auto ending_facet = mesh_facets.getSubelementToElement(ending_coh_el)(0);
 
-    // if an outstanding triangle element - skip
-    if (starting_facet == ending_facet) {
-      contour_nodes_subfacets_copy.erase(cent_node);
-      continue;
-    }
+//     // if an outstanding triangle element - skip
+//     if (starting_facet == ending_facet) {
+//       contour_nodes_subfacets_copy.erase(cent_node);
+//       continue;
+//     }
 
-    Array<Element> limit_facets, limit_segments;
-    limit_facets.push_back(starting_facet);
-    limit_facets.push_back(ending_facet);
-    limit_segments.push_back(starting_segment);
-    limit_segments.push_back(ending_segment);
+//     Array<Element> limit_facets, limit_segments;
+//     limit_facets.push_back(starting_facet);
+//     limit_facets.push_back(ending_facet);
+//     limit_segments.push_back(starting_segment);
+//     limit_segments.push_back(ending_segment);
 
-    auto single_facet_loop =
-        findSingleFacetLoop(limit_facets, limit_segments, cent_node);
+//     auto single_facet_loop =
+//         findSingleFacetLoop(limit_facets, limit_segments, cent_node);
 
-    if (not single_facet_loop.size())
-      continue;
+//     if (not single_facet_loop.size())
+//       continue;
 
-    // evaluate average effective stress over facets of the loop
-    auto av_eff_stress =
-        averageEffectiveStressInMultipleFacets(single_facet_loop);
+//     // evaluate average effective stress over facets of the loop
+//     auto av_eff_stress =
+//         averageEffectiveStressInMultipleFacets(single_facet_loop);
 
-    // if average effective stress exceeds threshold->decompose per mat
-    if (av_eff_stress >= av_stress_threshold) {
+//     // if average effective stress exceeds threshold->decompose per mat
+//     if (av_eff_stress >= av_stress_threshold) {
 
-      decomposeFacetLoopPerMaterial(single_facet_loop, crack_nb,
-                                    mat_index_facet_nbs_crack_nbs);
+//       decomposeFacetLoopPerMaterial(single_facet_loop, crack_nb,
+//                                     mat_index_facet_nbs_crack_nbs);
 
-      // update the map
-      for (auto && limit_segment : limit_segments) {
-        contour_to_single_facet_map[limit_segment] = single_facet_loop(0);
-      }
-      // remove node from the looping map
-      contour_nodes_subfacets_copy.erase(cent_node);
-    }
-  }
+//       // update the map
+//       for (auto && limit_segment : limit_segments) {
+//         contour_to_single_facet_map[limit_segment] = single_facet_loop(0);
+//       }
+//       // remove node from the looping map
+//       contour_nodes_subfacets_copy.erase(cent_node);
+//     }
+//   }
 
-  // second loop for long facet loops on a reduced map
-  for (auto && pair : contour_nodes_subfacets_copy) {
-    auto cent_node = pair.first;
-    auto subfacets = pair.second;
-    if (subfacets.size() != 2) {
-      std::cout << "Number of contour segments connected to the node "
-                << cent_node << " is not equal to 2. Skipping" << std::endl;
-      continue;
-    }
-    auto it = subfacets.begin();
-    auto starting_segment(*it);
-    std::advance(it, 1);
-    auto ending_segment(*it);
-    auto starting_coh_el = contour_subfacets_coh_el.at(starting_segment);
-    auto ending_coh_el = contour_subfacets_coh_el.at(ending_segment);
-    auto & crack_numbers = mesh.getData<UInt>(
-        "crack_numbers", starting_coh_el.type, starting_coh_el.ghost_type);
-    auto crack_nb = crack_numbers(starting_coh_el.element);
+//   // second loop for long facet loops on a reduced map
+//   for (auto && pair : contour_nodes_subfacets_copy) {
+//     auto cent_node = pair.first;
+//     auto subfacets = pair.second;
+//     if (subfacets.size() != 2) {
+//       std::cout << "Number of contour segments connected to the node "
+//                 << cent_node << " is not equal to 2. Skipping" << std::endl;
+//       continue;
+//     }
+//     auto it = subfacets.begin();
+//     auto starting_segment(*it);
+//     std::advance(it, 1);
+//     auto ending_segment(*it);
+//     auto starting_coh_el = contour_subfacets_coh_el.at(starting_segment);
+//     auto ending_coh_el = contour_subfacets_coh_el.at(ending_segment);
+//     auto & crack_numbers = mesh.getData<UInt>(
+//         "crack_numbers", starting_coh_el.type, starting_coh_el.ghost_type);
+//     auto crack_nb = crack_numbers(starting_coh_el.element);
 
-    auto starting_facet =
-        mesh_facets.getSubelementToElement(starting_coh_el)(0);
-    auto ending_facet = mesh_facets.getSubelementToElement(ending_coh_el)(0);
+//     auto starting_facet =
+//         mesh_facets.getSubelementToElement(starting_coh_el)(0);
+//     auto ending_facet = mesh_facets.getSubelementToElement(ending_coh_el)(0);
 
-    Array<Element> limit_facets, limit_segments;
-    limit_facets.push_back(starting_facet);
-    limit_facets.push_back(ending_facet);
-    limit_segments.push_back(starting_segment);
-    limit_segments.push_back(ending_segment);
-    Array<Element> preinserted_facets(2, 1, ElementNull);
-    for (UInt i = 0; i < 2; i++) {
-      auto it = contour_to_single_facet_map.find(limit_segments(i));
-      if (it != contour_to_single_facet_map.end()) {
-        preinserted_facets(i) = it->second;
-      }
-    }
+//     Array<Element> limit_facets, limit_segments;
+//     limit_facets.push_back(starting_facet);
+//     limit_facets.push_back(ending_facet);
+//     limit_segments.push_back(starting_segment);
+//     limit_segments.push_back(ending_segment);
+//     Array<Element> preinserted_facets(2, 1, ElementNull);
+//     for (UInt i = 0; i < 2; i++) {
+//       auto it = contour_to_single_facet_map.find(limit_segments(i));
+//       if (it != contour_to_single_facet_map.end()) {
+//         preinserted_facets(i) = it->second;
+//       }
+//     }
 
-    auto facet_loop = findFacetsLoopByGraphByArea(
-        limit_facets, limit_segments, preinserted_facets, cent_node);
+//     auto facet_loop = findFacetsLoopByGraphByArea(
+//         limit_facets, limit_segments, preinserted_facets, cent_node);
 
-    if (not facet_loop.size())
-      continue;
+//     if (not facet_loop.size())
+//       continue;
 
-    // evaluate average effective stress over facets of the loop
-    auto av_eff_stress = averageEffectiveStressInMultipleFacets(facet_loop);
+//     // evaluate average effective stress over facets of the loop
+//     auto av_eff_stress = averageEffectiveStressInMultipleFacets(facet_loop);
 
-    // if average effective stress exceeds threshold->decompose per mat
-    if (av_eff_stress >= av_stress_threshold) {
+//     // if average effective stress exceeds threshold->decompose per mat
+//     if (av_eff_stress >= av_stress_threshold) {
 
-      decomposeFacetLoopPerMaterial(facet_loop, crack_nb,
-                                    mat_index_facet_nbs_crack_nbs);
-    }
-  }
-  return mat_index_facet_nbs_crack_nbs;
-}
+//       decomposeFacetLoopPerMaterial(facet_loop, crack_nb,
+//                                     mat_index_facet_nbs_crack_nbs);
+//     }
+//   }
+//   return mat_index_facet_nbs_crack_nbs;
+// }
 
 /* --------------------------------------------------------------- */
 std::map<UInt, std::map<UInt, UInt>> ASRTools::findStressedFacetsLoops(
@@ -5327,143 +5328,145 @@ void ASRTools::applyEigenOpening(Real eigen_strain) {
   }
 }
 
+// /* --------------------------------------------------------------- */
+// void ASRTools::applyEigenOpeningGelVolumeBased(Real gel_volume_ratio) {
+//   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+//   const Mesh & mesh_facets = coh_model.getMeshFacets();
+//   const UInt dim = model.getSpatialDimension();
+//   // compute total asr gel volume
+//   if (!this->volume)
+//     computeModelVolume();
+//   Real gel_volume = this->volume * gel_volume_ratio;
+
+//   // compute total area of existing cracks
+//   auto data_agg = computeCrackData("agg-agg");
+//   auto data_agg_mor = computeCrackData("agg-mor");
+//   auto data_mor = computeCrackData("mor-mor");
+//   auto area_agg = std::get<0>(data_agg);
+//   auto area_agg_mor = std::get<0>(data_agg_mor);
+//   auto area_mor = std::get<0>(data_mor);
+//   Real total_area = area_agg + area_agg_mor + area_mor;
+
+//   // compute necessary opening to cover fit gel volume by crack area
+//   Real average_opening = gel_volume / total_area;
+
+//   for (auto && mat : model.getMaterials()) {
+//     auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+
+//     if (mat_coh == nullptr)
+//       continue;
+
+//     for (auto gt : ghost_types) {
+//       for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
+//         ElementType type_cohesive =
+//             FEEngine::getCohesiveElementType(type_facet);
+//         UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+//                                     .getNbIntegrationPoints(type_cohesive);
+//         if (not model.getMesh().getNbElement(type_cohesive, gt))
+//           continue;
+
+//         const Array<UInt> & elem_filter =
+//             mat_coh->getElementFilter(type_cohesive, gt);
+
+//         if (not elem_filter.size()) {
+//           continue;
+//         }
+
+//         // access openings of cohesive elements
+//         auto & eig_opening = mat_coh->getEigenOpening(type_cohesive, gt);
+//         auto & normals = mat_coh->getNormals(type_cohesive, gt);
+//         auto eig_op_it = eig_opening.begin(dim);
+//         auto normals_it = normals.begin(dim);
+
+//         // apply average opening directly as eigen
+//         for (auto el_order : arange(elem_filter.size())) {
+//           Vector<Real> normal(normals_it[el_order * nb_quad_cohesive]);
+//           for (UInt i : arange(nb_quad_cohesive)) {
+//             auto eig_op = eig_op_it[el_order * nb_quad_cohesive + i];
+//             eig_op = normal * average_opening;
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
 /* --------------------------------------------------------------- */
-void ASRTools::applyEigenOpeningGelVolumeBased(Real gel_volume_ratio) {
-  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
-  const Mesh & mesh_facets = coh_model.getMeshFacets();
-  const UInt dim = model.getSpatialDimension();
-  // compute total asr gel volume
-  if (!this->volume)
-    computeModelVolume();
-  Real gel_volume = this->volume * gel_volume_ratio;
+// void ASRTools::applyEigenOpeningToInitialCrack(
+//     Real gel_volume_ratio, const Array<Array<Element>> & asr_facets) {
+//   auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
+//   const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
+//   const UInt dim = model.getSpatialDimension();
+//   const Mesh & mesh_facets = coh_model.getMeshFacets();
+//   auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
+//   ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
+//   UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
+//                               .getNbIntegrationPoints(type_cohesive);
+//   const Array<UInt> & material_index_vec =
+//       model.getMaterialByElement(type_cohesive);
+//   const Array<UInt> & material_local_numbering_vec =
+//       model.getMaterialLocalNumbering(type_cohesive);
 
-  // compute total area of existing cracks
-  auto data_agg = computeCrackData("agg-agg");
-  auto data_agg_mor = computeCrackData("agg-mor");
-  auto data_mor = computeCrackData("mor-mor");
-  auto area_agg = std::get<0>(data_agg);
-  auto area_agg_mor = std::get<0>(data_agg_mor);
-  auto area_mor = std::get<0>(data_mor);
-  Real total_area = area_agg + area_agg_mor + area_mor;
+//   // compute total asr gel volume
+//   if (!this->volume)
+//     computeModelVolume();
+//   Real gel_volume = this->volume * gel_volume_ratio;
+//   Real gel_volume_per_crack = gel_volume / asr_facets.size();
 
-  // compute necessary opening to cover fit gel volume by crack area
-  Real average_opening = gel_volume / total_area;
+//   // iterate through each crack
+//   for (auto & single_site_facets : asr_facets) {
+//     // compute area of current ASR site
+//     // form cohesive element filter
+//     std::set<Element> site_cohesives;
+//     for (auto & asr_facet : single_site_facets) {
+//       // find connected cohesive
+//       auto & connected_els = mesh_facets.getElementToSubelement(asr_facet);
+//       for (auto & connected_el : connected_els) {
+//         if (connected_el.type == type_cohesive) {
+//           site_cohesives.emplace(connected_el);
+//           break;
+//         }
+//       }
+//     }
 
-  for (auto && mat : model.getMaterials()) {
-    auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+//     // integrate 1 over identified element filter
+//     Real site_area{0};
+//     for (auto & coh_el : site_cohesives) {
+//       Array<UInt> single_el_array;
+//       single_el_array.push_back(coh_el.element);
 
-    if (mat_coh == nullptr)
-      continue;
+//       Array<Real> area(fe_engine.getNbIntegrationPoints(type_cohesive),
+//       1, 1.); site_area += fe_engine.integrate(area, coh_el.type,
+//       coh_el.ghost_type,
+//                                        single_el_array);
+//     }
 
-    for (auto gt : ghost_types) {
-      for (auto && type_facet : mesh_facets.elementTypes(dim - 1)) {
-        ElementType type_cohesive =
-            FEEngine::getCohesiveElementType(type_facet);
-        UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
-                                    .getNbIntegrationPoints(type_cohesive);
-        if (not model.getMesh().getNbElement(type_cohesive, gt))
-          continue;
+//     // compute necessary opening to cover fit gel volume by crack area
+//     Real average_opening = gel_volume_per_crack / site_area;
 
-        const Array<UInt> & elem_filter =
-            mat_coh->getElementFilter(type_cohesive, gt);
+//     // iterate through each cohesive and apply eigen opening
+//     for (auto && coh_el : site_cohesives) {
+//       Material & mat = model.getMaterial(material_index_vec(coh_el.element));
+//       auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
+//       if (mat_coh == nullptr)
+//         continue;
+//       UInt coh_el_local_num = material_local_numbering_vec(coh_el.element);
 
-        if (not elem_filter.size()) {
-          continue;
-        }
+//       // access openings of cohesive elements
+//       auto & eig_opening =
+//           mat_coh->getEigenOpening(coh_el.type, coh_el.ghost_type);
+//       auto & normals = mat_coh->getNormals(coh_el.type, coh_el.ghost_type);
+//       auto eig_op_it = eig_opening.begin(dim);
+//       auto normals_it = normals.begin(dim);
 
-        // access openings of cohesive elements
-        auto & eig_opening = mat_coh->getEigenOpening(type_cohesive, gt);
-        auto & normals = mat_coh->getNormals(type_cohesive, gt);
-        auto eig_op_it = eig_opening.begin(dim);
-        auto normals_it = normals.begin(dim);
-
-        // apply average opening directly as eigen
-        for (auto el_order : arange(elem_filter.size())) {
-          Vector<Real> normal(normals_it[el_order * nb_quad_cohesive]);
-          for (UInt i : arange(nb_quad_cohesive)) {
-            auto eig_op = eig_op_it[el_order * nb_quad_cohesive + i];
-            eig_op = normal * average_opening;
-          }
-        }
-      }
-    }
-  }
-}
-/* --------------------------------------------------------------- */
-void ASRTools::applyEigenOpeningToInitialCrack(
-    Real gel_volume_ratio, const Array<Array<Element>> & asr_facets) {
-  auto & coh_model = dynamic_cast<SolidMechanicsModelCohesive &>(model);
-  const FEEngine & fe_engine = model.getFEEngine("CohesiveFEEngine");
-  const UInt dim = model.getSpatialDimension();
-  const Mesh & mesh_facets = coh_model.getMeshFacets();
-  auto type_facet = *mesh_facets.elementTypes(dim - 1).begin();
-  ElementType type_cohesive = FEEngine::getCohesiveElementType(type_facet);
-  UInt nb_quad_cohesive = model.getFEEngine("CohesiveFEEngine")
-                              .getNbIntegrationPoints(type_cohesive);
-  const Array<UInt> & material_index_vec =
-      model.getMaterialByElement(type_cohesive);
-  const Array<UInt> & material_local_numbering_vec =
-      model.getMaterialLocalNumbering(type_cohesive);
-
-  // compute total asr gel volume
-  if (!this->volume)
-    computeModelVolume();
-  Real gel_volume = this->volume * gel_volume_ratio;
-  Real gel_volume_per_crack = gel_volume / asr_facets.size();
-
-  // iterate through each crack
-  for (auto & single_site_facets : asr_facets) {
-    // compute area of current ASR site
-    // form cohesive element filter
-    std::set<Element> site_cohesives;
-    for (auto & asr_facet : single_site_facets) {
-      // find connected cohesive
-      auto & connected_els = mesh_facets.getElementToSubelement(asr_facet);
-      for (auto & connected_el : connected_els) {
-        if (connected_el.type == type_cohesive) {
-          site_cohesives.emplace(connected_el);
-          break;
-        }
-      }
-    }
-
-    // integrate 1 over identified element filter
-    Real site_area{0};
-    for (auto & coh_el : site_cohesives) {
-      Array<UInt> single_el_array;
-      single_el_array.push_back(coh_el.element);
-
-      Array<Real> area(fe_engine.getNbIntegrationPoints(type_cohesive), 1, 1.);
-      site_area += fe_engine.integrate(area, coh_el.type, coh_el.ghost_type,
-                                       single_el_array);
-    }
-
-    // compute necessary opening to cover fit gel volume by crack area
-    Real average_opening = gel_volume_per_crack / site_area;
-
-    // iterate through each cohesive and apply eigen opening
-    for (auto && coh_el : site_cohesives) {
-      Material & mat = model.getMaterial(material_index_vec(coh_el.element));
-      auto * mat_coh = dynamic_cast<MaterialCohesive *>(&mat);
-      if (mat_coh == nullptr)
-        continue;
-      UInt coh_el_local_num = material_local_numbering_vec(coh_el.element);
-
-      // access openings of cohesive elements
-      auto & eig_opening =
-          mat_coh->getEigenOpening(coh_el.type, coh_el.ghost_type);
-      auto & normals = mat_coh->getNormals(coh_el.type, coh_el.ghost_type);
-      auto eig_op_it = eig_opening.begin(dim);
-      auto normals_it = normals.begin(dim);
-
-      Vector<Real> normal(normals_it[coh_el_local_num * nb_quad_cohesive]);
-      for (UInt i : arange(nb_quad_cohesive)) {
-        Vector<Real> eig_op(eig_op_it[coh_el_local_num * nb_quad_cohesive + i]);
-        eig_op = normal * average_opening;
-      }
-    }
-  }
-}
+//       Vector<Real> normal(normals_it[coh_el_local_num * nb_quad_cohesive]);
+//       for (UInt i : arange(nb_quad_cohesive)) {
+//         Vector<Real> eig_op(eig_op_it[coh_el_local_num * nb_quad_cohesive +
+//         i]); eig_op = normal * average_opening;
+//       }
+//     }
+//   }
+// }
 /* --------------------------------------------------------------- */
 void ASRTools::applyPointForceToAsrCentralNodes(Real force_norm) {
   auto && mesh = model.getMesh();
@@ -5576,11 +5579,10 @@ ASRTools::computeCrackData(const ID & material_name) {
     crack_area += fe_engine.integrate(area, element_type, gt, filter);
   }
 
-  /// do not communicate if model is multi-scale
-  auto && comm = akantu::Communicator::getWorldCommunicator();
-  comm.allReduce(ASR_volume, SynchronizerOperation::_sum);
-  comm.allReduce(crack_volume, SynchronizerOperation::_sum);
-  comm.allReduce(crack_area, SynchronizerOperation::_sum);
+  // auto && comm = akantu::Communicator::getWorldCommunicator();
+  // comm.allReduce(ASR_volume, SynchronizerOperation::_sum);
+  // comm.allReduce(crack_volume, SynchronizerOperation::_sum);
+  // comm.allReduce(crack_area, SynchronizerOperation::_sum);
 
   return std::make_tuple(crack_area, crack_volume, ASR_volume);
 }
@@ -5633,6 +5635,39 @@ void ASRTools::outputCrackOpenings(std::ofstream & file_output, Real time) {
     }
     file_output << std::endl;
   }
+}
+
+/* --------------------------------------------------------------- */
+void ASRTools::outputCrackOpeningsPerProc(std::ofstream & file_output,
+                                          Real time) {
+
+  Array<Real> openings(asr_central_node_pairs.size());
+  auto && mesh = model.getMesh();
+  auto dim = mesh.getSpatialDimension();
+  auto & disp = model.getDisplacement();
+  auto & pos = mesh.getNodes();
+  auto it_disp = make_view(disp, dim).begin();
+  auto it_pos = make_view(pos, dim).begin();
+
+  for (UInt i = 0; i < asr_central_node_pairs.size(); i++) {
+    auto && node_pair = asr_central_node_pairs(i);
+    auto && normals_pair = asr_normals_pairs(i);
+
+    auto node1 = node_pair.first;
+    auto node2 = node_pair.second;
+    auto normal1 = normals_pair.first;
+    Vector<Real> disp1 = it_disp[node1];
+    Vector<Real> disp2 = it_disp[node2];
+    Vector<Real> rel_disp = disp1 - disp2;
+    Real norm_opening = rel_disp.dot(normal1);
+    openings(i) = norm_opening;
+  }
+
+  file_output << time;
+  for (auto && opening : openings) {
+    file_output << "," << opening;
+  }
+  file_output << std::endl;
 }
 
 /* --------------------------------------------------------------- */
@@ -5901,9 +5936,11 @@ template <UInt dim> UInt ASRTools::updateDeltaMax() {
       nb_updated_quads += mat_coh->updateDeltaMax(type, _not_ghost);
     }
   }
+#ifndef AKANTU_NDEBUG
   // summ all updated quads
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(nb_updated_quads, SynchronizerOperation::_sum);
+#endif
 
   AKANTU_DEBUG_OUT();
   return nb_updated_quads;
@@ -5945,14 +5982,20 @@ std::tuple<Real, Element, UInt> ASRTools::getMaxDeltaMaxExcess() {
   auto global_max_delta_max = proc_max_delta_max_excess;
   auto && comm = akantu::Communicator::getWorldCommunicator();
   comm.allReduce(global_max_delta_max, SynchronizerOperation::_max);
+
+#ifndef AKANTU_NDEBUG
   comm.allReduce(global_nb_penetr_quads, SynchronizerOperation::_sum);
+#endif
 
   // find the critical coh between processors
   UInt coh_nb = critical_coh_el.element;
   if (proc_max_delta_max_excess != global_max_delta_max)
-    coh_nb = 0;
+    coh_nb = 777;
+
+#ifndef AKANTU_NDEBUG
   comm.allReduce(coh_nb, SynchronizerOperation::_max);
   critical_coh_el.element = coh_nb;
+#endif
 
   AKANTU_DEBUG_OUT();
   return std::make_tuple(global_max_delta_max, critical_coh_el,

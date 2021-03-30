@@ -337,6 +337,9 @@ public:
   /// computes normal openings between asr central nodes and outputs them
   void outputCrackOpenings(std::ofstream & file_output, Real time);
 
+  /// computes normal openings between asr central nodes and outputs them
+  void outputCrackOpeningsPerProc(std::ofstream & file_output, Real time);
+
   /// splits asr central nodes into pairs and computes averaged normals
   void identifyASRCentralNodePairsAndNormals();
 
