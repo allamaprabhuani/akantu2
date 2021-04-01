@@ -112,6 +112,15 @@ public:
 
   /// compute the specified energy
   Real getEnergy(const ID & energy);
+  
+  /// assemble the stiffness matrix
+  void assembleStiffnessMatrix();
+
+  /// assemble the mass matrix for consistent mass resolutions
+  void assembleMassMatrix();
+
+  /// compute the nodal forces
+  void assembleInternalForce();
 
   /* ------------------------------------------------------------------------ */
   /* Virtual methods from Model                                               */
@@ -138,17 +147,10 @@ protected:
   /// compute the stresses per elements
   void computeStresses();
 
-  /// compute the nodal forces
-  void assembleInternalForce();
-
+  
   /// compute the nodal forces for an element type
   void assembleInternalForce(ElementType type, GhostType gt);
 
-  /// assemble the stiffness matrix
-  void assembleStiffnessMatrix();
-
-  /// assemble the mass matrix for consistent mass resolutions
-  void assembleMassMatrix();
 
 protected:
   /// assemble the mass matrix for either _ghost or _not_ghost elements

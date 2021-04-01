@@ -63,6 +63,9 @@ void register_structural_mechanics_model(pybind11::module & mod) {
           py::arg("_analysis_method"))
       .def("initFull",
            [](StructuralMechanicsModel & self) -> void { self.initFull(); })
+      .def_function_(assembleStiffnessMatrix)
+      .def_function_(assembleInternalForce)
+      .def_function_(assembleMassMatrix)
       .def_function_nocopy(getExternalForce)
       .def_function_nocopy(getDisplacement)
       .def_function_nocopy(getInternalForce)
