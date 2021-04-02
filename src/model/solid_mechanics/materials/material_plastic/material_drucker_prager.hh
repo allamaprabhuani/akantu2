@@ -40,7 +40,7 @@
 namespace akantu {
 
 /**
- * Material plastic with a Drucker-pruger yield criterion
+ * Material plastic with a Drucker-Prager yield criterion
  */
   
 template<UInt spatial_dimension>
