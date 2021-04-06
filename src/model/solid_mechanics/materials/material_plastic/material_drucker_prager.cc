@@ -62,9 +62,10 @@ void MaterialDruckerPrager<spatial_dimension>::initialize() {
 		      "Internal friction angle in degrees");
   this->registerParam("fc", fc, Real(1.), _pat_parsable | _pat_modifiable,
 		      "Compressive strength");
-  this->registerParam("radial_return", radial_return_mapping, bool(true),
-		      _pat_parsable | _pat_modifiable,
-		      "Radial return mapping");
+  this->registerParam("tolerance", tolerance, Real(1e-8), _pat_parsable | _pat_modifiable,
+		      "projection tolerance");
+  this->registerParam("max_iterations", max_iterations, UInt(100), _pat_parsable | _pat_modifiable,
+		      "maximum iterations for projection");
   this->registerParam("is_capped", is_capped, bool(false),
 		      _pat_parsable | _pat_modifiable,
 		      "Capping the yield surface");

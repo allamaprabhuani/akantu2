@@ -185,7 +185,6 @@ void FriendMaterial<MaterialDruckerPrager<3>>::testComputeStress() {
   setParam("rho", rho);
   setParam("phi", angle);
   setParam("fc", fc);
-  setParam("radial_return", false);
   
   updateInternalParameters();
 
@@ -236,7 +235,60 @@ void FriendMaterial<MaterialDruckerPrager<3>>::testComputeStress() {
     previous_inelastic_strain = inelastic_strain;
   }
 
+  
+  previous_grad_u.zero();
+  previous_sigma.zero();
+  inelastic_strain.zero();
+  previous_inelastic_strain.zero();
+  sigma.zero();
+  
   // deviatoric loading (should plastify only when J2 > k)
+  for (auto && i : steps) {
+    auto t = i * dt;
+
+    auto grad_u = this->getDeviatoricStrain(t);
+
+    this->computeStressOnQuad(grad_u, previous_grad_u, sigma,
+			      previous_sigma, inelastic_strain,
+			      previous_inelastic_strain, 0., 0.);
+
+    Matrix<Real> sigma_elastic(3, 3, 0);
+    MaterialElastic<3>::computeStressOnQuad(grad_u, sigma_elastic, 0);
+    
+    Matrix<Real> sigma_elastic_dev(3, 3, 0);
+    this->computeDeviatoricStress(sigma_elastic, sigma_elastic_dev);
+  
+    // compute deviatoric invariant J2
+    Real j2_elastic = (1./ 2.) * sigma_elastic_dev.doubleDot(sigma_elastic_dev);
+    Real sigma_elastic_dev_eff = std::sqrt(3. * j2_elastic);
+
+    
+    Matrix<Real> sigma_dev(3, 3, 0);
+    this->computeDeviatoricStress(sigma, sigma_dev);
+  
+    // compute deviatoric invariant J2
+    Real j2 = (1./ 2.) * sigma_dev.doubleDot(sigma_dev);
+    Real sigma_dev_eff = std::sqrt(3. * j2);
+
+    Real I1 = sigma.trace();
+
+    if (sigma_elastic_dev_eff < k) {
+      Real stress_error = (sigma - sigma_elastic).norm<L_inf>();
+	  
+      ASSERT_NEAR(stress_error, 0., 1e-13);
+      ASSERT_NEAR(inelastic_strain.norm<L_inf>(), 0., 1e-13);
+    }  
+    else if (sigma_elastic_dev_eff > k) {
+  
+      auto error = alpha*I1 + sigma_dev_eff - k;
+      ASSERT_NEAR(error, 0., 1e-13);
+    }
+
+    previous_grad_u = grad_u;
+    previous_sigma = sigma;
+    previous_inelastic_strain = inelastic_strain;
+  }
+
   
 }
 

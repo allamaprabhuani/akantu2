@@ -106,13 +106,33 @@ protected:
   inline bool aboveThresholdStress(const Matrix<Real> &,
 				   Real & , Real & );
 
-  inline void projectStressOnThreshold(Matrix<Real> &, Vector<Real> &,
-				       Real &, Real &);
+  inline void projectionOnThreshold(Matrix<Real> &, Vector<Real> &,
+				    Real &, Real &);
 
-  /// rcompute the alpha and k parameters
+  /// compute the alpha and k parameters
   void updateInternalParameters() override;
 
 
+ 
+  /* ------------------------------------------------------------------------ */
+  /* Methods for projection to the yield surface                              */
+  /* ------------------------------------------------------------------------ */  
+  /// compute the objective function to minimize
+  virtual inline Real computeObjectiveFunction(const Matrix<Real> & sigma_guess,
+					       const Matrix<Real> & sigma_trial,
+					       Real & plastic_multiplier_guess,
+					       Vector<Real> & gradient_f,
+					       Vector<Real> & delta_inelastic_strain,
+					       Real & yield_function);
+
+  /// compute the jacobian of the objective function
+  virtual inline void computeJacobian(const Matrix<Real> &, Vector<Real> &);
+
+  /// compute the hessian of the objective function
+  virtual inline void computeHessian(const Matrix<Real> &, Matrix<Real> &);
+
+
+  
 public:
   // closet point projection method to compute stress state on the
   // yield surface
@@ -145,14 +165,17 @@ private:
   // modified compressive strength for Drucker-Prager
   Real k;
 
+  // maximum number of iterations for projection
+  UInt max_iterations;
+
+  // tolerance error for projection
+  Real tolerance;
+  
   // maximum deviatoric for capped Drucker-Prager
   Real deviatoric_max;
 
   // minimum hydrostatic for capped Drucker-Prager
   Real hydrostatic_min;
-
-  // radial return mapping
-  bool radial_return_mapping;
 
   // capped
   bool is_capped;
