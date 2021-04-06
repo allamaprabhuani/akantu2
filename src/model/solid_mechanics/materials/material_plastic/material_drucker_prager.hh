@@ -121,6 +121,13 @@ public:
       Vector<Real> & gradient_f, Vector<Real> & delta_inelastic_strain,
       UInt max_iterations = 100, Real tolerance = 1e-8);
 
+public:
+    /// get modified compressive strength
+  AKANTU_GET_MACRO(K, k, Real);
+
+  /// get modified friction angle
+  AKANTU_GET_MACRO(Alpha, alpha, Real);
+
   
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */

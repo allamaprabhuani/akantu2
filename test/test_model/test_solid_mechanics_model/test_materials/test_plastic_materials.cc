@@ -29,6 +29,7 @@
 
 /* -------------------------------------------------------------------------- */
 #include "material_linear_isotropic_hardening.hh"
+#include "material_drucker_prager.hh"
 #include "solid_mechanics_model.hh"
 #include "test_material_fixtures.hh"
 #include <gtest/gtest.h>
@@ -40,7 +41,8 @@ using namespace akantu;
 using mat_types = ::testing::Types<
     // Traits<MaterialLinearIsotropicHardening, 1>,
     // Traits<MaterialLinearIsotropicHardening, 2>,
-    Traits<MaterialLinearIsotropicHardening, 3>>;
+  Traits<MaterialLinearIsotropicHardening, 3>,
+  Traits<MaterialDruckerPrager, 3>>;
 
 /* -------------------------------------------------------------------------- */
 
@@ -166,6 +168,76 @@ void FriendMaterial<MaterialLinearIsotropicHardening<3>>::testComputeStress() {
     previous_inelastic_strain = inelastic_strain;
     previous_inelastic_strain_rot = inelastic_strain_rot;
   }
+}
+
+
+template <>
+void FriendMaterial<MaterialDruckerPrager<3>>::testComputeStress() {
+
+  Real E = 1.;
+  Real nu = 0;
+  Real rho = 1.;
+  Real fc = 1.;
+  Real angle = 30.;
+    
+  setParam("E", E);
+  setParam("nu", nu);
+  setParam("rho", rho);
+  setParam("phi", angle);
+  setParam("fc", fc);
+  setParam("radial_return", false);
+  
+  updateInternalParameters();
+
+  Matrix<Real> previous_grad_u(3, 3, 0.);
+  Matrix<Real> previous_sigma(3, 3, 0.);
+  Matrix<Real> inelastic_strain(3, 3, 0.);
+  Matrix<Real> previous_inelastic_strain(3, 3, 0.);
+  Matrix<Real> sigma(3, 3, 0.);
+
+  Real k = this->getK();
+  Real alpha = this->getAlpha();
+  
+  Real max_strain = 10.*k/alpha;
+  Real strain_steps = 100;
+  Real dt = max_strain / strain_steps;
+  std::vector<double> steps(strain_steps);
+  std::iota(steps.begin(), steps.end(), 0.);
+
+
+  // hydrostatic loading (should plastify only when I1 > k/alpha)
+  for (auto && i : steps) {
+    auto t = i * dt;
+
+    auto grad_u = this->getHydrostaticStrain(t);
+
+    this->computeStressOnQuad(grad_u, previous_grad_u, sigma,
+			      previous_sigma, inelastic_strain,
+			      previous_inelastic_strain, 0., 0.);
+
+    Matrix<Real> sigma_elastic(3, 3, 0);
+    MaterialElastic<3>::computeStressOnQuad(grad_u, sigma_elastic, 0);
+
+    Real I1_elastic = sigma_elastic.trace();
+    Real I1 = sigma.trace();
+
+    if (I1_elastic < k/alpha) {
+      Real stress_error = (sigma - sigma_elastic).norm<L_inf>();
+	  
+      ASSERT_NEAR(stress_error, 0., 1e-13);
+      ASSERT_NEAR(inelastic_strain.norm<L_inf>(), 0., 1e-13);
+    }  
+    else if (I1_elastic > k/alpha) {
+      ASSERT_NEAR(I1 , k/alpha, 1e-13);
+    }
+
+    previous_grad_u = grad_u;
+    previous_sigma = sigma;
+    previous_inelastic_strain = inelastic_strain;
+  }
+
+  // deviatoric loading (should plastify only when J2 > k)
+  
 }
 
 namespace {
