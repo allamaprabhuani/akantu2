@@ -53,17 +53,15 @@ template <typename T> static T getOptionToType(const std::string & opt_str) {
 }
 
 /* -------------------------------------------------------------------------- */
-ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-                         UInt memory_id)
-    : Parsable(ParserType::_model, id), SolverCallback(), model_type(type),
-      parent_id(id), parent_memory_id(memory_id), mesh(mesh) {
+ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id)
+    : Parsable(ParserType::_model, id), model_type(type),
+      parent_id(id), mesh(mesh) {
 }
 
 /* -------------------------------------------------------------------------- */
 ModelSolver::ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-                         UInt memory_id,
                          std::shared_ptr<DOFManager> dof_manager)
-    : ModelSolver(mesh, type, id, memory_id) {
+    : ModelSolver(mesh, type, id) {
   if (not dof_manager) {
     this->initDOFManager();
   } else {
@@ -127,8 +125,7 @@ ModelSolver::initDOFManager(const ID & solver_type) {
 
   try {
     this->dof_manager = DOFManagerFactory::getInstance().allocate(
-        solver_type, mesh, this->parent_id + ":dof_manager_" + solver_type,
-        this->parent_memory_id);
+        solver_type, mesh, this->parent_id + ":dof_manager_" + solver_type);
   } catch (...) {
     AKANTU_EXCEPTION(
         "To use the solver "

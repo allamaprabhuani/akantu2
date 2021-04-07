@@ -84,8 +84,7 @@ protected:
 public:
   SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
                       const ID & id = "solid_mechanics_model",
-                      const MemoryID & memory_id = 0,
-                      std::shared_ptr<DOFManager> dof_manager = nullptr,
+		      std::shared_ptr<DOFManager> dof_manager = nullptr,
                       ModelType model_type = ModelType::_solid_mechanics_model);
 
   ~SolidMechanicsModel() override;
@@ -333,13 +332,14 @@ public:
 
   virtual void dump(const std::string & dumper_name, UInt step);
 
-  virtual void dump(const std::string & dumper_name, Real time, UInt step);
+  
+  void dump(const std::string & dumper_name) override;
+  void dump(const std::string & dumper_name, UInt step) override;
+  void dump(const std::string & dumper_name, Real time, UInt step) override;
 
   void dump() override;
-
-  virtual void dump(UInt step);
-
-  virtual void dump(Real time, UInt step);
+  void dump(UInt step) override;
+  void dump(Real time, UInt step) override;
 
   /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
@@ -440,8 +440,16 @@ public:
   /// get the energies
   Real getEnergy(const std::string & energy_id);
 
-  /// compute the energy for energy
+  /// compute the energy for an element
   Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
+
+  /// compute the energy for an element
+  Real getEnergy(const std::string & energy_id, const Element & element) {
+    return getEnergy(energy_id, element.type, element.element);
+  }
+
+  /// compute the energy for an element group
+  Real getEnergy(const ID & energy_id, const ID & group_id);
 
   AKANTU_GET_MACRO(MaterialByElement, material_index,
                    const ElementTypeMapArray<UInt> &);
@@ -452,11 +460,11 @@ public:
   /// index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialByElement, material_index,
                                          UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, UInt);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialByElement, material_index, UInt);
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(MaterialLocalNumbering,
                                          material_local_numbering, UInt);
-  AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
-                                   material_local_numbering, UInt);
+  // AKANTU_GET_MACRO_BY_ELEMENT_TYPE(MaterialLocalNumbering,
+  //                                  material_local_numbering, UInt);
 
   AKANTU_GET_MACRO_NOT_CONST(MaterialSelector, *material_selector,
                              MaterialSelector &);
@@ -552,6 +560,8 @@ protected:
 
   /// tells if the material are instantiated
   bool are_materials_instantiated{false};
+
+  friend class Material;
 };
 
 /* -------------------------------------------------------------------------- */

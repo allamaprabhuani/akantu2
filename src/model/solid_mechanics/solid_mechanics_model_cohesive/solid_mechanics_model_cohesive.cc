@@ -119,9 +119,9 @@ private:
 
 /* -------------------------------------------------------------------------- */
 SolidMechanicsModelCohesive::SolidMechanicsModelCohesive(
-    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
-    std::shared_ptr<DOFManager> dof_manager)
-    : SolidMechanicsModel(mesh, dim, id, memory_id, dof_manager,
+    Mesh & mesh, UInt dim, const ID & id, std::shared_ptr<DOFManager> dof_manager)
+    : SolidMechanicsModel(mesh, dim, id, dof_manager,
+
                           ModelType::_solid_mechanics_model_cohesive),
       tangents("tangents", id), facet_stress("facet_stress", id),
       facet_material("facet_material", id) {

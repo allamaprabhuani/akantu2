@@ -57,11 +57,11 @@ class ModelSolver : public Parsable,
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+
+  ModelSolver(Mesh & mesh, const ModelType & type, const ID & id);
   ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-              UInt memory_id);
-  ModelSolver(Mesh & mesh, const ModelType & type, const ID & id,
-              UInt memory_id,
               std::shared_ptr<DOFManager> dof_manager);
+
   ~ModelSolver() override;
 
   /// initialize the dof manager based on solver type passed in the input file
@@ -184,7 +184,6 @@ protected:
 
 private:
   ID parent_id;
-  UInt parent_memory_id;
 
   /// Underlying mesh
   Mesh & mesh;
