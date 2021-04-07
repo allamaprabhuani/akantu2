@@ -35,11 +35,9 @@ void register_model_couplers(py::module & mod) {
            py::arg("analysis_method") = _explicit_dynamic_contact);
 
   py::class_<CouplerSolidContact, Model>(mod, "CouplerSolidContact")
-      .def(py::init<Mesh &, UInt, const ID &, const MemoryID &,
-                    std::shared_ptr<DOFManager>, const ModelType>(),
+      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>, const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
-           py::arg("id") = "coupler_solid_contact", py::arg("memory_id") = 0,
-           py::arg("dof_manager") = nullptr,
+           py::arg("id") = "coupler_solid_contact", py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_coupler_solid_contact)
       .def("initFull",
            [](CouplerSolidContact & self,

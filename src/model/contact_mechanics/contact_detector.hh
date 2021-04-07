@@ -32,7 +32,6 @@
 #include "aka_bbox.hh"
 #include "aka_common.hh"
 #include "aka_grid_dynamic.hh"
-#include "aka_memory.hh"
 #include "contact_element.hh"
 #include "element_class.hh"
 #include "element_group.hh"
@@ -53,19 +52,16 @@ enum class Surface { master, slave };
 
 /* -------------------------------------------------------------------------- */
 
-class ContactDetector : private Memory,
-			public Parsable {
+class ContactDetector : public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructors                                                  */
   /* ------------------------------------------------------------------------ */
 public:
-  ContactDetector(Mesh &, const ID & id = "contact_detector",
-                  const MemoryID & memory_id = 0);
+  ContactDetector(Mesh &, const ID & id = "contact_detector");
 
   ContactDetector(Mesh &, Array<Real> positions,
-                  const ID & id = "contact_detector",
-                  const MemoryID & memory_id = 0);
+                  const ID & id = "contact_detector");
 
   ~ContactDetector() = default;
 

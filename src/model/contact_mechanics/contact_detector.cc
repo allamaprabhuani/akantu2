@@ -35,14 +35,13 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-ContactDetector::ContactDetector(Mesh & mesh, const ID & id,
-                                 const MemoryID & memory_id)
-    : ContactDetector(mesh, mesh.getNodes(), id, memory_id) {}
+ContactDetector::ContactDetector(Mesh & mesh, const ID & id)
+    : ContactDetector(mesh, mesh.getNodes(), id) {}
 
 /* -------------------------------------------------------------------------- */
 ContactDetector::ContactDetector(Mesh & mesh, Array<Real> positions,
-                                 const ID & id, const MemoryID & memory_id)
-    : Memory(id, memory_id), Parsable(ParserType::_contact_detector, id),
+                                 const ID & id)
+    : Parsable(ParserType::_contact_detector, id),
       mesh(mesh), positions(0, mesh.getSpatialDimension()) {
 
   AKANTU_DEBUG_IN();

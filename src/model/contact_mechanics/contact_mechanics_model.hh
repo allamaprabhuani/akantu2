@@ -67,8 +67,7 @@ class ContactMechanicsModel : public Model,
 public:
   ContactMechanicsModel(
       Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-      const ID & id = "contact_mechanics_model", const MemoryID & memory_id = 0,
-      std::shared_ptr<DOFManager> dof_manager = nullptr,
+      const ID & id = "contact_mechanics_model", std::shared_ptr<DOFManager> dof_manager = nullptr,
       const ModelType model_type = ModelType::_contact_mechanics_model);
 
   ~ContactMechanicsModel() override;
@@ -305,55 +304,55 @@ private:
   bool are_resolutions_instantiated;
 
   /// displacements array
-  Array<Real> * displacement{nullptr};
+  std::unique_ptr<Array<Real>> displacement;
 
   /// increment of displacement
-  Array<Real> * displacement_increment{nullptr};
+  std::unique_ptr<Array<Real>> displacement_increment;
 
   /// contact forces array
-  Array<Real> * internal_force{nullptr};
+  std::unique_ptr<Array<Real>> internal_force;
 
   /// external forces array
-  Array<Real> * external_force{nullptr};
+  std::unique_ptr<Array<Real>> external_force;
 
   /// normal force array
-  Array<Real> * normal_force{nullptr};
+  std::unique_ptr<Array<Real>> normal_force;
 
   /// friction force array
-  Array<Real> * tangential_force{nullptr};
+  std::unique_ptr<Array<Real>> tangential_force;
 
   /// friction traction array
-  Array<Real> * tangential_tractions{nullptr};
+  std::unique_ptr<Array<Real>> tangential_tractions;
   
   /// previous friction traction array
-  Array<Real> * previous_tangential_tractions{nullptr};
+  std::unique_ptr<Array<Real>> previous_tangential_tractions;
   
   /// boundary vector
-  Array<Real> * blocked_dofs{nullptr};
+  std::unique_ptr<Array<Real>> blocked_dofs;
 
   /// array to store gap between slave and master
-  Array<Real> * gaps{nullptr};
+  std::unique_ptr<Array<Real>> gaps;
  
   /// array to store normals from master to slave
-  Array<Real> * normals{nullptr};
+  std::unique_ptr<Array<Real>> normals;
 
   /// array to store tangents on the master element
-  Array<Real> * tangents{nullptr};
+  std::unique_ptr<Array<Real>> tangents;
 
   /// array to store previous tangents on the master element
-  Array<Real> * previous_tangents{nullptr};
+  std::unique_ptr<Array<Real>> previous_tangents;
   
   /// array to store nodal areas
-  Array<Real> * nodal_area{nullptr};
+  std::unique_ptr<Array<Real>> nodal_area;
 
   /// array to store stick/slip state :
-  Array<Real> * contact_state{nullptr};
+  std::unique_ptr<Array<Real>> contact_state;
 
   /// array to store previous projections in covariant basis
-  Array<Real> * previous_projections{nullptr};
+  std::unique_ptr<Array<Real>> previous_projections;
   
   // array to store projections in covariant basis
-  Array<Real> * projections{nullptr};
+  std::unique_ptr<Array<Real>> projections;
   
   /// contact detection
   std::unique_ptr<ContactDetector> detector;
@@ -368,7 +367,7 @@ private:
   Array<ContactElement> contact_elements;
 
   /// array to store previous master elements
-  Array<Element> * previous_master_elements{nullptr};
+  std::unique_ptr<Array<Element>> previous_master_elements;
 };
 
 } // namespace akantu

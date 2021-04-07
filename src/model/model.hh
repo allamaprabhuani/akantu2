@@ -66,7 +66,7 @@ public:
   /// in a ModelCoupler
   Model(Mesh & mesh, const ModelType & type,
         std::shared_ptr<DOFManager> dof_manager, UInt dim = _all_dimensions,
-        const ID & id = "model", const MemoryID & memory_id = 0);
+        const ID & id = "model");
 
   ~Model() override;
 

@@ -30,7 +30,6 @@
 
 /* -------------------------------------------------------------------------- */
 #include "aka_factory.hh"
-#include "aka_memory.hh"
 #include "parsable.hh"
 #include "parser.hh"
 #include "fe_engine.hh"
@@ -66,8 +65,7 @@ namespace akantu {
  * \endcode
  *
  */
-class Resolution : public Memory,
-		   public Parsable {
+class Resolution : public Parsable {
 
   /* ------------------------------------------------------------------------ */
   /* Constructor/Destructor                                                   */
@@ -143,6 +141,13 @@ public:
 
   virtual void afterSolveStep(bool converged = true);
   
+
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
+public:
+  AKANTU_GET_MACRO(ID, id, const ID &);
+
   
 public:
   /// function to print the contain of the class
@@ -152,7 +157,8 @@ public:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 protected:
-  
+  ID id;
+
   /// friction coefficient : mu
   Real mu;
   

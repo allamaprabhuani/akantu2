@@ -38,9 +38,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Resolution::Resolution(ContactMechanicsModel & model, const ID & id)
-    : Memory(id, model.getMemoryID()),
-      Parsable(ParserType::_contact_resolution, id), fem(model.getFEEngine()),
-      name(""), model(model) {
+  : Parsable(ParserType::_contact_resolution, id), id(id),
+      fem(model.getFEEngine()), model(model) {
 
   AKANTU_DEBUG_IN();
 
@@ -64,10 +63,7 @@ void Resolution::initialize() {
 
 /* -------------------------------------------------------------------------- */
 void Resolution::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
-
+  std::string space(indent, AKANTU_INDENT);
   std::string type = getID().substr(getID().find_last_of(':') + 1);
 
   stream << space << "Contact Resolution " << type << " [" << std::endl;

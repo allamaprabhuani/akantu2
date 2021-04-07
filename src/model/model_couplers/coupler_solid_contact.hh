@@ -72,8 +72,7 @@ class CouplerSolidContact : public Model,
 public:
   CouplerSolidContact(
       Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-      const ID & id = "coupler_solid_contact", const MemoryID & memory_id = 0,
-      std::shared_ptr<DOFManager> dof_manager = nullptr,
+      const ID & id = "coupler_solid_contact", std::shared_ptr<DOFManager> dof_manager = nullptr,
       const ModelType model_type = ModelType::_coupler_solid_contact);
 
   ~CouplerSolidContact() override;

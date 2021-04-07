@@ -43,9 +43,9 @@
 namespace akantu {
 
 CouplerSolidContact::CouplerSolidContact(
-    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
+    Mesh & mesh, UInt dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id, memory_id) {
+    : Model(mesh, model_type, dof_manager, dim, id) {
 
   AKANTU_DEBUG_IN();
 
@@ -61,12 +61,10 @@ CouplerSolidContact::CouplerSolidContact(
 
   this->registerDataAccessor(*this);
 
-  solid =
-      new SolidMechanicsModel(mesh, Model::spatial_dimension,
-                              "solid_mechanics_model", 0, this->dof_manager);
+  solid = new SolidMechanicsModel(mesh, Model::spatial_dimension,
+                              "solid_mechanics_model", this->dof_manager);
   contact = new ContactMechanicsModel(mesh, Model::spatial_dimension,
-                                      "contact_mechanics_model", 0,
-                                      this->dof_manager);
+                                      "contact_mechanics_model", this->dof_manager);
 
   AKANTU_DEBUG_OUT();
 }

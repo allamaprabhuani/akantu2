@@ -37,11 +37,10 @@ void register_contact_mechanics_model(py::module & mod) {
 
   py::class_<ContactMechanicsModel, Model>(mod, "ContactMechanicsModel",
                                            py::multiple_inheritance())
-      .def(py::init<Mesh &, UInt, const ID &, const MemoryID &,
-                    std::shared_ptr<DOFManager>, const ModelType>(),
+      .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>,
+	   const ModelType>(),
            py::arg("mesh"), py::arg("spatial_dimension") = _all_dimensions,
-           py::arg("id") = "contact_mechanics_model", py::arg("memory_id") = 0,
-           py::arg("dof_manager") = nullptr,
+           py::arg("id") = "contact_mechanics_model", py::arg("dof_manager") = nullptr,
            py::arg("model_type") = ModelType::_contact_mechanics_model)
       .def(
           "initFull",

@@ -62,11 +62,10 @@ CouplerSolidCohesiveContact::CouplerSolidCohesiveContact(
   this->registerDataAccessor(*this);
 
   solid = new SolidMechanicsModelCohesive(mesh, Model::spatial_dimension,
-                                          "solid_mechanics_model_cohesive", 0,
-                                          this->dof_manager);
+                                          "solid_mechanics_model_cohesive", this->dof_manager);
   contact = new ContactMechanicsModel(
       mesh.getMeshFacets(), Model::spatial_dimension, "contact_mechanics_model",
-      0, this->dof_manager);
+      this->dof_manager);
 
   registerFEEngineObject<MyFEEngineFacetType>(
       "FacetsFEEngine", mesh.getMeshFacets(), Model::spatial_dimension - 1);

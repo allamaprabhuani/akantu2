@@ -48,9 +48,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 ContactMechanicsModel::ContactMechanicsModel(
-    Mesh & mesh, UInt dim, const ID & id, const MemoryID & memory_id,
+    Mesh & mesh, UInt dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dof_manager, dim, id, memory_id) {
+    : Model(mesh, model_type, dof_manager, dim, id) {
 
   AKANTU_DEBUG_IN();
 
@@ -656,16 +656,16 @@ ContactMechanicsModel::createNodalFieldReal(const std::string & field_name,
                                             bool padding_flag) {
 
   std::map<std::string, Array<Real> *> real_nodal_fields;
-  real_nodal_fields["contact_force"]    = this->internal_force;
-  real_nodal_fields["normal_force"]     = this->normal_force;
-  real_nodal_fields["tangential_force"] = this->tangential_force;
-  real_nodal_fields["blocked_dofs"]     = this->blocked_dofs;
-  real_nodal_fields["normals"]          = this->normals;
-  real_nodal_fields["tangents"]         = this->tangents;
-  real_nodal_fields["gaps"]             = this->gaps;
-  real_nodal_fields["areas"]            = this->nodal_area;
-  real_nodal_fields["contact_state"]    = this->contact_state;
-  real_nodal_fields["tangential_traction"] = this->tangential_tractions;
+  real_nodal_fields["contact_force"]    = this->internal_force.get();
+  real_nodal_fields["normal_force"]     = this->normal_force.get();
+  real_nodal_fields["tangential_force"] = this->tangential_force.get();
+  real_nodal_fields["blocked_dofs"]     = this->blocked_dofs.get();
+  real_nodal_fields["normals"]          = this->normals.get();
+  real_nodal_fields["tangents"]         = this->tangents.get();
+  real_nodal_fields["gaps"]             = this->gaps.get();
+  real_nodal_fields["areas"]            = this->nodal_area.get();
+  real_nodal_fields["contact_state"]    = this->contact_state.get();
+  real_nodal_fields["tangential_traction"] = this->tangential_tractions.get();
   
   std::shared_ptr<dumpers::Field> field;
   if (padding_flag) 
