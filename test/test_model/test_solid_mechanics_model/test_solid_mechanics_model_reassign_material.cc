@@ -40,7 +40,7 @@
 
 using namespace akantu;
 
-class StraightInterfaceMaterialSelector : public MaterialSelector {
+class StraightInterfaceMaterialSelector : public ConstitutiveLawSelector {
 public:
   StraightInterfaceMaterialSelector(SolidMechanicsModel & model,
                                     UInt horizontal, Real & pos_interface,
@@ -85,7 +85,7 @@ public:
     auto & mesh = model.getMesh();
     auto spatial_dimension = mesh.getSpatialDimension();
     for (const auto & type : mesh.elementTypes(spatial_dimension)) {
-      auto & mat_indexes = model.getMaterialByElement(type);
+      const auto & mat_indexes = model.getMaterialByElement(type);
       for (auto && data :
            enumerate(make_view(barycenters(type), spatial_dimension))) {
         auto elem = std::get<0>(data);
@@ -112,7 +112,7 @@ public:
     /// update position and orientation of material interface plane
     pos_interface = pos_new;
     horizontal = horizontal_new;
-    model.reassignMaterial();
+    model.reassignConstitutiveLaw();
   }
 
 protected:

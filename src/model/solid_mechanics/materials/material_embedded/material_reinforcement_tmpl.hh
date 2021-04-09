@@ -41,17 +41,12 @@ namespace akantu {
 template <class Mat, UInt dim>
 MaterialReinforcement<Mat, dim>::MaterialReinforcement(
     EmbeddedInterfaceModel & model, const ID & id)
-    : Mat(model, 1, model.getInterfaceMesh(),
-          model.getFEEngine("EmbeddedInterfaceFEEngine"), id),
-      emodel(model),
-      gradu_embedded("gradu_embedded", *this, 1,
-                     model.getFEEngine("EmbeddedInterfaceFEEngine"),
+    : Mat(model, id, "EmbeddedInterfaceFEEngine"), emodel(model),
+      gradu_embedded("gradu_embedded", *this, "EmbeddedInterfaceFEEngine",
                      this->element_filter),
-      directing_cosines("directing_cosines", *this, 1,
-                        model.getFEEngine("EmbeddedInterfaceFEEngine"),
+      directing_cosines("directing_cosines", *this, "EmbeddedInterfaceFEEngine",
                         this->element_filter),
-      pre_stress("pre_stress", *this, 1,
-                 model.getFEEngine("EmbeddedInterfaceFEEngine"),
+      pre_stress("pre_stress", *this, "EmbeddedInterfaceFEEngine",
                  this->element_filter),
       area(1.0) {
   AKANTU_DEBUG_IN();

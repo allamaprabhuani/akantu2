@@ -488,6 +488,7 @@ namespace BC {
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
 #include "material.hh"
+#include "material_selector_tmpl.hh"
 #include "parser.hh"
 /* -------------------------------------------------------------------------- */
 

@@ -180,10 +180,9 @@ namespace {
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
-  void register_internal_field(py::module & mod, const std::string & name) {
-    py::class_<InternalField<T>, ElementTypeMapArray<T>,
-               std::shared_ptr<InternalField<T>>>(
-        mod, ("InternalField" + name).c_str());
+  void registerInternal(const std::string & name, UInt nb_component) {
+    auto && internal = std::make_shared<InternalField<T>>(name, *this);
+    internal->initialize(nb_component);
   }
 
 } // namespace
@@ -320,58 +319,45 @@ void register_material(py::module & mod) {
         return sstr.str();
       });
 
-  register_material_classes<MaterialElastic<2>>(mod, "MaterialElastic2D");
-  register_material_classes<MaterialElastic<3>>(mod, "MaterialElastic3D");
+  define_material<Material>(mod, "Material");
+
+  py::class_<ConstitutiveLawSelector, std::shared_ptr<ConstitutiveLawSelector>>(
+      mod, "ConstitutiveLawSelector")
+      .def("setFallback",
+           [](ConstitutiveLawSelector & self, UInt f) { self.setFallback(f); })
+      .def("setFallback",
+           [](ConstitutiveLawSelector & self,
+              const std::shared_ptr<ConstitutiveLawSelector> &
+                  fallback_selector) { self.setFallback(fallback_selector); })
+      .def("setFallback", [](ConstitutiveLawSelector & self,
+                             ConstitutiveLawSelector & fallback_selector) {
+        self.setFallback(fallback_selector);
+      });
+
+  py::class_<MeshDataMaterialSelector<std::string>, ConstitutiveLawSelector,
+             std::shared_ptr<MeshDataMaterialSelector<std::string>>>(
+      mod, "MeshDataMaterialSelectorString")
+      .def(py::init<const std::string &, const SolidMechanicsModel &, UInt>(),
+           py::arg("name"), py::arg("model"), py::arg("first_index") = 1);
 
 #if defined(AKANTU_COHESIVE_ELEMENT)
-  /* ------------------------------------------------------------------------ */
-  py::class_<MaterialCohesive, Material, Parsable,
-             PyMaterialCohesive<MaterialCohesive>>(mod, "MaterialCohesive",
-                                                   py::multiple_inheritance())
-      .def(py::init<SolidMechanicsModelCohesive &, const ID &>())
-      .def("registerInternalReal",
-           [](MaterialCohesive & self, const std::string & name,
-              UInt nb_component) {
-             return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
-                 .registerInternal<Real>(name, nb_component);
-           })
-      .def("registerInternalUInt",
-           [](MaterialCohesive & self, const std::string & name,
-              UInt nb_component) {
-             return dynamic_cast<PyMaterialCohesive<MaterialCohesive> &>(self)
-                 .registerInternal<UInt>(name, nb_component);
-           })
-      .def(
-          "getFacetFilter",
-          [](MaterialCohesive & self) -> decltype(auto) {
-            return self.getFacetFilter();
-          },
-          py::return_value_policy::reference)
-      .def(
-          "getFacetFilter",
-          [](MaterialCohesive & self, ElementType type,
-             GhostType ghost_type) -> decltype(auto) {
-            return self.getFacetFilter(type, ghost_type);
-          },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::return_value_policy::reference)
-      .def(
-          "getOpening",
-          [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
-              -> decltype(auto) { return self.getOpening(type, ghost_type); },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::return_value_policy::reference)
-      .def(
-          "getTraction",
-          [](MaterialCohesive & self, ElementType type, GhostType ghost_type)
-              -> decltype(auto) { return self.getTraction(type, ghost_type); },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::return_value_policy::reference);
+  py::class_<DefaultMaterialCohesiveSelector, ConstitutiveLawSelector,
+             std::shared_ptr<DefaultMaterialCohesiveSelector>>(
+      mod, "DefaultMaterialCohesiveSelector")
+      .def(py::init<const SolidMechanicsModelCohesive &>());
 
-  register_material_cohesive_classes<MaterialCohesiveLinear<2>>(
-      mod, "MaterialCohesiveLinear2D");
-  register_material_cohesive_classes<MaterialCohesiveLinear<3>>(
-      mod, "MaterialCohesiveLinear3D");
+  py::class_<MeshDataMaterialCohesiveSelector, ConstitutiveLawSelector,
+             std::shared_ptr<MeshDataMaterialCohesiveSelector>>(
+      mod, "MeshDataMaterialCohesiveSelector")
+      .def(py::init<const SolidMechanicsModelCohesive &>());
+
+  py::class_<MaterialCohesiveRulesSelector, ConstitutiveLawSelector,
+             std::shared_ptr<MaterialCohesiveRulesSelector>>(
+      mod, "MaterialCohesiveRulesSelector")
+      .def(py::init<const SolidMechanicsModelCohesive &,
+                    const MaterialCohesiveRules &, const ID &>(),
+           py::arg("model"), py::arg("rules"),
+           py::arg("mesh_data_id") = "physical_names");
 #endif
 }
 

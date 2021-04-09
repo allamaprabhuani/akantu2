@@ -85,7 +85,9 @@ public:
   virtual const FEEngine & getFEEngine(const ID & id = "") const = 0;
   virtual FEEngine & getFEEngine(const ID & id = "") = 0;
   UInt getSpatialDimension() const { return spatial_dimension; }
+
   virtual const ElementTypeMapArray<UInt> & getElementFilter() const = 0;
+
   AKANTU_GET_MACRO(Name, name, const std::string &);
   AKANTU_GET_MACRO(ID, id, const ID &);
 
@@ -127,7 +129,7 @@ public:
                   const ID & fe_engine_id = "");
 
   /// Destructor
-  ~ConstitutiveLaw() override;
+  ~ConstitutiveLaw() override = default;
 
 protected:
   void initialize();
@@ -148,9 +150,6 @@ public:
 
   /// remove many element at once
   void removeElements(const Array<Element> & elements_to_remove);
-
-  /// function to print the contain of the class
-  void printself(std::ostream & stream, int indent = 0) const override;
 
 protected:
   /// function called to update the internal parameters when the
@@ -224,6 +223,8 @@ public:
   const ElementTypeMapArray<UInt> & getElementFilter() const override {
     return element_filter;
   }
+
+  AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ElementFilter, element_filter, UInt);
 
   template <typename T>
   ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,

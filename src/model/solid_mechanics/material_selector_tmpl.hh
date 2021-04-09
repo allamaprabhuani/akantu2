@@ -47,7 +47,7 @@ ElementDataMaterialSelector<std::string>::operator()(const Element & element) {
     std::string material_name = this->elementData(element);
     return model.getMaterialIndex(material_name);
   } catch (std::exception & e) {
-    return MaterialSelector::operator()(element);
+    return ConstitutiveLawSelector::operator()(element);
   }
 }
 
@@ -58,7 +58,7 @@ ElementDataMaterialSelector<UInt>::operator()(const Element & element) {
   try {
     return this->elementData(element) - first_index;
   } catch (...) {
-    return MaterialSelector::operator()(element);
+    return ConstitutiveLawSelector::operator()(element);
   }
 }
 

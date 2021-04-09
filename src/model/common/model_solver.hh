@@ -35,6 +35,7 @@
 #include "integration_scheme.hh"
 #include "parsable.hh"
 #include "solver_callback.hh"
+#include "synchronizer_registry.hh"
 /* -------------------------------------------------------------------------- */
 #include <set>
 /* -------------------------------------------------------------------------- */
@@ -53,7 +54,8 @@ struct ModelSolverOptions;
 namespace akantu {
 
 class ModelSolver : public Parsable,
-                    public SolverCallback {
+                    public SolverCallback,
+                    public SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
