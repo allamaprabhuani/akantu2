@@ -45,7 +45,7 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline void ConstitutiveLawInternalHandler::registerInternal(
     std::shared_ptr<InternalFieldBase> vect) {
-  internal_vectors[vect->getID()] = vect;
+  internal_vectors[vect->getRegisterID()] = vect;
 }
 
 /* -------------------------------------------------------------------------- */

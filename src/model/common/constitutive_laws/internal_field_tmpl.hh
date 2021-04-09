@@ -87,7 +87,7 @@ InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
 template <class ConstitutiveLaw_, typename T>
 InternalFieldTmpl<ConstitutiveLaw_, T>::~InternalFieldTmpl() {
   if (this->is_init) {
-    this->constitutive_law.unregisterInternal(this->getID());
+    this->constitutive_law.unregisterInternal(this->getRegisterID());
   }
 }
 

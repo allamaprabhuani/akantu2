@@ -50,7 +50,7 @@ namespace akantu {
 class InternalFieldBase
     : public std::enable_shared_from_this<InternalFieldBase> {
 public:
-  InternalFieldBase(const ID & id) : id(id) {}
+  InternalFieldBase(const ID & id) : id_(id) {}
 
   /// activate the history of this field
   virtual void initializeHistory() = 0;
@@ -70,10 +70,10 @@ public:
 
   virtual bool hasHistory() const = 0;
 
-  AKANTU_GET_MACRO(ID, id, const ID &);
+  auto getRegisterID() const { return id_; }
 
 protected:
-  ID id;
+  ID id_;
 };
 
 /**
