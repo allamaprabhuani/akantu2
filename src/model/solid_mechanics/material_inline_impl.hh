@@ -193,10 +193,10 @@ inline void Material::packData(CommunicationBuffer & buffer,
                                const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
-      packElementDataHelper(piola_kirchhoff_2, buffer, elements);
-      packElementDataHelper(gradu, buffer, elements);
+      packInternalFieldHelper(piola_kirchhoff_2, buffer, elements);
+      packInternalFieldHelper(gradu, buffer, elements);
     }
-    packElementDataHelper(stress, buffer, elements);
+    packInternalFieldHelper(stress, buffer, elements);
   }
 }
 
@@ -206,10 +206,10 @@ inline void Material::unpackData(CommunicationBuffer & buffer,
                                  const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
-      unpackElementDataHelper(piola_kirchhoff_2, buffer, elements);
-      unpackElementDataHelper(gradu, buffer, elements);
+      unpackInternalFieldHelper(piola_kirchhoff_2, buffer, elements);
+      unpackInternalFieldHelper(gradu, buffer, elements);
     }
-    unpackElementDataHelper(stress, buffer, elements);
+    unpackInternalFieldHelper(stress, buffer, elements);
   }
 }
 

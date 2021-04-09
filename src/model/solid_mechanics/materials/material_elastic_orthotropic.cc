@@ -147,14 +147,13 @@ void MaterialElasticOrthotropic<spatial_dimension>::
     computePotentialEnergyByElement(ElementType type, UInt index,
                                     Vector<Real> & epot_on_quad_points) {
 
-  Array<Real>::matrix_iterator gradu_it =
+  auto gradu_it = this->gradu(type).begin(spatial_dimension, spatial_dimension);
+  auto gradu_end =
       this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  Array<Real>::matrix_iterator gradu_end =
-      this->gradu(type).begin(spatial_dimension, spatial_dimension);
-  Array<Real>::matrix_iterator stress_it =
+  auto stress_it =
       this->stress(type).begin(spatial_dimension, spatial_dimension);
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  UInt nb_quadrature_points = this->getFEEngine().getNbIntegrationPoints(type);
 
   gradu_it += index * nb_quadrature_points;
   gradu_end += (index + 1) * nb_quadrature_points;

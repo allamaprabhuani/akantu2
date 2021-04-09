@@ -39,15 +39,7 @@
 #include "aka_factory.hh"
 #include "aka_voigthelper.hh"
 #include "constitutive_law.hh"
-#include "data_accessor.hh"
 #include "integration_point.hh"
-#include "parsable.hh"
-#include "parser.hh"
-/* -------------------------------------------------------------------------- */
-#include "internal_field.hh"
-#include "random_internal_field.hh"
-/* -------------------------------------------------------------------------- */
-#include "mesh_events.hh"
 #include "solid_mechanics_model_event_handler.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -86,6 +78,8 @@ using MaterialFactory =
  */
 class Material : public ConstitutiveLaw<SolidMechanicsModel>,
                  protected SolidMechanicsModelEventHandler {
+
+  using Parent = ConstitutiveLaw<SolidMechanicsModel>;
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -94,11 +88,8 @@ public:
   Material & operator=(const Material & mat) = delete;
 
   /// Initialize material with defaults
-  Material(SolidMechanicsModel & model, const ID & id = "");
-
-  /// Initialize material with custom mesh & fe_engine
-  Material(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
-           FEEngine & fe_engine, const ID & id = "");
+  Material(SolidMechanicsModel & model, const ID & id = "",
+           const ID & fe_engine_id = "");
 
   /// Destructor
   ~Material() override;
@@ -144,7 +135,7 @@ protected:
 
   /// function called to update the internal parameters when the
   /// modifiable parameters are modified
-  virtual void updateInternalParameters();
+  void updateInternalParameters() override;
 
 public:
   /// extrapolate internal values
@@ -375,20 +366,11 @@ public:
                                          Real);
   AKANTU_GET_MACRO(GradU, gradu, const ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(Stress, stress, const ElementTypeMapArray<Real> &);
-  AKANTU_GET_MACRO(ElementFilter, element_filter,
-                   const ElementTypeMapArray<UInt> &);
-  AKANTU_GET_MACRO(FEEngine, fem, FEEngine &);
 
   bool isNonLocal() const { return is_non_local; }
 
   bool isFiniteDeformation() const { return finite_deformation; }
   bool isInelasticDeformation() const { return inelastic_deformation; }
-
-  template <typename T>
-  void inflateInternal(const std::string & field_id,
-                       const ElementTypeMapArray<T> & field,
-                       GhostType ghost_type = _not_ghost,
-                       ElementKind element_kind = _ek_not_defined);
 
   /// apply a constant eigengrad_u everywhere in the material
   virtual void applyEigenGradU(const Matrix<Real> & prescribed_eigen_grad_u,
@@ -429,9 +411,6 @@ public:
   /* ------------------------------------------------------------------------ */
 
 protected:
-  /// Link to the fem object in the model
-  FEEngine & fem;
-
   /// Finite deformation
   bool finite_deformation{false};
 
@@ -496,9 +475,6 @@ inline std::ostream & operator<<(std::ostream & stream,
 } // namespace akantu
 
 #include "material_inline_impl.hh"
-
-#include "internal_field_tmpl.hh"
-#include "random_internal_field_tmpl.hh"
 
 /* -------------------------------------------------------------------------- */
 /* Auto loop                                                                  */

@@ -28,7 +28,8 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+/* -------------------------------------------------------------------------- */
+#include "plane_stress_toolbox.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_PLANE_STRESS_TOOLBOX_TMPL_HH_
@@ -43,9 +44,8 @@ class PlaneStressToolbox<2, ParentMaterial> : public ParentMaterial {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  PlaneStressToolbox(SolidMechanicsModel & model, const ID & id = "");
-  PlaneStressToolbox(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
-                     FEEngine & fe_engine, const ID & id = "");
+  PlaneStressToolbox(SolidMechanicsModel & model, const ID & id = "",
+                     const ID & fe_engine_id = "");
 
   ~PlaneStressToolbox() override = default;
 
@@ -93,7 +93,7 @@ public:
                           "The Cauchy stress can only be computed if you are "
                           "working in finite deformation.");
 
-      for (auto & type : this->fem.getMesh().elementTypes(2, ghost_type)) {
+      for (auto & type : this->elementTypes(2, ghost_type)) {
         this->computeCauchyStressPlaneStress(type, ghost_type);
       }
     } else {
@@ -128,38 +128,12 @@ protected:
 
 template <class ParentMaterial>
 inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
-    SolidMechanicsModel & model, const ID & id)
-    : ParentMaterial(model, id),
-      third_axis_deformation("third_axis_deformation", *this),
-      plane_stress(false), initialize_third_axis_deformation(false) {
-
-  /// @todo Plane_Stress should not be possible to be modified after
-  /// initMaterial (but before)
-  this->initialize();
-}
-
-template <class ParentMaterial>
-inline PlaneStressToolbox<2, ParentMaterial>::PlaneStressToolbox(
-    SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
-    FEEngine & fe_engine, const ID & id)
-    : ParentMaterial(model, dim, mesh, fe_engine, id),
-      third_axis_deformation("third_axis_deformation", *this, dim, fe_engine,
+    SolidMechanicsModel & model, const ID & id, const ID & fe_engine_id)
+    : ParentMaterial(model, id, fe_engine_id),
+      third_axis_deformation("third_axis_deformation", *this, fe_engine_id,
                              this->element_filter),
       plane_stress(false), initialize_third_axis_deformation(false) {
   this->initialize();
-}
-
-template <>
-inline PlaneStressToolbox<2, Material>::PlaneStressToolbox(
-    SolidMechanicsModel & model, const ID & id)
-    : Material(model, id),
-      third_axis_deformation("third_axis_deformation", *this),
-      plane_stress(false), initialize_third_axis_deformation(false) {
-
-  /// @todo Plane_Stress should not be possible to be modified after
-  /// initMaterial (but before)
-  this->registerParam("Plane_Stress", plane_stress, false, _pat_parsmod,
-                      "Is plane stress");
 }
 
 } // namespace akantu

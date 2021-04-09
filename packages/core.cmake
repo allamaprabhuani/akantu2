@@ -308,8 +308,8 @@ package_declare_sources(core
   synchronizer/communicator_dummy_inline_impl.hh
   synchronizer/communicator_event_handler.hh
   synchronizer/communicator_inline_impl.hh
-  synchronizer/data_accessor.cc
   synchronizer/data_accessor.hh
+  synchronizer/data_accessor_tmpl.hh
   synchronizer/dof_synchronizer.cc
   synchronizer/dof_synchronizer.hh
   synchronizer/dof_synchronizer_inline_impl.hh

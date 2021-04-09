@@ -51,7 +51,7 @@ namespace akantu {
  * class that assigns the first cohesive material by default to the
  * cohesive elements
  */
-class DefaultMaterialCohesiveSelector : public MaterialSelector {
+class DefaultMaterialCohesiveSelector : public ConstitutiveLawSelector {
 public:
   DefaultMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
   UInt operator()(const Element & element) override;
@@ -63,7 +63,7 @@ private:
 
 /* -------------------------------------------------------------------------- */
 /// To be used with intrinsic elements inserted along mesh physical surfaces
-class MeshDataMaterialCohesiveSelector : public MaterialSelector {
+class MeshDataMaterialCohesiveSelector : public ConstitutiveLawSelector {
 public:
   MeshDataMaterialCohesiveSelector(const SolidMechanicsModelCohesive & model);
   UInt operator()(const Element & element) override;
@@ -79,7 +79,7 @@ protected:
 using MaterialCohesiveRules = std::map<std::pair<ID, ID>, ID>;
 
 /* -------------------------------------------------------------------------- */
-class MaterialCohesiveRulesSelector : public MaterialSelector {
+class MaterialCohesiveRulesSelector : public ConstitutiveLawSelector {
 public:
   MaterialCohesiveRulesSelector(const SolidMechanicsModelCohesive & model,
                                 const MaterialCohesiveRules & rules,

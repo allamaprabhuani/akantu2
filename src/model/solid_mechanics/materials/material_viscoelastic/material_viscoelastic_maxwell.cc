@@ -588,14 +588,14 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getDissipatedEnergy()
     const {
   AKANTU_DEBUG_IN();
 
+  auto & fem = this->getFEEngine();
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
   for (auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    de +=
-        this->fem.integrate(this->dissipated_energy(type, _not_ghost), type,
-                            _not_ghost, this->element_filter(type, _not_ghost));
+    de += fem.integrate(this->dissipated_energy(type, _not_ghost), type,
+                        _not_ghost, this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -608,13 +608,14 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getDissipatedEnergy(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto & fem = this->getFEEngine();
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
   auto it =
       this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
-  UInt gindex = (this->element_filter(type, _not_ghost))(index);
+  auto gindex = (this->element_filter(type, _not_ghost))(index);
 
   AKANTU_DEBUG_OUT();
-  return this->fem.integrate(it[index], type, gindex);
+  return fem.integrate(it[index], type, gindex);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -622,14 +623,14 @@ template <UInt spatial_dimension>
 Real MaterialViscoelasticMaxwell<spatial_dimension>::getMechanicalWork() const {
   AKANTU_DEBUG_IN();
 
+  auto & fem = this->getFEEngine();
   Real mw = 0.;
 
   /// integrate the dissipated energy for each type of elements
   for (auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    mw +=
-        this->fem.integrate(this->mechanical_work(type, _not_ghost), type,
-                            _not_ghost, this->element_filter(type, _not_ghost));
+    mw += fem.integrate(this->mechanical_work(type, _not_ghost), type,
+                        _not_ghost, this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -642,12 +643,13 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getMechanicalWork(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto & fem = this->getFEEngine();
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
   auto it = this->mechanical_work(type, _not_ghost).begin(nb_quadrature_points);
-  UInt gindex = (this->element_filter(type, _not_ghost))(index);
+  auto gindex = (this->element_filter(type, _not_ghost))(index);
 
   AKANTU_DEBUG_OUT();
-  return this->fem.integrate(it[index], type, gindex);
+  return fem.integrate(it[index], type, gindex);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -656,14 +658,14 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy()
     const {
   AKANTU_DEBUG_IN();
 
+  auto & fem = this->getFEEngine();
   Real epot = 0.;
 
   /// integrate the dissipated energy for each type of elements
   for (auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    epot +=
-        this->fem.integrate(this->potential_energy(type, _not_ghost), type,
-                            _not_ghost, this->element_filter(type, _not_ghost));
+    epot += fem.integrate(this->potential_energy(type, _not_ghost), type,
+                          _not_ghost, this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -676,13 +678,14 @@ Real MaterialViscoelasticMaxwell<spatial_dimension>::getPotentialEnergy(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto & fem = this->getFEEngine();
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
   auto it =
       this->potential_energy(type, _not_ghost).begin(nb_quadrature_points);
-  UInt gindex = (this->element_filter(type, _not_ghost))(index);
+  auto gindex = (this->element_filter(type, _not_ghost))(index);
 
   AKANTU_DEBUG_OUT();
-  return this->fem.integrate(it[index], type, gindex);
+  return fem.integrate(it[index], type, gindex);
 }
 
 /* -------------------------------------------------------------------------- */

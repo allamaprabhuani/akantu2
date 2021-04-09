@@ -1,5 +1,5 @@
 /**
- * @file   data_accessor.cc
+ * @file   data_accessor_tmpl.hh
  *
  * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
@@ -34,6 +34,9 @@
 #include "data_accessor.hh"
 #include "fe_engine.hh"
 /* -------------------------------------------------------------------------- */
+
+#ifndef AKANTU_DATA_ACCESSOR_TMPL_HH
+#define AKANTU_DATA_ACCESSOR_TMPL_HH
 
 namespace akantu {
 
@@ -73,16 +76,15 @@ void DataAccessor<Element>::packUnpackNodalDataHelper(
   }
 }
 
-/* ------------------------------------------------------------------------ */
-template <typename T, bool pack_helper>
+/* -------------------------------------------------------------------------- */
+template <typename T, bool pack_helper, class Func>
 void DataAccessor<Element>::packUnpackElementalDataHelper(
     ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-    const Array<Element> & element, bool per_quadrature_point_data,
-    const FEEngine & fem) {
+    const Array<Element> & element, Func && data_per_element) {
+
   ElementType current_element_type = _not_defined;
   GhostType current_ghost_type = _casper;
-  UInt nb_quad_per_elem = 0;
-  UInt nb_component = 0;
+  UInt nb_data_per_elem = 1;
 
   Array<T> * vect = nullptr;
 
@@ -93,22 +95,36 @@ void DataAccessor<Element>::packUnpackElementalDataHelper(
       current_ghost_type = el.ghost_type;
       vect = &data_to_pack(el.type, el.ghost_type);
 
-      nb_quad_per_elem =
-          per_quadrature_point_data
-              ? fem.getNbIntegrationPoints(el.type, el.ghost_type)
-              : 1;
-      nb_component = vect->getNbComponent();
+      nb_data_per_elem = data_per_element(el) * vect->getNbComponent();
     }
 
-    Vector<T> data(vect->storage() +
-                       el.element * nb_component * nb_quad_per_elem,
-                   nb_component * nb_quad_per_elem);
+    Vector<T> data(vect->storage() + el.element * nb_data_per_elem,
+                   nb_data_per_elem);
     if (pack_helper) {
       buffer << data;
     } else {
       buffer >> data;
     }
   }
+}
+/* ------------------------------------------------------------------------ */
+template <typename T, bool pack_helper>
+void DataAccessor<Element>::packUnpackElementalDataHelper(
+    ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
+    const Array<Element> & element) {
+  packUnpackElementalDataHelper<T, pack_helper>(
+      data_to_pack, buffer, element, [](auto && /*el*/) { return 1; });
+}
+
+/* ------------------------------------------------------------------------ */
+template <typename T, bool pack_helper>
+void DataAccessor<Element>::packUnpackElementalDataHelper(
+    ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
+    const Array<Element> & element, const FEEngine & fem) {
+  packUnpackElementalDataHelper<T, pack_helper>(
+      data_to_pack, buffer, element, [&fem](auto && el) {
+        return fem.getNbIntegrationPoints(el.type, el.ghost_type);
+      });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -126,33 +142,6 @@ void DataAccessor<UInt>::packUnpackDOFDataHelper(Array<T> & data,
   }
 }
 
-/* -------------------------------------------------------------------------- */
-#define DECLARE_HELPERS(T)                                                     \
-  template void DataAccessor<Element>::packUnpackNodalDataHelper<T, false>(    \
-      Array<T> & data, CommunicationBuffer & buffer,                           \
-      const Array<Element> & elements, const Mesh & mesh);                     \
-  template void DataAccessor<Element>::packUnpackNodalDataHelper<T, true>(     \
-      Array<T> & data, CommunicationBuffer & buffer,                           \
-      const Array<Element> & elements, const Mesh & mesh);                     \
-  template void                                                                \
-  DataAccessor<Element>::packUnpackElementalDataHelper<T, false>(              \
-      ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,     \
-      const Array<Element> & element, bool per_quadrature_point_data,          \
-      const FEEngine & fem);                                                   \
-  template void DataAccessor<Element>::packUnpackElementalDataHelper<T, true>( \
-      ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,     \
-      const Array<Element> & element, bool per_quadrature_point_data,          \
-      const FEEngine & fem);                                                   \
-  template void DataAccessor<UInt>::packUnpackDOFDataHelper<T, true>(          \
-      Array<T> & data, CommunicationBuffer & buffer,                           \
-      const Array<UInt> & dofs);                                               \
-  template void DataAccessor<UInt>::packUnpackDOFDataHelper<T, false>(         \
-      Array<T> & data, CommunicationBuffer & buffer, const Array<UInt> & dofs)
-
-/* -------------------------------------------------------------------------- */
-DECLARE_HELPERS(Real);
-DECLARE_HELPERS(UInt);
-DECLARE_HELPERS(bool);
-/* -------------------------------------------------------------------------- */
-
 } // namespace akantu
+
+#endif /* AKANTU_DATA_ACCESSOR_TMPL_HH */

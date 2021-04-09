@@ -167,13 +167,13 @@ void NeighborhoodMaxCriterion::findMaxQuads(
   this->model.updateDataForNonLocalCriterion(criterion);
 
   /// start the exchange the value of the criterion on the ghost elements
-  this->model.asynchronousSynchronize(SynchronizationTag::_nh_criterion);
+  this->asynchronousSynchronize(SynchronizationTag::_nh_criterion);
 
   /// compare to not-ghost neighbors
   checkNeighbors(_not_ghost);
 
   /// finish the exchange
-  this->model.waitEndSynchronize(SynchronizationTag::_nh_criterion);
+  this->waitEndSynchronize(SynchronizationTag::_nh_criterion);
 
   /// compare to ghost neighbors
   checkNeighbors(_ghost);

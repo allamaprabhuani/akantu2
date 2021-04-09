@@ -37,12 +37,14 @@
 
 namespace akantu {
 
+/* -------------------------------------------------------------------------- */
 template <typename T>
-CohesiveInternalField<T>::CohesiveInternalField(const ID & id,
-                                                Material & material)
+CohesiveInternalField<T>::CohesiveInternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
     : InternalField<T>(
-          id, material, material.getModel().getFEEngine("CohesiveFEEngine"),
-          aka::as_type<MaterialCohesive>(material).getElementFilter()) {
+          id, constitutive_law,
+          "CohesiveFEEngine",
+          aka::as_type<MaterialCohesive>(constitutive_law).getElementFilter()) {
   this->element_kind = _ek_cohesive;
 }
 
@@ -56,10 +58,11 @@ void CohesiveInternalField<T>::initialize(UInt nb_component) {
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
-FacetInternalField<T>::FacetInternalField(const ID & id, Material & material)
+FacetInternalField<T>::FacetInternalField(
+    const ID & id, ConstitutiveLawInternalHandler & constitutive_law)
     : InternalField<T>(
-          id, material, material.getModel().getFEEngine("FacetsFEEngine"),
-          aka::as_type<MaterialCohesive>(material).getFacetFilter()) {
+          id, constitutive_law, "FacetsFEEngine",
+          aka::as_type<MaterialCohesive>(constitutive_law).getFacetFilter()) {
   this->spatial_dimension -= 1;
   this->element_kind = _ek_regular;
 }

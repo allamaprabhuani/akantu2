@@ -41,7 +41,6 @@
 #include "solid_mechanics_model.hh"
 #include "integrator_gauss.hh"
 #include "shape_lagrange.hh"
-#include "solid_mechanics_model_tmpl.hh"
 
 #include "communicator.hh"
 #include "element_synchronizer.hh"
@@ -72,7 +71,7 @@ namespace akantu {
 SolidMechanicsModel::SolidMechanicsModel(
     Mesh & mesh, UInt dim, const ID & id,
     std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
-    : Model(mesh, model_type, dim, id) {
+    : CLHParent(mesh, model_type, dim, id) {
   AKANTU_DEBUG_IN();
 
   this->initDOFManager(dof_manager);
@@ -91,7 +90,8 @@ SolidMechanicsModel::SolidMechanicsModel(
 
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
-    this->registerSynchronizer(synchronizer, SynchronizationTag::_material_id);
+    this->registerSynchronizer(synchronizer,
+                               SynchronizationTag::_constitutive_law_id);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_mass);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_smm_stress);
     this->registerSynchronizer(synchronizer, SynchronizationTag::_for_dump);
@@ -108,6 +108,14 @@ void SolidMechanicsModel::setTimeStep(Real time_step, const ID & solver_id) {
   Model::setTimeStep(time_step, solver_id);
 
   this->mesh.getDumper().setTimeStep(time_step);
+}
+
+/* -------------------------------------------------------------------------- */
+void SolidMechanicsModel::instantiateMaterials() {
+  ParserSection model_section;
+  bool is_empty;
+  std::tie(model_section, is_empty) = this->getParserSection();
+  this->instantiateConstitutiveLaws(is_empty ? this->parser : model_section);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -131,7 +139,7 @@ void SolidMechanicsModel::initFullImpl(const ModelOptions & options) {
   // initialize the materials
   if (not this->parser.getLastParsedFile().empty()) {
     this->instantiateMaterials();
-    this->initMaterials();
+    this->initConstitutiveLaws();
   }
 
   this->initBC(*this, *displacement, *displacement_increment, *external_force);
@@ -322,8 +330,8 @@ MatrixType SolidMechanicsModel::getMatrixType(const ID & matrix_id) const {
       matrix_type = std::max(matrix_type, material.getMatrixType(matrix_id));
     });
   }
-}
-return _symmetric;
+
+  return _symmetric;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -344,16 +352,14 @@ void SolidMechanicsModel::assembleLumpedMatrix(const ID & matrix_id) {
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::beforeSolveStep() {
-  for (auto & material : materials) {
-    material->beforeSolveStep();
-  }
+  for_each_constitutive_law(
+      [&](auto && material) { material.beforeSolveStep(); });
 }
 
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::afterSolveStep(bool converged) {
-  for (auto & material : materials) {
-    material->afterSolveStep(converged);
-  }
+  for_each_constitutive_law(
+      [&](auto && material) { material.afterSolveStep(converged); });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -381,8 +387,8 @@ void SolidMechanicsModel::assembleInternalForces() {
 
   /* ------------------------------------------------------------------------ */
   /* Computation of the non local part */
-  if (this->non_local_manager) {
-    this->non_local_manager->computeAllNonLocalStresses();
+  if (this->isNonLocal()) {
+    this->getNonLocalManager().computeAllNonLocalStresses();
   }
 
   // communicate the stresses
@@ -418,7 +424,7 @@ void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
 
   // Check if materials need to recompute the matrix
   for_each_constitutive_law([&](auto && material) {
-    need_to_reassemble |= material->hasMatrixChanged("K");
+    need_to_reassemble |= material.hasMatrixChanged("K");
   });
 
   if (need_to_reassemble) {
@@ -504,7 +510,7 @@ Real SolidMechanicsModel::getStableTimeStep(GhostType ghost_type) {
          ++el, ++X_el, ++mat_indexes, ++mat_loc_num) {
       elem.element = *mat_loc_num;
       Real el_h = getFEEngine().getElementInradius(*X_el, type);
-      Real el_c = this->materials[*mat_indexes]->getCelerity(elem);
+      Real el_c = getConstitutiveLaw(*mat_indexes).getCelerity(elem);
       Real el_dt = el_h / el_c;
 
       min_dt = std::min(min_dt, el_dt);
@@ -566,7 +572,7 @@ Real SolidMechanicsModel::getKineticEnergy() {
   mesh.getCommunicator().allReduce(ekin, SynchronizerOperation::_sum);
 
   AKANTU_DEBUG_OUT();
-  return ekin * .5;
+  return ekin / 2.;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -582,20 +588,21 @@ Real SolidMechanicsModel::getKineticEnergy(ElementType type, UInt index) {
                                                Model::spatial_dimension, type,
                                                _not_ghost, filter_element);
 
-  auto vit = vel_on_quad.begin(Model::spatial_dimension);
-  auto vend = vel_on_quad.end(Model::spatial_dimension);
+  auto vit = vel_on_quad.begin(spatial_dimension);
+  auto vend = vel_on_quad.end(spatial_dimension);
 
   Vector<Real> rho_v2(nb_quadrature_points);
 
-  Real rho = materials[material_index(type)(index)]->getRho();
+  Real rho = getConstitutiveLaw(Element{type, index, _not_ghost}).getRho();
 
-  for (UInt q = 0; vit != vend; ++vit, ++q) {
-    rho_v2(q) = rho * vit->dot(*vit);
+  for (auto && data : zip(rho_v2, make_view(vel_on_quad, spatial_dimension))) {
+    auto && vel = std::get<1>(data);
+    std::get<0>(data) = rho * vel.dot(vel);
   }
 
   AKANTU_DEBUG_OUT();
 
-  return .5 * getFEEngine().integrate(rho_v2, type, index);
+  return getFEEngine().integrate(rho_v2, type, index) / 2.;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -664,7 +671,7 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id) {
 
   Real energy = 0.;
   for_each_constitutive_law(
-      [&](auto && material) { energy += material->getEnergy(energy_id); });
+      [&](auto && material) { energy += material.getEnergy(energy_id); });
 
   /// reduction sum over all processors
   mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
@@ -682,10 +689,10 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
     return getKineticEnergy(type, index);
   }
 
-  UInt mat_index = this->material_index(type, _not_ghost)(index);
-  UInt mat_loc_num = this->material_local_numbering(type, _not_ghost)(index);
+  Element el{type, index, _not_ghost};
+  UInt mat_loc_num = this->getConstitutiveLawLocalNumbering()(el);
   Real energy =
-      this->materials[mat_index]->getEnergy(energy_id, type, mat_loc_num);
+      this->getConstitutiveLaw(el).getEnergy(energy_id, type, mat_loc_num);
 
   AKANTU_DEBUG_OUT();
   return energy;
@@ -705,21 +712,6 @@ Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
   mesh.getCommunicator().allReduce(energy, SynchronizerOperation::_sum);
 
   return energy;
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onElementsAdded(const Array<Element> & element_list,
-                                          const NewElementsEvent & event) {
-  ConstitutiveLawsHandler<Material>::onElementsAdded(element_list, event);
-}
-
-/* -------------------------------------------------------------------------- */
-void SolidMechanicsModel::onElementsRemoved(
-    const Array<Element> & element_list,
-    const ElementTypeMapArray<UInt> & new_numbering,
-    const RemovedElementsEvent & event) {
-  ConstitutiveLawsHandler<Material>::onElementsRemoved(element_list,
-                                                       new_numbering, event);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -761,9 +753,8 @@ void SolidMechanicsModel::onNodesAdded(const Array<UInt> & nodes_list,
     displacement_increment->resize(nb_nodes, 0.);
   }
 
-  for (auto & material : materials) {
-    material->onNodesAdded(nodes_list, event);
-  }
+  for_each_constitutive_law(
+      [&](auto && material) { material.onNodesAdded(nodes_list, event); });
 
   need_to_reassemble_lumped_mass = true;
   need_to_reassemble_mass = true;
@@ -798,8 +789,6 @@ void SolidMechanicsModel::onNodesRemoved(const Array<UInt> & /*element_list*/,
     mesh.removeNodesFromArray(*blocked_dofs, new_numbering);
   }
 
-  // if (increment_acceleration)
-  //   mesh.removeNodesFromArray(*increment_acceleration, new_numbering);
   if (displacement_increment) {
     mesh.removeNodesFromArray(*displacement_increment, new_numbering);
   }
@@ -838,12 +827,8 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
   blocked_dofs->printself(stream, indent + 2);
   stream << space << " ]" << std::endl;
 
-  stream << space << " + material information [" << std::endl;
-  material_index.printself(stream, indent + 2);
-  stream << space << " ]" << std::endl;
-
   stream << space << " + materials [" << std::endl;
-  for_each_constitutive_law(
+  this->for_each_constitutive_law(
       [&](auto && material) { material.printself(stream, indent + 2); });
   stream << space << " ]" << std::endl;
 
@@ -853,12 +838,11 @@ void SolidMechanicsModel::printself(std::ostream & stream, int indent) const {
 /* -------------------------------------------------------------------------- */
 void SolidMechanicsModel::computeNonLocalStresses(GhostType ghost_type) {
   for_each_constitutive_law([&](auto && material) {
-    if (not aka::is_of_type<MaterialNonLocalInterface>(mat)) {
-      continue;
+    if (aka::is_of_type<MaterialNonLocalInterface>(material)) {
+      auto & mat_non_local =
+          dynamic_cast<MaterialNonLocalInterface &>(material);
+      mat_non_local.computeNonLocalStresses(ghost_type);
     }
-
-    auto & mat_non_local = aka::as_type<MaterialNonLocalInterface>(mat);
-    mat_non_local.computeNonLocalStresses(ghost_type);
   });
 }
 
@@ -905,7 +889,7 @@ UInt SolidMechanicsModel::getNbData(const Array<Element> & elements,
   }
   }
 
-  ConstitutiveLawsHandler<Material>::getNbData(elements, tag);
+  CLHParent::getNbData(elements, tag);
 
   AKANTU_DEBUG_OUT();
   return size;
@@ -944,7 +928,7 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
   }
   }
 
-  ConstitutiveLawsHandler<Material>::packData(buffer, elements, tag);
+  CLHParent::packData(buffer, elements, tag);
 
   AKANTU_DEBUG_OUT();
 }
@@ -982,7 +966,7 @@ void SolidMechanicsModel::unpackData(CommunicationBuffer & buffer,
   }
   }
 
-  ConstitutiveLawsHandler<Material>::unpackData(buffer, elements, tag);
+  CLHParent::unpackData(buffer, elements, tag);
   AKANTU_DEBUG_OUT();
 }
 
@@ -1096,11 +1080,11 @@ void SolidMechanicsModel::applyEigenGradU(
   AKANTU_DEBUG_ASSERT(prescribed_eigen_grad_u.size() ==
                           spatial_dimension * spatial_dimension,
                       "The prescribed grad_u is not of the good size");
-  for (auto & material : this->getConstitutiveLaws()) {
-    if (material->getName() == material_name) {
-      material->applyEigenGradU(prescribed_eigen_grad_u, ghost_type);
+  for_each_constitutive_law([&](auto && material) {
+    if (material.getName() == material_name) {
+      material.applyEigenGradU(prescribed_eigen_grad_u, ghost_type);
     }
-  }
+  });
 }
 
 /* -------------------------------------------------------------------------- */

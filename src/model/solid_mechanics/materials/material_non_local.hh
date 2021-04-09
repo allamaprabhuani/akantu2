@@ -32,7 +32,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "constitutive_law_non_local.hh"
+#include "constitutive_law_non_local_interface.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_MATERIAL_NON_LOCAL_HH_
@@ -55,5 +55,7 @@ public:
 template <UInt dim, class LocalParent>
 using MaterialNonLocal =
     ConstitutiveLawNonLocal<dim, MaterialNonLocalInterface, LocalParent>;
+
+} // namespace akantu
 
 #endif /* AKANTU_MATERIAL_NON_LOCAL_HH_ */

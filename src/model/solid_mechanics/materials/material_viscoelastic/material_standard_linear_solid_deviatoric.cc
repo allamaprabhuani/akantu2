@@ -257,13 +257,13 @@ template <UInt dim>
 Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy() const {
   AKANTU_DEBUG_IN();
 
+  auto & fem = this->getFEEngine();
   Real de = 0.;
 
   /// integrate the dissipated energy for each type of elements
   for (auto & type : this->element_filter.elementTypes(dim, _not_ghost)) {
-    de +=
-        this->fem.integrate(dissipated_energy(type, _not_ghost), type,
-                            _not_ghost, this->element_filter(type, _not_ghost));
+    de += fem.integrate(dissipated_energy(type, _not_ghost), type, _not_ghost,
+                        this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();
@@ -276,13 +276,14 @@ Real MaterialStandardLinearSolidDeviatoric<dim>::getDissipatedEnergy(
     ElementType type, UInt index) const {
   AKANTU_DEBUG_IN();
 
-  UInt nb_quadrature_points = this->fem.getNbIntegrationPoints(type);
+  auto & fem = this->getFEEngine();
+  auto nb_quadrature_points = fem.getNbIntegrationPoints(type);
   auto it =
       this->dissipated_energy(type, _not_ghost).begin(nb_quadrature_points);
-  UInt gindex = (this->element_filter(type, _not_ghost))(index);
+  auto gindex = (this->element_filter(type, _not_ghost))(index);
 
   AKANTU_DEBUG_OUT();
-  return this->fem.integrate(it[index], type, gindex);
+  return fem.integrate(it[index], type, gindex);
 }
 
 /* -------------------------------------------------------------------------- */

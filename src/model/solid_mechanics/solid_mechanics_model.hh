@@ -45,7 +45,7 @@
 
 namespace akantu {
 class Material;
-class MaterialSelector;
+class ConstitutiveLawSelector;
 class DumperIOHelper;
 template <ElementKind kind, class IntegrationOrderFunctor>
 class IntegratorGauss;
@@ -57,10 +57,9 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 class SolidMechanicsModel
-    : public Model,
+    : public ConstitutiveLawsHandler<Material, Model>,
       public DataAccessor<UInt>,
       public BoundaryCondition<SolidMechanicsModel>,
-      public ConstitutiveLawsHandler<Material>,
       public EventHandlerManager<SolidMechanicsModelEventHandler> {
 
   /* ------------------------------------------------------------------------ */
@@ -71,6 +70,7 @@ public:
 
 protected:
   using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler>;
+  using CLHParent = ConstitutiveLawsHandler<Material, Model>;
 
 public:
   SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,
@@ -88,9 +88,8 @@ protected:
   void initFullImpl(
       const ModelOptions & options = SolidMechanicsModelOptions()) override;
 
-public:
-  /// initialize all internal arrays for materials
-  virtual void initMaterials();
+protected:
+  void instantiateMaterials();
 
 protected:
   /// initialize the model
@@ -169,6 +168,7 @@ public:
                                const ID & material_name,
                                GhostType ghost_type = _not_ghost);
 
+  void computeNonLocalStresses(GhostType ghost_type) override;
   /* ------------------------------------------------------------------------ */
   /* Mass (solid_mechanics_model_mass.cc)                                     */
   /* ------------------------------------------------------------------------ */
@@ -190,6 +190,10 @@ protected:
   /// fill a vector of rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
 
+  /* ------------------------------------------------------------------------ */
+  /* Energies                                                                 */
+  /* ------------------------------------------------------------------------ */
+protected:
   /// compute the kinetic energy
   Real getKineticEnergy();
   Real getKineticEnergy(ElementType type, UInt index);
@@ -197,6 +201,21 @@ protected:
   /// compute the external work (for impose displacement, the velocity should be
   /// given too)
   Real getExternalWork();
+
+public:
+  /// get the energies
+  Real getEnergy(const std::string & energy_id);
+
+  /// compute the energy for an element
+  Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
+
+  /// compute the energy for an element
+  Real getEnergy(const std::string & energy_id, const Element & element) {
+    return getEnergy(energy_id, element.type, element.element);
+  }
+
+  /// compute the energy for an element group
+  Real getEnergy(const ID & energy_id, const ID & group_id);
 
   /* ------------------------------------------------------------------------ */
   /* Data Accessor inherited members                                          */
@@ -229,15 +248,6 @@ protected:
   void onNodesRemoved(const Array<UInt> & element_list,
                       const Array<UInt> & new_numbering,
                       const RemovedNodesEvent & event) override;
-  void onElementsAdded(const Array<Element> & element_list,
-                       const NewElementsEvent & event) override;
-  void onElementsRemoved(const Array<Element> & element_list,
-                         const ElementTypeMapArray<UInt> & new_numbering,
-                         const RemovedElementsEvent & event) override;
-  void onElementsChanged(const Array<Element> & /*unused*/,
-                         const Array<Element> & /*unused*/,
-                         const ElementTypeMapArray<UInt> & /*unused*/,
-                         const ChangedElementsEvent & /*unused*/) override{};
 
   /* ------------------------------------------------------------------------ */
   /* Dumpable interface (kept for convenience) and dumper relative functions  */
@@ -373,30 +383,6 @@ public:
   /// compute the stable time step
   Real getStableTimeStep();
 
-  /**
-   * @brief Returns the total energy for a given energy type
-   *
-   * Energy types of SolidMechanicsModel expected as argument are:
-   *   - `kinetic`
-   *   - `external work`
-   *
-   * Other energy types are passed on to the materials. All materials should
-   * define a `potential` energy type. For additional energy types, see material
-   * documentation.
-   */
-  Real getEnergy(const std::string & energy_id);
-
-  /// Compute energy for an element type and material index
-  Real getEnergy(const std::string & energy_id, ElementType type, UInt index);
-
-  /// Compute energy for an individual element
-  Real getEnergy(const std::string & energy_id, const Element & element) {
-    return getEnergy(energy_id, element.type, element.element);
-  }
-
-  /// Compute energy for an element group
-  Real getEnergy(const ID & energy_id, const ID & group_id);
-
   // this function is kept for backward compatinility
   decltype(auto) getMaterialByElement() const {
     return this->getConstitutiveLawByElement();
@@ -426,8 +412,8 @@ public:
   }
 
   // this function is kept for backward compatinility
-  void
-  setMaterialSelector(std::shared_ptr<MaterialSelector> material_selector) {
+  void setMaterialSelector(
+      std::shared_ptr<ConstitutiveLawSelector> material_selector) {
     this->setConstitutiveLawSelector(std::move(material_selector));
   }
 

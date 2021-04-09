@@ -50,6 +50,8 @@ namespace akantu {
 class InternalFieldBase
     : public std::enable_shared_from_this<InternalFieldBase> {
 public:
+  InternalFieldBase(const ID & id) : id(id) {}
+
   /// activate the history of this field
   virtual void initializeHistory() = 0;
 
@@ -67,6 +69,11 @@ public:
   removeIntegrationPoints(const ElementTypeMapArray<UInt> & new_numbering) = 0;
 
   virtual bool hasHistory() const = 0;
+
+  AKANTU_GET_MACRO(ID, id, const ID &);
+
+protected:
+  ID id;
 };
 
 /**
@@ -87,12 +94,12 @@ public:
 
   /// This constructor is only here to let cohesive elements compile
   InternalFieldTmpl(const ID & id, ConstitutiveLaw & constitutive_law,
-                    FEEngine & fem,
+                    const ID & fem_id,
                     const ElementTypeMapArray<UInt> & element_filter);
 
   /// More general constructor
   InternalFieldTmpl(const ID & id, ConstitutiveLaw & constitutive_law, UInt dim,
-                    FEEngine & fem,
+                    const ID & fem_id,
                     const ElementTypeMapArray<UInt> & element_filter);
 
   InternalFieldTmpl(const ID & id,
@@ -105,7 +112,7 @@ public:
   /* ------------------------------------------------------------------------ */
 public:
   /// function to reset the FEEngine for the internal fieldx
-  virtual void setFEEngine(FEEngine & fe_engine);
+  //  virtual void setFEEngine(FEEngine & fe_engine);
 
   /// function to reset the element kind for the internal
   virtual void setElementKind(ElementKind element_kind);
@@ -141,9 +148,9 @@ public:
   /// get the default value
   inline operator T() const;
 
-  virtual FEEngine & getFEEngine() { return *fem; }
+  virtual FEEngine & getFEEngine() { return fem; }
 
-  virtual const FEEngine & getFEEngine() const { return *fem; }
+  virtual const FEEngine & getFEEngine() const { return fem; }
 
 protected:
   /// initialize the arrays in the ElementTypeMapArray<T>
@@ -238,7 +245,7 @@ protected:
   ConstitutiveLaw & constitutive_law;
 
   /// the fem containing the mesh and the element informations
-  FEEngine * fem{nullptr};
+  FEEngine & fem;
 
   /// Element filter if needed
   const ElementTypeMapArray<UInt> & element_filter;

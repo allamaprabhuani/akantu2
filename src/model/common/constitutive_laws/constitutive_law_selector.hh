@@ -37,11 +37,13 @@
 
 namespace akantu {
 
+/* -------------------------------------------------------------------------- */
 /**
  * main class to assign same or different constitutive_laws for different
  * elements
  */
-class ConstitutiveLawSelector : public std::enable_shared_from_this<ConstitutiveLawSelector> {
+class ConstitutiveLawSelector
+    : public std::enable_shared_from_this<ConstitutiveLawSelector> {
 public:
   ConstitutiveLawSelector() = default;
   virtual ~ConstitutiveLawSelector() = default;
@@ -54,8 +56,8 @@ public:
   }
 
   inline void setFallback(UInt f) { fallback_value = f; }
-  inline void
-  setFallback(const std::shared_ptr<ConstitutiveLawSelector> & fallback_selector) {
+  inline void setFallback(
+      const std::shared_ptr<ConstitutiveLawSelector> & fallback_selector) {
     this->fallback_selector = fallback_selector;
   }
 
@@ -89,7 +91,8 @@ public:
       return ConstitutiveLawSelector::operator()(element);
     }
 
-    const auto & mat_indexes = constitutive_law_index(element.type, element.ghost_type);
+    const auto & mat_indexes =
+        constitutive_law_index(element.type, element.ghost_type);
     if (element.element < mat_indexes.size()) {
       auto && tmp_mat = mat_indexes(element.element);
       if (tmp_mat != UInt(-1)) {
@@ -104,7 +107,6 @@ private:
   const ElementTypeMapArray<UInt> & constitutive_law_index;
 };
 
-} // akantu
-
+} // namespace akantu
 
 #endif /* AKANTU_CONSTITUTIVE_LAW_SELECTOR_HH */

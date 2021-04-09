@@ -31,9 +31,9 @@
  */
 
 /* -------------------------------------------------------------------------- */
+#include "constitutive_law_selector.hh"
 #include "element.hh"
 #include "mesh.hh"
-#include "constitutive_law_selector.hh"
 /* -------------------------------------------------------------------------- */
 #include <memory>
 /* -------------------------------------------------------------------------- */
@@ -41,18 +41,20 @@
 #ifndef AKANTU_MATERIAL_SELECTOR_HH_
 #define AKANTU_MATERIAL_SELECTOR_HH_
 
+namespace akantu {
+class SolidMechanicsModel;
+using DefaultMaterialSelector = DefaultConstitutiveLawSelector;
+} // namespace akantu
+
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-class SolidMechanicsModel;
-
-using DefaultMaterialSelector = DefaultConstitutiveLawSelector;
 /* -------------------------------------------------------------------------- */
 /**
  * Use elemental data to assign materials
  */
 template <typename T>
-class ElementDataMaterialSelector : public MaterialSelector {
+class ElementDataMaterialSelector : public ConstitutiveLawSelector {
 public:
   ElementDataMaterialSelector(const ElementTypeMapArray<T> & element_data,
                               const SolidMechanicsModel & model,
@@ -67,7 +69,9 @@ public:
     return data;
   }
 
-  inline UInt operator()(const Element & element) override;
+  inline UInt operator()(const Element & element) override {
+    return ConstitutiveLawSelector::operator()(element);
+  }
 
 protected:
   /// list of element with the specified data (i.e. tag value)

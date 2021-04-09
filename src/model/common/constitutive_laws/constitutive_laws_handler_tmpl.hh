@@ -40,9 +40,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
+template <class ConstitutiveLawType, class Model_>
 inline decltype(auto)
-ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaws() {
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaws() {
   return make_transform_adaptor(
       constitutive_laws, [](auto && value) -> decltype(auto) {
         return aka::as_type<ConstitutiveLawType>(*value);
@@ -50,9 +50,10 @@ ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaws() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
+template <class ConstitutiveLawType, class Model_>
 inline decltype(auto)
-ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaws() const {
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaws()
+    const {
   return make_transform_adaptor(
       constitutive_laws, [](auto && value) -> decltype(auto) {
         return aka::as_type<ConstitutiveLawType>(*value);
@@ -60,77 +61,100 @@ ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaws() const {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
+template <class ConstitutiveLawType, class Model_>
 inline UInt
-ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLawIndex(
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLawIndex(
     const std::string & name) const {
   auto it = constitutive_laws_names_to_id.find(name);
   if (it == constitutive_laws_names_to_id.end()) {
     AKANTU_SILENT_EXCEPTION(
-        "The model " << parent_id << " has no constitutive_law named " << name);
+        "The model " << this->id << " has no constitutive_law named " << name);
   }
 
   return it->second;
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-inline auto & ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaw(
+template <class ConstitutiveLawType, class Model_>
+inline auto &
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
     UInt cl_index) {
   AKANTU_DEBUG_ASSERT(cl_index < constitutive_laws.size(),
-                      "The model " << parent_id
+                      "The model " << this->id
                                    << " has no constitutive law number "
                                    << cl_index);
-  return aka::as_type<ConstitutiveLawType>(*constitutive_laws.at(cl_index));
+  return *(constitutive_laws.at(cl_index));
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
+template <class ConstitutiveLawType, class Model_>
 inline const auto &
-ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaw(
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
     UInt cl_index) const {
   AKANTU_DEBUG_ASSERT(cl_index < constitutive_laws.size(),
-                      "The model " << parent_id
+                      "The model " << this->id
                                    << " has no constitutive law number "
                                    << cl_index);
-  return aka::as_type<ConstitutiveLawType>(*constitutive_laws.at(cl_index));
+  return *(constitutive_laws.at(cl_index));
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-inline auto & ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaw(
+template <class ConstitutiveLawType, class Model_>
+inline auto &
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
     const std::string & name) {
   std::map<std::string, UInt>::const_iterator it =
       constitutive_laws_names_to_id.find(name);
   if (it == constitutive_laws_names_to_id.end()) {
     AKANTU_SILENT_EXCEPTION(
-        "The model " << parent_id << " has no constitutive_law named " << name);
+        "The model " << this->id << " has no constitutive_law named " << name);
   }
 
-  return aka::as_type<ConstitutiveLawType>(*constitutive_laws[it->second]);
+  return *(constitutive_laws[it->second]);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
+template <class ConstitutiveLawType, class Model_>
 inline const auto &
-ConstitutiveLawsHandler<ConstitutiveLawType>::getConstitutiveLaw(
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
     const std::string & name) const {
   auto it = constitutive_laws_names_to_id.find(name);
   if (it == constitutive_laws_names_to_id.end()) {
     AKANTU_SILENT_EXCEPTION(
-        "The model " << parent_id << " has no constitutive_law named " << name);
+        "The model " << this->id << " has no constitutive_law named " << name);
   }
-  return aka::as_type<ConstitutiveLawType>(*constitutive_laws[it->second]);
+  return *(constitutive_laws[it->second]);
 }
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+inline auto &
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
+    const Element & element) {
+  auto index = constitutive_law_index(element);
+  return *(constitutive_laws[index]);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+inline const auto &
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getConstitutiveLaw(
+    const Element & element) const {
+  auto index = constitutive_law_index(element);
+  return *(constitutive_laws[index]);
+}
+
+/* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 #define AKA_FWD_CL(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
+template <class ConstitutiveLawType, class Model_>
 template <typename Operation>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::splitByConstitutiveLaw(
-    const Array<Element> & elements, Operation && op) const {
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
+    splitByConstitutiveLaw(const Array<Element> & elements,
+                           Operation && op) const {
   std::vector<Array<Element>> elements_per_cl(constitutive_laws.size());
   this->splitElementByConstitutiveLaw(elements, elements_per_cl);
 
@@ -142,9 +166,9 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::splitByConstitutiveLaw(
 #undef AKA_FWD_CL
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-auto & ConstitutiveLawsHandler<ConstitutiveLawType>::registerNewConstitutiveLaw(
-    const ParserSection & section) {
+template <class ConstitutiveLawType, class Model_>
+auto & ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
+    registerNewConstitutiveLaw(const ParserSection & section) {
   std::string cl_name;
   std::string cl_type = section.getName();
   std::string opt_param = section.getOption();
@@ -169,9 +193,10 @@ auto & ConstitutiveLawsHandler<ConstitutiveLawType>::registerNewConstitutiveLaw(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-auto & ConstitutiveLawsHandler<ConstitutiveLawType>::registerNewConstitutiveLaw(
-    const ID & cl_name, const ID & cl_type, const ID & opt_param) {
+template <class ConstitutiveLawType, class Model_>
+auto & ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
+    registerNewConstitutiveLaw(const ID & cl_name, const ID & cl_type,
+                               const ID & opt_param) {
   AKANTU_DEBUG_ASSERT(constitutive_laws_names_to_id.find(cl_name) ==
                           constitutive_laws_names_to_id.end(),
                       "A constitutive_law with this name '"
@@ -185,9 +210,9 @@ auto & ConstitutiveLawsHandler<ConstitutiveLawType>::registerNewConstitutiveLaw(
   sstr_cl << this->id << ":" << cl_count << ":" << cl_type;
   ID cl_id = sstr_cl.str();
 
-  std::unique_ptr<ConstitutiveLaw> constitutive_law =
-      ConstitutiveLawType::getFactory().allocate(cl_type, _spatial_dimension,
-                                                 opt_param, *this, cl_id);
+  auto constitutive_law = ConstitutiveLawType::getFactory().allocate(
+      cl_type, this->spatial_dimension, opt_param,
+      aka::as_type<typename ConstitutiveLawType::ConstitutiveLawsHandler>(*this), cl_id);
 
   constitutive_laws.push_back(std::move(constitutive_law));
 
@@ -195,24 +220,12 @@ auto & ConstitutiveLawsHandler<ConstitutiveLawType>::registerNewConstitutiveLaw(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<
-    ConstitutiveLawType>::instantiateConstitutiveLaws() {
-  ParserSection model_section;
-  bool is_empty;
-  std::tie(model_section, is_empty) = this->getParserSection();
-
-  if (not is_empty) {
-    auto model_constitutive_laws =
-        model_section.getSubSections(ParserType::_constitutive_law);
-    for (const auto & section : model_constitutive_laws) {
-      this->registerNewConstitutiveLaw(section);
-    }
-  }
-
-  auto sub_sections =
-      this->parser.getSubSections(ParserType::_constitutive_law);
-  for (const auto & section : sub_sections) {
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
+    instantiateConstitutiveLaws(ParserSection & parser_section) {
+  auto model_constitutive_laws =
+      parser_section.getSubSections(ParserType::_constitutive_law);
+  for (const auto & section : model_constitutive_laws) {
     this->registerNewConstitutiveLaw(section);
   }
 
@@ -224,25 +237,25 @@ void ConstitutiveLawsHandler<
     }
 
     this->non_local_manager = std::make_unique<NonLocalManager>(
-        *this, *this, parent_id + ":non_local_manager");
+        *this, *this, this->id + ":non_local_manager");
     break;
   }
 #endif
 
   if (constitutive_laws.empty()) {
     AKANTU_EXCEPTION("No constitutive_laws where instantiated for the model"
-                     << parent_id);
+                     << this->id);
   }
   are_constitutive_laws_instantiated = true;
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     assignConstitutiveLawToElements(const ElementTypeMapArray<UInt> * filter) {
 
   for_each_element(
-      _mesh,
+      this->mesh,
       [&](auto && element) {
         UInt cl_index = (*constitutive_law_selector)(element);
         AKANTU_DEBUG_ASSERT(cl_index < constitutive_laws.size(),
@@ -258,7 +271,7 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::
   }
 
   for_each_element(
-      _mesh,
+      this->mesh,
       [&](auto && element) {
         auto cl_index = constitutive_law_index(element);
         auto index = constitutive_laws[cl_index]->addElement(element);
@@ -271,8 +284,9 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::initConstitutiveLaws() {
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType,
+                             Model_>::initConstitutiveLaws() {
   AKANTU_DEBUG_ASSERT(not constitutive_laws.empty(),
                       "No constitutive_law to initialize !");
 
@@ -283,13 +297,13 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::initConstitutiveLaws() {
     constitutive_law->initConstitutiveLaw();
   }
 
-  this->synchronize(SynchronizationTag::_smm_init_cl);
+  this->synchronize(SynchronizationTag::_clh_init_cl);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-Int ConstitutiveLawsHandler<ConstitutiveLawType>::getInternalIndexFromID(
-    const ID & id) const {
+template <class ConstitutiveLawType, class Model_>
+Int ConstitutiveLawsHandler<
+    ConstitutiveLawType, Model_>::getInternalIndexFromID(const ID & id) const {
   AKANTU_DEBUG_IN();
 
   auto it = constitutive_laws.begin();
@@ -307,14 +321,15 @@ Int ConstitutiveLawsHandler<ConstitutiveLawType>::getInternalIndexFromID(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::reassignConstitutiveLaw() {
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType,
+                             Model_>::reassignConstitutiveLaw() {
   AKANTU_DEBUG_IN();
 
   std::vector<Array<Element>> element_to_add(constitutive_laws.size());
   std::vector<Array<Element>> element_to_remove(constitutive_laws.size());
 
-  for_each_element(mesh, [&](auto && element) {
+  for_each_element(this->mesh, [&](auto && element) {
     auto old_constitutive_law = constitutive_law_index(element);
     auto new_constitutive_law = (*constitutive_law_selector)(element);
     if (old_constitutive_law != new_constitutive_law) {
@@ -335,12 +350,13 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::reassignConstitutiveLaw() {
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     updateDataForNonLocalCriterion(ElementTypeMapReal & criterion) {
   const ID field_name = criterion.getName();
   for (auto & constitutive_law : constitutive_laws) {
-    if (!constitutive_law->isInternal<Real>(field_name, _ek_regular)) {
+    if (not constitutive_law->template isInternal<Real>(field_name,
+                                                        _ek_regular)) {
       continue;
     }
 
@@ -352,15 +368,16 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::initializeNonLocal() {
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType,
+                             Model_>::initializeNonLocal() {
   this->non_local_manager->synchronize(
       *this, SynchronizationTag::_constitutive_law_id);
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     insertIntegrationPointsInNeighborhoods(GhostType ghost_type) {
   for (auto & cl : constitutive_laws) {
     ConstitutiveLawNonLocalInterface * cl_non_local;
@@ -369,15 +386,17 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::
       continue;
     }
 
+    auto & fe_engine = cl->getFEEngine();
+
     ElementTypeMapArray<Real> quadrature_points_coordinates(
         "quadrature_points_coordinates_tmp_nl", this->id);
-    quadrature_points_coordinates.initialize(this->getFEEngine(),
-                                             _nb_component = spatial_dimension,
-                                             _ghost_type = ghost_type);
+    quadrature_points_coordinates.initialize(
+        fe_engine, _nb_component = this->spatial_dimension,
+        _ghost_type = ghost_type);
 
     for (const auto & type : quadrature_points_coordinates.elementTypes(
-             Model::spatial_dimension, ghost_type)) {
-      this->getFEEngine().computeIntegrationPointsCoordinates(
+             this->spatial_dimension, ghost_type)) {
+      fe_engine.computeIntegrationPointsCoordinates(
           quadrature_points_coordinates(type, ghost_type), type, ghost_type);
     }
 
@@ -389,13 +408,13 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::updateLocalInternal(
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::updateLocalInternal(
     ElementTypeMapReal & internal_flat, GhostType ghost_type,
     ElementKind kind) {
   const ID field_name = internal_flat.getName();
   for (auto & constitutive_law : constitutive_laws) {
-    if (constitutive_law->isInternal<Real>(field_name, kind)) {
+    if (constitutive_law->template isInternal<Real>(field_name, kind)) {
       constitutive_law->flattenInternal(field_name, internal_flat, ghost_type,
                                         kind);
     }
@@ -403,10 +422,10 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::updateLocalInternal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::updateNonLocalInternal(
-    ElementTypeMapReal & internal_flat, GhostType ghost_type,
-    ElementKind kind) {
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
+    updateNonLocalInternal(ElementTypeMapReal & internal_flat,
+                           GhostType ghost_type, ElementKind kind) {
 
   const ID field_name = internal_flat.getName();
 
@@ -423,8 +442,8 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::updateNonLocalInternal(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
     splitElementByConstitutiveLaw(
         const Array<Element> & elements,
         std::vector<Array<Element>> & elements_per_cl) const {
@@ -436,16 +455,14 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-UInt ConstitutiveLawsHandler<ConstitutiveLawType>::getNbData(
+template <class ConstitutiveLawType, class Model_>
+UInt ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getNbData(
     const Array<Element> & elements, const SynchronizationTag & tag) const {
-    UInt size{0};
+  UInt size{0};
 
-    if(tag == SynchronizationTag::_constitutive_law_id) {
-        size += elements.size() * sizeof(UInt);
-        break;
-    }
-
+  if (tag == SynchronizationTag::_constitutive_law_id) {
+    size += elements.size() * sizeof(UInt);
+  }
 
   if (tag != SynchronizationTag::_constitutive_law_id) {
     splitByConstitutiveLaw(elements, [&](auto && cl, auto && elements) {
@@ -456,13 +473,13 @@ UInt ConstitutiveLawsHandler<ConstitutiveLawType>::getNbData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::packData(
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::packData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_constitutive_law_id) {
-    DataAccessor<Element>::packElementalDataHelper(
-        constitutive_law_index, buffer, elements, false, getFEEngine());
+    DataAccessor<Element>::packElementalDataHelper(constitutive_law_index,
+                                                   buffer, elements);
   }
 
   if (tag != SynchronizationTag::_constitutive_law_id) {
@@ -473,8 +490,8 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::packData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::unpackData(
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::unpackData(
     CommunicationBuffer & buffer, const Array<Element> & elements,
     const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_constitutive_law_id) {
@@ -501,20 +518,20 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::unpackData(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::onElementsAdded(
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::onElementsAdded(
     const Array<Element> & element_list, const NewElementsEvent & event) {
-  this->constitutive_law_index.initialize(mesh, _element_kind = _ek_not_defined,
-                                          _with_nb_element = true,
-                                          _default_value = UInt(-1));
+  this->constitutive_law_index.initialize(
+      this->mesh, _element_kind = _ek_not_defined, _with_nb_element = true,
+      _default_value = UInt(-1));
   this->constitutive_law_local_numbering.initialize(
-      mesh, _element_kind = _ek_not_defined, _with_nb_element = true,
+      this->mesh, _element_kind = _ek_not_defined, _with_nb_element = true,
       _default_value = UInt(-1));
 
-  ElementTypeMapArray<UInt> filter("new_element_filter", this->getID());
+  ElementTypeMapArray<UInt> filter("new_element_filter", this->id);
 
   for (const auto & elem : element_list) {
-    if (mesh.getSpatialDimension(elem.type) != spatial_dimension) {
+    if (this->mesh.getSpatialDimension(elem.type) != this->spatial_dimension) {
       continue;
     }
 
@@ -534,13 +551,103 @@ void ConstitutiveLawsHandler<ConstitutiveLawType>::onElementsAdded(
 }
 
 /* -------------------------------------------------------------------------- */
-template <class ConstitutiveLawType>
-void ConstitutiveLawsHandler<ConstitutiveLawType>::onElementsRemoved(
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::onElementsRemoved(
     const Array<Element> & element_list,
     const ElementTypeMapArray<UInt> & new_numbering,
     const RemovedElementsEvent & event) {
   for (auto & constitutive_law : constitutive_laws) {
     constitutive_law->onElementsRemoved(element_list, new_numbering, event);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+bool ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::isInternal(
+    const std::string & field_name, ElementKind element_kind) {
+  /// check if at least one constitutive_law contains field_id as an internal
+  for (auto & constitutive_law : constitutive_laws) {
+    bool is_internal =
+        constitutive_law->template isInternal<Real>(field_name, element_kind);
+    if (is_internal) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+ElementTypeMap<UInt>
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::getInternalDataPerElem(
+    const std::string & field_name, ElementKind element_kind) {
+
+  if (!(this->isInternal(field_name, element_kind))) {
+    AKANTU_EXCEPTION("unknown internal " << field_name);
+  }
+
+  for (auto & constitutive_law : constitutive_laws) {
+    if (constitutive_law->template isInternal<Real>(field_name, element_kind)) {
+      return constitutive_law->template getInternalDataPerElem<Real>(
+          field_name, element_kind);
+    }
+  }
+
+  return ElementTypeMap<UInt>();
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+ElementTypeMapArray<Real> &
+ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::flattenInternal(
+    const std::string & field_name, ElementKind kind,
+    const GhostType ghost_type) {
+  auto key = std::make_pair(field_name, kind);
+
+  ElementTypeMapArray<Real> * internal_flat;
+
+  auto it = this->registered_internals.find(key);
+  if (it == this->registered_internals.end()) {
+    auto internal =
+        std::make_unique<ElementTypeMapArray<Real>>(field_name, this->id);
+
+    internal_flat = internal.get();
+    this->registered_internals[key] = std::move(internal);
+  } else {
+    internal_flat = it->second.get();
+  }
+
+  for (auto type :
+       this->mesh.elementTypes(this->spatial_dimension, ghost_type, kind)) {
+    if (internal_flat->exists(type, ghost_type)) {
+      auto & internal = (*internal_flat)(type, ghost_type);
+      internal.resize(0);
+    }
+  }
+
+  for (auto & constitutive_law : constitutive_laws) {
+    if (constitutive_law->template isInternal<Real>(field_name, kind)) {
+      constitutive_law->flattenInternal(field_name, *internal_flat, ghost_type,
+                                        kind);
+    }
+  }
+
+  return *internal_flat;
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawType, class Model_>
+void ConstitutiveLawsHandler<ConstitutiveLawType, Model_>::
+    flattenAllRegisteredInternals(ElementKind kind) {
+  ElementKind _kind;
+  ID _id;
+
+  for (auto & internal : this->registered_internals) {
+    std::tie(_id, _kind) = internal.first;
+    if (kind == _kind) {
+      this->flattenInternal(_id, kind);
+    }
   }
 }
 

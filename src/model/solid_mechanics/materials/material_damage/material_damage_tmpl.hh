@@ -151,9 +151,9 @@ Real MaterialDamage<spatial_dimension, Parent>::getDissipatedEnergy() const {
   /// integrate the dissipated energy for each type of elements
   for (auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
-    de +=
-        this->fem.integrate(dissipated_energy(type, _not_ghost), type,
-                            _not_ghost, this->element_filter(type, _not_ghost));
+    de += this->getFEEngine().integrate(dissipated_energy(type, _not_ghost),
+                                        type, _not_ghost,
+                                        this->element_filter(type, _not_ghost));
   }
 
   AKANTU_DEBUG_OUT();

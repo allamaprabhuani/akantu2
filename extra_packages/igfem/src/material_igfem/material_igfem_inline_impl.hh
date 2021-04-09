@@ -38,11 +38,11 @@ inline void MaterialIGFEM::packElementData(CommunicationBuffer & buffer,
                                            SynchronizationTag tag) const {
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
-      packElementDataHelper(piola_kirchhoff_2, buffer, elements,
+      packInternalFieldHelper(piola_kirchhoff_2, buffer, elements,
                             "IGFEMFEEngine");
-      packElementDataHelper(gradu, buffer, elements, "IGFEMFEEngine");
+      packInternalFieldHelper(gradu, buffer, elements, "IGFEMFEEngine");
     }
-    packElementDataHelper(stress, buffer, elements, "IGFEMFEEngine");
+    packInternalFieldHelper(stress, buffer, elements, "IGFEMFEEngine");
   }
 }
 
@@ -52,10 +52,9 @@ inline void MaterialIGFEM::unpackElementData(CommunicationBuffer & buffer,
                                              SynchronizationTag tag) {
   if (tag == SynchronizationTag::_smm_stress) {
     if (this->isFiniteDeformation()) {
-      unpackElementDataHelper(piola_kirchhoff_2, buffer, elements,
-                              "IGFEMFEEngine");
-      unpackElementDataHelper(gradu, buffer, elements, "IGFEMFEEngine");
+      unpackInternalFieldHelper(piola_kirchhoff_2, buffer, elements);
+      unpackInternalFieldHelper(gradu, buffer, elements);
     }
-    unpackElementDataHelper(stress, buffer, elements, "IGFEMFEEngine");
+    unpackInternalFieldHelper(stress, buffer, elements);
   }
 }

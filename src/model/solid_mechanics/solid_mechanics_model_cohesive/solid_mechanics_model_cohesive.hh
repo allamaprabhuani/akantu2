@@ -145,7 +145,7 @@ protected:
   void initModel() override;
 
   /// initialize cohesive material
-  void initMaterials() override;
+  void initConstitutiveLaws() override;
 
   /// init facet filters for cohesive materials
   void initFacetFilter();

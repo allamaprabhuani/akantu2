@@ -30,7 +30,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -38,14 +37,14 @@
 #define AKANTU_MATERIAL_THERMAL_HH_
 
 namespace akantu {
-template <UInt dim> class MaterialThermal : public Material {
+
+template <UInt spatial_dimension> class MaterialThermal : public Material {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialThermal(SolidMechanicsModel & model, const ID & id = "");
-  MaterialThermal(SolidMechanicsModel & model, UInt spatial_dimension,
-                  const Mesh & mesh, FEEngine & fe_engine, const ID & id = "");
+  MaterialThermal(SolidMechanicsModel & model, const ID & id = "",
+                  const ID & fe_engine_id = "");
 
   ~MaterialThermal() override = default;
 

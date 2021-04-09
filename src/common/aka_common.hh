@@ -323,7 +323,6 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (smm_boundary)                                \
   (smm_uv)                                      \
   (smm_res)                                     \
-  (smm_init_mat)                                \
   (smm_stress)                                  \
   (smmc_facets)                                 \
   (smmc_facets_conn)                            \
@@ -349,7 +348,8 @@ enum CommunicatorType { _communicator_mpi, _communicator_dummy };
   (test)                                        \
   (user_1)                                      \
   (user_2)                                      \
-  (material_id)                                 \
+  (constitutive_law_id)                         \
+  (clh_init_cl)                                 \
   (for_dump)                                    \
   (cf_nodal)                                    \
   (cf_incr)                                     \
@@ -374,7 +374,6 @@ enum class SynchronizationTag {
                   /// and displacement
   _smm_uv,        ///< synchronization of the nodal velocities and displacement
   _smm_res,       ///< synchronization of the nodal residual
-  _smm_init_mat,  ///< synchronization of the data to initialize materials
   _smm_stress,    ///< synchronization of the stresses to compute the
                   ///< internal
                   /// forces
@@ -430,11 +429,12 @@ enum class SynchronizationTag {
   _nh_criterion,
 
   // --- General tags ---
-  _test,        ///< Test tag
-  _user_1,      ///< tag for user simulations
-  _user_2,      ///< tag for user simulations
-  _material_id, ///< synchronization of the material ids
-  _for_dump,    ///< everything that needs to be synch before dump
+  _test,                ///< Test tag
+  _user_1,              ///< tag for user simulations
+  _user_2,              ///< tag for user simulations
+  _constitutive_law_id, ///< synchronization of the material ids
+  _clh_init_cl,         ///< synchronization of the data to initialize materials
+  _for_dump,            ///< everything that needs to be synch before dump
 
   // --- Contact & Friction ---
   _cf_nodal, ///< synchronization of disp, velo, and current position
@@ -637,6 +637,7 @@ decltype(auto) as_type(T && t) {
           std::is_base_of<std::decay_t<R>, std::decay_t<T>>  // up-cast
           >::value,
       "Type T and R are not valid for a as_type conversion");
+
   return dynamic_cast<std::add_lvalue_reference_t<
       std::conditional_t<std::is_const<std::remove_reference_t<T>>::value,
                          std::add_const_t<R>, R>>>(t);

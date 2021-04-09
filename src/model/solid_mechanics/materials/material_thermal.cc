@@ -36,22 +36,13 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      const ID & id)
-    : Material(model, id), delta_T("delta_T", *this),
-      sigma_th("sigma_th", *this), use_previous_stress_thermal(false) {
-  this->initialize();
-}
-
-/* -------------------------------------------------------------------------- */
-template <UInt dim>
-MaterialThermal<dim>::MaterialThermal(SolidMechanicsModel & model,
-                                      UInt spatial_dimension, const Mesh & mesh,
-                                      FEEngine & fe_engine, const ID & id)
-    : Material(model, spatial_dimension, mesh, fe_engine, id),
-      delta_T("delta_T", *this, dim, fe_engine, this->element_filter),
-      sigma_th("sigma_th", *this, dim, fe_engine, this->element_filter),
+template <UInt spatial_dimension>
+MaterialThermal<spatial_dimension>::MaterialThermal(SolidMechanicsModel & model,
+                                                    const ID & id,
+                                                    const ID & fe_engine_id)
+    : Material(model, id, fe_engine_id),
+      delta_T("delta_T", *this, fe_engine_id, this->element_filter),
+      sigma_th("sigma_th", *this, fe_engine_id, this->element_filter),
       use_previous_stress_thermal(false) {
   this->initialize();
 }

@@ -32,7 +32,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material_thermal.hh"
 #include "plane_stress_toolbox.hh"
 /* -------------------------------------------------------------------------- */
@@ -62,9 +61,8 @@ private:
       PlaneStressToolbox<spatial_dimension, MaterialThermal<spatial_dimension>>;
 
 public:
-  MaterialElastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialElastic(SolidMechanicsModel & model, UInt dim, const Mesh & mesh,
-                  FEEngine & fe_engine, const ID & id = "");
+  MaterialElastic(SolidMechanicsModel & model, const ID & id = "",
+                  const ID & fe_engine_id = "");
 
   ~MaterialElastic() override = default;
 

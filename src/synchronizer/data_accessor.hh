@@ -102,6 +102,12 @@ public:
                           const Array<Element> & element,
                           const SynchronizationTag & tag) = 0;
 
+private:
+  template <typename T, bool pack_helper, class Func>
+  static void packUnpackElementalDataHelper(
+      ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
+      const Array<Element> & element, Func && data_per_element);
+
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T, bool pack_helper>
@@ -111,10 +117,16 @@ public:
 
   /* ------------------------------------------------------------------------ */
   template <typename T, bool pack_helper>
+  static void
+  packUnpackElementalDataHelper(ElementTypeMapArray<T> & data_to_pack,
+                                CommunicationBuffer & buffer,
+                                const Array<Element> & element);
+
+  /* ------------------------------------------------------------------------ */
+  template <typename T, bool pack_helper>
   static void packUnpackElementalDataHelper(
       ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
-      const Array<Element> & element, bool per_quadrature_point_data,
-      const FEEngine & fem);
+      const Array<Element> & element, const FEEngine & fem);
 
   /* ------------------------------------------------------------------------ */
   template <typename T>
@@ -137,21 +149,34 @@ public:
   static inline void
   packElementalDataHelper(const ElementTypeMapArray<T> & data_to_pack,
                           CommunicationBuffer & buffer,
-                          const Array<Element> & elements,
-                          bool per_quadrature_point, const FEEngine & fem) {
+                          const Array<Element> & elements) {
     packUnpackElementalDataHelper<T, true>(
-        const_cast<ElementTypeMapArray<T> &>(data_to_pack), buffer, elements,
-        per_quadrature_point, fem);
+        const_cast<ElementTypeMapArray<T> &>(data_to_pack), buffer, elements);
   }
 
   template <typename T>
   static inline void
   unpackElementalDataHelper(ElementTypeMapArray<T> & data_to_unpack,
                             CommunicationBuffer & buffer,
-                            const Array<Element> & elements,
-                            bool per_quadrature_point, const FEEngine & fem) {
+                            const Array<Element> & elements) {
+    packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements);
+  }
+  /* ------------------------------------------------------------------------ */
+  template <typename T>
+  static inline void packElementalDataHelper(
+      const ElementTypeMapArray<T> & data_to_pack, CommunicationBuffer & buffer,
+      const Array<Element> & elements, const FEEngine & fem) {
+    packUnpackElementalDataHelper<T, true>(
+        const_cast<ElementTypeMapArray<T> &>(data_to_pack), buffer, elements,
+        fem);
+  }
+
+  template <typename T>
+  static inline void unpackElementalDataHelper(
+      ElementTypeMapArray<T> & data_to_unpack, CommunicationBuffer & buffer,
+      const Array<Element> & elements, const FEEngine & fem) {
     packUnpackElementalDataHelper<T, false>(data_to_unpack, buffer, elements,
-                                            per_quadrature_point, fem);
+                                            fem);
   }
 };
 
@@ -351,5 +376,7 @@ protected:
 };
 
 } // namespace akantu
+
+#include "data_accessor_tmpl.hh"
 
 #endif /* AKANTU_DATA_ACCESSOR_HH_ */

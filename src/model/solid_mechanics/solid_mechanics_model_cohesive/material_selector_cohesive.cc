@@ -70,7 +70,7 @@ UInt DefaultMaterialCohesiveSelector::operator()(const Element & element) {
              mesh.getSpatialDimension() - 1) {
     return facet_material(element.type, element.ghost_type)(element.element);
   } else {
-    return MaterialSelector::operator()(element);
+    return ConstitutiveLawSelector::operator()(element);
   }
 }
 
@@ -108,7 +108,7 @@ UInt MeshDataMaterialCohesiveSelector::operator()(const Element & element) {
       return fallback_value;
     }
   }
-  return MaterialSelector::operator()(element);
+  return ConstitutiveLawSelector::operator()(element);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -161,7 +161,7 @@ UInt MaterialCohesiveRulesSelector::operator()(const Element & element) {
     }
   }
 
-  return MaterialSelector::operator()(element);
+  return ConstitutiveLawSelector::operator()(element);
 }
 
 } // namespace akantu

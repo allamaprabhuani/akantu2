@@ -32,7 +32,6 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
 #include "material_elastic.hh"
 /* -------------------------------------------------------------------------- */
 
@@ -40,6 +39,7 @@
 #define AKANTU_MATERIAL_DAMAGE_HH_
 
 namespace akantu {
+
 template <UInt spatial_dimension,
           template <UInt> class Parent = MaterialElastic>
 class MaterialDamage : public Parent<spatial_dimension> {

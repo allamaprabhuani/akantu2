@@ -636,7 +636,7 @@ void NonLocalManager::packData(CommunicationBuffer & buffer,
                       "The non-local variable " << id << " is not registered");
 
   DataAccessor<Element>::packElementalDataHelper<Real>(
-      it->second->local, buffer, elements, true, this->model.getFEEngine());
+      it->second->local, buffer, elements, this->model.getFEEngine());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -649,7 +649,7 @@ void NonLocalManager::unpackData(CommunicationBuffer & buffer,
                       "The non-local variable " << id << " is not registered");
 
   DataAccessor<Element>::unpackElementalDataHelper<Real>(
-      it->second->local, buffer, elements, true, this->model.getFEEngine());
+      it->second->local, buffer, elements, this->model.getFEEngine());
 }
 
 } // namespace akantu

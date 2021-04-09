@@ -51,9 +51,8 @@ template <UInt dim> class MaterialPlastic : public MaterialElastic<dim> {
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  MaterialPlastic(SolidMechanicsModel & model, const ID & id = "");
-  MaterialPlastic(SolidMechanicsModel & model, UInt a_dim, const Mesh & mesh,
-                  FEEngine & fe_engine, const ID & id = "");
+  MaterialPlastic(SolidMechanicsModel & model, const ID & id = "",
+                  const ID & fe_engine_id = "");
 
 protected:
   void initialize();

@@ -86,8 +86,7 @@ RemoveDamagedWeightFunction::packData(CommunicationBuffer & buffer,
                                       const SynchronizationTag & tag) const {
   if (tag == SynchronizationTag::_mnl_weight) {
     DataAccessor<Element>::packElementalDataHelper<Real>(
-        *damage, buffer, elements, true,
-        this->manager.getModel().getFEEngine());
+        *damage, buffer, elements, this->manager.getModel().getFEEngine());
   }
 }
 
@@ -98,8 +97,7 @@ RemoveDamagedWeightFunction::unpackData(CommunicationBuffer & buffer,
                                         const SynchronizationTag & tag) {
   if (tag == SynchronizationTag::_mnl_weight) {
     DataAccessor<Element>::unpackElementalDataHelper<Real>(
-        *damage, buffer, elements, true,
-        this->manager.getModel().getFEEngine());
+        *damage, buffer, elements, this->manager.getModel().getFEEngine());
   }
 }
 

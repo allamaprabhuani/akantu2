@@ -57,10 +57,8 @@ class MaterialLinearIsotropicHardening
   /* ------------------------------------------------------------------------ */
 public:
   MaterialLinearIsotropicHardening(SolidMechanicsModel & model,
-                                   const ID & id = "");
-  MaterialLinearIsotropicHardening(SolidMechanicsModel & model, UInt dim,
-                                   const Mesh & mesh, FEEngine & fe_engine,
-                                   const ID & id = "");
+                                   const ID & id = "",
+                                   const ID & fe_engine_id = "");
 
   /* ------------------------------------------------------------------------ */
   /* Methods                                                                  */

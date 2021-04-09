@@ -38,6 +38,7 @@
 #include "mesh.hh"
 #include "model_options.hh"
 #include "model_solver.hh"
+#include "synchronizer_registry.hh"
 /* -------------------------------------------------------------------------- */
 #include <typeindex>
 /* -------------------------------------------------------------------------- */
@@ -55,7 +56,9 @@ class DOFManager;
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-class Model : public ModelSolver, public MeshEventHandler {
+class Model : public ModelSolver,
+              public MeshEventHandler,
+              public SynchronizerRegistry {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */

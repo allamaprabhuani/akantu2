@@ -40,7 +40,8 @@ namespace akantu {
 /// internal field class for cohesive materials
 template <typename T> class CohesiveInternalField : public InternalField<T> {
 public:
-  CohesiveInternalField(const ID & id, Material & material);
+  CohesiveInternalField(const ID & id,
+                        ConstitutiveLawInternalHandler & constitutive_law);
   ~CohesiveInternalField() override;
 
   /// initialize the field to a given number of component
@@ -56,7 +57,8 @@ private:
 /* -------------------------------------------------------------------------- */
 template <typename T> class FacetInternalField : public InternalField<T> {
 public:
-  FacetInternalField(const ID & id, Material & material);
+  FacetInternalField(const ID & id,
+                     ConstitutiveLawInternalHandler & constitutive_law);
   ~FacetInternalField() override;
 
   /// initialize the field to a given number of component

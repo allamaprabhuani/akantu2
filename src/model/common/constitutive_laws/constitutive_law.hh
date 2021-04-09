@@ -46,11 +46,10 @@ namespace akantu {
 
 class ConstitutiveLawInternalHandler {
 public:
-  ConstitutiveLawInternalHandler(const ID & id, UInt dim) :
-    id(id), spatial_dimension(dim) {}
+  ConstitutiveLawInternalHandler(const ID & id, UInt dim)
+      : id(id), spatial_dimension(dim) {}
 
-  template <typename T>
-  inline void registerInternal(std::shared_ptr<InternalField<T>> & vect);
+  inline void registerInternal(std::shared_ptr<InternalFieldBase> vect);
 
   inline void unregisterInternal(const ID & id);
 
@@ -79,15 +78,16 @@ public:
   Array<T> & getArray(const ID & id, ElementType type,
                       GhostType ghost_type = _not_ghost);
 
+  inline void
+  removeIntegrationPoints(ElementTypeMapArray<UInt> & new_numbering);
+
 public:
   virtual const FEEngine & getFEEngine(const ID & id = "") const = 0;
   virtual FEEngine & getFEEngine(const ID & id = "") = 0;
-  UInt getSpatialDimension() {return spatial_dimension; }
+  UInt getSpatialDimension() const { return spatial_dimension; }
   virtual const ElementTypeMapArray<UInt> & getElementFilter() const = 0;
   AKANTU_GET_MACRO(Name, name, const std::string &);
   AKANTU_GET_MACRO(ID, id, const ID &);
-
-  
 
 private:
   std::map<ID, std::shared_ptr<InternalFieldBase>> internal_vectors;
@@ -102,6 +102,8 @@ protected:
   std::string name;
 };
 
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 class ConstitutiveLaw : public ConstitutiveLawInternalHandler,
                         public DataAccessor<Element>,
@@ -120,7 +122,9 @@ public:
 
   /// Initialize constitutive law with defaults
   ConstitutiveLaw(ConstitutiveLawsHandler & handler, const ID & id = "",
-		  UInt spatial_dimension = _all_dimensions, ElementKind element_kind = _ek_regular);
+                  UInt spatial_dimension = _all_dimensions,
+                  ElementKind element_kind = _ek_regular,
+                  const ID & fe_engine_id = "");
 
   /// Destructor
   ~ConstitutiveLaw() override;
@@ -163,40 +167,37 @@ protected:
   /* ------------------------------------------------------------------------ */
 public:
   template <typename T>
-  inline void packElementDataHelper(const ElementTypeMapArray<T> & data_to_pack,
-                                    CommunicationBuffer & buffer,
-                                    const Array<Element> & elements,
-                                    const ID & fem_id = ID()) const;
+  inline void packInternalFieldHelper(const InternalField<T> & data_to_pack,
+                                      CommunicationBuffer & buffer,
+                                      const Array<Element> & elements) const;
 
   template <typename T>
-  inline void unpackElementDataHelper(ElementTypeMapArray<T> & data_to_unpack,
-                                      CommunicationBuffer & buffer,
-                                      const Array<Element> & elements,
-                                      const ID & fem_id = ID());
+  inline void unpackInternalFieldHelper(InternalField<T> & data_to_unpack,
+                                        CommunicationBuffer & buffer,
+                                        const Array<Element> & elements);
 
   /* ------------------------------------------------------------------------ */
   /* MeshEventHandler inherited members                                       */
   /* ------------------------------------------------------------------------ */
 public:
   /* ------------------------------------------------------------------------ */
-  virtual void onNodesAdded(const Array<UInt> & /*unused*/,
-                            const NewNodesEvent & /*unused*/) override{};
-  virtual void onNodesRemoved(const Array<UInt> & /*unused*/,
-                              const Array<UInt> & /*unused*/,
-                              const RemovedNodesEvent & /*unused*/) override{};
-  virtual void
-  onElementsChanged(const Array<Element> & /*unused*/,
-                    const Array<Element> & /*unused*/,
-                    const ElementTypeMapArray<UInt> & /*unused*/,
-                    const ChangedElementsEvent & /*unused*/) override{};
+  void onNodesAdded(const Array<UInt> & /*unused*/,
+                    const NewNodesEvent & /*unused*/) override{};
+  void onNodesRemoved(const Array<UInt> & /*unused*/,
+                      const Array<UInt> & /*unused*/,
+                      const RemovedNodesEvent & /*unused*/) override{};
 
-  virtual void onElementsAdded(const Array<Element> & /*unused*/,
-                               const NewElementsEvent & /*unused*/);
+  void onElementsChanged(const Array<Element> & /*unused*/,
+                         const Array<Element> & /*unused*/,
+                         const ElementTypeMapArray<UInt> & /*unused*/,
+                         const ChangedElementsEvent & /*unused*/) override{};
 
-  virtual void
-  onElementsRemoved(const Array<Element> & element_list,
-                    const ElementTypeMapArray<UInt> & new_numbering,
-                    const RemovedElementsEvent & event);
+  void onElementsAdded(const Array<Element> & /*unused*/,
+                       const NewElementsEvent & /*unused*/) override;
+
+  void onElementsRemoved(const Array<Element> & element_list,
+                         const ElementTypeMapArray<UInt> & new_numbering,
+                         const RemovedElementsEvent & event) override;
 
 public:
   template <typename T> inline void setParam(const ID & param, T value);
@@ -205,46 +206,58 @@ public:
   template <typename T>
   void flattenInternal(const std::string & field_id,
                        ElementTypeMapArray<T> & internal_flat,
-                       const GhostType ghost_type = _not_ghost,
+                       GhostType ghost_type = _not_ghost,
                        ElementKind element_kind = _ek_not_defined) const;
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Accessors */
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
+  /* Accessors                                                                */
+  /* ------------------------------------------------------------------------ */
 public:
-  const FEEngine & getFEEngine(const ID & id = "") const override {return handler.getFEEngine(); }
-  FEEngine & getFEEngine(const ID & id = "") override  {return handler.getFEEngine(); }
-  const ElementTypeMapArray<UInt> & getElementFilter() const override {return element_filter;}
-  
+  const FEEngine & getFEEngine(const ID & id = "") const override {
+    return handler.getFEEngine(id == "" ? default_fe_engine_id : id);
+  }
+
+  FEEngine & getFEEngine(const ID & id = "") override {
+    return handler.getFEEngine(id == "" ? default_fe_engine_id : id);
+  }
+
+  const ElementTypeMapArray<UInt> & getElementFilter() const override {
+    return element_filter;
+  }
+
   template <typename T>
   ElementTypeMap<UInt> getInternalDataPerElem(const ID & id,
                                               ElementKind element_kind) const;
 
+  AKANTU_GET_MACRO(Handler, handler, auto &);
+
+  template <typename... pack>
+  decltype(auto) elementTypes(pack &&... _pack) const {
+    return this->element_filter.elementTypes(std::forward<pack>(_pack)...);
+  }
+
 protected:
   bool isInit() const { return is_init; }
 
-  /* ------------------------------------------------------------------------
-   */
-  /* Class Members */
-  /* ------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
+  /* Class Members                                                            */
+  /* ------------------------------------------------------------------------ */
 private:
   /// boolean to know if the constitutive law has been initialized
   bool is_init{false};
 
 protected:
-  
-  /// list of element handled by the constitutive law
-  ElementTypeMapArray<UInt> element_filter;
-
   // Constitutive law handler for which this is a constitutive law
   ConstitutiveLawsHandler & handler;
+  /// list of element handled by the constitutive law
+  ElementTypeMapArray<UInt> element_filter;
+  ID default_fe_engine_id;
 };
 
 } // namespace akantu
 
 #include "constitutive_law_tmpl.hh"
+#include "internal_field_tmpl.hh"
+#include "random_internal_field_tmpl.hh"
 
 #endif

@@ -42,22 +42,11 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <UInt dim>
-MaterialLinearIsotropicHardening<dim>::MaterialLinearIsotropicHardening(
-    SolidMechanicsModel & model, const ID & id)
-    : MaterialPlastic<dim>(model, id) {
-  AKANTU_DEBUG_IN();
-
-  AKANTU_DEBUG_OUT();
-}
-
-/* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 MaterialLinearIsotropicHardening<spatial_dimension>::
-    MaterialLinearIsotropicHardening(SolidMechanicsModel & model, UInt dim,
-                                     const Mesh & mesh, FEEngine & fe_engine,
-                                     const ID & id)
-    : MaterialPlastic<spatial_dimension>(model, dim, mesh, fe_engine, id) {}
+    MaterialLinearIsotropicHardening(SolidMechanicsModel & model,
+                                     const ID & id, const ID & fe_engine_id)
+        : MaterialPlastic<spatial_dimension>(model, id, fe_engine_id) {}
 
 /* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>

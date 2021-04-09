@@ -34,6 +34,7 @@
 #include "constitutive_law.hh"
 #include "constitutive_laws_handler.hh"
 #include "fe_engine.hh"
+#include "internal_field.hh"
 /* -------------------------------------------------------------------------- */
 
 #ifndef AKANTU_CONSTITUTIVE_LAW_TMPL_HH
@@ -42,10 +43,9 @@
 namespace akantu {
 
 /* -------------------------------------------------------------------------- */
-template <typename T>
 inline void ConstitutiveLawInternalHandler::registerInternal(
-    std::shared_ptr<InternalField<T>> & vect) {
-  internal_vectors[vect.getID()] = vect;
+    std::shared_ptr<InternalFieldBase> vect) {
+  internal_vectors[vect->getID()] = vect;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ inline void ConstitutiveLawInternalHandler::unregisterInternal(const ID & id) {
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawInternalHandler::savePreviousState() {
+inline void ConstitutiveLawInternalHandler::savePreviousState() {
   for (auto pair : internal_vectors) {
     if (pair.second->hasHistory()) {
       pair.second->saveCurrentValues();
@@ -63,7 +63,7 @@ void ConstitutiveLawInternalHandler::savePreviousState() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawInternalHandler::restorePreviousState() {
+inline void ConstitutiveLawInternalHandler::restorePreviousState() {
   for (auto pair : internal_vectors) {
     if (pair.second->hasHistory()) {
       pair.second->restorePreviousValues();
@@ -72,7 +72,7 @@ void ConstitutiveLawInternalHandler::restorePreviousState() {
 }
 
 /* -------------------------------------------------------------------------- */
-void ConstitutiveLawInternalHandler::resizeInternals() {
+inline void ConstitutiveLawInternalHandler::resizeInternals() {
   for (auto && pair : internal_vectors) {
     pair.second->resize();
   }
@@ -123,13 +123,68 @@ inline bool ConstitutiveLawInternalHandler::isInternal(
 
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
+template <typename T>
+const Array<T> &
+ConstitutiveLawInternalHandler::getArray(const ID & vect_id, ElementType type,
+                                         GhostType ghost_type) const {
+  if (isInternal<T>(vect_id, Mesh::getKind(type))) {
+    auto && internal = this->template getInternal<T>(vect_id);
+    if (internal.exists(type, ghost_type)) {
+      return internal(type, ghost_type);
+    } else {
+      AKANTU_SILENT_EXCEPTION(
+          "The internal " << vect_id << " in the constitutive law " << name
+                          << " (" << getID() << ") does not contain the type ["
+                          << type << ":" << ghost_type << "]");
+    }
+  } else {
+    AKANTU_SILENT_EXCEPTION("The constitutive law "
+                            << name << " (" << getID()
+                            << ") does not contain an internal field "
+                            << vect_id);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+template <typename T>
+Array<T> & ConstitutiveLawInternalHandler::getArray(const ID & vect_id,
+                                                    ElementType type,
+                                                    GhostType ghost_type) {
+  if (isInternal<T>(vect_id, Mesh::getKind(type))) {
+    auto && internal = this->template getInternal<T>(vect_id);
+    if (internal.exists(type, ghost_type)) {
+      return internal(type, ghost_type);
+    } else {
+      AKANTU_SILENT_EXCEPTION(
+          "The internal " << vect_id << " in the constitutive law " << name
+                          << " (" << getID() << ") does not contain the type ["
+                          << type << ":" << ghost_type << "]");
+    }
+  } else {
+    AKANTU_SILENT_EXCEPTION("The constitutive law "
+                            << name << " (" << getID()
+                            << ") does not contain an internal field "
+                            << vect_id);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+inline void ConstitutiveLawInternalHandler::removeIntegrationPoints(
+    ElementTypeMapArray<UInt> & new_numbering) {
+  for (auto pair : internal_vectors) {
+    pair.second->removeIntegrationPoints(new_numbering);
+  }
+}
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 template <class ConstitutiveLawsHandler_>
 ConstitutiveLaw<ConstitutiveLawsHandler_>::ConstitutiveLaw(
-	       ConstitutiveLawsHandler_ & handler, const ID & id, UInt spatial_dimension,
-	       ElementKind element_kind)
-  : ConstitutiveLawInternalHandler(id, spatial_dimension),
+    ConstitutiveLawsHandler_ & handler, const ID & id, UInt spatial_dimension,
+    ElementKind element_kind, const ID & fe_engine_id)
+    : ConstitutiveLawInternalHandler(id, spatial_dimension),
       Parsable(ParserType::_constitutive_law, id), handler(handler),
-      element_filter("element_filter", id) {
+      element_filter("element_filter", id), default_fe_engine_id(fe_engine_id) {
+
   /// for each connectivity types allocate the element filer array of the
   /// constitutive law
   element_filter.initialize(handler.getMesh(),
@@ -150,7 +205,7 @@ template <class ConstitutiveLawsHandler_>
 void ConstitutiveLaw<ConstitutiveLawsHandler_>::initConstitutiveLaw() {
   this->resizeInternals();
 
-  this->updateInternalParmaters();
+  this->updateInternalParameters();
 
   is_init = true;
 }
@@ -239,9 +294,7 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::removeElements(
     }
   }
 
-  for (auto && pair : internal_vectors) {
-    pair.second->removeIntegrationPoints(constitutive_law_local_new_numbering);
-  }
+  this->removeIntegrationPoints(constitutive_law_local_new_numbering);
 
   AKANTU_DEBUG_OUT();
 }
@@ -320,9 +373,28 @@ void ConstitutiveLaw<ConstitutiveLawsHandler_>::onElementsRemoved(
     }
   }
 
-  for (auto pair : internal_vectors) {
-    pair.second->removeIntegrationPoints(constitutive_law_local_new_numbering);
-  }
+  this->removeIntegrationPoints(constitutive_law_local_new_numbering);
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <typename T>
+inline void ConstitutiveLaw<ConstitutiveLawsHandler_>::packInternalFieldHelper(
+    const InternalField<T> & data_to_pack, CommunicationBuffer & buffer,
+    const Array<Element> & elements) const {
+  DataAccessor::packElementalDataHelper<T>(data_to_pack, buffer, elements,
+                                           data_to_pack.getFEEngine());
+}
+
+/* -------------------------------------------------------------------------- */
+template <class ConstitutiveLawsHandler_>
+template <typename T>
+inline void
+ConstitutiveLaw<ConstitutiveLawsHandler_>::unpackInternalFieldHelper(
+    InternalField<T> & data_to_unpack, CommunicationBuffer & buffer,
+    const Array<Element> & elements) {
+  DataAccessor::unpackElementalDataHelper<T>(data_to_unpack, buffer, elements,
+                                             data_to_unpack.getFEEngine());
 }
 
 /* -------------------------------------------------------------------------- */

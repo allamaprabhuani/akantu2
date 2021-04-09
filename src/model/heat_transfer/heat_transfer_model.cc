@@ -85,8 +85,6 @@ HeatTransferModel::HeatTransferModel(Mesh & mesh, UInt dim, const ID & id,
 
   conductivity = Matrix<Real>(this->spatial_dimension, this->spatial_dimension);
 
-  this->registerDataAccessor(*this);
-
   if (this->mesh.isDistributed()) {
     auto & synchronizer = this->mesh.getElementSynchronizer();
     this->registerSynchronizer(synchronizer,
@@ -849,7 +847,7 @@ inline void HeatTransferModel::packData(CommunicationBuffer & buffer,
     break;
   }
   case SynchronizationTag::_htm_gradient_temperature: {
-    packElementalDataHelper(temperature_gradient, buffer, elements, true,
+    packElementalDataHelper(temperature_gradient, buffer, elements,
                             getFEEngine());
     packNodalDataHelper(*temperature, buffer, elements, mesh);
     break;
@@ -870,7 +868,7 @@ inline void HeatTransferModel::unpackData(CommunicationBuffer & buffer,
     break;
   }
   case SynchronizationTag::_htm_gradient_temperature: {
-    unpackElementalDataHelper(temperature_gradient, buffer, elements, true,
+    unpackElementalDataHelper(temperature_gradient, buffer, elements,
                               getFEEngine());
     unpackNodalDataHelper(*temperature, buffer, elements, mesh);
 

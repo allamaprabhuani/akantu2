@@ -41,7 +41,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLaw_, typename T>
-InternalFieldTmpl<ConstitutiveLaw_, T>::InternalField(
+InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
     const ID & id, ConstitutiveLaw_ & constitutive_law)
     : ElementTypeMapArray<T>(id, constitutive_law.getID()),
       constitutive_law(constitutive_law),
@@ -51,27 +51,27 @@ InternalFieldTmpl<ConstitutiveLaw_, T>::InternalField(
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLaw_, typename T>
-InternalField<ConstitutiveLaw_, T>::InternalField(
-    const ID & id, ConstitutiveLaw_ & constitutive_law, FEEngine & fem,
+InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
+    const ID & id, ConstitutiveLaw_ & constitutive_law, const ID & fem_id,
     const ElementTypeMapArray<UInt> & element_filter)
     : ElementTypeMapArray<T>(id, constitutive_law.getID()),
-      constitutive_law(constitutive_law), fem(&fem),
-      element_filter(element_filter),
+      constitutive_law(constitutive_law),
+      fem(constitutive_law.getFEEngine(fem_id)), element_filter(element_filter),
       spatial_dimension(constitutive_law.getSpatialDimension()) {}
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLaw_, typename T>
-InternalField<ConstitutiveLaw_, T>::InternalField(
+InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
     const ID & id, ConstitutiveLaw_ & constitutive_law, UInt dim,
-    FEEngine & fem, const ElementTypeMapArray<UInt> & element_filter)
+    const ID & fem_id, const ElementTypeMapArray<UInt> & element_filter)
     : ElementTypeMapArray<T>(id, constitutive_law.getID()),
       constitutive_law(constitutive_law), fem(&fem),
       element_filter(element_filter), spatial_dimension(dim) {}
 
 /* -------------------------------------------------------------------------- */
 template <class ConstitutiveLaw_, typename T>
-InternalField<ConstitutiveLaw_, T>::InternalField(
-    const ID & id, const InternalField<T> & other)
+InternalFieldTmpl<ConstitutiveLaw_, T>::InternalFieldTmpl(
+    const ID & id, const InternalFieldTmpl<ConstitutiveLaw_, T> & other)
     : ElementTypeMapArray<T>(id, other.constitutive_law.getID()),
       constitutive_law(other.constitutive_law), fem(other.fem),
       element_filter(other.element_filter), default_value(other.default_value),
@@ -91,16 +91,11 @@ InternalFieldTmpl<ConstitutiveLaw_, T>::~InternalFieldTmpl() {
   }
 }
 
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::setFEEngine(FEEngine & fe_engine) {
-  this->fem = &fe_engine;
-}
-
-/* -------------------------------------------------------------------------- */
-template <class ConstitutiveLaw_, typename T>
-void InternalFieldTmpl<ConstitutiveLaw_, T>::setElementKind(
-    ElementKind element_kind) {
+n /* --------------------------------------------------------------------------
+   */
+    template <class ConstitutiveLaw_, typename T>
+    void InternalFieldTmpl<ConstitutiveLaw_, T>::setElementKind(
+        ElementKind element_kind) {
   this->element_kind = element_kind;
 }
 
@@ -126,28 +121,29 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::resize() {
     return;
   }
 
+  ElementTypeMap<UInt> old_sizes;
   for (auto ghost : ghost_types) {
     for (const auto & type : this->filterTypes(ghost)) {
-      UInt nb_element = this->element_filter(type, ghost).size();
-
-      UInt nb_quadrature_points =
-          this->fem->getNbIntegrationPoints(type, ghost);
-      UInt new_size = nb_element * nb_quadrature_points;
-
-      UInt old_size = 0;
-      Array<T> * vect = nullptr;
-
       if (this->exists(type, ghost)) {
-        vect = &(this->operator()(type, ghost));
-        old_size = vect->size();
-        vect->resize(new_size);
+        old_sizes(type, ghost) = this->operator()(type, ghost).size();
       } else {
-        vect = &(this->alloc(nb_element * nb_quadrature_points, nb_component,
-                             type, ghost));
+        old_sizes(type, ghost) = 0;
       }
+    }
+  }
 
-      this->setArrayValues(vect->storage() + old_size * vect->getNbComponent(),
-                           vect->storage() + new_size * vect->getNbComponent());
+  ElementTypeMapArray<T>::initialize(
+      fem, _element_filter = element_filter, _element_kind = element_kind,
+      _nb_component = nb_component, _with_nb_element = true,
+      _do_not_default = true);
+
+  for (auto ghost : ghost_types) {
+    for (const auto & type : this->filterTypes(ghost)) {
+      auto & vect = this->operator()(type, ghost);
+      auto old_size = old_sizes(type, ghost);
+      auto new_size = vect.size();
+      this->setArrayValues(vect.storage() + old_size * vect.getNbComponent(),
+                           vect.storage() + new_size * vect.getNbComponent());
     }
   }
 }
@@ -176,27 +172,18 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::reset() {
 template <class ConstitutiveLaw_, typename T>
 void InternalFieldTmpl<ConstitutiveLaw_, T>::internalInitialize(
     UInt nb_component) {
-  if (!this->is_init) {
+  if (not this->is_init) {
     this->nb_component = nb_component;
 
-    for (auto ghost : ghost_types) {
-      for (const auto & type : this->filterTypes(ghost)) {
-        UInt nb_element = this->element_filter(type, ghost).size();
-        UInt nb_quadrature_points =
-            this->fem->getNbIntegrationPoints(type, ghost);
-        if (this->exists(type, ghost)) {
-          this->operator()(type, ghost)
-              .resize(nb_element * nb_quadrature_points);
-        } else {
-          this->alloc(nb_element * nb_quadrature_points, nb_component, type,
-                      ghost);
-        }
-      }
-    }
+    ElementTypeMapArray<T>::initialize(
+        fem, _element_filter = element_filter, _element_kind = element_kind,
+        _nb_component = nb_component, _with_nb_element = true,
+        _do_not_default = true);
 
     this->constitutive_law.registerInternal(this->shared_from_this());
     this->is_init = true;
   }
+
   this->reset();
 
   if (this->previous_values) {
@@ -219,7 +206,6 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::saveCurrentValues() {
   AKANTU_DEBUG_ASSERT(this->previous_values != nullptr,
                       "The history of the internal "
                           << this->getID() << " has not been activated");
-
   if (not this->is_init) {
     return;
   }
@@ -269,7 +255,7 @@ void InternalFieldTmpl<ConstitutiveLaw_, T>::removeIntegrationPoints(
 
       const Array<UInt> & renumbering = new_numbering(type, ghost_type);
 
-      UInt nb_quad_per_elem = fem->getNbIntegrationPoints(type, ghost_type);
+      UInt nb_quad_per_elem = fem.getNbIntegrationPoints(type, ghost_type);
       UInt nb_component = vect.getNbComponent();
 
       Array<T> tmp(renumbering.size() * nb_quad_per_elem, nb_component);

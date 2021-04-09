@@ -45,16 +45,18 @@ class NonLocalManager;
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-template <class ConstitutiveLawType>
-class ConstitutiveLawsHandler : public DataAccessor<Element>,
+template <class ConstitutiveLawType, class Model_>
+class ConstitutiveLawsHandler : public Model_,
+                                public DataAccessor<Element>,
                                 public NonLocalManagerCallback {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
-  ConstitutiveLawsHandler(const Mesh & mesh, UInt spatial_dimension,
-                          const ID & parent_id)
-      : constitutive_law_index("constitutive_law index", parent_id),
+  ConstitutiveLawsHandler(Mesh & mesh, const ModelType & type,
+                          UInt spatial_dimension, const ID & parent_id)
+      : Model_(mesh, type, spatial_dimension, parent_id),
+        constitutive_law_index("constitutive_law index", parent_id),
         constitutive_law_local_numbering("constitutive_law local numbering",
                                          parent_id) {
     constitutive_law_selector =
@@ -64,11 +66,14 @@ public:
     constitutive_law_index.initialize(mesh, _element_kind = _ek_not_defined,
                                       _default_value = UInt(-1),
                                       _with_nb_element = true);
+
     constitutive_law_local_numbering.initialize(
         mesh, _element_kind = _ek_not_defined, _with_nb_element = true);
+
+    this->registerDataAccessor(*this);
   }
 
-  virtual ~ConstitutiveLawsHandler();
+  ~ConstitutiveLawsHandler() override = default;
 
   class NewConstitutiveLawElementsEvent : public NewElementsEvent {
   public:
@@ -94,8 +99,13 @@ public:
 
   template <class Func> void for_each_constitutive_law(Func && func) {
     for (auto && constitutive_law : constitutive_laws) {
-      std::forward<Func>(func)(
-          aka::as_type<ConstitutiveLawType>(*constitutive_laws));
+      std::forward<Func>(func)(*constitutive_law);
+    }
+  }
+
+    template <class Func> void for_each_constitutive_law(Func && func) const {
+    for (auto && constitutive_law : constitutive_laws) {
+      std::forward<Func>(func)(*constitutive_law);
     }
   }
 
@@ -103,8 +113,11 @@ protected:
   /// register a constitutive_law in the dynamic database
   auto & registerNewConstitutiveLaw(const ParserSection & cl_section);
 
+  /// Initialize the constitutive laws
+  virtual void initConstitutiveLaws();
+
   /// read the constitutive_law files to instantiate all the constitutive_laws
-  void instantiateConstitutiveLaws();
+  void instantiateConstitutiveLaws(ParserSection & parser_section);
 
   /// set the element_id_by_constitutive_law and add the elements to the good
   /// constitutive_laws
@@ -140,10 +153,6 @@ public:
   void flattenAllRegisteredInternals(ElementKind kind);
 
   /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
-  /* ------------------------------------------------------------------------ */
   /* Accessors                                                                */
   /* ------------------------------------------------------------------------ */
 public:
@@ -165,6 +174,12 @@ public:
   /// get a particular constitutive_law (by constitutive_law name)
   inline const auto & getConstitutiveLaw(const std::string & name) const;
 
+  /// get a particular constitutive_law (by constitutive_law name)
+  inline auto & getConstitutiveLaw(const Element & element);
+
+  /// get a particular constitutive_law (by constitutive_law name)
+  inline const auto & getConstitutiveLaw(const Element & element) const;
+
   /// get a particular constitutive_law id from is name
   inline UInt getConstitutiveLawIndex(const std::string & name) const;
 
@@ -174,12 +189,20 @@ public:
   /// give the constitutive_law internal index from its id
   Int getInternalIndexFromID(const ID & id) const;
 
+protected:
   AKANTU_GET_MACRO(ConstitutiveLawByElement, constitutive_law_index,
                    const ElementTypeMapArray<UInt> &);
   AKANTU_GET_MACRO(ConstitutiveLawLocalNumbering,
                    constitutive_law_local_numbering,
                    const ElementTypeMapArray<UInt> &);
 
+  AKANTU_GET_MACRO_NOT_CONST(ConstitutiveLawByElement, constitutive_law_index,
+                             ElementTypeMapArray<UInt> &);
+  AKANTU_GET_MACRO_NOT_CONST(ConstitutiveLawLocalNumbering,
+                             constitutive_law_local_numbering,
+                             ElementTypeMapArray<UInt> &);
+
+public:
   /// vectors containing local constitutive_law element index for each global
   /// element index
   AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST(ConstitutiveLawByElement,
@@ -194,6 +217,9 @@ public:
 
   /// Access the non_local_manager interface
   AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);
+
+  /// Tells if the constitutive laws are non local
+  bool isNonLocal() const { return static_cast<bool>(non_local_manager); }
 
   void setConstitutiveLawSelector(
       std::shared_ptr<ConstitutiveLawSelector> constitutive_law_selector) {
@@ -229,9 +255,7 @@ protected:
 protected:
   void initializeNonLocal() override;
 
-  void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion) override;
-
-  void computeNonLocalStresses(GhostType ghost_type) override;
+  void updateDataForNonLocalCriterion(ElementTypeMapReal & criterion);
 
   void insertIntegrationPointsInNeighborhoods(GhostType ghost_type) override;
 
@@ -247,15 +271,6 @@ protected:
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
 private:
-  /// id of the derived class
-  const ID & parent_id;
-
-  /// underlying mesh
-  const Mesh & _mesh;
-
-  /// spatial_dimension of the derived model
-  UInt _spatial_dimension{_all_dimensions};
-
   /// mapping between constitutive_law name and constitutive_law internal id
   std::map<std::string, UInt> constitutive_laws_names_to_id;
 
@@ -287,8 +302,9 @@ private:
 
   template <class ConstitutiveLawsHandler> friend class ConstitutiveLaw;
 };
-  
+
 } // namespace akantu
 
 #include "constitutive_laws_handler_tmpl.hh"
+
 #endif /* AKANTU_CONSTITUTIVE_LAWS_HANDLER_HH */
