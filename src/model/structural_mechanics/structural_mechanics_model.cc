@@ -352,7 +352,7 @@ void StructuralMechanicsModel::assembleMatrix(const ID & id) {
   if (id == "K") {
     assembleStiffnessMatrix();
   } else if (id == "M") {
-    assembleMassMatrix();
+    assembleMass();
   }
 }
 
@@ -365,7 +365,7 @@ void StructuralMechanicsModel::assembleResidual() {
 
   auto & dof_manager = getDOFManager();
 
-  assembleInternalForce();
+  assembleInternalForces();
 
   dof_manager.assembleToResidual("displacement", *external_force, 1);
   dof_manager.assembleToResidual("displacement", *internal_force, 1);
@@ -385,7 +385,7 @@ void StructuralMechanicsModel::assembleResidual(const ID & residual_part) {
   }
 
   if ("internal" == residual_part) {
-    this->assembleInternalForce();
+    this->assembleInternalForces();
     this->getDOFManager().assembleToResidual("displacement",
                                              *this->internal_force, 1);
     AKANTU_DEBUG_OUT();
@@ -444,21 +444,21 @@ ModelSolverOptions StructuralMechanicsModel::getDefaultSolverOptions(
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::assembleInternalForce() {
+void StructuralMechanicsModel::assembleInternalForces() {
 
   internal_force->zero();
   computeStresses();
 
   for (auto type : mesh.elementTypes(_spatial_dimension = _all_dimensions,
                    _element_kind = _ek_structural)) {
-    assembleInternalForce(type, _not_ghost);
+    assembleInternalForces(type, _not_ghost);
     // assembleInternalForce(type, _ghost);
   }
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::assembleInternalForce(ElementType type,
-                                                     GhostType gt) {
+void StructuralMechanicsModel::assembleInternalForces(ElementType type,
+						      GhostType gt) {
   auto & fem = getFEEngine();
   auto & sigma = stress(type, gt);
   auto ndof = getNbDegreeOfFreedom(type);

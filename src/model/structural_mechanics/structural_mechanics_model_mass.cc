@@ -53,7 +53,7 @@ private:
 };
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::assembleMassMatrix() {
+void StructuralMechanicsModel::assembleMass() {
   AKANTU_DEBUG_IN();
 
   if (not need_to_reassemble_mass) {
@@ -65,7 +65,7 @@ void StructuralMechanicsModel::assembleMassMatrix() {
   }
 
   this->getDOFManager().zeroMatrix("M");
-  assembleMassMatrix(_not_ghost);
+  assembleMass(_not_ghost);
 
   need_to_reassemble_mass = false;
 
@@ -73,7 +73,7 @@ void StructuralMechanicsModel::assembleMassMatrix() {
 }
 
 /* -------------------------------------------------------------------------- */
-void StructuralMechanicsModel::assembleMassMatrix(GhostType ghost_type) {
+void StructuralMechanicsModel::assembleMass(GhostType ghost_type) {
   AKANTU_DEBUG_IN();
   auto & fem = getFEEngineClass<MyFEEngineType>();
   ComputeRhoFunctorStruct compute_rho(*this);

@@ -117,10 +117,10 @@ public:
   void assembleStiffnessMatrix();
 
   /// assemble the mass matrix for consistent mass resolutions
-  void assembleMassMatrix();
+  void assembleMass();
 
   /// compute the nodal forces
-  void assembleInternalForce();
+  void assembleInternalForces();
 
   /* ------------------------------------------------------------------------ */
   /* Virtual methods from Model                                               */
@@ -149,12 +149,12 @@ protected:
 
   
   /// compute the nodal forces for an element type
-  void assembleInternalForce(ElementType type, GhostType gt);
+  void assembleInternalForces(ElementType type, GhostType gt);
 
 
 protected:
   /// assemble the mass matrix for either _ghost or _not_ghost elements
-  void assembleMassMatrix(GhostType ghost_type);
+  void assembleMass(GhostType ghost_type);
 
   /// computes rho
   void computeRho(Array<Real> & rho, ElementType type, GhostType ghost_type);
