@@ -14,8 +14,7 @@
 
 package_declare(asr_tools
   DESCRIPTION "ASR stuffs materials, model FE2, toolboxes"
-  DEPENDS extra_materials
-  BOOST_COMPONENTS filesystem)
+  DEPENDS extra_materials)
 
 package_declare_sources(asr_tools
   asr_tools.cc
