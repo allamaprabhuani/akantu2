@@ -423,6 +423,9 @@ public:
   /// dump the RVE
   void dumpRve();
 
+  /// dump the RVE with the dump number
+  void dumpRve(UInt dump_nb);
+
   /// compute average stress in the RVE
   void homogenizeStressField(Matrix<Real> & stress);
 

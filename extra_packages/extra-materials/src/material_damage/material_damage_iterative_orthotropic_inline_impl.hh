@@ -193,9 +193,9 @@ template <UInt spatial_dimension>
 inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
     Matrix<Real> & /*sigma*/, Matrix<Real> & grad_u, Real & dam, Real & E1,
-    Real & /*E2*/, Real & /*E3*/, Real & nu12, Real & nu13,
-    Real & /*nu23*/, Real & G12, Real & G13, Real & /*G23*/,
-    Matrix<Real> & dir_vecs, Real & nb_flicks, bool & in_tension) {
+    Real & /*E2*/, Real & /*E3*/, Real & nu12, Real & nu13, Real & /*nu23*/,
+    Real & G12, Real & G13, Real & /*G23*/, Matrix<Real> & dir_vecs,
+    Real & nb_flicks, bool & in_tension) {
 
   if (dam > 0.) {
     E1 = this->E1;
@@ -338,7 +338,7 @@ void MaterialDamageIterativeOrthotropic<spatial_dimension>::beforeSolveStep() {
 
   for (auto & el_type : this->element_filter.elementTypes(
            _all_dimensions, _not_ghost, _ek_not_defined)) {
-    this->nb_state_changes(el_type, _not_ghost).clear();
+    this->nb_state_changes(el_type, _not_ghost).zero();
   }
 }
 /* --------------------------------------------------------------------------

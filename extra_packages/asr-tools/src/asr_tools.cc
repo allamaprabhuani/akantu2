@@ -191,8 +191,6 @@ void ASRTools::applyLoadedBC(const Vector<Real> & traction,
   const Array<Real> & pos = mesh.getNodes();
   Array<Real> & disp = model.getDisplacement();
   Array<bool> & boun = model.getBlockedDOFs();
-  // disp.clear();
-  // boun.clear();
 
   switch (dim) {
   case 2: {
@@ -532,9 +530,9 @@ void ASRTools::resetNodalFields() {
   auto & disp = this->model.getDisplacement();
   auto & boun = this->model.getBlockedDOFs();
   auto & ext_force = this->model.getExternalForce();
-  disp.clear();
-  boun.clear();
-  ext_force.clear();
+  disp.zero();
+  boun.zero();
+  ext_force.zero();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -647,9 +645,9 @@ Real ASRTools::performLoadingTest(SpatialDirection direction, bool tension) {
   auto & ext_force = model.getExternalForce();
   UInt nb_nodes = mesh.getNbNodes();
 
-  disp.clear();
-  boun.clear();
-  ext_force.clear();
+  disp.zero();
+  boun.zero();
+  ext_force.zero();
 
   if (dim == 3) {
     for (UInt i = 0; i < nb_nodes; ++i) {
@@ -898,8 +896,7 @@ void ASRTools::computeAveragePropertiesFe2Material(std::ofstream & file_output,
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------- */
 void ASRTools::saveState(UInt current_step) {
 
   /// variables for parallel execution
@@ -961,8 +958,7 @@ void ASRTools::saveState(UInt current_step) {
   }
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 bool ASRTools::loadState(UInt & current_step) {
   current_step = 0;
   bool restart = false;
@@ -1073,8 +1069,7 @@ bool ASRTools::loadState(UInt & current_step) {
   file_input.close();
   return restart;
 }
-
-/* ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------- */
 Real ASRTools::computePhaseVolume(const ID & mat_name) {
   const auto & mesh = model.getMesh();
   const auto dim = mesh.getSpatialDimension();
@@ -1795,9 +1790,9 @@ void ASRTools::performVirtualTesting(const Matrix<Real> & H,
   auto & disp = model.getDisplacement();
   auto & boun = model.getBlockedDOFs();
   auto & ext_force = model.getExternalForce();
-  disp.clear();
-  boun.clear();
-  ext_force.clear();
+  disp.zero();
+  boun.zero();
+  ext_force.zero();
 
   applyBoundaryConditionsRve(H);
 
@@ -2048,8 +2043,10 @@ void ASRTools::computeCrackVolumePerMaterial(Real & crack_volume,
   crack_volume /= this->phase_volumes[material_name];
 }
 
-/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ */
 void ASRTools::dumpRve() { model.dump(); }
+/* ------------------------------------------------------------------ */
+void ASRTools::dumpRve(UInt dump_nb) { model.dump(dump_nb); }
 
 /* ------------------------------------------------------------------------ */
 // void ASRTools::applyBodyForce(const Real gravity = 9.81) {

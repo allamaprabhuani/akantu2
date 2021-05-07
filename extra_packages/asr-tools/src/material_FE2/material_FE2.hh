@@ -63,8 +63,7 @@ public:
                              GhostType ghost_type = _not_ghost);
 
   /// compute the tangent stiffness matrix for an element type
-  void computeTangentModuli(ElementType el_type,
-                            Array<Real> & tangent_matrix,
+  void computeTangentModuli(ElementType el_type, Array<Real> & tangent_matrix,
                             GhostType ghost_type = _not_ghost);
 
   // /// compute ASR strain according to the sigmoidal rule (Larive,1998)
@@ -103,6 +102,9 @@ public:
   /// dump all the rves
   void dump();
 
+  /// dump all the rves with the dumping number
+  void dump(UInt dump_nb);
+
   /// increase gel strain according to time step
   void increaseGelStrain(Real & dt);
 
@@ -111,6 +113,12 @@ public:
 
   /// update damage ratio after converged step
   virtual void afterSolveStep();
+
+  /// save state of all rves
+  void saveRVEsState(std::string & output_dir);
+
+  /// load state of all rves
+  void loadRVEsState(std::string & output_dir);
 
 private:
   void initialize();
@@ -161,8 +169,6 @@ protected:
 /* -------------------------------------------------------------------------- */
 /* inline functions                                                           */
 /* -------------------------------------------------------------------------- */
-
-#include "material_FE2_inline_impl.hh"
 
 } // namespace akantu
 

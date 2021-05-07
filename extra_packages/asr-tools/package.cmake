@@ -14,14 +14,14 @@
 
 package_declare(asr_tools
   DESCRIPTION "ASR stuffs materials, model FE2, toolboxes"
-  DEPENDS extra_materials)
+  DEPENDS extra_materials
+  BOOST_COMPONENTS filesystem)
 
 package_declare_sources(asr_tools
   asr_tools.cc
   asr_tools.hh
   material_FE2/material_FE2.hh
   material_FE2/material_FE2.cc
-  material_FE2/material_FE2_inline_impl.hh
   solid_mechanics_model_RVE.hh
   solid_mechanics_model_RVE.cc
   mesh_utils/nodes_flag_updater.hh

@@ -13,12 +13,13 @@
  *
  */
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------- */
 #include "material_FE2.hh"
 #include "aka_iterators.hh"
 #include "communicator.hh"
 #include "solid_mechanics_model_RVE.hh"
-/* -------------------------------------------------------------------------- */
+#include <fstream>
+/* ------------------------------------------------------------------- */
 
 namespace akantu {
 
@@ -121,7 +122,7 @@ void MaterialFE2<spatial_dimension>::initMaterial() {
   }
   AKANTU_DEBUG_OUT();
 }
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
                                                    GhostType ghost_type) {
@@ -170,7 +171,7 @@ void MaterialFE2<spatial_dimension>::computeStress(ElementType el_type,
   AKANTU_DEBUG_OUT();
 }
 
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
   for (auto && data : zip(RVEs, this->delta_T(this->el_type),
@@ -187,24 +188,7 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
       strain_matrix(i, i) = ASRStrain;
   }
 }
-
-// template <UInt spatial_dimension>
-// void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
-//   for (auto && data : zip(this->delta_T(this->el_type),
-//                           make_view(this->gelstrain(this->el_type),
-//                                     spatial_dimension, spatial_dimension),
-//                           this->non_reacted_gel(this->el_type))) {
-//     /// compute new gel strain for every element
-//     if (this->sat_const)
-//       computeNewGelStrainTimeDependent(std::get<1>(data), dt_day,
-//                                        std::get<0>(data),
-//                                        std::get<2>(data));
-//     else
-//       computeNewGelStrain(std::get<1>(data), dt_day, std::get<0>(data));
-//   }
-// }
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::afterSolveStep() {
   AKANTU_DEBUG_IN();
@@ -242,12 +226,10 @@ void MaterialFE2<spatial_dimension>::afterSolveStep() {
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ---------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::computeTangentModuli(
-    ElementType el_type, Array<Real> & tangent_matrix,
-    GhostType ghost_type) {
+    ElementType el_type, Array<Real> & tangent_matrix, GhostType ghost_type) {
   AKANTU_DEBUG_IN();
 
   Array<Real>::const_matrix_iterator C_it =
@@ -260,218 +242,6 @@ void MaterialFE2<spatial_dimension>::computeTangentModuli(
 
   AKANTU_DEBUG_OUT();
 }
-
-// /* --------------------------------------------------------------------------
-//  */
-// template <UInt spatial_dimension>
-// void MaterialFE2<spatial_dimension>::advanceASR(
-//     const Matrix<Real> & prestrain) {
-//   AKANTU_DEBUG_IN();
-
-//   for (auto && data :
-//        zip(RVEs,
-//            make_view(this->gradu(this->el_type), spatial_dimension,
-//                      spatial_dimension),
-//            make_view(this->eigengradu(this->el_type), spatial_dimension,
-//                      spatial_dimension),
-//            make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-//            this->delta_T(this->el_type), this->damage_ratio(this->el_type)))
-//            {
-//     auto & RVE = *(std::get<0>(data));
-
-//     /// apply boundary conditions based on the current macroscopic displ.
-//     /// gradient
-//     RVE.applyBoundaryConditionsRve(std::get<1>(data));
-
-//     /// apply homogeneous temperature field to each RVE to obtain
-//     /// thermoelastic effect
-//     RVE.applyHomogeneousTemperature(std::get<4>(data));
-
-//     /// advance the ASR in every RVE
-//     RVE.advanceASR(prestrain);
-
-//     /// compute damage volume in each rve
-//     RVE.computeDamageRatio(std::get<5>(data));
-
-//     /// compute the average eigen_grad_u
-//     RVE.homogenizeEigenGradU(std::get<2>(data));
-
-//     /// compute the new effective stiffness of the RVE
-//     RVE.homogenizeStiffness(std::get<3>(data), RVE.isTensileHomogen());
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* --------------------------------------------------------------------------
-//  */
-// template <UInt spatial_dimension>
-// void MaterialFE2<spatial_dimension>::advanceASR(const Real & delta_time) {
-//   AKANTU_DEBUG_IN();
-
-//   for (auto && data :
-//        zip(RVEs,
-//            make_view(this->gradu(this->el_type), spatial_dimension,
-//                      spatial_dimension),
-//            make_view(this->eigengradu(this->el_type), spatial_dimension,
-//                      spatial_dimension),
-//            make_view(this->C(this->el_type), voigt_h::size, voigt_h::size),
-//            this->delta_T(this->el_type),
-//            make_view(this->gelstrain(this->el_type), spatial_dimension,
-//                      spatial_dimension),
-//            this->non_reacted_gel(this->el_type),
-//            this->damage_ratio(this->el_type))) {
-//     auto & RVE = *(std::get<0>(data));
-
-//     /// apply boundary conditions based on the current macroscopic displ.
-//     /// gradient
-//     RVE.applyBoundaryConditionsRve(std::get<1>(data));
-
-//     /// apply homogeneous temperature field to each RVE to obtain
-//     /// thermoelastic effect
-//     RVE.applyHomogeneousTemperature(std::get<4>(data));
-
-//     /// compute new gel strain for every element
-//     if (this->sat_const)
-//       computeNewGelStrainTimeDependent(std::get<5>(data), delta_time,
-//                                        std::get<4>(data), std::get<6>(data));
-//     else
-//       computeNewGelStrain(std::get<5>(data), delta_time, std::get<4>(data));
-
-//     /// advance the ASR in every RVE based on the new gel strain
-//     RVE.advanceASR(std::get<5>(data));
-
-//     /// compute damage volume in each rve
-//     RVE.computeDamageRatio(std::get<7>(data));
-
-//     /// remove temperature field - not to mess up with the stiffness
-//     /// homogenization further
-//     RVE.removeTemperature();
-
-//     /// compute the average eigen_grad_u
-//     RVE.homogenizeEigenGradU(std::get<2>(data));
-
-//     /// compute the new effective stiffness of the RVE
-//     RVE.homogenizeStiffness(std::get<3>(data), RVE.isTensileHomogen());
-
-//     /// apply temperature back for the output
-//     RVE.applyHomogeneousTemperature(std::get<4>(data));
-//   }
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-/* --------------------------------------------------------------------------
- */
-// template <UInt spatial_dimension>
-// void MaterialFE2<spatial_dimension>::computeASRStrainLarive(
-//     const Real & delta_time_day, const Real & T, Matrix<Real> & gelstrain) {
-//   AKANTU_DEBUG_IN();
-
-//   Real time_ch, time_lat, lambda, ksi, exp_ref;
-//   ksi = gelstrain(0, 0) / this->eps_inf;
-//   if (T == 0) {
-//     ksi += 0;
-//   } else {
-//     time_ch =
-//         this->time_ch_ref * std::exp(this->U_C * (1. / T - 1. / this->T_ref));
-//     time_lat =
-//         this->time_lat_ref * std::exp(this->U_L * (1. / T - 1. / this->T_ref));
-//     exp_ref = std::exp(-time_lat / time_ch);
-//     lambda = (1 + exp_ref) / (ksi + exp_ref);
-//     ksi += delta_time_day / time_ch * (1 - ksi) / lambda;
-//   }
-//   for (UInt i = 0; i != spatial_dimension; ++i)
-//     gelstrain(i, i) = ksi * this->eps_inf;
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /*--------------------------------------------------------------------------*/
-//     template <UInt spatial_dimension>
-//     void MaterialFE2<spatial_dimension>::computeNewGelStrain(
-//         Matrix<Real> & gelstrain, const Real & delta_time_day, const Real &
-//         T) {
-//   AKANTU_DEBUG_IN();
-
-//   const auto & k = this->k;
-//   const auto & Ea = this->activ_energy;
-//   const auto & R = this->R;
-
-//   /// compute increase in gel strain value for interval of time delta_time
-//   /// as temperatures are stored in C, conversion to K is done
-//   Real delta_strain = k * std::exp(-Ea / (R * (T + 273.15))) *
-//   delta_time_day;
-
-//   for (UInt i = 0; i != spatial_dimension; ++i)
-//     gelstrain(i, i) += delta_strain;
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* --------------------------------------------------------------------*/
-// template <UInt spatial_dimension>
-// void MaterialFE2<spatial_dimension>::computeNewGelStrainTimeDependent(
-//     Matrix<Real> & gelstrain, const Real & delta_time_day, const Real & T,
-//     Real & non_reacted_gel) {
-//   AKANTU_DEBUG_IN();
-
-//   const auto & k = this->k;
-//   const auto & Ea = this->activ_energy;
-//   const auto & R = this->R;
-//   const auto & sat_const = this->sat_const;
-
-//   /// compute increase in gel strain value for interval of time delta_time
-//   /// as temperatures are stored in C, conversion to K is done
-//   Real delta_strain =
-//       non_reacted_gel * k * std::exp(-Ea / (R * (T + 273.15))) *
-//       delta_time_day;
-
-//   for (UInt i = 0; i != spatial_dimension; ++i)
-//     gelstrain(i, i) += delta_strain;
-
-//   non_reacted_gel -=
-//       std::exp(-Ea / (R * (T + 273.15))) * delta_time_day / sat_const;
-
-//   if (non_reacted_gel < 0.)
-//     non_reacted_gel = 0.;
-
-//   AKANTU_DEBUG_OUT();
-// }
-
-// /* --------------------------------------------------------------------*/
-// template <UInt spatial_dimension>
-// void MaterialFE2<spatial_dimension>::resetGelStrain(
-//     const Real & old_time_step) {
-//   AKANTU_DEBUG_IN();
-//   const auto & k = this->k;
-//   const auto & Ea = this->activ_energy;
-//   const auto & R = this->R;
-//   const auto & sat_const = this->sat_const;
-
-//   for (auto && data : zip(this->delta_T(this->el_type),
-//                           make_view(this->gelstrain(this->el_type),
-//                                     spatial_dimension, spatial_dimension),
-//                           this->non_reacted_gel(this->el_type))) {
-
-//     auto & gelstrain = std::get<1>(data);
-//     auto & T = std::get<0>(data);
-//     auto & non_reacted_gel = std::get<2>(data);
-
-//     non_reacted_gel +=
-//         std::exp(-Ea / (R * (T + 273.15))) * old_time_step / sat_const;
-
-//     Real prev_delta_strain = non_reacted_gel * k *
-//                              std::exp(-Ea / (R * (T + 273.15))) *
-//                              old_time_step;
-
-//     for (UInt i = 0; i != spatial_dimension; ++i)
-//       gelstrain(i, i) += -prev_delta_strain;
-
-//     if (non_reacted_gel > 1.)
-//       non_reacted_gel = 1.;
-//   }
-//   AKANTU_DEBUG_OUT();
-// }
 
 /* ----------------------------------------------------------- */
 template <UInt spatial_dimension>
@@ -524,8 +294,7 @@ UInt MaterialFE2<spatial_dimension>::getNbRVEs() {
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ------------------------------------------------------------------ */
 template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
   AKANTU_DEBUG_IN();
 
@@ -538,9 +307,22 @@ template <UInt spatial_dimension> void MaterialFE2<spatial_dimension>::dump() {
 
   AKANTU_DEBUG_OUT();
 }
+/* ------------------------------------------------------------------ */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::dump(UInt dump_nb) {
+  AKANTU_DEBUG_IN();
 
-/* --------------------------------------------------------------------------
- */
+  for (auto && RVE : RVEs) {
+    /// update stress field before dumping
+    RVE->assembleInternalForces();
+    /// dump all the RVEs
+    RVE->dumpRve(dump_nb);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+
+/* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
 void MaterialFE2<spatial_dimension>::setTimeStep(Real time_step) {
   AKANTU_DEBUG_IN();
@@ -551,6 +333,230 @@ void MaterialFE2<spatial_dimension>::setTimeStep(Real time_step) {
   }
 
   AKANTU_DEBUG_OUT();
+}
+/* -------------------------------------------------------------------*/
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::saveRVEsState(std::string & restart_dir) {
+  AKANTU_DEBUG_IN();
+
+  auto & mesh = this->model.getMesh();
+  auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
+  GhostType gt = _not_ghost;
+
+  for (auto && data : enumerate(RVEs)) {
+    auto proc_RVE_id = std::get<0>(data);
+    UInt gl_RVE_id = g_ids(proc_RVE_id);
+    auto & RVE = *(std::get<1>(data));
+
+    std::stringstream file_stream;
+    file_stream << restart_dir << "/RVE_" << std::to_string(gl_RVE_id)
+                << "_state.txt";
+    std::string RVE_state_file = file_stream.str();
+    std::ofstream file_output;
+    file_output.open(RVE_state_file.c_str());
+
+    if (!file_output.is_open())
+      AKANTU_EXCEPTION("Could not create the file " + RVE_state_file +
+                       ", does its folder exist?");
+
+    UInt nb_materials = RVE.getNbMaterials();
+
+    for (UInt m = 0; m < nb_materials; ++m) {
+      const Material & mat = RVE.getMaterial(m);
+
+      for (auto pair : mat.getInternalVectorsReal()) {
+        // set up precision
+        constexpr auto max_digits10 = std::numeric_limits<Real>::max_digits10;
+        file_output << std::setprecision(max_digits10);
+        /// get the internal field
+        const InternalField<Real> & internal_real = *pair.second;
+        /// loop over all types in that material
+        for (auto element_type : internal_real.elementTypes(gt)) {
+          const Array<UInt> & elem_filter =
+              mat.getElementFilter(element_type, gt);
+          if (!elem_filter.size())
+            continue;
+          auto && internal_field_array = internal_real(element_type, gt);
+          for (UInt i = 0; i < internal_field_array.size(); ++i) {
+            for (UInt j = 0; j < internal_field_array.getNbComponent(); ++j) {
+              file_output << internal_field_array(i, j) << std::endl;
+
+              if (file_output.fail())
+                AKANTU_EXCEPTION("Error in writing data to file " +
+                                 RVE_state_file);
+            }
+          }
+        }
+      }
+      for (auto pair : mat.getInternalVectorsUInt()) {
+        // set up precision
+        constexpr auto max_digits10 = std::numeric_limits<UInt>::max_digits10;
+        file_output << std::setprecision(max_digits10);
+        /// get the internal field
+        const InternalField<UInt> & internal_uint = *pair.second;
+        /// loop over all types in that material
+        for (auto element_type : internal_uint.elementTypes(gt)) {
+          const Array<UInt> & elem_filter =
+              mat.getElementFilter(element_type, gt);
+          if (!elem_filter.size())
+            continue;
+          const Array<UInt> & internal_field_array =
+              internal_uint(element_type, gt);
+          for (UInt i = 0; i < internal_field_array.size(); ++i) {
+            for (UInt j = 0; j < internal_field_array.getNbComponent(); ++j) {
+              file_output << internal_field_array(i, j) << std::endl;
+
+              if (file_output.fail())
+                AKANTU_EXCEPTION("Error in writing data to file " +
+                                 RVE_state_file);
+            }
+          }
+        }
+      }
+      for (auto pair : mat.getInternalVectorsBool()) {
+        // set up precision
+        constexpr auto max_digits10 = std::numeric_limits<bool>::max_digits10;
+        file_output << std::setprecision(max_digits10);
+        /// get the internal field
+        const InternalField<bool> & internal_bool = *pair.second;
+        /// loop over all types in that material
+        for (auto element_type : internal_bool.elementTypes(gt)) {
+          const Array<UInt> & elem_filter =
+              mat.getElementFilter(element_type, gt);
+          if (!elem_filter.size())
+            continue;
+          const Array<bool> & internal_field_array =
+              internal_bool(element_type, gt);
+          for (UInt i = 0; i < internal_field_array.size(); ++i) {
+            for (UInt j = 0; j < internal_field_array.getNbComponent(); ++j) {
+              file_output << internal_field_array(i, j) << std::endl;
+
+              if (file_output.fail())
+                AKANTU_EXCEPTION("Error in writing data to file " +
+                                 RVE_state_file);
+            }
+          }
+        }
+      }
+    }
+    file_output.close();
+    AKANTU_DEBUG_OUT();
+  }
+}
+
+/* ------------------------------------------------------------------ */
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::loadRVEsState(std::string & restart_dir) {
+  /// variables for parallel execution
+  auto & mesh = this->model.getMesh();
+  auto & g_ids = mesh.template getData<UInt>("global_ids", this->el_type);
+  GhostType gt = _not_ghost;
+
+  for (auto && data : enumerate(RVEs)) {
+    auto proc_RVE_id = std::get<0>(data);
+    UInt gl_RVE_id = g_ids(proc_RVE_id);
+    auto & RVE = *(std::get<1>(data));
+
+    /// open the input file
+    std::stringstream file_stream;
+    file_stream << restart_dir << "/RVE_" << std::to_string(gl_RVE_id)
+                << "_state.txt";
+    std::string RVE_state_file = file_stream.str();
+    std::ifstream file_input;
+    file_input.open(RVE_state_file.c_str());
+
+    if (!file_input.is_open())
+      AKANTU_EXCEPTION("Could not open file " + RVE_state_file);
+
+    auto nb_materials = RVE.getNbMaterials();
+
+    for (UInt m = 0; m < nb_materials; ++m) {
+      const Material & mat = RVE.getMaterial(m);
+
+      /// get the internal field that need to be set
+      for (auto pair : mat.getInternalVectorsReal()) {
+        /// get the internal field
+        InternalField<Real> & internal_real = *pair.second;
+        /// loop over all types in that material
+        for (auto element_type : internal_real.elementTypes(gt)) {
+          const Array<UInt> & elem_filter =
+              mat.getElementFilter(element_type, gt);
+          if (!elem_filter.size())
+            continue;
+          Array<Real> & internal_field_array = internal_real(element_type, gt);
+          std::string line;
+          for (UInt i = 0; i < internal_field_array.size(); ++i) {
+            for (UInt j = 0; j < internal_field_array.getNbComponent(); ++j) {
+              std::getline(file_input, line);
+
+              if (file_input.fail())
+                AKANTU_EXCEPTION("Could not read data from file " +
+                                 RVE_state_file);
+
+              std::stringstream sstr(line);
+              sstr >> internal_field_array(i, j);
+            }
+          }
+        }
+      }
+
+      /// get the internal field that need to be set
+      for (auto pair : mat.getInternalVectorsUInt()) {
+        /// get the internal field
+        InternalField<UInt> & internal_uint = *pair.second;
+        /// loop over all types in that material
+        for (auto element_type : internal_uint.elementTypes(gt)) {
+          const Array<UInt> & elem_filter =
+              mat.getElementFilter(element_type, gt);
+          if (!elem_filter.size())
+            continue;
+          Array<UInt> & internal_field_array = internal_uint(element_type, gt);
+          std::string line;
+          for (UInt i = 0; i < internal_field_array.size(); ++i) {
+            for (UInt j = 0; j < internal_field_array.getNbComponent(); ++j) {
+              std::getline(file_input, line);
+
+              if (file_input.fail())
+                AKANTU_EXCEPTION("Could not read data from file " +
+                                 RVE_state_file);
+
+              std::stringstream sstr(line);
+              sstr >> internal_field_array(i, j);
+            }
+          }
+        }
+      }
+
+      /// get the internal field that need to be set
+      for (auto pair : mat.getInternalVectorsBool()) {
+        /// get the internal field
+        InternalField<bool> & internal_bool = *pair.second;
+        /// loop over all types in that material
+        for (auto element_type : internal_bool.elementTypes(gt)) {
+          const Array<UInt> & elem_filter =
+              mat.getElementFilter(element_type, gt);
+          if (!elem_filter.size())
+            continue;
+          Array<bool> & internal_field_array = internal_bool(element_type, gt);
+          std::string line;
+          for (UInt i = 0; i < internal_field_array.size(); ++i) {
+            for (UInt j = 0; j < internal_field_array.getNbComponent(); ++j) {
+              std::getline(file_input, line);
+
+              if (file_input.fail())
+                AKANTU_EXCEPTION("Could not read data from file " +
+                                 RVE_state_file);
+
+              std::stringstream sstr(line);
+              sstr >> internal_field_array(i, j);
+            }
+          }
+        }
+      }
+    }
+    /// close the file
+    file_input.close();
+  }
 }
 
 INSTANTIATE_MATERIAL(material_FE2, MaterialFE2);
