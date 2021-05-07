@@ -525,6 +525,19 @@ public:
   /// static method to reteive the material factory
   static MaterialFactory & getFactory();
 
+  /// retrieve maps of internal fields
+  std::map<ID, InternalField<Real> *> getInternalVectorsReal() const {
+    return internal_vectors_real;
+  }
+
+  std::map<ID, InternalField<UInt> *> getInternalVectorsUInt() const {
+    return internal_vectors_uint;
+  }
+
+  std::map<ID, InternalField<bool> *> getInternalVectorsBool() const {
+    return internal_vectors_bool;
+  }
+
 protected:
   bool isInit() const { return is_init; }
 
