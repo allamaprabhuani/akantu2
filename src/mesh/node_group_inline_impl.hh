@@ -60,7 +60,7 @@ inline NodeGroup::const_node_iterator NodeGroup::add(UInt node,
 /* -------------------------------------------------------------------------- */
 inline void NodeGroup::remove(UInt node) {
   Array<UInt>::iterator<> it = this->node_group.begin();
-  AKANTU_DEBUG_ASSERT(node_group.empty(), "The node group is empty!!");
+  AKANTU_DEBUG_ASSERT(not node_group.empty(), "The node group is empty!!");
   while (it != node_group.end()) {
     if (*it == node) {
       it = node_group.erase(it);
