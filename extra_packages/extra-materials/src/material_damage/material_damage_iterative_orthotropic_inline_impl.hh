@@ -197,7 +197,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
     Real & G12, Real & G13, Real & /*G23*/, Matrix<Real> & dir_vecs,
     Real & nb_flicks, bool & in_tension) {
 
-  if (dam > 0.) {
+  if (dam == 0.) {
     E1 = this->E1;
     nu12 = this->nu12;
     nu13 = this->nu13;
