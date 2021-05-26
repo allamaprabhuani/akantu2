@@ -1,5 +1,6 @@
+/* -------------------------------------------------------------------------- */
 #include "py_material_selector.hh"
-
+#include "py_akantu_pybind11_compatibility.hh"
 /* -------------------------------------------------------------------------- */
 #include <material_selector.hh>
 #include <solid_mechanics_model.hh>
@@ -44,8 +45,8 @@ namespace {
 } // namespace
 
 void register_material_selector(py::module & mod) {
-    py::class_<MaterialSelector, PyMaterialSelector<>,
-               std::shared_ptr<MaterialSelector>>(mod, "MaterialSelector")
+  py::class_<MaterialSelector, PyMaterialSelector<>,
+             std::shared_ptr<MaterialSelector>>(mod, "MaterialSelector")
       .def(py::init())
       .def("setFallback",
            [](MaterialSelector & self, UInt f) { self.setFallback(f); })

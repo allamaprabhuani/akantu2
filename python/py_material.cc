@@ -1,4 +1,5 @@
 /* -------------------------------------------------------------------------- */
+#include "py_akantu_pybind11_compatibility.hh"
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <solid_mechanics_model.hh>
@@ -13,11 +14,6 @@
 /* -------------------------------------------------------------------------- */
 namespace py = pybind11;
 /* -------------------------------------------------------------------------- */
-
-#if not defined(PYBIND11_OVERRIDE)
-#define PYBIND11_OVERRIDE PYBIND11_OVERLOAD
-#define PYBIND11_OVERRIDE_PURE PYBIND11_OVERLOAD_PURE
-#endif
 
 namespace akantu {
 
