@@ -23,7 +23,7 @@ public:
   /* Trampoline (need one for each virtual function) */
   void operator()(UInt node, Vector<bool> & flags, Vector<Real> & primal,
                   const Vector<Real> & coord) const override {
-
+    // NOLINTNEXTLINE
     PYBIND11_OVERLOAD_NAME(void, daughter, "__call__", operator(), node, flags,
                            primal, coord);
   }
@@ -40,7 +40,7 @@ public:
   void operator()(const IntegrationPoint & quad_point, Vector<Real> & dual,
                   const Vector<Real> & coord,
                   const Vector<Real> & normals) const override {
-
+    // NOLINTNEXTLINE
     PYBIND11_OVERLOAD_PURE_NAME(void, daughter, "__call__", operator(),
                                 quad_point, dual, coord, normals);
   }
@@ -49,23 +49,22 @@ public:
 /* -------------------------------------------------------------------------- */
 
 template <typename Functor, typename Constructor>
-decltype(auto) declareDirichletFunctor(py::module mod, const char * name,
-                                       Constructor && cons) {
+decltype(auto) register_dirichlet_functor(py::module mod, const char * name,
+                                          Constructor && cons) {
   py::class_<Functor, PyDirichletFunctor<Functor>,
              BC::Dirichlet::DirichletFunctor>(mod, name)
       .def(cons);
 }
 template <typename Functor, typename Constructor>
-decltype(auto) declareNeumannFunctor(py::module mod, const char * name,
-                                     Constructor && cons) {
+decltype(auto) register_neumann_functor(py::module mod, const char * name,
+                                        Constructor && cons) {
   py::class_<Functor, PyNeumannFunctor<Functor>, BC::Neumann::NeumannFunctor>(
       mod, name)
       .def(cons);
 }
 
 /* -------------------------------------------------------------------------- */
-__attribute__((visibility("default"))) void
-register_boundary_conditions(py::module & mod) {
+void register_boundary_conditions(py::module & mod) {
 
   py::class_<BC::Functor>(mod, "BCFunctor");
   py::class_<BC::Dirichlet::DirichletFunctor, PyDirichletFunctor<>,
@@ -77,22 +76,22 @@ register_boundary_conditions(py::module & mod) {
       mod, "NeumannFunctor")
       .def(py::init());
 
-  declareDirichletFunctor<BC::Dirichlet::FixedValue>(
+  register_dirichlet_functor<BC::Dirichlet::FixedValue>(
       mod, "FixedValue", py::init<Real, BC::Axis>());
 
-  declareDirichletFunctor<BC::Dirichlet::IncrementValue>(
+  register_dirichlet_functor<BC::Dirichlet::IncrementValue>(
       mod, "IncrementValue", py::init<Real, BC::Axis>());
 
-  declareDirichletFunctor<BC::Dirichlet::Increment>(mod, "Increment",
-                                                    py::init<Vector<Real> &>());
+  register_dirichlet_functor<BC::Dirichlet::Increment>(
+      mod, "Increment", py::init<Vector<Real> &>());
 
-  declareNeumannFunctor<BC::Neumann::FromHigherDim>(mod, "FromHigherDim",
-                                                    py::init<Matrix<Real> &>());
+  register_neumann_functor<BC::Neumann::FromHigherDim>(
+      mod, "FromHigherDim", py::init<Matrix<Real> &>());
 
-  declareNeumannFunctor<BC::Neumann::FromSameDim>(mod, "FromSameDim",
-                                                  py::init<Vector<Real> &>());
+  register_neumann_functor<BC::Neumann::FromSameDim>(
+      mod, "FromSameDim", py::init<Vector<Real> &>());
 
-  declareNeumannFunctor<BC::Neumann::FreeBoundary>(mod, "FreeBoundary",
-                                                   py::init());
+  register_neumann_functor<BC::Neumann::FreeBoundary>(mod, "FreeBoundary",
+                                                      py::init());
 }
 } // namespace akantu

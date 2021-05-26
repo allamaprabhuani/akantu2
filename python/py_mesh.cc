@@ -15,40 +15,42 @@ namespace py = pybind11;
 
 namespace akantu {
 
-/* -------------------------------------------------------------------------- */
-template <typename T>
-void register_element_type_map_array(py::module & mod,
-                                     const std::string & name) {
-  py::class_<ElementTypeMapArray<T>, std::shared_ptr<ElementTypeMapArray<T>>>(
-      mod, ("ElementTypeMapArray" + name).c_str())
-      .def(
-          "__call__",
-          [](ElementTypeMapArray<T> & self, ElementType type,
-             GhostType ghost_type) -> decltype(auto) {
-            return self(type, ghost_type);
-          },
-          py::arg("type"), py::arg("ghost_type") = _not_ghost,
-          py::return_value_policy::reference)
-      .def(
-          "elementTypes",
-          [](ElementTypeMapArray<T> & self, UInt _dim, GhostType _ghost_type,
-             ElementKind _kind) -> std::vector<ElementType> {
-            auto types = self.elementTypes(_dim, _ghost_type, _kind);
-            std::vector<ElementType> _types;
-            for (auto && t : types) {
-              _types.push_back(t);
-            }
-            return _types;
-          },
-          py::arg("dim") = _all_dimensions, py::arg("ghost_type") = _not_ghost,
-          py::arg("kind") = _ek_regular);
-}
-
+namespace {
+  /* ------------------------------------------------------------------------ */
+  template <typename T>
+  void register_element_type_map_array(py::module & mod,
+                                       const std::string & name) {
+    py::class_<ElementTypeMapArray<T>, std::shared_ptr<ElementTypeMapArray<T>>>(
+        mod, ("ElementTypeMapArray" + name).c_str())
+        .def(
+            "__call__",
+            [](ElementTypeMapArray<T> & self, ElementType type,
+               GhostType ghost_type) -> decltype(auto) {
+              return self(type, ghost_type);
+            },
+            py::arg("type"), py::arg("ghost_type") = _not_ghost,
+            py::return_value_policy::reference)
+        .def(
+            "elementTypes",
+            [](ElementTypeMapArray<T> & self, UInt _dim, GhostType _ghost_type,
+               ElementKind _kind) -> std::vector<ElementType> {
+              auto types = self.elementTypes(_dim, _ghost_type, _kind);
+              std::vector<ElementType> _types;
+              for (auto && t : types) {
+                _types.push_back(t);
+              }
+              return _types;
+            },
+            py::arg("dim") = _all_dimensions,
+            py::arg("ghost_type") = _not_ghost, py::arg("kind") = _ek_regular);
+  }
+} // namespace
 /* -------------------------------------------------------------------------- */
 void register_mesh(py::module & mod) {
 
   register_element_type_map_array<Real>(mod, "Real");
   register_element_type_map_array<UInt>(mod, "UInt");
+  //register_element_type_map_array<std::string>(mod, "String");
 
   py::class_<MeshData>(mod, "MeshData")
       .def(
@@ -66,8 +68,8 @@ void register_mesh(py::module & mod) {
 
   py::class_<Mesh, GroupManager, Dumpable, MeshData>(mod, "Mesh",
                                                      py::multiple_inheritance())
-      .def(py::init<UInt, const ID &>(),
-           py::arg("spatial_dimension"), py::arg("id") = "mesh")
+      .def(py::init<UInt, const ID &>(), py::arg("spatial_dimension"),
+           py::arg("id") = "mesh")
       .def("read", &Mesh::read, py::arg("filename"),
            py::arg("mesh_io_type") = _miot_auto, "read the mesh from a file")
       .def(
