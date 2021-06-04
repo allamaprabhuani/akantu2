@@ -352,7 +352,7 @@ function:
 
   Real Ed = model.getEnergy("dissipated");
   Real Er = model.getEnergy("reversible");
-  Real Ec = model.getEnergy("contact");
+  Real Ec = model.getEnergy("cohesive contact");
 
 A new model have to be call in a very similar way that the solid
 mechanics model:
