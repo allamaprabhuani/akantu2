@@ -141,21 +141,6 @@ CouplerSolidCohesiveContact::getDefaultSolverID(const AnalysisMethod & method) {
     return std::make_tuple("unknown", TimeStepSolverType::_not_defined);
   }
 
-  /*switch (method) {
-  case _explicit_contact: {
-    return std::make_tuple("explicit_contact", TimeStepSolverType::_static);
-  }
-  case _implicit_contact: {
-    return std::make_tuple("implicit_contact", TimeStepSolverType::_static);
-  }
-  case _explicit_dynamic_contact: {
-    return std::make_tuple("explicit_dynamic_contact",
-                           TimeStepSolverType::_dynamic_lumped);
-    break;
-  }
-  default:
-    return std::make_tuple("unkown", TimeStepSolverType::_not_defined);
-  }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -216,45 +201,6 @@ void CouplerSolidCohesiveContact::assembleResidual() {
   this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
   this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
 
-  /*auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn(const_cast<const Mesh
-  &>(mesh).getConnectivity(master)); Vector<UInt> elem_conn(master_conn.size() +
-  1);
-
-    elem_conn[0] = slave;
-    for (UInt i = 1; i < elem_conn.size(); ++i) {
-      elem_conn[i] = master_conn[i - 1];
-    }
-    return elem_conn;
-  };
-
-
-  switch (method) {
-  case _explicit_dynamic_contact:
-  case _explicit_contact: {
-    for (auto & element : contact->getContactElements()) {
-      for (auto & conn : get_connectivity(element.slave, element.master)) {
-    for (auto dim : arange(spatial_dimension)) {
-      external_force(conn, dim) = contact_force(conn, dim);
-    }
-      }
-    }
-  }
-  default:
-    break;
-    }*/
-
-  /* ------------------------------------------------------------------------ */
-  /*this->getDOFManager().assembleToResidual("displacement", external_force, 1);
-  this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
-  switch (method) {
-  case _implicit_contact: {
-    this->getDOFManager().assembleToResidual("displacement", contact_force, 1);
-    break;
-  }
-  default:
-    break;
-  }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -265,57 +211,6 @@ void CouplerSolidCohesiveContact::assembleResidual(const ID & residual_part) {
   auto & external_force = solid->getExternalForce();
 
   auto & contact_force = contact->getInternalForce();
-
-  /*auto get_connectivity = [&](auto & slave, auto & master) {
-    Vector<UInt> master_conn(const_cast<const Mesh
-  &>(mesh).getConnectivity(master)); Vector<UInt> elem_conn(master_conn.size() +
-  1);
-
-    elem_conn[0] = slave;
-    for (UInt i = 1; i < elem_conn.size(); ++i) {
-      elem_conn[i] = master_conn[i - 1];
-    }
-    return elem_conn;
-  };
-
-
-  switch (method) {
-  case _explicit_dynamic_contact:
-  case _explicit_contact: {
-    for (auto & element : contact->getContactElements()) {
-      for (auto & conn : get_connectivity(element.slave, element.master)) {
-    for (auto dim : arange(spatial_dimension)) {
-      external_force(conn, dim) = contact_force(conn, dim);
-    }
-      }
-    }
-  }
-  default:
-    break;
-  }
-
-
-  if ("external" == residual_part) {
-    this->getDOFManager().assembleToResidual("displacement", external_force, 1);
-    AKANTU_DEBUG_OUT();
-    return;
-  }
-
-  if ("internal" == residual_part) {
-    this->getDOFManager().assembleToResidual("displacement", internal_force, 1);
-    switch (method) {
-    case _implicit_contact: {
-      this->getDOFManager().assembleToResidual("displacement", contact_force,
-                                               1);
-      break;
-    }
-    default:
-      break;
-    }
-
-    AKANTU_DEBUG_OUT();
-    return;
-    }*/
 
   if ("external" == residual_part) {
     this->getDOFManager().assembleToResidual("displacement", external_force, 1);
@@ -354,33 +249,6 @@ void CouplerSolidCohesiveContact::predictor() {
     break;
   }
 
-  /*switch (method) {
-  case _explicit_dynamic_contact: {
-    Array<Real> displacement(0, Model::spatial_dimension);
-
-    auto & current_positions = contact->getContactDetector().getPositions();
-    current_positions.copy(mesh.getNodes());
-
-    auto us = this->getDOFManager().getDOFs("displacement");
-    const auto blocked_dofs =
-        this->getDOFManager().getBlockedDOFs("displacement");
-
-    for (auto && tuple : zip(make_view(us), make_view(blocked_dofs),
-                             make_view(current_positions))) {
-      auto & u = std::get<0>(tuple);
-      const auto & bld = std::get<1>(tuple);
-      auto & cp = std::get<2>(tuple);
-
-      if (not bld)
-        cp += u;
-    }
-
-    contact->search();
-    break;
-  }
-  default:
-    break;
-  }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -401,34 +269,6 @@ void CouplerSolidCohesiveContact::corrector() {
     break;
   }
 
-  /*switch (method) {
-  case _implicit_contact:
-  case _explicit_contact: {
-    Array<Real> displacement(0, Model::spatial_dimension);
-
-    auto & current_positions = contact->getContactDetector().getPositions();
-    current_positions.copy(mesh.getNodes());
-
-    auto us = this->getDOFManager().getDOFs("displacement");
-    const auto blocked_dofs =
-        this->getDOFManager().getBlockedDOFs("displacement");
-
-    for (auto && tuple : zip(make_view(us), make_view(blocked_dofs),
-                             make_view(current_positions))) {
-      auto & u = std::get<0>(tuple);
-      const auto & bld = std::get<1>(tuple);
-      auto & cp = std::get<2>(tuple);
-
-      if (not bld)
-        cp += u;
-    }
-
-    contact->search();
-    break;
-  }
-  default:
-    break;
-  }*/
 }
 
 /* -------------------------------------------------------------------------- */
@@ -506,15 +346,6 @@ void CouplerSolidCohesiveContact::assembleStiffnessMatrix() {
   default:
     break;
   }
-
-  /*switch (method) {
-  case _implicit_contact: {
-    contact->assembleStiffnessMatrix();
-    break;
-  }
-  default:
-    break;
-    }*/
 
   AKANTU_DEBUG_OUT();
 }

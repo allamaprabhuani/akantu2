@@ -387,11 +387,6 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
   Matrix<Real> covariant_basis(
       tangents.begin(surface_dimension, spatial_dimension)[element.slave]);
 
-  // GeometryUtils::covariantBasis(model.getMesh(),
-  // model.getContactDetector().getPositions(), 				element.master,
-  // normal,
-  // projection, covariant_basis);
-
   auto contravariant_metric_tensor =
       GeometryUtils::contravariantMetricTensor(covariant_basis);
 
@@ -837,30 +832,7 @@ void ResolutionPenalty::computeSlipModuli(const ContactElement & element,
 void ResolutionPenalty::beforeSolveStep() {}
 
 /* -------------------------------------------------------------------------- */
-void ResolutionPenalty::afterSolveStep(__attribute__((unused)) bool converged) {
-
-  /*auto method = model.getAnalysisMethod();
-  if (method == _explicit_lumped_mass) {
-    return ;
-    }
-
-  auto & K =
-      const_cast<SparseMatrix &>(model.getDOFManager().getMatrix("K"));
-
-  auto k_min = K.min();
-  auto roundoff_error = 1e-17;
-
-  const auto blocked_dofs =
-  model.getDOFManager().getBlockedDOFs("displacement"); Real nb_unknowns = 0;
-  for (auto & bld : make_view(blocked_dofs)) {
-    if (not bld)
-      nb_unknowns++;
-  }
-
-  auto max_epsilon_n = k_min / sqrt(nb_unknowns * roundoff_error);
-  if (epsilon_n > max_epsilon_n)
-  epsilon_n = max_epsilon_n;*/
-}
+void ResolutionPenalty::afterSolveStep(__attribute__((unused)) bool converged) {}
 
 INSTANTIATE_RESOLUTION(penalty_linear, ResolutionPenalty);
 

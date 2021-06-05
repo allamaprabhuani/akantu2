@@ -1,27 +1,30 @@
 material elastic [
-         name = bot_body
-         rho = 1.0   # density
-         E   = 1.0 # young's modulu
+         name = upper
+         rho = 1230  # density
+         E   = 7e7 # young's modulu
          nu  = 0.0    # poisson's ratio
 ]
 
 material elastic [
          name = top_body
-         rho = 1.0   # density
-         E   = 1.0 # young's modulu
+         rho = 1230   # density
+         E   = 7e7 # young's modulu
          nu  = 0.0   # poisson's ratio
 ]
 
 contact_detector [
   type = explicit		 			
-  master = contact_top
-  slave = contact_bottom
+  master = contact
+  slave = contact
+  projection_tolerance = 1e-10
+  max_iterations = 100
+  extension_tolerance = 1e-5
 ]
 
-contact_resolution penalty [
-  name = interface
+contact_resolution penalty_linear [
+  name = contact
   mu = 0.0
-  epsilon = 8.25e-1
-  epsilon_t = 100.0
-  is_master_deformable = true
+  epsilon_n = 1050e7
+  epsilon_t = 0.0
+  is_master_deformable = false
 ]

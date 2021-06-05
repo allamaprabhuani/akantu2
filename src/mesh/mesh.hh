@@ -396,7 +396,7 @@ public:
   inline VectorProxy<UInt> getConnectivity(const Element & element) const;
   inline Vector<UInt>
   getConnectivityWithPeriodicity(const Element & element) const;
-  
+
 protected:
   /// get the element connected to a subelement (element of lower dimension)
   auto & getElementToSubelementNC();

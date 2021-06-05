@@ -147,24 +147,6 @@ void ResolutionPenaltyQuadratic::computeTangentialForce(
       force += tmp;
     }
   }
-
-  // compute first variation of natural coordinate
-  /*auto & gaps = model.getGaps();
-  auto & gap = gaps.begin()[element.slave];
-
-  auto nb_nodes  = element.getNbNodes();
-  Array<Real> delta_xi(nb_nodes * spatial_dimension, surface_dimension);
-  ResolutionUtils::firstVariationNaturalCoordinate(element, covariant_basis,
-                           projection, normal, gap, delta_xi);
-
-  // compute tangential force
-  auto & nodal_area = const_cast<Array<Real> &>(model.getNodalArea());
-  for (auto && values : zip(tangential_traction,
-                make_view(delta_xi, delta_xi.size()))) {
-    auto & traction_alpha = std::get<0>(values);
-    auto & delta_xi_alpha = std::get<1>(values);
-    force += delta_xi_alpha * traction_alpha * nodal_area[element.slave];
-  }*/
 }
 
 /* -------------------------------------------------------------------------- */

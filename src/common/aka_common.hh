@@ -150,8 +150,7 @@ enum AnalysisMethod {
   _explicit_lumped_capacity = 2,
   _explicit_consistent_mass = 3,
   _explicit_contact = 4,
-  _implicit_contact = 5,
-  _explicit_dynamic_contact = 6
+  _implicit_contact = 5
 };
 
 /// enum DOFSupportType defines which kind of dof that can exists

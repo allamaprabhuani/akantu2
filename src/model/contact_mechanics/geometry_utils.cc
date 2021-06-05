@@ -332,9 +332,6 @@ UInt GeometryUtils::orthogonalProjection(
     if (elements_of_type.find(element.element) == UInt(-1))
       continue;
 
-    // if (!GeometryUtils::isBoundaryElement(mesh, element))
-    //  continue;
-
     nb_boundary_elements++;
 
     // find the natural coordinate corresponding to the minimum gap
@@ -674,12 +671,6 @@ void GeometryUtils::naturalProjection(
     iterations++;
   }
 
-  /*
-#define GET_NATURAL_COORDINATE(type)                                           \
-  ElementClass<type>::inverseMap(slave_coords, nodes_coord,                 \
-                                 natural_projection, max_iterations,
-projection_tolerance) AKANTU_BOOST_ALL_ELEMENT_SWITCH(GET_NATURAL_COORDINATE);
-  #undef GET_NATURAL_COORDINATE*/
 }
 
 /* -------------------------------------------------------------------------- */

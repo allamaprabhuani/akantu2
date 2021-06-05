@@ -165,7 +165,7 @@ protected:
   getDefaultSolverOptions(const TimeStepSolverType & type) const;
 
 public:
-  bool isDefaultSolverExplicit() { return method == _explicit_dynamic_contact; }
+  bool isDefaultSolverExplicit() { return method == _explicit_lumped_mass; }
 
   /* ------------------------------------------------------------------------ */
 public:
@@ -276,7 +276,6 @@ private:
   /// external forces array
   Array<Real> * external_force{nullptr};
 
-  bool search_for_contact;
 
   UInt step;
 };

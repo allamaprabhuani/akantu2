@@ -36,6 +36,8 @@ package_declare_sources(model_couplers
   model/model_couplers/coupler_solid_contact.cc
   model/model_couplers/coupler_solid_cohesive_contact.hh
   model/model_couplers/coupler_solid_cohesive_contact.cc
+  model/model_couplers/cohesive_contact_solvercallback.hh
+  model/model_couplers/cohesive_contact_solvercallback.cc
   )
 
 package_declare_documentation_files(model_couplers

@@ -23,3 +23,20 @@
 #===============================================================================
 
 add_akantu_test(test_selector "selector_test")
+
+add_mesh(flat_on_flat flat_on_flat.geo 2 1)
+register_test(test_explicit_dynamic
+  SOURCES test_explicit_dynamic.cc
+  DEPENDS flat_on_flat
+  FILES_TO_COPY material.dat
+  PACKAGE core
+  )
+
+
+add_mesh(sliding-block-2D sliding-block-2D.geo 2 1)
+register_test(test_explicit_friction
+  SOURCES test_explicit_friction.cc
+  DEPENDS sliding-block-2D
+  FILES_TO_COPY material-friction.dat
+  PACKAGE core
+  )

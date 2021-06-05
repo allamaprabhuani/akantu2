@@ -33,10 +33,11 @@ Physical Line ("fixed") = {1};
 Physical Line ("sides") = {2, 7, 3, 5};
 
 Physical Line ("contact") = {6, 8};
+
 Physical Surface("lower") = {1};
 Physical Surface("upper") = {2};
 
-Transfinite Line {6,4} = 5 Using Progression 1;
+Transfinite Line {6,4} = nb_points Using Progression 1;
 Transfinite Line {3,5} = nb_points_height Using Progression 1;
 
 Transfinite Line {1, 8} = nb_points Using Progression 1;

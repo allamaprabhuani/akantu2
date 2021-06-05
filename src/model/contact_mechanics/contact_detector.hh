@@ -133,10 +133,6 @@ public:
 
   /// checks whether self contact condition leads to a master element
   /// which is closet but not orthogonally opposite to slave surface
-  //inline bool checkValidityOfSelfContact(const UInt &, ContactElement &);
-
-  /// checks whether self contact condition leads to a master element
-  /// which is closet but not orthogonally opposite to slave surface
   inline bool isValidSelfContact(const UInt &, const Real & , const Vector<Real> &);
 
   

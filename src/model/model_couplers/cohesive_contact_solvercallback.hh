@@ -1,12 +1,14 @@
+
 /**
- * @file   resolution_utils.hh
+ * @file   cohesive_contact_solvercallback.hh
  *
  * @author Mohit Pundir <mohit.pundir@epfl.ch>
  *
- * @date creation: Mon May 20 2019
- * @date last modification: Mon May 20 2019
+ * @date creation: Thu Jan 17 2019
+ * @date last modification: Thu Jan 17 2019
  *
- * @brief  All resolution utils necessary for various tasks
+ * @brief  class for coupling of solid mechanics and conatct mechanics
+ * model via solvercallback
  *
  * @section LICENSE
  *
@@ -29,34 +31,50 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "aka_common.hh"
+#include "mesh_iterators.hh"
+#include "non_linear_solver.hh"
 #include "contact_mechanics_model.hh"
-#include "contact_element.hh"
-#include "fe_engine.hh"
+#include "solid_mechanics_model_cohesive.hh"
 /* -------------------------------------------------------------------------- */
 
-#ifndef __AKANTU_RESOLUTION_UTILS_HH__
-#define __AKANTU_RESOLUTION_UTILS_HH__
 
-/* -------------------------------------------------------------------------- */
+#ifndef __AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH__
+#define __AKANTU_COHESIVE_CONTACT_SOLVERCALLBACK_HH__
 
-namespace akantu {
+namespace akantu{
 
-class ResolutionUtils {
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
+
+class CohesiveContactSolverCallback : public SolverCallback {
+
 public:
+  CohesiveContactSolverCallback(SolidMechanicsModelCohesive &,
+                                ContactMechanicsModel &, AnalysisMethod &);
 
-  /// computes the shape function matric for the contact element (@f$A
-  /// @f$) where row is equal to spatial dimension and cols is equal
-  /// to spatial dimension times number of nodes in contact element
-  static void computeShapeFunctionMatric(const ContactElement &,
-					 const Vector<Real> &,
-					 Matrix<Real> &);
+public:
+  void assembleMatrix(const ID &) override;
 
+  void assembleResidual() override;
+
+  void assembleLumpedMatrix(const ID &) override;
+
+  MatrixType getMatrixType(const ID &) override;
+
+  void predictor() override;
+
+  void corrector() override;
+
+  void beforeSolveStep() override;
+
+  void afterSolveStep(bool converged=true) override;
+
+private:
+  SolidMechanicsModelCohesive &solid;
+
+  ContactMechanicsModel &contact;
+
+  AnalysisMethod & method;
 };
 
-} // namespace akantu
-
-#endif /* __AKANTU_RESOLUTION_UTILS_HH__ */
+}
+  
+#endif

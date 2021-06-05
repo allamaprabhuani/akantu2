@@ -56,22 +56,20 @@ int main(int argc, char *argv[]) {
   auto && selector = std::make_shared<MeshDataMaterialSelector<std::string>>(
 		     "physical_names",solid);
   solid.setMaterialSelector(selector);
-  
-  solid.initFull(  _analysis_method = _static);
-  contact.initFull(_analysis_method = _implicit_contact);
+
+  coupler.initFull(_analysis_method = _static);
 
   auto && surface_selector = std::make_shared<PhysicalSurfaceSelector>(mesh);
   contact.getContactDetector().setSurfaceSelector(surface_selector);
- 
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
 
-  coupler.initFull(_analysis_method = _implicit_contact);
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "fixed");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "fixed");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "loading");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "symmetry");
   
+    
   coupler.setBaseName("contact-explicit-static");
   coupler.addDumpFieldVector("displacement");
-  coupler.addDumpFieldVector("velocity");
   coupler.addDumpFieldVector("normals");
   coupler.addDumpFieldVector("contact_force");
   coupler.addDumpFieldVector("external_force");
@@ -87,7 +85,7 @@ int main(int argc, char *argv[]) {
   for (auto _ [[gnu::unused]] : arange(max_steps)) {
 
     auto increment = 1e-4;
-    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top"); 
+    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading"); 
 
     coupler.solveStep();    
     coupler.dump();

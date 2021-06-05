@@ -59,8 +59,8 @@ public:
   virtual ~SurfaceSelector() = default;
 
 public:
-  virtual Array<UInt> & getMasterList() = 0;
-  virtual Array<UInt> & getSlaveList() = 0;
+  virtual Array<UInt> & getMasterList() {  AKANTU_TO_IMPLEMENT();}
+  virtual Array<UInt> & getSlaveList() {  AKANTU_TO_IMPLEMENT();}
 
 protected:
   Mesh & mesh;

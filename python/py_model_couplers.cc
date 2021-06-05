@@ -2,6 +2,7 @@
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <coupler_solid_contact.hh>
+#include <cohesive_contact_solvercallback.hh>
 #include <non_linear_solver.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
@@ -32,7 +33,7 @@ namespace akantu {
 void register_model_couplers(py::module & mod) {
   py::class_<CouplerSolidContactOptions>(mod, "CouplerSolidContactOptions")
       .def(py::init<AnalysisMethod>(),
-           py::arg("analysis_method") = _explicit_dynamic_contact);
+           py::arg("analysis_method") = _explicit_lumped_mass);
 
   py::class_<CouplerSolidContact, Model>(mod, "CouplerSolidContact")
       .def(py::init<Mesh &, UInt, const ID &, std::shared_ptr<DOFManager>, const ModelType>(),
@@ -66,6 +67,11 @@ void register_model_couplers(py::module & mod) {
                        &CouplerSolidContact::dump))
       .def("dump", py::overload_cast<const std::string &, Real, UInt>(
                        &CouplerSolidContact::dump));
+
+  py::class_<CohesiveContactSolverCallback>(mod, "CohesiveContactSolverCallback", py::multiple_inheritance())
+    .def(py::init<SolidMechanicsModelCohesive &, ContactMechanicsModel &, AnalysisMethod &>(),
+	 py::arg("solid_mechanics_model_cohesive"), py::arg("contact_mechanics_model"),
+	 py::arg("analysis_method"));
 }
 
 } // namespace akantu

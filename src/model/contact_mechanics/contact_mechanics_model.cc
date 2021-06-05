@@ -441,32 +441,6 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
   fem_boundary.computeNormalsOnIntegrationPoints(_not_ghost);
   fem_boundary.computeNormalsOnIntegrationPoints(_ghost);
   
-  /*switch (spatial_dimension) {
-  case 1: {
-    std::fill((*nodal_area).begin(), (*nodal_area).end(), 1.);
-    break;
-  }
-  case 2:
-  case 3: {
-      this->applyBC(
-      BC::Neumann::FromHigherDim(Matrix<Real>::eye(spatial_dimension, 1)),
-      mesh.getElementGroup("contact_surface"));
-
-      for (auto && tuple :
-	     zip(*nodal_area,
-		 make_view(*external_force, spatial_dimension))) {
- 
-	auto & area = std::get<0>(tuple);
-	Vector<Real> force(std::get<1>(tuple));
-	area = force.norm();
-      }
-    break;
-  }
-  default:
-    break;
-  }
-  
-  this->external_force->clear();*/
   
   IntegrationPoint quad_point;
   quad_point.ghost_type = ghost_type;

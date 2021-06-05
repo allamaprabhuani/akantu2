@@ -46,8 +46,9 @@ int main(int argc, char *argv[]) {
   initialize("material.dat", argc, argv);
 
   Real time_step;
-  Real time_factor = 0.8;
-  UInt max_steps = 5000;
+  Real time_factor = 0.1;
+  UInt max_steps = 20000;
+  Real max_displacement = 5e-3; 
     
   Mesh mesh(spatial_dimension);
   mesh.read("hertz.msh");
@@ -61,24 +62,22 @@ int main(int argc, char *argv[]) {
 		     "physical_names",solid);
   solid.setMaterialSelector(selector);
   
-  solid.initFull(  _analysis_method = _explicit_lumped_mass);
-  contact.initFull(_analysis_method = _explicit_dynamic_contact);
-
+  coupler.initFull(  _analysis_method = _explicit_lumped_mass);
+ 
   auto && surface_selector = std::make_shared<PhysicalSurfaceSelector>(mesh);
   contact.getContactDetector().setSurfaceSelector(surface_selector);
  
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "bottom");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "bottom");
-  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "top");
-
-  coupler.initFull(_analysis_method = _explicit_dynamic_contact);
-
-  time_step = solid.getStableTimeStep();
-  std::cout << "Time Step = " << time_step * time_factor << "s (" << time_step
-            << "s)" << std::endl;
-  coupler.setTimeStep(time_step * time_factor);
-
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "fixed");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _y), "fixed");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "loading");
+  solid.applyBC(BC::Dirichlet::FixedValue(0.0, _x), "symmetry");
   
+  time_step = solid.getStableTimeStep();
+  time_step *= time_factor;
+  std::cout << "Time Step = " << time_step << "s (" << time_step
+            << "s)" << std::endl;
+  coupler.setTimeStep(time_step);
+
   coupler.setBaseName("contact-explicit-dynamic");
   coupler.addDumpFieldVector("displacement");
   coupler.addDumpFieldVector("velocity");
@@ -93,28 +92,40 @@ int main(int argc, char *argv[]) {
   coupler.addDumpField("stress");
 
   auto & velocity = solid.getVelocity();
-
-  Real damping_ratio = 0.7;
+  auto & gaps = contact.getGaps();
+ 
+  Real damping_ratio = 0.99;
+  auto increment = max_displacement/max_steps;
   
   for (auto i : arange(max_steps)) {
-
-    Real factor = 5e-4;
-    auto increment = time_step * factor;
-    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "top"); 
+    
+    solid.applyBC(BC::Dirichlet::IncrementValue(-increment, _y), "loading"); 
 
     coupler.solveStep();
 
-    Real epot = solid.getEnergy("potential");
-    Real ekin = solid.getEnergy("kinetic");
-
-    std::cerr << i << "," << i * increment << "," << epot << "," << ekin << ","
-	      << epot + ekin << "," << std::endl;
-
-    for (auto & v : make_view(velocity)) {
-      v *= damping_ratio;
+    // damping velocities only along the contacting zone    
+    for(auto && tuple : zip(gaps,
+			    make_view(velocity, spatial_dimension))){
+      auto & gap = std::get<0>(tuple);
+      auto & vel = std::get<1>(tuple);
+      if(gap > 0) {
+	vel *= damping_ratio;
+      }
     }
-    
-    coupler.dump();
+
+    // dumping energies 
+    if (i % 1000 == 0) {
+      
+      Real epot = solid.getEnergy("potential");
+      Real ekin = solid.getEnergy("kinetic");
+
+      std::cerr << i << "," << i * increment << "," << epot << "," << ekin << ","
+		<< epot + ekin << "," << std::endl;
+    }
+
+    if (i % 1000 == 0) {
+      coupler.dump();
+    }
   }
 
   finalize();

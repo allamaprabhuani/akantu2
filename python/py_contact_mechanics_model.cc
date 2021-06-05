@@ -2,9 +2,11 @@
 #include "py_aka_array.hh"
 /* -------------------------------------------------------------------------- */
 #include <contact_mechanics_model.hh>
-#include <geometry_utils.hh>
-#include <non_linear_solver.hh>
+#include <contact_detector.hh>
 #include <surface_selector.hh>
+#include <geometry_utils.hh>
+#include <mesh_events.hh>
+#include <parsable.hh>
 /* -------------------------------------------------------------------------- */
 #include <pybind11/pybind11.h>
 /* -------------------------------------------------------------------------- */
@@ -31,6 +33,30 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 
 void register_contact_mechanics_model(py::module & mod) {
+  py::class_<ContactDetector>(mod, "ContactDetector", py::multiple_inheritance())
+    .def(py::init<Mesh &, const ID &>(),
+	 py::arg("mesh"), py::arg("id") ="contact_detector")
+    .def(py::init<Mesh &, Array<Real>,  const ID &>(),
+	 py::arg("mesh"), py::arg("positions"),
+	 py::arg("id") = "contact_detector")
+    .def("setSurfaceSelector", &ContactDetector::setSurfaceSelector);
+
+  py::class_<SurfaceSelector, std::shared_ptr<SurfaceSelector>>(mod, "SurfaceSelector", py::multiple_inheritance())
+    .def(py::init<Mesh &>(),
+	 py::arg("mesh"));
+
+  py::class_<PhysicalSurfaceSelector, SurfaceSelector, std::shared_ptr<PhysicalSurfaceSelector>>(mod, "PhysicalSurfaceSelector")
+    .def(py::init<Mesh &>(),
+	 py::arg("mesh"));
+
+  py::class_<CohesiveSurfaceSelector, SurfaceSelector, std::shared_ptr<CohesiveSurfaceSelector>>(mod, "CohesiveSurfaceSelector")
+    .def(py::init<Mesh &>(),
+	 py::arg("mesh"));
+  
+  py::class_<AllSurfaceSelector, SurfaceSelector, std::shared_ptr<AllSurfaceSelector>>(mod, "AllSurfaceSelector")
+    .def(py::init<Mesh &>(),
+	 py::arg("mesh"));
+    
   py::class_<ContactMechanicsModelOptions>(mod, "ContactMechanicsModelOptions")
       .def(py::init<AnalysisMethod>(),
            py::arg("analysis_method") = _explicit_contact);
@@ -66,6 +92,7 @@ void register_contact_mechanics_model(py::module & mod) {
       .def_function_nocopy(getGaps)
       .def_function_nocopy(getNormals)
       .def_function_nocopy(getNodalArea)
+      .def_function_nocopy(getContactDetector)
       .def("dump", py::overload_cast<>(&ContactMechanicsModel::dump))
       .def("dump",
            py::overload_cast<const std::string &>(&ContactMechanicsModel::dump))
@@ -100,9 +127,6 @@ void register_contact_mechanics_model(py::module & mod) {
                       &GeometryUtils::realProjection),
                   py::arg("mesh"), py::arg("positions"), py::arg("slave"),
                   py::arg("element"), py::arg("normal"), py::arg("projection"))
-      // .def_static("naturalProjection", &GeometryUtils::naturalProjection,
-      //             py::arg("mesh"), py::arg("positions"), py::arg("element"),
-      //             py::arg("real_projection"), py::arg("projection"))
       .def_static("isBoundaryElement", &GeometryUtils::isBoundaryElement);
 }
 

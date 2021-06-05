@@ -69,21 +69,6 @@ inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
 template <>
 inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
   this->fillNodesToElements();
-  /*this->nodes_to_elements.resize(nodes->size());
-  for (const auto & elem : event.getList()) {
-    const Array<UInt> & conn = connectivities(elem.type, elem.ghost_type);
-
-    UInt nb_nodes_per_elem = Mesh::getNbNodesPerElement(elem.type);
-
-    for (UInt n = 0; n < nb_nodes_per_elem; ++n) {
-      UInt node = conn(elem.element, n);
-      if (not nodes_to_elements[node]) {
-        nodes_to_elements[node] = std::make_unique<std::set<Element>>();
-      }
-      nodes_to_elements[node]->insert(elem);
-    }
-    }*/
-
   EventHandlerManager<MeshEventHandler>::sendEvent(event);
 }
 
