@@ -45,8 +45,7 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 MaterialCohesive::MaterialCohesive(SolidMechanicsModel & model, const ID & id)
-    : Material(model, id),
-      facet_filter("facet_filter", id),
+    : Material(model, id), facet_filter("facet_filter", id),
       fem_cohesive(
           model.getFEEngineClass<MyFEEngineCohesiveType>("CohesiveFEEngine")),
       reversible_energy("reversible_energy", *this),
@@ -214,7 +213,8 @@ void MaterialCohesive::assembleInternalForces(GhostType ghost_type) {
 
     /// assemble
     model->getDOFManager().assembleElementalArrayLocalArray(
-        *int_t_N, internal_force, type, ghost_type, 1, elem_filter);
+        "displacement", *int_t_N, internal_force, type, ghost_type, 1,
+        elem_filter);
 
     delete int_t_N;
   }

@@ -262,12 +262,12 @@ void DOFManager::assembleElementalMatricesToMatrix_(
   } else {
     if (dof_data.group_support != "__mesh__") {
       const auto & group_elements =
-          this->mesh->getElementGroup(dof_data.group_support)
+	dof_data.mesh->getElementGroup(dof_data.group_support)
               .getElements(type, ghost_type);
       nb_element = group_elements.size();
       filter_it = group_elements.storage();
     } else {
-      nb_element = this->mesh->getNbElement(type, ghost_type);
+      nb_element = dof_data.mesh->getNbElement(type, ghost_type);
     }
   }
 
@@ -281,7 +281,7 @@ void DOFManager::assembleElementalMatricesToMatrix_(
   UInt nb_degree_of_freedom = dof_data.dof->getNbComponent();
 
   const Array<UInt> & connectivity =
-      this->mesh->getConnectivity(type, ghost_type);
+      dof_data.mesh->getConnectivity(type, ghost_type);
   auto conn_begin = connectivity.begin(nb_nodes_per_element);
   auto conn_it = conn_begin;
   auto size_mat = nb_nodes_per_element * nb_degree_of_freedom;

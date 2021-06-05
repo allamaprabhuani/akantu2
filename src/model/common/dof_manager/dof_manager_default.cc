@@ -93,11 +93,11 @@ void DOFManagerDefault::makeConsistentForPeriodicity(const ID & dof_id,
     return;
   }
 
-  if (not mesh->isPeriodic()) {
+  if (not dof_data.mesh->isPeriodic()) {
     return;
   }
 
-  this->mesh->getPeriodicNodeSynchronizer()
+  dof_data.mesh->getPeriodicNodeSynchronizer()
       .reduceSynchronizeWithPBCSlaves<AddOperation>(
           aka::as_type<SolverVectorDefault>(array).getVector());
 }
@@ -116,7 +116,7 @@ void DOFManagerDefault::assembleToGlobalArray(
                       "The array to assemble does not have a correct size."
                           << " (" << array_to_assemble.getID() << ")");
 
-  if (dof_data.support_type == _dst_nodal and mesh->isPeriodic()) {
+  if (dof_data.support_type == _dst_nodal and dof_data.mesh->isPeriodic()) {
     for (auto && data :
          zip(dof_data.local_equation_number, dof_data.associated_nodes,
              make_view(array_to_assemble))) {
@@ -315,7 +315,10 @@ void DOFManagerDefault::assembleMatMulVectToArray(const ID & dof_id,
                                                   const Array<Real> & x,
                                                   Array<Real> & array,
                                                   Real scale_factor) {
-  if (mesh->isDistributed()) {
+ 
+  const auto & dof_data = this->getDOFData(dof_id);
+
+  if (dof_data.mesh->isDistributed()) {
     DOFManager::assembleMatMulVectToArray_<SolverVectorDistributed>(
         dof_id, A_id, x, array, scale_factor);
   } else {
@@ -355,7 +358,7 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
 
   auto nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
 
-  const auto & connectivity = this->mesh->getConnectivity(type, ghost_type);
+  const auto & connectivity = dof_data.mesh->getConnectivity(type, ghost_type);
   auto cbegin = connectivity.begin(nb_nodes_per_element);
   auto cit = cbegin;
 
@@ -363,7 +366,7 @@ void DOFManagerDefault::addToProfile(const ID & matrix_id, const ID & dof_id,
   UInt * ge_it = nullptr;
   if (dof_data.group_support != "__mesh__") {
     const auto & group_elements =
-        this->mesh->getElementGroup(dof_data.group_support)
+        dof_data.mesh->getElementGroup(dof_data.group_support)
             .getElements(type, ghost_type);
     ge_it = group_elements.storage();
     nb_elements = group_elements.size();
@@ -470,6 +473,22 @@ const Array<bool> & DOFManagerDefault::getBlockedDOFs() const {
 }
 
 /* -------------------------------------------------------------------------- */
+
+static bool default_dof_manager_is_registered [[gnu::unused]] =
+    DefaultDOFManagerFactory::getInstance().registerAllocator(
+        "default",
+        [](const ID & id) -> std::unique_ptr<DOFManager> {
+          return std::make_unique<DOFManagerDefault>(id);
+        });
+
+
+static bool default_dof_manager_is_registered_mumps [[gnu::unused]] =
+    DefaultDOFManagerFactory::getInstance().registerAllocator(
+        "mumps",
+        [](const ID & id) -> std::unique_ptr<DOFManager> {
+          return std::make_unique<DOFManagerDefault>(id);
+        });
+
   
 static bool dof_manager_is_registered [[gnu::unused]] =
     DOFManagerFactory::getInstance().registerAllocator(

@@ -43,7 +43,8 @@ namespace akantu {
 /// akantu::MeshEvent is the base event for meshes
 template <class Entity> class MeshEvent {
 public:
-  MeshEvent(const std::string & origin = "") : origin_(origin) {}
+  MeshEvent(const Mesh & mesh, const std::string & origin = "")
+      : mesh(mesh), origin_(origin) {}
 
   virtual ~MeshEvent() = default;
   /// Get the list of entity modified by the event nodes or elements
@@ -52,12 +53,15 @@ public:
   Array<Entity> & getList() { return list; }
 
   std::string origin() const { return origin_; }
-  
+
 protected:
   Array<Entity> list;
 
 private:
+  const Mesh & mesh;
+  
   std::string origin_;
+
 };
 
 class Mesh;
@@ -65,7 +69,8 @@ class Mesh;
 /// akantu::MeshEvent related to new nodes in the mesh
 class NewNodesEvent : public MeshEvent<UInt> {
 public:
-  NewNodesEvent(const std::string & origin = "") : MeshEvent(origin) {}
+  NewNodesEvent(const Mesh & mesh, const std::string & origin = "")
+      : MeshEvent(mesh, origin) {}
   ~NewNodesEvent() override = default;
 };
 
@@ -87,7 +92,8 @@ private:
 /// akantu::MeshEvent related to new elements in the mesh
 class NewElementsEvent : public MeshEvent<Element> {
 public:
-  NewElementsEvent(const std::string & origin = "") : MeshEvent<Element>(origin) {}
+  NewElementsEvent(const Mesh & mesh, const std::string & origin = "")
+      : MeshEvent<Element>(mesh, origin) {}
   ~NewElementsEvent() override = default;
 };
 
@@ -124,7 +130,8 @@ protected:
 class ChangedElementsEvent : public RemovedElementsEvent {
 public:
   inline ChangedElementsEvent(
-      const Mesh & mesh, const ID & new_numbering_id = "changed_event:new_numbering",
+      const Mesh & mesh,
+      const ID & new_numbering_id = "changed_event:new_numbering",
       const std::string & origin = "")
       : RemovedElementsEvent(mesh, new_numbering_id, origin) {}
 
@@ -168,7 +175,8 @@ private:
     onElementsChanged(event.getListOld(), event.getListNew(),
                       event.getNewNumbering(), event);
   }
-  template <class EventHandler> friend class EventHandlerManager;
+  template <class EventHandler, class EventSource>
+  friend class EventHandlerManager;
 
   /* ------------------------------------------------------------------------ */
   /* Interface                                                                */

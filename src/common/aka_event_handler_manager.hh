@@ -41,7 +41,7 @@
 
 namespace akantu {
 
-template <class EventHandler> class EventHandlerManager {
+template <class EventHandler, class EventSource> class EventHandlerManager {
 private:
   using priority_value = std::pair<EventHandlerPriority, EventHandler *>;
   using priority_list = std::list<priority_value>;
@@ -58,6 +58,7 @@ private:
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
 public:
+  EventHandlerManager(const EventSource & source) : source(source) {}
   virtual ~EventHandlerManager() = default;
 
   /* ------------------------------------------------------------------------ */
@@ -119,6 +120,8 @@ private:
 private:
   /// list of the event handlers
   priority_list event_handlers;
+
+  const EventSource & source;
 };
 
 } // namespace akantu

@@ -83,7 +83,7 @@ struct CommunicatorInternalData {
 /* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 
-class Communicator : public EventHandlerManager<CommunicatorEventHandler> {
+  class Communicator : public EventHandlerManager<CommunicatorEventHandler, Communicator> {
   struct private_member {};
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

@@ -52,7 +52,7 @@ private:
     this->onCommunicatorFinalize();
   }
 
-  template <class EventHandler> friend class EventHandlerManager;
+  template <class EventHandler, class EventSource> friend class EventHandlerManager;
 };
 
 } // namespace akantu

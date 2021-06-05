@@ -149,12 +149,12 @@ namespace {
 /* -------------------------------------------------------------------------- */
 Communicator::Communicator(int & /*argc*/, char **& /*argv*/,
                            const private_member & m)
-    : Communicator(m) {}
+    : EventHandler<CommunicatorEventHandler, Communicator>(*this),
+      Communicator(m) {}
 
 /* -------------------------------------------------------------------------- */
 Communicator::Communicator(const private_member & /*unused*/)
-    : communicator_data(std::make_unique<MPICommunicatorData>()) {
-}
+    : communicator_data(std::make_unique<MPICommunicatorData>()) {}
 
 /* -------------------------------------------------------------------------- */
 template <typename T>
@@ -449,8 +449,8 @@ void Communicator::gatherImpl(T * values, int nb_values, T * gathered,
   }
 
   MPI_Datatype type = getMPIDatatype<T>();
-  MPI_Gather(send_buf, nb_values, type, recv_buf, nb_gathered, type,
-             whoAmI(), communicator);
+  MPI_Gather(send_buf, nb_values, type, recv_buf, nb_gathered, type, whoAmI(),
+             communicator);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -459,7 +459,7 @@ void Communicator::gatherVImpl(T * values, int * nb_values, int root) const {
   MPI_Comm communicator = MPIDATA.getMPICommunicator();
   int * displs = nullptr;
   auto psize = getNbProc();
-    auto prank = whoAmI();
+  auto prank = whoAmI();
   if (prank == root) {
     displs = new int[psize];
     displs[0] = 0;

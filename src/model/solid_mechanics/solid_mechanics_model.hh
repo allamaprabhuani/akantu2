@@ -61,7 +61,7 @@ class SolidMechanicsModel
       public DataAccessor<UInt>,
       public BoundaryCondition<SolidMechanicsModel>,
       public NonLocalManagerCallback,
-      public EventHandlerManager<SolidMechanicsModelEventHandler> {
+      public EventHandlerManager<SolidMechanicsModelEventHandler, SolidMechanicsModel> {
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
@@ -79,7 +79,7 @@ public:
   using MyFEEngineType = FEEngineTemplate<IntegratorGauss, ShapeLagrange>;
 
 protected:
-  using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler>;
+  using EventManager = EventHandlerManager<SolidMechanicsModelEventHandler, SolidMechanicsModel>;
 
 public:
   SolidMechanicsModel(Mesh & mesh, UInt dim = _all_dimensions,

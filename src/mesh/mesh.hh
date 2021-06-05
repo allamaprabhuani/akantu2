@@ -96,10 +96,10 @@ namespace {
   });
  @endcode
 */
-class Mesh : public EventHandlerManager<MeshEventHandler>,
-             public GroupManager,
-             public MeshData,
-             public Dumpable {
+class Mesh : public EventHandlerManager<MeshEventHandler, Mesh>,
+	     public GroupManager,
+	     public MeshData,
+	     public Dumpable {
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */
   /* ------------------------------------------------------------------------ */
@@ -237,7 +237,7 @@ public:
   /* ------------------------------------------------------------------------ */
   template <class Event> inline void sendEvent(Event & event) {
     //    if(event.getList().size() != 0)
-    EventHandlerManager<MeshEventHandler>::sendEvent<Event>(event);
+    EventHandlerManager<MeshEventHandler, Mesh>::sendEvent<Event>(event);
   }
 
   /// prepare the  event to remove the elements listed

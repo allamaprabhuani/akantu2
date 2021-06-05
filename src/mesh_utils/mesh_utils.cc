@@ -220,7 +220,7 @@ void MeshUtils::buildFacetsDimension(const Mesh & mesh, Mesh & mesh_facets,
   Array<UInt> counter;
   std::vector<Element> connected_elements;
 
-  NewElementsEvent event(AKANTU_CURRENT_FUNCTION);
+  NewElementsEvent event(mesh, AKANTU_CURRENT_FUNCTION);
 
   // init the SubelementToElement data to improve performance
   for (auto && ghost_type : ghost_types) {

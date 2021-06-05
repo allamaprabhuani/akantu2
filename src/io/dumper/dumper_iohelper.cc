@@ -297,6 +297,9 @@ template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_2>() {
 template <> iohelper::ElemType getIOHelperType<_bernoulli_beam_3>() {
   return iohelper::BEAM3;
 }
+template <> iohelper::ElemType getIOHelperType<_discrete_kirchhoff_triangle_18>() {
+  return iohelper::TRIANGLE1;
+}
 #endif
 
 /* -------------------------------------------------------------------------- */

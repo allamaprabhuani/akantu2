@@ -58,7 +58,6 @@ protected:
 
 public:
   DOFManager(const ID & id = "dof_manager");
-  DOFManager(Mesh & mesh, const ID & id = "dof_manager");
   ~DOFManager() override;
 
   /* ------------------------------------------------------------------------ */
@@ -72,8 +71,8 @@ public:
   /// the dof as an implied type of _dst_nodal and is defined only on a subset
   /// of nodes
   virtual void registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                            const ID & support_group);
-
+                            Mesh & mesh, const ID & support_group = "__mesh__");
+  
   /// register an array of previous values of the degree of freedom
   virtual void registerDOFsPrevious(const ID & dof_id,
                                     Array<Real> & dofs_array);
@@ -108,7 +107,7 @@ public:
    * With 0 < n < nb_nodes_per_element and 0 < d < nb_dof_per_node
    **/
   virtual void assembleElementalArrayLocalArray(
-      const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
+      const ID & dof_id, const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
       ElementType type, GhostType ghost_type,
       Real scale_factor = 1.,
       const Array<UInt> & filter_elements = empty_filter);
@@ -478,12 +477,12 @@ public:
   bool hasTimeStepSolver(const ID & solver_id) const;
 
   /* ------------------------------------------------------------------------ */
-  const Mesh & getMesh() {
+  /*const Mesh & getMesh() {
     if (mesh != nullptr) {
       return *mesh;
     }
     AKANTU_EXCEPTION("No mesh registered in this dof manager");
-  }
+    }*/
 
   /* ------------------------------------------------------------------------ */
   AKANTU_GET_MACRO(Communicator, communicator, const auto &);
@@ -584,6 +583,9 @@ protected:
     /// Solution associated to the dof
     Array<Real> solution;
 
+    /// reference to the underlying mesh
+    Mesh * mesh{nullptr};
+
     /* ---------------------------------------------------------------------- */
     /* data for dynamic simulations                                           */
     /* ---------------------------------------------------------------------- */
@@ -643,8 +645,6 @@ protected:
   /// time step solvers storage
   TimeStepSolversMap time_step_solvers;
 
-  /// reference to the underlying mesh
-  Mesh * mesh{nullptr};
 
   /// Total number of degrees of freedom (size with the ghosts)
   UInt local_system_size{0};

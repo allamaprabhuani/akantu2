@@ -447,8 +447,8 @@ void MaterialReinforcement<Mat, dim>::assembleInternalForcesInterface(
       getBackgroundFilter(interface_type, background_type, ghost_type);
 
   emodel.getDOFManager().assembleElementalArrayLocalArray(
-      residual_interface, emodel.getInternalForce(), background_type,
-      ghost_type, -1., filter);
+      "displacement", residual_interface, emodel.getInternalForce(),
+      background_type, ghost_type, -1., filter);
 
   AKANTU_DEBUG_OUT();
 }

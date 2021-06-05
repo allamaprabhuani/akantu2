@@ -55,14 +55,14 @@ Mesh::ElementTypesIteratorHelper Mesh::elementTypes(pack &&... _pack) const {
 /* -------------------------------------------------------------------------- */
 inline RemovedNodesEvent::RemovedNodesEvent(const Mesh & mesh,
                                             const std::string & origin)
-    : MeshEvent<UInt>(origin),
+  : MeshEvent<UInt>(mesh, origin),
       new_numbering(mesh.getNbNodes(), 1, "new_numbering") {}
 
 /* -------------------------------------------------------------------------- */
 inline RemovedElementsEvent::RemovedElementsEvent(const Mesh & mesh,
                                                   const ID & new_numbering_id,
                                                   const std::string & origin)
-    : MeshEvent<Element>(origin),
+    : MeshEvent<Element>(mesh, origin),
       new_numbering(new_numbering_id, mesh.getID()) {}
 
 /* -------------------------------------------------------------------------- */
@@ -83,14 +83,14 @@ inline void Mesh::sendEvent<NewElementsEvent>(NewElementsEvent & event) {
     }
   }
 
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+  EventHandlerManager<MeshEventHandler, Mesh>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
 template <> inline void Mesh::sendEvent<NewNodesEvent>(NewNodesEvent & event) {
   this->computeBoundingBox();
   this->nodes_flags->resize(this->nodes->size(), NodeFlag::_normal);
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+  EventHandlerManager<MeshEventHandler, Mesh>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -101,7 +101,7 @@ Mesh::sendEvent<RemovedElementsEvent>(RemovedElementsEvent & event) {
   this->fillNodesToElements();
   this->computeBoundingBox();
 
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+  EventHandlerManager<MeshEventHandler, Mesh>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -136,7 +136,7 @@ inline void Mesh::sendEvent<RemovedNodesEvent>(RemovedNodesEvent & event) {
 
   computeBoundingBox();
 
-  EventHandlerManager<MeshEventHandler>::sendEvent(event);
+  EventHandlerManager<MeshEventHandler, Mesh>::sendEvent(event);
 }
 
 /* -------------------------------------------------------------------------- */

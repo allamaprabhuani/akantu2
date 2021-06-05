@@ -50,15 +50,6 @@ DOFManager::DOFManager(const ID & id)
       communicator(Communicator::getStaticCommunicator()) {}
 
 /* -------------------------------------------------------------------------- */
-DOFManager::DOFManager(Mesh & mesh, const ID & id)
-    : id(id), mesh(&mesh),
-      dofs_flag(0, 1, std::string(id + ":dofs_type")),
-      global_equation_number(0, 1, "global_equation_number"),
-      communicator(mesh.getCommunicator()) {
-  this->mesh->registerEventHandler(*this, _ehp_dof_manager);
-}
-
-/* -------------------------------------------------------------------------- */
 DOFManager::~DOFManager() = default;
 
 /* -------------------------------------------------------------------------- */
@@ -73,10 +64,12 @@ std::vector<ID> DOFManager::getDOFIDs() const {
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayLocalArray(
-    const Array<Real> & elementary_vect, Array<Real> & array_assembeled,
-    ElementType type, GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const ID & dof_id, const Array<Real> & elementary_vect,
+    Array<Real> & array_assembeled, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
+  
+  DOFData & dof_data = this->getDOFData(dof_id);
 
   UInt nb_element;
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
@@ -88,7 +81,7 @@ void DOFManager::assembleElementalArrayLocalArray(
     nb_element = filter_elements.size();
     filter_it = filter_elements.storage();
   } else {
-    nb_element = this->mesh->getNbElement(type, ghost_type);
+    nb_element = dof_data.mesh->getNbElement(type, ghost_type);
   }
 
   AKANTU_DEBUG_ASSERT(elementary_vect.size() == nb_element,
@@ -97,7 +90,7 @@ void DOFManager::assembleElementalArrayLocalArray(
                           << ") has not the good size.");
 
   const Array<UInt> & connectivity =
-      this->mesh->getConnectivity(type, ghost_type);
+      dof_data.mesh->getConnectivity(type, ghost_type);
 
   Array<Real>::const_matrix_iterator elem_it =
       elementary_vect.begin(nb_degree_of_freedom, nb_nodes_per_element);
@@ -131,22 +124,24 @@ void DOFManager::assembleElementalArrayLocalArray(
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToResidual(
-    const ID & dof_id, const Array<Real> & elementary_vect,
-    ElementType type, GhostType ghost_type, Real scale_factor,
+    const ID & dof_id, const Array<Real> & elementary_vect, ElementType type,
+    GhostType ghost_type, Real scale_factor,
     const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
+
+  DOFData & dof_data = this->getDOFData(dof_id);
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
-  Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
+  Array<Real> array_localy_assembeled(dof_data.mesh->getNbNodes(),
                                       nb_degree_of_freedom);
 
   array_localy_assembeled.zero();
 
   this->assembleElementalArrayLocalArray(
-      elementary_vect, array_localy_assembeled, type, ghost_type, scale_factor,
-      filter_elements);
+      dof_id, elementary_vect, array_localy_assembeled, type, ghost_type,
+      scale_factor, filter_elements);
 
   this->assembleToResidual(dof_id, array_localy_assembeled, 1);
 
@@ -156,22 +151,23 @@ void DOFManager::assembleElementalArrayToResidual(
 /* -------------------------------------------------------------------------- */
 void DOFManager::assembleElementalArrayToLumpedMatrix(
     const ID & dof_id, const Array<Real> & elementary_vect,
-    const ID & lumped_mtx, ElementType type,
-    GhostType ghost_type, Real scale_factor,
-    const Array<UInt> & filter_elements) {
+    const ID & lumped_mtx, ElementType type, GhostType ghost_type,
+    Real scale_factor, const Array<UInt> & filter_elements) {
   AKANTU_DEBUG_IN();
+
+  DOFData & dof_data = this->getDOFData(dof_id);
 
   UInt nb_nodes_per_element = Mesh::getNbNodesPerElement(type);
   UInt nb_degree_of_freedom =
       elementary_vect.getNbComponent() / nb_nodes_per_element;
-  Array<Real> array_localy_assembeled(this->mesh->getNbNodes(),
+  Array<Real> array_localy_assembeled(dof_data.mesh->getNbNodes(),
                                       nb_degree_of_freedom);
 
   array_localy_assembeled.zero();
 
   this->assembleElementalArrayLocalArray(
-      elementary_vect, array_localy_assembeled, type, ghost_type, scale_factor,
-      filter_elements);
+      dof_id, elementary_vect, array_localy_assembeled, type, ghost_type,
+      scale_factor, filter_elements);
 
   this->assembleToLumpedMatrix(dof_id, array_localy_assembeled, lumped_mtx, 1);
 
@@ -265,8 +261,8 @@ auto DOFManager::countDOFsForNodes(const DOFData & dof_data, UInt nb_nodes,
 
     // http://www.open-std.org/jtc1/sc22/open/n2356/conv.html
     // bool are by convention casted to 0 and 1 when promoted to int
-    nb_pure_local += this->mesh->isLocalOrMasterNode(node);
-    nb_local_dofs -= this->mesh->isPeriodicSlave(node);
+    nb_pure_local += dof_data.mesh->isLocalOrMasterNode(node);
+    nb_local_dofs -= dof_data.mesh->isPeriodicSlave(node);
   }
 
   const auto & dofs_array = *dof_data.dof;
@@ -302,10 +298,13 @@ void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
 
 /* -------------------------------------------------------------------------- */
 void DOFManager::registerDOFs(const ID & dof_id, Array<Real> & dofs_array,
-                              const ID & support_group) {
+                              Mesh & mesh, const ID & support_group) {
   auto & dofs_storage = this->getNewDOFDataInternal(dof_id);
-  dofs_storage.support_type = _dst_nodal;
+  dofs_storage.support_type = _dst_nodal;  
   dofs_storage.group_support = support_group;
+
+  mesh.registerEventHandler(*this, _ehp_dof_manager);
+  dofs_storage.mesh = &mesh;
 
   this->registerDOFsInternal(dof_id, dofs_array);
 
@@ -330,14 +329,14 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
     std::function<UInt(UInt)> getNode;
     if (group == "__mesh__") {
       AKANTU_DEBUG_ASSERT(
-          dofs_array.size() == this->mesh->getNbNodes(),
+          dofs_array.size() == dof_data.mesh->getNbNodes(),
           "The array of dof is too short to be associated to nodes.");
 
       std::tie(nb_local_dofs, nb_pure_local) = countDOFsForNodes(
-          dof_data, this->mesh->getNbNodes(), [](auto && n) { return n; });
+          dof_data, dof_data.mesh->getNbNodes(), [](auto && n) { return n; });
     } else {
       const auto & node_group =
-          this->mesh->getElementGroup(group).getNodeGroup().getNodes();
+          dof_data.mesh->getElementGroup(group).getNodeGroup().getNodes();
 
       AKANTU_DEBUG_ASSERT(
           dofs_array.size() == node_group.size(),
@@ -376,13 +375,13 @@ DOFManager::registerDOFsInternal(const ID & dof_id, Array<Real> & dofs_array) {
     const auto & group = dof_data.group_support;
     if (group != "__mesh__") {
       auto & support_nodes =
-          this->mesh->getElementGroup(group).getNodeGroup().getNodes();
+          dof_data.mesh->getElementGroup(group).getNodeGroup().getNodes();
       this->updateDOFsData(
           dof_data, nb_local_dofs, nb_pure_local, support_nodes.size(),
           [&support_nodes](UInt node) -> UInt { return support_nodes[node]; });
     } else {
       this->updateDOFsData(dof_data, nb_local_dofs, nb_pure_local,
-                           mesh->getNbNodes(),
+                           dof_data.mesh->getNbNodes(),
                            [](UInt node) -> UInt { return node; });
     }
     break;
@@ -689,7 +688,7 @@ void DOFManager::onNodesAdded(const Array<UInt> & nodes_list,
       this->updateNodalDOFs(dof_id, nodes_list);
     } else {
       const auto & node_group =
-          this->mesh->getElementGroup(group).getNodeGroup();
+          dof_data.mesh->getElementGroup(group).getNodeGroup();
       Array<UInt> new_nodes_list;
       for (const auto & node : nodes_list) {
         if (node_group.find(node) != UInt(-1)) {
@@ -818,12 +817,12 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
       computeFirstDOFIDs(nb_new_local_dofs, nb_new_pure_local);
   for (auto d : arange(nb_local_dofs_added)) {
     auto node = getNode(d / dof_data.dof->getNbComponent());
-    auto dof_flag = this->mesh->getNodeFlag(node);
+    auto dof_flag = dof_data.mesh->getNodeFlag(node);
 
     dof_data.associated_nodes.push_back(node);
-    auto is_local_dof = this->mesh->isLocalOrMasterNode(node);
-    auto is_periodic_slave = this->mesh->isPeriodicSlave(node);
-    auto is_periodic_master = this->mesh->isPeriodicMaster(node);
+    auto is_local_dof = dof_data.mesh->isLocalOrMasterNode(node);
+    auto is_periodic_slave = dof_data.mesh->isPeriodicSlave(node);
+    auto is_periodic_master = dof_data.mesh->isPeriodicMaster(node);
 
     if (is_periodic_slave) {
       dof_data.local_equation_number.push_back(-1);
@@ -853,15 +852,15 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
   }
 
   // correct periodic slave equation numbers
-  if (this->mesh->isPeriodic()) {
+  if (dof_data.mesh->isPeriodic()) {
     auto assoc_begin = dof_data.associated_nodes.begin();
     for (auto d : arange(nb_local_dofs_added)) {
       auto node = dof_data.associated_nodes(first_dof_pos + d);
-      if (not this->mesh->isPeriodicSlave(node)) {
+      if (not dof_data.mesh->isPeriodicSlave(node)) {
         continue;
       }
 
-      auto master_node = this->mesh->getPeriodicMaster(node);
+      auto master_node = dof_data.mesh->getPeriodicMaster(node);
       auto dof = d % dof_data.dof->getNbComponent();
       dof_data.local_equation_number(first_dof_pos + d) =
           masters_dofs[std::make_pair(master_node, dof)];
@@ -869,15 +868,15 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
   }
 
   // synchronize the global numbering for slaves nodes
-  if (this->mesh->isDistributed()) {
+  if (dof_data.mesh->isDistributed()) {
     GlobalDOFInfoDataAccessor data_accessor(dof_data, *this);
 
-    if (this->mesh->isPeriodic()) {
-      mesh->getPeriodicNodeSynchronizer().synchronizeOnce(
+    if (dof_data.mesh->isPeriodic()) {
+      dof_data.mesh->getPeriodicNodeSynchronizer().synchronizeOnce(
           data_accessor, SynchronizationTag::_giu_global_conn);
     }
 
-    auto & node_synchronizer = this->mesh->getNodeSynchronizer();
+    auto & node_synchronizer = dof_data.mesh->getNodeSynchronizer();
     node_synchronizer.synchronizeOnce(data_accessor,
                                       SynchronizationTag::_ask_nodes);
   }
@@ -898,7 +897,7 @@ void DOFManager::updateDOFsData(DOFData & dof_data, UInt nb_new_local_dofs,
   this->global_equation_number.resize(this->local_system_size, -1);
 
   // update per dof info
-  for (auto _ [[gnu::unused]] : arange(nb_new_local_dofs)) {
+  for (auto _[[gnu::unused]] : arange(nb_new_local_dofs)) {
     // update equation numbers
     this->dofs_flag(first_local_dof_id) = NodeFlag::_normal;
 

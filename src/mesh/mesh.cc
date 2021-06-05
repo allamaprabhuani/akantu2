@@ -64,7 +64,8 @@ namespace akantu {
 
 /* -------------------------------------------------------------------------- */
 Mesh::Mesh(UInt spatial_dimension, const ID & id, Communicator & communicator)
-    : GroupManager(*this, id + ":group_manager"), MeshData("mesh_data", id),
+    : EventHandlerManager<MeshEventHandler, Mesh>(*this),
+      GroupManager(*this, id + ":group_manager"), MeshData("mesh_data", id),
       id(id), connectivities("connectivities", id),
       ghosts_counters("ghosts_counters", id), normals("normals", id),
       spatial_dimension(spatial_dimension), size(spatial_dimension, 0.),
@@ -486,9 +487,9 @@ Mesh::createFieldFromAttachedData<UInt>(const std::string & field_id,
 void Mesh::distributeImpl(
     Communicator & communicator,
     const std::function<Int(const Element &, const Element &)> &
-        edge_weight_function [[gnu::unused]],
-    const std::function<Int(const Element &)> & vertex_weight_function
-    [[gnu::unused]]) {
+        edge_weight_function[[gnu::unused]],
+    const std::function<Int(const Element &)> &
+        vertex_weight_function[[gnu::unused]]) {
   AKANTU_DEBUG_ASSERT(is_distributed == false,
                       "This mesh is already distribute");
   this->communicator = &communicator;
