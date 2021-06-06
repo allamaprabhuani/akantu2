@@ -326,14 +326,43 @@ Once a surface selector is created it must be assigned to the
   contact.getContactDetector().setSurfaceSelector(surface_selector);
   
   
-Node-to-Segment contact detection
-'''''''''''''''''''''''''''''''''
+Contact detection
+'''''''''''''''''
+
+.. code-block::
+
+   contact_detector [
+     type = explicit		 			
+     master = contact_bottom
+     slave = contact_top
+     projection_tolerance = 1e-10
+     max_iterations = 100
+     extension_tolerance = 1e-5
+   ]
 
 
 
-Linear Penalty Resolution
-'''''''''''''''''''''''''
 
+Contact resolution
+''''''''''''''''''
+
+.. code-block::
+
+   contact_resolution penalty_linear [
+     name = contact_top
+     mu = 0.0
+     epsilon_n = 4e5
+     epsilon_t = 1e5
+     is_master_deformable = false
+   ]
+
+
+Coupling with :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+Coupling with  :cpp:class:`SolidMechanicsModelCohesive <akantu::SolidMechanicsModelCohesive>`
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 
 
