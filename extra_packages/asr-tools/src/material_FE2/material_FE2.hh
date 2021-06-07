@@ -108,11 +108,15 @@ public:
   /// increase gel strain according to time step
   void increaseGelStrain(Real & dt);
 
+  /// increase gel strain according to time step by Arrhenius law
+  void increaseGelStrainArrhenius(Real & dt, const Real & k,
+                                  const Real & Eactivation);
+
   /// set time step to all RVEs
   void setTimeStep(Real dt);
 
   /// update damage ratio after converged step
-  virtual void afterSolveStep();
+  virtual void afterSolveStep(bool converged = true);
 
   /// save state of all rves
   void saveRVEsState(std::string & output_dir);

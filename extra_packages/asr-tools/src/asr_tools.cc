@@ -1293,8 +1293,7 @@ Real ASRTools::computeSmallestElementSize() {
 //     }
 //   }
 // }
-/* --------------------------------------------------------------------------
- */
+/* ----------------------------------------------------------------------- */
 void ASRTools::computeASRStrainLarive(
     const Real & delta_time_day, const Real & T, Real & ASRStrain,
     const Real & eps_inf, const Real & time_ch_ref, const Real & time_lat_ref,
@@ -1318,8 +1317,20 @@ void ASRTools::computeASRStrainLarive(
   AKANTU_DEBUG_OUT();
 }
 
-/* --------------------------------------------------------------------------
- */
+/* ----------------------------------------------------------------------- */
+void ASRTools::computeASRStrainArrhenius(const Real & delta_time_day,
+                                         const Real & T, Real & ASRStrain,
+                                         const Real & k, const Real & Ea) {
+  AKANTU_DEBUG_IN();
+
+  if (T != 0) {
+    const Real R = 8.3145; // J / mol / K
+    ASRStrain += delta_time_day * k * std::exp(-Ea / R / T);
+  }
+
+  AKANTU_DEBUG_OUT();
+}
+/* ----------------------------------------------------------------------- */
 Real ASRTools::computeDeltaGelStrainThermal(const Real delta_time_day,
                                             const Real k,
                                             const Real activ_energy,

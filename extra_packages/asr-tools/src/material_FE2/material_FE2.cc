@@ -190,7 +190,23 @@ void MaterialFE2<spatial_dimension>::increaseGelStrain(Real & dt_day) {
 }
 /* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::afterSolveStep() {
+void MaterialFE2<spatial_dimension>::increaseGelStrainArrhenius(
+    Real & dt_day, const Real & k, const Real & Ea) {
+  for (auto && data : zip(RVEs, this->delta_T(this->el_type),
+                          make_view(this->gelstrain(this->el_type),
+                                    spatial_dimension, spatial_dimension))) {
+    auto & RVE = *(std::get<0>(data));
+    auto & strain_matrix = std::get<2>(data);
+    Real ASRStrain = strain_matrix(0, 0);
+    RVE.computeASRStrainArrhenius(dt_day, std::get<1>(data), ASRStrain, k, Ea);
+
+    for (UInt i = 0; i != spatial_dimension; ++i)
+      strain_matrix(i, i) = ASRStrain;
+  }
+}
+/* ------------------------------------------------------------------*/
+template <UInt spatial_dimension>
+void MaterialFE2<spatial_dimension>::afterSolveStep(bool converged) {
   AKANTU_DEBUG_IN();
   for (const auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {

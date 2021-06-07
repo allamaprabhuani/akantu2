@@ -150,6 +150,11 @@ public:
                               const Real & time_lat_ref, const Real & U_C,
                               const Real & U_L, const Real & T_ref);
 
+  /// compute ASR strain based on the Arrhenius equation
+  void computeASRStrainArrhenius(const Real & delta_time_day, const Real & T,
+                                 Real & ASRStrain, const Real & k,
+                                 const Real & Ea);
+
   /// compute increase in gel strain within 1 timestep
   Real computeDeltaGelStrainThermal(const Real delta_time_day, const Real k,
                                     const Real activ_energy, const Real R,
