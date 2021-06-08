@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------- */
-#include "py_akantu_pybind11_compatibility.hh"
 #include "py_aka_array.hh"
+#include "py_akantu_pybind11_compatibility.hh"
 /* -------------------------------------------------------------------------- */
 #include <solid_mechanics_model.hh>
 #if defined(AKANTU_COHESIVE_ELEMENT)
@@ -81,10 +81,9 @@ namespace {
 
   /* ------------------------------------------------------------------------ */
   template <typename _Material>
-  decltype(auto) register_material_classes(py::module & mod,
-                                           const std::string & name) {
-    return py::class_<_Material, Material, Parsable, PyMaterial<_Material>>(
-               mod, name.c_str(), py::multiple_inheritance())
+  void register_material_classes(py::module & mod, const std::string & name) {
+    py::class_<_Material, Material, Parsable, PyMaterial<_Material>>(
+        mod, name.c_str(), py::multiple_inheritance())
         .def(py::init<SolidMechanicsModel &, const ID &>());
   }
 } // namespace
