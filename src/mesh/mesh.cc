@@ -239,8 +239,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
           tolerance *= norm_barycenter;
         }
 
-        // const auto & element_to_facet = mesh_facets->getElementToSubelement(
-        //     element.type, element.ghost_type);
 
         Vector<Real> barycenter_facet(spatial_dimension);
 
@@ -252,10 +250,6 @@ Mesh & Mesh::initMeshFacets(const ID & id) {
         // this is a spacial search coded the most inefficient way.
         auto facet =
             std::find_if(range.begin(), range.end(), [&](auto && data) {
-	      // auto facet = std::get<0>(data);
-              // if (element_to_facet(facet)[1] == ElementNull)
-              //   return false;
-	      
               auto norm_distance = barycenter.distance(std::get<1>(data));
 #ifndef AKANTU_NDEBUG
               min_dist = std::min(min_dist, norm_distance);
@@ -547,7 +541,7 @@ void Mesh::fillNodesToElements(UInt dimension) {
   Element e;
 
   UInt nb_nodes = nodes->size();
-  this->nodes_to_elements.resize(nodes->size());
+  this->nodes_to_elements.resize(nb_nodes);
     
   for (UInt n = 0; n < nb_nodes; ++n) {
     if (this->nodes_to_elements[n]) {

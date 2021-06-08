@@ -49,9 +49,6 @@ template <ElementKind kind> class ShapeLagrange;
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 
-
-  
-
 /* -------------------------------------------------------------------------- */
 class ContactMechanicsModel : public Model,
                               public DataAccessor<Element>,

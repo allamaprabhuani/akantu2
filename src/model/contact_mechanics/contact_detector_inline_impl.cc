@@ -45,14 +45,10 @@ ContactDetector::checkValidityOfProjection(Vector<Real> & projection) {
   Real tolerance = 1e-3;
 
   for (auto xi : projection) {
-    if (xi >= -1.0 - tolerance and xi <= 1.0 + tolerance)
-      nb_xi_inside++;
+    if ((xi < -1.0 - tolerance) or (xi > 1.0 + tolerance)) {
+      return false;
   }
-
-  if (nb_xi_inside == projection.size())
-    return true;
-
-  return false;
+  return true;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -224,17 +220,8 @@ inline void ContactDetector::vectorsAlongElement(const Element & el,
   Matrix<Real> coords(spatial_dimension, nb_nodes_per_element);
   this->coordinatesOfElement(el, coords);
 
-  switch (spatial_dimension) {
-  case 2: {
-    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
-    break;
-  }
-  case 3: {
-    vectors(0) = Vector<Real>(coords(1)) - Vector<Real>(coords(0));
-    vectors(1) = Vector<Real>(coords(2)) - Vector<Real>(coords(0));
-    break;
-  }
-  default: { AKANTU_ERROR("Unknown dimension : " << spatial_dimension); }
+  for(auto i : arange(spatial_dimension - 1)) {
+    vectors(i) = Vector<Real>(coords(i + 1)) - Vector<Real>(coords(0));
   }
 }
 

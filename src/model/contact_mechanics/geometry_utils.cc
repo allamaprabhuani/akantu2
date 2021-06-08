@@ -337,17 +337,6 @@ UInt GeometryUtils::orthogonalProjection(
     // find the natural coordinate corresponding to the minimum gap
     // between slave node and master element
 
-    /* Vector<Real> normal_ele(spatial_dimension);
-    GeometryUtils::normal(mesh, positions, element, normal_ele);
-
-    Vector<Real> master(spatial_dimension);
-    GeometryUtils::realProjection(mesh, positions, slave, element, normal_ele,
-    master);
-
-    Vector<Real> xi(natural_projection.size());
-    GeometryUtils::naturalProjection(mesh, positions, element, master, xi,
-                     max_iterations,
-    projection_tolerance);*/
 
     Vector<Real> master(spatial_dimension);
 
@@ -684,7 +673,6 @@ void GeometryUtils::contravariantBasis(const Matrix<Real> & covariant,
 /* -------------------------------------------------------------------------- */
 Matrix<Real>
 GeometryUtils::covariantMetricTensor(const Matrix<Real> & covariant_bases) {
-
   Matrix<Real> A(covariant_bases.rows(), covariant_bases.rows());
   A.mul<false, true>(covariant_bases, covariant_bases);
   return A;
@@ -693,7 +681,6 @@ GeometryUtils::covariantMetricTensor(const Matrix<Real> & covariant_bases) {
 /* -------------------------------------------------------------------------- */
 Matrix<Real>
 GeometryUtils::contravariantMetricTensor(const Matrix<Real> & covariant_bases) {
-
   auto A = GeometryUtils::covariantMetricTensor(covariant_bases);
   auto inv_A = A.inverse();
   return inv_A;

@@ -359,14 +359,13 @@ void ContactMechanicsModel::search() {
   this->savePreviousState();
   
   contact_elements.clear();
-  contact_elements.resize(0);
 
   // this needs to be resized if cohesive elements are added 
   UInt nb_nodes = mesh.getNbNodes();
 
   auto resize_arrays = [&](auto & internal_array) {
-    internal_array->clear();
-    internal_array->resize(nb_nodes, 0.);
+    internal_array->resize(nb_nodes);
+    internal_array->zero();
   };
 
   resize_arrays(gaps);
@@ -398,22 +397,17 @@ void ContactMechanicsModel::savePreviousState() {
   AKANTU_DEBUG_IN();
 
   // saving previous natural projections 
-  previous_projections->clear();
-  previous_projections->resize(projections->size(), 0.);
   (*previous_projections).copy(*projections);
 
   // saving previous tangents
-  previous_tangents->clear();
-  previous_tangents->resize(tangents->size(), 0.);
   (*previous_tangents).copy(*tangents);
 
   // saving previous tangential traction
-  previous_tangential_tractions->clear();
-  previous_tangential_tractions->resize(tangential_tractions->size(), 0.);
   (*previous_tangential_tractions).copy(*tangential_tractions);
 
   previous_master_elements->clear();
   previous_master_elements->resize(projections->size());
+  previous_master_elements->set(ElementNull);
   for (auto & element : contact_elements) {
     (*previous_master_elements)[element.slave] = element.master;
   }
@@ -427,11 +421,11 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
   UInt nb_nodes = mesh.getNbNodes();
 
-  nodal_area->clear();
-  external_force->clear();
+  nodal_area->resize(nb_nodes);
+  nodal_area->zero();
 
-  nodal_area->resize(nb_nodes, 0.);
-  external_force->resize(nb_nodes, 0.);
+  external_force->resize(nb_nodes);
+  external_force->zero();
   
   auto & fem_boundary = getFEEngineClassBoundary<MyFEEngineType>("ContactMechanicsModel");
 
@@ -541,9 +535,7 @@ void ContactMechanicsModel::computeNodalAreas(GhostType ghost_type) {
 
 /* -------------------------------------------------------------------------- */
 void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
-  std::string space;
-  for (Int i = 0; i < indent; i++, space += AKANTU_INDENT)
-    ;
+  std::string space(indent, AKANTU_INDENT);
 
   stream << space << "Contact Mechanics Model [" << std::endl;
   stream << space << " + id                : " << id << std::endl;
@@ -564,7 +556,6 @@ void ContactMechanicsModel::printself(std::ostream & stream, int indent) const {
 
 /* -------------------------------------------------------------------------- */
 MatrixType ContactMechanicsModel::getMatrixType(const ID & matrix_id) {
-
   if (matrix_id == "K")
     return _symmetric;
 

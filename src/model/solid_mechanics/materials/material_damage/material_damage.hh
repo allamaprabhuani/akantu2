@@ -81,10 +81,6 @@ public:
   Real getDissipatedEnergy() const;
 
   Real getEnergy(const std::string & type) override;
-  //Real getEnergy(const std::string & energy_id, ElementType type,
-  //               UInt index) override {
-  //  return Parent<spatial_dimension>::getEnergy(energy_id, type, index);
-  //};
 
   AKANTU_GET_MACRO_NOT_CONST(Damage, damage, ElementTypeMapArray<Real> &);
   AKANTU_GET_MACRO(Damage, damage, const ElementTypeMapArray<Real> &);

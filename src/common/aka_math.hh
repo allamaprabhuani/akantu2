@@ -188,14 +188,9 @@ namespace Math {
   inline Real distance_3d(const Real * x, const Real * y);
 
   /// radius of the in-circle of a triangle in 2d space
-  static inline Real triangle_inradius_2d(const Real * coord1, const Real * coord2,
-                                       const Real * coord3);
+  static inline Real triangle_inradius_2d(const Vector<Real> & coord1, const Vecotr<Real> & coord2,
+                                          const Vector<Real> & coord3);
 
-  /// radius of the in-circle of a triangle in 3d space
-  static inline Real triangle_inradius_3d(const Real * coord1, const Real * coord2,
-                                       const Real * coord3);
-
-  
   /// radius of the in-circle of a tetrahedron
   inline Real tetrahedron_inradius(const Real * coord1, const Real * coord2,
                                    const Real * coord3, const Real * coord4);

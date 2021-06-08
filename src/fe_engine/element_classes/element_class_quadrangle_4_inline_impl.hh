@@ -120,10 +120,6 @@ template <class vector_type, class matrix_type>
 inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
     const vector_type & /*c*/, matrix_type & d2nds2) {
   d2nds2.zero();
-  // d2nds2(0, 0) = 0;
-  // d2nds2(0, 1) = 0;
-  // d2nds2(0, 2) = 0;
-  // d2nds2(0, 3) = 0;
 
   d2nds2(1, 0) = 1./4.;
   d2nds2(1, 1) = -1./4.;
@@ -134,11 +130,6 @@ inline void InterpolationElement<_itp_lagrange_quadrangle_4>::computeD2NDS2(
   d2nds2(2, 1) = -1./4.;
   d2nds2(2, 2) = 1./4.;
   d2nds2(2, 3) = -1./4.;
-
-  // d2nds2(3, 0) = 0;
-  // d2nds2(3, 1) = 0;
-  // d2nds2(3, 2) = 0;
-  // d2nds2(3, 3) = 0;
 }
 
 /* -------------------------------------------------------------------------- */

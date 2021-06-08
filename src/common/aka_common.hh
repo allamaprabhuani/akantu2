@@ -285,7 +285,7 @@ enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 enum DetectionType { _explicit, _implicit};
 
 /// @enum no contact or stick or slip state
-enum ContactState {
+enum class ContactState {
   _no_contact = 0,
   _stick = 1,
   _slip = 2,

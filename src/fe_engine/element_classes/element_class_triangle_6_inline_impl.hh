@@ -182,17 +182,9 @@ GeometricalElement<_gt_triangle_6>::getInradius(const Matrix<Real> & coord) {
 
   Real inradius = std::numeric_limits<Real>::max();
   for (UInt t = 0; t < 4; t++) {
-    Real ir;
-    if (coord.rows() == 2) {
-      ir = Math::triangle_inradius_2d(coord(triangles[t][0]).storage(),
-					   coord(triangles[t][1]).storage(),
-					   coord(triangles[t][2]).storage());
-    }
-    else {
-      ir = Math::triangle_inradius_3d(coord(triangles[t][0]).storage(),
-					   coord(triangles[t][1]).storage(),
-					   coord(triangles[t][2]).storage());
-    }
+    auto ir = Math::triangle_inradius(coord(triangles[t][0]),
+					  coord(triangles[t][1]),
+					  coord(triangles[t][2]));
     inradius = std::min(ir, inradius);
   }
 

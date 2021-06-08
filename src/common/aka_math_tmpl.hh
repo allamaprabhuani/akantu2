@@ -621,8 +621,8 @@ namespace Math {
   }
 
   /* ------------------------------------------------------------------------ */
-  inline Real triangle_inradius_2d(const Real * coord1, const Real * coord2,
-                                   const Real * coord3) {
+  inline Real triangle_inradius(const Vector<Real> & coord1, const Vector<Real> & coord2,
+                                const Vector<Real> & coord3) {
     /**
      * @f{eqnarray*}{
      * r &=& A / s \\
@@ -633,38 +633,16 @@ namespace Math {
 
     Real a, b, c;
 
-    a = distance_2d(coord1, coord2);
-    b = distance_2d(coord2, coord3);
-    c = distance_2d(coord1, coord3);
+    a = coord1.distance(coord2);
+    b = coord2.distance(coord3);
+    c = coord1.distance(coord3);
 
     Real s;
     s = (a + b + c) * 0.5;
 
-    return sqrt((s - a) * (s - b) * (s - c) / s);
+    return std::sqrt((s - a) * (s - b) * (s - c) / s);
   }
 
-  /* ------------------------------------------------------------------------ */
-  inline Real triangle_inradius_3d(const Real * coord1, const Real * coord2,
-                                   const Real * coord3) {
-    /**
-     * @f{eqnarray*}{
-     * r &=& A / s \\
-     * A &=& 1/4 * \sqrt{(a + b + c) * (a - b + c) * (a + b - c) (-a + b + c)}
-     * \\ s &=& \frac{a + b + c}{2}
-     * @f}
-     */
-
-    Real a, b, c;
-
-    a = distance_3d(coord1, coord2);
-    b = distance_3d(coord2, coord3);
-    c = distance_3d(coord1, coord3);
-
-    Real s;
-    s = (a + b + c) * 0.5;
-
-    return sqrt((s - a) * (s - b) * (s - c) / s);
-  }
 
   /* ------------------------------------------------------------------------ */
   inline Real distance_3d(const Real * x, const Real * y) {
