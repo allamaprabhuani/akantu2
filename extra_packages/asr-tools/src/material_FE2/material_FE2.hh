@@ -115,8 +115,8 @@ public:
   /// set time step to all RVEs
   void setTimeStep(Real dt);
 
-  /// update damage ratio after converged step
-  virtual void afterSolveStep(bool converged = true);
+  /// update stiffness and crack ratios in fe2 material
+  void updateStiffness();
 
   /// save state of all rves
   void saveRVEsState(std::string & output_dir);

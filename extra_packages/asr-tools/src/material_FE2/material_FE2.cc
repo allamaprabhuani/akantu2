@@ -206,7 +206,7 @@ void MaterialFE2<spatial_dimension>::increaseGelStrainArrhenius(
 }
 /* ------------------------------------------------------------------*/
 template <UInt spatial_dimension>
-void MaterialFE2<spatial_dimension>::afterSolveStep(bool converged) {
+void MaterialFE2<spatial_dimension>::updateStiffness() {
   AKANTU_DEBUG_IN();
   for (const auto & type :
        this->element_filter.elementTypes(spatial_dimension, _not_ghost)) {
