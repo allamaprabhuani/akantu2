@@ -51,6 +51,7 @@ void register_enums(py::module & mod) {
       .value("_explicit_contact", _explicit_contact)
       .value("_implicit_contact", _implicit_contact)
       .export_values();
+  
 
   PY_AKANTU_REGISTER_CLASS_ENUM(ModelType, AKANTU_MODEL_TYPES, mod);
   PY_AKANTU_REGISTER_CLASS_ENUM(NonLinearSolverType,

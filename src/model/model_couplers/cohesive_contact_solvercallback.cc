@@ -29,19 +29,18 @@
  *
  */
 
-
 /* -------------------------------------------------------------------------- */
 #include "cohesive_contact_solvercallback.hh"
 /* -------------------------------------------------------------------------- */
 
-namespace akantu{
+namespace akantu {
 
 CohesiveContactSolverCallback::CohesiveContactSolverCallback(
-	    SolidMechanicsModelCohesive &solid, ContactMechanicsModel &contact,
-	    AnalysisMethod & method)
-  : SolverCallback(), solid(solid), contact(contact), method(method) {}
+    SolidMechanicsModelCohesive & solid, ContactMechanicsModel & contact,
+    AnalysisMethod & method)
+    : SolverCallback(), solid(solid), contact(contact), method(method) {}
 
-void CohesiveContactSolverCallback::assembleMatrix(const ID &matrix_id) {
+void CohesiveContactSolverCallback::assembleMatrix(const ID & matrix_id) {
 
   if (matrix_id == "K") {
     solid.assembleStiffnessMatrix();
@@ -49,31 +48,31 @@ void CohesiveContactSolverCallback::assembleMatrix(const ID &matrix_id) {
     switch (method) {
     case _static:
     case _implicit_dynamic: {
-      contact.assembleStiffnessMatrix();    
+      contact.assembleStiffnessMatrix();
       break;
     }
     default:
       break;
     }
-    
+
   } else if (matrix_id == "M") {
     solid.assembleMass();
   }
 }
 
-/* -------------------------------------------------------------------------- */  
-void CohesiveContactSolverCallback::assembleLumpedMatrix(const ID &matrix_id) {
+/* -------------------------------------------------------------------------- */
+void CohesiveContactSolverCallback::assembleLumpedMatrix(const ID & matrix_id) {
   if (matrix_id == "M") {
     solid.assembleMassLumped();
   }
 }
 
-/* -------------------------------------------------------------------------- */ 
+/* -------------------------------------------------------------------------- */
 void CohesiveContactSolverCallback::assembleResidual() {
-  //computes the internal forces
-  
+  // computes the internal forces
+
   switch (method) {
-  case _explicit_lumped_mass: {    
+  case _explicit_lumped_mass: {
     auto & current_positions = contact.getContactDetector().getPositions();
     current_positions.copy(solid.getCurrentPosition());
     contact.search();
@@ -86,54 +85,42 @@ void CohesiveContactSolverCallback::assembleResidual() {
   solid.assembleInternalForces();
   contact.assembleInternalForces();
 
-  auto &internal_force = solid.getInternalForce();
-  auto &external_force = solid.getExternalForce();
+  auto & internal_force = solid.getInternalForce();
+  auto & external_force = solid.getExternalForce();
 
-  auto &contact_force = contact.getInternalForce();
-  
+  auto & contact_force = contact.getInternalForce();
+
   solid.getDOFManager().assembleToResidual("displacement", external_force, 1);
   solid.getDOFManager().assembleToResidual("displacement", internal_force, 1);
   solid.getDOFManager().assembleToResidual("displacement", contact_force, 1);
 }
 
-
 /* -------------------------------------------------------------------------- */
 void CohesiveContactSolverCallback::predictor() {
-  
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(solid);
+  auto & solid_model_solver = aka::as_type<ModelSolver>(solid);
   solid_model_solver.predictor();
-
 }
 
-
-/* -------------------------------------------------------------------------- */  
+/* -------------------------------------------------------------------------- */
 void CohesiveContactSolverCallback::beforeSolveStep() {
-  
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(solid);
+  auto & solid_model_solver = aka::as_type<ModelSolver>(solid);
   solid_model_solver.beforeSolveStep();
 }
 
-
-/* -------------------------------------------------------------------------- */  
+/* -------------------------------------------------------------------------- */
 void CohesiveContactSolverCallback::afterSolveStep(bool converged) {
-  
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(solid);
-  solid_model_solver.afterSolveStep();
+  auto & solid_model_solver = aka::as_type<ModelSolver>(solid);
+  solid_model_solver.afterSolveStep(converged);
 }
 
 /* -------------------------------------------------------------------------- */
 void CohesiveContactSolverCallback::corrector() {
-
-  auto & solid_model_solver =
-    aka::as_type<ModelSolver>(solid);
+  auto & solid_model_solver = aka::as_type<ModelSolver>(solid);
   solid_model_solver.corrector();
-  
+
   switch (method) {
   case _static:
-  case _implicit_dynamic:  {
+  case _implicit_dynamic: {
     auto & current_positions = contact.getContactDetector().getPositions();
     current_positions.copy(solid.getCurrentPosition());
     contact.search();
@@ -144,9 +131,10 @@ void CohesiveContactSolverCallback::corrector() {
   }
 }
 
-/* -------------------------------------------------------------------------- */  
-MatrixType CohesiveContactSolverCallback::getMatrixType(const ID &matrix_id) {
+/* -------------------------------------------------------------------------- */
+MatrixType
+CohesiveContactSolverCallback::getMatrixType(const ID & /*matrix_id*/) {
   return _symmetric;
 }
 
-}// namespace akantu
+} // namespace akantu

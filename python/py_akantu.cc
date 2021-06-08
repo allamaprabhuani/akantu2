@@ -31,10 +31,11 @@
 
 #if defined(AKANTU_CONTACT_MECHANICS)
 #include "py_contact_mechanics_model.hh"
+#include "py_model_couplers.hh"
 #endif
 
-#if defined(AKANTU_MODEL_COUPLERS)
-#include "py_model_couplers.hh"
+#if defined(AKANTU_PHASE_FIELD)
+#include "py_phase_field_model.hh"
 #endif
 
 #if defined(AKANTU_STRUCTURAL_MECHANICS)
@@ -91,9 +92,12 @@ void register_all(pybind11::module & mod) {
 
 #if defined(AKANTU_CONTACT_MECHANICS)
   register_contact_mechanics_model(mod);
-#endif
-#if defined(AKANTU_MODEL_COUPLERS)
   register_model_couplers(mod);
+#endif
+
+#if defined(AKANTU_PHASE_FIELD)
+  register_phase_field_model(mod);
+  register_phase_field_coupler(mod);
 #endif
 }
 } // namespace akantu

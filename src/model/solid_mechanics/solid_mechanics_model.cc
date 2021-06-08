@@ -69,8 +69,8 @@ namespace akantu {
  */
 
 SolidMechanicsModel::SolidMechanicsModel(
-    Mesh & mesh, UInt dim, const ID & id, std::shared_ptr<DOFManager> dof_manager,
-    const ModelType model_type)
+    Mesh & mesh, UInt dim, const ID & id,
+    std::shared_ptr<DOFManager> dof_manager, const ModelType model_type)
     : Model(mesh, model_type, std::move(dof_manager), dim, id),
       material_index("material index", id),
       material_local_numbering("material local numbering", id) {
@@ -367,7 +367,7 @@ void SolidMechanicsModel::afterSolveStep(bool converged) {
 void SolidMechanicsModel::predictor() { ++displacement_release; }
 
 /* -------------------------------------------------------------------------- */
-  void SolidMechanicsModel::corrector() { ++displacement_release; }
+void SolidMechanicsModel::corrector() { ++displacement_release; }
 
 /* -------------------------------------------------------------------------- */
 /**
@@ -425,7 +425,7 @@ void SolidMechanicsModel::assembleStiffnessMatrix(bool need_to_reassemble) {
   // Check if materials need to recompute the matrix
   /*bool need_to_reassemble = true;*/
 
-  //bool need_to_reassemble = false;
+  // bool need_to_reassemble = false;
 
   for (auto & material : materials) {
     need_to_reassemble |= material->hasMatrixChanged("K");
@@ -713,12 +713,11 @@ Real SolidMechanicsModel::getEnergy(const std::string & energy_id,
 }
 
 /* -------------------------------------------------------------------------- */
-Real SolidMechanicsModel::getEnergy(const ID & energy_id,
-                                    const ID & group_id) {
+Real SolidMechanicsModel::getEnergy(const ID & energy_id, const ID & group_id) {
   auto && group = mesh.getElementGroup(group_id);
   auto energy = 0.;
-  for(auto && type : group.elementTypes()) {
-    for(auto el : group.getElementsIterable(type)) {
+  for (auto && type : group.elementTypes()) {
+    for (auto el : group.getElementsIterable(type)) {
       energy += getEnergy(energy_id, el);
     }
   }
@@ -1056,8 +1055,8 @@ void SolidMechanicsModel::packData(CommunicationBuffer & buffer,
 
   switch (tag) {
   case SynchronizationTag::_material_id: {
-    packElementalDataHelper(
-        material_index, buffer, elements, false, getFEEngine());
+    packElementalDataHelper(material_index, buffer, elements, false,
+                            getFEEngine());
     break;
   }
   case SynchronizationTag::_smm_mass: {

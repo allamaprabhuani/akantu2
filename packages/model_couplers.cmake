@@ -32,19 +32,4 @@ package_declare(model_couplers ADVANCED
   DESCRIPTION "Use Model Couplers package of Akantu")
 
 package_declare_sources(model_couplers
-  model/model_couplers/coupler_solid_contact.hh
-  model/model_couplers/coupler_solid_contact.cc
-  model/model_couplers/coupler_solid_cohesive_contact.hh
-  model/model_couplers/coupler_solid_cohesive_contact.cc
-  model/model_couplers/cohesive_contact_solvercallback.hh
-  model/model_couplers/cohesive_contact_solvercallback.cc
-  )
-
-package_declare_documentation_files(model_couplers
-  #
-  )
-
-package_declare_documentation(model_couplers
-  "This package activates the model couplers within Akantu. "
-  "It has no additional dependencies."
   )

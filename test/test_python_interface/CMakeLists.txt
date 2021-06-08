@@ -28,11 +28,6 @@
 # along with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
-get_target_property(_srcs py11_akantu SOURCES)
-foreach(_src ${_srcs})
-  list(APPEND py11_akantu_test_common_SRCS ${PROJECT_SOURCE_DIR}/python/${_src})
-endforeach()
-
 akantu_pybind11_add_module(py11_akantu_test_common MODULE test_common.cc)
 
 add_mesh(mesh_dcb_2d mesh_dcb_2d.geo 2 2)

@@ -74,6 +74,9 @@ protected:
   std::shared_ptr<DOFManager> initDOFManager(const ParserSection & section,
                                              const ID & solver_type);
 
+  /* ------------------------------------------------------------------------ */
+  /* Methods                                                                  */
+  /* ------------------------------------------------------------------------ */
 public:
   /// Callback for the model to instantiate the matricees when needed
   virtual void initSolver(TimeStepSolverType /*time_step_solver_type*/,
@@ -83,10 +86,7 @@ public:
   /// model
   std::tuple<ParserSection, bool> getParserSection();
 
-  /* ------------------------------------------------------------------------ */
-  /* Methods                                                                  */
-  /* ------------------------------------------------------------------------ */
-public:
+  
   /// solve a step using a given pre instantiated time step solver and
   /// non linear solver
   virtual void solveStep(const ID & solver_id = "");
@@ -189,7 +189,7 @@ private:
   Mesh & mesh;
 
   /// Default time step solver to use
-  ID default_solver_id{""};
+  ID default_solver_id;
 };
 
 struct ModelSolverOptions {

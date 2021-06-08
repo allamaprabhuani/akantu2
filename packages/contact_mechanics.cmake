@@ -29,7 +29,7 @@
 #
 #===============================================================================
 package_declare(contact_mechanics
-  DEPENDS model_couplers
+  DEPENDS model_couplers cohesive_element
   DESCRIPTION "Use Contact Mechanics package of Akantu")
 
 package_declare_sources(contact_mechanics
@@ -53,7 +53,15 @@ package_declare_sources(contact_mechanics
   model/contact_mechanics/resolutions/resolution_penalty_quadratic.cc
   
   model/contact_mechanics/surface_selector.hh
-  model/contact_mechanics/surface_selector.cc)
+  model/contact_mechanics/surface_selector.cc
+
+  model/model_couplers/coupler_solid_contact.hh
+  model/model_couplers/coupler_solid_contact.cc
+  model/model_couplers/coupler_solid_cohesive_contact.hh
+  model/model_couplers/coupler_solid_cohesive_contact.cc
+  model/model_couplers/cohesive_contact_solvercallback.hh
+  model/model_couplers/cohesive_contact_solvercallback.cc
+  )
 
 package_declare_documentation_files(contact_mechanics
   manual-contactmechanicsmodel.tex
