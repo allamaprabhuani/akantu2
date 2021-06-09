@@ -53,6 +53,7 @@ public:
   using types = SingleType<T, Vector, filtered>;
   using parent = GenericElementalField<types, quadrature_point_iterator>;
   using field_type = typename types::field_type;
+  using support_type = Element;
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

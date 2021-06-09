@@ -68,7 +68,6 @@ bool SolidMechanicsModel::isInternal(const std::string & field_name,
 ElementTypeMap<UInt>
 SolidMechanicsModel::getInternalDataPerElem(const std::string & field_name,
                                             ElementKind element_kind) {
-
   if (!(this->isInternal(field_name, element_kind))) {
     AKANTU_EXCEPTION("unknown internal " << field_name);
   }

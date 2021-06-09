@@ -64,7 +64,8 @@ class ContactMechanicsModel : public Model,
 public:
   ContactMechanicsModel(
       Mesh & mesh, UInt spatial_dimension = _all_dimensions,
-      const ID & id = "contact_mechanics_model", std::shared_ptr<DOFManager> dof_manager = nullptr,
+      const ID & id = "contact_mechanics_model",
+      std::shared_ptr<DOFManager> dof_manager = nullptr,
       const ModelType model_type = ModelType::_contact_mechanics_model);
 
   ~ContactMechanicsModel() override;
@@ -165,6 +166,11 @@ public:
                        bool padding_flag) override;
 
   std::shared_ptr<dumpers::Field>
+  createNodalFieldUInt(const std::string & field_name,
+                       const std::string & group_name,
+                       bool padding_flag) override;
+
+  std::shared_ptr<dumpers::Field>
   createNodalFieldBool(const std::string & field_name,
                        const std::string & group_name,
                        bool padding_flag) override;
@@ -234,13 +240,13 @@ public:
 
   /// get the ContactMechanics::tangential_force vector (friction forces)
   AKANTU_GET_MACRO(TangentialForce, *tangential_force, Array<Real> &);
-  
+
   /// get the ContactMechanics::traction vector (friction traction)
   AKANTU_GET_MACRO(TangentialTractions, *tangential_tractions, Array<Real> &);
 
   /// get the ContactMechanics::previous_tangential_tractions vector
   AKANTU_GET_MACRO(PreviousTangentialTractions, *previous_tangential_tractions,
-		   Array<Real> &);
+                   Array<Real> &);
 
   /// get the ContactMechanicsModel::force vector (external forces)
   Array<Real> & getForce() {
@@ -263,7 +269,7 @@ public:
 
   /// get the ContactMechanics::previous_tangents (tangents on slave nodes)
   AKANTU_GET_MACRO(PreviousTangents, *previous_tangents, Array<Real> &);
-  
+
   /// get the ContactMechanics::areas (nodal areas)
   AKANTU_GET_MACRO(NodalArea, *nodal_area, Array<Real> &);
 
@@ -272,14 +278,15 @@ public:
 
   /// get the ContactMechanics::projections (projections)
   AKANTU_GET_MACRO(Projections, *projections, Array<Real> &);
-  
+
   /// get the ContactMechanics::contact_state vector (no_contact/stick/slip
   /// state)
-  AKANTU_GET_MACRO(ContactState, *contact_state, Array<Real> &);
+  AKANTU_GET_MACRO(ContactState, *contact_state, Array<ContactState> &);
 
   /// get the ContactMechanics::previous_master_elements
-  AKANTU_GET_MACRO(PreviousMasterElements, *previous_master_elements, Array<Element> &);
-  
+  AKANTU_GET_MACRO(PreviousMasterElements, *previous_master_elements,
+                   Array<Element> &);
+
   /// get contact detector
   AKANTU_GET_MACRO_NOT_CONST(ContactDetector, *detector, ContactDetector &);
 
@@ -289,9 +296,7 @@ public:
   }
 
   /// get the current positions of the nodes
-  inline Array<Real> & getPositions() {
-    return detector->getPositions();
-  }
+  inline Array<Real> & getPositions() { return detector->getPositions(); }
 
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
@@ -320,16 +325,16 @@ private:
 
   /// friction traction array
   std::unique_ptr<Array<Real>> tangential_tractions;
-  
+
   /// previous friction traction array
   std::unique_ptr<Array<Real>> previous_tangential_tractions;
-  
+
   /// boundary vector
   std::unique_ptr<Array<Real>> blocked_dofs;
 
   /// array to store gap between slave and master
   std::unique_ptr<Array<Real>> gaps;
- 
+
   /// array to store normals from master to slave
   std::unique_ptr<Array<Real>> normals;
 
@@ -338,19 +343,19 @@ private:
 
   /// array to store previous tangents on the master element
   std::unique_ptr<Array<Real>> previous_tangents;
-  
+
   /// array to store nodal areas
   std::unique_ptr<Array<Real>> nodal_area;
 
   /// array to store stick/slip state :
-  std::unique_ptr<Array<Real>> contact_state;
+  std::unique_ptr<Array<ContactState>> contact_state;
 
   /// array to store previous projections in covariant basis
   std::unique_ptr<Array<Real>> previous_projections;
-  
+
   // array to store projections in covariant basis
   std::unique_ptr<Array<Real>> projections;
-  
+
   /// contact detection
   std::unique_ptr<ContactDetector> detector;
 

@@ -189,7 +189,7 @@ void ResolutionPenalty::computeTangentialTraction(
   auto & state = contact_state.begin()[element.slave];
 
   Real p_n = computeNormalTraction(gap);
-  bool stick = (traction_trial_norm <= mu * p_n) ? true : false;
+  bool stick = (traction_trial_norm <= mu * p_n);
 
   if (stick) {
     state = ContactState::_stick;
@@ -456,14 +456,14 @@ void ResolutionPenalty::computeNormalModuli(const ContactElement & element,
 /* -------------------------------------------------------------------------- */
 void ResolutionPenalty::computeTangentialModuli(const ContactElement & element,
                                                 Matrix<Real> & stiffness) {
-
-  if (mu == 0)
+  if (mu == 0) {
     return;
+  }
 
   stiffness.zero();
 
   auto & contact_state = model.getContactState();
-  UInt state = contact_state.begin()[element.slave];
+  auto state = contact_state.begin()[element.slave];
 
   switch (state) {
   case ContactState::_stick: {

@@ -448,14 +448,14 @@ void ResolutionPenaltyQuadratic::computeNormalModuli(
 /* -------------------------------------------------------------------------- */
 void ResolutionPenaltyQuadratic::computeTangentialModuli(
     const ContactElement & element, Matrix<Real> & stiffness) {
-
-  if (mu == 0)
+  if (mu == 0) {
     return;
+  }
 
   stiffness.zero();
 
   auto & contact_state = model.getContactState();
-  UInt state = contact_state.begin()[element.slave];
+  auto state = contact_state.begin()[element.slave];
 
   switch (state) {
   case ContactState::_stick: {

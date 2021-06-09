@@ -186,10 +186,10 @@ enum class NonLinearSolverType {
   _gmres,
   _bfgs,
   _cg,
-  _newton_raphson_contact,  ///< Regular Newton-Raphson modified
-                            /// for contact problem
-  _auto,  ///< This will take a default value that make sense in case of
-          ///  model::getNewSolver
+  _newton_raphson_contact, ///< Regular Newton-Raphson modified
+                           /// for contact problem
+  _auto, ///< This will take a default value that make sense in case of
+         ///  model::getNewSolver
 };
 #endif
 
@@ -282,15 +282,31 @@ enum CohesiveMethod { _intrinsic, _extrinsic };
 enum MatrixType { _unsymmetric, _symmetric, _mt_not_defined };
 
 /// @enum Type of contact detection
-enum DetectionType { _explicit, _implicit};
+enum DetectionType { _explicit, _implicit };
 
+
+#if !defined(DOXYGEN)
+// clang-format off
+#define AKANTU_CONTACT_STATE                      \
+  (no_contact)                                    \
+  (stick)                                         \
+  (slip)
+// clang-format on
+AKANTU_CLASS_ENUM_DECLARE(ContactState,
+                          AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_OUTPUT_STREAM(ContactState,
+                                AKANTU_CONTACT_STATE)
+AKANTU_CLASS_ENUM_INPUT_STREAM(ContactState,
+                               AKANTU_CONTACT_STATE)
+#else
 /// @enum no contact or stick or slip state
 enum class ContactState {
   _no_contact = 0,
   _stick = 1,
   _slip = 2,
 };
-  
+#endif
+
 /* -------------------------------------------------------------------------- */
 /* Ghosts handling                                                            */
 /* -------------------------------------------------------------------------- */
@@ -389,27 +405,27 @@ enum class SynchronizationTag {
                              /// temperature
 
   // --- PhaseFieldModel tags ---
-  _pfm_damage,          ///< synchronization of the nodal damage
-  _pfm_driving,         ///< synchronization of the driving forces to
-                        /// compute the internal
-  _pfm_history,         ///< synchronization of the damage history to
-                        ///  compute the internal
-  _pfm_energy,          ///< synchronization of the damage energy
-                        /// density to compute the internal
+  _pfm_damage,  ///< synchronization of the nodal damage
+  _pfm_driving, ///< synchronization of the driving forces to
+                /// compute the internal
+  _pfm_history, ///< synchronization of the damage history to
+                ///  compute the internal
+  _pfm_energy,  ///< synchronization of the damage energy
+                /// density to compute the internal
 
   // --- CouplerSolidPhaseField tags ---
-  _csp_damage,        ///< synchronization of the damage from phase
-                      /// model to solid model
-  _csp_strain,        ///< synchronization of the strain from solid
-                      /// model to phase model
-  
+  _csp_damage, ///< synchronization of the damage from phase
+               /// model to solid model
+  _csp_strain, ///< synchronization of the strain from solid
+               /// model to phase model
+
   // --- LevelSet tags ---
   _htm_phi,          ///< synchronization of the nodal level set value phi
   _htm_gradient_phi, ///< synchronization of the element gradient phi
 
   _pfm_damage,
   _pfm_gradient_damage,
-  
+
   //--- Material non local ---
   _mnl_for_average, ///< synchronization of data to average in non local
                     /// material

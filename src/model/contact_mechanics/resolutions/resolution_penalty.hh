@@ -53,61 +53,59 @@ protected:
   /// initialize the resolution
   void initialize();
 
-
   /* ------------------------------------------------------------------------ */
   /* Methods for stiffness computation                                        */
   /* ------------------------------------------------------------------------ */
 protected:
-  
   /// local computaion of stiffness matrix due to stick state
   void computeStickModuli(const ContactElement &, Matrix<Real> &);
 
-  /// local computation of stiffness matrix due to slip state 
+  /// local computation of stiffness matrix due to slip state
   void computeSlipModuli(const ContactElement &, Matrix<Real> &);
 
 public:
   /// local computation of tangent moduli due to normal traction
   void computeNormalModuli(const ContactElement &, Matrix<Real> &) override;
-  
+
   /// local computation of tangent moduli due to tangential traction
   void computeTangentialModuli(const ContactElement &, Matrix<Real> &) override;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Methods for force computation                                            */
   /* ------------------------------------------------------------------------ */
 public:
   /// local computation of normal force due to normal contact
   void computeNormalForce(const ContactElement &, Vector<Real> &) override;
-  
-  /// local computation of tangential force due to frictional traction 
+
+  /// local computation of tangential force due to frictional traction
   void computeTangentialForce(const ContactElement &, Vector<Real> &) override;
 
 protected:
   /// local computation of normal traction due to penetration
   Real computeNormalTraction(Real &);
-  
-  /// local computation of trial tangential traction due to friction
-  void computeTrialTangentialTraction(const ContactElement &, const Matrix<Real> &,
-				      Vector<Real> &);
 
-  /// local computation of tangential traction due to stick 
+  /// local computation of trial tangential traction due to friction
+  void computeTrialTangentialTraction(const ContactElement &,
+                                      const Matrix<Real> &, Vector<Real> &);
+
+  /// local computation of tangential traction due to stick
   void computeStickTangentialTraction(const ContactElement &, Vector<Real> &,
-				      Vector<Real> &);
+                                      Vector<Real> &);
 
   /// local computation of tangential traction due to slip
-  void computeSlipTangentialTraction(const ContactElement &, const Matrix<Real> &,
-				     Vector<Real> &, Vector<Real> &);
+  void computeSlipTangentialTraction(const ContactElement &,
+                                     const Matrix<Real> &, Vector<Real> &,
+                                     Vector<Real> &);
 
   /// local computation of tangential traction due to friction
   void computeTangentialTraction(const ContactElement &, const Matrix<Real> &,
-				 Vector<Real> &);
+                                 Vector<Real> &);
 
 public:
-
   void beforeSolveStep() override;
 
   void afterSolveStep(bool converged = true) override;
-  
+
   /* ------------------------------------------------------------------------ */
   /* Class Members                                                            */
   /* ------------------------------------------------------------------------ */
@@ -118,9 +116,7 @@ protected:
   /// penalty parameter for tangential traction
   Real epsilon_t;
 };
-  
 
-} // akantu
-
+} // namespace akantu
 
 #endif /* __AKANTU_RESOLUTION_PENALTY_HH__  */

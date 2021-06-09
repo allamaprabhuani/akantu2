@@ -55,6 +55,7 @@ public:
   using array_iterator = typename types::array_iterator;
   using field_type_iterator = typename field_type::type_iterator;
   using iterator = iterator_type<types>;
+  using support_type = Element;
 
   /* ------------------------------------------------------------------------ */
   /* Constructors/Destructors                                                 */

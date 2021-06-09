@@ -98,9 +98,9 @@ InterpolationElement<_itp_lagrange_segment_2>::computeSpecialJacobian(
 template <>
 inline Real
 GeometricalElement<_gt_segment_2>::getInradius(const Matrix<Real> & coord) {
-Vector<Real> a(coord(0))
-Vector<Real> b(coord(1))
-return a.distance(b);
+  Vector<Real> a(coord(0));
+  Vector<Real> b(coord(1));
+  return a.distance(b);
 }
 
 // /* --------------------------------------------------------------------------

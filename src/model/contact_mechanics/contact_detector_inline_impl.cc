@@ -40,13 +40,12 @@ namespace akantu {
 /* -------------------------------------------------------------------------- */
 inline bool
 ContactDetector::checkValidityOfProjection(Vector<Real> & projection) {
-
-  UInt nb_xi_inside = 0;
   Real tolerance = 1e-3;
 
   for (auto xi : projection) {
     if ((xi < -1.0 - tolerance) or (xi > 1.0 + tolerance)) {
       return false;
+    }
   }
   return true;
 }

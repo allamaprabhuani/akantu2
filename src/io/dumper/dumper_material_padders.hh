@@ -35,25 +35,20 @@
 /* -------------------------------------------------------------------------- */
 namespace akantu {
 namespace dumpers {
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class MaterialFunctor {
-    /* ------------------------------------------------------------------------
-     */
-    /* Constructors/Destructors */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Constructors/Destructors                                               */
+    /* ---------------------------------------------------------------------- */
   public:
     MaterialFunctor(const SolidMechanicsModel & model)
         : model(model), material_index(model.getMaterialByElement()),
           nb_data_per_element("nb_data_per_element", model.getID()),
           spatial_dimension(model.getSpatialDimension()) {}
 
-    /* ------------------------------------------------------------------------
-     */
-    /* Methods */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Methods                                                                */
+    /* ---------------------------------------------------------------------- */
     /// return the material from the global element index
     const Material & getMaterialFromGlobalIndex(Element global_index) {
       UInt index = global_index.element;
@@ -70,11 +65,9 @@ namespace dumpers {
     }
 
   protected:
-    /* ------------------------------------------------------------------------
-     */
-    /* Class Members */
-    /* ------------------------------------------------------------------------
-     */
+    /* ---------------------------------------------------------------------- */
+    /* Class Members                                                          */
+    /* ---------------------------------------------------------------------- */
 
     /// all material padders probably need access to solid mechanics model
     const SolidMechanicsModel & model;
@@ -89,8 +82,7 @@ namespace dumpers {
     UInt spatial_dimension;
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <class T, class R>
   class MaterialPadder : public MaterialFunctor,
                          public PadderGeneric<Vector<T>, R> {
@@ -99,8 +91,7 @@ namespace dumpers {
         : MaterialFunctor(model) {}
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
   template <UInt spatial_dimension>
   class StressPadder : public MaterialPadder<Real, Matrix<Real>> {
@@ -142,8 +133,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <UInt spatial_dimension>
   class StrainPadder : public MaterialFunctor,
                        public PadderGeneric<Matrix<Real>, Matrix<Real>> {
@@ -180,8 +170,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <bool green_strain>
   class ComputeStrain : public MaterialFunctor,
                         public ComputeFunctor<Vector<Real>, Matrix<Real>> {
@@ -227,8 +216,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   template <bool green_strain>
   class ComputePrincipalStrain
       : public MaterialFunctor,
@@ -277,8 +265,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
   class ComputeVonMisesStress
       : public MaterialFunctor,
         public ComputeFunctor<Vector<Real>, Vector<Real>> {
@@ -310,8 +297,7 @@ namespace dumpers {
     };
   };
 
-  /* --------------------------------------------------------------------------
-   */
+  /* ------------------------------------------------------------------------ */
 
 } // namespace dumpers
 } // namespace akantu

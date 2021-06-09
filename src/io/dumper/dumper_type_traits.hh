@@ -38,7 +38,6 @@ namespace akantu {
 namespace dumpers {
   /* ------------------------------------------------------------------------ */
   template <class data, class ret, class field> struct TypeTraits {
-
     //! the stored data (real, int, uint, ...)
     using data_type = data;
     //! the type returned by the operator *
