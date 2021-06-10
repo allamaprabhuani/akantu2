@@ -111,7 +111,7 @@ namespace dumpers {
     using sub_iterator = typename SubFieldCompute::iterator;
     using sub_types = typename SubFieldCompute::types;
     using sub_return_type = typename sub_types::return_type;
-    using data_type = typename sub_types::data_type;
+    using data_type = typename return_type::value_type;
     using functor_type = ComputeFunctor<sub_return_type, return_type>;
 
   public:
@@ -265,6 +265,15 @@ namespace dumpers {
 
     void checkHomogeneity() override { this->homogeneous = true; };
 
+
+    template <class T1 = data_type,
+              std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<UInt>();
+    }
+
+    template <class T1 = data_type,
+              std::enable_if_t<not std::is_enum<T1>::value> * = nullptr>
     iohelper::DataType getDataType() {
       return iohelper::getDataType<data_type>();
     }

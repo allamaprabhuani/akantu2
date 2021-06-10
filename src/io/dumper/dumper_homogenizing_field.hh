@@ -179,6 +179,13 @@ namespace dumpers {
     return proxy.connectToField(this);
   }
 
+  template <typename SubFieldCompute, typename return_type>
+  inline std::unique_ptr<ComputeFunctorInterface>
+  FieldCompute<SubFieldCompute, return_type, Element>::connect(
+      HomogenizerProxy & proxy) {
+    return proxy.connectToField(this);
+  }
+
   /* ------------------------------------------------------------------------ */
   inline std::unique_ptr<ComputeFunctorInterface>
   HomogenizerProxy::createHomogenizer(Field & field) {

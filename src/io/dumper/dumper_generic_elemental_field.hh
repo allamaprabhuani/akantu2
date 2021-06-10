@@ -88,9 +88,17 @@ public:
   }
 
   /// return the iohelper datatype to be dumped
-  iohelper::DataType getDataType() {
-    return iohelper::getDataType<data_type>();
-  }
+    template <class T1 = data_type,
+              std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<UInt>();
+    }
+
+    template <class T1 = data_type,
+              std::enable_if_t<not std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<data_type>();
+    }
 
 protected:
   /// return the number of entries per element

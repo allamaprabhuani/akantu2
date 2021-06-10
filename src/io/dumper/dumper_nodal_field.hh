@@ -26,10 +26,11 @@
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+/* -------------------------------------------------------------------------- */
 #ifndef AKANTU_DUMPER_NODAL_FIELD_HH_
 #define AKANTU_DUMPER_NODAL_FIELD_HH_
 
+/* -------------------------------------------------------------------------- */
 #include "dumper_field.hh"
 #include <io_helper.hh>
 /* -------------------------------------------------------------------------- */
@@ -120,7 +121,17 @@ namespace dumpers {
 
     UInt size() { return field.size(); }
 
-    iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+    template <class T1 = T,
+              std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<UInt>();
+    }
+
+    template <class T1 = T,
+              std::enable_if_t<not std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<T>();
+    }
 
     /* ---------------------------------------------------------------------- */
     /* Class Members */
@@ -219,7 +230,17 @@ namespace dumpers {
 
     UInt size() { return filter->size(); }
 
-    iohelper::DataType getDataType() { return iohelper::getDataType<T>(); }
+    template <class T1 = T,
+              std::enable_if_t<std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<UInt>();
+    }
+
+    template <class T1 = T,
+              std::enable_if_t<not std::is_enum<T1>::value> * = nullptr>
+    iohelper::DataType getDataType() {
+      return iohelper::getDataType<T>();
+    }
 
     /* ---------------------------------------------------------------------- */
     /* Class Members */
