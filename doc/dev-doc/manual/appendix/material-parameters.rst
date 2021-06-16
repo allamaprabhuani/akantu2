@@ -89,7 +89,21 @@ Energies:
 
 - ``dissipated``: energy dissipated with viscosity
 
+Maxwell chain visco-elastic
+---------------------
 
+Keyword: :ref:`viscoelastic_maxwell <sect-smm-cl-maxwell>`
+
+Parameters:
+
+- ``rho``: (*Real*) Density
+- ``Einf``: (*Real*) Infinite time Young's modulus
+- ``nu``: (*Real*) Poisson's ratio
+- ``Plane_stress``: (*bool*) Plane stress simplification (only 2D problems)
+- ``Ev``: (*Vector<Real>*) Maxwell elements' stiffness values
+- ``Eta``: (*Vector<Real>*) Dashpot elements' viscosity values
+
+  
 Elasto-plastic linear isotropic hardening
 -----------------------------------------
 
