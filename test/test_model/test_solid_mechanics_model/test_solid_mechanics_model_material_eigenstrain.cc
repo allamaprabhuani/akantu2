@@ -67,10 +67,11 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
   Real trace = 0;
 
   /// symetric part of the strain tensor
-  for (UInt i = 0; i < spatial_dimension; ++i)
-    for (UInt j = 0; j < spatial_dimension; ++j)
+  for (UInt i = 0; i < spatial_dimension; ++i) {
+    for (UInt j = 0; j < spatial_dimension; ++j) {
       strain(i, j) = 0.5 * (pstrain(i, j) + pstrain(j, i));
-
+    }
+  }
   // elastic strain is equal to elastic strain minus the eigenstrain
   strain -= prescribed_eigengradu;
   for (UInt i = 0; i < spatial_dimension; ++i)
@@ -82,10 +83,11 @@ static Matrix<Real> prescribed_stress(Matrix<Real> prescribed_eigengradu) {
   if (spatial_dimension == 1) {
     stress(0, 0) = E * strain(0, 0);
   } else {
-    for (UInt i = 0; i < spatial_dimension; ++i)
+    for (UInt i = 0; i < spatial_dimension; ++i){
       for (UInt j = 0; j < spatial_dimension; ++j) {
         stress(i, j) = (i == j) * lambda * trace + 2 * mu * strain(i, j);
       }
+    }
   }
 
   return stress;
@@ -139,17 +141,15 @@ int main(int argc, char * argv[]) {
       }
     }
   }
+  ++model.getDisplacementRelease();
 
   /* ------------------------------------------------------------------------ */
   /* Apply eigenstrain in each element */
   /* ------------------------------------------------------------------------ */
   Array<Real> & eigengradu_vect =
       model.getMaterial(0).getInternal<Real>("eigen_grad_u")(element_type);
-  auto eigengradu_it = eigengradu_vect.begin(dim, dim);
-  auto eigengradu_end = eigengradu_vect.end(dim, dim);
-
-  for (; eigengradu_it != eigengradu_end; ++eigengradu_it) {
-    *eigengradu_it = prescribed_eigengradu;
+  for (auto & eigen_grad_u : make_view(eigengradu_vect, dim, dim)) {
+    eigen_grad_u = prescribed_eigengradu;
   }
 
   /* ------------------------------------------------------------------------ */

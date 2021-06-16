@@ -31,8 +31,8 @@
  */
 
 /* -------------------------------------------------------------------------- */
-#include "dof_synchronizer.hh"
 #include "material_cohesive_linear.hh"
+#include "dof_synchronizer.hh"
 #include "solid_mechanics_model_cohesive.hh"
 #include "sparse_matrix.hh"
 /* -------------------------------------------------------------------------- */

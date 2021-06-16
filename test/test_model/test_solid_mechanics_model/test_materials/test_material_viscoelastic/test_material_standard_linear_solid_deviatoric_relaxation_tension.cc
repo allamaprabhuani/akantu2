@@ -115,9 +115,9 @@ int main(int argc, char * argv[]) {
   /* Main loop                                                                */
   /* ------------------------------------------------------------------------ */
   for (UInt s = 0; s <= max_steps; ++s) {
-
-    if (s % 1000 == 0)
+    if (s % 1000 == 0) {
       std::cerr << "passing step " << s << "/" << max_steps << std::endl;
+    }
 
     time = s * time_step;
     // impose displacement
@@ -129,9 +129,11 @@ int main(int argc, char * argv[]) {
     }
 
     for (UInt n = 0; n < nb_nodes; ++n) {
-      for (UInt d = 0; d < dim; ++d)
+      for (UInt d = 0; d < dim; ++d) {
         displacement(n, d) = epsilon * coordinate(n, d);
+      }
     }
+    ++model.getDisplacementRelease();
 
     // compute stress
     model.assembleInternalForces();

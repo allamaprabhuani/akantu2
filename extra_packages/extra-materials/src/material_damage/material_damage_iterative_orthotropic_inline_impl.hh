@@ -252,8 +252,7 @@ MaterialDamageIterativeOrthotropic<spatial_dimension>::updateElasticModuli(
   }
   // }
 }
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension>
 inline void
 MaterialDamageIterativeOrthotropic<spatial_dimension>::reduceInternalParameters(
@@ -318,7 +317,7 @@ void MaterialDamageIterativeOrthotropic<
   AKANTU_DEBUG_IN();
 
   auto release = this->model.getDisplacementRelease();
-  if (release != this->last_displacement_release) {
+  if (release != this->gradu_release(el_type, ghost_type)) {
     /// if in loading test stop updating stiffness after 1st iteration
     Int nb_iter = this->model.getDOFManager().getNonLinearSolver("static").get(
         "nb_iterations");

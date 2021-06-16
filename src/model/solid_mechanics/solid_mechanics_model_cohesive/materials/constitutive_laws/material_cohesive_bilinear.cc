@@ -81,32 +81,15 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
     scale_traction = true;
   }
 
-  for (auto & el: element_list) {
-    // filter not ghost cohesive elements
-    if (el.ghost_type != _not_ghost ||
-        Mesh::getKind(el.type) != _ek_cohesive) {
-      continue;
-    }
+  for (const auto & el: element_list) {
+    Vector<Real> sigma_c_vec = this->sigma_c_eff.get(el);
+    Vector<Real> delta_c_vec = this->delta_c_eff.get(el);
 
-    ElementType type = el.type;
-    auto & elem_filter = this->element_filter(type, el.ghost_type);
-    auto filter_begin = elem_filter.begin();
-    auto filter_end = elem_filter.end();
-
-    UInt index = el.element;
-    if (std::find(filter_begin, filter_end, index) == filter_end) {
-      continue;
-    }
-
-    UInt nb_quad_per_element = this->fem_cohesive.getNbIntegrationPoints(type);
-    auto sigma_c_begin = make_view(this->sigma_c_eff(type), nb_quad_per_element).begin();
-    Vector<Real> sigma_c_vec = sigma_c_begin[index];
-
-    auto delta_c_begin = make_view(this->delta_c_eff(type), nb_quad_per_element).begin();
-    Vector<Real> delta_c_vec = delta_c_begin[index];
+    auto global_el = el;
+    global_el.element = this->element_filter(el);
 
     if (scale_traction) {
-      scaleTraction(el, sigma_c_vec);
+      scaleTraction(global_el, sigma_c_vec);
     }
 
     /**
@@ -114,17 +97,18 @@ void MaterialCohesiveBilinear<spatial_dimension>::onElementsAdded(
      * @f$ {\sigma_c}_\textup{new} =
      * \frac{{\sigma_c}_\textup{old} \delta_c} {\delta_c - \delta_0} @f$
      */
+    for(auto && data : zip(delta_c_vec, sigma_c_vec)) {
+      auto & delta_c = std::get<0>(data);
+      auto & sigma_c = std::get<1>(data);
+      delta_c = 2 * this->G_c / sigma_c;
 
-    for (UInt q = 0; q < nb_quad_per_element; ++q) {
-      delta_c_vec(q) = 2 * this->G_c / sigma_c_vec(q);
-
-      if (delta_c_vec(q) - delta_0 < Math::getTolerance()) {
+      if (delta_c - delta_0 < Math::getTolerance()) {
         AKANTU_ERROR("delta_0 = " << delta_0 << " must be lower than delta_c = "
-                                  << delta_c_vec(q)
+                                  << delta_c
                                   << ", modify your material file");
       }
 
-      sigma_c_vec(q) *= delta_c_vec(q) / (delta_c_vec(q) - delta_0);
+      sigma_c *= delta_c / (delta_c - delta_0);
     }
   }
 
@@ -195,15 +179,15 @@ void MaterialCohesiveBilinear<spatial_dimension>::computeTraction(
                                                              ghost_type);
 
   // adjust damage
-  auto delta_c_it = this->delta_c_eff(el_type, ghost_type).begin();
-  auto delta_max_it = this->delta_max(el_type, ghost_type).begin();
-  auto damage_it = this->damage(el_type, ghost_type).begin();
-  auto damage_end = this->damage(el_type, ghost_type).end();
+  for(auto && data : zip(this->delta_c_eff(el_type, ghost_type),
+                         this->delta_max(el_type, ghost_type),
+                         this->damage(el_type, ghost_type))) {
+    const auto & delta_c = std::get<0>(data);
+    const auto & delta_max = std::get<1>(data);
+    auto & dam = std::get<2>(data);
 
-  for (; damage_it != damage_end; ++damage_it, ++delta_max_it, ++delta_c_it) {
-    *damage_it =
-        std::max((*delta_max_it - delta_0) / (*delta_c_it - delta_0), Real(0.));
-    *damage_it = std::min(*damage_it, Real(1.));
+    dam = std::max((delta_max - delta_0) / (delta_c - delta_0), Real(0.));
+    dam = std::min(dam, Real(1.));
   }
 }
 

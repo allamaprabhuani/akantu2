@@ -469,7 +469,7 @@ public:
     this->material_selector = std::move(material_selector);
   }
 
-  AKANTU_GET_MACRO(DisplacementRelease, displacement_release, Int);
+  AKANTU_GET_MACRO_NOT_CONST(DisplacementRelease, displacement_release, Int &);
 
   /// Access the non_local_manager interface
   AKANTU_GET_MACRO(NonLocalManager, *non_local_manager, NonLocalManager &);
@@ -486,13 +486,14 @@ protected:
   /* ------------------------------------------------------------------------ */
 private:
   /// release version of the displacement array
-  UInt displacement_release{0};
+  Int displacement_release{0};
 
   /// release version of the current_position array
-  UInt current_position_release{0};
+  Int current_position_release{0};
 
   /// Check if materials need to recompute the mass array
   bool need_to_reassemble_lumped_mass{true};
+
   /// Check if materials need to recompute the mass matrix
   bool need_to_reassemble_mass{true};
 

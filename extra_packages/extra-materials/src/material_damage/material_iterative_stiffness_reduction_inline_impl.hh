@@ -85,8 +85,8 @@ void MaterialIterativeStiffnessReduction<spatial_dimension,
   }
   AKANTU_DEBUG_OUT();
 }
-/* --------------------------------------------------------------------------
- */
+
+/* -------------------------------------------------------------------------- */
 template <UInt spatial_dimension, class IsotropicParent>
 UInt MaterialIterativeStiffnessReduction<spatial_dimension,
                                          IsotropicParent>::updateDamage() {
@@ -186,7 +186,6 @@ UInt MaterialIterativeStiffnessReduction<spatial_dimension,
   return nb_damaged_elements;
 } // namespace akantu
 
-/* --------------------------------------------------------------------------
- */
+/* -------------------------------------------------------------------------- */
 
 } // namespace akantu
