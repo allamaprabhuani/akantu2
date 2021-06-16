@@ -1,74 +1,37 @@
 /**
  * @file   element_class_pentahedron_15_inline_impl.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Mauro Corrado <mauro.corrado@epfl.ch>
  * @author Sacha Laffely <sacha.laffely@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Damien Scantamburlo <damien.scantamburlo@epfl.ch>
  *
  * @date creation: Tue Mar 31 2015
- * @date last modification: Thu Dec 28 2017
+ * @date last modification: Fri Feb 07 2020
  *
  * @brief  Specialization of the element_class class for the type
  * _pentahedron_15
  *
  *
- * Copyright (©) 2015-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
-Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
-terms  of the  GNU Lesser  General Public  License as published by  the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
+ * Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
-details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
-along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * \verbatim
-             z
-             ^
-             |
-             |
-             |  1
-             | /|\
-             |/ | \
-             10 7  6
-            /   |   \
-           /    |    \
-           4    2--8--0
-          | \  /      /
-          |  \11     /
-          13  12    9---------->y
-          | /  \   /
-          |/    \ /
-          5--14--3
-         /
-        /
-       /
-      v
-     x
-\endverbatim
-       x   y    z
-* N0  -1   1    0
-* N1  -1   0    1
-* N2  -1   0    0
-* N3   1   1    0
-* N4   1   0    1
-* N5   1   0    0
-* N6  -1   0.5  0.5
-* N7  -1   0    0.5
-* N8  -1   0.5  0
-* N9   0   1    0
-* N10  0   0    1
-* N11  0   0    0
-* N12  1   0.5  0.5
-* N13  1   0    0.5
-* N14  1   0.5  0
  */
 
 /* -------------------------------------------------------------------------- */

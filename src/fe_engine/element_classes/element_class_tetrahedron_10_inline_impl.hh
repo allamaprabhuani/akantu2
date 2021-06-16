@@ -1,135 +1,37 @@
 /**
  * @file   element_class_tetrahedron_10_inline_impl.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Peter Spijker <peter.spijker@epfl.ch>
  *
  * @date creation: Fri Jul 16 2010
- * @date last modification: Wed Oct 11 2017
+ * @date last modification: Fri Feb 07 2020
  *
  * @brief  Specialization of the element_class class for the type
  * _tetrahedron_10
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @verbatim
- \zeta
- ^
- |
- (0,0,1)
- x
- |` .
- |  `  .
- |    `   .
- |      `    .  (0,0.5,0.5)
- |        `    x.
- |     q4 o `      .                   \eta
- |            `       .             -,
- (0,0,0.5) x             ` x (0.5,0,0.5)  -
- |                `        x-(0,1,0)
- |              q3 o`   -   '
- |       (0,0.5,0)  - `      '
- |             x-       `     x (0.5,0.5,0)
- |     q1 o -         o q2`    '
- |      -                   `   '
- |  -                         `  '
- x---------------x--------------` x-----> \xi
- (0,0,0)        (0.5,0,0)        (1,0,0)
- @endverbatim
- *
- *
- * @f[
- * \begin{array}{lll}
- *   \xi_{0}  = 0   &  \eta_{0}  = 0   &  \zeta_{0}  = 0   \\
- *   \xi_{1}  = 1   &  \eta_{1}  = 0   &  \zeta_{1}  = 0   \\
- *   \xi_{2}  = 0   &  \eta_{2}  = 1   &  \zeta_{2}  = 0   \\
- *   \xi_{3}  = 0   &  \eta_{3}  = 0   &  \zeta_{3}  = 1   \\
- *   \xi_{4}  = 1/2 &  \eta_{4}  = 0   &  \zeta_{4}  = 0   \\
- *   \xi_{5}  = 1/2 &  \eta_{5}  = 1/2 &  \zeta_{5}  = 0   \\
- *   \xi_{6}  = 0   &  \eta_{6}  = 1/2 &  \zeta_{6}  = 0   \\
- *   \xi_{7}  = 0   &  \eta_{7}  = 0   &  \zeta_{7}  = 1/2 \\
- *   \xi_{8}  = 1/2 &  \eta_{8}  = 0   &  \zeta_{8}  = 1/2 \\
- *   \xi_{9}  = 0   &  \eta_{9}  = 1/2 &  \zeta_{9}  = 1/2
- * \end{array}
- * @f]
- *
- * @f[
- * \begin{array}{llll}
- *     N1  = (1 - \xi - \eta - \zeta) (1 - 2 \xi - 2 \eta - 2 \zeta)
- *           & \frac{\partial N1}{\partial \xi}    = 4 \xi + 4 \eta + 4 \zeta -
- 3
- *           & \frac{\partial N1}{\partial \eta}   = 4 \xi + 4 \eta + 4 \zeta -
- 3
- *           & \frac{\partial N1}{\partial \zeta}  = 4 \xi + 4 \eta + 4 \zeta -
- 3 \\
- *     N2  = \xi (2 \xi - 1)
- *           & \frac{\partial N2}{\partial \xi}    = 4 \xi - 1
- *           & \frac{\partial N2}{\partial \eta}   = 0
- *           & \frac{\partial N2}{\partial \zeta}  = 0 \\
- *     N3  = \eta (2 \eta - 1)
- *           & \frac{\partial N3}{\partial \xi}    = 0
- *           & \frac{\partial N3}{\partial \eta}   = 4 \eta - 1
- *           & \frac{\partial N3}{\partial \zeta}  = 0 \\
- *     N4  = \zeta (2 \zeta - 1)
- *           & \frac{\partial N4}{\partial \xi}    = 0
- *           & \frac{\partial N4}{\partial \eta}   = 0
- *           & \frac{\partial N4}{\partial \zeta}  = 4 \zeta - 1 \\
- *     N5  = 4 \xi (1 - \xi - \eta - \zeta)
- *           & \frac{\partial N5}{\partial \xi}    = 4 - 8 \xi - 4 \eta - 4
- \zeta
- *           & \frac{\partial N5}{\partial \eta}   = -4 \xi
- *           & \frac{\partial N5}{\partial \zeta}  = -4 \xi \\
- *     N6  = 4 \xi \eta
- *           & \frac{\partial N6}{\partial \xi}    = 4 \eta
- *           & \frac{\partial N6}{\partial \eta}   = 4 \xi
- *           & \frac{\partial N6}{\partial \zeta}  = 0 \\
- *     N7  = 4 \eta (1 - \xi - \eta - \zeta)
- *           & \frac{\partial N7}{\partial \xi}    = -4 \eta
- *           & \frac{\partial N7}{\partial \eta}   = 4 - 4 \xi - 8 \eta - 4
- \zeta
- *           & \frac{\partial N7}{\partial \zeta}  = -4 \eta \\
- *     N8  = 4 \zeta (1 - \xi - \eta - \zeta)
- *           & \frac{\partial N8}{\partial \xi}    = -4 \zeta
- *           & \frac{\partial N8}{\partial \eta}   = -4 \zeta
- *           & \frac{\partial N8}{\partial \zeta}  = 4 - 4 \xi - 4 \eta - 8
- \zeta \\
- *     N9  = 4 \zeta \xi
- *           & \frac{\partial N9}{\partial \xi}    = 4 \zeta
- *           & \frac{\partial N9}{\partial \eta}   = 0
- *           & \frac{\partial N9}{\partial \zeta}  = 4 \xi \\
- *     N10 = 4 \eta \zeta
- *           & \frac{\partial N10}{\partial \xi}   = 0
- *           & \frac{\partial N10}{\partial \eta}  = 4 \zeta
- *           & \frac{\partial N10}{\partial \zeta} = 4 \eta \\
- * \end{array}
- * @f]
- *
- * @f[
- * a = \frac{5 - \sqrt{5}}{20}\\
- * b = \frac{5 + 3 \sqrt{5}}{20}
- * \begin{array}{lll}
- *   \xi_{q_0}  = a   &  \eta_{q_0}  = a   &  \zeta_{q_0}  = a \\
- *   \xi_{q_1}  = b   &  \eta_{q_1}  = a   &  \zeta_{q_1}  = a \\
- *   \xi_{q_2}  = a   &  \eta_{q_2}  = b   &  \zeta_{q_2}  = a \\
- *   \xi_{q_3}  = a   &  \eta_{q_3}  = a   &  \zeta_{q_3}  = b
- * \end{array}
- * @f]
  */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

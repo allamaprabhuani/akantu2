@@ -3,75 +3,32 @@
  *
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
+ * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Nov 10 2017
- * @date last modification: Mon Feb 19 2018
+ * @date last modification: Tue Feb 09 2021
  *
  * @brief  Specialization of the element_class class for the type
  * _hermite
  *
  *
- * Copyright (©) 2016-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
- *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @verbatim
-   --x-----q1----|----q2-----x---> x
-    -1          0            1
- @endverbatim
- *
- * @f[
- *   \begin{array}{ll}
- *     M_1(\xi) &= 1/4(\xi^{3}/-3\xi+2)\\
- *     M_2(\xi) &= -1/4(\xi^{3}-3\xi-2)
- *   \end{array}
- *
- *   \begin{array}{ll}
- *     L_1(\xi) &= 1/4(\xi^{3}-\xi^{2}-\xi+1)\\
- *     L_2(\xi) &= 1/4(\xi^{3}+\xi^{2}-\xi-1)
- *   \end{array}
- *
- *   \begin{array}{ll}
- *     M'_1(\xi) &= 3/4(\xi^{2}-1)\\
- *     M'_2(\xi) &= -3/4(\xi^{2}-1)
- *   \end{array}
- *
- *   \begin{array}{ll}
- *     L'_1(\xi) &= 1/4(3\xi^{2}-2\xi-1)\\
- *     L'_2(\xi) &= 1/4(3\xi^{2}+2\xi-1)
- *   \end{array}
- *@f]
- *
- *
- *@f[
- * \begin{array}{ll}
- *   N'_1(\xi) &= -1/2\\
- *   N'_2(\xi) &= 1/2
- * \end{array}]
- *
- * \begin{array}{ll}
- *   -M''_1(\xi) &= -3\xi/2\\
- *   -M''_2(\xi) &= 3\xi/2\\
- * \end{array}
- *
- * \begin{array}{ll}
- *   -L''_1(\xi) &= -1/2a(3\xi/a-1)\\
- *   -L''_2(\xi) &= -1/2a(3\xi/a+1)
- * \end{array}
- *@f]
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */
 

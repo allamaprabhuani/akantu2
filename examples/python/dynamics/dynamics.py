@@ -1,3 +1,17 @@
+
+""" dynamics.py: solid mechanics dynamics example"""
+
+__author__ = "Guillaume Anciaux and Nicolas Richart"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+    "Nicolas Richart <nicolas.richart@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2016-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 #!/usr/bin/env python3
 import numpy as np
 import akantu as aka

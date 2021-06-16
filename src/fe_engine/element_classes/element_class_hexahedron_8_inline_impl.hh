@@ -1,109 +1,36 @@
 /**
  * @file   element_class_hexahedron_8_inline_impl.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  * @author Peter Spijker <peter.spijker@epfl.ch>
  *
  * @date creation: Mon Mar 14 2011
- * @date last modification: Wed Oct 11 2017
+ * @date last modification: Fri Feb 07 2020
  *
  * @brief  Specialization of the element_class class for the type _hexahedron_8
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @verbatim
-                   \zeta
-                    ^
-         (-1,1,1)   |     (1,1,1)
-                7---|------6
-               /|   |     /|
-              / |   |    / |
-   (-1,-1,1) 4----------5  | (1,-1,1)
-             |  |   |   |  |
-             |  |   |   |  |
-             |  |   +---|-------> \xi
-             |  |  /    |  |
-   (-1,1,-1) |  3-/-----|--2 (1,1,-1)
-             | / /      | /
-             |/ /       |/
-             0-/--------1
-   (-1,-1,-1) /        (1,-1,-1)
-             /
-            \eta
- @endverbatim
- *
- * \f[
- * \begin{array}{llll}
- * N1 = (1 - \xi) (1 - \eta) (1 - \zeta) / 8
- *       & \frac{\partial N1}{\partial \xi}  = - (1 - \eta) (1 - \zeta) / 8
- *       & \frac{\partial N1}{\partial \eta} = - (1 - \xi) (1 - \zeta) / 8
- *       & \frac{\partial N1}{\partial \zeta} = - (1 - \xi) (1 - \eta) / 8 \\
- * N2 = (1 + \xi) (1 - \eta) (1 - \zeta) / 8
- *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta) (1 - \zeta) / 8
- *       & \frac{\partial N2}{\partial \eta} = - (1 + \xi) (1 - \zeta) / 8
- *       & \frac{\partial N2}{\partial \zeta} = - (1 + \xi) (1 - \eta) / 8 \\
- * N3 = (1 + \xi) (1 + \eta) (1 - \zeta) / 8
- *       & \frac{\partial N3}{\partial \xi}  = (1 + \eta) (1 - \zeta) / 8
- *       & \frac{\partial N3}{\partial \eta} = (1 + \xi) (1 - \zeta) / 8
- *       & \frac{\partial N3}{\partial \zeta} = - (1 + \xi) (1 + \eta) / 8 \\
- * N4 = (1 - \xi) (1 + \eta) (1 - \zeta) / 8
- *       & \frac{\partial N4}{\partial \xi}  = - (1 + \eta) (1 - \zeta) / 8
- *       & \frac{\partial N4}{\partial \eta} = (1 - \xi) (1 - \zeta) / 8
- *       & \frac{\partial N4}{\partial \zeta} = - (1 - \xi) (1 + \eta) / 8 \\
- * N5 = (1 - \xi) (1 - \eta) (1 + \zeta) / 8
- *       & \frac{\partial N5}{\partial \xi}  = - (1 - \eta) (1 + \zeta) / 8
- *       & \frac{\partial N5}{\partial \eta} = - (1 - \xi) (1 + \zeta) / 8
- *       & \frac{\partial N5}{\partial \zeta} = (1 - \xi) (1 - \eta) / 8 \\
- * N6 = (1 + \xi) (1 - \eta) (1 + \zeta) / 8
- *       & \frac{\partial N6}{\partial \xi}  = (1 - \eta) (1 + \zeta) / 8
- *       & \frac{\partial N6}{\partial \eta} = - (1 + \xi) (1 + \zeta) / 8
- *       & \frac{\partial N6}{\partial \zeta} = (1 + \xi) (1 - \eta) / 8 \\
- * N7 = (1 + \xi) (1 + \eta) (1 + \zeta) / 8
- *       & \frac{\partial N7}{\partial \xi}  = (1 + \eta) (1 + \zeta) / 8
- *       & \frac{\partial N7}{\partial \eta} = (1 + \xi) (1 + \zeta) / 8
- *       & \frac{\partial N7}{\partial \zeta} = (1 + \xi) (1 + \eta) / 8 \\
- * N8 = (1 - \xi) (1 + \eta) (1 + \zeta) / 8
- *       & \frac{\partial N8}{\partial \xi}  = - (1 + \eta) (1 + \zeta) / 8
- *       & \frac{\partial N8}{\partial \eta} = (1 - \xi) (1 + \zeta) / 8
- *       & \frac{\partial N8}{\partial \zeta} = (1 - \xi) (1 + \eta) / 8 \\
- * \end{array}
- * \f]
- *
- * @f{eqnarray*}{
- * \xi_{q0}  &=& -1/\sqrt{3} \qquad  \eta_{q0} = -1/\sqrt{3} \qquad \zeta_{q0} =
- -1/\sqrt{3} \\
- * \xi_{q1}  &=&  1/\sqrt{3} \qquad  \eta_{q1} = -1/\sqrt{3} \qquad \zeta_{q1} =
- -1/\sqrt{3} \\
- * \xi_{q2}  &=&  1/\sqrt{3} \qquad  \eta_{q2} =  1/\sqrt{3} \qquad \zeta_{q2} =
- -1/\sqrt{3} \\
- * \xi_{q3}  &=& -1/\sqrt{3} \qquad  \eta_{q3} =  1/\sqrt{3} \qquad \zeta_{q3} =
- -1/\sqrt{3} \\
- * \xi_{q4}  &=& -1/\sqrt{3} \qquad  \eta_{q4} = -1/\sqrt{3} \qquad \zeta_{q4} =
- 1/\sqrt{3} \\
- * \xi_{q5}  &=&  1/\sqrt{3} \qquad  \eta_{q5} = -1/\sqrt{3} \qquad \zeta_{q5} =
- 1/\sqrt{3} \\
- * \xi_{q6}  &=&  1/\sqrt{3} \qquad  \eta_{q6} =  1/\sqrt{3} \qquad \zeta_{q6} =
- 1/\sqrt{3} \\
- * \xi_{q7}  &=& -1/\sqrt{3} \qquad  \eta_{q7} =  1/\sqrt{3} \qquad \zeta_{q7} =
- 1/\sqrt{3} \\
- * @f}
  */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

@@ -1,54 +1,36 @@
 /**
  * @file   element_class_triangle_3_inline_impl.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jul 16 2010
- * @date last modification: Wed Oct 11 2017
+ * @date last modification: Fri Dec 11 2020
  *
  * @brief  Specialization of the element_class class for the type _triangle_3
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @verbatim
-       \eta
-     ^
-     |
-     x (0,0,1)
-     |`
-     |  `
-     |  q `
-     |  °   `
-     x--------x----->  \xi
-    (1,0,0)      (0,1,0)
- @endverbatim
- *
- * @f{eqnarray*}{
- * N1 &=& 1 - \xi - \eta \\
- * N2 &=& \xi \\
- * N3 &=& \eta
- * @f}
- *
- * @f{eqnarray*}{
- * \xi_{q0}  &=& 1/3 \qquad  \eta_{q0} = 1/3
- * @f}
  */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

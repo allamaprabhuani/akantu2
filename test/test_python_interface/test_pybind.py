@@ -1,3 +1,17 @@
+
+""" test_pybind.py: Test the pybind interface"""
+
+__author__ = "Guillaume Anciaux and Nicolas Richart"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+    "Nicolas Richart <nicolas.richart@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 #!/bin/env python
 import pytest
 import numpy as np
@@ -193,3 +207,4 @@ def test_heat_transfer():
 if __name__ == '__main__':
     import sys
     pytest.main(sys.argv)
+

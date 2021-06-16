@@ -4,26 +4,28 @@
  * @author Fabian Barras <fabian.barras@epfl.ch>
  * @author Lucas Frerot <lucas.frerot@epfl.ch>
  *
- * @date creation: Fri Jul 15 2011
- * @date last modification: Wed Feb 21 2018
+ * @date creation: Sun Oct 19 2014
+ * @date last modification:  Thu Feb 25 2021
  *
  * @brief  Computation of the analytical exemple 1.1 in the TGC vol 6
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * @section LICENSE
+ *
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
  * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- * terms  of the  GNU Lesser  General Public  License as published by  the Free
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option) any
  * later version.
- *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
- *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
  * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
  */

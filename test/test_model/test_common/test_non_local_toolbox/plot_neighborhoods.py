@@ -1,5 +1,27 @@
 #!/usr/bin/env python
 
+""" plot_neighborhoods.py: plot the neighborhoods in non local manager"""
+
+__author__ = "Aurelia Isabel Cuba Ramos"
+__credits__ = [
+    "Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
+__author__ = "Aurelia Isabel Cuba Ramos"
+__credits__ = [
+    "Aurelia Isabel Cuba Ramos <aurelia.cubaramos@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
 # ------------------------------------------------------------------------------
 __author__ = "Aurelia Isabel Cuba Ramos"
 __copyright__ = "Copyright (C) 2016-2018, EPFL (Ecole Polytechnique Fédérale" \

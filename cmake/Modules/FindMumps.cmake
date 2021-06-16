@@ -1,32 +1,37 @@
 #===============================================================================
 # @file   FindMumps.cmake
 #
+# @author Mathias Lebihain <mathias.lebihain@enpc.fr>
+# @author Philip Mueller <philip.mueller@math.ethz.ch>
 # @author Nicolas Richart <nicolas.richart@epfl.ch>
 #
-# @date creation: Fri Oct 24 2014
-# @date last modification: Wed Jan 13 2016
+# @date creation: Sun Oct 19 2014
+# @date last modification: Fri Jan 22 2021
 #
 # @brief  The find_package file for the Mumps solver
 #
+#
 # @section LICENSE
 #
-# Copyright (©) 2015 EPFL (Ecole Polytechnique Fédérale de Lausanne) Laboratory
-# (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+# Copyright (©) 2015-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
-# Akantu is free  software: you can redistribute it and/or  modify it under the
-# terms  of the  GNU Lesser  General Public  License as  published by  the Free
+# Akantu is free software: you can redistribute it and/or modify it under the
+# terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
-# Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
+# 
+# Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A  PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
+# A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should  have received  a copy  of the GNU  Lesser General  Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
+
 set(_MUMPS_COMPONENTS "sequential" "parallel" "double" "float" "complex_double" "complex_float")
 
 if(NOT Mumps_FIND_COMPONENTS)

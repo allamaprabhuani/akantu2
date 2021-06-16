@@ -1,3 +1,18 @@
+
+""" __init__.py: akantu python module"""
+
+__author__ = "Guillaume Anciaux and Nicolas Richart"
+__credits__ = [
+    "Guillaume Anciaux <guillaume.anciaux@epfl.ch>",
+    "Nicolas Richart <nicolas.richart@epfl.ch>",
+]
+__copyright__ = "Copyright (©) 2018-2021 EPFL (Ecole Polytechnique Fédérale" \
+                " de Lausanne) Laboratory (LSMS - Laboratoire de Simulation" \
+                " en Mécanique des Solides)"
+__license__ = "LGPLv3"
+
+
+import warnings as _aka_warn
 import scipy.sparse as _aka_sparse
 import numpy as _aka_np
 from . import py11_akantu as _py11_akantu
@@ -20,7 +35,7 @@ def initialize(*args, **kwargs):
 
 
 def finalize(*args, **kwargs):
-    raise RuntimeError("No need to call finalize")
+    _aka_warn.warn("No need to call finalize", DeprecationWarning)
 
 
 class AkantuSparseMatrix (_aka_sparse.coo_matrix):

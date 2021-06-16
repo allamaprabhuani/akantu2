@@ -1,90 +1,36 @@
 /**
  * @file   element_class_triangle_6_inline_impl.hh
  *
+ * @author Guillaume Anciaux <guillaume.anciaux@epfl.ch>
+ * @author Mohit Pundir <mohit.pundir@epfl.ch>
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Fri Jul 16 2010
- * @date last modification: Wed Oct 11 2017
+ * @date last modification: Fri Feb 28 2020
  *
  * @brief  Specialization of the element_class class for the type _triangle_6
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @verbatim
-        \eta
-          ^
-          |
-          x 2
-          | `
-          |   `
-          |  .  `
-          |   q2  `
-        5 x          x 4
-          |           `
-          |             `
-          |  .q0     q1.  `
-          |                 `
-          x---------x---------x-----> \xi
-          0         3         1
- @endverbatim
- *
- *
- * @f[
- * \begin{array}{ll}
- *   \xi_{0}  = 0   &  \eta_{0} = 0   \\
- *   \xi_{1}  = 1   &  \eta_{1} = 0   \\
- *   \xi_{2}  = 0   &  \eta_{2} = 1   \\
- *   \xi_{3}  = 1/2 &  \eta_{3} = 0   \\
- *   \xi_{4}  = 1/2 &  \eta_{4} = 1/2 \\
- *   \xi_{5}  = 0   &  \eta_{5} = 1/2
- * \end{array}
- * @f]
- *
- * @f[
- * \begin{array}{lll}
- * N1 = -(1 - \xi - \eta) (1 - 2 (1 - \xi - \eta))
- *       & \frac{\partial N1}{\partial \xi}  = 1 - 4(1 - \xi - \eta)
- *       & \frac{\partial N1}{\partial \eta} = 1 - 4(1 - \xi - \eta) \\
- * N2 = - \xi (1 - 2 \xi)
- *       & \frac{\partial N2}{\partial \xi}  = - 1 + 4 \xi
- *       & \frac{\partial N2}{\partial \eta} = 0 \\
- * N3 = - \eta (1 - 2 \eta)
- *       & \frac{\partial N3}{\partial \xi}  = 0
- *       & \frac{\partial N3}{\partial \eta} = - 1 + 4 \eta \\
- * N4 = 4 \xi (1 - \xi - \eta)
- *       & \frac{\partial N4}{\partial \xi}  = 4 (1 - 2 \xi - \eta)
- *       & \frac{\partial N4}{\partial \eta} = - 4 \xi \\
- * N5 = 4 \xi \eta
- *       & \frac{\partial N5}{\partial \xi}  = 4 \eta
- *       & \frac{\partial N5}{\partial \eta} = 4 \xi \\
- * N6 = 4 \eta (1 - \xi - \eta)
- *       & \frac{\partial N6}{\partial \xi}  = - 4 \eta
- *       & \frac{\partial N6}{\partial \eta} = 4 (1 - \xi - 2 \eta)
- * \end{array}
- * @f]
- *
- * @f{eqnarray*}{
- * \xi_{q0}  &=& 1/6 \qquad  \eta_{q0} = 1/6 \\
- * \xi_{q1}  &=& 2/3 \qquad  \eta_{q1} = 1/6 \\
- * \xi_{q2}  &=& 1/6 \qquad  \eta_{q2} = 2/3
- * @f}
  */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

@@ -4,81 +4,31 @@
  * @author Nicolas Richart <nicolas.richart@epfl.ch>
  *
  * @date creation: Wed May 18 2011
- * @date last modification: Wed Oct 11 2017
+ * @date last modification: Tue Sep 29 2020
  *
  * @brief  Specialization of the ElementClass for the _quadrangle_8
  *
  *
- * Copyright (©)  2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
- Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
+ * @section LICENSE
  *
- * Akantu is free  software: you can redistribute it and/or  modify it under the
- terms  of the  GNU Lesser  General Public  License as published by  the Free
- Software Foundation, either version 3 of the License, or (at your option) any
- later version.
+ * Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+ * Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
  *
- * Akantu is  distributed in the  hope that it  will be useful, but  WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- PARTICULAR PURPOSE. See  the GNU  Lesser General  Public License  for more
- details.
+ * Akantu is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
+ * 
+ * Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Akantu. If not, see <http://www.gnu.org/licenses/>.
  *
- * You should  have received  a copy  of the GNU  Lesser General  Public License
- along with Akantu. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * @verbatim
-              \eta
-               ^
-               |
-   (-1,1)    (0,1)   (1,1)
-       x-------x-------x
-       |       |       |
-       |       |       |
-       |       |       |
- (-1,0)|       |       |(1,0)
-   ----x---------------X----->  \xi
-       |       |       |
-       |       |       |
-       |       |       |
-       |       |       |
-       x-------x-------x
-   (-1,-1)   (0,-1)  (1,-1)
-               |
- @endverbatim
- *
- * @f[
- * \begin{array}{lll}
- * N1 = (1 - \xi) (1 - \eta)(- 1 - \xi - \eta) / 4
- *       & \frac{\partial N1}{\partial \xi}  = (1 - \eta)(2 \xi + \eta) / 4
- *       & \frac{\partial N1}{\partial \eta} = (1 - \xi)(\xi + 2 \eta) / 4 \\
- * N2 = (1 + \xi) (1 - \eta)(- 1 + \xi - \eta) / 4 \\
- *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta)(2 \xi - \eta) / 4
- *       & \frac{\partial N2}{\partial \eta} = - (1 + \xi)(\xi - 2 \eta) / 4 \\
- * N3 = (1 + \xi) (1 + \eta)(- 1 + \xi + \eta) / 4 \\
- *       & \frac{\partial N3}{\partial \xi}  = (1 + \eta)(2 \xi + \eta) / 4
- *       & \frac{\partial N3}{\partial \eta} = (1 + \xi)(\xi + 2 \eta) / 4 \\
- * N4 = (1 - \xi) (1 + \eta)(- 1 - \xi + \eta) / 4
- *       & \frac{\partial N4}{\partial \xi}  = (1 + \eta)(2 \xi - \eta) / 4
- *       & \frac{\partial N4}{\partial \eta} = - (1 - \xi)(\xi - 2 \eta) / 4 \\
- * N5 = (1 - \xi^2) (1 - \eta) / 2
- *       & \frac{\partial N1}{\partial \xi}  = - \xi (1 - \eta)
- *       & \frac{\partial N1}{\partial \eta} = - (1 - \xi^2) / 2  \\
- * N6 = (1 + \xi) (1 - \eta^2) / 2 \\
- *       & \frac{\partial N2}{\partial \xi}  = (1 - \eta^2) / 2
- *       & \frac{\partial N2}{\partial \eta} = - \eta (1 + \xi) \\
- * N7 = (1 - \xi^2) (1 + \eta) / 2 \\
- *       & \frac{\partial N3}{\partial \xi}  = - \xi (1 + \eta)
- *       & \frac{\partial N3}{\partial \eta} = (1 - \xi^2) / 2 \\
- * N8 = (1 - \xi) (1 - \eta^2) / 2
- *       & \frac{\partial N4}{\partial \xi}  = - (1 - \eta^2) / 2
- *       & \frac{\partial N4}{\partial \eta} = - \eta (1 - \xi) \\
- * \end{array}
- * @f]
- *
- * @f{eqnarray*}{
- * \xi_{q0}  &=& 0 \qquad  \eta_{q0} = 0
- * @f}
  */
+
 /* -------------------------------------------------------------------------- */
 #include "element_class.hh"
 /* -------------------------------------------------------------------------- */

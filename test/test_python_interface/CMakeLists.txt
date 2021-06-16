@@ -4,30 +4,32 @@
 # @author Fabian Barras <fabian.barras@epfl.ch>
 # @author Lucas Frerot <lucas.frerot@epfl.ch>
 #
-# @date creation: Fri Sep 03 2010
-# @date last modification: Mon Feb 05 2018
+# @date creation: Sun Oct 19 2014
+# @date last modification:  Tue Jun 30 2020
 #
 # @brief  Python Interface tests
 #
+#
 # @section LICENSE
 #
-# Copyright (©) 2010-2018 EPFL (Ecole Polytechnique Fédérale de Lausanne)
+# Copyright (©) 2010-2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)
 # Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)
 #
 # Akantu is free software: you can redistribute it and/or modify it under the
 # terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation, either version 3 of the License, or (at your option) any
 # later version.
-#
+# 
 # Akantu is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 # A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 # details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Akantu. If not, see <http://www.gnu.org/licenses/>.
+# 
+# You should have received a copy of the GNU Lesser General Public License along
+# with Akantu. If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+
 akantu_pybind11_add_module(py11_akantu_test_common MODULE test_common.cc)
 
 add_mesh(mesh_dcb_2d mesh_dcb_2d.geo 2 2)
