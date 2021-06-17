@@ -602,13 +602,13 @@ Material description with input file:
 
    #input.dat
 
-   material neohookean [
+   material viscoelastic_maxwell [
      name = material_name
      rho = 1000                # density (Real)
-     Einf = 2.1e9              # Infinite time Young's modulus (Real)
+     Einf = 5.e9              # Infinite time Young's modulus (Real)
      nu = 0.4                  # poisson's ratio (Real)
-     Eta = 1.                  # Dashpot elements' viscosity values (Vector<Real>)
-     Ev = 0.5                  # Maxwell elements' stiffness values (Vector<Real>)
+     Ev = [1.e9, 2.e9, 3.e9] # Maxwell elements' stiffness values (Vector<Real>) 
+     Eta = [1.e14, 2.e16, 3.e16] # Dashpot elements' viscosity values (Vector<Real>) 
      Plane_stress = false      # Plane stress simplification (bool, only 2D problems)
    ]
 
@@ -619,7 +619,7 @@ Material description with input file:
    :align: center
    :width: 40.0%
 
-A different visco-elastic rheological model available to users is the generalized Maxwell chain.
+A different visco-elastic rheological model available to users is the generalized Maxwell chain (see :cite:`de_borst_finiteelement_1994` and Section 46.7.4 of :cite:`diana_manual`).
 It consists of a series of sequential spring-dashpots (Maxwell elements) placed in parallel with
 one single spring (see :numref:`fig:smm:cl:visco-elastic:maxwell`). The relation between stresses and strain comes from
 
