@@ -99,13 +99,20 @@ try:
     git_describe = git_repo.git.describe('--tags', '--dirty', '--always',
                                          '--long',
                                          '--match', '{}*'.format(tag_prefix))
+
+    print("GIT Describe: {}".format(git_describe))
+
     # git describe to PEP404 version
     describe_matches = re.search(
         (r'^{}(?P<version>.+?)' +
          r'(?:-(?P<distance>\d+)-g(?P<sha>[0-9a-f]+)' +
          r'(?:-(?P<dirty>dirty))?)?$').format(tag_prefix),
-        git_describe).groupdict()
+        git_describe)
 
+    if describe_matches:
+        describe_matches = describe_matches.groupdict()
+    else:
+        raise ValueError('na match found')
     release = 'v' + describe_matches['version']
     if describe_matches['distance']:
         release += '.' if '+' in release else '+'
