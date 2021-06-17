@@ -149,11 +149,15 @@ if(CMAKE_VERBOSE_MAKEFILE)
   set(SPHINX_VERBOSE_FLAG)
 endif(CMAKE_VERBOSE_MAKEFILE)
 
-set(AKANTU_IN_READTHEDOC FALSE)
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/conf.py"
   "${SPHINX_INPUT}"
   @ONLY)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/manual/manual-bibliography.bib"
+  "${CMAKE_CURRENT_BINARY_DIR}/manual/manual-bibliography.bib"
+  COPYONLY)
 
 set(SPHINX_PARALLEL_FLAG)
 if (SPHINX_VERSION VERSION_GREATER_EQUAL 1.7.0)

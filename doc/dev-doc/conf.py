@@ -117,7 +117,7 @@ try:
     if describe_matches:
         describe_matches = describe_matches.groupdict()
 
-        release = 'v' + describe_matches['version']
+        release = describe_matches['version']
         if describe_matches['distance']:
             release += '.' if '+' in release else '+'
             release += '{distance}.{sha}'.format(**describe_matches)
@@ -129,14 +129,14 @@ try:
             (r'^(?P<sha>[0-9a-f]+)' +
              r'(?:-(?P<dirty>dirty))?$').format(tag_prefix),
             git_describe).groupdict()
-        release = 'v{}.{}+{}'.format(file_release, count,
-                                     describe_matches['sha'])
+        release = '{}.{}+{}'.format(file_release, count,
+                                    describe_matches['sha'])
 
 except git.InvalidGitRepositoryError:
-    release = 'v' + file_release
+    release = file_release
 
-version = re.sub(r'^v([0-9]+)\.([0-9+]).*',
-                 r'v\1.\2',
+version = re.sub(r'^([0-9]+)\.([0-9+]).*',
+                 r'\1.\2',
                  release)
 
 print('Release: {} - Version: {}'.format(release, version))

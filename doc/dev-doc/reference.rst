@@ -111,8 +111,8 @@ Input/Output
 .. doxygenclass:: akantu::DumperIOHelper
 .. doxygenclass:: akantu::DumperParaview
 .. doxygenclass:: akantu::DumperText
-.. doxygenclass:: akantu::Field
+.. doxygenclass:: akantu::dumpers::Field
 .. doxygenclass:: akantu::Parser
 .. doxygenclass:: akantu::ParserParameter
 .. doxygenclass:: akantu::ParserSection
-.. doxygenenum:: akantu::SectionType
+.. doxygenenum:: akantu::ParserType

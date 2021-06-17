@@ -29,13 +29,13 @@ DOXYGEN_INCLUDE_PATH   = {{ akantu_source_path }}/src/common \
                          {{ akantu_source_path }}/src/fe_engine \
                          {{ akantu_source_path }}/src/mesh \
                          {{ akantu_source_path }}/src/model
+PREDEFINED             = "AKANTU_GET_MACRO(name, value, type) = type get##name() const;" \
+                         "AKANTU_GET_MACRO_NOT_CONST(name, value, type) = type get##name();"
 EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \
                          __END_AKANTU__ \
                          __BEGIN_AKANTU_DUMPER__ \
                          __END_AKANTU_DUMPER__ \
                          AKANTU_SET_MACRO \
-                         AKANTU_GET_MACRO \
-                         AKANTU_GET_MACRO_NOT_CONST \
                          AKANTU_GET_MACRO_DEREF_PTR \
                          AKANTU_GET_MACRO_BY_ELEMENT_TYPE \
                          AKANTU_GET_MACRO_BY_ELEMENT_TYPE_CONST
