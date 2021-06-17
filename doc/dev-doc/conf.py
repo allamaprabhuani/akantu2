@@ -93,7 +93,7 @@ copyright = '2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)' + \
     ' Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)'
 author = 'Nicolas Richart'
 
-with open(os.join.path(akantu_source_path, 'VERSION'), 'r') as fh:
+with open(os.path.join(akantu_source_path, 'VERSION'), 'r') as fh:
     version_file = fh.readlines()
     file_release = 'v{}'.format(version_file[0])
 
