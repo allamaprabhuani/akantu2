@@ -126,8 +126,8 @@ try:
     else:
         count = git_repo.git.rev_list('HEAD', '--count')
         describe_matches = re.search(
-            (r'(?P<sha>[0-9a-f]+)' +
-             r'(?:-(?P<dirty>dirty))?)?$').format(tag_prefix),
+            (r'^(?P<sha>[0-9a-f]+)' +
+             r'(?:-(?P<dirty>dirty))?$').format(tag_prefix),
             git_describe).groupdict()
         release = 'v{}.{}+{}'.format(file_release, count,
                                      describe_matches['sha'])
