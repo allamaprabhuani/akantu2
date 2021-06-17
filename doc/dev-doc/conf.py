@@ -93,9 +93,14 @@ copyright = '2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)' + \
     ' Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)'
 author = 'Nicolas Richart'
 
+with open(os.join.path(akantu_source_path, 'VERSION'), 'r') as fh:
+    version_file = fh.readlines()
+    file_release = 'v{}'.format(version_file[0])
+
 try:
     tag_prefix = 'v'
     git_repo = git.Repo(akantu_source_path)
+
     git_describe = git_repo.git.describe('--tags', '--dirty', '--always',
                                          '--long',
                                          '--match', '{}*'.format(tag_prefix))
@@ -111,22 +116,29 @@ try:
 
     if describe_matches:
         describe_matches = describe_matches.groupdict()
+
+        release = 'v' + describe_matches['version']
+        if describe_matches['distance']:
+            release += '.' if '+' in release else '+'
+            release += '{distance}.{sha}'.format(**describe_matches)
+            if describe_matches['dirty']:
+                release += '.dirty'
     else:
-        raise ValueError('na match found')
-    release = 'v' + describe_matches['version']
-    if describe_matches['distance']:
-        release += '.' if '+' in release else '+'
-        release += '{distance}.{sha}'.format(**describe_matches)
-        if describe_matches['dirty']:
-            release += '.dirty'
+        count = git_repo.git.rev_list('HEAD', '--count')
+        describe_matches = re.search(
+            (r'(?P<sha>[0-9a-f]+)' +
+             r'(?:-(?P<dirty>dirty))?)?$').format(tag_prefix),
+            git_describe).groupdict()
+        release = 'v{}.{}+{}'.format(file_release, count,
+                                     describe_matches['sha'])
 except git.InvalidGitRepositoryError:
-    with open(os.join.path(akantu_source_path, 'VERSION'), 'r') as fh:
-        version_file = fh.readlines()
-        release = 'v{}'.format(version_file[0])
+    release = 'v' + file_release
 
 version = re.sub(r'^v([0-9]+)\.([0-9+]).*',
                  r'v\1.\2',
                  release)
+
+print('Release: {} - Version: {}'.format(release, version))
 
 # -- Options for HTML output -------------------------------------------------
 
