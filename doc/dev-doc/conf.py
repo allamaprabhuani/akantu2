@@ -95,7 +95,7 @@ author = 'Nicolas Richart'
 
 with open(os.path.join(akantu_source_path, 'VERSION'), 'r') as fh:
     version_file = fh.readlines()
-    file_release = 'v{}'.format(version_file[0])
+    file_release = version_file[0].strip()
 
 try:
     tag_prefix = 'v'
