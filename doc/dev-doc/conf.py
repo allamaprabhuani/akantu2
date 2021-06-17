@@ -14,20 +14,10 @@
 #
 import os
 import shutil
-# import subprocess
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-
-
-# -- Project information -----------------------------------------------------
-
-project = '@PROJECT_NAME@'
-copyright = '@AKANTU_COPYRIGHT@'
-author = '@AKANTU_MAINTAINER@'
-
-version = '@AKANTU_MAJOR_VERSION@.@AKANTU_MINOR_VERSION@'
-# The full version, including alpha/beta/rc tags
-release = '@AKANTU_VERSION@'
+import jinja2
+import git
+import re
+import subprocess
 
 # -- General configuration ---------------------------------------------------
 
@@ -53,6 +43,12 @@ extensions = [
 ]
 
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+if read_the_docs_build:
+    akantu_path = "."
+    akantu_source_path = "../../"
+else:
+    akantu_path = "@CMAKE_CURRENT_BINARY_DIR@"
+    akantu_source_path = "@CMAKE_SOURCE_DIR@"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -89,6 +85,62 @@ primary_domain = 'cpp'
 highlight_language = 'cpp'
 
 bibtex_bibfiles = ['manual/manual-bibliography.bib']
+
+# -- Project information -----------------------------------------------------
+
+project = 'Akantu'
+copyright = '2021 EPFL (Ecole Polytechnique Fédérale de Lausanne)' + \
+    ' Laboratory (LSMS - Laboratoire de Simulation en Mécanique des Solides)'
+author = 'Nicolas Richart'
+
+with open(os.path.join(akantu_source_path, 'VERSION'), 'r') as fh:
+    version_file = fh.readlines()
+    file_release = version_file[0].strip()
+
+try:
+    tag_prefix = 'v'
+    git_repo = git.Repo(akantu_source_path)
+
+    git_describe = git_repo.git.describe('--tags', '--dirty', '--always',
+                                         '--long',
+                                         '--match', '{}*'.format(tag_prefix))
+
+    print("GIT Describe: {}".format(git_describe))
+
+    # git describe to PEP404 version
+    describe_matches = re.search(
+        (r'^{}(?P<version>.+?)' +
+         r'(?:-(?P<distance>\d+)-g(?P<sha>[0-9a-f]+)' +
+         r'(?:-(?P<dirty>dirty))?)?$').format(tag_prefix),
+        git_describe)
+
+    if describe_matches:
+        describe_matches = describe_matches.groupdict()
+
+        release = 'v' + describe_matches['version']
+        if describe_matches['distance']:
+            release += '.' if '+' in release else '+'
+            release += '{distance}.{sha}'.format(**describe_matches)
+            if describe_matches['dirty']:
+                release += '.dirty'
+    else:
+        count = git_repo.git.rev_list('HEAD', '--count')
+        describe_matches = re.search(
+            (r'^(?P<sha>[0-9a-f]+)' +
+             r'(?:-(?P<dirty>dirty))?$').format(tag_prefix),
+            git_describe).groupdict()
+        release = 'v{}.{}+{}'.format(file_release, count,
+                                     describe_matches['sha'])
+
+except git.InvalidGitRepositoryError:
+    release = 'v' + file_release
+
+version = re.sub(r'^v([0-9]+)\.([0-9+]).*',
+                 r'v\1.\2',
+                 release)
+
+print('Release: {} - Version: {}'.format(release, version))
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -128,20 +180,36 @@ html_sidebars = {
 math_eqref_format = "Eq. {number}"
 
 # MathJax configuration
-mathjax_config = {
-    'extensions': [
-        "tex2jax.js",
-        "siunitx.js"
-    ],
-    'TeX': {
-        'Macros': {
-            'st': [r'\mathrm{#1}', 1],
-            'mat': [r'\mathbf{#1}', 1],
-            'half': [r'\frac{1}{2}', 0],
+if not read_the_docs_build:
+    mathjax_config = {
+        'extensions': [
+            "tex2jax.js",
+            "siunitx.js"
+        ],
+        'TeX': {
+            'Macros': {
+                'st': [r'\mathrm{#1}', 1],
+                'mat': [r'\mathbf{#1}', 1],
+                'half': [r'\frac{1}{2}', 0],
+            },
+            'extensions': ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
         },
-        'extensions': ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
-    },
-}
+    }
+else:
+    mathjax3_config = {
+        'tex': {
+            'macros': {
+                'st': [r'\mathrm{#1}', 1],
+                'mat': [r'\mathbf{#1}', 1],
+                'half': [r'\frac{1}{2}', 0],
+            },
+            'packages': ['base', 'ams'],
+        },
+        'loader': {
+            'load': ['[tex]/ams']
+        },
+    }
+
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
@@ -222,14 +290,34 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
+j2_args = {}
+
 if read_the_docs_build:
-    akantu_path = "."
+    j2_template_path = '.'
 else:
-    akantu_path = "@CMAKE_CURRENT_BINARY_DIR@"
+    j2_template_path = '@CMAKE_CURRENT_SOURCE_DIR@'
     os.makedirs(os.path.join(akantu_path, '_static'), exist_ok=True)
     shutil.copyfile(
         os.path.join('@CMAKE_CURRENT_SOURCE_DIR@', html_logo),
         os.path.join(akantu_path, html_logo))
+
+j2_args = {
+    'akantu_source_path': akantu_source_path,
+    'akantu_version': version.replace('v', ''),
+}
+
+print(akantu_path)
+j2_env = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(j2_template_path),
+    undefined=jinja2.DebugUndefined)
+
+j2_template = j2_env.get_template('akantu.dox.j2')
+
+with open(os.path.join(akantu_path, 'akantu.dox'), 'w') as fh:
+    fh.write(j2_template.render(j2_args))
+
+subprocess.run(['doxygen', 'akantu.dox'],
+               cwd=akantu_path)
 
 # print("akantu_path = '{}'".format(akantu_path))
 breathe_projects = {"Akantu": os.path.join(akantu_path, "xml")}

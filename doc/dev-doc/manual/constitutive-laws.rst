@@ -527,7 +527,7 @@ Material description with input file:
 
    #input.dat
 
-   material neohookean [
+   material sls_deviatoric [
      name = material_name
      rho = 1000                # density (Real)
      E   = 2.1e9               # young's modulus (Real)
@@ -555,10 +555,12 @@ exhibit a visco-elastic behavior if subjected to particular conditions
 
    Characteristic stress-strain behavior of a visco-elastic material with hysteresis loop
 
+
 .. figure:: figures/cl/visco_elastic_law.svg
    :name:   fig:smm:cl:visco-elastic:model
    :align: center
    :width: 40.0%
+
 
    Schematic representation of the standard rheological linear solid visco-elastic model
 
@@ -571,7 +573,9 @@ The advantage of this model is that it allows to account for creep or
 stress relaxation. The equation that relates the stress to the strain is
 (in 1D):
 
-.. math:: \frac{d\varepsilon(t)}{dt} = \left ( E + E_V \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_V}{\eta}\sigma(t) - \frac{EE_V}{\eta}\varepsilon(t) \right ]
+.. math::
+
+   \frac{d\varepsilon(t)}{dt} = \left ( E_{\mathrm{inf}} + E_{v} \right ) ^ {-1} \cdot \left [ \frac{d\sigma(t)}{dt} + \frac{E_{v}}{\eta}\sigma(t) - \frac{E_{\mathrm{inf}}E_V}{\eta}\varepsilon(t) \right ]
 
 where :math:`\eta` is the viscosity. The equilibrium condition is unique and is
 attained in the limit, as :math:`t \to \infty`. At this stage, the response is
@@ -614,23 +618,38 @@ Material description with input file:
 
 ----
 
+
 .. figure:: figures/cl/maxwell_chain.png
-   :name:   fig:smm:cl:visco-elastic:maxwell
+   :name:   fig-smm-cl-visco-elastic-maxwell
    :align: center
    :width: 40.0%
 
-A different visco-elastic rheological model available to users is the generalized Maxwell chain (see :cite:`de_borst_finiteelement_1994` and Section 46.7.4 of :cite:`diana_manual`).
-It consists of a series of sequential spring-dashpots (Maxwell elements) placed in parallel with
-one single spring (see :numref:`fig:smm:cl:visco-elastic:maxwell`). The relation between stresses and strain comes from
+   Schematic representation of the Maxwell chain
+
+A different visco-elastic rheological model available to users is the
+generalized Maxwell chain (see :cite:`de_borst_finiteelement_1994` and Section 46.7.4 of :cite:`diana_manual`).
+It consists of a series of sequential spring-dashpots
+(Maxwell elements) placed in parallel with one single spring (see
+:numref:`fig-smm-cl-visco-elastic-maxwell`). The relation between stresses and
+strain comes from
 
 .. math:: \sigma \left ( t \right ) =  \int_{-\infty}^{t} E \left ( t, \tau \right ) \mathbf{D} \dot{\varepsilon} d\tau
 
-where :math:`E(t,\tau)` is the time-dependent relaxation function, :math:`\tau` is the loading age, and :math:`\mathbf{D}` is the dimensionless matrix relating a 3D deformation state to a 1D relaxation function. The relaxation function is expanded in the exponential series
+where :math:`E(t,\tau)` is the time-dependent relaxation function, :math:`\tau`
+is the loading age, and :math:`\mathbf{D}` is the dimensionless matrix relating
+a 3D deformation state to a 1D relaxation function. The relaxation function is
+expanded in the exponential series
 
-.. math:: E \left ( t, \tau \right ) =  E_{0} + \sum_{\alpha=1}^{n} E_{\alpha} e^{- \frac{t- \tau}{\lambda_{\alpha}}}
-	:label: eqn-relaxation-function
+.. math::
+   :label: eqn-relaxation-function
 
-where the relaxation time of each Maxwell element is defined as :math:`\lambda_{\alpha}=\eta_{\alpha} / E_{\alpha}` with :math:`\eta_{\alpha}` being the viscosity of a dash-pot. Assuming a constant strain rate within each time step, the analytical integration of the right-hand side of :eq:`eqn-relaxation-function` leads to the following form
+   E \left ( t, \tau \right ) =  E_{0} + \sum_{\alpha=1}^{n} E_{\alpha} e^{- \frac{t- \tau}{\lambda_{\alpha}}}
+
+where the relaxation time of each Maxwell element is defined as
+:math:`\lambda_{\alpha}=\eta_{\alpha} / E_{\alpha}` with :math:`\eta_{\alpha}`
+being the viscosity of a dash-pot. Assuming a constant strain rate within each
+time step, the analytical integration of the right-hand side of
+:eq:`eqn-relaxation-function` leads to the following form
 
 .. math::
      \sigma \left ( t + \Delta t \right ) = E_{0} \mathbf{D} \varepsilon +
@@ -638,25 +657,40 @@ where the relaxation time of each Maxwell element is defined as :math:`\lambda_{
      \frac{E_{\alpha} \lambda_{\alpha}}{\Delta t} \mathbf{D} \delta \varepsilon +
      e^{\frac{-\Delta t}{\lambda_{\alpha}}} \sigma_{\alpha} \left ( t \right ) \right )
 
-with :math:`\sigma_{\alpha}(t)` being the internal stress within each Maxwell element, defined as
+with :math:`\sigma_{\alpha}(t)` being the internal stress within each Maxwell
+element, defined as
 
 .. math:: \sigma_{\alpha} \left ( t \right ) = \mathbf{D} \int_0^t E_{\alpha} e^{\frac{-t- \tau}{\lambda_{\alpha}}} \dot{\varepsilon} d \tau
-	  
-The first term under the sum sign in above equation could be seen as the effective stiffness of a single Maxwell element multiplied by the matrix :math:`\mathbf{D}` and the strain increment :math:`\Delta \varepsilon`:
+
+The first term under the sum sign in above equation could be seen as the
+effective stiffness of a single Maxwell element multiplied by the matrix
+:math:`\mathbf{D}` and the strain increment :math:`\Delta \varepsilon`:
 
 .. math::
    E_{\alpha}^{ef} = \left ( 1- e^{\frac{-Δt}{λ_α}} \right ) \frac{E_α λ_α}{Δt}
    
-Time increment :math:`Δt` controls the rate dependency of the effective stiffness. By limit analysis, we find the limiting values of the effective stiffness which are equal to :math:`E_0` for infinitely slow loading (:math:`Δt` tending to 0) and :math:`E_0+ΣE_α` for infinitely fast (:math:`Δt` tending to infinity). At the end of each converged time step, the internal stress :math:`σ_α(t)` is updated according to
+Time increment :math:`Δt` controls the rate dependency of the effective
+stiffness. By limit analysis, we find the limiting values of the effective
+stiffness which are equal to :math:`E_0` for infinitely slow loading (:math:`Δt`
+tending to 0) and :math:`E_0+ΣE_α` for infinitely fast (:math:`Δt` tending to
+infinity). At the end of each converged time step, the internal stress
+:math:`σ_α(t)` is updated according to
 
 .. math::
    σ_α \left ( t \right ) = σ_α \left ( t - Δt \right ) e^{\frac{-Δt}{λ_α}} +  E_α^{ef} \mathbf{D} Δε
 
-The mandatory parameters for the material file are the following: ``rho`` (density), ``nu`` (Poisson’s ratio), ``Plane_Stress`` (if set to zero plane strain, otherwise plane stress), ``Einf`` (infinite time Young’s modulus), ``Ev`` (Maxwell elements' stiffness values stored in a vector), ``Eta`` (dashpots' viscosity values stored in a vector).
+The mandatory parameters for the material file are the following: ``rho``
+(density), ``nu`` (Poisson’s ratio), ``Plane_Stress`` (if set to zero plane
+strain, otherwise plane stress), ``Einf`` (infinite time Young’s modulus),
+``Ev`` (Maxwell elements' stiffness values stored in a vector), ``Eta``
+(dashpots' viscosity values stored in a vector).
 
-The Maxwell model is applied on the entire strain tensor and does not distinguish between its deviatoric and hydrostatic components. Note that the time step has to be specified for the model using current material both for static and dynamic simulations:
+The Maxwell model is applied on the entire strain tensor and does not
+distinguish between its deviatoric and hydrostatic components. Note that the
+time step has to be specified for the model using current material both for
+static and dynamic simulations:
 
-.. code-block:: none
+.. code-block:: c++
 
     model.setTimeStep(time_step_value);
 
