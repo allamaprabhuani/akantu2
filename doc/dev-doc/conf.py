@@ -131,6 +131,7 @@ try:
             git_describe).groupdict()
         release = 'v{}.{}+{}'.format(file_release, count,
                                      describe_matches['sha'])
+
 except git.InvalidGitRepositoryError:
     release = 'v' + file_release
 
@@ -193,6 +194,21 @@ mathjax_config = {
         'extensions': ["AMSmath.js", "AMSsymbols.js", "sinuitx.js"],
     },
 }
+
+mathjax3_config = {
+    'tex': {
+        'macros': {
+            'st': [r'\mathrm{#1}', 1],
+            'mat': [r'\mathbf{#1}', 1],
+            'half': [r'\frac{1}{2}', 0]
+        },
+        'packages': ['base', 'ams']
+    },
+    'loader': {
+        'load': ['[tex]/ams']
+    }
+}
+
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

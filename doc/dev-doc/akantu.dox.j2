@@ -25,6 +25,10 @@ XML_OUTPUT             = xml
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 PREDEFINED             = DOXYGEN
+DOXYGEN_INCLUDE_PATH   = {{ akantu_source_path }}/src/common \
+                         {{ akantu_source_path }}/src/fe_engine \
+                         {{ akantu_source_path }}/src/mesh \
+                         {{ akantu_source_path }}/src/model
 EXPAND_AS_DEFINED      = __BEGIN_AKANTU__ \
                          __END_AKANTU__ \
                          __BEGIN_AKANTU_DUMPER__ \
