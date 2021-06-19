@@ -7,10 +7,10 @@ damping_interval = 10
 damping_ratio = 0.9
 
 spatial_dimension = 2
-aka.parseInput('./materials/compression.dat')
+aka.parseInput('compression.dat')
 
 mesh = aka.Mesh(spatial_dimension)
-mesh.read('./mesh/compression.msh')
+mesh.read('compression_mesh.msh')
 
 coupler = aka.CouplerSolidContact(mesh)
 

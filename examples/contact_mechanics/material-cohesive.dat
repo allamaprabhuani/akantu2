@@ -1,0 +1,40 @@
+model solid_mechanics_model_cohesive[
+cohesive_inserter [
+   cohesive_surfaces = [interface]
+   ]		       
+
+material elastic [
+         name = body
+         rho = 1.0   # density
+         E   = 1e3 # young's modulu
+         nu  = 0.3    # poisson's ratio
+]
+
+material cohesive_linear [
+	 name = interface
+	 beta = 1
+	 G_c = 6.25e-4
+	 sigma_c = 1
+	 kappa = 1
+	 penalty = 0
+	 contact_after_breaking = false
+]	 
+
+]
+
+contact_detector [
+  type = explicit		 			
+  master = interface
+  slave = interface
+  projection_tolerance = 1e-10
+  max_iterations = 100
+  extension_tolerance = 1e-5
+]
+
+contact_resolution penalty_linear [
+  name = interface
+  mu = 0.0
+  epsilon_n = 0
+  epsilon_t = 0
+  is_master_deformable = true
+]

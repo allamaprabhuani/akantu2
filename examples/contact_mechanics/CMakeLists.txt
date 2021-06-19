@@ -30,6 +30,8 @@
 #
 #===============================================================================
 add_mesh(hertz hertz.geo 2 1)
+add_mesh(cohesive-contact cohesive-contact.geo 2 1)
+
 
 register_example(contact_explicit_dynamic
   SOURCES contact_explicit_dynamic.cc
@@ -41,4 +43,11 @@ register_example(contact_explicit_static
   SOURCES contact_explicit_static.cc
   DEPENDS hertz
   FILES_TO_COPY material.dat
+  )
+
+
+register_example(cohesive_contact_explicit_dynamic
+  SOURCES cohesive_contact_explicit_dynamic.cc
+  DEPENDS cohesive-contact
+  FILES_TO_COPY material-cohesive.dat
   )
