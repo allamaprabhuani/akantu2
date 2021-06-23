@@ -360,10 +360,100 @@ Contact resolution
 Coupling with :cpp:class:`SolidMechanicsModel <akantu::SolidMechanicsModel>`
 ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+To couple the
+:cpp:class:`ContactMechancisModel<akantu::ContactMechanicsModel>`
+contact mechanics model with
+:cpp:class:`SolidMechanicsModel<akantu::SolidMechanicsModel>` a
+dedicated coupler class :cpp:class:`CouplerSolidContact<akantu::CouplerSolidContact>` is provided.
 
+When an instance of a coupler class is created, it automatically
+creates the instances of solid mechanics model and contact mechanics
+model. The two objects can be retrived from the coupler class.
+
+.. code-block:: c++
+
+   CouplerSolidContact coupler(mesh);
+   auto & solid = coupler.getSolidMechanicsModel();
+   auto & contact = coupler.getContactMechanicsModel();
+
+
+Simply initializing the coupler initializes the two models.
+
+.. code-block:: c++
+
+   coupler.initFull( _analysis_method = _explicit_lumped_mass);
+
+However two set the material selector and the contact detector for the
+two models, one must set them using directly the instance of the two
+model classes.
+
+.. code-block:: c++
+
+   auto && selector = std::make_shared<MeshDataMaterialSelector<std::string>>(
+		     "physical_names",solid);
+   solid.setMaterialSelector(selector);
+
+
+.. code-block:: c++
+
+   auto && surface_selector = std::make_shared<PhysicalSurfaceSelector>(mesh);
+   contact.getContactDetector().setSurfaceSelector(surface_selector);
+
+The dumping fields/vectors belonging to the solid mechanics model and
+contact mechanics model can directly be set through the coupler
+class.
+
+.. code-block:: c++
+
+   coupler.setBaseName("contact-explicit-dynamic");
+   coupler.addDumpFieldVector("displacement");
+   coupler.addDumpFieldVector("normal_force");
+   coupler.addDumpFieldVector("external_force");
+   coupler.addDumpFieldVector("internal_force");
+   coupler.addDumpField("gaps");
+   coupler.addDumpField("areas");
+   coupler.addDumpField("stress");
+
+   
+Finally to solve the two models :cpp:`solveStep` function of coupler
+class must be invoked.
+
+.. code-block:: c++
+
+   coupler.solveStep();
+
+   
 Coupling with  :cpp:class:`SolidMechanicsModelCohesive <akantu::SolidMechanicsModelCohesive>`
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
+To use the contact mechanics model with cohesive elements, one must
+use the
+:cpp:class:`CouplerSolidCohesiveContact<akantu::CouplerSolidCohesiveContact>`
+to coupler the
+:cpp:class:`ContactMechancisModel<akantu::ContactMechanicsModel>` with :cpp:class:`SolidMechanicsModelCohesive<akantu::SolidMechanicsModelCohesive>`. The
+initialization and invocation of the functions are similar to
+:cpp:class:`CouplerSolidContact<akantu::CouplerSolidContact>` except a
+few changes.
 
+.. code-block:: c++
 
+   solid = coupler.getSolidMechanicsModelCohesive();
+
+   
+While initializing the coupler, the nature of cohesive elements
+(extrinsic/intrinsic) should needs to be passed.
+
+.. code-block:: c++
+
+   coupler.initFull( _analysis_method = _explicit_lumped_mass, _is_extrinsic=true);
+
+   
+To ensure that cohesive elements break during an explicit insertion,
+one must call the function :cpp:`checkCohesiveStress()` after
+:cpp:`solveStep()`.
+
+.. code-block:: c++
+
+   coupler.solveStep();
+   solid.checkCohesiveStress();
 
